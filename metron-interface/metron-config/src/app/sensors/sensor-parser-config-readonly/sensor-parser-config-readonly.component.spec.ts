@@ -205,7 +205,7 @@ class MockHdfsService extends HdfsService {
     });
   }
 
-  public post(contents: string): Observable<{}> {
+  public post(path: string, contents: string): Observable<{}> {
     return Observable.create(observer => {
       observer.next({});
       observer.complete();
@@ -320,8 +320,8 @@ describe('Component: SensorParserConfigReadonly', () => {
     kafkaTopic.replicationFactor = 1;
 
     topologyStatus.name = 'bro';
-    topologyStatus.latency = '10.1';
-    topologyStatus.throughput = '15.2';
+    topologyStatus.latency = 10.1;
+    topologyStatus.throughput = 15.2;
 
     let broEnrichment = {
       'fieldMap': {
@@ -358,33 +358,33 @@ describe('Component: SensorParserConfigReadonly', () => {
   it('getSensorStatusService should initialise the state variable to appropriate values ', async(() => {
     let sensorParserStatus = new TopologyStatus();
     sensorParserStatus.name = 'bro';
-    sensorParserStatus.latency = '10.1';
+    sensorParserStatus.latency = 10.1;
     sensorParserStatus.status = null;
-    sensorParserStatus.throughput = '15.2';
+    sensorParserStatus.throughput = 15.2;
 
     stormService.setForTest(sensorParserStatus);
 
     component.getSensorStatusService();
-    expect(component.topologyStatus.status).toEqual('Stopped');
-    expect(component.topologyStatus['sensorStatus']).toEqual('-');
+    expect(component.getTopologyStatus('status')).toEqual('Stopped');
+    expect(component.getTopologyStatus('sensorStatus')).toEqual('-');
 
     sensorParserStatus.status = 'ACTIVE';
-    stormService.setForTest(sensorParserStatus);
     component.getSensorStatusService();
-    expect(component.topologyStatus.status).toEqual('Running');
-    expect(component.topologyStatus['sensorStatus']).toEqual('Enabled');
+    stormService.setForTest(sensorParserStatus);
+    expect(component.getTopologyStatus('status')).toEqual('Running');
+    expect(component.getTopologyStatus('sensorStatus')).toEqual('Enabled');
 
     sensorParserStatus.status = 'KILLED';
-    stormService.setForTest(sensorParserStatus);
     component.getSensorStatusService();
-    expect(component.topologyStatus.status).toEqual('Stopped');
-    expect(component.topologyStatus['sensorStatus']).toEqual('-');
+    stormService.setForTest(sensorParserStatus);
+    expect(component.getTopologyStatus('status')).toEqual('Stopped');
+    expect(component.getTopologyStatus('sensorStatus')).toEqual('-');
 
     sensorParserStatus.status = 'INACTIVE';
-    stormService.setForTest(sensorParserStatus);
     component.getSensorStatusService();
-    expect(component.topologyStatus.status).toEqual('Disabled');
-    expect(component.topologyStatus['sensorStatus']).toEqual('Disabled');
+    stormService.setForTest(sensorParserStatus);
+    expect(component.getTopologyStatus('status')).toEqual('Disabled');
+    expect(component.getTopologyStatus('sensorStatus')).toEqual('Disabled');
   }));
 
   it('setGrokStatement should set the variables appropriately ', async(() => {
@@ -505,8 +505,8 @@ describe('Component: SensorParserConfigReadonly', () => {
     kafkaTopic.replicationFactor = 1;
 
     topologyStatus.name = 'bro';
-    topologyStatus.latency = '10.1';
-    topologyStatus.throughput = '15.2';
+    topologyStatus.latency = 10.1;
+    topologyStatus.throughput = 15.2;
 
     let broEnrichment = {
       'fieldMap': {

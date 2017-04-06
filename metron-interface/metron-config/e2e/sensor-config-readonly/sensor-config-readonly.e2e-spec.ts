@@ -32,7 +32,7 @@ describe('Sensor Details View', function () {
 
     it('should have squid attributes defined', (done) => {
         let parserNotRunnigExpected = ['',
-            'PARSERS\nGrok',
+            'PARSER\nGrok',
             'LAST UPDATED\n-',
             'LAST EDITOR\n-',
             'STATE\n-',
@@ -50,7 +50,7 @@ describe('Sensor Details View', function () {
             'REPLICATION FACTOR\n-',
             ''];
         let parserRunningExpected = ['',
-            'PARSERS\nGrok',
+            'PARSER\nGrok',
             'LAST UPDATED\n-',
             'LAST EDITOR\n-',
             'STATE\nEnabled',
@@ -68,7 +68,7 @@ describe('Sensor Details View', function () {
             'REPLICATION FACTOR\n-',
             ''];
         let parserDisabledExpected = ['',
-            'PARSERS\nGrok',
+            'PARSER\nGrok',
             'LAST UPDATED\n-',
             'LAST EDITOR\n-',
             'STATE\nDisabled',
