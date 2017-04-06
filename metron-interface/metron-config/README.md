@@ -71,4 +71,7 @@ The application will be available at http://localhost:4200/.  The REST applicati
     ```
     npm test
     ```
-  
+
+## License
+
+This projects bundles Font Awesome which is available under the SIL Open Font License.  See http://fontawesome.io/license/ for more details.

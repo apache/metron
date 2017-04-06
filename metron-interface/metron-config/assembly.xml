@@ -45,6 +45,15 @@
       <lineEnding>unix</lineEnding>
       <filtered>true</filtered>
     </fileSet>
+    <fileSet>
+      <directory>${project.basedir}</directory>
+      <outputDirectory>/web/management-ui/license</outputDirectory>
+      <includes>
+        <include>LICENSE</include>
+        <include>NOTICE</include>
+      </includes>
+      <fileMode>0644</fileMode>
+    </fileSet>
   </fileSets>
   <files>
     <file>
