@@ -50,43 +50,31 @@ export class SensorDetailsPage {
     }
 
     disableParser() {
-        return waitForElementVisibility(this.disableButton).then(() => {
-            return this.disableButton.click().then(() => {
-                return waitForElementVisibility(this.enableButton).then(() => {
-                    return true;
-                })
-            });
-        });
+        return waitForElementVisibility(this.disableButton).then(this.disableButton.click())
+                  .then(protractor.promise.controlFlow().execute(() =>{
+                      return waitForElementVisibility(this.enableButton)
+                  }));
     }
 
     enableParser() {
-        return waitForElementVisibility(this.enableButton).then(() => {
-            return this.enableButton.click().then(() => {
-                return waitForElementVisibility(this.disableButton).then(() => {
-                    return true;
-                })
-            });
-        });
+        return waitForElementVisibility(this.enableButton).then(this.enableButton.click())
+                  .then(protractor.promise.controlFlow().execute(() =>{
+                      return waitForElementVisibility(this.disableButton)
+                  }));
     }
 
     startParser() {
-        return waitForElementVisibility(this.startButton).then(() => {
-            return this.startButton.click().then(() => {
-                return waitForElementVisibility(this.stopButton).then(() => {
-                    return true;
-                })
-            });
-        });
+        return waitForElementVisibility(this.startButton).then(this.startButton.click())
+          .then(protractor.promise.controlFlow().execute(() => {
+              waitForElementVisibility(this.stopButton);
+        }));
     }
 
     stopParser() {
-        return waitForElementVisibility(this.stopButton).then(() => {
-            return this.stopButton.click().then(() => {
-                return waitForElementVisibility(this.startButton).then(() => {
-                    return true;
-                })
-            });
-        });
+        return waitForElementVisibility(this.stopButton).then(this.stopButton.click())
+          .then(protractor.promise.controlFlow().execute(() => {
+              waitForElementVisibility(this.startButton);
+          }));
     }
 
     getButtons() {

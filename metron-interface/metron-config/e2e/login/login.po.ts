@@ -15,7 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { browser, element, by } from 'protractor/globals';
+import { browser, element, by, protractor } from 'protractor/globals';
+import { waitForElementVisibility } from '../utils/e2e_util';
 
 export class LoginPage {
     navigateToLogin() {
@@ -23,10 +24,12 @@ export class LoginPage {
     }
 
     login() {
-        browser.wait(function() {return element(by.css('input.form-control')).isPresent();});
-        this.setUserNameAndPassword('admin', 'password');
-        this.submitLoginForm();
-        browser.wait(function() {return element(by.css('.logout')).isPresent();});
+        waitForElementVisibility(element(by.css('input.form-control'))).then(() => {
+            this.setUserNameAndPassword('admin', 'password');
+            this.submitLoginForm();
+        }).then(protractor.promise.controlFlow().execute(() => {
+            waitForElementVisibility(element(by.css('.logout')))
+        }));
     }
 
     logout() {
