@@ -37,6 +37,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -107,8 +108,8 @@ public class SimpleHBaseEnrichmentFunctionsTest {
 
   @Test
   public void testMultiGet() throws Exception {
-    String stellar = "MAP([ 'indicator0', 'indicator1' ], &( i : ENRICHMENT_GET('et', i, 'enrichments', 'cf')) )";
-    Object result = run(stellar, ImmutableMap.of("indicator", "indicator0"));
+    String stellar = "MAP([ 'indicator0', 'indicator1' ], indicator -> ENRICHMENT_GET('et', indicator, 'enrichments', 'cf') )";
+    Object result = run(stellar, new HashMap<>());
     Assert.assertTrue(result instanceof List);
     List<Map<String, Object>> out = (List<Map<String, Object>>) result;
     Assert.assertEquals(2, out.size());

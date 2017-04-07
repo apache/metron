@@ -37,7 +37,7 @@ public class StellarParser extends Parser {
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-		IN=1, REFERENCE_OP=2, DOUBLE_QUOTE=3, SINGLE_QUOTE=4, COMMA=5, PERIOD=6, 
+		IN=1, LAMBDA_OP=2, DOUBLE_QUOTE=3, SINGLE_QUOTE=4, COMMA=5, PERIOD=6, 
 		AND=7, OR=8, NOT=9, TRUE=10, FALSE=11, EQ=12, NEQ=13, LT=14, LTE=15, GT=16, 
 		GTE=17, QUESTION=18, COLON=19, IF=20, THEN=21, ELSE=22, NULL=23, MINUS=24, 
 		PLUS=25, DIV=26, MUL=27, LBRACE=28, RBRACE=29, LBRACKET=30, RBRACKET=31, 
@@ -50,24 +50,26 @@ public class StellarParser extends Parser {
 		RULE_transformation_entity = 7, RULE_comp_operator = 8, RULE_func_args = 9, 
 		RULE_op_list = 10, RULE_list_entity = 11, RULE_kv_list = 12, RULE_map_entity = 13, 
 		RULE_arithmetic_expr = 14, RULE_arithmetic_expr_mul = 15, RULE_functions = 16, 
-		RULE_arithmetic_operands = 17, RULE_identifier_operand = 18, RULE_lambda_with_args = 19, 
-		RULE_lambda_without_args = 20, RULE_lambda_variables = 21, RULE_lambda_variable = 22;
+		RULE_arithmetic_operands = 17, RULE_identifier_operand = 18, RULE_lambda_without_args = 19, 
+		RULE_lambda_with_args = 20, RULE_lambda_variables = 21, RULE_single_lambda_variable = 22, 
+		RULE_lambda_variable = 23;
 	public static final String[] ruleNames = {
 		"transformation", "transformation_expr", "conditional_expr", "logical_expr", 
 		"b_expr", "in_expr", "comparison_expr", "transformation_entity", "comp_operator", 
 		"func_args", "op_list", "list_entity", "kv_list", "map_entity", "arithmetic_expr", 
 		"arithmetic_expr_mul", "functions", "arithmetic_operands", "identifier_operand", 
-		"lambda_with_args", "lambda_without_args", "lambda_variables", "lambda_variable"
+		"lambda_without_args", "lambda_with_args", "lambda_variables", "single_lambda_variable", 
+		"lambda_variable"
 	};
 
 	private static final String[] _LITERAL_NAMES = {
-		null, null, "'&'", "'\"'", "'''", "','", "'.'", null, null, null, null, 
+		null, null, "'->'", "'\"'", "'''", "','", "'.'", null, null, null, null, 
 		null, "'=='", "'!='", "'<'", "'<='", "'>'", "'>='", "'?'", "':'", null, 
 		null, null, null, "'-'", "'+'", "'/'", "'*'", "'{'", "'}'", "'['", "']'", 
 		"'('", "')'"
 	};
 	private static final String[] _SYMBOLIC_NAMES = {
-		null, "IN", "REFERENCE_OP", "DOUBLE_QUOTE", "SINGLE_QUOTE", "COMMA", "PERIOD", 
+		null, "IN", "LAMBDA_OP", "DOUBLE_QUOTE", "SINGLE_QUOTE", "COMMA", "PERIOD", 
 		"AND", "OR", "NOT", "TRUE", "FALSE", "EQ", "NEQ", "LT", "LTE", "GT", "GTE", 
 		"QUESTION", "COLON", "IF", "THEN", "ELSE", "NULL", "MINUS", "PLUS", "DIV", 
 		"MUL", "LBRACE", "RBRACE", "LBRACKET", "RBRACKET", "LPAREN", "RPAREN", 
@@ -148,9 +150,9 @@ public class StellarParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(46);
+			setState(48);
 			transformation_expr();
-			setState(47);
+			setState(49);
 			match(EOF);
 			}
 		}
@@ -281,13 +283,13 @@ public class StellarParser extends Parser {
 		Transformation_exprContext _localctx = new Transformation_exprContext(_ctx, getState());
 		enterRule(_localctx, 2, RULE_transformation_expr);
 		try {
-			setState(59);
+			setState(61);
 			switch ( getInterpreter().adaptivePredict(_input,0,_ctx) ) {
 			case 1:
 				_localctx = new ConditionalExprContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(49);
+				setState(51);
 				conditional_expr();
 				}
 				break;
@@ -295,11 +297,11 @@ public class StellarParser extends Parser {
 				_localctx = new TransformationExprContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(50);
-				match(LPAREN);
-				setState(51);
-				transformation_expr();
 				setState(52);
+				match(LPAREN);
+				setState(53);
+				transformation_expr();
+				setState(54);
 				match(RPAREN);
 				}
 				break;
@@ -307,7 +309,7 @@ public class StellarParser extends Parser {
 				_localctx = new ArithExpressionContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(54);
+				setState(56);
 				arithmetic_expr(0);
 				}
 				break;
@@ -315,7 +317,7 @@ public class StellarParser extends Parser {
 				_localctx = new TransformationEntityContext(_localctx);
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(55);
+				setState(57);
 				transformation_entity();
 				}
 				break;
@@ -323,7 +325,7 @@ public class StellarParser extends Parser {
 				_localctx = new ComparisonExpressionContext(_localctx);
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(56);
+				setState(58);
 				comparison_expr(0);
 				}
 				break;
@@ -331,7 +333,7 @@ public class StellarParser extends Parser {
 				_localctx = new LogicalExpressionContext(_localctx);
 				enterOuterAlt(_localctx, 6);
 				{
-				setState(57);
+				setState(59);
 				logical_expr();
 				}
 				break;
@@ -339,7 +341,7 @@ public class StellarParser extends Parser {
 				_localctx = new InExpressionContext(_localctx);
 				enterOuterAlt(_localctx, 7);
 				{
-				setState(58);
+				setState(60);
 				in_expr();
 				}
 				break;
@@ -417,9 +419,8 @@ public class StellarParser extends Parser {
 		Conditional_exprContext _localctx = new Conditional_exprContext(_ctx, getState());
 		enterRule(_localctx, 4, RULE_conditional_expr);
 		try {
-			setState(74);
+			setState(76);
 			switch (_input.LA(1)) {
-			case REFERENCE_OP:
 			case NOT:
 			case TRUE:
 			case FALSE:
@@ -437,15 +438,15 @@ public class StellarParser extends Parser {
 				_localctx = new TernaryFuncWithoutIfContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(61);
-				logical_expr();
-				setState(62);
-				match(QUESTION);
 				setState(63);
-				transformation_expr();
+				logical_expr();
 				setState(64);
-				match(COLON);
+				match(QUESTION);
 				setState(65);
+				transformation_expr();
+				setState(66);
+				match(COLON);
+				setState(67);
 				transformation_expr();
 				}
 				break;
@@ -453,17 +454,17 @@ public class StellarParser extends Parser {
 				_localctx = new TernaryFuncWithIfContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(67);
-				match(IF);
-				setState(68);
-				logical_expr();
 				setState(69);
-				match(THEN);
+				match(IF);
 				setState(70);
-				transformation_expr();
+				logical_expr();
 				setState(71);
-				match(ELSE);
+				match(THEN);
 				setState(72);
+				transformation_expr();
+				setState(73);
+				match(ELSE);
+				setState(74);
 				transformation_expr();
 				}
 				break;
@@ -548,17 +549,17 @@ public class StellarParser extends Parser {
 		Logical_exprContext _localctx = new Logical_exprContext(_ctx, getState());
 		enterRule(_localctx, 6, RULE_logical_expr);
 		try {
-			setState(85);
+			setState(87);
 			switch ( getInterpreter().adaptivePredict(_input,2,_ctx) ) {
 			case 1:
 				_localctx = new LogicalExpressionAndContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(76);
-				b_expr();
-				setState(77);
-				match(AND);
 				setState(78);
+				b_expr();
+				setState(79);
+				match(AND);
+				setState(80);
 				logical_expr();
 				}
 				break;
@@ -566,11 +567,11 @@ public class StellarParser extends Parser {
 				_localctx = new LogicalExpressionOrContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(80);
-				b_expr();
-				setState(81);
-				match(OR);
 				setState(82);
+				b_expr();
+				setState(83);
+				match(OR);
+				setState(84);
 				logical_expr();
 				}
 				break;
@@ -578,7 +579,7 @@ public class StellarParser extends Parser {
 				_localctx = new BoleanExpressionContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(84);
+				setState(86);
 				b_expr();
 				}
 				break;
@@ -620,19 +621,19 @@ public class StellarParser extends Parser {
 		B_exprContext _localctx = new B_exprContext(_ctx, getState());
 		enterRule(_localctx, 8, RULE_b_expr);
 		try {
-			setState(89);
+			setState(91);
 			switch ( getInterpreter().adaptivePredict(_input,3,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(87);
+				setState(89);
 				comparison_expr(0);
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(88);
+				setState(90);
 				in_expr();
 				}
 				break;
@@ -701,17 +702,17 @@ public class StellarParser extends Parser {
 		In_exprContext _localctx = new In_exprContext(_ctx, getState());
 		enterRule(_localctx, 10, RULE_in_expr);
 		try {
-			setState(99);
+			setState(101);
 			switch ( getInterpreter().adaptivePredict(_input,4,_ctx) ) {
 			case 1:
 				_localctx = new InExpressionStatementContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(91);
-				identifier_operand();
-				setState(92);
-				match(IN);
 				setState(93);
+				identifier_operand();
+				setState(94);
+				match(IN);
+				setState(95);
 				b_expr();
 				}
 				break;
@@ -719,11 +720,11 @@ public class StellarParser extends Parser {
 				_localctx = new NInExpressionStatementContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(95);
-				identifier_operand();
-				setState(96);
-				match(NIN);
 				setState(97);
+				identifier_operand();
+				setState(98);
+				match(NIN);
+				setState(99);
 				b_expr();
 				}
 				break;
@@ -834,7 +835,7 @@ public class StellarParser extends Parser {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(112);
+			setState(114);
 			switch ( getInterpreter().adaptivePredict(_input,5,_ctx) ) {
 			case 1:
 				{
@@ -842,13 +843,13 @@ public class StellarParser extends Parser {
 				_ctx = _localctx;
 				_prevctx = _localctx;
 
-				setState(102);
-				match(NOT);
-				setState(103);
-				match(LPAREN);
 				setState(104);
-				logical_expr();
+				match(NOT);
 				setState(105);
+				match(LPAREN);
+				setState(106);
+				logical_expr();
+				setState(107);
 				match(RPAREN);
 				}
 				break;
@@ -857,11 +858,11 @@ public class StellarParser extends Parser {
 				_localctx = new ComparisonExpressionParensContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(107);
-				match(LPAREN);
-				setState(108);
-				logical_expr();
 				setState(109);
+				match(LPAREN);
+				setState(110);
+				logical_expr();
+				setState(111);
 				match(RPAREN);
 				}
 				break;
@@ -870,13 +871,13 @@ public class StellarParser extends Parser {
 				_localctx = new OperandContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(111);
+				setState(113);
 				identifier_operand();
 				}
 				break;
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(120);
+			setState(122);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,6,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
@@ -887,16 +888,16 @@ public class StellarParser extends Parser {
 					{
 					_localctx = new ComparisonExpressionWithOperatorContext(new Comparison_exprContext(_parentctx, _parentState));
 					pushNewRecursionContext(_localctx, _startState, RULE_comparison_expr);
-					setState(114);
-					if (!(precpred(_ctx, 4))) throw new FailedPredicateException(this, "precpred(_ctx, 4)");
-					setState(115);
-					comp_operator();
 					setState(116);
+					if (!(precpred(_ctx, 4))) throw new FailedPredicateException(this, "precpred(_ctx, 4)");
+					setState(117);
+					comp_operator();
+					setState(118);
 					comparison_expr(5);
 					}
 					} 
 				}
-				setState(122);
+				setState(124);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,6,_ctx);
 			}
@@ -937,7 +938,7 @@ public class StellarParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(123);
+			setState(125);
 			identifier_operand();
 			}
 		}
@@ -989,7 +990,7 @@ public class StellarParser extends Parser {
 			_localctx = new ComparisonOpContext(_localctx);
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(125);
+			setState(127);
 			_la = _input.LA(1);
 			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << EQ) | (1L << NEQ) | (1L << LT) | (1L << LTE) | (1L << GT) | (1L << GTE))) != 0)) ) {
 			_errHandler.recoverInline(this);
@@ -1033,25 +1034,25 @@ public class StellarParser extends Parser {
 		Func_argsContext _localctx = new Func_argsContext(_ctx, getState());
 		enterRule(_localctx, 18, RULE_func_args);
 		try {
-			setState(133);
+			setState(135);
 			switch ( getInterpreter().adaptivePredict(_input,7,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(127);
-				match(LPAREN);
-				setState(128);
-				op_list(0);
 				setState(129);
+				match(LPAREN);
+				setState(130);
+				op_list(0);
+				setState(131);
 				match(RPAREN);
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(131);
+				setState(133);
 				match(LPAREN);
-				setState(132);
+				setState(134);
 				match(RPAREN);
 				}
 				break;
@@ -1108,23 +1109,23 @@ public class StellarParser extends Parser {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(138);
+			setState(140);
 			switch ( getInterpreter().adaptivePredict(_input,8,_ctx) ) {
 			case 1:
 				{
-				setState(136);
+				setState(138);
 				identifier_operand();
 				}
 				break;
 			case 2:
 				{
-				setState(137);
+				setState(139);
 				conditional_expr();
 				}
 				break;
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(148);
+			setState(150);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,10,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
@@ -1132,17 +1133,17 @@ public class StellarParser extends Parser {
 					if ( _parseListeners!=null ) triggerExitRuleEvent();
 					_prevctx = _localctx;
 					{
-					setState(146);
+					setState(148);
 					switch ( getInterpreter().adaptivePredict(_input,9,_ctx) ) {
 					case 1:
 						{
 						_localctx = new Op_listContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_op_list);
-						setState(140);
-						if (!(precpred(_ctx, 3))) throw new FailedPredicateException(this, "precpred(_ctx, 3)");
-						setState(141);
-						match(COMMA);
 						setState(142);
+						if (!(precpred(_ctx, 3))) throw new FailedPredicateException(this, "precpred(_ctx, 3)");
+						setState(143);
+						match(COMMA);
+						setState(144);
 						identifier_operand();
 						}
 						break;
@@ -1150,18 +1151,18 @@ public class StellarParser extends Parser {
 						{
 						_localctx = new Op_listContext(_parentctx, _parentState);
 						pushNewRecursionContext(_localctx, _startState, RULE_op_list);
-						setState(143);
-						if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
-						setState(144);
-						match(COMMA);
 						setState(145);
+						if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
+						setState(146);
+						match(COMMA);
+						setState(147);
 						conditional_expr();
 						}
 						break;
 					}
 					} 
 				}
-				setState(150);
+				setState(152);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,10,_ctx);
 			}
@@ -1202,25 +1203,25 @@ public class StellarParser extends Parser {
 		List_entityContext _localctx = new List_entityContext(_ctx, getState());
 		enterRule(_localctx, 22, RULE_list_entity);
 		try {
-			setState(157);
+			setState(159);
 			switch ( getInterpreter().adaptivePredict(_input,11,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(151);
+				setState(153);
 				match(LBRACKET);
-				setState(152);
+				setState(154);
 				match(RBRACKET);
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(153);
-				match(LBRACKET);
-				setState(154);
-				op_list(0);
 				setState(155);
+				match(LBRACKET);
+				setState(156);
+				op_list(0);
+				setState(157);
 				match(RBRACKET);
 				}
 				break;
@@ -1279,15 +1280,15 @@ public class StellarParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			{
-			setState(160);
-			identifier_operand();
-			setState(161);
-			match(COLON);
 			setState(162);
+			identifier_operand();
+			setState(163);
+			match(COLON);
+			setState(164);
 			transformation_expr();
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(172);
+			setState(174);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,12,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
@@ -1298,20 +1299,20 @@ public class StellarParser extends Parser {
 					{
 					_localctx = new Kv_listContext(_parentctx, _parentState);
 					pushNewRecursionContext(_localctx, _startState, RULE_kv_list);
-					setState(164);
-					if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
-					setState(165);
-					match(COMMA);
 					setState(166);
-					identifier_operand();
+					if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
 					setState(167);
-					match(COLON);
+					match(COMMA);
 					setState(168);
+					identifier_operand();
+					setState(169);
+					match(COLON);
+					setState(170);
 					transformation_expr();
 					}
 					} 
 				}
-				setState(174);
+				setState(176);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,12,_ctx);
 			}
@@ -1352,25 +1353,25 @@ public class StellarParser extends Parser {
 		Map_entityContext _localctx = new Map_entityContext(_ctx, getState());
 		enterRule(_localctx, 26, RULE_map_entity);
 		try {
-			setState(181);
+			setState(183);
 			switch ( getInterpreter().adaptivePredict(_input,13,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(175);
-				match(LBRACE);
-				setState(176);
-				kv_list(0);
 				setState(177);
+				match(LBRACE);
+				setState(178);
+				kv_list(0);
+				setState(179);
 				match(RBRACE);
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(179);
+				setState(181);
 				match(LBRACE);
-				setState(180);
+				setState(182);
 				match(RBRACE);
 				}
 				break;
@@ -1469,11 +1470,11 @@ public class StellarParser extends Parser {
 			_ctx = _localctx;
 			_prevctx = _localctx;
 
-			setState(184);
+			setState(186);
 			arithmetic_expr_mul(0);
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(194);
+			setState(196);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,15,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
@@ -1481,17 +1482,17 @@ public class StellarParser extends Parser {
 					if ( _parseListeners!=null ) triggerExitRuleEvent();
 					_prevctx = _localctx;
 					{
-					setState(192);
+					setState(194);
 					switch ( getInterpreter().adaptivePredict(_input,14,_ctx) ) {
 					case 1:
 						{
 						_localctx = new ArithExpr_plusContext(new Arithmetic_exprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_arithmetic_expr);
-						setState(186);
-						if (!(precpred(_ctx, 2))) throw new FailedPredicateException(this, "precpred(_ctx, 2)");
-						setState(187);
-						match(PLUS);
 						setState(188);
+						if (!(precpred(_ctx, 2))) throw new FailedPredicateException(this, "precpred(_ctx, 2)");
+						setState(189);
+						match(PLUS);
+						setState(190);
 						arithmetic_expr_mul(0);
 						}
 						break;
@@ -1499,18 +1500,18 @@ public class StellarParser extends Parser {
 						{
 						_localctx = new ArithExpr_minusContext(new Arithmetic_exprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_arithmetic_expr);
-						setState(189);
-						if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
-						setState(190);
-						match(MINUS);
 						setState(191);
+						if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
+						setState(192);
+						match(MINUS);
+						setState(193);
 						arithmetic_expr_mul(0);
 						}
 						break;
 					}
 					} 
 				}
-				setState(196);
+				setState(198);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,15,_ctx);
 			}
@@ -1609,11 +1610,11 @@ public class StellarParser extends Parser {
 			_ctx = _localctx;
 			_prevctx = _localctx;
 
-			setState(198);
+			setState(200);
 			arithmetic_operands();
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(208);
+			setState(210);
 			_errHandler.sync(this);
 			_alt = getInterpreter().adaptivePredict(_input,17,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
@@ -1621,17 +1622,17 @@ public class StellarParser extends Parser {
 					if ( _parseListeners!=null ) triggerExitRuleEvent();
 					_prevctx = _localctx;
 					{
-					setState(206);
+					setState(208);
 					switch ( getInterpreter().adaptivePredict(_input,16,_ctx) ) {
 					case 1:
 						{
 						_localctx = new ArithExpr_mulContext(new Arithmetic_expr_mulContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_arithmetic_expr_mul);
-						setState(200);
-						if (!(precpred(_ctx, 2))) throw new FailedPredicateException(this, "precpred(_ctx, 2)");
-						setState(201);
-						match(MUL);
 						setState(202);
+						if (!(precpred(_ctx, 2))) throw new FailedPredicateException(this, "precpred(_ctx, 2)");
+						setState(203);
+						match(MUL);
+						setState(204);
 						arithmetic_expr_mul(3);
 						}
 						break;
@@ -1639,18 +1640,18 @@ public class StellarParser extends Parser {
 						{
 						_localctx = new ArithExpr_divContext(new Arithmetic_expr_mulContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_arithmetic_expr_mul);
-						setState(203);
-						if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
-						setState(204);
-						match(DIV);
 						setState(205);
+						if (!(precpred(_ctx, 1))) throw new FailedPredicateException(this, "precpred(_ctx, 1)");
+						setState(206);
+						match(DIV);
+						setState(207);
 						arithmetic_expr_mul(2);
 						}
 						break;
 					}
 					} 
 				}
-				setState(210);
+				setState(212);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,17,_ctx);
 			}
@@ -1701,9 +1702,9 @@ public class StellarParser extends Parser {
 			_localctx = new TransformationFuncContext(_localctx);
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(211);
+			setState(213);
 			match(IDENTIFIER);
-			setState(212);
+			setState(214);
 			func_args();
 			}
 		}
@@ -1840,13 +1841,13 @@ public class StellarParser extends Parser {
 		Arithmetic_operandsContext _localctx = new Arithmetic_operandsContext(_ctx, getState());
 		enterRule(_localctx, 34, RULE_arithmetic_operands);
 		try {
-			setState(228);
+			setState(230);
 			switch ( getInterpreter().adaptivePredict(_input,18,_ctx) ) {
 			case 1:
 				_localctx = new NumericFunctionsContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(214);
+				setState(216);
 				functions();
 				}
 				break;
@@ -1854,7 +1855,7 @@ public class StellarParser extends Parser {
 				_localctx = new DoubleLiteralContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(215);
+				setState(217);
 				match(DOUBLE_LITERAL);
 				}
 				break;
@@ -1862,7 +1863,7 @@ public class StellarParser extends Parser {
 				_localctx = new IntLiteralContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(216);
+				setState(218);
 				match(INT_LITERAL);
 				}
 				break;
@@ -1870,7 +1871,7 @@ public class StellarParser extends Parser {
 				_localctx = new LongLiteralContext(_localctx);
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(217);
+				setState(219);
 				match(LONG_LITERAL);
 				}
 				break;
@@ -1878,7 +1879,7 @@ public class StellarParser extends Parser {
 				_localctx = new FloatLiteralContext(_localctx);
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(218);
+				setState(220);
 				match(FLOAT_LITERAL);
 				}
 				break;
@@ -1886,7 +1887,7 @@ public class StellarParser extends Parser {
 				_localctx = new VariableContext(_localctx);
 				enterOuterAlt(_localctx, 6);
 				{
-				setState(219);
+				setState(221);
 				match(IDENTIFIER);
 				}
 				break;
@@ -1894,11 +1895,11 @@ public class StellarParser extends Parser {
 				_localctx = new ParenArithContext(_localctx);
 				enterOuterAlt(_localctx, 7);
 				{
-				setState(220);
-				match(LPAREN);
-				setState(221);
-				arithmetic_expr(0);
 				setState(222);
+				match(LPAREN);
+				setState(223);
+				arithmetic_expr(0);
+				setState(224);
 				match(RPAREN);
 				}
 				break;
@@ -1906,11 +1907,11 @@ public class StellarParser extends Parser {
 				_localctx = new CondExprContext(_localctx);
 				enterOuterAlt(_localctx, 8);
 				{
-				setState(224);
-				match(LPAREN);
-				setState(225);
-				conditional_expr();
 				setState(226);
+				match(LPAREN);
+				setState(227);
+				conditional_expr();
+				setState(228);
 				match(RPAREN);
 				}
 				break;
@@ -1952,6 +1953,20 @@ public class StellarParser extends Parser {
 			if ( listener instanceof StellarListener ) ((StellarListener)listener).exitArithmeticOperands(this);
 		}
 	}
+	public static class LambdaWithArgsExprContext extends Identifier_operandContext {
+		public Lambda_with_argsContext lambda_with_args() {
+			return getRuleContext(Lambda_with_argsContext.class,0);
+		}
+		public LambdaWithArgsExprContext(Identifier_operandContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof StellarListener ) ((StellarListener)listener).enterLambdaWithArgsExpr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof StellarListener ) ((StellarListener)listener).exitLambdaWithArgsExpr(this);
+		}
+	}
 	public static class StringLiteralContext extends Identifier_operandContext {
 		public TerminalNode STRING_LITERAL() { return getToken(StellarParser.STRING_LITERAL, 0); }
 		public StringLiteralContext(Identifier_operandContext ctx) { copyFrom(ctx); }
@@ -1964,24 +1979,18 @@ public class StellarParser extends Parser {
 			if ( listener instanceof StellarListener ) ((StellarListener)listener).exitStringLiteral(this);
 		}
 	}
-	public static class LambdaExprContext extends Identifier_operandContext {
-		public TerminalNode REFERENCE_OP() { return getToken(StellarParser.REFERENCE_OP, 0); }
-		public TerminalNode LPAREN() { return getToken(StellarParser.LPAREN, 0); }
-		public TerminalNode RPAREN() { return getToken(StellarParser.RPAREN, 0); }
-		public Lambda_with_argsContext lambda_with_args() {
-			return getRuleContext(Lambda_with_argsContext.class,0);
-		}
+	public static class LambdaWithoutArgsExprContext extends Identifier_operandContext {
 		public Lambda_without_argsContext lambda_without_args() {
 			return getRuleContext(Lambda_without_argsContext.class,0);
 		}
-		public LambdaExprContext(Identifier_operandContext ctx) { copyFrom(ctx); }
+		public LambdaWithoutArgsExprContext(Identifier_operandContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof StellarListener ) ((StellarListener)listener).enterLambdaExpr(this);
+			if ( listener instanceof StellarListener ) ((StellarListener)listener).enterLambdaWithoutArgsExpr(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof StellarListener ) ((StellarListener)listener).exitLambdaExpr(this);
+			if ( listener instanceof StellarListener ) ((StellarListener)listener).exitLambdaWithoutArgsExpr(this);
 		}
 	}
 	public static class ListContext extends Identifier_operandContext {
@@ -2074,13 +2083,13 @@ public class StellarParser extends Parser {
 		enterRule(_localctx, 36, RULE_identifier_operand);
 		int _la;
 		try {
-			setState(252);
-			switch ( getInterpreter().adaptivePredict(_input,20,_ctx) ) {
+			setState(248);
+			switch ( getInterpreter().adaptivePredict(_input,19,_ctx) ) {
 			case 1:
 				_localctx = new LogicalConstContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(230);
+				setState(232);
 				_la = _input.LA(1);
 				if ( !(_la==TRUE || _la==FALSE) ) {
 				_errHandler.recoverInline(this);
@@ -2090,145 +2099,87 @@ public class StellarParser extends Parser {
 				}
 				break;
 			case 2:
-				_localctx = new LambdaExprContext(_localctx);
+				_localctx = new LambdaWithArgsExprContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(231);
-				match(REFERENCE_OP);
-				setState(232);
-				match(LPAREN);
-				setState(235);
-				switch ( getInterpreter().adaptivePredict(_input,19,_ctx) ) {
-				case 1:
-					{
-					setState(233);
-					lambda_with_args();
-					}
-					break;
-				case 2:
-					{
-					setState(234);
-					lambda_without_args();
-					}
-					break;
-				}
-				setState(237);
-				match(RPAREN);
+				setState(233);
+				lambda_with_args();
 				}
 				break;
 			case 3:
-				_localctx = new ArithmeticOperandsContext(_localctx);
+				_localctx = new LambdaWithoutArgsExprContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(239);
-				arithmetic_expr(0);
+				setState(234);
+				lambda_without_args();
 				}
 				break;
 			case 4:
-				_localctx = new StringLiteralContext(_localctx);
+				_localctx = new ArithmeticOperandsContext(_localctx);
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(240);
-				match(STRING_LITERAL);
+				setState(235);
+				arithmetic_expr(0);
 				}
 				break;
 			case 5:
-				_localctx = new ListContext(_localctx);
+				_localctx = new StringLiteralContext(_localctx);
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(241);
-				list_entity();
+				setState(236);
+				match(STRING_LITERAL);
 				}
 				break;
 			case 6:
-				_localctx = new MapConstContext(_localctx);
+				_localctx = new ListContext(_localctx);
 				enterOuterAlt(_localctx, 6);
 				{
-				setState(242);
-				map_entity();
+				setState(237);
+				list_entity();
 				}
 				break;
 			case 7:
-				_localctx = new NullConstContext(_localctx);
+				_localctx = new MapConstContext(_localctx);
 				enterOuterAlt(_localctx, 7);
 				{
-				setState(243);
-				match(NULL);
+				setState(238);
+				map_entity();
 				}
 				break;
 			case 8:
-				_localctx = new ExistsFuncContext(_localctx);
+				_localctx = new NullConstContext(_localctx);
 				enterOuterAlt(_localctx, 8);
 				{
-				setState(244);
-				match(EXISTS);
-				setState(245);
-				match(LPAREN);
-				setState(246);
-				match(IDENTIFIER);
-				setState(247);
-				match(RPAREN);
+				setState(239);
+				match(NULL);
 				}
 				break;
 			case 9:
-				_localctx = new CondExpr_parenContext(_localctx);
+				_localctx = new ExistsFuncContext(_localctx);
 				enterOuterAlt(_localctx, 9);
 				{
-				setState(248);
+				setState(240);
+				match(EXISTS);
+				setState(241);
 				match(LPAREN);
-				setState(249);
-				conditional_expr();
-				setState(250);
+				setState(242);
+				match(IDENTIFIER);
+				setState(243);
 				match(RPAREN);
 				}
 				break;
-			}
-		}
-		catch (RecognitionException re) {
-			_localctx.exception = re;
-			_errHandler.reportError(this, re);
-			_errHandler.recover(this, re);
-		}
-		finally {
-			exitRule();
-		}
-		return _localctx;
-	}
-
-	public static class Lambda_with_argsContext extends ParserRuleContext {
-		public Lambda_variablesContext lambda_variables() {
-			return getRuleContext(Lambda_variablesContext.class,0);
-		}
-		public TerminalNode COLON() { return getToken(StellarParser.COLON, 0); }
-		public Transformation_exprContext transformation_expr() {
-			return getRuleContext(Transformation_exprContext.class,0);
-		}
-		public Lambda_with_argsContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_lambda_with_args; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof StellarListener ) ((StellarListener)listener).enterLambda_with_args(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof StellarListener ) ((StellarListener)listener).exitLambda_with_args(this);
-		}
-	}
-
-	public final Lambda_with_argsContext lambda_with_args() throws RecognitionException {
-		Lambda_with_argsContext _localctx = new Lambda_with_argsContext(_ctx, getState());
-		enterRule(_localctx, 38, RULE_lambda_with_args);
-		try {
-			enterOuterAlt(_localctx, 1);
-			{
-			setState(254);
-			lambda_variables();
-			setState(255);
-			match(COLON);
-			setState(256);
-			transformation_expr();
+			case 10:
+				_localctx = new CondExpr_parenContext(_localctx);
+				enterOuterAlt(_localctx, 10);
+				{
+				setState(244);
+				match(LPAREN);
+				setState(245);
+				conditional_expr();
+				setState(246);
+				match(RPAREN);
+				}
+				break;
 			}
 		}
 		catch (RecognitionException re) {
@@ -2243,6 +2194,9 @@ public class StellarParser extends Parser {
 	}
 
 	public static class Lambda_without_argsContext extends ParserRuleContext {
+		public TerminalNode LPAREN() { return getToken(StellarParser.LPAREN, 0); }
+		public TerminalNode RPAREN() { return getToken(StellarParser.RPAREN, 0); }
+		public TerminalNode LAMBDA_OP() { return getToken(StellarParser.LAMBDA_OP, 0); }
 		public Transformation_exprContext transformation_expr() {
 			return getRuleContext(Transformation_exprContext.class,0);
 		}
@@ -2262,34 +2216,87 @@ public class StellarParser extends Parser {
 
 	public final Lambda_without_argsContext lambda_without_args() throws RecognitionException {
 		Lambda_without_argsContext _localctx = new Lambda_without_argsContext(_ctx, getState());
-		enterRule(_localctx, 40, RULE_lambda_without_args);
+		enterRule(_localctx, 38, RULE_lambda_without_args);
 		try {
-			setState(260);
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(250);
+			match(LPAREN);
+			setState(251);
+			match(RPAREN);
+			setState(252);
+			match(LAMBDA_OP);
+			setState(253);
+			transformation_expr();
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	public static class Lambda_with_argsContext extends ParserRuleContext {
+		public TerminalNode LPAREN() { return getToken(StellarParser.LPAREN, 0); }
+		public Lambda_variablesContext lambda_variables() {
+			return getRuleContext(Lambda_variablesContext.class,0);
+		}
+		public TerminalNode RPAREN() { return getToken(StellarParser.RPAREN, 0); }
+		public TerminalNode LAMBDA_OP() { return getToken(StellarParser.LAMBDA_OP, 0); }
+		public Transformation_exprContext transformation_expr() {
+			return getRuleContext(Transformation_exprContext.class,0);
+		}
+		public Single_lambda_variableContext single_lambda_variable() {
+			return getRuleContext(Single_lambda_variableContext.class,0);
+		}
+		public Lambda_with_argsContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_lambda_with_args; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof StellarListener ) ((StellarListener)listener).enterLambda_with_args(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof StellarListener ) ((StellarListener)listener).exitLambda_with_args(this);
+		}
+	}
+
+	public final Lambda_with_argsContext lambda_with_args() throws RecognitionException {
+		Lambda_with_argsContext _localctx = new Lambda_with_argsContext(_ctx, getState());
+		enterRule(_localctx, 40, RULE_lambda_with_args);
+		try {
+			setState(265);
 			switch (_input.LA(1)) {
-			case RPAREN:
+			case LPAREN:
 				enterOuterAlt(_localctx, 1);
 				{
+				setState(255);
+				match(LPAREN);
+				setState(256);
+				lambda_variables();
+				setState(257);
+				match(RPAREN);
+				setState(258);
+				match(LAMBDA_OP);
+				setState(259);
+				transformation_expr();
 				}
 				break;
-			case REFERENCE_OP:
-			case NOT:
-			case TRUE:
-			case FALSE:
-			case IF:
-			case NULL:
-			case LBRACE:
-			case LBRACKET:
-			case LPAREN:
-			case EXISTS:
-			case INT_LITERAL:
-			case DOUBLE_LITERAL:
-			case FLOAT_LITERAL:
-			case LONG_LITERAL:
 			case IDENTIFIER:
-			case STRING_LITERAL:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(259);
+				setState(261);
+				single_lambda_variable();
+				setState(262);
+				match(LAMBDA_OP);
+				setState(263);
 				transformation_expr();
 				}
 				break;
@@ -2340,24 +2347,63 @@ public class StellarParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(262);
-			lambda_variable();
 			setState(267);
+			lambda_variable();
+			setState(272);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==COMMA) {
 				{
 				{
-				setState(263);
+				setState(268);
 				match(COMMA);
-				setState(264);
+				setState(269);
 				lambda_variable();
 				}
 				}
-				setState(269);
+				setState(274);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	public static class Single_lambda_variableContext extends ParserRuleContext {
+		public Lambda_variableContext lambda_variable() {
+			return getRuleContext(Lambda_variableContext.class,0);
+		}
+		public Single_lambda_variableContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_single_lambda_variable; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof StellarListener ) ((StellarListener)listener).enterSingle_lambda_variable(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof StellarListener ) ((StellarListener)listener).exitSingle_lambda_variable(this);
+		}
+	}
+
+	public final Single_lambda_variableContext single_lambda_variable() throws RecognitionException {
+		Single_lambda_variableContext _localctx = new Single_lambda_variableContext(_ctx, getState());
+		enterRule(_localctx, 44, RULE_single_lambda_variable);
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(275);
+			lambda_variable();
 			}
 		}
 		catch (RecognitionException re) {
@@ -2389,11 +2435,11 @@ public class StellarParser extends Parser {
 
 	public final Lambda_variableContext lambda_variable() throws RecognitionException {
 		Lambda_variableContext _localctx = new Lambda_variableContext(_ctx, getState());
-		enterRule(_localctx, 44, RULE_lambda_variable);
+		enterRule(_localctx, 46, RULE_lambda_variable);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(270);
+			setState(277);
 			match(IDENTIFIER);
 			}
 		}
@@ -2466,97 +2512,100 @@ public class StellarParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3.\u0113\4\2\t\2\4"+
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3.\u011a\4\2\t\2\4"+
 		"\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t"+
 		"\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22"+
-		"\4\23\t\23\4\24\t\24\4\25\t\25\4\26\t\26\4\27\t\27\4\30\t\30\3\2\3\2\3"+
-		"\2\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\5\3>\n\3\3\4\3\4\3\4\3\4\3"+
-		"\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\5\4M\n\4\3\5\3\5\3\5\3\5\3\5\3\5\3"+
-		"\5\3\5\3\5\5\5X\n\5\3\6\3\6\5\6\\\n\6\3\7\3\7\3\7\3\7\3\7\3\7\3\7\3\7"+
-		"\5\7f\n\7\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\5\bs\n\b\3\b\3\b"+
-		"\3\b\3\b\7\by\n\b\f\b\16\b|\13\b\3\t\3\t\3\n\3\n\3\13\3\13\3\13\3\13\3"+
-		"\13\3\13\5\13\u0088\n\13\3\f\3\f\3\f\5\f\u008d\n\f\3\f\3\f\3\f\3\f\3\f"+
-		"\3\f\7\f\u0095\n\f\f\f\16\f\u0098\13\f\3\r\3\r\3\r\3\r\3\r\3\r\5\r\u00a0"+
-		"\n\r\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\7\16\u00ad"+
-		"\n\16\f\16\16\16\u00b0\13\16\3\17\3\17\3\17\3\17\3\17\3\17\5\17\u00b8"+
-		"\n\17\3\20\3\20\3\20\3\20\3\20\3\20\3\20\3\20\3\20\7\20\u00c3\n\20\f\20"+
-		"\16\20\u00c6\13\20\3\21\3\21\3\21\3\21\3\21\3\21\3\21\3\21\3\21\7\21\u00d1"+
-		"\n\21\f\21\16\21\u00d4\13\21\3\22\3\22\3\22\3\23\3\23\3\23\3\23\3\23\3"+
-		"\23\3\23\3\23\3\23\3\23\3\23\3\23\3\23\3\23\5\23\u00e7\n\23\3\24\3\24"+
-		"\3\24\3\24\3\24\5\24\u00ee\n\24\3\24\3\24\3\24\3\24\3\24\3\24\3\24\3\24"+
-		"\3\24\3\24\3\24\3\24\3\24\3\24\3\24\5\24\u00ff\n\24\3\25\3\25\3\25\3\25"+
-		"\3\26\3\26\5\26\u0107\n\26\3\27\3\27\3\27\7\27\u010c\n\27\f\27\16\27\u010f"+
-		"\13\27\3\30\3\30\3\30\2\7\16\26\32\36 \31\2\4\6\b\n\f\16\20\22\24\26\30"+
-		"\32\34\36 \"$&(*,.\2\4\3\2\16\23\3\2\f\r\u0126\2\60\3\2\2\2\4=\3\2\2\2"+
-		"\6L\3\2\2\2\bW\3\2\2\2\n[\3\2\2\2\fe\3\2\2\2\16r\3\2\2\2\20}\3\2\2\2\22"+
-		"\177\3\2\2\2\24\u0087\3\2\2\2\26\u008c\3\2\2\2\30\u009f\3\2\2\2\32\u00a1"+
-		"\3\2\2\2\34\u00b7\3\2\2\2\36\u00b9\3\2\2\2 \u00c7\3\2\2\2\"\u00d5\3\2"+
-		"\2\2$\u00e6\3\2\2\2&\u00fe\3\2\2\2(\u0100\3\2\2\2*\u0106\3\2\2\2,\u0108"+
-		"\3\2\2\2.\u0110\3\2\2\2\60\61\5\4\3\2\61\62\7\2\2\3\62\3\3\2\2\2\63>\5"+
-		"\6\4\2\64\65\7\"\2\2\65\66\5\4\3\2\66\67\7#\2\2\67>\3\2\2\28>\5\36\20"+
-		"\29>\5\20\t\2:>\5\16\b\2;>\5\b\5\2<>\5\f\7\2=\63\3\2\2\2=\64\3\2\2\2="+
-		"8\3\2\2\2=9\3\2\2\2=:\3\2\2\2=;\3\2\2\2=<\3\2\2\2>\5\3\2\2\2?@\5\b\5\2"+
-		"@A\7\24\2\2AB\5\4\3\2BC\7\25\2\2CD\5\4\3\2DM\3\2\2\2EF\7\26\2\2FG\5\b"+
-		"\5\2GH\7\27\2\2HI\5\4\3\2IJ\7\30\2\2JK\5\4\3\2KM\3\2\2\2L?\3\2\2\2LE\3"+
-		"\2\2\2M\7\3\2\2\2NO\5\n\6\2OP\7\t\2\2PQ\5\b\5\2QX\3\2\2\2RS\5\n\6\2ST"+
-		"\7\n\2\2TU\5\b\5\2UX\3\2\2\2VX\5\n\6\2WN\3\2\2\2WR\3\2\2\2WV\3\2\2\2X"+
-		"\t\3\2\2\2Y\\\5\16\b\2Z\\\5\f\7\2[Y\3\2\2\2[Z\3\2\2\2\\\13\3\2\2\2]^\5"+
-		"&\24\2^_\7\3\2\2_`\5\n\6\2`f\3\2\2\2ab\5&\24\2bc\7$\2\2cd\5\n\6\2df\3"+
-		"\2\2\2e]\3\2\2\2ea\3\2\2\2f\r\3\2\2\2gh\b\b\1\2hi\7\13\2\2ij\7\"\2\2j"+
-		"k\5\b\5\2kl\7#\2\2ls\3\2\2\2mn\7\"\2\2no\5\b\5\2op\7#\2\2ps\3\2\2\2qs"+
-		"\5&\24\2rg\3\2\2\2rm\3\2\2\2rq\3\2\2\2sz\3\2\2\2tu\f\6\2\2uv\5\22\n\2"+
-		"vw\5\16\b\7wy\3\2\2\2xt\3\2\2\2y|\3\2\2\2zx\3\2\2\2z{\3\2\2\2{\17\3\2"+
-		"\2\2|z\3\2\2\2}~\5&\24\2~\21\3\2\2\2\177\u0080\t\2\2\2\u0080\23\3\2\2"+
-		"\2\u0081\u0082\7\"\2\2\u0082\u0083\5\26\f\2\u0083\u0084\7#\2\2\u0084\u0088"+
-		"\3\2\2\2\u0085\u0086\7\"\2\2\u0086\u0088\7#\2\2\u0087\u0081\3\2\2\2\u0087"+
-		"\u0085\3\2\2\2\u0088\25\3\2\2\2\u0089\u008a\b\f\1\2\u008a\u008d\5&\24"+
-		"\2\u008b\u008d\5\6\4\2\u008c\u0089\3\2\2\2\u008c\u008b\3\2\2\2\u008d\u0096"+
-		"\3\2\2\2\u008e\u008f\f\5\2\2\u008f\u0090\7\7\2\2\u0090\u0095\5&\24\2\u0091"+
-		"\u0092\f\3\2\2\u0092\u0093\7\7\2\2\u0093\u0095\5\6\4\2\u0094\u008e\3\2"+
-		"\2\2\u0094\u0091\3\2\2\2\u0095\u0098\3\2\2\2\u0096\u0094\3\2\2\2\u0096"+
-		"\u0097\3\2\2\2\u0097\27\3\2\2\2\u0098\u0096\3\2\2\2\u0099\u009a\7 \2\2"+
-		"\u009a\u00a0\7!\2\2\u009b\u009c\7 \2\2\u009c\u009d\5\26\f\2\u009d\u009e"+
-		"\7!\2\2\u009e\u00a0\3\2\2\2\u009f\u0099\3\2\2\2\u009f\u009b\3\2\2\2\u00a0"+
-		"\31\3\2\2\2\u00a1\u00a2\b\16\1\2\u00a2\u00a3\5&\24\2\u00a3\u00a4\7\25"+
-		"\2\2\u00a4\u00a5\5\4\3\2\u00a5\u00ae\3\2\2\2\u00a6\u00a7\f\3\2\2\u00a7"+
-		"\u00a8\7\7\2\2\u00a8\u00a9\5&\24\2\u00a9\u00aa\7\25\2\2\u00aa\u00ab\5"+
-		"\4\3\2\u00ab\u00ad\3\2\2\2\u00ac\u00a6\3\2\2\2\u00ad\u00b0\3\2\2\2\u00ae"+
-		"\u00ac\3\2\2\2\u00ae\u00af\3\2\2\2\u00af\33\3\2\2\2\u00b0\u00ae\3\2\2"+
-		"\2\u00b1\u00b2\7\36\2\2\u00b2\u00b3\5\32\16\2\u00b3\u00b4\7\37\2\2\u00b4"+
-		"\u00b8\3\2\2\2\u00b5\u00b6\7\36\2\2\u00b6\u00b8\7\37\2\2\u00b7\u00b1\3"+
-		"\2\2\2\u00b7\u00b5\3\2\2\2\u00b8\35\3\2\2\2\u00b9\u00ba\b\20\1\2\u00ba"+
-		"\u00bb\5 \21\2\u00bb\u00c4\3\2\2\2\u00bc\u00bd\f\4\2\2\u00bd\u00be\7\33"+
-		"\2\2\u00be\u00c3\5 \21\2\u00bf\u00c0\f\3\2\2\u00c0\u00c1\7\32\2\2\u00c1"+
-		"\u00c3\5 \21\2\u00c2\u00bc\3\2\2\2\u00c2\u00bf\3\2\2\2\u00c3\u00c6\3\2"+
-		"\2\2\u00c4\u00c2\3\2\2\2\u00c4\u00c5\3\2\2\2\u00c5\37\3\2\2\2\u00c6\u00c4"+
-		"\3\2\2\2\u00c7\u00c8\b\21\1\2\u00c8\u00c9\5$\23\2\u00c9\u00d2\3\2\2\2"+
-		"\u00ca\u00cb\f\4\2\2\u00cb\u00cc\7\35\2\2\u00cc\u00d1\5 \21\5\u00cd\u00ce"+
-		"\f\3\2\2\u00ce\u00cf\7\34\2\2\u00cf\u00d1\5 \21\4\u00d0\u00ca\3\2\2\2"+
-		"\u00d0\u00cd\3\2\2\2\u00d1\u00d4\3\2\2\2\u00d2\u00d0\3\2\2\2\u00d2\u00d3"+
-		"\3\2\2\2\u00d3!\3\2\2\2\u00d4\u00d2\3\2\2\2\u00d5\u00d6\7+\2\2\u00d6\u00d7"+
-		"\5\24\13\2\u00d7#\3\2\2\2\u00d8\u00e7\5\"\22\2\u00d9\u00e7\7(\2\2\u00da"+
-		"\u00e7\7\'\2\2\u00db\u00e7\7*\2\2\u00dc\u00e7\7)\2\2\u00dd\u00e7\7+\2"+
-		"\2\u00de\u00df\7\"\2\2\u00df\u00e0\5\36\20\2\u00e0\u00e1\7#\2\2\u00e1"+
-		"\u00e7\3\2\2\2\u00e2\u00e3\7\"\2\2\u00e3\u00e4\5\6\4\2\u00e4\u00e5\7#"+
-		"\2\2\u00e5\u00e7\3\2\2\2\u00e6\u00d8\3\2\2\2\u00e6\u00d9\3\2\2\2\u00e6"+
-		"\u00da\3\2\2\2\u00e6\u00db\3\2\2\2\u00e6\u00dc\3\2\2\2\u00e6\u00dd\3\2"+
-		"\2\2\u00e6\u00de\3\2\2\2\u00e6\u00e2\3\2\2\2\u00e7%\3\2\2\2\u00e8\u00ff"+
-		"\t\3\2\2\u00e9\u00ea\7\4\2\2\u00ea\u00ed\7\"\2\2\u00eb\u00ee\5(\25\2\u00ec"+
-		"\u00ee\5*\26\2\u00ed\u00eb\3\2\2\2\u00ed\u00ec\3\2\2\2\u00ee\u00ef\3\2"+
-		"\2\2\u00ef\u00f0\7#\2\2\u00f0\u00ff\3\2\2\2\u00f1\u00ff\5\36\20\2\u00f2"+
-		"\u00ff\7,\2\2\u00f3\u00ff\5\30\r\2\u00f4\u00ff\5\34\17\2\u00f5\u00ff\7"+
-		"\31\2\2\u00f6\u00f7\7%\2\2\u00f7\u00f8\7\"\2\2\u00f8\u00f9\7+\2\2\u00f9"+
-		"\u00ff\7#\2\2\u00fa\u00fb\7\"\2\2\u00fb\u00fc\5\6\4\2\u00fc\u00fd\7#\2"+
-		"\2\u00fd\u00ff\3\2\2\2\u00fe\u00e8\3\2\2\2\u00fe\u00e9\3\2\2\2\u00fe\u00f1"+
-		"\3\2\2\2\u00fe\u00f2\3\2\2\2\u00fe\u00f3\3\2\2\2\u00fe\u00f4\3\2\2\2\u00fe"+
-		"\u00f5\3\2\2\2\u00fe\u00f6\3\2\2\2\u00fe\u00fa\3\2\2\2\u00ff\'\3\2\2\2"+
-		"\u0100\u0101\5,\27\2\u0101\u0102\7\25\2\2\u0102\u0103\5\4\3\2\u0103)\3"+
-		"\2\2\2\u0104\u0107\3\2\2\2\u0105\u0107\5\4\3\2\u0106\u0104\3\2\2\2\u0106"+
-		"\u0105\3\2\2\2\u0107+\3\2\2\2\u0108\u010d\5.\30\2\u0109\u010a\7\7\2\2"+
-		"\u010a\u010c\5.\30\2\u010b\u0109\3\2\2\2\u010c\u010f\3\2\2\2\u010d\u010b"+
-		"\3\2\2\2\u010d\u010e\3\2\2\2\u010e-\3\2\2\2\u010f\u010d\3\2\2\2\u0110"+
-		"\u0111\7+\2\2\u0111/\3\2\2\2\31=LW[erz\u0087\u008c\u0094\u0096\u009f\u00ae"+
-		"\u00b7\u00c2\u00c4\u00d0\u00d2\u00e6\u00ed\u00fe\u0106\u010d";
+		"\4\23\t\23\4\24\t\24\4\25\t\25\4\26\t\26\4\27\t\27\4\30\t\30\4\31\t\31"+
+		"\3\2\3\2\3\2\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\5\3@\n\3\3\4\3\4"+
+		"\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\3\4\5\4O\n\4\3\5\3\5\3\5\3\5"+
+		"\3\5\3\5\3\5\3\5\3\5\5\5Z\n\5\3\6\3\6\5\6^\n\6\3\7\3\7\3\7\3\7\3\7\3\7"+
+		"\3\7\3\7\5\7h\n\7\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\3\b\5\bu\n\b"+
+		"\3\b\3\b\3\b\3\b\7\b{\n\b\f\b\16\b~\13\b\3\t\3\t\3\n\3\n\3\13\3\13\3\13"+
+		"\3\13\3\13\3\13\5\13\u008a\n\13\3\f\3\f\3\f\5\f\u008f\n\f\3\f\3\f\3\f"+
+		"\3\f\3\f\3\f\7\f\u0097\n\f\f\f\16\f\u009a\13\f\3\r\3\r\3\r\3\r\3\r\3\r"+
+		"\5\r\u00a2\n\r\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16\3\16"+
+		"\7\16\u00af\n\16\f\16\16\16\u00b2\13\16\3\17\3\17\3\17\3\17\3\17\3\17"+
+		"\5\17\u00ba\n\17\3\20\3\20\3\20\3\20\3\20\3\20\3\20\3\20\3\20\7\20\u00c5"+
+		"\n\20\f\20\16\20\u00c8\13\20\3\21\3\21\3\21\3\21\3\21\3\21\3\21\3\21\3"+
+		"\21\7\21\u00d3\n\21\f\21\16\21\u00d6\13\21\3\22\3\22\3\22\3\23\3\23\3"+
+		"\23\3\23\3\23\3\23\3\23\3\23\3\23\3\23\3\23\3\23\3\23\3\23\5\23\u00e9"+
+		"\n\23\3\24\3\24\3\24\3\24\3\24\3\24\3\24\3\24\3\24\3\24\3\24\3\24\3\24"+
+		"\3\24\3\24\3\24\5\24\u00fb\n\24\3\25\3\25\3\25\3\25\3\25\3\26\3\26\3\26"+
+		"\3\26\3\26\3\26\3\26\3\26\3\26\3\26\5\26\u010c\n\26\3\27\3\27\3\27\7\27"+
+		"\u0111\n\27\f\27\16\27\u0114\13\27\3\30\3\30\3\31\3\31\3\31\2\7\16\26"+
+		"\32\36 \32\2\4\6\b\n\f\16\20\22\24\26\30\32\34\36 \"$&(*,.\60\2\4\3\2"+
+		"\16\23\3\2\f\r\u012c\2\62\3\2\2\2\4?\3\2\2\2\6N\3\2\2\2\bY\3\2\2\2\n]"+
+		"\3\2\2\2\fg\3\2\2\2\16t\3\2\2\2\20\177\3\2\2\2\22\u0081\3\2\2\2\24\u0089"+
+		"\3\2\2\2\26\u008e\3\2\2\2\30\u00a1\3\2\2\2\32\u00a3\3\2\2\2\34\u00b9\3"+
+		"\2\2\2\36\u00bb\3\2\2\2 \u00c9\3\2\2\2\"\u00d7\3\2\2\2$\u00e8\3\2\2\2"+
+		"&\u00fa\3\2\2\2(\u00fc\3\2\2\2*\u010b\3\2\2\2,\u010d\3\2\2\2.\u0115\3"+
+		"\2\2\2\60\u0117\3\2\2\2\62\63\5\4\3\2\63\64\7\2\2\3\64\3\3\2\2\2\65@\5"+
+		"\6\4\2\66\67\7\"\2\2\678\5\4\3\289\7#\2\29@\3\2\2\2:@\5\36\20\2;@\5\20"+
+		"\t\2<@\5\16\b\2=@\5\b\5\2>@\5\f\7\2?\65\3\2\2\2?\66\3\2\2\2?:\3\2\2\2"+
+		"?;\3\2\2\2?<\3\2\2\2?=\3\2\2\2?>\3\2\2\2@\5\3\2\2\2AB\5\b\5\2BC\7\24\2"+
+		"\2CD\5\4\3\2DE\7\25\2\2EF\5\4\3\2FO\3\2\2\2GH\7\26\2\2HI\5\b\5\2IJ\7\27"+
+		"\2\2JK\5\4\3\2KL\7\30\2\2LM\5\4\3\2MO\3\2\2\2NA\3\2\2\2NG\3\2\2\2O\7\3"+
+		"\2\2\2PQ\5\n\6\2QR\7\t\2\2RS\5\b\5\2SZ\3\2\2\2TU\5\n\6\2UV\7\n\2\2VW\5"+
+		"\b\5\2WZ\3\2\2\2XZ\5\n\6\2YP\3\2\2\2YT\3\2\2\2YX\3\2\2\2Z\t\3\2\2\2[^"+
+		"\5\16\b\2\\^\5\f\7\2][\3\2\2\2]\\\3\2\2\2^\13\3\2\2\2_`\5&\24\2`a\7\3"+
+		"\2\2ab\5\n\6\2bh\3\2\2\2cd\5&\24\2de\7$\2\2ef\5\n\6\2fh\3\2\2\2g_\3\2"+
+		"\2\2gc\3\2\2\2h\r\3\2\2\2ij\b\b\1\2jk\7\13\2\2kl\7\"\2\2lm\5\b\5\2mn\7"+
+		"#\2\2nu\3\2\2\2op\7\"\2\2pq\5\b\5\2qr\7#\2\2ru\3\2\2\2su\5&\24\2ti\3\2"+
+		"\2\2to\3\2\2\2ts\3\2\2\2u|\3\2\2\2vw\f\6\2\2wx\5\22\n\2xy\5\16\b\7y{\3"+
+		"\2\2\2zv\3\2\2\2{~\3\2\2\2|z\3\2\2\2|}\3\2\2\2}\17\3\2\2\2~|\3\2\2\2\177"+
+		"\u0080\5&\24\2\u0080\21\3\2\2\2\u0081\u0082\t\2\2\2\u0082\23\3\2\2\2\u0083"+
+		"\u0084\7\"\2\2\u0084\u0085\5\26\f\2\u0085\u0086\7#\2\2\u0086\u008a\3\2"+
+		"\2\2\u0087\u0088\7\"\2\2\u0088\u008a\7#\2\2\u0089\u0083\3\2\2\2\u0089"+
+		"\u0087\3\2\2\2\u008a\25\3\2\2\2\u008b\u008c\b\f\1\2\u008c\u008f\5&\24"+
+		"\2\u008d\u008f\5\6\4\2\u008e\u008b\3\2\2\2\u008e\u008d\3\2\2\2\u008f\u0098"+
+		"\3\2\2\2\u0090\u0091\f\5\2\2\u0091\u0092\7\7\2\2\u0092\u0097\5&\24\2\u0093"+
+		"\u0094\f\3\2\2\u0094\u0095\7\7\2\2\u0095\u0097\5\6\4\2\u0096\u0090\3\2"+
+		"\2\2\u0096\u0093\3\2\2\2\u0097\u009a\3\2\2\2\u0098\u0096\3\2\2\2\u0098"+
+		"\u0099\3\2\2\2\u0099\27\3\2\2\2\u009a\u0098\3\2\2\2\u009b\u009c\7 \2\2"+
+		"\u009c\u00a2\7!\2\2\u009d\u009e\7 \2\2\u009e\u009f\5\26\f\2\u009f\u00a0"+
+		"\7!\2\2\u00a0\u00a2\3\2\2\2\u00a1\u009b\3\2\2\2\u00a1\u009d\3\2\2\2\u00a2"+
+		"\31\3\2\2\2\u00a3\u00a4\b\16\1\2\u00a4\u00a5\5&\24\2\u00a5\u00a6\7\25"+
+		"\2\2\u00a6\u00a7\5\4\3\2\u00a7\u00b0\3\2\2\2\u00a8\u00a9\f\3\2\2\u00a9"+
+		"\u00aa\7\7\2\2\u00aa\u00ab\5&\24\2\u00ab\u00ac\7\25\2\2\u00ac\u00ad\5"+
+		"\4\3\2\u00ad\u00af\3\2\2\2\u00ae\u00a8\3\2\2\2\u00af\u00b2\3\2\2\2\u00b0"+
+		"\u00ae\3\2\2\2\u00b0\u00b1\3\2\2\2\u00b1\33\3\2\2\2\u00b2\u00b0\3\2\2"+
+		"\2\u00b3\u00b4\7\36\2\2\u00b4\u00b5\5\32\16\2\u00b5\u00b6\7\37\2\2\u00b6"+
+		"\u00ba\3\2\2\2\u00b7\u00b8\7\36\2\2\u00b8\u00ba\7\37\2\2\u00b9\u00b3\3"+
+		"\2\2\2\u00b9\u00b7\3\2\2\2\u00ba\35\3\2\2\2\u00bb\u00bc\b\20\1\2\u00bc"+
+		"\u00bd\5 \21\2\u00bd\u00c6\3\2\2\2\u00be\u00bf\f\4\2\2\u00bf\u00c0\7\33"+
+		"\2\2\u00c0\u00c5\5 \21\2\u00c1\u00c2\f\3\2\2\u00c2\u00c3\7\32\2\2\u00c3"+
+		"\u00c5\5 \21\2\u00c4\u00be\3\2\2\2\u00c4\u00c1\3\2\2\2\u00c5\u00c8\3\2"+
+		"\2\2\u00c6\u00c4\3\2\2\2\u00c6\u00c7\3\2\2\2\u00c7\37\3\2\2\2\u00c8\u00c6"+
+		"\3\2\2\2\u00c9\u00ca\b\21\1\2\u00ca\u00cb\5$\23\2\u00cb\u00d4\3\2\2\2"+
+		"\u00cc\u00cd\f\4\2\2\u00cd\u00ce\7\35\2\2\u00ce\u00d3\5 \21\5\u00cf\u00d0"+
+		"\f\3\2\2\u00d0\u00d1\7\34\2\2\u00d1\u00d3\5 \21\4\u00d2\u00cc\3\2\2\2"+
+		"\u00d2\u00cf\3\2\2\2\u00d3\u00d6\3\2\2\2\u00d4\u00d2\3\2\2\2\u00d4\u00d5"+
+		"\3\2\2\2\u00d5!\3\2\2\2\u00d6\u00d4\3\2\2\2\u00d7\u00d8\7+\2\2\u00d8\u00d9"+
+		"\5\24\13\2\u00d9#\3\2\2\2\u00da\u00e9\5\"\22\2\u00db\u00e9\7(\2\2\u00dc"+
+		"\u00e9\7\'\2\2\u00dd\u00e9\7*\2\2\u00de\u00e9\7)\2\2\u00df\u00e9\7+\2"+
+		"\2\u00e0\u00e1\7\"\2\2\u00e1\u00e2\5\36\20\2\u00e2\u00e3\7#\2\2\u00e3"+
+		"\u00e9\3\2\2\2\u00e4\u00e5\7\"\2\2\u00e5\u00e6\5\6\4\2\u00e6\u00e7\7#"+
+		"\2\2\u00e7\u00e9\3\2\2\2\u00e8\u00da\3\2\2\2\u00e8\u00db\3\2\2\2\u00e8"+
+		"\u00dc\3\2\2\2\u00e8\u00dd\3\2\2\2\u00e8\u00de\3\2\2\2\u00e8\u00df\3\2"+
+		"\2\2\u00e8\u00e0\3\2\2\2\u00e8\u00e4\3\2\2\2\u00e9%\3\2\2\2\u00ea\u00fb"+
+		"\t\3\2\2\u00eb\u00fb\5*\26\2\u00ec\u00fb\5(\25\2\u00ed\u00fb\5\36\20\2"+
+		"\u00ee\u00fb\7,\2\2\u00ef\u00fb\5\30\r\2\u00f0\u00fb\5\34\17\2\u00f1\u00fb"+
+		"\7\31\2\2\u00f2\u00f3\7%\2\2\u00f3\u00f4\7\"\2\2\u00f4\u00f5\7+\2\2\u00f5"+
+		"\u00fb\7#\2\2\u00f6\u00f7\7\"\2\2\u00f7\u00f8\5\6\4\2\u00f8\u00f9\7#\2"+
+		"\2\u00f9\u00fb\3\2\2\2\u00fa\u00ea\3\2\2\2\u00fa\u00eb\3\2\2\2\u00fa\u00ec"+
+		"\3\2\2\2\u00fa\u00ed\3\2\2\2\u00fa\u00ee\3\2\2\2\u00fa\u00ef\3\2\2\2\u00fa"+
+		"\u00f0\3\2\2\2\u00fa\u00f1\3\2\2\2\u00fa\u00f2\3\2\2\2\u00fa\u00f6\3\2"+
+		"\2\2\u00fb\'\3\2\2\2\u00fc\u00fd\7\"\2\2\u00fd\u00fe\7#\2\2\u00fe\u00ff"+
+		"\7\4\2\2\u00ff\u0100\5\4\3\2\u0100)\3\2\2\2\u0101\u0102\7\"\2\2\u0102"+
+		"\u0103\5,\27\2\u0103\u0104\7#\2\2\u0104\u0105\7\4\2\2\u0105\u0106\5\4"+
+		"\3\2\u0106\u010c\3\2\2\2\u0107\u0108\5.\30\2\u0108\u0109\7\4\2\2\u0109"+
+		"\u010a\5\4\3\2\u010a\u010c\3\2\2\2\u010b\u0101\3\2\2\2\u010b\u0107\3\2"+
+		"\2\2\u010c+\3\2\2\2\u010d\u0112\5\60\31\2\u010e\u010f\7\7\2\2\u010f\u0111"+
+		"\5\60\31\2\u0110\u010e\3\2\2\2\u0111\u0114\3\2\2\2\u0112\u0110\3\2\2\2"+
+		"\u0112\u0113\3\2\2\2\u0113-\3\2\2\2\u0114\u0112\3\2\2\2\u0115\u0116\5"+
+		"\60\31\2\u0116/\3\2\2\2\u0117\u0118\7+\2\2\u0118\61\3\2\2\2\30?NY]gt|"+
+		"\u0089\u008e\u0096\u0098\u00a1\u00b0\u00b9\u00c4\u00c6\u00d2\u00d4\u00e8"+
+		"\u00fa\u010b\u0112";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

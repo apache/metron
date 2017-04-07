@@ -32,7 +32,8 @@ public class FunctionalFunctionsTest {
 
   @Test
   public void testRecursive() {
-    for (String expr : ImmutableList.of( "MAP(list, &(inner_list : REDUCE(inner_list, &(x, y: x + y), 0) ))"
+    for (String expr : ImmutableList.of( "MAP(list, inner_list -> REDUCE(inner_list, (x, y) -> x + y, 0) )"
+                                       , "MAP(list, (inner_list) -> REDUCE(inner_list, (x, y) -> x + y, 0) )"
                                        )
         )
     {
@@ -47,8 +48,9 @@ public class FunctionalFunctionsTest {
 
   @Test
   public void testMap_numeric() {
-    for (String expr : ImmutableList.of( "MAP([ 1, 2, 3], &(x : 2*x) )"
-                                       , "MAP([ 1, foo, bar], &(x : 2*x) )"
+    for (String expr : ImmutableList.of( "MAP([ 1, 2, 3], (x) -> 2*x )"
+                                       , "MAP([ 1, foo, bar], (x) -> 2*x )"
+                                       , "MAP([ 1, foo, bar], x -> 2*x )"
                                        )
         )
     {
@@ -63,9 +65,10 @@ public class FunctionalFunctionsTest {
   }
   @Test
   public void testMap() {
-    for (String expr : ImmutableList.of( "MAP([ 'foo', 'bar'], &(x : TO_UPPER(x)) )"
-                                       , "MAP([ foo, 'bar'], &(x : TO_UPPER(x)) )"
-                                       , "MAP([ foo, bar], &(x : TO_UPPER(x)) )"
+    for (String expr : ImmutableList.of( "MAP([ 'foo', 'bar'], (x) -> TO_UPPER(x) )"
+                                       , "MAP([ foo, 'bar'], (x) -> TO_UPPER(x) )"
+                                       , "MAP([ foo, bar], (x) -> TO_UPPER(x) )"
+                                       , "MAP([ foo, bar], x -> TO_UPPER(x) )"
                                        )
         )
     {
@@ -81,9 +84,10 @@ public class FunctionalFunctionsTest {
 
   @Test
   public void testMap_conditional() {
-    for (String expr : ImmutableList.of("MAP([ 'foo', 'bar'], &(item : item == 'foo') )"
-                                       ,"MAP([ foo, bar], &(item : item == 'foo') )"
-                                       ,"MAP([ foo, bar], &(item : item == foo) )"
+    for (String expr : ImmutableList.of("MAP([ 'foo', 'bar'], (item) -> item == 'foo' )"
+                                       ,"MAP([ foo, bar], (item) -> item == 'foo' )"
+                                       ,"MAP([ foo, bar], (item) -> item == foo )"
+                                       ,"MAP([ foo, bar], item -> item == foo )"
                                        )
         )
     {
@@ -98,10 +102,12 @@ public class FunctionalFunctionsTest {
 
   @Test
   public void testFilter() {
-    for (String expr : ImmutableList.of("FILTER([ 'foo', 'bar'], &(item: item == 'foo') )"
-                                       ,"FILTER([ 'foo', bar], &(item: item == 'foo') )"
-                                       ,"FILTER([ foo, bar], &(item: item == 'foo') )"
-                                       ,"FILTER([ foo, bar], &(item: if item == 'foo' then true else false) )"
+    for (String expr : ImmutableList.of("FILTER([ 'foo', 'bar'], (item) -> item == 'foo' )"
+                                       ,"FILTER([ 'foo', bar], (item) -> item == 'foo' )"
+                                       ,"FILTER([ foo, bar], (item) -> item == 'foo' )"
+                                       ,"FILTER([ foo, bar], (item) -> (item == 'foo' && true) )"
+                                       ,"FILTER([ foo, bar], (item) -> if item == 'foo' then true else false )"
+                                       ,"FILTER([ foo, bar], item -> if item == 'foo' then true else false )"
                                        )
         )
     {
@@ -116,10 +122,11 @@ public class FunctionalFunctionsTest {
 
   @Test
   public void testFilter_none() {
-    for (String expr : ImmutableList.of( "FILTER([ foo, bar], &( false ) )"
-                                       , "FILTER([ 'foo', 'bar'], &(item : false) )"
-                                       ,"FILTER([ 'foo', bar], &(item : false) )"
-                                       ,"FILTER([ foo, bar], &(item : false) )"
+    for (String expr : ImmutableList.of( "FILTER([ foo, bar], () -> false  )"
+                                       , "FILTER([ 'foo', 'bar'], (item)-> false )"
+                                       ,"FILTER([ 'foo', bar], (item ) -> false )"
+                                       ,"FILTER([ foo, bar], (item) -> false )"
+                                       ,"FILTER([ foo, bar], item -> false )"
 
                                        )
         )
@@ -133,10 +140,11 @@ public class FunctionalFunctionsTest {
 
   @Test
   public void testFilter_all() {
-    for (String expr : ImmutableList.of("FILTER([ 'foo', 'bar'], &(item : true) )"
-                                       ,"FILTER([ 'foo', bar], &(item : true) )"
-                                       ,"FILTER([ foo, bar], &(item : true) )"
-                                       ,"FILTER([ foo, bar], &( true) )"
+    for (String expr : ImmutableList.of("FILTER([ 'foo', 'bar'], (item) -> true )"
+                                       ,"FILTER([ 'foo', bar], (item) -> true )"
+                                       ,"FILTER([ foo, bar], (item) -> true )"
+                                       ,"FILTER([ foo, bar], item -> true )"
+                                       ,"FILTER([ foo, bar], ()-> true )"
                                        )
         )
     {
@@ -151,8 +159,8 @@ public class FunctionalFunctionsTest {
 
   @Test
   public void testReduce() {
-    for (String expr : ImmutableList.of("REDUCE([ 1, 2, 3], &(x, y : x + y ), 0 )"
-                                       ,"REDUCE([ foo, bar, 3], &(x, y : x + y ), 0 )"
+    for (String expr : ImmutableList.of("REDUCE([ 1, 2, 3], (x, y) -> x + y , 0 )"
+                                       ,"REDUCE([ foo, bar, 3], (x, y) -> x + y , 0 )"
                                        )
         )
     {
@@ -165,7 +173,7 @@ public class FunctionalFunctionsTest {
 
   @Test
   public void testReduce_NonNumeric() {
-    for (String expr : ImmutableList.of("REDUCE([ 'foo', 'bar', 'grok'], &(x, y: LIST_ADD(x, y)), [] )"
+    for (String expr : ImmutableList.of("REDUCE([ 'foo', 'bar', 'grok'], (x, y) -> LIST_ADD(x, y), [] )"
                                        )
         )
     {

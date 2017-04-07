@@ -41,7 +41,7 @@ grammar Stellar;
 
 /* Lexical rules */
 IN : 'in' | 'IN';
-REFERENCE_OP : '&';
+LAMBDA_OP : '->';
 DOUBLE_QUOTE : '"';
 SINGLE_QUOTE : '\'';
 COMMA : ',';
@@ -227,7 +227,8 @@ arithmetic_operands :
 
 identifier_operand :
   (TRUE | FALSE) #LogicalConst
-  | REFERENCE_OP LPAREN (lambda_with_args | lambda_without_args) RPAREN #LambdaExpr
+  | lambda_with_args  #LambdaWithArgsExpr
+  | lambda_without_args  #LambdaWithoutArgsExpr
   | arithmetic_expr #ArithmeticOperands
   | STRING_LITERAL # StringLiteral
   | list_entity #List
@@ -238,17 +239,21 @@ identifier_operand :
   ;
 
 
-lambda_with_args :
-  lambda_variables COLON transformation_expr
+lambda_without_args:
+  LPAREN RPAREN LAMBDA_OP transformation_expr
   ;
 
-lambda_without_args:
-  | transformation_expr
+lambda_with_args :
+  LPAREN lambda_variables RPAREN LAMBDA_OP transformation_expr
+  | single_lambda_variable LAMBDA_OP transformation_expr
   ;
 
 lambda_variables :
   lambda_variable (COMMA lambda_variable)*
   ;
+
+single_lambda_variable :
+  lambda_variable;
 
 lambda_variable:
   IDENTIFIER

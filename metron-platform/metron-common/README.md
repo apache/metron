@@ -77,10 +77,12 @@ The `!=` operator is the negation of the above.
 
 Stellar provides the capability to pass lambda expressions to functions
 which wish to support that layer of indirection.  The syntax is:
-* `&( named_variables : stellar_expression)` : Lambda expression with named variables
-  * For instance, the lambda expression which calls `TO_UPPER` on a named argument `x` would be expressed as `&( x : TO_UPPER(x) )`.
-* `&( stellar_expression )` : Lambda expression with no named variables.
-  * If no named variables are needed, you may omit the named variable section.  For instance, the lambda expression which returns a constant `false` would be `&( false )`
+* `(named_variables) -> stellar_expression` : Lambda expression with named variables
+  * For instance, the lambda expression which calls `TO_UPPER` on a named argument `x` could be be expressed as `(x) -> TO_UPPER(x)`.
+* `var -> stellar_expression` : Lambda expression with a single named variable, `var`
+  * For instance, the lambda expression which calls `TO_UPPER` on a named argument `x` could be expressed as `x -> TO_UPPER(x)`.  Note, this is more succinct but equivalent to the example directly above.
+* `() -> stellar_expression` : Lambda expression with no named variables.
+  * If no named variables are needed, you may omit the named variable section.  For instance, the lambda expression which returns a constant `false` would be `() -> false`
 
 where 
 * `named_variables` is a comma separated list of variables to use in the Stellar expression
@@ -88,9 +90,9 @@ where
 
 
 In the core language functions, we support basic functional programming primitives such as
-* `MAP` - Applies a lambda expression over a list of input.  For instance `MAP([ 'foo', 'bar'], &(x : TO_UPPER(x)) )` returns `[ 'FOO', 'BAR' ]`
-* `FILTER` - Filters a list by a predicate in the form of a lambda expression.  For instance `FILTER([ 'foo', 'bar'], &(x : x == 'foo' ) )` returns `[ 'foo' ]`
-* `REDUCE` - Applies a function over a list of input.  For instance `MAP([ 'foo', 'bar'], &(x : TO_UPPER(x)) )` returns `[ 'FOO', 'BAR' ]`
+* `MAP` - Applies a lambda expression over a list of input.  For instance `MAP([ 'foo', 'bar'], (x) -> TO_UPPER(x) )` returns `[ 'FOO', 'BAR' ]`
+* `FILTER` - Filters a list by a predicate in the form of a lambda expression.  For instance `FILTER([ 'foo', 'bar'], (x ) -> x == 'foo' )` returns `[ 'foo' ]`
+* `REDUCE` - Applies a function over a list of input.  For instance `MAP([ 'foo', 'bar'], (x) -> TO_UPPER(x) )` returns `[ 'FOO', 'BAR' ]`
 
 ## Stellar Core Functions
 
@@ -295,7 +297,7 @@ In the core language functions, we support basic functional programming primitiv
   * Returns: Last element of the list
 
 ### `FILTER`
-  * Description: Applies a filter in the form of a lambda expression to a list. e.g. `FILTER( [ 'foo', 'bar' ] , &(x : x == 'foo'))` would yield `[ 'foo']`
+  * Description: Applies a filter in the form of a lambda expression to a list. e.g. `FILTER( [ 'foo', 'bar' ] , (x) -> x == 'foo')` would yield `[ 'foo']`
   * Input:
     * list - List of arguments.
     * predicate - The lambda expression to apply.  This expression is assumed to take one argument and return a boolean.
@@ -451,7 +453,7 @@ In the core language functions, we support basic functional programming primitiv
   * Returns: The output of the model deployed as a REST endpoint in Map form.  Assumes REST endpoint returns a JSON Map.
 
 ### `MAP`
-  * Description: Applies lambda expression to a list of arguments. e.g. `MAP( [ 'foo', 'bar' ] , &( x : TO_UPPER(x) ) )` would yield `[ 'FOO', 'BAR' ]`
+  * Description: Applies lambda expression to a list of arguments. e.g. `MAP( [ 'foo', 'bar' ] , (x) -> TO_UPPER(x) )` would yield `[ 'FOO', 'BAR' ]`
   * Input:
     * list - List of arguments.
     * transform_expression - The lambda expression to apply. This expression is assumed to take one argument.
@@ -511,7 +513,7 @@ In the core language functions, we support basic functional programming primitiv
   * Returns: The protocol name associated with the IANA number.
 
 ### `REDUCE`
-  * Description: Reduces a list by a binary lambda expression. That is, the expression takes two arguments.  Usage example: `REDUCE( [ 1, 2, 3 ] , &(x, y: x + y))` would sum the input list, yielding `6`.
+  * Description: Reduces a list by a binary lambda expression. That is, the expression takes two arguments.  Usage example: `REDUCE( [ 1, 2, 3 ] , (x, y) -> x + y)` would sum the input list, yielding `6`.
   * Input:                      
     * list - List of arguments.
     * binary_operation - The lambda expression function to apply to reduce the list. It is assumed that this takes two arguments, the first being the running total and the second being an item from the list.

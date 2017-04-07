@@ -332,23 +332,41 @@ public class StellarCompiler extends StellarBaseListener {
 
 
   @Override
+  public void enterSingle_lambda_variable(StellarParser.Single_lambda_variableContext ctx) {
+    enterLambdaVariables();
+  }
+
+  @Override
+  public void exitSingle_lambda_variable(StellarParser.Single_lambda_variableContext ctx) {
+    exitLambdaVariables();
+  }
+
+  @Override
   public void enterLambda_variables(StellarParser.Lambda_variablesContext ctx) {
-    expression.tokenDeque.push(LAMBDA_VARIABLES);
+    enterLambdaVariables();
   }
 
   @Override
   public void exitLambda_variables(StellarParser.Lambda_variablesContext ctx) {
+    exitLambdaVariables();
+  }
+
+  @Override
+  public void exitLambda_variable(StellarParser.Lambda_variableContext ctx) {
+    expression.tokenDeque.push(new Token<>(ctx.getText(), String.class));
+  }
+
+  private void enterLambdaVariables() {
+    expression.tokenDeque.push(LAMBDA_VARIABLES);
+  }
+
+  private void exitLambdaVariables() {
     Token<?> t = expression.tokenDeque.pop();
     LinkedList<String> variables = new LinkedList<>();
     for(; !expression.tokenDeque.isEmpty() && t != LAMBDA_VARIABLES; t = expression.tokenDeque.pop()) {
       variables.addFirst(t.getValue().toString());
     }
     expression.tokenDeque.push(new Token<>(variables, List.class));
-  }
-
-  @Override
-  public void exitLambda_variable(StellarParser.Lambda_variableContext ctx) {
-    expression.tokenDeque.push(new Token<>(ctx.getText(), String.class));
   }
 
   private void enterLambda() {

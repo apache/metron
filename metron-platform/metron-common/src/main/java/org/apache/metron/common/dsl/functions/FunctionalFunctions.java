@@ -28,7 +28,7 @@ import java.util.List;
 
 public class FunctionalFunctions {
   @Stellar(name="MAP"
-          , description="Applies lambda expression to a list of arguments. e.g. MAP( [ 'foo', 'bar' ] , &( x : TO_UPPER(x) ) ) would yield [ 'FOO', 'BAR' ]"
+          , description="Applies lambda expression to a list of arguments. e.g. MAP( [ 'foo', 'bar' ] , ( x ) -> TO_UPPER(x) ) would yield [ 'FOO', 'BAR' ]"
           , params = {
                       "list - List of arguments."
                      ,"transform_expression - The lambda expression to apply. This expression is assumed to take one argument."
@@ -55,7 +55,7 @@ public class FunctionalFunctions {
   }
 
   @Stellar(name="FILTER"
-          , description="Applies a filter in the form of a lambda expression to a list. e.g. FILTER( [ 'foo', 'bar' ] , &(x : x == 'foo')) would yield [ 'foo']"
+          , description="Applies a filter in the form of a lambda expression to a list. e.g. FILTER( [ 'foo', 'bar' ] , (x) -> x == 'foo') would yield [ 'foo']"
           , params = {
                       "list - List of arguments."
                      ,"predicate - The lambda expression to apply.  This expression is assumed to take one argument and return a boolean."
@@ -86,7 +86,7 @@ public class FunctionalFunctions {
   }
 
   @Stellar(name="REDUCE"
-          , description="Reduces a list by a binary lambda expression. That is, the expression takes two arguments.  Usage example: REDUCE( [ 1, 2, 3 ] , &(x, y: x + y)) would sum the input list, yielding 6."
+          , description="Reduces a list by a binary lambda expression. That is, the expression takes two arguments.  Usage example: REDUCE( [ 1, 2, 3 ] , (x, y) -> x + y) would sum the input list, yielding 6."
           , params = {
                       "list - List of arguments."
                      ,"binary_operation - The lambda expression function to apply to reduce the list. It is assumed that this takes two arguments, the first being the running total and the second being an item from the list."
