@@ -18,8 +18,8 @@
 
 package org.apache.metron.common.dsl.functions;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.apache.storm.shade.com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -45,6 +45,22 @@ public class FunctionalFunctionsTest {
     }
   }
 
+  @Test
+  public void testMap_numeric() {
+    for (String expr : ImmutableList.of( "MAP([ 1, 2, 3], &(x : 2*x) )"
+                                       , "MAP([ 1, foo, bar], &(x : 2*x) )"
+                                       )
+        )
+    {
+      Object o = run(expr, ImmutableMap.of("foo", 2, "bar", 3));
+      Assert.assertTrue(o instanceof List);
+      List<String> result = (List<String>) o;
+      Assert.assertEquals(3, result.size());
+      Assert.assertEquals(2, result.get(0));
+      Assert.assertEquals(4, result.get(1));
+      Assert.assertEquals(6, result.get(2));
+    }
+  }
   @Test
   public void testMap() {
     for (String expr : ImmutableList.of( "MAP([ 'foo', 'bar'], &(x : TO_UPPER(x)) )"
