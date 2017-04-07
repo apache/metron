@@ -85,13 +85,21 @@ class ParserCommands:
 
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics for parsers')
-        metron_service.init_kafka_topics(self.__params, self.get_parser_list())
+        # All errors go to indexing topics, so create it here if it's not already
+        # Getting topics this way is a bit awkward, but I don't want to append to actual list, so copy it
+        topics = list(self.get_parser_list())
+        topics.append(self.__params.metron_error_topic)
+        metron_service.init_kafka_topics(self.__params, topics)
 
     def init_kafka_acls(self):
         Logger.info('Creating Kafka ACLs for parsers')
+
+        # Getting topics this way is a bit awkward, but I don't want to modify the actual list, so copy it
+        topics = list(self.get_parser_list())
+        topics.append(self.__params.metron_error_topic)
         # Parser group is the parser name + '_parser'
         metron_service.init_kafka_acls(self.__params,
-                                       self.get_parser_list(),
+                                       topics,
                                        [parser + '_parser' for parser in self.get_parser_list()])
 
     def start_parser_topologies(self):

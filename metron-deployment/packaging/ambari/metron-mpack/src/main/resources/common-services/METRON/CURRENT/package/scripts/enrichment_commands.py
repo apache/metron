@@ -123,13 +123,16 @@ class EnrichmentCommands:
 
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics for enrichment')
-        metron_service.init_kafka_topics(self.__params, [self.__enrichment_topic])
+        # All errors go to indexing topics, so create it here if it's not already
+        metron_service.init_kafka_topics(self.__params, [self.__enrichment_topic, self.__params.metron_error_topic])
         self.set_kafka_configured()
 
     def init_kafka_acls(self):
         Logger.info('Creating Kafka topics')
         # Enrichment topic names matches group
-        metron_service.init_kafka_acls(self.__params, [self.__enrichment_topic], [self.__enrichment_topic])
+        metron_service.init_kafka_acls(self.__params,
+                                       [self.__enrichment_topic, self.__params.metron_error_topic],
+                                       [self.__enrichment_topic])
 
         self.set_kafka_acl_configured()
 

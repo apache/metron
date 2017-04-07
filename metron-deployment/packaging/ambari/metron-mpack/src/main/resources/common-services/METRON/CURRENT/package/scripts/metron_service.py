@@ -96,9 +96,11 @@ def load_global_config(params):
 def init_kafka_topics(params, topics):
     Logger.info('Creating Kafka topics')
 
+    # Create the topics. All the components need indexing (for errors), so we pass '--if-not-exists'.
     command_template = """{0}/kafka-topics.sh \
                             --zookeeper {1} \
                             --create \
+                            --if-not-exists \
                             --topic {2} \
                             --partitions {3} \
                             --replication-factor {4} \

@@ -1,5 +1,5 @@
 # Setting Up Kerberos in Vagrant Full Dev
-**Note:** These are manual instructions for Kerberizing Metron Storm topologies from Kafka to Kafka. This does not cover the Ambari MPack, sensor connections, or MAAS.
+**Note:** These are instructions for Kerberizing Metron Storm topologies from Kafka to Kafka. This does not cover the sensor connections or MAAS.
 
 1. Build full dev and ssh into the machine
     ```
