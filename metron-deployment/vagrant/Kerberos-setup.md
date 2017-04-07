@@ -251,6 +251,20 @@ KVNO Timestamp         Principal
    1 03/28/17 19:29:36 hbase-metron_cluster@EXAMPLE.COM
 ```
 
+#### Model as a Service on Kerberos
+
+MaaS works with kerberos, you have to remember to kinit with the metron
+user.  There is one small issue out of the box, you get an error like so
+when running `$METRON_HOME/bin/maas_service.sh`:
+```
+Requested user metron is not whitelisted and has id 501,which is below the minimum allowed 1000.
+```
+
+In order to avoid this, you should change the Yarn configuration in
+Ambari under "Advanced" and then "Advanced yarn-env" and adjust the
+"Minimum user ID for submitting job" to 500 from 1000.  You should then
+restart Yarn.
+
 #### Kafka with Kerberos enabled
 
 ##### Write data to a topic with SASL
