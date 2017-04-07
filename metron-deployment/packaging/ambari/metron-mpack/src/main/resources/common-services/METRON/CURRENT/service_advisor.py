@@ -141,7 +141,6 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
         for property, desired_value in self.getSTORMSiteDesiredValues().iteritems():
             if property not in storm_site :
                 message = "Metron requires this property to be set to the recommended value of " + desired_value
-                # TODO determine if this needs to be error or warn for the security properties?
                 item = self.getErrorItem(message) if property == "topology.classpath" else self.getWarnItem(message)
                 validationItems.append({"config-name": property, "item": item})
             elif  storm_site[property] != desired_value:
