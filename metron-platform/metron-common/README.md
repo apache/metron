@@ -29,6 +29,7 @@ The query language supports the following:
 * An `in` operator that works like the `in` in Python
 * The ability to have parenthesis to make order of operations explicit
 * User defined functions
+* Function references
 
 ## Stellar Language Keywords
 The following keywords need to be single quote escaped in order to be used in Stellar expressions:

@@ -553,6 +553,18 @@ public class StellarBaseListener implements StellarListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterDereferenceExpr(StellarParser.DereferenceExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitDereferenceExpr(StellarParser.DereferenceExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterArithmeticOperands(StellarParser.ArithmeticOperandsContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -632,6 +644,18 @@ public class StellarBaseListener implements StellarListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitCondExpr_paren(StellarParser.CondExpr_parenContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterRef_expr(StellarParser.Ref_exprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitRef_expr(StellarParser.Ref_exprContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

@@ -529,6 +529,18 @@ public interface StellarListener extends ParseTreeListener {
 	 */
 	void exitLogicalConst(StellarParser.LogicalConstContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code DereferenceExpr}
+	 * labeled alternative in {@link StellarParser#identifier_operand}.
+	 * @param ctx the parse tree
+	 */
+	void enterDereferenceExpr(StellarParser.DereferenceExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code DereferenceExpr}
+	 * labeled alternative in {@link StellarParser#identifier_operand}.
+	 * @param ctx the parse tree
+	 */
+	void exitDereferenceExpr(StellarParser.DereferenceExprContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code ArithmeticOperands}
 	 * labeled alternative in {@link StellarParser#identifier_operand}.
 	 * @param ctx the parse tree
@@ -612,4 +624,14 @@ public interface StellarListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitCondExpr_paren(StellarParser.CondExpr_parenContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link StellarParser#ref_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterRef_expr(StellarParser.Ref_exprContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link StellarParser#ref_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitRef_expr(StellarParser.Ref_exprContext ctx);
 }

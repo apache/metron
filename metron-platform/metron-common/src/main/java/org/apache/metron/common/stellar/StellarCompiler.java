@@ -33,20 +33,23 @@ import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.utils.ConversionUtils;
 
+import java.io.Serializable;
 import java.util.*;
 
 import static java.lang.String.format;
 
 public class StellarCompiler extends StellarBaseListener {
+  private static Token<?> EXPRESSION_REFERENCE = new Token<>(null, Object.class);
+
   private Expression expression;
   private final ArithmeticEvaluator arithmeticEvaluator;
   private final NumberLiteralEvaluator numberLiteralEvaluator;
   private final ComparisonExpressionWithOperatorEvaluator comparisonExpressionWithOperatorEvaluator;
 
   public static class ExpressionState {
-    Context context;
-    FunctionResolver functionResolver;
-    VariableResolver variableResolver;
+    transient Context context;
+    transient FunctionResolver functionResolver;
+    transient VariableResolver variableResolver;
     public ExpressionState(Context context
               , FunctionResolver functionResolver
               , VariableResolver variableResolver
@@ -57,17 +60,21 @@ public class StellarCompiler extends StellarBaseListener {
     }
   }
 
-  public static class Expression {
+  public static class Expression implements Serializable {
     final Deque<Token<?>> tokenDeque;
     final Set<String> variablesUsed;
-    Expression(Deque<Token<?>> tokenDeque) {
+    public Expression(Deque<Token<?>> tokenDeque) {
       this.tokenDeque = tokenDeque;
       this.variablesUsed = new HashSet<>();
     }
 
+    public Deque<Token<?>> getTokenDeque() {
+      return tokenDeque;
+    }
+
     public Object apply(ExpressionState state) {
       Deque<Token<?>> instanceDeque = new ArrayDeque<>();
-      for(Iterator<Token<?>> it = tokenDeque.descendingIterator();it.hasNext();) {
+      for(Iterator<Token<?>> it = getTokenDeque().descendingIterator();it.hasNext();) {
         Token<?> token = it.next();
         if(token.getUnderlyingType() == DeferredFunction.class) {
           DeferredFunction func = (DeferredFunction) token.getValue();
@@ -320,6 +327,24 @@ public class StellarCompiler extends StellarBaseListener {
       throw new ParseException("Unable to operate on " + left.getValue() + " " + opName + " " + right.getValue() + ", null value");
     }
     return op.op(l, r);
+  }
+
+  @Override
+  public void enterRef_expr(StellarParser.Ref_exprContext ctx) {
+    expression.tokenDeque.push(EXPRESSION_REFERENCE);
+  }
+
+  @Override
+  public void exitRef_expr(StellarParser.Ref_exprContext ctx) {
+    Token<?> t = expression.tokenDeque.pop();
+    Deque<Token<?>> instanceDeque = new ArrayDeque<>();
+    for(; !expression.tokenDeque.isEmpty() && t != EXPRESSION_REFERENCE; t = expression.tokenDeque.pop()) {
+      instanceDeque.addLast(t);
+    }
+    expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
+      ReferencedExpression expr = new ReferencedExpression(instanceDeque, state);
+      tokenDeque.push(new Token<>(expr, Object.class));
+    }, DeferredFunction.class) );
   }
 
   @Override

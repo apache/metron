@@ -40,7 +40,8 @@ grammar Stellar;
 }
 
 /* Lexical rules */
-
+IN : 'in' | 'IN';
+REFERENCE_OP : '&';
 DOUBLE_QUOTE : '"';
 SINGLE_QUOTE : '\'';
 COMMA : ',';
@@ -75,7 +76,6 @@ LBRACKET : '[';
 RBRACKET : ']';
 LPAREN : '(' ;
 RPAREN : ')' ;
-IN : 'in' | 'IN';
 NIN : 'not in' | 'NOT IN';
 EXISTS : 'exists' | 'EXISTS';
 EXPONENT : E ( PLUS|MINUS )? DIGIT+;
@@ -95,7 +95,7 @@ FLOAT_LITERAL :
   | INT_LITERAL EXPONENT? F
   ;
 LONG_LITERAL : INT_LITERAL L;
-IDENTIFIER : [a-zA-Z_][a-zA-Z_\.:0-9]*;
+IDENTIFIER : [a-zA-Z_$][a-zA-Z_\.:0-9]*;
 
 STRING_LITERAL :
   DOUBLE_QUOTE SCHAR* DOUBLE_QUOTE
@@ -178,8 +178,8 @@ op_list :
   ;
 
 list_entity :
-  LBRACKET op_list RBRACKET
-  | LBRACKET RBRACKET
+  LBRACKET RBRACKET
+  | LBRACKET op_list RBRACKET
   ;
 
 kv_list :
@@ -219,6 +219,7 @@ arithmetic_operands :
 
 identifier_operand :
   (TRUE | FALSE) #LogicalConst
+  | REFERENCE_OP ref_expr #DereferenceExpr
   | arithmetic_expr #ArithmeticOperands
   | STRING_LITERAL # StringLiteral
   | list_entity #List
@@ -226,4 +227,8 @@ identifier_operand :
   | NULL #NullConst
   | EXISTS LPAREN IDENTIFIER RPAREN #ExistsFunc
   | LPAREN conditional_expr RPAREN #condExpr_paren
+  ;
+
+ref_expr :
+  | transformation_expr
   ;
