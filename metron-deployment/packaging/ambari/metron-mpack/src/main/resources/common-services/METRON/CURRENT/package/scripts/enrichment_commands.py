@@ -128,7 +128,7 @@ class EnrichmentCommands:
         self.set_kafka_configured()
 
     def init_kafka_acls(self):
-        Logger.info('Creating Kafka topics')
+        Logger.info('Creating Kafka ACls for enrichment')
         # Enrichment topic names matches group
         metron_service.init_kafka_acls(self.__params,
                                        [self.__enrichment_topic, self.__params.metron_error_topic],
