@@ -39,7 +39,6 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 hostname = config['hostname']
-metron_group = config['configurations']['cluster-env']['metron_group']
 metron_home = status_params.metron_home
 parsers = status_params.parsers
 geoip_url = config['configurations']['metron-env']['geoip_url']
@@ -76,6 +75,9 @@ else:
 
 # hadoop params
 stack_root = Script.get_stack_root()
+# This is the cluster group named 'hadoop'. Its membership is the stack process user ids not individual users.
+# The config name 'user_group' is out of our control and a bit misleading, so it is renamed to 'hadoop_group'.
+hadoop_group = config['configurations']['cluster-env']['user_group']
 hadoop_home_dir = stack_select.get_hadoop_dir("home")
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()

@@ -5,7 +5,7 @@ This module provides a user interface for management functions in Metron.
 ## Prerequisites
 
 * A network accessible Metron REST application
-* npm 3.8.9+ (npm can be installed on quick dev with `yum install npm && npm install npm@3.8.9 -g`)
+* nodejs v6.9+ (nodejs can be installed on quick dev with `curl --silent --location https://rpm.nodesource.com/setup_6.x | bash - && yum install -y nodejs`)
 
 ## Installation
 1. Build Metron:
@@ -20,17 +20,24 @@ This module provides a user interface for management functions in Metron.
     bin
       start_management_ui.sh
     web
+      expressjs
+        package.json
+        server.js
       management-ui
         web assets (html, css, js, ...)
     ```
 
 1. For production use, the contents of the `./web/management-ui` directory should be deployed to a web server with paths `/api/v1` and `/logout` mapped to the REST application url.  
 
-1. As an example, a convenience script is included that will install a simple [http-server](https://github.com/indexzero/http-server), set the root context path to `./web/management-ui`, and exposes proxy settings as environment variables.  Set the `METRON_REST_URL` environment variable (`http://localhost:8080` by default) to the url of REST application.  Set the `METRON_MANAGEMENT_UI_PORT` environment variable (`4200` by default) to the desired port.
+1. As an example, a convenience script is included that will install a simple [expressjs](https://github.com/expressjs/express) webserver.
 
 1. Then start the application with the script:
     ```
     ./bin/start_management_ui.sh
+    Usage: server.js -p [port] -r [restUrl]
+    Options:
+      -p             Port to run metron management ui                [required]
+      -r, --resturl  Url where metron rest application is available  [required]
     ```
 
 ## Usage
@@ -64,4 +71,7 @@ The application will be available at http://localhost:4200/.  The REST applicati
     ```
     npm test
     ```
-  
+
+## License
+
+This projects bundles Font Awesome which is available under the SIL Open Font License.  See http://fontawesome.io/license/ for more details.

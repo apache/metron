@@ -50,12 +50,19 @@ EXCLUSION_LIST=(
     '/site-book/'
     '/build_utils/'
     '/node_modules/'
+    '/\.github/'
 )
 
 ## This is a list of resources (eg .png files) needed to render the markdown files.
 ## Each entry is a file path, relative to $METRON_SOURCE.
 ## Note: any images in site-book/src/site/src-resources/images/ will also be included.
 RESOURCE_LIST=(
+    metron-deployment/vagrant/readme-images/ambari-storm-site-properties.png
+    metron-deployment/vagrant/readme-images/ambari-storm-site.png
+    metron-deployment/vagrant/readme-images/custom-storm-site-final.png
+    metron-deployment/vagrant/readme-images/enable-kerberos-configure-kerberos.png
+    metron-deployment/vagrant/readme-images/enable-kerberos-started.png
+    metron-deployment/vagrant/readme-images/enable-kerberos.png
     metron-platform/metron-parsers/parser_arch.png
     metron-platform/metron-indexing/indexing_arch.png
     metron-platform/metron-enrichment/enrichment_arch.png
@@ -66,6 +73,12 @@ RESOURCE_LIST=(
 ## that needs an href re-written to match a resource in the images/ directory.  Odd fields are the corresponding
 ## one-line sed script, in single quotes, that does the rewrite.  See below for examples.
 HREF_REWRITE_LIST=(
+    metron-deployment/vagrant/Kerberos-setup.md 's#(readme-images/ambari-storm-site-properties.png)#(../../images/ambari-storm-site-properties.png)#g'
+    metron-deployment/vagrant/Kerberos-setup.md 's#(readme-images/ambari-storm-site.png)#(../../images/ambari-storm-site.png)#g'
+    metron-deployment/vagrant/Kerberos-setup.md 's#(readme-images/custom-storm-site-final.png)#(../../images/custom-storm-site-final.png)#g'
+    metron-deployment/vagrant/Kerberos-setup.md 's#(readme-images/enable-kerberos-configure-kerberos.png)#(../../images/enable-kerberos-configure-kerberos.png)#g'
+    metron-deployment/vagrant/Kerberos-setup.md 's#(readme-images/enable-kerberos-started.png)#(../../images/enable-kerberos-started.png)#g'
+    metron-deployment/vagrant/Kerberos-setup.md 's#(readme-images/enable-kerberos.png)#(../../images/enable-kerberos.png)#g'
     metron-platform/metron-enrichment/README.md 's#(enrichment_arch.png)#(../../images/enrichment_arch.png)#g'
     metron-platform/metron-indexing/README.md 's#(indexing_arch.png)#(../../images/indexing_arch.png)#g'
     metron-platform/metron-parsers/README.md 's#(parser_arch.png)#(../../images/parser_arch.png)#g'

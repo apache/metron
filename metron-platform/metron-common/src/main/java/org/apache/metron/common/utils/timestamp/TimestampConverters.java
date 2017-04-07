@@ -19,6 +19,8 @@
 package org.apache.metron.common.utils.timestamp;
 
 
+import com.google.common.base.Joiner;
+
 public enum TimestampConverters implements TimestampConverter{
   MILLISECONDS(tsMilli -> tsMilli*1000000L)
   ,MICROSECONDS(tsMicro -> tsMicro*1000L)
@@ -29,7 +31,13 @@ public enum TimestampConverters implements TimestampConverter{
   }
 
   public static TimestampConverter getConverter(String converter) {
-    return TimestampConverters.valueOf(converter).converter;
+    if(converter != null) {
+      return TimestampConverters.valueOf(converter.toUpperCase()).converter;
+    }
+    else {
+      throw new IllegalStateException(converter + " is not a valid timestamp converter: "
+              + Joiner.on(",").join(TimestampConverters.values()));
+    }
   }
 
   @Override

@@ -138,13 +138,13 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
     return true;
   }
 
-  isSimpleRemoveTransform(fieldTransformer: FieldTransformer): boolean {
+  isConditionalRemoveTransform(fieldTransformer: FieldTransformer): boolean {
     if (fieldTransformer && fieldTransformer.transformation === 'REMOVE' &&
-        fieldTransformer.config && Object.keys(fieldTransformer.config).length > 0) {
-      return false;
+        fieldTransformer.config && fieldTransformer.config['condition']) {
+      return true;
     }
 
-    return true;
+    return false;
   }
 
   createFieldSchemaRows() {
@@ -179,21 +179,15 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
     // Update rows with Remove Transformations
     let removeTransformations = this.sensorParserConfig.fieldTransformations.filter(fieldTransformer => fieldTransformer.transformation === 'REMOVE');
     for (let fieldTransformer of removeTransformations) {
-      if (this.isSimpleRemoveTransform(fieldTransformer)) {
-        for (let inputFieldName of fieldTransformer.input) {
-          if (!fieldSchemaRowsCreated[inputFieldName]) {
-            fieldSchemaRowsCreated[inputFieldName] = new FieldSchemaRow(inputFieldName);
-          }
-          fieldSchemaRowsCreated[inputFieldName].isRemoved = true;
+      for (let inputFieldName of fieldTransformer.input) {
+        if (!fieldSchemaRowsCreated[inputFieldName]) {
+          fieldSchemaRowsCreated[inputFieldName] = new FieldSchemaRow(inputFieldName);
         }
-      } else {
-        let fieldName = fieldTransformer.input[0];
-        if (!fieldSchemaRowsCreated[fieldName]) {
-          fieldSchemaRowsCreated[fieldName] = new FieldSchemaRow(fieldName);
+        fieldSchemaRowsCreated[inputFieldName].isRemoved = true;
+        if (fieldTransformer.config && fieldTransformer.config['condition']) {
+          fieldSchemaRowsCreated[inputFieldName].conditionalRemove = true;
         }
 
-        fieldSchemaRowsCreated[fieldName].isRemoved = true;
-        fieldSchemaRowsCreated[fieldName].conditionalRemove = true;
       }
     }
 
@@ -313,7 +307,7 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
 
   onEnable(fieldSchemaRow: FieldSchemaRow) {
     if (fieldSchemaRow.conditionalRemove) {
-      this.metronAlerts.showErrorMessage('Unable to enable field. The remove operation has a stellar condition please enable the field from stellar configuration pane.');
+      this.metronAlerts.showErrorMessage('The "' + fieldSchemaRow.outputFieldName + '" field cannot be enabled because the REMOVE transformation has a condition.  Please remove the condition in the RAW JSON editor.');
       return;
     }
     fieldSchemaRow.isRemoved = false;
@@ -366,7 +360,7 @@ export class SensorFieldSchemaComponent implements OnInit, OnChanges {
 
     // Remove all STELLAR functions and retain only the REMOVE objects
     this.sensorParserConfig.fieldTransformations = this.sensorParserConfig.fieldTransformations.filter(fieldTransformer => {
-      if (!this.isSimpleRemoveTransform(fieldTransformer)) {
+      if (this.isConditionalRemoveTransform(fieldTransformer)) {
         return true;
       }
       return false;

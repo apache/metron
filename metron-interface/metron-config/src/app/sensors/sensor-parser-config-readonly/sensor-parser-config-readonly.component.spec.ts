@@ -205,7 +205,7 @@ class MockHdfsService extends HdfsService {
     });
   }
 
-  public post(contents: string): Observable<{}> {
+  public post(path: string, contents: string): Observable<Response> {
     return Observable.create(observer => {
       observer.next({});
       observer.complete();
@@ -320,8 +320,8 @@ describe('Component: SensorParserConfigReadonly', () => {
     kafkaTopic.replicationFactor = 1;
 
     topologyStatus.name = 'bro';
-    topologyStatus.latency = '10.1';
-    topologyStatus.throughput = '15.2';
+    topologyStatus.latency = 10.1;
+    topologyStatus.throughput = 15.2;
 
     let broEnrichment = {
       'fieldMap': {
@@ -358,33 +358,33 @@ describe('Component: SensorParserConfigReadonly', () => {
   it('getSensorStatusService should initialise the state variable to appropriate values ', async(() => {
     let sensorParserStatus = new TopologyStatus();
     sensorParserStatus.name = 'bro';
-    sensorParserStatus.latency = '10.1';
+    sensorParserStatus.latency = 10.1;
     sensorParserStatus.status = null;
-    sensorParserStatus.throughput = '15.2';
+    sensorParserStatus.throughput = 15.2;
 
     stormService.setForTest(sensorParserStatus);
 
     component.getSensorStatusService();
-    expect(component.topologyStatus.status).toEqual('Stopped');
-    expect(component.topologyStatus['sensorStatus']).toEqual('-');
+    expect(component.getTopologyStatus('status')).toEqual('Stopped');
+    expect(component.getTopologyStatus('sensorStatus')).toEqual('-');
 
     sensorParserStatus.status = 'ACTIVE';
-    stormService.setForTest(sensorParserStatus);
     component.getSensorStatusService();
-    expect(component.topologyStatus.status).toEqual('Running');
-    expect(component.topologyStatus['sensorStatus']).toEqual('Enabled');
+    stormService.setForTest(sensorParserStatus);
+    expect(component.getTopologyStatus('status')).toEqual('Running');
+    expect(component.getTopologyStatus('sensorStatus')).toEqual('Enabled');
 
     sensorParserStatus.status = 'KILLED';
-    stormService.setForTest(sensorParserStatus);
     component.getSensorStatusService();
-    expect(component.topologyStatus.status).toEqual('Stopped');
-    expect(component.topologyStatus['sensorStatus']).toEqual('-');
+    stormService.setForTest(sensorParserStatus);
+    expect(component.getTopologyStatus('status')).toEqual('Stopped');
+    expect(component.getTopologyStatus('sensorStatus')).toEqual('-');
 
     sensorParserStatus.status = 'INACTIVE';
-    stormService.setForTest(sensorParserStatus);
     component.getSensorStatusService();
-    expect(component.topologyStatus.status).toEqual('Disabled');
-    expect(component.topologyStatus['sensorStatus']).toEqual('Disabled');
+    stormService.setForTest(sensorParserStatus);
+    expect(component.getTopologyStatus('status')).toEqual('Disabled');
+    expect(component.getTopologyStatus('sensorStatus')).toEqual('Disabled');
   }));
 
   it('setGrokStatement should set the variables appropriately ', async(() => {
@@ -505,8 +505,8 @@ describe('Component: SensorParserConfigReadonly', () => {
     kafkaTopic.replicationFactor = 1;
 
     topologyStatus.name = 'bro';
-    topologyStatus.latency = '10.1';
-    topologyStatus.throughput = '15.2';
+    topologyStatus.latency = 10.1;
+    topologyStatus.throughput = 15.2;
 
     let broEnrichment = {
       'fieldMap': {
@@ -650,38 +650,59 @@ describe('Component: SensorParserConfigReadonly', () => {
   }));
 
   it('should hide start', async(() => {
-    component.topologyStatus.status = 'Running';
+    component.topologyStatus.status = 'ACTIVE';
+    expect(component.isStartHidden()).toEqual(true);
+
+    component.topologyStatus.status = 'INACTIVE';
     expect(component.isStartHidden()).toEqual(true);
 
     component.topologyStatus.status = 'Stopped';
     expect(component.isStartHidden()).toEqual(false);
+
+    component.topologyStatus.status = 'KILLED';
+    expect(component.isStartHidden()).toEqual(false);
   }));
 
   it('should hide stop', async(() => {
+    component.topologyStatus.status = 'ACTIVE';
+    expect(component.isStopHidden()).toEqual(false);
+
+    component.topologyStatus.status = 'INACTIVE';
+    expect(component.isStopHidden()).toEqual(false);
+
     component.topologyStatus.status = 'Stopped';
     expect(component.isStopHidden()).toEqual(true);
 
-    component.topologyStatus.status = 'Running';
-    expect(component.isStopHidden()).toEqual(false);
-
-    component.topologyStatus.status = 'Disabled';
-    expect(component.isStopHidden()).toEqual(false);
+    component.topologyStatus.status = 'KILLED';
+    expect(component.isStopHidden()).toEqual(true);
   }));
 
   it('should hide enable', async(() => {
+    component.topologyStatus.status = 'ACTIVE';
+    expect(component.isEnableHidden()).toEqual(true);
+
+    component.topologyStatus.status = 'INACTIVE';
+    expect(component.isEnableHidden()).toEqual(false);
+
     component.topologyStatus.status = 'Stopped';
     expect(component.isEnableHidden()).toEqual(true);
 
-    component.topologyStatus.status = 'Disabled';
-    expect(component.isEnableHidden()).toEqual(false);
+    component.topologyStatus.status = 'KILLED';
+    expect(component.isEnableHidden()).toEqual(true);
   }));
 
   it('should hide disable', async(() => {
+    component.topologyStatus.status = 'ACTIVE';
+    expect(component.isDisableHidden()).toEqual(false);
+
+    component.topologyStatus.status = 'INACTIVE';
+    expect(component.isDisableHidden()).toEqual(true);
+
     component.topologyStatus.status = 'Stopped';
     expect(component.isDisableHidden()).toEqual(true);
 
-    component.topologyStatus.status = 'Running';
-    expect(component.isDisableHidden()).toEqual(false);
+    component.topologyStatus.status = 'KILLED';
+    expect(component.isDisableHidden()).toEqual(true);
   }));
 
 });

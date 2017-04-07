@@ -15,9 +15,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './autocomplete';
-export * from './autocomplete/autocomplete-grok-statement';
-export * from './autocomplete/autocomplete-statement-generator';
-export * from './autocomplete/autocomplete-transformations-statement';
 export * from './metron-dialog-box';
 export * from './metron-modal';

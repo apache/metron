@@ -18,9 +18,13 @@
 
 package org.apache.metron.management;
 
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.metron.common.dsl.Context;
@@ -29,14 +33,7 @@ import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.utils.ConversionUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import static org.apache.metron.common.dsl.Context.Capabilities.GLOBAL_CONFIG;
@@ -128,6 +125,7 @@ public class KafkaFunctions {
 
       // build the properties for kafka
       Properties properties = buildKafkaProperties(overrides, context);
+      properties.put("max.poll.records", count);
 
       // read some messages
       try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties)) {
