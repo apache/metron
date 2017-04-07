@@ -48,9 +48,9 @@ public class StellarCompiler extends StellarBaseListener {
   private final ComparisonExpressionWithOperatorEvaluator comparisonExpressionWithOperatorEvaluator;
 
   public static class ExpressionState {
-    transient Context context;
-    transient FunctionResolver functionResolver;
-    transient VariableResolver variableResolver;
+    Context context;
+    FunctionResolver functionResolver;
+    VariableResolver variableResolver;
     public ExpressionState(Context context
               , FunctionResolver functionResolver
               , VariableResolver variableResolver

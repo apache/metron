@@ -37,6 +37,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class SimpleHBaseEnrichmentFunctionsTest {
@@ -94,6 +95,7 @@ public class SimpleHBaseEnrichmentFunctionsTest {
     Assert.assertTrue(result instanceof Boolean);
     Assert.assertFalse((Boolean)result);
   }
+
   @Test
   public void testSuccessfulGet() throws Exception {
     String stellar = "ENRICHMENT_GET('et', indicator, 'enrichments', 'cf')";
@@ -103,6 +105,18 @@ public class SimpleHBaseEnrichmentFunctionsTest {
     Assert.assertEquals("value0", out.get("key0"));
   }
 
+  @Test
+  public void testMultiGet() throws Exception {
+    String stellar = "MAP([ 'indicator0', 'indicator1' ], &( i : ENRICHMENT_GET('et', i, 'enrichments', 'cf')) )";
+    Object result = run(stellar, ImmutableMap.of("indicator", "indicator0"));
+    Assert.assertTrue(result instanceof List);
+    List<Map<String, Object>> out = (List<Map<String, Object>>) result;
+    Assert.assertEquals(2, out.size());
+    for(int i = 0;i < 2;++i) {
+      Map<String, Object> map = out.get(i);
+      Assert.assertEquals("value" +i, map.get("key" + i));
+    }
+  }
   @Test
   public void testUnsuccessfulGet() throws Exception {
     String stellar = "ENRICHMENT_GET('et', indicator, 'enrichments', 'cf')";
