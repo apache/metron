@@ -1,6 +1,6 @@
 # Model Management Infrastructure
 
-##Introduction
+## Introduction
 
 One of the main features envisioned and requested is the ability to augment the threat intelligence and enrichment processes with insights derived from machine learning or statistical models.  The challenges with this sort of infrastructure are
 * Applying the model may be sufficiently computationally/resource intensive that we need to support scaling via load balancing, which will require service discovery and management.
@@ -12,7 +12,7 @@ To support a high throughput environment that is manageable, it is evident that
 * Deployment should happen using Yarn to manage resources
 * Clients should have new model endpoints pushed to them
 
-##Architecture
+## Architecture
 
 ![Architecture](maas_arch.png)
 
@@ -94,6 +94,12 @@ usage: ModelSubmission
  -zq,--zk_quorum <arg>           Zookeeper Quorum
  -zr,--zk_root <arg>             Zookeeper Root
 ```
+
+## Kerberos Support
+
+Model as a service will run on a kerberized cluster with a caveat.  The user who submits 
+the service will be the user who executes the models on the cluster.  That
+is to say that user impersonation of models deployed is not done at the moment.
 
 ##Stellar Integration
 
