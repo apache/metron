@@ -134,11 +134,16 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
             putMetronEnvProperty("zeppelin_server_url", zeppelinServerUrl)
 
     def validateSTORMSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+        # Determine if the cluster is secured
+        if "cluster-env" in services["configurations"] and "security_enabled" in services["configurations"]["cluster-env"]["properties"]:
+            is_secured = services["configurations"]["cluster-env"]["properties"]["security_enabled"]
+        else:
+            is_secured = "false"
 
         storm_site = properties
         validationItems = []
 
-        for property, desired_value in self.getSTORMSiteDesiredValues().iteritems():
+        for property, desired_value in self.getSTORMSiteDesiredValues(is_secured).iteritems():
             if property not in storm_site :
                 message = "Metron requires this property to be set to the recommended value of " + desired_value
                 item = self.getErrorItem(message) if property == "topology.classpath" else self.getWarnItem(message)
