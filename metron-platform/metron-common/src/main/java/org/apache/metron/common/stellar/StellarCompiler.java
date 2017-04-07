@@ -40,6 +40,7 @@ import static java.lang.String.format;
 
 public class StellarCompiler extends StellarBaseListener {
   private static Token<?> EXPRESSION_REFERENCE = new Token<>(null, Object.class);
+  private static Token<?> LAMBDA_VARIABLES = new Token<>(null, Object.class);
 
   private Expression expression;
   private final ArithmeticEvaluator arithmeticEvaluator;
@@ -329,22 +330,62 @@ public class StellarCompiler extends StellarBaseListener {
     return op.op(l, r);
   }
 
+
   @Override
-  public void enterRef_expr(StellarParser.Ref_exprContext ctx) {
-    expression.tokenDeque.push(EXPRESSION_REFERENCE);
+  public void enterLambda_variables(StellarParser.Lambda_variablesContext ctx) {
+    expression.tokenDeque.push(LAMBDA_VARIABLES);
   }
 
   @Override
-  public void exitRef_expr(StellarParser.Ref_exprContext ctx) {
+  public void exitLambda_variables(StellarParser.Lambda_variablesContext ctx) {
     Token<?> t = expression.tokenDeque.pop();
-    Deque<Token<?>> instanceDeque = new ArrayDeque<>();
+    LinkedList<String> variables = new LinkedList<>();
+    for(; !expression.tokenDeque.isEmpty() && t != LAMBDA_VARIABLES; t = expression.tokenDeque.pop()) {
+      variables.addFirst(t.getValue().toString());
+    }
+    expression.tokenDeque.push(new Token<>(variables, List.class));
+  }
+
+  @Override
+  public void exitLambda_variable(StellarParser.Lambda_variableContext ctx) {
+    expression.tokenDeque.push(new Token<>(ctx.getText(), String.class));
+  }
+
+  private void enterLambda() {
+    expression.tokenDeque.push(EXPRESSION_REFERENCE);
+  }
+
+  private void exitLambda(boolean hasArgs) {
+    Token<?> t = expression.tokenDeque.pop();
+    final Deque<Token<?>> instanceDeque = new ArrayDeque<>();
     for(; !expression.tokenDeque.isEmpty() && t != EXPRESSION_REFERENCE; t = expression.tokenDeque.pop()) {
       instanceDeque.addLast(t);
     }
+    final List<String> variables = hasArgs? (List<String>) instanceDeque.removeLast().getValue() :new ArrayList<>();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
-      ReferencedExpression expr = new ReferencedExpression(instanceDeque, state);
+      LambdaExpression expr = new LambdaExpression(variables, instanceDeque, state);
       tokenDeque.push(new Token<>(expr, Object.class));
     }, DeferredFunction.class) );
+  }
+
+  @Override
+  public void enterLambda_with_args(StellarParser.Lambda_with_argsContext ctx) {
+    enterLambda();
+  }
+
+  @Override
+  public void exitLambda_with_args(StellarParser.Lambda_with_argsContext ctx) {
+    exitLambda(true);
+  }
+
+  @Override
+  public void enterLambda_without_args(StellarParser.Lambda_without_argsContext ctx) {
+    enterLambda();
+  }
+
+  @Override
+  public void exitLambda_without_args(StellarParser.Lambda_without_argsContext ctx) {
+    exitLambda(false);
   }
 
   @Override

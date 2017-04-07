@@ -553,13 +553,13 @@ public class StellarBaseListener implements StellarListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDereferenceExpr(StellarParser.DereferenceExprContext ctx) { }
+	@Override public void enterLambdaExpr(StellarParser.LambdaExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitDereferenceExpr(StellarParser.DereferenceExprContext ctx) { }
+	@Override public void exitLambdaExpr(StellarParser.LambdaExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -649,13 +649,49 @@ public class StellarBaseListener implements StellarListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterRef_expr(StellarParser.Ref_exprContext ctx) { }
+	@Override public void enterLambda_with_args(StellarParser.Lambda_with_argsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitRef_expr(StellarParser.Ref_exprContext ctx) { }
+	@Override public void exitLambda_with_args(StellarParser.Lambda_with_argsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLambda_without_args(StellarParser.Lambda_without_argsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLambda_without_args(StellarParser.Lambda_without_argsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLambda_variables(StellarParser.Lambda_variablesContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLambda_variables(StellarParser.Lambda_variablesContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLambda_variable(StellarParser.Lambda_variableContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLambda_variable(StellarParser.Lambda_variableContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

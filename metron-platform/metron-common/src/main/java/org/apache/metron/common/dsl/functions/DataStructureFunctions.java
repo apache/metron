@@ -168,7 +168,7 @@ public class DataStructureFunctions {
           , params = { "list - List to add element to."
                      , "element - Element to add to list"
                      }
-          , returns = "Resulting list"
+          , returns = "Resulting list with the item added at the end."
   )
 
   public static class ListAdd extends BaseStellarFunction {

@@ -95,7 +95,9 @@ FLOAT_LITERAL :
   | INT_LITERAL EXPONENT? F
   ;
 LONG_LITERAL : INT_LITERAL L;
-IDENTIFIER : [a-zA-Z_$][a-zA-Z_\.:0-9]*;
+IDENTIFIER : IDENTIFIER_START
+           | IDENTIFIER_START IDENTIFIER_MIDDLE* IDENTIFIER_END
+           ;
 
 STRING_LITERAL :
   DOUBLE_QUOTE SCHAR* DOUBLE_QUOTE
@@ -118,6 +120,11 @@ fragment E: ('e'|'E');
 fragment F: ('f'|'F');
 fragment L: ('l'|'L');
 fragment EOL : '\n';
+fragment IDENTIFIER_START : [a-zA-Z_$];
+fragment IDENTIFIER_MIDDLE: [a-zA-Z_\.:0-9];
+//identifiers can't end with a colon, it screws up maps and lambda variables.
+//the following (x,y:x == 'foo') doesn't parse because y:x is considered a variable
+fragment IDENTIFIER_END: [a-zA-Z_\.0-9];
 
 /* Parser rules */
 
@@ -217,9 +224,10 @@ arithmetic_operands :
   | LPAREN conditional_expr RPAREN #condExpr
   ;
 
+
 identifier_operand :
   (TRUE | FALSE) #LogicalConst
-  | REFERENCE_OP ref_expr #DereferenceExpr
+  | REFERENCE_OP LPAREN (lambda_with_args | lambda_without_args) RPAREN #LambdaExpr
   | arithmetic_expr #ArithmeticOperands
   | STRING_LITERAL # StringLiteral
   | list_entity #List
@@ -229,6 +237,21 @@ identifier_operand :
   | LPAREN conditional_expr RPAREN #condExpr_paren
   ;
 
-ref_expr :
+
+lambda_with_args :
+  lambda_variables COLON transformation_expr
+  ;
+
+lambda_without_args:
   | transformation_expr
   ;
+
+lambda_variables :
+  lambda_variable (COMMA lambda_variable)*
+  ;
+
+lambda_variable:
+  IDENTIFIER
+  ;
+
+
