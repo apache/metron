@@ -92,7 +92,7 @@ where
 In the core language functions, we support basic functional programming primitives such as
 * `MAP` - Applies a lambda expression over a list of input.  For instance `MAP([ 'foo', 'bar'], (x) -> TO_UPPER(x) )` returns `[ 'FOO', 'BAR' ]`
 * `FILTER` - Filters a list by a predicate in the form of a lambda expression.  For instance `FILTER([ 'foo', 'bar'], (x ) -> x == 'foo' )` returns `[ 'foo' ]`
-* `REDUCE` - Applies a function over a list of input.  For instance `MAP([ 'foo', 'bar'], (x) -> TO_UPPER(x) )` returns `[ 'FOO', 'BAR' ]`
+* `REDUCE` - Applies a function over a list of input.  For instance `REDUCE([ 1, 2, 3], (sum, x) -> sum + x, 0 )` returns `6`
 
 ## Stellar Core Functions
 
@@ -513,7 +513,7 @@ In the core language functions, we support basic functional programming primitiv
   * Returns: The protocol name associated with the IANA number.
 
 ### `REDUCE`
-  * Description: Reduces a list by a binary lambda expression. That is, the expression takes two arguments.  Usage example: `REDUCE( [ 1, 2, 3 ] , (x, y) -> x + y)` would sum the input list, yielding `6`.
+  * Description: Reduces a list by a binary lambda expression. That is, the expression takes two arguments.  Usage example: `REDUCE( [ 1, 2, 3 ] , (x, y) -> x + y, 0)` would sum the input list, yielding `6`.
   * Input:                      
     * list - List of arguments.
     * binary_operation - The lambda expression function to apply to reduce the list. It is assumed that this takes two arguments, the first being the running total and the second being an item from the list.

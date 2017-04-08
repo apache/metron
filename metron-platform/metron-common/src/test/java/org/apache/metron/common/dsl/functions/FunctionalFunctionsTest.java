@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.HashMap;
 import java.util.List;
 
 import static org.apache.metron.common.utils.StellarProcessorUtils.run;
@@ -47,12 +46,12 @@ public class FunctionalFunctionsTest {
   }
 
   @Test
-  public void testMap_numeric() {
-    for (String expr : ImmutableList.of( "MAP([ 1, 2, 3], (x) -> 2*x )"
-                                       , "MAP([ 1, foo, bar], (x) -> 2*x )"
-                                       , "MAP([ 1, foo, bar], x -> 2*x )"
-                                       )
-        )
+  public void testMap_null() {
+    for (String expr : ImmutableList.of( "MAP([ 1, 2, null], x -> if x == null then 0 else 2*x )"
+                                       , "MAP([ 1, 2, null], x -> x == null ? 0 : 2*x )"
+                                       , "MAP([ 1, foo, baz], x -> x == null ? 0 : 2*x )"
+    )
+            )
     {
       Object o = run(expr, ImmutableMap.of("foo", 2, "bar", 3));
       Assert.assertTrue(o instanceof List);
@@ -60,9 +59,11 @@ public class FunctionalFunctionsTest {
       Assert.assertEquals(3, result.size());
       Assert.assertEquals(2, result.get(0));
       Assert.assertEquals(4, result.get(1));
-      Assert.assertEquals(6, result.get(2));
+      Assert.assertEquals(0, result.get(2));
     }
   }
+
+
   @Test
   public void testMap() {
     for (String expr : ImmutableList.of( "MAP([ 'foo', 'bar'], (x) -> TO_UPPER(x) )"
@@ -121,6 +122,37 @@ public class FunctionalFunctionsTest {
 
 
   @Test
+  public void testFilter_null() {
+    for (String expr : ImmutableList.of("FILTER([ 'foo', null], item -> item == null )"
+                                       ,"FILTER([ 'foo', baz], (item) -> item == null )"
+                                       )
+        )
+    {
+      Object o = run(expr, ImmutableMap.of("foo", "foo", "bar", "bar"));
+      Assert.assertTrue(o instanceof List);
+      List<String> result = (List<String>) o;
+      Assert.assertEquals(1, result.size());
+      Assert.assertEquals(null, result.get(0));
+    }
+  }
+
+  @Test
+  public void testFilter_notnull() {
+    for (String expr : ImmutableList.of("FILTER([ 'foo', null], item -> item != null )"
+                                       ,"FILTER([ 'foo', baz], (item) -> item != null )"
+                                       ,"FILTER([ foo, baz], (item) -> item != null )"
+                                       )
+        )
+    {
+      Object o = run(expr, ImmutableMap.of("foo", "foo", "bar", "bar"));
+      Assert.assertTrue(o instanceof List);
+      List<String> result = (List<String>) o;
+      Assert.assertEquals(1, result.size());
+      Assert.assertEquals("foo", result.get(0));
+    }
+  }
+
+  @Test
   public void testFilter_none() {
     for (String expr : ImmutableList.of( "FILTER([ foo, bar], () -> false  )"
                                        , "FILTER([ 'foo', 'bar'], (item)-> false )"
@@ -154,6 +186,20 @@ public class FunctionalFunctionsTest {
       Assert.assertEquals(2, result.size());
       Assert.assertEquals("foo", result.get(0));
       Assert.assertEquals("bar", result.get(1));
+    }
+  }
+
+  @Test
+  public void testReduce_null() {
+    for (String expr : ImmutableList.of("REDUCE([ 1, 2, 3, null], (x, y) -> if y != null then x + y else x , 0 )"
+                                       ,"REDUCE([ foo, bar, 3, baz], (sum, y) -> if y != null then sum + y else sum, 0 )"
+                                       )
+        )
+    {
+      Object o = run(expr, ImmutableMap.of("foo", 1, "bar", 2));
+      Assert.assertTrue(o instanceof Number);
+      Number result = (Number) o;
+      Assert.assertEquals(6, result.intValue());
     }
   }
 

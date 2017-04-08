@@ -23,6 +23,7 @@ import org.apache.metron.common.dsl.VariableResolver;
 
 import java.util.*;
 
+
 public class LambdaExpression extends StellarCompiler.Expression {
   StellarCompiler.ExpressionState state;
   List<String> variables;

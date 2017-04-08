@@ -18,7 +18,6 @@
 
 package org.apache.metron.common.dsl.functions;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.dsl.BaseStellarFunction;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.stellar.LambdaExpression;
@@ -27,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FunctionalFunctions {
+
   @Stellar(name="MAP"
           , description="Applies lambda expression to a list of arguments. e.g. MAP( [ 'foo', 'bar' ] , ( x ) -> TO_UPPER(x) ) would yield [ 'FOO', 'BAR' ]"
           , params = {
@@ -46,9 +46,7 @@ public class FunctionalFunctions {
       }
       List<Object> ret = new ArrayList<>();
       for(Object o : input) {
-        if(o != null) {
-          ret.add(expression.apply(ImmutableList.of(o)));
-        }
+        ret.add(expression.apply(listOf(o)));
       }
       return ret;
     }
@@ -73,10 +71,7 @@ public class FunctionalFunctions {
       }
       List<Object> ret = new ArrayList<>();
       for(Object o : input) {
-        if(o == null) {
-          continue;
-        }
-        Object result = expression.apply(ImmutableList.of(o));
+        Object result = expression.apply(listOf(o));
         if(result != null && result instanceof Boolean && (Boolean)result) {
           ret.add(o);
         }
@@ -110,12 +105,17 @@ public class FunctionalFunctions {
       }
       for(int i = 0;i < input.size();++i) {
         Object rhs = input.get(i);
-        if(rhs == null) {
-          continue;
-        }
-        runningResult = expression.apply(ImmutableList.of(runningResult, rhs));
+        runningResult = expression.apply(listOf(runningResult, rhs));
       }
       return runningResult;
     }
+  }
+
+  private static List<Object> listOf(Object... vals) {
+    List<Object> ret = new ArrayList<>(vals.length);
+    for(int i = 0;i < vals.length;++i) {
+      ret.add(vals[i]);
+    }
+    return ret;
   }
 }
