@@ -21,7 +21,11 @@ package org.apache.metron.common.stellar;
 import org.apache.metron.common.dsl.Token;
 import org.apache.metron.common.dsl.VariableResolver;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 
 public class LambdaExpression extends StellarCompiler.Expression {
