@@ -27,13 +27,12 @@ export class LoginPage {
     }
 
     login() {
-        return waitForElementVisibility(element(this.useNameInput)).then(() => {
-            this.setUserNameAndPassword('admin', 'password');
-            this.submitLoginForm();
-        }).then(protractor.promise.controlFlow().execute(() => {
-            waitForElementVisibility(element(by.css('.logout-link')))
-            browser.waitForAngular();
-        }));
+        let flow = protractor.promise.controlFlow();
+        browser.get('/').then(flow.execute(() => waitForElementVisibility(element(this.useNameInput))))
+            .then(flow.execute(() => this.setUserNameAndPassword('admin', 'password')))
+            .then(flow.execute(() => this.submitLoginForm()));
+
+        browser.ignoreSynchronization = true;
     }
 
     logout() {

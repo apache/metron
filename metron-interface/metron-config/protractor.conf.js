@@ -37,7 +37,7 @@ exports.config = {
   specs: [
     './e2e/login/login.e2e-spec.ts',
     './e2e/app/app.e2e-spec.ts',
-    // './e2e/sensor-list/sensor-list.e2e-spec.ts',
+    './e2e/sensor-list/sensor-list.e2e-spec.ts',
     './e2e/use-cases/sensor-config-single-parser.e2e-spec.ts'
   ],
   capabilities: {
@@ -59,7 +59,9 @@ exports.config = {
     });
   },
   onPrepare: function() {
-    jasmine.getEnv().addReporter(new SpecReporter());
+    jasmine.getEnv().addReporter(new SpecReporter({
+      displayStacktrace: 'specs'
+    }));
     setTimeout(function() {
       browser.driver.executeScript(function() {
         return {
