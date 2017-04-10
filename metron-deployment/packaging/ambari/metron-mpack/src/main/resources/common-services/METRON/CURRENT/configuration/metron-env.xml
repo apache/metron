@@ -125,32 +125,6 @@
         <value></value>
     </property>
     <property>
-        <name>repo_type</name>
-        <display-name>Repository Type</display-name>
-        <description>Type of Repository: Local or Remote</description>
-        <value>local</value>
-        <value-attributes>
-            <overridable>false</overridable>
-            <type>value-list</type>
-            <entries>
-                <entry>
-                    <value>local</value>
-                    <label>Local</label>
-                </entry>
-                <entry>
-                    <value>remote</value>
-                    <label>Remote</label>
-                </entry>
-            </entries>
-            <selection-cardinality>1</selection-cardinality>
-        </value-attributes>
-    </property>
-    <property>
-        <name>repo_url</name>
-        <display-name>Repository URL</display-name>
-        <value></value>
-    </property>
-    <property>
         <name>global-json</name>
         <display-name>global.json template</display-name>
         <description>This is the jinja template for global.json file</description>
