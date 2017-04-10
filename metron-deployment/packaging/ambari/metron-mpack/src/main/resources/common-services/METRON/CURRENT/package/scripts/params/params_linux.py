@@ -185,6 +185,8 @@ client_jaas_path = metron_home + '/client_jaas.conf'
 client_jaas_arg = '-Djava.security.auth.login.config=' + metron_home + '/client_jaas.conf'
 topology_worker_childopts = client_jaas_arg if security_enabled else ''
 topology_auto_credentials = ['org.apache.storm.security.auth.kerberos.AutoTGT'] if security_enabled else ['']
+# Needed for storm.config, because it needs Java String
+topology_auto_credentials_double_quotes = str(topology_auto_credentials).replace("'", '"')
 
 if security_enabled:
     hostname_lowercase = config['hostname'].lower()
