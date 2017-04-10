@@ -122,14 +122,12 @@ public class BasicFireEyeParser extends BasicParser {
 			month = tsMatcher.group(1);
 			day = tsMatcher.group(2);
 			time = tsMatcher.group(3);
-	
-				} else {
-			LOG.warn("Unable to find timestamp in message: " + toParse);
 			ts = ParserUtils.convertToEpoch(month, day, time, true);
+		} else {
+			LOG.warn("Unable to find timestamp in message: " + toParse);
 		}
 
-			return ts;
-	
+		return ts;
 	}
 
 	private JSONObject parseMessage(String toParse) {
