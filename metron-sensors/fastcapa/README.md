@@ -9,6 +9,9 @@ Fastcapa leverages the Data Plane Development Kit ([DPDK](http://dpdk.org/)).  D
 * [Requirements](#requirements)
 * [Installation](#installation)
 * [Usage](#usage)
+    * [Parameters](#parameters)
+    * [Output](#output)
+    * [Kerberos](#kerberos)
 * [How It Works](#how-it-works)
 * [Performance](#performance)
 * [FAQs](#faqs)
@@ -181,6 +184,7 @@ The probe has been tested with [Librdkafka 0.9.4](https://github.com/edenhill/li
     cd incubator-metron/metron-sensors/fastcapa
     make
     ```
+    
 
 Usage
 -----
@@ -315,6 +319,57 @@ When running the probe some basic counters are output to stdout.  Of course duri
 * `[kaf]` + `in`: The Kafka client library has received 8 packets.
 * `[kaf]` + `out`: A total of 7 packets has successfully reached Kafka. 
 * `[kaf]` + `queued`: There is 1 packet within the `rdkafka` queue waiting to be sent.
+
+### Kerberos
+
+The probe can be used in a Kerberized environment.  Follow these additional steps to use Fastcapa with Kerberos.  The following assumptions have been made.  These may need altered to fit your environment.
+
+* The Kafka broker is at `kafka1:6667`
+* Zookeeper is at `zookeeper1:2181`
+* The Kafka security protocol is `SASL_PLAINTEXT`
+* The keytab used is located at `/etc/security/keytabs/metron.headless.keytab`
+* The service principal is `metron@EXAMPLE.COM`
+
+1. Build Librdkafka with SASL support (` --enable-sasl`).
+    ```
+    wget https://github.com/edenhill/librdkafka/archive/v0.9.4.tar.gz  -O - | tar -xz
+    cd librdkafka-0.9.4/
+    ./configure --prefix=$RDK_PREFIX --enable-sasl
+    make 
+    make install
+    ```
+
+1. Validate Librdkafka does indeed support SASL.  Run the following command and ensure that `sasl` is returned as a built-in feature.
+    ```
+    $ examples/rdkafka_example -X builtin.features
+    builtin.features = gzip,snappy,ssl,sasl,regex
+    ```
+
+   If it is not, ensure that you have `libsasl` or `libsasl2` installed.  On CentOS, this can be installed with the following command.
+    ```
+    yum install -y cyrus-sasl cyrus-sasl-devel cyrus-sasl-gssapi
+    ```
+
+1. Grant access to your Kafka topic.  In this example, it is simply named `pcap`.
+    ```
+    $KAFKA_HOME/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer \
+      --authorizer-properties zookeeper.connect=zookeeper1:2181 \
+      --add --allow-principal User:metron --topic pcap
+    ```
+
+1. Obtain a Kerberos ticket.
+    ```
+    kinit -kt /etc/security/keytabs/metron.headless.keytab metron@EXAMPLE.COM
+    ```
+
+1. Add the following additional configuration values to your Fastcapa configuration file.
+    ```
+    security.protocol = SASL_PLAINTEXT
+    sasl.kerberos.keytab = /etc/security/keytabs/metron.headless.keytab
+    sasl.kerberos.principal = metron@EXAMPLE.COM
+    ```
+    
+1. Now run Fastcapa as you normally would.  It should have no problem landing packets in your kerberized Kafka broker.
 
 How It Works
 ------
