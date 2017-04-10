@@ -29,24 +29,18 @@ from rest_commands import RestCommands
 
 
 class RestMaster(Script):
-    def get_component_name(self):
-        # TODO add this at some point - currently will cause problems with hdp-select
-        # return "parser-master"
-        pass
 
     def install(self, env):
         from params import params
         env.set_params(params)
-        commands = RestCommands(params)
-        commands.setup_repo()
         self.install_packages(env)
 
     def configure(self, env, upgrade_type=None, config_dir=None):
         from params import params
         env.set_params(params)
 
-        File(format("{metron_config_path}/application.yml"),
-             content=Template("application.yml.j2"),
+        File(format("{metron_config_path}/rest_application.yml"),
+             content=Template("rest_application.yml.j2"),
              owner=params.metron_user,
              group=params.metron_group
              )

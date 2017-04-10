@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 # metron rest application service
+# chkconfig: - - -
 # description: rest application
 # processname: metron-rest
 #
@@ -31,7 +32,7 @@ LOGFILE="/var/log/metron-rest.log"
 METRON_VERSION=0.3.1
 METRON_HOME=/usr/metron/$METRON_VERSION
 METRON_REST_PORT=${METRON_REST_PORT:-8082}
-DAEMON="java -jar $METRON_HOME/lib/metron-rest-$METRON_VERSION.jar --spring.config.location=$METRON_HOME/config/application.yml --spring.profiles.active=dev --server.port=$METRON_REST_PORT"
+DAEMON="java -jar $METRON_HOME/lib/metron-rest-$METRON_VERSION.jar --spring.config.location=$METRON_HOME/config/rest_application.yml --spring.profiles.active=dev --server.port=$METRON_REST_PORT"
 LOCKFILE=/var/lock/subsys/$NAME
 
 #

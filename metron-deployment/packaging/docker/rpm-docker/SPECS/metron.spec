@@ -338,6 +338,13 @@ This package installs the Metron Rest %{metron_home}
 /etc/init.d/metron-rest
 %attr(0644,root,root) %{metron_home}/lib/metron-rest-%{full_version}.jar
 
+%post rest
+chkconfig metron-rest --del
+
+%preun rest
+chkconfig metron-rest --del
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 

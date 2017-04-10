@@ -9,6 +9,9 @@ This module provides a RESTful API for interacting with Metron.
 * Storm CLI and Metron topology scripts (start_parser_topology.sh, start_enrichment_topology.sh, start_elasticsearch_topology.sh) installed
 
 ## Installation
+
+### From Source
+
 1. Package the application with Maven:
   ```
   mvn clean package
@@ -28,10 +31,24 @@ This module provides a RESTful API for interacting with Metron.
   ```
   ./bin/start_metron_rest.sh /path/to/application.yml
   ```
+  
+### From Package Manager
+
+1. Deploy the RPM at `/incubator-metron/metron-deployment/packaging/docker/rpm-docker/target/RPMS/noarch/metron-rest-$METRON_VERSION-*.noarch.rpm`
+
+1. Install the RPM with:
+   ```
+   rpm -ih metron-rest-$METRON_VERSION-*.noarch.rpm
+   ```
+   
+1. The REST application can now be managed as a service.  For example, start the application with:
+   ```
+   service metron-rest start
+   ```
 
 ## Usage
 
-The exposed REST endpoints can be accessed with the Swagger UI at http://host:port/swagger-ui.html#/.  The default port is 8080 but can be changed in application.yml by setting "server.port" to the desired port.
+The exposed REST endpoints can be accessed with the Swagger UI at http://host:port/swagger-ui.html#/.  The default port is 8080 but can be changed in application.yml by setting "server.port" to the desired port.  If the "dev" profile is used, the default credentials are `user/password`.
 
 ## Security
 
