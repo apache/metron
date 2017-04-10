@@ -14,45 +14,96 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import sys
+import threading
+import signal
 import pcapy
 import argparse
-import kafka
 import random
+import logging
 from common import to_date, to_hex, pack_ts
+from confluent_kafka import Producer
+
+finished = threading.Event()
+
+
+def signal_handler(signum, frame):
+    """ Initiates a clean shutdown for a SIGINT """
+
+    finished.set()
+    logging.info("Clean shutdown process started")
 
 
 def partitioner(key_bytes, all_parts, avail_parts):
+    """ Partitions messages randomly across all available partitions. """
+
     return random.choice(avail_parts)
 
 
 def timestamp(pkt_hdr):
+    """ Returns the timestamp of the packet in epoch milliseconds. """
+
     (epoch_secs, delta_micros) = pkt_hdr.getts()
     epoch_micros = (epoch_secs * 1000000.0) + delta_micros
     return epoch_micros
 
 
-def producer(args):
+def delivery_callback(err, msg):
+    """ Callback executed when message delivery either succeeds or fails. """
+
+    # initialize counter, if needed
+    if not hasattr(delivery_callback, "pkts_out"):
+         delivery_callback.pkts_out = 0
+
+    if err:
+        logging.error("message delivery failed: error=%s", err)
+    else:
+        logging.debug("message delivery succeeded: pkts_out=%d", delivery_callback.pkts_out)
+        delivery_callback.pkts_out += 1
+
+
+def producer(args, sniff_timeout_ms=500, sniff_promisc=True):
+    """ Captures packets from a network interface and sends them to a Kafka topic. """
+
+    # setup the signal handler
+    signal.signal(signal.SIGINT, signal_handler)
+
     # connect to kafka
-    producer = kafka.KafkaProducer(
-        bootstrap_servers=args.kafka_brokers.split(","),
-        partitioner=partitioner)
+    logging.info("Connecting to Kafka; %s", args.kafka_configs)
+    kafka_producer = Producer(args.kafka_configs)
 
     # initialize packet capture
-    capture = pcapy.open_live(args.interface, 65535, True, 3000)
-    packet_count = 0
+    logging.info("Starting packet capture")
+    capture = pcapy.open_live(args.interface, args.snaplen, sniff_promisc, sniff_timeout_ms)
+    pkts_in = 0
 
-    # start packet capture
-    while True:
-        (pkt_hdr, pkt_raw) = capture.next()
-        if pkt_hdr is not None:
+    try:
+        while not finished.is_set() and (args.max_packets <= 0 or pkts_in < args.max_packets):
 
-            # send packet to kafka
-            pkt_ts = timestamp(pkt_hdr)
-            producer.send(args.topic, key=pack_ts(pkt_ts), value=pkt_raw)
+            # capture a packet
+            (pkt_hdr, pkt_raw) = capture.next()
+            if pkt_hdr is not None:
+                logging.debug("Packet received: pkts_in=%d, pkt_len=%s", pkts_in, pkt_hdr.getlen())
+                pkts_in += 1
+                pkt_ts = timestamp(pkt_hdr)
+                kafka_producer.produce(args.kafka_topic, key=pack_ts(pkt_ts), value=pkt_raw, callback=delivery_callback)
 
-            # debug messages, if needed
-            packet_count += 1
-            if args.debug > 0 and packet_count % args.debug == 0:
-                print 'Sent Packet: count=%s dt=%s topic=%s' % (
-                    packet_count, to_date(pkt_ts), args.topic)
-                print to_hex(pkt_raw)
+                # debug messages, if needed
+                if args.pretty_print > 0 and pkts_in % args.pretty_print == 0:
+                    print '{} packet(s) received'.format(pkts_in)
+                    print to_hex(pkt_raw)
+
+            # serve the callback queue
+            kafka_producer.poll(0)
+
+    finally:
+        # flush all messages
+        logging.info("Waiting for '%d' message(s) to flush", len(kafka_producer))
+        kafka_producer.flush()
+
+        # pkts_out may not be initialized if the callback was never executed
+        pkts_out = 0
+        if hasattr(delivery_callback, "pkts_out"):
+            pkts_out = delivery_callback.pkts_out
+
+        logging.info("'%d' packet(s) in, '%d' packet(s) out", pkts_in, pkts_out)
