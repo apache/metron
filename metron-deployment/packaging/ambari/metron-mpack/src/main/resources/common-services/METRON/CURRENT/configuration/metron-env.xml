@@ -169,6 +169,7 @@
 indexing.workers=1
 indexing.executors=0
 topology.worker.childopts={{topology_worker_childopts}}
+topology.auto.credentials={{topology_auto_credentials}}
 ##### Kafka #####
 kafka.zk={{ zookeeper_quorum }}
 kafka.broker={{ kafka_brokers }}

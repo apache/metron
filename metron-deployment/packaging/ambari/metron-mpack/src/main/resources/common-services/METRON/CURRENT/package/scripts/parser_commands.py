@@ -120,7 +120,6 @@ class ParserCommands:
                                       execute_user=self.__params.metron_user)
         for parser in self.get_parser_list():
             Logger.info('Starting ' + parser)
-
             Execute(start_cmd_template.format(self.__params.metron_home,
                                               self.__params.kafka_brokers,
                                               self.__params.zookeeper_quorum,

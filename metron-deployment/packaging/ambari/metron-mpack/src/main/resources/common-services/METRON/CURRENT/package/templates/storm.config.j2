@@ -17,5 +17,6 @@
 #}
 
 {
-  "topology.worker.childopts" : "-Djava.security.auth.login.config={{metron_home}}/client_jaas.conf"
+  "topology.worker.childopts" : "-Djava.security.auth.login.config={{metron_home}}/client_jaas.conf",
+  "topology.auto-credentials" : ['org.apache.storm.security.auth.kerberos.AutoTGT']
 }

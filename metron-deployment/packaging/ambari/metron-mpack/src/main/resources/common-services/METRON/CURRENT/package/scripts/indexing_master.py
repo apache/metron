@@ -25,7 +25,6 @@ from resource_management.libraries.script import Script
 
 from metron_security import storm_security_setup
 import metron_service
-import metron_security
 from indexing_commands import IndexingCommands
 
 

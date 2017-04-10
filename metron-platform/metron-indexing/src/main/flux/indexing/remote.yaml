@@ -20,6 +20,7 @@ config:
     topology.workers: ${indexing.workers}
     topology.acker.executors: ${indexing.executors}
     topology.worker.childopts: ${topology.worker.childopts}
+    topology.auto-credentials: ${topology_auto_credentials}
 
 components:
 
