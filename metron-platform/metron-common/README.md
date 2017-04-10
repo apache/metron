@@ -28,7 +28,7 @@ The query language supports the following:
 * Determining whether a field exists (via `exists`)
 * An `in` operator that works like the `in` in Python
 * The ability to have parenthesis to make order of operations explicit
-* User defined functions
+* User defined functions, including Lambda expressions 
 
 ## Stellar Language Keywords
 The following keywords need to be single quote escaped in order to be used in Stellar expressions:
@@ -73,6 +73,27 @@ Below is how the `==` operator is expected to work:
 
 The `!=` operator is the negation of the above.
 
+## Stellar Language Lambda Expressions
+
+Stellar provides the capability to pass lambda expressions to functions
+which wish to support that layer of indirection.  The syntax is:
+* `(named_variables) -> stellar_expression` : Lambda expression with named variables
+  * For instance, the lambda expression which calls `TO_UPPER` on a named argument `x` could be be expressed as `(x) -> TO_UPPER(x)`.
+* `var -> stellar_expression` : Lambda expression with a single named variable, `var`
+  * For instance, the lambda expression which calls `TO_UPPER` on a named argument `x` could be expressed as `x -> TO_UPPER(x)`.  Note, this is more succinct but equivalent to the example directly above.
+* `() -> stellar_expression` : Lambda expression with no named variables.
+  * If no named variables are needed, you may omit the named variable section.  For instance, the lambda expression which returns a constant `false` would be `() -> false`
+
+where 
+* `named_variables` is a comma separated list of variables to use in the Stellar expression
+* `stellar_expression` is an arbitrary stellar expression
+
+
+In the core language functions, we support basic functional programming primitives such as
+* `MAP` - Applies a lambda expression over a list of input.  For instance `MAP([ 'foo', 'bar'], (x) -> TO_UPPER(x) )` returns `[ 'FOO', 'BAR' ]`
+* `FILTER` - Filters a list by a predicate in the form of a lambda expression.  For instance `FILTER([ 'foo', 'bar'], (x ) -> x == 'foo' )` returns `[ 'foo' ]`
+* `REDUCE` - Applies a function over a list of input.  For instance `REDUCE([ 1, 2, 3], (sum, x) -> sum + x, 0 )` returns `6`
+
 ## Stellar Core Functions
 
 |                                                                                                    |
@@ -94,6 +115,7 @@ The `!=` operator is the negation of the above.
 | [ `ENRICHMENT_GET`](#enrichment_get)                                                               |
 | [ `FILL_LEFT`](#fill_left)                                                                         |
 | [ `FILL_RIGHT`](#fill_right)                                                                       |
+| [ `FILTER`](#filter)                                                                         |
 | [ `FORMAT`](#format)                                                                               |
 | [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality)                   |
 | [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
@@ -117,14 +139,17 @@ The `!=` operator is the negation of the above.
 | [ `KAFKA_PUT`](#kafka_put)                                                                         |
 | [ `KAFKA_TAIL`](#kafka_tail)                                                                       |
 | [ `LENGTH`](#length)                                                                               |
+| [ `LIST_ADD`](#list_add)                                                                               |
 | [ `MAAS_GET_ENDPOINT`](#maas_get_endpoint)                                                         |
 | [ `MAAS_MODEL_APPLY`](#maas_model_apply)                                                           |
+| [ `MAP`](#map)                                                                       |
 | [ `MAP_EXISTS`](#map_exists)                                                                       |
 | [ `MONTH`](#month)                                                                                 |
 | [ `PROFILE_GET`](#profile_get)                                                                     |
 | [ `PROFILE_FIXED`](#profile_fixed)                                                                     |
 | [ `PROFILE_WINDOW`](#profile_window)                                                                     |
 | [ `PROTOCOL_TO_NAME`](#protocol_to_name)                                                           |
+| [ `REDUCE`](#reduce)                                                                   |
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
 | [ `SPLIT`](#split)                                                                                 |
 | [ `STARTS_WITH`](#starts_with)                                                                     |
@@ -271,6 +296,13 @@ The `!=` operator is the negation of the above.
     * len - the required length
   * Returns: Last element of the list
 
+### `FILTER`
+  * Description: Applies a filter in the form of a lambda expression to a list. e.g. `FILTER( [ 'foo', 'bar' ] , (x) -> x == 'foo')` would yield `[ 'foo']`
+  * Input:
+    * list - List of arguments.
+    * predicate - The lambda expression to apply.  This expression is assumed to take one argument and return a boolean.
+  * Returns: The input list filtered by the predicate.
+
 ### `FORMAT`
   * Description: Returns a formatted string using the specified format string and arguments. Uses Java's string formatting conventions.
   * Input:
@@ -398,6 +430,13 @@ The `!=` operator is the negation of the above.
     * input - Object of string or collection type (e.g. list)
   * Returns: Integer
 
+### `LIST_ADD`
+  * Description: Adds an element to a list.
+  * Input:
+    * list - List to add element to.
+    * element - Element to add to list
+  * Returns: Resulting list with the item added at the end.
+  
 ### `MAAS_GET_ENDPOINT`
   * Description: Inspects ZooKeeper and returns a map containing the name, version and url for the model referred to by the input parameters.
   * Input:
@@ -413,6 +452,13 @@ The `!=` operator is the negation of the above.
     * model_args - A Dictionary of arguments for the model (these become request params)
   * Returns: The output of the model deployed as a REST endpoint in Map form.  Assumes REST endpoint returns a JSON Map.
 
+### `MAP`
+  * Description: Applies lambda expression to a list of arguments. e.g. `MAP( [ 'foo', 'bar' ] , (x) -> TO_UPPER(x) )` would yield `[ 'FOO', 'BAR' ]`
+  * Input:
+    * list - List of arguments.
+    * transform_expression - The lambda expression to apply. This expression is assumed to take one argument.
+  * Returns: The input list transformed item-wise by the lambda expression.
+  
 ### `MAP_EXISTS`
   * Description: Checks for existence of a key in a map.
   * Input:
@@ -466,6 +512,14 @@ The `!=` operator is the negation of the above.
     * IANA Number
   * Returns: The protocol name associated with the IANA number.
 
+### `REDUCE`
+  * Description: Reduces a list by a binary lambda expression. That is, the expression takes two arguments.  Usage example: `REDUCE( [ 1, 2, 3 ] , (x, y) -> x + y, 0)` would sum the input list, yielding `6`.
+  * Input:                      
+    * list - List of arguments.
+    * binary_operation - The lambda expression function to apply to reduce the list. It is assumed that this takes two arguments, the first being the running total and the second being an item from the list.
+    * initial_value - The initial value to use.
+  * Returns: The reduction of the list.
+  
 ### `REGEXP_MATCH`
   * Description: Determines whether a regex matches a string
   * Input:

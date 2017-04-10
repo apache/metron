@@ -40,7 +40,8 @@ grammar Stellar;
 }
 
 /* Lexical rules */
-
+IN : 'in' | 'IN';
+LAMBDA_OP : '->';
 DOUBLE_QUOTE : '"';
 SINGLE_QUOTE : '\'';
 COMMA : ',';
@@ -75,7 +76,6 @@ LBRACKET : '[';
 RBRACKET : ']';
 LPAREN : '(' ;
 RPAREN : ')' ;
-IN : 'in' | 'IN';
 NIN : 'not in' | 'NOT IN';
 EXISTS : 'exists' | 'EXISTS';
 EXPONENT : E ( PLUS|MINUS )? DIGIT+;
@@ -95,7 +95,9 @@ FLOAT_LITERAL :
   | INT_LITERAL EXPONENT? F
   ;
 LONG_LITERAL : INT_LITERAL L;
-IDENTIFIER : [a-zA-Z_][a-zA-Z_\.:0-9]*;
+IDENTIFIER : IDENTIFIER_START
+           | IDENTIFIER_START IDENTIFIER_MIDDLE* IDENTIFIER_END
+           ;
 
 STRING_LITERAL :
   DOUBLE_QUOTE SCHAR* DOUBLE_QUOTE
@@ -118,6 +120,11 @@ fragment E: ('e'|'E');
 fragment F: ('f'|'F');
 fragment L: ('l'|'L');
 fragment EOL : '\n';
+fragment IDENTIFIER_START : [a-zA-Z_$];
+fragment IDENTIFIER_MIDDLE: [a-zA-Z_\.:0-9];
+//identifiers can't end with a colon, it screws up maps and lambda variables.
+//the following (x,y:x == 'foo') doesn't parse because y:x is considered a variable
+fragment IDENTIFIER_END: [a-zA-Z_\.0-9];
 
 /* Parser rules */
 
@@ -178,8 +185,8 @@ op_list :
   ;
 
 list_entity :
-  LBRACKET op_list RBRACKET
-  | LBRACKET RBRACKET
+  LBRACKET RBRACKET
+  | LBRACKET op_list RBRACKET
   ;
 
 kv_list :
@@ -217,8 +224,11 @@ arithmetic_operands :
   | LPAREN conditional_expr RPAREN #condExpr
   ;
 
+
 identifier_operand :
   (TRUE | FALSE) #LogicalConst
+  | lambda_with_args  #LambdaWithArgsExpr
+  | lambda_without_args  #LambdaWithoutArgsExpr
   | arithmetic_expr #ArithmeticOperands
   | STRING_LITERAL # StringLiteral
   | list_entity #List
@@ -227,3 +237,26 @@ identifier_operand :
   | EXISTS LPAREN IDENTIFIER RPAREN #ExistsFunc
   | LPAREN conditional_expr RPAREN #condExpr_paren
   ;
+
+
+lambda_without_args:
+  LPAREN RPAREN LAMBDA_OP transformation_expr
+  ;
+
+lambda_with_args :
+  LPAREN lambda_variables RPAREN LAMBDA_OP transformation_expr
+  | single_lambda_variable LAMBDA_OP transformation_expr
+  ;
+
+lambda_variables :
+  lambda_variable (COMMA lambda_variable)*
+  ;
+
+single_lambda_variable :
+  lambda_variable;
+
+lambda_variable:
+  IDENTIFIER
+  ;
+
+

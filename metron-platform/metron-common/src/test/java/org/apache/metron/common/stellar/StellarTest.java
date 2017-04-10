@@ -64,6 +64,7 @@ public class StellarTest {
     Assert.assertTrue(numFound > 0);
   }
 
+
   @Test
   public void testVariableResolution() {
     {
@@ -299,7 +300,7 @@ public class StellarTest {
     HashMap variables = new HashMap<>();
     boolean thrown = false;
     try{
-      run("in in ['','in']" ,variables );
+      Object o = run("in in ['','in']" ,variables );
     }catch(ParseException pe) {
       thrown = true;
     }
