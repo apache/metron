@@ -17,7 +17,7 @@
  */
 
 import { browser, element, by, protractor } from 'protractor/globals';
-import { waitForElementPresence, waitForStalenessOf } from '../utils/e2e_util';
+import { waitForElementPresence, waitForStalenessOf, waitForElementVisibility } from '../utils/e2e_util';
 var Promise = require('bluebird');
 
 export class SensorListPage {
@@ -127,11 +127,7 @@ export class SensorListPage {
     }
 
     getIconButton(name: string, className: string) {
-        return element.all(by.css('table>tbody>tr')).filter(row => {
-            return row.all(by.tagName('td')).get(0).getText().then(pName => {
-                return pName === name;
-            })
-        }).get(0).element(by.css(className));
+        return element(by.cssContainingText('td', name)).element(by.xpath('..')).element(by.css(className));
     }
 
     getParserCount() {
@@ -177,11 +173,12 @@ export class SensorListPage {
 
     openEditPane(name: string) {
         let row = element(by.cssContainingText('td', name));
-        return waitForElementPresence(row).then(() => {
-            return this.getIconButton(name, '.fa-pencil').click().then(() =>{
-                return browser.getCurrentUrl();
-            });
-        })
+        let protactorControlFlow = protractor.promise.controlFlow();
+
+        protactorControlFlow.execute(() => {waitForElementVisibility(row)})
+          .then(protactorControlFlow.execute(() => {this.getIconButton(name, '.fa-pencil').click()}))
+
+        return browser.getCurrentUrl();
     }
 
     openEditPaneAndClose(name: string) {

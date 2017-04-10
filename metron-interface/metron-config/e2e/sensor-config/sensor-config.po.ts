@@ -77,6 +77,7 @@ export class SensorConfigPage {
   }
 
   closeMainPane() {
+    element.all(by.css('.alert .close')).click();
     return element(by.css('.btn.save-button + button')).click();
   }
 
@@ -116,6 +117,8 @@ export class SensorConfigPage {
   }
 
   getFormData() {
+    browser.waitForAngular();
+    
     let mainPanel = element.all(by.css('.metron-slider-pane-edit')).last();
     return protractor.promise.all([
       mainPanel.element(by.css('.form-title')).getText(),

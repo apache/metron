@@ -77,8 +77,16 @@ export class SensorDetailsPage {
         return element.all(by.css('metron-config-sensor-parser-readonly button:not([hidden=""])')).getText();
     }
 
+    getCurrentUrl() {
+        return browser.getCurrentUrl();
+    }
+
     getGrokStatement() {
         return element(by.css('.form-value.grok')).getText();
+    }
+
+    getKafkaState() {
+        return element(by.cssContainingText('metron-config-sensor-parser-readonly .form-label', 'KAFKA')).all(by.xpath('..//div')).getText().then(data => data[1]);
     }
 
     getParserConfig() {
@@ -87,12 +95,20 @@ export class SensorDetailsPage {
         });
     }
 
+    getParserState() {
+        return element(by.cssContainingText('metron-config-sensor-parser-readonly .form-label', 'STATE')).all(by.xpath('..//div')).getText().then(data => data[1]);
+    }
+
     getSchemaSummary() {
         return element.all(by.css('.transforms')).getText();
     }
 
     getSchemaFullSummary() {
         return element.all(by.css('.collapse.in')).getText();
+    }
+
+    getStormStatus() {
+        return element(by.cssContainingText('metron-config-sensor-parser-readonly .form-label', 'STORM')).all(by.xpath('..//div')).getText().then(data => data[1]);
     }
 
     getThreatTriageSummary() {
@@ -107,7 +123,6 @@ export class SensorDetailsPage {
     }
 
     navigateTo(parserName: string) {
-        let url = browser.baseUrl + '/sensors(dialog:sensors-readonly/'+ parserName + ')';
-        return changeURL(url);
+        return element(by.cssContainingText('metron-config-sensor-parser-list td', parserName)).element(by.xpath('..')).click();
     }
 }

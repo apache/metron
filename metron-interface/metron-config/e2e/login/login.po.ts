@@ -19,32 +19,34 @@ import { browser, element, by, protractor } from 'protractor/globals';
 import { waitForElementVisibility } from '../utils/e2e_util';
 
 export class LoginPage {
+    private useNameInput = by.css('form input[name="user"]');
+    private passwordInput = by.css('form input[name="password"]');
+
     navigateToLogin() {
         return browser.get('/');
     }
 
     login() {
-        waitForElementVisibility(element(by.css('input.form-control'))).then(() => {
+        return waitForElementVisibility(element(this.useNameInput)).then(() => {
             this.setUserNameAndPassword('admin', 'password');
             this.submitLoginForm();
         }).then(protractor.promise.controlFlow().execute(() => {
-            waitForElementVisibility(element(by.css('.logout')))
+            waitForElementVisibility(element(by.css('.logout-link')))
+            browser.waitForAngular();
         }));
     }
 
     logout() {
         browser.ignoreSynchronization = true;
-        element.all(by.css('.alert .close')).each(ele => {
-            ele.click();
-        });
-        return element.all(by.css('.logout-link')).click().then(() => {
-            return browser.sleep(2000);
-        });
+        
+        element.all(by.css('.alert .close')).click();
+        element.all(by.css('.logout-link')).click();
+        browser.sleep(2000);
     }
 
     setUserNameAndPassword(userName: string, password: string) {
-        element.all(by.css('.login-card input.form-control')).get(0).sendKeys(userName);
-        element.all(by.css('.login-card input.form-control')).get(1).sendKeys(password);
+        element(this.useNameInput).sendKeys(userName);
+        element(this.passwordInput).sendKeys(password);
     }
 
     submitLoginForm() {
@@ -59,8 +61,6 @@ export class LoginPage {
     }
 
     getLocation() {
-        return browser.getCurrentUrl().then(url => {
-            return url;
-        });
+        return browser.getCurrentUrl();
     }
 }

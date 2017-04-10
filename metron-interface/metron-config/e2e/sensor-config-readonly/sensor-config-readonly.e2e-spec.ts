@@ -30,90 +30,47 @@ describe('Sensor Details View', function () {
         loginPage.logout();
     });
 
-    it('should have squid attributes defined', (done) => {
-        let parserNotRunnigExpected = [
-            '',
-            'PARSER:Grok',
-            'LAST UPDATED:-',
-            'LAST EDITOR:-',
-            'STATE:-',
-            'ORIGINATOR:-',
-            'CREATION DATE:-',
-            ' ',
-            'STORM:Stopped',
-            'LATENCY:-',
-            'THROUGHPUT:-',
-            'EMITTED(10 MIN):-',
-            'ACKED(10 MIN):-',
-            ' ',
-            'KAFKA:No Kafka Topic',
-            'PARTITONS:-',
-            'REPLICATION FACTOR:-',
-            ''
-        ];
-        let parserRunningExpected = [
-            '',
-            'PARSER:Grok',
-            'LAST UPDATED:-',
-            'LAST EDITOR:-',
-            'STATE:Enabled',
-            'ORIGINATOR:-',
-            'CREATION DATE:-',
-            ' ',
-            'STORM:Running',
-            'LATENCY:-',
-            'THROUGHPUT:-',
-            'EMITTED(10 MIN):-',
-            'ACKED(10 MIN):-',
-            ' ',
-            'KAFKA:No Kafka Topic',
-            'PARTITONS:-',
-            'REPLICATION FACTOR:-',
-            ''
-        ];
-        let parserDisabledExpected = [
-            '',
-            'PARSER:Grok',
-            'LAST UPDATED:-',
-            'LAST EDITOR:-',
-            'STATE:Disabled',
-            'ORIGINATOR:-',
-            'CREATION DATE:-',
-            ' ',
-            'STORM:Disabled',
-            'LATENCY:-',
-            'THROUGHPUT:-',
-            'EMITTED(10 MIN):-',
-            'ACKED(10 MIN):-',
-            ' ',
-            'KAFKA:No Kafka Topic',
-            'PARTITONS:-',
-            'REPLICATION FACTOR:-',
-            ''
-        ];
-        expect(page.navigateTo('squid')).toEqual('http://localhost:4200/sensors(dialog:sensors-readonly/squid)');
-        expect(page.getTitle()).toEqual("squid");
-        expect(page.getParserConfig()).toEqual(parserNotRunnigExpected);
-        expect(page.getButtons()).toEqual([ 'EDIT', 'START', 'Delete' ]);
+    it('should navigate to snort parser', () => {
+        page.navigateTo('snort')
+        expect(page.getCurrentUrl()).toEqual('http://localhost:4200/sensors(dialog:sensors-readonly/snort)');
+        expect(page.getTitle()).toEqual("snort");
+    });
 
-        expect(page.startParser()).toEqual(true);
-        expect(page.getButtons()).toEqual([ 'EDIT', 'STOP', 'DISABLE',  'Delete' ]);
-        expect(page.getParserConfig()).toEqual(parserRunningExpected);
 
+    it('should disable snort parser', () => {
         expect(page.disableParser()).toEqual(true);
         expect(page.getButtons()).toEqual([ 'EDIT', 'STOP', 'ENABLE',  'Delete' ]);
-        expect(page.getParserConfig()).toEqual(parserDisabledExpected);
+        expect(page.getStormStatus()).toEqual('Disabled');
+        expect(page.getParserState()).toEqual('Disabled');
+        expect(page.getKafkaState()).toEqual('Emitting');
+    });
 
+    it('should enable snort parser', () => {
         expect(page.enableParser()).toEqual(true);
         expect(page.getButtons()).toEqual([ 'EDIT', 'STOP', 'DISABLE',  'Delete' ]);
-        expect(page.getParserConfig()).toEqual(parserRunningExpected);
+        expect(page.getStormStatus()).toEqual('Running');
+        expect(page.getParserState()).toEqual('Enabled');
+        expect(page.getKafkaState()).toEqual('Emitting');
+    });
 
+    it('should stop parser', (done) => {
         expect(page.stopParser()).toEqual(true);
         expect(page.getButtons()).toEqual([ 'EDIT', 'START', 'Delete' ]);
-
-        page.closePane('squid');
+        expect(page.getStormStatus()).toEqual('Stopped');
+        expect(page.getParserState()).toEqual('-');
+        expect(page.getKafkaState()).toEqual('Emitting');
 
         done();
+    }, 300000);
 
+    it('should start parser', (done) => {
+        expect(page.startParser()).toEqual(true);
+        expect(page.getButtons()).toEqual([ 'EDIT', 'STOP', 'DISABLE',  'Delete' ]);
+        expect(page.getStormStatus()).toEqual('Running');
+        expect(page.getParserState()).toEqual('Enabled');
+        expect(page.getKafkaState()).toEqual('Emitting');
+
+        page.closePane('squid');
+        done();
     }, 300000);
 });

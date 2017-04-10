@@ -37,6 +37,9 @@ testem.log
 /src/assets/ace/theme-monokai.js
 /src/assets/ace/worker-json.js
 
+# generated files
+proxy.quickdev.conf.json
+
 #System Files
 .DS_Store
 Thumbs.db

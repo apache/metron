@@ -136,7 +136,8 @@ describe('Sensor Config for parser e2e1', function() {
 
     let grokStatement = 'E2E1 %{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}\/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}\/%{WORD:UNWANTED}';
 
-    expect(sensorDetailsPage.navigateTo('e2e1')).toEqual('http://localhost:4200/sensors(dialog:sensors-readonly/e2e1)');
+    sensorDetailsPage.navigateTo('e2e1')
+    expect(sensorDetailsPage.getCurrentUrl()).toEqual('http://localhost:4200/sensors(dialog:sensors-readonly/e2e1)');
     expect(sensorDetailsPage.getTitle()).toEqual("e2e1");
     expect(sensorDetailsPage.getParserConfig()).toEqual(parserNotRunnigExpected);
     expect(sensorDetailsPage.getButtons()).toEqual([ 'EDIT', 'START', 'Delete' ]);

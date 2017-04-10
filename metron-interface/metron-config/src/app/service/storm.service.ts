@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, Inject} from '@angular/core';
+import {Injectable, Inject, NgZone} from '@angular/core';
 import {Http, Headers, RequestOptions} from '@angular/http';
 import {HttpUtil} from '../util/httpUtil';
 import {TopologyStatus} from '../model/topology-status';
@@ -32,16 +32,18 @@ export class StormService {
   url = this.config.apiEndpoint + '/storm';
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
 
-  constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
+  constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig, private ngZone: NgZone) {
 
   }
 
   public pollGetAll(): Observable<TopologyStatus[]> {
-    return Observable.interval(8000).switchMap(() => {
-      return this.http.get(this.url, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    return this.ngZone.runOutsideAngular(() => {
+      return Observable.interval(8000).switchMap(() => {
+        return this.http.get(this.url, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
           .map(HttpUtil.extractData)
           .catch(HttpUtil.handleError)
           .onErrorResumeNext();
+      });
     });
   }
 
