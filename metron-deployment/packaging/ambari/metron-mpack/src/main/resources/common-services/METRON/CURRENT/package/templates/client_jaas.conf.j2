@@ -18,10 +18,9 @@
 
 StormClient {
    com.sun.security.auth.module.Krb5LoginModule required
-   useKeyTab=true
-   keyTab="{{metron_keytab_path}}"
-   storeKey=true
-   useTicketCache=false
+   useKeyTab=false
+   storeKey=false
+   useTicketCache=true
    serviceName="nimbus"
    principal="{{metron_principal_name}}";
 };

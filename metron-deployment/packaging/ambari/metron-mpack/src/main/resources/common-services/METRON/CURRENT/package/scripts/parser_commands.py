@@ -27,6 +27,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 
 import metron_service
+import metron_security
 
 
 # Wrap major operations and functionality in this class
@@ -112,8 +113,14 @@ class ParserCommands:
         if self.__params.security_enabled:
             # Append the extra configs needed for secured cluster.
             start_cmd_template = start_cmd_template + ' -e ~' + self.__params.metron_user + '/.storm/storm.config'
+            if self.__params.security_enabled:
+                metron_security.kinit(self.__params.kinit_path_local,
+                                      self.__params.metron_keytab_path,
+                                      self.__params.metron_principal_name,
+                                      execute_user=self.__params.metron_user)
         for parser in self.get_parser_list():
             Logger.info('Starting ' + parser)
+
             Execute(start_cmd_template.format(self.__params.metron_home,
                                               self.__params.kafka_brokers,
                                               self.__params.zookeeper_quorum,
@@ -128,6 +135,11 @@ class ParserCommands:
         for parser in self.get_parser_list():
             Logger.info('Stopping ' + parser)
             stop_cmd = 'storm kill ' + parser
+            if self.__params.security_enabled:
+                metron_security.kinit(self.__params.kinit_path_local,
+                                      self.__params.metron_keytab_path,
+                                      self.__params.metron_principal_name,
+                                      execute_user=self.__params.metron_user)
             Execute(stop_cmd, user=self.__params.metron_user)
         Logger.info('Done stopping parser topologies')
 

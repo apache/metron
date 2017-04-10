@@ -25,6 +25,7 @@ from resource_management.libraries.script import Script
 
 from metron_security import storm_security_setup
 import metron_service
+import metron_security
 from indexing_commands import IndexingCommands
 
 
@@ -56,6 +57,7 @@ class Indexing(Script):
             commands.init_kafka_acls()
             commands.set_acl_configured()
 
+        Logger.info("Calling security setup")
         storm_security_setup(params)
 
     def start(self, env, upgrade_type=None):

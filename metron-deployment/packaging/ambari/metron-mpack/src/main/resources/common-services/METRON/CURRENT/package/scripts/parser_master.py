@@ -50,6 +50,7 @@ class ParserMaster(Script):
             commands.init_kafka_acls()
             commands.set_acl_configured()
 
+        Logger.info("Calling security setup")
         storm_security_setup(params)
 
     def start(self, env, upgrade_type=None):

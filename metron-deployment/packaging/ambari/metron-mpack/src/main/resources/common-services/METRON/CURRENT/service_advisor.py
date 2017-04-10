@@ -165,7 +165,6 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
         }
         if is_secured:
             storm_site_desired_values.update({
-                "topology.auto-credentials" : "['org.apache.storm.security.auth.kerberos.AutoTGT']",
                 "nimbus.credential.renewers.classes":"['org.apache.storm.security.auth.kerberos.AutoTGT']",
                 "supervisor.run.worker.as.user":"true"
             })
