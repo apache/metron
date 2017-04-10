@@ -37,34 +37,7 @@ class Kibana(Script):
     def install(self, env):
         import params
         env.set_params(params)
-
         Logger.info("Install Kibana Master")
-
-        # TODO: Figure this out for all supported OSes
-        Execute('rpm --import https://packages.elastic.co/GPG-KEY-elasticsearch')
-        Logger.info("Installing Kibana CentOS/RHEL repo")
-        Execute("echo \"[kibana-4.x]\n"
-                "name=Kibana repository for 4.5.x packages\n"
-                "baseurl=http://packages.elastic.co/kibana/4.5/centos\n"
-                "gpgcheck=1\n"
-                "gpgkey=https://packages.elastic.co/GPG-KEY-elasticsearch\n"
-                "enabled=1\" > /etc/yum.repos.d/kibana.repo")
-
-        majorVersion = OSCheck.get_os_major_version()
-        Logger.info("CentOS/RHEL major version reported by Ambari: " + majorVersion)
-        if majorVersion == "6" or majorVersion == "7":
-            repoName = "name=CentOS/RHEL {0} repository for Elasticsearch Curator 4.x packages\n".format(majorVersion)
-            baseUrl = "baseurl=http://packages.elastic.co/curator/4/centos/{0}\n".format(majorVersion)
-            Logger.info("Installing Elasticsearch Curator CentOS/RHEL {0} repo".format(majorVersion))
-            Execute("echo \"[curator-4]\n" +
-                    repoName +
-                    baseUrl +
-                    "gpgcheck=1\n"
-                    "gpgkey=http://packages.elastic.co/GPG-KEY-elasticsearch\n"
-                    "enabled=1\" > /etc/yum.repos.d/curator.repo")
-        else:
-            raise Exception("Unsupported CentOS/RHEL version: " + majorVersion)
-
         self.install_packages(env)
 
     def configure(self, env, upgrade_type=None, config_dir=None):

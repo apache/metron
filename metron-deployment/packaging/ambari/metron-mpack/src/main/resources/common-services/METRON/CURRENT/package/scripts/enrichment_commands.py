@@ -74,37 +74,6 @@ class EnrichmentCommands:
              owner=self.__params.metron_user,
              mode=0775)
 
-    def setup_repo(self):
-
-        def local_repo():
-            Logger.info("Setting up local repo")
-            Execute("yum -y install createrepo")
-            Execute("createrepo /localrepo")
-            Execute("chmod -R o-w+r /localrepo")
-
-        def remote_repo():
-            Logger.info('Using remote repo')
-
-        yum_repo_types = {
-            'local': local_repo,
-            'remote': remote_repo
-        }
-
-        repo_type = self.__params.yum_repo_type
-
-        if repo_type in yum_repo_types:
-            yum_repo_types[repo_type]()
-            Logger.info("Writing out repo file")
-            repo_template = ("echo \"[METRON-${metron.version}]\n"
-                             "name=Metron ${metron.version} packages\n"
-                             "baseurl={0}\n"
-                             "gpgcheck=0\n"
-                             "enabled=1\n\""
-                             "   > /etc/yum.repos.d/metron.repo")
-            Execute(repo_template.format(self.__params.repo_url))
-        else:
-            raise ValueError("Unsupported repo type '{0}'".format(repo_type))
-
     def init_geo(self):
         Logger.info("Creating HDFS location for GeoIP database")
         self.__params.HdfsResource(self.__params.geoip_hdfs_dir,

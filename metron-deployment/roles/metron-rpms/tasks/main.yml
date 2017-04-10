@@ -35,3 +35,14 @@
     mode: 0755
   with_fileglob:
     - "{{ metron_rpm_glob }}"
+
+- name: Install createrepo
+  package:
+    name: createrepo
+    state: installed
+
+- name: Create local repo with new packages
+  shell: "createrepo /localrepo"
+  args:
+      creates: /localrepo/repodata
+

@@ -34,8 +34,6 @@ class ParserMaster(Script):
     def install(self, env):
         from params import params
         env.set_params(params)
-        commands = ParserCommands(params)
-        commands.setup_repo()
         self.install_packages(env)
 
     def configure(self, env, upgrade_type=None, config_dir=None):

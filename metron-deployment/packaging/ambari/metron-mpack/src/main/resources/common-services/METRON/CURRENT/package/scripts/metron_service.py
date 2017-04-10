@@ -23,7 +23,6 @@ from resource_management.core.resources.system import Execute
 from resource_management.core.source import InlineTemplate
 from resource_management.libraries.functions import format as ambari_format
 
-
 def init_config():
     Logger.info('Loading config into ZooKeeper')
     Execute(ambari_format(

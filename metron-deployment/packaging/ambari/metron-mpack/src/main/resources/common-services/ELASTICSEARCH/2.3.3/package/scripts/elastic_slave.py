@@ -19,6 +19,7 @@ limitations under the License.
 
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.script import Script
+from resource_management.core.logger import Logger
 
 from slave import slave
 
@@ -27,14 +28,7 @@ class Elasticsearch(Script):
     def install(self, env):
         import params
         env.set_params(params)
-        print 'Install the Slave'
-        Execute('rpm --import https://packages.elastic.co/GPG-KEY-elasticsearch')
-        Execute("echo \"[elasticsearch-2.x]\n"
-                "name=Elasticsearch repository for 2.x packages\n"
-                "baseurl=https://packages.elastic.co/elasticsearch/2.x/centos\n"
-                "gpgcheck=1\n"
-                "gpgkey=https://packages.elastic.co/GPG-KEY-elasticsearch\n"
-                "enabled=1\" > /etc/yum.repos.d/elasticsearch.repo")
+        Logger.info('Install ES Data Node')
         self.install_packages(env)
 
     def configure(self, env, upgrade_type=None, config_dir=None):

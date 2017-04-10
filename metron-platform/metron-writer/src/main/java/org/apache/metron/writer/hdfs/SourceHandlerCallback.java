@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,14 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
--->
-<metainfo>
-    <schemaVersion>2.0</schemaVersion>
-    <services>
-        <service>
-            <name>KIBANA</name>
-            <extends>common-services/KIBANA/4.5.1</extends>
-        </service>
-    </services>
-</metainfo>
+
+package org.apache.metron.writer.hdfs;
+
+import java.util.Map;
+
+public class SourceHandlerCallback {
+  Map<SourceHandlerKey, SourceHandler> sourceHandlerMap;
+  SourceHandlerKey key;
+  SourceHandlerCallback(Map<SourceHandlerKey, SourceHandler> sourceHandlerMap, SourceHandlerKey key) {
+    this.sourceHandlerMap = sourceHandlerMap;
+    this.key = key;
+  }
+
+  public void removeKey() {
+    sourceHandlerMap.remove(key);
+  }
+}
 

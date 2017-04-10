@@ -31,37 +31,7 @@
                 }
               ]
             }
-          },
-          {
-            "name": "metron_repo",
-            "display-name" : "Repository",
-            "layout": {
-              "tab-columns" : "1",
-              "tab-rows" : "1",
-              "sections" : [
-                {
-                  "name" : "section-repo",
-                  "row-index": "0",
-                  "column-index" : "0",
-                  "row-span": "1",
-                  "column-span": "1",
-                  "section-columns": "1",
-                  "section-rows": "1",
-                  "subsections": [
-                    {
-                    "name": "subsection-repo",
-                    "row-index": "0",
-                    "column-index": "0",
-                    "row-span": "1",
-                    "column-span": "1"
-                    }
-                  ]
-                }
-              ]
-            }
           }
-        ]
-      }
     ],
     "placement": {
       "configuration-layout": "default",
@@ -85,32 +55,6 @@
         {
           "config": "metron-env/es_cluster_name",
           "subsection-name": "subsection-general-indexing"
-        },
-        {
-          "config": "metron-env/repo_type",
-          "subsection-name": "subsection-repo"
-        },
-        {
-          "config": "metron-env/repo_url",
-          "subsection-name": "subsection-repo",
-          "depends-on": [
-            {
-              "configs":[
-                "metron-env/repo_type"
-              ],
-              "if": "${metron-env/repo_type} === remote",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
         }
       ]
     },
@@ -135,18 +79,6 @@
       },
       {
         "config": "metron-env/es_cluster_name",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-env/repo_type",
-        "widget": {
-          "type": "toggle"
-        }
-      },
-      {
-        "config": "metron-env/repo_url",
         "widget": {
           "type": "text-field"
         }

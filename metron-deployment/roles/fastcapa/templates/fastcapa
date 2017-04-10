@@ -34,6 +34,14 @@ DAEMONLOG=/var/log/$NAME.log
 NOW=`date`
 DAEMON_PATH="{{ dpdk_sdk }}"
 
+PORT_MASK="{{ fastcapa_portmask }}"
+KAFKA_TOPIC="{{ fastcapa_topic }}"
+KAFKA_CONFIG="{{ fastcapa_kafka_config }}"
+BURST_SIZE="{{ fastcapa_burst_size }}"
+NB_RX_DESC="{{ fastcapa_nb_rx_desc }}"
+NB_RX_QUEUE="{{ fastcapa_nb_rx_queue }}"
+TX_RING_SIZE="{{ fastcapa_tx_ring_size }}"
+
 case "$1" in
   start)
     printf "%-50s" "Starting $NAME..."
@@ -42,9 +50,14 @@ case "$1" in
     cd $DAEMON_PATH
     DAEMON="{{ fastcapa_prefix }}/{{ fastcapa_bin }}"
     DAEMONOPTS+=" -- "
-    DAEMONOPTS+="-p {{ fastcapa_portmask }} "
-    DAEMONOPTS+="-t {{ fastcapa_topic }} "
-    DAEMONOPTS+="-c {{ fastcapa_kafka_config }} "
+    DAEMONOPTS+="-p $PORTMASK "
+    DAEMONOPTS+="-t $KAFKA_TOPIC "
+    DAEMONOPTS+="-c $KAFKA_CONFIG "
+    DAEMONOPTS+="-b $BURST_SIZE "
+    DAEMONOPTS+="-r $NB_RX_DESC "
+    DAEMONOPTS+="-q $NB_RX_QUEUE "
+    DAEMONOPTS+="-x $TX_RING_SIZE "
+
 
     PID=`$DAEMON $DAEMONOPTS >> $DAEMONLOG 2>&1 & echo $!`
     if [ -z $PID ]; then

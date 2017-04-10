@@ -60,6 +60,19 @@
 #include <rte_lpm.h>
 #include <rte_string_fns.h>
 
+#define DEFAULT_BURST_SIZE 32
+#define DEFAULT_PORT_MASK 0x01
+#define DEFAULT_KAFKA_TOPIC pcap
+#define DEFAULT_NB_RX_QUEUE 2
+#define DEFAULT_NB_RX_DESC 1024
+#define DEFAULT_TX_RING_SIZE 2048
+#define DEFAULT_KAFKA_STATS_PATH 0
+
+#define MAX_BURST_SIZE 1024
+
+#define STR_EXPAND(tok) #tok
+#define STR(tok) STR_EXPAND(tok)
+
 /*
  * Logging definitions
  */
@@ -79,9 +92,31 @@
  * Application configuration parameters.
  */
 struct app_params {
+
+    /* The number of receive descriptors to allocate for the receive ring. */
+    uint16_t nb_rx_desc;
+
+    /* The number of receive queues to set up for each ethernet device. */
+    uint16_t nb_rx_queue;
+
+    /* The size of the transmit ring (must be a power of 2). */
+    uint16_t tx_ring_size;
+
+    /* The maximum number of packets to retrieve at a time. */
+    uint16_t burst_size;
+
+    /* Defines which ports packets will be consumed from. */
     uint32_t enabled_port_mask;
-    char* kafka_topic;
+
+    /* The name of the Kafka topic that packet data is sent to. */
+    const char* kafka_topic;
+
+    /* A file containing configuration values for the Kafka client. */
     char* kafka_config_path;
+
+    /* A file to which the Kafka stats are appended to. */
+    char* kafka_stats_path;
+
 } __rte_cache_aligned;
 
 /*
@@ -89,19 +124,10 @@ struct app_params {
  */
 struct app_params app;
 
-/*
- * Print usage information to the user.
- */
-void print_usage(const char* prgname);
-
-/*
- * Parse the 'portmask' command line argument.
- */
-int parse_portmask(const char* portmask);
-
 /**
  * Parse the command line arguments passed to the application.
  */
 int parse_args(int argc, char** argv);
 
 #endif
+
