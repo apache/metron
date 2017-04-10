@@ -21,7 +21,7 @@ package org.apache.metron.common.dsl.functions;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.dsl.BaseStellarFunction;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
@@ -344,12 +344,30 @@ public class StringFunctions {
     }
   }
 
+  @Stellar( name="CHOMP"
+          , description = "Removes one newline from end of a String if it's there, otherwise leave it alone. A newline is \"\\n\", \"\\r\", or \"\\r\\n\""
+          , params = { "the String to chomp a newline from, may be null"}
+          , returns = "String without newline, null if null String input"
+  )
+  public static class Chomp extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> strings) {
+
+      if(strings.size() == 0) {
+        throw new IllegalArgumentException("[CHOMP] missing argument: string to chomp a newline from");
+      }
+
+      String chomp = StringUtils.chomp((String) strings.get(0));
+      return chomp;
+    }
+  }
   @Stellar( name="CHOP"
           , description = "Remove the last character from a String"
           , params = { "the String to chop last character from, may be null"}
           , returns = "String without last character, null if null String input"
   )
-  public static class chop extends BaseStellarFunction {
+  public static class Chop extends BaseStellarFunction {
 
     @Override
     public Object apply(List<Object> strings) {
@@ -363,34 +381,42 @@ public class StringFunctions {
     }
   }
 
-  @Stellar( name = "PREPENDIFMISSING"
+  @Stellar( name = "PREPEND_IF_MISSING"
           , description = "Prepends the prefix to the start of the string if the string does not already start with any of the prefixes"
-          , params = { "str - The string.", "prefix - The prefix to prepend to the start of the string", "prefixes - Additional prefixes that are valid" }
+          , params = {
+          "str - The string."
+          , "prefix - The string prefix to prepend to the start of the string"
+          , "prefixes - Optional - Additional string prefixes that are valid"
+  }
           , returns = "A new String if prefix was prepended, the same string otherwise."
   )
-  public static class prependifmissing extends BaseStellarFunction {
+  public static class PrependIfMissing extends BaseStellarFunction {
 
     @Override
     public Object apply(List<Object> strings) {
 
       String prefixed;
       switch (strings.size()) {
-        case 2: prefixed = org.apache.commons.lang3.StringUtils.prependIfMissing((String) strings.get(0), (String) strings.get(1));
+        case 2: prefixed = StringUtils.prependIfMissing((String) strings.get(0), (String) strings.get(1));
           break;
-        case 3: prefixed = org.apache.commons.lang3.StringUtils.prependIfMissing((String) strings.get(0), (String) strings.get(1), (String) strings.get(2));
+        case 3: prefixed = StringUtils.prependIfMissing((String) strings.get(0), (String) strings.get(1), (String) strings.get(2));
           break;
-        default: throw new IllegalArgumentException("[PREPENDIFMISSING] incorrect arguments. Usage: PREPENDIFMISSING <String> <prefix> [<prefix>...]");
+        default: throw new IllegalArgumentException("[PREPEND_IF_MISSING] incorrect arguments: " + strings.toString() + "\nUsage: PREPEND_IF_MISSING <String> <prefix> [<prefix>...]");
       }
       return prefixed;
     }
   }
 
-  @Stellar( name = "APPENDIFMISSING"
+  @Stellar( name = "APPEND_IF_MISSING"
           , description = "Appends the suffix to the end of the string if the string does not already end with any of the suffixes"
-          , params = { "str - The string.", "suffix - The suffix to append to the end of the string", "suffixes - Additional suffixes that are valid terminators" }
+          , params = {
+          "str - The string."
+          , "suffix - The string suffix to append to the end of the string"
+          , "suffixes - Optional - Additional string suffixes that are valid terminators"
+  }
           , returns = "A new String if suffix was appended, the same string otherwise."
   )
-  public static class appendifmissing extends BaseStellarFunction {
+  public static class AppendIfMissing extends BaseStellarFunction {
 
     @Override
     public Object apply(List<Object> strings) {
@@ -398,34 +424,39 @@ public class StringFunctions {
       String suffixed;
       switch (strings.size()) {
         case 2:
-          suffixed = org.apache.commons.lang3.StringUtils.appendIfMissing((String) strings.get(0), (String) strings.get(1));
+          suffixed = StringUtils.appendIfMissing((String) strings.get(0), (String) strings.get(1));
           break;
         case 3:
-          suffixed = org.apache.commons.lang3.StringUtils.appendIfMissing((String) strings.get(0), (String) strings.get(1), (String) strings.get(2));
+          suffixed = StringUtils.appendIfMissing((String) strings.get(0), (String) strings.get(1), (String) strings.get(2));
           break;
         default:
-          throw new IllegalArgumentException("[APPENDIFMISSING] incorrect arguments. Usage: APPENDIFMISSING <String> <prefix> [<prefix>...]");
+          throw new IllegalArgumentException("[APPEND_IF_MISSING] incorrect arguments. Usage: APPEND_IF_MISSING <String> <prefix> [<prefix>...]");
       }
       return suffixed;
     }
   }
 
-  @Stellar( name = "COUNTMATCHES"
+  @Stellar( name = "COUNT_MATCHES"
           , description = "Counts how many times the substring appears in the larger string"
-          , params = { "str - the CharSequence to check, may be null", "sub - the substring to count, may be null"}
-          , returns = "the number of occurrences, 0 if either CharSequence is null"
+          , params = {
+          "str - the CharSequence to check, may be null"
+          , "sub - the substring to count, may be null"
+  }
+          , returns = "the number of non-overlapping occurrences, 0 if either CharSequence is null"
   )
-  public static class countmatches extends BaseStellarFunction {
+  public static class CountMatches extends BaseStellarFunction {
 
     @Override
     public Object apply(List<Object> strings) {
 
       if(strings.size() != 2) {
-        throw new IllegalArgumentException("[COUNTMATCHES] incorrect arguments. Usage: COUNTMATCHES <String> <substring>");
+        throw new IllegalArgumentException("[COUNT_MATCHES] incorrect arguments. Usage: COUNT_MATCHES <String> <substring>");
       }
 
-      int matchcount = StringUtils.countMatches((String) strings.get(0), (String) strings.get(1));
+      int matchcount;
+      matchcount = StringUtils.countMatches((String) strings.get(0), (String) strings.get(1));
       return matchcount;
     }
   }
+
 }
