@@ -60,7 +60,6 @@ General notes on the installation of Pycapa.
     python setup.py install
     ```
 
-
 Usage
 =====
 
@@ -103,7 +102,11 @@ optional arguments:
 
 **Example**: Capture 10 packets from the `eth0` network interface and forward those to a Kafka topic called `pcap` running on `localhost:9092`.
   ```
-  $ pycapa --producer --interface eth0 --kafka-broker localhost:9092 --kafka-topic pcap --max-packets 10
+  $ pycapa --producer \
+      --interface eth0 \
+      --kafka-broker localhost:9092 \
+      --kafka-topic pcap \
+      --max-packets 10
   INFO:root:Connecting to Kafka; {'bootstrap.servers': 'localhost:9092', 'group.id': 'AWBHMIAESAHJ'}
   INFO:root:Starting packet capture
   INFO:root:Waiting for '10' message(s) to flush
@@ -112,7 +115,10 @@ optional arguments:
 
 **Example**: Capture packets until SIGINT is received.  A SIGINT is the interrupt signal sent when entering CTRL-D in the console.
   ```
-  $ pycapa --producer --interface eth0 --kafka-broker localhost:9092 --kafka-topic pcap
+  $ pycapa --producer \
+      --interface eth0 \
+      --kafka-broker localhost:9092 \
+      --kafka-topic pcap
   INFO:root:Connecting to Kafka; {'bootstrap.servers': 'localhost:9092', 'group.id': 'EULLGDOMZDCT'}
   INFO:root:Starting packet capture
   ^C
@@ -123,7 +129,11 @@ optional arguments:
 
 **Example**: While capturing packets, output diagnostic information every 10 packets.
   ```
-  $ pycapa --producer --interface en0 --kafka-broker localhost:9092 --kafka-topic pcap --pretty-print 10
+  $ pycapa --producer \
+      --interface en0 \
+      --kafka-broker localhost:9092 \
+      --kafka-topic pcap \
+      --pretty-print 10
   INFO:root:Connecting to Kafka; {'bootstrap.servers': 'localhost:9092', 'group.id': 'YMDSEEDIHVWD'}
   INFO:root:Starting packet capture
   10 packet(s) received
@@ -147,7 +157,11 @@ optional arguments:
 
 **Example**: Consume 10 packets from the Kafka topic `pcap` running on `localhost:9092`, then pipe those into Wireshark for DPI.
   ```
-  $ pycapa --consumer --kafka-broker localhost:9092 --kafka-topic pcap --max-packets 10 | tshark -i -
+  $ pycapa --consumer \
+      --kafka-broker localhost:9092 \
+      --kafka-topic pcap \
+      --max-packets 10 \
+      | tshark -i -
   Capturing on 'Standard input'
       1   0.000000 ArrisGro_0e:65:df → Apple_bf:0d:43 ARP 56 Who has 192.168.0.3? Tell 192.168.0.1
       2   0.000044 Apple_bf:0d:43 → ArrisGro_0e:65:df ARP 42 192.168.0.3 is at ac:bc:32:bf:0d:43
@@ -164,7 +178,11 @@ optional arguments:
 
 **Example**: Consume 10 packets and create a libpcap-compliant pcap file.
   ```
-  $ pycapa --consumer --kafka-broker localhost:9092 --kafka-topic pcap --max-packets 10 > out.pcap
+  $ pycapa --consumer \
+      --kafka-broker localhost:9092 \
+      --kafka-topic pcap \
+      --max-packets 10 \
+      > out.pcap
   $ tshark -r out.pcap
       1   0.000000 199.193.204.147 → 192.168.0.3  TLSv1.2 151 Application Data
       2   0.000005 199.193.204.147 → 192.168.0.3  TLSv1.2 1191 Application Data
@@ -210,9 +228,12 @@ The probe can be used in a Kerberized environment.  Follow these additional step
 
 1. Grant access to your Kafka topic.  In this example the topic is simply named `pcap`.
     ```
-    $KAFKA_HOME/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer \
+    $KAFKA_HOME/bin/kafka-acls.sh \
+      --authorizer kafka.security.auth.SimpleAclAuthorizer \
       --authorizer-properties zookeeper.connect=zookeeper1:2181 \
-      --add --allow-principal User:metron --topic pcap
+      --add \
+      --allow-principal User:metron \
+      --topic pcap
     ```
 
 1. Use Pycapa as you normally would, but append the following three additional parameters
@@ -220,10 +241,13 @@ The probe can be used in a Kerberized environment.  Follow these additional step
   * `sasl.kerberos.keytab`
   * `sasl.kerberos.principal`
   ```
-  $ pycapa --producer --interface eth0 --kafka-broker kafka1:6667 --kafka-topic pcap --max-packets 10 \
-    -X security.protocol=SASL_PLAINTEXT \
-    -X sasl.kerberos.keytab=/etc/security/keytabs/metron.headless.keytab \
-    -X sasl.kerberos.principal=metron-metron@METRONEXAMPLE.COM
+  $ pycapa --producer \
+      --interface eth0 \
+      --kafka-broker kafka1:6667 \
+      --kafka-topic pcap --max-packets 10 \
+      -X security.protocol=SASL_PLAINTEXT \
+      -X sasl.kerberos.keytab=/etc/security/keytabs/metron.headless.keytab \
+      -X sasl.kerberos.principal=metron-metron@METRONEXAMPLE.COM
   INFO:root:Connecting to Kafka; {'sasl.kerberos.principal': 'metron-metron@METRONEXAMPLE.COM', 'group.id': 'ORNLVWJZZUAA', 'security.protocol': 'SASL_PLAINTEXT', 'sasl.kerberos.keytab': '/etc/security/keytabs/metron.headless.keytab', 'bootstrap.servers': 'kafka1:6667'}
   INFO:root:Starting packet capture
   INFO:root:Waiting for '1' message(s) to flush
