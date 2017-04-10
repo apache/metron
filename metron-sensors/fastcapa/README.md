@@ -324,21 +324,11 @@ When running the probe some basic counters are output to stdout.  Of course duri
 
 The probe can be used in a Kerberized environment.  Follow these additional steps to use Fastcapa with Kerberos.  The following assumptions have been made.  These may need altered to fit your environment.
 
-* The Kafka broker is at "kafka1:6667"
-* Zookeeper is at "zookeeper1:2181"
-* The Kafka security protocol is "SASL_PLAINTEXT"
+* The Kafka broker is at `kafka1:6667`
+* Zookeeper is at `zookeeper1:2181`
+* The Kafka security protocol is `SASL_PLAINTEXT`
 * The keytab used is located at `/etc/security/keytabs/metron.headless.keytab`
-* The service principal is "metron@EXAMPLE.COM"
-
-1. Install [Cyrus SASL](http://www.cyrusimap.org/sasl/index.html#sasl-index).
-    ```
-    yum install -y cyrus-sasl cyrus-sasl-devel cyrus-sasl-gssapi
-    ```
-
-1. Kerberos is probably already installed.
-    ```
-    yum -y install krb5-server krb5-libs krb5-workstation
-    ```
+* The service principal is `metron@EXAMPLE.COM`
 
 1. Build Librdkafka with SASL support (` --enable-sasl`).
     ```
@@ -349,35 +339,22 @@ The probe can be used in a Kerberized environment.  Follow these additional step
     make install
     ```
 
-1. Validate Librdkafka does indeed support SASL.  Run the following command and ensure that SASL is returned.
+1. Validate Librdkafka does indeed support SASL.  Run the following command and ensure that `sasl` is returned as a built-in feature.
     ```
     $ examples/rdkafka_example -X builtin.features
     builtin.features = gzip,snappy,ssl,sasl,regex
     ```
 
-1. Create a JAAS configuration file at `~/.java.login.config`
+   If it is not, ensure that you have `libsasl` or `libsasl2` installed.  On CentOS, this can be installed with the following command.
     ```
-    $ cat ~/.java.login.config
-    KafkaClient {
-      com.sun.security.auth.module.Krb5LoginModule required
-      useTicketCache=false
-      useKeyTab=true
-      principal="metron@EXAMPLE.COM"
-      keyTab="/etc/security/keytabs/metron.headless.keytab"
-      renewTicket=true
-      debug=true
-      serviceName="kafka"
-      storeKey=true;
-    };
-    ```
-1. Let your Java environment know where it can find the JAAS configuration file.  Edit the file at `$JAVA_HOME/jre/lib/security/java.security` and add the line below.
-    ```
-    login.config.url.1=file:${user.home}/.java.login.config
+    yum install -y cyrus-sasl cyrus-sasl-devel cyrus-sasl-gssapi
     ```
 
-1. Grant access to your Kafka topic.  In this example, it is simply named "pcap".
+1. Grant access to your Kafka topic.  In this example, it is simply named `pcap`.
     ```
-    $KAFKA_HOME/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=zookeeper1:2181 --add --allow-principal User:metron --topic pcap
+    $KAFKA_HOME/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer \
+      --authorizer-properties zookeeper.connect=zookeeper1:2181 \
+      --add --allow-principal User:metron --topic pcap
     ```
 
 1. Obtain a Kerberos ticket.
