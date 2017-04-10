@@ -331,9 +331,34 @@ This package installs the Metron Management UI %{metron_home}
 %dir %{metron_home}
 %dir %{metron_home}/bin
 %dir %{metron_home}/web
+%dir %{metron_home}/web/expressjs
 %dir %{metron_home}/web/management-ui
+%dir %{metron_home}/web/management-ui/assets
+%dir %{metron_home}/web/management-ui/assets/ace
+%dir %{metron_home}/web/management-ui/assets/ace/snippets
+%dir %{metron_home}/web/management-ui/assets/fonts
+%dir %{metron_home}/web/management-ui/assets/fonts/Roboto
+%dir %{metron_home}/web/management-ui/assets/images
+%dir %{metron_home}/web/management-ui/license
 %{metron_home}/bin/start_management_ui.sh
-%attr(0644,root,root) %{metron_home}/web/management-ui/*
+%attr(0755,root,root) %{metron_home}/web/expressjs/server.js
+%attr(0644,root,root) %{metron_home}/web/expressjs/package.json
+%attr(0644,root,root) %{metron_home}/web/management-ui/favicon.ico
+%attr(0644,root,root) %{metron_home}/web/management-ui/index.html
+%attr(0644,root,root) %{metron_home}/web/management-ui/*.js
+%attr(0644,root,root) %{metron_home}/web/management-ui/*.js.gz
+%attr(0644,root,root) %{metron_home}/web/management-ui/*.ttf
+%attr(0644,root,root) %{metron_home}/web/management-ui/*.svg
+%attr(0644,root,root) %{metron_home}/web/management-ui/*.eot
+%attr(0644,root,root) %{metron_home}/web/management-ui/*.woff
+%attr(0644,root,root) %{metron_home}/web/management-ui/*.woff2
+%attr(0644,root,root) %{metron_home}/web/management-ui/assets/ace/*.js
+%attr(0644,root,root) %{metron_home}/web/management-ui/assets/ace/LICENSE
+%attr(0644,root,root) %{metron_home}/web/management-ui/assets/ace/snippets/*.js
+%attr(0644,root,root) %{metron_home}/web/management-ui/assets/fonts/Roboto/LICENSE.txt
+%attr(0644,root,root) %{metron_home}/web/management-ui/assets/fonts/Roboto/*.ttf
+%attr(0644,root,root) %{metron_home}/web/management-ui/assets/images/*
+%attr(0644,root,root) %{metron_home}/web/management-ui/license/*
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

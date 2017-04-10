@@ -22,6 +22,7 @@
       <directory>${project.basedir}/dist</directory>
       <outputDirectory>/web/management-ui</outputDirectory>
       <excludes>
+        <exclude>**/.npmignore</exclude>
       </excludes>
       <fileMode>0644</fileMode>
     </fileSet>
