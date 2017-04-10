@@ -50,7 +50,8 @@ describe('Sensor List Long Running Cases', function() {
         { classNames: 'fa-pencil', displayed: true},
         { classNames: 'fa-trash-o', displayed: true}
     ];
-    
+    let parsersToTest = ['snort', 'bro'];
+
     beforeAll(() => {
         loginPage.login();
     });
@@ -59,74 +60,80 @@ describe('Sensor List Long Running Cases', function() {
         loginPage.logout();
     });
 
-    it('should start parsers from actions', (done) => {
-        expect(page.getAddButton()).toEqual(true);
-        page.startParsers(['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf']).then((args) => {
-            expect(args).toEqual([true, true, true, true, true, true, true])
-            done();
-        })
-
-    }, 300000)
-
-    it('should have correct values when parser is running', () => {
-        expect(page.getColumnValues(2)).toEqual(['Running', 'Running', 'Running', 'Running', 'Running', 'Running', 'Running']);
-        expect(page.getColumnValues(3)).toEqual(['0s', '0s', '0s', '0s', '0s', '0s', '0s']);
-        expect(page.getColumnValues(4)).toEqual(['0kb/s', '0kb/s', '0kb/s', '0kb/s', '0kb/s', '0kb/s', '0kb/s']);
-        expect(page.getColumnValues(5)).toEqual(['', '', '', '', '', '', '']);
-        expect(page.getColumnValues(6)).toEqual(['', '', '', '', '', '', '']);
-    });
-
     it('should disable all parsers from actions', (done) => {
-        page.disableParsers(['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf']).then((args) => {
-            expect(args).toEqual([true, true, true, true, true, true, true])
+        expect(page.getAddButton()).toEqual(true);
+        page.disableParsers(parsersToTest).then((args) => {
+            expect(args).toEqual([true, true])
             done();
         })
 
     }, 300000)
 
     it('should have correct values when parser is disabled', () => {
-        expect(page.getColumnValues(2)).toEqual(['Disabled', 'Disabled', 'Disabled', 'Disabled', 'Disabled', 'Disabled', 'Disabled']);
+        page.toggleSort('Status');
+        expect(page.getSortOrder('Status')).toEqual(ASCENDING_CSS);
+        let latencyValues = page.getColumnValues(2);
+        latencyValues.then(values => {
+            expect(values.slice(0, 2)).toEqual(['Disabled', 'Disabled']);
+            expect(values.slice(2)).toEqual(['Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped']);
+        });
+
+        page.toggleSort('Status');
+        expect(page.getSortOrder('Status')).toEqual(DESCENDING_CSS);
+        latencyValues = page.getColumnValues(2);
+        latencyValues.then(values => {
+            expect(values.slice(0, 5)).toEqual(['Stopped', 'Stopped', 'Stopped', 'Stopped', 'Stopped']);
+            expect(values.slice(5)).toEqual(['Disabled', 'Disabled']);
+        });
     });
 
     it('should enable all parsers from actions', (done) => {
-        page.enableParsers(['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf']).then((args) => {
-            expect(args).toEqual([true, true, true, true, true, true, true])
+        page.enableParsers(parsersToTest).then((args) => {
+            expect(args).toEqual([true, true])
             done();
         })
     }, 300000)
 
     it('should stop parsers from actions', (done) => {
-        page.stopParsers(['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'yaf', 'bro']).then((args) => {
-            expect(args).toEqual([true, true, true, true, true, true, true]);
+        page.stopParsers(parsersToTest).then((args) => {
+            expect(args).toEqual([true, true]);
             done();
         })
     }, 300000)
 
     it('should start parsers from dropdown', (done) => {
-        page.startParsersFromDropdown(['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf']).then((args) => {
-            expect(args).toEqual([true, true, true, true, true, true, true]);
+        page.startParsersFromDropdown(parsersToTest).then((args) => {
+            expect(args).toEqual([true, true]);
             done();
         })
     }, 300000)
 
     it('should disable parsers from dropdown', (done) => {
-        page.disableParsersFromDropdown(['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf']).then((args) => {
-            expect(args).toEqual([true, true, true, true, true, true, true]);
+        page.disableParsersFromDropdown(parsersToTest).then((args) => {
+            expect(args).toEqual([true, true]);
             done();
         })
     }, 300000)
 
     it('should enable parsers from dropdown', (done) => {
-        page.enableParsersFromDropdown(['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf']).then((args) => {
-            expect(args).toEqual([true, true, true, true, true, true, true]);
+        page.enableParsersFromDropdown(parsersToTest).then((args) => {
+            expect(args).toEqual([true, true]);
             done();
         })
     }, 300000)
 
     it('should stop parsers from dropdown', (done) => {
-        page.stopParsersFromDropdown(['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf']).then((args) => {
-            expect(args).toEqual([true, true, true, true, true, true, true]);
+        page.stopParsersFromDropdown(parsersToTest).then((args) => {
+            expect(args).toEqual([true, true]);
             done();
         })
+    }, 300000)
+
+    it('should start parsers from actions', (done) => {
+        page.startParsers(parsersToTest).then((args) => {
+            expect(args).toEqual([true, true])
+            done();
+        })
+
     }, 300000)
 });

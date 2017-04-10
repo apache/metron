@@ -34,14 +34,17 @@ export class LoginPage {
 
     logout() {
         browser.ignoreSynchronization = true;
-        element.all(by.css('.alert .close')).click();
-        element.all(by.css('.logout-link')).click();
-        browser.sleep(2000);
+        element.all(by.css('.alert .close')).each(ele => {
+            ele.click();
+        });
+        return element.all(by.css('.logout-link')).click().then(() => {
+            return browser.sleep(2000);
+        });
     }
 
     setUserNameAndPassword(userName: string, password: string) {
-        element.all(by.css('input.form-control')).get(0).sendKeys(userName);
-        element.all(by.css('input.form-control')).get(1).sendKeys(password);
+        element.all(by.css('.login-card input.form-control')).get(0).sendKeys(userName);
+        element.all(by.css('.login-card input.form-control')).get(1).sendKeys(password);
     }
 
     submitLoginForm() {
