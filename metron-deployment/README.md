@@ -17,7 +17,7 @@ The following tools are required to run these scripts:
 
 - [Maven](https://maven.apache.org/)
 - [Git](https://git-scm.com/)
-- [Ansible](http://www.ansible.com/) (version 2.0.0.2)
+- [Ansible](http://www.ansible.com/) (2.0.0.2 or 2.2.2.0)
 - [Docker](https://www.docker.com/) (Docker for Mac on OSX)
 
 These scripts depend on two files for configuration:

@@ -29,8 +29,6 @@ class Enrichment(Script):
     def install(self, env):
         from params import params
         env.set_params(params)
-        commands = EnrichmentCommands(params)
-        commands.setup_repo()
         self.install_packages(env)
         self.configure(env)
 

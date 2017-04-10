@@ -21,6 +21,8 @@ import org.apache.metron.storm.kafka.flux.SpoutConfiguration;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
+import org.apache.storm.hbase.security.AutoHBase;
+import org.apache.storm.hdfs.common.security.AutoHDFS;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.utils.Utils;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -33,9 +35,7 @@ import org.apache.metron.parsers.topology.config.ConfigHandlers;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 public class ParserTopologyCLI {
@@ -55,7 +55,7 @@ public class ParserTopologyCLI {
     BROKER_URL("k", code -> {
       Option o = new Option(code, "kafka", true, "Kafka Broker URL");
       o.setArgName("BROKER_URL");
-      o.setRequired(true);
+      o.setRequired(false);
       return o;
     }),
     SENSOR_TYPE("s", code -> {
@@ -176,6 +176,18 @@ public class ParserTopologyCLI {
       return o;
     }
     )
+    ,SECURITY_PROTOCOL("ksp", code -> {
+      Option o = new Option(code
+                           , "kafka_security_protocol"
+                           , true
+                           , "The kafka security protocol to use (if running with a kerberized cluster).  E.g. PLAINTEXTSASL"
+                           );
+      o.setArgName("SECURITY_PROTOCOL");
+      o.setRequired(false);
+      o.setType(String.class);
+      return o;
+    }
+    )
     ,TEST("t", code ->
     {
       Option o = new Option("t", "test", true, "Run in Test Mode");
@@ -270,7 +282,7 @@ public class ParserTopologyCLI {
         System.exit(0);
       }
       String zookeeperUrl = ParserOptions.ZK_QUORUM.get(cmd);;
-      String brokerUrl = ParserOptions.BROKER_URL.get(cmd);
+      Optional<String> brokerUrl = ParserOptions.BROKER_URL.has(cmd)?Optional.of(ParserOptions.BROKER_URL.get(cmd)):Optional.empty();
       String sensorType= ParserOptions.SENSOR_TYPE.get(cmd);
       int spoutParallelism = Integer.parseInt(ParserOptions.SPOUT_PARALLELISM.get(cmd, "1"));
       int spoutNumTasks = Integer.parseInt(ParserOptions.SPOUT_NUM_TASKS.get(cmd, "1"));
@@ -284,7 +296,8 @@ public class ParserTopologyCLI {
       if(ParserOptions.SPOUT_CONFIG.has(cmd)) {
         spoutConfig = readSpoutConfig(new File(ParserOptions.SPOUT_CONFIG.get(cmd)));
       }
-
+      Optional<String> securityProtocol = ParserOptions.SECURITY_PROTOCOL.has(cmd)?Optional.of(ParserOptions.SECURITY_PROTOCOL.get(cmd)):Optional.empty();
+      securityProtocol = getSecurityProtocol(securityProtocol, spoutConfig);
       TopologyBuilder builder = ParserTopologyBuilder.build(zookeeperUrl,
               brokerUrl,
               sensorType,
@@ -294,10 +307,10 @@ public class ParserTopologyCLI {
               parserNumTasks,
               errorParallelism,
               errorNumTasks,
-              spoutConfig
+              spoutConfig,
+              securityProtocol
       );
       Config stormConf = ParserOptions.getConfig(cmd);
-
       if (ParserOptions.TEST.has(cmd)) {
         stormConf.put(Config.TOPOLOGY_DEBUG, true);
         LocalCluster cluster = new LocalCluster();
@@ -312,6 +325,21 @@ public class ParserTopologyCLI {
       System.exit(-1);
     }
   }
+
+  private static Optional<String> getSecurityProtocol(Optional<String> protocol, Map<String, Object> spoutConfig) {
+    Optional<String> ret = protocol;
+    if(ret.isPresent() && protocol.get().equalsIgnoreCase("PLAINTEXT")) {
+      ret = Optional.empty();
+    }
+    if(!ret.isPresent()) {
+      ret = Optional.ofNullable((String) spoutConfig.get("security.protocol"));
+    }
+    if(ret.isPresent() && protocol.get().equalsIgnoreCase("PLAINTEXT")) {
+      ret = Optional.empty();
+    }
+    return ret;
+  }
+
   private static Map<String, Object> readSpoutConfig(File inputFile) {
     String json = null;
     if (inputFile.exists()) {

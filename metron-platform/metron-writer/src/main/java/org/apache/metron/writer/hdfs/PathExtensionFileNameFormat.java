@@ -23,12 +23,12 @@ import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 
 import java.util.Map;
 
-public class SourceFileNameFormat implements FileNameFormat {
+public class PathExtensionFileNameFormat implements FileNameFormat {
   FileNameFormat delegate;
-  String sourceType;
-  public SourceFileNameFormat(String sourceType, FileNameFormat delegate) {
+  String pathExtension;
+  public PathExtensionFileNameFormat(String pathExtension, FileNameFormat delegate) {
     this.delegate = delegate;
-    this.sourceType = sourceType;
+    this.pathExtension = pathExtension;
   }
 
   @Override
@@ -37,12 +37,12 @@ public class SourceFileNameFormat implements FileNameFormat {
   }
 
   @Override
-  public String getName(long l, long l1) {
-    return delegate.getName(l, l1);
+  public String getName(long rotation, long l1) {
+    return delegate.getName(rotation, l1);
   }
 
   @Override
   public String getPath() {
-    return delegate.getPath() + "/" + sourceType;
+    return delegate.getPath() + "/" + pathExtension;
   }
 }

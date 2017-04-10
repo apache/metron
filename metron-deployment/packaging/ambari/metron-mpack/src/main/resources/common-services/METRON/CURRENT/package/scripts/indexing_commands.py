@@ -46,31 +46,6 @@ class IndexingCommands:
              owner=self.__params.metron_user,
              mode=0775)
 
-    def setup_repo(self):
-        def local_repo():
-            Logger.info("Setting up local repo")
-            Execute("yum -y install createrepo")
-            Execute("createrepo /localrepo")
-            Execute("chmod -R o-w+r /localrepo")
-            Execute("echo \"[METRON-${metron.version}]\n"
-                    "name=Metron ${metron.version} packages\n"
-                    "baseurl=file:///localrepo\n"
-                    "gpgcheck=0\n"
-                    "enabled=1\" > /etc/yum.repos.d/local.repo")
-
-        def remote_repo():
-            print('Using remote repo')
-
-        yum_repo_types = {
-            'local': local_repo,
-            'remote': remote_repo
-        }
-        repo_type = self.__params.yum_repo_type
-        if repo_type in yum_repo_types:
-            yum_repo_types[repo_type]()
-        else:
-            raise ValueError("Unsupported repo type '{0}'".format(repo_type))
-
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics')
         command_template = """{0}/kafka-topics.sh \
@@ -101,7 +76,7 @@ class IndexingCommands:
                                    type="directory",
                                    action="create_on_execute",
                                    owner=self.__params.metron_user,
-                                   group=self.__params.metron_group,
+                                   group=self.__params.hadoop_group,
                                    mode=0775,
                                    )
         Logger.info('Done creating HDFS indexing directory')

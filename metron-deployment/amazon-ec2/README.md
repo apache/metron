@@ -12,7 +12,7 @@ Getting Started
 
 The host used to deploy Apache Metron will need the following software tools installed.  The following versions are known to work as of the time of this writing, but by no means are these the only working versions.
 
-  - Ansible 2.0.0.2
+  - Ansible 2.0.0.2 or 2.2.2.0
   - Python 2.7.11
   - Maven 3.3.9  
 
@@ -26,14 +26,14 @@ Any platform that supports these tools is suitable, but the following instructio
 
 2. With Homebrew installed, run the following command in a terminal to install all of the required tools.
 
-  ```  
+  ```
   brew cask install java
   brew install maven git
-  brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/ee1273bf919a5e4e50838513a9e55ea423e1d7ce/Formula/ansible.rb
-  brew switch ansible 2.0.0.2
   ```
 
-3. Ensure that a public SSH key is located at `~/.ssh/id_rsa.pub`.  
+3. Install Ansible by following the instructions [here](http://docs.ansible.com/ansible/intro_installation.html#latest-releases-via-pip).
+
+4. Ensure that a public SSH key is located at `~/.ssh/id_rsa.pub`.
 
   ```
   $ cat ~/.ssh/id_rsa.pub

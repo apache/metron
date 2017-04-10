@@ -212,6 +212,8 @@ public class PcapTopologyIntegrationTest {
       setProperty("kafka.pcap.numPackets", "2");
       setProperty("kafka.pcap.maxTimeMS", "200000000");
       setProperty("kafka.pcap.ts_granularity", "NANOSECONDS");
+      setProperty("storm.auto.credentials", "[]");
+      setProperty("kafka.security.protocol", "PLAINTEXT");
     }};
     updatePropertiesCallback.apply(topologyProperties);
 

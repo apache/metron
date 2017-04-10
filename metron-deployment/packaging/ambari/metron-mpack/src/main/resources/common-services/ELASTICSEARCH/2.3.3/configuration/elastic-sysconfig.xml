@@ -90,9 +90,9 @@ CONF_DIR={{conf_dir}}
 ES_USER={{elastic_user}}
 
 # Additional Java OPTS
-ES_JAVA_OPTS="-verbose:gc -Xloggc:{{log_dir}}/elasticsearch_gc.log -XX:-CMSConcurrentMTEnabled
--XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCTimeStamps
--XX:ErrorFile={{log_dir}}elasticsearch_err.log -XX:ParallelGCThreads=8"
+ES_JAVA_OPTS="-verbose:gc -Xloggc:{{log_dir}}/elasticsearch_gc.log -XX:-CMSConcurrentMTEnabled \
+-XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
+-XX:ErrorFile={{log_dir}}/elasticsearch_err.log -XX:ParallelGCThreads=8"
         </value>
     </property>
 </configuration>

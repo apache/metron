@@ -16,7 +16,6 @@
  */
 
 #include "Plugin.h"
-#include "KafkaWriter.h"
 
 namespace plugin { namespace Bro_Kafka {
     Plugin plugin;

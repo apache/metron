@@ -121,6 +121,8 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
     final List<byte[]> inputMessages = TestUtils.readSampleData(sampleParsedPath);
     final Properties topologyProperties = new Properties() {{
       setProperty("kafka.start", "UNCOMMITTED_EARLIEST");
+      setProperty("kafka.security.protocol", "PLAINTEXT");
+      setProperty("storm.auto.credentials", "[]");
       setProperty("indexing.workers", "1");
       setProperty("indexing.executors", "0");
       setProperty("index.input.topic", Constants.INDEXING_TOPIC);

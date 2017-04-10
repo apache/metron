@@ -33,11 +33,15 @@ import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.utils.ConversionUtils;
 
+import java.io.Serializable;
 import java.util.*;
 
 import static java.lang.String.format;
 
 public class StellarCompiler extends StellarBaseListener {
+  private static Token<?> EXPRESSION_REFERENCE = new Token<>(null, Object.class);
+  private static Token<?> LAMBDA_VARIABLES = new Token<>(null, Object.class);
+
   private Expression expression;
   private final ArithmeticEvaluator arithmeticEvaluator;
   private final NumberLiteralEvaluator numberLiteralEvaluator;
@@ -57,17 +61,21 @@ public class StellarCompiler extends StellarBaseListener {
     }
   }
 
-  public static class Expression {
+  public static class Expression implements Serializable {
     final Deque<Token<?>> tokenDeque;
     final Set<String> variablesUsed;
-    Expression(Deque<Token<?>> tokenDeque) {
+    public Expression(Deque<Token<?>> tokenDeque) {
       this.tokenDeque = tokenDeque;
       this.variablesUsed = new HashSet<>();
     }
 
+    public Deque<Token<?>> getTokenDeque() {
+      return tokenDeque;
+    }
+
     public Object apply(ExpressionState state) {
       Deque<Token<?>> instanceDeque = new ArrayDeque<>();
-      for(Iterator<Token<?>> it = tokenDeque.descendingIterator();it.hasNext();) {
+      for(Iterator<Token<?>> it = getTokenDeque().descendingIterator();it.hasNext();) {
         Token<?> token = it.next();
         if(token.getUnderlyingType() == DeferredFunction.class) {
           DeferredFunction func = (DeferredFunction) token.getValue();
@@ -320,6 +328,82 @@ public class StellarCompiler extends StellarBaseListener {
       throw new ParseException("Unable to operate on " + left.getValue() + " " + opName + " " + right.getValue() + ", null value");
     }
     return op.op(l, r);
+  }
+
+
+  @Override
+  public void enterSingle_lambda_variable(StellarParser.Single_lambda_variableContext ctx) {
+    enterLambdaVariables();
+  }
+
+  @Override
+  public void exitSingle_lambda_variable(StellarParser.Single_lambda_variableContext ctx) {
+    exitLambdaVariables();
+  }
+
+  @Override
+  public void enterLambda_variables(StellarParser.Lambda_variablesContext ctx) {
+    enterLambdaVariables();
+  }
+
+  @Override
+  public void exitLambda_variables(StellarParser.Lambda_variablesContext ctx) {
+    exitLambdaVariables();
+  }
+
+  @Override
+  public void exitLambda_variable(StellarParser.Lambda_variableContext ctx) {
+    expression.tokenDeque.push(new Token<>(ctx.getText(), String.class));
+  }
+
+  private void enterLambdaVariables() {
+    expression.tokenDeque.push(LAMBDA_VARIABLES);
+  }
+
+  private void exitLambdaVariables() {
+    Token<?> t = expression.tokenDeque.pop();
+    LinkedList<String> variables = new LinkedList<>();
+    for(; !expression.tokenDeque.isEmpty() && t != LAMBDA_VARIABLES; t = expression.tokenDeque.pop()) {
+      variables.addFirst(t.getValue().toString());
+    }
+    expression.tokenDeque.push(new Token<>(variables, List.class));
+  }
+
+  private void enterLambda() {
+    expression.tokenDeque.push(EXPRESSION_REFERENCE);
+  }
+
+  private void exitLambda(boolean hasArgs) {
+    Token<?> t = expression.tokenDeque.pop();
+    final Deque<Token<?>> instanceDeque = new ArrayDeque<>();
+    for(; !expression.tokenDeque.isEmpty() && t != EXPRESSION_REFERENCE; t = expression.tokenDeque.pop()) {
+      instanceDeque.addLast(t);
+    }
+    final List<String> variables = hasArgs? (List<String>) instanceDeque.removeLast().getValue() :new ArrayList<>();
+    expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
+      LambdaExpression expr = new LambdaExpression(variables, instanceDeque, state);
+      tokenDeque.push(new Token<>(expr, Object.class));
+    }, DeferredFunction.class) );
+  }
+
+  @Override
+  public void enterLambda_with_args(StellarParser.Lambda_with_argsContext ctx) {
+    enterLambda();
+  }
+
+  @Override
+  public void exitLambda_with_args(StellarParser.Lambda_with_argsContext ctx) {
+    exitLambda(true);
+  }
+
+  @Override
+  public void enterLambda_without_args(StellarParser.Lambda_without_argsContext ctx) {
+    enterLambda();
+  }
+
+  @Override
+  public void exitLambda_without_args(StellarParser.Lambda_without_argsContext ctx) {
+    exitLambda(false);
   }
 
   @Override

@@ -39,7 +39,6 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 hostname = config['hostname']
-metron_group = config['configurations']['cluster-env']['metron_group']
 metron_home = status_params.metron_home
 parsers = status_params.parsers
 geoip_url = config['configurations']['metron-env']['geoip_url']
@@ -67,15 +66,11 @@ es_url = ",".join([host + ":" + es_binary_port for host in es_host_list])
 es_http_port = config['configurations']['metron-env']['es_http_port']
 es_http_url = es_host_list[0] + ":" + es_http_port
 
-# install repo
-yum_repo_type = config['configurations']['metron-env']['repo_type']
-if yum_repo_type == 'local':
-    repo_url = 'file:///localrepo'
-else:
-    repo_url = config['configurations']['metron-env']['repo_url']
-
 # hadoop params
 stack_root = Script.get_stack_root()
+# This is the cluster group named 'hadoop'. Its membership is the stack process user ids not individual users.
+# The config name 'user_group' is out of our control and a bit misleading, so it is renamed to 'hadoop_group'.
+hadoop_group = config['configurations']['cluster-env']['user_group']
 hadoop_home_dir = stack_select.get_hadoop_dir("home")
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()

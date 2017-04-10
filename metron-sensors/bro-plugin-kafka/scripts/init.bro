@@ -24,4 +24,5 @@ export {
   const kafka_conf: table[string] of string = table(
     ["metadata.broker.list"] = "localhost:9092"
   ) &redef;
+  const debug: string = "" &redef;
 }
