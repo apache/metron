@@ -196,6 +196,11 @@ export class SensorConfigPage {
     return element(by.cssContainingText('metron-config-sensor-rule-editor .btn', 'SAVE')).click();
   }
 
+  setThreatTriageRuleSortBy(scoreName: string) {
+    element(by.css('.threat-triage-rules-sort .dropdown-toggle')).click()
+      .then(() => element(by. cssContainingText('.threat-triage-rules-sort .dropdown-item', scoreName)).click());
+  }
+
   setGrokStatement(statement: string) {
     return element(by.css('metron-config-sensor-grok .ace_text-input')).sendKeys(statement);
   }
@@ -250,6 +255,13 @@ export class SensorConfigPage {
     let threatTriageTextArea = element(by.css('metron-config-sensor-rule-editor textarea'));
     return waitForElementVisibility(threatTriageTextArea).then(() => {
       return threatTriageTextArea.sendKeys(rule);
+    })
+  }
+
+  setThreatTriageRuleScore(score: string) {
+    let threatTriageRuleScore = element(by.css('metron-config-sensor-rule-editor metron-config-number-spinner input'));
+    return waitForElementVisibility(threatTriageRuleScore).then(() => {
+      return threatTriageRuleScore.sendKeys(score);
     })
   }
 

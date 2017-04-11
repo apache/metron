@@ -100,11 +100,22 @@ export class SensorDetailsPage {
     }
 
     getSchemaSummary() {
-        return element.all(by.css('.transforms')).getText();
+        return element.all(by.css('.transforms .form-label')).getText();
+    }
+
+    getSchemaSummaryTitle() {
+        return element.all(by.css('.transforms .form-sub-sub-title')).getText();
     }
 
     getSchemaFullSummary() {
-        return element.all(by.css('.collapse.in')).getText();
+        return protractor.promise.all([
+            element.all(by.css('.collapse.in .form-label')).getText(),
+            element.all(by.css('.collapse.in .form-value')).getText()
+        ]).then(args => {
+            let labels = args[0];
+            let values = args[1];
+            return labels.reduce((acc, val, ind) => { acc[val] = values[ind]; return acc;}, {})
+        });
     }
 
     getStormStatus() {
@@ -112,7 +123,22 @@ export class SensorDetailsPage {
     }
 
     getThreatTriageSummary() {
-        return element.all(by.css('.threat-triage-rules')).getText();
+        return element(by.css('.threat-triage-rules')).all(by.xpath("./div")).getText();
+    }
+
+    getThreatTriageTableHeaders() {
+        return element.all(by.css('#collapseThreatTriage .form-sub-sub-title')).getText();
+    }
+
+    getThreatTriageTableValues() {
+        return protractor.promise.all([
+            element.all(by.css('#collapseThreatTriage .form-label')).getText(),
+            element.all(by.css('#collapseThreatTriage .form-value')).getText()
+        ]).then(args => {
+            let labels = args[0];
+            let values = args[1];
+            return labels.reduce((acc, val, ind) => { acc[val] = values[ind]; return acc;}, {})
+        });
     }
 
     getTitle() {

@@ -77,10 +77,25 @@ describe('Sensor Config for parser e2e1', function() {
     page.clickThreatTriage();
     page.clickAddThreatTriageRule();
     page.setThreatTriageRule('IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')');
+    page.setThreatTriageRuleScore('10');
     page.saveThreatTriageRule();
     expect(page.getThreatTrigaeRule()).toEqual([ 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')']);
+
+    page.clickThreatTriage();
+    page.clickAddThreatTriageRule();
+    page.setThreatTriageRule('ip_src_addr == \'10.0.2.3\' or ip_dst_addr == \'10.0.2.3\'');
+    page.setThreatTriageRuleScore('5');
+    page.saveThreatTriageRule();
+    expect(page.getThreatTrigaeRule()).toEqual([ 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')', 'ip_src_addr == \'10.0.2.3\' or ip_dst_addr == \'10.0.2.3\'']);
+
+    page.setThreatTriageRuleSortBy('Lowest Score');
+    expect(page.getThreatTrigaeRule()).toEqual([ 'ip_src_addr == \'10.0.2.3\' or ip_dst_addr == \'10.0.2.3\'', 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')']);
+
+    page.setThreatTriageRuleSortBy('Lowest Name');
+    expect(page.getThreatTrigaeRule()).toEqual([ 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')', 'ip_src_addr == \'10.0.2.3\' or ip_dst_addr == \'10.0.2.3\'']);
+
     page.closeThreatTriagePane();
-    expect(page.getThreatTriageSummary()).toEqual([ 'RULES 1' ]);
+    expect(page.getThreatTriageSummary()).toEqual([ 'RULES 2' ]);
 
     page.saveParser();
     
@@ -89,14 +104,14 @@ describe('Sensor Config for parser e2e1', function() {
   }, 50000);
 
   it('should have all the config for e2e parser', (done) => {
-    let grokStatement = ''; //'E2E1 %{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}/%{WORD:UNWANTED}';
+    let grokStatement = 'E2E1 %{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}/%{WORD:UNWANTED}';
     let expectedFormData = {
       title: 'e2e1',
       parserName: 'e2e1',
       parserType: 'org.apache.metron.parsers.GrokParser',
       grokStatement: grokStatement,
       fieldSchemaSummary: [ 'TRANSFORMATIONS 1', 'ENRICHMENTS 3', 'THREAT INTEL 2' ],
-      threatTriageSummary: [ 'RULES 1' ],
+      threatTriageSummary: [ 'RULES 2' ],
       hdfsIndex: 'e2e1',
       hdfsBatchSize: '1',
       hdfsEnabled: 'on',
@@ -142,13 +157,17 @@ describe('Sensor Config for parser e2e1', function() {
     expect(sensorDetailsPage.getParserConfig()).toEqual(parserNotRunnigExpected);
     expect(sensorDetailsPage.getButtons()).toEqual([ 'EDIT', 'START', 'Delete' ]);
     expect(sensorDetailsPage.getGrokStatement()).toEqual(grokStatement);
-    expect(sensorDetailsPage.getSchemaSummary()).toEqual(['Transforms\nelapsed']);
+
+    expect(sensorDetailsPage.getSchemaSummaryTitle()).toEqual(['Transforms']);
+    expect(sensorDetailsPage.getSchemaSummary()).toEqual(['elapsed']);
     sensorDetailsPage.clickToggleShowMoreLess('show more', 1);
-    expect(sensorDetailsPage.getSchemaFullSummary()).toEqual([ 'Transforms\nelapsed\nTO_INTEGER(TRIM(elapsed))' ]);
+    expect(sensorDetailsPage.getSchemaFullSummary()).toEqual({ 'elapsed':'TO_INTEGER(TRIM(elapsed))' });
     sensorDetailsPage.clickToggleShowMoreLess('show less', 0);
-    expect(sensorDetailsPage.getThreatTriageSummary()).toEqual(['AGGREGATOR\nMAX\nIN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')\nshow more']);
+
+    expect(sensorDetailsPage.getThreatTriageSummary()).toEqual([ 'AGGREGATOR', 'MAX', '', 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\'), ip_src_addr == \'10.0.2.3\' or ip_dst_addr == \'10.0.2.3\'' ]);
     sensorDetailsPage.clickToggleShowMoreLess('show more', 2);
-    expect(sensorDetailsPage.getThreatTriageSummary()).toEqual(['AGGREGATOR\nMAX\nNAME\nSCORE\nIN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')\n0\nshow less']);
+    expect(sensorDetailsPage.getThreatTriageTableHeaders()).toEqual([ 'NAME', 'SCORE' ]);
+    expect(sensorDetailsPage.getThreatTriageTableValues()).toEqual({ 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')': '10', 'ip_src_addr == \'10.0.2.3\' or ip_dst_addr == \'10.0.2.3\'': '5' });
     sensorDetailsPage.clickToggleShowMoreLess('show less', 0);
 
     sensorDetailsPage.closePane('e2e1');

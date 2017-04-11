@@ -74,7 +74,7 @@
               <div id="collapseThreatTriage" class="col-xs-12  pull-left form-value panel-collapse collapse">
                 <div>
                   <div class="col-xs-6 form-sub-sub-title">NAME</div><div class="col-xs-6 form-sub-sub-title">SCORE</div>
-                  <div *ngFor="let riskLevelRule of rules" >
+                  <div class="row" *ngFor="let riskLevelRule of rules" >
                     <div class="col-xs-6 form-label">{{ getDisplayName(riskLevelRule) }}</div>
                     <div class="col-xs-6 form-value">{{ riskLevelRule.score }}</div>
                   </div>
