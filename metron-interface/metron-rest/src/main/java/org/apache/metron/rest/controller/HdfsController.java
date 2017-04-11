@@ -64,7 +64,7 @@ public class HdfsController {
 
   }
 
-  @ApiOperation(value = "Writes contents to an HDFS file.  Warning: this will overwite the contents of a file if it already exists.")
+  @ApiOperation(value = "Writes contents to an HDFS file.  Warning: this will overwrite the contents of a file if it already exists.")
   @ApiResponse(message = "Contents were written", code = 200)
   @RequestMapping(method = RequestMethod.POST)
   ResponseEntity<Void> write(@ApiParam(name="path", value="Path to HDFS file", required=true) @RequestParam String path,

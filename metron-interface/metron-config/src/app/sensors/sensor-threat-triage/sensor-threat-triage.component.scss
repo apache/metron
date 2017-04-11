@@ -1,0 +1,137 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@import "../../_variables.scss";
+@import "../../../styles.scss";
+
+textarea
+{
+  height: auto;
+}
+
+.form-title
+{
+  padding-left: 25px;
+}
+
+.form-group
+{
+  padding-left: 25px;
+  padding-right: 20px;
+}
+
+.close-button
+{
+  padding-right: 20px;
+}
+
+.threat-triage-summary
+{
+  background-color: $edit-child-highlight;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.filter-button
+{
+  width: 32%;
+  background: $field-background;
+  border: 1px solid $form-button-border;
+  border-radius: .25em;
+  cursor: default;
+  color: $nav-active-color;
+  i {
+    font-size: smaller;
+  }
+}
+
+.filter-button-selected
+{
+  @extend .filter-button;
+  background-color: #006ea0;
+  color: #bdbdbd;
+}
+
+.threat-triage-aggregator
+{
+  padding-bottom: 10px;
+}
+
+.threat-triage-rules-sort
+{
+  padding-top: 5px;
+  font-size: 12px;
+  font-family: Roboto-Regular;
+  .label
+  {
+    display: inline-block;
+    padding-right: 8px;
+  }
+  .dropdown
+  {
+    list-style: none;
+    display: inline-block;
+    color: $field-button-color;
+  }
+}
+
+.rules-summary-title
+{
+  font-size: 15px;
+}
+
+.threat-triage-rules-list
+{
+  padding-top: 10px;
+}
+
+.threat-triage-rule-row
+{
+  display: inline-block;
+  position: relative;
+  vertical-align: top;
+
+  .fa {
+    color: $nav-active-color;
+    font-size: large;
+  }
+}
+
+.add-button
+{
+  font-size: 20px;
+  width: 100%;
+  padding: 2px;
+
+  i {
+    color: $field-button-color;
+  }
+}
+
+.threat-triage-rule-str
+{
+  width: 64%;
+  padding-right: 10px;
+  font-size: small;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+metron-config-sensor-rule-editor
+{
+  @extend .flexbox-row-reverse;
+}

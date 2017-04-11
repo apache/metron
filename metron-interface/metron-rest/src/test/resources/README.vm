@@ -10,24 +10,24 @@ This module provides a RESTful API for interacting with Metron.
 
 #[[##]]# Installation
 1. Package the application with Maven:
-```
-mvn clean package
-```
+  ```
+  mvn clean package
+  ```
 
 1. Untar the archive in the target directory.  The directory structure will look like:
-```
-bin
-  start_metron_rest.sh
-lib
-  metron-rest-$METRON_VERSION.jar
-```
+  ```
+  bin
+    start_metron_rest.sh
+  lib
+    metron-rest-$METRON_VERSION.jar
+  ```
 
-1. Create an `application.yml` file with the contents of [application-docker.yml](src/main/resources/application-docker.yml).  Substitute the appropriate Metron service urls (Kafka, Zookeeper, Storm, etc) in properties containing `${docker.host.address}` and update the `spring.datasource.*` properties as needed (see the [Security](#security) section for more details).
+1. Create an `application.yml` file with the contents of [application-docker.yml](src/main/resources/application-docker.yml).  Substitute the appropriate Metron service urls (Kafka, Zookeeper, Storm, etc.) in properties containing `${docker.host.address}` and update the `spring.datasource.*` properties as needed (see the [Security](#security) section for more details).
 
 1. Start the application with this command:
-```
-./bin/start_metron_rest.sh /path/to/application.yml
-```
+  ```
+  ./bin/start_metron_rest.sh /path/to/application.yml
+  ```
 
 #[[##]]# Usage
 
@@ -45,36 +45,36 @@ For [production use](http://docs.spring.io/spring-boot/docs/1.4.1.RELEASE/refere
 1. Create a MySQL user for the Metron REST application (http://dev.mysql.com/doc/refman/5.7/en/adding-users.html).
 
 1. Connect to MySQL and create a Metron REST database:
-```
-CREATE DATABASE IF NOT EXISTS metronrest
-```
+  ```
+  CREATE DATABASE IF NOT EXISTS metronrest
+  ```
 
 1. Add users:
-```
-use metronrest;
-insert into users (username, password, enabled) values ('your_username','your_password',1);
-insert into authorities (username, authority) values ('your_username', 'ROLE_USER');
-```
+  ```
+  use metronrest;
+  insert into users (username, password, enabled) values ('your_username','your_password',1);
+  insert into authorities (username, authority) values ('your_username', 'ROLE_USER');
+  ```
 
 1. Replace the H2 connection information in the application.yml file with MySQL connection information:
-```
-spring:
-  datasource:
-        driverClassName: com.mysql.jdbc.Driver
-        url: jdbc:mysql://mysql_host:3306/metronrest
-        username: metron_rest_user
-        password: metron_rest_password
-        platform: mysql
-```
+  ```
+  spring:
+    datasource:
+          driverClassName: com.mysql.jdbc.Driver
+          url: jdbc:mysql://mysql_host:3306/metronrest
+          username: metron_rest_user
+          password: metron_rest_password
+          platform: mysql
+  ```
 
 1. Add a dependency for the MySQL JDBC connector in the metron-rest pom.xml:
-```
-<dependency>
-  <groupId>mysql</groupId>
-  <artifactId>mysql-connector-java</artifactId>
-  <version>${mysql.client.version}</version>
-</dependency>
-```
+  ```
+  <dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>${mysql.client.version}</version>
+  </dependency>
+  ```
 
 1. Follow the steps in the [Installation](#installation) section
 
@@ -85,7 +85,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 |            |
 | ---------- |
 #foreach( $restControllerInfo in $endpoints )
-| [ `$restControllerInfo.getMethod().toString() $restControllerInfo.getPath()`](#$restControllerInfo.getMethod().toString().toLowerCase()-$restControllerInfo.getPath().toLowerCase().replaceAll("/", ""))|
+| [ `$restControllerInfo.getMethod().toString() $restControllerInfo.getPath()`](#$restControllerInfo.getMethod().toString().toLowerCase()-$restControllerInfo.getPath().toLowerCase().replaceAll("[/\{\}]", ""))|
 #end
 
 #foreach( $restControllerInfo in $endpoints )

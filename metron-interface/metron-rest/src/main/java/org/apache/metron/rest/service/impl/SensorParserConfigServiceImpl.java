@@ -164,6 +164,7 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
         sensorParserConfig.getParserConfig().put(MetronRestConstants.GROK_PATH_KEY, temporaryGrokFile.toString());
       }
       parser.configure(sensorParserConfig.getParserConfig());
+      parser.init();
       JSONObject results = parser.parse(parseMessageRequest.getSampleData().getBytes()).get(0);
       if (isGrokConfig(sensorParserConfig) && temporaryGrokFile != null) {
         temporaryGrokFile.delete();

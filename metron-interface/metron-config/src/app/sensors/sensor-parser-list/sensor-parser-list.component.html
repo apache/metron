@@ -1,0 +1,85 @@
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+<div class="sensors details-pane-padding">
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-lg-10 px-0">
+        <div class="metron-title"> {{componentName}} ({{count}}) </div>
+      </div>
+      <div class="col-lg-2">
+        <div class="dropdown pull-right">
+          <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            ACTIONS
+          </button>
+          <div class="dropdown-menu dropdown-menu-right metron-bg-inverse" aria-labelledby="dropdownMenu1">
+            <span class="dropdown-item" data-action="Delete" (click)="onDeleteSensor()" [class.disabled]="selectedSensors.length == 0">Delete</span>
+            <span class="dropdown-item" data-action="Enable" (click)="onEnableSensors()" [class.disabled]="selectedSensors.length == 0">Enable</span>
+            <span class="dropdown-item" data-action="Disable" (click)="onDisableSensors()" [class.disabled]="selectedSensors.length == 0">Disable</span>
+            <span class="dropdown-item" data-action="Start" (click)="onStartSensors()" [class.disabled]="selectedSensors.length == 0">Start</span>
+            <span class="dropdown-item" data-action="Stop" (click)="onStopSensors()" [class.disabled]="selectedSensors.length == 0">Stop</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <table class="table card-deck" metron-config-table #table (onSort)="onSort($event)">
+    <thead>
+    <tr>
+      <th> <metron-config-sorter [sortBy]="'sensorTopic'"> Name </metron-config-sorter> </th>
+      <th> <metron-config-sorter [sortBy]="'parserClassName'"> Parser </metron-config-sorter> </th>
+      <th> <metron-config-sorter [sortBy]="'status'"> Status </metron-config-sorter> </th>
+      <th> <metron-config-sorter [sortBy]="'latency'"> Latency </metron-config-sorter> </th>
+      <th> <metron-config-sorter [sortBy]="'throughput'"> Throughput </metron-config-sorter> </th>
+      <th> <metron-config-sorter [sortBy]="'modifiedByDate'"> Last Updated </metron-config-sorter> </th>
+      <th> <metron-config-sorter [sortBy]="'modifiedBy'"> Last Editor </metron-config-sorter> </th>
+      <th style="width:100px"></th>
+      <th style="width:50px"><input id="select-deselect-all" class="fontawesome-checkbox" type="checkbox" (click)="onSelectDeselectAll($event)"><label for="select-deselect-all"></label></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let sensor of sensors;" (click)="onSensorRowSelect(sensor.config, $event)" [ngClass]="{'active': (selectedSensors.indexOf(sensor) != -1 || sensorParserConfigService.getSelectedSensor() == sensor.config)}">
+      <td>{{ sensor.config.sensorTopic }}</td>
+      <td>{{ getParserType(sensor.config) }}</td>
+      <td [ngClass]="{'warning-text': (sensor.status == 'Stopped' || sensor.status == 'Disabled')}">{{ sensor.status }}</td>
+      <td>{{ sensor.latency }}</td>
+      <td>{{ sensor.throughput }}</td>
+      <td>{{ sensor.modifiedByDate }}</td>
+      <td>{{ sensor.modifiedBy }}</td>
+      <td class="icon-container">
+          <i  data-toggle="tooltip" title="Operation in progress" class="fa fa-circle-o-notch fa-spin fa-lg fa-fw" [hidden]="!sensor.config['startStopInProgress']"></i>
+
+          <i  data-toggle="tooltip" title="Stop parser topology" class="fa fa-stop fa-lg" aria-hidden="true" [hidden]="((sensor.status != 'Running' && sensor.status != 'Disabled') || sensor.config['startStopInProgress'])" (click)="onStopSensor(sensor, $event)"></i>
+          <i  data-toggle="tooltip" title="Disable parser topology" class="fa fa-ban fa-lg" aria-hidden="true" [hidden]="(sensor.status != 'Running'  || sensor.config['startStopInProgress'])" (click)="onDisableSensor(sensor, $event)"></i>
+
+          <i  data-toggle="tooltip" title="Start parser topology" class="fa fa-play fa-lg" aria-hidden="true" [hidden]="(sensor.status != 'Stopped' || sensor.config['startStopInProgress'])" (click)="onStartSensor(sensor, $event)"></i>
+          <i  data-toggle="tooltip" title="Enable parser topology" class="fa fa-check-circle-o fa-lg" aria-hidden="true" [hidden]="(sensor.status != 'Disabled' || sensor.config['startStopInProgress'])" (click)="onEnableSensor(sensor, $event)"></i>
+
+          <i  data-toggle="tooltip" title="Edit parser topology" class="fa fa-pencil fa-lg" aria-hidden="true" (click)="navigateToSensorEdit(sensor.config, $event)"></i>
+
+          <i  data-toggle="tooltip" title="Delete parser configuration" class="fa fa-trash-o fa-lg" aria-hidden="true" (click)="deleteSensor($event, [sensor.config])"></i>
+      </td>
+      <td><input id="{{ sensor.config.sensorTopic }}" class="fontawesome-checkbox" type="checkbox" name="{{sensor.config.sensorTopic}}" (click)="onRowSelected(sensor, $event)"><label attr.for="{{ sensor.config.sensorTopic }}"></label></td>
+    </tr>
+    </tbody>
+  </table>
+
+    <div class="metron-add-button hexa-button" (click)="addAddSensor()">
+      <i class="fa fa-plus"></i>
+    </div>
+
+</div>

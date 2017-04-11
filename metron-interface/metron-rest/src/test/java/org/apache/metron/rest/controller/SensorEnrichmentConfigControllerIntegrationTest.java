@@ -236,12 +236,22 @@ public class SensorEnrichmentConfigControllerIntegrationTest {
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$[?(@.sensorTopic == 'broTest')]").doesNotExist());
 
-    this.mockMvc.perform(get(sensorEnrichmentConfigUrl + "/list/available").with(httpBasic(user,password)))
+    this.mockMvc.perform(get(sensorEnrichmentConfigUrl + "/list/available/enrichments").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$[0]").value("geo"))
             .andExpect(jsonPath("$[1]").value("host"))
             .andExpect(jsonPath("$[2]").value("whois"));
+
+    this.mockMvc.perform(get(sensorEnrichmentConfigUrl + "/list/available/threat/triage/aggregators").with(httpBasic(user,password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$[0]").value("MAX"))
+            .andExpect(jsonPath("$[1]").value("MIN"))
+            .andExpect(jsonPath("$[2]").value("SUM"))
+            .andExpect(jsonPath("$[3]").value("MEAN"))
+            .andExpect(jsonPath("$[4]").value("POSITIVE_MEAN"))
+    ;
 
     sensorEnrichmentConfigService.delete("broTest");
   }

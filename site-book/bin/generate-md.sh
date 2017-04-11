@@ -49,6 +49,7 @@ EXCLUSION_LIST=(
     '/site/'
     '/site-book/'
     '/build_utils/'
+    '/node_modules/'
     '/\.github/'
 )
 

@@ -51,6 +51,7 @@ Source6:        metron-indexing-%{full_version}-archive.tar.gz
 Source7:        metron-pcap-backend-%{full_version}-archive.tar.gz
 Source8:        metron-profiler-%{full_version}-archive.tar.gz
 Source9:        metron-rest-%{full_version}-archive.tar.gz
+Source10:       metron-config-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -71,6 +72,7 @@ rm -rf %{_builddir}/*
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{metron_home}
 mkdir -p %{buildroot}/etc/init.d
+mkdir -p %{buildroot}/var/run/metron
 
 # copy source files and untar
 tar -xzf %{SOURCE0} -C %{buildroot}%{metron_home}
@@ -83,6 +85,7 @@ tar -xzf %{SOURCE6} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE7} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE8} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE9} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE10} -C %{buildroot}%{metron_home}
 
 install %{buildroot}%{metron_home}/bin/metron-rest %{buildroot}/etc/init.d/
 
@@ -344,6 +347,50 @@ chkconfig metron-rest --del
 %preun rest
 chkconfig metron-rest --del
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        config
+Summary:        Metron Management UI
+Group:          Applications/Internet
+Provides:       config = %{version}
+
+%description    config
+This package installs the Metron Management UI %{metron_home}
+
+%files          config
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/bin
+%dir %{metron_home}/web
+%dir %{metron_home}/web/expressjs
+%dir %{metron_home}/web/management-ui
+%dir %{metron_home}/web/management-ui/assets
+%dir %{metron_home}/web/management-ui/assets/ace
+%dir %{metron_home}/web/management-ui/assets/ace/snippets
+%dir %{metron_home}/web/management-ui/assets/fonts
+%dir %{metron_home}/web/management-ui/assets/fonts/Roboto
+%dir %{metron_home}/web/management-ui/assets/images
+%dir %{metron_home}/web/management-ui/license
+%{metron_home}/bin/start_management_ui.sh
+%attr(0755,root,root) %{metron_home}/web/expressjs/server.js
+%attr(0644,root,root) %{metron_home}/web/expressjs/package.json
+%attr(0644,root,root) %{metron_home}/web/management-ui/favicon.ico
+%attr(0644,root,root) %{metron_home}/web/management-ui/index.html
+%attr(0644,root,root) %{metron_home}/web/management-ui/*.js
+%attr(0644,root,root) %{metron_home}/web/management-ui/*.js.gz
+%attr(0644,root,root) %{metron_home}/web/management-ui/*.ttf
+%attr(0644,root,root) %{metron_home}/web/management-ui/*.svg
+%attr(0644,root,root) %{metron_home}/web/management-ui/*.eot
+%attr(0644,root,root) %{metron_home}/web/management-ui/*.woff
+%attr(0644,root,root) %{metron_home}/web/management-ui/*.woff2
+%attr(0644,root,root) %{metron_home}/web/management-ui/assets/ace/*.js
+%attr(0644,root,root) %{metron_home}/web/management-ui/assets/ace/LICENSE
+%attr(0644,root,root) %{metron_home}/web/management-ui/assets/ace/snippets/*.js
+%attr(0644,root,root) %{metron_home}/web/management-ui/assets/fonts/Roboto/LICENSE.txt
+%attr(0644,root,root) %{metron_home}/web/management-ui/assets/fonts/Roboto/*.ttf
+%attr(0644,root,root) %{metron_home}/web/management-ui/assets/images/*
+%attr(0644,root,root) %{metron_home}/web/management-ui/license/*
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
