@@ -1,0 +1,46 @@
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+<div class="metron-slider-pane-edit fill load-left-to-right dialog2x">
+
+    <div class="form-title">Grok Validator</div>
+    <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="onCancelGrok()"></i>
+
+    <form role="form" class="grok-form">
+        <metron-config-sample-data [topic]="sensorParserConfig.sensorTopic"
+                                   (onSampleDataChanged)="onSampleDataChanged($event)"></metron-config-sample-data>
+        <label attr.for="patternLabel">PATTERN LABEL</label>
+        <select class="form-control pattern-label-dropdown" [ngModelOptions]="{standalone: true}" [(ngModel)]="newPatternLabel">
+          <option *ngFor="let patternLabel of availablePatternLabels" [value]="patternLabel"> {{ patternLabel }} </option>
+        </select>
+        <label attr.for="grokStatement">STATEMENT</label>
+        <metron-config-ace-editor [(ngModel)]="newGrokStatement" [ngModelOptions]="{standalone: true}" [type]="'GROK'" [options]="grokFunctionList" [placeHolder]="'Enter Grok statement'" (ngModelChange)="getAvailablePatternLabels()"> </metron-config-ace-editor>
+
+        <div class="buttons-bar">
+            <button type="submit" class="btn form-enable-disable-button" [disabled]="isTestDisabled()" (click)="onTestGrokStatement()">TEST</button>
+            <button type="submit" class="btn form-enable-disable-button" [disabled]="isSaveDisabled()" (click)="onSaveGrok()">SAVE</button>
+        </div>
+
+        <label> PREVIEW </label>
+        <table class="table form-table" #table>
+            <tbody>
+            <tr *ngFor="let key of parsedMessageKeys">
+                <td>{{ key }}</td>
+                <td>{{ parsedMessage[key] }}</td>
+            </tr>
+            </tbody>
+        </table>
+    </form>
+</div>

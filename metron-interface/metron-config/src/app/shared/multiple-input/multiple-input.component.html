@@ -1,0 +1,39 @@
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+<!--Configured-->
+<div *ngFor="let configuredItem of configuredItems; let i = index" class="row mx-0">
+  <div class="col-md-10 px-0">
+    <input *ngIf="type==='text'" class="form-control disabled" readonly [ngModel]="configuredItem.name">
+    <select *ngIf="type==='select'" #select class="form-control" [ngModel]="configuredItem.name" (change)="onUpdate(configuredItem,select.value)">
+      <option *ngFor="let availableFunction of getAvailableFunctions()" [disabled]="availableFunction===''" [selected]="availableFunction===''"> {{ availableFunction.name }} </option>
+    </select>
+  </div>
+  <div class="col-md-2 px-0">
+    <i class="fa fa-minus fa-border icon-button" aria-hidden="true" style="margin-left: 0.3rem;" (click)="onRemove(configuredItem)"></i>
+  </div>
+</div>
+
+<!--new-->
+<div class="row mx-0" *ngIf="(this.configuredItems.length !== this.availableItems.length) || configuredItems.length === 0 ">
+  <div class="col-md-10 px-0">
+    <select #select class="form-control" (change)="onAdd(select)">
+      <option [disabled]="true" [selected]="true"></option>
+      <option *ngFor="let availableFunction of getAvailableFunctions()"> {{ availableFunction.name }} </option>
+    </select>
+  </div>
+  <div class="col-md-3 px-0"> </div>
+</div>
+

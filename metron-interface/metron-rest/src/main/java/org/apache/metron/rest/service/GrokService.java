@@ -31,4 +31,6 @@ public interface GrokService {
 
     File saveTemporary(String statement, String name) throws RestException;
 
+    String getStatementFromClasspath(String path) throws RestException;
+
 }
