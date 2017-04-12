@@ -354,7 +354,7 @@ public class StringFunctions {
     @Override
     public Object apply(List<Object> strings) {
 
-      if(strings == null || strings.size() == 0 || strings.get(0) == null || strings.get(0).toString().length() == 0) {
+      if(strings == null || strings.size() == 0 ) {
         throw new IllegalArgumentException("[CHOMP] missing argument: string to chomp a newline from");
       }
 
@@ -372,7 +372,7 @@ public class StringFunctions {
     @Override
     public Object apply(List<Object> strings) {
 
-      if(strings == null || strings.size() == 0 || strings.get(0) == null || strings.get(0).toString().length() == 0) {
+      if(strings == null || strings.size() == 0 ) {
         throw new IllegalArgumentException("[CHOP] missing argument: string to be chopped");
       }
 
