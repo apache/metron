@@ -33,82 +33,112 @@ export class SensorDetailsPage {
     }
 
     clickToggleShowMoreLess(text: string, index: number) {
+        let ele = element.all(by.linkText(text)).get(index);
+        browser.driver.executeScript('arguments[0].scrollIntoView()', ele.getWebElement());
+
         return element.all(by.linkText(text)).get(index).click().then(() => {
             browser.sleep(1000);
             return true;
-        })
+        });
     }
 
     closePane(name: string) {
+        element.all(by.css('.alert .close')).click();
         return element(by.css('metron-config-sensor-parser-readonly .fa-times')).click().then(() => {
             return true;
         });
     }
 
     disableParser() {
-        return waitForElementVisibility(this.disableButton).then(() => {
-            return this.disableButton.click().then(() => {
-                return waitForElementVisibility(this.enableButton).then(() => {
-                    return true;
-                })
-            });
-        });
+        return waitForElementVisibility(this.disableButton).then(this.disableButton.click())
+          .then(protractor.promise.controlFlow().execute(() =>{waitForElementVisibility(this.enableButton)}))
+          .then(() => true);
     }
 
     enableParser() {
-        return waitForElementVisibility(this.enableButton).then(() => {
-            return this.enableButton.click().then(() => {
-                return waitForElementVisibility(this.disableButton).then(() => {
-                    return true;
-                })
-            });
-        });
+        return waitForElementVisibility(this.enableButton).then(this.enableButton.click())
+          .then(protractor.promise.controlFlow().execute(() =>{ waitForElementVisibility(this.disableButton)}))
+          .then(() => true);
     }
 
     startParser() {
-        return waitForElementVisibility(this.startButton).then(() => {
-            return this.startButton.click().then(() => {
-                return waitForElementVisibility(this.stopButton).then(() => {
-                    return true;
-                })
-            });
-        });
+        return waitForElementVisibility(this.startButton).then(this.startButton.click())
+          .then(protractor.promise.controlFlow().execute(() => { waitForElementVisibility(this.stopButton)}))
+          .then(() => true);
     }
 
     stopParser() {
-        return waitForElementVisibility(this.stopButton).then(() => {
-            return this.stopButton.click().then(() => {
-                return waitForElementVisibility(this.startButton).then(() => {
-                    return true;
-                })
-            });
-        });
+        return waitForElementVisibility(this.stopButton).then(this.stopButton.click())
+          .then(protractor.promise.controlFlow().execute(() => {waitForElementVisibility(this.startButton)}))
+          .then(() => true);
     }
 
     getButtons() {
         return element.all(by.css('metron-config-sensor-parser-readonly button:not([hidden=""])')).getText();
     }
 
+    getCurrentUrl() {
+        return browser.getCurrentUrl();
+    }
+
     getGrokStatement() {
         return element(by.css('.form-value.grok')).getText();
     }
 
+    getKafkaState() {
+        return element(by.cssContainingText('metron-config-sensor-parser-readonly .form-label', 'KAFKA')).all(by.xpath('..//div')).getText().then(data => data[1]);
+    }
+
     getParserConfig() {
         return element.all(by.css('metron-config-sensor-parser-readonly .row')).getText().then(data => {
-            return data.slice(1, 19);
+            return data.slice(1, 19).map(val => val.replace('\n', ':'));
         });
     }
 
+    getParserState() {
+        return element(by.cssContainingText('metron-config-sensor-parser-readonly .form-label', 'STATE')).all(by.xpath('..//div')).getText().then(data => data[1]);
+    }
+
     getSchemaSummary() {
-        return element.all(by.css('.transforms')).getText();
+        return element.all(by.css('.transforms .form-label')).getText();
+    }
+
+    getSchemaSummaryTitle() {
+        return element.all(by.css('.transforms .form-sub-sub-title')).getText();
     }
 
     getSchemaFullSummary() {
-        return element.all(by.css('.collapse.in')).getText();
+        return protractor.promise.all([
+            element.all(by.css('.collapse.in .form-label')).getText(),
+            element.all(by.css('.collapse.in .form-value')).getText()
+        ]).then(args => {
+            let labels = args[0];
+            let values = args[1];
+            return labels.reduce((acc, val, ind) => { acc[val] = values[ind]; return acc;}, {})
+        });
+    }
+
+    getStormStatus() {
+        return element(by.cssContainingText('metron-config-sensor-parser-readonly .form-label', 'STORM')).all(by.xpath('..//div')).getText().then(data => data[1]);
     }
 
     getThreatTriageSummary() {
-        return element.all(by.css('.threat-triage-rules')).getText();
+        return element(by.css('.threat-triage-rules')).all(by.xpath("./div")).getText();
+    }
+
+    getThreatTriageTableHeaders() {
+        return element.all(by.css('#collapseThreatTriage .form-sub-sub-title')).getText();
+    }
+
+    getThreatTriageTableValues() {
+        return protractor.promise.all([
+            element.all(by.css('#collapseThreatTriage .form-label')).getText(),
+            element.all(by.css('#collapseThreatTriage .form-value')).getText()
+        ]).then(args => {
+            let labels = args[0];
+            let values = args[1];
+            return labels.reduce((acc, val, ind) => { acc[val] = values[ind]; return acc;}, {})
+        });
     }
 
     getTitle() {
@@ -119,7 +149,6 @@ export class SensorDetailsPage {
     }
 
     navigateTo(parserName: string) {
-        let url = browser.baseUrl + '/sensors(dialog:sensors-readonly/'+ parserName + ')';
-        return changeURL(url);
+        return element(by.cssContainingText('metron-config-sensor-parser-list td', parserName)).element(by.xpath('..')).click();
     }
 }

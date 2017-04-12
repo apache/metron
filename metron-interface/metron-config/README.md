@@ -72,6 +72,35 @@ The application will be available at http://localhost:4200/.  The REST applicati
     npm test
     ```
 
+## E2E Testing
+### Prerequisites
+
+- quick-dev-platfom should be up and running. For more information on running quick-dev click [here](https://github.com/apache/incubator-metron/tree/master/metron-deployment/vagrant/quick-dev-platform).
+- quick-dev-platfom should have snort and bro parser topologies deployed and they should be in a running state. ( This should be available by default unless they are stopped manually ).
+- Metron rest application should be up and running on quick-dev-platfom.  For more information on running metron rest on quick-dev-platfom click [here](https://github.com/apache/incubator-metron/blob/master/metron-interface/metron-rest/README.md#quick-dev).
+- Metron rest application should be running as hdfs user. Once logged in as root you can run 'sudo su - hdfs' to become a hdfs user.
+- Port 4200 should be available.
+
+### Running E2E tests
+1. Execute the script 'start_dev_quickdev.sh' by passing metron rest URL as an argument. This will start management ui on port 4200 and proxy the rest calls to quick-dev-platform
+
+    Ex: If metron rest on quick-dev-platform is available on node1:8081 the command would look like
+    ```
+     ./scripts/start_dev_quickdev.sh http://node1:8081
+    ```
+
+1. You can execute all the test cases by issuing the following command.
+
+    Note: Running all the test cases can be a time-consuming process since it involves starting and stopping parsers multiple times
+    ```
+    npm run e2e-all
+    ```
+
+1. You can also execute subset of test cases that would test all the functionality that does not involve starting of parsers by issuing the following command
+   ```
+    npm run e2e
+   ```
+
 ## License
 
 This projects bundles Font Awesome which is available under the SIL Open Font License.  See http://fontawesome.io/license/ for more details.

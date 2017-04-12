@@ -57,10 +57,10 @@
                 </div>
 
                 <div class="form-group" [ngClass]="{'panel-selected': showGrokValidator }" *ngIf="isGrokParser(sensorParserConfig)" >
-                    <label attr.for="grokStatement">GROK STATEMENT</label>
+                    <label>GROK STATEMENT</label>
                     <div  class="input-group" [attr.disabled]="!sensorNameValid || !parserClassValid">
                         <input type="text" class="form-control" formControlName="grokStatement"  [(ngModel)]="this.grokStatement" (ngModelChange)="onGrokStatementChange()" readonly>
-                        <span class="input-group-btn">
+                        <span class="input-group-btn" name="grokstatementButton">
                             <button class="btn btn-default" type="button" (click)="sensorNameValid && parserClassValid && onShowGrokPane()" readonly>
                             <i class="fa fa-columns" aria-hidden="true"></i>
                             <i class="fa fa-angle-double-right" style="padding-left: 3px" aria-hidden="true"></i>
@@ -70,16 +70,16 @@
                 </div>
 
                 <div class="form-group" [ngClass]="{'panel-selected': showFieldSchema }" >
-                    <label attr.for="fieldSchema">SCHEMA</label>
+                    <label>SCHEMA</label>
                     <div  class="input-group" [attr.disabled]="!configValid">
                         <div  class="form-control" style="height: 80px; resize: none;" readonly>
                             <table cellspacing="10">
-                                <tr> <td class="p-l-1">TRANSFORMATIONS </td> <td class="p-l-1">&nbsp;&nbsp;</td><td class="p-1-1">{{getTransformationCount()}}</td> </tr>
-                                <tr> <td>ENRICHMENTS</td> <td class="p-l-1">&nbsp;&nbsp;</td> <td class="p-1-1">{{getEnrichmentCount()}}</td></tr>
-                                <tr> <td>THREAT INTEL</td> <td class="p-l-1">&nbsp;&nbsp;</td> <td class="p-1-1">{{getThreatIntelCount()}}</td></tr>
+                                <tr> <td>TRANSFORMATIONS </td> <td class="pl-1">{{getTransformationCount()}}</td> </tr>
+                                <tr> <td>ENRICHMENTS</td> <td class="pl-1">{{getEnrichmentCount()}}</td> </tr>
+                                <tr> <td>THREAT INTEL</td> <td class="pl-1">{{getThreatIntelCount()}}</td> </tr>
                             </table>
                         </div>
-                        <span class="input-group-btn">
+                        <span class="input-group-btn" name="fieldSchemaButton">
                             <button class="btn btn-default" type="button" (click)="configValid && showPane(pane.FIELDSCHEMA)" style="height: 80px;" readonly>
                                 <i class="fa fa-columns" aria-hidden="true"></i>
                                 <i class="fa fa-angle-double-right" style="padding-left: 3px" aria-hidden="true"></i>
@@ -89,14 +89,14 @@
                 </div>
 
                 <div class="form-group" [ngClass]="{'panel-selected': showThreatTriage }">
-                    <label attr.for="stellar">THREAT TRIAGE</label>
+                    <label>THREAT TRIAGE</label>
                     <div class="input-group" [attr.disabled]="!configValid">
                         <div  class="form-control" style="resize: none;" readonly>
                             <table style="margin: 0">
-                                <tr> <td class="p-l-1">RULES </td> <td class="p-l-1">&nbsp;&nbsp;</td><td class="p-1-1">{{getRuleCount()}}</td> </tr>
+                                <tr> <td >RULES </td> <td class="pl-1">{{getRuleCount()}}</td> </tr>
                             </table>
                         </div>
-                        <span class="input-group-btn">
+                        <span class="input-group-btn" name="threatTriageButton">
                             <button class="btn btn-default" type="button" (click)="configValid && showPane(pane.THREATTRIAGE)" readonly>
                                 <i class="fa fa-columns" aria-hidden="true"></i>
                                 <i class="fa fa-angle-double-right" style="padding-left: 3px" aria-hidden="true"></i>

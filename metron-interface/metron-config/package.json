@@ -12,8 +12,8 @@
     "lint": "tslint \"src/**/*.ts\"",
     "test": "./node_modules/angular-cli/bin/ng test --watch=false",
     "pree2e": "webdriver-manager update",
-    "e2e": "./node_modules/.bin/protractor",
-    "e2e-all": "./node_modules/.bin/protractor --suite=all",
+    "e2e": "./node_modules/.bin/protractor-flake",
+    "e2e-all": " npm run pree2e && ./node_modules/.bin/protractor-flake -- --suite=all",
     "copy-ace": "cp -f $npm_package_config_node_ace/ext-language_tools.js $npm_package_config_node_ace/mode-json.js $npm_package_config_node_ace/theme-monokai.js $npm_package_config_node_ace/worker-json.js src/assets/ace",
     "copy-ace-snippets": "cp -f $npm_package_config_node_ace/snippets/text.js $npm_package_config_node_ace/snippets/json.js  src/assets/ace/snippets",
     "postinstall": "npm run copy-ace & npm run copy-ace-snippets"
@@ -58,6 +58,7 @@
     "karma-remap-istanbul": "^0.2.1",
     "phantomjs-prebuilt": "^2.1.14",
     "protractor": "4.0.5",
+    "protractor-flake": "^2.5.0",
     "ts-node": "1.2.1",
     "tslint": "3.13.0",
     "typescript": "~2.0.3"

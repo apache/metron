@@ -23,15 +23,15 @@
 var SpecReporter = require('jasmine-spec-reporter');
 
 exports.config = {
-  allScriptsTimeout: 11000,
+  allScriptsTimeout: 25000,
   suites: {
     all: [
       './e2e/login/login.e2e-spec.ts',
       './e2e/app/app.e2e-spec.ts',
       './e2e/sensor-list/sensor-list.e2e-spec.ts',
-      './e2e/sensor-list/sensor-list-parser-actions.e2e-spec.ts',
       './e2e/use-cases/sensor-config-single-parser.e2e-spec.ts',
-      './e2e/sensor-config-readonly/sensor-config-readonly.e2e-spec.ts',
+      './e2e/sensor-list/sensor-list-parser-actions.e2e-spec.ts',
+      './e2e/sensor-config-readonly/sensor-config-readonly.e2e-spec.ts'
     ]
   },
   specs: [
@@ -48,7 +48,7 @@ exports.config = {
   framework: 'jasmine',
   jasmineNodeOpts: {
     showColors: true,
-    defaultTimeoutInterval: 30000,
+    defaultTimeoutInterval: 50000,
     print: function() {}
   },
   useAllAngular2AppRoots: true,
@@ -59,6 +59,18 @@ exports.config = {
     });
   },
   onPrepare: function() {
-    jasmine.getEnv().addReporter(new SpecReporter());
+    jasmine.getEnv().addReporter(new SpecReporter({
+      displayStacktrace: 'specs'
+    }));
+    setTimeout(function() {
+      browser.driver.executeScript(function() {
+        return {
+          width: window.screen.availWidth,
+          height: window.screen.availHeight
+        };
+      }).then(function(result) {
+        browser.driver.manage().window().setSize(result.width, result.height);
+      });
+    });
   }
 };

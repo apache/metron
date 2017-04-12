@@ -15,46 +15,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { browser, element, by } from 'protractor/globals';
+import { browser, element, by, protractor } from 'protractor/globals';
+import { waitForElementVisibility } from '../utils/e2e_util';
 
 export class LoginPage {
-    navigateToLogin() {
-        return browser.get('/');
-    }
+  private useNameInput = by.css('form input[name="user"]');
+  private passwordInput = by.css('form input[name="password"]');
 
-    login() {
-        browser.wait(function() {return element(by.css('input.form-control')).isPresent();});
-        this.setUserNameAndPassword('admin', 'password');
-        this.submitLoginForm();
-        browser.wait(function() {return element(by.css('.logout')).isPresent();});
-    }
+  navigateToLogin() {
+    return browser.get('/');
+  }
 
-    logout() {
-        browser.ignoreSynchronization = true;
-        element.all(by.css('.alert .close')).click();
-        element.all(by.css('.logout-link')).click();
-        browser.sleep(2000);
-    }
+  login() {
+    let flow = protractor.promise.controlFlow();
+    browser.get('/').then(flow.execute(() => waitForElementVisibility(element(this.useNameInput))))
+      .then(flow.execute(() => this.setUserNameAndPassword('admin', 'password')))
+      .then(flow.execute(() => this.submitLoginForm()));
 
-    setUserNameAndPassword(userName: string, password: string) {
-        element.all(by.css('input.form-control')).get(0).sendKeys(userName);
-        element.all(by.css('input.form-control')).get(1).sendKeys(password);
-    }
+    browser.ignoreSynchronization = true;
+  }
 
-    submitLoginForm() {
-        return element.all(by.buttonText('LOG IN')).click();
-    }
+  logout() {
+    browser.ignoreSynchronization = true;
 
-    getErrorMessage() {
-        let errorMessage = element(by.css('div[style="color:#a94442"]')).getText();
-        return errorMessage.then(message => {
-            return message.replace(/\n/,'').replace(/LOG\ IN$/,'');
-        })
-    }
+    element.all(by.css('.alert .close')).click();
+    element.all(by.css('.logout-link')).click();
+    browser.sleep(2000);
+  }
 
-    getLocation() {
-        return browser.getCurrentUrl().then(url => {
-            return url;
-        });
-    }
+  setUserNameAndPassword(userName: string, password: string) {
+    element(this.useNameInput).sendKeys(userName);
+    element(this.passwordInput).sendKeys(password);
+  }
+
+  submitLoginForm() {
+    return element.all(by.buttonText('LOG IN')).click();
+  }
+
+  getErrorMessage() {
+    let errorMessage = element(by.css('div[style="color:#a94442"]')).getText();
+    return errorMessage.then(message => {
+      return message.replace(/\n/,'').replace(/LOG\ IN$/,'');
+    })
+  }
+
+  getLocation() {
+    return browser.getCurrentUrl();
+  }
 }

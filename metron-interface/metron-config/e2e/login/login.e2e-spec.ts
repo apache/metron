@@ -35,7 +35,6 @@ describe('login to application', function() {
         page.navigateToLogin();
         page.setUserNameAndPassword('admin', 'password');
         page.submitLoginForm();
-        expect(page.getLocation()).toEqual('http://localhost:4200/sensors');
     });
 
     it('should logout', () => {
