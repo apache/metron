@@ -118,6 +118,7 @@ export class SensorConfigPage {
 
   getFormData() {
     browser.waitForAngular();
+    browser.sleep(2000);
 
     let mainPanel = element.all(by.css('.metron-slider-pane-edit')).last();
     return protractor.promise.all([

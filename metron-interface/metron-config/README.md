@@ -79,10 +79,10 @@ The application will be available at http://localhost:4200/.  The REST applicati
 - quick-dev-platfom should have snort and bro parser topologies deployed and they should be in a running state. ( This should be available by default unless they are stopped manually ).
 - Metron rest application should be up and running on quick-dev-platfom.  For more information on running metron rest on quick-dev-platfom click [here](https://github.com/apache/incubator-metron/blob/master/metron-interface/metron-rest/README.md#quick-dev).
 - Metron rest application should be running as hdfs user. Once logged in as root you can run 'sudo su - hdfs' to become a hdfs user.
-- Port 4200 should be available.
+- Port 4200 should be available on the machine running management ui.
 
 ### Running E2E tests
-1. Execute the script 'start_dev_quickdev.sh' by passing metron rest URL as an argument. This will start management ui on port 4200 and proxy the rest calls to quick-dev-platform
+1. Execute the script 'start_dev_quickdev.sh' by passing metron rest URL as an argument. This will start management ui on port 4200 and proxy the rest calls to metron rest on quick-dev-platform
 
     Ex: If metron rest on quick-dev-platform is available on node1:8081 the command would look like
     ```
@@ -96,10 +96,12 @@ The application will be available at http://localhost:4200/.  The REST applicati
     npm run e2e-all
     ```
 
-1. You can also execute subset of test cases that would test all the functionality that does not involve starting of parsers by issuing the following command
+1. You can also execute subset of test cases that would test all the functionality that does not involve starting of parsers. The command used for this as follows
    ```
     npm run e2e
    ```
+
+NOTE: Automated UI test cases can be [flaky at times](https://testing.googleblog.com/2016/05/flaky-tests-at-google-and-how-we.html). To rerun potentially flakey protractor tests before failing we are using [protractor-flake](https://www.npmjs.com/package/protractor-flake).
 
 ## License
 

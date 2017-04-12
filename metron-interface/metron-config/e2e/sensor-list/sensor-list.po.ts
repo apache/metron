@@ -31,7 +31,7 @@ export class SensorListPage {
         });
 
         return queueForClick.then(() => {
-            let promiseArray = parserNames.map(name => this.waitForElement(this.getIconButton(name, waitOnClassName)));
+            let promiseArray = parserNames.map(name => waitForElementVisibility(this.getIconButton(name, waitOnClassName)));
             return protractor.promise.all(promiseArray).then(args => {
                 return args;
             });
@@ -42,7 +42,7 @@ export class SensorListPage {
         return protractor.promise.all([this.toggleRowsSelect(parserNames), this.toggleDropdown()]).then(() => {
 
             return element(by.css('span[data-action=\"'+ dropDownLinkName +'\"]')).click().then(() => {
-                let promiseArray = parserNames.map(name => this.waitForElement(this.getIconButton(name, waitOnClassName)));
+                let promiseArray = parserNames.map(name => waitForElementVisibility(this.getIconButton(name, waitOnClassName)));
                 return protractor.promise.all(promiseArray).then(args => {
                     this.toggleRowsSelect(parserNames);
                     return args;
@@ -52,13 +52,13 @@ export class SensorListPage {
     }
 
     closePane(className: string ='.close-button') {
-        return this.waitForElement(element(by.css(className))).then(() => {
+        return waitForElementVisibility(element(by.css(className))).then(() => {
             return element(by.css(className)).click();
         });
     }
 
     disableParsers(names: string[]) {
-        return this.waitForElement(this.getIconButton(names[0], 'i.fa-ban')).then(()=> {
+        return waitForElementVisibility(this.getIconButton(names[0], 'i.fa-ban')).then(()=> {
             return this.clickOnActionsAndWait(names, 'i.fa-ban', 'i.fa-check-circle-o');
         });
     }
@@ -158,7 +158,10 @@ export class SensorListPage {
     }
 
     getTitle() {
-        return element(by.css('.metron-title')).getText();
+        let titleElement = element(by.css('.metron-title'));
+        return waitForElementVisibility(titleElement).then(() => {
+            return titleElement.getText();
+        });
     }
 
     load() {
@@ -228,9 +231,4 @@ export class SensorListPage {
     toggleSort(name: string) {
         element.all(by.linkText(name)).click();
     }
-
-    waitForElement ( _element ) {
-        var EC = protractor.ExpectedConditions;
-        return browser.wait(EC.visibilityOf(_element));
-    };
 }
