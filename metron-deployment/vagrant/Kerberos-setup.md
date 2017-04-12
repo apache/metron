@@ -30,7 +30,7 @@ for topology in bro snort enrichment indexing; do storm kill $topology; done
 # set 'node1' to the correct host for your kdc
 yum -y install krb5-server krb5-libs krb5-workstation
 sed -i 's/kerberos.example.com/node1/g' /etc/krb5.conf
-cp -f /etc/krb5.conf /var/lib/ambari-server/resources/scripts
+/bin/cp -f /etc/krb5.conf /var/lib/ambari-server/resources/scripts
 # This step takes a moment. It creates the kerberos database.
 kdb5_util create -s
 /etc/rc.d/init.d/krb5kdc start
