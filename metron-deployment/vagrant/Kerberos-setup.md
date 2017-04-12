@@ -15,7 +15,7 @@ sudo su -
 export ZOOKEEPER=node1
 export BROKERLIST=node1
 export HDP_HOME="/usr/hdp/current"
-export METRON_VERSION="0.3.1"
+export METRON_VERSION="0.4.0"
 export METRON_HOME="/usr/metron/${METRON_VERSION}"
   ```
 
