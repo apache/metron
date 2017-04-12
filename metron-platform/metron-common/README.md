@@ -933,7 +933,7 @@ This path is a comma separated list of
 ```json
 {
  ...
-  "stellar.function.paths" : "hdfs://node1:8020/apps/metron/stellar/metron-management-0.3.1.jar, hdfs://node1:8020/apps/metron/3rdparty/.*.jar"
+  "stellar.function.paths" : "hdfs://node1:8020/apps/metron/stellar/metron-management-0.4.0.jar, hdfs://node1:8020/apps/metron/3rdparty/.*.jar"
 }
 ```
 

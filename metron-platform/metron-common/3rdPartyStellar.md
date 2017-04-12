@@ -17,7 +17,7 @@ since the epoch.  I notice that there's nothing like that currently in Metron,
 so I embark on the adventure of adding it for my cluster.
 
 I will presume that you have an installed Metron into your local maven repo via `mvn install` .  In the future, when we publish to a maven repo,
-you will not need this.  I will depend on 0.3.1 for the
+you will not need this.  I will depend on 0.4.0 for the
 purpose of this demonstration
 
 ### Hack, Hack, Hack
@@ -49,7 +49,7 @@ First, we should depend on `metron-common` and we can do that by adjusting the `
     <dependency>
       <groupId>org.apache.metron</groupId>
       <artifactId>metron-common</artifactId>
-      <version>0.3.1</version>
+      <version>0.4.0</version>
       <!-- NOTE: We will want to depend on the deployed common on the classpath. -->
       <scope>provided</scope>
     </dependency>
