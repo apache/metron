@@ -97,11 +97,7 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
         return items
 
     def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
-        # Determine if the cluster is secured
-        if "cluster-env" in services["configurations"] and "security_enabled" in services["configurations"]["cluster-env"]["properties"]:
-            is_secured = services["configurations"]["cluster-env"]["properties"]["security_enabled"]
-        else:
-            is_secured = "false"
+        is_secured = self.isSecurityEnabled(services)
 
         #Suggest Storm Rest URL
         if "storm-site" in services["configurations"]:
@@ -135,10 +131,7 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
 
     def validateSTORMSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
         # Determine if the cluster is secured
-        if "cluster-env" in services["configurations"] and "security_enabled" in services["configurations"]["cluster-env"]["properties"]:
-            is_secured = services["configurations"]["cluster-env"]["properties"]["security_enabled"]
-        else:
-            is_secured = "false"
+        is_secured = self.isSecurityEnabled(services)
 
         storm_site = properties
         validationItems = []
@@ -170,4 +163,3 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
             })
 
         return storm_site_desired_values
-
