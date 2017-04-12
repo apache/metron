@@ -355,11 +355,18 @@ public class StringFunctions {
     public Object apply(List<Object> strings) {
 
       if(strings == null || strings.size() == 0 ) {
-        throw new IllegalArgumentException("[CHOMP] missing argument: string to chomp a newline from");
+        throw new IllegalArgumentException("[CHOMP] missing argument: string to be chopped");
       }
-
-      String chomp = StringUtils.chomp((String) strings.get(0));
-      return chomp;
+      String var = strings.get(0) == null?null: (String) strings.get(0);
+      if(var == null) {
+        return null;
+      }
+      else if(var.length() == 0) {
+        return var;
+      }
+      else {
+        return StringUtils.chomp(var);
+      }
     }
   }
   @Stellar( name="CHOP"
@@ -375,9 +382,16 @@ public class StringFunctions {
       if(strings == null || strings.size() == 0 ) {
         throw new IllegalArgumentException("[CHOP] missing argument: string to be chopped");
       }
-
-      String chop = StringUtils.chop((String) strings.get(0));
-      return chop;
+      String var = strings.get(0) == null?null: (String) strings.get(0);
+      if(var == null) {
+        return null;
+      }
+      else if(var.length() == 0) {
+        return var;
+      }
+      else {
+        return StringUtils.chop(var);
+      }
     }
   }
 

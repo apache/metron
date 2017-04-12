@@ -216,9 +216,11 @@ public class StringFunctionsTest {
    */
   @Test
   public void testChomp() throws Exception {
+    Assert.assertEquals("abc",  run("CHOMP('abc')", new HashedMap()));
     Assert.assertEquals("abc",  run("CHOMP(msg)", ImmutableMap.of("msg", "abc\r\n")));
     Assert.assertEquals("",     run("CHOMP(msg)", ImmutableMap.of("msg", "\n")));
-    Assert.assertEquals("abc",  run("CHOMP('abc')", new HashedMap()));
+    Assert.assertEquals("",     run("CHOMP('')", new HashedMap()));
+    Assert.assertEquals(null,   run("CHOMP(msg)", new HashedMap()));
     Assert.assertEquals(null,   run("CHOMP(null)", new HashedMap()));
 
     // No input
@@ -252,8 +254,11 @@ public class StringFunctionsTest {
   public void testChop() throws Exception {
     Assert.assertEquals("ab",   run("CHOP('abc')", new HashedMap()));
     Assert.assertEquals(null,   run("CHOP(null)", new HashedMap()));
+    Assert.assertEquals(null,   run("CHOP(msg)", new HashedMap()));
     Assert.assertEquals("abc",  run("CHOP(msg)", ImmutableMap.of("msg", "abc\r\n")));
+    Assert.assertEquals("",     run("CHOP(msg)", ImmutableMap.of("msg", "")));
     Assert.assertEquals("",     run("CHOP(msg)", ImmutableMap.of("msg", "\n")));
+    Assert.assertEquals("",     run("CHOP('')", new HashedMap()));
 
     // No input
     boolean thrown = false;
