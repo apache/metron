@@ -30,7 +30,7 @@ for topology in bro snort enrichment indexing; do storm kill $topology; done
 # set 'node1' to the correct host for your kdc
 yum -y install krb5-server krb5-libs krb5-workstation
 sed -i 's/kerberos.example.com/node1/g' /etc/krb5.conf
-cp /etc/krb5.conf /var/lib/ambari-server/resources/scripts
+cp -f /etc/krb5.conf /var/lib/ambari-server/resources/scripts
 # This step takes a moment. It creates the kerberos database.
 kdb5_util create -s
 /etc/rc.d/init.d/krb5kdc start
@@ -57,9 +57,9 @@ sudo -u hdfs hdfs dfs -chmod 770 /user/metron
     a. Add the following properties to custom storm-site:
 
     ```
-    topology.auto-credentials=['org.apache.storm.security.auth.kerberos.AutoTGT']
-    nimbus.credential.renewers.classes=['org.apache.storm.security.auth.kerberos.AutoTGT']
-    supervisor.run.worker.as.user=true
+topology.auto-credentials=['org.apache.storm.security.auth.kerberos.AutoTGT']
+nimbus.credential.renewers.classes=['org.apache.storm.security.auth.kerberos.AutoTGT']
+supervisor.run.worker.as.user=true
     ```
 
     b. In the Storm config section in Ambari, choose “Add Property” under custom storm-site:
@@ -107,7 +107,7 @@ ${HDP_HOME}/kafka-broker/bin/kafka-topics.sh --zookeeper ${ZOOKEEPER}:2181 --cre
 12. Setup Kafka ACLs for the topics
   ```
 export KERB_USER=metron;
-for topic in bro enrichments indexing snort yaf; do
+for topic in bro enrichments indexing snort; do
 ${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:${KERB_USER} --topic ${topic};
 done
   ```
@@ -144,28 +144,28 @@ cd ~/.storm
   ```
 cat << EOF > client_jaas.conf
 StormClient {
-   com.sun.security.auth.module.Krb5LoginModule required
-   useTicketCache=true
-   renewTicket=true
-   serviceName="nimbus";
+    com.sun.security.auth.module.Krb5LoginModule required
+    useTicketCache=true
+    renewTicket=true
+    serviceName="nimbus";
 };
 Client {
-   com.sun.security.auth.module.Krb5LoginModule required
-   useKeyTab=true
-   keyTab="/etc/security/keytabs/metron.headless.keytab"
-   storeKey=true
-   useTicketCache=false
-   serviceName="zookeeper"
-   principal="metron@EXAMPLE.COM";
+    com.sun.security.auth.module.Krb5LoginModule required
+    useKeyTab=true
+    keyTab="/etc/security/keytabs/metron.headless.keytab"
+    storeKey=true
+    useTicketCache=false
+    serviceName="zookeeper"
+    principal="metron@EXAMPLE.COM";
 };
 KafkaClient {
-   com.sun.security.auth.module.Krb5LoginModule required
-   useKeyTab=true
-   keyTab="/etc/security/keytabs/metron.headless.keytab"
-   storeKey=true
-   useTicketCache=false
-   serviceName="kafka"
-   principal="metron@EXAMPLE.COM";
+    com.sun.security.auth.module.Krb5LoginModule required
+    useKeyTab=true
+    keyTab="/etc/security/keytabs/metron.headless.keytab"
+    storeKey=true
+    useTicketCache=false
+    serviceName="kafka"
+    principal="metron@EXAMPLE.COM";
 };
 EOF
   ```
@@ -184,41 +184,45 @@ EOF
 cd
 cat << EOF > storm-config.json
 {
-  "topology.worker.childopts" : "-Djava.security.auth.login.config=/home/metron/.storm/client_jaas.conf"
+    "topology.worker.childopts" : "-Djava.security.auth.login.config=/home/metron/.storm/client_jaas.conf"
 }
 EOF
   ```
 
 20. Setup enrichment and indexing.
 
-    a. Modify enrichment.properties - `${METRON_HOME}/config/enrichment.properties`
+    a. Modify enrichment.properties as root - `${METRON_HOME}/config/enrichment.properties`
 
     ```
-    if [[ $EUID -ne 0 ]]; then
-        echo "You must be root to run these commands"
-    else
-        sed -i 's/kafka.security.protocol=.*/kafka.security.protocol=PLAINTEXTSASL/' ${METRON_HOME}/config/enrichment.properties
-        sed -i 's/topology.worker.childopts=.*/topology.worker.childopts=-Djava.security.auth.login.config=\/home\/metron\/.storm\/client_jaas.conf/' ${METRON_HOME}/config/enrichment.properties
-    fi
+if [[ $EUID -ne 0 ]]; then
+    echo -e "\nERROR:\tYou must be root to run these commands"
+else
+    sed -i 's/kafka.security.protocol=.*/kafka.security.protocol=PLAINTEXTSASL/' ${METRON_HOME}/config/enrichment.properties
+    sed -i 's/topology.worker.childopts=.*/topology.worker.childopts=-Djava.security.auth.login.config=\/home\/metron\/.storm\/client_jaas.conf/' ${METRON_HOME}/config/enrichment.properties
+fi
     ```
 
-    b. Modify elasticsearch.properties - `${METRON_HOME}/config/elasticsearch.properties`
+    b. Modify elasticsearch.properties as root - `${METRON_HOME}/config/elasticsearch.properties`
 
     ```
+if [[ $EUID -ne 0 ]]; then
+    echo -e "\nERROR:\tYou must be root to run these commands"
+else
     sed -i 's/kafka.security.protocol=.*/kafka.security.protocol=PLAINTEXTSASL/' ${METRON_HOME}/config/elasticsearch.properties
     sed -i 's/topology.worker.childopts=.*/topology.worker.childopts=-Djava.security.auth.login.config=\/home\/metron\/.storm\/client_jaas.conf/' ${METRON_HOME}/config/elasticsearch.properties
-    su metron
-    cd
+fi
     ```
 
 21. Kinit with the metron user again
   ```
+su metron
+cd
 kinit -kt /etc/security/keytabs/metron.headless.keytab metron@EXAMPLE.COM
   ```
 
 22. Restart the parser topologies. Be sure to pass in the new parameter, “-ksp” or “--kafka_security_protocol.” Run this from the metron home directory.
   ```
-for parser in bro snort yaf; do ${METRON_HOME}/bin/start_parser_topology.sh -z ${ZOOKEEPER}:2181 -s ${parser} -ksp SASL_PLAINTEXT -e storm-config.json; done
+for parser in bro snort; do ${METRON_HOME}/bin/start_parser_topology.sh -z ${ZOOKEEPER}:2181 -s ${parser} -ksp SASL_PLAINTEXT -e storm-config.json; done
   ```
 
 23. Now restart the enrichment and indexing topologies.
@@ -275,8 +279,7 @@ ${HDP_HOME}/kafka-broker/bin/kafka-console-consumer.sh --zookeeper ${ZOOKEEPER}:
 ##### Modify the sensor-stubs to send logs via SASL
 ```
 sed -i 's/node1:6667 --topic/node1:6667 --security-protocol PLAINTEXTSASL --topic/' /opt/sensor-stubs/bin/start-*-stub
-# Restart the appropriate sensor-stubs
-for sensorstub in bro snort; do service sensor-stubs stop $sensorstub; service sensor-stubs start $sensorstub; done
+service sensor-stubs restart bro snort
 ```
 
 #### References
