@@ -177,7 +177,7 @@ The `!=` operator is the negation of the above.
   * Input:
     * string - The string to be appended.
     * suffix - The string suffix to append to the end of the string.
-    * suffixes - Optional - Additional string suffixes that are valid terminators.
+    * additionalsuffix - Optional - Additional string suffix that is a valid terminator.
   * Returns: A new String if prefix was prepended, the same string otherwise.
 
 ### `BLOOM_ADD`
@@ -471,7 +471,7 @@ The `!=` operator is the negation of the above.
   * Input:
     * string - The string to be prepended.
     * prefix - The string prefix to prepend to the start of the string.
-    * prefixes - Optional - Additional string prefixes that are valid.
+    * additionalprefix - Optional - Additional string prefix that is valid.
   * Returns: A new String if prefix was prepended, the same string otherwise.
 
 ### `PROFILE_GET`

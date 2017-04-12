@@ -354,7 +354,7 @@ public class StringFunctions {
     @Override
     public Object apply(List<Object> strings) {
 
-      if(strings.size() == 0) {
+      if(strings == null || strings.size() == 0 || strings.get(0) == null || strings.get(0).toString().length() == 0) {
         throw new IllegalArgumentException("[CHOMP] missing argument: string to chomp a newline from");
       }
 
@@ -372,7 +372,7 @@ public class StringFunctions {
     @Override
     public Object apply(List<Object> strings) {
 
-      if(strings.size() == 0) {
+      if(strings == null || strings.size() == 0 || strings.get(0) == null || strings.get(0).toString().length() == 0) {
         throw new IllegalArgumentException("[CHOP] missing argument: string to be chopped");
       }
 
@@ -386,7 +386,7 @@ public class StringFunctions {
           , params = {
           "str - The string."
           , "prefix - The string prefix to prepend to the start of the string"
-          , "prefixes - Optional - Additional string prefixes that are valid"
+          , "additionalprefix - Optional - Additional string prefix that is valid"
   }
           , returns = "A new String if prefix was prepended, the same string otherwise."
   )
@@ -412,7 +412,7 @@ public class StringFunctions {
           , params = {
           "str - The string."
           , "suffix - The string suffix to append to the end of the string"
-          , "suffixes - Optional - Additional string suffixes that are valid terminators"
+          , "additionalsuffix - Optional - Additional string suffix that is a valid terminator"
   }
           , returns = "A new String if suffix was appended, the same string otherwise."
   )
