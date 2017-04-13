@@ -228,7 +228,7 @@ ${METRON_HOME}/bin/start_enrichment_topology.sh
 ${METRON_HOME}/bin/start_elasticsearch_topology.sh
   ```
 
-24. Push some sample data to one of the parser topics. E.g for bro we took raw data from [metron-deployment/roles/sensor-stubs/files/bro.out](../roles/sensor-stubs/files/bro.out)
+24. Push some sample data to one of the parser topics. E.g for bro we took raw data from [incubator-metron/metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput](../../metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput)
   ```
 cat sample-bro.txt | ${HDP_HOME}/kafka-broker/bin/kafka-console-producer.sh --broker-list ${BROKERLIST}:6667 --security-protocol SASL_PLAINTEXT --topic bro
   ```
