@@ -30,7 +30,7 @@
     LD_LIBRARY_PATH: "{{ fastcapa_ld_library_path }}"
 
 - name: Install fastcapa
-  shell: "cp {{ fastcapa_work_dir }}/src/build/app/{{ fastcapa_bin }} {{ fastcapa_prefix }}"
+  shell: "cp {{ fastcapa_build_dir }}/{{ fastcapa_bin }} {{ fastcapa_prefix }}"
   args:
     chdir: "{{ fastcapa_work_dir }}"
     creates: "{{ fastcapa_prefix }}/{{ fastcapa_bin }}"

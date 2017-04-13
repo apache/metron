@@ -87,6 +87,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/global/config`](#get-apiv1globalconfig)|
 | [ `DELETE /api/v1/global/config`](#delete-apiv1globalconfig)|
 | [ `POST /api/v1/global/config`](#post-apiv1globalconfig)|
+| [ `GET /api/v1/grok/get/statement`](#get-apiv1grokgetstatement)|
 | [ `GET /api/v1/grok/list`](#get-apiv1groklist)|
 | [ `POST /api/v1/grok/validate`](#post-apiv1grokvalidate)|
 | [ `POST /api/v1/hdfs`](#post-apiv1hdfs)|
@@ -157,6 +158,13 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Global Config updated. Returns saved Global Config JSON
     * 201 - Global Config created. Returns saved Global Config JSON
+
+### `GET /api/v1/grok/get/statement`
+  * Description: Retrieves a Grok statement from the classpath
+  * Input:
+    * path - Path to classpath resource
+  * Returns:
+    * 200 - Grok statement
 
 ### `GET /api/v1/grok/list`
   * Description: Lists the common Grok statements available in Metron

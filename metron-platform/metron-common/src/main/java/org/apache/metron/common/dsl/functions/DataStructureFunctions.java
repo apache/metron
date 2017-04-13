@@ -162,6 +162,36 @@ public class DataStructureFunctions {
       }
     }
   }
+  @Stellar(name="ADD"
+          ,namespace="LIST"
+          , description="Adds an element to a list."
+          , params = { "list - List to add element to."
+                     , "element - Element to add to list"
+                     }
+          , returns = "Resulting list with the item added at the end."
+  )
+
+  public static class ListAdd extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> list) {
+      if (list.size() == 0) {
+        return null;
+      }
+      Object o = list.get(0);
+      if(list.size() == 1) {
+        return o;
+      }
+      if(o instanceof List) {
+        List l = (List)o;
+        Object arg = list.get(1);
+        l.add(arg);
+        return l;
+      }
+      else {
+        return o;
+      }
+    }
+  }
 
   @Stellar(name="LENGTH"
           , description="Returns the length of a string or size of a collection. Returns 0 for empty or null Strings"

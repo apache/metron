@@ -31,6 +31,7 @@ public class IndexingConfigurations extends Configurations {
   public static final String BATCH_SIZE_CONF = "batchSize";
   public static final String ENABLED_CONF = "enabled";
   public static final String INDEX_CONF = "index";
+  public static final String OUTPUT_PATH_FUNCTION_CONF = "outputPathFunction";
 
   public Map<String, Object> getSensorIndexingConfig(String sensorType, String writerName) {
     Map<String, Object> ret = (Map<String, Object>) configurations.get(getKey(sensorType));
@@ -84,6 +85,10 @@ public class IndexingConfigurations extends Configurations {
     return isEnabled(getSensorIndexingConfig(sensorName, writerName));
   }
 
+  public String getOutputPathFunction(String sensorName, String writerName) {
+    return getOutputPathFunction(getSensorIndexingConfig(sensorName, writerName), sensorName);
+  }
+
   public static boolean isEnabled(Map<String, Object> conf) {
     return getAs( ENABLED_CONF
                  ,conf
@@ -106,6 +111,14 @@ public class IndexingConfigurations extends Configurations {
                 , sensorName
                 , String.class
                 );
+  }
+
+  public static String getOutputPathFunction(Map<String, Object> conf, String sensorName) {
+    return getAs(OUTPUT_PATH_FUNCTION_CONF
+            ,conf
+            , ""
+            , String.class
+    );
   }
 
   public static Map<String, Object> setEnabled(Map<String, Object> conf, boolean enabled) {

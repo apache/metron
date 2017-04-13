@@ -1,0 +1,90 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+$range-gradient-start: #AC9B5A;
+$range-gradient-end: #D8747C;
+.form-title
+{
+  padding-left: 25px;
+}
+
+.form-group
+{
+  padding-left: 25px;
+  padding-right: 20px;
+  padding-bottom: 10px;
+}
+
+.close-button
+{
+  padding-right: 20px;
+}
+
+.score-adjustment
+{
+  display: inline-block;
+}
+
+.button-row {
+  padding-top: 10px;
+}
+
+.form-enable-disable-button {
+  width: 32%;
+}
+
+input[type="range"] {
+  height: 4px;
+  -webkit-appearance: none;
+  -moz-apperance: none;
+  background: $range-gradient-start;
+  background: -webkit-linear-gradient(left, $range-gradient-start, $range-gradient-end);
+  background: -moz-linear-gradient(left, $range-gradient-start, $range-gradient-end);
+  background: -ms-linear-gradient(left, $range-gradient-start, $range-gradient-end);
+  background: -o-linear-gradient(left, $range-gradient-start, $range-gradient-end);
+  background: linear-gradient(to right, $range-gradient-start, $range-gradient-end);
+  border-radius: 4px;
+
+  &:focus
+  {
+    outline: none;
+  }
+}
+
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  -moz-apperance:none;
+  width:15px;
+  height:15px;
+  -webkit-border-radius:20px;
+  -moz-border-radius:20px;
+  -ms-border-radius:20px;
+  -o-border-radius:20px;
+  border-radius:20px;
+  background-color: $range-gradient-start;
+}
+
+input[type="range"]::-moz-range-track
+{
+  background:transparent; border:0px;
+}
+
+input[type=range]::-moz-range-thumb
+{
+  background-color: $range-gradient-start;
+}
+

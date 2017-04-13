@@ -19,23 +19,43 @@
 #ifndef METRON_KAFKA_H
 #define METRON_KAFKA_H
 
+#include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
 #include <endian.h>
 #include <librdkafka/rdkafka.h>
 #include <rte_common.h>
 #include <rte_mbuf.h>
+
 #include "args.h"
+#include "types.h"
+
+#ifdef __GNUC__
+#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#else
+#  define UNUSED(x) UNUSED_ ## x
+#endif
 
 /**
  * Initializes a pool of Kafka connections.
- */
+*/
 void kaf_init(int num_of_conns);
 
 /**
  * Publish a set of packets to a kafka topic.
  */
-int kaf_send(struct rte_mbuf* data, int num_to_send, int conn_id);
+int kaf_send(struct rte_mbuf* data[], int num_to_send, int conn_id);
+
+/*
+ * Executes polling across all of the kafka client connections.  Ensures that any queued
+ * callbacks are served.
+ */
+void kaf_poll(void);
+
+/**
+ * Retrieves a summary of statistics across all of the kafka client connections.
+ */
+int kaf_stats(struct app_stats *stats);
 
 /**
  * Closes the pool of Kafka connections.

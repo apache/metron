@@ -26,19 +26,30 @@ typedef int bool;
 /*
  * Print usage information to the user.
  */
-void print_usage(const char* prgname)
+static void print_usage(void)
 {
-    printf("%s [EAL options] -- [APP options]\n"
-           "  -p PORTMASK     hex bitmask of ports to bind  [0x01]\n"
-           "  -t KAFKATOPIC   kafka topic                   [pcap]\n"
-           "  -c KAFKACONF    kafka config file             [conf/kafka.conf]\n",
-        prgname);
+    printf("fastcapa [EAL options] -- [APP options]\n"
+           "  -p PORT_MASK     bitmask of ports to bind                     [%s]\n"
+           "  -b BURST_SIZE    max packets to retrieve at a time            [%d]\n"
+           "  -r NB_RX_DESC    num of descriptors for receive ring          [%d]\n"
+           "  -x TX_RING_SIZE  size of tx rings (must be a power of 2)      [%d]\n"
+           "  -q NB_RX_QUEUE   num of receive queues for each device        [%d]\n"
+           "  -t KAFKA_TOPIC   name of the kafka topic                      [%s]\n"
+           "  -c KAFKA_CONF    file containing configs for kafka client         \n"
+           "  -s KAFKA_STATS   append kafka client stats to a file              \n"
+           "  -h               print this help message                          \n",
+        STR(DEFAULT_PORT_MASK), 
+        DEFAULT_BURST_SIZE, 
+        DEFAULT_NB_RX_DESC,
+        DEFAULT_TX_RING_SIZE,
+        DEFAULT_NB_RX_QUEUE,
+        STR(DEFAULT_KAFKA_TOPIC));
 }
 
 /*
  * Parse the 'portmask' command line argument.
  */
-int parse_portmask(const char* portmask)
+static int parse_portmask(const char* portmask)
 {
     char* end = NULL;
     unsigned long pm;
@@ -74,7 +85,7 @@ int parse_args(int argc, char** argv)
     int opt;
     char** argvopt;
     int option_index;
-    char* prgname = argv[0];
+    int nb_workers;
     static struct option lgopts[] = {
         { NULL, 0, 0, 0 }
     };
@@ -84,62 +95,167 @@ int parse_args(int argc, char** argv)
 
     // parse arguments to this application
     argvopt = argv;
-    while ((opt = getopt_long(argc, argvopt, "p:b:t:c:", lgopts, &option_index)) != EOF) {
+    while ((opt = getopt_long(argc, argvopt, "hp:b:t:c:r:q:s:x:", lgopts, &option_index)) != EOF) {
         switch (opt) {
 
-        // portmask
-        case 'p':
-            app.enabled_port_mask = parse_portmask(optarg);
-            if (app.enabled_port_mask == 0) {
-                printf("Error: Invalid portmask: '%s'\n", optarg);
-                print_usage(prgname);
+            // help
+            case 'h':
+                print_usage();
                 return -1;
-            }
-            break;
 
-        // kafka topic
-        case 't':
-            app.kafka_topic = strdup(optarg);
-            if (!valid(app.kafka_topic)) {
-                printf("Error: Invalid kafka topic: '%s'\n", optarg);
-                print_usage(prgname);
-                return -1;
-            }
-            break;
+            // burst size
+            case 'b':
+                app.burst_size = atoi(optarg);
+                printf("[ -b BURST_SIZE ] defined as %d \n", app.burst_size);
 
-        // kafka config path
-        case 'c':
-            app.kafka_config_path = strdup(optarg);
-            if (!valid(app.kafka_config_path) || !file_exists(app.kafka_config_path)) {
-                printf("Error: Invalid kafka config: '%s'\n", optarg);
-                print_usage(prgname);
-                return -1;
-            }
-            break;
+                if(app.burst_size < 1 || app.burst_size > MAX_BURST_SIZE) {
+                    fprintf(stderr, "Invalid burst size; burst=%u must be in [1, %u]. \n", app.burst_size, MAX_BURST_SIZE);
+                    print_usage();
+                    return -1;
+                }
+                break;
 
-        default:
-            printf("Error: Invalid argument: '%s'\n", optarg);
-            print_usage(prgname);
-            return -1;
-        }
+            // number of receive descriptors
+            case 'r':
+                app.nb_rx_desc = atoi(optarg);
+                printf("[ -r NB_RX_DESC ] defined as %d \n", app.nb_rx_desc);
+
+                if (app.nb_rx_desc < 1) {
+                    fprintf(stderr, "Invalid num of receive descriptors: '%s' \n", optarg);
+                    print_usage();
+                    return -1;
+                }
+                break;
+
+            // size of each transmit ring
+            case 'x':
+                app.tx_ring_size = atoi(optarg);
+                printf("[ -x TX_RING_SIZE ] defined as %d \n", app.tx_ring_size);
+
+                // must be a power of 2 and not 0
+                if (app.tx_ring_size == 0 || (app.tx_ring_size & (app.tx_ring_size - 1)) != 0) {
+                    fprintf(stderr, "Invalid tx ring size (must be power of 2): '%s' \n", optarg);
+                    print_usage();
+                    return -1;
+                }
+                break;
+
+            // number of receive queues for each device
+            case 'q':
+                app.nb_rx_queue = atoi(optarg);
+                printf("[ -q NB_RX_QUEUE ] defined as %d \n", app.nb_rx_queue);
+
+                if (app.nb_rx_queue < 1) {
+                    fprintf(stderr, "Invalid num of receive queues: '%s' \n", optarg);
+                    print_usage();
+                    return -1;
+                }
+                break;
+
+          // port mask
+          case 'p':
+              app.enabled_port_mask = parse_portmask(optarg);
+              printf("[ -p PORT_MASK ] defined as %d \n", app.enabled_port_mask);
+
+              if (app.enabled_port_mask == 0) {
+                  fprintf(stderr, "Invalid portmask: '%s'\n", optarg);
+                  print_usage();
+                  return -1;
+              }
+              break;
+
+          // kafka topic
+          case 't':
+              app.kafka_topic = strdup(optarg);
+              printf("[ -t KAFKA_TOPIC ] defined as %s \n", app.kafka_topic);
+
+              if (!valid(app.kafka_topic)) {
+                  printf("Invalid kafka topic: '%s'\n", optarg);
+                  print_usage();
+                  return -1;
+              }
+              break;
+
+          // kafka config path
+          case 'c':
+              app.kafka_config_path = strdup(optarg);
+              printf("[ -c KAFKA_CONFIG ] defined as %s \n", app.kafka_config_path);
+
+              if (!valid(app.kafka_config_path) || !file_exists(app.kafka_config_path)) {
+                  fprintf(stderr, "Invalid kafka config: '%s'\n", optarg);
+                  print_usage();
+                  return -1;
+              }
+              break;
+
+          // kafka stats path
+          case 's':
+              app.kafka_stats_path = strdup(optarg);
+              printf("[ -s KAFKA_STATS ] defined as %s \n", app.kafka_stats_path);
+              break;
+
+          default:
+              print_usage();
+              return -1;
+          }
     }
 
-    // check for required command-line arguments
+    // default PORT_MASK
     if (app.enabled_port_mask == 0) {
-        printf("Error: Missing -p PORTMASK\n");
-        print_usage(prgname);
-        return -1;
+        printf("[ -p PORT_MASK ] undefined; defaulting to %s \n", STR(DEFAULT_PORT_MASK));
+        app.enabled_port_mask = DEFAULT_PORT_MASK;
     }
 
+    // default KAFKA_TOPIC
     if (!valid(app.kafka_topic)) {
-        printf("Error: Missing -t KAFKATOPIC\n");
-        print_usage(prgname);
-        return -1;
+        printf("[ -t KAFKA_TOPIC ] undefined; defaulting to %s \n", STR(DEFAULT_KAFKA_TOPIC));
+        app.kafka_topic = STR(DEFAULT_KAFKA_TOPIC);
     }
 
-    argv[optind - 1] = prgname;
+    // default BURST_SIZE 
+    if (app.burst_size == 0) {
+        printf("[ -b BURST_SIZE ] undefined; defaulting to %d \n", DEFAULT_BURST_SIZE);
+        app.burst_size = DEFAULT_BURST_SIZE;
+    }
+
+    // default NB_RX_DESC
+    if (app.nb_rx_desc == 0) {
+        printf("[ -r NB_RX_DESC ] undefined; defaulting to %d \n", DEFAULT_NB_RX_DESC);
+        app.nb_rx_desc = DEFAULT_NB_RX_DESC;
+    }
+
+    // default NB_RX_QUEUE
+    if (app.nb_rx_queue == 0) {
+        printf("[ -q NB_RX_QUEUE ] undefined; defaulting to %d \n", DEFAULT_NB_RX_QUEUE);
+        app.nb_rx_queue = DEFAULT_NB_RX_QUEUE;
+    }
+
+    // default TX_RING_SIZE
+    if (app.tx_ring_size == 0) {
+        printf("[ -x TX_RING_SIZE ] undefined; defaulting to %u \n", DEFAULT_TX_RING_SIZE);
+        app.tx_ring_size = DEFAULT_TX_RING_SIZE;
+    }
+
+    // check number of ethernet devices
+    if (rte_eth_dev_count() == 0) {
+         rte_exit(EXIT_FAILURE, "No ethernet ports detected.\n");
+     }
+
+    // check number of workers
+    nb_workers = rte_lcore_count() - 1;
+    if (nb_workers < 1) {
+        rte_exit(EXIT_FAILURE, "Minimum 2 logical cores required. \n");
+    }
+
+    // need at least 1 worker for each receive queue
+    if(nb_workers < app.nb_rx_queue) {
+        rte_exit(EXIT_FAILURE, "Minimum 1 worker per receive queue; workers=%u rx_queues=%u. \n", 
+            nb_workers, app.nb_rx_queue);
+    }
 
     // reset getopt lib
     optind = 0;
+
     return 0;
 }
+

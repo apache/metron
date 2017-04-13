@@ -69,7 +69,7 @@ public class KafkaController {
         return new ResponseEntity<>(kafkaService.listTopics(), HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Delets a Kafka topic")
+    @ApiOperation(value = "Deletes a Kafka topic")
     @ApiResponses(value = { @ApiResponse(message = "Kafka topic was deleted", code = 200),
             @ApiResponse(message = "Kafka topic is missing", code = 404) })
     @RequestMapping(value = "/topic/{name}", method = RequestMethod.DELETE)

@@ -185,6 +185,13 @@ public class CEFParserTest extends TestCase {
 				Resources.toString(Resources.getResource(getClass(), "waf.schema"), UTF_8));
 	}
 
+	@Test
+	public void testPaloAltoCEF() throws Exception {
+		URL waf_url = Resources.getResource(getClass(), "palo.cef");
+		runTest("palo", Resources.readLines(waf_url, UTF_8),
+				Resources.toString(Resources.getResource(getClass(), "palo.schema"), UTF_8));
+	}
+
 	private void runTest(String name, List<String> lines, String schema) throws Exception {
 		runTest(name, lines, schema, "");
 	}
