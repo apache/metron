@@ -277,7 +277,7 @@ ${HDP_HOME}/kafka-broker/bin/kafka-console-consumer.sh --zookeeper ${ZOOKEEPER}:
 ##### Modify the sensor-stubs to send logs via SASL
 ```
 sed -i 's/node1:6667 --topic/node1:6667 --security-protocol PLAINTEXTSASL --topic/' /opt/sensor-stubs/bin/start-*-stub
-service sensor-stubs restart bro snort
+for sensorstub in bro snort; do service sensor-stubs stop $sensorstub; service sensor-stubs start $sensorstub; done
 ```
 
 #### References
