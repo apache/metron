@@ -228,15 +228,15 @@ ${METRON_HOME}/bin/start_enrichment_topology.sh
 ${METRON_HOME}/bin/start_elasticsearch_topology.sh
   ```
 
-24. Push some sample data to one of the parser topics. E.g for yaf we took raw data from [incubator-metron/metron-platform/metron-integration-test/src/main/sample/data/yaf/raw/YafExampleOutput](../../metron-platform/metron-integration-test/src/main/sample/data/yaf/raw/YafExampleOutput)
+24. Push some sample data to one of the parser topics. E.g for bro we took raw data from [metron-deployment/roles/sensor-stubs/files/bro.out](../roles/sensor-stubs/files/bro.out)
   ```
-cat sample-yaf.txt | ${HDP_HOME}/kafka-broker/bin/kafka-console-producer.sh --broker-list ${BROKERLIST}:6667 --security-protocol SASL_PLAINTEXT --topic yaf
+cat sample-bro.txt | ${HDP_HOME}/kafka-broker/bin/kafka-console-producer.sh --broker-list ${BROKERLIST}:6667 --security-protocol SASL_PLAINTEXT --topic bro
   ```
 
-25. Wait a few moments for data to flow through the system and then check for data in the Elasticsearch indexes. Replace yaf with whichever parser type you’ve chosen.
+25. Wait a few moments for data to flow through the system and then check for data in the Elasticsearch indexes. Replace bro with whichever parser type you’ve chosen.
   ```
-curl -XGET "${ZOOKEEPER}:9200/yaf*/_search"
-curl -XGET "${ZOOKEEPER}:9200/yaf*/_count"
+curl -XGET "${ZOOKEEPER}:9200/bro*/_search"
+curl -XGET "${ZOOKEEPER}:9200/bro*/_count"
   ```
 
 26. You should have data flowing from the parsers all the way through to the indexes. This completes the Kerberization instructions
