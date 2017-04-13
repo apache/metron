@@ -1,4 +1,4 @@
-#Enrichment
+# Enrichment
 
 ## Introduction
 
@@ -29,7 +29,7 @@ There are two types of configurations at the moment, `global` and
 
 See the "[Global Configuration](../metron-common)" section.
 
-##Sensor Enrichment Configuration
+## Sensor Enrichment Configuration
 
 The sensor specific configuration is intended to configure the
 individual enrichments and threat intelligence enrichments for a given
@@ -41,7 +41,7 @@ The configuration is a complex JSON object with the following top level fields:
 * `enrichment` : A complex JSON object representing the configuration of the enrichments
 * `threatIntel` : A complex JSON object representing the configuration of the threat intelligence enrichments
 
-###The `enrichment` Configuration 
+### The `enrichment` Configuration
 
 
 | Field            | Description                                                                                                                                                                                                                   | Example                                                          |
@@ -106,7 +106,7 @@ The other way in which the stellar enrichment is somewhat more complex is in how
 ```
 We have a group called `numeric` whose stellar statements will be executed sequentially.  In parallel to that, we have the group of stellar statements under the group `text` executing.  The intent here is to allow you to not force higher latency operations to be done sequentially. You can use any name for your groupings you like. Be aware that the configuration is a map and duplicate configuration keys' values are not combined, so the duplicate configuration value will be overwritten.
 
-###The `threatIntel` Configuration 
+### The `threatIntel` Configuration
 
 | Field            | Description                                                                                                                                                                                                                                   | Example                                                                  |
 |------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
@@ -131,6 +131,7 @@ A risk level rule is of the following format:
 * `comment` : A comment describing the rule
 * `rule` : The rule, represented as a Stellar statement
 * `score` : Associated threat triage score for the rule
+* `reason` : Reason the rule tripped. Can be represented as a Stellar statement
 
 An example of a rule is as follows:
 ```
@@ -138,8 +139,9 @@ An example of a rule is as follows:
         { 
           "name" : "is internal"
         , "comment" : "determines if the destination is internal."
-        , rule" : "IN_SUBNET(ip_dst_addr, '192.168.0.0/24')"
-        , "score" : 10 
+        , "rule" : "IN_SUBNET(ip_dst_addr, '192.168.0.0/24')"
+        , "score" : 10
+        , "reason" : "FORMAT('%s is internal', ip_dst_addr)"
         }
                        ]
 ```
@@ -150,7 +152,7 @@ The supported aggregation functions are:
 * `MEAN` : The mean of all of the associated values for matching queries
 * `POSITIVE_MEAN` : The mean of the positive associated values for the matching queries.
 
-###Example Configuration
+### Example Configuration
 
 An example configuration for the YAF sensor is as follows:
 ```json
