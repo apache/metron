@@ -156,10 +156,5 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
         storm_site_desired_values = {
             "topology.classpath" : "/etc/hbase/conf:/etc/hadoop/conf"
         }
-        if is_secured:
-            storm_site_desired_values.update({
-                "nimbus.credential.renewers.classes":"['org.apache.storm.security.auth.kerberos.AutoTGT']",
-                "supervisor.run.worker.as.user":"true"
-            })
 
         return storm_site_desired_values

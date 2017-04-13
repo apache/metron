@@ -25,6 +25,14 @@
           }
         }
       ],
+      "configurations": [
+        {
+          "storm-site": {
+            "nimbus.credential.renewers.classes": "['org.apache.storm.security.auth.kerberos.AutoTGT']",
+            "supervisor.run.worker.as.user": "true"
+          }
+        }
+      ],
       "components": [
         {
           "name": "METRON_PARSERS"
@@ -39,4 +47,3 @@
     }
   ]
 }
-
