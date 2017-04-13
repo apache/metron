@@ -15,7 +15,7 @@ sudo su -
 export ZOOKEEPER=node1
 export BROKERLIST=node1
 export HDP_HOME="/usr/hdp/current"
-export METRON_VERSION="0.3.1"
+export METRON_VERSION="0.4.0"
 export METRON_HOME="/usr/metron/${METRON_VERSION}"
   ```
 
@@ -52,10 +52,9 @@ sudo -u hdfs hdfs dfs -chown metron:hdfs /user/metron && \
 sudo -u hdfs hdfs dfs -chmod 770 /user/metron
   ```
 
-7. In Ambari, setup Storm to run with Kerberos and run worker jobs as the submitting user:
+7. In [Ambari](http://node1:8080), setup Storm to run with Kerberos and run worker jobs as the submitting user:
 
     a. Add the following properties to custom storm-site:
-
     ```
 topology.auto-credentials=['org.apache.storm.security.auth.kerberos.AutoTGT']
 nimbus.credential.renewers.classes=['org.apache.storm.security.auth.kerberos.AutoTGT']
@@ -181,8 +180,7 @@ EOF
 
 19. Create an auxiliary storm configuration json file in the metron user’s home directory. Note the login config option in the file points to our custom client_jaas.conf.
   ```
-cd
-cat << EOF > storm-config.json
+cat << EOF > ~/storm-config.json
 {
     "topology.worker.childopts" : "-Djava.security.auth.login.config=/home/metron/.storm/client_jaas.conf"
 }
@@ -191,22 +189,21 @@ EOF
 
 20. Setup enrichment and indexing.
 
-    a. Modify enrichment.properties as root - `${METRON_HOME}/config/enrichment.properties`
-
+    a. Modify enrichment.properties as root located at `${METRON_HOME}/config/enrichment.properties`
     ```
 if [[ $EUID -ne 0 ]]; then
-    echo -e "\nERROR:\tYou must be root to run these commands"
+    echo -e "\nERROR:\tYou must be root to run these commands.  You may need to type exit."
 else
     sed -i 's/kafka.security.protocol=.*/kafka.security.protocol=PLAINTEXTSASL/' ${METRON_HOME}/config/enrichment.properties
     sed -i 's/topology.worker.childopts=.*/topology.worker.childopts=-Djava.security.auth.login.config=\/home\/metron\/.storm\/client_jaas.conf/' ${METRON_HOME}/config/enrichment.properties
 fi
     ```
 
-    b. Modify elasticsearch.properties as root - `${METRON_HOME}/config/elasticsearch.properties`
+    b. Modify elasticsearch.properties as root located at `${METRON_HOME}/config/elasticsearch.properties`
 
     ```
 if [[ $EUID -ne 0 ]]; then
-    echo -e "\nERROR:\tYou must be root to run these commands"
+    echo -e "\nERROR:\tYou must be root to run these commands.  You may need to type exit."
 else
     sed -i 's/kafka.security.protocol=.*/kafka.security.protocol=PLAINTEXTSASL/' ${METRON_HOME}/config/elasticsearch.properties
     sed -i 's/topology.worker.childopts=.*/topology.worker.childopts=-Djava.security.auth.login.config=\/home\/metron\/.storm\/client_jaas.conf/' ${METRON_HOME}/config/elasticsearch.properties
