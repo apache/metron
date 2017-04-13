@@ -21,11 +21,29 @@
               "name": "${cluster-env/user_group}",
               "access": "r"
             },
-            "configuration": "metron-env/metron_keytab"
+            "configuration": "metron-env/metron_service_keytab"
           }
+        }
+      ],
+      "configurations": [
+        {
+          "storm-site": {
+            "nimbus.credential.renewers.classes": "['org.apache.storm.security.auth.kerberos.AutoTGT']",
+            "supervisor.run.worker.as.user": "true"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "METRON_PARSERS"
+        },
+        {
+          "name": "METRON_ENRICHMENT_MASTER"
+        },
+        {
+          "name": "METRON_INDEXING"
         }
       ]
     }
   ]
 }
-

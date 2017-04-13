@@ -30,6 +30,15 @@ def storm_security_setup(params):
         # Ambari's Directory doesn't do tilde expansion.
         metron_storm_dir_tilde = '~' + params.metron_user + '/.storm'
         metron_storm_dir = os.path.expanduser(metron_storm_dir_tilde)
+
+
+        Directory(params.metron_home,
+                  mode=0755,
+                  owner=params.metron_user,
+                  group=params.metron_group,
+                  create_parents=True
+                  )
+
         Directory(metron_storm_dir,
                   mode=0755,
                   owner=params.metron_user,

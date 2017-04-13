@@ -21,8 +21,6 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 
 import metron_service
-import metron_security
-
 
 # Wrap major operations and functionality in this class
 class EnrichmentCommands:
@@ -143,11 +141,6 @@ class EnrichmentCommands:
                                     -s {1} \
                                     -z {2}"""
         Logger.info('Starting ' + self.__enrichment_topology)
-        if self.__params.security_enabled:
-            metron_security.kinit(self.__params.kinit_path_local,
-                                  self.__params.metron_keytab_path,
-                                  self.__params.metron_principal_name,
-                                  execute_user=self.__params.metron_user)
         Execute(start_cmd_template.format(self.__params.metron_home, self.__enrichment_topology, self.__params.zookeeper_quorum),
                 user=self.__params.metron_user)
 
@@ -156,11 +149,6 @@ class EnrichmentCommands:
     def stop_enrichment_topology(self):
         Logger.info('Stopping ' + self.__enrichment_topology)
         stop_cmd = 'storm kill ' + self.__enrichment_topology
-        if self.__params.security_enabled:
-            metron_security.kinit(self.__params.kinit_path_local,
-                                  self.__params.metron_keytab_path,
-                                  self.__params.metron_principal_name,
-                                  execute_user=self.__params.metron_user)
         Execute(stop_cmd, user=self.__params.metron_user)
         Logger.info('Done stopping enrichment topologies')
 

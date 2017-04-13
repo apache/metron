@@ -24,14 +24,13 @@ from resource_management.core.logger import Logger
 from enrichment_commands import EnrichmentCommands
 from metron_security import storm_security_setup
 import metron_service
-
+import metron_security
 
 class Enrichment(Script):
     def install(self, env):
         from params import params
         env.set_params(params)
         self.install_packages(env)
-        self.configure(env)
 
     def configure(self, env, upgrade_type=None, config_dir=None):
         from params import params
@@ -52,6 +51,13 @@ class Enrichment(Script):
         env.set_params(params)
         self.configure(env)
         commands = EnrichmentCommands(params)
+
+        if params.security_enabled:
+            metron_security.kinit(params.kinit_path_local,
+                                  params.metron_keytab_path,
+                                  params.metron_principal_name,
+                                  execute_user=params.metron_user)
+
         metron_service.load_global_config(params)
 
         if not commands.is_kafka_configured():
@@ -69,14 +75,29 @@ class Enrichment(Script):
 
     def stop(self, env, upgrade_type=None):
         from params import params
+
         env.set_params(params)
         commands = EnrichmentCommands(params)
+
+        if params.security_enabled:
+            metron_security.kinit(params.kinit_path_local,
+                                  params.metron_keytab_path,
+                                  params.metron_principal_name,
+                                  execute_user=params.metron_user)
+
         commands.stop_enrichment_topology()
 
     def status(self, env):
         from params import status_params
         env.set_params(status_params)
         commands = EnrichmentCommands(status_params)
+
+        if status_params.security_enabled:
+            metron_security.kinit(status_params.kinit_path_local,
+                                  status_params.metron_keytab_path,
+                                  status_params.metron_principal_name,
+                                  execute_user=status_params.metron_user)
+
 
         if not commands.is_topology_active(env):
             raise ComponentIsNotRunning()

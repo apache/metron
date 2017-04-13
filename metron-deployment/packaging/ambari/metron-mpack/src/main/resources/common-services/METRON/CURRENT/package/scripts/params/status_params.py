@@ -73,6 +73,5 @@ tmp_dir = Script.get_tmp_dir()
 
 metron_user = config['configurations']['metron-env']['metron_user']
 
-if security_enabled:
-    metron_principal_name = config['configurations']['metron-env']['metron_principal_name']
-    metron_keytab_path = config['configurations']['metron-env']['metron_keytab']
+metron_principal_name = config['configurations']['metron-env']['metron_principal_name']
+metron_keytab_path = config['configurations']['metron-env']['metron_service_keytab']

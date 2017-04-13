@@ -22,6 +22,7 @@ from resource_management.core.resources.system import Directory, File
 from resource_management.core.resources.system import Execute
 from resource_management.core.source import InlineTemplate
 from resource_management.libraries.functions import format as ambari_format
+from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 from metron_security import kinit
 
 def init_config():
@@ -40,8 +41,7 @@ def get_running_topologies(params):
     # Want to sudo to the metron user and kinit as them so we aren't polluting root with Metron's Kerberos tickets.
     # This is becuase we need to run a command with a return as the metron user. Sigh
     negotiate = '--negotiate -u : ' if params.security_enabled else ''
-    sudo = ambari_format('sudo -u {metron_user} ') if params.security_enabled else ''
-    cmd = ambari_format(sudo + 'curl --max-time 3 ' + negotiate + '{storm_rest_addr}/api/v1/topology/summary')
+    cmd = ambari_format('curl --max-time 3 ' + negotiate + '{storm_rest_addr}/api/v1/topology/summary')
 
     if params.security_enabled:
         kinit(params.kinit_path_local,
@@ -50,8 +50,23 @@ def get_running_topologies(params):
               execute_user=params.metron_user)
 
     Logger.info('Running cmd: ' + cmd)
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    (stdout, stderr) = proc.communicate()
+    return_code, stdout, sdterr = get_user_call_output(cmd, user=params.metron_user)
+
+    try:
+        stormjson = json.loads(stdout)
+    except ValueError, e:
+        Logger.info('Stdout: ' + str(stdout))
+        Logger.info('Stderr: ' + str(stderr))
+        Logger.exception(str(e))
+        return {}
+
+    topologiesDict = {}
+
+    for topology in stormjson['topologies']:
+        topologiesDict[topology['name']] = topology['status']
+
+    Logger.info("Topologies: " + str(topologiesDict))
+    return topologiesDict
 
     try:
         stormjson = json.loads(stdout)
