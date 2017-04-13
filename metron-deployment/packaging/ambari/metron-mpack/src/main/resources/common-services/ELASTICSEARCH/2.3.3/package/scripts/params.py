@@ -35,8 +35,8 @@ max_map_count = config['configurations']['elastic-sysconfig']['max_map_count']
 elastic_user = config['configurations']['elastic-env']['elastic_user']
 elastic_group = config['configurations']['elastic-env']['elastic_group']
 log_dir = config['configurations']['elastic-env']['elastic_log_dir']
-pid_dir = '/var/run/elasticsearch'
-pid_file = '/var/run/elasticsearch/elasticsearch.pid'
+pid_dir = config['configurations']['elastic-env']['elastic_pid_dir']
+
 hostname = config['hostname']
 java64_home = config['hostLevelParams']['java_home']
 elastic_env_sh_template = config['configurations']['elastic-env']['content']
