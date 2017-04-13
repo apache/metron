@@ -65,6 +65,18 @@
         </value-attributes>
     </property>
     <property>
+        <name>metron_log_dir</name>
+        <value>/var/log/metron</value>
+        <description>Log directory for metron</description>
+        <display-name>Metron log dir</display-name>
+    </property>
+    <property>
+        <name>metron_pid_dir</name>
+        <value>/var/run/metron</value>
+        <description>The directory for metron pid files</description>
+        <display-name>Metron pid dir</display-name>
+    </property>
+    <property>
         <name>metron_topic_retention</name>
         <description>Kafka Retention in GB</description>
         <value>10</value>

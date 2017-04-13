@@ -72,7 +72,6 @@ rm -rf %{_builddir}/*
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{metron_home}
 mkdir -p %{buildroot}/etc/init.d
-mkdir -p %{buildroot}/var/run/metron
 
 # copy source files and untar
 tar -xzf %{SOURCE0} -C %{buildroot}%{metron_home}
@@ -342,10 +341,10 @@ This package installs the Metron Rest %{metron_home}
 %attr(0644,root,root) %{metron_home}/lib/metron-rest-%{full_version}.jar
 
 %post rest
-chkconfig metron-rest --del
+chkconfig --add metron-rest
 
 %preun rest
-chkconfig metron-rest --del
+chkconfig --del metron-rest
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -19,6 +19,7 @@ limitations under the License.
 
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.exceptions import ExecutionFailed
+from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import File
 from resource_management.core.source import Template
 from resource_management.libraries.functions.format import format
@@ -44,6 +45,17 @@ class RestMaster(Script):
              owner=params.metron_user,
              group=params.metron_group
              )
+
+        File(format("/etc/sysconfig/metron"),
+             content=Template("metron.j2")
+             )
+
+        Directory(format("{metron_home}/rest"),
+                  create_parents=False,
+                  mode=0755,
+                  owner=params.metron_user,
+                  group=params.metron_group
+                  )
 
     def start(self, env, upgrade_type=None):
         from params import params
