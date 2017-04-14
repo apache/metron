@@ -58,7 +58,7 @@ public class BasicDHCPDumpParser  extends BasicParser {
 
         try {
             decodedMessage = new String(rawMessage, "UTF-8");
-            LOG.trace("[Metron] Received message: " + rawMessage);
+            LOG.trace("[Metron] Received message: " + decodedMessage);
 
             String[] multiLineEvent = convertToMultiLine(decodedMessage);
 
@@ -84,7 +84,7 @@ public class BasicDHCPDumpParser  extends BasicParser {
             LOG.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
         } catch (Exception e) {
-            String message = "Unable to parse Message: " + rawMessage;
+            String message = "Unable to parse Message: " + decodedMessage;
             LOG.error(message, e);
             throw new IllegalStateException(message, e);
         }
