@@ -32,7 +32,6 @@
         <spring.kerberos.version>1.0.1.RELEASE</spring.kerberos.version>
         <swagger.version>2.5.0</swagger.version>
         <mysql.client.version>5.1.40</mysql.client.version>
-        <emma.version>1.0-alpha-3</emma.version>
     </properties>
     <dependencies>
         <dependency>
