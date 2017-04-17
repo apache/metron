@@ -49,7 +49,7 @@ public class BasicDHCPDumpParserTest extends TestCase {
         JSONObject metronJSONObject = DHCPDumpParser.parse(rawMessage.getBytes()).get(0);
 
         Assert.assertEquals(metronJSONObject.get("original_string").toString(), rawMessage);
-        Assert.assertTrue((long) metronJSONObject.get("timestamp").toString() == 1484584776581L);
+        Assert.assertTrue((long) metronJSONObject.get("timestamp") == 1484584776581L);
 
         Assert.assertEquals(metronJSONObject.get("ip_src_addr").toString(), "100.100.100.177");
         Assert.assertEquals(metronJSONObject.get("ip_dst_addr").toString(), "172.20.1.11");
