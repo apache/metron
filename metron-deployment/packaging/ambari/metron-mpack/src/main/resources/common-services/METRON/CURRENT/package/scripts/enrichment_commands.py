@@ -21,6 +21,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 
 import metron_service
+from metron_security import kinit
 
 # Wrap major operations and functionality in this class
 class EnrichmentCommands:
@@ -184,6 +185,11 @@ class EnrichmentCommands:
 
     def create_hbase_tables(self):
         Logger.info("Creating HBase Tables")
+        if self.__params.security_enabled:
+            kinit(self.__params.kinit_path_local,
+                  self.__params.hbase_keytab_path,
+                  self.__params.hbase_principal_name,
+                  execute_user=self.__params.hbase_user)
         cmd = "echo \"create '{0}','{1}'\" | hbase shell -n"
         add_enrichment_cmd = cmd.format(self.__params.enrichment_table, self.__params.enrichment_cf)
         Execute(add_enrichment_cmd,
@@ -208,6 +214,11 @@ class EnrichmentCommands:
 
     def set_hbase_acls(self):
         Logger.info("Setting HBase ACLs")
+        if self.__params.security_enabled:
+            kinit(self.__params.kinit_path_local,
+                  self.__params.hbase_keytab_path,
+                  self.__params.hbase_principal_name,
+                  execute_user=self.__params.hbase_user)
         cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n"
         add_enrichment_acl_cmd = cmd.format(self.__params.metron_user, self.__params.enrichment_table)
         Execute(add_enrichment_acl_cmd,
