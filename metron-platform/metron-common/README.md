@@ -99,11 +99,15 @@ In the core language functions, we support basic functional programming primitiv
 |                                                                                                    |
 | ----------                                                                                         |
 | [ `ABS`](../../metron-analytics/metron-statistics#abs)                                             |
+| [ `APPEND_IF_MISSING`](#append_if_missing)                                                         |
 | [ `BIN`](../../metron-analytics/metron-statistics#bin)                                             |
 | [ `BLOOM_ADD`](#bloom_add)                                                                         |
 | [ `BLOOM_EXISTS`](#bloom_exists)                                                                   |
 | [ `BLOOM_INIT`](#bloom_init)                                                                       |
 | [ `BLOOM_MERGE`](#bloom_merge)                                                                     |
+| [ `CHOP`](#chop)                                                                                   |
+| [ `CHOMP`](#chomp)                                                                                 |
+| [ `COUNT_MATCHES`](#count_matches)                                                                 |
 | [ `DAY_OF_MONTH`](#day_of_month)                                                                   |
 | [ `DAY_OF_WEEK`](#day_of_week)                                                                     |
 | [ `DAY_OF_YEAR`](#day_of_year)                                                                     |
@@ -145,9 +149,10 @@ In the core language functions, we support basic functional programming primitiv
 | [ `MAP`](#map)                                                                       |
 | [ `MAP_EXISTS`](#map_exists)                                                                       |
 | [ `MONTH`](#month)                                                                                 |
+| [ `PREPEND_IF_MISSING`](#prepend_if_missing)                                                       |
 | [ `PROFILE_GET`](#profile_get)                                                                     |
-| [ `PROFILE_FIXED`](#profile_fixed)                                                                     |
-| [ `PROFILE_WINDOW`](#profile_window)                                                                     |
+| [ `PROFILE_FIXED`](#profile_fixed)                                                                 |
+| [ `PROFILE_WINDOW`](#profile_window)                                                               |
 | [ `PROTOCOL_TO_NAME`](#protocol_to_name)                                                           |
 | [ `REDUCE`](#reduce)                                                                   |
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
@@ -192,6 +197,14 @@ In the core language functions, we support basic functional programming primitiv
 | [ `WEEK_OF_YEAR`](#week_of_year)                                                                   |
 | [ `YEAR`](#year)                                                                                   |
 
+### `APPEND_IF_MISSING`
+  * Description: Appends the suffix to the end of the string if the string does not already end with any of the suffixes.
+  * Input:
+    * string - The string to be appended.
+    * suffix - The string suffix to append to the end of the string.
+    * additionalsuffix - Optional - Additional string suffix that is a valid terminator.
+  * Returns: A new String if prefix was prepended, the same string otherwise.
+
 ### `BLOOM_ADD`
   * Description: Adds an element to the bloom filter passed in
   * Input:
@@ -218,6 +231,25 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * bloomfilters - A list of bloom filters to merge
   * Returns: Bloom Filter or null if the list is empty
+
+### `CHOP`
+  * Description: Remove the last character from a String
+  * Input:
+    * string - the String to chop last character from, may be null
+  * Returns: String without last character, null if null String input
+
+### `CHOMP`
+  * Description: Removes one newline from end of a String if it's there, otherwise leave it alone. A newline is "\n", "\r", or "\r\n"
+  * Input:
+    * string - the String to chomp a newline from, may be null
+  * Returns: String without newline, null if null String input
+
+### `COUNT_MATCHES`
+  * Description: Counts how many times the substring appears in the larger string.
+  * Input:
+    * string - the CharSequence to check, may be null.
+    * substring/character - the substring or character to count, may be null.
+  * Returns: the number of non-overlapping occurrences, 0 if either CharSequence is null.
 
 ### `DAY_OF_MONTH`
   * Description: The numbered day within the month.  The first day within the month has a value of 1.
@@ -479,6 +511,14 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * dateTime - The datetime as a long representing the milliseconds since unix epoch
   * Returns: The current month (0-based).
+
+### `PREPEND_IF_MISSING`
+  * Description: Prepends the prefix to the start of the string if the string does not already start with any of the prefixes.
+  * Input:
+    * string - The string to be prepended.
+    * prefix - The string prefix to prepend to the start of the string.
+    * additionalprefix - Optional - Additional string prefix that is valid.
+  * Returns: A new String if prefix was prepended, the same string otherwise.
 
 ### `PROFILE_GET`
   * Description: Retrieves a series of values from a stored profile.
