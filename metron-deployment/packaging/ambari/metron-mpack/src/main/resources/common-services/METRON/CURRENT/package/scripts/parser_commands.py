@@ -113,11 +113,10 @@ class ParserCommands:
         if self.__params.security_enabled:
             # Append the extra configs needed for secured cluster.
             start_cmd_template = start_cmd_template + ' -e ~' + self.__params.metron_user + '/.storm/storm.config'
-            if self.__params.security_enabled:
-                metron_security.kinit(self.__params.kinit_path_local,
-                                      self.__params.metron_keytab_path,
-                                      self.__params.metron_principal_name,
-                                      execute_user=self.__params.metron_user)
+            metron_security.kinit(self.__params.kinit_path_local,
+                                  self.__params.metron_keytab_path,
+                                  self.__params.metron_principal_name,
+                                  execute_user=self.__params.metron_user)
         for parser in self.get_parser_list():
             Logger.info('Starting ' + parser)
             Execute(start_cmd_template.format(self.__params.metron_home,
