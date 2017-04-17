@@ -4,6 +4,12 @@
       "name": "METRON",
       "identities": [
         {
+          "name" : "/HBASE/hbase"
+        },
+        {
+          "name" : "/HDFS/NAMENODE/hdfs"
+        },
+        {
           "name": "metron",
           "principal": {
             "value": "${metron-env/metron_user}@${realm}",
