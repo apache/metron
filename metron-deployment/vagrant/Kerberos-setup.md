@@ -105,7 +105,7 @@
 
 12. Setup Kafka ACLs for the topics
     ```
-    export KERB_USER=metron;
+    export KERB_USER=metron
     for topic in bro enrichments indexing snort; do
         ${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:${KERB_USER} --topic ${topic}
     done
