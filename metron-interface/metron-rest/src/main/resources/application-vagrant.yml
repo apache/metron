@@ -52,6 +52,6 @@ storm:
 
 kerberos:
   enabled: false
-  principle: metron@EXAMPLE.COM
+  principal: metron@EXAMPLE.COM
   keytab: /etc/security/keytabs/metron.headless.keytab
 
