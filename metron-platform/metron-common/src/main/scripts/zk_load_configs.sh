@@ -33,5 +33,5 @@ export JAR=metron-parsers-$METRON_VERSION-uber.jar
 export HBASE_HOME=${HBASE_HOME:-/usr/hdp/current/hbase-client}
 
 CP=$METRON_HOME/lib/$JAR:${HBASE_HOME}/lib/hbase-server.jar:`${HBASE_HOME}/bin/hbase classpath`
-java -cp $CP $CLASSNAME "$@"
+java $JVMFLAGS -cp $CP $CLASSNAME "$@"
 
