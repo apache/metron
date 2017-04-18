@@ -182,9 +182,9 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
             .withMaxTimeMS(150000)
             .withCustomShutdownOrder(new String[] {"search","storm","config","kafka","zk"})
             .build();
-    runner.start();
 
     try {
+      runner.start();
       while(!isLoaded.get()) {
         Thread.sleep(100);
       }
