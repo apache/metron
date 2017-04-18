@@ -22,7 +22,7 @@ This module provides a RESTful API for interacting with Metron.
     metron-rest-$METRON_VERSION.jar
   ```
 
-1. Create an `application.yml` file with the contents of [application-docker.yml](src/main/resources/application-docker.yml).  Substitute the appropriate Metron service urls (Kafka, Zookeeper, Storm, etc.) in properties containing `${docker.host.address}` and update the `spring.datasource.*` properties as needed (see the [Security](#security) section for more details).
+1. Create an `application.yml` file with the contents of [application-vagrant.yml](src/main/resources/application-vagrant.yml).  Substitute the appropriate Metron service hosts (Kafka, Zookeeper, Storm, etc.) in properties containing `node1` and update the `spring.datasource.*` properties as needed (see the [Security](#security) section for more details).
 
 1. Start the application with this command:
   ```
@@ -128,11 +128,22 @@ The metron-rest application will be available at http://localhost:8080/swagger-u
 To run the application locally on the Quick Dev host, package the application and scp the archive to node1:
 ```
 mvn clean package
-scp ./target/metron-rest-$METRON_VERSION-archive.tar.gz root@node1:~/
+scp ./target/metron-rest-$METRON_VERSION-archive.tar.gz root@node1:$METRON_HOME
 ```
-Login to node1 and unarchive the metron-rest application.  Start the application on a different port to avoid conflicting with Ambari:
+Login to node1 and unarchive the metron-rest application:
 ```
-java -jar ./lib/metron-rest-$METRON_VERSION.jar --spring.profiles.active=vagrant,dev --server.port=8082
+ssh root@node1
+cd $METRON_HOME && tar xf ./metron-rest-$METRON_VERSION-archive.tar.gz
+```
+Start the application on a different port to avoid conflicting with Ambari:
+```
+java -jar $METRON_HOME/lib/metron-rest-$METRON_VERSION.jar --spring.profiles.active=vagrant,dev --server.port=8082
+```
+In a cluster with Kerberos enabled the start command must be run as the metron user, include references to the jaas and krb5.confg files, and kerberos support enabled:
+```
+su metron
+cd $METRON_HOME
+java -Djava.security.auth.login.config=/home/metron/.storm/client_jaas.conf -Djava.security.krb5.conf=/etc/krb5.conf -jar $METRON_HOME/lib/metron-rest-0.4.0.jar --spring.profiles.active=vagrant,dev --server.port=8082 --kerberos.enabled=true
 ```
 The metron-rest application will be available at http://node1:8082/swagger-ui.html#/.
 
