@@ -174,6 +174,20 @@
               </customCommand>
           </customCommands>
         </component>
+
+        <component>
+          <name>METRON_CLIENT</name>
+          <displayName>METRON Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <commandScript>
+            <script>scripts/metron_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+        </component>
+
       </components>
 
       <themes>
