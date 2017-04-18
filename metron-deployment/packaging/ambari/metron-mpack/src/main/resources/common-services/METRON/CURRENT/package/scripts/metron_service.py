@@ -68,22 +68,6 @@ def get_running_topologies(params):
     Logger.info("Topologies: " + str(topologiesDict))
     return topologiesDict
 
-    try:
-        stormjson = json.loads(stdout)
-    except ValueError, e:
-        Logger.info('Stdout: ' + str(stdout))
-        Logger.info('Stderr: ' + str(stderr))
-        Logger.exception(str(e))
-        return {}
-
-    topologiesDict = {}
-
-    for topology in stormjson['topologies']:
-        topologiesDict[topology['name']] = topology['status']
-
-    Logger.info("Topologies: " + str(topologiesDict))
-    return topologiesDict
-
 
 def load_global_config(params):
     Logger.info('Create Metron Local Config Directory')
