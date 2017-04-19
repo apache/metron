@@ -19,13 +19,14 @@ Installation
 
 1. Install system dependencies including the core development tools, Python libraries and header files, and Libpcap libraries and header files.  On CentOS, you can install these requirements with the following command.
 
-```
+   ```
    yum -y install "@Development tools" python-devel libpcap-devel
    ```
 
 1. Install Librdkafka at your chosen $PREFIX.
 
-```
+   ```
+   export PREFIX=/usr
    wget https://github.com/edenhill/librdkafka/archive/v0.9.4.tar.gz  -O - | tar -xz
    cd librdkafka-0.9.4/
    ./configure --prefix=$PREFIX
