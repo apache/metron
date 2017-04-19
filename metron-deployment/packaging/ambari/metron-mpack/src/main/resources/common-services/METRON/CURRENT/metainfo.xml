@@ -177,7 +177,7 @@
 
         <component>
           <name>METRON_CLIENT</name>
-          <displayName>METRON Client</displayName>
+          <displayName>Metron Client</displayName>
           <category>CLIENT</category>
           <cardinality>0+</cardinality>
           <versionAdvertised>true</versionAdvertised>
