@@ -97,11 +97,13 @@ usage: ModelSubmission
 
 ## Kerberos Support
 
-Model as a service will run on a kerberized cluster with a caveat.  The user who submits 
+Model as a service will run on a kerberized cluster (see
+[here](../../metron-deployment/vagrant/Kerberos-setup.md) for
+instructions for vagrant) with a caveat.  The user who submits 
 the service will be the user who executes the models on the cluster.  That
 is to say that user impersonation of models deployed is not done at the moment.
 
-##Stellar Integration
+## Stellar Integration
 
 Two Stellar functions have been added to provide the ability to call out to models deployed via Model as a Service.
 One aimed at recovering a load balanced endpoint of a deployed model given the name and, optionally, the version.
