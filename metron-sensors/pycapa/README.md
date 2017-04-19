@@ -27,12 +27,20 @@ Installation
 
    ```
    export PREFIX=/usr
+   
    wget https://github.com/edenhill/librdkafka/archive/v0.9.4.tar.gz  -O - | tar -xz
    cd librdkafka-0.9.4/
    ./configure --prefix=$PREFIX
    make
    make install
    ```
+   
+1. Add Librdkafka to the dynamic library load path.
+
+    ```
+    echo "$PREFIX/lib" >> /etc/ld.so.conf.d/pycapa.conf
+    ldconfig -v
+    ```
 
 1. Install Pycapa.  This assumes that you already have the Metron source code on the host.
 
