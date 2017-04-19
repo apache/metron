@@ -179,7 +179,7 @@
           <name>METRON_CLIENT</name>
           <displayName>METRON Client</displayName>
           <category>CLIENT</category>
-          <cardinality>1+</cardinality>
+          <cardinality>0+</cardinality>
           <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/metron_client.py</script>
