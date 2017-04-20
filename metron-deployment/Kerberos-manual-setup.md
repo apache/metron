@@ -214,21 +214,23 @@ General Kerberization notes can be found in the metron-deployment [README.md](RE
     fi
     ```
 
-17. Kinit with the metron user again
+17. Distribute the custom jaas file and the keytab to each supervisor node, in the same locations as above. This ensures that the worker nodes can authenticate.  For a one node cluster, nothing needs to be done.
+
+18. Kinit with the metron user again
     ```
     su metron
     cd
     kinit -kt /etc/security/keytabs/metron.headless.keytab metron@EXAMPLE.COM
     ```
 
-18. Restart the parser topologies. Be sure to pass in the new parameter, “-ksp” or “--kafka_security_protocol.” Run this from the metron home directory.
+19. Restart the parser topologies. Be sure to pass in the new parameter, “-ksp” or “--kafka_security_protocol.” Run this from the metron home directory.
     ```
     for parser in bro snort; do
         ${METRON_HOME}/bin/start_parser_topology.sh -z ${ZOOKEEPER}:2181 -s ${parser} -ksp SASL_PLAINTEXT -e storm-config.json
     done
     ```
 
-19. Now restart the enrichment and indexing topologies.
+20. Now restart the enrichment and indexing topologies.
     ```
     ${METRON_HOME}/bin/start_enrichment_topology.sh
     ${METRON_HOME}/bin/start_elasticsearch_topology.sh
