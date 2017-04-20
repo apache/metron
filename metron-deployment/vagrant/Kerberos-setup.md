@@ -2,6 +2,8 @@
 **Note:** These are instructions for Kerberizing Metron Storm topologies from Kafka to Kafka. This does not cover the sensor connections or MAAS.
 General Kerberization notes can be found in the metron-deployment [README.md](../README.md)
 
+## Setup the KDC
+
 1. Build full dev and ssh into the machine
     ```
     cd incubator-metron/metron-deployment/vagrant/full-dev-platform
@@ -20,12 +22,7 @@ General Kerberization notes can be found in the metron-deployment [README.md](..
     export METRON_HOME="/usr/metron/${METRON_VERSION}"
     ```
 
-3. Stop all topologies - we will  restart them again once Kerberos has been enabled.
-    ```
-    for topology in bro snort enrichment indexing; do storm kill $topology; done
-    ```
-
-4. Setup Kerberos
+3. Setup Kerberos
     ```
     # Note: if you copy/paste this full set of commands, the kdb5_util command will not run as expected, so run the commands individually to ensure they all execute
     # set 'node1' to the correct host for your kdc
@@ -40,20 +37,50 @@ General Kerberization notes can be found in the metron-deployment [README.md](..
     chkconfig kadmin on
     ```
 
-5. Setup the admin and metron user principals. You'll kinit as the metron user when running topologies. Make sure to remember the passwords.
+4. Setup the admin user principal. You'll kinit as the metron user when running topologies. Make sure to remember the password.
     ```
     kadmin.local -q "addprinc admin/admin"
+    ```
+
+Now that the KDC is setup, go to either the Ambari or Manual Setup, as appropriate.
+
+## Ambari Setup
+1. Kerberize the cluster via Ambari. More detailed documentation can be found [here](http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.5.3/bk_security/content/_enabling_kerberos_security_in_ambari.html).
+
+    a. For this exercise, choose existing MIT KDC (this is what we setup and installed in the previous steps.)
+
+    ![enable keberos](readme-images/enable-kerberos.png)
+
+    ![enable keberos get started](readme-images/enable-kerberos-started.png)
+
+    b. Setup Kerberos configuration. Realm is EXAMPLE.COM. The admin principal will end up as admin/admin@EXAMPLE.COM when testing the KDC. Use the password you entered during the step for adding the admin principal.
+
+    ![enable keberos configure](readme-images/enable-kerberos-configure-kerberos.png)
+
+    c. Click through to “Start and Test Services.” Let the cluster spin up.
+
+Metron should be ready to receieve data.
+
+## Manual Setup
+
+1. Setup the metron user principal. You'll kinit as the metron user when running topologies. Make sure to remember the password.
+    ```
     kadmin.local -q "addprinc metron"
     ```
 
-6. Create the metron user HDFS home directory
+2. Stop all topologies - we will  restart them again once Kerberos has been enabled.
+    ```
+    for topology in bro snort enrichment indexing; do storm kill $topology; done
+    ```
+
+3. Create the metron user HDFS home directory
     ```
     sudo -u hdfs hdfs dfs -mkdir /user/metron && \
     sudo -u hdfs hdfs dfs -chown metron:hdfs /user/metron && \
     sudo -u hdfs hdfs dfs -chmod 770 /user/metron
     ```
 
-7. In [Ambari](http://node1:8080), setup Storm to run with Kerberos and run worker jobs as the submitting user:
+4. In [Ambari](http://node1:8080), setup Storm to run with Kerberos and run worker jobs as the submitting user:
 
     a. Add the following properties to custom storm-site:
     ```
@@ -70,7 +97,7 @@ General Kerberization notes can be found in the metron-deployment [README.md](..
 
     ![custom storm-site properties](readme-images/ambari-storm-site-properties.png)
 
-8. Kerberize the cluster via Ambari. More detailed documentation can be found [here](http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.5.3/bk_security/content/_enabling_kerberos_security_in_ambari.html).
+5. Kerberize the cluster via Ambari. More detailed documentation can be found [here](http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.5.3/bk_security/content/_enabling_kerberos_security_in_ambari.html).
 
     a. For this exercise, choose existing MIT KDC (this is what we setup and installed in the previous steps.)
 
@@ -86,7 +113,7 @@ General Kerberization notes can be found in the metron-deployment [README.md](..
 
     ![enable keberos configure](readme-images/custom-storm-site-final.png)
 
-9. Setup Metron keytab
+6. Setup Metron keytab
     ```
     kadmin.local -q "ktadd -k metron.headless.keytab metron@EXAMPLE.COM" && \
     cp metron.headless.keytab /etc/security/keytabs && \
@@ -94,17 +121,17 @@ General Kerberization notes can be found in the metron-deployment [README.md](..
     chmod 440 /etc/security/keytabs/metron.headless.keytab
     ```
 
-10. Kinit with the metron user
+7. Kinit with the metron user
     ```
     kinit -kt /etc/security/keytabs/metron.headless.keytab metron@EXAMPLE.COM
     ```
 
-11. First create any additional Kafka topics you will need. We need to create the topics before adding the required ACLs. The current full dev installation will deploy bro, snort, enrichments, and indexing only. e.g.
+8. First create any additional Kafka topics you will need. We need to create the topics before adding the required ACLs. The current full dev installation will deploy bro, snort, enrichments, and indexing only. e.g.
     ```
     ${HDP_HOME}/kafka-broker/bin/kafka-topics.sh --zookeeper ${ZOOKEEPER}:2181 --create --topic yaf --partitions 1 --replication-factor 1
     ```
 
-12. Setup Kafka ACLs for the topics
+9. Setup Kafka ACLs for the topics
     ```
     export KERB_USER=metron
     for topic in bro enrichments indexing snort; do
@@ -112,7 +139,7 @@ General Kerberization notes can be found in the metron-deployment [README.md](..
     done
     ```
 
-13. Setup Kafka ACLs for the consumer groups
+10. Setup Kafka ACLs for the consumer groups
     ```
     ${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:${KERB_USER} --group bro_parser
     ${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:${KERB_USER} --group snort_parser
@@ -121,26 +148,26 @@ General Kerberization notes can be found in the metron-deployment [README.md](..
     ${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:${KERB_USER} --group indexing
     ```
 
-14. Add metron user to the Kafka cluster ACL
+11. Add metron user to the Kafka cluster ACL
     ```
     ${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:${KERB_USER} --cluster kafka-cluster
     ```
 
-15. We also need to grant permissions to the HBase tables. Kinit as the hbase user and add ACLs for metron.
+12. We also need to grant permissions to the HBase tables. Kinit as the hbase user and add ACLs for metron.
     ```
     kinit -kt /etc/security/keytabs/hbase.headless.keytab hbase-metron_cluster@EXAMPLE.COM
     echo "grant 'metron', 'RW', 'threatintel'" | hbase shell
     echo "grant 'metron', 'RW', 'enrichment'" | hbase shell
     ```
 
-16. Create a “.storm” directory in the metron user’s home directory and switch to that directory.
+13. Create a “.storm” directory in the metron user’s home directory and switch to that directory.
     ```
     su metron
     mkdir ~/.storm
     cd ~/.storm
     ```
 
-17. Create a custom client jaas file. This should look identical to the Storm client jaas file located in /etc/storm/conf/client_jaas.conf except for the addition of a Client stanza. The Client stanza is used for Zookeeper. All quotes and semicolons are necessary.
+14. Create a custom client jaas file. This should look identical to the Storm client jaas file located in /etc/storm/conf/client_jaas.conf except for the addition of a Client stanza. The Client stanza is used for Zookeeper. All quotes and semicolons are necessary.
     ```
     cat << EOF > client_jaas.conf
     StormClient {
@@ -170,7 +197,7 @@ General Kerberization notes can be found in the metron-deployment [README.md](..
     EOF
     ```
 
-18. Create a storm.yaml with jaas file info. Set the array of nimbus hosts accordingly.
+15. Create a storm.yaml with jaas file info. Set the array of nimbus hosts accordingly.
     ```
     cat << EOF > storm.yaml
     nimbus.seeds : ['node1']
@@ -179,7 +206,7 @@ General Kerberization notes can be found in the metron-deployment [README.md](..
     EOF
     ```
 
-19. Create an auxiliary storm configuration json file in the metron user’s home directory. Note the login config option in the file points to our custom client_jaas.conf.
+16. Create an auxiliary storm configuration json file in the metron user’s home directory. Note the login config option in the file points to our custom client_jaas.conf.
     ```
     cat << EOF > ~/storm-config.json
     {
@@ -188,7 +215,7 @@ General Kerberization notes can be found in the metron-deployment [README.md](..
     EOF
     ```
 
-20. Setup enrichment and indexing.
+17. Setup enrichment and indexing.
 
     a. Modify enrichment.properties as root located at `${METRON_HOME}/config/enrichment.properties`
     ```
@@ -210,38 +237,42 @@ General Kerberization notes can be found in the metron-deployment [README.md](..
     fi
     ```
 
-21. Kinit with the metron user again
+18. Kinit with the metron user again
     ```
     su metron
     cd
     kinit -kt /etc/security/keytabs/metron.headless.keytab metron@EXAMPLE.COM
     ```
 
-22. Restart the parser topologies. Be sure to pass in the new parameter, “-ksp” or “--kafka_security_protocol.” Run this from the metron home directory.
+18. Restart the parser topologies. Be sure to pass in the new parameter, “-ksp” or “--kafka_security_protocol.” Run this from the metron home directory.
     ```
     for parser in bro snort; do
         ${METRON_HOME}/bin/start_parser_topology.sh -z ${ZOOKEEPER}:2181 -s ${parser} -ksp SASL_PLAINTEXT -e storm-config.json
     done
     ```
 
-23. Now restart the enrichment and indexing topologies.
+20. Now restart the enrichment and indexing topologies.
     ```
     ${METRON_HOME}/bin/start_enrichment_topology.sh
     ${METRON_HOME}/bin/start_elasticsearch_topology.sh
     ```
 
-24. Push some sample data to one of the parser topics. E.g for bro we took raw data from [incubator-metron/metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput](../../metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput)
+Metron should be ready to receieve data.
+
+## Push Data
+
+1. Push some sample data to one of the parser topics. E.g for bro we took raw data from [incubator-metron/metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput](../../metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput)
     ```
     cat sample-bro.txt | ${HDP_HOME}/kafka-broker/bin/kafka-console-producer.sh --broker-list ${BROKERLIST}:6667 --security-protocol SASL_PLAINTEXT --topic bro
     ```
 
-25. Wait a few moments for data to flow through the system and then check for data in the Elasticsearch indexes. Replace bro with whichever parser type you’ve chosen.
+2. Wait a few moments for data to flow through the system and then check for data in the Elasticsearch indexes. Replace bro with whichever parser type you’ve chosen.
     ```
     curl -XGET "${ZOOKEEPER}:9200/bro*/_search"
     curl -XGET "${ZOOKEEPER}:9200/bro*/_count"
     ```
 
-26. You should have data flowing from the parsers all the way through to the indexes. This completes the Kerberization instructions
+3. You should have data flowing from the parsers all the way through to the indexes. This completes the Kerberization instructions
 
 ### Other useful commands:
 #### Kerberos
