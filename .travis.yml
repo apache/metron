@@ -17,6 +17,7 @@ before_install:
   - export PATH=$M2_HOME/bin:$PATH
 script:
   - |
+    rm -f /home/travis/.m2/repository/org/apache/hadoop/hadoop-hdfs/2.7.1/hadoop-hdfs-2.7.1.jar
     find $HOME/.m2 -name "*jar" | xargs -L 1 zip -T | grep error | grep invalid
 cache:
   directories:
