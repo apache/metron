@@ -62,15 +62,5 @@ exports.config = {
     jasmine.getEnv().addReporter(new SpecReporter({
       displayStacktrace: 'specs'
     }));
-    setTimeout(function() {
-      browser.driver.executeScript(function() {
-        return {
-          width: window.screen.availWidth,
-          height: window.screen.availHeight
-        };
-      }).then(function(result) {
-        browser.driver.manage().window().setSize(result.width, result.height);
-      });
-    });
   }
 };
