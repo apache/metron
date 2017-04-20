@@ -58,19 +58,23 @@ General Kerberization notes can be found in the metron-deployment [README.md](..
     c. Click through to “Start and Test Services.” Let the cluster spin up.
 
 ## Push Data
+1. Kinit with the metron user
+    ```
+    kinit -kt /etc/security/keytabs/metron.headless.keytab metron@EXAMPLE.COM
+    ```
 
-1. Push some sample data to one of the parser topics. E.g for bro we took raw data from [incubator-metron/metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput](../metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput)
+2. Push some sample data to one of the parser topics. E.g for bro we took raw data from [incubator-metron/metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput](../../metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput)
     ```
     cat sample-bro.txt | ${HDP_HOME}/kafka-broker/bin/kafka-console-producer.sh --broker-list ${BROKERLIST}:6667 --security-protocol SASL_PLAINTEXT --topic bro
     ```
 
-2. Wait a few moments for data to flow through the system and then check for data in the Elasticsearch indexes. Replace bro with whichever parser type you’ve chosen.
+3. Wait a few moments for data to flow through the system and then check for data in the Elasticsearch indexes. Replace bro with whichever parser type you’ve chosen.
     ```
     curl -XGET "${ZOOKEEPER}:9200/bro*/_search"
     curl -XGET "${ZOOKEEPER}:9200/bro*/_count"
     ```
 
-3. You should have data flowing from the parsers all the way through to the indexes. This completes the Kerberization instructions
+4. You should have data flowing from the parsers all the way through to the indexes. This completes the Kerberization instructions
 
 ### Other useful commands
 #### Kerberos
