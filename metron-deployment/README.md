@@ -149,8 +149,6 @@ Once the MPack is installed, run the Kibana service's action "Load Template" to 
 ## Kerberos
 The MPack can allow Metron to be installed and then Kerberized, or installed on top of an already Kerberized cluster.  This is done through Ambari's standard Kerberization setup.
 
-### Instructions
-
 ### Caveats
 * For nodes using a Metron client and a local repo, the repo must exist on all nodes (e.g via createrepo). This repo can be empty; only the main Metron services need the RPMs.
 * A Metron client must be installed on each supervisor node in a secured cluster.  This is to ensure that the Metron keytab and client_jaas.conf get distributed in order to allow reading and writing from Kafka.
@@ -160,6 +158,9 @@ The MPack can allow Metron to be installed and then Kerberized, or installed on 
   * Kerberizing a cluster with an existing Metron already has restarts of all services during Kerberization, so it's unneeded.
 
 Instructions for setup on Full Dev can be found at [Kerberos-setup.md](vagrant/Kerberos-setup.md).  These instructions can also be used for setting up KDC and testing.
+
+### Kerberos Without an MPack
+Using the MPack is preferred, but instructions for Kerberizing manually can be found at [Kerberos-manual-setup.md](Kerberos-manual-setup.md)
 
 ## TODO
 - Support Ubuntu deployments
