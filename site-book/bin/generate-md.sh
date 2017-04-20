@@ -280,7 +280,7 @@ sed -n -e "1,/${BEGIN_TAG}/ p" "$TEMPLATES_DIR"/site.xml.template > ../site.xml
 # Now start inserting menu tree items
 # top level of markdown tree is special
 if [ -e index.md ] ; then
-    echo "<item name='Metron' href='index.html' title='Apache Metron - Incubating' collapse='false'>" >> ../site.xml
+    echo "<item name='Metron' href='index.html' title='Apache Metron' collapse='false'>" >> ../site.xml
     item0_exists=1
 else
     item0_exists=0
