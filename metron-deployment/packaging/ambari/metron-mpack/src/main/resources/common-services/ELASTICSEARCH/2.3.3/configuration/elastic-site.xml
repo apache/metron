@@ -24,7 +24,7 @@
     <property>
         <name>cluster_name</name>
         <value>metron</value>
-        <description>Cluster name identifies your cluster</description>
+        <description>Elasticsearch Cluster Name identifies your Elasticsearch subsystem</description>
     </property>
     <property>
         <name>masters_also_are_datanodes</name>
@@ -37,24 +37,24 @@
     <property>
         <name>zen_discovery_ping_unicast_hosts</name>
         <!--Ideally this gets populated by the list of master eligible nodes (as an acceptable default).  Unsure how to do this.-->
+        <!--Also need to document whether should list masters only, or all ES nodes. I think this one is all nodes, but previous inline comment said Masters.-->
         <value></value>
-        <description>Unicast discovery list of hosts to act as gossip routers, in comma separated format.</description>
+        <description>Unicast discovery list of hosts to act as gossip routers, in comma separated format: eshost1,eshost2</description>
     </property>
     <property>
         <name>index_number_of_shards</name>
         <value>4</value>
-        <description>Set the number of shards (splits) of an index</description>
+        <description>Set the number of shards (splits) of an index.  Changes are not effective after index creation. Usually set to 1 for single-node install.</description>
     </property>
     <property>
         <name>index_number_of_replicas</name>
         <value>2</value>
-        <description>Set the number of replicas (additional copies) of an index</description>
+        <description>Set the number of replicas (copies in addition to the first) of an index. Usually set to 0 for single-node install.</description>
     </property>
-    <!--  Logging Configurations -->
     <property>
         <name>path_data</name>
         <value>"/opt/lmm/es_data"</value>
-        <description>Path to directory where to store index data allocated for this node. e.g. "/mnt/first", "/mnt/second"</description>
+        <description>Comma-separated list of directories where to store index data allocated for each node: "/mnt/first","/mnt/second".  Number of paths should relate to number of shards, and preferably should be on separate physical volumes.</description>
     </property>
     <property>
         <name>http_cors_enabled</name>
@@ -64,22 +64,21 @@
             <type>string</type>
         </value-attributes>
     </property>
-    <!--  Discovery -->
-    <property>
-        <name>transport_tcp_port</name>
-        <value>9300-9400</value>
-        <description>Set a custom port for the node to node communication</description>
-    </property>
     <property>
         <name>http_port</name>
         <value>9200-9300</value>
         <description>Set a custom port to listen for HTTP traffic</description>
     </property>
-    <!--  Discovery -->
+    <property>
+        <name>transport_tcp_port</name>
+        <value>9300-9400</value>
+        <description>Set a custom port for the node to node communication</description>
+    </property>
+    <!--  Multi-node Discovery -->
     <property>
         <name>discovery_zen_ping_multicast_enabled</name>
         <value>false</value>
-        <description>master eligible nodes</description>
+        <description>Whether to use multicast</description>
     </property>
     <property>
         <name>discovery_zen_ping_timeout</name>
@@ -190,7 +189,7 @@
     </property>
     <property>
         <name>network_host</name>
-        <value>_lo_,_eth0_</value>
-        <description>Network interface(s) will bind to. </description>
+        <value>"_lo:ipv4_","_eth0:ipv4_"</value>
+        <description>Network interface(s) ES will bind to within each node. Confirm names via ifconfig.  Should have entries for primary external and loopback interfaces, with :ipv4 annotation and quote marks around each entry: "_lo:ipv4_","_eth0:ipv4_"</description>
     </property>
 </configuration>
