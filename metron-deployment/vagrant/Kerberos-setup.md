@@ -72,7 +72,7 @@ General Kerberization notes can be found in the metron-deployment [README.md](..
 
 3. You should have data flowing from the parsers all the way through to the indexes. This completes the Kerberization instructions
 
-### Other useful commands:
+### Other useful commands
 #### Kerberos
 Unsure of your Kerberos principal associated with a keytab? There are a couple ways to get this. One is via the list of principals that Ambari provides via downloadable csv. If you didn’t download this list, you can also check the principal manually by running the following against the keytab.
 ```
