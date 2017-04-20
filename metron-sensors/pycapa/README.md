@@ -17,14 +17,17 @@ Pycapa performs network packet capture, both off-the-wire and from a Kafka topic
 Installation
 ============
 
-* Pycapa requires Python 2.7. 
-
-* Pycapa has the following package dependencies which can be installed automatically with `pip`.
+General notes on the installation of Pycapa.
+* Python 2.7 is required.
+* The following package dependencies are required and can be installed automatically with `pip`.
   * [confluent-kafka-python](https://github.com/confluentinc/confluent-kafka-python)
   * [pcapy](https://github.com/CoreSecurity/pcapy)
+* These instructions can be used directly on CentOS 7+.  
+* Other Linux distributions that come with Python 2.7 can use these instructions with some minor modifications.  
+* Older distributions, like CentOS 6, that come with Python 2.6 installed, should install Python 2.7 within a virtual environment and then run Pycapa from within the virtual environment.
 
 
-1. Install system dependencies including the core development tools, Python libraries and header files, and Libpcap libraries and header files.  On CentOS, you can install these requirements with the following command.
+1. Install system dependencies including the core development tools, Python libraries and header files, and Libpcap libraries and header files.  On CentOS 7+, you can install these requirements with the following command.
 
    ```
    yum -y install "@Development tools" python-devel libpcap-devel
