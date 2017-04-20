@@ -97,7 +97,7 @@
     <property require-input="true">
         <name>es_hosts</name>
         <value></value>
-        <description>Comma delimited list of Elasticsearch Hosts. (eshost1,eshost2)</description>
+        <description>Comma delimited list of Elasticsearch Master Hosts: eshost1,eshost2</description>
         <display-name>Elasticsearch Hosts</display-name>
     </property>
     <property>
