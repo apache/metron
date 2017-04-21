@@ -279,7 +279,7 @@ public class StellarCompiler extends StellarBaseListener {
     char quote = rawToken.charAt(0);
     for(int i = 2;i < rawToken.length() - 1;++i ) {
       char currChar = rawToken.charAt(i);
-      boolean isEscapedChar = currChar == quote || currChar == '\\' || currChar == '\r' || currChar == '\n';
+      boolean isEscapedChar = currChar == quote || currChar == '\\';
       if(prevChar == '\\' &&  isEscapedChar) {
         //escape the quote
         ret += currChar;
