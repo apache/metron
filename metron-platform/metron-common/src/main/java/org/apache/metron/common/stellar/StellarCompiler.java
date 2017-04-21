@@ -279,17 +279,15 @@ public class StellarCompiler extends StellarBaseListener {
     char quote = rawToken.charAt(0);
     for(int i = 2;i < rawToken.length() - 1;++i ) {
       char currChar = rawToken.charAt(i);
-      if(currChar == '\\') {
-        //if we see an escape operator, then we want to defer until the next character
-        continue;
-      }
-      if(prevChar == '\\' && currChar == quote) {
+      boolean isEscapedChar = currChar == quote || currChar == '\\' || currChar == '\r' || currChar == '\n';
+      if(prevChar == '\\' &&  isEscapedChar) {
         //escape the quote
-        ret += quote;
+        ret += currChar;
       }
-      else if(prevChar == '\\' && currChar != quote) {
-        //otherwise it wasn't an escaped quote, but just a \ character, so add it.
-        ret += prevChar + currChar;
+      else if(currChar == '\\') {
+        //if we see an escape operator, then we want to defer until the next character
+        prevChar = currChar;
+        continue;
       }
       else {
         ret += currChar;

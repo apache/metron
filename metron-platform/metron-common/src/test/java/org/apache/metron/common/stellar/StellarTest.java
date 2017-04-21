@@ -65,13 +65,14 @@ public class StellarTest {
   }
 
   @Test
-  public void testQuotedLiterals() {
+  public void testEscapedLiterals() {
     Assert.assertEquals("'bar'", run("'\\'bar\\''", new HashMap<>()));
     Assert.assertEquals("'bar'", run("\"'bar'\"", new HashMap<>()));
     Assert.assertEquals("'BAR'", run("TO_UPPER('\\'bar\\'')", new HashMap<>()));
     Assert.assertEquals("\"bar\"", run("\"\\\"bar\\\"\"", new HashMap<>()));
     Assert.assertEquals("\"bar\"", run("'\"bar\"'", new HashMap<>()));
     Assert.assertEquals("\"BAR\"", run("TO_UPPER(\"\\\"bar\\\"\")", new HashMap<>()));
+    Assert.assertEquals("bar \\ foo", run("'bar \\\\ foo'", new HashMap<>()));
   }
 
   @Test
