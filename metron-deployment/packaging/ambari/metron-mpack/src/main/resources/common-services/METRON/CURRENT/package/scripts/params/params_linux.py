@@ -21,14 +21,12 @@ limitations under the License.
 import functools
 import os
 
-from ambari_commons.os_check import OSCheck
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
-from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script import Script
 
@@ -44,16 +42,21 @@ parsers = status_params.parsers
 geoip_url = config['configurations']['metron-env']['geoip_url']
 geoip_hdfs_dir = "/apps/metron/geo/default/"
 metron_indexing_topology = status_params.metron_indexing_topology
-metron_user = config['configurations']['metron-env']['metron_user']
+metron_user = status_params.metron_user
 metron_group = config['configurations']['metron-env']['metron_group']
 metron_config_path = metron_home + '/config'
 metron_zookeeper_config_dir = status_params.metron_zookeeper_config_dir
 metron_zookeeper_config_path = status_params.metron_zookeeper_config_path
 parsers_configured_flag_file = status_params.parsers_configured_flag_file
+parsers_acl_configured_flag_file = status_params.parsers_acl_configured_flag_file
 enrichment_kafka_configured_flag_file = status_params.enrichment_kafka_configured_flag_file
+enrichment_kafka_acl_configured_flag_file = status_params.enrichment_kafka_acl_configured_flag_file
 enrichment_hbase_configured_flag_file = status_params.enrichment_hbase_configured_flag_file
+enrichment_hbase_acl_configured_flag_file = status_params.enrichment_hbase_acl_configured_flag_file
 enrichment_geo_configured_flag_file = status_params.enrichment_geo_configured_flag_file
 indexing_configured_flag_file = status_params.indexing_configured_flag_file
+indexing_acl_configured_flag_file = status_params.indexing_acl_configured_flag_file
+indexing_hdfs_perm_configured_flag_file = status_params.indexing_hdfs_perm_configured_flag_file
 global_json_template = config['configurations']['metron-env']['global-json']
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 
@@ -153,8 +156,10 @@ enrichment_cf = status_params.enrichment_cf
 threatintel_table = status_params.threatintel_table
 threatintel_cf = status_params.threatintel_cf
 
+# Kafka Topics
 metron_enrichment_topology = status_params.metron_enrichment_topology
 metron_enrichment_topic = status_params.metron_enrichment_topic
+metron_error_topic = 'indexing'
 
 # ES Templates
 bro_index_path = tmp_dir + "/bro_index.template"
@@ -164,3 +169,36 @@ error_index_path = tmp_dir + "/error_index.template"
 
 # Zeppelin Notebooks
 metron_config_zeppelin_path = format("{metron_config_path}/zeppelin")
+
+# kafka_security
+kafka_security_protocol = config['configurations']['kafka-broker'].get('security.inter.broker.protocol', 'PLAINTEXT')
+
+kafka_user = config['configurations']['kafka-env']['kafka_user']
+storm_user = config['configurations']['storm-env']['storm_user']
+
+# HBase user table creation and ACLs
+hbase_user = config['configurations']['hbase-env']['hbase_user']
+
+# Security
+security_enabled = status_params.security_enabled
+client_jaas_path = metron_home + '/client_jaas.conf'
+client_jaas_arg = '-Djava.security.auth.login.config=' + metron_home + '/client_jaas.conf'
+topology_worker_childopts = client_jaas_arg if security_enabled else ''
+topology_auto_credentials = config['configurations']['storm-site'].get('nimbus.credential.renewers.classes', [])
+# Needed for storm.config, because it needs Java String
+topology_auto_credentials_double_quotes = str(topology_auto_credentials).replace("'", '"')
+
+if security_enabled:
+    hostname_lowercase = config['hostname'].lower()
+    metron_principal_name = status_params.metron_principal_name
+    metron_keytab_path = status_params.metron_keytab_path
+    kinit_path_local = status_params.kinit_path_local
+
+    hbase_principal_name = config['configurations']['hbase-env']['hbase_principal_name']
+    hbase_keytab_path = config['configurations']['hbase-env']['hbase_user_keytab']
+
+    kafka_principal_raw = config['configurations']['kafka-env']['kafka_principal_name']
+    kafka_principal_name = kafka_principal_raw.replace('_HOST', hostname_lowercase)
+    kafka_keytab_path = config['configurations']['kafka-env']['kafka_keytab']
+
+    nimbus_seeds = config['configurations']['storm-site']['nimbus.seeds']

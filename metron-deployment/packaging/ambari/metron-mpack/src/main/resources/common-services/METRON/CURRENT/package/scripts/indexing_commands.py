@@ -22,6 +22,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 
 import metron_service
+import metron_security
 
 
 # Wrap major operations and functionality in this class
@@ -29,6 +30,8 @@ class IndexingCommands:
     __params = None
     __indexing = None
     __configured = False
+    __acl_configured = False
+    __hdfs_perm_configured = False
 
     def __init__(self, params):
         if params is None:
@@ -36,51 +39,59 @@ class IndexingCommands:
         self.__params = params
         self.__indexing = params.metron_indexing_topology
         self.__configured = os.path.isfile(self.__params.indexing_configured_flag_file)
+        self.__acl_configured = os.path.isfile(self.__params.indexing_acl_configured_flag_file)
 
     def is_configured(self):
         return self.__configured
+
+    def is_acl_configured(self):
+        return self.__acl_configured
+
+    def is_hdfs_perm_configured(self):
+        return self.__hdfs_perm_configured
 
     def set_configured(self):
         File(self.__params.indexing_configured_flag_file,
              content="",
              owner=self.__params.metron_user,
-             mode=0775)
+             mode=0755)
+
+    def set_acl_configured(self):
+        File(self.__params.indexing_acl_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0755)
+
+    def set_hdfs_perm_configured(self):
+        File(self.__params.indexing_hdfs_perm_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0755)
 
     def init_kafka_topics(self):
-        Logger.info('Creating Kafka topics')
-        command_template = """{0}/kafka-topics.sh \
-                                --zookeeper {1} \
-                                --create \
-                                --topic {2} \
-                                --partitions {3} \
-                                --replication-factor {4} \
-                                --config retention.bytes={5}"""
-        num_partitions = 1
-        replication_factor = 1
-        retention_gigabytes = int(self.__params.metron_topic_retention)
-        retention_bytes = retention_gigabytes * 1024 * 1024 * 1024
-        Logger.info("Creating topics for indexing")
+        Logger.info('Creating Kafka topics for indexing')
+        metron_service.init_kafka_topics(self.__params, [self.__indexing])
 
-        Logger.info("Creating topic'{0}'".format(self.__indexing))
-        Execute(command_template.format(self.__params.kafka_bin_dir,
-                                        self.__params.zookeeper_quorum,
-                                        self.__indexing,
-                                        num_partitions,
-                                        replication_factor,
-                                        retention_bytes))
-        Logger.info("Done creating Kafka topics")
+    def init_kafka_acls(self):
+        Logger.info('Creating Kafka ACLs')
+        # Indexed topic names matches the group
+        metron_service.init_kafka_acls(self.__params, [self.__indexing], [self.__indexing])
 
     def init_hdfs_dir(self):
-        Logger.info('Creating HDFS indexing directory')
+        Logger.info('Setting up HDFS indexing directory')
+
+        # Non Kerberized Metron runs under 'storm', requiring write under the 'hadoop' group.
+        # Kerberized Metron runs under it's own user.
+        ownership = 0755 if self.__params.security_enabled else 0775
+        Logger.info('HDFS indexing directory ownership is: ' + str(ownership))
         self.__params.HdfsResource(self.__params.metron_apps_indexed_hdfs_dir,
                                    type="directory",
                                    action="create_on_execute",
                                    owner=self.__params.metron_user,
                                    group=self.__params.hadoop_group,
-                                   mode=0775,
+                                   mode=ownership,
                                    )
         Logger.info('Done creating HDFS indexing directory')
-
 
     def start_indexing_topology(self):
         Logger.info("Starting Metron indexing topology: {0}".format(self.__indexing))
@@ -88,14 +99,26 @@ class IndexingCommands:
                                     -s {1} \
                                     -z {2}"""
         Logger.info('Starting ' + self.__indexing)
-        Execute(start_cmd_template.format(self.__params.metron_home, self.__indexing, self.__params.zookeeper_quorum))
+        if self.__params.security_enabled:
+            metron_security.kinit(self.__params.kinit_path_local,
+                                  self.__params.metron_keytab_path,
+                                  self.__params.metron_principal_name,
+                                  execute_user=self.__params.metron_user)
+        Execute(start_cmd_template.format(self.__params.metron_home, self.__indexing, self.__params.zookeeper_quorum),
+                user=self.__params.metron_user)
 
         Logger.info('Finished starting indexing topology')
 
     def stop_indexing_topology(self):
         Logger.info('Stopping ' + self.__indexing)
         stop_cmd = 'storm kill ' + self.__indexing
-        Execute(stop_cmd)
+        if self.__params.security_enabled:
+            metron_security.kinit(self.__params.kinit_path_local,
+                                  self.__params.metron_keytab_path,
+                                  self.__params.metron_principal_name,
+                                  execute_user=self.__params.metron_user)
+        Execute(stop_cmd,
+                user=self.__params.metron_user)
         Logger.info('Done stopping indexing topologies')
 
     def restart_indexing_topology(self, env):
@@ -121,7 +144,7 @@ class IndexingCommands:
     def is_topology_active(self, env):
         env.set_params(self.__params)
         active = True
-        topologies = metron_service.get_running_topologies()
+        topologies = metron_service.get_running_topologies(self.__params)
         is_running = False
         if self.__indexing in topologies:
             is_running = topologies[self.__indexing] in ['ACTIVE', 'REBALANCING']
