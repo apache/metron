@@ -28,55 +28,68 @@ import org.apache.metron.pcap.filter.PcapFilter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.PcapFilters;
 import org.apache.metron.pcap.filter.PcapFieldResolver;
+import org.apache.metron.pcap.pattern.ByteArrayMatchingUtil;
 
+import javax.xml.bind.DatatypeConverter;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 
 public class FixedPcapFilter implements PcapFilter {
 
-  public static class Configurator implements PcapFilterConfigurator<EnumMap<Constants.Fields, String>> {
+  public static class Configurator implements PcapFilterConfigurator<Map<String, String>> {
     @Override
-    public void addToConfig(EnumMap<Constants.Fields, String> fields, Configuration conf) {
-      for (Map.Entry<Constants.Fields, String> kv : fields.entrySet()) {
-        conf.set(kv.getKey().getName(), kv.getValue());
+    public void addToConfig(Map<String, String> fields, Configuration conf) {
+      for (Map.Entry<String, String> kv : fields.entrySet()) {
+        conf.set(kv.getKey(), kv.getValue());
       }
       conf.set(PCAP_FILTER_NAME_CONF, PcapFilters.FIXED.name());
     }
 
     @Override
-    public String queryToString(EnumMap<Constants.Fields, String> fields) {
+    public String queryToString(Map<String, String> fields) {
       return (fields == null ? "" : Joiner.on("_").join(fields.values()));
     }
   }
 
+  private String packetFilter;
   private String srcAddr;
   private Integer srcPort;
   private String dstAddr;
   private Integer dstPort;
   private String protocol;
   private boolean includesReverseTraffic = false;
+  private boolean doHeaderFiltering = false;
 
   @Override
   public void configure(Iterable<Map.Entry<String, String>> config) {
     for (Map.Entry<String, String> kv : config) {
       if (kv.getKey().equals(Constants.Fields.DST_ADDR.getName())) {
         this.dstAddr = kv.getValue();
+        doHeaderFiltering = true;
       }
       if (kv.getKey().equals(Constants.Fields.SRC_ADDR.getName())) {
         this.srcAddr = kv.getValue();
+        doHeaderFiltering = true;
       }
       if (kv.getKey().equals(Constants.Fields.DST_PORT.getName())) {
         this.dstPort = Integer.parseInt(kv.getValue());
+        doHeaderFiltering = true;
       }
       if (kv.getKey().equals(Constants.Fields.SRC_PORT.getName())) {
         this.srcPort = Integer.parseInt(kv.getValue());
+        doHeaderFiltering = true;
       }
       if (kv.getKey().equals(Constants.Fields.PROTOCOL.getName())) {
         this.protocol = kv.getValue();
+        doHeaderFiltering = true;
       }
       if (kv.getKey().equals(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName())) {
         this.includesReverseTraffic = Boolean.parseBoolean(kv.getValue());
+      }
+      if(kv.getKey().equals(PcapHelper.PacketFields.PACKET_FILTER.getName())) {
+        this.packetFilter = kv.getValue();
       }
     }
   }
@@ -90,7 +103,39 @@ public class FixedPcapFilter implements PcapFilter {
     String dstAddrIn = (String) resolver.resolve(Constants.Fields.DST_ADDR.getName());
     Integer dstPortIn = (Integer) resolver.resolve(Constants.Fields.DST_PORT.getName());
     String protocolIn = "" + resolver.resolve(Constants.Fields.PROTOCOL.getName());
+    if(!doHeaderFiltering || testHeader(srcAddrIn, srcPortIn, dstAddrIn, dstPortIn, protocolIn)) {
+      //if we don't do header filtering *or* if we have tested the header and decided it's a match
+      if(packetFilter != null) {
+        //and we have a packet filter, then we need to filter the packet
+        byte[] data = (byte[])resolver.resolve(PcapHelper.PacketFields.PACKET_DATA.getName());
+        try {
+          return ByteArrayMatchingUtil.INSTANCE.match(packetFilter, data);
+        } catch (ExecutionException e) {
+          throw new IllegalStateException("Unable to perform binary filter: " + packetFilter + " on " +  DatatypeConverter.printHexBinary(data), e);
+        }
+      }
+      else if(!doHeaderFiltering){
+        //otherwise we aren't doing packet filtering either, so we aren't doing any filtering, then we should
+        //pass the test
+        return true;
+      }
+      else {
+        //and if we *are* doing header filtering and not packet filtering, then we want to pass the test
+        return true;
+      }
+    }
+    else {
+      //in this case we're doing header filtering and we failed the header filter test.
+      return false;
+    }
+  }
 
+  private boolean testHeader( String srcAddrIn
+                            , Integer srcPortIn
+                            , String dstAddrIn
+                            , Integer dstPortIn
+                            , String protocolIn
+  ) {
     if (areMatch(protocol, protocolIn)) {
       if (matchesSourceAndDestination(srcAddrIn, srcPortIn, dstAddrIn, dstPortIn)) {
         return true;
@@ -113,7 +158,7 @@ public class FixedPcapFilter implements PcapFilter {
     }
   }
 
-  protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
+  protected Map<String, Object> packetToFields(PacketInfo pi) {
     return PcapHelper.packetToFields(pi);
   }
 

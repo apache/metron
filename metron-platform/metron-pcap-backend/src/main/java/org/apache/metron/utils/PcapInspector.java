@@ -35,10 +35,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.List;
+import java.util.*;
 
 public class PcapInspector {
   private static abstract class OptionHandler implements Function<String, Option> {}
@@ -143,12 +140,12 @@ public class PcapInspector {
       long millis = Long.divideUnsigned(key.get(), 1000000);
       String ts = DATE_FORMAT.format(new Date(millis));
       for(PacketInfo pi : PcapHelper.toPacketInfo(value.copyBytes())) {
-        EnumMap<Constants.Fields, Object> result = PcapHelper.packetToFields(pi);
+        Map<String, Object> result = PcapHelper.packetToFields(pi);
         List<String> fieldResults = new ArrayList<String>() {{
           add("TS: " + ts);
         }};
         for(Constants.Fields field : Constants.Fields.values()) {
-          if(result.containsKey(field)) {
+          if(result.containsKey(field.getName())) {
             fieldResults.add(field.getName() + ": " + result.get(field));
           }
         }

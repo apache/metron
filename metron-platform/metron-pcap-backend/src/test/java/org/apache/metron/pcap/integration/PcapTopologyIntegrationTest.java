@@ -274,7 +274,7 @@ public class PcapTopologyIntegrationTest {
                         , getTimestamp(4, pcapEntries)
                         , getTimestamp(5, pcapEntries)
                         , 10
-                        , new EnumMap<>(Constants.Fields.class)
+                        , new HashMap<>()
                         , new Configuration()
                         , FileSystem.get(new Configuration())
                         , new FixedPcapFilter.Configurator()
@@ -307,8 +307,8 @@ public class PcapTopologyIntegrationTest {
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(1, pcapEntries)
                         , 10
-                        , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
-                          put(Constants.Fields.DST_ADDR, "207.28.210.1");
+                        , new HashMap<String, String>() {{
+                          put(Constants.Fields.DST_ADDR.getName(), "207.28.210.1");
                         }}
                         , new Configuration()
                         , FileSystem.get(new Configuration())
@@ -342,8 +342,8 @@ public class PcapTopologyIntegrationTest {
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(1, pcapEntries)
                         , 10
-                        , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
-                          put(Constants.Fields.PROTOCOL, "foo");
+                        , new HashMap<String, String>() {{
+                          put(Constants.Fields.PROTOCOL.getName(), "foo");
                         }}
                         , new Configuration()
                         , FileSystem.get(new Configuration())
@@ -377,7 +377,7 @@ public class PcapTopologyIntegrationTest {
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
                         , 10
-                        , new EnumMap<>(Constants.Fields.class)
+                        , new HashMap<>()
                         , new Configuration()
                         , FileSystem.get(new Configuration())
                         , new FixedPcapFilter.Configurator()
@@ -409,8 +409,8 @@ public class PcapTopologyIntegrationTest {
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
                         , 10
-                        , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
-                          put(Constants.Fields.DST_PORT, "22");
+                        , new HashMap<String, String>() {{
+                          put(Constants.Fields.DST_PORT.getName(), "22");
                         }}
                         , new Configuration()
                         , FileSystem.get(new Configuration())

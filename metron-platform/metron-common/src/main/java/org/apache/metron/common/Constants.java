@@ -17,7 +17,9 @@
  */
 package org.apache.metron.common;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Constants {
@@ -33,7 +35,10 @@ public class Constants {
   public static final String SIMPLE_HBASE_THREAT_INTEL = "hbaseThreatIntel";
   public static final String GUID = "guid";
 
-  public static enum Fields {
+  public interface Field {
+    String getName();
+  }
+  public enum Fields implements Field {
      SRC_ADDR("ip_src_addr")
     ,SRC_PORT("ip_src_port")
     ,DST_ADDR("ip_dst_addr")
