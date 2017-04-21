@@ -44,11 +44,13 @@ sequence files.
 ## Configuration
 
 The configuration file for the Flux topology is located at
-`$METRON_HOME/config/etc/env/pcap.properties` and the possible options
+`$METRON_HOME/config/pcap.properties` and the possible options
 are as follows:
 * `spout.kafka.topic.pcap` : The kafka topic to listen to
+* `storm.auto.credentials` : The kerberos ticket renewal.  If running on a kerberized cluster, this should be `['org.apache.storm.security.auth.kerberos.AutoTGT']`
+* `kafka.security.protocol` : The security protocol to use for kafka.  This should be `PLAINTEXT` for a non-kerberized cluster and probably `SASL_PLAINTEXT` for a kerberized cluster.
 * `kafka.zk` : The comma separated zookeeper quorum (i.e.  host:2181,host2:2181)
-* `kafka.pcap.start` : One of `START`, `END`, `WHERE_I_LEFT_OFF` representing where to start listening on the queue. 
+* `kafka.pcap.start` : One of `EARLIEST`, `LATEST`, `UNCOMMITTED_EARLIEST`, `UNCOMMITTED_LATEST` representing where to start listening on the queue. 
 * `kafka.pcap.numPackets` : The number of packets to keep in one file.
 * `kafka.pcap.maxTimeMS` : The number of packets to keep in one file in terms of duration (in milliseconds).  For instance, you may only want to keep an hour's worth of packets in a given file.
 * `kafka.pcap.ts_scheme` : One of `FROM_KEY` or `FROM_VALUE`.  You really only want `FROM_KEY` as that fits the current tooling.  `FROM_VALUE` assumes that fully headerized packets are coming in on the value, which is legacy.
@@ -78,7 +80,7 @@ usage: PcapInspector
 ### Query Filter Utility
 This tool exposes the two methods for filtering PCAP data via a command line tool:
 - fixed
-- query (Metron Stellar)
+- query (via Stellar)
 
 The tool is executed via 
 ```
@@ -97,6 +99,7 @@ usage: Fixed filter options
                                  and end_time. Default is to use time in
                                  millis since the epoch.
  -dp,--ip_dst_port <arg>         Destination port
+ -pf,--packet_filter <arg>       Packet filter regex
  -et,--end_time <arg>            Packet end time range. Default is current
                                  system time.
  -nr,--num_reducers <arg>        The number of reducers to use.  Default
@@ -127,3 +130,23 @@ usage: Query filter options
  -q,--query <arg>                Query string to use as a filter
  -st,--start_time <arg>          (required) Packet start time range.
 ```
+
+The Query filter's `--query` argument specifies the Stellar expression to
+execute on each packet.  To interact with the packet, a few variables are exposed:
+* `packet` : The packet data (a `byte[]`)
+* `ip_src_addr` : The source address for the packet (a `String`)
+* `ip_src_port` : The source port for the packet (an `Integer`)
+* `ip_dst_addr` : The destination address for the packet (a `String`)
+* `ip_dst_port` : The destination port for the packet (an `Integer`)
+
+#### Binary Regex
+
+Filtering can be done both by the packet header as well as via a binary regular expression
+which can be run on the packet payload itself.  This filter can be specified via:
+* The `-pf` or `--packet_filter` options for the fixed query filter
+* The `BYTEARRAY_MATCH(pattern, data)` Stellar function.
+The first argument is the regex pattern and the second argument is the data.
+The packet data will be exposed via the`packet` variable in Stellar.
+
+The format of this regular expression is described [here](https://github.com/nishihatapalmer/byteseek/blob/v2.0.3/src/main/java/net/byteseek/parser/regex/Regular%20Expression%20syntax.txt).
+
