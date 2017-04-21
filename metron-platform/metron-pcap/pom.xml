@@ -29,6 +29,13 @@
             <groupId>net.byteseek</groupId>
             <artifactId>byteseek</artifactId>
             <version>2.0.3</version>
+            <exclusions>
+                <!-- This is a LGPL dependency of byteseek, so we need to replace/mimic it minimally -->
+                <exclusion>
+                    <groupId>net.sf.trove4j</groupId>
+                    <artifactId>trove4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
@@ -174,6 +181,11 @@
                     <artifactId>hadoop-mapreduce-client-core</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.mahout</groupId>
+            <artifactId>mahout-math</artifactId>
+            <version>0.9</version>
         </dependency>
     </dependencies>
 </project>

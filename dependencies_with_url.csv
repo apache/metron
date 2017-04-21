@@ -293,3 +293,4 @@ org.atteo.classindex:classindex:jar:3.3:compile,ASLv2,https://github.com/atteo/c
 com.squareup.okhttp:okhttp:jar:2.4.0:compile,ASLv2,https://github.com/square/okhttp
 com.squareup.okio:okio:jar:1.4.0:compile,ASLv2,https://github.com/square/okhttp
 org.htrace:htrace-core:jar:3.0.4:compile,ASLv2,http://htrace.incubator.apache.org/
+net.byteseek:byteseek:jar:2.0.3:compile,BSD,https://github.com/nishihatapalmer/byteseek
