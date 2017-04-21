@@ -529,10 +529,23 @@ Start the application on a different port to avoid conflicting with Ambari:
 ```
 java -jar $METRON_HOME/lib/metron-rest-$METRON_VERSION.jar --spring.profiles.active=vagrant,dev --server.port=8082
 ```
-In a cluster with Kerberos enabled the start command must be run as the metron user, include references to the jaas and krb5.confg files, and kerberos support enabled:
+In a cluster with Kerberos enabled, first add metron-rest to the Kafka acls:
+```
+sudo su -
+export ZOOKEEPER=node1
+export BROKERLIST=node1
+export HDP_HOME="/usr/hdp/current"
+export METRON_VERSION="0.4.0"
+export METRON_HOME="/usr/metron/${METRON_VERSION}"
+${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:metron --topic ambari_kafka_service_check
+${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:metron --topic __consumer_offsets
+${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:metron --group metron-rest
+```
+
+Then start the application as the metron user while including references to the jaas and krb5.confg files and enabling kerberos support:
 ```
 su metron
-cd $METRON_HOME
+cd ~
 java -Djava.security.auth.login.config=/home/metron/.storm/client_jaas.conf -Djava.security.krb5.conf=/etc/krb5.conf -jar $METRON_HOME/lib/metron-rest-$METRON_VERSION.jar --spring.profiles.active=vagrant,dev --server.port=8082 --kerberos.enabled=true
 ```
 The metron-rest application will be available at http://node1:8082/swagger-ui.html#/.
