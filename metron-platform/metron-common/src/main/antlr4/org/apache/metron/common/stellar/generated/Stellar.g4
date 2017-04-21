@@ -100,8 +100,9 @@ IDENTIFIER : IDENTIFIER_START
            ;
 
 STRING_LITERAL :
-  DOUBLE_QUOTE SCHAR* DOUBLE_QUOTE
-  | SINGLE_QUOTE SCHAR* SINGLE_QUOTE
+      //'"' (~('"' | '\\' | '\r' | '\n') | '\\' ('"' | '\\'))* '"'
+      SINGLE_QUOTE (~('\'' | '\\' | '\r' | '\n') | '\\' ('\'' | '\\'))* SINGLE_QUOTE
+     |DOUBLE_QUOTE (~('"' | '\\' | '\r' | '\n') | '\\' ('"' | '\\'))* DOUBLE_QUOTE
   ;
 
 // COMMENT and WS are stripped from the output token stream by sending

@@ -64,6 +64,15 @@ public class StellarTest {
     Assert.assertTrue(numFound > 0);
   }
 
+  @Test
+  public void testQuotedLiterals() {
+    Assert.assertEquals("'bar'", run("'\\'bar\\''", new HashMap<>()));
+    Assert.assertEquals("'bar'", run("\"'bar'\"", new HashMap<>()));
+    Assert.assertEquals("'BAR'", run("TO_UPPER('\\'bar\\'')", new HashMap<>()));
+    Assert.assertEquals("\"bar\"", run("\"\\\"bar\\\"\"", new HashMap<>()));
+    Assert.assertEquals("\"bar\"", run("'\"bar\"'", new HashMap<>()));
+    Assert.assertEquals("\"BAR\"", run("TO_UPPER(\"\\\"bar\\\"\")", new HashMap<>()));
+  }
 
   @Test
   public void testVariableResolution() {

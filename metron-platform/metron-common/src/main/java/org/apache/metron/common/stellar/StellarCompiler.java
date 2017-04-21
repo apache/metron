@@ -263,7 +263,40 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitStringLiteral(StellarParser.StringLiteralContext ctx) {
-    expression.tokenDeque.push(new Token<>(ctx.getText().substring(1, ctx.getText().length() - 1), String.class));
+    String rawToken = ctx.getText();
+    String literal = unquoteLiteral(rawToken);
+
+    expression.tokenDeque.push(new Token<>(literal, String.class));
+  }
+
+  public String unquoteLiteral(String rawToken) {
+
+    if(rawToken.length() == 2) {
+      return "";
+    }
+    char prevChar = rawToken.charAt(1);
+    String ret = prevChar == '\\'?"":("" + prevChar);
+    char quote = rawToken.charAt(0);
+    for(int i = 2;i < rawToken.length() - 1;++i ) {
+      char currChar = rawToken.charAt(i);
+      if(currChar == '\\') {
+        //if we see an escape operator, then we want to defer until the next character
+        continue;
+      }
+      if(prevChar == '\\' && currChar == quote) {
+        //escape the quote
+        ret += quote;
+      }
+      else if(prevChar == '\\' && currChar != quote) {
+        //otherwise it wasn't an escaped quote, but just a \ character, so add it.
+        ret += prevChar + currChar;
+      }
+      else {
+        ret += currChar;
+      }
+      prevChar = currChar;
+    }
+    return ret;
   }
 
   @Override
