@@ -26,6 +26,7 @@ import net.byteseek.compiler.matcher.SequenceMatcherCompiler;
 import net.byteseek.matcher.sequence.SequenceMatcher;
 import net.byteseek.searcher.Searcher;
 import net.byteseek.searcher.sequence.horspool.BoyerMooreHorspoolSearcher;
+import net.byteseek.searcher.sequence.horspool.HorspoolFinalFlagSearcher;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +39,7 @@ public enum ByteArrayMatchingUtil {
           .build(
                   new CacheLoader<String, Searcher<SequenceMatcher>>() {
                     public Searcher<SequenceMatcher> load(String pattern) throws Exception {
-                      return new BoyerMooreHorspoolSearcher(compile(pattern));
+                      return new HorspoolFinalFlagSearcher(compile(pattern));
                     }
                   });
   private SequenceMatcherCompiler compiler = new SequenceMatcherCompiler();
