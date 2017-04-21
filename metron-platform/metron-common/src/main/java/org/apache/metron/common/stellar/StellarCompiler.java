@@ -275,24 +275,42 @@ public class StellarCompiler extends StellarBaseListener {
       return "";
     }
     char prevChar = rawToken.charAt(1);
+    boolean inMiddleOfQuote = prevChar == '\\';
     String ret = prevChar == '\\'?"":("" + prevChar);
     char quote = rawToken.charAt(0);
     for(int i = 2;i < rawToken.length() - 1;++i ) {
       char currChar = rawToken.charAt(i);
-      boolean isEscapedChar = currChar == quote || currChar == '\\';
-      if(prevChar == '\\' &&  isEscapedChar) {
+      boolean isEscapedChar = currChar == quote || currChar == '\\' || currChar == 'r' | currChar == 'n' | currChar == 't';
+      if(inMiddleOfQuote &&  isEscapedChar) {
         //escape the quote
-        ret += currChar;
+        switch(currChar) {
+          case 'r':
+            ret += '\r';
+            break;
+          case 'n':
+            ret += '\n';
+            break;
+          case 't':
+            ret += '\t';
+            break;
+          case '\\':
+            ret += '\\';
+            break;
+          default:
+            ret += quote;
+            break;
+        }
+        inMiddleOfQuote = false;
       }
       else if(currChar == '\\') {
         //if we see an escape operator, then we want to defer until the next character
-        prevChar = currChar;
+        inMiddleOfQuote = true;
         continue;
       }
       else {
+        inMiddleOfQuote = false;
         ret += currChar;
       }
-      prevChar = currChar;
     }
     return ret;
   }

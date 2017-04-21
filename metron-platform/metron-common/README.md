@@ -21,7 +21,7 @@ created to do simple computation and transformation.
 The query language supports the following:
 * Referencing fields in the enriched JSON
 * String literals are quoted with either `'` or `"`.
-* String literals support escaping for `'`, `"`, and backslash 
+* String literals support escaping for `'`, `"`, `\t`, `\r`, `\n`, and backslash 
   * The literal `'\'foo\''` would represent `'foo'`
   * The literal `"\"foo\""` would represent `"foo"`
   * The literal `'foo \\ bar'` would represent `foo \ bar`
