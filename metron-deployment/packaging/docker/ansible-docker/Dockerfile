@@ -21,10 +21,10 @@ RUN yum install -y tar
 RUN yum install -y wget
 RUN yum groupinstall -y "Development tools"
 RUN yum install -y zlib-dev openssl-devel sqlite-devel bzip2-devel libffi-devel
-RUN wget https://www.python.org/ftp/python/2.7.10/Python-2.7.10.tgz -O /usr/src/Python-2.7.10.tgz
+RUN wget https://www.python.org/ftp/python/2.7.12/Python-2.7.12.tgz -O /usr/src/Python-2.7.12.tgz
 WORKDIR /usr/src
-RUN tar xvf Python-2.7.10.tgz
-WORKDIR /usr/src/Python-2.7.10
+RUN tar xvf Python-2.7.12.tgz
+WORKDIR /usr/src/Python-2.7.12
 RUN ./configure
 RUN make altinstall
 WORKDIR /usr/src
@@ -45,5 +45,6 @@ RUN wget http://apache.cs.utah.edu/maven/maven-3/3.2.5/binaries/apache-maven-3.2
 RUN tar xzvf apache-maven-3.2.5-bin.tar.gz
 RUN mv apache-maven-3.2.5 /opt/maven
 RUN ln -s /opt/maven/bin/mvn /usr/bin/mvn
+RUN yum -y install asciidoc rpm-build rpm2cpio tar unzip xmlto zip rpmlint && yum clean all
 WORKDIR /root
 
