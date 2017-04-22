@@ -21,10 +21,10 @@ RUN yum install -y tar
 RUN yum install -y wget
 RUN yum groupinstall -y "Development tools"
 RUN yum install -y zlib-dev openssl-devel sqlite-devel bzip2-devel libffi-devel
-RUN wget https://www.python.org/ftp/python/2.7.12/Python-2.7.12.tgz -O /usr/src/Python-2.7.12.tgz
+RUN wget https://www.python.org/ftp/python/2.7.11/Python-2.7.11.tgz -O /usr/src/Python-2.7.11.tgz
 WORKDIR /usr/src
-RUN tar xvf Python-2.7.12.tgz
-WORKDIR /usr/src/Python-2.7.12
+RUN tar xvf Python-2.7.11.tgz
+WORKDIR /usr/src/Python-2.7.11
 RUN ./configure
 RUN make altinstall
 WORKDIR /usr/src
