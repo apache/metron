@@ -37,13 +37,6 @@ Any platform that supports these tools is suitable, but the following instructio
 
 ### Deploy Metron
 
-1. Build Metron
-
-    ```
-    cd incubator-metron
-    mvn clean install -DskipTests
-    ```
-
 1. Ensure that the Docker service is running.
 
 1. Deploy Metron

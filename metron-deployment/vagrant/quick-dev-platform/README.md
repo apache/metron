@@ -39,13 +39,6 @@ As with the Full Development Platform (`metron-deployment/vagrant/full-dev-platf
 
 ### Deploy Metron
 
-1. Build Metron
-
-    ```
-    cd incubator-metron
-    mvn clean install -DskipTests
-    ```
-
 1. Ensure that the Docker service is running.
 
 1. Deploy Metron
