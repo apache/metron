@@ -41,7 +41,14 @@ Any platform that supports these tools is suitable, but the following instructio
   vagrant plugin install vagrant-hostmanager
   ```
 
-2. Deploy Metron
+2. Build Metron
+
+  ```
+  cd incubator-metron
+  mvn clean install -DskipTests
+  ```
+
+3. Deploy Metron
 
   ```
   cd metron-deployment/vagrant/full-dev-platform
