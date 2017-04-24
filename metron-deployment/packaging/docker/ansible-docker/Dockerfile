@@ -14,7 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-FROM centos:6.6
+FROM centos:centos6
 MAINTAINER Apache Metron
 
 RUN yum install -y tar
