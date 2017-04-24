@@ -40,7 +40,9 @@ The following examples highlight different ways that the plugin can be used.  Si
 
 ### Example 1
 
-The goal in this example is to send all HTTP and DNS records to a Kafka topic named `bro`. Any configuration value accepted by librdkafka can be added to the `kafka_conf` configuration table.  By defining `topic_name` all records will be sent to the same Kafka topic.
+The goal in this example is to send all HTTP and DNS records to a Kafka topic named `bro`. 
+ * Any configuration value accepted by librdkafka can be added to the `kafka_conf` configuration table.  
+ * By defining `topic_name` all records will be sent to the same Kafka topic.
 
 ```
 @load Bro/Kafka/logs-to-kafka.bro
@@ -53,7 +55,11 @@ redef Kafka::kafka_conf = table(
 
 ### Example 2
 
-It is also possible to send each log stream to a uniquely named topic.  The goal in this example is to send all HTTP records to a Kafka topic named `http` and all DNS records to a separate Kafka topic named `dns`.  Any configuration value accepted by librdkafka can be added to the `$config` configuration table.  Note that each log writer accepts a separate configuration.
+It is also possible to send each log stream to a uniquely named topic.  The goal in this example is to send all HTTP records to a Kafka topic named `http` and all DNS records to a separate Kafka topic named `dns`.
+ * The `topic_name` value must be set to an empty string.
+ * The `$path` value of Bro's Log Writer mechanism is used to define the topic name.
+ * Any configuration value accepted by librdkafka can be added to the `$config` configuration table.  
+ * Each log writer accepts a separate configuration table.
 
 ```
 @load Bro/Kafka/logs-to-kafka.bro
