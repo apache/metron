@@ -13,7 +13,9 @@ Getting Started
 The computer used to deploy Apache Metron will need to have the following components installed.
 
  - [Ansible](https://github.com/ansible/ansible) (2.0.0.2 or 2.2.2.0)
+ - [Docker](https://www.docker.com/community-edition)
  - [Vagrant](https://www.vagrantup.com) 1.8.1
+ - [Vagrant Hostmanager Plugin](https://github.com/devopsgroup-io/vagrant-hostmanager) `vagrant plugin install vagrant-hostmanager`
  - [Virtualbox](https://virtualbox.org) 5.0.16
  - Python 2.7.11
  - Maven 3.3.9
@@ -24,35 +26,38 @@ Any platform that supports these tools is suitable, but the following instructio
 
 1. Install Homebrew by following the instructions at [Homebrew](http://brew.sh/).
 
-2. Run the following command in a terminal to install all of the required tools.
+1. Run the following command in a terminal to install all of the required tools.
 
-  ```  
-  brew cask install vagrant virtualbox java
-  brew install maven git
-  ```
+    ```  
+    brew cask install vagrant virtualbox java docker
+    brew install maven git
+    ```
 
-3. Install Ansible by following the instructions [here](http://docs.ansible.com/ansible/intro_installation.html#latest-releases-via-pip).
+1. Install Ansible by following the instructions [here](http://docs.ansible.com/ansible/intro_installation.html#latest-releases-via-pip).
 
 ### Deploy Metron
 
-1. Install Vagrant Hostmanager.
+1. Build Metron
 
-  ```
-  vagrant plugin install vagrant-hostmanager
-  ```
+    ```
+    cd incubator-metron
+    mvn clean install -DskipTests
+    ```
 
-2. Deploy Metron
+1. Ensure that the Docker service is running.
 
-  ```
-  cd metron-deployment/vagrant/full-dev-platform
-  vagrant up
-  ```
+1. Deploy Metron
 
-  Should the process fail before completing the deployment, the following command will continue the deployment process without re-instantiating the host.
+    ```
+    cd metron-deployment/vagrant/full-dev-platform
+    vagrant up
+    ```
 
-  ```
-  vagrant provision
-  ```
+    Should the process fail before completing the deployment, the following command will continue the deployment process without re-instantiating the host.
+
+    ```
+    vagrant provision
+    ```
 
 ### Explore Metron
 
