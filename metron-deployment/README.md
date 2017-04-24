@@ -117,7 +117,7 @@ Components in the RPMs:
 
 ### Prerequisites
 - Docker.  The image detailed in: `metron-deployment/packaging/docker/rpm-docker/README.md` will automatically be built (or rebuilt if necessary).
-- Artifacts for metron-platform have been produced.  E.g. `mvn clean install -DskipTests` in `metron-platform`
+- Artifacts for metron-platform have been produced.  E.g. `mvn clean package -DskipTests` in `metron-platform`
 
 ### Building RPMs
 From `metron-deployment` run
