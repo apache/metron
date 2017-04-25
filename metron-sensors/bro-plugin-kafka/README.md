@@ -139,7 +139,7 @@ event bro_init() &priority=-5
  * `logs_to_send` is mutually exclusive with `$pred`, thus you must individually add a filter per log that you would like to send into Metron if you want to configure a predicate.
  * This example was specifically written to contrast examples 1 and 2, in order to provide a more comprehensive understanding of your options regarding the bro configuration.
  * `is_v6_subnet()` was added to Bro in their [2.5 release](https://www.bro.org/sphinx-git/install/release-notes.html#bro-2-5), however, because the Kafka plugin can be used on [bro 2.4](https://www.bro.org/sphinx-git/install/release-notes.html#bro-2-4) and newer, the method used in this example is preferred, and has been in use since [bro 2.1](https://www.bro.org/sphinx-git/install/release-notes.html#bro-2-1).
- * If you would prefer to filter IPv6 logs from within your Metron cluster you could [use Stellar](../../metron-platform/metron-common#is_ip) to do so.  In that case, the bro logs that contain IPv6 sources and/or destinations would get written to the `bro` Kafka topic, but Stellar would filter the logs out before they were processed by the enrichment layer.  It simply depends on which option fits best into your architecture.
+ * If you would prefer to filter IPv6 logs from within your Metron cluster you could [use Stellar](../../metron-platform/metron-common#IS_IP) to do so.  In that case, the bro logs that contain IPv6 sources and/or destinations would get written to the `bro` Kafka topic, but Stellar would filter the logs out before they were processed by the enrichment layer.  It simply depends on which option fits best into your architecture.
 
 Settings
 --------
