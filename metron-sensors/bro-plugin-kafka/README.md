@@ -43,6 +43,7 @@ The following examples highlight different ways that the plugin can be used.  Si
 The goal in this example is to send all HTTP and DNS records to a Kafka topic named `bro`. 
  * Any configuration value accepted by librdkafka can be added to the `kafka_conf` configuration table.  
  * By defining `topic_name` all records will be sent to the same Kafka topic.
+ * By providing a set of logs via `logs_to_send`.
 
 ```
 @load Bro/Kafka/logs-to-kafka.bro
@@ -93,6 +94,52 @@ event bro_init()
     Log::add_filter(DNS::LOG, dns_filter);
 }
 ```
+
+### Example 3
+
+As documented in [METRON-285](https://issues.apache.org/jira/browse/METRON-285) and [METRON-286](https://issues.apache.org/jira/browse/METRON-286), various components in Metron do not currently support IPv6.  Because of this, you may not want to send bro logs that contain IPv6 source or destination IPs into Metron.  In this example, we are assuming a somewhat standard bro configuration for sending logs into a Metron cluster, such that:
+ * Each type of bro log is sent to the `bro` topic, but is tagged with the appropriate log type (such as `http`, `dns`, or `conn`).  This is done by setting `topic_name` to `bro`, setting `$path` to an empty string (or leaving it unset), and by setting `tag_json` to true.
+ * The Kafka writer is set appropriately to send logs to the `bro` Kafka topic being used in your Metron cluster.  This requires that your `kafka_conf` and `$config` tables are appropriately configured.
+
+```
+@load Bro/Kafka/logs-to-kafka.bro
+redef Kafka::topic_name = "bro";
+redef Kafka::tag_json = T;
+redef Kafka::kafka_conf = table(
+    ["metadata.broker.list"] = "localhost:9092"
+);
+
+
+event bro_init() &priority=-5
+{
+    # handles HTTP
+    Log::add_filter(HTTP::LOG, [$name = "kafka-http",
+        $writer = Log::WRITER_KAFKAWRITER,
+        $pred(rec: HTTP::Info) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
+        $config = table(["stream_id"] = fmt("%s", HTTP::LOG))
+    ]);
+
+    # handles DNS
+    Log::add_filter(DNS::LOG, [$name = "kafka-dns",
+        $writer = Log::WRITER_KAFKAWRITER,
+        $pred(rec: DNS::Info) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
+        $config = table(["stream_id"] = fmt("%s", DNS::LOG))
+    ]);
+
+    # handles Conn
+    Log::add_filter(Conn::LOG, [$name = "kafka-conn",
+        $writer = Log::WRITER_KAFKAWRITER,
+        $pred(rec: Conn::Info) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
+        $config = table(["stream_id"] = fmt("%s", Conn::LOG))
+    ]);
+}
+```
+
+#### Notes
+ * `logs_to_send` is mutually exclusive with `$pred`, thus you must individually add a filter per log that you would like to send into Metron if you want to configure a predicate.
+ * This example was specifically written to contrast examples 1 and 2, in order to provide a more comprehensive understanding of your options regarding the bro configuration.
+ * `is_v6_subnet()` was added to Bro in their [2.5 release](https://www.bro.org/sphinx-git/install/release-notes.html#bro-2-5), however, because the Kafka plugin can be used on [bro 2.4](https://www.bro.org/sphinx-git/install/release-notes.html#bro-2-4) and newer, the method used in this example is preferred, and has been in use since [bro 2.1](https://www.bro.org/sphinx-git/install/release-notes.html#bro-2-1).
+ * If you would prefer to filter IPv6 logs from within your Metron cluster you could [use Stellar](../../metron-platform/metron-common#is_ip) to do so.  In that case, the bro logs that contain IPv6 sources and/or destinations would get written to the `bro` Kafka topic, but Stellar would filter the logs out before they were processed by the enrichment layer.  It simply depends on which option fits best into your architecture.
 
 Settings
 --------
