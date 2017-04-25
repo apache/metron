@@ -148,5 +148,5 @@ which can be run on the packet payload itself.  This filter can be specified via
 The first argument is the regex pattern and the second argument is the data.
 The packet data will be exposed via the`packet` variable in Stellar.
 
-The format of this regular expression is described [here](https://github.com/nishihatapalmer/byteseek/blob/v2.0.3/src/main/java/net/byteseek/parser/regex/Regular%20Expression%20syntax.txt).
+The format of this regular expression is described [here](https://github.com/nishihatapalmer/byteseek/blob/master/sequencesyntax.md).
 
