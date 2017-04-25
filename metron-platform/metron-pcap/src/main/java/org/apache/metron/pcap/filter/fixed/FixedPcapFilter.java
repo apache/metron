@@ -21,6 +21,7 @@ package org.apache.metron.pcap.filter.fixed;
 import com.google.common.base.Joiner;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.dsl.MapVariableResolver;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
@@ -66,29 +67,36 @@ public class FixedPcapFilter implements PcapFilter {
   public void configure(Iterable<Map.Entry<String, String>> config) {
     for (Map.Entry<String, String> kv : config) {
       if (kv.getKey().equals(Constants.Fields.DST_ADDR.getName())) {
+        System.out.println("Processing: " + kv.getKey() + " => " + kv.getValue());
         this.dstAddr = kv.getValue();
         doHeaderFiltering = true;
       }
       if (kv.getKey().equals(Constants.Fields.SRC_ADDR.getName())) {
+        System.out.println("Processing: " + kv.getKey() + " => " + kv.getValue());
         this.srcAddr = kv.getValue();
         doHeaderFiltering = true;
       }
       if (kv.getKey().equals(Constants.Fields.DST_PORT.getName())) {
+        System.out.println("Processing: " + kv.getKey() + " => " + kv.getValue());
         this.dstPort = Integer.parseInt(kv.getValue());
         doHeaderFiltering = true;
       }
       if (kv.getKey().equals(Constants.Fields.SRC_PORT.getName())) {
+        System.out.println("Processing: " + kv.getKey() + " => " + kv.getValue());
         this.srcPort = Integer.parseInt(kv.getValue());
         doHeaderFiltering = true;
       }
       if (kv.getKey().equals(Constants.Fields.PROTOCOL.getName())) {
+        System.out.println("Processing: " + kv.getKey() + " => " + kv.getValue());
         this.protocol = kv.getValue();
         doHeaderFiltering = true;
       }
       if (kv.getKey().equals(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName())) {
+        System.out.println("Processing: " + kv.getKey() + " => " + kv.getValue());
         this.includesReverseTraffic = Boolean.parseBoolean(kv.getValue());
       }
       if(kv.getKey().equals(PcapHelper.PacketFields.PACKET_FILTER.getName())) {
+        System.out.println("Processing: " + kv.getKey() + " => " + kv.getValue());
         this.packetFilter = kv.getValue();
       }
     }
@@ -97,11 +105,13 @@ public class FixedPcapFilter implements PcapFilter {
 
   @Override
   public boolean test(PacketInfo pi) {
-    VariableResolver resolver = new PcapFieldResolver(packetToFields(pi));
+    Map<String, Object> fields = packetToFields(pi);
+    VariableResolver resolver = new MapVariableResolver(fields);
     String srcAddrIn = (String) resolver.resolve(Constants.Fields.SRC_ADDR.getName());
     Integer srcPortIn = (Integer) resolver.resolve(Constants.Fields.SRC_PORT.getName());
     String dstAddrIn = (String) resolver.resolve(Constants.Fields.DST_ADDR.getName());
     Integer dstPortIn = (Integer) resolver.resolve(Constants.Fields.DST_PORT.getName());
+
     String protocolIn = "" + resolver.resolve(Constants.Fields.PROTOCOL.getName());
     if(!doHeaderFiltering || testHeader(srcAddrIn, srcPortIn, dstAddrIn, dstPortIn, protocolIn)) {
       //if we don't do header filtering *or* if we have tested the header and decided it's a match
@@ -147,7 +157,7 @@ public class FixedPcapFilter implements PcapFilter {
   }
 
   private boolean areMatch(Integer filter, Integer input) {
-    return filter == null || areMatch(Integer.toUnsignedString(filter), Integer.toUnsignedString(input));
+    return filter == null || areMatch(Integer.toUnsignedString(filter), input == null?null:Integer.toUnsignedString(input));
   }
 
   private boolean areMatch(String filter, String input) {

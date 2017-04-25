@@ -146,7 +146,7 @@ public class PcapInspector {
         }};
         for(Constants.Fields field : Constants.Fields.values()) {
           if(result.containsKey(field.getName())) {
-            fieldResults.add(field.getName() + ": " + result.get(field));
+            fieldResults.add(field.getName() + ": " + result.get(field.getName()));
           }
         }
         System.out.println(Joiner.on(",").join(fieldResults));
