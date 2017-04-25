@@ -59,7 +59,7 @@ This will set up
 - Optional Kibana
 
 ### Prerequisites
-- A cluster managed by Ambari 2.4
+- A cluster managed by Ambari 2.4.2+
 - Metron RPMs available on the cluster in the /localrepo directory.  See [RPM](#rpm) for further information.
 
 ### Building Management Pack
