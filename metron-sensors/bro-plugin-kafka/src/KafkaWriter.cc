@@ -75,13 +75,10 @@ bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading
     debug.assign((const char*)BifConst::Kafka::debug->Bytes(), BifConst::Kafka::debug->Len());
     bool is_debug(!debug.empty());
     if(is_debug) {
-      reporter->Info( "Debug is turned on and set to: %s.  Available debug context: %s."
-                     , debug.c_str()
-                     , RdKafka::get_debug_contexts().c_str()
-                     );
+      MsgThread::Info(Fmt("Debug is turned on and set to: %s.  Available debug context: %s.", debug.c_str(), RdKafka::get_debug_contexts().c_str()));
     }
     else {
-      reporter->Info( "Debug is turned off.");
+      MsgThread::Info(Fmt("Debug is turned off."));
     }
 
     // kafka global configuration
@@ -96,7 +93,7 @@ bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading
 
       // apply setting to kafka
       if (RdKafka::Conf::CONF_OK != conf->set(key, val, err)) {
-          reporter->Error("Failed to set '%s'='%s': %s", key.c_str(), val.c_str(), err.c_str());
+          Error(Fmt("Failed to set '%s'='%s': %s", key.c_str(), val.c_str(), err.c_str()));
           return false;
       }
     }
@@ -105,7 +102,7 @@ bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading
         string key("debug");
         string val(debug);
         if (RdKafka::Conf::CONF_OK != conf->set(key, val, err)) {
-            reporter->Error("Failed to set '%s'='%s': %s", key.c_str(), val.c_str(), err.c_str());
+            Error(Fmt("Failed to set '%s'='%s': %s", key.c_str(), val.c_str(), err.c_str()));
             return false;
         }
     }
@@ -113,7 +110,7 @@ bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading
     // create kafka producer
     producer = RdKafka::Producer::create(conf, err);
     if (!producer) {
-        reporter->Error("Failed to create producer: %s", err.c_str());
+        Error(Fmt("Failed to create producer: %s", err.c_str()));
         return false;
     }
 
@@ -121,12 +118,12 @@ bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading
     topic_conf = RdKafka::Conf::create(RdKafka::Conf::CONF_TOPIC);
     topic = RdKafka::Topic::create(producer, topic_name, topic_conf, err);
     if (!topic) {
-        reporter->Error("Failed to create topic handle: %s", err.c_str());
+        Error(Fmt("Failed to create topic handle: %s", err.c_str()));
         return false;
     }
 
     if(is_debug) {
-        reporter->Info("Successfully created producer.");
+        MsgThread::Info(Fmt("Successfully created producer."));
     }
 
     return true;
@@ -154,7 +151,7 @@ bool KafkaWriter::DoFinish(double network_time)
     if (producer->outq_len() == 0) {
         success = true;
     } else {
-        reporter->Error("Unable to deliver %0d message(s)", producer->outq_len());
+        Error(Fmt("Unable to deliver %0d message(s)", producer->outq_len()));
     }
 
     delete topic;
@@ -187,7 +184,7 @@ bool KafkaWriter::DoWrite(int num_fields, const threading::Field* const* fields,
     }
     else {
         string err = RdKafka::err2str(resp);
-        reporter->Error("Kafka send failed: %s", err.c_str());
+        Error(Fmt("Kafka send failed: %s", err.c_str()));
     }
 
     return true;
