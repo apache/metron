@@ -53,9 +53,18 @@ public class BasicDHCPDumpParserTest extends TestCase {
 
       Assert.assertEquals(metronJSONObject.get("ip_src_addr").toString(), "172.20.3.28");
       Assert.assertEquals(metronJSONObject.get("ip_dst_addr").toString(), "255.255.255.255");
+      Assert.assertEquals(metronJSONObject.get("mac_src_addr").toString(), "84:2b:2b:86:62:43");
+      Assert.assertEquals(metronJSONObject.get("mac_dst_addr").toString(), "ff:ff:ff:ff:ff:ff");
 
       Assert.assertEquals(metronJSONObject.get("host_name").toString(), "Q0619");
       Assert.assertEquals(metronJSONObject.get("client_identifier").toString(), "01:84:2b:2b:86:62:43");
+
+      Assert.assertEquals(metronJSONObject.get("op").toString(), "1 (BOOTPREQUEST)");
+
+      Assert.assertEquals(metronJSONObject.get("ciaddr").toString(), "172.20.3.28");
+      Assert.assertEquals(metronJSONObject.get("yiaddr").toString(), "0.0.0.0");
+      Assert.assertEquals(metronJSONObject.get("siaddr").toString(), "0.0.0.0");
+      Assert.assertEquals(metronJSONObject.get("giaddr").toString(), "0.0.0.0");
 
       Assert.assertEquals(metronJSONObject.get("time").toString(), "2017-04-21 15:43:17.673");
     }
@@ -71,6 +80,15 @@ public class BasicDHCPDumpParserTest extends TestCase {
 
       Assert.assertEquals(metronJSONObject.get("ip_src_addr").toString(), "172.20.3.7");
       Assert.assertEquals(metronJSONObject.get("ip_dst_addr").toString(), "255.255.255.255");
+      Assert.assertEquals(metronJSONObject.get("mac_src_addr").toString(), "20:fd:f1:71:6d:f1");
+      Assert.assertEquals(metronJSONObject.get("mac_dst_addr").toString(), "ff:ff:ff:ff:ff:ff");
+
+      Assert.assertEquals(metronJSONObject.get("op").toString(), "2 (BOOTPREPLY)");
+
+      Assert.assertEquals(metronJSONObject.get("ciaddr").toString(), "172.20.3.56");
+      Assert.assertEquals(metronJSONObject.get("yiaddr").toString(), "0.0.0.0");
+      Assert.assertEquals(metronJSONObject.get("siaddr").toString(), "0.0.0.0");
+      Assert.assertEquals(metronJSONObject.get("giaddr").toString(), "172.20.3.7");
 
       Assert.assertEquals(metronJSONObject.get("time").toString(), "2017-04-21 15:44:35.456");
     }

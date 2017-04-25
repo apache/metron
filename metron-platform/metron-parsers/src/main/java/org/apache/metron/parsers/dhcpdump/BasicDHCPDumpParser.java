@@ -146,7 +146,7 @@ public class BasicDHCPDumpParser  extends BasicParser {
          * Input example
          * OP: 1 (BOOTPREQUEST)
          */
-        keyValueEvent.put("op", s.split(":")[1].split(" ")[1].trim());
+        keyValueEvent.put("op", s.split(":")[1].trim());
       } else if (s.startsWith("OPTION:")) {
         /**
          * Input examples
