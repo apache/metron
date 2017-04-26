@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.stellar;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.Token;
 import org.apache.metron.common.dsl.VariableResolver;
@@ -264,55 +265,8 @@ public class StellarCompiler extends StellarBaseListener {
   @Override
   public void exitStringLiteral(StellarParser.StringLiteralContext ctx) {
     String rawToken = ctx.getText();
-    String literal = unquoteLiteral(rawToken);
-
-    expression.tokenDeque.push(new Token<>(literal, String.class));
-  }
-
-  public String unquoteLiteral(String rawToken) {
-
-    if(rawToken.length() == 2) {
-      return "";
-    }
-    char prevChar = rawToken.charAt(1);
-    boolean inMiddleOfQuote = prevChar == '\\';
-    String ret = prevChar == '\\'?"":("" + prevChar);
-    char quote = rawToken.charAt(0);
-    for(int i = 2;i < rawToken.length() - 1;++i ) {
-      char currChar = rawToken.charAt(i);
-      boolean isEscapedChar = currChar == quote || currChar == '\\' || currChar == 'r' | currChar == 'n' | currChar == 't';
-      if(inMiddleOfQuote &&  isEscapedChar) {
-        //escape the quote
-        switch(currChar) {
-          case 'r':
-            ret += '\r';
-            break;
-          case 'n':
-            ret += '\n';
-            break;
-          case 't':
-            ret += '\t';
-            break;
-          case '\\':
-            ret += '\\';
-            break;
-          default:
-            ret += quote;
-            break;
-        }
-        inMiddleOfQuote = false;
-      }
-      else if(currChar == '\\') {
-        //if we see an escape operator, then we want to defer until the next character
-        inMiddleOfQuote = true;
-        continue;
-      }
-      else {
-        inMiddleOfQuote = false;
-        ret += currChar;
-      }
-    }
-    return ret;
+    String literal = StringEscapeUtils.UNESCAPE_JSON.translate(rawToken);
+    expression.tokenDeque.push(new Token<>(literal.substring(1, literal.length()-1), String.class));
   }
 
   @Override
