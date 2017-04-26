@@ -20,6 +20,11 @@ created to do simple computation and transformation.
 
 The query language supports the following:
 * Referencing fields in the enriched JSON
+* String literals are quoted with either `'` or `"`.
+* String literals support escaping for `'`, `"`, `\t`, `\r`, `\n`, and backslash 
+  * The literal `'\'foo\''` would represent `'foo'`
+  * The literal `"\"foo\""` would represent `"foo"`
+  * The literal `'foo \\ bar'` would represent `foo \ bar`
 * Simple boolean operations: `and`, `not`, `or`
 * Simple arithmetic operations: `*`, `/`, `+`, `-` on real numbers or integers
 * Simple comparison operations `<`, `>`, `<=`, `>=`
