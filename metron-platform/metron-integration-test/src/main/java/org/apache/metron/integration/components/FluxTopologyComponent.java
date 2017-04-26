@@ -34,6 +34,7 @@ import org.apache.storm.flux.model.ExecutionContext;
 import org.apache.storm.flux.model.TopologyDef;
 import org.apache.storm.flux.parser.FluxParser;
 import org.apache.storm.thrift.TException;
+import org.apache.storm.utils.Utils;
 import org.apache.zookeeper.data.Stat;
 import org.junit.Assert;
 import org.slf4j.Logger;
@@ -169,6 +170,7 @@ public class FluxTopologyComponent implements InMemoryComponent {
           }
           else {
             assassinateSlots();
+            Utils.threadDump();
             LOG.error("Storm slots didn't shut down entirely cleanly *sigh*.  " +
                     "I gave them the old one-two-skadoo and killed the slots with prejudice.  " +
                     "If tests fail, we'll have to find a better way of killing them.", ise);
