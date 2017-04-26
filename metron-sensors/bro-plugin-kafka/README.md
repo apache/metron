@@ -43,7 +43,7 @@ The following examples highlight different ways that the plugin can be used.  Si
 The goal in this example is to send all HTTP and DNS records to a Kafka topic named `bro`. 
  * Any configuration value accepted by librdkafka can be added to the `kafka_conf` configuration table.  
  * By defining `topic_name` all records will be sent to the same Kafka topic.
- * By providing a set of logs via `logs_to_send`.
+ * Defining `logs_to_send` will ensure that only HTTP and DNS records are sent.
 
 ```
 @load Bro/Kafka/logs-to-kafka.bro
@@ -105,32 +105,40 @@ As documented in [METRON-285](https://issues.apache.org/jira/browse/METRON-285) 
 @load Bro/Kafka/logs-to-kafka.bro
 redef Kafka::topic_name = "bro";
 redef Kafka::tag_json = T;
-redef Kafka::kafka_conf = table(
-    ["metadata.broker.list"] = "localhost:9092"
-);
-
 
 event bro_init() &priority=-5
 {
     # handles HTTP
-    Log::add_filter(HTTP::LOG, [$name = "kafka-http",
+    Log::add_filter(HTTP::LOG, [
+        $name = "kafka-http",
         $writer = Log::WRITER_KAFKAWRITER,
         $pred(rec: HTTP::Info) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
-        $config = table(["stream_id"] = fmt("%s", HTTP::LOG))
+        $config = table(
+            ["stream_id"] = fmt("%s", HTTP::LOG),
+            ["metadata.broker.list"] = "localhost:9092"
+        )
     ]);
 
     # handles DNS
-    Log::add_filter(DNS::LOG, [$name = "kafka-dns",
+    Log::add_filter(DNS::LOG, [
+        $name = "kafka-dns",
         $writer = Log::WRITER_KAFKAWRITER,
         $pred(rec: DNS::Info) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
-        $config = table(["stream_id"] = fmt("%s", DNS::LOG))
+        $config = table(
+            ["stream_id"] = fmt("%s", DNS::LOG),
+            ["metadata.broker.list"] = "localhost:9092"
+        )
     ]);
 
     # handles Conn
-    Log::add_filter(Conn::LOG, [$name = "kafka-conn",
+    Log::add_filter(Conn::LOG, [
+        $name = "kafka-conn",
         $writer = Log::WRITER_KAFKAWRITER,
         $pred(rec: Conn::Info) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
-        $config = table(["stream_id"] = fmt("%s", Conn::LOG))
+        $config = table(
+            ["stream_id"] = fmt("%s", Conn::LOG),
+            ["metadata.broker.list"] = "localhost:9092"
+        )
     ]);
 }
 ```
