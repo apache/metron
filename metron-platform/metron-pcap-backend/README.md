@@ -144,7 +144,7 @@ execute on each packet.  To interact with the packet, a few variables are expose
 Filtering can be done both by the packet header as well as via a binary regular expression
 which can be run on the packet payload itself.  This filter can be specified via:
 * The `-pf` or `--packet_filter` options for the fixed query filter
-* The `BYTEARRAY_MATCH(pattern, data)` Stellar function.
+* The `BYTEARRAY_MATCHER(pattern, data)` Stellar function.
 The first argument is the regex pattern and the second argument is the data.
 The packet data will be exposed via the`packet` variable in Stellar.
 

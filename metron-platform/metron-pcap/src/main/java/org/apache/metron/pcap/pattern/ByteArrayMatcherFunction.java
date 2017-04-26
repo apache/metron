@@ -30,7 +30,7 @@ import java.util.concurrent.ExecutionException;
         ,name="MATCHER"
         ,description = "Determine if a regex defined sequence of bytes (or strings) exists in a byte array."
         ,params = {
-            "binary_regex - Regex defining what to look for in the byte array."
+            "binary_regex - Regex defining what to look for in the byte array. Note syntax guide for binary regex is at https://github.com/nishihatapalmer/byteseek/blob/master/sequencesyntax.md"
            ,"data - The byte array to evaluate."
                   }
         ,returns="result: Boolean indicating whether or not the byte array is a match."

@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import javax.xml.bind.DatatypeConverter;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
@@ -34,6 +35,7 @@ public class ByteArrayMatchingUtilTest {
   public static byte[] DEADBEEF = new byte[] {(byte) 0xde, (byte) 0xad, (byte) 0xbe, (byte) 0xef};
   public static byte[] DEADBEEF_DONUTHOLE = new byte[] {(byte) 0xde, (byte) 0xad, (byte)0x00, (byte)0x00, (byte) 0xbe, (byte) 0xef};
   public static byte[] ALLFS = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
+  public static byte[] REALPACKET = DatatypeConverter.parseHexBinary("d4c3b2a1020004000000000000000000ffff0000010000000dfbea560923090062000000620000000a002700000008002796a47a0800451000547cdf40004006b7e9c0a84279c0a842010016d9ef129035948b92f427801801f5061200000101080a0014f5d511bdf9915bf6b70140db6d4fb551229ef07d2f56abd814bc56420489ca38e7faf8cec3d4");
 
   interface Evaluator {
     boolean evaluate(String pattern, byte[] data);
@@ -94,6 +96,12 @@ public class ByteArrayMatchingUtilTest {
 
   @Test
   public void testBytesMatch() throws ExecutionException {
+    Assert.assertTrue(strategy.evaluate("2f56abd814bc56420489ca38e7faf8cec3d4", REALPACKET));
+    Assert.assertTrue(strategy.evaluate("2f56..14bc56420489ca38e7faf8cec3d4", REALPACKET));
+    Assert.assertTrue(strategy.evaluate("(2f56)(.){2}(14bc56420489ca38e7faf8cec3d4)", REALPACKET));
+    Assert.assertFalse(strategy.evaluate("(3f56)(.){2}(14bc56420489ca38e7faf8cec3d4)", REALPACKET));
+    Assert.assertFalse(strategy.evaluate("3f56abd814bc56420489ca38e7faf8cec3d4", REALPACKET));
+    Assert.assertTrue(strategy.evaluate("deadbeef", join(DEADBEEF, "metron".getBytes())));
     Assert.assertTrue(strategy.evaluate("deadbeef", join(DEADBEEF, "metron".getBytes())));
     Assert.assertTrue(strategy.evaluate("deadbeef `metron`", join(DEADBEEF, "metron".getBytes())));
     Assert.assertTrue(strategy.evaluate("deadbeef `metron`", join(DEADBEEF, "metronjones".getBytes())));

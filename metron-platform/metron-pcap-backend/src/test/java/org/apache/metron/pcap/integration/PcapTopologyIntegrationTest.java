@@ -109,6 +109,13 @@ public class PcapTopologyIntegrationTest {
     BytesWritable value = new BytesWritable();
     while (reader.next(key, value)) {
       byte[] pcapWithHeader = value.copyBytes();
+      //if you are debugging and want the hex dump of the packets, uncomment the following:
+
+      //for(byte b : pcapWithHeader) {
+      //  System.out.print(String.format("%02x", b));
+      //}
+      //System.out.println("");
+
       long calculatedTs = PcapHelper.getTimestamp(pcapWithHeader);
       {
         List<PacketInfo> info = PcapHelper.toPacketInfo(pcapWithHeader);
@@ -428,6 +435,25 @@ public class PcapTopologyIntegrationTest {
                         }, withHeaders)
                 )
         );
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PcapMerger.merge(baos, Iterables.partition(results, 1).iterator().next());
+        Assert.assertTrue(baos.toByteArray().length > 0);
+      }
+      {
+        //test with query filter and byte array matching
+        Iterable<byte[]> results =
+                job.query(new Path(outDir.getAbsolutePath())
+                        , new Path(queryDir.getAbsolutePath())
+                        , getTimestamp(0, pcapEntries)
+                        , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
+                        , 10
+                        , "BYTEARRAY_MATCHER('2f56abd814bc56420489ca38e7faf8cec3d4', packet)"
+                        , new Configuration()
+                        , FileSystem.get(new Configuration())
+                        , new QueryPcapFilter.Configurator()
+                );
+        assertInOrder(results);
+        Assert.assertEquals(1, Iterables.size(results));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PcapMerger.merge(baos, Iterables.partition(results, 1).iterator().next());
         Assert.assertTrue(baos.toByteArray().length > 0);
