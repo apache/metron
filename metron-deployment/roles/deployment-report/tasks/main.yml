@@ -32,6 +32,6 @@
       - "   Sensor Status   @ http://{{ groups.sensors[0] }}:2812"
       - "   Zookeeper       @ {{ zookeeper_url }}"
       - "   Kafka           @ {{ kafka_broker_url }}"
-      - For additional information, see https://metron.incubator.apache.org/'
+      - For additional information, see https://metron.apache.org/'
 
 - debug: var=Success

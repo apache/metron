@@ -59,6 +59,10 @@ python --version 2>&1
 echo "--"
 mvn --version
 
+# docker
+echo "--"
+docker --version
+
 # operating system
 echo "--"
 uname -a
@@ -73,7 +77,7 @@ case "${OSTYPE}" in
     cat /proc/cpuinfo | grep -i '^processor' | wc -l | awk '{print "Total Physical Processors: " $0}'
     cat /proc/cpuinfo | grep -i cores | cut -d: -f2 | awk '{corecount+=$1} END {print "Total cores: " corecount}'
     echo "Disk information:"
-    df -h | grep "^/" 
+    df -h | grep "^/"
     ;;
   darwin*)
     sysctl hw.memsize | awk '{print "Total System Memory = " $2/1048576 " MB"}'
@@ -82,10 +86,9 @@ case "${OSTYPE}" in
     sysctl hw.physicalcpu | cut -d: -f2 | awk '{print "Total Physical Processors:" $0}'
     sysctl machdep.cpu | grep 'machdep.cpu.core_count' | cut -d: -f2 | cut -d\@ -f2 | awk '{print "Total cores:" $0}'
     echo "Disk information:"
-    df -h | grep "^/" 
+    df -h | grep "^/"
     ;;
   *)
     echo "Unable to detect system resources for ${OSTYPE}"
     ;;
 esac
-

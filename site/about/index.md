@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Apache Metron (Incubating) About
+title: Apache Metron About
 ---
 
 <section class="hero-second-level no-padding">
@@ -36,7 +36,7 @@ title: Apache Metron (Incubating) About
         <h2>Evolution</h2>
     </div>
     <div>
-        <img class="img82" src="/img/metron_evolution.png" alt="What Apache Metron (Incubating) Does" style="margin:0 auto;left: 0px;display:block;">
+        <img class="img82" src="/img/metron_evolution.png" alt="What Apache Metron Does" style="margin:0 auto;left: 0px;display:block;">
     </div>
     <div class="hover-btn text-center">
             <a class="button-default" href="https://cwiki.apache.org/confluence/display/METRON/Evolution+of+Apache+Metron" target="new">LEARN MORE</a>

@@ -43,26 +43,32 @@ public class StormCLIWrapper {
   }
 
   public int startParserTopology(String name) throws RestException {
+    kinit();
     return runCommand(getParserStartCommand(name));
   }
 
   public int stopParserTopology(String name, boolean stopNow) throws RestException {
+    kinit();
     return runCommand(getStopCommand(name, stopNow));
   }
 
   public int startEnrichmentTopology() throws RestException {
+    kinit();
     return runCommand(getEnrichmentStartCommand());
   }
 
   public int stopEnrichmentTopology(boolean stopNow) throws RestException {
+    kinit();
     return runCommand(getStopCommand(ENRICHMENT_TOPOLOGY_NAME, stopNow));
   }
 
   public int startIndexingTopology() throws RestException {
+    kinit();
     return runCommand(getIndexingStartCommand());
   }
 
   public int stopIndexingTopology(boolean stopNow) throws RestException {
+    kinit();
     return runCommand(getStopCommand(INDEXING_TOPOLOGY_NAME, stopNow));
   }
 
@@ -148,6 +154,15 @@ public class StormCLIWrapper {
       stormClientVersionInstalled = lines.get(1).replaceFirst("Storm ", "");
     }
     return stormClientVersionInstalled;
+  }
+
+  protected void kinit() throws RestException {
+    if (environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)) {
+      String keyTabLocation = environment.getProperty(MetronRestConstants.KERBEROS_KEYTAB_SPRING_PROPERTY);
+      String userPrincipal = environment.getProperty(MetronRestConstants.KERBEROS_PRINCIPLE_SPRING_PROPERTY);
+      String[] kinitCommand = {"kinit", "-kt", keyTabLocation, userPrincipal};
+      runCommand(kinitCommand);
+    }
   }
 
 

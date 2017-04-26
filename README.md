@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/apache/incubator-metron.svg?branch=master)](https://travis-ci.org/apache/incubator-metron)
  
-# Apache Metron (Incubating)
+# Apache Metron
 
 Metron integrates a variety of open source big data technologies in order
 to offer a centralized tool for security monitoring and analysis. Metron
@@ -9,7 +9,7 @@ storage, advanced behavioral analytics and data enrichment, while applying
 the most current threat intelligence information to security telemetry
 within a single platform.
 
-For the latest information, please visit our website at http://metron.incubator.apache.org/
+For the latest information, please visit our website at http://metron.apache.org/
  
 Metron can be divided into 4 areas:
 
@@ -52,7 +52,7 @@ enable rapid detection and rapid response for advanced security threats.
 
 # Obtaining Metron
 
-To obtain a release of Metron, please visit http://metron.incubator.apache.org/documentation/#releases
+To obtain a release of Metron, please visit http://metron.apache.org/documentation/#releases
 
 This repository is a collection of submodules for convenience which is regularly
 updated to point to the latest versions. Github provides multiple ways to obtain

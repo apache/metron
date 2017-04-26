@@ -218,6 +218,20 @@
             <scriptType>PYTHON</scriptType>
           </commandScript>
         </component>
+
+        <component>
+          <name>METRON_CLIENT</name>
+          <displayName>Metron Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <commandScript>
+            <script>scripts/metron_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+        </component>
+
       </components>
 
       <themes>

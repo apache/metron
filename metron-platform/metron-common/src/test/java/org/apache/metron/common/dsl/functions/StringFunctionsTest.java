@@ -67,40 +67,40 @@ public class StringFunctionsTest {
   }
 
   @Test
-  public void testLeftRightFills() throws Exception{
+  public void testLeftRightFills() throws Exception {
     final Map<String, Object> variableMap = new HashMap<String, Object>() {{
       put("foo", null);
       put("bar", null);
-      put("notInt","oh my");
+      put("notInt", "oh my");
     }};
 
     //LEFT
-    Object left = run("FILL_LEFT('123','X', 10)",new HashedMap());
+    Object left = run("FILL_LEFT('123','X', 10)", new HashedMap());
     Assert.assertNotNull(left);
-    Assert.assertEquals(10,((String)left).length());
-    Assert.assertEquals("XXXXXXX123",(String)left);
+    Assert.assertEquals(10, ((String) left).length());
+    Assert.assertEquals("XXXXXXX123", (String) left);
 
     //RIGHT
     Object right = run("FILL_RIGHT('123','X', 10)", new HashedMap());
     Assert.assertNotNull(right);
-    Assert.assertEquals(10,((String)right).length());
-    Assert.assertEquals("123XXXXXXX",(String)right);
+    Assert.assertEquals(10, ((String) right).length());
+    Assert.assertEquals("123XXXXXXX", (String) right);
 
     //INPUT ALREADY LENGTH
     Object same = run("FILL_RIGHT('123','X', 3)", new HashedMap());
-    Assert.assertEquals(3,((String)same).length());
-    Assert.assertEquals("123",(String)same);
+    Assert.assertEquals(3, ((String) same).length());
+    Assert.assertEquals("123", (String) same);
 
     //INPUT BIGGER THAN LENGTH
     Object tooBig = run("FILL_RIGHT('1234567890','X', 3)", new HashedMap());
-    Assert.assertEquals(10,((String)tooBig).length());
-    Assert.assertEquals("1234567890",(String)tooBig);
+    Assert.assertEquals(10, ((String) tooBig).length());
+    Assert.assertEquals("1234567890", (String) tooBig);
 
     //NULL VARIABLES
     boolean thrown = false;
-    try{
+    try {
       run("FILL_RIGHT('123',foo,bar)", variableMap);
-    }catch(ParseException pe) {
+    } catch (ParseException pe) {
       thrown = true;
       Assert.assertTrue(pe.getMessage().contains("are both required"));
     }
@@ -108,9 +108,9 @@ public class StringFunctionsTest {
     thrown = false;
 
     // NULL LENGTH
-    try{
+    try {
       run("FILL_RIGHT('123','X',bar)", variableMap);
-    }catch(ParseException pe) {
+    } catch (ParseException pe) {
       thrown = true;
       Assert.assertTrue(pe.getMessage().contains("are both required"));
     }
@@ -118,9 +118,9 @@ public class StringFunctionsTest {
     thrown = false;
 
     // NULL FILL
-    try{
+    try {
       run("FILL_RIGHT('123',foo, 7)", variableMap);
-    }catch(ParseException pe) {
+    } catch (ParseException pe) {
       thrown = true;
       Assert.assertTrue(pe.getMessage().contains("are both required"));
     }
@@ -130,7 +130,7 @@ public class StringFunctionsTest {
     // NON INTEGER LENGTH
     try {
       run("FILL_RIGHT('123','X', 'z' )", new HashedMap());
-    }catch(ParseException pe){
+    } catch (ParseException pe) {
       thrown = true;
       Assert.assertTrue(pe.getMessage().contains("not a valid Integer"));
     }
@@ -140,7 +140,7 @@ public class StringFunctionsTest {
     // EMPTY STRING PAD
     try {
       Object returnValue = run("FILL_RIGHT('123','', 10 )", new HashedMap());
-    }catch(ParseException pe) {
+    } catch (ParseException pe) {
       thrown = true;
       Assert.assertTrue(pe.getMessage().contains("cannot be an empty"));
     }
@@ -150,7 +150,7 @@ public class StringFunctionsTest {
     //MISSING LENGTH PARAMETER
     try {
       run("FILL_RIGHT('123',foo)", variableMap);
-    }catch(ParseException pe){
+    } catch (ParseException pe) {
       thrown = true;
       Assert.assertTrue(pe.getMessage().contains("expects three"));
     }
@@ -160,8 +160,8 @@ public class StringFunctionsTest {
   @Test
   public void shannonEntropyTest() throws Exception {
     //test empty string
-    Assert.assertEquals(0.0, (Double)run("STRING_ENTROPY('')", new HashMap<>()), 0.0);
-    Assert.assertEquals(0.0, (Double)run("STRING_ENTROPY(foo)", ImmutableMap.of("foo", "")), 0.0);
+    Assert.assertEquals(0.0, (Double) run("STRING_ENTROPY('')", new HashMap<>()), 0.0);
+    Assert.assertEquals(0.0, (Double) run("STRING_ENTROPY(foo)", ImmutableMap.of("foo", "")), 0.0);
 
     /*
     Now consider the string aaaaaaaaaabbbbbccccc or 10 a's followed by 5 b's and 5 c's.
@@ -173,7 +173,7 @@ public class StringFunctionsTest {
       -p(a)*log_2(p(a)) - p(b)*log_2(p(b)) - p(c)*log_2(p(c)) =
       -0.5*-1 - 0.25*-2 - 0.25*-2 = 1.5
      */
-    Assert.assertEquals(1.5, (Double)run("STRING_ENTROPY(foo)", ImmutableMap.of("foo", "aaaaaaaaaabbbbbccccc")), 0.0);
+    Assert.assertEquals(1.5, (Double) run("STRING_ENTROPY(foo)", ImmutableMap.of("foo", "aaaaaaaaaabbbbbccccc")), 0.0);
   }
 
   @Test
@@ -206,5 +206,226 @@ public class StringFunctionsTest {
   @Test(expected = ParseException.class)
   public void testFormatWithMissingArguments() throws Exception {
     run("FORMAT('missing arg: %d')", Collections.emptyMap());
+  }
+
+
+  /**
+   * CHOMP StringFunction
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testChomp() throws Exception {
+    Assert.assertEquals("abc",  run("CHOMP('abc')", new HashedMap()));
+    Assert.assertEquals("abc",  run("CHOMP(msg)", ImmutableMap.of("msg", "abc\r\n")));
+    Assert.assertEquals("",     run("CHOMP(msg)", ImmutableMap.of("msg", "\n")));
+    Assert.assertEquals("",     run("CHOMP('')", new HashedMap()));
+    Assert.assertEquals(null,   run("CHOMP(msg)", new HashedMap()));
+    Assert.assertEquals(null,   run("CHOMP(null)", new HashedMap()));
+
+    // No input
+    boolean thrown = false;
+    try {
+      run("CHOMP()", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("missing argument"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+
+    // Integer input
+    try {
+      run("CHOMP(123)", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("cannot be cast"));
+    }
+    Assert.assertTrue(thrown);
+
+  }
+
+  /**
+   * CHOP StringFunction
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testChop() throws Exception {
+    Assert.assertEquals("ab",   run("CHOP('abc')", new HashedMap()));
+    Assert.assertEquals(null,   run("CHOP(null)", new HashedMap()));
+    Assert.assertEquals(null,   run("CHOP(msg)", new HashedMap()));
+    Assert.assertEquals("abc",  run("CHOP(msg)", ImmutableMap.of("msg", "abc\r\n")));
+    Assert.assertEquals("",     run("CHOP(msg)", ImmutableMap.of("msg", "")));
+    Assert.assertEquals("",     run("CHOP(msg)", ImmutableMap.of("msg", "\n")));
+    Assert.assertEquals("",     run("CHOP('')", new HashedMap()));
+
+    // No input
+    boolean thrown = false;
+    try {
+      run("CHOP()", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("missing argument"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+
+    // Integer input
+    try {
+      run("CHOP(123)", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("cannot be cast"));
+    }
+    Assert.assertTrue(thrown);
+
+  }
+
+  /**
+   * PREPEND_IF_MISSING StringFunction
+   */
+  @Test
+  public void testPrependIfMissing() throws Exception {
+    Assert.assertEquals("xyzabc",     run("PREPEND_IF_MISSING('abc', 'xyz')", new HashedMap()));
+    Assert.assertEquals("xyzXYZabc",  run("PREPEND_IF_MISSING('XYZabc', 'xyz', 'mno')", new HashedMap()));
+    Assert.assertEquals("mnoXYZabc",  run("PREPEND_IF_MISSING('mnoXYZabc', 'xyz', 'mno')", new HashedMap()));
+    Assert.assertEquals(null,         run("PREPEND_IF_MISSING(null, null, null)", new HashedMap()));
+    Assert.assertEquals("xyz",        run("PREPEND_IF_MISSING('', 'xyz', null)", new HashedMap()));
+
+    // No input
+    boolean thrown = false;
+    try {
+      run("PREPEND_IF_MISSING()", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("incorrect arguments"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+
+    // Incorrect number of arguments - 1
+    try {
+      run("PREPEND_IF_MISSING('abc')", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("incorrect arguments"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+
+    // Incorrect number of arguments - 2
+    try {
+      run("PREPEND_IF_MISSING('abc', 'def', 'ghi', 'jkl')", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("incorrect arguments"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+
+    // Integer input
+    try {
+      run("PREPEND_IF_MISSING(123, 'abc')", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("cannot be cast"));
+    }
+    Assert.assertTrue(thrown);
+
+  }
+
+  /**
+   * APPEND_IF_MISSING StringFunction
+   */
+  @Test
+  public void testAppendIfMissing() throws Exception {
+    Assert.assertEquals("apachemetron",   run("APPEND_IF_MISSING('apache', 'metron')", new HashedMap()));
+    Assert.assertEquals("abcXYZxyz",      run("APPEND_IF_MISSING('abcXYZ', 'xyz', 'mno')", new HashedMap()));
+    Assert.assertEquals(null,             run("APPEND_IF_MISSING(null, null, null)", new HashedMap()));
+    Assert.assertEquals("xyz",            run("APPEND_IF_MISSING('', 'xyz', null)", new HashedMap()));
+
+    // No input
+    boolean thrown = false;
+    try {
+      run("APPEND_IF_MISSING()", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("incorrect arguments"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+
+    // Incorrect number of arguments - 1
+    try {
+      run("APPEND_IF_MISSING('abc')", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("incorrect arguments"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+
+    // Incorrect number of arguments - 2
+    try {
+      run("APPEND_IF_MISSING('abc', 'def', 'ghi', 'jkl')", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("incorrect arguments"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+
+    // Integer input
+    try {
+      run("APPEND_IF_MISSING(123, 'abc')", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("cannot be cast"));
+    }
+    Assert.assertTrue(thrown);
+
+  }
+
+  /**
+   * COUNT_MATCHES StringFunction
+   */
+  @Test
+  public void testCountMatches() throws Exception {
+    Assert.assertEquals(0, (int) run("COUNT_MATCHES(null, '*')", new HashedMap()));
+    Assert.assertEquals(2, (int) run("COUNT_MATCHES('apachemetron', 'e')", new HashedMap()));
+    Assert.assertEquals(2, (int) run("COUNT_MATCHES('anand', 'an')", new HashedMap()));
+    Assert.assertEquals(0, (int) run("COUNT_MATCHES('abcd', null)", new HashedMap()));
+
+    // No input
+    boolean thrown = false;
+    try {
+      run("COUNT_MATCHES()", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("incorrect arguments"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+
+    // Incorrect number of arguments - 1
+    try {
+      run("COUNT_MATCHES('abc')", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("incorrect arguments"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+
+    // Integer input
+    try {
+      run("COUNT_MATCHES(123, 456)", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("cannot be cast"));
+    }
+    Assert.assertTrue(thrown);
+
   }
 }

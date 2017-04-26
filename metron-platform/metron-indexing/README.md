@@ -125,7 +125,7 @@ topology.  As such, make sure that the number of partitions in
 the kafka topic is sufficient to handle the throughput that you expect.
 
 ## Indexing Topology
-The enrichment topology as started by the `$METRON_HOME/bin/start_elasticsearch_topology.sh` 
+The `indexing` topology as started by the `$METRON_HOME/bin/start_elasticsearch_topology.sh` 
 or `$METRON_HOME/bin/start_solr_topology.sh`
 script uses a default of one executor per bolt.  In a real production system, this should 
 be customized by modifying the flux file in

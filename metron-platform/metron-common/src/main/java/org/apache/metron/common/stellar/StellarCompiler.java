@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.stellar;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.Token;
 import org.apache.metron.common.dsl.VariableResolver;
@@ -263,7 +264,9 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitStringLiteral(StellarParser.StringLiteralContext ctx) {
-    expression.tokenDeque.push(new Token<>(ctx.getText().substring(1, ctx.getText().length() - 1), String.class));
+    String rawToken = ctx.getText();
+    String literal = StringEscapeUtils.UNESCAPE_JSON.translate(rawToken);
+    expression.tokenDeque.push(new Token<>(literal.substring(1, literal.length()-1), String.class));
   }
 
   @Override

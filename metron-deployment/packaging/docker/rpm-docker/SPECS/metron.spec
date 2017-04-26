@@ -19,7 +19,7 @@
 %define full_version        %{version}%{?_prerelease}
 %define prerelease_fmt      %{?_prerelease:.%{_prerelease}}          
 %define vendor_version      %{?_vendor_version}%{!?_vendor_version: UNKNOWN}
-%define url                 http://metron.incubator.apache.org/
+%define url                 http://metron.apache.org/
 %define base_name           metron
 %define name                %{base_name}-%{vendor_version}
 %define versioned_app_name  %{base_name}-%{version}
