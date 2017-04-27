@@ -24,6 +24,10 @@
     <name>Metron</name>
     <description>Metron Top Level Project</description>
     <url>https://metron.apache.org/</url>
+    <organization>
+        <name>The Apache Software Foundation</name>
+        <url>https://www.apache.org</url>
+    </organization>
     <modules>
             <module>metron-analytics</module>
             <module>metron-platform</module>
