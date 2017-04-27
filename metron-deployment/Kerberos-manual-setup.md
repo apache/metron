@@ -26,8 +26,8 @@ Setup
     export KAFKA_HOME="/usr/hdp/current/kafka-broker"
     export ZOOKEEPER=node1:2181
     export ELASTICSEARCH=node1:9200
+    export KAFKA=node1:6667
     export BROKERLIST=node1:6667
-
     export HDP_HOME="/usr/hdp/current"
     export KAFKA_HOME="${HDP_HOME}/kafka-broker"
     export METRON_VERSION="0.4.0"
