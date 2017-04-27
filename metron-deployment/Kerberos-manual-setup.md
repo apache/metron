@@ -72,6 +72,11 @@ Setup a KDC
   	cp -f /etc/krb5.conf /var/lib/ambari-server/resources/scripts
   	```
 
+1. Ensure the KDC can issue renewable tickets. This can be necessary on a real cluster, but should not be on full-dev. In /var/kerberos/krb5kdc/kdc.conf ensure the following is in the realm section
+   ```
+   max_renewable_life = 7d
+   ```
+
 1. Do not copy/paste this full set of commands as the `kdb5_util` command will not run as expected. Run the commands individually to ensure they all execute.  This step takes a moment. It creates the kerberos database.
 
   	```
@@ -231,12 +236,24 @@ Storm Authorization
   	kinit -kt /etc/security/keytabs/metron.headless.keytab metron@EXAMPLE.COM
   	```
 
+
 1. Create the directory `/home/metron/.storm` and switch to that directory.
 
     ```
   	mkdir /home/metron/.storm
   	cd /home/metron/.storm
   	```
+
+1. Ensure the Metron keytab is renewable.  Look for the 'R' flag from the following command
+    ```
+    klist -f
+    ```
+
+    If not present, modify the appropriate principals to allow renewable tickets.  Adjust the parameters to match desired KDC parameters
+    ```
+    kadmin.local -q "modprinc -maxlife 1days -maxrenewlife 7days +allow_renewable krbtgt/EXAMPLE.COM@EXAMPLE.COM"
+    kadmin.local -q "modprinc -maxlife 1days -maxrenewlife 7days +allow_renewable metron@EXAMPLE.COM"
+    ```
 
 1. Create a client JAAS file at `/home/metron/.storm/client_jaas.conf`.  This should look identical to the Storm client JAAS file located at `/etc/storm/conf/client_jaas.conf` except for the addition of a `Client` stanza. The `Client` stanza is used for Zookeeper. All quotes and semicolons are necessary.
 
