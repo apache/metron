@@ -77,6 +77,11 @@ Setup a KDC
    max_renewable_life = 7d
    ```
 
+   If the KDC cannot issue renewable tickets, an error will be thrown when starting Metron's Storm topologies:
+   ```
+   Exception in thread "main" java.lang.RuntimeException: java.lang.RuntimeException: The TGT found is not renewable
+   ```
+
 1. Do not copy/paste this full set of commands as the `kdb5_util` command will not run as expected. Run the commands individually to ensure they all execute.  This step takes a moment. It creates the kerberos database.
 
   	```
@@ -248,6 +253,8 @@ Storm Authorization
     ```
     klist -f
     ```
+
+
 
     If not present, modify the appropriate principals to allow renewable tickets.  Adjust the parameters to match desired KDC parameters
     ```
