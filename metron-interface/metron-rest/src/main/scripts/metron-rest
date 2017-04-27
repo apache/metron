@@ -33,15 +33,28 @@ METRON_LOG_DIR="/var/log/metron"
 METRON_PID_DIR="/var/run/metron"
 METRON_USER="metron"
 METRON_GROUP="metron"
-
+METRON_REST_PORT=8082
 METRON_SYSCONFIG="/etc/sysconfig/metron"
 if [ -f "$METRON_SYSCONFIG" ]; then
+    set -a
     . "$METRON_SYSCONFIG"
 fi
 
 PIDFILE="$METRON_PID_DIR/$NAME.pid"
 LOCKFILE=/var/lock/subsys/$NAME
-DAEMON="java -jar $METRON_HOME/lib/metron-rest-$METRON_VERSION.jar --spring.config.location=$METRON_HOME/config/rest_application.yml --spring.profiles.active=dev"
+
+# the vagrant Spring profile provides configuration values, otherwise configuration is provided by rest_application.yml
+if [[ !($METRON_SPRING_PROFILES_ACTIVE == *"vagrant"*) ]]; then
+  METRON_SPRING_OPTIONS+=" --spring.config.location=$METRON_HOME/config/rest_application.yml"
+fi
+METRON_SPRING_OPTIONS+=" --server.port=$METRON_REST_PORT"
+if [ $METRON_SPRING_PROFILES_ACTIVE ]; then
+    METRON_SPRING_OPTIONS+=" --spring.profiles.active=$METRON_SPRING_PROFILES_ACTIVE"
+fi
+if [ $METRON_JDBC_CLIENT_PATH ]; then
+    METRON_JVMFLAGS+=" -Dloader.path=$METRON_JDBC_CLIENT_PATH"
+fi
+DAEMON="java $METRON_JVMFLAGS -jar $METRON_HOME/lib/metron-rest-$METRON_VERSION.jar $METRON_SPRING_OPTIONS"
 
 #
 # start the rest application

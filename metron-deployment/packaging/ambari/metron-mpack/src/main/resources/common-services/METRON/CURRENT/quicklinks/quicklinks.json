@@ -30,9 +30,9 @@
         "component_name": "METRON_REST",
         "url":"%@://%@:%@/swagger-ui.html",
         "port":{
-          "http_property": "metron.rest.port",
+          "http_property": "metron_rest_port",
           "http_default_port": "8082",
-          "https_property": "metron.rest.port",
+          "https_property": "metron_rest_port",
           "https_default_port": "8082",
           "regex": "^(\\d+)$",
           "site": "metron-env"

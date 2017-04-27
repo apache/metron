@@ -14,6 +14,27 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-METRON_USER={{metron_user}}
-METRON_LOG_DIR={{metron_log_dir}}
-METRON_PID_DIR={{metron_pid_dir}}
+METRON_USER="{{metron_user}}"
+METRON_LOG_DIR="{{metron_log_dir}}"
+METRON_PID_DIR="{{metron_pid_dir}}"
+METRON_REST_PORT={{metron_rest_port}}
+METRON_JVMFLAGS="{{metron_jvm_flags}}"
+METRON_SPRING_PROFILES_ACTIVE="{{metron_spring_profiles_active}}"
+METRON_JDBC_DRIVER="{{metron_jdbc_driver}}"
+METRON_JDBC_URL="{{metron_jdbc_url}}"
+METRON_JDBC_USERNAME="{{metron_jdbc_username}}"
+METRON_JDBC_PASSWORD="{{metron_jdbc_password}}"
+METRON_JDBC_PLATFORM="{{metron_jdbc_platform}}"
+METRON_JDBC_CLIENT_PATH="{{metron_jdbc_client_path}}"
+METRON_TEMP_GROK_PATH="{{metron_temp_grok_path}}"
+METRON_DEFAULT_GROK_PATH="{{metron_default_grok_path}}"
+METRON_SPRING_OPTIONS="{{metron_spring_options}}"
+ZOOKEEPER="{{zookeeper_quorum}}"
+BROKERLIST="{{kafka_brokers}}"
+HDFS_URL="{{default_fs}}"
+STORM_REST_URL="{{storm_rest_addr}}"
+SECURITY_ENABLED={{security_enabled|lower}}
+{% if metron_principal_name is defined %}METRON_PRINCIPAL_NAME="{{metron_principal_name}}"
+{% endif %}
+{% if metron_keytab_path is defined %}METRON_SERVICE_KEYTAB="{{metron_keytab_path}}"
+{% endif %}

@@ -38,24 +38,13 @@ class RestMaster(Script):
 
     def configure(self, env, upgrade_type=None, config_dir=None):
         from params import params
+        if params.security_enabled:
+            params.metron_jvm_flags = format('-Djava.security.auth.login.config={client_jaas_path}')
+
         env.set_params(params)
-
-        File(format("{metron_config_path}/rest_application.yml"),
-             content=Template("rest_application.yml.j2"),
-             owner=params.metron_user,
-             group=params.metron_group
-             )
-
         File(format("/etc/sysconfig/metron"),
              content=Template("metron.j2")
              )
-
-        Directory(format("{metron_home}/rest"),
-                  create_parents=False,
-                  mode=0755,
-                  owner=params.metron_user,
-                  group=params.metron_group
-                  )
 
     def start(self, env, upgrade_type=None):
         from params import params

@@ -334,8 +334,10 @@ This package installs the Metron Rest %{metron_home}
 %defattr(-,root,root,755)
 %dir %{metron_root}
 %dir %{metron_home}
+%dir %{metron_home}/config
 %dir %{metron_home}/bin
 %dir %{metron_home}/lib
+%{metron_home}/config/rest_application.yml
 %{metron_home}/bin/metron-rest
 /etc/init.d/metron-rest
 %attr(0644,root,root) %{metron_home}/lib/metron-rest-%{full_version}.jar

@@ -91,6 +91,7 @@ configurations:
       delete.topic.enable: "true"
   - metron-env:
       parsers: "bro,snort"
+      metron_spring_profiles_active: "dev"
   - elastic-site:
       index_number_of_shards: 1
       index_number_of_replicas: 0
@@ -104,6 +105,11 @@ required_configurations:
       storm_rest_addr: "{{ groups.ambari_slave[0] }}:8744"
       es_hosts: "{{ groups.search | join(',') }}"
       zeppelin_server_url: "{{ groups.zeppelin[0] }}:9995"
+      metron_jdbc_driver: "org.h2.Driver"
+      metron_jdbc_url: "jdbc:h2:file:~/metrondb"
+      metron_jdbc_username: "root"
+      metron_jdbc_password: "root"
+      metron_jdbc_platform: "h2"
   - kibana-env:
       kibana_pid_dir: /var/run/kibana
       kibana_es_url: http://{{ groups.search[0] }}:9200

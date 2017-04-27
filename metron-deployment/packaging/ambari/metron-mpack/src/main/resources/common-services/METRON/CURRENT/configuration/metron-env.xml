@@ -77,6 +77,90 @@
         <display-name>Metron pid dir</display-name>
     </property>
     <property>
+        <name>metron_rest_port</name>
+        <value>8082</value>
+        <description>Port the REST application runs on</description>
+        <display-name>Metron REST port</display-name>
+    </property>
+    <property>
+        <name>metron_jvm_flags</name>
+        <description>JVM flags passed to Metron scripts</description>
+        <display-name>Metron JVM flags</display-name>
+        <value/>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+    <property>
+        <name>metron_spring_profiles_active</name>
+        <description>Active Spring profiles</description>
+        <display-name>Active Spring profiles</display-name>
+        <value/>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+    <property require-input="true">
+        <name>metron_jdbc_driver</name>
+        <value></value>
+        <description>Class name of the JDBC Driver used by Metron</description>
+        <display-name>Metron JDBC Driver</display-name>
+    </property>
+    <property require-input="true">
+        <name>metron_jdbc_url</name>
+        <value></value>
+        <description>JDBC Connection URL used by Metron</description>
+        <display-name>Metron JDBC URL</display-name>
+    </property>
+    <property require-input="true">
+        <name>metron_jdbc_username</name>
+        <value></value>
+        <description>Metron JDBC Username</description>
+        <display-name>Metron JDBC username</display-name>
+    </property>
+    <property require-input="true">
+        <name>metron_jdbc_password</name>
+        <value></value>
+        <description>Metron JDBC Password</description>
+        <display-name>Metron JDBC password</display-name>
+    </property>
+    <property require-input="true">
+        <name>metron_jdbc_platform</name>
+        <value></value>
+        <description>Database platform used by Metron.  One of: hsqldb, h2, oracle, mysql, postgresql</description>
+        <display-name>Metron JDBC platform</display-name>
+    </property>
+    <property>
+        <name>metron_jdbc_client_path</name>
+        <description>Path to JDBC jar for selected platform</description>
+        <display-name>Metron JDBC client path</display-name>
+        <value/>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+    <property>
+        <name>metron_temp_grok_path</name>
+        <description>Temporary local file path where grok patterns are written during testing</description>
+        <value>./patterns/temp</value>
+        <display-name>Metron temp grok path</display-name>
+    </property>
+    <property>
+        <name>metron_default_grok_path</name>
+        <description>Default HDFS directory path used when storing Grok patterns</description>
+        <value>/apps/metron/patterns</value>
+        <display-name>Metron default grok path</display-name>
+    </property>
+    <property>
+        <name>metron_spring_options</name>
+        <description>Additional Spring options not included in the rest_application.yml file</description>
+        <display-name>Metron Spring options</display-name>
+        <value/>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+    <property>
         <name>metron_topic_retention</name>
         <description>Kafka Retention in GB</description>
         <value>10</value>
