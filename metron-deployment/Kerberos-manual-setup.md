@@ -4,12 +4,14 @@ Kerberos Setup
 This document provides instructions for kerberizing Metron's Vagrant-based development environments; "Quick Dev" and "Full Dev".  These instructions do not cover the Ambari MPack or sensors.  General Kerberization notes can be found in the metron-deployment [README.md](../README.md).
 
 * [Setup](#setup)
-* [Create a KDC](#create-a-kdc)
+* [Setup a KDC](#setup-a-kdc)
 * [Enable Kerberos](#enable-kerberos)
 * [Kafka Authorization](#kafka-authorization)
 * [HBase Authorization](#hbase-authorization)
 * [Storm Authorization](#storm-authorization)
 * [Start Metron](#start-metron)
+* [Push Data](#push-data)
+* [More Information](#more-information)
 
 Setup
 -----
@@ -54,8 +56,8 @@ Setup
   	sudo -u hdfs hdfs dfs -chmod 770 /user/metron
   	```
 
-Create a KDC
-------------
+Setup a KDC
+-----------
 
 1. Install dependencies.
 
@@ -337,7 +339,11 @@ Start Metron
   	${METRON_HOME}/bin/start_elasticsearch_topology.sh
   	```
 
-1. Push some sample data to one of the parser topics. E.g for Bro we took raw data from [incubator-metron/metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput](../../metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput)
+Metron should be ready to receive data.
+
+Push Data
+---------
+1. Push some sample data to one of the parser topics. E.g for Bro we took raw data from [incubator-metron/metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput](../metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput)
 
     ```
   	cat sample-bro.txt | ${KAFKA_HOME}/kafka-broker/bin/kafka-console-producer.sh \
