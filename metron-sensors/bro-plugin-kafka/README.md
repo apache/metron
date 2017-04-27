@@ -97,9 +97,10 @@ event bro_init()
 
 ### Example 3
 
-As documented in [METRON-285](https://issues.apache.org/jira/browse/METRON-285) and [METRON-286](https://issues.apache.org/jira/browse/METRON-286), various components in Metron do not currently support IPv6.  Because of this, you may not want to send bro logs that contain IPv6 source or destination IPs into Metron.  In this example, we are assuming a somewhat standard bro configuration for sending logs into a Metron cluster, such that:
- * Each type of bro log is sent to the `bro` topic, but is tagged with the appropriate log type (such as `http`, `dns`, or `conn`).  This is done by setting `topic_name` to `bro`, setting `$path` to an empty string (or leaving it unset), and by setting `tag_json` to true.
- * The Kafka writer is set appropriately to send logs to the `bro` Kafka topic being used in your Metron cluster.  This requires that your `kafka_conf` and `$config` tables are appropriately configured.
+You may want to configure bro to filter log messages with certain characteristics from being sent to your kafka topics.  For instance, Metron currently doesn't support IPv6 source or destination IPs in the default enrichments, so it may be helpful to filter those log messages from being sent to kafka (although there are [multiple ways](#notes) to approach this).  In this example we will do that that, and are assuming a somewhat standard bro kafka plugin configuration, such that:
+ * All bro logs are sent to the `bro` topic, by configuring `Kafka::topic_name`.
+ * Each JSON message is tagged with the appropriate log type (such as `http`, `dns`, or `conn`), by setting `tag_json` to true.
+ * If the log message contains a 128 byte long source or destination IP address, the log is not sent to kafka.
 
 ```
 @load Bro/Kafka/logs-to-kafka.bro
@@ -144,10 +145,9 @@ event bro_init() &priority=-5
 ```
 
 #### Notes
- * `logs_to_send` is mutually exclusive with `$pred`, thus you must individually add a filter per log that you would like to send into Metron if you want to configure a predicate.
- * This example was specifically written to contrast examples 1 and 2, in order to provide a more comprehensive understanding of your options regarding the bro configuration.
- * `is_v6_subnet()` was added to Bro in their [2.5 release](https://www.bro.org/sphinx-git/install/release-notes.html#bro-2-5), however, because the Kafka plugin can be used on [bro 2.4](https://www.bro.org/sphinx-git/install/release-notes.html#bro-2-4) and newer, the method used in this example is preferred.
- * If you would prefer to filter IPv6 logs from within your Metron cluster you could [use Stellar](../../metron-platform/metron-common#IS_IP) to do so.  In that case, the bro logs that contain IPv6 sources and/or destinations would get written to the `bro` Kafka topic, but Stellar would filter the logs out before they were processed by the enrichment layer.  It simply depends on which option fits best into your architecture.
+ * `logs_to_send` is mutually exclusive with `$pred`, thus you must individually add a filter per log that you would like to send onto a kafka topic if you want to configure a predicate.
+ * You can also filter IPv6 logs from within your Metron cluster [using Stellar](../../metron-platform/metron-common#IS_IP).  In that case, you wouldn't apply a predicate in your bro configuration, and instead Stellar would filter the logs out before they were processed by the enrichment layer of Metron.
+ * It is also possible to use the `is_v6_subnet()` bro function in your predicate, as of their [2.5 release](https://www.bro.org/sphinx-git/install/release-notes.html#bro-2-5), however the above example should work on [bro 2.4](https://www.bro.org/sphinx-git/install/release-notes.html#bro-2-4) and newer, which has been the focus of the kafka plugin.
 
 Settings
 --------
