@@ -100,8 +100,8 @@ IDENTIFIER : IDENTIFIER_START
            ;
 
 STRING_LITERAL :
-  DOUBLE_QUOTE SCHAR* DOUBLE_QUOTE
-  | SINGLE_QUOTE SCHAR* SINGLE_QUOTE
+      SINGLE_QUOTE (~('\'' | '\\') | '\\' ('\'' | '\\' | 'r' | 'n' | 't'))* SINGLE_QUOTE
+     |DOUBLE_QUOTE (~('"' | '\\') | '\\' ('"' | '\\' | 'r' | 'n' | 't'))* DOUBLE_QUOTE
   ;
 
 // COMMENT and WS are stripped from the output token stream by sending
@@ -114,7 +114,6 @@ WS : [ \r\t\u000C\n]+ -> skip;
 fragment ZERO: '0';
 fragment FIRST_DIGIT: '1'..'9';
 fragment DIGIT: '0'..'9';
-fragment SCHAR:  ~['"\\\r\n];
 fragment D: ('d'|'D');
 fragment E: ('e'|'E');
 fragment F: ('f'|'F');

@@ -59,7 +59,7 @@ This will set up
 - Optional Kibana
 
 ### Prerequisites
-- A cluster managed by Ambari 2.4
+- A cluster managed by Ambari 2.4.2+
 - Metron RPMs available on the cluster in the /localrepo directory.  See [RPM](#rpm) for further information.
 
 ### Building Management Pack
@@ -118,6 +118,18 @@ Components in the RPMs:
 ### Prerequisites
 - Docker.  The image detailed in: `metron-deployment/packaging/docker/rpm-docker/README.md` will automatically be built (or rebuilt if necessary).
 - Artifacts for metron-platform have been produced.  E.g. `mvn clean package -DskipTests` in `metron-platform`
+
+The artifacts are required because there is a dependency on modules not expressed via Maven (we grab the resulting assemblies, but don't need the jars).  These are
+- metron-common
+- metron-data-management
+- metron-elasticsearch
+- metron-enrichment
+- metron-indexing
+- metron-parsers
+- metron-pcap-backend
+- metron-solr
+- metron-profiler
+- metron-config
 
 ### Building RPMs
 From `metron-deployment` run

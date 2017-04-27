@@ -294,3 +294,5 @@ com.squareup.okhttp:okhttp:jar:2.4.0:compile,ASLv2,https://github.com/square/okh
 com.squareup.okio:okio:jar:1.4.0:compile,ASLv2,https://github.com/square/okhttp
 org.htrace:htrace-core:jar:3.0.4:compile,ASLv2,http://htrace.incubator.apache.org/
 net.byteseek:byteseek:jar:2.0.3:compile,BSD,https://github.com/nishihatapalmer/byteseek
+org.springframework.security.kerberos:spring-security-kerberos-client:jar:1.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-security-kerberos
+org.springframework.security.kerberos:spring-security-kerberos-core:jar:1.0.1.RELEASE:compile,ASLv2,https://github.com/spring-projects/spring-security-kerberos

@@ -29,16 +29,16 @@ George Vetticaden       | gvetticaden    | PMC
 
 There are several development mailing lists for Metron
 
-* [dev@metron.incubator.apache.org](mailto:dev@metron.incubator.apache.org) - Development discussions
+* [dev@metron.apache.org](mailto:dev@metron.apache.org) - Development discussions
   with archive [here](https://mail-archives.apache.org/mod_mbox/incubator-metron-dev/)
-* [issues@metron.incubator.apache.org](mailto:issues@metron.incubator.apache.org) - Bug tracking
+* [issues@metron.apache.org](mailto:issues@metron.apache.org) - Bug tracking
   with archive [here](https://mail-archives.apache.org/mod_mbox/incubator-metron-issues/)
-* [commits@metron.incubator.apache.org](mailto:commits@metron.incubator.apache.org) - Git tracking
+* [commits@metron.apache.org](mailto:commits@metron.apache.org) - Git tracking
   with archive [here](https://mail-archives.apache.org/mod_mbox/incubator-metron-commits/)
 
 You can subscribe to the lists by sending email to
-*list*-subscribe@metron.incubator.apache.org and unsubscribe by sending email to
-*list*-unsubscribe@metron.incubator.apache.org.
+*list*-subscribe@metron.apache.org and unsubscribe by sending email to
+*list*-unsubscribe@metron.apache.org.
 
 ## Source code
 

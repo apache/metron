@@ -4,7 +4,7 @@
 
 ## Pull Request Checklist
 
-Thank you for submitting a contribution to Apache Metron (Incubating).  
+Thank you for submitting a contribution to Apache Metron.  
 Please refer to our [Development Guidelines](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=61332235) for the complete guide to follow for contributions.  
 Please refer also to our [Build Verification Guidelines](https://cwiki.apache.org/confluence/display/METRON/Verifying+Builds?show-miniview) for complete smoke testing guides.  
 
