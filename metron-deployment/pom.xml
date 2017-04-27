@@ -46,18 +46,4 @@
             </modules>
         </profile>
     </profiles>
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.metron</groupId>
-            <artifactId>metron-platform</artifactId>
-            <version>${project.parent.version}</version>
-            <type>pom</type>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.metron</groupId>
-            <artifactId>metron-analytics</artifactId>
-            <version>${project.parent.version}</version>
-            <type>pom</type>
-        </dependency>
-    </dependencies>
 </project>

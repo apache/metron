@@ -22,9 +22,35 @@ using namespace writer;
 
 KafkaWriter::KafkaWriter(WriterFrontend* frontend): WriterBackend(frontend), formatter(NULL), producer(NULL), topic(NULL)
 {
-    // TODO do we need this??
-    topic_name.assign((const char*)BifConst::Kafka::topic_name->Bytes(),
-        BifConst::Kafka::topic_name->Len());
+  // need thread-local copies of all user-defined settings coming from
+  // bro scripting land.  accessing these is not thread-safe and 'DoInit'
+  // is potentially accessed from multiple threads.
+
+  // tag_json - thread local copy
+  tag_json = BifConst::Kafka::tag_json;
+
+  // topic name - thread local copy
+  topic_name.assign(
+    (const char*)BifConst::Kafka::topic_name->Bytes(),
+    BifConst::Kafka::topic_name->Len());
+
+  // kafka_conf - thread local copy
+  Val* val = BifConst::Kafka::kafka_conf->AsTableVal();
+  IterCookie* c = val->AsTable()->InitForIteration();
+  HashKey* k;
+  TableEntryVal* v;
+  while ((v = val->AsTable()->NextEntry(k, c))) {
+
+      // fetch the key and value
+      ListVal* index = val->AsTableVal()->RecoverIndex(k);
+      string key = index->Index(0)->AsString()->CheckString();
+      string val = v->Value()->AsString()->CheckString();
+      kafka_conf.insert (kafka_conf.begin(), pair<string, string> (key, val));
+
+      // cleanup
+      Unref(index);
+      delete k;
+  }
 }
 
 KafkaWriter::~KafkaWriter()
@@ -32,6 +58,11 @@ KafkaWriter::~KafkaWriter()
 
 bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading::Field* const* fields)
 {
+    // if no global 'topic_name' is defined, use the log stream's 'path'
+    if(topic_name.empty()) {
+        topic_name = info.path;
+    }
+
     // initialize the formatter
     if(BifConst::Kafka::tag_json) {
       formatter = new threading::formatter::TaggedJSON(info.path, this, threading::formatter::JSON::TS_EPOCH);
@@ -39,8 +70,7 @@ bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading
       formatter = new threading::formatter::JSON(this, threading::formatter::JSON::TS_EPOCH);
     }
 
-    // kafka global configuration
-    string err;
+    // is debug enabled
     string debug;
     debug.assign((const char*)BifConst::Kafka::debug->Bytes(), BifConst::Kafka::debug->Len());
     bool is_debug(!debug.empty());
@@ -53,41 +83,31 @@ bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading
     else {
       reporter->Info( "Debug is turned off.");
     }
+
+    // kafka global configuration
+    string err;
     conf = RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL);
 
     // apply the user-defined settings to kafka
-    Val* val = BifConst::Kafka::kafka_conf->AsTableVal();
-    IterCookie* c = val->AsTable()->InitForIteration();
-    HashKey* k;
-    TableEntryVal* v;
-    while ((v = val->AsTable()->NextEntry(k, c))) {
+    map<string,string>::iterator i;
+    for (i = kafka_conf.begin(); i != kafka_conf.end(); ++i) {
+      string key = i->first;
+      string val = i->second;
 
-        // fetch the key and value
-        ListVal* index = val->AsTableVal()->RecoverIndex(k);
-        string key = index->Index(0)->AsString()->CheckString();
-        string val = v->Value()->AsString()->CheckString();
-
-        if(is_debug) {
-            reporter->Info("Setting '%s'='%s'", key.c_str(), val.c_str()); 
-        }
-        // apply setting to kafka
-        if (RdKafka::Conf::CONF_OK != conf->set(key, val, err)) {
-            reporter->Error("Failed to set '%s'='%s': %s", key.c_str(), val.c_str(), err.c_str());
-            return false;
-        }
-
-        // cleanup
-        Unref(index);
-        delete k;
+      // apply setting to kafka
+      if (RdKafka::Conf::CONF_OK != conf->set(key, val, err)) {
+          reporter->Error("Failed to set '%s'='%s': %s", key.c_str(), val.c_str(), err.c_str());
+          return false;
+      }
     }
 
     if(is_debug) {
         string key("debug");
         string val(debug);
-	if (RdKafka::Conf::CONF_OK != conf->set(key, val, err)) {
+        if (RdKafka::Conf::CONF_OK != conf->set(key, val, err)) {
             reporter->Error("Failed to set '%s'='%s': %s", key.c_str(), val.c_str(), err.c_str());
             return false;
-	}
+        }
     }
 
     // create kafka producer
@@ -104,9 +124,11 @@ bool KafkaWriter::DoInit(const WriterInfo& info, int num_fields, const threading
         reporter->Error("Failed to create topic handle: %s", err.c_str());
         return false;
     }
+
     if(is_debug) {
         reporter->Info("Successfully created producer.");
     }
+
     return true;
 }
 
@@ -130,8 +152,9 @@ bool KafkaWriter::DoFinish(double network_time)
 
     // successful only if all messages delivered
     if (producer->outq_len() == 0) {
-        reporter->Error("Unable to deliver %0d message(s)", producer->outq_len());
         success = true;
+    } else {
+        reporter->Error("Unable to deliver %0d message(s)", producer->outq_len());
     }
 
     delete topic;

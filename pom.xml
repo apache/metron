@@ -23,7 +23,7 @@
     <packaging>pom</packaging>
     <name>Metron</name>
     <description>Metron Top Level Project</description>
-    <url>https://metron.incubator.apache.org/</url>
+    <url>https://metron.apache.org/</url>
     <modules>
             <module>bundles-lib</module>
             <module>metron-analytics</module>

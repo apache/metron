@@ -96,7 +96,7 @@ Having successfully created your Amazon Web Services account, hopefully you will
           "   Metron  @  http://ec2-52-37-255-142.us-west-2.compute.amazonaws.com:5000",
           "   Ambari  @  http://ec2-52-37-225-202.us-west-2.compute.amazonaws.com:8080",
           "   Sensors @  ec2-52-37-225-202.us-west-2.compute.amazonaws.com on tap0",
-          "For additional information, see https://metron.incubator.apache.org/'"
+          "For additional information, see https://metron.apache.org/'"
       ]
   }
   ```

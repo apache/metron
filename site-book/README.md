@@ -6,7 +6,7 @@ Metron's Site Book is an attempt at producing documentation that is:
 - Tied to code versions
 - Highly local to the code being documented
 
-The idea is that a release manager would build the site-book (following the instructions below), then publish it from the public [Metron site](http://metron.incubator.apache.org/) as the docs for the new released version. Older site-book versions should remain available for users that need them.
+The idea is that a release manager would build the site-book (following the instructions below), then publish it from the public [Metron site](http://metron.apache.org/) as the docs for the new released version. Older site-book versions should remain available for users that need them.
 
 
 To build the book, do the following:
