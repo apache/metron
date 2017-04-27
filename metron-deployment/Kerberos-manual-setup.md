@@ -21,12 +21,22 @@ Setup
     ```
     # execute as root
     sudo su -
-    export ZOOKEEPER=node1
-    export BROKERLIST=node1
     export KAFKA_HOME="/usr/hdp/current/kafka-broker"
+    export ZOOKEEPER=node1:2181
+    export ELASTICSEARCH=node1:9200
+    export BROKERLIST=node1:6667
+
+    export HDP_HOME="/usr/hdp/current"
+    export KAFKA_HOME="${HDP_HOME}/kafka-broker"
     export METRON_VERSION="0.4.0"
     export METRON_HOME="/usr/metron/${METRON_VERSION}"
     ```
+
+1. Execute the following commands as root.
+
+	```
+	sudo su -
+	```
 
 1. Stop all Metron topologies.  They will be restarted again once Kerberos has been enabled.
 
@@ -138,7 +148,7 @@ Kafka Authorization
 
     ```
   	${KAFKA_HOME}/bin/kafka-topics.sh \
-      --zookeeper ${ZOOKEEPER}:2181 \
+      --zookeeper ${ZOOKEEPER} \
       --create \
       --topic yaf \
       --partitions 1 \
@@ -153,7 +163,7 @@ Kafka Authorization
   	for topic in bro snort enrichments indexing; do
   		${KAFKA_HOME}/bin/kafka-acls.sh \
           --authorizer kafka.security.auth.SimpleAclAuthorizer \
-          --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 \
+          --authorizer-properties zookeeper.connect=${ZOOKEEPER} \
           --add \
           --allow-principal User:${KERB_USER} \
           --topic ${topic}
@@ -168,7 +178,7 @@ Kafka Authorization
   	for group in bro_parser snort_parser yaf_parser enrichments indexing profiler; do
   		${KAFKA_HOME}/bin/kafka-acls.sh \
           --authorizer kafka.security.auth.SimpleAclAuthorizer \
-          --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 \
+          --authorizer-properties zookeeper.connect=${ZOOKEEPER} \
           --add \
           --allow-principal User:${KERB_USER} \
           --group ${group}
@@ -180,7 +190,7 @@ Kafka Authorization
     ```
   	${KAFKA_HOME}/bin/kafka-acls.sh \
         --authorizer kafka.security.auth.SimpleAclAuthorizer \
-        --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 \
+        --authorizer-properties zookeeper.connect=${ZOOKEEPER} \
         --add \
         --allow-principal User:${KERB_USER} \
         --cluster kafka-cluster
@@ -312,7 +322,11 @@ Start Metron
 
     ```
     for parser in bro snort; do
-    	${METRON_HOME}/bin/start_parser_topology.sh -z ${ZOOKEEPER}:2181 -s ${parser} -ksp SASL_PLAINTEXT -e /home/metron/storm-config.json;
+       ${METRON_HOME}/bin/start_parser_topology.sh \
+               -z ${ZOOKEEPER} \
+               -s ${parser} \
+               -ksp SASL_PLAINTEXT \
+               -e /home/metron/storm-config.json;
     done
     ```
 
@@ -326,14 +340,17 @@ Start Metron
 1. Push some sample data to one of the parser topics. E.g for Bro we took raw data from [incubator-metron/metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput](../../metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput)
 
     ```
-  	cat sample-bro.txt | ${HDP_HOME}/kafka-broker/bin/kafka-console-producer.sh --broker-list ${BROKERLIST}:6667 --security-protocol SASL_PLAINTEXT --topic bro
+  	cat sample-bro.txt | ${KAFKA_HOME}/kafka-broker/bin/kafka-console-producer.sh \
+  	        --broker-list ${BROKERLIST}
+          	--security-protocol SASL_PLAINTEXT \
+            --topic bro
   	```
 
 1. Wait a few moments for data to flow through the system and then check for data in the Elasticsearch indices. Replace yaf with whichever parser type you’ve chosen.
 
     ```
-  	curl -XGET "${ZOOKEEPER}:9200/bro*/_search"
-  	curl -XGET "${ZOOKEEPER}:9200/bro*/_count"
+  	curl -XGET "${ELASTICSEARCH}/bro*/_search"
+  	curl -XGET "${ELASTICSEARCH}/bro*/_count"
   	```
 
 1. You should have data flowing from the parsers all the way through to the indexes. This completes the Kerberization instructions
@@ -368,19 +385,28 @@ KVNO Timestamp         Principal
 #### Write data to a topic with SASL
 
 ```
-cat sample-yaf.txt | ${HDP_HOME}/kafka-broker/bin/kafka-console-producer.sh --broker-list ${BROKERLIST}:6667 --security-protocol PLAINTEXTSASL --topic yaf
+cat sample-yaf.txt | ${KAFKA_HOME}/bin/kafka-console-producer.sh \
+        --broker-list ${BROKERLIST} \
+        --security-protocol PLAINTEXTSASL \
+        --topic yaf
 ```
 
 #### View topic data from latest offset with SASL
 
 ```
-${HDP_HOME}/kafka-broker/bin/kafka-console-consumer.sh --zookeeper ${ZOOKEEPER}:2181 --security-protocol PLAINTEXTSASL --topic yaf
+${KAFKA_HOME}/bin/kafka-console-consumer.sh \
+        --zookeeper ${ZOOKEEPER} \
+        --security-protocol PLAINTEXTSASL \
+        --topic yaf
 ```
 
 #### Modify the sensor-stubs to send logs via SASL
 ```
 sed -i 's/node1:6667 --topic/node1:6667 --security-protocol PLAINTEXTSASL --topic/' /opt/sensor-stubs/bin/start-*-stub
-for sensorstub in bro snort; do service sensor-stubs stop $sensorstub; service sensor-stubs start $sensorstub; done
+for sensorstub in bro snort; do
+    service sensor-stubs stop ${sensorstub};
+    service sensor-stubs start ${sensorstub};
+done
 ```
 
 ### References
