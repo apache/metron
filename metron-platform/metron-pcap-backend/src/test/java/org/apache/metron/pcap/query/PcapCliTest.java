@@ -24,6 +24,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.common.system.Clock;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
+import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.pcap.mr.PcapJob;
@@ -70,7 +71,8 @@ public class PcapCliTest {
             "-ip_dst_addr", "192.168.1.2",
             "-ip_src_port", "8081",
             "-ip_dst_port", "8082",
-            "-protocol", "6"
+            "-protocol", "6",
+            "-packet_filter", "`casey`"
     };
     List<byte[]> pcaps = Arrays.asList(new byte[][]{asBytes("abc"), asBytes("def"), asBytes("ghi")});
     Iterator iterator = pcaps.iterator();
@@ -79,13 +81,14 @@ public class PcapCliTest {
 
     Path base_path = new Path(CliParser.BASE_PATH_DEFAULT);
     Path base_output_path = new Path(CliParser.BASE_OUTPUT_PATH_DEFAULT);
-    EnumMap<Constants.Fields, String> query = new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
-      put(Constants.Fields.SRC_ADDR, "192.168.1.1");
-      put(Constants.Fields.DST_ADDR, "192.168.1.2");
-      put(Constants.Fields.SRC_PORT, "8081");
-      put(Constants.Fields.DST_PORT, "8082");
-      put(Constants.Fields.PROTOCOL, "6");
-      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "false");
+    HashMap<String, String> query = new HashMap<String, String>() {{
+      put(Constants.Fields.SRC_ADDR.getName(), "192.168.1.1");
+      put(Constants.Fields.DST_ADDR.getName(), "192.168.1.2");
+      put(Constants.Fields.SRC_PORT.getName(), "8081");
+      put(Constants.Fields.DST_PORT.getName(), "8082");
+      put(Constants.Fields.PROTOCOL.getName(), "6");
+      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName(), "false");
+      put(PcapHelper.PacketFields.PACKET_FILTER.getName(), "`casey`");
     }};
 
     when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(iterable);
@@ -120,13 +123,13 @@ public class PcapCliTest {
 
     Path base_path = new Path("/base/path");
     Path base_output_path = new Path("/base/output/path");
-    EnumMap<Constants.Fields, String> query = new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
-      put(Constants.Fields.SRC_ADDR, "192.168.1.1");
-      put(Constants.Fields.DST_ADDR, "192.168.1.2");
-      put(Constants.Fields.SRC_PORT, "8081");
-      put(Constants.Fields.DST_PORT, "8082");
-      put(Constants.Fields.PROTOCOL, "6");
-      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "true");
+    Map<String, String> query = new HashMap<String, String>() {{
+      put(Constants.Fields.SRC_ADDR.getName(), "192.168.1.1");
+      put(Constants.Fields.DST_ADDR.getName(), "192.168.1.2");
+      put(Constants.Fields.SRC_PORT.getName(), "8081");
+      put(Constants.Fields.DST_PORT.getName(), "8082");
+      put(Constants.Fields.PROTOCOL.getName(), "6");
+      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName(), "true");
     }};
 
     when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(iterable);
@@ -162,13 +165,13 @@ public class PcapCliTest {
 
     Path base_path = new Path("/base/path");
     Path base_output_path = new Path("/base/output/path");
-    EnumMap<Constants.Fields, String> query = new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
-      put(Constants.Fields.SRC_ADDR, "192.168.1.1");
-      put(Constants.Fields.DST_ADDR, "192.168.1.2");
-      put(Constants.Fields.SRC_PORT, "8081");
-      put(Constants.Fields.DST_PORT, "8082");
-      put(Constants.Fields.PROTOCOL, "6");
-      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "true");
+    Map<String, String> query = new HashMap<String, String>() {{
+      put(Constants.Fields.SRC_ADDR.getName(), "192.168.1.1");
+      put(Constants.Fields.DST_ADDR.getName(), "192.168.1.2");
+      put(Constants.Fields.SRC_PORT.getName(), "8081");
+      put(Constants.Fields.DST_PORT.getName(), "8082");
+      put(Constants.Fields.PROTOCOL.getName(), "6");
+      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName(), "true");
     }};
 
     long startAsNanos = asNanos("2016-06-13-18:35.00", "yyyy-MM-dd-HH:mm.ss");

@@ -20,24 +20,26 @@ package org.apache.metron.pcap.query;
 import org.apache.metron.common.Constants;
 
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class FixedCliConfig extends CliConfig {
 
-  private EnumMap<Constants.Fields, String> fixedFields;
+  private Map<String, String> fixedFields;
 
   public FixedCliConfig() {
-    this.fixedFields = new EnumMap<>(Constants.Fields.class);
+    this.fixedFields = new LinkedHashMap<>();
   }
 
-  public EnumMap<Constants.Fields, String> getFixedFields() {
+  public Map<String, String> getFixedFields() {
     return fixedFields;
   }
 
-  public void setFixedFields(EnumMap<Constants.Fields, String> fixedFields) {
+  public void setFixedFields(Map<String, String> fixedFields) {
     this.fixedFields = fixedFields;
   }
 
-  public void putFixedField(Constants.Fields key, String value) {
+  public void putFixedField(String key, String value) {
     String trimmedVal = value != null ? value.trim() : null;
     if (!isNullOrEmpty(trimmedVal)) {
       this.fixedFields.put(key, value);

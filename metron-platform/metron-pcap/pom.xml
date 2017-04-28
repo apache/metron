@@ -26,6 +26,18 @@
     </properties>
     <dependencies>
         <dependency>
+            <groupId>net.byteseek</groupId>
+            <artifactId>byteseek</artifactId>
+            <version>2.0.3</version>
+            <exclusions>
+                <!-- This is a LGPL dependency of byteseek, so we need to replace/mimic it minimally -->
+                <exclusion>
+                    <groupId>net.sf.trove4j</groupId>
+                    <artifactId>trove4j</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-hbase</artifactId>
             <version>${project.parent.version}</version>
@@ -124,6 +136,13 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-common</artifactId>
             <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-common</artifactId>
+            <version>${project.parent.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
