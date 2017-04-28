@@ -15,63 +15,127 @@
 #  limitations under the License.
 #
 import argparse
+import logging
+import random
+import string
 from producer import producer
 from consumer import consumer
 
 
 def make_parser():
+    """ Creates a command-line argument parser. """
+
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p',
-                        '--producer',
+    parser.add_argument('-p', '--producer',
                         help='sniff packets and send to kafka',
                         dest='producer',
                         action='store_true',
                         default=False)
-    parser.add_argument('-c',
-                        '--consumer',
+
+    parser.add_argument('-c', '--consumer',
                         help='read packets from kafka',
                         dest='consumer',
                         action='store_true',
                         default=False)
-    parser.add_argument('-k',
-                        '--kafka',
+
+    parser.add_argument('-k', '--kafka-broker',
                         help='kafka broker(s)',
                         dest='kafka_brokers')
-    parser.add_argument('-t',
-                        '--topic',
+
+    parser.add_argument('-t', '--kafka-topic',
                         help='kafka topic',
-                        dest='topic')
-    parser.add_argument('-n',
-                        '--number',
-                        help='number of packets to consume',
-                        dest='packet_count',
-                        type=int)
-    parser.add_argument('-d',
-                        '--debug',
-                        help='debug every X packets',
-                        dest='debug',
+                        dest='kafka_topic')
+
+    parser.add_argument('-i', '--interface',
+                        help='network interface to listen on',
+                        dest='interface',
+                        metavar='NETWORK_IFACE')
+
+    parser.add_argument('-m', '--max-packets',
+                        help='stop after this number of packets',
+                        dest='max_packets',
                         type=int,
                         default=0)
-    parser.add_argument('-i',
-                        '--interface',
-                        help='interface to listen on',
-                        dest='interface')
+
+    parser.add_argument('-pp','--pretty-print',
+                        help='pretty print every X packets',
+                        dest='pretty_print',
+                        type=int,
+                        default=0)
+
+    parser.add_argument('-ll', '--log-level',
+                        help='set the log level',
+                        dest='log_level',
+                        default='INFO')
+
+    parser.add_argument('-X',
+                        type=keyval,
+                        help='define a kafka client parameter; key=value',
+                        dest='kafka_configs',
+                        action='append')
+
+    parser.add_argument('-s','--snaplen',
+                        help="snapshot length",
+                        dest='snaplen',
+                        type=int,
+                        default=65535)
+
     return parser
 
 
+def keyval(input, delim="="):
+    """ Expects a single key=value. """
+
+    keyval = input.split("=")
+    if(len(keyval) != 2):
+        raise ValueError("expect key=val")
+
+    return keyval
+
+
 def valid_args(args):
-    if args.producer and args.kafka_brokers and args.topic and args.interface:
+    """ Validates the command-line arguments. """
+
+    if args.producer and args.kafka_brokers and args.kafka_topic and args.interface:
         return True
-    elif args.consumer and args.kafka_brokers and args.topic:
+    elif args.consumer and args.kafka_brokers and args.kafka_topic:
         return True
     else:
         return False
 
 
+def clean_kafka_configs(args):
+    """ Cleans and transforms the Kafka client configs. """
+
+    # transform 'kafka_configs' args from "list of lists" to dict
+    configs = {}
+    if(args.kafka_configs is not None):
+        for keyval in args.kafka_configs:
+            configs[keyval[0]] = keyval[1:][0]
+
+    # boostrap servers can be set as a "-X bootstrap.servers=KAFKA:9092" or "-k KAFKA:9092"
+    bootstrap_key = "bootstrap.servers"
+    if(bootstrap_key not in configs):
+        configs[bootstrap_key] = args.kafka_brokers;
+
+    # if no 'group.id', generate a random one
+    group_key = "group.id"
+    if(group_key not in configs):
+        configs[group_key] = ''.join(random.choice(string.ascii_uppercase) for _ in range(12))
+
+    args.kafka_configs = configs
+
 def main():
     parser = make_parser()
     args = parser.parse_args()
 
+    # setup logging
+    numeric_log_level = getattr(logging, args.log_level.upper(), None)
+    if not isinstance(numeric_log_level, int):
+        raise ValueError('invalid log level: %s' % args.log_level)
+    logging.basicConfig(level=numeric_log_level)
+
+    clean_kafka_configs(args)
     if not valid_args(args):
         parser.print_help()
     elif args.consumer:
@@ -80,6 +144,7 @@ def main():
         producer(args)
     else:
         parser.print_help()
+
 
 if __name__ == '__main__':
     main()

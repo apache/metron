@@ -17,3 +17,4 @@
 ---
 dependencies:
   - ambari_gather_facts
+  - librdkafka
