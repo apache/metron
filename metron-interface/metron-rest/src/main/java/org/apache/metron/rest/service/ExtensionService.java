@@ -26,5 +26,17 @@ public interface ExtensionService {
     PARSER,
     STELLAR
   }
+  public enum Paths {
+    BUNDLE,
+    CONFIG,
+    ZOOKEEPER,
+    ENRICHMENTS_CONFIG_DIR,
+    INDEXING_CONFIG_DIR,
+    PARSERS_CONFIG_DIR,
+    ENRICHMENTS_CONFIG,
+    INDEXING_CONFIG,
+    PARSERS_CONFIG
+    //, SEARCH, ELASTICSEARCH, SOLR, LOGROTATE
+  }
   void install(ExtensionType extensionType, TarArchiveInputStream tgzStream) throws Exception;
 }
