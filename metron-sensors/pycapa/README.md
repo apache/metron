@@ -234,6 +234,13 @@ The probe can be used in a Kerberized environment.  Follow these additional step
       --add \
       --allow-principal User:metron \
       --topic pcap
+
+    {KAFKA_HOME}/bin/kafka-acls.sh \
+      --authorizer kafka.security.auth.SimpleAclAuthorizer \
+      --authorizer-properties zookeeper.connect=zookeeper1:2181 \
+      --add \
+      --allow-principal User:metron \
+      --group pycapa
     ```
 
 1. Use Pycapa as you normally would, but append the following three additional parameters
