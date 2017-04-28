@@ -286,8 +286,8 @@ public class ExtensionServiceImpl implements ExtensionService{
     }
     BundleProperties props = opProperties.get();
     org.apache.hadoop.fs.Path altPath = new org.apache.hadoop.fs.Path(props.getProperty("bundle.library.directory.alt"));
-
-    hdfsService.write(altPath,FileUtils.readFileToByteArray(bundlePath.toFile()));
+    org.apache.hadoop.fs.Path targetPath = new org.apache.hadoop.fs.Path(altPath, bundlePath.toFile().getName());
+    hdfsService.write(targetPath,FileUtils.readFileToByteArray(bundlePath.toFile()));
   }
 
   private static Optional<BundleProperties> getBundleProperties(CuratorFramework client) throws Exception{
