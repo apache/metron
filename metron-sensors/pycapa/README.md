@@ -228,14 +228,14 @@ The probe can be used in a Kerberized environment.  Follow these additional step
 
 1. Grant access to your Kafka topic.  In this example the topic is simply named `pcap`.
     ```
-    $KAFKA_HOME/bin/kafka-acls.sh \
+    ${KAFKA_HOME}/bin/kafka-acls.sh \
       --authorizer kafka.security.auth.SimpleAclAuthorizer \
       --authorizer-properties zookeeper.connect=zookeeper1:2181 \
       --add \
       --allow-principal User:metron \
       --topic pcap
 
-    {KAFKA_HOME}/bin/kafka-acls.sh \
+    ${KAFKA_HOME}/bin/kafka-acls.sh \
       --authorizer kafka.security.auth.SimpleAclAuthorizer \
       --authorizer-properties zookeeper.connect=zookeeper1:2181 \
       --add \
