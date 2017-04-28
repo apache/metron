@@ -26,7 +26,6 @@ Setup
     export KAFKA_HOME="/usr/hdp/current/kafka-broker"
     export ZOOKEEPER=node1:2181
     export ELASTICSEARCH=node1:9200
-    export KAFKA=node1:6667
     export BROKERLIST=node1:6667
     export HDP_HOME="/usr/hdp/current"
     export KAFKA_HOME="${HDP_HOME}/kafka-broker"
@@ -241,7 +240,6 @@ Storm Authorization
   	kinit -kt /etc/security/keytabs/metron.headless.keytab metron@EXAMPLE.COM
   	```
 
-
 1. Create the directory `/home/metron/.storm` and switch to that directory.
 
     ```
@@ -253,8 +251,6 @@ Storm Authorization
     ```
     klist -f
     ```
-
-
 
     If not present, modify the appropriate principals to allow renewable tickets.  Adjust the parameters to match desired KDC parameters
     ```
