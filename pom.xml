@@ -124,6 +124,7 @@
         <global_jackson_version>2.7.4</global_jackson_version>
         <global_errorprone_core_version>2.0.14</global_errorprone_core_version>
         <global_jar_version>3.0.2</global_jar_version>
+        <global_maven_version>[3.3.1,)</global_maven_version>
     </properties>
 
     <profiles>
@@ -317,6 +318,29 @@
                         <exclude>e2e/*.js.map</exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.4.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-versions</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>${global_maven_version}</version>
+                                </requireMavenVersion>
+                                <requireJavaVersion>
+                                    <version>${global_java_version}</version>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
