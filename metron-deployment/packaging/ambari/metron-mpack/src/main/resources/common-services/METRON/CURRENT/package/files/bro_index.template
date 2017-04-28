@@ -190,7 +190,7 @@
           "index": "not_analyzed"
         },
         "answers": {
-          "type": "ip"
+          "type": "string"
         },
         "AA": {
           "type": "boolean"
