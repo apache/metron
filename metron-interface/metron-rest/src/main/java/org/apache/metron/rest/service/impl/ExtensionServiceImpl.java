@@ -22,17 +22,26 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.guava.io.Files;
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.service.ExtensionService;
+import org.apache.metron.rest.service.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.util.function.Consumer;
 
 @Service
 public class ExtensionServiceImpl implements ExtensionService{
   final static int BUFFER_SIZ = 2048;
   final static String[] CONFIG_EXT = {"json"};
+
+  @Autowired
+  HdfsService hdfsService;
+  @Autowired
+  SensorEnrichmentConfigService sensorEnrichmentConfigService;
+  @Autowired
+  SensorIndexingConfigService sensorIndexingConfigService;
+  @Autowired
+  SensorParserConfigService sensorParserConfigService;
 
   @Override
   public void install(ExtensionType extensionType, TarArchiveInputStream tgzStream) throws Exception{
