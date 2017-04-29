@@ -43,7 +43,7 @@ public class ParserExtensionController {
 
   @ApiOperation(value = "Install a Metron Parser Extension into the system")
   @ApiResponses(value = { @ApiResponse(message = "Parser Extension Installed", code = 201)})
-  @RequestMapping(method = RequestMethod.POST)
+  @PostMapping()
   DeferredResult<ResponseEntity<Void>> install(@ApiParam(name="extensionTgz", value="Metron Parser Extension tar.gz", required=true)@RequestParam("extensionTgz") MultipartFile extensionTgz) throws RestException {
     DeferredResult<ResponseEntity<Void>> result = new DeferredResult<>();
 

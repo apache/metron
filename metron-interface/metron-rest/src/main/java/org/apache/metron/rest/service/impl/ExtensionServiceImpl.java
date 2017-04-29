@@ -112,6 +112,10 @@ public class ExtensionServiceImpl implements ExtensionService{
       if (entry.isDirectory()) {
         childPath.toFile().mkdirs();
       } else {
+        // double check that the parent exists
+        if(!childPath.getParent().toFile().exists()){
+          childPath.getParent().toFile().mkdirs();
+        }
         int count;
         byte data[] = new byte[BUFFER_SIZ];
         FileOutputStream fos = new FileOutputStream(childPath.toFile());
@@ -220,7 +224,12 @@ public class ExtensionServiceImpl implements ExtensionService{
   private void verifyExtensionBundle(Path extensionPath, Map<Paths,List<Path>> context) throws Exception{
     // check if there is a bundle at all
     // if there is verify that
-    Collection<File> bundles = FileUtils.listFiles(extensionPath.toFile(),BUNDLE_EXT,false);
+    Path libPath = extensionPath.resolve("lib");
+    if(libPath.toFile().exists() == false){
+      return;
+    }
+
+    Collection<File> bundles = FileUtils.listFiles(libPath.toFile(),BUNDLE_EXT,false);
     if(bundles.isEmpty()){
       // this is a configuration only parser
       // which is ok
@@ -278,7 +287,12 @@ public class ExtensionServiceImpl implements ExtensionService{
   }
 
   private void deployBundleToHdfs(Map<Paths,List<Path>> context) throws Exception{
-    Path bundlePath = context.get(Paths.BUNDLE).get(0);
+    List<Path> bundlePaths = context.get(Paths.BUNDLE);
+    if(bundlePaths == null || bundlePaths.size() == 0){
+      return;
+    }
+
+    Path bundlePath = bundlePaths.get(0);
     // need to get the alt lib path from the bundle
     Optional<BundleProperties> opProperties = getBundleProperties(client);
     if(!opProperties.isPresent()){
