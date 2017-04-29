@@ -23,6 +23,7 @@
     <artifactId>metron-pcap</artifactId>
     <name>metron-pcap</name>
     <description>Metron Pcap</description>
+    <url>https://metron.apache.org/</url>
     <properties>
     </properties>
     <dependencies>

@@ -23,6 +23,7 @@
     <artifactId>metron-management</artifactId>
     <name>metron-management</name>
     <description>Management Stellar functions</description>
+    <url>https://metron.apache.org/</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

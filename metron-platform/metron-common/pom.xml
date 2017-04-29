@@ -23,6 +23,7 @@
     <artifactId>metron-common</artifactId>
     <name>metron-common</name>
     <description>Components common to all enrichments</description>
+    <url>https://metron.apache.org/</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
