@@ -300,6 +300,10 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.12.4</version>
                 <configuration>
+                    <excludes>
+                      <!-- TODO need to re-enable these test per METRON-597 -->
+                      <exclude>**/ProfilerIntegrationTest.java</exclude>
+                    </excludes>
                     <!-- Skip the default running of this plug-in (or everything is run twice...see below) -->
                     <argLine>-Xmx2048m</argLine>
                     <skip>true</skip>
