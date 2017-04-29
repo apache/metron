@@ -82,14 +82,9 @@ public class TestConfig {
     try {
       // copy the correct things in
       copyResources("./src/test/resources", "./target/remote");
-      BundleProperties properties = BundleProperties.createBasicBundleProperties( "./target/remote/zookeeper/bundle.properties",new HashMap<>());
-      ByteArrayOutputStream fso = new ByteArrayOutputStream();
-      properties.storeProperties(fso,"WriteBoltIntegrationTest");
-      fso.flush();
       component = new ConfigUploadComponent()
               .withTopologyProperties(zkProperties)
-              .withGlobalConfigsPath("./target/remote/zookeeper/")
-              .withBundleProperties(fso.toByteArray());
+              .withGlobalConfigsPath("./target/remote/zookeeper/");
     }catch(Exception e) {
       e.printStackTrace();
     }
