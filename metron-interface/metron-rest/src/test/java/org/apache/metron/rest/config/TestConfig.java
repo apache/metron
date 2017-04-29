@@ -25,6 +25,8 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.metron.bundles.util.BundleProperties;
+import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaComponent;
@@ -39,10 +41,19 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.Files;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 
 @Configuration
@@ -65,12 +76,66 @@ public class TestConfig {
     return new KafkaComponent().withTopologyProperties(zkProperties);
   }
 
+  @Bean
+  public ConfigUploadComponent configUploadComponent(Properties zkProperties) {
+    ConfigUploadComponent component = null;
+    try {
+      // copy the correct things in
+      copyResources("./src/test/resources", "./target/remote");
+      BundleProperties properties = BundleProperties.createBasicBundleProperties( "./target/remote/zookeeper/bundle.properties",new HashMap<>());
+      ByteArrayOutputStream fso = new ByteArrayOutputStream();
+      properties.storeProperties(fso,"WriteBoltIntegrationTest");
+      fso.flush();
+      component = new ConfigUploadComponent()
+              .withTopologyProperties(zkProperties)
+              .withGlobalConfigsPath("./target/remote/zookeeper/")
+              .withBundleProperties(fso.toByteArray());
+    }catch(Exception e) {
+      e.printStackTrace();
+    }
+    return component;
+  }
 
+  public static void copyResources(String source, String target) throws IOException {
+    final java.nio.file.Path sourcePath = Paths.get(source);
+    final java.nio.file.Path targetPath = Paths.get(target);
+
+    Files.walkFileTree(sourcePath, new SimpleFileVisitor<Path>() {
+
+      @Override
+      public FileVisitResult preVisitDirectory(java.nio.file.Path dir, BasicFileAttributes attrs)
+              throws IOException {
+
+        java.nio.file.Path relativeSource = sourcePath.relativize(dir);
+        java.nio.file.Path target = targetPath.resolve(relativeSource);
+
+        if(!Files.exists(target)) {
+          Files.createDirectories(target);
+        }
+        return FileVisitResult.CONTINUE;
+
+      }
+
+      @Override
+      public FileVisitResult visitFile(java.nio.file.Path file, BasicFileAttributes attrs)
+              throws IOException {
+
+        java.nio.file.Path relativeSource = sourcePath.relativize(file);
+        java.nio.file.Path target = targetPath.resolve(relativeSource);
+
+        Files.copy(file, target, REPLACE_EXISTING);
+
+        return FileVisitResult.CONTINUE;
+      }
+    });
+  }
+  //@Bean(destroyMethod = "stop")
   @Bean(destroyMethod = "stop")
-  public ComponentRunner componentRunner(ZKServerComponent zkServerComponent, KafkaComponent kafkaWithZKComponent) {
+  public ComponentRunner componentRunner(ZKServerComponent zkServerComponent, KafkaComponent kafkaWithZKComponent, ConfigUploadComponent configUploadComponent) {
     ComponentRunner runner = new ComponentRunner.Builder()
       .withComponent("zk", zkServerComponent)
-      .withCustomShutdownOrder(new String[]{"search", "zk"})
+            .withComponent("configUpload", configUploadComponent)
+      .withCustomShutdownOrder(new String[]{"configUpload","search","zk"})
       .build();
     try {
       runner.start();
