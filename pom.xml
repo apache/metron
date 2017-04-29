@@ -130,6 +130,7 @@
         <global_errorprone_core_version>2.0.14</global_errorprone_core_version>
         <global_jar_version>3.0.2</global_jar_version>
         <global_surefire_version>2.18</global_surefire_version>
+        <global_maven_version>[3.3.1,)</global_maven_version>
     </properties>
 
     <profiles>
@@ -297,7 +298,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                  <excludes>
+                    <excludes>
                         <exclude>dependencies_with_url.csv</exclude>
                         <!-- In travis we need to pull down maven 3.3.9, so we should exclude it here as it is not our code. -->
                         <exclude>apache-maven-3.3.9/**</exclude>
@@ -331,7 +332,7 @@
                         <exclude>**/hbase/data/**</exclude>
                         <exclude>**/kafkazk/data/**</exclude>
                         <exclude>**/wait-for-it.sh</exclude>
-			                  <exclude>**/*.out</exclude>
+                        <exclude>**/*.out</exclude>
                         <!-- Directory containing dependencies downloaded by NPM -->
                         <exclude>node_modules/**</exclude>
                         <!-- Nodejs installed locally by the frontend-maven-plugin -->
@@ -347,6 +348,29 @@
                         <exclude>e2e/*.js.map</exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.4.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-versions</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>${global_maven_version}</version>
+                                </requireMavenVersion>
+                                <requireJavaVersion>
+                                    <version>${global_java_version}</version>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
