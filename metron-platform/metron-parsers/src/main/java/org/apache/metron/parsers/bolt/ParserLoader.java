@@ -84,7 +84,9 @@ public class ParserLoader {
         FileSystemManager fileSystemManager = VFSClassloaderUtil.generateVfs(props.getArchiveExtension());
 
         ArrayList<Class> classes = new ArrayList<>();
-        classes.add(MessageParser.class);
+        for( Map.Entry<String,String> entry : props.getBundleExtensionTypes().entrySet()){
+          classes.add(Class.forName(entry.getValue()));
+        }
         // future
         //classes.add(StellarFunction.class);
 
