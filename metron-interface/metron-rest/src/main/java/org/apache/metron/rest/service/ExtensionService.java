@@ -38,5 +38,5 @@ public interface ExtensionService {
     PARSERS_CONFIG
     //, SEARCH, ELASTICSEARCH, SOLR, LOGROTATE
   }
-  void install(ExtensionType extensionType, TarArchiveInputStream tgzStream) throws Exception;
+  void install(ExtensionType extensionType, String extensionPackageName, TarArchiveInputStream tgzStream) throws Exception;
 }

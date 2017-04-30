@@ -51,7 +51,7 @@ public class ParserExtensionController {
             new GzipCompressorInputStream(
                     new BufferedInputStream(
                             extensionTgz.getInputStream())))){
-        extensionService.install(ExtensionService.ExtensionType.PARSER,tarArchiveInputStream);
+        extensionService.install(ExtensionService.ExtensionType.PARSER, extensionTgz.getName(), tarArchiveInputStream);
     }catch(Exception e){
       throw new RestException(e);
     }
