@@ -51,6 +51,22 @@
 
 	<build>
 	  <plugins>
+          <plugin>
+              <artifactId>exec-maven-plugin</artifactId>
+              <groupId>org.codehaus.mojo</groupId>
+              <executions>
+                  <execution>
+                      <id>Generate MD</id>
+                      <phase>pre-site</phase>
+                      <goals>
+                          <goal>exec</goal>
+                      </goals>
+                      <configuration>
+                          <executable>${basedir}/bin/generate-md.sh</executable>
+                      </configuration>
+                  </execution>
+              </executions>
+          </plugin>
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-site-plugin</artifactId>
