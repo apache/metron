@@ -139,7 +139,7 @@
 			<plugin>
 				<groupId>org.apache.metron</groupId>
 				<artifactId>bundles-maven-plugin</artifactId>
-				<version>0.4.0</version>
+				<version>${project.parent.version}</version>
 				<extensions>true</extensions>
 			</plugin>
 		</plugins>
