@@ -36,6 +36,9 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 @Service
 public class ExtensionServiceImpl implements ExtensionService{
@@ -60,18 +63,21 @@ public class ExtensionServiceImpl implements ExtensionService{
   }
 
   @Override
-  public void install(ExtensionType extensionType, TarArchiveInputStream tgzStream) throws Exception{
+  public void install(ExtensionType extensionType, String extensionPackageName, TarArchiveInputStream tgzStream) throws Exception{
      // unpack
      Path unPackedPath = unpackExtension(tgzStream);
 
      if(extensionType == ExtensionType.PARSER){
-       installParserExtension(unPackedPath);
+       installParserExtension(unPackedPath, extensionPackageName);
      }
      // stellar etc....
   }
 
-  private void installParserExtension(Path extensionPath) throws Exception{
-    final Map<Paths,List<Path>> context = new HashMap<>();
+  private void installParserExtension(Path extensionPath, String extentionPackageName) throws Exception{
+    final InstallContext context = new InstallContext();
+    context.extensionPackageName = Optional.of(extentionPackageName);
+    context.bundleProperties = loadBundleProperties();
+
     // verify the structure
     verifyParserExtension(extensionPath, context);
 
@@ -131,12 +137,12 @@ public class ExtensionServiceImpl implements ExtensionService{
     return tmpDir.toPath();
   }
 
-  private void verifyParserExtension(Path extensionPath, Map<Paths,List<Path>> context) throws Exception{
+  private void verifyParserExtension(Path extensionPath, InstallContext context) throws Exception{
     verifyParserExtensionConfiguration(extensionPath, context);
     verifyExtensionBundle(extensionPath,context);
   }
 
-  private void verifyParserExtensionConfiguration(Path extensionPath, Map<Paths,List<Path>> context) throws Exception{
+  private void verifyParserExtensionConfiguration(Path extensionPath, InstallContext context) throws Exception{
     // parsers must have configurations
     // config/
     // config/zookeeper/
@@ -152,7 +158,7 @@ public class ExtensionServiceImpl implements ExtensionService{
     }
     List<Path> configPaths = new ArrayList<>();
     configPaths.add(config);
-    context.put(Paths.CONFIG,configPaths);
+    context.pathContext.put(Paths.CONFIG,configPaths);
 
     Path enrichments = config.resolve("zookeeper/enrichments");
     if(!enrichments.toFile().exists()){
@@ -175,9 +181,9 @@ public class ExtensionServiceImpl implements ExtensionService{
     List<Path> enrichmentConfigDirPaths = new ArrayList<>();
     enrichmentConfigDirPaths.add(enrichments);
 
-    context.put(Paths.ENRICHMENTS_CONFIG,enrichmentConfigPaths);
-    context.put(Paths.ZOOKEEPER,zookeeperPaths);
-    context.put(Paths.ENRICHMENTS_CONFIG_DIR,enrichmentConfigDirPaths);
+    context.pathContext.put(Paths.ENRICHMENTS_CONFIG,enrichmentConfigPaths);
+    context.pathContext.put(Paths.ZOOKEEPER,zookeeperPaths);
+    context.pathContext.put(Paths.ENRICHMENTS_CONFIG_DIR,enrichmentConfigDirPaths);
 
     Path indexing = config.resolve("zookeeper/indexing");
     if(!indexing.toFile().exists()){
@@ -196,8 +202,8 @@ public class ExtensionServiceImpl implements ExtensionService{
 
     List<Path> indexingConfigDirPaths = new ArrayList<>();
     indexingConfigDirPaths.add(indexing);
-    context.put(Paths.INDEXING_CONFIG,indexingConfigPaths);
-    context.put(Paths.INDEXING_CONFIG_DIR,indexingConfigDirPaths);
+    context.pathContext.put(Paths.INDEXING_CONFIG,indexingConfigPaths);
+    context.pathContext.put(Paths.INDEXING_CONFIG_DIR,indexingConfigDirPaths);
 
     Path parsers = config.resolve("zookeeper/parsers");
     if(!parsers.toFile().exists()){
@@ -211,17 +217,18 @@ public class ExtensionServiceImpl implements ExtensionService{
     List<Path> parserConfigPaths = new ArrayList<>();
     for(File thisConfigFile : configurations){
       parserConfigPaths.add(thisConfigFile.toPath());
+      context.extensionParserNames.add(thisConfigFile.getName().substring(0,thisConfigFile.getName().lastIndexOf('.')));
     }
 
     List<Path> parserConfigDirPaths = new ArrayList<>();
     parserConfigDirPaths.add(indexing);
 
-    context.put(Paths.PARSERS_CONFIG,parserConfigPaths);
-    context.put(Paths.PARSERS_CONFIG_DIR,parserConfigDirPaths);
+    context.pathContext.put(Paths.PARSERS_CONFIG,parserConfigPaths);
+    context.pathContext.put(Paths.PARSERS_CONFIG_DIR,parserConfigDirPaths);
 
   }
 
-  private void verifyExtensionBundle(Path extensionPath, Map<Paths,List<Path>> context) throws Exception{
+  private void verifyExtensionBundle(Path extensionPath, InstallContext context) throws Exception{
     // check if there is a bundle at all
     // if there is verify that
     Path libPath = extensionPath.resolve("lib");
@@ -236,15 +243,25 @@ public class ExtensionServiceImpl implements ExtensionService{
       return;
     }
     List<Path> bundlePathList = new ArrayList<>();
-    bundlePathList.add(bundles.stream().findFirst().get().toPath());
-    context.put(Paths.BUNDLE,bundlePathList);
-
+    Path bundlePath = bundles.stream().findFirst().get().toPath();
+    bundlePathList.add(bundlePath);
+    context.pathContext.put(Paths.BUNDLE,bundlePathList);
+    context.bundleName = Optional.of(bundlePath.toFile().getName());
     // TODO - load the bundle and verify the metadata
     // TODO - get the bundle.properties out of zk to get the correct prefixes etc
+    try (final JarFile bundle = new JarFile(bundlePath.toFile())) {
+      final Manifest manifest = bundle.getManifest();
+
+      // lookup the nar id
+      final Attributes attributes = manifest.getMainAttributes();
+      final String bundleId = attributes.getValue(String.format("%s-Id",context.bundleProperties.get().getMetaIdPrefix()));
+      context.bundleID = Optional.of(bundleId);
+    }
+
   }
 
-  private void saveEnrichmentConfigs(Map<Paths,List<Path>> context , List<String> loadedConfigs) throws Exception{
-    for (Map.Entry<Paths,List<Path>> entry : context.entrySet()) {
+  private void saveEnrichmentConfigs(InstallContext context , List<String> loadedConfigs) throws Exception{
+    for (Map.Entry<Paths,List<Path>> entry : context.pathContext.entrySet()) {
       if (entry.getKey() == Paths.ENRICHMENTS_CONFIG) {
         for (Path configPath : entry.getValue()) {
           File configFile = configPath.toFile();
@@ -257,8 +274,8 @@ public class ExtensionServiceImpl implements ExtensionService{
     }
   }
 
-  private void saveIndexingConfigs(Map<Paths,List<Path>> context, List<String> loadedConfigs) throws Exception{
-    for (Map.Entry<Paths,List<Path>> entry : context.entrySet()) {
+  private void saveIndexingConfigs(InstallContext context, List<String> loadedConfigs) throws Exception{
+    for (Map.Entry<Paths,List<Path>> entry : context.pathContext.entrySet()) {
       if (entry.getKey() == Paths.INDEXING_CONFIG) {
         for (Path configPath : entry.getValue()) {
           File configFile = configPath.toFile();
@@ -272,8 +289,8 @@ public class ExtensionServiceImpl implements ExtensionService{
     }
   }
 
-  private void saveParserConfigs(Map<Paths,List<Path>> context, List<String> loadedConfigs) throws Exception{
-    for (Map.Entry<Paths,List<Path>> entry : context.entrySet()) {
+  private void saveParserConfigs(InstallContext context, List<String> loadedConfigs) throws Exception{
+    for (Map.Entry<Paths,List<Path>> entry : context.pathContext.entrySet()) {
       if (entry.getKey() == Paths.PARSERS_CONFIG) {
         for (Path configPath : entry.getValue()) {
           File configFile = configPath.toFile();
@@ -286,19 +303,15 @@ public class ExtensionServiceImpl implements ExtensionService{
     }
   }
 
-  private void deployBundleToHdfs(Map<Paths,List<Path>> context) throws Exception{
-    List<Path> bundlePaths = context.get(Paths.BUNDLE);
+  private void deployBundleToHdfs(InstallContext context) throws Exception{
+    List<Path> bundlePaths = context.pathContext.get(Paths.BUNDLE);
     if(bundlePaths == null || bundlePaths.size() == 0){
       return;
     }
 
     Path bundlePath = bundlePaths.get(0);
-    // need to get the alt lib path from the bundle
-    Optional<BundleProperties> opProperties = getBundleProperties(client);
-    if(!opProperties.isPresent()){
-      throw new Exception("Bundle Properties are not loaded into system");
-    }
-    BundleProperties props = opProperties.get();
+
+    BundleProperties props = context.bundleProperties.get();
     org.apache.hadoop.fs.Path altPath = new org.apache.hadoop.fs.Path(props.getProperty("bundle.library.directory.alt"));
     org.apache.hadoop.fs.Path targetPath = new org.apache.hadoop.fs.Path(altPath, bundlePath.toFile().getName());
     hdfsService.write(targetPath,FileUtils.readFileToByteArray(bundlePath.toFile()));
@@ -312,5 +325,22 @@ public class ExtensionServiceImpl implements ExtensionService{
       properties = BundleProperties.createBasicBundleProperties(new ByteArrayInputStream(propBytes),new HashMap<>());
     }
     return Optional.of(properties);
+  }
+
+  private Optional<BundleProperties> loadBundleProperties(){
+    try {
+      return getBundleProperties(client);
+    }catch (Exception e){
+      return Optional.empty();
+    }
+  }
+
+  class InstallContext {
+    public Map<Paths,List<Path>> pathContext = new HashMap<>();
+    public Set<String> extensionParserNames = new HashSet<>();
+    public Optional<String> bundleID = Optional.empty();
+    public Optional<String> bundleName = Optional.empty();
+    public Optional<BundleProperties> bundleProperties = Optional.empty();
+    public Optional<String> extensionPackageName = Optional.empty();
   }
 }
