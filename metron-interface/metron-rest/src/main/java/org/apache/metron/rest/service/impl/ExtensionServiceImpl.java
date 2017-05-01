@@ -32,6 +32,7 @@ import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.extensions.ParserExtensionConfig;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.common.utils.StringUtils;
 import org.apache.metron.guava.io.Files;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.*;
@@ -225,10 +226,10 @@ public class ExtensionServiceImpl implements ExtensionService{
       context.pathContext.put(Paths.GROK_DIR, patternsList);
     }
 
-    Collection<File> configurations = FileUtils.listFiles(patterns.toFile(),PATTERNS_EXT,false);
-    if(!configurations.isEmpty()) {
+    File[] grockRuleFiles = patterns.toFile().listFiles();
+    if(grockRuleFiles.length != 0) {
       List<Path> grokRulePaths = new ArrayList<>();
-      for (File thisConfigFile : configurations) {
+      for (File thisConfigFile : grockRuleFiles) {
         grokRulePaths.add(thisConfigFile.toPath());
       }
       context.pathContext.put(Paths.GROK_RULES,grokRulePaths);
@@ -239,7 +240,7 @@ public class ExtensionServiceImpl implements ExtensionService{
       throw new Exception("Invalid Parser Extension: Missing Enrichment Configuration ");
     }
 
-    configurations = FileUtils.listFiles(enrichments.toFile(),CONFIG_EXT,false);
+    Collection<File> configurations = FileUtils.listFiles(enrichments.toFile(),CONFIG_EXT,false);
     if(configurations.isEmpty()){
       throw new Exception("Invalid Parser Extension: Missing Enrichment Configuration ");
     }
@@ -413,7 +414,17 @@ public class ExtensionServiceImpl implements ExtensionService{
     // TODO: replace this with a 'correct' lookup of the root
     // also copy of directory would be better here
     // Rules are shared across all parsers in a given extension assembly
-    org.apache.hadoop.fs.Path patternPath = new org.apache.hadoop.fs.Path("/apps/metron/patterns");
+    String hardCodedHdfsPatterns = "/apps/metron/patterns";
+    Optional<BundleProperties> optionalProps = loadBundleProperties();
+    if(optionalProps.isPresent()){
+      String override = optionalProps.get().getProperty("testing.hdfs.patterns.dir.override");
+      if(org.apache.commons.lang.StringUtils.isNotEmpty(override)){
+        hardCodedHdfsPatterns = override;
+      }
+    }
+
+    org.apache.hadoop.fs.Path patternPath = new org.apache.hadoop.fs.Path(hardCodedHdfsPatterns);
+    hdfsService.ensureDirectory(patternPath);
     for(String parserName : context.extensionParserNames) {
       org.apache.hadoop.fs.Path parserRulePath = new org.apache.hadoop.fs.Path(patternPath, parserName);
       for(Path thisRule : grokRulePaths){
