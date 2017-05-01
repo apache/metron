@@ -39,9 +39,7 @@ import org.krakenapps.pcap.util.ByteOrderConverter;
 
 import java.io.EOFException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
+import java.util.*;
 
 import static org.apache.metron.pcap.Constants.*;
 
@@ -50,6 +48,22 @@ public class PcapHelper {
   public static final int PACKET_HEADER_SIZE = 4*Integer.BYTES;
   public static final int GLOBAL_HEADER_SIZE = 24;
   private static final Logger LOG = Logger.getLogger(PcapHelper.class);
+
+  public enum PacketFields implements org.apache.metron.common.Constants.Field{
+    PACKET_DATA("packet"),
+    PACKET_FILTER("packet_filter")
+    ;
+    String name;
+    PacketFields(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String getName() {
+      return name;
+    }
+  }
+
   public static ThreadLocal<MetronEthernetDecoder> ETHERNET_DECODER = new ThreadLocal<MetronEthernetDecoder>() {
     @Override
     protected MetronEthernetDecoder initialValue() {
@@ -190,23 +204,25 @@ public class PcapHelper {
     System.arraycopy(packet, 0, ret, offset, packet.length);
     return ret;
   }
-  public static EnumMap<org.apache.metron.common.Constants.Fields, Object> packetToFields(PacketInfo pi) {
-    EnumMap<org.apache.metron.common.Constants.Fields, Object> ret = new EnumMap(org.apache.metron.common.Constants.Fields.class);
+
+  public static Map<String, Object> packetToFields(PacketInfo pi) {
+    Map<String, Object> ret = new HashMap<>();
+    ret.put(PacketFields.PACKET_DATA.getName(), pi.getPacketBytes());
     if(pi.getTcpPacket() != null) {
       if(pi.getTcpPacket().getSourceAddress() != null) {
-        ret.put(org.apache.metron.common.Constants.Fields.SRC_ADDR, pi.getTcpPacket().getSourceAddress().getHostAddress());
+        ret.put(org.apache.metron.common.Constants.Fields.SRC_ADDR.getName(), pi.getTcpPacket().getSourceAddress().getHostAddress());
       }
       if(pi.getTcpPacket().getSource() != null ) {
-        ret.put(org.apache.metron.common.Constants.Fields.SRC_PORT, pi.getTcpPacket().getSource().getPort());
+        ret.put(org.apache.metron.common.Constants.Fields.SRC_PORT.getName(), pi.getTcpPacket().getSource().getPort());
       }
       if(pi.getTcpPacket().getDestinationAddress() != null ) {
-        ret.put(org.apache.metron.common.Constants.Fields.DST_ADDR, pi.getTcpPacket().getDestinationAddress().getHostAddress());
+        ret.put(org.apache.metron.common.Constants.Fields.DST_ADDR.getName(), pi.getTcpPacket().getDestinationAddress().getHostAddress());
       }
       if(pi.getTcpPacket().getDestination() != null ) {
-        ret.put(org.apache.metron.common.Constants.Fields.DST_PORT, pi.getTcpPacket().getDestination().getPort());
+        ret.put(org.apache.metron.common.Constants.Fields.DST_PORT.getName(), pi.getTcpPacket().getDestination().getPort());
       }
       if(pi.getIpv4Packet() != null) {
-        ret.put(org.apache.metron.common.Constants.Fields.PROTOCOL, pi.getIpv4Packet().getProtocol());
+        ret.put(org.apache.metron.common.Constants.Fields.PROTOCOL.getName(), pi.getIpv4Packet().getProtocol());
       }
     }
     return ret;
@@ -281,7 +297,7 @@ public class PcapHelper {
         }
 
         packetInfoList.add(new PacketInfo(globalHeader, packetHeader, packet,
-            ipv4Packet, tcpPacket, udpPacket));
+            ipv4Packet, tcpPacket, udpPacket, pcap));
       } catch (NegativeArraySizeException ignored) {
         LOG.debug("Ignorable exception while parsing packet.", ignored);
       } catch (EOFException eof) { // $codepro.audit.disable logExceptions
