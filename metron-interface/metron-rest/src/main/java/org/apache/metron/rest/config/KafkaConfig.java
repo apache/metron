@@ -36,8 +36,12 @@ import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 @Profile("!" + TEST_PROFILE)
 public class KafkaConfig {
 
-  @Autowired
   private Environment environment;
+
+  @Autowired
+  public KafkaConfig(Environment environment) {
+    this.environment = environment;
+  }
 
   @Autowired
   private ZkClient zkClient;
@@ -51,12 +55,15 @@ public class KafkaConfig {
   public KafkaConsumer<String, String> kafkaConsumer() {
     Properties props = new Properties();
     props.put("bootstrap.servers", environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY));
-    props.put("group.id", "metron-config");
+    props.put("group.id", "metron-rest");
     props.put("enable.auto.commit", "false");
     props.put("auto.commit.interval.ms", "1000");
     props.put("session.timeout.ms", "30000");
     props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
     props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+    if (environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)) {
+      props.put("security.protocol", "SASL_PLAINTEXT");
+    }
     return new KafkaConsumer<>(props);
   }
 

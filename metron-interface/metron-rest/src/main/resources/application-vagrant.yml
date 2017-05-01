@@ -49,3 +49,9 @@ storm:
     script.path: /usr/metron/${metron.version}/bin/start_enrichment_topology.sh
   indexing:
     script.path: /usr/metron/${metron.version}/bin/start_elasticsearch_topology.sh
+
+kerberos:
+  enabled: false
+  principal: metron@EXAMPLE.COM
+  keytab: /etc/security/keytabs/metron.headless.keytab
+

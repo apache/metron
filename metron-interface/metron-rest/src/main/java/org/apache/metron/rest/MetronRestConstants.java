@@ -52,4 +52,8 @@ public class MetronRestConstants {
 
   public static final String HDFS_URL_SPRING_PROPERTY = "hdfs.namenode.url";
   public static final String DEFAULT_HDFS_URL = "file:///";
+
+  public static final String KERBEROS_ENABLED_SPRING_PROPERTY = "kerberos.enabled";
+  public static final String KERBEROS_PRINCIPLE_SPRING_PROPERTY = "kerberos.principal";
+  public static final String KERBEROS_KEYTAB_SPRING_PROPERTY = "kerberos.keytab";
 }

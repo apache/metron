@@ -64,6 +64,22 @@ public class StellarTest {
     Assert.assertTrue(numFound > 0);
   }
 
+  @Test
+  public void testEscapedLiterals() {
+    Assert.assertEquals("'bar'", run("\"'bar'\"", new HashMap<>()));
+    Assert.assertEquals("'BAR'", run("TO_UPPER('\\'bar\\'')", new HashMap<>()));
+    Assert.assertEquals("\"bar\"", run("\"\\\"bar\\\"\"", new HashMap<>()));
+    Assert.assertEquals("\"bar\"", run("'\"bar\"'", new HashMap<>()));
+    Assert.assertEquals("\"BAR\"", run("TO_UPPER(\"\\\"bar\\\"\")", new HashMap<>()));
+    Assert.assertEquals("bar \\ foo", run("'bar \\\\ foo'", new HashMap<>()));
+    Assert.assertEquals("bar \\\\ foo", run("'bar \\\\\\\\ foo'", new HashMap<>()));
+    Assert.assertEquals("bar\nfoo", run("'bar\\nfoo'", new HashMap<>()));
+    Assert.assertEquals("bar\n\nfoo", run("'bar\\n\\nfoo'", new HashMap<>()));
+    Assert.assertEquals("bar\tfoo", run("'bar\\tfoo'", new HashMap<>()));
+    Assert.assertEquals("bar\t\tfoo", run("'bar\\t\\tfoo'", new HashMap<>()));
+    Assert.assertEquals("bar\rfoo", run("'bar\\rfoo'", new HashMap<>()));
+    Assert.assertEquals("'bar'", run("'\\'bar\\''", new HashMap<>()));
+  }
 
   @Test
   public void testVariableResolution() {

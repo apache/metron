@@ -23,6 +23,6 @@ import org.apache.metron.pcap.PacketInfo;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public interface PcapFilter extends Predicate<PacketInfo> {
+public interface PcapFilter extends Predicate<PacketInfo>{
   void configure(Iterable<Map.Entry<String, String>> config);
 }
