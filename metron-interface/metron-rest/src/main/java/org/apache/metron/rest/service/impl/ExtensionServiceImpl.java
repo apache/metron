@@ -51,6 +51,7 @@ public class ExtensionServiceImpl implements ExtensionService{
   final static int BUFFER_SIZ = 2048;
   final static String[] CONFIG_EXT = {"json"};
   final static String[] BUNDLE_EXT = {"bundle"};
+  final static String[] PATTERNS_EXT = {};
 
   @Autowired
   HdfsService hdfsService;
@@ -148,6 +149,7 @@ public class ExtensionServiceImpl implements ExtensionService{
         saveEnrichmentConfigs(context, loadedEnrichementConfigs);
         saveIndexingConfigs(context, loadedIndexingConfigs);
         saveParserConfigs(context, loadedParserConfigs);
+        deployGrokRulesToHdfs(context);
         deployBundleToHdfs(context);
         writeExtensionConfiguration(context);
     }catch(Exception e){
@@ -216,12 +218,28 @@ public class ExtensionServiceImpl implements ExtensionService{
     configPaths.add(config);
     context.pathContext.put(Paths.CONFIG,configPaths);
 
+    Path patterns = extensionPath.resolve("patterns");
+    if(patterns.toFile().exists()){
+      List<Path> patternsList = new ArrayList<>();
+      patternsList.add(patterns);
+      context.pathContext.put(Paths.GROK_DIR, patternsList);
+    }
+
+    Collection<File> configurations = FileUtils.listFiles(patterns.toFile(),PATTERNS_EXT,false);
+    if(!configurations.isEmpty()) {
+      List<Path> grokRulePaths = new ArrayList<>();
+      for (File thisConfigFile : configurations) {
+        grokRulePaths.add(thisConfigFile.toPath());
+      }
+      context.pathContext.put(Paths.GROK_RULES,grokRulePaths);
+    }
+
     Path enrichments = config.resolve("zookeeper/enrichments");
     if(!enrichments.toFile().exists()){
       throw new Exception("Invalid Parser Extension: Missing Enrichment Configuration ");
     }
 
-    Collection<File> configurations = FileUtils.listFiles(enrichments.toFile(),CONFIG_EXT,false);
+    configurations = FileUtils.listFiles(enrichments.toFile(),CONFIG_EXT,false);
     if(configurations.isEmpty()){
       throw new Exception("Invalid Parser Extension: Missing Enrichment Configuration ");
     }
@@ -383,6 +401,27 @@ public class ExtensionServiceImpl implements ExtensionService{
     org.apache.hadoop.fs.Path altPath = new org.apache.hadoop.fs.Path(props.getProperty("bundle.library.directory.alt"));
     org.apache.hadoop.fs.Path targetPath = new org.apache.hadoop.fs.Path(altPath, bundlePath.toFile().getName());
     hdfsService.write(targetPath,FileUtils.readFileToByteArray(bundlePath.toFile()));
+  }
+
+  private void deployGrokRulesToHdfs(InstallContext context)throws Exception{
+    List<Path> grokRulePaths = context.pathContext.get(Paths.GROK_RULES);
+    if(grokRulePaths == null || grokRulePaths.size() == 0){
+      return;
+    }
+
+    // Not sure how we get the path here, it is a var set in ambari
+    // TODO: replace this with a 'correct' lookup of the root
+    // also copy of directory would be better here
+    // Rules are shared across all parsers in a given extension assembly
+    org.apache.hadoop.fs.Path patternPath = new org.apache.hadoop.fs.Path("/apps/metron/patterns");
+    for(String parserName : context.extensionParserNames) {
+      org.apache.hadoop.fs.Path parserRulePath = new org.apache.hadoop.fs.Path(patternPath, parserName);
+      for(Path thisRule : grokRulePaths){
+        org.apache.hadoop.fs.Path targetPath = new org.apache.hadoop.fs.Path(parserRulePath,thisRule.toFile().getName());
+        hdfsService.write(targetPath,FileUtils.readFileToByteArray(thisRule.toFile()));
+      }
+    }
+
   }
 
   private static Optional<BundleProperties> getBundleProperties(CuratorFramework client) throws Exception{
