@@ -38,17 +38,25 @@ if [ -z "$START_TIME" ]; then
   echo "You must specify a start time."
   exit 2
 fi
+TIMESTAMP_EPOCH=$(date +%s%N | cut -b1-13)
+if [ -f /proc/sys/kernel/random/uuid ];then
+  UUID=$(cat /proc/sys/kernel/random/uuid | sed 's/-//g')
+  PREFIX="$TIMESTAMP_EPOCH-$UUID"
+else
+  QUERY_HASH=$(echo $QUERY | md5sum | awk '{print $1}')
+  PREFIX="$TIMESTAMP_EPOCH-$QUERY_HASH"
+fi
 if [ -z "$END_TIME" ]; then
-  CMD=$($METRON_HOME/bin/pcap_query.sh query --query "$QUERY" -st "$START_TIME" -df "$DATE_FORMAT" -rpf "$RECORDS_PER_FILE" -nr "$NUMBER_OF_REDUCERS" -bp "$PCAP_DATA_PATH" \"2>&1)
+  CMD=$($METRON_HOME/bin/pcap_query.sh query --prefix "$PREFIX" --query "$QUERY" -st "$START_TIME" -df "$DATE_FORMAT" -rpf "$RECORDS_PER_FILE" -nr "$NUMBER_OF_REDUCERS" -bp "$PCAP_DATA_PATH" \"2>&1)
   SUMMARY="Packets conforming to $QUERY starting at $START_TIME ending now"
 else
-  CMD=$($METRON_HOME/bin/pcap_query.sh query --query "$QUERY" -st "$START_TIME" -et "$END_TIME" -df "$DATE_FORMAT" -rpf "$RECORDS_PER_FILE" -nr "$NUMBER_OF_REDUCERS" -bp "$PCAP_DATA_PATH" 2>&1)
+  CMD=$($METRON_HOME/bin/pcap_query.sh query --prefix "$PREFIX" --query "$QUERY" -st "$START_TIME" -et "$END_TIME" -df "$DATE_FORMAT" -rpf "$RECORDS_PER_FILE" -nr "$NUMBER_OF_REDUCERS" -bp "$PCAP_DATA_PATH" 2>&1)
   SUMMARY="Packets conforming to $QUERY starting at $START_TIME ending at $END_TIME"
 fi
 
 FAILED=$(echo $CMD | grep "Unable to complete query due to errors")
 if [ -z "$FAILED" ];then
-  PATTERN=$(ls -ltr *.pcap | tail -n 1 | rev | awk '{print $1}' | rev | awk -F+ '{print $1}')
+  PATTERN="pcap-data-$PREFIX"
   hadoop fs -mkdir -p $QUERY_HOME/$PATTERN && hadoop fs -put $PATTERN* $QUERY_HOME/$PATTERN 
   FAILED=$?
   if [ $FAILED -eq 0 ];then

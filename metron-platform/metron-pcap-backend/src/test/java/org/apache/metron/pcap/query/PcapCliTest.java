@@ -92,11 +92,10 @@ public class PcapCliTest {
     }};
 
     when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(iterable);
-    when(clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ")).thenReturn("20160615183527162+0000");
 
-    PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock);
+    PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(pcaps, "pcap-data-20160615183527162+0000.pcap");
+    Mockito.verify(resultsWriter).write(pcaps, "pcap-data-random_prefix+0001.pcap");
   }
 
   @Test
@@ -133,11 +132,10 @@ public class PcapCliTest {
     }};
 
     when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(iterable);
-    when(clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ")).thenReturn("20160615183527162+0000");
 
-    PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock);
+    PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(pcaps, "pcap-data-20160615183527162+0000.pcap");
+    Mockito.verify(resultsWriter).write(pcaps, "pcap-data-random_prefix+0001.pcap");
   }
 
   @Test
@@ -177,11 +175,10 @@ public class PcapCliTest {
     long startAsNanos = asNanos("2016-06-13-18:35.00", "yyyy-MM-dd-HH:mm.ss");
     long endAsNanos = asNanos("2016-06-15-18:35.00", "yyyy-MM-dd-HH:mm.ss");
     when(jobRunner.query(eq(base_path), eq(base_output_path), eq(startAsNanos), eq(endAsNanos), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(FixedPcapFilter.Configurator.class))).thenReturn(iterable);
-    when(clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ")).thenReturn("20160615183527162+0000");
 
-    PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock);
+    PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(pcaps, "pcap-data-20160615183527162+0000.pcap");
+    Mockito.verify(resultsWriter).write(pcaps, "pcap-data-random_prefix+0001.pcap");
   }
 
   private long asNanos(String inDate, String format) throws ParseException {
@@ -211,11 +208,10 @@ public class PcapCliTest {
     String query = "some query string";
 
     when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(QueryPcapFilter.Configurator.class))).thenReturn(iterable);
-    when(clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ")).thenReturn("20160615183527162+0000");
 
-    PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock);
+    PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(pcaps, "pcap-data-20160615183527162+0000.pcap");
+    Mockito.verify(resultsWriter).write(pcaps, "pcap-data-random_prefix+0001.pcap");
   }
 
   @Test
@@ -240,11 +236,10 @@ public class PcapCliTest {
     String query = "some query string";
 
     when(jobRunner.query(eq(base_path), eq(base_output_path), anyLong(), anyLong(), anyInt(), eq(query), isA(Configuration.class), isA(FileSystem.class), isA(QueryPcapFilter.Configurator.class))).thenReturn(iterable);
-    when(clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ")).thenReturn("20160615183527162+0000");
 
-    PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock);
+    PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
     assertThat("Expect no errors on run", cli.run(args), equalTo(0));
-    Mockito.verify(resultsWriter).write(pcaps, "pcap-data-20160615183527162+0000.pcap");
+    Mockito.verify(resultsWriter).write(pcaps, "pcap-data-random_prefix+0001.pcap");
   }
 
   // INVALID OPTION CHECKS
@@ -281,7 +276,7 @@ public class PcapCliTest {
       PrintStream errOutStream = new PrintStream(new BufferedOutputStream(ebos));
       System.setErr(errOutStream);
 
-      PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock);
+      PcapCli cli = new PcapCli(jobRunner, resultsWriter, clock -> "random_prefix");
       assertThat("Expect errors on run", cli.run(args), equalTo(-1));
       assertThat("Expect missing required option error: " + ebos.toString(), ebos.toString().contains(optMsg), equalTo(true));
       assertThat("Expect usage to be printed: " + bos.toString(), bos.toString().contains("usage: " + type + " filter options"), equalTo(true));
