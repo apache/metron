@@ -40,7 +40,9 @@ public interface ExtensionService {
     PARSERS_CONFIG_DIR,
     ENRICHMENTS_CONFIG,
     INDEXING_CONFIG,
-    PARSERS_CONFIG
+    PARSERS_CONFIG,
+    GROK_DIR,
+    GROK_RULES
     //, SEARCH, ELASTICSEARCH, SOLR, LOGROTATE
   }
   void install(ExtensionType extensionType, String extensionPackageName, TarArchiveInputStream tgzStream) throws Exception;
