@@ -17,7 +17,7 @@
  */
 package org.apache.metron.rest.config;
 
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -32,11 +32,11 @@ import kafka.admin.AdminUtils$;
 import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.commons.io.FileUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.UnableToStartException;
@@ -54,7 +54,6 @@ import org.springframework.web.client.RestTemplate;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
-
 
 @Configuration
 @Profile(TEST_PROFILE)
@@ -94,7 +93,10 @@ public class TestConfig {
   public static void copyResources(String source, String target) throws IOException {
     final java.nio.file.Path sourcePath = Paths.get(source);
     final java.nio.file.Path targetPath = Paths.get(target);
-
+    final java.io.File tDir = new File(target);
+    if(tDir.exists()){
+      FileUtils.deleteDirectory(tDir);
+    }
     Files.walkFileTree(sourcePath, new SimpleFileVisitor<Path>() {
 
       @Override
