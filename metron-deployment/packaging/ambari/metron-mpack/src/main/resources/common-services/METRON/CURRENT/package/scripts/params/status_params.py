@@ -34,6 +34,7 @@ metron_zookeeper_config_dir = config['configurations']['metron-env']['metron_zoo
 metron_zookeeper_config_path = format('{metron_home}/{metron_zookeeper_config_dir}')
 parsers_configured_flag_file = metron_zookeeper_config_path + '/../metron_parsers_configured'
 parsers_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_parsers_acl_configured'
+rest_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_rest_acl_configured'
 
 # Enrichment
 metron_enrichment_topology = 'enrichment'

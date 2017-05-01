@@ -17,18 +17,38 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 
+import metron_service
+
 # Wrap major operations and functionality in this class
 class RestCommands:
     __params = None
+    __acl_configured = False
 
     def __init__(self, params):
         if params is None:
             raise ValueError("params argument is required for initialization")
         self.__params = params
+        self.__acl_configured = os.path.isfile(self.__params.rest_acl_configured_flag_file)
+
+    def is_acl_configured(self):
+        return self.__acl_configured
+
+    def set_acl_configured(self):
+        File(self.__params.rest_acl_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0755)
+
+    def init_kafka_acls(self):
+        Logger.info('Creating Kafka ACLs for rest')
+        # The following topics must be permissioned for the rest application list operation
+        topics = [self.__params.ambari_kafka_service_check_topic, self.__params.consumer_offsets_topic]
+        metron_service.init_kafka_acls(self.__params, topics, ['metron-rest'])
 
     def start_rest_application(self):
         Logger.info('Starting REST application')

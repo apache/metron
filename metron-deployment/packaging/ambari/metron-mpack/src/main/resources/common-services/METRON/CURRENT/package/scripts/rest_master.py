@@ -46,6 +46,11 @@ class RestMaster(Script):
              content=Template("metron.j2")
              )
 
+        commands = RestCommands(params)
+        if params.security_enabled and not commands.is_acl_configured():
+            commands.init_kafka_acls()
+            commands.set_acl_configured()
+
     def start(self, env, upgrade_type=None):
         from params import params
         env.set_params(params)

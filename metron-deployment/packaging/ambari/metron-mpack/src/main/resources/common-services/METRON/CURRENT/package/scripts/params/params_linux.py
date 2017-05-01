@@ -63,6 +63,7 @@ metron_zookeeper_config_dir = status_params.metron_zookeeper_config_dir
 metron_zookeeper_config_path = status_params.metron_zookeeper_config_path
 parsers_configured_flag_file = status_params.parsers_configured_flag_file
 parsers_acl_configured_flag_file = status_params.parsers_acl_configured_flag_file
+rest_acl_configured_flag_file = status_params.rest_acl_configured_flag_file
 enrichment_kafka_configured_flag_file = status_params.enrichment_kafka_configured_flag_file
 enrichment_kafka_acl_configured_flag_file = status_params.enrichment_kafka_acl_configured_flag_file
 enrichment_hbase_configured_flag_file = status_params.enrichment_hbase_configured_flag_file
@@ -174,6 +175,8 @@ threatintel_cf = status_params.threatintel_cf
 metron_enrichment_topology = status_params.metron_enrichment_topology
 metron_enrichment_topic = status_params.metron_enrichment_topic
 metron_error_topic = 'indexing'
+ambari_kafka_service_check_topic = 'ambari_kafka_service_check'
+consumer_offsets_topic = '__consumer_offsets'
 
 # ES Templates
 bro_index_path = tmp_dir + "/bro_index.template"
