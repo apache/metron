@@ -17,7 +17,8 @@
 # limitations under the License.
 # 
 
-METRON_HOME=${METRON_HOME:-"/usr/metron/${project.version}"}
+METRON_VERSION=${project.version}
+METRON_HOME=${METRON_HOME:-"/usr/metron/$METRON_VERSION"}
 DATE_FORMAT=${DATE_FORMAT:-"yyyyMMdd"}
 USER=$(whoami)
 USER_HOMEDIR=${USER_HOMEDIR:-`hdfs getconf -confKey dfs.user.home.dir.prefix`/$USER}
