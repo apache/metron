@@ -19,6 +19,7 @@ package org.apache.metron.rest.controller;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.rest.service.HdfsService;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -108,9 +109,11 @@ public class ParserExtensionControllerIntegrationTest {
     contentTypeParams.put("boundary", "265001916915724");
     MediaType mediaType = new MediaType("multipart", "form-data", contentTypeParams);
 
+    // INSTALL
     this.mockMvc.perform(MockMvcRequestBuilders.fileUpload(parserExtUrl).file(multipartFile).with(httpBasic(user, password)).contentType(mediaType))
             .andExpect(status().isOk());
 
+    // GET ONE
     this.mockMvc.perform(get(parserExtUrl + "/metron-parser-test-assembly-0_4_0").with(httpBasic(user, password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
@@ -120,6 +123,16 @@ public class ParserExtensionControllerIntegrationTest {
             .andExpect(jsonPath("$.extensionsBundleVersion").value("0.4.0"))
             .andExpect(jsonPath("$.parserExtensionParserNames[0]").value("test"));
 
+    // GET ALL
+    this.mockMvc.perform(get(parserExtUrl).with(httpBasic(user,password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")));
+          // The below statement works in json path utility, but not here?
+          //  .andExpect(jsonPath("$[?(@.extensionAssemblyName == 'metron-parser-test-assembly-0_4_0')]").exists());
+     /*               "@.extensionBundleName == 'metron-parser-test-bundle-0.4.0.bundle' && " +
+                    "@.extensionsBundleID == 'metron-parser-test-bundle' && " +
+                    "@.extensionsBundleVersion == '0.4.0' && " +
+                    "@.parserExtensionParserNames[0] == 'test')]").exists());*/
 
   }
 
