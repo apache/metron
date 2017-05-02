@@ -87,7 +87,8 @@ You can swap "install" for "package" in the commands above if you don't want to 
 
 To build and run reporting with code coverage:
 ```
-$ mvn clean install site site:stage-deploy site:deploy
+$ mvn clean install
+$ mvn site site:stage-deploy site:deploy
 ```
 
 Code coverage can be skipped by skipping tests:
