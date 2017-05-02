@@ -189,7 +189,7 @@
     </property>
     <property>
         <name>network_host</name>
-        <value>"_lo:ipv4_","_eth0:ipv4_"</value>
-        <description>Network interface(s) ES will bind to within each node. Confirm names via ifconfig.  Should have entries for primary external and loopback interfaces, with :ipv4 annotation and quote marks around each entry: "_lo:ipv4_","_eth0:ipv4_"</description>
+        <value>"0.0.0.0"</value>
+        <description>Network interface address(es), name(s), or special value(s) that ES will bind to within each node. See https://www.elastic.co/guide/en/elasticsearch/reference/2.3/modules-network.html, and check interface names via ifconfig.  Since many such values contain non-alphanumerics, put each in quotes.  Should include primary external and loopback interfaces, separated by commas. "0.0.0.0" binds all active interfaces.</description>
     </property>
 </configuration>
