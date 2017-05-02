@@ -30,7 +30,7 @@ lib
 
 1. Copy the `$METRON_HOME/bin/metron-rest` script to `/etc/init.d/metron-rest`
 
-### From Package Manager
+#[[###]]# From Package Manager
 
 1. Deploy the RPM at `/incubator-metron/metron-deployment/packaging/docker/rpm-docker/target/RPMS/noarch/metron-rest-$METRON_VERSION-*.noarch.rpm`
 
@@ -54,7 +54,6 @@ The REST application depends on several configuration parameters:
 | METRON_JDBC_DRIVER                    | JDBC driver class                                                 | Required |                        |
 | METRON_JDBC_URL                       | JDBC url                                                          | Required |                        |
 | METRON_JDBC_USERNAME                  | JDBC username                                                     | Required |                        |
-| METRON_JDBC_PASSWORD                  | JDBC password                                                     | Required |                        |
 | METRON_JDBC_PLATFORM                  | JDBC platform (one of h2, mysql, postgres, oracle                 | Required |                        |
 | METRON_JDBC_CLIENT_PATH               | Path to JDBC client jar                                           | Optional | H2 is bundled          |
 | METRON_TEMP_GROK_PATH                 | Temporary directory used to test grok statements                  | Optional | ./patterns/temp        |
@@ -113,7 +112,6 @@ tar xf mysql-connector-java-5.1.41.tar.gz
 METRON_JDBC_DRIVER="com.mysql.jdbc.Driver"
 METRON_JDBC_URL="jdbc:mysql://mysql_host:3306/metronrest"
 METRON_JDBC_USERNAME="metron"
-METRON_JDBC_PASSWORD='Myp@ssw0rd"
 METRON_JDBC_PLATFORM="mysql"
 METRON_JDBC_CLIENT_PATH=$METRON_HOME/lib/mysql-connector-java-5.1.41/mysql-connector-java-5.1.41-bin.jar
 ```
@@ -123,6 +121,11 @@ METRON_JDBC_CLIENT_PATH=$METRON_HOME/lib/mysql-connector-java-5.1.41/mysql-conne
 After configuration is complete, the REST application can be managed as a service:
 ```
 service metron-rest start
+```
+
+If a production database is configured, the JDBC password should be passed in as the first argument on startup:
+```
+service metron-rest start Myp@ssw0rd
 ```
 
 The REST application can be accessed with the Swagger UI at http://host:port/swagger-ui.html#/.  The default port is 8082.

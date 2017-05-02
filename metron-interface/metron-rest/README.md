@@ -54,7 +54,6 @@ The REST application depends on several configuration parameters:
 | METRON_JDBC_DRIVER                    | JDBC driver class                                                 | Required |                        |
 | METRON_JDBC_URL                       | JDBC url                                                          | Required |                        |
 | METRON_JDBC_USERNAME                  | JDBC username                                                     | Required |                        |
-| METRON_JDBC_PASSWORD                  | JDBC password                                                     | Required |                        |
 | METRON_JDBC_PLATFORM                  | JDBC platform (one of h2, mysql, postgres, oracle                 | Required |                        |
 | METRON_JDBC_CLIENT_PATH               | Path to JDBC client jar                                           | Optional | H2 is bundled          |
 | METRON_TEMP_GROK_PATH                 | Temporary directory used to test grok statements                  | Optional | ./patterns/temp        |
@@ -113,7 +112,6 @@ tar xf mysql-connector-java-5.1.41.tar.gz
 METRON_JDBC_DRIVER="com.mysql.jdbc.Driver"
 METRON_JDBC_URL="jdbc:mysql://mysql_host:3306/metronrest"
 METRON_JDBC_USERNAME="metron"
-METRON_JDBC_PASSWORD='Myp@ssw0rd"
 METRON_JDBC_PLATFORM="mysql"
 METRON_JDBC_CLIENT_PATH=$METRON_HOME/lib/mysql-connector-java-5.1.41/mysql-connector-java-5.1.41-bin.jar
 ```
@@ -123,6 +121,11 @@ METRON_JDBC_CLIENT_PATH=$METRON_HOME/lib/mysql-connector-java-5.1.41/mysql-conne
 After configuration is complete, the REST application can be managed as a service:
 ```
 service metron-rest start
+```
+
+If a production database is configured, the JDBC password should be passed in as the first argument on startup:
+```
+service metron-rest start Myp@ssw0rd
 ```
 
 The REST application can be accessed with the Swagger UI at http://host:port/swagger-ui.html#/.  The default port is 8082.
@@ -186,7 +189,8 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `DELETE /api/v1/kafka/topic/{name}`](#delete-apiv1kafkatopicname)|
 | [ `GET /api/v1/kafka/topic/{name}/sample`](#get-apiv1kafkatopicnamesample)|
 | [ `GET /api/v1/sensor/enrichment/config`](#get-apiv1sensorenrichmentconfig)|
-| [ `GET /api/v1/sensor/enrichment/config/list/available`](#get-apiv1sensorenrichmentconfiglistavailable)|
+| [ `GET /api/v1/sensor/enrichment/config/list/available/enrichments`](#get-apiv1sensorenrichmentconfiglistavailableenrichments)|
+| [ `GET /api/v1/sensor/enrichment/config/list/available/threat/triage/aggregators`](#get-apiv1sensorenrichmentconfiglistavailablethreattriageaggregators)|
 | [ `DELETE /api/v1/sensor/enrichment/config/{name}`](#delete-apiv1sensorenrichmentconfigname)|
 | [ `POST /api/v1/sensor/enrichment/config/{name}`](#post-apiv1sensorenrichmentconfigname)|
 | [ `GET /api/v1/sensor/enrichment/config/{name}`](#get-apiv1sensorenrichmentconfigname)|
@@ -289,11 +293,11 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 404 - File was not found in HDFS
 
 ### `GET /api/v1/hdfs/list`
-  * Description: Reads a file from HDFS and returns the contents
+  * Description: Lists an HDFS directory
   * Input:
     * path - Path to HDFS directory
   * Returns:
-    * 200 - Returns file contents
+    * 200 - HDFS directory list
 
 ### `GET /api/v1/kafka/topic`
   * Description: Retrieves all Kafka topics
@@ -336,10 +340,15 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns all SensorEnrichmentConfigs
 
-### `GET /api/v1/sensor/enrichment/config/list/available`
+### `GET /api/v1/sensor/enrichment/config/list/available/enrichments`
   * Description: Lists the available enrichments
   * Returns:
     * 200 - Returns a list of available enrichments
+
+### `GET /api/v1/sensor/enrichment/config/list/available/threat/triage/aggregators`
+  * Description: Lists the available threat triage aggregators
+  * Returns:
+    * 200 - Returns a list of available threat triage aggregators
 
 ### `DELETE /api/v1/sensor/enrichment/config/{name}`
   * Description: Deletes a SensorEnrichmentConfig from Zookeeper
