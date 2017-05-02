@@ -52,7 +52,7 @@ public class ExtensionServiceImpl implements ExtensionService{
   final static int BUFFER_SIZ = 2048;
   final static String[] CONFIG_EXT = {"json"};
   final static String[] BUNDLE_EXT = {"bundle"};
-  final static String[] PATTERNS_EXT = {};
+  final static String[] ES_EXT = {"template"};
 
   @Autowired
   HdfsService hdfsService;
@@ -145,7 +145,7 @@ public class ExtensionServiceImpl implements ExtensionService{
     final List<String> loadedEnrichementConfigs = new ArrayList<>();
     final List<String> loadedIndexingConfigs = new ArrayList<>();
     final List<String> loadedParserConfigs = new ArrayList<>();
-
+    final List<String> loadedElasticSearchTemplates = new ArrayList<>();
     try{
         saveEnrichmentConfigs(context, loadedEnrichementConfigs);
         saveIndexingConfigs(context, loadedIndexingConfigs);
@@ -208,34 +208,57 @@ public class ExtensionServiceImpl implements ExtensionService{
     // config/zookeeper/enrichments
     // config/zookeeper/indexing
     // config/zookeeper/parsers
+    // config/zookeeper/elasticsearch
 
     // there may be other, TBD
 
-    Path config = extensionPath.resolve("config");
-    if(!config.toFile().exists()){
+    Path configPath = extensionPath.resolve("config");
+    if(!configPath.toFile().exists()){
       throw new Exception("Invalid Parser Extension: Missing configuration");
     }
     List<Path> configPaths = new ArrayList<>();
-    configPaths.add(config);
+    configPaths.add(configPath);
     context.pathContext.put(Paths.CONFIG,configPaths);
 
     Path patterns = extensionPath.resolve("patterns");
-    if(patterns.toFile().exists()){
+    if(patterns.toFile().exists()) {
       List<Path> patternsList = new ArrayList<>();
       patternsList.add(patterns);
       context.pathContext.put(Paths.GROK_DIR, patternsList);
-    }
 
-    File[] grockRuleFiles = patterns.toFile().listFiles();
-    if(grockRuleFiles.length != 0) {
-      List<Path> grokRulePaths = new ArrayList<>();
-      for (File thisConfigFile : grockRuleFiles) {
-        grokRulePaths.add(thisConfigFile.toPath());
+
+      File[] grockRuleFiles = patterns.toFile().listFiles();
+      if (grockRuleFiles.length != 0) {
+        List<Path> grokRulePaths = new ArrayList<>();
+        for (File thisConfigFile : grockRuleFiles) {
+          grokRulePaths.add(thisConfigFile.toPath());
+        }
+        context.pathContext.put(Paths.GROK_RULES, grokRulePaths);
       }
-      context.pathContext.put(Paths.GROK_RULES,grokRulePaths);
     }
 
-    Path enrichments = config.resolve("zookeeper/enrichments");
+    Path elasticsearch = configPath.resolve("elasticsearch");
+    if(elasticsearch.toFile().exists()) {
+      List<Path> esList = new ArrayList<>();
+      esList.add(elasticsearch);
+      context.pathContext.put(Paths.ELASTICSEARCH_DIR, esList);
+
+      Collection<File> esTemplates = FileUtils.listFiles(elasticsearch.toFile(), ES_EXT, false);
+      Map<String, Map<String, Object>> defaultElasticSearchTemplates = new HashMap<>();
+      if (!esTemplates.isEmpty()) {
+        List<Path> esTemplatePaths = new ArrayList<>();
+        for (File thisTemplateFile : esTemplates) {
+          esTemplatePaths.add(thisTemplateFile.toPath());
+          Map<String, Object> esTemplate = JSONUtils.INSTANCE.load(new ByteArrayInputStream(Files.toByteArray(thisTemplateFile)), new TypeReference<Map<String, Object>>() {
+          });
+          defaultElasticSearchTemplates.put(thisTemplateFile.getName(), esTemplate);
+        }
+        context.pathContext.put(Paths.ELASTICSEARCH_TEMPLATES, esTemplatePaths);
+        context.defaultElasticSearchTemplates = Optional.of(defaultElasticSearchTemplates);
+      }
+    }
+
+    Path enrichments = configPath.resolve("zookeeper/enrichments");
     if(!enrichments.toFile().exists()){
       throw new Exception("Invalid Parser Extension: Missing Enrichment Configuration ");
     }
@@ -265,7 +288,7 @@ public class ExtensionServiceImpl implements ExtensionService{
     context.pathContext.put(Paths.ZOOKEEPER,zookeeperPaths);
     context.pathContext.put(Paths.ENRICHMENTS_CONFIG_DIR,enrichmentConfigDirPaths);
 
-    Path indexing = config.resolve("zookeeper/indexing");
+    Path indexing = configPath.resolve("zookeeper/indexing");
     if(!indexing.toFile().exists()){
       throw new Exception("Invalid Parser Extension: Missing Indexing Configuration ");
     }
@@ -289,7 +312,7 @@ public class ExtensionServiceImpl implements ExtensionService{
     context.pathContext.put(Paths.INDEXING_CONFIG,indexingConfigPaths);
     context.pathContext.put(Paths.INDEXING_CONFIG_DIR,indexingConfigDirPaths);
 
-    Path parsers = config.resolve("zookeeper/parsers");
+    Path parsers = configPath.resolve("zookeeper/parsers");
     if(!parsers.toFile().exists()){
       throw new Exception("Invalid Parser Extension: Missing Parsers Configuration ");
     }
@@ -463,6 +486,9 @@ public class ExtensionServiceImpl implements ExtensionService{
     config.setDefaultParserConfigs(context.defaultParserConfigs.get());
     config.setDefaultEnrichementConfigs(context.defaultEnrichmentConfigs.get());
     config.setDefaultIndexingConfigs(context.defaultIndexingConfigs.get());
+    if(context.defaultElasticSearchTemplates.isPresent()) {
+      config.setDefaultElasticSearchTemplates(context.defaultElasticSearchTemplates.get());
+    }
     ConfigurationsUtils.writeParserExtensionConfigToZookeeper(context.extensionPackageName.get(),config.toJSON().getBytes(), client);
   }
 
@@ -477,5 +503,6 @@ public class ExtensionServiceImpl implements ExtensionService{
     public Optional<Map<String,SensorParserConfig>> defaultParserConfigs = Optional.empty();
     public Optional<Map<String,SensorEnrichmentConfig>> defaultEnrichmentConfigs = Optional.empty();
     public Optional<Map<String,Map<String,Object>>> defaultIndexingConfigs = Optional.empty();
+    public Optional<Map<String,Map<String,Object>>> defaultElasticSearchTemplates = Optional.empty();
   }
 }

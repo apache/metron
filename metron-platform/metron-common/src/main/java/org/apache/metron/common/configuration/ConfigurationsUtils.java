@@ -116,11 +116,9 @@ public class ConfigurationsUtils {
   public static void writeParserExtensionConfigToZookeeper(String extensionID, byte[] configData, String zookeeperUrl) throws Exception {
     try(CuratorFramework client = getClient(zookeeperUrl)) {
       client.start();
-      writeSensorParserConfigToZookeeper(extensionID, configData, client);
+      writeParserExtensionConfigToZookeeper(extensionID, configData, client);
     }
   }
-
-
 
   public static void writeSensorIndexingConfigToZookeeper(String sensorType, Map<String, Object> sensorIndexingConfig, String zookeeperUrl) throws Exception {
     writeSensorIndexingConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSON(sensorIndexingConfig), zookeeperUrl);

@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.utils.JSONUtils;
 
@@ -38,6 +37,7 @@ public class ParserExtensionConfig implements Serializable{
   private Map<String,SensorParserConfig> defaultParserConfigs;
   private Map<String,SensorEnrichmentConfig> defaultEnrichementConfigs;
   private Map<String,Map<String,Object>> defaultIndexingConfigs;
+  private Map<String,Map<String,Object>> defaultElasticSearchTemplates;
 
   public String getExtensionAssemblyName() {
     return extensionAssemblyName;
@@ -120,7 +120,16 @@ public class ParserExtensionConfig implements Serializable{
     this.parserExtensionParserNames.addAll(parserExtensionParserNames);
   }
 
+  public Map<String, Map<String, Object>> getDefaultElasticSearchTemplates() {
+    if(this.defaultElasticSearchTemplates != null){
+      return ImmutableMap.copyOf(this.defaultElasticSearchTemplates);
+    }
+    return ImmutableMap.of();
+  }
 
+  public void setDefaultElasticSearchTemplates(Map<String, Map<String, Object>> defaultElasticSearchTemplates) {
+    this.defaultElasticSearchTemplates = new HashMap<>(defaultElasticSearchTemplates);
+  }
 
   public static ParserExtensionConfig fromBytes(byte[] config) throws IOException {
     ParserExtensionConfig ret = JSONUtils.INSTANCE.load(new String(config), ParserExtensionConfig.class);
@@ -162,6 +171,8 @@ public class ParserExtensionConfig implements Serializable{
       return false;
     if (getDefaultIndexingConfigs() != null ? !getDefaultIndexingConfigs().equals(that.getDefaultIndexingConfigs()) : that.getDefaultIndexingConfigs() != null)
       return false;
+    if (getDefaultElasticSearchTemplates() != null ? !getDefaultElasticSearchTemplates().equals(that.getDefaultElasticSearchTemplates()) : that.getDefaultElasticSearchTemplates() != null)
+      return false;
     return getParserExtensionParserNames() != null ? getParserExtensionParserNames().equals(that.getParserExtensionParserNames()) : that.getParserExtensionParserNames() == null;
   }
 
@@ -174,6 +185,7 @@ public class ParserExtensionConfig implements Serializable{
     result = 31 * result + (getDefaultParserConfigs() != null ? getDefaultParserConfigs().hashCode() : 0);
     result = 31 * result + (getDefaultEnrichementConfigs() != null ? getDefaultEnrichementConfigs().hashCode() : 0);
     result = 31 * result + (getDefaultIndexingConfigs() != null ? getDefaultIndexingConfigs().hashCode() : 0);
+    result = 31 * result + (getDefaultElasticSearchTemplates() != null ? getDefaultElasticSearchTemplates().hashCode() : 0);
     result = 31 * result + (getParserExtensionParserNames() != null ? getParserExtensionParserNames().hashCode() : 0);
     return result;
   }
