@@ -34,8 +34,7 @@ In order to streamline the review of the contribution we ask you follow these gu
 
   ```
   cd site-book
-  bin/generate-md.sh
-  mvn site:site
+  mvn site
   ```
 
 #### Note:

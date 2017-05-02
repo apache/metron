@@ -20,7 +20,9 @@
 		<version>0.4.0</version>
 	</parent>
 	<artifactId>metron-api</artifactId>
+    <name>metron-api</name>
 	<description>Metron API</description>
+    <url>https://metron.apache.org/</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<flume.version>${global_flume_version}</flume.version>
