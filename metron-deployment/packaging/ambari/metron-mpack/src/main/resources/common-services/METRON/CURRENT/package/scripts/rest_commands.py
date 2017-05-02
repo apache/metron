@@ -21,6 +21,7 @@ import os
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
+from resource_management.libraries.functions.format import format
 
 import metron_service
 
@@ -52,7 +53,8 @@ class RestCommands:
 
     def start_rest_application(self):
         Logger.info('Starting REST application')
-        Execute("service metron-rest start")
+        command = format("service metron-rest start {metron_jdbc_password!p}")
+        Execute(command)
         Logger.info('Done starting REST application')
 
     def stop_rest_application(self):
@@ -62,5 +64,6 @@ class RestCommands:
 
     def restart_rest_application(self, env):
         Logger.info('Restarting the REST application')
-        Execute('service metron-rest restart')
+        command = format("service metron-rest restart {metron_jdbc_password!p}")
+        Execute(command)
         Logger.info('Done restarting the REST application')
