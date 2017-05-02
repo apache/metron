@@ -119,11 +119,14 @@ public class ExtensionServiceImpl implements ExtensionService{
   @Override
   public boolean deleteParserExtension(String name) throws RestException{
       // in order to delete the parser extension, we need to
+      // find the extension, get the parsers for it
+      // FOR EACH PARSER
       // delete the:
       // parsers
       // enrichments
       // indexing
-      // TBD: other configurations
+      // patterns
+      // THEN
       // the extension bundle
       // the extension configuration
 
