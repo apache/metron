@@ -42,7 +42,9 @@ public interface ExtensionService {
     INDEXING_CONFIG,
     PARSERS_CONFIG,
     GROK_DIR,
-    GROK_RULES
+    GROK_RULES,
+    ELASTICSEARCH_DIR,
+    ELASTICSEARCH_TEMPLATES
     //, SEARCH, ELASTICSEARCH, SOLR, LOGROTATE
   }
   void install(ExtensionType extensionType, String extensionPackageName, TarArchiveInputStream tgzStream) throws Exception;
