@@ -69,7 +69,7 @@ public enum ConfigurationType implements Function<String, Object> {
       throw new RuntimeException("Unable to load " + s, e);
     }
   }),
-  PARSER_EXTENSION("parser_extensions","extensions/parser", s-> {
+  PARSER_EXTENSION("parser_extensions","extensions/parser",Constants.ZOOKEEPER_EXTENSIONS_ROOT + "/parsers", s-> {
     try{
       return JSONUtils.INSTANCE.load(s, ParserExtensionConfig.class);
     }catch(IOException e){
@@ -82,10 +82,15 @@ public enum ConfigurationType implements Function<String, Object> {
   String zookeeperRoot;
   Function<String,?> deserializer;
 
+
   ConfigurationType(String name, String directory, Function<String, ?> deserializer) {
+    this(name,directory,Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + name,deserializer);
+  }
+
+  ConfigurationType(String name, String directory, String root, Function<String, ?> deserializer){
     this.name = name;
     this.directory = directory;
-    this.zookeeperRoot = Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + name;
+    this.zookeeperRoot = root;
     this.deserializer = deserializer;
   }
 

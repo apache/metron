@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -53,61 +53,74 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(TEST_PROFILE)
 public class ParserExtensionControllerIntegrationTest {
-    @Autowired
-    private TestRestTemplate restTemplate;
-    @Autowired
-    private HdfsService hdfsService;
+  @Autowired
+  private TestRestTemplate restTemplate;
+  @Autowired
+  private HdfsService hdfsService;
 
-    @Autowired
-    private WebApplicationContext wac;
+  @Autowired
+  private WebApplicationContext wac;
 
-    private MockMvc mockMvc;
+  private MockMvc mockMvc;
 
-    private String parserExtUrl = "/api/v1/ext/parsers";
-    private String user = "user";
-    private String password = "password";
-    private String extPath = "./target/remote/extension_contrib_lib/";
-    private String fileContents = "file contents";
+  private String parserExtUrl = "/api/v1/ext/parsers";
+  private String user = "user";
+  private String password = "password";
+  private String extPath = "./target/remote/extension_contrib_lib/";
+  private String fileContents = "file contents";
 
-    @Before
-    public void setup() throws Exception {
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
+  @Before
+  public void setup() throws Exception {
+    this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
 
-    }
-    @After
-    public void takeDown() throws Exception{
+  }
 
-    }
-    @Test
-    public void testSecurity() throws Exception {
-        this.mockMvc.perform(post(parserExtUrl).with(csrf()).contentType(MediaType.parseMediaType("text/plain;charset=UTF-8")).content(fileContents))
-                .andExpect(status().isUnauthorized());
+  @After
+  public void takeDown() throws Exception {
 
-        this.mockMvc.perform(get(parserExtUrl))
-                .andExpect(status().isUnauthorized());
+  }
 
-        this.mockMvc.perform(delete(parserExtUrl).with(csrf()))
-                .andExpect(status().isUnauthorized());
-    }
+  @Test
+  public void testSecurity() throws Exception {
+    this.mockMvc.perform(post(parserExtUrl).with(csrf()).contentType(MediaType.parseMediaType("text/plain;charset=UTF-8")).content(fileContents))
+            .andExpect(status().isUnauthorized());
 
-    @Test
-    public void test() throws Exception {
-        final File bundle = new File("./target/remote/metron-parser-test-assembly-0.4.0-archive.tar.gz");
-        final MockMultipartFile multipartFile = new MockMultipartFile("extensionTgz", new FileInputStream(bundle));
+    this.mockMvc.perform(get(parserExtUrl))
+            .andExpect(status().isUnauthorized());
 
-        HashMap<String, String> contentTypeParams = new HashMap<String, String>();
-        contentTypeParams.put("boundary", "265001916915724");
-        MediaType mediaType = new MediaType("multipart", "form-data", contentTypeParams);
+    this.mockMvc.perform(delete(parserExtUrl).with(csrf()))
+            .andExpect(status().isUnauthorized());
+  }
 
-        this.mockMvc.perform(MockMvcRequestBuilders.fileUpload(parserExtUrl).file(multipartFile).with(httpBasic(user,password)).contentType(mediaType))
-                .andExpect(status().isOk());
+  @Test
+  public void test() throws Exception {
+    final File bundle = new File("./target/remote/metron-parser-test-assembly-0.4.0-archive.tar.gz");
+    final MockMultipartFile multipartFile = new MockMultipartFile("extensionTgz","metron-parser-test-assembly-0.4.0-archive.tar.gz","", new FileInputStream(bundle));
 
-    }
+    HashMap<String, String> contentTypeParams = new HashMap<String, String>();
+    contentTypeParams.put("boundary", "265001916915724");
+    MediaType mediaType = new MediaType("multipart", "form-data", contentTypeParams);
+
+    this.mockMvc.perform(MockMvcRequestBuilders.fileUpload(parserExtUrl).file(multipartFile).with(httpBasic(user, password)).contentType(mediaType))
+            .andExpect(status().isOk());
+
+    this.mockMvc.perform(get(parserExtUrl + "/metron-parser-test-assembly-0_4_0").with(httpBasic(user, password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.extensionAssemblyName").value("metron-parser-test-assembly-0_4_0"))
+            .andExpect(jsonPath("$.extensionBundleName").value("metron-parser-test-bundle-0.4.0.bundle"))
+            .andExpect(jsonPath("$.extensionsBundleID").value("metron-parser-test-bundle"))
+            .andExpect(jsonPath("$.extensionsBundleVersion").value("0.4.0"))
+            .andExpect(jsonPath("$.parserExtensionParserNames[0]").value("test"));
+
+
+  }
 
 }
