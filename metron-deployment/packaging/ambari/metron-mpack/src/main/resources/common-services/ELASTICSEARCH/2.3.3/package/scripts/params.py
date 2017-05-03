@@ -77,3 +77,4 @@ discovery_zen_fd_ping_timeout = config['configurations']['elastic-site']['discov
 discovery_zen_fd_ping_retries = config['configurations']['elastic-site']['discovery_zen_fd_ping_retries']
 
 network_host = config['configurations']['elastic-site']['network_host']
+network_publish_host = config['configurations']['elastic-site']['network_publish_host']
