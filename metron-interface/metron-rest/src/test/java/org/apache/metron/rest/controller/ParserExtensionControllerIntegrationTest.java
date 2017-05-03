@@ -32,6 +32,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -48,6 +49,7 @@ import java.util.HashMap;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -110,8 +112,11 @@ public class ParserExtensionControllerIntegrationTest {
     MediaType mediaType = new MediaType("multipart", "form-data", contentTypeParams);
 
     // INSTALL
-    this.mockMvc.perform(MockMvcRequestBuilders.fileUpload(parserExtUrl).file(multipartFile).with(httpBasic(user, password)).contentType(mediaType))
-            .andExpect(status().isOk());
+    MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.fileUpload(parserExtUrl).file(multipartFile).with(httpBasic(user, password)).contentType(mediaType))
+            .andReturn();
+
+    this.mockMvc.perform(asyncDispatch(result))
+            .andExpect(status().isCreated());
 
     // GET ONE
     this.mockMvc.perform(get(parserExtUrl + "/metron-parser-test-assembly-0_4_0").with(httpBasic(user, password)))
