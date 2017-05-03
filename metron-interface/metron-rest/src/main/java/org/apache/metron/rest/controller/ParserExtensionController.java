@@ -49,6 +49,7 @@ public class ParserExtensionController {
   @PostMapping()
   DeferredResult<ResponseEntity<Void>> install(@ApiParam(name = "extensionTgz", value = "Metron Parser Extension tar.gz", required = true) @RequestParam("extensionTgz") MultipartFile extensionTgz) throws RestException {
     DeferredResult<ResponseEntity<Void>> result = new DeferredResult<>();
+    result.setResult(new ResponseEntity<Void>(HttpStatus.CREATED));
 
     try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(
             new GzipCompressorInputStream(
@@ -85,11 +86,13 @@ public class ParserExtensionController {
   @ApiResponses(value = {@ApiResponse(message = "ParserExtensionConfig was deleted", code = 200),
           @ApiResponse(message = "ParserExtensionConfig is missing", code = 404)})
   @RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
-  ResponseEntity<Void> delete(@ApiParam(name = "name", value = "SensorParserConfig name", required = true) @PathVariable String name) throws RestException {
+  DeferredResult<ResponseEntity<Void>> delete(@ApiParam(name = "name", value = "SensorParserConfig name", required = true) @PathVariable String name) throws RestException {
+    DeferredResult<ResponseEntity<Void>> result = new DeferredResult<>();
     if (extensionService.deleteParserExtension(name)) {
-      return new ResponseEntity<>(HttpStatus.OK);
+      result.setResult(new ResponseEntity<Void>(HttpStatus.OK));
     } else {
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+      result.setResult(new ResponseEntity<Void>(HttpStatus.NOT_FOUND));
     }
+    return result;
   }
 }
