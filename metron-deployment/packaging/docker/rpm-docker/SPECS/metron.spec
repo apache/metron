@@ -744,7 +744,9 @@ This package installs the Metron PCAP files %{metron_home}
 %{metron_home}/bin/pcap_inspector.sh
 %{metron_home}/bin/pcap_query.sh
 %{metron_home}/bin/start_pcap_topology.sh
+%{metron_home}/bin/pcap_zeppelin_run.sh
 %{metron_home}/flux/pcap/remote.yaml
+%{metron_home}/config/zeppelin/metron/metron-pcap.json
 %attr(0644,root,root) %{metron_home}/lib/metron-pcap-backend-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

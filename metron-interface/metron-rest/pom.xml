@@ -21,6 +21,7 @@
         <version>0.4.0</version>
     </parent>
     <artifactId>metron-rest</artifactId>
+    <url>https://metron.apache.org/</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -32,7 +33,6 @@
         <spring.kerberos.version>1.0.1.RELEASE</spring.kerberos.version>
         <swagger.version>2.5.0</swagger.version>
         <mysql.client.version>5.1.40</mysql.client.version>
-        <emma.version>1.0-alpha-3</emma.version>
     </properties>
     <dependencies>
         <dependency>
@@ -254,22 +254,6 @@
         </dependencies>
     </dependencyManagement>
 
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>emma-maven-plugin</artifactId>
-                <version>${emma.version}</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-                <configuration>
-                    <targetJdk>${global_java_version}</targetJdk>
-                </configuration>
-            </plugin>
-        </plugins>
-    </reporting>
     <build>
         <plugins>
             <plugin>

@@ -198,9 +198,9 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
             .withCustomShutdownOrder(new String[]{"storm","config","kafka","zk"})
             .withNumRetries(10)
             .build();
-    runner.start();
 
     try {
+      runner.start();
       fluxComponent.submitTopology();
 
       kafkaComponent.writeMessages(Constants.ENRICHMENT_TOPIC, inputMessages);

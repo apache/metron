@@ -121,7 +121,6 @@ public class ComponentRunner {
         }
     }
 
-
     public <T> ProcessorResult<T> process(Processor<T> successState) {
         int retryCount = 0;
         long start = System.currentTimeMillis();
