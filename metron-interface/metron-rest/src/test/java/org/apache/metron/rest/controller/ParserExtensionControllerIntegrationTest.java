@@ -133,6 +133,14 @@ public class ParserExtensionControllerIntegrationTest {
                     "@.metron-parser-test-assembly-0_4_0.extensionsBundleVersion == '0.4.0' && " +
                     "@.metron-parser-test-assembly-0_4_0.parserExtensionParserNames[0] == 'test')]").exists());
 
+    // DELETE
+    this.mockMvc.perform(delete(parserExtUrl + "/metron-parser-test-assembly-0_4_0").with(httpBasic(user, password)))
+            .andExpect(status().isOk());
+
+    // GET ONE
+ /*   this.mockMvc.perform(get(parserExtUrl + "/metron-parser-test-assembly-0_4_0").with(httpBasic(user, password)))
+            .andExpect(status().isNotFound());
+*/
   }
 
 }
