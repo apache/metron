@@ -126,13 +126,12 @@ public class ParserExtensionControllerIntegrationTest {
     // GET ALL
     this.mockMvc.perform(get(parserExtUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")));
-          // The below statement works in json path utility, but not here?
-          //  .andExpect(jsonPath("$[?(@.extensionAssemblyName == 'metron-parser-test-assembly-0_4_0')]").exists());
-     /*               "@.extensionBundleName == 'metron-parser-test-bundle-0.4.0.bundle' && " +
-                    "@.extensionsBundleID == 'metron-parser-test-bundle' && " +
-                    "@.extensionsBundleVersion == '0.4.0' && " +
-                    "@.parserExtensionParserNames[0] == 'test')]").exists());*/
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$[?(@.metron-parser-test-assembly-0_4_0.extensionAssemblyName == 'metron-parser-test-assembly-0_4_0' && " +
+                    "@.metron-parser-test-assembly-0_4_0.extensionBundleName == 'metron-parser-test-bundle-0.4.0.bundle' && " +
+                    "@.metron-parser-test-assembly-0_4_0.extensionsBundleID == 'metron-parser-test-bundle' && " +
+                    "@.metron-parser-test-assembly-0_4_0.extensionsBundleVersion == '0.4.0' && " +
+                    "@.metron-parser-test-assembly-0_4_0.parserExtensionParserNames[0] == 'test')]").exists());
 
   }
 
