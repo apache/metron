@@ -83,6 +83,21 @@ $ mvn clean install -PHDP-2.5.0.0
 
 You can swap "install" for "package" in the commands above if you don't want to deploy the artifacts to your local .m2 repo.
 
+# Build Metron Reporting
+
+To build and run reporting with code coverage:
+```
+$ mvn clean install
+$ mvn site site:stage-deploy site:deploy
+```
+
+Code coverage can be skipped by skipping tests:
+```
+$ mvn clean install -DskipTests site site:stage-deploy site:deploy
+```
+
+The staged site is deployed to /tmp/metron/site/index.html, and can be viewed by opening the file in a browser.
+
 # Navigating the Architecture
 
 Metron is at its core a Kappa architecture with Apache Storm as the processing

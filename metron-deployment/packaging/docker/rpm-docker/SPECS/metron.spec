@@ -269,6 +269,7 @@ This package installs the Metron Indexing files
 %{metron_home}/config/zookeeper/indexing/asa.json
 %{metron_home}/config/zookeeper/indexing/error.json
 %{metron_home}/config/zeppelin/metron/metron-yaf-telemetry.json
+%{metron_home}/config/zeppelin/metron/metron-connection-report.json
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -293,7 +294,9 @@ This package installs the Metron PCAP files %{metron_home}
 %{metron_home}/bin/pcap_inspector.sh
 %{metron_home}/bin/pcap_query.sh
 %{metron_home}/bin/start_pcap_topology.sh
+%{metron_home}/bin/pcap_zeppelin_run.sh
 %{metron_home}/flux/pcap/remote.yaml
+%{metron_home}/config/zeppelin/metron/metron-pcap.json
 %attr(0644,root,root) %{metron_home}/lib/metron-pcap-backend-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -395,8 +398,9 @@ This package installs the Metron Management UI %{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
 %changelog
+* Fri Apr 28 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
+- Add Zeppelin Connection Report Dashboard
 * Wed Mar 29 2017 Ryan Merriman <merrimanr@gmail.com> - 0.3.1
 - Added metron-rest
 * Thu Jan 19 2017 Justin Leet <justinjleet@gmail.com> - 0.3.1
