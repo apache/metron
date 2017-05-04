@@ -17,7 +17,6 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -28,11 +27,9 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.extensions.ParserExtensionConfig;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.common.utils.StringUtils;
 import org.apache.metron.guava.io.Files;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.*;
