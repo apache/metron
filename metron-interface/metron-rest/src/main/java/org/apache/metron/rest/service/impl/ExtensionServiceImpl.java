@@ -57,11 +57,15 @@ public class ExtensionServiceImpl implements ExtensionService{
   @Autowired
   HdfsService hdfsService;
   @Autowired
+  KafkaService kafkaService;
+  @Autowired
   SensorEnrichmentConfigService sensorEnrichmentConfigService;
   @Autowired
   SensorIndexingConfigService sensorIndexingConfigService;
   @Autowired
   SensorParserConfigService sensorParserConfigService;
+  @Autowired
+  StormAdminService stormAdminService;
 
   private CuratorFramework client;
 
@@ -117,20 +121,27 @@ public class ExtensionServiceImpl implements ExtensionService{
   }
 
   @Override
-  public boolean deleteParserExtension(String name) throws RestException{
-      // in order to delete the parser extension, we need to
-      // find the extension, get the parsers for it
-      // FOR EACH PARSER
-      // delete the:
-      // parsers
-      // enrichments
-      // indexing
-      // patterns
-      // THEN
-      // the extension bundle
-      // the extension configuration
+  public boolean deleteParserExtension(String name) throws Exception{
+    // in order to delete the parser extension, we need to
+    // find the extension, get the parsers for it
+    ParserExtensionConfig parserExtensionConfig;
+    parserExtensionConfig = findOneParserExtension(name);
+    Collection<String> parsers = parserExtensionConfig.getParserExtensionParserNames();
+    for(String parser : parsers){
+      // NOTE if any one parser fails, then we will not continue
+      // we may continue and then we have to think through a more
+      // complicated failure mode
+      stormAdminService.stopParserTopology(parser, true);
+      kafkaService.deleteTopic(parser);
+      // should we delete them?
+      //deleteGrokRulesFromHdfs(parser);
+      sensorEnrichmentConfigService.delete(parser);
+      sensorIndexingConfigService.delete(parser);
+      sensorParserConfigService.delete(parser);
+    }
 
-
+    deleteBundleFromHdfs(parserExtensionConfig.getExtensionBundleName());
+    ConfigurationsUtils.deleteParsesrExtensionConfig(name, client);
     return true;
   }
 
@@ -430,6 +441,21 @@ public class ExtensionServiceImpl implements ExtensionService{
     org.apache.hadoop.fs.Path targetPath = new org.apache.hadoop.fs.Path(altPath, bundlePath.toFile().getName());
     hdfsService.write(targetPath,FileUtils.readFileToByteArray(bundlePath.toFile()));
   }
+
+  private void deleteBundleFromHdfs(String bundleName) throws Exception{
+    Optional<BundleProperties> optionalProperties = getBundleProperties(client);
+    if(!optionalProperties.isPresent()){
+      throw new Exception("Failed to retrieve Bundle.Properties, unknown error");
+    }
+    BundleProperties props = optionalProperties.get();
+    org.apache.hadoop.fs.Path altPath = new org.apache.hadoop.fs.Path(props.getProperty("bundle.library.directory.alt"));
+
+    if(hdfsService.list(altPath).contains(bundleName)){
+      org.apache.hadoop.fs.Path targetPath = new org.apache.hadoop.fs.Path(altPath, bundleName);
+      hdfsService.delete(targetPath, false);
+    }
+  }
+
 
   private void deployGrokRulesToHdfs(InstallContext context)throws Exception{
     List<Path> grokRulePaths = context.pathContext.get(Paths.GROK_RULES);

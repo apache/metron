@@ -144,9 +144,9 @@ public class ParserExtensionControllerIntegrationTest {
             .andExpect(status().isOk());
 
     // GET ONE
- /*   this.mockMvc.perform(get(parserExtUrl + "/metron-parser-test-assembly-0_4_0").with(httpBasic(user, password)))
+    this.mockMvc.perform(get(parserExtUrl + "/metron-parser-test-assembly-0_4_0").with(httpBasic(user, password)))
             .andExpect(status().isNotFound());
- */
+
   }
 
 }
