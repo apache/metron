@@ -88,11 +88,15 @@ public class ParserExtensionController {
   @RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
   DeferredResult<ResponseEntity<Void>> delete(@ApiParam(name = "name", value = "SensorParserConfig name", required = true) @PathVariable String name) throws RestException {
     DeferredResult<ResponseEntity<Void>> result = new DeferredResult<>();
-    if (extensionService.deleteParserExtension(name)) {
-      result.setResult(new ResponseEntity<Void>(HttpStatus.OK));
-    } else {
-      result.setResult(new ResponseEntity<Void>(HttpStatus.NOT_FOUND));
+    try {
+      if (extensionService.deleteParserExtension(name)) {
+        result.setResult(new ResponseEntity<Void>(HttpStatus.OK));
+      } else {
+        result.setResult(new ResponseEntity<Void>(HttpStatus.NOT_FOUND));
+      }
+      return result;
+    }catch(Exception e){
+      throw new RestException(e);
     }
-    return result;
   }
 }

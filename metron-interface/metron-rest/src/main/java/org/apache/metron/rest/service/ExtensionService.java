@@ -51,5 +51,5 @@ public interface ExtensionService {
   ParserExtensionConfig findOneParserExtension(String name) throws RestException;
   Map<String, ParserExtensionConfig> getAllParserExtensions() throws RestException;
   List<String> getAllParserExtensionTypes() throws RestException;
-  boolean deleteParserExtension(String name) throws RestException;
+  boolean deleteParserExtension(String name) throws Exception;
 }

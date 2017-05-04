@@ -120,6 +120,10 @@ public class ConfigurationsUtils {
     }
   }
 
+  public static void deleteParsesrExtensionConfig(String extensionID, CuratorFramework client)throws Exception{
+    deleteFromZookeeper(PARSER_EXTENSION.getZookeeperRoot() + "/" + extensionID, client);
+  }
+
   public static void writeSensorIndexingConfigToZookeeper(String sensorType, Map<String, Object> sensorIndexingConfig, String zookeeperUrl) throws Exception {
     writeSensorIndexingConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSON(sensorIndexingConfig), zookeeperUrl);
   }
@@ -170,6 +174,10 @@ public class ConfigurationsUtils {
     } catch (KeeperException.NoNodeException e) {
       client.create().creatingParentsIfNeeded().forPath(path, configData);
     }
+  }
+
+  public static void deleteFromZookeeper(String path, CuratorFramework client) throws Exception{
+    client.delete().forPath(path);
   }
 
   public static void updateConfigsFromZookeeper(Configurations configurations, CuratorFramework client) throws Exception {
