@@ -35,6 +35,7 @@ import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
 import org.apache.metron.test.TestDataType;
 import org.apache.metron.test.utils.SampleDataUtils;
 import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
@@ -49,6 +50,13 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     BundleClassLoaders.reset();
     FileUtils.reset();
   }
+  @BeforeClass
+  public static void before(){
+    ExtensionClassInitializer.reset();
+    BundleClassLoaders.reset();
+    FileUtils.reset();
+  }
+
   @Test
   public void test() throws Exception {
     final String sensorType = getSensorType();

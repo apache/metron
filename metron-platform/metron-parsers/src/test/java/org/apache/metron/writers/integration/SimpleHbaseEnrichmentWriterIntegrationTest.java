@@ -41,6 +41,7 @@ import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
 import org.apache.metron.test.mock.MockHTable;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -77,7 +78,12 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
     BundleClassLoaders.reset();
     FileUtils.reset();
   }
-
+  @BeforeClass
+  public static void before(){
+    ExtensionClassInitializer.reset();
+    BundleClassLoaders.reset();
+    FileUtils.reset();
+  }
   @Test
   public void test() throws UnableToStartException, IOException {
     final String sensorType = "dummy";

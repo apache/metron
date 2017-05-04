@@ -46,6 +46,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
@@ -60,6 +61,13 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
   public static class MockValidator implements FieldValidation{
     @AfterClass
     public static void after(){
+      ExtensionClassInitializer.reset();
+      BundleClassLoaders.reset();
+      FileUtils.reset();
+    }
+    
+    @BeforeClass
+    public static void before(){
       ExtensionClassInitializer.reset();
       BundleClassLoaders.reset();
       FileUtils.reset();
