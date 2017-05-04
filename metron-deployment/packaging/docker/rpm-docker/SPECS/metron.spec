@@ -50,6 +50,7 @@ Source5:        metron-enrichment-%{full_version}-archive.tar.gz
 Source6:        metron-indexing-%{full_version}-archive.tar.gz
 Source7:        metron-pcap-backend-%{full_version}-archive.tar.gz
 Source8:        metron-profiler-%{full_version}-archive.tar.gz
+Source9:        metron-rest-%{full_version}-archive.tar.gz
 Source10:       metron-config-%{full_version}-archive.tar.gz
 
 %description
@@ -70,6 +71,7 @@ rm -rf %{_builddir}/*
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{metron_home}
+mkdir -p %{buildroot}/etc/init.d
 
 # copy source files and untar
 tar -xzf %{SOURCE0} -C %{buildroot}%{metron_home}
@@ -81,7 +83,10 @@ tar -xzf %{SOURCE5} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE6} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE7} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE8} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE9} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE10} -C %{buildroot}%{metron_home}
+
+install %{buildroot}%{metron_home}/bin/metron-rest %{buildroot}/etc/init.d/
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -320,6 +325,34 @@ This package installs the Metron Profiler %{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+%package        rest
+Summary:        Metron Rest
+Group:          Applications/Internet
+Provides:       rest = %{version}
+
+%description    rest
+This package installs the Metron Rest %{metron_home}
+
+%files          rest
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/config
+%dir %{metron_home}/bin
+%dir %{metron_home}/lib
+%{metron_home}/config/rest_application.yml
+%{metron_home}/bin/metron-rest
+/etc/init.d/metron-rest
+%attr(0644,root,root) %{metron_home}/lib/metron-rest-%{full_version}.jar
+
+%post rest
+chkconfig --add metron-rest
+
+%preun rest
+chkconfig --del metron-rest
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 %package        config
 Summary:        Metron Management UI
 Group:          Applications/Internet
@@ -366,6 +399,8 @@ This package installs the Metron Management UI %{metron_home}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
+* Thu May 4 2017 Ryan Merriman <merrimanr@gmail.com> - 0.4.0
+- Added REST
 * Fri Apr 28 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
 - Add Zeppelin Connection Report Dashboard
 * Thu Jan 19 2017 Justin Leet <justinjleet@gmail.com> - 0.3.1

@@ -15,43 +15,40 @@
 # limitations under the License.
 spring:
   datasource:
-      driverClassName: org.h2.Driver
-      url: jdbc:h2:file:~/metrondb
-      username: root
-      password: root
-      platform: h2
-  jpa:
-    hibernate:
-      ddl-auto: update
+      driverClassName: ${METRON_JDBC_DRIVER}
+      url: ${METRON_JDBC_URL}
+      username: ${METRON_JDBC_USERNAME}
+      password: ${METRON_JDBC_PASSWORD}
+      platform: ${METRON_JDBC_PLATFORM}
+      continue-on-error: true
 
 zookeeper:
-  url:  node1:2181
+  url: ${ZOOKEEPER}
 
 kafka:
   broker:
-    url: node1:6667
+    url: ${BROKERLIST}
 
 hdfs:
   namenode:
-    url: hdfs://node1:8020
+    url: ${HDFS_URL}
 
 grok:
   path:
-    temp: ./patterns/temp
-    default: /apps/metron/patterns
+    temp: ${METRON_TEMP_GROK_PATH}
+    default: ${METRON_DEFAULT_GROK_PATH}
 
 storm:
   ui:
-    url:   node1:8744
+    url: ${STORM_REST_URL}
   parser:
-    script.path: /usr/metron/${metron.version}/bin/start_parser_topology.sh
+    script.path: ${METRON_HOME}/bin/start_parser_topology.sh
   enrichment:
-    script.path: /usr/metron/${metron.version}/bin/start_enrichment_topology.sh
+    script.path: ${METRON_HOME}/bin/start_enrichment_topology.sh
   indexing:
-    script.path: /usr/metron/${metron.version}/bin/start_elasticsearch_topology.sh
+    script.path: ${METRON_HOME}/bin/start_elasticsearch_topology.sh
 
 kerberos:
-  enabled: false
-  principal: metron@EXAMPLE.COM
-  keytab: /etc/security/keytabs/metron.headless.keytab
-
+  enabled: ${SECURITY_ENABLED}
+  principal: ${METRON_PRINCIPAL_NAME}
+  keytab: ${METRON_SERVICE_KEYTAB}
