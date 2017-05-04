@@ -720,6 +720,7 @@ This package installs the Metron Indexing files
 %{metron_home}/flux/indexing/remote.yaml
 %{metron_home}/config/zookeeper/indexing/error.json
 %{metron_home}/config/zeppelin/metron/metron-yaf-telemetry.json
+%{metron_home}/config/zeppelin/metron/metron-connection-report.json
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -821,6 +822,8 @@ This package installs the Metron Management UI %{metron_home}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
+* Fri Apr 28 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
+- Add Zeppelin Connection Report Dashboard
 * Tue Apr 04 2017 Otto Fowler <ottobackwards@gmail.com> - 0.3.1
 - support for parsers as extensions
 * Thu Jan 19 2017 Justin Leet <justinjleet@gmail.com> - 0.3.1
