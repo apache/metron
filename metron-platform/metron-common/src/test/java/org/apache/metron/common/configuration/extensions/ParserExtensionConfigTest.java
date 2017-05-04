@@ -17,10 +17,8 @@
  */
 package org.apache.metron.common.configuration.extensions;
 
-import com.google.common.collect.ImmutableSet;
 import org.apache.commons.io.IOUtils;
 import org.apache.metron.TestConstants;
-import org.apache.metron.common.configuration.SensorParserConfig;
 import org.junit.Assert;
 import org.junit.Test;
 
