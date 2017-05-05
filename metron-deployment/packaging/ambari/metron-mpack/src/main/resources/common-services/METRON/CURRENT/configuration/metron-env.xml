@@ -68,7 +68,7 @@
     </property>
     <property>
         <name>metron_apps_extensions_alt_lib_hdfs_dir</name>
-        <value>/apps/metron/extension_alt/lib</value>
+        <value>/apps/metron/extension_alt_lib</value>
         <description>Home for Metron alternate extensions libraries</description>
         <display-name>Metron apps alternate extensions libraries HDFS dir</display-name>
     </property>
