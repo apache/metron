@@ -56,21 +56,22 @@ Source5:        metron-enrichment-%{full_version}-archive.tar.gz
 Source6:        metron-indexing-%{full_version}-archive.tar.gz
 Source7:        metron-pcap-backend-%{full_version}-archive.tar.gz
 Source8:        metron-profiler-%{full_version}-archive.tar.gz
-Source9:       metron-config-%{full_version}-archive.tar.gz
+Source9:        metron-rest-%{full_version}-archive.tar.gz
+Source10:       metron-config-%{full_version}-archive.tar.gz
 #extensions
-Source10:        metron-parser-asa-assembly-%{full_version}-archive.tar.gz
-Source11:       metron-parser-bro-assembly-%{full_version}-archive.tar.gz
-Source12:       metron-parser-cef-assembly-%{full_version}-archive.tar.gz
-Source13:       metron-parser-fireeye-assembly-%{full_version}-archive.tar.gz
-Source14:       metron-parser-ise-assembly-%{full_version}-archive.tar.gz
-Source15:       metron-parser-lancope-assembly-%{full_version}-archive.tar.gz
-Source16:       metron-parser-logstash-assembly-%{full_version}-archive.tar.gz
-Source17:       metron-parser-paloalto-assembly-%{full_version}-archive.tar.gz
-Source18:       metron-parser-snort-assembly-%{full_version}-archive.tar.gz
-Source19:       metron-parser-sourcefire-assembly-%{full_version}-archive.tar.gz
-Source20:       metron-parser-squid-assembly-%{full_version}-archive.tar.gz
-Source21:       metron-parser-websphere-assembly-%{full_version}-archive.tar.gz
-Source22:       metron-parser-yaf-assembly-%{full_version}-archive.tar.gz
+Source11:        metron-parser-asa-assembly-%{full_version}-archive.tar.gz
+Source12:       metron-parser-bro-assembly-%{full_version}-archive.tar.gz
+Source13:       metron-parser-cef-assembly-%{full_version}-archive.tar.gz
+Source14:       metron-parser-fireeye-assembly-%{full_version}-archive.tar.gz
+Source15:       metron-parser-ise-assembly-%{full_version}-archive.tar.gz
+Source16:       metron-parser-lancope-assembly-%{full_version}-archive.tar.gz
+Source17:       metron-parser-logstash-assembly-%{full_version}-archive.tar.gz
+Source18:       metron-parser-paloalto-assembly-%{full_version}-archive.tar.gz
+Source19:       metron-parser-snort-assembly-%{full_version}-archive.tar.gz
+Source20:       metron-parser-sourcefire-assembly-%{full_version}-archive.tar.gz
+Source21:       metron-parser-squid-assembly-%{full_version}-archive.tar.gz
+Source22:       metron-parser-websphere-assembly-%{full_version}-archive.tar.gz
+Source23:       metron-parser-yaf-assembly-%{full_version}-archive.tar.gz
 
 
 %description
@@ -91,6 +92,7 @@ rm -rf %{_builddir}/*
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{metron_home}
+mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}%{metron_extensions_lib}
 mkdir -p %{buildroot}%{metron_extensions_etc}
 mkdir -p %{buildroot}%{metron_extensions_etc_parsers}
@@ -122,19 +124,21 @@ tar -xzf %{SOURCE6} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE7} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE8} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE9} -C %{buildroot}%{metron_home}
-tar -xzf %{SOURCE10} -C %{buildroot}%{metron_extensions_etc_parsers}/asa
-tar -xzf %{SOURCE11} -C %{buildroot}%{metron_extensions_etc_parsers}/bro
-tar -xzf %{SOURCE12} -C %{buildroot}%{metron_extensions_etc_parsers}/cef
-tar -xzf %{SOURCE13} -C %{buildroot}%{metron_extensions_etc_parsers}/fireeye
-tar -xzf %{SOURCE14} -C %{buildroot}%{metron_extensions_etc_parsers}/ise
-tar -xzf %{SOURCE15} -C %{buildroot}%{metron_extensions_etc_parsers}/lancope
-tar -xzf %{SOURCE16} -C %{buildroot}%{metron_extensions_etc_parsers}/logstash
-tar -xzf %{SOURCE17} -C %{buildroot}%{metron_extensions_etc_parsers}/paloalto
-tar -xzf %{SOURCE18} -C %{buildroot}%{metron_extensions_etc_parsers}/snort
-tar -xzf %{SOURCE19} -C %{buildroot}%{metron_extensions_etc_parsers}/sourcefire
-tar -xzf %{SOURCE20} -C %{buildroot}%{metron_extensions_etc_parsers}/squid
-tar -xzf %{SOURCE21} -C %{buildroot}%{metron_extensions_etc_parsers}/websphere
-tar -xzf %{SOURCE22} -C %{buildroot}%{metron_extensions_etc_parsers}/yaf
+tar -xzf %{SOURCE10} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE11} -C %{buildroot}%{metron_extensions_etc_parsers}/asa
+tar -xzf %{SOURCE12} -C %{buildroot}%{metron_extensions_etc_parsers}/bro
+tar -xzf %{SOURCE13} -C %{buildroot}%{metron_extensions_etc_parsers}/cef
+tar -xzf %{SOURCE14} -C %{buildroot}%{metron_extensions_etc_parsers}/fireeye
+tar -xzf %{SOURCE15} -C %{buildroot}%{metron_extensions_etc_parsers}/ise
+tar -xzf %{SOURCE16} -C %{buildroot}%{metron_extensions_etc_parsers}/lancope
+tar -xzf %{SOURCE17} -C %{buildroot}%{metron_extensions_etc_parsers}/logstash
+tar -xzf %{SOURCE18} -C %{buildroot}%{metron_extensions_etc_parsers}/paloalto
+tar -xzf %{SOURCE19} -C %{buildroot}%{metron_extensions_etc_parsers}/snort
+tar -xzf %{SOURCE20} -C %{buildroot}%{metron_extensions_etc_parsers}/sourcefire
+tar -xzf %{SOURCE21} -C %{buildroot}%{metron_extensions_etc_parsers}/squid
+tar -xzf %{SOURCE22} -C %{buildroot}%{metron_extensions_etc_parsers}/websphere
+tar -xzf %{SOURCE23} -C %{buildroot}%{metron_extensions_etc_parsers}/yaf
+
 # move the bundles from config to extensions lib
 mv %{buildroot}%{metron_extensions_etc_parsers}/asa/lib/*.bundle %{buildroot}%{metron_extensions_lib}/
 mv %{buildroot}%{metron_extensions_etc_parsers}/bro/lib/*.bundle %{buildroot}%{metron_extensions_lib}/
@@ -147,6 +151,8 @@ mv %{buildroot}%{metron_extensions_etc_parsers}/paloalto/lib/*.bundle %{buildroo
 mv %{buildroot}%{metron_extensions_etc_parsers}/snort/lib/*.bundle %{buildroot}%{metron_extensions_lib}/
 mv %{buildroot}%{metron_extensions_etc_parsers}/sourcefire/lib/*.bundle %{buildroot}%{metron_extensions_lib}/
 mv %{buildroot}%{metron_extensions_etc_parsers}/websphere/lib/*.bundle %{buildroot}%{metron_extensions_lib}/
+
+install %{buildroot}%{metron_home}/bin/metron-rest %{buildroot}/etc/init.d/
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -776,6 +782,34 @@ This package installs the Metron Profiler %{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+%package        rest
+Summary:        Metron Rest
+Group:          Applications/Internet
+Provides:       rest = %{version}
+
+%description    rest
+This package installs the Metron Rest %{metron_home}
+
+%files          rest
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/config
+%dir %{metron_home}/bin
+%dir %{metron_home}/lib
+%{metron_home}/config/rest_application.yml
+%{metron_home}/bin/metron-rest
+/etc/init.d/metron-rest
+%attr(0644,root,root) %{metron_home}/lib/metron-rest-%{full_version}.jar
+
+%post rest
+chkconfig --add metron-rest
+
+%preun rest
+chkconfig --del metron-rest
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 %package        config
 Summary:        Metron Management UI
 Group:          Applications/Internet
@@ -822,6 +856,8 @@ This package installs the Metron Management UI %{metron_home}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
+* Thu May 4 2017 Ryan Merriman <merrimanr@gmail.com> - 0.4.0
+- Added REST
 * Fri Apr 28 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
 - Add Zeppelin Connection Report Dashboard
 * Tue Apr 04 2017 Otto Fowler <ottobackwards@gmail.com> - 0.3.1
