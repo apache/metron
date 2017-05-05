@@ -23,6 +23,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -86,7 +87,10 @@ public class HyperLogLogPlusFunctionsTest {
 
   @Test
   public void hllp_cardinality_returns_0_for_null_set() {
-    Assert.assertThat("Cardinality should be 0", new HyperLogLogPlusFunctions.HLLPCardinality().apply(ImmutableList.of()), equalTo(0));
+    List nullArg = new ArrayList() {{
+      add(null);
+    }};
+    Assert.assertThat("Cardinality should be 0", new HyperLogLogPlusFunctions.HLLPCardinality().apply(nullArg), equalTo(0L));
   }
 
   @Test

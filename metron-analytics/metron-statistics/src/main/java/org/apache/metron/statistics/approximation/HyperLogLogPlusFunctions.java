@@ -67,10 +67,16 @@ public class HyperLogLogPlusFunctions {
 
     @Override
     public Object apply(List<Object> args) {
-      if (args.size() < 1) {
-        return 0;
+      if (args.size() == 1) {
+        if (args.get(0) instanceof HyperLogLogPlus) {
+          HyperLogLogPlus hllpSet = (HyperLogLogPlus) args.get(0);
+          return hllpSet.cardinality();
+        } else {
+          return 0L;
+        }
+      } else {
+        return 0L;
       }
-      return ((HyperLogLogPlus) args.get(0)).cardinality();
     }
   }
 
