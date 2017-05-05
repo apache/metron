@@ -59,7 +59,7 @@ Source8:        metron-profiler-%{full_version}-archive.tar.gz
 Source9:        metron-rest-%{full_version}-archive.tar.gz
 Source10:       metron-config-%{full_version}-archive.tar.gz
 #extensions
-Source11:        metron-parser-asa-assembly-%{full_version}-archive.tar.gz
+Source11:       metron-parser-asa-assembly-%{full_version}-archive.tar.gz
 Source12:       metron-parser-bro-assembly-%{full_version}-archive.tar.gz
 Source13:       metron-parser-cef-assembly-%{full_version}-archive.tar.gz
 Source14:       metron-parser-fireeye-assembly-%{full_version}-archive.tar.gz
