@@ -118,6 +118,13 @@ public class ParserExtensionControllerIntegrationTest {
     this.mockMvc.perform(asyncDispatch(result))
             .andExpect(status().isCreated());
 
+    // INSTALL ASYNC AGAIN AND FAIL
+    result = this.mockMvc.perform(MockMvcRequestBuilders.fileUpload(parserExtUrl).file(multipartFile).with(httpBasic(user, password)).contentType(mediaType))
+            .andReturn();
+
+    this.mockMvc.perform(asyncDispatch(result))
+            .andExpect(status().isForbidden());
+
     // GET ONE
     this.mockMvc.perform(get(parserExtUrl + "/metron-parser-test-assembly-0_4_0").with(httpBasic(user, password)))
             .andExpect(status().isOk())

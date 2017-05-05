@@ -144,7 +144,7 @@ public class ExtensionServiceImpl implements ExtensionService{
 
   private void installParserExtension(Path extensionPath, String extentionPackageName) throws Exception{
     final InstallContext context = new InstallContext();
-    context.extensionPackageName = formatPackageName(extentionPackageName);
+    context.extensionPackageName = Optional.of(formatPackageName(extentionPackageName));
     context.bundleProperties = loadBundleProperties();
 
     // verify the structure
@@ -518,9 +518,9 @@ public class ExtensionServiceImpl implements ExtensionService{
     }
     ConfigurationsUtils.writeParserExtensionConfigToZookeeper(context.extensionPackageName.get(),config.toJSON().getBytes(), client);
   }
-
-  private static Optional<String> formatPackageName(String name){
-    return Optional.of(name.substring(0,name.lastIndexOf("-archive.tar.gz")).replace('.','_'));
+  @Override
+  public String formatPackageName(String name){
+    return name.substring(0,name.lastIndexOf("-archive.tar.gz")).replace('.','_');
   }
 
   class InstallContext {
