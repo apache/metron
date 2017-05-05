@@ -43,7 +43,7 @@ public class ${parserClassName}IntegrationTest extends ParserIntegrationTest {
   @Override
 
   protected String getGlobalConfigPath() throws Exception{
-    return "src/test/resources";
+    return "src/test/resources/config/zookeeper";
   }
   @Override
   protected String getSampleDataPath() throws Exception {
