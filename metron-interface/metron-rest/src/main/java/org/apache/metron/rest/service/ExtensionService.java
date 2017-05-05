@@ -25,6 +25,7 @@ import org.apache.metron.rest.RestException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface ExtensionService {
   public enum ExtensionType{
@@ -52,4 +53,5 @@ public interface ExtensionService {
   Map<String, ParserExtensionConfig> getAllParserExtensions() throws RestException;
   List<String> getAllParserExtensionTypes() throws RestException;
   boolean deleteParserExtension(String name) throws Exception;
+  String formatPackageName(String name);
 }

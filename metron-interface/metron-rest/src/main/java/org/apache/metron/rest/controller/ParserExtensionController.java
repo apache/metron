@@ -45,11 +45,22 @@ public class ParserExtensionController {
   private ExtensionService extensionService;
 
   @ApiOperation(value = "Install a Metron Parser Extension into the system")
-  @ApiResponses(value = {@ApiResponse(message = "Parser Extension Installed", code = 201)})
+  @ApiResponses(value = {@ApiResponse(message = "Parser Extension Installed", code = 201),
+         @ApiResponse(message = "Parser Extension already installed", code = 403)})
   @PostMapping()
   DeferredResult<ResponseEntity<Void>> install(@ApiParam(name = "extensionTgz", value = "Metron Parser Extension tar.gz", required = true) @RequestParam("extensionTgz") MultipartFile extensionTgz) throws RestException {
     DeferredResult<ResponseEntity<Void>> result = new DeferredResult<>();
-    result.setResult(new ResponseEntity<Void>(HttpStatus.CREATED));
+
+    String extensionName = extensionService.formatPackageName(extensionTgz.getOriginalFilename());
+    try {
+      if (extensionService.findOneParserExtension(extensionName) != null) {
+        result.setResult(new ResponseEntity<Void>(HttpStatus.FORBIDDEN));
+        return result;
+      }
+    }catch(Exception e){
+
+    }
+
 
     try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(
             new GzipCompressorInputStream(
@@ -59,6 +70,7 @@ public class ParserExtensionController {
     } catch (Exception e) {
       throw new RestException(e);
     }
+    result.setResult(new ResponseEntity<Void>(HttpStatus.CREATED));
     return result;
   }
 
