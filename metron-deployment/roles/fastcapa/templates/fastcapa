@@ -22,49 +22,61 @@
 # processname: fastcapa
 #
 
-export RTE_SDK="{{ dpdk_sdk }}"
-export RTE_TARGET="{{ dpdk_target }}"
 export LD_LIBRARY_PATH="{{ fastcapa_ld_library_path }}"
 
 NAME="fastcapa"
 DESC="Metron network packet capture probe"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
-DAEMONLOG=/var/log/$NAME.log
+LOGROOT=/var/log/fastcapa
+DAEMONLOG=$LOGROOT/$NAME-stdout.log
+DAEMONERR=$LOGROOT/$NAME-stderr.log
 NOW=`date`
-DAEMON_PATH="{{ dpdk_sdk }}"
+DAEMON_PATH="/root"
 
 PORT_MASK="{{ fastcapa_portmask }}"
 KAFKA_TOPIC="{{ fastcapa_topic }}"
 KAFKA_CONFIG="{{ fastcapa_kafka_config }}"
-BURST_SIZE="{{ fastcapa_burst_size }}"
+RX_BURST_SIZE="{{ fastcapa_rx_burst_size }}"
+TX_BURST_SIZE="{{ fastcapa_tx_burst_size }}"
 NB_RX_DESC="{{ fastcapa_nb_rx_desc }}"
 NB_RX_QUEUE="{{ fastcapa_nb_rx_queue }}"
 TX_RING_SIZE="{{ fastcapa_tx_ring_size }}"
+
+DAEMON="{{ fastcapa_prefix }}/{{ fastcapa_bin }}"
+DAEMONOPTS+=" "
+DAEMONOPTS+=" -- "
+DAEMONOPTS+="-p $PORT_MASK "
+DAEMONOPTS+="-t $KAFKA_TOPIC "
+DAEMONOPTS+="-c $KAFKA_CONFIG "
+DAEMONOPTS+="-b $RX_BURST_SIZE "
+DAEMONOPTS+="-w $TX_BURST_SIZE "
+DAEMONOPTS+="-d $NB_RX_DESC "
+DAEMONOPTS+="-q $NB_RX_QUEUE "
+DAEMONOPTS+="-x $TX_RING_SIZE "
 
 case "$1" in
   start)
     printf "%-50s" "Starting $NAME..."
     echo "$NOW:  Starting $NAME..." >> $DAEMONLOG
 
+    mkdir -p $LOGROOT
+    touch $DAEMONLOG
+    touch $DAEMONERR
+
     cd $DAEMON_PATH
-    DAEMON="{{ fastcapa_prefix }}/{{ fastcapa_bin }}"
-    DAEMONOPTS+=" -- "
-    DAEMONOPTS+="-p $PORTMASK "
-    DAEMONOPTS+="-t $KAFKA_TOPIC "
-    DAEMONOPTS+="-c $KAFKA_CONFIG "
-    DAEMONOPTS+="-b $BURST_SIZE "
-    DAEMONOPTS+="-r $NB_RX_DESC "
-    DAEMONOPTS+="-q $NB_RX_QUEUE "
-    DAEMONOPTS+="-x $TX_RING_SIZE "
+    echo "$DAEMON $DAEMONOPTS >> $DAEMONLOG 2> $DAEMONERR" >> $DAEMONLOG
 
-
-    PID=`$DAEMON $DAEMONOPTS >> $DAEMONLOG 2>&1 & echo $!`
-    if [ -z $PID ]; then
-        printf "%s\n" "Fail"
+    if [ -f $PIDFILE ]; then
+        printf "%s\n" "Already running"
     else
-        echo $PID > $PIDFILE
-        printf "%s\n" "Ok"
+        PID=`$DAEMON $DAEMONOPTS >> $DAEMONLOG 2> $DAEMONERR & echo $!`
+        if [ -z $PID ]; then
+            printf "%s\n" "Fail"
+        else
+            echo $PID > $PIDFILE
+            printf "%s\n" "Ok"
+        fi
     fi
   ;;
 
@@ -87,10 +99,14 @@ case "$1" in
     PID=`cat $PIDFILE`
     cd $DAEMON_PATH
     if [ -f $PIDFILE ]; then
-        echo "$NOW:  Stopping $NAME with pid=$PID" >> $DAEMONLOG
-        kill -HUP $PID
-        printf "%s\n" "Ok"
-        rm -f $PIDFILE
+      while sleep 1
+        echo -n "."
+        kill -0 $PID >/dev/null 2>&1
+      do
+        kill -SIGINT $PID
+      done
+      printf "%s\n" "Ok"
+      rm -f $PIDFILE
     else
         printf "%s\n" "pidfile not found"
     fi
@@ -101,7 +117,29 @@ case "$1" in
     $0 start
   ;;
 
+  tail)
+    tail -F $LOGROOT/*
+  ;;
+
+  kill)
+    printf "%-50s" "Force killing $NAME"
+    PID=`cat $PIDFILE`
+    cd $DAEMON_PATH
+    if [ -f $PIDFILE ]; then
+      while sleep 1
+        echo -n "."
+        kill -0 $PID >/dev/null 2>&1
+      do
+        kill -SIGTERM $PID
+      done
+      printf "%s\n" "Ok"
+      rm -f $PIDFILE
+    else
+        printf "%s\n" "pidfile not found"
+    fi
+  ;;
+
   *)
-    echo "Usage: $0 {status|start|stop|restart}"
+    echo "Usage: $0 {status|start|stop|restart|kill|tail}"
     exit 1
 esac
