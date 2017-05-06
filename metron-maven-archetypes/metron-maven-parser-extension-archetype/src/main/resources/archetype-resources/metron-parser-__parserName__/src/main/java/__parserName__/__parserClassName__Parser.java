@@ -21,13 +21,12 @@
 
 package ${package}.${parserName};
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.guava.collect.ImmutableList;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -49,23 +48,26 @@ public class ${parserClassName}Parser extends BasicParser {
   @Override
   @SuppressWarnings("unchecked")
   public List<JSONObject> parse(byte[] msg) {
+        _LOG.trace("[Metron] Starting to parse incoming message");
 
-    _LOG.trace("[Metron] Starting to parse incoming message");
+        String originalString = new String(msg);
+        try {
+        List<JSONObject> messages = new ArrayList<>();
+        //convert the JSON blob into a String -> Object map
+        JSONParser parser = new JSONParser();
+        JSONObject payload = (JSONObject)parser.parse(originalString);
 
-    String originalString = new String(msg);
-    try {
-      //convert the JSON blob into a String -> Object map
-      Map<String, Object> payload = JSONUtils.INSTANCE.load(originalString, new TypeReference<Map<String, Object>>() {
-      });
-      _LOG.trace("[Metron] Received message: " + originalString);
-      payload.put("original_string", originalString);
 
-      if(!payload.containsKey("timestamp")) {
+        _LOG.trace("[Metron] Received message: " + originalString);
+        payload.put("original_string", originalString);
+
+        if(!payload.containsKey("timestamp")) {
         //we have to ensure that we have a timestamp.  This is one of the pre-requisites for the parser.
         payload.put("timestamp", System.currentTimeMillis());
-      }
+        }
 
-      return ImmutableList.of(new JSONObject(payload));
+        messages.add(payload);
+        return messages;
 
     } catch (Exception e) {
       String message = "Unable to parse Message: " + originalString;
