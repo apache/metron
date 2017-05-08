@@ -87,6 +87,7 @@ tar -xzf %{SOURCE9} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE10} -C %{buildroot}%{metron_home}
 
 install %{buildroot}%{metron_home}/bin/metron-rest %{buildroot}/etc/init.d/
+install %{buildroot}%{metron_home}/bin/metron-management-ui %{buildroot}/etc/init.d/
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -377,6 +378,8 @@ This package installs the Metron Management UI %{metron_home}
 %dir %{metron_home}/web/management-ui/assets/images
 %dir %{metron_home}/web/management-ui/license
 %{metron_home}/bin/start_management_ui.sh
+%{metron_home}/bin/metron-management-ui
+/etc/init.d/metron-management-ui
 %attr(0755,root,root) %{metron_home}/web/expressjs/server.js
 %attr(0644,root,root) %{metron_home}/web/expressjs/package.json
 %attr(0644,root,root) %{metron_home}/web/management-ui/favicon.ico
@@ -396,9 +399,17 @@ This package installs the Metron Management UI %{metron_home}
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/images/*
 %attr(0644,root,root) %{metron_home}/web/management-ui/license/*
 
+%post config
+chkconfig --add metron-management-ui
+
+%preun config
+chkconfig --del metron-management-ui
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
+* Thu May 8 2017 Ryan Merriman <merrimanr@gmail.com> - 0.4.0
+- Added Management UI
 * Thu May 4 2017 Ryan Merriman <merrimanr@gmail.com> - 0.4.0
 - Added REST
 * Fri Apr 28 2017 Apache Metron <dev@metron.apache.org> - 0.4.0

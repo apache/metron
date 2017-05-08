@@ -219,3 +219,6 @@ if security_enabled:
     kafka_keytab_path = config['configurations']['kafka-env']['kafka_keytab']
 
     nimbus_seeds = config['configurations']['storm-site']['nimbus.seeds']
+
+# Management UI
+metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", ['localhost'])[0]
