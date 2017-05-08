@@ -219,6 +219,16 @@
             <version>2.2.6</version>
             <scope>test</scope>
         </dependency>
+		<dependency>
+		    <groupId>org.python</groupId>
+		    <artifactId>jython-standalone</artifactId>
+		    <version>2.7.0</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.codehaus.groovy</groupId>
+		    <artifactId>groovy-all</artifactId>
+		    <version>2.4.7</version>
+		</dependency>
     </dependencies>
     <build>
         <plugins>

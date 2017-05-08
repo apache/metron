@@ -1,0 +1,3 @@
+function MetronMessage(name) {
+    this.source=name
+}
