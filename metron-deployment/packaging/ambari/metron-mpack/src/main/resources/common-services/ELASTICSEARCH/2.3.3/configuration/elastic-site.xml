@@ -195,6 +195,9 @@
     <property>
         <name>network_publish_host</name>
         <value></value>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
         <description>Network address ES will publish for client and peer use. Empty value causes it to pick from the values in network_host, which works in most simple environments. MUST set explicitly for MULTI-HOMED SYSTEMS. See https://www.elastic.co/guide/en/elasticsearch/reference/2.3/modules-network.html for ES documentation.</description>
     </property>
 </configuration>
