@@ -16,7 +16,7 @@
 
 name: "pcap"
 config:
-    topology.workers: 1
+    topology.workers: ${storm.topology.workers}
     topology.auto-credentials: ${storm.auto.credentials}
 
 components:
@@ -52,8 +52,7 @@ components:
     configMethods:
       -   name: "setFirstPollOffsetStrategy"
           args:
-            # One of EARLIEST, LATEST, UNCOMMITTED_EARLIEST, UNCOMMITTED_LATEST
-            - "UNCOMMITTED_EARLIEST"
+            - ${kafka.pcap.start}
 
   - id: "writerConfig"
     className: "org.apache.metron.spout.pcap.HDFSWriterConfig"
