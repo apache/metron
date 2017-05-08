@@ -213,8 +213,9 @@ public class PcapTopologyIntegrationTest {
     final List<Map.Entry<byte[], byte[]>> pcapEntries = Lists.newArrayList(readPcaps(pcapFile, withHeaders));
     Assert.assertTrue(Iterables.size(pcapEntries) > 0);
     final Properties topologyProperties = new Properties() {{
+      setProperty("storm.topology.workers", "1");
       setProperty("spout.kafka.topic.pcap", KAFKA_TOPIC);
-      setProperty("kafka.pcap.start", "BEGINNING");
+      setProperty("kafka.pcap.start", "EARLIEST");
       setProperty("kafka.pcap.out", outDir.getAbsolutePath());
       setProperty("kafka.pcap.numPackets", "2");
       setProperty("kafka.pcap.maxTimeMS", "200000000");
