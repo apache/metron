@@ -16,8 +16,9 @@
 
 name: "pcap"
 config:
-    topology.workers: ${storm.topology.workers}
-    topology.auto-credentials: ${storm.auto.credentials}
+    topology.workers: ${topology.workers}
+    topology.worker.childopts: ${topology.worker.childopts}
+    topology.auto-credentials: ${topology.auto-credentials}
 
 components:
 
@@ -76,6 +77,7 @@ components:
 spouts:
   - id: "kafkaSpout"
     className: "org.apache.metron.spout.pcap.KafkaToHDFSSpout"
+    parallelism: ${kafka.spout.parallelism}
     constructorArgs:
       - ref: "kafkaConfig"
       - ref: "writerConfig"

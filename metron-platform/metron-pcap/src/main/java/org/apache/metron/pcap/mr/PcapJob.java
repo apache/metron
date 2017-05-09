@@ -52,6 +52,12 @@ public class PcapJob {
   public static final String START_TS_CONF = "start_ts";
   public static final String END_TS_CONF = "end_ts";
   public static final String WIDTH_CONF = "width";
+
+
+  public static enum PCAP_COUNTER {
+    MALFORMED_PACKET_COUNT
+  }
+
   public static class PcapPartitioner extends Partitioner<LongWritable, BytesWritable> implements Configurable {
     private Configuration configuration;
     Long start = null;
@@ -110,7 +116,12 @@ public class PcapJob {
         // object will result in the whole set being passed through if any pass the filter. We cannot serialize PacketInfo
         // objects back to byte arrays, otherwise we could support more than one packet.
         // Note: short-circuit findAny() func on stream
-        boolean send = filteredPacketInfo(value).findAny().isPresent();
+        boolean send = false;
+        try {
+          send = filteredPacketInfo(value).findAny().isPresent();
+        } catch(IOException ioe) {
+          context.getCounter(PCAP_COUNTER.MALFORMED_PACKET_COUNT).increment(1);
+        }
         if (send) {
           context.write(key, value);
         }
