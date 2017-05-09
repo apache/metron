@@ -383,7 +383,6 @@
                 <configuration>
                     <configLocation>google_checks.xml</configLocation>
                     <excludes>**/generated/**/*</excludes>
-                    <failOnViolation>true</failOnViolation>
                     <logViolationsToConsole>false</logViolationsToConsole>
                 </configuration>
                 <executions>
