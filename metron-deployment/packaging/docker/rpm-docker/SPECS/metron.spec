@@ -269,11 +269,8 @@ This package installs the Metron Indexing files
 %{metron_home}/config/zookeeper/indexing/asa.json
 %{metron_home}/config/zookeeper/indexing/error.json
 %{metron_home}/config/zeppelin/metron/metron-yaf-telemetry.json
-<<<<<<< HEAD
 %{metron_home}/config/zeppelin/metron/metron-connection-report.json
-=======
 %{metron_home}/config/zeppelin/metron/metron-ip-report.json
->>>>>>> 1cace9ff29f31301d74fa6a7b2630d471452e985
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -403,15 +400,12 @@ This package installs the Metron Management UI %{metron_home}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
-<<<<<<< HEAD
 * Thu May 4 2017 Ryan Merriman <merrimanr@gmail.com> - 0.4.0
 - Added REST
-* Fri Apr 28 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
-- Add Zeppelin Connection Report Dashboard
-=======
 * Tue May 2 2017 David Lyle <dlyle65535@gmail.com> - 0.4.0
 - Add Metron IP Report
->>>>>>> 1cace9ff29f31301d74fa6a7b2630d471452e985
+* Fri Apr 28 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
+- Add Zeppelin Connection Report Dashboard
 * Thu Jan 19 2017 Justin Leet <justinjleet@gmail.com> - 0.3.1
 - Replace GeoIP files with new implementation
 * Thu Nov 03 2016 David Lyle <dlyle65535@gmail.com> - 0.2.1
