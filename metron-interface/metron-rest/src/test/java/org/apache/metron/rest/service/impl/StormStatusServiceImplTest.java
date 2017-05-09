@@ -42,6 +42,8 @@ import static org.mockito.Mockito.when;
 
 @SuppressWarnings("ALL")
 public class StormStatusServiceImplTest {
+
+  private static final String HTTP_STORM_UI = "http://storm_ui";
   @Rule
   public final ExpectedException exception = ExpectedException.none();
 
@@ -65,8 +67,8 @@ public class StormStatusServiceImplTest {
     final TopologySummary topologySummary = new TopologySummary();
     topologySummary.setTopologies(new TopologyStatus[]{topologyStatus});
 
-    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn("storm_ui");
-    when(restTemplate.getForObject("http://storm_ui" + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(topologySummary);
+    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn(HTTP_STORM_UI);
+    when(restTemplate.getForObject(HTTP_STORM_UI + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(topologySummary);
 
     TopologyStatus expectedStatus = new TopologyStatus();
     expectedStatus.setStatus(TopologyStatusCode.STARTED);
@@ -89,9 +91,9 @@ public class StormStatusServiceImplTest {
     final TopologySummary topologySummary = new TopologySummary();
     topologySummary.setTopologies(new TopologyStatus[]{topologyStatus});
 
-    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn("storm_ui");
-    when(restTemplate.getForObject("http://storm_ui" + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(topologySummary);
-    when(restTemplate.getForObject("http://storm_ui" + TOPOLOGY_URL + "/bro_id", TopologyStatus.class)).thenReturn(topologyStatus);
+    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn(HTTP_STORM_UI);
+    when(restTemplate.getForObject(HTTP_STORM_UI + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(topologySummary);
+    when(restTemplate.getForObject(HTTP_STORM_UI + TOPOLOGY_URL + "/bro_id", TopologyStatus.class)).thenReturn(topologyStatus);
 
     TopologyStatus expected = new TopologyStatus();
     expected.setStatus(TopologyStatusCode.STARTED);
@@ -112,9 +114,9 @@ public class StormStatusServiceImplTest {
     final TopologySummary topologySummary = new TopologySummary();
     topologySummary.setTopologies(new TopologyStatus[]{topologyStatus});
 
-    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn("storm_ui");
-    when(restTemplate.getForObject("http://storm_ui" + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(topologySummary);
-    when(restTemplate.getForObject("http://storm_ui" + TOPOLOGY_URL + "/bro_id", TopologyStatus.class)).thenReturn(topologyStatus);
+    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn(HTTP_STORM_UI);
+    when(restTemplate.getForObject(HTTP_STORM_UI + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(topologySummary);
+    when(restTemplate.getForObject(HTTP_STORM_UI + TOPOLOGY_URL + "/bro_id", TopologyStatus.class)).thenReturn(topologyStatus);
 
     TopologyStatus expected = new TopologyStatus();
     expected.setStatus(TopologyStatusCode.STARTED);
@@ -133,9 +135,9 @@ public class StormStatusServiceImplTest {
     final TopologySummary topologySummary = new TopologySummary();
     topologySummary.setTopologies(new TopologyStatus[]{topologyStatus});
 
-    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn("storm_ui");
-    when(restTemplate.getForObject("http://storm_ui" + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(topologySummary);
-    when(restTemplate.postForObject("http://storm_ui" + TOPOLOGY_URL + "/bro_id/activate", null, Map.class))
+    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn(HTTP_STORM_UI);
+    when(restTemplate.getForObject(HTTP_STORM_UI + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(topologySummary);
+    when(restTemplate.postForObject(HTTP_STORM_UI + TOPOLOGY_URL + "/bro_id/activate", null, Map.class))
             .thenReturn(new HashMap() {{ put("status", "success"); }});
 
     TopologyResponse expected = new TopologyResponse();
@@ -151,9 +153,9 @@ public class StormStatusServiceImplTest {
     final TopologySummary topologySummary = new TopologySummary();
     topologySummary.setTopologies(new TopologyStatus[]{topologyStatus});
 
-    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn("storm_ui");
-    when(restTemplate.getForObject("http://storm_ui" + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(topologySummary);
-    when(restTemplate.postForObject("http://storm_ui" + TOPOLOGY_URL + "/bro_id/activate", null, Map.class))
+    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn(HTTP_STORM_UI);
+    when(restTemplate.getForObject(HTTP_STORM_UI + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(topologySummary);
+    when(restTemplate.postForObject(HTTP_STORM_UI + TOPOLOGY_URL + "/bro_id/activate", null, Map.class))
             .thenReturn(new HashMap() {{ put("status", "error message"); }});
 
     TopologyResponse expected = new TopologyResponse();
@@ -163,8 +165,8 @@ public class StormStatusServiceImplTest {
 
   @Test
   public void activateTopologyShouldReturnTopologyNotFoundTopologyResponse() {
-    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn("storm_ui");
-    when(restTemplate.getForObject("http://storm_ui" + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(new TopologySummary());
+    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn(HTTP_STORM_UI);
+    when(restTemplate.getForObject(HTTP_STORM_UI + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(new TopologySummary());
 
     TopologyResponse expected = new TopologyResponse();
     expected.setErrorMessage(TopologyStatusCode.TOPOLOGY_NOT_FOUND.toString());
@@ -179,9 +181,9 @@ public class StormStatusServiceImplTest {
     final TopologySummary topologySummary = new TopologySummary();
     topologySummary.setTopologies(new TopologyStatus[]{topologyStatus});
 
-    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn("storm_ui");
-    when(restTemplate.getForObject("http://storm_ui" + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(topologySummary);
-    when(restTemplate.postForObject("http://storm_ui" + TOPOLOGY_URL + "/bro_id/deactivate", null, Map.class))
+    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn(HTTP_STORM_UI);
+    when(restTemplate.getForObject(HTTP_STORM_UI + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(topologySummary);
+    when(restTemplate.postForObject(HTTP_STORM_UI + TOPOLOGY_URL + "/bro_id/deactivate", null, Map.class))
             .thenReturn(new HashMap() {{ put("status", "success"); }});
 
     TopologyResponse expected = new TopologyResponse();
@@ -197,9 +199,9 @@ public class StormStatusServiceImplTest {
     final TopologySummary topologySummary = new TopologySummary();
     topologySummary.setTopologies(new TopologyStatus[]{topologyStatus});
 
-    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn("storm_ui");
-    when(restTemplate.getForObject("http://storm_ui" + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(topologySummary);
-    when(restTemplate.postForObject("http://storm_ui" + TOPOLOGY_URL + "/bro_id/deactivate", null, Map.class))
+    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn(HTTP_STORM_UI);
+    when(restTemplate.getForObject(HTTP_STORM_UI + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(topologySummary);
+    when(restTemplate.postForObject(HTTP_STORM_UI + TOPOLOGY_URL + "/bro_id/deactivate", null, Map.class))
             .thenReturn(new HashMap() {{ put("status", "error message"); }});
 
     TopologyResponse expected = new TopologyResponse();
@@ -209,8 +211,8 @@ public class StormStatusServiceImplTest {
 
   @Test
   public void deactivateTopologyShouldReturnTopologyNotFoundTopologyResponse() {
-    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn("storm_ui");
-    when(restTemplate.getForObject("http://storm_ui" + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(new TopologySummary());
+    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn(HTTP_STORM_UI);
+    when(restTemplate.getForObject(HTTP_STORM_UI + TOPOLOGY_SUMMARY_URL, TopologySummary.class)).thenReturn(new TopologySummary());
 
     TopologyResponse expected = new TopologyResponse();
     expected.setErrorMessage(TopologyStatusCode.TOPOLOGY_NOT_FOUND.toString());

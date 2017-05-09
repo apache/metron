@@ -108,7 +108,11 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
         if "storm-site" in services["configurations"]:
             stormUIServerHost = self.getComponentHostNames(services, "STORM", "STORM_UI_SERVER")[0]
             stormUIServerPort = services["configurations"]["storm-site"]["properties"]["ui.port"]
-            stormUIServerURL = stormUIServerHost + ":" + stormUIServerPort
+            stormUIProtocol = "http://"
+            if "ui.https.port" in services["configurations"]["storm-site"]["properties"]:
+                stormUIServerPort = services["configurations"]["storm-site"]["properties"]["ui.https.port"]
+                stormUIProtocol = "https://"
+            stormUIServerURL = stormUIProtocol + stormUIServerHost + ":" + stormUIServerPort
             putMetronEnvProperty = self.putProperty(configurations, "metron-env", services)
             putMetronEnvProperty("storm_rest_addr",stormUIServerURL)
 
