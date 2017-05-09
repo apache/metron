@@ -17,6 +17,7 @@
  */
 package org.apache.metron.elasticsearch.writer;
 
+import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -57,7 +58,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   }
 
   @Override
-  public void init(Map stormConf, WriterConfiguration configurations) {
+  public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration configurations) {
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
 
     Settings.Builder settingsBuilder = Settings.settingsBuilder();

@@ -17,6 +17,7 @@
  */
 package org.apache.metron.solr.writer;
 
+import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
@@ -56,7 +57,7 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
   }
 
   @Override
-  public void init(Map stormConf, WriterConfiguration configurations) throws IOException, SolrServerException {
+  public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration configurations) throws IOException, SolrServerException {
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
     if(solr == null) solr = new MetronSolrClient((String) globalConfiguration.get("solr.zookeeper"));
     String collection = getCollection(configurations);
