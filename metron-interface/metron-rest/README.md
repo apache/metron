@@ -14,19 +14,19 @@ This module provides a RESTful API for interacting with Metron.
 ### From Source
 
 1. Package the application with Maven:
-```
+  ```
 mvn clean package
-```
+  ```
 
 1. Untar the archive in the $METRON_HOME directory.  The directory structure will look like:
-```
+  ```
 config
   rest_application.yml
 bin
   metron-rest
 lib
   metron-rest-$METRON_VERSION.jar
-```
+  ```
 
 1. Copy the `$METRON_HOME/bin/metron-rest` script to `/etc/init.d/metron-rest`
 
@@ -35,36 +35,47 @@ lib
 1. Deploy the RPM at `/incubator-metron/metron-deployment/packaging/docker/rpm-docker/target/RPMS/noarch/metron-rest-$METRON_VERSION-*.noarch.rpm`
 
 1. Install the RPM with:
-   ```
-   rpm -ih metron-rest-$METRON_VERSION-*.noarch.rpm
-   ```
+  ```
+rpm -ih metron-rest-$METRON_VERSION-*.noarch.rpm
+  ```
 
 ## Configuration
 
 The REST application depends on several configuration parameters:
 
-| Environment Variable                  | Description                                                       | Required | Default                |
-| ------------------------------------- | ----------------------------------------------------------------- | -------- | ---------------------- |
-| METRON_USER                           | Run the application as this user                                  | Optional | metron                 |
-| METRON_LOG_DIR                        | Directory where the log file is written                           | Optional | /var/log/metron/       |
-| METRON_PID_DIR                        | Directory where the pid file is written                           | Optional | /var/run/metron/       |
-| METRON_REST_PORT                      | REST application port                                             | Optional | 8082                   |
-| METRON_JVMFLAGS                       | JVM flags added to the start command                              | Optional |                        |
-| METRON_SPRING_PROFILES_ACTIVE         | Active Spring profiles (see [below](#spring-profiles))            | Optional |                        |
-| METRON_JDBC_DRIVER                    | JDBC driver class                                                 | Required |                        |
-| METRON_JDBC_URL                       | JDBC url                                                          | Required |                        |
-| METRON_JDBC_USERNAME                  | JDBC username                                                     | Required |                        |
-| METRON_JDBC_PLATFORM                  | JDBC platform (one of h2, mysql, postgres, oracle                 | Required |                        |
-| METRON_JDBC_CLIENT_PATH               | Path to JDBC client jar                                           | Optional | H2 is bundled          |
-| METRON_TEMP_GROK_PATH                 | Temporary directory used to test grok statements                  | Optional | ./patterns/temp        |
-| METRON_DEFAULT_GROK_PATH              | Defaults HDFS directory used to store grok statements             | Optional | /apps/metron/patterns  |
-| METRON_SPRING_OPTIONS                 | Additional Spring input parameters                                | Optional |                        |
-| ZOOKEEPER                             | Zookeeper quorum (ex. node1:2181,node2:2181)                      | Required |                        |
-| BROKERLIST                            | Kafka Broker list (ex. node1:6667,node2:6667)                     | Required |                        |
-| HDFS_URL                              | HDFS url or `fs.defaultFS` Hadoop setting (ex. hdfs://node1:8020) | Required |                        |
-| SECURITY_ENABLED                      | Enables Kerberos support                                          | Optional | false                  |
-| METRON_PRINCIPAL_NAME                 | Kerberos principal for the metron user                            | Optional |                        |
-| METRON_SERVICE_KEYTAB                 | Path to the Kerberos keytab for the metron user                   | Optional |                        |
+### REQUIRED
+No optional parameter has a default.
+
+| Environment Variable                  | Description
+| ------------------------------------- | -----------
+| METRON_JDBC_DRIVER                    | JDBC driver class
+| METRON_JDBC_URL                       | JDBC url
+| METRON_JDBC_USERNAME                  | JDBC username
+| METRON_JDBC_PLATFORM                  | JDBC platform (one of h2, mysql, postgres, oracle
+| ZOOKEEPER                             | Zookeeper quorum (ex. node1:2181,node2:2181)
+| BROKERLIST                            | Kafka Broker list (ex. node1:6667,node2:6667)
+| HDFS_URL                              | HDFS url or `fs.defaultFS` Hadoop setting (ex. hdfs://node1:8020)
+
+### Optional - With Defaults
+| Environment Variable                  | Description                                                       | Required | Default
+| ------------------------------------- | ----------------------------------------------------------------- | -------- | -------
+| METRON_USER                           | Run the application as this user                                  | Optional | metron
+| METRON_LOG_DIR                        | Directory where the log file is written                           | Optional | /var/log/metron/
+| METRON_PID_DIR                        | Directory where the pid file is written                           | Optional | /var/run/metron/
+| METRON_REST_PORT                      | REST application port                                             | Optional | 8082
+| METRON_JDBC_CLIENT_PATH               | Path to JDBC client jar                                           | Optional | H2 is bundled
+| METRON_TEMP_GROK_PATH                 | Temporary directory used to test grok statements                  | Optional | ./patterns/temp
+| METRON_DEFAULT_GROK_PATH              | Defaults HDFS directory used to store grok statements             | Optional | /apps/metron/patterns
+| SECURITY_ENABLED                      | Enables Kerberos support                                          | Optional | false
+
+### Optional - Blank Defaults
+| Environment Variable                  | Description                                                       | Required
+| ------------------------------------- | ----------------------------------------------------------------- | --------
+| METRON_JVMFLAGS                       | JVM flags added to the start command                              | Optional
+| METRON_SPRING_PROFILES_ACTIVE         | Active Spring profiles (see [below](#spring-profiles))            | Optional
+| METRON_SPRING_OPTIONS                 | Additional Spring input parameters                                | Optional
+| METRON_PRINCIPAL_NAME                 | Kerberos principal for the metron user                            | Optional
+| METRON_SERVICE_KEYTAB                 | Path to the Kerberos keytab for the metron user                   | Optional
 
 These are set in the `/etc/sysconfig/metron` file.
 
@@ -94,27 +105,27 @@ For example, the following configures the application for MySQL:
 1. Install MySQL if not already available (this example uses version 5.7, installation instructions can be found [here](https://dev.mysql.com/doc/refman/5.7/en/linux-installation-yum-repo.html))
 
 1. Create a metron user and REST database and permission the user for that database:
-```
+  ```
 CREATE USER 'metron'@'node1' IDENTIFIED BY 'Myp@ssw0rd';
 CREATE DATABASE IF NOT EXISTS metronrest;
 GRANT ALL PRIVILEGES ON metronrest.* TO 'metron'@'node1';
-```
+  ```
 
 1. Install the MySQL JDBC client onto the REST application host and configurate the METRON_JDBC_CLIENT_PATH variable:
-```
+  ```
 cd $METRON_HOME/lib
 wget https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.41.tar.gz
 tar xf mysql-connector-java-5.1.41.tar.gz
-```
+  ```
 
 1. Edit these variables in `/etc/sysconfig/metron` to configure the REST application for MySQL:
-```
+  ```
 METRON_JDBC_DRIVER="com.mysql.jdbc.Driver"
 METRON_JDBC_URL="jdbc:mysql://mysql_host:3306/metronrest"
 METRON_JDBC_USERNAME="metron"
 METRON_JDBC_PLATFORM="mysql"
 METRON_JDBC_CLIENT_PATH=$METRON_HOME/lib/mysql-connector-java-5.1.41/mysql-connector-java-5.1.41-bin.jar
-```
+  ```
 
 ## Usage
 
@@ -599,6 +610,7 @@ Start the [metron-docker](../../metron-docker) environment.  Build the metron-re
 mvn clean package
 mvn spring-boot:run -Drun.profiles=docker,dev
 ```
+
 The metron-rest application will be available at http://localhost:8080/swagger-ui.html#/.
 
 ### Quick Dev
@@ -608,12 +620,14 @@ Start the [Quick Dev](../../metron-deployment/vagrant/quick-dev-platform) enviro
 mvn clean package
 mvn spring-boot:run -Drun.profiles=vagrant,dev
 ```
+
 The metron-rest application will be available at http://localhost:8080/swagger-ui.html#/.
 
 To run the application locally on the Quick Dev host (node1), follow the [Installation](#installation) instructions above.  Then set the METRON_SPRING_PROFILES_ACTIVE variable in `/etc/sysconfig/metron`:
 ```
 METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
 ```
+
 and start the application:
 ```
 service metron-rest start
@@ -625,6 +639,7 @@ METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
 METRON_JVMFLAGS="-Djava.security.auth.login.config=$METRON_HOME/client_jaas.conf"
 METRON_SPRING_OPTIONS="--kerberos.enabled=true"
 ```
+
 The metron-rest application will be available at http://node1:8082/swagger-ui.html#/.
 
 ## License
