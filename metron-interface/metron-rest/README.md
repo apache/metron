@@ -43,28 +43,39 @@ lib
 
 The REST application depends on several configuration parameters:
 
-| Environment Variable                  | Description                                                       | Required | Default                |
-| ------------------------------------- | ----------------------------------------------------------------- | -------- | ---------------------- |
-| METRON_USER                           | Run the application as this user                                  | Optional | metron                 |
-| METRON_LOG_DIR                        | Directory where the log file is written                           | Optional | /var/log/metron/       |
-| METRON_PID_DIR                        | Directory where the pid file is written                           | Optional | /var/run/metron/       |
-| METRON_REST_PORT                      | REST application port                                             | Optional | 8082                   |
-| METRON_JVMFLAGS                       | JVM flags added to the start command                              | Optional |                        |
-| METRON_SPRING_PROFILES_ACTIVE         | Active Spring profiles (see [below](#spring-profiles))            | Optional |                        |
-| METRON_JDBC_DRIVER                    | JDBC driver class                                                 | Required |                        |
-| METRON_JDBC_URL                       | JDBC url                                                          | Required |                        |
-| METRON_JDBC_USERNAME                  | JDBC username                                                     | Required |                        |
-| METRON_JDBC_PLATFORM                  | JDBC platform (one of h2, mysql, postgres, oracle                 | Required |                        |
-| METRON_JDBC_CLIENT_PATH               | Path to JDBC client jar                                           | Optional | H2 is bundled          |
-| METRON_TEMP_GROK_PATH                 | Temporary directory used to test grok statements                  | Optional | ./patterns/temp        |
-| METRON_DEFAULT_GROK_PATH              | Defaults HDFS directory used to store grok statements             | Optional | /apps/metron/patterns  |
-| METRON_SPRING_OPTIONS                 | Additional Spring input parameters                                | Optional |                        |
-| ZOOKEEPER                             | Zookeeper quorum (ex. node1:2181,node2:2181)                      | Required |                        |
-| BROKERLIST                            | Kafka Broker list (ex. node1:6667,node2:6667)                     | Required |                        |
-| HDFS_URL                              | HDFS url or `fs.defaultFS` Hadoop setting (ex. hdfs://node1:8020) | Required |                        |
-| SECURITY_ENABLED                      | Enables Kerberos support                                          | Optional | false                  |
-| METRON_PRINCIPAL_NAME                 | Kerberos principal for the metron user                            | Optional |                        |
-| METRON_SERVICE_KEYTAB                 | Path to the Kerberos keytab for the metron user                   | Optional |                        |
+### REQUIRED
+No optional parameter has a default.
+
+| Environment Variable                  | Description
+| ------------------------------------- | -----------
+| METRON_JDBC_DRIVER                    | JDBC driver class
+| METRON_JDBC_URL                       | JDBC url
+| METRON_JDBC_USERNAME                  | JDBC username
+| METRON_JDBC_PLATFORM                  | JDBC platform (one of h2, mysql, postgres, oracle
+| ZOOKEEPER                             | Zookeeper quorum (ex. node1:2181,node2:2181)
+| BROKERLIST                            | Kafka Broker list (ex. node1:6667,node2:6667)
+| HDFS_URL                              | HDFS url or `fs.defaultFS` Hadoop setting (ex. hdfs://node1:8020)
+
+### Optional - With Defaults
+| Environment Variable                  | Description                                                       | Required | Default
+| ------------------------------------- | ----------------------------------------------------------------- | -------- | -------
+| METRON_USER                           | Run the application as this user                                  | Optional | metron
+| METRON_LOG_DIR                        | Directory where the log file is written                           | Optional | /var/log/metron/
+| METRON_PID_DIR                        | Directory where the pid file is written                           | Optional | /var/run/metron/
+| METRON_REST_PORT                      | REST application port                                             | Optional | 8082
+| METRON_JDBC_CLIENT_PATH               | Path to JDBC client jar                                           | Optional | H2 is bundled
+| METRON_TEMP_GROK_PATH                 | Temporary directory used to test grok statements                  | Optional | ./patterns/temp
+| METRON_DEFAULT_GROK_PATH              | Defaults HDFS directory used to store grok statements             | Optional | /apps/metron/patterns
+| SECURITY_ENABLED                      | Enables Kerberos support                                          | Optional | false
+
+### Optional - Blank Defaults
+| Environment Variable                  | Description                                                       | Required
+| ------------------------------------- | ----------------------------------------------------------------- | --------
+| METRON_JVMFLAGS                       | JVM flags added to the start command                              | Optional
+| METRON_SPRING_PROFILES_ACTIVE         | Active Spring profiles (see [below](#spring-profiles))            | Optional
+| METRON_SPRING_OPTIONS                 | Additional Spring input parameters                                | Optional
+| METRON_PRINCIPAL_NAME                 | Kerberos principal for the metron user                            | Optional
+| METRON_SERVICE_KEYTAB                 | Path to the Kerberos keytab for the metron user                   | Optional
 
 These are set in the `/etc/sysconfig/metron` file.
 
