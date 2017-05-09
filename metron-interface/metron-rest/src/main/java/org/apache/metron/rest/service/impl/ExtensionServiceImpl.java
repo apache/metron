@@ -35,6 +35,7 @@ import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.*;
 import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -43,6 +44,8 @@ import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+
+import static org.apache.metron.rest.MetronRestConstants.GROK_DEFAULT_PATH_SPRING_PROPERTY;
 
 @Service
 public class ExtensionServiceImpl implements ExtensionService{
@@ -65,9 +68,11 @@ public class ExtensionServiceImpl implements ExtensionService{
   StormAdminService stormAdminService;
 
   private CuratorFramework client;
+  private Environment environment;
 
   @Autowired
-  public ExtensionServiceImpl(CuratorFramework client) {
+  public ExtensionServiceImpl(Environment environment, CuratorFramework client) {
+    this.environment = environment;
     this.client = client;
   }
 
@@ -138,6 +143,7 @@ public class ExtensionServiceImpl implements ExtensionService{
     }
 
     deleteBundleFromHdfs(parserExtensionConfig.getExtensionBundleName());
+    deletePatternsFromHdfs(parserExtensionConfig.getParserExtensionParserNames());
     ConfigurationsUtils.deleteParsesrExtensionConfig(name, client);
     return true;
   }
@@ -175,6 +181,7 @@ public class ExtensionServiceImpl implements ExtensionService{
       for(String name : loadedParserConfigs){
         sensorParserConfigService.delete(name);
       }
+      rollBackPatternsFromHdfs(context);
       throw e;
     }
   }
@@ -460,29 +467,41 @@ public class ExtensionServiceImpl implements ExtensionService{
       return;
     }
 
-    // Not sure how we get the path here, it is a var set in ambari
-    // TODO: replace this with a 'correct' lookup of the root
-    // also copy of directory would be better here
     // Rules are shared across all parsers in a given extension assembly
-    String hardCodedHdfsPatterns = "/apps/metron/patterns";
-    Optional<BundleProperties> optionalProps = loadBundleProperties();
-    if(optionalProps.isPresent()){
-      String override = optionalProps.get().getProperty("testing.hdfs.patterns.dir.override");
-      if(org.apache.commons.lang.StringUtils.isNotEmpty(override)){
-        hardCodedHdfsPatterns = override;
-      }
-    }
+    String hdfsPatternsPath = environment.getProperty(GROK_DEFAULT_PATH_SPRING_PROPERTY);
 
-    org.apache.hadoop.fs.Path patternPath = new org.apache.hadoop.fs.Path(hardCodedHdfsPatterns);
+    org.apache.hadoop.fs.Path patternPath = new org.apache.hadoop.fs.Path(hdfsPatternsPath);
     hdfsService.ensureDirectory(patternPath);
+    List<org.apache.hadoop.fs.Path> paths = new ArrayList<>();
     for(String parserName : context.extensionParserNames) {
       org.apache.hadoop.fs.Path parserRulePath = new org.apache.hadoop.fs.Path(patternPath, parserName);
+      paths.add(parserRulePath);
       for(Path thisRule : grokRulePaths){
         org.apache.hadoop.fs.Path targetPath = new org.apache.hadoop.fs.Path(parserRulePath,thisRule.toFile().getName());
         hdfsService.write(targetPath,FileUtils.readFileToByteArray(thisRule.toFile()));
       }
     }
+    context.hdfsPathContext.put(Paths.GROK_HDFS_DIRS,paths);
+  }
 
+  private void deletePatternsFromHdfs(Collection<String> parserNames )throws Exception{
+    String hdfsPatternsPath = environment.getProperty(GROK_DEFAULT_PATH_SPRING_PROPERTY);
+    org.apache.hadoop.fs.Path patternPath = new org.apache.hadoop.fs.Path(hdfsPatternsPath);
+    hdfsService.ensureDirectory(patternPath);
+    for(String parserName : parserNames) {
+      org.apache.hadoop.fs.Path parserRulePath = new org.apache.hadoop.fs.Path(patternPath, parserName);
+      hdfsService.delete(patternPath,true);
+    }
+  }
+
+  private void rollBackPatternsFromHdfs(InstallContext context) throws Exception{
+    String hdfsPatternsPath = environment.getProperty(GROK_DEFAULT_PATH_SPRING_PROPERTY);
+    org.apache.hadoop.fs.Path patternPath = new org.apache.hadoop.fs.Path(hdfsPatternsPath);
+    hdfsService.ensureDirectory(patternPath);
+    for(String parserName : context.extensionParserNames) {
+      org.apache.hadoop.fs.Path parserRulePath = new org.apache.hadoop.fs.Path(patternPath, parserName);
+      hdfsService.delete(patternPath,true);
+    }
   }
 
   private static Optional<BundleProperties> getBundleProperties(CuratorFramework client) throws Exception{
@@ -525,6 +544,7 @@ public class ExtensionServiceImpl implements ExtensionService{
 
   class InstallContext {
     public Map<Paths,List<Path>> pathContext = new HashMap<>();
+    public Map<Paths,List<org.apache.hadoop.fs.Path>> hdfsPathContext = new HashMap<>();
     public Set<String> extensionParserNames = new HashSet<>();
     public Optional<String> bundleID = Optional.empty();
     public Optional<String> bundleVersion = Optional.empty();
