@@ -74,7 +74,6 @@ event bro_init()
         $name = "kafka-http",
         $writer = Log::WRITER_KAFKAWRITER,
         $config = table(
-                ["stream_id"] = "HTTP::LOG",
                 ["metadata.broker.list"] = "localhost:9092"
         ),
         $path = "http"
@@ -86,7 +85,6 @@ event bro_init()
         $name = "kafka-dns",
         $writer = Log::WRITER_KAFKAWRITER,
         $config = table(
-                ["stream_id"] = "DNS::LOG",
                 ["metadata.broker.list"] = "localhost:9092"
         ),
         $path = "dns"
@@ -115,7 +113,6 @@ event bro_init() &priority=-5
         $writer = Log::WRITER_KAFKAWRITER,
         $pred(rec: HTTP::Info) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
         $config = table(
-            ["stream_id"] = fmt("%s", HTTP::LOG),
             ["metadata.broker.list"] = "localhost:9092"
         )
     ]);
@@ -126,7 +123,6 @@ event bro_init() &priority=-5
         $writer = Log::WRITER_KAFKAWRITER,
         $pred(rec: DNS::Info) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
         $config = table(
-            ["stream_id"] = fmt("%s", DNS::LOG),
             ["metadata.broker.list"] = "localhost:9092"
         )
     ]);
@@ -137,7 +133,6 @@ event bro_init() &priority=-5
         $writer = Log::WRITER_KAFKAWRITER,
         $pred(rec: Conn::Info) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
         $config = table(
-            ["stream_id"] = fmt("%s", Conn::LOG),
             ["metadata.broker.list"] = "localhost:9092"
         )
     ]);
