@@ -381,7 +381,6 @@
                     </dependency>
                 </dependencies>
                 <configuration>
-                    <!--<configLocation>google_checks.xml</configLocation>-->
                     <configLocation>google_checks.xml</configLocation>
                     <excludes>**/generated/**/*</excludes>
                     <failOnViolation>true</failOnViolation>
