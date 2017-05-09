@@ -15,7 +15,12 @@
 #  limitations under the License.
 #
 ---
+- name: Copy Metron RPMs
+  copy:
+    src: "{{ item }}"
+    dest: /localrepo
+    owner: root
+    mode: 0755
+  with_fileglob:
+    - "{{ metron_rpm_glob }}"
 
-- include: create_directory.yml
-- include: copy_rpms.yml
-- include: create_repo.yml

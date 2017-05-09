@@ -16,6 +16,13 @@
 #
 ---
 
-- include: create_directory.yml
-- include: copy_rpms.yml
-- include: create_repo.yml
+- name: Clean out localrepo
+  file:
+    state: absent
+    path: /localrepo
+
+- name: Create localrepo directory
+  file:
+    path: /localrepo
+    state: directory
+    mode: 0755
