@@ -119,6 +119,52 @@ public class ConfigurationFunctionsTest {
     }
   }
 
+  static String goodParserEXConfig = slurp(SAMPLE_CONFIG_PATH + "extensions/parsers/metron-test-parsers.json");
+
+  /**
+    {
+   "extensionAssemblyName" : "test.fool-1.0.tar.gz",
+   "extensionBundleName" : "metron-test-parsers-1.0.bundle",
+   "extensionsBundleID" : "metron-test-parsers",
+   "extensionsBundleVersion" : "1.0.0",
+   "parserExtensionParserName" : [ "test2", "test" ]
+   }
+   */
+  @Multiline
+  static String defaultTestParserExtensionConfig;
+
+  @Test
+  public void testParserExtensionGetHappyPath() {
+
+    Object out = run("CONFIG_GET('PARSER_EXTENSION', 'metron-test-parsers')", new HashMap<>(), context);
+    Assert.assertEquals(goodParserEXConfig, out);
+  }
+
+  @Test
+  public void testParserExtensionGetMissWithoutDefault() {
+
+    {
+      Object out = run("CONFIG_GET('PARSER_EXTENSION', 'brop', false)", new HashMap<>(), context);
+      Assert.assertNull(out);
+    }
+  }
+
+  @Test
+  public void testParserExtensionGetMissWithNoDefaultSupport() throws Exception {
+    JSONObject expected = (JSONObject) new JSONParser().parse(defaultTestParserExtensionConfig);
+
+    {
+      Object out = run("CONFIG_GET('PARSER_EXTENSION', 'metron-test-parsers')", new HashMap<>(), context);
+      JSONObject actual = (JSONObject) new JSONParser().parse(out.toString().trim());
+      Assert.assertEquals(expected, actual);
+    }
+    {
+      // does not support default
+      Object out = run("CONFIG_GET('PARSER_EXTENSION', 'brop', true)", new HashMap<>(), context);
+      Assert.assertNull(out);
+    }
+  }
+
   static String goodTestEnrichmentConfig = slurp( SAMPLE_CONFIG_PATH + "/enrichments/test.json");
 
   /**
