@@ -94,9 +94,9 @@ public class ParserExtensionController {
     return new ResponseEntity<Map<String, ParserExtensionConfig>>(extensionService.getAllParserExtensions(), HttpStatus.OK);
   }
 
-  @ApiOperation(value = "Deletes a ParserExtensionConfig from Zookeeper")
+  @ApiOperation(value = "Deletes or uninstalls a Parser Extension and all parsers from system")
   @ApiResponses(value = {@ApiResponse(message = "ParserExtensionConfig was deleted", code = 200),
-          @ApiResponse(message = "ParserExtensionConfig is missing", code = 404)})
+          @ApiResponse(message = "Parser Extension is missing", code = 404)})
   @RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
   DeferredResult<ResponseEntity<Void>> delete(@ApiParam(name = "name", value = "SensorParserConfig name", required = true) @PathVariable String name) throws RestException {
     DeferredResult<ResponseEntity<Void>> result = new DeferredResult<>();
