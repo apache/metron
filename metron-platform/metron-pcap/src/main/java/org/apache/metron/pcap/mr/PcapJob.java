@@ -116,20 +116,23 @@ public class PcapJob {
         // object will result in the whole set being passed through if any pass the filter. We cannot serialize PacketInfo
         // objects back to byte arrays, otherwise we could support more than one packet.
         // Note: short-circuit findAny() func on stream
-        boolean send = false;
+        List<PacketInfo> packetInfos;
         try {
-          send = filteredPacketInfo(value).findAny().isPresent();
-        } catch(IOException ioe) {
+          packetInfos = PcapHelper.toPacketInfo(value.copyBytes());
+        } catch(Exception e) {
+          // toPacketInfo is throwing RuntimeExceptions. Attempt to catch and count errors with malformed packets
           context.getCounter(PCAP_COUNTER.MALFORMED_PACKET_COUNT).increment(1);
+          return;
         }
+        boolean send = filteredPacketInfo(packetInfos).findAny().isPresent();
         if (send) {
           context.write(key, value);
         }
       }
     }
 
-    private Stream<PacketInfo> filteredPacketInfo(BytesWritable value) throws IOException {
-      return PcapHelper.toPacketInfo(value.copyBytes()).stream().filter(filter);
+    private Stream<PacketInfo> filteredPacketInfo(List<PacketInfo> packetInfos) throws IOException {
+      return packetInfos.stream().filter(filter);
     }
   }
 
