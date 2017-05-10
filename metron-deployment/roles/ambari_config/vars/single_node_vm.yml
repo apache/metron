@@ -97,7 +97,7 @@ configurations:
       index_number_of_replicas: 0
       zen_discovery_ping_unicast_hosts: "[ {{ groups.search | join(', ') }} ]"
       gateway_recover_after_data_nodes: 1
-      network_host: "[ _local_ ]"
+      network_host: "[ _local_, {{ elasticsearch_network_interface }} ]"
       masters_also_are_datanodes: "1"
 
 required_configurations:
