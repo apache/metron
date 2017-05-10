@@ -39,7 +39,7 @@
         <!--Ideally this gets populated by the list of master eligible nodes (as an acceptable default).  Unsure how to do this.-->
         <!--Also need to document whether should list masters only, or all ES nodes. I think this one is all nodes, but previous inline comment said Masters.-->
         <value></value>
-        <description>Unicast discovery list of hosts to act as gossip routers, in comma separated format: eshost1,eshost2</description>
+        <description>Unicast discovery list of hosts to act as gossip routers, comma-separated list with square brackets: [ eshost1, eshost2 ]</description>
     </property>
     <property>
         <name>index_number_of_shards</name>
@@ -189,7 +189,15 @@
     </property>
     <property>
         <name>network_host</name>
-        <value>"_lo:ipv4_","_eth0:ipv4_"</value>
-        <description>Network interface(s) ES will bind to within each node. Confirm names via ifconfig.  Should have entries for primary external and loopback interfaces, with :ipv4 annotation and quote marks around each entry: "_lo:ipv4_","_eth0:ipv4_"</description>
+        <value>[ _local_ ]</value>
+        <description>Network interface(s) ES will bind to within each node. Use [ _local_ ] for single-node install; change to [ _local_, _site_ ] (including square brackets) for typical cluster install. See https://www.elastic.co/guide/en/elasticsearch/reference/2.3/modules-network.html for ES documentation.</description>
+    </property>
+    <property>
+        <name>network_publish_host</name>
+        <value></value>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+        <description>Network address ES will publish for client and peer use. Empty value causes it to pick from the values in network_host, which works in most simple environments. MUST set explicitly for MULTI-HOMED SYSTEMS. See https://www.elastic.co/guide/en/elasticsearch/reference/2.3/modules-network.html for ES documentation.</description>
     </property>
 </configuration>

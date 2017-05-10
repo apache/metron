@@ -95,9 +95,9 @@ configurations:
   - elastic-site:
       index_number_of_shards: 1
       index_number_of_replicas: 0
-      zen_discovery_ping_unicast_hosts: "{{ groups.search | join(',') }}"
+      zen_discovery_ping_unicast_hosts: "[ {{ groups.search | join(', ') }} ]"
       gateway_recover_after_data_nodes: 1
-      network_host: "_lo_,_eth0_,_eth1_"
+      network_host: "[ _local_ ]"
       masters_also_are_datanodes: "1"
 
 required_configurations:

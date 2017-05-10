@@ -15,7 +15,14 @@
 #  limitations under the License.
 #
 ---
+- name: Install createrepo
+  package:
+    name: createrepo
+    state: installed
 
-- include: create_directory.yml
-- include: copy_rpms.yml
-- include: create_repo.yml
+- name: Create local repo with new packages
+  shell: "createrepo /localrepo"
+  args:
+      creates: /localrepo/repodata
+
+

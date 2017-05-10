@@ -89,15 +89,20 @@ configurations:
   - elastic-site:
       index_number_of_shards: 2
       index_number_of_replicas: 1
-      zen_discovery_ping_unicast_hosts: "{{ groups.web[0] }},{{ groups.search | join(',') }}"
+      zen_discovery_ping_unicast_hosts: "[ {{ groups.web[0] }}, {{ groups.search | join(', ') }} ]"
       gateway_recover_after_data_nodes: 1
-      network_host: _lo_,_{{ elasticsearch_network_interface }}_
+      network_host: "[ _local_, _{{ elasticsearch_network_interface }}_ ]"
 
 required_configurations:
   - metron-env:
       storm_rest_addr: "{{ groups.ambari_slave[1] }}:8744"
       es_hosts: "{{ groups.web[0] }},{{ groups.search | join(',') }}"
       zeppelin_server_url: "{{ groups.zeppelin[0] }}"
+      metron_jdbc_driver: "org.h2.Driver"
+      metron_jdbc_url: "jdbc:h2:file:~/metrondb"
+      metron_jdbc_username: "root"
+      metron_jdbc_password: "root"
+      metron_jdbc_platform: "h2"
   - kibana-env:
       kibana_pid_dir: /var/run/kibana
       kibana_es_url: http://{{ groups.web[0] }}:9200
