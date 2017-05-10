@@ -184,6 +184,10 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 
 |            |
 | ---------- |
+| [ `POST /api/v1/ext/parsers`](#post-apiv1extparsers)|
+| [ `GET /api/v1/ext/parsers`](#get-apiv1extparsers)|
+| [ `GET /api/v1/ext/parsers/{name}`](#get-apiv1extparsersname)|
+| [ `DELETE /api/v1/ext/parsers/{name}`](#delete-apiv1extparsersname)|
 | [ `GET /api/v1/global/config`](#get-apiv1globalconfig)|
 | [ `DELETE /api/v1/global/config`](#delete-apiv1globalconfig)|
 | [ `POST /api/v1/global/config`](#post-apiv1globalconfig)|
@@ -246,6 +250,35 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `PATCH /api/v1/update/patch`](#patch-apiv1updatepatch)|
 | [ `PUT /api/v1/update/replace`](#patch-apiv1updatereplace)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
+
+### `POST /api/v1/ext/parsers`
+  * Description: Install a Metron Parser Extension into the system
+  * Input:
+    * extensionTgz - the extension tar.gz file
+  * Returns:
+    * 201 - Parser Extension installed
+    * 403 - Parser Extension already installed
+
+### `GET /api/v1/ext/parsers`
+  * Description: Retrieves all ParserExtensionConfigs from Zookeeper
+  * Returns:
+    * 200 - Returns all ParserExtensionConfigs
+
+### `GET /api/v1/ext/parsers/{name}`
+  * Description: Retrieves a ParserExtensionConfig from Zookeeper
+  * Input:
+    * name - the name of the Parser Extension
+  * Returns:
+    * 200 - Returns ParserExtensionConfig
+    * 404 - The ParserExtensionConfig is missing
+
+### `DELETE /api/v1/ext/parsers/{name}`
+  * Description: Uninstalls a Parser Extension and all parsers from the system 
+  * Input:
+    * name - the name of the Parser Extension
+  * Returns:
+    * 200 - Parser Extension was deleted/uninstalled 
+    * 404 - The Parser Extension is missing
 
 ### `GET /api/v1/global/config`
   * Description: Retrieves the current Global Config from Zookeeper
