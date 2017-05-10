@@ -63,6 +63,17 @@ mvn --version
 echo "--"
 docker --version
 
+# node
+echo "--"
+echo "node"
+node --version
+
+# npm
+echo "--"
+echo "npm"
+npm --version
+
+
 # operating system
 echo "--"
 uname -a

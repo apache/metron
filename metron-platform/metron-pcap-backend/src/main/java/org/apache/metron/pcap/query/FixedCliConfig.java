@@ -27,7 +27,8 @@ public class FixedCliConfig extends CliConfig {
 
   private Map<String, String> fixedFields;
 
-  public FixedCliConfig() {
+  public FixedCliConfig(PrefixStrategy prefixStrategy) {
+    super(prefixStrategy);
     this.fixedFields = new LinkedHashMap<>();
   }
 

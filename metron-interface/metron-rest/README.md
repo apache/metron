@@ -7,76 +7,176 @@ This module provides a RESTful API for interacting with Metron.
 * A running Metron cluster
 * Java 8 installed
 * Storm CLI and Metron topology scripts (start_parser_topology.sh, start_enrichment_topology.sh, start_elasticsearch_topology.sh) installed
+* A relational database
 
 ## Installation
+
+### From Source
+
 1. Package the application with Maven:
   ```
-  mvn clean package
+mvn clean package
   ```
 
-1. Untar the archive in the target directory.  The directory structure will look like:
+1. Untar the archive in the $METRON_HOME directory.  The directory structure will look like:
   ```
-  bin
-    start_metron_rest.sh
-  lib
-    metron-rest-$METRON_VERSION.jar
+config
+  rest_application.yml
+bin
+  metron-rest
+lib
+  metron-rest-$METRON_VERSION.jar
   ```
 
-1. Create an `application.yml` file with the contents of [application-vagrant.yml](src/main/resources/application-vagrant.yml).  Substitute the appropriate Metron service hosts (Kafka, Zookeeper, Storm, etc.) in properties containing `node1` and update the `spring.datasource.*` properties as needed (see the [Security](#security) section for more details).
+1. Copy the `$METRON_HOME/bin/metron-rest` script to `/etc/init.d/metron-rest`
 
-1. Start the application with this command:
+### From Package Manager
+
+1. Deploy the RPM at `/incubator-metron/metron-deployment/packaging/docker/rpm-docker/target/RPMS/noarch/metron-rest-$METRON_VERSION-*.noarch.rpm`
+
+1. Install the RPM with:
   ```
-  ./bin/start_metron_rest.sh /path/to/application.yml
+rpm -ih metron-rest-$METRON_VERSION-*.noarch.rpm
+  ```
+
+## Configuration
+
+The REST application depends on several configuration parameters:
+
+### REQUIRED
+No optional parameter has a default.
+
+| Environment Variable                  | Description
+| ------------------------------------- | -----------
+| METRON_JDBC_DRIVER                    | JDBC driver class
+| METRON_JDBC_URL                       | JDBC url
+| METRON_JDBC_USERNAME                  | JDBC username
+| METRON_JDBC_PLATFORM                  | JDBC platform (one of h2, mysql, postgres, oracle
+| ZOOKEEPER                             | Zookeeper quorum (ex. node1:2181,node2:2181)
+| BROKERLIST                            | Kafka Broker list (ex. node1:6667,node2:6667)
+| HDFS_URL                              | HDFS url or `fs.defaultFS` Hadoop setting (ex. hdfs://node1:8020)
+
+### Optional - With Defaults
+| Environment Variable                  | Description                                                       | Required | Default
+| ------------------------------------- | ----------------------------------------------------------------- | -------- | -------
+| METRON_USER                           | Run the application as this user                                  | Optional | metron
+| METRON_LOG_DIR                        | Directory where the log file is written                           | Optional | /var/log/metron/
+| METRON_PID_DIR                        | Directory where the pid file is written                           | Optional | /var/run/metron/
+| METRON_REST_PORT                      | REST application port                                             | Optional | 8082
+| METRON_JDBC_CLIENT_PATH               | Path to JDBC client jar                                           | Optional | H2 is bundled
+| METRON_TEMP_GROK_PATH                 | Temporary directory used to test grok statements                  | Optional | ./patterns/temp
+| METRON_DEFAULT_GROK_PATH              | Defaults HDFS directory used to store grok statements             | Optional | /apps/metron/patterns
+| SECURITY_ENABLED                      | Enables Kerberos support                                          | Optional | false
+
+### Optional - Blank Defaults
+| Environment Variable                  | Description                                                       | Required
+| ------------------------------------- | ----------------------------------------------------------------- | --------
+| METRON_JVMFLAGS                       | JVM flags added to the start command                              | Optional
+| METRON_SPRING_PROFILES_ACTIVE         | Active Spring profiles (see [below](#spring-profiles))            | Optional
+| METRON_SPRING_OPTIONS                 | Additional Spring input parameters                                | Optional
+| METRON_PRINCIPAL_NAME                 | Kerberos principal for the metron user                            | Optional
+| METRON_SERVICE_KEYTAB                 | Path to the Kerberos keytab for the metron user                   | Optional
+
+These are set in the `/etc/sysconfig/metron` file.
+
+## Database setup
+
+The REST application persists data in a relational database and requires a dedicated database user and database (see https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html for more detail).
+
+### Development
+
+The REST application comes with embedded database support for development purposes (https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html#boot-features-embedded-database-support).
+
+For example, edit these variables in `/etc/sysconfig/metron` before starting the application to configure H2:
+```
+METRON_JDBC_DRIVER="org.h2.Driver"
+METRON_JDBC_URL="jdbc:h2:file:~/metrondb"
+METRON_JDBC_USERNAME="root"
+METRON_JDBC_PASSWORD='root"
+METRON_JDBC_PLATFORM="h2"
+```
+
+### Production
+
+The REST application should be configured with a production-grade database outside of development.
+
+For example, the following configures the application for MySQL:
+
+1. Install MySQL if not already available (this example uses version 5.7, installation instructions can be found [here](https://dev.mysql.com/doc/refman/5.7/en/linux-installation-yum-repo.html))
+
+1. Create a metron user and REST database and permission the user for that database:
+  ```
+CREATE USER 'metron'@'node1' IDENTIFIED BY 'Myp@ssw0rd';
+CREATE DATABASE IF NOT EXISTS metronrest;
+GRANT ALL PRIVILEGES ON metronrest.* TO 'metron'@'node1';
+  ```
+
+1. Install the MySQL JDBC client onto the REST application host and configurate the METRON_JDBC_CLIENT_PATH variable:
+  ```
+cd $METRON_HOME/lib
+wget https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.41.tar.gz
+tar xf mysql-connector-java-5.1.41.tar.gz
+  ```
+
+1. Edit these variables in `/etc/sysconfig/metron` to configure the REST application for MySQL:
+  ```
+METRON_JDBC_DRIVER="com.mysql.jdbc.Driver"
+METRON_JDBC_URL="jdbc:mysql://mysql_host:3306/metronrest"
+METRON_JDBC_USERNAME="metron"
+METRON_JDBC_PLATFORM="mysql"
+METRON_JDBC_CLIENT_PATH=$METRON_HOME/lib/mysql-connector-java-5.1.41/mysql-connector-java-5.1.41-bin.jar
   ```
 
 ## Usage
 
-The exposed REST endpoints can be accessed with the Swagger UI at http://host:port/swagger-ui.html#/.  The default port is 8080 but can be changed in application.yml by setting "server.port" to the desired port.
+After configuration is complete, the REST application can be managed as a service:
+```
+service metron-rest start
+```
+
+If a production database is configured, the JDBC password should be passed in as the first argument on startup:
+```
+service metron-rest start Myp@ssw0rd
+```
+
+The REST application can be accessed with the Swagger UI at http://host:port/swagger-ui.html#/.  The default port is 8082.
 
 ## Security
 
-The metron-rest module uses [Spring Security](http://projects.spring.io/spring-security/) for authentication and stores user credentials in a relational database.  The H2 database is configured by default and is intended only for development purposes.  The "dev" profile can be used to automatically load test users:
+### Authentication
+
+The metron-rest module uses [Spring Security](http://projects.spring.io/spring-security/) for authentication and stores user credentials in the relational database configured above.  The required tables are created automatically the first time the application is started so that should be done first.  For example (continuing the MySQL example above), users can be added by connecting to MySQL and running:
 ```
-./bin/start_metron_rest.sh /path/to/application.yml --spring.profiles.active=dev
+use metronrest;
+insert into users (username, password, enabled) values ('your_username','your_password',1);
+insert into authorities (username, authority) values ('your_username', 'ROLE_USER');
 ```
 
-For [production use](http://docs.spring.io/spring-boot/docs/1.4.1.RELEASE/reference/htmlsingle/#boot-features-connect-to-production-database), a relational database should be configured.  For example, configuring MySQL would be done as follows:
+### Kerberos
 
-1. Create a MySQL user for the Metron REST application (http://dev.mysql.com/doc/refman/5.7/en/adding-users.html).
+Metron REST can be configured for a cluster with Kerberos enabled.  A client JAAS file is required for Kafka and Zookeeper and a Kerberos keytab for the metron user principal is required for all other services.  Configure these settings in the `/etc/sysconfig/metron` file:
+```
+SECURITY_ENABLED=true
+METRON_JVMFLAGS="-Djava.security.auth.login.config=$METRON_HOME/client_jaas.conf"
+METRON_PRINCIPAL_NAME="metron@EXAMPLE.COM"
+METRON_SERVICE_KEYTAB="/etc/security/keytabs/metron.keytab"
+```
 
-1. Connect to MySQL and create a Metron REST database:
-  ```
-  CREATE DATABASE IF NOT EXISTS metronrest
-  ```
+## Spring Profiles
 
-1. Add users:
-  ```
-  use metronrest;
-  insert into users (username, password, enabled) values ('your_username','your_password',1);
-  insert into authorities (username, authority) values ('your_username', 'ROLE_USER');
-  ```
+The REST application comes with a few [Spring Profiles](http://docs.spring.io/autorepo/docs/spring-boot/current/reference/html/boot-features-profiles.html) to aid in testing and development.
 
-1. Replace the H2 connection information in the application.yml file with MySQL connection information:
-  ```
-  spring:
-    datasource:
-          driverClassName: com.mysql.jdbc.Driver
-          url: jdbc:mysql://mysql_host:3306/metronrest
-          username: metron_rest_user
-          password: metron_rest_password
-          platform: mysql
-  ```
+| Profile                  | Description                                   |
+| ------------------------ | --------------------------------------------- |
+| test                     | sets variables to in-memory services, only used for integration testing |
+| dev                      | adds a test user to the database with credentials `user/password`       |
+| vagrant                  | sets configuration variables to match the Metron vagrant environment    |
+| docker                   | sets configuration variables to match the Metron dcoker environment     |
 
-1. Add a dependency for the MySQL JDBC connector in the metron-rest pom.xml:
-  ```
-  <dependency>
-    <groupId>mysql</groupId>
-    <artifactId>mysql-connector-java</artifactId>
-    <version>${mysql.client.version}</version>
-  </dependency>
-  ```
-
-1. Follow the steps in the [Installation](#installation) section
+Setting active profiles is done with the METRON_SPRING_PROFILES_ACTIVE variable.  For example, set this variable in `/etc/sysconfig/metron` to configure the REST application for the Vagrant environment and add a test user:
+```
+METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
+```
 
 ## API
 
@@ -100,7 +200,8 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `DELETE /api/v1/kafka/topic/{name}`](#delete-apiv1kafkatopicname)|
 | [ `GET /api/v1/kafka/topic/{name}/sample`](#get-apiv1kafkatopicnamesample)|
 | [ `GET /api/v1/sensor/enrichment/config`](#get-apiv1sensorenrichmentconfig)|
-| [ `GET /api/v1/sensor/enrichment/config/list/available`](#get-apiv1sensorenrichmentconfiglistavailable)|
+| [ `GET /api/v1/sensor/enrichment/config/list/available/enrichments`](#get-apiv1sensorenrichmentconfiglistavailableenrichments)|
+| [ `GET /api/v1/sensor/enrichment/config/list/available/threat/triage/aggregators`](#get-apiv1sensorenrichmentconfiglistavailablethreattriageaggregators)|
 | [ `DELETE /api/v1/sensor/enrichment/config/{name}`](#delete-apiv1sensorenrichmentconfigname)|
 | [ `POST /api/v1/sensor/enrichment/config/{name}`](#post-apiv1sensorenrichmentconfigname)|
 | [ `GET /api/v1/sensor/enrichment/config/{name}`](#get-apiv1sensorenrichmentconfigname)|
@@ -203,11 +304,11 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 404 - File was not found in HDFS
 
 ### `GET /api/v1/hdfs/list`
-  * Description: Reads a file from HDFS and returns the contents
+  * Description: Lists an HDFS directory
   * Input:
     * path - Path to HDFS directory
   * Returns:
-    * 200 - Returns file contents
+    * 200 - HDFS directory list
 
 ### `GET /api/v1/kafka/topic`
   * Description: Retrieves all Kafka topics
@@ -250,10 +351,15 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns all SensorEnrichmentConfigs
 
-### `GET /api/v1/sensor/enrichment/config/list/available`
+### `GET /api/v1/sensor/enrichment/config/list/available/enrichments`
   * Description: Lists the available enrichments
   * Returns:
     * 200 - Returns a list of available enrichments
+
+### `GET /api/v1/sensor/enrichment/config/list/available/threat/triage/aggregators`
+  * Description: Lists the available threat triage aggregators
+  * Returns:
+    * 200 - Returns a list of available threat triage aggregators
 
 ### `DELETE /api/v1/sensor/enrichment/config/{name}`
   * Description: Deletes a SensorEnrichmentConfig from Zookeeper
@@ -504,6 +610,7 @@ Start the [metron-docker](../../metron-docker) environment.  Build the metron-re
 mvn clean package
 mvn spring-boot:run -Drun.profiles=docker,dev
 ```
+
 The metron-rest application will be available at http://localhost:8080/swagger-ui.html#/.
 
 ### Quick Dev
@@ -513,41 +620,26 @@ Start the [Quick Dev](../../metron-deployment/vagrant/quick-dev-platform) enviro
 mvn clean package
 mvn spring-boot:run -Drun.profiles=vagrant,dev
 ```
+
 The metron-rest application will be available at http://localhost:8080/swagger-ui.html#/.
 
-To run the application locally on the Quick Dev host, package the application and scp the archive to node1:
+To run the application locally on the Quick Dev host (node1), follow the [Installation](#installation) instructions above.  Then set the METRON_SPRING_PROFILES_ACTIVE variable in `/etc/sysconfig/metron`:
 ```
-mvn clean package
-scp ./target/metron-rest-$METRON_VERSION-archive.tar.gz root@node1:$METRON_HOME
-```
-Login to node1 and unarchive the metron-rest application:
-```
-ssh root@node1
-cd $METRON_HOME && tar xf ./metron-rest-$METRON_VERSION-archive.tar.gz
-```
-Start the application on a different port to avoid conflicting with Ambari:
-```
-java -jar $METRON_HOME/lib/metron-rest-$METRON_VERSION.jar --spring.profiles.active=vagrant,dev --server.port=8082
-```
-In a cluster with Kerberos enabled, first add metron-rest to the Kafka acls:
-```
-sudo su -
-export ZOOKEEPER=node1
-export BROKERLIST=node1
-export HDP_HOME="/usr/hdp/current"
-export METRON_VERSION="0.4.0"
-export METRON_HOME="/usr/metron/${METRON_VERSION}"
-${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:metron --topic ambari_kafka_service_check
-${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:metron --topic __consumer_offsets
-${HDP_HOME}/kafka-broker/bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect=${ZOOKEEPER}:2181 --add --allow-principal User:metron --group metron-rest
+METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
 ```
 
-Then start the application as the metron user while including references to the jaas and krb5.confg files and enabling kerberos support:
+and start the application:
 ```
-su metron
-cd ~
-java -Djava.security.auth.login.config=/home/metron/.storm/client_jaas.conf -Djava.security.krb5.conf=/etc/krb5.conf -jar $METRON_HOME/lib/metron-rest-$METRON_VERSION.jar --spring.profiles.active=vagrant,dev --server.port=8082 --kerberos.enabled=true
+service metron-rest start
 ```
+
+In a cluster with Kerberos enabled, update the security settings in `/etc/sysconfig/metron`.  Security is disabled by default in the `vagrant` Spring profile so that setting must be overriden with the METRON_SPRING_OPTIONS variable:
+```
+METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
+METRON_JVMFLAGS="-Djava.security.auth.login.config=$METRON_HOME/client_jaas.conf"
+METRON_SPRING_OPTIONS="--kerberos.enabled=true"
+```
+
 The metron-rest application will be available at http://node1:8082/swagger-ui.html#/.
 
 ## License

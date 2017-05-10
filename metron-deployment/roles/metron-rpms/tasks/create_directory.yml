@@ -14,39 +14,15 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+---
 
-[ambari_master]
-node1
+- name: Clean out localrepo
+  file:
+    state: absent
+    path: /localrepo
 
-[ambari_slave]
-node1
-
-[metron_hbase_tables]
-node1
-
-[metron_kafka_topics]
-node1
-
-[enrichment]
-node1
-
-[search]
-node1
-
-[web]
-node1
-
-[sensors]
-node1
-
-[pcap_server]
-node1
-
-[metron:children]
-enrichment
-search
-web
-sensors
-metron_kafka_topics
-metron_hbase_tables
-pcap_server
+- name: Create localrepo directory
+  file:
+    path: /localrepo
+    state: directory
+    mode: 0755

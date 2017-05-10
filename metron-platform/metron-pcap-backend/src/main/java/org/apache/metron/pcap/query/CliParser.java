@@ -29,8 +29,10 @@ public class CliParser {
   public static final int NUM_REDUCERS_DEFAULT = 10;
   public static final int NUM_RECORDS_PER_FILE_DEFAULT = 10000;
   private CommandLineParser parser;
+  protected CliConfig.PrefixStrategy prefixStrategy;
 
-  public CliParser() {
+  public CliParser(CliConfig.PrefixStrategy prefixStrategy) {
+    this.prefixStrategy = prefixStrategy;
     parser = new PosixParser();
   }
 

@@ -1,0 +1,439 @@
+﻿{
+  "paragraphs": [
+    {
+      "text": "%md\n\n# Metron IP Report\n\nFor a given Source IP Address, produces the following reports:\n\n* Most Frequent Connections (defaults to 24 hours)\n* Recent Connections (defaults to 1 hour)\n* Top DNS Queries (defaults to 24 hours)\n* All Ports Used (defaults to 24 hours)\n* HTTP User Agents (defaults to 24 hours)\n\nAll reports default to a 50 row limit.\n\n\nTo execute the reports, select the Source IP Adress in the box below and click on 'Run All Paragraphs' in the top tool bar.\n\nReports may be executed individually, but be sure to execute the 'Setup' SQL Context and Tables first.",
+      "dateUpdated": "2017-05-02T15:40:11+0000",
+      "config": {
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "editorHide": true,
+        "graph": {
+          "mode": "table",
+          "height": 300,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "jobName": "paragraph_1493739611136_-165301953",
+      "id": "20170502-152938_356593846",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "<h1>Metron IP Report</h1>\n<p>For a given Source IP Address, produces the following reports:</p>\n<ul>\n<li>Most Frequent Connections (defaults to 24 hours)</li>\n<li>Recent Connections (defaults to 1 hour)</li>\n<li>Top DNS Queries (defaults to 24 hours)</li>\n<li>All Ports Used (defaults to 24 hours)</li>\n<li>HTTP User Agents (defaults to 24 hours)</li>\n</ul>\n<p>All reports default to a 50 row limit.</p>\n<p>To execute the reports, select the Source IP Adress in the box below and click on 'Run All Paragraphs' in the top tool bar.</p>\n<p>Reports may be executed individually, but be sure to execute the 'Setup' SQL Context and Tables first.</p>\n"
+      },
+      "dateCreated": "2017-05-02T15:40:11+0000",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500,
+      "$$hashKey": "object:19401"
+    },
+    {
+      "title": "Setup SQL Context and Tables",
+      "text": "%spark\n/**\n* date_sub_hours: Subtract an hours worth of seconds from a timestamp\n*/\ndef date_sub_hours(t:Long, h:Int) : Long = {\n    t - h*3600\n}\n\n/**\n* source_ip_address: Provides the same Source IP Address to all reports\n*/\nvar srcIp = z.input(\"Source IP Address\")\ndef source_ip_address() : String = {\n    srcIp.toString\n}\n\n//Register udfs\nsqlc.udf.register(\"source_ip_address\", source_ip_address _)\nsqlc.udf.register(\"date_sub_hours\", date_sub_hours _)\n\n//Load Yaf Data \nval yaf = sqlc.read.json(\"hdfs:///apps/metron/indexing/indexed/yaf\")\nyaf.registerTempTable(\"yaf\")\n\n//Load Bro Data\nval bro = sqlc.read.json(\"hdfs:///apps/metron/indexing/indexed/bro\")\nbro.registerTempTable(\"bro\")",
+      "dateUpdated": "2017-05-02T15:40:11+0000",
+      "config": {
+        "tableHide": false,
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "editorHide": true,
+        "title": true,
+        "graph": {
+          "mode": "table",
+          "height": 300,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {
+          "Source IP Address": ""
+        },
+        "forms": {
+          "Source IP Address": {
+            "name": "Source IP Address",
+            "displayName": "Source IP Address",
+            "type": "input",
+            "defaultValue": "",
+            "hidden": false
+          }
+        }
+      },
+      "jobName": "paragraph_1493739611136_-165301953",
+      "id": "20170502-140420_1010901147",
+      "dateCreated": "2017-05-02T15:40:11+0000",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500,
+      "$$hashKey": "object:19402"
+    },
+    {
+      "title": "Most Frequent Connections - YAF",
+      "text": "%spark.sql\nSELECT\n    ip_dst_addr,\n    COUNT(*) AS count\nFROM yaf\nWHERE\n    ip_src_addr = source_ip_address() AND\n    timestamp BETWEEN date_sub_hours(unix_timestamp(),${Number of Hours=24}) * 1000 AND unix_timestamp() * 1000\nGROUP BY ip_dst_addr\nORDER BY count DESC\nLIMIT ${Number of Rows=50}",
+      "dateUpdated": "2017-05-02T15:40:18+0000",
+      "config": {
+        "colWidth": 12,
+        "editorMode": "ace/mode/sql",
+        "title": true,
+        "graph": {
+          "mode": "multiBarChart",
+          "height": 300,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "ip_dst_addr",
+              "index": 0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [
+            {
+              "name": "count",
+              "index": 1,
+              "aggr": "sum"
+            }
+          ],
+          "groups": [],
+          "scatter": {
+            "xAxis": {
+              "name": "ip_dst_addr",
+              "index": 0,
+              "aggr": "sum"
+            },
+            "yAxis": {
+              "name": "count",
+              "index": 1,
+              "aggr": "sum"
+            }
+          }
+        },
+        "enabled": true,
+        "editorHide": true
+      },
+      "settings": {
+        "params": {
+          "Number of Rows": "50",
+          "Number of Hours": "24",
+          "Source IP Address": "192.168.138.158"
+        },
+        "forms": {
+          "Number of Rows": {
+            "name": "Number of Rows",
+            "defaultValue": "50",
+            "hidden": false
+          },
+          "Number of Hours": {
+            "name": "Number of Hours",
+            "defaultValue": "24",
+            "hidden": false
+          }
+        }
+      },
+      "jobName": "paragraph_1493739611136_-165301953",
+      "id": "20170502-140443_302943667",
+      "dateCreated": "2017-05-02T15:40:11+0000",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500,
+      "$$hashKey": "object:19403"
+    },
+    {
+      "title": "Recent Connections - YAF",
+      "text": "%spark.sql\nSELECT\n    ip_dst_addr,\n    COUNT(*) as count\nFROM yaf\nWHERE\n    ip_src_addr = source_ip_address() AND\n    timestamp BETWEEN date_sub_hours(unix_timestamp(),${Number of Hours=1}) * 1000 AND unix_timestamp() * 1000\nGROUP BY ip_dst_addr\nORDER BY count DESC\nLIMIT ${Number of Rows=50}",
+      "dateUpdated": "2017-05-02T15:40:21+0000",
+      "config": {
+        "colWidth": 12,
+        "editorMode": "ace/mode/sql",
+        "title": true,
+        "graph": {
+          "mode": "multiBarChart",
+          "height": 300,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "ip_dst_addr",
+              "index": 0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [
+            {
+              "name": "count",
+              "index": 1,
+              "aggr": "sum"
+            }
+          ],
+          "groups": [],
+          "scatter": {
+            "xAxis": {
+              "name": "ip_dst_addr",
+              "index": 0,
+              "aggr": "sum"
+            },
+            "yAxis": {
+              "name": "count",
+              "index": 1,
+              "aggr": "sum"
+            }
+          }
+        },
+        "enabled": true,
+        "editorHide": true
+      },
+      "settings": {
+        "params": {
+          "Number of Rows": "50",
+          "Number of Hours": "1",
+          "Source IP Address": "192.168.138.158"
+        },
+        "forms": {
+          "Number of Rows": {
+            "name": "Number of Rows",
+            "defaultValue": "50",
+            "hidden": false
+          },
+          "Number of Hours": {
+            "name": "Number of Hours",
+            "defaultValue": "1",
+            "hidden": false
+          }
+        }
+      },
+      "jobName": "paragraph_1493739611136_-165301953",
+      "id": "20170502-140621_1919836666",
+      "dateCreated": "2017-05-02T15:40:11+0000",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500,
+      "$$hashKey": "object:19404"
+    },
+    {
+      "title": "Top DNS Queries - BRO",
+      "text": "%spark.sql\nSELECT \n    query as domain_name,\n    COUNT(*) as count\nFROM bro \nWHERE\n    ip_src_addr = source_ip_address()\n    AND\n    timestamp BETWEEN date_sub_hours(unix_timestamp(),${Number of Hours=24}) * 1000 AND unix_timestamp() * 1000 \n    AND\n    protocol = 'dns' \n    AND \n    query is not null\nGROUP BY query\nORDER BY count DESC\nLIMIT ${Number of Rows=50}\n    ",
+      "dateUpdated": "2017-05-02T15:40:23+0000",
+      "config": {
+        "colWidth": 12,
+        "editorMode": "ace/mode/sql",
+        "title": true,
+        "graph": {
+          "mode": "table",
+          "height": 300,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "domain_name",
+              "index": 0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [
+            {
+              "name": "count",
+              "index": 1,
+              "aggr": "sum"
+            }
+          ],
+          "groups": [],
+          "scatter": {
+            "xAxis": {
+              "name": "domain_name",
+              "index": 0,
+              "aggr": "sum"
+            },
+            "yAxis": {
+              "name": "count",
+              "index": 1,
+              "aggr": "sum"
+            }
+          }
+        },
+        "enabled": true,
+        "editorHide": true
+      },
+      "settings": {
+        "params": {
+          "Number of Rows": "50",
+          "Number of Hours": "24",
+          "Source IP Address": "192.168.138.158"
+        },
+        "forms": {
+          "Number of Rows": {
+            "name": "Number of Rows",
+            "defaultValue": "50",
+            "hidden": false
+          },
+          "Number of Hours": {
+            "name": "Number of Hours",
+            "defaultValue": "24",
+            "hidden": false
+          }
+        }
+      },
+      "jobName": "paragraph_1493739611136_-165301953",
+      "id": "20170502-141019_193020479",
+      "dateCreated": "2017-05-02T15:40:11+0000",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500,
+      "$$hashKey": "object:19405"
+    },
+    {
+      "title": "All Ports Used - YAF",
+      "text": "%spark.sql\nSELECT\n    ip_dst_port,\n    COUNT(*) as count\nFROM yaf \nWHERE\n    ip_src_addr = source_ip_address()\n    AND\n    timestamp BETWEEN date_sub_hours(unix_timestamp(),${Number of Hours=24}) * 1000 AND unix_timestamp() * 1000 \nGROUP BY ip_dst_port\nORDER BY count DESC\nLIMIT ${Number of Rows=50}",
+      "dateUpdated": "2017-05-02T15:40:25+0000",
+      "config": {
+        "colWidth": 12,
+        "editorMode": "ace/mode/sql",
+        "title": true,
+        "graph": {
+          "mode": "table",
+          "height": 300,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "ip_dst_port",
+              "index": 0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [
+            {
+              "name": "count",
+              "index": 1,
+              "aggr": "sum"
+            }
+          ],
+          "groups": [],
+          "scatter": {
+            "xAxis": {
+              "name": "ip_dst_port",
+              "index": 0,
+              "aggr": "sum"
+            },
+            "yAxis": {
+              "name": "count",
+              "index": 1,
+              "aggr": "sum"
+            }
+          }
+        },
+        "enabled": true,
+        "editorHide": true
+      },
+      "settings": {
+        "params": {
+          "Number of Rows": "50",
+          "Number of Hours": "24"
+        },
+        "forms": {
+          "Number of Rows": {
+            "name": "Number of Rows",
+            "defaultValue": "50",
+            "hidden": false
+          },
+          "Number of Hours": {
+            "name": "Number of Hours",
+            "defaultValue": "24",
+            "hidden": false
+          }
+        }
+      },
+      "jobName": "paragraph_1493739611136_-165301953",
+      "id": "20170502-141412_380718762",
+      "dateCreated": "2017-05-02T15:40:11+0000",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500,
+      "$$hashKey": "object:19406"
+    },
+    {
+      "title": "HTTP User Agents - BRO",
+      "text": "%spark.sql\nSELECT\n user_agent,\n COUNT(*) as count\nFROM bro\nWHERE \n    ip_src_addr = source_ip_address()\n    AND\n    timestamp BETWEEN date_sub_hours(unix_timestamp(),${Number of Hours=24}) * 1000 AND unix_timestamp() * 1000 \n    AND\n    protocol = 'http' \nGROUP BY user_agent\nORDER BY count DESC\nLIMIT ${Number of Rows=50}",
+      "dateUpdated": "2017-05-02T15:40:27+0000",
+      "config": {
+        "colWidth": 12,
+        "editorMode": "ace/mode/sql",
+        "title": true,
+        "graph": {
+          "mode": "table",
+          "height": 300,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "user_agent",
+              "index": 0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [
+            {
+              "name": "count",
+              "index": 1,
+              "aggr": "sum"
+            }
+          ],
+          "groups": [],
+          "scatter": {
+            "xAxis": {
+              "name": "user_agent",
+              "index": 0,
+              "aggr": "sum"
+            }
+          }
+        },
+        "enabled": true,
+        "editorHide": true
+      },
+      "settings": {
+        "params": {
+          "Number of Hours": "24",
+          "Number of Rows": "50"
+        },
+        "forms": {
+          "Number of Rows": {
+            "name": "Number of Rows",
+            "defaultValue": "50",
+            "hidden": false
+          },
+          "Number of Hours": {
+            "name": "Number of Hours",
+            "defaultValue": "24",
+            "hidden": false
+          }
+        }
+      },
+      "jobName": "paragraph_1493739611136_-165301953",
+      "id": "20170502-143830_1892618095",
+      "dateCreated": "2017-05-02T15:40:11+0000",
+      "status": "READY",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 500,
+      "$$hashKey": "object:19407"
+    }
+  ],
+  "name": "Metron IP Report",
+  "id": "2CG7BF9JT",
+  "angularObjects": {
+    "2CEKEU5T4:shared_process": [],
+    "2CGU6FFBF:shared_process": [],
+    "2CF6U7R6S:shared_process": [],
+    "2CG2SK9DG:shared_process": [],
+    "2CFDEBF6X:shared_process": [],
+    "2CFJGFKFD:shared_process": []
+  },
+  "config": {
+    "looknfeel": "default"
+  },
+  "info": {}
+}

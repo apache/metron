@@ -1,4 +1,3 @@
-#!/bin/bash
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -15,11 +14,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-METRON_VERSION=${project.version}
-SCRIPTS_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-if [ "$#" -lt 1 ]; then
-  echo "Usage: start.sh <path to application.yml file> <spring options>"
-  echo "Path can be absolute or relative to $SCRIPTS_ROOT"
-else
-  java -jar $SCRIPTS_ROOT/../lib/metron-rest-$METRON_VERSION.jar --spring.config.location=$@
-fi
+---
+- name: Copy Metron RPMs
+  copy:
+    src: "{{ item }}"
+    dest: /localrepo
+    owner: root
+    mode: 0755
+  with_fileglob:
+    - "{{ metron_rpm_glob }}"
+
