@@ -29,13 +29,12 @@ Any platform that supports these tools is suitable, but the following instructio
 1. Run the following command in a terminal to install all of the required tools.
 
     ```  
-    brew cask install vagrant virtualbox java
+    brew cask install vagrant virtualbox java docker
     brew install maven@3.3 git
     pip install ansible==2.2.2.0
     vagrant plugin install vagrant-hostmanager
+    open /Applications/Docker.app
     ```
-
-1. Install docker by following the instructions [here](https://docs.docker.com/engine/installation/).
 
 ### Deploy Metron
 
