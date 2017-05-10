@@ -153,7 +153,7 @@ public class PcapInspector {
           System.out.println(Joiner.on(",").join(fieldResults));
         }
       } catch (Exception e) {
-        System.err.println(String.format("Error: malformed packet #=%s, ts=%s, error msg=%s", i + 1, ts, e.getMessage()));
+        System.out.println(String.format("Error: malformed packet #=%s, ts=%s, error msg=%s", i + 1, ts, e.getMessage()));
       }
     }
   }
