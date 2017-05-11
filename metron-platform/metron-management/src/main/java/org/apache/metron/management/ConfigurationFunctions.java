@@ -189,6 +189,7 @@ public class ConfigurationFunctions {
       }
     }
     context.addCapability("treeCache", () -> cache);
+    context.addCapability("exTreeCache",() -> exCache);
   }
 
   @Stellar(
