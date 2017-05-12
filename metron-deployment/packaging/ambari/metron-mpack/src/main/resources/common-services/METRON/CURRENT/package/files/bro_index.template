@@ -238,6 +238,534 @@
         "qtype_name": {
           "type": "string",
           "index": "not_analyzed"
+        },
+        "analyzer": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "failure_reason": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "user": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "password": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "command": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "arg": {
+          "type": "string",
+          "analyzer": "simple"
+        },
+        "mime_type": {
+          "type": "string",
+          "analyzer": "simple"
+        },
+        "file_size": {
+          "type": "long"
+        },
+        "reply_code": {
+          "type": "integer"
+        },
+        "reply_msg": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "data_channel:passive": {
+          "type": "boolean"
+        },
+        "data_channel:orig_h": {
+          "type": "ip"
+        },
+        "data_channel:resp_h": {
+          "type": "ip"
+        },
+        "data_channel:resp_p": {
+          "type": "integer"
+        },
+        "cwd": {
+          "type": "string",
+          "analyzer": "simple"
+        },
+        "passive": {
+          "type": "boolean"
+        },
+        "capture_password": {
+          "type": "boolean"
+        },
+        "fuid": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "conn_uids": {
+          "type": "string",
+          "analyzer": "simple"
+        },
+        "source": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "depth": {
+          "type": "integer"
+        },
+        "analyzers": {
+          "type": "string",
+          "analyzer": "simple"
+        },
+        "filename": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "duration": {
+          "type": "float"
+        },
+        "local_orig": {
+          "type": "boolean"
+        },
+        "is_orig": {
+          "type": "boolean"
+        },
+        "seen_bytes": {
+          "type": "long"
+        },
+        "total_bytes": {
+          "type": "long"
+        },
+        "missing_bytes": {
+          "type": "long"
+        },
+        "overflow_bytes": {
+          "type": "long"
+        },
+        "timedout": {
+          "type": "boolean"
+        },
+        "parent_fuid": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "md5": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "sha1": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "sha256": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "port_num": {
+          "type": "integer"
+        },
+        "subject": {
+          "type": "string",
+          "analyzer": "simple"
+        },
+        "issuer_subject": {
+          "type": "string",
+          "analyzer": "simple"
+        },
+        "serial": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "helo": {
+          "type": "string",
+          "analyzer": "simple"
+        },
+        "mailfrom": {
+          "type": "string",
+          "analyzer": "simple"
+        },
+        "rcptto": {
+          "type": "string",
+          "analyzer": "simple"
+        },
+        "date": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "from": {
+          "type": "string",
+          "analyzer": "simple"
+        },
+        "to": {
+          "type": "string",
+          "analyzer": "simple"
+        },
+        "reply_to": {
+          "type": "string",
+          "analyzer": "simple"
+        },
+        "msg_id": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "in_reply_to": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "x_originating_ip": {
+          "type": "ip"
+        },
+        "first_received": {
+          "type": "string",
+          "analyzer": "simple"
+        },
+        "second_received": {
+          "type": "string",
+          "analyzer": "simple"
+        },
+        "last_reply": {
+          "type": "string",
+          "analyzer": "simple"
+        },
+        "path": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "tls": {
+          "type": "boolean"
+        },
+        "fuids": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "is_webmail": {
+          "type": "boolean"
+        },
+        "version": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "cipher": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "curve": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "server_name": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "resumed": {
+          "type": "boolean"
+        },
+        "last_alert": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "next_protocol": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "established": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "addl": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "notice": {
+          "type": "boolean"
+        },
+        "peer": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "service": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "orig_bytes": {
+          "type": "long",
+          "index": "not_analyzed"
+        },
+        "resp_bytes": {
+          "type": "long",
+          "index": "not_analyzed"
+        },
+        "conn_state": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "local_resp": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "missed_bytes": {
+          "type": "long",
+          "index": "not_analyzed"
+        },
+        "history": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "orig_pkts": {
+          "type": "long",
+          "index": "not_analyzed"
+        },
+        "orig_ip_bytes": {
+          "type": "long",
+          "index": "not_analyzed"
+        },
+        "resp_pkts": {
+          "type": "long",
+          "index": "not_analyzed"
+        },
+        "resp_ip_bytes": {
+          "type": "long",
+          "index": "not_analyzed"
+        },
+        "tunnel_parents": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "file_mime_type": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "file_desc": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "note": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "msg": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "sub": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "src": {
+          "type": "ip"
+        },
+        "dst": {
+          "type": "ip"
+        },
+        "p": {
+          "type": "integer",
+          "index": "not_analyzed"
+        },
+        "n": {
+          "type": "integer",
+          "index": "not_analyzed"
+        },
+        "src_peer": {
+          "type": "ip"
+        },
+        "peer_descr": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "actions": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "suppress_for": {
+          "type": "double",
+          "index": "not_analyzed"
+        },
+        "dropped": {
+          "type": "boolean"
+        },
+        "mac": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "assigned_ip": {
+          "type": "ip"
+        },
+        "lease_time": {
+          "type": "float",
+          "index": "not_analyzed"
+        },
+        "auth_success": {
+          "type": "boolean"
+        },
+        "auth_attempts": {
+          "type": "integer",
+          "index": "not_analyzed"
+        },
+        "direction": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "client": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "server": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "cipher_alg": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "mac_alg": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "compression_alg": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "kex_alg": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "host_key_alg": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "host_key": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "host_p": {
+          "type": "integer",
+          "index": "not_analyzed"
+        },
+        "software_type": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "version:major": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "version:minor": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "version:minor2": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "version:minor3": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "version:addl": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "unparsed_version": {
+          "type": "string",
+          "analyzer": "simple"
+        },
+        "username": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "remote_ip": {
+          "type": "ip"
+        },
+        "connect_info": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "result": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "id": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "id": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "certificate:version": {
+          "type": "integer",
+          "index": "not_analyzed"
+        },
+        "certificate:serial": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "certificate:subject": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "certificate:issuer": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "certificate:not_valid_before": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "certificate:not_valid_after": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "certificate:key_alg": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "certificate:sig_alg": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "certificate:key_type": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "certificate:key_length": {
+          "type": "integer",
+          "index": "not_analyzed"
+        },
+        "certificate:exponent": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "certificate:curve": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "san:dns": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "san:uri": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "san:email": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "san:ip": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "basic_constraints:ca": {
+          "type": "boolean"
+        },
+        "basic_constraints:path_len": {
+          "type": "integer",
+          "index": "not_analyzed"
         }
       }
     }

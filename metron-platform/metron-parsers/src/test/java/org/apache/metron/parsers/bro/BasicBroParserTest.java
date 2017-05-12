@@ -68,27 +68,29 @@ public class BasicBroParserTest extends TestCase {
 	}
 
 	public void testUnwrappedBroMessage() throws ParseException {
-        String rawMessage = "{\"timestamp\":1449511228.474,\"uid\":\"CFgSLp4HgsGqXnNjZi\",\"source_ip\":\"104.130.172.191\",\"source_port\":33893,\"dest_ip\":\"69.20.0.164\",\"dest_port\":53,\"proto\":\"udp\",\"trans_id\":3514,\"rcode\":3,\"rcode_name\":\"NXDOMAIN\",\"AA\":false,\"TC\":false,\"RD\":false,\"RA\":false,\"Z\":0,\"rejected\":false,\"sensor\":\"cloudbro\",\"type\":\"dns\"}";
+        String rawMessage = "{\"ts\":1449511228.474,\"uid\":\"CFgSLp4HgsGqXnNjZi\",\"id.orig_h\":\"104.130.172.191\",\"id.orig_p\":33893,\"id.resp_h\":\"69.20.0.164\",\"id.resp_p\":53,\"proto\":\"udp\",\"trans_id\":3514,\"rcode\":3,\"rcode_name\":\"NXDOMAIN\",\"AA\":false,\"TC\":false,\"RD\":false,\"RA\":false,\"Z\":0,\"rejected\":false,\"sensor\":\"cloudbro\",\"type\":\"dns\"}";
 
         JSONObject rawJson = (JSONObject)jsonParser.parse(rawMessage);
 
         JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
 
-				String expectedBroTimestamp = "1449511228.474";
+	String expectedBroTimestamp = "1449511228.474";
       	Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
         String expectedTimestamp = "1449511228474";
-				Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
-			  Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("source_ip").toString());
-			  Assert.assertEquals(broJson.get("ip_dst_addr").toString(), rawJson.get("dest_ip").toString());
-			  Assert.assertEquals(broJson.get("ip_src_port"), rawJson.get("source_port"));
-        Assert.assertEquals(broJson.get("ip_dst_port"), rawJson.get("dest_port"));
+	Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+
+	Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("id.orig_h").toString());
+	Assert.assertEquals(broJson.get("ip_dst_addr").toString(), rawJson.get("id.resp_h").toString());
+	Assert.assertEquals(broJson.get("ip_src_port"), rawJson.get("id.orig_p"));
+        Assert.assertEquals(broJson.get("ip_dst_port"), rawJson.get("id.resp_p"));
         Assert.assertEquals(broJson.get("uid").toString(), rawJson.get("uid").toString());
         Assert.assertEquals(broJson.get("trans_id").toString(), rawJson.get("trans_id").toString());
         Assert.assertEquals(broJson.get("sensor").toString(), rawJson.get("sensor").toString());
-        Assert.assertEquals(broJson.get("protocol").toString(), rawJson.get("type").toString());
+        Assert.assertEquals(broJson.get("type").toString(), rawJson.get("type").toString());
         Assert.assertEquals(broJson.get("rcode").toString(), rawJson.get("rcode").toString());
         Assert.assertEquals(broJson.get("rcode_name").toString(), rawJson.get("rcode_name").toString());
-				Assert.assertTrue(broJson.get("original_string").toString().startsWith("DNS"));
+
+	Assert.assertTrue(broJson.get("original_string").toString().startsWith("DNS"));
     }
 
 	@SuppressWarnings("rawtypes")
@@ -101,7 +103,7 @@ public class BasicBroParserTest extends TestCase {
 		JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
 		String expectedBroTimestamp = "1402307733.473";
 		Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
-    String expectedTimestamp = "1402307733473";
+		String expectedTimestamp = "1402307733473";
 		Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
 		Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("id.orig_h").toString());
 		Assert.assertEquals(broJson.get("ip_dst_addr").toString(), rawJson.get("id.resp_h").toString());
@@ -113,6 +115,8 @@ public class BasicBroParserTest extends TestCase {
 		Assert.assertEquals(broJson.get("method").toString(), rawJson.get("method").toString());
 		Assert.assertEquals(broJson.get("host").toString(), rawJson.get("host").toString());
 		Assert.assertEquals(broJson.get("resp_mime_types").toString(), rawJson.get("resp_mime_types").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("HTTP"));
 	}
 
 	/**
@@ -197,6 +201,8 @@ public class BasicBroParserTest extends TestCase {
 		Assert.assertEquals(broJson.get("method").toString(), rawJson.get("method").toString());
 		Assert.assertEquals(broJson.get("host").toString(), rawJson.get("host").toString());
 		Assert.assertEquals(broJson.get("resp_mime_types").toString(), rawJson.get("resp_mime_types").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("HTTP"));
 	}
 
 
@@ -220,6 +226,8 @@ public class BasicBroParserTest extends TestCase {
 
 		Assert.assertEquals(broJson.get("qtype").toString(), rawJson.get("qtype").toString());
 		Assert.assertEquals(broJson.get("trans_id").toString(), rawJson.get("trans_id").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("DNS"));
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -241,7 +249,429 @@ public class BasicBroParserTest extends TestCase {
 		Assert.assertEquals(broJson.get("fuid").toString(), rawJson.get("fuid").toString());
 		Assert.assertEquals(broJson.get("md5").toString(), rawJson.get("md5").toString());
 		Assert.assertEquals(broJson.get("analyzers").toString(), rawJson.get("analyzers").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("FILES"));
 	}
+
+        @SuppressWarnings("rawtypes")
+        public void testConnBroMessage() throws ParseException {
+                String rawMessage = "{\"conn\": {\"ts\":1166289883.163553,\"uid\":\"CTKCLy1z4C9U8OqU0c\",\"id.orig_h\":\"192.168.0.114\",\"id.orig_p\":1140,\"id.resp_h\":\"192.168.0.193\",\"id.resp_p\":7254,\"proto\":\"tcp\",\"service\":\"ftp-data\",\"duration\":0.006635,\"orig_bytes\":0,\"resp_bytes\":5808,\"conn_state\":\"S1\",\"missed_bytes\":0,\"history\":\"ShAd\",\"orig_pkts\":3,\"orig_ip_bytes\":128,\"resp_pkts\":5,\"resp_ip_bytes\":6016,\"tunnel_parents\":[]}}";
+
+                Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1166289883.163553";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1166289883163";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("id.orig_h").toString());
+                Assert.assertEquals(broJson.get("ip_dst_addr").toString(), rawJson.get("id.resp_h").toString());
+                Assert.assertEquals(broJson.get("ip_src_port").toString(), rawJson.get("id.orig_p").toString());
+                Assert.assertEquals(broJson.get("ip_dst_port").toString(), rawJson.get("id.resp_p").toString());
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("proto").toString(), rawJson.get("proto").toString());
+                Assert.assertEquals(broJson.get("service").toString(), rawJson.get("service").toString());
+                Assert.assertEquals(broJson.get("duration").toString(), rawJson.get("duration").toString());
+                Assert.assertEquals(broJson.get("orig_bytes").toString(), rawJson.get("orig_bytes").toString());
+                Assert.assertEquals(broJson.get("resp_bytes").toString(), rawJson.get("resp_bytes").toString());
+                Assert.assertEquals(broJson.get("conn_state").toString(), rawJson.get("conn_state").toString());
+                Assert.assertEquals(broJson.get("missed_bytes").toString(), rawJson.get("missed_bytes").toString());
+                Assert.assertEquals(broJson.get("history").toString(), rawJson.get("history").toString());
+                Assert.assertEquals(broJson.get("orig_pkts").toString(), rawJson.get("orig_pkts").toString());
+                Assert.assertEquals(broJson.get("orig_ip_bytes").toString(), rawJson.get("orig_ip_bytes").toString());
+                Assert.assertEquals(broJson.get("resp_pkts").toString(), rawJson.get("resp_pkts").toString());
+                Assert.assertEquals(broJson.get("resp_ip_bytes").toString(), rawJson.get("resp_ip_bytes").toString());
+                Assert.assertEquals(broJson.get("tunnel_parents").toString(), rawJson.get("tunnel_parents").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("CONN"));
+        }
+
+        @SuppressWarnings("rawtypes")
+        public void testDpdBroMessage() throws ParseException {
+                String rawMessage = "{\"dpd\": {\"ts\":1216704078.712276,\"uid\":\"CwlB8d119WPanz63J\",\"id.orig_h\":\"192.168.15.4\",\"id.orig_p\":34508,\"id.resp_h\":\"66.33.212.43\",\"id.resp_p\":80,\"proto\":\"tcp\",\"analyzer\":\"HTTP\",\"failure_reason\":\"not a http reply line\"}}";
+
+                Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1216704078.712276";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1216704078712";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("id.orig_h").toString());
+                Assert.assertEquals(broJson.get("ip_dst_addr").toString(), rawJson.get("id.resp_h").toString());
+                Assert.assertEquals(broJson.get("ip_src_port").toString(), rawJson.get("id.orig_p").toString());
+                Assert.assertEquals(broJson.get("ip_dst_port").toString(), rawJson.get("id.resp_p").toString());
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("proto").toString(), rawJson.get("proto").toString());
+                Assert.assertEquals(broJson.get("analyzer").toString(), rawJson.get("analyzer").toString());
+                Assert.assertEquals(broJson.get("failure_reason").toString(), rawJson.get("failure_reason").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("DPD"));
+        }
+
+        @SuppressWarnings("rawtypes")
+        public void testFtpBroMessage() throws ParseException {
+                String rawMessage = "{\"ftp\": {\"ts\":1166289883.164645,\"uid\":\"CuVhX03cii8zrjrtva\",\"id.orig_h\":\"192.168.0.114\",\"id.orig_p\":1137,\"id.resp_h\":\"192.168.0.193\",\"id.resp_p\":21,\"user\":\"csanders\",\"password\":\"<hidden>\",\"command\":\"RETR\",\"arg\":\"ftp://192.168.0.193/Music.mp3\",\"mime_type\":\"<unknown>\",\"file_size\":192,\"reply_code\":150,\"reply_msg\":\"Data connection accepted from 192.168.0.114:1140; transfer starting for Music.mp3 (4980924 bytes).\",\"fuid\":\"FlS6Jg1aNdsBxNn9Bf\"}}";
+
+                Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1166289883.164645";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1166289883164";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("id.orig_h").toString());
+                Assert.assertEquals(broJson.get("ip_dst_addr").toString(), rawJson.get("id.resp_h").toString());
+                Assert.assertEquals(broJson.get("ip_src_port").toString(), rawJson.get("id.orig_p").toString());
+                Assert.assertEquals(broJson.get("ip_dst_port").toString(), rawJson.get("id.resp_p").toString());
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("user").toString(), rawJson.get("user").toString());
+                Assert.assertEquals(broJson.get("password").toString(), rawJson.get("password").toString());
+                Assert.assertEquals(broJson.get("command").toString(), rawJson.get("command").toString());
+                Assert.assertEquals(broJson.get("arg").toString(), rawJson.get("arg").toString());
+                Assert.assertEquals(broJson.get("mime_type").toString(), rawJson.get("mime_type").toString());
+                Assert.assertEquals(broJson.get("file_size").toString(), rawJson.get("file_size").toString());
+                Assert.assertEquals(broJson.get("reply_code").toString(), rawJson.get("reply_code").toString());
+                Assert.assertEquals(broJson.get("reply_msg").toString(), rawJson.get("reply_msg").toString());
+                Assert.assertEquals(broJson.get("fuid").toString(), rawJson.get("fuid").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("FTP"));
+        }
+
+        @SuppressWarnings("rawtypes")
+        public void testKnownCertsBroMessage() throws ParseException {
+                String rawMessage = "{\"known_certs\": {\"ts\":1216706999.896836,\"host\":\"65.54.186.47\",\"port_num\":443,\"subject\":\"CN=login.live.com,OU=MSN-Passport,O=Microsoft Corporation,street=One Microsoft Way,L=Redmond,ST=Washington,postalCode=98052,C=US,serialNumber=600413485,businessCategory=V1.0\\u005c, Clause 5.(b),1.3.6.1.4.1.311.60.2.1.2=#130A57617368696E67746F6E,1.3.6.1.4.1.311.60.2.1.3=#13025553\",\"issuer_subject\":\"CN=VeriSign Class 3 Extended Validation SSL CA,OU=Terms of use at https://www.verisign.com/rpa (c)06,OU=VeriSign Trust Network,O=VeriSign\\u005c, Inc.,C=US\",\"serial\":\"6905C4A47CFDBF9DBC98DACE38835FB8\"}}";
+
+                Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1216706999.896836";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1216706999896";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("host").toString(), rawJson.get("host").toString());
+                Assert.assertEquals(broJson.get("port_num").toString(), rawJson.get("port_num").toString());
+                Assert.assertEquals(broJson.get("subject").toString(), rawJson.get("subject").toString());
+                Assert.assertEquals(broJson.get("issuer_subject").toString(), rawJson.get("issuer_subject").toString());
+                Assert.assertEquals(broJson.get("serial").toString(), rawJson.get("serial").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("KNOWN_CERTS"));
+        }
+
+        @SuppressWarnings("rawtypes")
+        public void testSmtpBroMessage() throws ParseException {
+                String rawMessage = "{\"smtp\": {\"ts\":1258568059.130219,\"uid\":\"CMeLem2ouYvV8fzUp9\",\"id.orig_h\":\"192.168.1.103\",\"id.orig_p\":1836,\"id.resp_h\":\"192.168.1.1\",\"id.resp_p\":25,\"trans_depth\":1,\"helo\":\"m57pat\",\"last_reply\":\"220 2.0.0 Ready to start TLS\",\"path\":[\"192.168.1.1\",\"192.168.1.103\"],\"tls\":true,\"fuids\":[],\"is_webmail\":false}}";
+
+                Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1258568059.130219";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1258568059130";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("id.orig_h").toString());
+                Assert.assertEquals(broJson.get("ip_dst_addr").toString(), rawJson.get("id.resp_h").toString());
+                Assert.assertEquals(broJson.get("ip_src_port").toString(), rawJson.get("id.orig_p").toString());
+                Assert.assertEquals(broJson.get("ip_dst_port").toString(), rawJson.get("id.resp_p").toString());
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("trans_depth").toString(), rawJson.get("trans_depth").toString());
+                Assert.assertEquals(broJson.get("helo").toString(), rawJson.get("helo").toString());
+                Assert.assertEquals(broJson.get("last_reply").toString(), rawJson.get("last_reply").toString());
+                Assert.assertEquals(broJson.get("path").toString(), rawJson.get("path").toString());
+                Assert.assertEquals(broJson.get("tls").toString(), rawJson.get("tls").toString());
+                Assert.assertEquals(broJson.get("fuids").toString(), rawJson.get("fuids").toString());
+                Assert.assertEquals(broJson.get("is_webmail").toString(), rawJson.get("is_webmail").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("SMTP"));
+        }
+
+        @SuppressWarnings("rawtypes")
+        public void testSslBroMessage() throws ParseException {
+                String rawMessage = "{\"ssl\": {\"ts\":1216706999.444925,\"uid\":\"Chy3Ge1k0IceXK4Di\",\"id.orig_h\":\"192.168.15.4\",\"id.orig_p\":36532,\"id.resp_h\":\"65.54.186.47\",\"id.resp_p\":443,\"version\":\"TLSv10\",\"cipher\":\"TLS_RSA_WITH_RC4_128_MD5\",\"server_name\":\"login.live.com\",\"resumed\":false,\"established\":true,\"cert_chain_fuids\":[\"FkYBO41LPAXxh44KFk\",\"FPrzYN1SuBqHflXZId\",\"FZ71xF13r5XVSam1z1\"],\"client_cert_chain_fuids\":[],\"subject\":\"CN=login.live.com,OU=MSN-Passport,O=Microsoft Corporation,street=One Microsoft Way,L=Redmond,ST=Washington,postalCode=98052,C=US,serialNumber=600413485,businessCategory=V1.0\\u005c, Clause 5.(b),1.3.6.1.4.1.311.60.2.1.2=#130A57617368696E67746F6E,1.3.6.1.4.1.311.60.2.1.3=#13025553\",\"issuer\":\"CN=VeriSign Class 3 Extended Validation SSL CA,OU=Terms of use at https://www.verisign.com/rpa (c)06,OU=VeriSign Trust Network,O=VeriSign\\u005c, Inc.,C=US\",\"validation_status\":\"unable to get local issuer certificate\"}}";
+
+                Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1216706999.444925";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1216706999444";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("id.orig_h").toString());
+                Assert.assertEquals(broJson.get("ip_dst_addr").toString(), rawJson.get("id.resp_h").toString());
+                Assert.assertEquals(broJson.get("ip_src_port").toString(), rawJson.get("id.orig_p").toString());
+                Assert.assertEquals(broJson.get("ip_dst_port").toString(), rawJson.get("id.resp_p").toString());
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("version").toString(), rawJson.get("version").toString());
+                Assert.assertEquals(broJson.get("cipher").toString(), rawJson.get("cipher").toString());
+                Assert.assertEquals(broJson.get("server_name").toString(), rawJson.get("server_name").toString());
+                Assert.assertEquals(broJson.get("resumed").toString(), rawJson.get("resumed").toString());
+                Assert.assertEquals(broJson.get("established").toString(), rawJson.get("established").toString());
+                Assert.assertEquals(broJson.get("cert_chain_fuids").toString(), rawJson.get("cert_chain_fuids").toString());
+                Assert.assertEquals(broJson.get("client_cert_chain_fuids").toString(), rawJson.get("client_cert_chain_fuids").toString());
+                Assert.assertEquals(broJson.get("subject").toString(), rawJson.get("subject").toString());
+                Assert.assertEquals(broJson.get("issuer").toString(), rawJson.get("issuer").toString());
+                Assert.assertEquals(broJson.get("validation_status").toString(), rawJson.get("validation_status").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("SSL"));
+        }
+
+        @SuppressWarnings("rawtypes")
+        public void testWeirdBroMessage() throws ParseException {
+                String rawMessage = "{\"weird\": {\"ts\":1216706886.239896,\"uid\":\"CLSluk42pqbExeZQFl\",\"id.orig_h\":\"192.168.15.4\",\"id.orig_p\":36336,\"id.resp_h\":\"66.151.146.194\",\"id.resp_p\":80,\"name\":\"unescaped_special_URI_char\",\"notice\":false,\"peer\":\"bro\"}}";
+
+                Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1216706886.239896";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1216706886239";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("id.orig_h").toString());
+                Assert.assertEquals(broJson.get("ip_dst_addr").toString(), rawJson.get("id.resp_h").toString());
+                Assert.assertEquals(broJson.get("ip_src_port").toString(), rawJson.get("id.orig_p").toString());
+                Assert.assertEquals(broJson.get("ip_dst_port").toString(), rawJson.get("id.resp_p").toString());
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("name").toString(), rawJson.get("name").toString());
+                Assert.assertEquals(broJson.get("notice").toString(), rawJson.get("notice").toString());
+                Assert.assertEquals(broJson.get("peer").toString(), rawJson.get("peer").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("WEIRD"));
+        }
+
+        @SuppressWarnings("rawtypes")
+        public void testNoticeBroMessage() throws ParseException {
+                String rawMessage = "{\"notice\": {\"ts\":1216706377.196728,\"uid\":\"CgpsTT28ZTiuSEsfVi\",\"id.orig_h\":\"192.168.15.4\",\"id.orig_p\":35736,\"id.resp_h\":\"74.125.19.104\",\"id.resp_p\":443,\"proto\":\"tcp\",\"note\":\"SSL::Invalid_Server_Cert\",\"msg\":\"SSL certificate validation failed with (unable to get local issuer certificate)\",\"sub\":\"CN=www.google.com,O=Google Inc,L=Mountain View,ST=California,C=US\",\"src\":\"192.168.15.4\",\"dst\":\"74.125.19.104\",\"p\":443,\"peer_descr\":\"bro\",\"actions\":[\"Notice::ACTION_LOG\"],\"suppress_for\":3600.0,\"dropped\":false}}";
+
+                Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1216706377.196728";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1216706377196";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("id.orig_h").toString());
+                Assert.assertEquals(broJson.get("ip_dst_addr").toString(), rawJson.get("id.resp_h").toString());
+                Assert.assertEquals(broJson.get("ip_src_port").toString(), rawJson.get("id.orig_p").toString());
+                Assert.assertEquals(broJson.get("ip_dst_port").toString(), rawJson.get("id.resp_p").toString());
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("proto").toString(), rawJson.get("proto").toString());
+                Assert.assertEquals(broJson.get("note").toString(), rawJson.get("note").toString());
+                Assert.assertEquals(broJson.get("msg").toString(), rawJson.get("msg").toString());
+                Assert.assertEquals(broJson.get("sub").toString(), rawJson.get("sub").toString());
+                Assert.assertEquals(broJson.get("src").toString(), rawJson.get("src").toString());
+                Assert.assertEquals(broJson.get("dst").toString(), rawJson.get("dst").toString());
+                Assert.assertEquals(broJson.get("p").toString(), rawJson.get("p").toString());
+                Assert.assertEquals(broJson.get("peer_descr").toString(), rawJson.get("peer_descr").toString());
+                Assert.assertEquals(broJson.get("actions").toString(), rawJson.get("actions").toString());
+                Assert.assertEquals(broJson.get("suppress_for").toString(), rawJson.get("suppress_for").toString());
+                Assert.assertEquals(broJson.get("dropped").toString(), rawJson.get("dropped").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("NOTICE"));
+        }
+
+        @SuppressWarnings("rawtypes")
+        public void testDhcpBroMessage() throws ParseException {
+                String rawMessage = "{\"dhcp\": {\"ts\":1258567562.944638,\"uid\":\"C8rZDh400N68UV9Ulj\",\"id.orig_h\":\"192.168.1.103\",\"id.orig_p\":68,\"id.resp_h\":\"192.168.1.1\",\"id.resp_p\":67,\"mac\":\"00:0b:db:63:5b:d4\",\"assigned_ip\":\"192.168.1.103\",\"lease_time\":3564.0,\"trans_id\":418901490}}";
+
+                Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1258567562.944638";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1258567562944";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("id.orig_h").toString());
+                Assert.assertEquals(broJson.get("ip_dst_addr").toString(), rawJson.get("id.resp_h").toString());
+                Assert.assertEquals(broJson.get("ip_src_port").toString(), rawJson.get("id.orig_p").toString());
+                Assert.assertEquals(broJson.get("ip_dst_port").toString(), rawJson.get("id.resp_p").toString());
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("mac").toString(), rawJson.get("mac").toString());
+                Assert.assertEquals(broJson.get("assigned_ip").toString(), rawJson.get("assigned_ip").toString());
+                Assert.assertEquals(broJson.get("lease_time").toString(), rawJson.get("lease_time").toString());
+                Assert.assertEquals(broJson.get("trans_id").toString(), rawJson.get("trans_id").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("DHCP"));
+        }
+
+        @SuppressWarnings("rawtypes")
+        public void testSshBroMessage() throws ParseException {
+                String rawMessage = "{\"ssh\": {\"ts\":1320435870.747967,\"uid\":\"CSbqud1LKhRqlJiLDg\",\"id.orig_h\":\"172.16.238.1\",\"id.orig_p\":58429,\"id.resp_h\":\"172.16.238.136\",\"id.resp_p\":22,\"version\":2,\"auth_success\":false,\"client\":\"SSH-2.0-OpenSSH_5.6\",\"server\":\"SSH-2.0-OpenSSH_5.8p1 Debian-7ubuntu1\",\"cipher_alg\":\"aes128-ctr\",\"mac_alg\":\"hmac-md5\",\"compression_alg\":\"none\",\"kex_alg\":\"diffie-hellman-group-exchange-sha256\",\"host_key_alg\":\"ssh-rsa\",\"host_key\":\"87:11:46:da:89:c5:2b:d9:6b:ee:e0:44:7e:73:80:f8\"}}";
+
+                Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1320435870.747967";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1320435870747";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("id.orig_h").toString());
+                Assert.assertEquals(broJson.get("ip_dst_addr").toString(), rawJson.get("id.resp_h").toString());
+                Assert.assertEquals(broJson.get("ip_src_port").toString(), rawJson.get("id.orig_p").toString());
+                Assert.assertEquals(broJson.get("ip_dst_port").toString(), rawJson.get("id.resp_p").toString());
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("version").toString(), rawJson.get("version").toString());
+                Assert.assertEquals(broJson.get("auth_success").toString(), rawJson.get("auth_success").toString());
+                Assert.assertEquals(broJson.get("client").toString(), rawJson.get("client").toString());
+                Assert.assertEquals(broJson.get("server").toString(), rawJson.get("server").toString());
+                Assert.assertEquals(broJson.get("cipher_alg").toString(), rawJson.get("cipher_alg").toString());
+                Assert.assertEquals(broJson.get("mac_alg").toString(), rawJson.get("mac_alg").toString());
+                Assert.assertEquals(broJson.get("compression_alg").toString(), rawJson.get("compression_alg").toString());
+                Assert.assertEquals(broJson.get("kex_alg").toString(), rawJson.get("kex_alg").toString());
+                Assert.assertEquals(broJson.get("host_key_alg").toString(), rawJson.get("host_key_alg").toString());
+                Assert.assertEquals(broJson.get("host_key").toString(), rawJson.get("host_key").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("SSH"));
+        }
+
+        @SuppressWarnings("rawtypes")
+        public void testSoftwareBroMessage() throws ParseException {
+                String rawMessage = "{\"software\": {\"ts\":1216707079.49066,\"host\":\"38.102.35.231\",\"host_p\":80,\"software_type\":\"HTTP::SERVER\",\"name\":\"lighttpd\",\"version.major\":1,\"version.minor\":4,\"version.minor2\":18,\"unparsed_version\":\"lighttpd/1.4.18\"}}";
+
+                Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1216707079.49066";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1216707079490";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("host").toString(), rawJson.get("host").toString());
+                Assert.assertEquals(broJson.get("host_p").toString(), rawJson.get("host_p").toString());
+                Assert.assertEquals(broJson.get("software_type").toString(), rawJson.get("software_type").toString());
+                Assert.assertEquals(broJson.get("name").toString(), rawJson.get("name").toString());
+                Assert.assertEquals(broJson.get("version.major").toString(), rawJson.get("version.major").toString());
+                Assert.assertEquals(broJson.get("version.minor").toString(), rawJson.get("version.minor").toString());
+                Assert.assertEquals(broJson.get("version.minor2").toString(), rawJson.get("version.minor2").toString());
+                Assert.assertEquals(broJson.get("unparsed_version").toString(), rawJson.get("unparsed_version").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("SOFTWARE"));
+        }
+
+        @SuppressWarnings("rawtypes")
+        public void testSoftwareBroMessage2() throws ParseException {
+                String rawMessage = "{\"software\": {\"ts\":1216707079.518447,\"host\":\"72.21.202.98\",\"host_p\":80,\"software_type\":\"HTTP::SERVER\",\"name\":\"AmazonS3\",\"unparsed_version\":\"AmazonS3\"}}";
+
+                Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1216707079.518447";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1216707079518";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("host").toString(), rawJson.get("host").toString());
+                Assert.assertEquals(broJson.get("host_p").toString(), rawJson.get("host_p").toString());
+                Assert.assertEquals(broJson.get("software_type").toString(), rawJson.get("software_type").toString());
+                Assert.assertEquals(broJson.get("name").toString(), rawJson.get("name").toString());
+                Assert.assertEquals(broJson.get("unparsed_version").toString(), rawJson.get("unparsed_version").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("SOFTWARE"));
+        }
+
+        @SuppressWarnings("rawtypes")
+        public void testRadiusBroMessageFailed() throws ParseException {
+                String rawMessage = "{\"radius\": {\"ts\":1440447766.441298,\"uid\":\"Cfvksv4SEJJiqFobPj\",\"id.orig_h\":\"127.0.0.1\",\"id.orig_p\":53031,\"id.resp_h\":\"127.0.0.1\",\"id.resp_p\":1812,\"username\":\"steve\",\"result\":\"failed\"}}";
+
+                Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1440447766.441298";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1440447766441";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("id.orig_h").toString());
+                Assert.assertEquals(broJson.get("ip_dst_addr").toString(), rawJson.get("id.resp_h").toString());
+                Assert.assertEquals(broJson.get("ip_src_port").toString(), rawJson.get("id.orig_p").toString());
+                Assert.assertEquals(broJson.get("ip_dst_port").toString(), rawJson.get("id.resp_p").toString());
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("username").toString(), rawJson.get("username").toString());
+                Assert.assertEquals(broJson.get("result").toString(), rawJson.get("result").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("RADIUS"));
+        }
+
+        @SuppressWarnings("rawtypes")
+        public void testRadiusBroMessageSuccess() throws ParseException {
+                String rawMessage = "{\"radius\": {\"ts\":1440447839.947956,\"uid\":\"CHb5MF3GTmyPniTage\",\"id.orig_h\":\"127.0.0.1\",\"id.orig_p\":65443,\"id.resp_h\":\"127.0.0.1\",\"id.resp_p\":1812,\"username\":\"steve\",\"result\":\"success\"}}";
+
+                Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1440447839.947956";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1440447839947";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("id.orig_h").toString());
+                Assert.assertEquals(broJson.get("ip_dst_addr").toString(), rawJson.get("id.resp_h").toString());
+                Assert.assertEquals(broJson.get("ip_src_port").toString(), rawJson.get("id.orig_p").toString());
+                Assert.assertEquals(broJson.get("ip_dst_port").toString(), rawJson.get("id.resp_p").toString());
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("username").toString(), rawJson.get("username").toString());
+                Assert.assertEquals(broJson.get("result").toString(), rawJson.get("result").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("RADIUS"));
+        }
+
+        @SuppressWarnings("rawtypes")
+        public void testX509BroMessage() throws ParseException {
+                String rawMessage = "{\"x509\": {\"ts\":1216706999.661483,\"id\":\"FPrzYN1SuBqHflXZId\",\"certificate.version\":3,\"certificate.serial\":\"5B7759C61784E15EC727C0329529286B\",\"certificate.subject\":\"CN=VeriSign Class 3 Extended Validation SSL CA,OU=Terms of use at https://www.verisign.com/rpa (c)06,OU=VeriSign Trust Network,O=VeriSign\\u005c, Inc.,C=US\",\"certificate.issuer\":\"CN=VeriSign Class 3 Public Primary Certification Authority - G5,OU=(c) 2006 VeriSign\\u005c, Inc. - For authorized use only,OU=VeriSign Trust Network,O=VeriSign\\u005c, Inc.,C=US\",\"certificate.not_valid_before\":1162944000.0,\"certificate.not_valid_after\":1478563199.0,\"certificate.key_alg\":\"rsaEncryption\",\"certificate.sig_alg\":\"sha1WithRSAEncryption\",\"certificate.key_type\":\"rsa\",\"certificate.key_length\":2048,\"certificate.exponent\":\"65537\",\"basic_constraints.ca\":true,\"basic_constraints.path_len\":0}}";
+
+                Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1216706999.661483";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1216706999661";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("id").toString(), rawJson.get("id").toString());
+                Assert.assertEquals(broJson.get("certificate.version").toString(), rawJson.get("certificate.version").toString());
+                Assert.assertEquals(broJson.get("certificate.serial").toString(), rawJson.get("certificate.serial").toString());
+                Assert.assertEquals(broJson.get("certificate.subject").toString(), rawJson.get("certificate.subject").toString());
+                Assert.assertEquals(broJson.get("certificate.issuer").toString(), rawJson.get("certificate.issuer").toString());
+                Assert.assertEquals(broJson.get("certificate.not_valid_before").toString(), rawJson.get("certificate.not_valid_before").toString());
+                Assert.assertEquals(broJson.get("certificate.not_valid_after").toString(), rawJson.get("certificate.not_valid_after").toString());
+                Assert.assertEquals(broJson.get("certificate.key_alg").toString(), rawJson.get("certificate.key_alg").toString());
+                Assert.assertEquals(broJson.get("certificate.sig_alg").toString(), rawJson.get("certificate.sig_alg").toString());
+                Assert.assertEquals(broJson.get("certificate.key_type").toString(), rawJson.get("certificate.key_type").toString());
+                Assert.assertEquals(broJson.get("certificate.key_length").toString(), rawJson.get("certificate.key_length").toString());
+                Assert.assertEquals(broJson.get("certificate.exponent").toString(), rawJson.get("certificate.exponent").toString());
+                Assert.assertEquals(broJson.get("basic_constraints.ca").toString(), rawJson.get("basic_constraints.ca").toString());
+                Assert.assertEquals(broJson.get("basic_constraints.path_len").toString(), rawJson.get("basic_constraints.path_len").toString());
+
+		Assert.assertTrue(broJson.get("original_string").toString().startsWith("X509"));
+        }
 
 	@SuppressWarnings("rawtypes")
 	public void testProtocolKeyCleanedUp() throws ParseException {
@@ -255,7 +685,10 @@ public class BasicBroParserTest extends TestCase {
 		Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
 		String expectedTimestamp = "1402307733473";
 		Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
-		Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("id.orig_h").toString());
+                Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("id.orig_h").toString());
+                Assert.assertEquals(broJson.get("ip_dst_addr").toString(), rawJson.get("id.resp_h").toString());
+                Assert.assertEquals(broJson.get("ip_src_port").toString(), rawJson.get("id.orig_p").toString());
+                Assert.assertEquals(broJson.get("ip_dst_port").toString(), rawJson.get("id.resp_p").toString());
 		Assert.assertTrue(broJson.get("original_string").toString().startsWith("HTTP"));
 	}
 
