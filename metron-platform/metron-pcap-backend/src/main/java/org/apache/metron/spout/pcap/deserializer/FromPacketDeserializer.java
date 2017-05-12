@@ -18,8 +18,6 @@
 
 package org.apache.metron.spout.pcap.deserializer;
 
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.log4j.Logger;
 import org.apache.metron.pcap.PcapHelper;
 /**
@@ -29,15 +27,13 @@ public class FromPacketDeserializer extends KeyValueDeserializer {
   private static final Logger LOG = Logger.getLogger(FromPacketDeserializer.class);
 
   @Override
-  public boolean deserializeKeyValue(byte[] key, byte[] value, LongWritable outKey, BytesWritable outValue) {
+  public Result deserializeKeyValue(byte[] key, byte[] value) {
     Long ts = PcapHelper.getTimestamp(value);
     if(ts != null) {
-      outKey.set(ts);
-      outValue.set(value, 0, value.length);
-      return true;
+      return new Result(ts, value, true);
     }
     else {
-      return false;
+      return new Result(ts, value, false);
     }
   }
 }

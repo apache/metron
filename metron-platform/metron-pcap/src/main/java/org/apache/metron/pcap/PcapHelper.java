@@ -39,9 +39,10 @@ import org.krakenapps.pcap.util.ByteOrderConverter;
 
 import java.io.EOFException;
 import java.io.IOException;
-import java.util.*;
-
-import static org.apache.metron.pcap.Constants.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PcapHelper {
 
@@ -163,6 +164,44 @@ public class PcapHelper {
     }
     return null;
   }
+
+  public static byte[] addHeaders(long tsNano, byte[] packet, Endianness endianness) {
+    byte[] ret = new byte[GLOBAL_HEADER_SIZE + PACKET_HEADER_SIZE + packet.length];
+    byte[] globalHeader = getPcapGlobalHeader(endianness);
+    int offset = 0;
+    System.arraycopy(globalHeader, 0, ret, offset, GLOBAL_HEADER_SIZE);
+    offset += globalHeader.length;
+    {
+      boolean swapBytes = swapBytes(endianness);
+      long micros = Long.divideUnsigned(tsNano, 1000);
+      int secs = (int)(micros / 1000000);
+      int usec = (int)(micros % 1000000);
+      int capLen = packet.length;
+      {
+        byte[] b = Bytes.toBytes(swapBytes?ByteOrderConverter.swap(secs):secs);
+        System.arraycopy(b, 0, ret, offset, Integer.BYTES);
+        offset += Integer.BYTES;
+      }
+      {
+        byte[] b = Bytes.toBytes(swapBytes?ByteOrderConverter.swap(usec):usec);
+        System.arraycopy(b, 0, ret, offset, Integer.BYTES);
+        offset += Integer.BYTES;
+      }
+      {
+        byte[] b = Bytes.toBytes(swapBytes?ByteOrderConverter.swap(capLen):capLen);
+        System.arraycopy(b, 0, ret, offset, Integer.BYTES);
+        offset += Integer.BYTES;
+      }
+      {
+        byte[] b = Bytes.toBytes(swapBytes?ByteOrderConverter.swap(capLen):capLen);
+        System.arraycopy(b, 0, ret, offset, Integer.BYTES);
+        offset += Integer.BYTES;
+      }
+    }
+    System.arraycopy(packet, 0, ret, offset, packet.length);
+    return ret;
+  }
+
   public static byte[] addGlobalHeader(byte[] packet, Endianness endianness) {
     byte[] globalHeader = getPcapGlobalHeader(endianness);
     byte[] ret = new byte[packet.length + GLOBAL_HEADER_SIZE];

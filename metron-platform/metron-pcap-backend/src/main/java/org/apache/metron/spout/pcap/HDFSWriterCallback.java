@@ -22,11 +22,11 @@ import com.google.common.base.Joiner;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.log4j.Logger;
+import org.apache.metron.spout.pcap.deserializer.KeyValueDeserializer;
 import org.apache.storm.kafka.Callback;
 import org.apache.storm.kafka.EmitContext;
 
 import javax.xml.bind.DatatypeConverter;
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -103,6 +103,7 @@ public class HDFSWriterCallback implements Callback {
     private Map<Partition, PartitionHDFSWriter> writers = new HashMap<>();
     private PartitionHDFSWriter lastWriter = null;
     private String topic;
+    private boolean inited = false;
     public HDFSWriterCallback() {
     }
 
@@ -116,7 +117,11 @@ public class HDFSWriterCallback implements Callback {
     public List<Object> apply(List<Object> tuple, EmitContext context) {
         byte[] key = (byte[]) tuple.get(0);
         byte[] value = (byte[]) tuple.get(1);
-        if(!config.getDeserializer().deserializeKeyValue(key, value, KeyValue.key.get(), KeyValue.value.get())) {
+        long tsDeserializeStart = System.nanoTime();
+        KeyValueDeserializer.Result result = config.getDeserializer().deserializeKeyValue(key, value);
+        long tsDeserializeEnd = System.nanoTime();
+
+        if(!result.result) {
             if(LOG.isDebugEnabled()) {
                 List<String> debugStatements = new ArrayList<>();
                 if(key != null) {
@@ -137,14 +142,21 @@ public class HDFSWriterCallback implements Callback {
                 LOG.debug("Dropping malformed packet: " + Joiner.on(" / ").join(debugStatements));
             }
         }
+        long tsWriteStart = System.nanoTime();
         try {
             getWriter(new Partition( topic
                                    , context.get(EmitContext.Type.PARTITION))
-                     ).handle(KeyValue.key.get(), KeyValue.value.get());
+                     ).handle(result.key, result.value);
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
             //drop?  not sure..
         }
+        long tsWriteEnd = System.nanoTime();
+        if(LOG.isDebugEnabled() && (Math.random() < 0.001 || !inited)) {
+            LOG.debug("Deserialize time (ns): " + (tsDeserializeEnd - tsDeserializeStart));
+            LOG.debug("Write time (ns): " + (tsWriteEnd - tsWriteStart));
+        }
+        inited = true;
         return tuple;
     }
 

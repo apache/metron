@@ -18,8 +18,6 @@
 
 package org.apache.metron.spout.pcap.deserializer;
 
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.metron.common.utils.timestamp.TimestampConverter;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
 
@@ -27,6 +25,17 @@ import java.io.Serializable;
 
 public abstract class KeyValueDeserializer implements Serializable {
   protected TimestampConverter converter;
+
+  public static class Result {
+    public byte[] value;
+    public Long key;
+    public boolean result;
+    public Result(Long key, byte[] value, boolean result) {
+      this.key = key;
+      this.value = value;
+      this.result = result;
+    }
+  }
 
   public KeyValueDeserializer() {
     this(TimestampConverters.MICROSECONDS);
@@ -36,6 +45,6 @@ public abstract class KeyValueDeserializer implements Serializable {
     this.converter = converter;
   }
 
-  public abstract boolean deserializeKeyValue(byte[] key, byte[] value, LongWritable outKey, BytesWritable outValue);
+  public abstract Result deserializeKeyValue(byte[] key, byte[] value);
 
 }
