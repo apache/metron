@@ -211,26 +211,26 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
       outputMessage.put(ActionFlags, tokens[37].trim());
       outputMessage.put(SourceLocation, tokens[38].trim());
       outputMessage.put(DestinationLocation, tokens[39].trim());
-      outputMessage.put(ContentType, tokens[40].trim());
-      outputMessage.put(PCAPID, tokens[41].trim());
-      outputMessage.put(WFFileDigest, tokens[42].trim());
-      outputMessage.put(WFCloud, tokens[43].trim());
-      outputMessage.put(UserAgent, tokens[44].trim());
-      outputMessage.put(WFFileType, tokens[45].trim());
-      outputMessage.put(XForwardedFor, tokens[46].trim());
-      outputMessage.put(Referer, tokens[47].trim());
-      outputMessage.put(WFSender, tokens[48].trim());
-      outputMessage.put(WFSubject, tokens[49].trim());
-      outputMessage.put(WFRecipient, tokens[50].trim());
-      outputMessage.put(WFReportID, tokens[51].trim());
-      if (tokens.length > 52) { 
-        outputMessage.put(DGH1, tokens[52].trim());
-        outputMessage.put(DGH2, tokens[53].trim());
-        outputMessage.put(DGH3, tokens[54].trim());
-        outputMessage.put(DGH4, tokens[55].trim());
-        outputMessage.put(VSYSName, tokens[56].trim());
-        outputMessage.put(DeviceName, tokens[57].trim());
-        outputMessage.put(ActionSource, tokens[58].trim());
+      outputMessage.put(ContentType, tokens[41].trim());
+      outputMessage.put(PCAPID, tokens[42].trim());
+      outputMessage.put(WFFileDigest, tokens[43].trim());
+      outputMessage.put(WFCloud, tokens[44].trim());
+      outputMessage.put(UserAgent, tokens[45].trim());
+      outputMessage.put(WFFileType, tokens[46].trim());
+      outputMessage.put(XForwardedFor, tokens[47].trim());
+      outputMessage.put(Referer, tokens[48].trim());
+      outputMessage.put(WFSender, tokens[49].trim());
+      outputMessage.put(WFSubject, tokens[50].trim());
+      outputMessage.put(WFRecipient, tokens[51].trim());
+      outputMessage.put(WFReportID, tokens[52].trim());
+      if (tokens.length > 53) { 
+        outputMessage.put(DGH1, tokens[53].trim());
+        outputMessage.put(DGH2, tokens[54].trim());
+        outputMessage.put(DGH3, tokens[55].trim());
+        outputMessage.put(DGH4, tokens[56].trim());
+        outputMessage.put(VSYSName, tokens[57].trim());
+        outputMessage.put(DeviceName, tokens[58].trim());
+        outputMessage.put(ActionSource, tokens[59].trim());
       }
 
 
