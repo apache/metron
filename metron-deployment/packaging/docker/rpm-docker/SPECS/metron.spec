@@ -271,6 +271,7 @@ This package installs the Metron Indexing files
 %{metron_home}/config/zeppelin/metron/metron-yaf-telemetry.json
 %{metron_home}/config/zeppelin/metron/metron-connection-report.json
 %{metron_home}/config/zeppelin/metron/metron-ip-report.json
+%{metron_home}/config/zeppelin/metron/metron-connection-volume-report.json
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -400,6 +401,8 @@ This package installs the Metron Management UI %{metron_home}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
+* Tue May 9 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
+- Add Zeppelin Connection Volume Report Dashboard
 * Thu May 4 2017 Ryan Merriman <merrimanr@gmail.com> - 0.4.0
 - Added REST
 * Tue May 2 2017 David Lyle <dlyle65535@gmail.com> - 0.4.0
