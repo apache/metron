@@ -122,8 +122,7 @@
              but I justify it by noting that this should be able to be removed when we migrate to
              Storm 1.1.x, which properly supports Kafka 0.10.x.
           -->
-        <!--global_storm_kafka_version>1.1.0</global_storm_kafka_version-->
-        <global_storm_kafka_version>1.1.0.2.6.1.0-SNAPSHOT</global_storm_kafka_version>
+        <global_storm_kafka_version>1.1.0</global_storm_kafka_version>
         <global_flux_version>${base_flux_version}</global_flux_version>
         <global_pcap_version>1.7.1</global_pcap_version>
         <global_kafka_version>0.10.0.1</global_kafka_version>
