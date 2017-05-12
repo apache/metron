@@ -58,6 +58,7 @@
 		<module>elasticsearch-shaded</module>
 		<module>metron-elasticsearch</module>
 		<module>metron-storm-kafka</module>
+		<module>metron-storm-kafka-override</module>
 	</modules>
 	<dependencies>
 		<dependency>

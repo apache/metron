@@ -20,8 +20,8 @@
         <artifactId>metron-platform</artifactId>
         <version>0.4.0</version>
     </parent>
-    <artifactId>metron-storm-kafka</artifactId>
-    <name>metron-storm-kafka</name>
+    <artifactId>metron-storm-kafka-override</artifactId>
+    <name>metron-storm-kafka-override</name>
     <description>Components that extend the Storm/Kafka spout</description>
     <url>https://metron.apache.org/</url>
     <properties>
@@ -30,11 +30,6 @@
         <commons.config.version>1.10</commons.config.version>
     </properties>
     <dependencies>
-        <dependency>
-            <groupId>org.apache.metron</groupId>
-            <artifactId>metron-storm-kafka-override</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-kafka-client</artifactId>
