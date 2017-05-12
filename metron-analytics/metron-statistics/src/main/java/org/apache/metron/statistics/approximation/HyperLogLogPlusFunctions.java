@@ -61,16 +61,22 @@ public class HyperLogLogPlusFunctions {
           , name = "CARDINALITY"
           , description = "Returns HyperLogLogPlus-estimated cardinality for this set. See [HLLP README](HLLP.md)"
           , params = {"hyperLogLogPlus - the hllp set"}
-          , returns = "Long value representing the cardinality for this set"
+          , returns = "Long value representing the cardinality for this set. Cardinality of a null set is 0."
   )
   public static class HLLPCardinality extends BaseStellarFunction {
 
     @Override
     public Object apply(List<Object> args) {
-      if (args.size() < 1) {
-        throw new IllegalArgumentException("Must pass an hllp set to get the cardinality for");
+      if (args.size() == 1) {
+        if (args.get(0) instanceof HyperLogLogPlus) {
+          HyperLogLogPlus hllpSet = (HyperLogLogPlus) args.get(0);
+          return hllpSet.cardinality();
+        } else {
+          return 0L;
+        }
+      } else {
+        return 0L;
       }
-      return ((HyperLogLogPlus) args.get(0)).cardinality();
     }
   }
 
@@ -113,7 +119,7 @@ public class HyperLogLogPlusFunctions {
           , name = "MERGE"
           , description = "Merge hllp sets together. The resulting estimator is initialized with p and sp precision values from the first provided hllp estimator set. See [HLLP README](HLLP.md)"
           , params = {"hllp - List of hllp estimators to merge. Takes a single hllp set or a list."}
-          , returns = "A new merged HyperLogLogPlus estimator set"
+          , returns = "A new merged HyperLogLogPlus estimator set. Passing an empty list returns null."
   )
   public static class HLLPMerge extends BaseStellarFunction {
 
@@ -128,8 +134,8 @@ public class HyperLogLogPlusFunctions {
         } else {
           estimators.add(args.get(0));
         }
-        if (estimators.size() < 1) {
-          throw new IllegalArgumentException("Must pass 1..n hllp sets to merge");
+        if (estimators.size() == 0) {
+          return null;
         }
         HyperLogLogPlus hllp = ConversionUtils.convert(estimators.get(0), HyperLogLogPlus.class);
         if (estimators.size() > 1) {
