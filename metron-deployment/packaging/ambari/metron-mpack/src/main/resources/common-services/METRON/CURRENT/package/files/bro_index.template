@@ -154,11 +154,12 @@
           "index": "not_analyzed"
         },
         "request_body_len": {
-          "type": "integer"
+          "type": "long"
         },
         "uri": {
           "type": "string",
-          "index": "not_analyzed"
+          "index": "not_analyzed",
+          "ignore_above": 8191
         },
         "uid": {
           "type": "string",
@@ -180,7 +181,7 @@
           "index": "not_analyzed"
         },
         "response_body_len": {
-          "type": "integer"
+          "type": "long"
         },
         "user_agent": {
           "type": "string"
@@ -190,7 +191,7 @@
           "index": "not_analyzed"
         },
         "answers": {
-          "type": "ip"
+          "type": "string"
         },
         "AA": {
           "type": "boolean"
