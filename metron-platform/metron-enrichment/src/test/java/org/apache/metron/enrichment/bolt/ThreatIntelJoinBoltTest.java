@@ -18,12 +18,8 @@
 package org.apache.metron.enrichment.bolt;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
-import junit.framework.Assert;
-import junit.framework.TestCase;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.apache.metron.common.configuration.enrichment.threatintel.ThreatScore;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
@@ -32,6 +28,7 @@ import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,7 +36,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
