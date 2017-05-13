@@ -18,7 +18,6 @@
 package org.apache.metron.parsers.integration;
 
 import com.google.common.base.Function;
-import junit.framework.Assert;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
@@ -31,6 +30,7 @@ import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
 import org.apache.metron.test.TestDataType;
 import org.apache.metron.test.utils.SampleDataUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
