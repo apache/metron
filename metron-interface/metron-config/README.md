@@ -13,7 +13,7 @@ This module provides a user interface for management functions in Metron.
     mvn clean package -DskipTests
     ```
   
-1. Copy `incubator-metron/metron-interface/metron-config/target/metron-config-METRON_VERSION-archive.tar.gz` to the desired host.
+1. Copy `metron/metron-interface/metron-config/target/metron-config-METRON_VERSION-archive.tar.gz` to the desired host.
 
 1. Untar the archive in the target directory.  The directory structure will look like:
     ```
