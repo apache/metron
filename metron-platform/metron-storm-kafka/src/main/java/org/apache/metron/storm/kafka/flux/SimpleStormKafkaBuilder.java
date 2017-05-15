@@ -46,7 +46,6 @@ import java.util.function.Function;
  * @param <V> The kafka value type
  */
 public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V> {
-  final static String STREAM = "default";
 
   /**
    * The fields exposed by the kafka consumer.  These will show up in the Storm tuple.
