@@ -189,8 +189,8 @@
     </property>
     <property>
         <name>network_host</name>
-        <value>[ _local_ ]</value>
-        <description>Network interface(s) ES will bind to within each node. Use [ _local_ ] for single-node install; change to [ _local_, _site_ ] (including square brackets) for typical cluster install. See https://www.elastic.co/guide/en/elasticsearch/reference/2.3/modules-network.html for ES documentation.</description>
+        <value>[ _local_, _site_ ]</value>
+        <description>Network interface(s) ES will bind to within each node. "_site_" or a more specific external address is required for all multi-node clusters, and also recommended for single-node installs to allow access to ES reports from non-local hosts. Always include the square brackets. See https://www.elastic.co/guide/en/elasticsearch/reference/2.3/modules-network.html for ES documentation.</description>
     </property>
     <property>
         <name>network_publish_host</name>

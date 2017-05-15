@@ -35,7 +35,7 @@ RUN python2.7 setup.py install
 RUN easy_install-2.7 pip
 RUN pip2.7 install ansible==2.0.0.2
 RUN pip2.7 install boto
-COPY ansible.cfg /root
+COPY ansible.cfg /root/
 ENV ANSIBLE_CONFIG /root/ansible.cfg
 RUN yum install -y java-1.8.0-openjdk java-1.8.0-openjdk-devel
 RUN yum install -y which
