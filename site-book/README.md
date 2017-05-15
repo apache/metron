@@ -12,7 +12,7 @@ The site-book is also part of the Maven site lifecycle, and will be included by 
 
 To build only the book, do the following:
 
-In any git clone of incubator-metron containing the site-book subdirectory,
+In any git clone of metron containing the site-book subdirectory,
 
 ```
 cd site-book
@@ -22,7 +22,7 @@ mvn site
 It only takes a few seconds. You may now view your copy of the book in a browser by opening 
 
 ```
-file:///your/path/to/incubator-metron/site-book/target/site/index.html
+file:///your/path/to/metron/site-book/target/site/index.html
 ```
 
 On a Mac, you can just type the following on the command line
