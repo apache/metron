@@ -634,6 +634,11 @@ public class StellarTest {
     Assert.assertTrue(runPredicate("not(IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))", v-> variableMap.get(v)));
   }
 
+  @Test
+  public void testShortCircuit() throws Exception {
+    Assert.assertTrue(runPredicate("true or not(null)", x -> null));
+  }
+
   @Rule
   public ExpectedException thrown = ExpectedException.none();
 
