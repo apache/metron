@@ -121,16 +121,6 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
     return response;
   }
 
-  public SyncPolicy createSyncPolicy(int batchSize) {
-    if(syncPolicy != null) {
-      return syncPolicy;
-    }
-    else {
-      //sync on every batch
-      return new CountSyncPolicy(batchSize);
-    }
-  }
-
   public String getHdfsPathExtension(String sourceType, String stellarFunction, JSONObject message) {
     // If no function is provided, just use the sourceType directly
     if(stellarFunction == null || stellarFunction.trim().isEmpty()) {
