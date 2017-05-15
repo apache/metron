@@ -29,6 +29,11 @@ public class SquidIntegrationTest extends ParserIntegrationTest {
   }
 
   @Override
+  String getOutputTopic() {
+    return "squid_out";
+  }
+
+  @Override
   List<ParserValidation> getValidations() {
     return new ArrayList<ParserValidation>() {{
       add(new SampleDataValidation());

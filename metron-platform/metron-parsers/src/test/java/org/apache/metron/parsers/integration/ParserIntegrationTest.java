@@ -47,7 +47,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     final Properties topologyProperties = new Properties();
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
       add(new KafkaComponent.Topic(sensorType, 1));
-      add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
+      add(new KafkaComponent.Topic(getOutputTopic(), 1));
       add(new KafkaComponent.Topic(ERROR_TOPIC,1));
     }});
     topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
@@ -62,6 +62,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     ParserTopologyComponent parserTopologyComponent = new ParserTopologyComponent.Builder()
             .withSensorType(sensorType)
             .withTopologyProperties(topologyProperties)
+            .withOutputTopic(getOutputTopic())
             .withBrokerUrl(kafkaComponent.getBrokerList()).build();
 
     //UnitTestHelper.verboseLogging();
@@ -114,7 +115,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
 
     return new KafkaProcessor<>()
             .withKafkaComponentName("kafka")
-            .withReadTopic(Constants.ENRICHMENT_TOPIC)
+            .withReadTopic(getOutputTopic())
             .withErrorTopic(ERROR_TOPIC)
             .withValidateReadMessages(new Function<KafkaMessageSet, Boolean>() {
               @Nullable
@@ -133,5 +134,8 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
   }
   abstract String getSensorType();
   abstract List<ParserValidation> getValidations();
+  String getOutputTopic() {
+    return Constants.ENRICHMENT_TOPIC;
+  }
 
 }

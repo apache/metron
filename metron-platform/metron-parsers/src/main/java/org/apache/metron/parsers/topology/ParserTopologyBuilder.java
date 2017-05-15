@@ -73,7 +73,8 @@ public class ParserTopologyBuilder {
                                       int errorWriterParallelism,
                                       int errorWriterNumTasks,
                                       Map<String, Object> kafkaSpoutConfig,
-                                      Optional<String> securityProtocol
+                                      Optional<String> securityProtocol,
+                                      Optional<String> outputTopic
   ) throws Exception {
 
     // fetch configuration from zookeeper
@@ -87,7 +88,7 @@ public class ParserTopologyBuilder {
             .setNumTasks(spoutNumTasks);
 
     // create the parser bolt
-    ParserBolt parserBolt = createParserBolt(zookeeperUrl, brokerUrl, sensorType, securityProtocol, configs, parserConfig);
+    ParserBolt parserBolt = createParserBolt(zookeeperUrl, brokerUrl, sensorType, securityProtocol, configs, parserConfig, outputTopic);
     builder.setBolt("parserBolt", parserBolt, parserParallelism)
             .setNumTasks(parserNumTasks)
             .shuffleGrouping("kafkaSpout");
@@ -169,6 +170,7 @@ public class ParserTopologyBuilder {
                                             , Optional<String> securityProtocol
                                             , ParserConfigurations configs
                                             , SensorParserConfig parserConfig
+                                            , Optional<String> outputTopic
                                             )
   {
 
@@ -181,7 +183,7 @@ public class ParserTopologyBuilder {
             createKafkaWriter( brokerUrl
                              , zookeeperUrl
                              , securityProtocol
-                             ).withTopic(Constants.ENRICHMENT_TOPIC) :
+                             ).withTopic(outputTopic.orElse(Constants.ENRICHMENT_TOPIC)) :
             ReflectionUtils.createInstance(parserConfig.getWriterClassName());
     writer.configure(sensorType, new ParserWriterConfiguration(configs));
 
