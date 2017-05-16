@@ -157,7 +157,7 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
   private void turnoverIfNecessary(long ts, boolean force) throws IOException {
     long duration = ts - batchStartTime;
     boolean initial = outputStream == null;
-    boolean overDuration = duration >= config.getMaxTimeNS();
+    boolean overDuration = Long.compareUnsigned(duration, config.getMaxTimeNS()) >= 0;
     boolean tooManyPackets = numWritten >= config.getNumPackets();
     if(force || initial || overDuration || tooManyPackets ) {
       //turnover

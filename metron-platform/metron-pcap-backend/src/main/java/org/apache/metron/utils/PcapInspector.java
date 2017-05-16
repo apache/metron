@@ -139,17 +139,21 @@ public class PcapInspector {
     for(int i = 0;(n < 0 || i < n) && reader.next(key, value);++i) {
       long millis = Long.divideUnsigned(key.get(), 1000000);
       String ts = DATE_FORMAT.format(new Date(millis));
-      for(PacketInfo pi : PcapHelper.toPacketInfo(value.copyBytes())) {
-        Map<String, Object> result = PcapHelper.packetToFields(pi);
-        List<String> fieldResults = new ArrayList<String>() {{
-          add("TS: " + ts);
-        }};
-        for(Constants.Fields field : Constants.Fields.values()) {
-          if(result.containsKey(field.getName())) {
-            fieldResults.add(field.getName() + ": " + result.get(field.getName()));
+      try {
+        for (PacketInfo pi : PcapHelper.toPacketInfo(value.copyBytes())) {
+          Map<String, Object> result = PcapHelper.packetToFields(pi);
+          List<String> fieldResults = new ArrayList<String>() {{
+            add("TS: " + ts);
+          }};
+          for (Constants.Fields field : Constants.Fields.values()) {
+            if (result.containsKey(field.getName())) {
+              fieldResults.add(field.getName() + ": " + result.get(field.getName()));
+            }
           }
+          System.out.println(Joiner.on(",").join(fieldResults));
         }
-        System.out.println(Joiner.on(",").join(fieldResults));
+      } catch (Exception e) {
+        System.out.println(String.format("Error: malformed packet #=%s, ts=%s, error msg=%s", i + 1, ts, e.getMessage()));
       }
     }
   }
