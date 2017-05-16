@@ -45,8 +45,8 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
   public static final String ThreatContentType = "subtype";
   public static final String ConfigVersion = "config_version";
   public static final String GenerateTime = "time_generated";
-  public static final String SourceAddress = "src";
-  public static final String DestinationAddress = "dst";
+  public static final String SourceAddress = "ip_src_addr"; // Palo Alto name: "src"
+  public static final String DestinationAddress = "ip_dst_addr"; // Palo Alto name: "dst"
   public static final String NATSourceIP = "natsrc";
   public static final String NATDestinationIP = "natdst";
   public static final String Rule = "rule";
@@ -62,12 +62,12 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
   public static final String TimeLogged = "start";
   public static final String SessionID = "sessionid";
   public static final String RepeatCount = "repeatcnt";
-  public static final String SourcePort = "sport";
-  public static final String DestinationPort = "dport";
+  public static final String SourcePort = "ip_src_port"; // Palo Alto name: "sport"
+  public static final String DestinationPort = "ip_dst_pot"; // Palo Alto name: "dport"
   public static final String NATSourcePort = "natsport";
   public static final String NATDestinationPort = "natdport";
   public static final String Flags = "flags";
-  public static final String IPProtocol = "proto";
+  public static final String IPProtocol = "protocol"; // Palo Alto name: "proto"
   public static final String Action = "action";
   public static final String Seqno = "seqno";
   public static final String ActionFlags = "actionflags";
@@ -79,6 +79,8 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
   public static final String VSYSName = "vsys_name";
   public static final String DeviceName = "device_name";
   public static final String ActionSource = "action_source";
+  public static final String ParserVersion = "parser_version";
+  public static final String Tokens = "tokens_seen";
 
   //Threat
   public static final String URL = "url";
@@ -100,6 +102,7 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
   public static final String WFSubject = "subject";
   public static final String WFRecipient = "recipient";
   public static final String WFReportID = "reportid";
+  public static final String URLIndex = "url_idx";
 
   //Traffic
   public static final String Bytes = "bytes";
@@ -138,12 +141,6 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
       parseMessage(toParse, outputMessage);
       long timestamp = System.currentTimeMillis();
       outputMessage.put("timestamp", System.currentTimeMillis());
-      outputMessage.put("ip_src_addr", outputMessage.remove("src"));
-      outputMessage.put("ip_src_port", outputMessage.remove("sport"));
-      outputMessage.put("ip_dst_addr", outputMessage.remove("dst"));
-      outputMessage.put("ip_dst_port", outputMessage.remove("dport"));
-      outputMessage.put("protocol", outputMessage.remove("proto"));
-
       outputMessage.put("original_string", toParse);
       messages.add(outputMessage);
       return messages;
@@ -157,8 +154,8 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
   @SuppressWarnings("unchecked")
   private void parseMessage(String message, JSONObject outputMessage) {
 
-    //String[] tokens = message.split(",");
     String[] tokens = Iterables.toArray(Splitter.on(Pattern.compile(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")).split(message), String.class);
+    int parser_version = 0;
 
     String type = tokens[3].trim();
 
@@ -197,6 +194,15 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
 
 
     if ("THREAT".equals(type.toUpperCase())) {
+      int p1_offset = 0;
+      if      (tokens.length == 45) parser_version = 60;
+      else if (tokens.length == 53) parser_version = 61;
+      else if (tokens.length == 61) {
+        parser_version = 70;
+        p1_offset = 1;
+      }
+      else if (tokens.length == 70) parser_version = 80;
+      outputMessage.put(ParserVersion, parser_version);
       outputMessage.put(URL, tokens[31].trim());
       try {
         URL url = new URL(tokens[31].trim());
@@ -215,26 +221,39 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
       outputMessage.put(PCAPID, tokens[42].trim());
       outputMessage.put(WFFileDigest, tokens[43].trim());
       outputMessage.put(WFCloud, tokens[44].trim());
-      outputMessage.put(UserAgent, tokens[45].trim());
-      outputMessage.put(WFFileType, tokens[46].trim());
-      outputMessage.put(XForwardedFor, tokens[47].trim());
-      outputMessage.put(Referer, tokens[48].trim());
-      outputMessage.put(WFSender, tokens[49].trim());
-      outputMessage.put(WFSubject, tokens[50].trim());
-      outputMessage.put(WFRecipient, tokens[51].trim());
-      outputMessage.put(WFReportID, tokens[52].trim());
-      if (tokens.length > 53) { 
-        outputMessage.put(DGH1, tokens[53].trim());
-        outputMessage.put(DGH2, tokens[54].trim());
-        outputMessage.put(DGH3, tokens[55].trim());
-        outputMessage.put(DGH4, tokens[56].trim());
-        outputMessage.put(VSYSName, tokens[57].trim());
-        outputMessage.put(DeviceName, tokens[58].trim());
-        outputMessage.put(ActionSource, tokens[59].trim());
+      if ( parser_version >= 61) {
+        outputMessage.put(UserAgent, tokens[(45 + p1_offset)].trim());
+        outputMessage.put(WFFileType, tokens[(46 + p1_offset)].trim());
+        outputMessage.put(XForwardedFor, tokens[(47 + p1_offset)].trim());
+        outputMessage.put(Referer, tokens[(48 + p1_offset)].trim());
+        outputMessage.put(WFSender, tokens[(49 + p1_offset)].trim());
+        outputMessage.put(WFSubject, tokens[(50 + p1_offset)].trim());
+        outputMessage.put(WFRecipient, tokens[(51 + p1_offset)].trim());
+        outputMessage.put(WFReportID, tokens[(52 + p1_offset)].trim());
+      }
+      if ( parser_version >= 70) { 
+        outputMessage.put(URLIndex, tokens[45].trim());
+        outputMessage.put(DGH1, tokens[54].trim());
+        outputMessage.put(DGH2, tokens[55].trim());
+        outputMessage.put(DGH3, tokens[56].trim());
+        outputMessage.put(DGH4, tokens[57].trim());
+        outputMessage.put(VSYSName, tokens[58].trim());
+        outputMessage.put(DeviceName, tokens[59].trim());
+      }
+      if ( parser_version == 70) { 
+        outputMessage.put(ActionSource, tokens[60].trim());
+      }
+      if ( parser_version == 0) {
+        outputMessage.put(Tokens, tokens.length);
       }
 
 
     } else if ("TRAFFIC".equals(type.toUpperCase())) {
+      if      (tokens.length == 46) parser_version = 60;
+      else if (tokens.length == 47) parser_version = 61;
+      else if (tokens.length == 54) parser_version = 70;
+      else if (tokens.length == 61) parser_version = 80;
+      outputMessage.put(ParserVersion, parser_version);
       outputMessage.put(Bytes, tokens[31].trim());
       outputMessage.put(BytesSent, tokens[32].trim());
       outputMessage.put(BytesReceived, tokens[33].trim());
@@ -248,8 +267,10 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
       outputMessage.put(DestinationLocation, tokens[42].trim());
       outputMessage.put(PktsSent, tokens[44].trim());
       outputMessage.put(PktsReceived, tokens[45].trim());
+      if ( parser_version >= 61) {
       outputMessage.put(EndReason, tokens[46].trim());
-      if (tokens.length > 47) {
+      }
+      if ( parser_version >= 70) {
         outputMessage.put(DGH1, tokens[47].trim());
         outputMessage.put(DGH2, tokens[48].trim());
         outputMessage.put(DGH3, tokens[49].trim());
@@ -257,6 +278,9 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
         outputMessage.put(VSYSName, tokens[51].trim());
         outputMessage.put(DeviceName, tokens[52].trim());
         outputMessage.put(ActionSource, tokens[53].trim());
+      }
+      if ( parser_version == 0) {
+        outputMessage.put(Tokens, tokens.length);
       }
     }
 
