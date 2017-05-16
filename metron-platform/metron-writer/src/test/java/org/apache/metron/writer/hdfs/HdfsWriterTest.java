@@ -209,7 +209,7 @@ public class HdfsWriterTest {
     writer.init(new HashMap<String, String>(), createTopologyContext(),  config);
 
     for(int i = 0; i < maxFiles; i++) {
-      writer.getSourceHandler(SENSOR_NAME, Integer.toString(i));
+      writer.getSourceHandler(SENSOR_NAME, Integer.toString(i), null);
     }
   }
 
@@ -223,7 +223,7 @@ public class HdfsWriterTest {
     writer.init(new HashMap<String, String>(), createTopologyContext(),  config);
 
     for(int i = 0; i < maxFiles+1; i++) {
-      writer.getSourceHandler(SENSOR_NAME, Integer.toString(i));
+      writer.getSourceHandler(SENSOR_NAME, Integer.toString(i), null);
     }
   }
 
