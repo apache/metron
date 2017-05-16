@@ -224,7 +224,7 @@
           "index": "not_analyzed"
         },
         "trans_id": {
-          "type": "integer"
+          "type": "long"
         },
         "Z": {
           "type": "integer"
