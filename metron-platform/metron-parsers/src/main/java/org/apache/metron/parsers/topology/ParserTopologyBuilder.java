@@ -17,6 +17,7 @@
  */
 package org.apache.metron.parsers.topology;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder;
 import org.apache.metron.storm.kafka.flux.SpoutConfiguration;
 import org.apache.metron.storm.kafka.flux.StormKafkaSpout;
@@ -124,7 +125,7 @@ public class ParserTopologyBuilder {
     kafkaSpoutConfigOptions.putIfAbsent( SpoutConfiguration.FIRST_POLL_OFFSET_STRATEGY.key
             , KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST.toString()
     );
-    kafkaSpoutConfigOptions.putIfAbsent( KafkaSpoutConfig.Consumer.GROUP_ID
+    kafkaSpoutConfigOptions.putIfAbsent( ConsumerConfig.GROUP_ID_CONFIG
             , inputTopic + "_parser"
     );
     if(securityProtocol.isPresent()) {
