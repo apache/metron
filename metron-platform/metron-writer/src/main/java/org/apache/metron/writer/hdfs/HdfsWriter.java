@@ -24,6 +24,7 @@ import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.stellar.StellarCompiler;
 import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
@@ -76,9 +77,10 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
   }
 
   @Override
-  public void init(Map stormConfig, WriterConfiguration configurations) {
+  public void init(Map stormConfig, TopologyContext topologyContext, WriterConfiguration configurations) {
     this.stormConfig = stormConfig;
     this.stellarProcessor = new StellarProcessor();
+    this.fileNameFormat.prepare(stormConfig,topologyContext);
   }
 
 
