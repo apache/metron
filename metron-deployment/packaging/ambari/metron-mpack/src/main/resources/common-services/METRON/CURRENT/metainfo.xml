@@ -314,6 +314,9 @@
               <name>metron-rest</name>
             </package>
             <package>
+              <name>nodejs</name>
+            </package>
+            <package>
               <name>metron-config</name>
             </package>
           </packages>

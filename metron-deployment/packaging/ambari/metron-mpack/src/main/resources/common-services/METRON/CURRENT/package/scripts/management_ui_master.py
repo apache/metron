@@ -34,7 +34,6 @@ from management_ui_commands import ManagementUICommands
 class ManagementUIMaster(Script):
 
     def install(self, env):
-        Execute('curl --silent --location https://rpm.nodesource.com/setup_6.x | bash - && yum -y install nodejs')
         from params import params
         env.set_params(params)
         self.install_packages(env)
