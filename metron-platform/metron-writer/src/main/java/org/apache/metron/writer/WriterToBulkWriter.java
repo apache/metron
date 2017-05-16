@@ -18,6 +18,7 @@
 
 package org.apache.metron.writer;
 
+import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.configuration.writer.SingleBatchConfigurationFacade;
@@ -40,7 +41,7 @@ public class WriterToBulkWriter<MESSAGE_T> implements BulkMessageWriter<MESSAGE_
     this.messageWriter = messageWriter;
   }
   @Override
-  public void init(Map stormConf, WriterConfiguration config) throws Exception {
+  public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration config) throws Exception {
     messageWriter.init();
   }
 

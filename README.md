@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/apache/incubator-metron.svg?branch=master)](https://travis-ci.org/apache/incubator-metron)
+[![Build Status](https://travis-ci.org/apache/metron.svg?branch=master)](https://travis-ci.org/apache/metron)
  
 # Apache Metron
 

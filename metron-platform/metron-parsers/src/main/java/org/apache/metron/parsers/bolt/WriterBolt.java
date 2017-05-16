@@ -55,7 +55,7 @@ public class WriterBolt extends BaseRichBolt {
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     this.collector = collector;
     messageGetStrategy = MessageGetters.DEFAULT_JSON_FROM_FIELD.get();
-    handler.init(stormConf, collector, configuration);
+    handler.init(stormConf, context, collector, configuration);
   }
 
   private JSONObject getMessage(Tuple tuple) {

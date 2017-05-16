@@ -23,7 +23,7 @@ functions can be used from everywhere where Stellar is used.
   * Description: Returns HyperLogLogPlus-estimated cardinality for this set. See [HLLP README](HLLP.md)
   * Input:
     * hyperLogLogPlus - the hllp set
-  * Returns: Long value representing the cardinality for this set
+  * Returns: Long value representing the cardinality for this set. Cardinality of a null set is 0.
 
 #### `HLLP_INIT`
   * Description: Initializes the HyperLogLogPlus estimator set. p must be a value between 4 and sp and sp must be less than 32 and greater than 4. See [HLLP README](HLLP.md)
@@ -36,7 +36,7 @@ functions can be used from everywhere where Stellar is used.
   * Description: Merge hllp sets together. The resulting estimator is initialized with p and sp precision values from the first provided hllp estimator set. See [HLLP README](HLLP.md)
   * Input:
     * hllp - List of hllp estimators to merge. Takes a single hllp set or a list.
-  * Returns: A new merged HyperLogLogPlus estimator set
+  * Returns: A new merged HyperLogLogPlus estimator set. Passing an empty list returns null.
 
 ### Mathematical Functions
 
