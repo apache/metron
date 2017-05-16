@@ -117,6 +117,9 @@ public class HDFSWriterCallback implements Callback {
     public List<Object> apply(List<Object> tuple, EmitContext context) {
         byte[] key = (byte[]) tuple.get(0);
         byte[] value = (byte[]) tuple.get(1);
+        if (key == null) {
+            throw new IllegalArgumentException("Expected a key but none provided");
+        }
         long tsDeserializeStart = System.nanoTime();
         KeyValueDeserializer.Result result = config.getDeserializer().deserializeKeyValue(key, value);
         long tsDeserializeEnd = System.nanoTime();
