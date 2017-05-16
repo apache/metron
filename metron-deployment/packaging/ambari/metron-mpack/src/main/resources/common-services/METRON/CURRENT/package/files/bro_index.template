@@ -766,6 +766,10 @@
         "basic_constraints:path_len": {
           "type": "integer",
           "index": "not_analyzed"
+        },
+        "dhcp_host_name": {
+          "type": "string",
+          "index": "not_analyzed"
         }
       }
     }

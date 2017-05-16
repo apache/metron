@@ -673,6 +673,26 @@ public class BasicBroParserTest extends TestCase {
 		Assert.assertTrue(broJson.get("original_string").toString().startsWith("X509"));
         }
 
+        @SuppressWarnings("rawtypes")
+        public void testKnownDevicesBroMessage() throws ParseException {
+                String rawMessage = "{\"known_devices\": {\"ts\":1258532046.693816,\"mac\":\"00:0b:db:4f:6b:10\",\"dhcp_host_name\":\"m57-charlie\"}}";
+
+                Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1258532046.693816";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1258532046693";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("mac").toString(), rawJson.get("mac").toString());
+                Assert.assertEquals(broJson.get("dhcp_host_name").toString(), rawJson.get("dhcp_host_name").toString());
+
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith("KNOWN_DEVICES"));
+        }
+
 	@SuppressWarnings("rawtypes")
 	public void testProtocolKeyCleanedUp() throws ParseException {
 		String rawMessage = "{\"ht*tp\":{\"ts\":1402307733.473,\"uid\":\"CTo78A11g7CYbbOHvj\",\"id.orig_h\":\"192.249.113.37\",\"id.orig_p\":58808,\"id.resp_h\":\"72.163.4.161\",\"id.resp_p\":80,\"trans_depth\":1,\"method\":\"GET\",\"host\":\"www.cisco.com\",\"uri\":\"/\",\"user_agent\":\"curl/7.22.0 (x86_64-pc-linux-gnu) libcurl/7.22.0 OpenSSL/1.0.1 zlib/1.2.3.4 libidn/1.23 librtmp/2.3\",\"request_body_len\":0,\"response_body_len\":25523,\"status_code\":200,\"status_msg\":\"OK\",\"tags\":[],\"resp_fuids\":[\"FJDyMC15lxUn5ngPfd\"],\"resp_mime_types\":[\"text/html\"]}}";
