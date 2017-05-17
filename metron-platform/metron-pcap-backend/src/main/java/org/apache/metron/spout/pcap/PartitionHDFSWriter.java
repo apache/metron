@@ -95,7 +95,7 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
         func.sync(input);
       }
       catch(IOException ioe) {
-        LOG.warn("Problems during sync, but this shouldn't be too concerning as long as it's periodic:" + ioe.getMessage(), ioe);
+        LOG.warn("Problems during sync, but this shouldn't be too concerning as long as it's intermittent:" + ioe.getMessage(), ioe);
       }
     }
   }
