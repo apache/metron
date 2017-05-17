@@ -95,7 +95,7 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
         func.sync(input);
       }
       catch(IOException ioe) {
-        LOG.warn("Problems during sync, but this shouldn't be too concerning as long as it's intermittent:" + ioe.getMessage(), ioe);
+        LOG.warn("Problems during sync, but this shouldn't be too concerning as long as it's intermittent: " + ioe.getMessage(), ioe);
       }
     }
   }
@@ -165,7 +165,7 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
     }
     catch(ArrayIndexOutOfBoundsException aioobe) {
       LOG.warn("This appears to be HDFS-7765 (https://issues.apache.org/jira/browse/HDFS-7765), " +
-              "which is an issue with syncing and not problematic. " + aioobe.getMessage(), aioobe);
+              "which is an issue with syncing and not problematic: " + aioobe.getMessage(), aioobe);
     }
     numWritten++;
     if(numWritten % config.getSyncEvery() == 0) {
