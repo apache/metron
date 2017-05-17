@@ -1,4 +1,4 @@
-#Parsers
+# Parsers
 
 ## Introduction
 
@@ -32,7 +32,7 @@ topology in kafka.  Errors are collected with the context of the error
 `error` queue.  Invalid messages as determined by global validation
 functions are also treated as errors and sent to an `error` queue. 
  
-##Message Format
+## Message Format
 
 All Metron messages follow a specific format in order to ingest a message.  If a message does not conform to this format it will be dropped and put onto an error queue for further examination.  The message must be of a JSON format and must have a JSON tag message like so:
 
@@ -70,11 +70,11 @@ So putting it all together a typical Metron message with all 5-tuple fields pres
 }
 ```
 
-##Global Configuration 
+## Global Configuration 
 
 See the "[Global Configuration](../metron-common)" section.
 
-##Parser Configuration
+## Parser Configuration
 
 The configuration for the various parser topologies is defined by JSON
 documents stored in zookeeper.
@@ -103,7 +103,7 @@ transformation which can be done to a message.  This transformation can
 * Add new fields given the values of existing fields of a message
 * Remove existing fields of a message
 
-###`fieldTransformation` configuration
+### `fieldTransformation` configuration
 
 The format of a `fieldTransformation` is as follows:
 * `input` : An array of fields or a single field representing the input.  This is optional; if unspecified, then the whole message is passed as input.
@@ -201,7 +201,7 @@ HH:mm:ss', MAP_GET(dc, dc2tz, 'UTC') )"
 Note that the `dc2tz` map is in the parser config, so it is accessible
 in the functions.
 
-###An Example Configuration for a Sensor
+### An Example Configuration for a Sensor
 Consider the following example configuration for the `yaf` sensor:
 
 ```
@@ -225,12 +225,12 @@ Consider the following example configuration for the `yaf` sensor:
 }
 ```
 
-##Parser Adapters
+## Parser Adapters
 
 Parser adapters are loaded dynamically in each Metron topology.  They
 are defined in the Parser Config (defined above) JSON file in Zookeeper.
 
-###Java Parser Adapters
+### Java Parser Adapters
 Java parser adapters are indended for higher-velocity topologies and are not easily changed or extended.  As the adoption of Metron continues we plan on extending our library of Java adapters to process more log formats.  As of this moment the Java adapters included with Metron are:
 
 * org.apache.metron.parsers.ise.BasicIseParser : Parse ISE messages
@@ -238,7 +238,7 @@ Java parser adapters are indended for higher-velocity topologies and are not eas
 * org.apache.metron.parsers.sourcefire.BasicSourcefireParser : Parse Sourcefire messages
 * org.apache.metron.parsers.lancope.BasicLancopeParser : Parse Lancope messages
 
-###Grok Parser Adapters
+### Grok Parser Adapters
 Grok parser adapters are designed primarly for someone who is not a Java coder for quickly standing up a parser adapter for lower velocity topologies.  Grok relies on Regex for message parsing, which is much slower than purpose-built Java parsers, but is more extensible.  Grok parsers are defined via a config file and the topplogy does not need to be recombiled in order to make changes to them.  An example of a Grok perser is:
 
 * org.apache.metron.parsers.GrokParser
@@ -247,7 +247,7 @@ For more information on the Grok project please refer to the following link:
 
 https://github.com/thekrakken/java-grok
 
-#Starting the Parser Topology
+# Starting the Parser Topology
 
 Starting a particular parser topology on a running Metron deployment is
 as easy as running the `start_parser_topology.sh` script located in
