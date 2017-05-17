@@ -18,13 +18,15 @@
 
 package org.apache.metron.spout.pcap.deserializer;
 
-import org.apache.log4j.Logger;
 import org.apache.metron.pcap.PcapHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Extract the timestamp and raw data from the packet.
  */
 public class FromPacketDeserializer extends KeyValueDeserializer {
-  private static final Logger LOG = Logger.getLogger(FromPacketDeserializer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(FromPacketDeserializer.class);
 
   @Override
   public Result deserializeKeyValue(byte[] key, byte[] value) {

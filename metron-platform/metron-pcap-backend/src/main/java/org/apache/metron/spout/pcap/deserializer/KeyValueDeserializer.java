@@ -29,11 +29,11 @@ public abstract class KeyValueDeserializer implements Serializable {
   public static class Result {
     public byte[] value;
     public Long key;
-    public boolean result;
-    public Result(Long key, byte[] value, boolean result) {
+    public boolean foundTimestamp;
+    public Result(Long key, byte[] value, boolean foundTimestamp) {
       this.key = key;
       this.value = value;
-      this.result = result;
+      this.foundTimestamp = foundTimestamp;
     }
   }
 

@@ -82,6 +82,14 @@ public class PcapHelper {
     }
   }
 
+  /**
+   *
+   * @param topic
+   * @param timestamp
+   * @param partition kafka partition
+   * @param uuid
+   * @return filename in this format: pcap_topic_timestamp_partition_uuid, e.g. pcap_pcap_1494886105667571000_0_pcap-8-1494965816
+   */
   public static String toFilename(String topic, long timestamp, String partition, String uuid)
   {
     return Joiner.on("_").join("pcap"

@@ -27,8 +27,9 @@ import org.apache.hadoop.hdfs.client.HdfsDataOutputStream;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
-import org.apache.log4j.Logger;
 import org.apache.metron.pcap.PcapHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -42,7 +43,7 @@ import java.util.Map;
  */
 public class PartitionHDFSWriter implements AutoCloseable, Serializable {
   static final long serialVersionUID = 0xDEADBEEFL;
-  private static final Logger LOG = Logger.getLogger(PartitionHDFSWriter.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PartitionHDFSWriter.class);
 
 
   public static interface SyncHandler {
@@ -116,8 +117,8 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
 
     try {
       int replicationFactor = config.getReplicationFactor();
-      if (replicationFactor != -1) {
-        fsConfig.set("dfs.replication", (String.valueOf(replicationFactor)));
+      if (replicationFactor > 0) {
+        fsConfig.set("dfs.replication", String.valueOf(replicationFactor));
       }
       if(config.getHDFSConfig() != null && !config.getHDFSConfig().isEmpty()) {
         for(Map.Entry<String, Object> entry : config.getHDFSConfig().entrySet()) {
@@ -180,8 +181,8 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
       outputStream.close();
     }
   }
-  private Path getPath(long ts) {
 
+  private Path getPath(long ts) {
     String fileName = PcapHelper.toFilename(topic, ts, partition + "", uuid);
     return new Path(config.getOutputPath(), fileName);
   }
@@ -226,7 +227,7 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
               , SequenceFile.Writer.compression(SequenceFile.CompressionType.NONE)
       );
       //reset state
-      LOG.info(String.format("Turning over and writing to %s: [duration=%s NS, force=%s, initial=%s, overDuration=%s, tooManyPackets=%s]", path, duration, force, initial, overDuration, tooManyPackets));
+      LOG.info("Turning over and writing to {}: [duration={} NS, force={}, initial={}, overDuration={}, tooManyPackets={}]", path, duration, force, initial, overDuration, tooManyPackets);
       batchStartTime = ts;
       numWritten = 0;
     }
