@@ -19,8 +19,12 @@
 package org.apache.metron.pcap;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
+import java.io.EOFException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 import org.apache.metron.spout.pcap.Endianness;
@@ -36,13 +40,6 @@ import org.krakenapps.pcap.packet.PacketHeader;
 import org.krakenapps.pcap.packet.PcapPacket;
 import org.krakenapps.pcap.util.Buffer;
 import org.krakenapps.pcap.util.ByteOrderConverter;
-
-import java.io.EOFException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class PcapHelper {
 
@@ -71,16 +68,6 @@ public class PcapHelper {
       return createDecoder();
     }
   };
-
-  public static Long getTimestamp(String filename) {
-    try {
-      return Long.parseUnsignedLong(Iterables.get(Splitter.on('_').split(filename), 2));
-    }
-    catch(Exception e) {
-      //something went wrong here.
-      return null;
-    }
-  }
 
   /**
    *

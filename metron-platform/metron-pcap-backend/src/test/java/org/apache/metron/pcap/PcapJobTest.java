@@ -50,7 +50,7 @@ public class PcapJobTest {
           return inputFiles;
         }
       };
-      Iterable<String> paths = job.getPaths(null, null, 0, 1000);
+      Iterable<String> paths = job.getPathsInTimeRange(null, null, 0, 1000);
       Assert.assertTrue(Iterables.isEmpty(paths));
     }
   }
@@ -69,7 +69,7 @@ public class PcapJobTest {
           return inputFiles;
         }
       };
-      Iterable<String> paths = job.getPaths(null, null, 0, TimestampConverters.MILLISECONDS.toNanoseconds(System.currentTimeMillis()));
+      Iterable<String> paths = job.getPathsInTimeRange(null, null, 0, TimestampConverters.MILLISECONDS.toNanoseconds(System.currentTimeMillis()));
       Assert.assertEquals(1, Iterables.size(paths));
     }
   }
@@ -88,7 +88,7 @@ public class PcapJobTest {
           return inputFiles;
         }
       };
-      Iterable<String> paths = job.getPaths(null, null, 1461589333993573000L - 1L, 1461589333993573000L + 1L);
+      Iterable<String> paths = job.getPathsInTimeRange(null, null, 1461589333993573000L - 1L, 1461589333993573000L + 1L);
       Assert.assertEquals(2, Iterables.size(paths));
     }
     {
@@ -103,7 +103,7 @@ public class PcapJobTest {
           return inputFiles;
         }
       };
-      Iterable<String> paths = job.getPaths(null, null, 1461589334993573000L - 1L, 1461589334993573000L + 1L);
+      Iterable<String> paths = job.getPathsInTimeRange(null, null, 1461589334993573000L - 1L, 1461589334993573000L + 1L);
       Assert.assertEquals(2, Iterables.size(paths));
     }
   }
@@ -123,7 +123,7 @@ public class PcapJobTest {
           return inputFiles;
         }
       };
-      Iterable<String> paths = job.getPaths(null, null, 0, TimestampConverters.MILLISECONDS.toNanoseconds(System.currentTimeMillis()));
+      Iterable<String> paths = job.getPathsInTimeRange(null, null, 0, TimestampConverters.MILLISECONDS.toNanoseconds(System.currentTimeMillis()));
       Assert.assertEquals(3, Iterables.size(paths));
     }
   }
