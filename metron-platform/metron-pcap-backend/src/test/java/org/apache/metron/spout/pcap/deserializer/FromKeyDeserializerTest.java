@@ -18,24 +18,22 @@
 
 package org.apache.metron.spout.pcap.deserializer;
 
-import org.apache.metron.pcap.PcapHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.metron.common.utils.timestamp.TimestampConverters;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
-/**
- * Extract the timestamp and raw data from the packet.
- */
-public class FromPacketDeserializer extends KeyValueDeserializer {
-  private static final Logger LOG = LoggerFactory.getLogger(FromPacketDeserializer.class);
+public class FromKeyDeserializerTest {
 
-  @Override
-  public Result deserializeKeyValue(byte[] key, byte[] value) {
-    Long ts = PcapHelper.getTimestamp(value);
-    if(ts != null) {
-      return new Result(ts, value, true);
-    }
-    else {
-      return new Result(ts, value, false);
-    }
+  @Rule
+  public final ExpectedException exception = ExpectedException.none();
+
+  @Test
+  public void empty_or_null_key_throws_illegal_argument_exception() {
+    exception.expect(IllegalArgumentException.class);
+    exception.expectMessage("Expected a key but none provided");
+
+    FromKeyDeserializer deserializer = new FromKeyDeserializer(TimestampConverters.NANOSECONDS);
+    deserializer.deserializeKeyValue(null, null);
   }
 }

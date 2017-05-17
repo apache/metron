@@ -35,7 +35,10 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 public class PcapInspector {
   private static abstract class OptionHandler implements Function<String, Option> {}
@@ -136,20 +139,24 @@ public class PcapInspector {
     LongWritable key = new LongWritable();
     BytesWritable value = new BytesWritable();
 
-    for(int i = 0;(n < 0 || i < n) && reader.next(key, value);++i) {
+    for (int i = 0; (n < 0 || i < n) && reader.next(key, value); ++i) {
       long millis = Long.divideUnsigned(key.get(), 1000000);
       String ts = DATE_FORMAT.format(new Date(millis));
-      for(PacketInfo pi : PcapHelper.toPacketInfo(value.copyBytes())) {
-        Map<String, Object> result = PcapHelper.packetToFields(pi);
-        List<String> fieldResults = new ArrayList<String>() {{
-          add("TS: " + ts);
-        }};
-        for(Constants.Fields field : Constants.Fields.values()) {
-          if(result.containsKey(field.getName())) {
-            fieldResults.add(field.getName() + ": " + result.get(field.getName()));
+      try {
+        for (PacketInfo pi : PcapHelper.toPacketInfo(value.copyBytes())) {
+          Map<String, Object> result = PcapHelper.packetToFields(pi);
+          List<String> fieldResults = new ArrayList<String>() {{
+            add("TS: " + ts);
+          }};
+          for (Constants.Fields field : Constants.Fields.values()) {
+            if (result.containsKey(field.getName())) {
+              fieldResults.add(field.getName() + ": " + result.get(field.getName()));
+            }
           }
+          System.out.println(Joiner.on(",").join(fieldResults));
         }
-        System.out.println(Joiner.on(",").join(fieldResults));
+      } catch (Exception e) {
+        System.out.println(String.format("Error: malformed packet #=%s, ts=%s, error msg=%s", i + 1, ts, e.getMessage()));
       }
     }
   }
