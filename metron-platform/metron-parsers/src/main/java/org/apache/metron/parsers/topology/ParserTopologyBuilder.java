@@ -26,6 +26,7 @@ import org.apache.metron.bundles.bundle.BundleCoordinate;
 import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.metron.bundles.util.HDFSFileUtilities;
 import org.apache.metron.bundles.util.VFSClassloaderUtil;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder;
 import org.apache.metron.storm.kafka.flux.SpoutConfiguration;
 import org.apache.metron.storm.kafka.flux.StormKafkaSpout;
@@ -83,7 +84,8 @@ public class ParserTopologyBuilder {
                                       int errorWriterParallelism,
                                       int errorWriterNumTasks,
                                       Map<String, Object> kafkaSpoutConfig,
-                                      Optional<String> securityProtocol
+                                      Optional<String> securityProtocol,
+                                      Optional<String> outputTopic
   ) throws Exception {
 
 
@@ -99,7 +101,7 @@ public class ParserTopologyBuilder {
             .setNumTasks(spoutNumTasks);
 
     // create the parser bolt
-    ParserBolt parserBolt = createParserBolt(zookeeperUrl, brokerUrl, sensorType, securityProtocol, configs, parserConfig);
+    ParserBolt parserBolt = createParserBolt(zookeeperUrl, brokerUrl, sensorType, securityProtocol, configs, parserConfig, outputTopic);
     builder.setBolt("parserBolt", parserBolt, parserParallelism)
             .setNumTasks(parserNumTasks)
             .shuffleGrouping("kafkaSpout");
@@ -136,7 +138,7 @@ public class ParserTopologyBuilder {
     kafkaSpoutConfigOptions.putIfAbsent( SpoutConfiguration.FIRST_POLL_OFFSET_STRATEGY.key
             , KafkaSpoutConfig.FirstPollOffsetStrategy.UNCOMMITTED_EARLIEST.toString()
     );
-    kafkaSpoutConfigOptions.putIfAbsent( KafkaSpoutConfig.Consumer.GROUP_ID
+    kafkaSpoutConfigOptions.putIfAbsent( ConsumerConfig.GROUP_ID_CONFIG
             , inputTopic + "_parser"
     );
     if(securityProtocol.isPresent()) {
@@ -181,6 +183,7 @@ public class ParserTopologyBuilder {
                                             , Optional<String> securityProtocol
                                             , ParserConfigurations configs
                                             , SensorParserConfig parserConfig
+                                            , Optional<String> outputTopic
                                             )
   {
     // create writer - if not configured uses a sensible default
@@ -188,7 +191,7 @@ public class ParserTopologyBuilder {
             createKafkaWriter( brokerUrl
                              , zookeeperUrl
                              , securityProtocol
-                             ).withTopic(Constants.ENRICHMENT_TOPIC) :
+                             ).withTopic(outputTopic.orElse(Constants.ENRICHMENT_TOPIC)) :
             ReflectionUtils.createInstance(parserConfig.getWriterClassName());
     writer.configure(sensorType, new ParserWriterConfiguration(configs));
 

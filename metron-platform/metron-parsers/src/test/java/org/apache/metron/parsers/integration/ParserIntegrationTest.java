@@ -80,6 +80,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     ParserTopologyComponent parserTopologyComponent = new ParserTopologyComponent.Builder()
             .withSensorType(sensorType)
             .withTopologyProperties(topologyProperties)
+            .withOutputTopic(Constants.ENRICHMENT_TOPIC)
             .withBrokerUrl(kafkaComponent.getBrokerList()).build();
 
     //UnitTestHelper.verboseLogging();
