@@ -5,6 +5,7 @@ This document provides instructions for kerberizing Metron's Vagrant-based devel
 
 * [Setup](#setup)
 * [Setup a KDC](#setup-a-kdc)
+* [Verify KDC](#verify-kdc)
 * [Enable Kerberos](#enable-kerberos)
 * [Kafka Authorization](#kafka-authorization)
 * [HBase Authorization](#hbase-authorization)
@@ -75,11 +76,7 @@ Setup a KDC
    ```
    max_renewable_life = 7d
    ```
-
-   If the KDC cannot issue renewable tickets, an error will be thrown when starting Metron's Storm topologies:
-   ```
-   Exception in thread "main" java.lang.RuntimeException: java.lang.RuntimeException: The TGT found is not renewable
-   ```
+ 
 
 1. Do not copy/paste this full set of commands as the `kdb5_util` command will not run as expected. Run the commands individually to ensure they all execute.  This step takes a moment. It creates the kerberos database.
 
@@ -99,6 +96,31 @@ Setup a KDC
   	kadmin.local -q "addprinc admin/admin"
   	kadmin.local -q "addprinc metron"
   	```
+
+Verify KDC 
+-----------
+Ticket renewal is by default disallowed in many linux distributions. If the KDC cannot issue renewable tickets, an error will be thrown when starting Metron's Storm topologies:
+   ```
+   Exception in thread "main" java.lang.RuntimeException: java.lang.RuntimeException: The TGT found is not renewable
+   ```
+
+
+Ensure the Metron keytab is renewable.  Look for the 'R' flag from the following command
+   ```
+   klist -f
+   ```
+
+If the 'R' flags are present, you may skip to next section.
+
+If the 'R' flags are absent, you will need to follow the below steps:
+If the KDC is already setup, then editing max_life and max_renewable_life in ```/var/kerberos/krb5kdc/kdc.conf```, and restarting kadmin and krb5kdc services will not change the policies for existing users. 
+
+You need to set the renew lifetime for existing users and krbtgt realm. Modify the appropriate principals to allow renewable tickets using the following commands. Adjust the parameters to match your desired KDC parameters:
+   ```
+   kadmin.local -q "modprinc -maxlife 1days -maxrenewlife 7days +allow_renewable krbtgt/EXAMPLE.COM@EXAMPLE.COM"
+   kadmin.local -q "modprinc -maxlife 1days -maxrenewlife 7days +allow_renewable metron@EXAMPLE.COM"
+   ```
+
 
 Enable Kerberos
 ---------------
@@ -247,16 +269,8 @@ Storm Authorization
   	cd /home/metron/.storm
   	```
 
-1. Ensure the Metron keytab is renewable.  Look for the 'R' flag from the following command
-    ```
-    klist -f
-    ```
+1. Ensure the Metron keytab is renewable. See [Verify KDC](#verify-kdc) above
 
-    If not present, modify the appropriate principals to allow renewable tickets.  Adjust the parameters to match desired KDC parameters
-    ```
-    kadmin.local -q "modprinc -maxlife 1days -maxrenewlife 7days +allow_renewable krbtgt/EXAMPLE.COM@EXAMPLE.COM"
-    kadmin.local -q "modprinc -maxlife 1days -maxrenewlife 7days +allow_renewable metron@EXAMPLE.COM"
-    ```
 
 1. Create a client JAAS file at `/home/metron/.storm/client_jaas.conf`.  This should look identical to the Storm client JAAS file located at `/etc/storm/conf/client_jaas.conf` except for the addition of a `Client` stanza. The `Client` stanza is used for Zookeeper. All quotes and semicolons are necessary.
 
