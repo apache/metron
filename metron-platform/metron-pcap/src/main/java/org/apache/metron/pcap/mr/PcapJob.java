@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -45,7 +46,6 @@ import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
-import org.apache.log4j.Logger;
 import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapFilenameHelper;
@@ -53,9 +53,11 @@ import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.PcapFilter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.PcapFilters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PcapJob {
-  private static final Logger LOG = Logger.getLogger(PcapJob.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PcapJob.class);
   public static final String START_TS_CONF = "start_ts";
   public static final String END_TS_CONF = "end_ts";
   public static final String WIDTH_CONF = "width";
@@ -164,9 +166,7 @@ public class PcapJob {
       }
       files.add(p);
     }
-    if (LOG.isDebugEnabled()) {
-      LOG.debug(outputPath);
-    }
+    LOG.debug("Output path={}", outputPath);
     Collections.sort(files, (o1,o2) -> o1.getName().compareTo(o2.getName()));
     return new SequenceFileIterable(files, config);
   }
@@ -201,6 +201,10 @@ public class PcapJob {
                        , fs
                        , filterImpl
                        );
+    if (job == null) {
+      LOG.info("No files to process with specified date range.");
+      return new SequenceFileIterable(new ArrayList<>(), conf);
+    }
     boolean completed = job.waitForCompletion(true);
     if(completed) {
       return readResults(outputPath, conf, fs);
@@ -239,8 +243,11 @@ public class PcapJob {
     job.setPartitionerClass(PcapPartitioner.class);
     job.setOutputKeyClass(LongWritable.class);
     job.setOutputValueClass(BytesWritable.class);
-    SequenceFileInputFormat.addInputPaths(job, Joiner.on(',').join(
-        getPathsInTimeRange(fs, basePath, beginNS, endNS )));
+    String inputPaths = Joiner.on(',').join(getPathsInTimeRange(fs, basePath, beginNS, endNS));
+    if (StringUtils.isEmpty(inputPaths)) {
+      return null;
+    }
+    SequenceFileInputFormat.addInputPaths(job, inputPaths);
     job.setInputFormatClass(SequenceFileInputFormat.class);
     job.setOutputFormatClass(SequenceFileOutputFormat.class);
     SequenceFileOutputFormat.setOutputPath(job, outputPath);
