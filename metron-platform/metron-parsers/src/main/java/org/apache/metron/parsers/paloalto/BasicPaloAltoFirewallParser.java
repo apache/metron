@@ -63,7 +63,7 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
   public static final String SessionID = "sessionid";
   public static final String RepeatCount = "repeatcnt";
   public static final String SourcePort = "ip_src_port"; // Palo Alto name: "sport"
-  public static final String DestinationPort = "ip_dst_pot"; // Palo Alto name: "dport"
+  public static final String DestinationPort = "ip_dst_port"; // Palo Alto name: "dport"
   public static final String NATSourcePort = "natsport";
   public static final String NATDestinationPort = "natdport";
   public static final String Flags = "flags";
