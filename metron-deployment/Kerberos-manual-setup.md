@@ -97,8 +97,10 @@ Setup a KDC
   	kadmin.local -q "addprinc metron"
   	```
 
-Verify KDC 
------------
+Verify KDC
+----------
+
+
 Ticket renewal is by default disallowed in many linux distributions. If the KDC cannot issue renewable tickets, an error will be thrown when starting Metron's Storm topologies:
    ```
    Exception in thread "main" java.lang.RuntimeException: java.lang.RuntimeException: The TGT found is not renewable
@@ -113,7 +115,7 @@ Ensure the Metron keytab is renewable.  Look for the 'R' flag from the following
 If the 'R' flags are present, you may skip to next section.
 
 If the 'R' flags are absent, you will need to follow the below steps:
-If the KDC is already setup, then editing max_life and max_renewable_life in ```/var/kerberos/krb5kdc/kdc.conf```, and restarting kadmin and krb5kdc services will not change the policies for existing users. 
+If the KDC is already setup, then editing max_life and max_renewable_life in `/var/kerberos/krb5kdc/kdc.conf`, and restarting kadmin and krb5kdc services will not change the policies for existing users. 
 
 You need to set the renew lifetime for existing users and krbtgt realm. Modify the appropriate principals to allow renewable tickets using the following commands. Adjust the parameters to match your desired KDC parameters:
    ```
