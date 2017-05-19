@@ -85,7 +85,10 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
     this.fileNameFormat.prepare(stormConfig,topologyContext);
     if(syncPolicy != null) {
       //if the user has specified the sync policy, we don't want to override their wishes.
-      syncPolicyCreator = (source,config) -> syncPolicy;
+      syncPolicyCreator = (source,config) -> {
+        syncPolicy.reset();
+        return syncPolicy;
+      };
     }
     else {
       //if the user has not, then we want to have the sync policy depend on the batch size.
