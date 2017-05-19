@@ -24,6 +24,7 @@ import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.stellar.StellarCompiler;
 import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.metron.common.utils.SerDeUtils;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
@@ -37,8 +38,7 @@ import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.hdfs.common.rotation.RotationAction;
 import org.json.simple.JSONObject;
 
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 import java.util.*;
 import java.util.function.Function;
 
@@ -86,8 +86,15 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
     if(syncPolicy != null) {
       //if the user has specified the sync policy, we don't want to override their wishes.
       syncPolicyCreator = (source,config) -> {
-        syncPolicy.reset();
-        return syncPolicy;
+        try {
+          //we do a deep clone of the SyncPolicy via kryo serialization.  This gives us a fresh policy
+          //to work with.
+          byte[] serializedForm = SerDeUtils.toBytes(syncPolicy);
+          return SerDeUtils.fromBytes(serializedForm, SyncPolicy.class);
+        }
+        catch (Exception e) {
+          throw new IllegalStateException(e.getMessage(), e);
+        }
       };
     }
     else {
