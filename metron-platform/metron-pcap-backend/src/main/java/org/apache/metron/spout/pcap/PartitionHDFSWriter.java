@@ -27,18 +27,23 @@ import org.apache.hadoop.hdfs.client.HdfsDataOutputStream;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
-import org.apache.log4j.Logger;
 import org.apache.metron.pcap.PcapHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.EnumSet;
+import java.util.Map;
 
 /**
  * This class is intended to handle the writing of an individual file.
  */
 public class PartitionHDFSWriter implements AutoCloseable, Serializable {
   static final long serialVersionUID = 0xDEADBEEFL;
-  private static final Logger LOG = Logger.getLogger(PartitionHDFSWriter.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PartitionHDFSWriter.class);
 
 
   public static interface SyncHandler {
@@ -102,14 +107,43 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
   private SyncHandler syncHandler;
   private long batchStartTime;
   private long numWritten;
+  private Configuration fsConfig = new Configuration();
 
   public PartitionHDFSWriter(String topic, int partition, String uuid, HDFSWriterConfig config) {
     this.topic = topic;
     this.partition = partition;
     this.uuid = uuid;
     this.config = config;
+
     try {
-      this.fs = FileSystem.get(new Configuration());
+      int replicationFactor = config.getReplicationFactor();
+      if (replicationFactor > 0) {
+        fsConfig.set("dfs.replication", String.valueOf(replicationFactor));
+      }
+      if(config.getHDFSConfig() != null && !config.getHDFSConfig().isEmpty()) {
+        for(Map.Entry<String, Object> entry : config.getHDFSConfig().entrySet()) {
+          if(entry.getValue() instanceof Integer) {
+            fsConfig.setInt(entry.getKey(), (int)entry.getValue());
+          }
+          else if(entry.getValue() instanceof Boolean)
+          {
+            fsConfig.setBoolean(entry.getKey(), (Boolean) entry.getValue());
+          }
+          else if(entry.getValue() instanceof Long)
+          {
+            fsConfig.setLong(entry.getKey(), (Long) entry.getValue());
+          }
+          else if(entry.getValue() instanceof Float)
+          {
+            fsConfig.setFloat(entry.getKey(), (Float) entry.getValue());
+          }
+          else
+          {
+            fsConfig.set(entry.getKey(), String.valueOf(entry.getValue()));
+          }
+        }
+      }
+      this.fs = FileSystem.get(fsConfig);
     } catch (IOException e) {
       throw new RuntimeException("Unable to get FileSystem", e);
     }
@@ -119,11 +153,14 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
     return Long.toUnsignedString(ts);
   }
 
-  public void handle(LongWritable ts, BytesWritable value) throws IOException {
-    turnoverIfNecessary(ts.get());
-    writer.append(ts, value);
-    syncHandler.sync(outputStream);
+  public void handle(long ts, byte[] value) throws IOException {
+    turnoverIfNecessary(ts);
+    BytesWritable bw = new BytesWritable(value);
+    writer.append(new LongWritable(ts), bw);
     numWritten++;
+    if(numWritten % config.getSyncEvery() == 0) {
+      syncHandler.sync(outputStream);
+    }
   }
 
   public String getTopic() {
@@ -144,8 +181,8 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
       outputStream.close();
     }
   }
-  private Path getPath(long ts) {
 
+  private Path getPath(long ts) {
     String fileName = PcapHelper.toFilename(topic, ts, partition + "", uuid);
     return new Path(config.getOutputPath(), fileName);
   }
@@ -157,7 +194,7 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
   private void turnoverIfNecessary(long ts, boolean force) throws IOException {
     long duration = ts - batchStartTime;
     boolean initial = outputStream == null;
-    boolean overDuration = duration >= config.getMaxTimeNS();
+    boolean overDuration = config.getMaxTimeNS() <= 0 ? false : Long.compareUnsigned(duration, config.getMaxTimeNS()) >= 0;
     boolean tooManyPackets = numWritten >= config.getNumPackets();
     if(force || initial || overDuration || tooManyPackets ) {
       //turnover
@@ -183,14 +220,14 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
         }
 
       }
-      writer = SequenceFile.createWriter(new Configuration()
+      writer = SequenceFile.createWriter(this.fsConfig
               , SequenceFile.Writer.keyClass(LongWritable.class)
               , SequenceFile.Writer.valueClass(BytesWritable.class)
               , SequenceFile.Writer.stream(outputStream)
               , SequenceFile.Writer.compression(SequenceFile.CompressionType.NONE)
       );
       //reset state
-      LOG.info("Turning over and writing to " + path);
+      LOG.info("Turning over and writing to {}: [duration={} NS, force={}, initial={}, overDuration={}, tooManyPackets={}]", path, duration, force, initial, overDuration, tooManyPackets);
       batchStartTime = ts;
       numWritten = 0;
     }

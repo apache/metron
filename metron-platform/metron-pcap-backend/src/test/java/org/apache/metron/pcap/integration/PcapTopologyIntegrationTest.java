@@ -213,14 +213,19 @@ public class PcapTopologyIntegrationTest {
     final List<Map.Entry<byte[], byte[]>> pcapEntries = Lists.newArrayList(readPcaps(pcapFile, withHeaders));
     Assert.assertTrue(Iterables.size(pcapEntries) > 0);
     final Properties topologyProperties = new Properties() {{
+      setProperty("topology.workers", "1");
+      setProperty("topology.worker.childopts", "");
       setProperty("spout.kafka.topic.pcap", KAFKA_TOPIC);
-      setProperty("kafka.pcap.start", "BEGINNING");
+      setProperty("kafka.pcap.start", "EARLIEST");
       setProperty("kafka.pcap.out", outDir.getAbsolutePath());
       setProperty("kafka.pcap.numPackets", "2");
       setProperty("kafka.pcap.maxTimeMS", "200000000");
       setProperty("kafka.pcap.ts_granularity", "NANOSECONDS");
-      setProperty("storm.auto.credentials", "[]");
+      setProperty("kafka.spout.parallelism", "1");
+      setProperty("topology.auto-credentials", "[]");
       setProperty("kafka.security.protocol", "PLAINTEXT");
+      setProperty("hdfs.sync.every", "1");
+      setProperty("hdfs.replication.factor", "-1");
     }};
     updatePropertiesCallback.apply(topologyProperties);
 
