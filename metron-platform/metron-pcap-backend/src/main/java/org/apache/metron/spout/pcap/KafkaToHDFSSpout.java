@@ -22,9 +22,19 @@ import org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder;
 import org.apache.storm.kafka.Callback;
 import org.apache.storm.kafka.CallbackKafkaSpout;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class KafkaToHDFSSpout extends CallbackKafkaSpout<byte[], byte[]> {
   static final long serialVersionUID = 0xDEADBEEFL;
   HDFSWriterConfig config = null;
+  private static ThreadLocal<List<Object>> messagesToBeAcked = new ThreadLocal<List<Object>>() {
+    @Override
+    protected List<Object> initialValue() {
+      return new ArrayList<>();
+    }
+  };
+
   public KafkaToHDFSSpout( SimpleStormKafkaBuilder<byte[], byte[]> spoutConfig
                          , HDFSWriterConfig config
                          )
@@ -40,5 +50,31 @@ public class KafkaToHDFSSpout extends CallbackKafkaSpout<byte[], byte[]> {
     return new HDFSWriterCallback().withConfig(config);
   }
 
+  private void clearMessagesToBeAcked() {
+      for (Object messageId : messagesToBeAcked.get()) {
+        super.ack(messageId);
+      }
+      messagesToBeAcked.get().clear();
+  }
 
+  @Override
+  public void nextTuple() {
+    super.nextTuple();
+    clearMessagesToBeAcked();
+  }
+
+  @Override
+  public void ack(Object messageId) {
+    messagesToBeAcked.get().add(messageId);
+  }
+
+  @Override
+  public void close() {
+    try {
+      clearMessagesToBeAcked();
+    }
+    finally {
+      super.close();
+    }
+  }
 }
