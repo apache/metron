@@ -251,8 +251,8 @@ public class PcapTopologyIntegrationTest {
             .withComponent("kafka", kafkaComponent)
             .withComponent("storm", fluxComponent)
             .withMaxTimeMS(-1)
-            .withMillisecondsBetweenAttempts(200000000)
-            .withNumRetries(1000000)
+            .withMillisecondsBetweenAttempts(2000)
+            .withNumRetries(20)
             .withCustomShutdownOrder(new String[]{"storm","kafka","zk","mr"})
             .build();
     try {

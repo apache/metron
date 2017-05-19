@@ -39,22 +39,6 @@
 
     <repositories>
         <repository>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-                <checksumPolicy>warn</checksumPolicy>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-                <checksumPolicy>warn</checksumPolicy>
-            </snapshots>
-            <id>HDPPrivateReleases</id>
-            <name>HDP Private Releases</name>
-            <url>http://nexus-private.hortonworks.com/nexus/content/groups/public</url>
-            <layout>default</layout>
-        </repository>
-        <repository>
             <id>clojars.org</id>
             <url>http://clojars.org/repo</url>
         </repository>
@@ -131,7 +115,7 @@
             <properties>
                 <hdp_version>2.5.0.0</hdp_version>
                 <build_number>1245</build_number>
-                <global_storm_kafka_version>1.1.0.2.6.1.0-SNAPSHOT</global_storm_kafka_version>
+                <global_storm_kafka_version>1.1.0</global_storm_kafka_version>
                 <global_storm_version>${base_storm_version}.${hdp_version}-${build_number}</global_storm_version>
                 <global_kafka_version>${base_kafka_version}.${hdp_version}-${build_number}</global_kafka_version>
             </properties>
