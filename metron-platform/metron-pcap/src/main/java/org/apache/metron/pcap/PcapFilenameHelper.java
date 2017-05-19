@@ -18,18 +18,27 @@
 
 package org.apache.metron.pcap;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
+import java.util.Arrays;
 
+/**
+ * Expects files in the following format
+ * pcap_$TOPIC_$TS_$PARTITION_$UUID
+ */
 public class PcapFilenameHelper {
 
-  public static final int POS_KAFKA_TOPIC = 1;
-  public static final int POS_TIMESTAMP = 2;
-  public static final int POS_KAFKA_PARTITION = 3;
-  public static final int POS_UUID = 4;
+  public static final String PREFIX = "pcap_";
 
+  /**
+   * Extract kafka topic from pcap filename. Resilient to underscores and hyphens in the kafka
+   * topic name when splitting the value.
+   */
   public static String getKafkaTopic(String pcapFilename) {
-    return Iterables.get(Splitter.on('_').split(pcapFilename), POS_KAFKA_TOPIC);
+    String[] tokens = stripPrefix(pcapFilename).split("_");
+    return String.join("_", Arrays.copyOfRange(tokens, 0, tokens.length - 3));
+  }
+
+  private static String stripPrefix(String s) {
+    return s.substring(PREFIX.length());
   }
 
   /**
@@ -38,9 +47,9 @@ public class PcapFilenameHelper {
    * @return timestamp, or null if unable to parse
    */
   public static Long getTimestamp(String pcapFilename) {
+    String[] tokens = stripPrefix(pcapFilename).split("_");
     try {
-      return Long
-          .parseUnsignedLong(Iterables.get(Splitter.on('_').split(pcapFilename), POS_TIMESTAMP));
+      return Long.parseUnsignedLong(tokens[tokens.length - 3]);
     } catch (NumberFormatException e) {
       return null;
     }
@@ -52,16 +61,17 @@ public class PcapFilenameHelper {
    * @return partition, or null if unable to parse
    */
   public static Integer getKafkaPartition(String pcapFilename) {
+    String[] tokens = stripPrefix(pcapFilename).split("_");
     try {
-      return Integer
-          .parseInt(Iterables.get(Splitter.on('_').split(pcapFilename), POS_KAFKA_PARTITION));
+      return Integer.parseInt(tokens[tokens.length - 2]);
     } catch (NumberFormatException e) {
       return null;
     }
   }
 
   public static String getUUID(String pcapFilename) {
-    return Iterables.get(Splitter.on('_').split(pcapFilename), POS_UUID);
+    String[] tokens = stripPrefix(pcapFilename).split("_");
+    return tokens[tokens.length - 1];
   }
 
 }

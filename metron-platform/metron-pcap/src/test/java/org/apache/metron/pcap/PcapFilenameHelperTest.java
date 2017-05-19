@@ -27,13 +27,43 @@ public class PcapFilenameHelperTest {
 
   @Test
   public void extracts_info_from_filename() {
-    String pcapFilename = "pcap_pcap128_1494962815457986000_18_pcap-63-1495027314";
-    assertThat(PcapFilenameHelper.getKafkaTopic(pcapFilename), equalTo("pcap128"));
-    assertThat(
-        Long.compareUnsigned(PcapFilenameHelper.getTimestamp(pcapFilename), 1494962815457986000L),
-        equalTo(0));
-    assertThat(PcapFilenameHelper.getKafkaPartition(pcapFilename), equalTo(18));
-    assertThat(PcapFilenameHelper.getUUID(pcapFilename), equalTo("pcap-63-1495027314"));
+    {
+      String pcapFilename = "pcap_pcap128_1494962815457986000_18_pcap-63-1495027314";
+      assertThat(PcapFilenameHelper.getKafkaTopic(pcapFilename), equalTo("pcap128"));
+      assertThat(
+          Long.compareUnsigned(PcapFilenameHelper.getTimestamp(pcapFilename), 1494962815457986000L),
+          equalTo(0));
+      assertThat(PcapFilenameHelper.getKafkaPartition(pcapFilename), equalTo(18));
+      assertThat(PcapFilenameHelper.getUUID(pcapFilename), equalTo("pcap-63-1495027314"));
+    }
+    {
+      String pcapFilename = "pcap_pcap-128_1494962815457986000_18_pcap-63-1495027314";
+      assertThat(PcapFilenameHelper.getKafkaTopic(pcapFilename), equalTo("pcap-128"));
+      assertThat(
+          Long.compareUnsigned(PcapFilenameHelper.getTimestamp(pcapFilename), 1494962815457986000L),
+          equalTo(0));
+    }
+    {
+      String pcapFilename = "pcap_pcap_128_1494962815457986000_18_pcap-63-1495027314";
+      assertThat(PcapFilenameHelper.getKafkaTopic(pcapFilename), equalTo("pcap_128"));
+      assertThat(
+          Long.compareUnsigned(PcapFilenameHelper.getTimestamp(pcapFilename), 1494962815457986000L),
+          equalTo(0));
+    }
+    {
+      String pcapFilename = "pcap_pcap___128___1494962815457986000_18_pcap-63-1495027314";
+      assertThat(PcapFilenameHelper.getKafkaTopic(pcapFilename), equalTo("pcap___128__"));
+      assertThat(
+          Long.compareUnsigned(PcapFilenameHelper.getTimestamp(pcapFilename), 1494962815457986000L),
+          equalTo(0));
+    }
+    {
+      String pcapFilename = "pcap___pcap___128___1494962815457986000_18_pcap-63-1495027314";
+      assertThat(PcapFilenameHelper.getKafkaTopic(pcapFilename), equalTo("__pcap___128__"));
+      assertThat(
+          Long.compareUnsigned(PcapFilenameHelper.getTimestamp(pcapFilename), 1494962815457986000L),
+          equalTo(0));
+    }
   }
 
   @Test
