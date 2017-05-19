@@ -18,6 +18,9 @@
 
 package org.apache.metron.pcap.mr;
 
+import static org.apache.metron.pcap.PcapHelper.greaterThanOrEqualTo;
+import static org.apache.metron.pcap.PcapHelper.lessThanOrEqualTo;
+
 import com.google.common.base.Joiner;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -25,10 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
@@ -48,15 +48,16 @@ import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.pcap.PacketInfo;
-import org.apache.metron.pcap.PcapFilenameHelper;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.PcapFilter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.PcapFilters;
+import org.apache.metron.pcap.utils.FileFilterUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PcapJob {
+
   private static final Logger LOG = LoggerFactory.getLogger(PcapJob.class);
   public static final String START_TS_CONF = "start_ts";
   public static final String END_TS_CONF = "end_ts";
@@ -208,8 +209,7 @@ public class PcapJob {
     boolean completed = job.waitForCompletion(true);
     if(completed) {
       return readResults(outputPath, conf, fs);
-    }
-    else {
+    } else {
       throw new RuntimeException("Unable to complete query due to errors.  Please check logs for full errors.");
     }
   }
@@ -243,7 +243,8 @@ public class PcapJob {
     job.setPartitionerClass(PcapPartitioner.class);
     job.setOutputKeyClass(LongWritable.class);
     job.setOutputValueClass(BytesWritable.class);
-    String inputPaths = Joiner.on(',').join(getPathsInTimeRange(fs, basePath, beginNS, endNS));
+    Iterable<String> filteredPaths = FileFilterUtil.getPathsInTimeRange(beginNS, endNS, listFiles(fs, basePath));
+    String inputPaths = Joiner.on(',').join(filteredPaths);
     if (StringUtils.isEmpty(inputPaths)) {
       return null;
     }
@@ -254,36 +255,6 @@ public class PcapJob {
     return job;
   }
 
-  public Iterable<String> getPathsInTimeRange(FileSystem fs, Path basePath, long beginTs, long endTs)
-      throws IOException {
-    Map<Integer, List<Path>> filesByPartition = getFilesByPartition(listFiles(fs, basePath));
-
-    /*
-     * The trick here is that we need a trailing left endpoint, because we only capture the start of the
-     * timeseries kept in the file.
-     */
-    List<String> filteredFiles = filterByTimestampLT(beginTs, endTs, filesByPartition);
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Including files " + Joiner.on(",").join(filteredFiles));
-    }
-    return filteredFiles;
-  }
-
-  private Map<Integer, List<Path>> getFilesByPartition(Iterable<Path> files) {
-    Iterator<Path> filesIt = files.iterator();
-    Map<Integer, List<Path>> filesByPartition = new HashMap<>();
-    while (filesIt.hasNext()) {
-      Path p = filesIt.next();
-      Integer partition = PcapFilenameHelper.getKafkaPartition(p.getName());
-      if (!filesByPartition.containsKey(partition)) {
-        filesByPartition.put(partition, new ArrayList<>());
-      }
-      filesByPartition.get(partition).add(p);
-    }
-    return filesByPartition;
-  }
-
   protected Iterable<Path> listFiles(FileSystem fs, Path basePath) throws IOException {
     List<Path> ret = new ArrayList<>();
     RemoteIterator<LocatedFileStatus> filesIt = fs.listFiles(basePath, true);
@@ -291,76 +262,6 @@ public class PcapJob {
       ret.add(filesIt.next().getPath());
     }
     return ret;
-  }
-
-  /**
-   * Given a map of partition numbers to files, return a list of files filtered by the supplied
-   * beginning and ending timestamps. Includes a left-trailing file.
-   *
-   * @param filesByPartition list of files mapped to partitions. Incoming files do not need to be
-   * sorted as this method will perform a lexicographical sort in normal ascending order.
-   * @return filtered list of files, unsorted
-   */
-  private List<String> filterByTimestampLT(long beginTs, long endTs,
-      Map<Integer, List<Path>> filesByPartition) {
-    List<String> filteredFiles = new ArrayList<>();
-    for (Integer key : filesByPartition.keySet()) {
-      List<Path> paths = filesByPartition.get(key);
-      filteredFiles.addAll(filterByTimestampLT(beginTs, endTs, paths));
-    }
-    return filteredFiles;
-  }
-
-  /**
-   * Return a list of files filtered by the supplied beginning and ending timestamps. Includes a
-   * left-trailing file.
-   *
-   * @param paths list of files. Incoming files do not need to be sorted as this method will perform
-   * a lexicographical sort in normal ascending order.
-   * @return filtered list of files
-   */
-  private List<String> filterByTimestampLT(long beginTs, long endTs, List<Path> paths) {
-    List<String> filteredFiles = new ArrayList<>();
-
-    //noinspection unchecked - hadoop fs uses non-generic Comparable interface
-    Collections.sort(paths);
-    Iterator<Path> filesIt = paths.iterator();
-    Path leftTrailing = filesIt.hasNext() ? filesIt.next() : null;
-    if (leftTrailing == null) {
-      return filteredFiles;
-    }
-    boolean first = true;
-    Long fileTS = PcapFilenameHelper.getTimestamp(leftTrailing.getName());
-    if (fileTS != null
-        && greaterThanOrEqualTo(fileTS, beginTs) && lessThanOrEqualTo(fileTS, endTs)) {
-      filteredFiles.add(leftTrailing.toString());
-      first = false;
-    }
-
-    while (filesIt.hasNext()) {
-      Path p = filesIt.next();
-      fileTS = PcapFilenameHelper.getTimestamp(p.getName());
-      if (fileTS != null
-          && greaterThanOrEqualTo(fileTS, beginTs) && lessThanOrEqualTo(fileTS, endTs)) {
-        if (first) {
-          filteredFiles.add(leftTrailing.toString());
-          first = false;
-        }
-        filteredFiles.add(p.toString());
-      } else {
-        leftTrailing = p;
-      }
-    }
-
-    return filteredFiles;
-  }
-
-  private static boolean greaterThanOrEqualTo(long a, long b) {
-    return Long.compareUnsigned(a, b) >= 0;
-  }
-
-  private static boolean lessThanOrEqualTo(long fileTS, long endTs) {
-    return Long.compareUnsigned(fileTS, endTs) <= 0;
   }
 
 }

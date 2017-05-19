@@ -350,4 +350,14 @@ public class PcapHelper {
     }
     return messages;
   }
+
+  public static boolean greaterThanOrEqualTo(long a, long b) {
+    return Long.compareUnsigned(a, b) >= 0;
+  }
+
+  public static boolean lessThanOrEqualTo(long a, long b) {
+    return Long.compareUnsigned(a, b) <= 0;
+  }
+
 }
+
