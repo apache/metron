@@ -85,22 +85,7 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
     this.fileNameFormat.prepare(stormConfig,topologyContext);
     if(syncPolicy != null) {
       //if the user has specified the sync policy, we don't want to override their wishes.
-      syncPolicyCreator = (source,config) -> {
-        try {
-          //we do a deep clone of the SyncPolicy via kryo serialization.  This gives us a fresh policy
-          //to work with.  The reason we need a fresh policy is that we want to ensure each handler
-          //(one handler per task & sensor type and one handler per file) has its own sync policy.
-          // Reusing a sync policy is a bad idea, so we need to clone it here.  Unfortunately the
-          // SyncPolicy object does not implement Cloneable, so we'll need to clone it via serialization
-          //to get a fresh policy object.  Note: this would be expensive if it was in the critical path,
-          // but should be called infrequently (once per sync).
-          byte[] serializedForm = SerDeUtils.toBytes(syncPolicy);
-          return SerDeUtils.fromBytes(serializedForm, SyncPolicy.class);
-        }
-        catch (Exception e) {
-          throw new IllegalStateException(e.getMessage(), e);
-        }
-      };
+      syncPolicyCreator = new ClonedSyncPolicyCreator(syncPolicy);
     }
     else {
       //if the user has not, then we want to have the sync policy depend on the batch size.
