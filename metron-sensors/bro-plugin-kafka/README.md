@@ -36,7 +36,7 @@ Installation
 Activation
 ----------
 
-The following examples highlight different ways that the plugin can be used.  Simply add Bro script to your `local.bro` file (for example, `/usr/share/bro/site/local.bro`) as shown to activate the plugin.
+The following examples highlight different ways that the plugin can be used.  Simply add the Bro script language to your `local.bro` file (for example, `/usr/share/bro/site/local.bro`) as shown to demonstrate the example.
 
 ### Example 1
 
