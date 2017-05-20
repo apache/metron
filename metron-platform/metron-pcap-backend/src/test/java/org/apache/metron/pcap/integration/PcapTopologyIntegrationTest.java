@@ -252,7 +252,7 @@ public class PcapTopologyIntegrationTest {
             .withComponent("storm", fluxComponent)
             .withMaxTimeMS(-1)
             .withMillisecondsBetweenAttempts(2000)
-            .withNumRetries(20)
+            .withNumRetries(10)
             .withCustomShutdownOrder(new String[]{"storm","kafka","zk","mr"})
             .build();
     try {
@@ -265,7 +265,6 @@ public class PcapTopologyIntegrationTest {
         public ReadinessState process(ComponentRunner runner) {
           int numFiles = numFiles(outDir, mr.getConfiguration());
           int expectedNumFiles = pcapEntries.size() / 2;
-          //return ReadinessState.NOT_READY;
           if (numFiles == expectedNumFiles) {
             return ReadinessState.READY;
           } else {
