@@ -21,9 +21,11 @@ import com.google.common.cache.LoadingCache;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.error.MetronError;
+import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
 import org.apache.storm.task.TopologyContext;
+import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -69,7 +71,7 @@ public class JoinBoltTest extends BaseEnrichmentBoltTest {
     }
 
     @Override
-    public JSONObject joinMessages(Map<String, JSONObject> streamMessageMap) {
+    public JSONObject joinMessages(Map<String, Tuple> streamMessageMap, MessageGetStrategy messageGetStrategy) {
       return joinedMessage;
     }
   }
