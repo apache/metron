@@ -24,6 +24,7 @@ import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.stellar.StellarCompiler;
 import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.metron.common.utils.SerDeUtils;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
@@ -37,8 +38,7 @@ import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.hdfs.common.rotation.RotationAction;
 import org.json.simple.JSONObject;
 
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 import java.util.*;
 import java.util.function.Function;
 
@@ -85,7 +85,7 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
     this.fileNameFormat.prepare(stormConfig,topologyContext);
     if(syncPolicy != null) {
       //if the user has specified the sync policy, we don't want to override their wishes.
-      syncPolicyCreator = (source,config) -> syncPolicy;
+      syncPolicyCreator = new ClonedSyncPolicyCreator(syncPolicy);
     }
     else {
       //if the user has not, then we want to have the sync policy depend on the batch size.

@@ -65,11 +65,10 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
     })
     ,HDFS(new SyncHandler() {
       @Override
-      public void sync(FSDataOutputStream outputStream) throws IOException{
-
+      public void sync(FSDataOutputStream outputStream) throws IOException {
         outputStream.hflush();
         outputStream.hsync();
-        ((HdfsDataOutputStream)outputStream).hsync(EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH));
+        ((HdfsDataOutputStream) outputStream).hsync(EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH));
       }
     })
     ,LOCAL(new SyncHandler() {
@@ -91,8 +90,13 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
     }
 
     @Override
-    public void sync(FSDataOutputStream input) throws IOException {
-      func.sync(input);
+    public void sync(FSDataOutputStream input) {
+      try {
+        func.sync(input);
+      }
+      catch(IOException ioe) {
+        LOG.warn("Problems during sync, but this shouldn't be too concerning as long as it's intermittent: " + ioe.getMessage(), ioe);
+      }
     }
   }
 
@@ -156,7 +160,13 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
   public void handle(long ts, byte[] value) throws IOException {
     turnoverIfNecessary(ts);
     BytesWritable bw = new BytesWritable(value);
-    writer.append(new LongWritable(ts), bw);
+    try {
+      writer.append(new LongWritable(ts), bw);
+    }
+    catch(ArrayIndexOutOfBoundsException aioobe) {
+      LOG.warn("This appears to be HDFS-7765 (https://issues.apache.org/jira/browse/HDFS-7765), " +
+              "which is an issue with syncing and not problematic: " + aioobe.getMessage(), aioobe);
+    }
     numWritten++;
     if(numWritten % config.getSyncEvery() == 0) {
       syncHandler.sync(outputStream);
