@@ -23,6 +23,17 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import javax.annotation.Nullable;
 import kafka.consumer.ConsumerIterator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -55,13 +66,6 @@ import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.util.*;
-
 public class PcapTopologyIntegrationTest {
   final static String KAFKA_TOPIC = "pcap";
   private static String BASE_DIR = "pcap";
@@ -69,22 +73,7 @@ public class PcapTopologyIntegrationTest {
   private static String QUERY_DIR = BASE_DIR + "/query";
   private String topologiesDir = "src/main/flux";
   private String targetDir = "target";
-  private File getOutDir(String targetDir) {
-    File outDir = new File(new File(targetDir), DATA_DIR);
-    if (!outDir.exists()) {
-      outDir.mkdirs();
-    }
 
-    return outDir;
-  }
-
-  private File getQueryDir(String targetDir) {
-    File outDir = new File(new File(targetDir), QUERY_DIR);
-    if (!outDir.exists()) {
-      outDir.mkdirs();
-    }
-    return outDir;
-  }
   private static void clearOutDir(File outDir) {
     for(File f : outDir.listFiles()) {
       f.delete();
@@ -98,43 +87,6 @@ public class PcapTopologyIntegrationTest {
         return !name.endsWith(".crc");
       }
     }).length;
-  }
-
-  private static Iterable<Map.Entry<byte[], byte[]>> readPcaps(Path pcapFile, boolean withHeaders) throws IOException {
-    SequenceFile.Reader reader = new SequenceFile.Reader(new Configuration(),
-            SequenceFile.Reader.file(pcapFile)
-    );
-    List<Map.Entry<byte[], byte[]> > ret = new ArrayList<>();
-    IntWritable key = new IntWritable();
-    BytesWritable value = new BytesWritable();
-    while (reader.next(key, value)) {
-      byte[] pcapWithHeader = value.copyBytes();
-      //if you are debugging and want the hex dump of the packets, uncomment the following:
-
-      //for(byte b : pcapWithHeader) {
-      //  System.out.print(String.format("%02x", b));
-      //}
-      //System.out.println("");
-
-      long calculatedTs = PcapHelper.getTimestamp(pcapWithHeader);
-      {
-        List<PacketInfo> info = PcapHelper.toPacketInfo(pcapWithHeader);
-        for(PacketInfo pi : info) {
-          Assert.assertEquals(calculatedTs, pi.getPacketTimeInNanos());
-          //IF you are debugging and want to see the packets, uncomment the following.
-          //System.out.println( Long.toUnsignedString(calculatedTs) + " => " + pi.getJsonDoc());
-        }
-      }
-      if(withHeaders) {
-        ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(calculatedTs), pcapWithHeader));
-      }
-      else {
-        byte[] pcapRaw = new byte[pcapWithHeader.length - PcapHelper.GLOBAL_HEADER_SIZE - PcapHelper.PACKET_HEADER_SIZE];
-        System.arraycopy(pcapWithHeader, PcapHelper.GLOBAL_HEADER_SIZE + PcapHelper.PACKET_HEADER_SIZE, pcapRaw, 0, pcapRaw.length);
-        ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(calculatedTs), pcapRaw));
-      }
-    }
-    return Iterables.limit(ret, 2*(ret.size()/2));
   }
 
   @Test
@@ -559,6 +511,59 @@ public class PcapTopologyIntegrationTest {
       clearOutDir(outDir);
       clearOutDir(queryDir);
     }
+  }
+
+  private File getOutDir(String targetDir) {
+    File outDir = new File(new File(targetDir), DATA_DIR);
+    if (!outDir.exists()) {
+      outDir.mkdirs();
+    }
+    return outDir;
+  }
+
+  private File getQueryDir(String targetDir) {
+    File outDir = new File(new File(targetDir), QUERY_DIR);
+    if (!outDir.exists()) {
+      outDir.mkdirs();
+    }
+    return outDir;
+  }
+
+  private static Iterable<Map.Entry<byte[], byte[]>> readPcaps(Path pcapFile, boolean withHeaders) throws IOException {
+    SequenceFile.Reader reader = new SequenceFile.Reader(new Configuration(),
+        SequenceFile.Reader.file(pcapFile)
+    );
+    List<Map.Entry<byte[], byte[]> > ret = new ArrayList<>();
+    IntWritable key = new IntWritable();
+    BytesWritable value = new BytesWritable();
+    while (reader.next(key, value)) {
+      byte[] pcapWithHeader = value.copyBytes();
+      //if you are debugging and want the hex dump of the packets, uncomment the following:
+
+      //for(byte b : pcapWithHeader) {
+      //  System.out.print(String.format("%02x", b));
+      //}
+      //System.out.println("");
+
+      long calculatedTs = PcapHelper.getTimestamp(pcapWithHeader);
+      {
+        List<PacketInfo> info = PcapHelper.toPacketInfo(pcapWithHeader);
+        for(PacketInfo pi : info) {
+          Assert.assertEquals(calculatedTs, pi.getPacketTimeInNanos());
+          //IF you are debugging and want to see the packets, uncomment the following.
+          //System.out.println( Long.toUnsignedString(calculatedTs) + " => " + pi.getJsonDoc());
+        }
+      }
+      if(withHeaders) {
+        ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(calculatedTs), pcapWithHeader));
+      }
+      else {
+        byte[] pcapRaw = new byte[pcapWithHeader.length - PcapHelper.GLOBAL_HEADER_SIZE - PcapHelper.PACKET_HEADER_SIZE];
+        System.arraycopy(pcapWithHeader, PcapHelper.GLOBAL_HEADER_SIZE + PcapHelper.PACKET_HEADER_SIZE, pcapRaw, 0, pcapRaw.length);
+        ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(calculatedTs), pcapRaw));
+      }
+    }
+    return Iterables.limit(ret, 2*(ret.size()/2));
   }
 
   public static void assertInOrder(Iterable<byte[]> packets) {
