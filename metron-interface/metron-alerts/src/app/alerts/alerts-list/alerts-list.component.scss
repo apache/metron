@@ -1,0 +1,289 @@
+@import "../../../vendor.scss";
+@import "../../../styles.scss";
+@import "../../../variables.scss";
+
+$searchbox-height: 40px;
+
+.mrow {
+  @extend .my-4;
+}
+
+.search {
+  div {
+    height: auto;
+  }
+
+  .form-control {
+    @extend .input;
+    min-height: $searchbox-height;
+    border-right: none;
+  }
+
+  .input-group-btn {
+    &:focus {
+      outline: none;
+    }
+  }
+
+  button {
+    background: $icon-button-background;
+    cursor: pointer;
+  }
+
+  .btn-search {
+    width: 35px;
+    padding-left: 0px;
+    padding-right: 0px;
+    border: 1px solid $blue-chill !important;
+
+    &:focus {
+      box-shadow: none;
+    }
+
+    &::before {
+      font-family: "FontAwesome";
+      content: '\f002';
+      color: $piction-blue;
+    }
+  }
+
+  .btn-saved-searches {
+    font-size: 15px;
+
+    background: $mine-shaft-5;
+    border: 1px solid $tundora;
+    color: $silver-chalice;
+
+    &:focus {
+      box-shadow: none;
+    }
+
+    &::after {
+      font-family: "FontAwesome";
+      content: '\f0da';
+      color: $gray;
+      padding-left: 5px;
+    }
+  }
+
+  .btn-search-clear {
+    border-top: 1px solid $tundora;
+    border-bottom: 1px solid $tundora;
+    border-right: 1px solid $blue-chill;
+    background: $mine-shaft-1;
+    border-left: none;
+    padding: 0px 5px 0px 0px;
+    width: 30px;
+    cursor: pointer;
+
+    &:focus {
+      box-shadow: none;
+    }
+
+    &::before {
+      font-family: "FontAwesome";
+      content: '\f057';
+      color: $gray;
+      padding-left: 5px;
+    }
+  }
+}
+
+.col-padding-50 {
+  padding-right: 50px;
+}
+
+.col-fixed-50 {
+  top: 0px;
+  right: 0;
+  z-index: 1;
+  position: absolute;
+}
+
+.save-button {
+  width: $searchbox-height;
+  height: $searchbox-height;
+  display: block;
+  margin-left: 10px;
+  background: $mine-shaft-5;
+  border: 1px solid $tundora;
+  color: $silver-chalice;
+  border-radius: 4px;
+  cursor: pointer;
+
+  &::before {
+    font-family: "FontAwesome";
+    content: '\f0c7';
+    color: $dusty-grey;
+    position: absolute;
+    padding-left: 10px;
+    padding-top: 3px;
+    font-size: 22px;
+  }
+}
+
+.btn.severity {
+  padding: 0.25rem 1rem;
+  border-radius: 0rem;
+  background: $mine-shaft-2;
+  border: 1px solid $list-group-border-color;
+
+  &::before {
+    font-family: "FontAwesome";
+    content: '\f111';
+    padding-right: 15px;
+  }
+}
+
+.btn.severity.error::before {
+  color: $errors-red;
+}
+
+.btn.severity.warning::before {
+  color: $warning-yellow;
+}
+
+.btn.severity.info::before {
+  color: $info-yellow;
+}
+
+.btn-group-severity {
+  padding: 10px;
+  background: $mine-shaft-4;
+}
+
+.selected {
+  background: $mine-shaft-2;
+}
+
+
+.cell-value {
+  padding: 5px;
+}
+
+.filter-button {
+  margin-left: 5px;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.configure-table-icon {
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.pause-play {
+  height: 38px;
+  padding: 0px;
+  border: 1px solid #0F6F9E;
+  width: 38px;
+  line-height: 39px;
+  border-radius: 12px;
+  margin-left: 15px;
+  background: $mine-shaft-2;
+  cursor: pointer;
+
+  i {
+    font-size: 17px;
+    color: $piction-blue;
+  }
+
+  .fa-play {
+    padding-left: 3px;
+  }
+}
+
+.settings {
+  height: 38px;
+  padding: 0px;
+  line-height: 40px;
+  margin-left: 15px;
+  color: $dove-grey-1;
+  cursor: pointer;
+
+  i {
+    font-size: 20px;
+  }
+}
+
+.dropdown {
+  margin-left: 15px;
+
+  .btn {
+    font-size: 0.8em;
+    min-height: 38px;
+  }
+}
+
+.table-wrapper {
+  min-height: calc(100vh - 250px);
+}
+
+.ace_editor {
+  background: $mine-shaft-1;
+  border: 1px solid $tundora;
+}
+
+:host /deep/ .ace-monokai {
+  .ace_keyword {
+    color: $mantis;
+  }
+
+  .ace_line {
+    color: $sky-blue;
+  }
+
+  .ace_operator {
+    color: $silver;
+  }
+
+  .ace_constant.ace_character {
+    color: $mantis;
+  }
+
+  .ace_value {
+    height: 100%;
+    cursor: pointer;
+    pointer-events: auto;
+    display: inline-block;
+
+    &.active {
+      border : 1px solid $outer-space;
+      border-left : none;
+      height: 18px;
+      display: inline-block;
+      background: $outer-space;
+      cursor: pointer;
+      padding-right: 3px;
+      border-top-right-radius: 4px;
+      border-bottom-right-radius: 4px;
+    }
+  }
+
+  .ace_keyword {
+    height: 100%;
+    cursor: pointer;
+    pointer-events: auto;
+    display: inline-block;
+
+    &.active {
+      border : 1px solid $outer-space;
+      border-right : none;
+      height: 18px;
+      display: inline-block;
+      background: $outer-space;
+      cursor: pointer;
+      border-top-left-radius: 4px;
+      border-bottom-left-radius: 4px;
+    }
+  }
+
+  .fa-times {
+    padding-left: 4px;
+    color: $silver-1;
+  }
+
+  .ace_hidden-cursors .ace_cursor {
+    opacity: 0;
+  }
+}

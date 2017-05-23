@@ -1,0 +1,39 @@
+.metron-dialog.modal
+{
+  .modal-content
+  {
+    background-color: $mine-shaft-2;
+    border: solid 1px $tundora;
+  }
+
+  .close
+  {
+    color: #BDBDBD;
+    text-shadow: 0 1px 0 $silver;
+    opacity: 1;
+    font-size: 28px;
+  }
+
+  .modal-title
+  {
+    color: $silver;
+    font-size: 18px;
+  }
+
+  .modal-body
+  {
+    color: $dusty-grey-1;
+    font-size: 14px;
+  }
+
+  .modal-header
+  {
+    border-bottom: none;
+  }
+
+  .modal-footer
+  {
+    text-align: left;
+    border-top: none;
+  }
+}

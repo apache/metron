@@ -1,0 +1,122 @@
+@import "_variables";
+
+$edit-child-background: #2E2E2E;
+$edit-background-border: #5C5C5C;
+
+$dialog-1x-width: 340px;
+$dialog-2x-width: 680px;
+$dialog-4x-width: 1380px;
+
+.metron-slider-pane-details
+{
+  display: inline-block;
+  float: right;
+  word-wrap: break-word;
+  height: auto;
+  min-height: 100%;
+  position: absolute;
+
+  top: 0;
+  z-index: 9;
+  background: $edit-child-background;
+  border: 1px solid $edit-background-border;
+
+  .close-button
+  {
+    font-size: 26px;
+    cursor: pointer;
+  }
+}
+
+.metron-slider-pane-editable
+{
+  @extend .metron-slider-pane-details;
+
+  height: auto;
+  background: $eden;
+  padding-bottom: 70px;
+  border-left: 1px solid $blue-mine;
+}
+
+@media only screen and (min-width: 500px) {
+  .dialog1x {
+    width: $dialog-1x-width;
+  }
+  .dialog2x {
+    width: $dialog-2x-width;
+  }
+}
+
+@media only screen and (min-width: 2020px) {
+  .dialog1x {
+    width: $dialog-2x-width;
+  }
+  .dialog2x {
+    width: $dialog-4x-width;
+  }
+}
+
+@mixin keyframes($animation-name, $start, $end) {
+  @-webkit-keyframes #{$animation-name} {
+    0% {
+      --webkit-transform: translateX(#{$start});
+    }
+    100% {
+      -webkit-transform: translateX(#{$end});
+    }
+  }
+  @-moz-keyframes #{$animation-name} {
+    0% {
+      -moz-transform: translateX(#{$start});
+    }
+    100% {
+      -moz-transform: translateX(#{$end});
+    }
+  }
+  @-ms-keyframes #{$animation-name} {
+    0% {
+      -ms-transform: translateX(#{$start});
+    }
+    100% {
+      -ms-transform: translateX(#{$end});
+    }
+  }
+  @-o-keyframes #{$animation-name} {
+    0% {
+      -o-transform: translateX(#{$start});
+    }
+    100% {
+      -o-transform: translateX(#{$end});
+    }
+  }
+  @keyframes #{$animation-name} {
+    0% {
+      transform: translateX(#{$start});
+    }
+    100% {
+      transform: translateX(#{$end});
+    }
+  }
+}
+
+@mixin animation($name, $duration, $function)
+{
+  -moz-animation: #{$name} #{$duration} #{$function};
+  -webkit-animation: #{$name} #{$duration} #{$function};
+  animation: #{$name} #{$duration} #{$function};
+}
+
+@include keyframes("keyframe-dialog-rtl", "320px", "0px")
+
+.load-right-to-left{
+  @include animation("keyframe-dialog-rtl", "0.5s", "linear");
+
+  right: 0px;
+  float: right;
+}
+
+@include keyframes("keyframe-dialog-ltr", "-320px", "0px")
+
+.load-left-to-right{
+  @include animation("keyframe-dialog-ltr", "0.5s", "linear")
+}

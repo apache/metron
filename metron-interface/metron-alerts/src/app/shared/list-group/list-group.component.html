@@ -1,0 +1,6 @@
+<ul class="list-group">
+  <li *ngFor="let item of data; let i = index;" class="list-group-item anchor" [ngClass]="{'active': i === 0}">
+    <i *ngIf="item.icon"  [attr.class]="'fa ' + item.icon" aria-hidden="true"></i>
+    <span>{{ item.name }} </span>
+  </li>
+</ul>

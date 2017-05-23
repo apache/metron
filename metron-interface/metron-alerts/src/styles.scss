@@ -1,0 +1,213 @@
+/* You can add global styles to this file, and also import other style files */
+@import "vendor.scss";
+@import "_variables.scss";
+@import "slider.scss";
+@import "metron-dialog.scss";
+
+body,
+button {
+    font-family: Roboto-Regular;
+}
+
+.mrow {
+    @extend .row;
+    @extend .mx-0;
+}
+
+.input {
+    background: $input-background;
+    border: 1px solid $input-border-color;
+    color: $body-color;
+}
+
+.table {
+    thead tr th {
+        font-size: 13px;
+        border-top: none;
+    }
+    tbody tr td {
+        font-size: 14px;
+        cursor: pointer;
+    }
+    tr:last-child td {
+      border-bottom: 1px solid $table-border-color;
+    }
+    td a {
+      border: 1px solid transparent;
+    }
+}
+
+form
+{
+  label
+  {
+    font-family: Roboto-Medium;
+    font-size: 12px;
+    color: $dusty-grey;
+    margin: 0px 0px 2px 5px;
+  }
+
+  input.form-control
+  {
+    background: $mine-shaft-1;
+  }
+}
+
+.form-control, select
+{
+  border: solid 1px $tundora;
+  background-color: $mine-shaft;
+  font-family: Roboto;
+  font-size: 13px;
+  color: $silver;
+  height: 35px;
+
+  &[readonly]
+  {
+    background: $tundora-1;
+    border: 1px solid $tundora;
+  }
+
+  &:focus
+  {
+    background-color: $mine-shaft;
+    border-color: $tundora;
+    color: $silver;
+  }
+}
+
+@include placeholder {
+    color: $placeholder-color;
+    font-style: italic;
+}
+
+.fontawesome-checkbox
+{
+    display: none;
+}
+
+.fontawesome-checkbox ~label
+{
+    margin: 0px;
+    display: inline-block;
+    height: 13px;
+    line-height: 13px;
+    border: 1px solid $tundora;
+    border-radius: 2px;
+}
+
+.fontawesome-checkbox ~label:before {
+    font-family: "FontAwesome";
+    font-style: normal;
+    font-size: 12px;
+    content: '\f0c8';
+    color: $mine-shaft-2;
+}
+
+.fontawesome-checkbox:checked ~ label:before {
+    content: '\f14a';
+    color: $checkbox-checked-color;
+}
+
+.text-color-curious-blue-13 {
+  color: $curious-blue;
+  font-size: 13px;
+}
+
+.anchor {
+  cursor: pointer;
+}
+
+.line-color-tundora {
+  display: block;
+  height: 1px;
+  border: 0;
+  border-top: 1px solid $tundora;
+  margin: 1em 0;
+  padding: 0;
+}
+
+.readonly-bg {
+    background: $mine-shaft;
+}
+
+.background-tiber {
+  background: $tiber
+}
+/* Navcontent Layout */
+.nav-content {
+  padding-right: 0px;
+
+  .col-fixed-200 {
+    @extend .readonly-bg;
+
+    top: 0px;
+    z-index: 1;
+    height: 100%;
+    width: 200px;
+    position: absolute;
+    padding: 15px;
+
+    .title {
+      font-size: 14px;
+      color: $body-color;
+    }
+    .m-nav {
+      padding-left: 5px;
+    }
+  }
+  .col-offset-200{
+    padding-left:215px;
+    z-index:0;
+  }
+}
+
+/* Buttons */
+
+.metron-floating-button-bar-1x {
+  @extend .pb-3;
+  @extend .dialog1x;
+
+  bottom: 0;
+  position: fixed;
+  background: $eden;
+  border-top: 1px solid $blue-mine;
+}
+
+.metron-floating-button-bar-2x {
+  @extend .pb-3;
+  @extend .dialog2x;
+
+  bottom: 0;
+  position: fixed;
+  background: $eden;
+  border-top: 1px solid $blue-mine;
+}
+
+.btn-all_ports {
+  background-color: $all-ports;
+  border-color: $all-ports;
+  color: white;
+  font-size: 14px;
+  min-width: 85px;
+  width: 85px;
+  cursor: pointer;
+  &:focus
+  {
+    outline: none;
+  }
+}
+
+.btn-mine_shaft_2 {
+  background-color: $mine-shaft_2;
+  border-color: $blue-chill;
+  color: $piction-blue;
+  font-size: 14px;
+  min-width: 85px;
+  width: 85px;
+  cursor: pointer;
+  &:focus
+  {
+    outline: none;
+  }
+}
