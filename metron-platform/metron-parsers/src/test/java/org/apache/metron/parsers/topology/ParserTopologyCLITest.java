@@ -116,6 +116,7 @@ public class ParserTopologyCLITest {
                                       .build(true);
     UnitTestHelper.setLog4jLevel(Parser.class, Level.ERROR);
   }
+
   public void happyPath(boolean longOpt) throws ParseException {
     CommandLine cli = new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")
                                       .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
@@ -147,6 +148,22 @@ public class ParserTopologyCLITest {
     Assert.assertEquals(3, config.get(Config.TOPOLOGY_MAX_TASK_PARALLELISM));
     Assert.assertEquals(4, config.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS));
   }
+
+  @Test
+  public void testOutputTopic() throws Exception {
+    testOutputTopic(true);
+    testOutputTopic(false);
+  }
+
+  public void testOutputTopic(boolean longOpt) throws ParseException {
+     CommandLine cli = new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")
+                                      .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
+                                      .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPE, "mysensor")
+                                      .with(ParserTopologyCLI.ParserOptions.OUTPUT_TOPIC, "my_topic")
+                                      .build(longOpt);
+    Assert.assertEquals("my_topic", ParserTopologyCLI.ParserOptions.OUTPUT_TOPIC.get(cli));
+  }
+
   /**
     {
       "string" : "foo"

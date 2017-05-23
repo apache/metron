@@ -39,6 +39,22 @@
 
     <repositories>
         <repository>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </snapshots>
+            <id>HDPPrivateReleases</id>
+            <name>HDP Private Releases</name>
+            <url>http://nexus-private.hortonworks.com/nexus/content/groups/public</url>
+            <layout>default</layout>
+        </repository>
+        <repository>
             <id>clojars.org</id>
             <url>http://clojars.org/repo</url>
         </repository>
@@ -83,30 +99,7 @@
         <global_curator_version>2.7.1</global_curator_version>
         <global_classindex_version>3.3</global_classindex_version>
         <global_storm_version>1.0.3</global_storm_version>
-        <!--
-             This bears some explanation.  storm-kafka-client is our kafka spout.
-             If we ever hope to support kerberos, this provides the capability to do so
-             in apache.  Unfortunately, it also does not support, as of Storm 1.0.x
-             Kafka 0.10.x (see https://issues.apache.org/jira/browse/STORM-2091).  
-             The consumer libraries (not to be confused with the protocol) on the JVM
-             are binary incompatible.  Note the discussion on https://issues.apache.org/jira/browse/KAFKA-3006,
-             the main issue is the move to Collection over List.  While this would be polymorphically
-             a non-issue, it would require a recompile of storm-kafka-client against Kafka 0.10.x.
-
-             Since a targeted platform is HDP 2.5.x, which ships only kafka 0.10.x, we need
-             to support kafka 0.10.x.  Therefore, if we are to use this, then we would need 
-             to support both Kafka 0.9.x and 0.10.x.  Unfortunately, this would require us 
-             to fork some of the internal projects because the 0.9.x API has shifted 
-             (e.g. the Admin functions have different parameters) and behaves
-             differently than 0.10.x in subtle ways (e.g. KAFKA_GET doesn't work as implemented).
-
-             Rather than do this, we chose to depend on the HDP version of storm-kafka because 
-             it is compiled against 0.10.x and therefore would allow us to not fork our support
-             for kafka.  I do not like this bleeding of the HDP profile dependency into the default,
-             but I justify it by noting that this should be able to be removed when we migrate to
-             Storm 1.1.x, which properly supports Kafka 0.10.x.
-          -->
-        <global_storm_kafka_version>1.0.1.2.5.0.0-1245</global_storm_kafka_version>
+        <global_storm_kafka_version>1.1.0</global_storm_kafka_version>
         <global_flux_version>${base_flux_version}</global_flux_version>
         <global_pcap_version>1.7.1</global_pcap_version>
         <global_kafka_version>0.10.0.1</global_kafka_version>
@@ -138,6 +131,7 @@
             <properties>
                 <hdp_version>2.5.0.0</hdp_version>
                 <build_number>1245</build_number>
+                <global_storm_kafka_version>1.1.0.2.6.1.0-SNAPSHOT</global_storm_kafka_version>
                 <global_storm_version>${base_storm_version}.${hdp_version}-${build_number}</global_storm_version>
                 <global_kafka_version>${base_kafka_version}.${hdp_version}-${build_number}</global_kafka_version>
             </properties>
