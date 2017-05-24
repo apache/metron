@@ -33,4 +33,31 @@ UI can be run by using the following command
 Yet to come
 
 ## Installing on an existing Cluster
-Yet to come
+1. Build Metron:
+    ```
+    mvn clean package -DskipTests
+    ```
+
+1. Copy `incubator-metron/metron-interface/metron-alerts/target/metron-alerts-METRON_VERSION-archive.tar.gz` to the desired host.
+
+1. Untar the archive in the target directory.  The directory structure will look like:
+    ```
+    bin
+      start_alerts_ui.sh
+    web
+      alerts-ui
+        package.json
+        server.js
+        web assets (html, css, js, ...)
+    ```
+
+1. [Expressjs](https://github.com/expressjs/express) webserver script is included in the build that will serve the application. (The script has few rewrite rules and we can replace expressjs with any other webserver)
+
+1. Then start the application with the script:
+    ```
+    ./bin/start_alerts_ui.sh
+    Usage: server.js -p [port] -r [restUrl]
+    Options:
+      -p             Port to run metron alerts ui                [required]
+      -r, --resturl  Url where elastic search rest api is available  [required]
+    ```

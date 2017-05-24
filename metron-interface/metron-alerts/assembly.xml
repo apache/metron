@@ -20,18 +20,27 @@
   <fileSets>
     <fileSet>
       <directory>${project.basedir}/dist</directory>
-      <outputDirectory>/web/management-ui</outputDirectory>
+      <outputDirectory>/web/alerts-ui</outputDirectory>
       <excludes>
       </excludes>
       <fileMode>0644</fileMode>
     </fileSet>
     <fileSet>
       <directory>${project.basedir}/scripts</directory>
+      <outputDirectory>/web/alerts-ui</outputDirectory>
+      <includes>
+        <include>package.json</include>
+        <include>alerts-server.js</include>
+      </includes>
+      <fileMode>0644</fileMode>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/scripts</directory>
       <outputDirectory>/bin</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
-      <excludes>
-        <exclude>start_dev.sh</exclude>
-      </excludes>
+      <includes>
+        <include>start_alerts_ui.sh</include>
+      </includes>
       <fileMode>0755</fileMode>
       <lineEnding>unix</lineEnding>
       <filtered>true</filtered>
@@ -40,7 +49,7 @@
   <files>
     <file>
       <source>src/favicon.ico</source>
-      <outputDirectory>/web/management-ui</outputDirectory>
+      <outputDirectory>/web/alerts-ui</outputDirectory>
     </file>
   </files>
 </assembly>
