@@ -18,6 +18,8 @@
 package org.apache.metron.parsers.bolt;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.bundles.util.FileUtilities;
+import org.apache.metron.bundles.util.FileUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredParserBolt;
 import org.apache.metron.common.configuration.FieldTransformer;
@@ -64,8 +66,17 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private transient MessageGetStrategy messageGetStrategy;
   public ParserBolt( String zookeeperUrl
                    , String sensorType
-                   , MessageParser<JSONObject> parser
                    , WriterHandler writer
+  )
+  {
+    super(zookeeperUrl, sensorType);
+    this.writer = writer;
+  }
+
+  public ParserBolt( String zookeeperUrl
+          , String sensorType
+          , MessageParser<JSONObject> parser
+          , WriterHandler writer
   )
   {
     super(zookeeperUrl, sensorType);
@@ -79,12 +90,28 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     return this;
   }
 
+  @Override
+  public void cleanup(){
+    FileUtils.reset();
+    super.cleanup();
+  }
+  
   @SuppressWarnings("unchecked")
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     super.prepare(stormConf, context, collector);
     messageGetStrategy = MessageGetters.DEFAULT_BYTES_FROM_POSITION.get();
     this.collector = collector;
+
+    if(this.parser == null) {
+      Optional<MessageParser<JSONObject>> optParser = ParserLoader.loadParser(stormConf, client, getSensorParserConfig());
+      if (optParser.isPresent()) {
+        this.parser = optParser.get();
+        this.parser.configure(getSensorParserConfig().getParserConfig());
+      } else {
+        throw new IllegalStateException("Failed to load parser " + getSensorParserConfig().getParserClassName());
+      }
+    }
     initializeStellar();
     if(getSensorParserConfig() != null && filter == null) {
       getSensorParserConfig().getParserConfig().putIfAbsent("stellarContext", stellarContext);

@@ -356,7 +356,7 @@ Functions loaded, you may refer to functions now...
 [Stellar]>>> #Just to make sure it looks right, we can view the JSON
 [Stellar]>>> squid_parser_config
 {
-  "parserClassName": "org.apache.metron.parsers.GrokParser",
+  "parserClassName": "org.apache.metron.parsers.grok.GrokParser",
   "sensorTopic": "squid",
   "parserConfig": {
     "grokPath": "/patterns/squid",
@@ -386,7 +386,7 @@ Functions loaded, you may refer to functions now...
 ╠═══════════════════════════╪═══════════════════════════════════════════╪═════════════════════════════════════╣
 ║ squid_parser_config       │ {                                         │ CONFIG_GET('PARSER', 'squid')       ║
 ║                           │   "parserClassName":                      │                                     ║
-║                           │ "org.apache.metron.parsers.GrokParser",   │                                     ║
+║                           │ "org.apache.metron.parsers.grok.GrokParser",   │                                     ║
 ║                           │                                           │                                     ║
 ║                           │ "sensorTopic": "squid",                   │                                     ║
 ║                           │                                           │                                     ║
@@ -495,7 +495,7 @@ Returns: The String representation of the config in zookeeper
 [Stellar]>>> #It should be just as we started the exercise
 [Stellar]>>> CONFIG_GET('PARSER', 'squid')
 {
-  "parserClassName" : "org.apache.metron.parsers.GrokParser",
+  "parserClassName" : "org.apache.metron.parsers.grok.GrokParser",
   "sensorTopic" : "squid",
   "parserConfig" : {
     "grokPath" : "/patterns/squid",

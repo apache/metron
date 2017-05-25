@@ -22,14 +22,45 @@ from resource_management.core.resources.system import Directory, File
 from resource_management.core.resources.system import Execute
 from resource_management.core.source import InlineTemplate
 from resource_management.libraries.functions import format as ambari_format
+from resource_management.core.source import Template
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 from metron_security import kinit
 
-def init_config():
-    Logger.info('Loading config into ZooKeeper')
+
+def init_config(params):
+    Logger.info('Loading Metron config into ZooKeeper')
+
+    Logger.info('Creating bundle.properties from template')
+    File(ambari_format("{metron_zookeeper_config_path}/bundle.properties"),
+         content=Template("bundle.properties.j2"),
+         owner=params.metron_user,
+         group=params.metron_group
+         )
+
     Execute(ambari_format(
         "{metron_home}/bin/zk_load_configs.sh --mode PUSH -i {metron_zookeeper_config_path} -z {zookeeper_quorum}"),
         path=ambari_format("{java_home}/bin")
+    )
+
+    Logger.info('Loading Metron Parser Extension configs into ZooKeeper')
+    parsers_list = params.all_parsers.replace(' ', '').split(',')
+    alt_parsers_list = params.all_alt_parsers.replace(' ', '').split(',')
+
+    for parser in parsers_list:
+        if params:
+            Execute(ambari_format(
+                "{metron_home}/bin/zk_load_configs.sh --mode PUSH -i " + params.metron_extensions_etc_parsers + "/" + parser + "/{metron_zookeeper_config_dir} -z {zookeeper_quorum}"),
+                path=ambari_format("{java_home}/bin")
+            )
+
+
+    for parser in alt_parsers_list:
+        if not parser:
+            break
+
+        Execute(ambari_format(
+            "{metron_home}/bin/zk_load_configs.sh --mode PUSH -i " + params.metron_extensions_alt_etc_parsers + "/" + parser + "/{metron_zookeeper_config_dir} -z {zookeeper_quorum}"),
+            path=ambari_format("{java_home}/bin")
     )
 
 
@@ -89,7 +120,7 @@ def load_global_config(params):
          owner=params.metron_user,
          content=InlineTemplate(params.global_properties_template))
 
-    init_config()
+    init_config(params)
 
 
 def init_kafka_topics(params, topics):

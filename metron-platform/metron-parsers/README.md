@@ -9,7 +9,7 @@ enrichment and indexing.
 There are two general types types of parsers:
 *  A parser written in Java which conforms to the `MessageParser` interface.  This kind of parser is optimized for speed and performance and is built for use with higher velocity topologies.  These parsers are not easily modifiable and in order to make changes to them the entire topology need to be recompiled.  
 * A general purpose parser.  This type of parser is primarily designed for lower-velocity topologies or for quickly standing up a parser for a new telemetry before a permanent Java parser can be written for it.  As of the time of this writing, we have:
-  * Grok parser: `org.apache.metron.parsers.GrokParser` with possible `parserConfig` entries of 
+  * Grok parser: `org.apache.metron.parsers.grok.GrokParser` with possible `parserConfig` entries of 
     * `grokPath` : The path in HDFS (or in the Jar) to the grok statement
     * `patternLabel` : The pattern label to use from the grok statement
     * `timestampField` : The field to use for timestamp
@@ -206,7 +206,7 @@ Consider the following example configuration for the `yaf` sensor:
 
 ```
 {
-  "parserClassName":"org.apache.metron.parsers.GrokParser",
+  "parserClassName":"org.apache.metron.parsers.grok.GrokParser",
   "sensorTopic":"yaf",
   "fieldTransformations" : [
                     {
@@ -241,7 +241,7 @@ Java parser adapters are indended for higher-velocity topologies and are not eas
 ###Grok Parser Adapters
 Grok parser adapters are designed primarly for someone who is not a Java coder for quickly standing up a parser adapter for lower velocity topologies.  Grok relies on Regex for message parsing, which is much slower than purpose-built Java parsers, but is more extensible.  Grok parsers are defined via a config file and the topplogy does not need to be recombiled in order to make changes to them.  An example of a Grok perser is:
 
-* org.apache.metron.parsers.GrokParser
+* org.apache.metron.parsers.grok.GrokParser
 
 For more information on the Grok project please refer to the following link:
 

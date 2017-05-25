@@ -8,6 +8,7 @@ addons:
     - g++-4.8
 install: true
 language: java
+sudo: required
 jdk:
   - oraclejdk8
 before_install:
@@ -15,9 +16,11 @@ before_install:
   - unzip -qq apache-maven-3.3.9-bin.zip
   - export M2_HOME=$PWD/apache-maven-3.3.9
   - export PATH=$M2_HOME/bin:$PATH
+  - export MAVEN_OPTS="-Xms512m -Xmx2048m -XX:MaxPermSize=1024m"
 script:
+  - cd bundles-maven-plugin && mvn -q install && cd ..
   - |
-    time mvn -q -T 2C -DskipTests install && time mvn -q -T 2C jacoco:prepare-agent surefire:test@unit-tests && mvn -q jacoco:prepare-agent surefire:test@integration-tests  && time mvn -q jacoco:prepare-agent test --projects metron-interface/metron-config && time build_utils/verify_licenses.sh
+    time mvn -q -T 2C -DskipTests install && time mvn -q -T 2C org.jacoco:jacoco-maven-plugin:prepare-agent surefire:test@unit-tests && mvn -q org.jacoco:jacoco-maven-plugin:prepare-agent surefire:test@integration-tests  && time mvn -q org.jacoco:jacoco-maven-plugin:prepare-agent test --projects metron-interface/metron-config && time build_utils/verify_licenses.sh
 cache:
   directories:
   - $HOME/.m2

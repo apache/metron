@@ -31,6 +31,7 @@ public abstract class BasicParser implements
   protected static final Logger LOG = LoggerFactory
           .getLogger(BasicParser.class);
 
+  public BasicParser(){}
   @Override
   public boolean validate(JSONObject message) {
     JSONObject value = message;

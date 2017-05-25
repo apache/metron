@@ -1,6 +1,7 @@
 *~
 target/
 *dependency-reduced-pom.xml
+*.versionsBackup
 .idea
 *.iml
 *.iws

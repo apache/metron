@@ -1,0 +1,18 @@
+{
+  "hdfs" : {
+    "index": "sourcefire",
+    "batchSize": 5,
+    "enabled" : true
+  },
+  "elasticsearch" : {
+    "index": "sourcefire",
+    "batchSize": 5,
+    "enabled" : true
+  },
+  "solr" : {
+    "index": "sourcefire",
+    "batchSize": 5,
+    "enabled" : true
+  }
+}
+

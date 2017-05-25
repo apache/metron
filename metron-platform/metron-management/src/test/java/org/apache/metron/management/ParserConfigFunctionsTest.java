@@ -31,15 +31,15 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.apache.metron.TestConstants.PARSER_CONFIGS_PATH;
+import static org.apache.metron.TestConstants.A_PARSER_CONFIGS_PATH_FMT;
 import static org.apache.metron.management.utils.FileUtils.slurp;
 import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
 import static org.apache.metron.common.utils.StellarProcessorUtils.run;
 
 public class ParserConfigFunctionsTest {
 
-  String emptyTransformationsConfig = slurp(PARSER_CONFIGS_PATH + "/parsers/bro.json");
-  String existingTransformationsConfig = slurp(PARSER_CONFIGS_PATH + "/parsers/squid.json");
+  String emptyTransformationsConfig = slurp(String.format(A_PARSER_CONFIGS_PATH_FMT,"bro","bro") + "/parsers/bro.json");
+  String existingTransformationsConfig = slurp(String.format(A_PARSER_CONFIGS_PATH_FMT,"squid","squid") + "/parsers/squid.json");
   Map<String, StellarExecutor.VariableResult> variables ;
   Context context = null;
   @Before

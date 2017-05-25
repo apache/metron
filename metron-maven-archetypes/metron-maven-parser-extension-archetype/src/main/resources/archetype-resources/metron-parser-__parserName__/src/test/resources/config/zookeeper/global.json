@@ -1,0 +1,27 @@
+{
+  "es.clustername": "metron",
+  "es.ip": "localhost",
+  "es.port": 9300,
+  "es.date.format": "yyyy.MM.dd.HH",
+
+  "solr.zookeeper": "localhost:2181",
+  "solr.collection": "metron",
+  "solr.numShards": 1,
+  "solr.replicationFactor": 1,
+
+  "fieldValidations" : [
+    {
+      "input" : [ "ip_src_addr", "ip_dst_addr"],
+      "validation" : "IP"
+    }
+  ],
+
+  "profiler.client.period.duration": "15",
+  "profiler.client.period.duration.units": "MINUTES",
+  "profiler.client.hbase.table": "profiler",
+  "profiler.client.hbase.column.family": "P",
+  "profiler.client.salt.divisor": "1000",
+  "hbase.provider.impl": "org.apache.metron.hbase.HTableProvider",
+
+  "geo.hdfs.file": "src/test/resources/GeoLite/GeoIP2-City-Test.mmdb.gz"
+}

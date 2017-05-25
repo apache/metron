@@ -38,7 +38,15 @@ tmp_dir = Script.get_tmp_dir()
 
 hostname = config['hostname']
 metron_home = status_params.metron_home
+local_metron_extensions_lib = status_params.local_metron_extensions_lib
+hdfs_metron_apps_extensions_working = status_params.hdfs_metron_apps_extensions_working
+hdfs_metron_apps_extensions_lib = status_params.hdfs_metron_apps_extensions_lib
+hdfs_metron_apps_extensions_alt_lib = status_params.hdfs_metron_apps_extensions_alt_lib
+metron_extensions_etc_parsers = status_params.metron_extensions_etc_parsers
+metron_extensions_alt_etc_parsers = status_params.metron_extensions_alt_etc_parsers
 parsers = status_params.parsers
+all_parsers = status_params.all_parsers
+all_alt_parsers = status_params.all_alt_parsers
 geoip_url = config['configurations']['metron-env']['geoip_url']
 geoip_hdfs_dir = "/apps/metron/geo/default/"
 metron_indexing_topology = status_params.metron_indexing_topology
