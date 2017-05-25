@@ -1,4 +1,3 @@
-#Paloalto Parser
+# Palo Alto Parser
 
-
-This is the Paloalto parser
+This is the Palo Alto parser

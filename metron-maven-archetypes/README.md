@@ -10,7 +10,7 @@ This is an archetype for creating an Apache Metron Parser Extension
 
 Build and install the archetype
 ```
-$mvn install
+$ mvn install
 ```
 
 Create a directory to host your extension code
@@ -23,7 +23,7 @@ $ cd ~/src/my-parser-extension
 Use the archetype to create your project
 
 ```
-$mvn archetype:generate -DarchetypeCatalog=local
+$ mvn archetype:generate -DarchetypeCatalog=local
 [Select the org.apache.metron:metron-maven-parser-extension-archetype (Apache Maven Parser Extension Archetype for Metron) entry]
 ```
 
@@ -45,12 +45,12 @@ This will produce a project:
 
 #### Project description
 
-#####metron-parser-nice ( the Parser Project)
+##### metron-parser-nice (The Parser Project)
 This project contains the sample parser code, configuration, and tests
 
-#####metron-parser-nice-bundle ( the Bundle Project )
+##### metron-parser-nice-bundle (The Bundle Project )
 The project contains builds the Bundle file
 
-#####metron-parser-nice-assembly ( the Assembly Project)
+##### metron-parser-nice-assembly (The Assembly Project)
 The project that builds a tar.gz assembly of the bundle and configuration.
 This is the final, installable product.
