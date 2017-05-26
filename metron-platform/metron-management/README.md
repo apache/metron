@@ -1,4 +1,4 @@
-#Stellar REPL Management Utilities
+# Stellar REPL Management Utilities
 
 In order to augment the functionality of the Stellar REPL, a few
 management functions surrounding the management of the configurations

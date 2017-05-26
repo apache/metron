@@ -1,4 +1,4 @@
-#Indexing
+# Indexing
 
 ## Introduction
 
@@ -26,7 +26,7 @@ and sent to
 
 By default, errors during indexing are sent back into the `indexing` kafka queue so that they can be indexed and archived.
 
-##Sensor Indexing Configuration
+## Sensor Indexing Configuration
 The sensor specific configuration is intended to configure the
 indexing used for a given sensor type (e.g. `snort`).  
 
