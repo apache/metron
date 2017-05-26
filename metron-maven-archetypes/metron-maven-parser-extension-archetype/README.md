@@ -7,14 +7,17 @@ to build.
 ## Steps Required
 
 ### Build Metron
-`cd incubator-metron`
-`mvn clean install`
+```
+cd incubator-metron
+mvn clean install
+```
 
 This will build and install the archetype locally 
     TODO: deploy archetype to maven repo
 
 ### Create your project 
 Create a directory where ever you would like for your project
+
 `mkdir myParser && cd myParser`
 
 ### Create the project with maven
@@ -24,7 +27,7 @@ Select the metron-maven-parser-extension-archtype
 
 ##### Fill out the parameters
 NOTES:
-- Currently, the version number _must match the current version of Metron ( 0.3.1 )
+- Currently, the version number **must** match the current version of Metron (`0.4.0`)
   When prompted for a version you must enter this or your parser will fail to start in storm
     
 - The parserName must be lowercase, the parserClassName must start be Capital case, the name should match
@@ -34,5 +37,5 @@ NOTES:
 ##### Examine the generated project, code your parser and tests and then build
 `mvn install`
 
-###Install
+### Install
     TODO
