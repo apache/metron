@@ -1,4 +1,3 @@
-#Yaf Parser
+# YAF Parser
 
-
-This is the Yaf parser
+This is the YAF parser

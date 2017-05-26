@@ -1,4 +1,3 @@
-#BasicSquid Parser
+# Basic Squid Parser
 
-
-This is the BasicSquid parser
+This is the Basic Squid parser

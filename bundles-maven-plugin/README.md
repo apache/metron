@@ -42,13 +42,13 @@ the main 'metron' code tree.
 There are several properties that can be set to change the behavior of this plugin.
 Two of special interest are:
 
-####type
+#### type
 type defines the type of archive to be produced and evaluated for special dependencies.  The default type is bundle.  This property should be changed if you have need to 
 customize the file extension of archives produced by this plugin.  This plugin will build archives with .bundle extentions, and look for othe .bundle dependencies by definition.
 Changing this value, for example to 'foo', will have the effect of having the plugin produce archives with .foo as the extension, and look for .foo files
 as nar dependencies.
  
-####packageIDPrefix 
+#### packageIDPrefix 
 The archives produced by this plugin have the following entries added to the manifest ( where packageIDPrefix defaults to 'Bundle'):
 
 -  {packageIDPrefix}-Id
