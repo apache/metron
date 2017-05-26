@@ -18,7 +18,20 @@
 
 package org.apache.metron.pcap.mr;
 
+import static org.apache.metron.pcap.PcapHelper.greaterThanOrEqualTo;
+import static org.apache.metron.pcap.PcapHelper.lessThanOrEqualTo;
+
 import com.google.common.base.Joiner;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -33,25 +46,27 @@ import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
-import org.apache.log4j.Logger;
 import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.PcapFilter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.PcapFilters;
-
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.stream.Stream;
+import org.apache.metron.pcap.utils.FileFilterUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PcapJob {
-  private static final Logger LOG = Logger.getLogger(PcapJob.class);
+
+  private static final Logger LOG = LoggerFactory.getLogger(PcapJob.class);
   public static final String START_TS_CONF = "start_ts";
   public static final String END_TS_CONF = "end_ts";
   public static final String WIDTH_CONF = "width";
+
+  public static enum PCAP_COUNTER {
+    MALFORMED_PACKET_COUNT
+  }
+
   public static class PcapPartitioner extends Partitioner<LongWritable, BytesWritable> implements Configurable {
     private Configuration configuration;
     Long start = null;
@@ -105,20 +120,28 @@ public class PcapJob {
 
     @Override
     protected void map(LongWritable key, BytesWritable value, Context context) throws IOException, InterruptedException {
-      if (Long.compareUnsigned(key.get(), start) >= 0 && Long.compareUnsigned(key.get(), end) <= 0) {
+      if (greaterThanOrEqualTo(key.get(), start) && lessThanOrEqualTo(key.get(), end)) {
         // It is assumed that the passed BytesWritable value is always a *single* PacketInfo object. Passing more than 1
         // object will result in the whole set being passed through if any pass the filter. We cannot serialize PacketInfo
         // objects back to byte arrays, otherwise we could support more than one packet.
         // Note: short-circuit findAny() func on stream
-        boolean send = filteredPacketInfo(value).findAny().isPresent();
+        List<PacketInfo> packetInfos;
+        try {
+          packetInfos = PcapHelper.toPacketInfo(value.copyBytes());
+        } catch(Exception e) {
+          // toPacketInfo is throwing RuntimeExceptions. Attempt to catch and count errors with malformed packets
+          context.getCounter(PCAP_COUNTER.MALFORMED_PACKET_COUNT).increment(1);
+          return;
+        }
+        boolean send = filteredPacketInfo(packetInfos).findAny().isPresent();
         if (send) {
           context.write(key, value);
         }
       }
     }
 
-    private Stream<PacketInfo> filteredPacketInfo(BytesWritable value) throws IOException {
-      return PcapHelper.toPacketInfo(value.copyBytes()).stream().filter(filter);
+    private Stream<PacketInfo> filteredPacketInfo(List<PacketInfo> packetInfos) throws IOException {
+      return packetInfos.stream().filter(filter);
     }
   }
 
@@ -129,56 +152,6 @@ public class PcapJob {
         context.write(key, value);
       }
     }
-  }
-
-  protected Iterable<Path> listFiles(FileSystem fs, Path basePath) throws IOException {
-    List<Path> ret = new ArrayList<>();
-    RemoteIterator<LocatedFileStatus> filesIt = fs.listFiles(basePath, true);
-    while(filesIt.hasNext()){
-      ret.add(filesIt.next().getPath());
-    }
-    return ret;
-  }
-
-  public Iterable<String> getPaths(FileSystem fs, Path basePath, long begin, long end) throws IOException {
-    List<String> ret = new ArrayList<>();
-    Iterator<Path> files = listFiles(fs, basePath).iterator();
-    /*
-    The trick here is that we need a trailing left endpoint, because we only capture the start of the
-    timeseries kept in the file.
-     */
-    boolean isFirst = true;
-    Path leftEndpoint = files.hasNext()?files.next():null;
-    if(leftEndpoint == null) {
-      return ret;
-    }
-    {
-      Long ts = PcapHelper.getTimestamp(leftEndpoint.getName());
-      if(ts != null && Long.compareUnsigned(ts, begin) >= 0 && Long.compareUnsigned(ts, end) <= 0) {
-        ret.add(leftEndpoint.toString());
-        isFirst = false;
-      }
-    }
-    while(files.hasNext()) {
-      Path p = files.next();
-      Long ts = PcapHelper.getTimestamp(p.getName());
-      if(ts != null && Long.compareUnsigned(ts, begin) >= 0 && Long.compareUnsigned(ts, end) <= 0) {
-        if(isFirst && leftEndpoint != null) {
-          ret.add(leftEndpoint.toString());
-        }
-        if(isFirst) {
-          isFirst = false;
-        }
-        ret.add(p.toString());
-      }
-      else {
-        leftEndpoint = p;
-      }
-    }
-    if(LOG.isDebugEnabled()) {
-      LOG.debug("Including files " + Joiner.on(",").join(ret));
-    }
-    return ret;
   }
 
   /**
@@ -194,9 +167,7 @@ public class PcapJob {
       }
       files.add(p);
     }
-    if (LOG.isDebugEnabled()) {
-      LOG.debug(outputPath);
-    }
+    LOG.debug("Output path={}", outputPath);
     Collections.sort(files, (o1,o2) -> o1.getName().compareTo(o2.getName()));
     return new SequenceFileIterable(files, config);
   }
@@ -231,11 +202,14 @@ public class PcapJob {
                        , fs
                        , filterImpl
                        );
+    if (job == null) {
+      LOG.info("No files to process with specified date range.");
+      return new SequenceFileIterable(new ArrayList<>(), conf);
+    }
     boolean completed = job.waitForCompletion(true);
     if(completed) {
       return readResults(outputPath, conf, fs);
-    }
-    else {
+    } else {
       throw new RuntimeException("Unable to complete query due to errors.  Please check logs for full errors.");
     }
   }
@@ -269,11 +243,25 @@ public class PcapJob {
     job.setPartitionerClass(PcapPartitioner.class);
     job.setOutputKeyClass(LongWritable.class);
     job.setOutputValueClass(BytesWritable.class);
-    SequenceFileInputFormat.addInputPaths(job, Joiner.on(',').join(getPaths(fs, basePath, beginNS, endNS )));
+    Iterable<String> filteredPaths = FileFilterUtil.getPathsInTimeRange(beginNS, endNS, listFiles(fs, basePath));
+    String inputPaths = Joiner.on(',').join(filteredPaths);
+    if (StringUtils.isEmpty(inputPaths)) {
+      return null;
+    }
+    SequenceFileInputFormat.addInputPaths(job, inputPaths);
     job.setInputFormatClass(SequenceFileInputFormat.class);
     job.setOutputFormatClass(SequenceFileOutputFormat.class);
     SequenceFileOutputFormat.setOutputPath(job, outputPath);
     return job;
-
   }
+
+  protected Iterable<Path> listFiles(FileSystem fs, Path basePath) throws IOException {
+    List<Path> ret = new ArrayList<>();
+    RemoteIterator<LocatedFileStatus> filesIt = fs.listFiles(basePath, true);
+    while (filesIt.hasNext()) {
+      ret.add(filesIt.next().getPath());
+    }
+    return ret;
+  }
+
 }

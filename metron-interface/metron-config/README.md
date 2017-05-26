@@ -38,7 +38,7 @@ npm --prefix $METRON_HOME/web/expressjs/ install
 
 ### From Package Manager
 
-1. Deploy the RPM at `/incubator-metron/metron-deployment/packaging/docker/rpm-docker/target/RPMS/noarch/metron-config-$METRON_VERSION-*.noarch.rpm`
+1. Deploy the RPM at `/metron/metron-deployment/packaging/docker/rpm-docker/target/RPMS/noarch/metron-config-$METRON_VERSION-*.noarch.rpm`
 
 1. Install the RPM with:
 ```

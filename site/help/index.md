@@ -10,7 +10,7 @@ Need help with Metron? Try these resources.
 The best option is to send email to the user list
 [user@metron.apache.org](mailto:user@metron.apache.org), which is for user
 discussions. All of the historic traffic is available in the
-[archive](http://mail-archives.apache.org/mod_mbox/incubator-metron-user/). To
+[archive](http://mail-archives.apache.org/mod_mbox/metron-user/). To
 subscribe to the user list, please send email to
 [user-subscribe@metron.apache.org](mailto:user-subscribe@metron.apache.org).
 
@@ -29,4 +29,4 @@ your question.
 ## Browse the code
 
 One of the advantages of open source software is that you can browse the code.
-The code is available on [github](https://github.com/apache/incubator-metron/tree/master).
+The code is available on [github](https://github.com/apache/metron/tree/master).

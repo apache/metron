@@ -33,8 +33,36 @@
         <spring.kerberos.version>1.0.1.RELEASE</spring.kerberos.version>
         <swagger.version>2.5.0</swagger.version>
         <mysql.client.version>5.1.40</mysql.client.version>
+        <spring-kafka.version>1.1.1.RELEASE</spring-kafka.version>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+            <version>${spring-kafka.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.kafka</groupId>
+                    <artifactId>kafka-clients</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.retry</groupId>
+                    <artifactId>spring-retry</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-messaging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -75,7 +103,7 @@
                     <groupId>com.google.guava</groupId>
                     <artifactId>guava</artifactId>
                 </exclusion>
-              </exclusions>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
@@ -112,8 +140,8 @@
                     <artifactId>jackson-databind</artifactId>
                 </exclusion>
                 <exclusion>
-                  <groupId>org.reflections</groupId>
-                  <artifactId>reflections</artifactId>
+                    <groupId>org.reflections</groupId>
+                    <artifactId>reflections</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

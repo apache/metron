@@ -19,14 +19,13 @@
 package org.apache.metron.spout.pcap;
 
 import com.google.common.base.Joiner;
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.log4j.Logger;
+import org.apache.metron.spout.pcap.deserializer.KeyValueDeserializer;
 import org.apache.storm.kafka.Callback;
 import org.apache.storm.kafka.EmitContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.DatatypeConverter;
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,7 +37,7 @@ import java.util.Map;
  */
 public class HDFSWriterCallback implements Callback {
     static final long serialVersionUID = 0xDEADBEEFL;
-    private static final Logger LOG = Logger.getLogger(HDFSWriterCallback.class);
+    private static final Logger LOG = LoggerFactory.getLogger(HDFSWriterCallback.class);
 
     /**
      * A topic+partition.  We split the files up by topic+partition so the writers don't clobber each other
@@ -80,29 +79,12 @@ public class HDFSWriterCallback implements Callback {
         }
     }
 
-    /**
-     * This is a static container of threadlocal LongWritables and BytesWritables.  This keeps us from having to create so
-     * many objects on the heap.  The Deserializers update these for every packet.
-     */
-    private static class KeyValue {
-        static ThreadLocal<LongWritable> key = new ThreadLocal<LongWritable> () {
-            @Override
-            protected LongWritable initialValue() {
-                return new LongWritable();
-            }
-        };
-        static ThreadLocal<BytesWritable> value = new ThreadLocal<BytesWritable> () {
-            @Override
-            protected BytesWritable initialValue() {
-                return new BytesWritable();
-            }
-        };
-    }
     private HDFSWriterConfig config;
     private EmitContext context;
     private Map<Partition, PartitionHDFSWriter> writers = new HashMap<>();
     private PartitionHDFSWriter lastWriter = null;
     private String topic;
+    private boolean inited = false;
     public HDFSWriterCallback() {
     }
 
@@ -116,35 +98,43 @@ public class HDFSWriterCallback implements Callback {
     public List<Object> apply(List<Object> tuple, EmitContext context) {
         byte[] key = (byte[]) tuple.get(0);
         byte[] value = (byte[]) tuple.get(1);
-        if(!config.getDeserializer().deserializeKeyValue(key, value, KeyValue.key.get(), KeyValue.value.get())) {
-            if(LOG.isDebugEnabled()) {
-                List<String> debugStatements = new ArrayList<>();
-                if(key != null) {
-                    debugStatements.add("Key length: " + key.length);
-                    debugStatements.add("Key: " + DatatypeConverter.printHexBinary(key));
-                }
-                else {
-                    debugStatements.add("Key is null!");
-                }
+        long tsDeserializeStart = System.nanoTime();
+        KeyValueDeserializer.Result result = config.getDeserializer().deserializeKeyValue(key, value);
+        long tsDeserializeEnd = System.nanoTime();
 
-                if(value != null) {
-                    debugStatements.add("Value length: " + value.length);
-                    debugStatements.add("Value: " + DatatypeConverter.printHexBinary(value));
-                }
-                else {
-                    debugStatements.add("Value is null!");
-                }
-                LOG.debug("Dropping malformed packet: " + Joiner.on(" / ").join(debugStatements));
+        if (LOG.isDebugEnabled() && !result.foundTimestamp) {
+            List<String> debugStatements = new ArrayList<>();
+            if (key != null) {
+                debugStatements.add("Key length: " + key.length);
+                debugStatements.add("Key: " + DatatypeConverter.printHexBinary(key));
+            } else {
+                debugStatements.add("Key is null!");
             }
+
+            if (value != null) {
+                debugStatements.add("Value length: " + value.length);
+                debugStatements.add("Value: " + DatatypeConverter.printHexBinary(value));
+            } else {
+                debugStatements.add("Value is null!");
+            }
+            LOG.debug("Dropping malformed packet: " + Joiner.on(" / ").join(debugStatements));
         }
+
+        long tsWriteStart = System.nanoTime();
         try {
             getWriter(new Partition( topic
                                    , context.get(EmitContext.Type.PARTITION))
-                     ).handle(KeyValue.key.get(), KeyValue.value.get());
+                     ).handle(result.key, result.value);
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
             //drop?  not sure..
         }
+        long tsWriteEnd = System.nanoTime();
+        if(LOG.isDebugEnabled() && (Math.random() < 0.001 || !inited)) {
+            LOG.debug("Deserialize time (ns): " + (tsDeserializeEnd - tsDeserializeStart));
+            LOG.debug("Write time (ns): " + (tsWriteEnd - tsWriteStart));
+        }
+        inited = true;
         return tuple;
     }
 

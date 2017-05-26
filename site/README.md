@@ -4,4 +4,4 @@ This branch contains the generated HTML for the
 [Metron website](https://metron.apache.org).
 
 You are probably looking for the
-[Metron master branch](https://github.com/apache/incubator-metron/tree/master).
+[Metron master branch](https://github.com/apache/metron/tree/master).

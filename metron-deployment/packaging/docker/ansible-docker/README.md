@@ -12,6 +12,6 @@ Full instructions are found on the wiki [https://cwiki.apache.org/confluence/pag
 
 tl;dr
 
-1. docker run -it -v \<project-directory\>:/root/incubator-metron ansible-docker:2.0.0.2 bash
-2. cd /root/incubator-metron
+1. docker run -it -v \<project-directory\>:/root/metron ansible-docker:2.0.0.2 bash
+2. cd /root/metron
 3. mvn clean package -DskipTests

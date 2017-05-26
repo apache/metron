@@ -24,6 +24,7 @@ import org.apache.metron.common.error.MetronError;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
@@ -91,7 +92,7 @@ public class ParserBoltTest extends BaseBoltTest {
     List<JSONObject> records = new ArrayList<>();
 
     @Override
-    public void init(Map stormConf, WriterConfiguration config) throws Exception {
+    public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration config) throws Exception {
 
     }
 
@@ -297,7 +298,7 @@ public void testImplicitBatchOfOne() throws Exception {
   parserBolt.setTreeCache(cache);
   parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
   verify(parser, times(1)).init();
-  verify(batchWriter, times(1)).init(any(), any());
+  verify(batchWriter, times(1)).init(any(), any(), any());
   when(parser.validate(any())).thenReturn(true);
   when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
   when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
@@ -343,7 +344,7 @@ public void testImplicitBatchOfOne() throws Exception {
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(parser, times(1)).init();
-    verify(batchWriter, times(1)).init(any(), any());
+    verify(batchWriter, times(1)).init(any(), any(), any());
     BulkWriterResponse successResponse = mock(BulkWriterResponse.class);
     when(successResponse.getSuccesses()).thenReturn(ImmutableList.of(t1));
     when(batchWriter.write(any(), any(), any(), any())).thenReturn(successResponse);
@@ -380,7 +381,7 @@ public void testImplicitBatchOfOne() throws Exception {
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(parser, times(1)).init();
-    verify(batchWriter, times(1)).init(any(), any());
+    verify(batchWriter, times(1)).init(any(), any(), any());
     when(parser.validate(any())).thenReturn(true);
     when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject(new HashMap<String, Object>() {{
       put("field2", "blah");
@@ -483,7 +484,7 @@ public void testImplicitBatchOfOne() throws Exception {
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(parser, times(1)).init();
-    verify(batchWriter, times(1)).init(any(), any());
+    verify(batchWriter, times(1)).init(any(), any(), any());
     when(parser.validate(any())).thenReturn(true);
     when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
     when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
@@ -522,7 +523,7 @@ public void testImplicitBatchOfOne() throws Exception {
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(parser, times(1)).init();
-    verify(batchWriter, times(1)).init(any(), any());
+    verify(batchWriter, times(1)).init(any(), any(), any());
     when(parser.validate(any())).thenReturn(true);
     when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
     when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
@@ -571,7 +572,7 @@ public void testImplicitBatchOfOne() throws Exception {
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(parser, times(1)).init();
-    verify(batchWriter, times(1)).init(any(), any());
+    verify(batchWriter, times(1)).init(any(), any(), any());
 
     doThrow(new Exception()).when(batchWriter).write(any(), any(), any(), any());
     when(parser.validate(any())).thenReturn(true);
