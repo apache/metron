@@ -42,10 +42,10 @@ Use quick-dev for testing out changes to core Metron services.
 installed
 
 ### Full-Dev
-Navigate to `incubator-metron/metron-deployment/vagrant/full-dev-platform` and run `vagrant up`.
+Navigate to `metron/metron-deployment/vagrant/full-dev-platform` and run `vagrant up`.
 
 ### Quick-Dev
-Navigate to `incubator-metron/metron-deployment/vagrant/quick-dev-platform` and run `vagrant up`.
+Navigate to `metron/metron-deployment/vagrant/quick-dev-platform` and run `vagrant up`.
 
 ## Ambari Management Pack
 An Ambari Management Pack can be built in order to make the Metron service available on top of an existing stack, rather than needing a direct stack update.

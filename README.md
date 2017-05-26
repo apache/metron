@@ -58,8 +58,8 @@ This repository is a collection of submodules for convenience which is regularly
 updated to point to the latest versions. Github provides multiple ways to obtain
 Metron's code:
 
-1. git clone --recursive https://github.com/apache/incubator-metron
-2. [Download ZIP](https://github.com/apache/incubator-metron/archive/master.zip)
+1. git clone --recursive https://github.com/apache/metron
+2. [Download ZIP](https://github.com/apache/metron/archive/master.zip)
 3. Clone or download each repository individually
 
 Option 3 is more likely to have the latest code.

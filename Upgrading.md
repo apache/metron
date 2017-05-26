@@ -15,7 +15,7 @@ As of 0.3.0 the indexing configuration
 In the 0.3.1 release, this configuration has been broken out
 and control for individual writers are separated.
 
-Please see the description of the configurations in the indexing [README](https://github.com/apache/incubator-metron/tree/Metron_0.3.1/metron-platform/metron-indexing#sensor-indexing-configuration)
+Please see the description of the configurations in the indexing [README](https://github.com/apache/metron/tree/Metron_0.3.1/metron-platform/metron-indexing#sensor-indexing-configuration)
 
 #### Migration
 
