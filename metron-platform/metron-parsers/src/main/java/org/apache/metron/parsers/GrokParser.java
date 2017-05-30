@@ -19,6 +19,18 @@ package org.apache.metron.parsers;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import org.apache.hadoop.conf.Configuration;
@@ -30,21 +42,9 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Serializable;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-
 public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(GrokParser.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   protected transient Grok grok;
   protected String grokPath;
@@ -92,9 +92,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     grok = new Grok();
     try {
       InputStream commonInputStream = openInputStream(patternsCommonDir);
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Grok parser loading common patterns from: " + patternsCommonDir);
-      }
+      LOG.debug("Grok parser loading common patterns from: {}", patternsCommonDir);
 
       if (commonInputStream == null) {
         throw new RuntimeException(
@@ -102,9 +100,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       }
 
       grok.addPatternFromReader(new InputStreamReader(commonInputStream));
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Loading parser-specific patterns from: " + grokPath);
-      }
+      LOG.debug("Loading parser-specific patterns from: {}", grokPath);
 
       InputStream patterInputStream = openInputStream(grokPath);
       if (patterInputStream == null) {
@@ -114,15 +110,13 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       grok.addPatternFromReader(new InputStreamReader(patterInputStream));
 
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Grok parser set the following grok expression: " + grok.getNamedRegexCollectionById(patternLabel));
+        LOG.debug("Grok parser set the following grok expression: {}", grok.getNamedRegexCollectionById(patternLabel));
       }
 
       String grokPattern = "%{" + patternLabel + "}";
 
       grok.compile(grokPattern);
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Compiled grok pattern" + grokPattern);
-      }
+      LOG.debug("Compiled grok pattern {}", grokPattern);
 
     } catch (Throwable e) {
       LOG.error(e.getMessage(), e);
@@ -140,9 +134,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
     String originalMessage = null;
     try {
       originalMessage = new String(rawMessage, "UTF-8");
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Grok parser parsing message: " + originalMessage);
-      }
+      LOG.debug("Grok parser parsing message: {}",originalMessage);
       Match gm = grok.match(originalMessage);
       gm.captures();
       JSONObject message = new JSONObject();
@@ -166,9 +158,7 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
       message.remove(patternLabel);
       postParse(message);
       messages.add(message);
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Grok parser parsed message: " + message);
-      }
+      LOG.debug("Grok parser parsed message: {}", message);
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw new IllegalStateException("Grok parser Error: " + e.getMessage() + " on " + originalMessage , e);
@@ -178,48 +168,35 @@ public class GrokParser implements MessageParser<JSONObject>, Serializable {
 
   @Override
   public boolean validate(JSONObject message) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Grok parser validating message: " + message);
-    }
+    LOG.debug("Grok parser validating message: {}", message);
 
     Object timestampObject = message.get(Constants.Fields.TIMESTAMP.getName());
     if (timestampObject instanceof Long) {
       Long timestamp = (Long) timestampObject;
       if (timestamp > 0) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Grok parser validated message: " + message);
-        }
+        LOG.debug("Grok parser validated message: {}", message);
         return true;
       }
     }
 
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Grok parser did not validate message: " + message);
-    }
+    LOG.debug("Grok parser did not validate message: {}", message);
     return false;
   }
 
   protected void postParse(JSONObject message) {}
 
   protected long toEpoch(String datetime) throws ParseException {
-
     LOG.debug("Grok parser converting timestamp to epoch: {}", datetime);
     LOG.debug("Grok parser's DateFormat has TimeZone: {}", dateFormat.getTimeZone());
 
     Date date = dateFormat.parse(datetime);
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Grok parser converted timestamp to epoch: " + date);
-    }
+    LOG.debug("Grok parser converted timestamp to epoch: {}", date);
 
     return date.getTime();
   }
 
   protected long formatTimestamp(Object value) {
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Grok parser formatting timestamp" + value);
-    }
-
+    LOG.debug("Grok parser formatting timestamp {}", value);
 
     if (value == null) {
       throw new RuntimeException(patternLabel + " pattern does not include field " + timestampField);

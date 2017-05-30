@@ -20,27 +20,27 @@ package org.apache.metron.enrichment.adapters.simplehbase;
 
 
 import com.google.common.collect.Iterables;
+import java.io.IOException;
+import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
+import java.util.List;
+import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.metron.enrichment.bolt.CacheKey;
-import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
-import org.apache.metron.enrichment.utils.EnrichmentUtils;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.enrichment.lookup.EnrichmentLookup;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.accesstracker.NoopAccessTracker;
+import org.apache.metron.enrichment.utils.EnrichmentUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-
 public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable {
-  protected static final Logger _LOG = LoggerFactory.getLogger(SimpleHBaseAdapter.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   protected SimpleHBaseConfig config;
   protected EnrichmentLookup lookup;
 
@@ -89,17 +89,17 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
             for (Map.Entry<String, Object> values : kv.getValue().getMetadata().entrySet()) {
               enriched.put(kv.getKey().type + "." + values.getKey(), values.getValue());
             }
-            _LOG.trace("Enriched type " + kv.getKey().type + " => " + enriched);
+            LOG.trace("Enriched type {} => {}", kv.getKey().type, enriched);
           }
         }
       }
       catch (IOException e) {
-        _LOG.error("Unable to retrieve value: " + e.getMessage(), e);
+        LOG.error("Unable to retrieve value: {}", e.getMessage(), e);
         initializeAdapter(null);
         throw new RuntimeException("Unable to retrieve value: " + e.getMessage(), e);
       }
     }
-    _LOG.trace("SimpleHBaseAdapter succeeded:", enriched);
+    LOG.trace("SimpleHBaseAdapter succeeded: {}", enriched);
     return enriched;
   }
 
@@ -113,7 +113,7 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
                                    , new NoopAccessTracker()
                                    );
     } catch (IOException e) {
-      _LOG.error("Unable to initialize adapter: " + e.getMessage(), e);
+      LOG.error("Unable to initialize adapter: {}", e.getMessage(), e);
       return false;
     }
     return true;
@@ -128,7 +128,7 @@ public class SimpleHBaseAdapter implements EnrichmentAdapter<CacheKey>,Serializa
     try {
       lookup.close();
     } catch (Exception e) {
-      _LOG.error("Unable to cleanup access tracker", e);
+      LOG.error("Unable to cleanup access tracker", e);
     }
   }
 

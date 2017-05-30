@@ -17,30 +17,26 @@
  */
 package org.apache.metron.parsers.integration.components;
 
-import com.google.common.collect.ImmutableMap;
-import org.apache.storm.Config;
-import org.apache.storm.LocalCluster;
-import org.apache.storm.topology.TopologyBuilder;
-import org.apache.metron.integration.InMemoryComponent;
-import org.apache.metron.integration.UnableToStartException;
-import org.apache.metron.parsers.topology.ParserTopologyBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileVisitOption;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-
 import static org.apache.metron.integration.components.FluxTopologyComponent.assassinateSlots;
 import static org.apache.metron.integration.components.FluxTopologyComponent.cleanupWorkerDir;
 
+import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import org.apache.metron.integration.InMemoryComponent;
+import org.apache.metron.integration.UnableToStartException;
+import org.apache.metron.parsers.topology.ParserTopologyBuilder;
+import org.apache.storm.Config;
+import org.apache.storm.LocalCluster;
+import org.apache.storm.topology.TopologyBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ParserTopologyComponent implements InMemoryComponent {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(ParserTopologyComponent.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private Properties topologyProperties;
   private String brokerUrl;
   private String sensorType;

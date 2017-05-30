@@ -17,17 +17,18 @@
  */
 package org.apache.metron.dataloads.bulk;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class DataPruner {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(DataPruner.class);
+    protected static final Logger LOG = LoggerFactory
+        .getLogger(MethodHandles.lookup().lookupClass());
     protected long firstTimeMillis;
     protected long lastTimeMillis;
     protected String wildCard;

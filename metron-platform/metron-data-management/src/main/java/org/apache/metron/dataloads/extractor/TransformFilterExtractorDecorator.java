@@ -17,10 +17,24 @@
  */
 package org.apache.metron.dataloads.extractor;
 
+import static org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator.ExtractorOptions.INDICATOR;
+import static org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator.ExtractorOptions.INDICATOR_FILTER;
+import static org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator.ExtractorOptions.INDICATOR_TRANSFORM;
+import static org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator.ExtractorOptions.VALUE_FILTER;
+import static org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator.ExtractorOptions.VALUE_TRANSFORM;
+import static org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator.ExtractorOptions.ZK_QUORUM;
+
 import com.fasterxml.jackson.core.type.TypeReference;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.log4j.Logger;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.MapVariableResolver;
@@ -30,15 +44,11 @@ import org.apache.metron.common.stellar.StellarProcessor;
 import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.lookup.LookupKV;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.*;
-
-import static org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator.ExtractorOptions.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TransformFilterExtractorDecorator extends ExtractorDecorator {
-  private static final Logger LOG = Logger.getLogger(TransformFilterExtractorDecorator.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   protected enum ExtractorOptions {
     VALUE_TRANSFORM("value_transform"),

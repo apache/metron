@@ -56,7 +56,7 @@ public class BasicIseParser extends BasicParser {
 		try {
 
 			raw_message = new String(msg, "UTF-8");
-			_LOG.debug("Received message: " + raw_message);
+			_LOG.debug("Received message: {}", raw_message);
 
 			/*
 			 * Reinitialize Parser. It has the effect of calling the constructor again.

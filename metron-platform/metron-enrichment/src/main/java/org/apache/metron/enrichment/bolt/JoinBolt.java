@@ -22,6 +22,11 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Sets;
+import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.error.MetronError;
@@ -37,15 +42,9 @@ import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
 public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
 
-  private static final Logger LOG = LoggerFactory
-          .getLogger(JoinBolt.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   protected OutputCollector collector;
 
   protected transient CacheLoader<String, Map<String, V>> loader;
@@ -106,8 +105,7 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
     try {
       Map<String, V> streamMessageMap = cache.get(key);
       if (streamMessageMap.containsKey(streamId)) {
-        LOG.warn(String.format("Received key %s twice for " +
-                "stream %s", key, streamId));
+        LOG.warn("Received key {} twice for stream {}", key, streamId);
       }
       streamMessageMap.put(streamId, message);
       Set<String> streamIds = getStreamIds(message);
@@ -128,13 +126,13 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
       } else {
         cache.put(key, streamMessageMap);
         if(LOG.isDebugEnabled()) {
-          LOG.debug(getClass().getSimpleName() + ": Missed joining portions for "+ key + ". Expected " + Joiner.on(",").join(streamIds)
-                  + " != " + Joiner.on(",").join(streamMessageKeys)
-                   );
+          LOG.debug("{}: Missed joining portions for {}. Expected {} != {}",
+              getClass().getSimpleName(), key, Joiner.on(",").join(streamIds),
+              Joiner.on(",").join(streamMessageKeys));
         }
       }
     } catch (Exception e) {
-      LOG.error("[Metron] Unable to join messages: " + message, e);
+      LOG.error("[Metron] Unable to join messages: {}", message, e);
       MetronError error = new MetronError()
               .withErrorType(Constants.ErrorType.ENRICHMENT_ERROR)
               .withMessage("Joining problem: " + message)

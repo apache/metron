@@ -17,12 +17,19 @@
  */
 package org.apache.metron.management;
 
+import static org.apache.metron.common.configuration.ConfigurationType.ENRICHMENT;
+import static org.apache.metron.management.EnrichmentConfigFunctions.getConfig;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import com.jakewharton.fliptables.FlipTable;
-import org.apache.log4j.Logger;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.RiskLevelRule;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatIntelConfig;
@@ -33,15 +40,11 @@ import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.JSONUtils;
-
-import java.io.IOException;
-import java.util.*;
-
-import static org.apache.metron.common.configuration.ConfigurationType.ENRICHMENT;
-import static org.apache.metron.management.EnrichmentConfigFunctions.getConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ThreatTriageFunctions {
-  private static final Logger LOG = Logger.getLogger(ConfigurationFunctions.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Stellar(
            namespace = "THREAT_TRIAGE"
@@ -175,7 +178,7 @@ public class ThreatTriageFunctions {
       try {
         return JSONUtils.INSTANCE.toJSON(configObj, true);
       } catch (JsonProcessingException e) {
-        LOG.error("Unable to convert object to JSON: " + configObj, e);
+        LOG.error("Unable to convert object to JSON: {}", configObj, e);
         return config;
       }
 
@@ -243,7 +246,7 @@ public class ThreatTriageFunctions {
       try {
         return JSONUtils.INSTANCE.toJSON(configObj, true);
       } catch (JsonProcessingException e) {
-        LOG.error("Unable to convert object to JSON: " + configObj, e);
+        LOG.error("Unable to convert object to JSON: {}", configObj, e);
         return config;
       }
 
@@ -308,7 +311,7 @@ public class ThreatTriageFunctions {
       try {
         return JSONUtils.INSTANCE.toJSON(configObj, true);
       } catch (JsonProcessingException e) {
-        LOG.error("Unable to convert object to JSON: " + configObj, e);
+        LOG.error("Unable to convert object to JSON: {}", configObj, e);
         return config;
       }
 

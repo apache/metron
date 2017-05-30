@@ -17,8 +17,13 @@
  */
 package org.apache.metron.management;
 
+import static org.apache.metron.common.configuration.ConfigurationType.INDEXING;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.log4j.Logger;
+import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
@@ -26,16 +31,12 @@ import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.JSONUtils;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.apache.metron.common.configuration.ConfigurationType.INDEXING;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class IndexingConfigFunctions {
-  private static final Logger LOG = Logger.getLogger(IndexingConfigFunctions.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @Stellar(
            namespace = "INDEXING"
           ,name = "SET_BATCH"
@@ -80,7 +81,7 @@ public class IndexingConfigFunctions {
       try {
         return JSONUtils.INSTANCE.toJSON(configObj, true);
       } catch (JsonProcessingException e) {
-        LOG.error("Unable to convert object to JSON: " + configObj, e);
+        LOG.error("Unable to convert object to JSON: {}", configObj, e);
         return config;
       }
     }
@@ -138,7 +139,7 @@ public class IndexingConfigFunctions {
       try {
         return JSONUtils.INSTANCE.toJSON(configObj, true);
       } catch (JsonProcessingException e) {
-        LOG.error("Unable to convert object to JSON: " + configObj, e);
+        LOG.error("Unable to convert object to JSON: {}", configObj, e);
         return config;
       }
     }
@@ -195,7 +196,7 @@ public class IndexingConfigFunctions {
       try {
         return JSONUtils.INSTANCE.toJSON(configObj, true);
       } catch (JsonProcessingException e) {
-        LOG.error("Unable to convert object to JSON: " + configObj, e);
+        LOG.error("Unable to convert object to JSON: {}", configObj, e);
         return config;
       }
     }

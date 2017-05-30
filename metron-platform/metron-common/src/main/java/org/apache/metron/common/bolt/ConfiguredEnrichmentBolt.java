@@ -17,18 +17,18 @@
  */
 package org.apache.metron.common.bolt;
 
-import org.apache.log4j.Logger;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.StellarFunctions;
-
-import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class ConfiguredEnrichmentBolt extends ConfiguredBolt<EnrichmentConfigurations> {
 
-  private static final Logger LOG = Logger.getLogger(ConfiguredEnrichmentBolt.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
 
   public ConfiguredEnrichmentBolt(String zookeeperUrl) {
     super(zookeeperUrl);

@@ -19,6 +19,11 @@
 package org.apache.metron.parsers.csv;
 
 import com.google.common.collect.ImmutableList;
+import java.lang.invoke.MethodHandles;
+import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.apache.metron.common.csv.CSVConverter;
 import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.parsers.BasicParser;
@@ -26,13 +31,8 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 public class CSVParser extends BasicParser {
-  protected static final Logger LOG = LoggerFactory.getLogger(CSVParser.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String TIMESTAMP_FORMAT_CONF = "timestampFormat";
   private transient CSVConverter converter;
   private SimpleDateFormat timestampFormat;
@@ -73,7 +73,7 @@ public class CSVParser extends BasicParser {
               timestamp = timestampFormat.parse(timestampObj.toString()).getTime();
             }
             catch(Exception e) {
-              LOG.error("Unable to format " + timestampObj.toString());
+              LOG.error("Unable to format {}", timestampObj.toString());
             }
           }
         }

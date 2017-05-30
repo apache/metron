@@ -17,28 +17,36 @@
  */
 package org.apache.metron.management;
 
+import static org.apache.metron.common.stellar.shell.StellarExecutor.CONSOLE;
+
 import com.jakewharton.fliptables.FlipTable;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.text.WordUtils;
-import org.apache.log4j.Logger;
-import org.apache.metron.common.dsl.*;
+import org.apache.metron.common.dsl.BaseStellarFunction;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.common.dsl.Stellar;
+import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.stellar.shell.PausableInput;
 import org.apache.metron.common.stellar.shell.StellarExecutor;
 import org.apache.metron.common.utils.ConversionUtils;
-import org.jboss.aesh.console.AeshProcess;
 import org.jboss.aesh.console.Console;
-
-import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.nio.charset.Charset;
-import java.util.*;
-
-import static org.apache.metron.common.stellar.shell.StellarExecutor.CONSOLE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ShellFunctions {
-  private static final Logger LOG = Logger.getLogger(ShellFunctions.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Stellar(
            namespace = "SHELL"
@@ -269,7 +277,7 @@ public class ShellFunctions {
             ((Console)console.get()).pushToInputStream("\b\n");
           }
         } catch (IOException e) {
-          LOG.error("Unable to unpause: " + e.getMessage(), e);
+          LOG.error("Unable to unpause: {}", e.getMessage(), e);
         }
         if(outFile.exists()) {
           outFile.delete();

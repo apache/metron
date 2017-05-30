@@ -18,6 +18,7 @@
 
 package org.apache.metron.spout.pcap.deserializer;
 
+import java.lang.invoke.MethodHandles;
 import org.apache.metron.pcap.PcapHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,7 @@ import org.slf4j.LoggerFactory;
  * Extract the timestamp and raw data from the packet.
  */
 public class FromPacketDeserializer extends KeyValueDeserializer {
-  private static final Logger LOG = LoggerFactory.getLogger(FromPacketDeserializer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Override
   public Result deserializeKeyValue(byte[] key, byte[] value) {

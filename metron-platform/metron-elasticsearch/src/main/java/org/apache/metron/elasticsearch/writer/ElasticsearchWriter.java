@@ -17,15 +17,26 @@
  */
 package org.apache.metron.elasticsearch.writer;
 
-import org.apache.storm.task.TopologyContext;
-import org.apache.storm.tuple.Tuple;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import java.io.Serializable;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.interfaces.FieldNameConverter;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
-import org.apache.metron.common.interfaces.FieldNameConverter;
+import org.apache.storm.task.TopologyContext;
+import org.apache.storm.tuple.Tuple;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -36,12 +47,6 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.Serializable;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
@@ -235,9 +240,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
     if(field.contains(".")){
 
-      if(LOG.isDebugEnabled()){
-        LOG.debug("Dotted field: " + field);
-      }
+      LOG.debug("Dotted field: {}", field);
 
     }
     String newkey = fieldNameConverter.convert(field);

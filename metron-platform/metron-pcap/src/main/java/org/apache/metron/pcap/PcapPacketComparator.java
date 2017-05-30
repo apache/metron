@@ -17,22 +17,20 @@
  */
 package org.apache.metron.pcap;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Comparator;
-
-import org.apache.log4j.Logger;
-
 import org.krakenapps.pcap.packet.PcapPacket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PcapPacketComparator implements Comparator<PcapPacket> {
-
-  /** The Constant LOG. */
-  private static final Logger LOG = Logger.getLogger(PcapPacketComparator.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Override
   public int compare(PcapPacket p1, PcapPacket p2) {
     long p1time = p1.getPacketHeader().getTsSec() * 1000000L + p1.getPacketHeader().getTsUsec();
     long p2time = p2.getPacketHeader().getTsSec() * 1000000L + p2.getPacketHeader().getTsUsec();
-    LOG.debug("p1time: " + p1time + " p2time: " + p2time);
+    LOG.debug("p1time: {} p2time: {}", p1time, p2time);
     return Long.compare(p1time, p2time);
   }
 }

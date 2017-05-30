@@ -18,6 +18,7 @@
 
 package org.apache.metron.parsers.cef;
 
+import java.lang.invoke.MethodHandles;
 import java.nio.charset.Charset;
 import java.time.Clock;
 import java.util.ArrayList;
@@ -27,7 +28,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.apache.metron.parsers.BasicParser;
 import org.apache.metron.parsers.ParseException;
 import org.apache.metron.parsers.utils.DateUtils;
@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 public class CEFParser extends BasicParser {
 	private static final long serialVersionUID = 1L;
 
-	protected static final Logger LOG = LoggerFactory.getLogger(CEFParser.class);
+	protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 	private static final String HEADER_CAPTURE_PATTERN = "[^\\|]*";
 	private static final String EXTENSION_CAPTURE_PATTERN = "(?<!\\\\)=";
 	private static final Charset UTF_8 = Charset.forName("UTF-8");
@@ -109,7 +109,7 @@ public class CEFParser extends BasicParser {
 		while (matcher.find()) {
 			JSONObject obj = new JSONObject();
 			if (matcher.matches()) {
-				LOG.info(String.format("Found %d groups", matcher.groupCount()));
+				LOG.info("Found %d groups", matcher.groupCount());
 				obj.put("DeviceVendor", matcher.group("DeviceVendor"));
 				obj.put("DeviceProduct", matcher.group("DeviceProduct"));
 				obj.put("DeviceVersion", matcher.group("DeviceVersion"));

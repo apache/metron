@@ -124,7 +124,7 @@ public class BasicFireEyeParser extends BasicParser {
 			time = tsMatcher.group(3);
 	
 				} else {
-			LOG.warn("Unable to find timestamp in message: " + toParse);
+			LOG.warn("Unable to find timestamp in message: {}", toParse);
 			ts = ParserUtils.convertToEpoch(month, day, time, true);
 		}
 

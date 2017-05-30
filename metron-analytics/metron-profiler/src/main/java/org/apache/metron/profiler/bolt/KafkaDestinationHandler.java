@@ -19,6 +19,8 @@
 
 package org.apache.metron.profiler.bolt;
 
+import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.storm.task.OutputCollector;
@@ -29,15 +31,13 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-
 /**
  * Handles emitting a ProfileMeasurement to the stream which writes
  * profile measurements to Kafka.
  */
 public class KafkaDestinationHandler implements DestinationHandler, Serializable {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(KafkaDestinationHandler.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * The stream identifier used for this destination;

@@ -62,7 +62,7 @@ public class BasicSourcefireParser extends BasicParser {
 		try {
 
 			toParse = new String(msg, "UTF-8");
-			_LOG.debug("Received message: " + toParse);
+			_LOG.debug("Received message: {}", toParse);
 
 			String tmp = toParse.substring(toParse.lastIndexOf("{"));
 			payload.put("key", tmp);
@@ -109,7 +109,7 @@ public class BasicSourcefireParser extends BasicParser {
 				signatureId = sidMatcher.group(2);
 				originalString = sidMatcher.group(1) +" "+ sidMatcher.group(2) + " " + sidMatcher.group(3);
 			} else {
-				_LOG.warn("Unable to find SID in message: " + toParse);
+				_LOG.warn("Unable to find SID in message: {}", toParse);
 				originalString = toParse;
 			}
 			payload.put("original_string", originalString);
@@ -118,7 +118,7 @@ public class BasicSourcefireParser extends BasicParser {
 			return messages;
 		} catch (Exception e) {
 			e.printStackTrace();
-			_LOG.error("Failed to parse: " + toParse);
+			_LOG.error("Failed to parse: {}", toParse);
 			return null;
 		}
 	}

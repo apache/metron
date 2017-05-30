@@ -18,12 +18,12 @@
 
 package org.apache.metron.common.dsl.functions.resolver;
 
+import java.lang.invoke.MethodHandles;
+import java.util.HashSet;
+import java.util.Set;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * A simple Stellar function resolver that resolves functions from specific
@@ -36,7 +36,7 @@ import java.util.Set;
  */
 public class SimpleFunctionResolver extends BaseFunctionResolver {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(SimpleFunctionResolver.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * The classes that will be further interrogated for Stellar functions.

@@ -19,6 +19,12 @@
 package org.apache.metron.common.configuration.enrichment;
 
 import com.google.common.base.Joiner;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
@@ -26,11 +32,10 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-
 public class SensorEnrichmentUpdateConfig {
 
-  protected static final Logger _LOG = LoggerFactory.getLogger(SensorEnrichmentUpdateConfig.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   public static class FieldList {
     Type type;
     Map<String, List<String>> fieldToEnrichmentTypes;
@@ -152,7 +157,7 @@ public class SensorEnrichmentUpdateConfig {
         }
       }
       if(fieldToTypeMap == null  || fieldMap == null) {
-        _LOG.debug("fieldToTypeMap is null or fieldMap is null, so skipping");
+        LOG.debug("fieldToTypeMap is null or fieldMap is null, so skipping");
         continue;
       }
       //Add the additional fields to the field list associated with the hbase adapter
@@ -166,7 +171,7 @@ public class SensorEnrichmentUpdateConfig {
         }
         //adding only the ones that we don't already have to the field list
         if (additionalFields.size() > 0) {
-          _LOG.debug("Adding additional fields: " + Joiner.on(',').join(additionalFields));
+          LOG.debug("Adding additional fields: {}", Joiner.on(',').join(additionalFields));
           fieldList.addAll(additionalFields);
           sourceConfigsChanged.put(kv.getKey(), config);
         }
@@ -202,8 +207,8 @@ public class SensorEnrichmentUpdateConfig {
     SensorEnrichmentConfig config = sourceConfigsChanged.get(key);
     if(config == null) {
       config = scHandler.readConfig(key);
-      if(_LOG.isDebugEnabled()) {
-        _LOG.debug(config.toJSON());
+      if(LOG.isDebugEnabled()) {
+        LOG.debug(config.toJSON());
       }
     }
     return config;

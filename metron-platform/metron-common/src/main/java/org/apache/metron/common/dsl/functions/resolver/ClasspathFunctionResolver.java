@@ -18,25 +18,28 @@
 
 package org.apache.metron.common.dsl.functions.resolver;
 
+import static org.apache.metron.common.dsl.Context.Capabilities.STELLAR_CONFIG;
+import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_EXCLUDES_KEY;
+import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_INCLUDES_KEY;
+import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_VFS_PATHS;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.impl.VFSClassLoader;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
-import org.apache.metron.common.utils.VFSClassloaderUtil;
 import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.common.utils.VFSClassloaderUtil;
 import org.atteo.classindex.ClassIndex;
-import org.reflections.util.ClasspathHelper;
 import org.reflections.util.FilterBuilder;
-
-import java.net.URL;
-import java.util.*;
-
-import static org.apache.metron.common.dsl.Context.Capabilities.STELLAR_CONFIG;
-import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_EXCLUDES_KEY;
-import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_INCLUDES_KEY;
-import static org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_VFS_PATHS;
 
 /**
  * Performs function resolution for Stellar by searching the classpath.
@@ -178,7 +181,7 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
       if (optional.isPresent()) {
         Map<String, Object> stellarConfig = (Map<String, Object>) optional.get();
         if(LOG.isDebugEnabled()) {
-          LOG.debug("Setting up classloader using the following config: " + stellarConfig);
+          LOG.debug("Setting up classloader using the following config: {}", stellarConfig);
         }
 
         include(STELLAR_SEARCH_INCLUDES_KEY.get(stellarConfig, String.class).split(STELLAR_SEARCH_DELIMS));
@@ -187,16 +190,16 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
         try {
           vfsLoader = VFSClassloaderUtil.configureClassloader(STELLAR_VFS_PATHS.get(stellarConfig, String.class));
           if(vfsLoader.isPresent()) {
-            LOG.debug("CLASSLOADER LOADED WITH: " + STELLAR_VFS_PATHS.get(stellarConfig, String.class));
+            LOG.debug("CLASSLOADER LOADED WITH: {}", STELLAR_VFS_PATHS.get(stellarConfig, String.class));
             if(LOG.isDebugEnabled()) {
               for (FileObject fo : ((VFSClassLoader) vfsLoader.get()).getFileObjects()) {
-                LOG.error(fo.getURL() + " - " + fo.exists());
+                LOG.error("{} - {}", fo.getURL(), fo.exists());
               }
             }
             classLoaders(vfsLoader.get());
           }
         } catch (FileSystemException e) {
-          LOG.error("Unable to process filesystem: " + e.getMessage(), e);
+          LOG.error("Unable to process filesystem: {}", e.getMessage(), e);
         }
       }
       else {

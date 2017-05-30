@@ -18,6 +18,31 @@
 
 package org.apache.metron.dataloads.nonbulk.taxii;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.lang.invoke.MethodHandles;
+import java.net.URI;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimerTask;
+import javax.xml.XMLConstants;
+import javax.xml.bind.JAXBException;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -41,7 +66,6 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.log4j.Logger;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
@@ -49,29 +73,28 @@ import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.mitre.taxii.client.HttpClient;
-import org.mitre.taxii.messages.xml11.*;
+import org.mitre.taxii.messages.xml11.AnyMixedContentType;
+import org.mitre.taxii.messages.xml11.CollectionInformationRequest;
+import org.mitre.taxii.messages.xml11.CollectionInformationResponse;
+import org.mitre.taxii.messages.xml11.CollectionRecordType;
+import org.mitre.taxii.messages.xml11.ContentBlock;
+import org.mitre.taxii.messages.xml11.DiscoveryRequest;
+import org.mitre.taxii.messages.xml11.DiscoveryResponse;
+import org.mitre.taxii.messages.xml11.MessageHelper;
+import org.mitre.taxii.messages.xml11.ObjectFactory;
+import org.mitre.taxii.messages.xml11.PollRequest;
+import org.mitre.taxii.messages.xml11.PollResponse;
+import org.mitre.taxii.messages.xml11.ServiceInstanceType;
+import org.mitre.taxii.messages.xml11.ServiceTypeEnum;
+import org.mitre.taxii.messages.xml11.TaxiiXml;
+import org.mitre.taxii.messages.xml11.TaxiiXmlFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBException;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.net.URI;
-import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
 public class TaxiiHandler extends TimerTask {
-  private static final Logger LOG = Logger.getLogger(TaxiiHandler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static ThreadLocal<TaxiiXmlFactory> xmlFactory = new ThreadLocal<TaxiiXmlFactory>() {
     @Override
@@ -108,7 +131,7 @@ public class TaxiiHandler extends TimerTask {
              , Configuration config
              ) throws Exception
   {
-    LOG.info("Loading configuration: " + connectionConfig);
+    LOG.info("Loading configuration: {}", connectionConfig);
     this.allowedIndicatorTypes = connectionConfig.getAllowedIndicatorTypes();
     this.extractor = extractor;
     this.collection = connectionConfig.getCollection();
@@ -121,7 +144,7 @@ public class TaxiiHandler extends TimerTask {
     this.username = connectionConfig.getUsername();
     this.password = connectionConfig.getPassword();
     initializeClient(connectionConfig);
-    LOG.info("Configured, starting polling " + endpoint + " for " + collection);
+    LOG.info("Configured, starting polling {} for {}", endpoint, collection);
   }
 
   protected synchronized HTableInterface getTable(String table) throws IOException {
@@ -145,7 +168,7 @@ public class TaxiiHandler extends TimerTask {
       return;
     }
     Date ts = new Date();
-    LOG.info("Polling..." + new SimpleDateFormat().format(ts));
+    LOG.info("Polling...{}", new SimpleDateFormat().format(ts));
     try {
       inProgress = true;
       // Prepare the message to send.
@@ -168,13 +191,13 @@ public class TaxiiHandler extends TimerTask {
           ErrorUtils.RuntimeErrors.ILLEGAL_STATE.throwRuntime("Unable to set the begin time due to", e);
         }
         gTime.setFractionalSecond(null);
-        LOG.info("Begin Time: " + gTime);
+        LOG.info("Begin Time: {}", gTime);
         request.setExclusiveBeginTimestamp(gTime);
       }
 
       try {
         PollResponse response = call(request, PollResponse.class);
-        LOG.info("Got Poll Response with " + response.getContentBlocks().size() + " blocks");
+        LOG.info("Got Poll Response with {} blocks", response.getContentBlocks().size());
         int numProcessed = 0;
         long avgTimeMS = 0;
         long timeStartedBlock = System.currentTimeMillis();
@@ -188,7 +211,7 @@ public class TaxiiHandler extends TimerTask {
               Element element = (Element) o;
               xml = getStringFromDocument(element.getOwnerDocument());
               if(LOG.isDebugEnabled() && Math.random() < 0.01) {
-                LOG.debug("Random Stix doc: " + xml);
+                LOG.debug("Random Stix doc: {}", xml);
               }
               for (LookupKV<EnrichmentKey, EnrichmentValue> kv : extractor.extract(xml)) {
                 if(allowedIndicatorTypes.isEmpty()
@@ -201,14 +224,14 @@ public class TaxiiHandler extends TimerTask {
                   Put p = converter.toPut(columnFamily, kv.getKey(), kv.getValue());
                   HTableInterface table = getTable(hbaseTable);
                   table.put(p);
-                  LOG.info("Found Threat Intel: " + kv.getKey() + " => " + kv.getValue());
+                  LOG.info("Found Threat Intel: {} => ", kv.getKey(), kv.getValue());
                 }
               }
             }
             avgTimeMS += System.currentTimeMillis() - timeS;
           }
           if( (numProcessed + 1) % 100 == 0) {
-            LOG.info("Processed " + numProcessed + " in " + (System.currentTimeMillis() - timeStartedBlock) + " ms, avg time: " + avgTimeMS / content.getContent().size());
+            LOG.info("Processed {}  in {} ms, avg time: {}", numProcessed, System.currentTimeMillis() - timeStartedBlock, avgTimeMS / content.getContent().size());
             timeStartedBlock = System.currentTimeMillis();
             avgTimeMS = 0;
             numProcessed = 0;
@@ -258,7 +281,7 @@ public class TaxiiHandler extends TimerTask {
       LOG.info("Discovering endpoint");
       endpoint = discoverPollingClient(config.getProxy(), endpoint, config.getUsername(), config.getPassword(), context, collection).pollEndpoint;
       this.endpoint = endpoint;
-      LOG.info("Discovered endpoint as " + endpoint);
+      LOG.info("Discovered endpoint as {}", endpoint);
     }
   }
 
@@ -339,7 +362,7 @@ public class TaxiiHandler extends TimerTask {
       , Class<RESPONSE_T> responseClazz
   ) throws JAXBException, IOException {
     Object responseObj =  taxiiClient.callTaxiiService(endpoint, request, context);
-    LOG.info("Request made : " + request.getClass().getCanonicalName() + " => " + responseObj.getClass().getCanonicalName() + " (expected " + responseClazz.getCanonicalName() + ")");
+    LOG.info("Request made : {} => {} (expected {})", request.getClass().getCanonicalName(), responseObj.getClass().getCanonicalName(), responseClazz.getCanonicalName());
     try {
       return responseClazz.cast(responseObj);
     }

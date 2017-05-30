@@ -17,19 +17,19 @@
  */
 package org.apache.metron.enrichment.adapters.geo;
 
+import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
 public class GeoAdapter implements EnrichmentAdapter<CacheKey>, Serializable {
-  protected static final Logger _LOG = LoggerFactory.getLogger(GeoAdapter.class);
+  protected static final Logger _LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Override
   public void logAccess(CacheKey value) {

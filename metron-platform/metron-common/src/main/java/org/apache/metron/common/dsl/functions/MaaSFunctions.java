@@ -20,8 +20,15 @@ package org.apache.metron.common.dsl.functions;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import java.lang.invoke.MethodHandles;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.hadoop.security.authorize.Service;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
@@ -36,16 +43,8 @@ import org.apache.metron.maas.util.RESTUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
 public class MaaSFunctions {
- protected static final Logger LOG = LoggerFactory.getLogger(MaaSFunctions.class);
+ protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static class ModelCacheKey {
     String name;
     String version;
@@ -277,7 +276,7 @@ public class MaaSFunctions {
         return ep == null ? null : endpointToMap(ep.getName(), ep.getVersion(), ep.getEndpoint());
       }
       catch(Exception ex) {
-        LOG.error("Unable to discover endpoint: " + ex.getMessage(), ex);
+        LOG.error("Unable to discover endpoint: {}", ex.getMessage(), ex);
         return null;
       }
     }

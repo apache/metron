@@ -18,23 +18,28 @@
 package org.apache.metron.management;
 
 import com.jakewharton.fliptables.FlipTable;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import oi.thekraken.grok.api.exception.GrokException;
-import org.apache.log4j.Logger;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
-
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GrokFunctions {
-
-  private static final Logger LOG = Logger.getLogger(GrokFunctions.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static Grok getGrok(String grokExpr) throws GrokException {
     Grok grok = new Grok();
 
@@ -84,7 +89,7 @@ public class GrokFunctions {
       try {
         grok = getGrok(grokExpression);
       } catch (GrokException e) {
-        LOG.error("unable to parse " + grokExpression + ": " + e.getMessage(), e);
+        LOG.error("unable to parse {}: {}", grokExpression, e.getMessage(), e);
         return null;
       }
       List<Map<String, Object>> outputMap = new ArrayList<>();
@@ -155,7 +160,7 @@ public class GrokFunctions {
       try {
         grok = getGrok(null);
       } catch (GrokException e) {
-        LOG.error("unable to construct grok object: " + e.getMessage(), e);
+        LOG.error("unable to construct grok object: {}", e.getMessage(), e);
         return null;
       }
       return grok.discover(str);

@@ -17,29 +17,29 @@
  */
 package org.apache.metron.hbase;
 
+import com.google.common.base.Joiner;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
-
-import com.google.common.base.Joiner;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.Increment;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
-
 import org.apache.storm.tuple.Tuple;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Configuration for Storm {@link Tuple} to HBase serialization.
  */
 @SuppressWarnings("serial")
 public class TupleTableConfig extends TableConfig implements Serializable {
-  private static final Logger LOG = Logger.getLogger(TupleTableConfig.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   static final long serialVersionUID = -1L;
   public static final long DEFAULT_INCREMENT = 1L;
   

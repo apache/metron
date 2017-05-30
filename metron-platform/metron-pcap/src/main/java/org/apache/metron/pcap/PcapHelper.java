@@ -21,12 +21,12 @@ package org.apache.metron.pcap;
 import com.google.common.base.Joiner;
 import java.io.EOFException;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.log4j.Logger;
 import org.apache.metron.spout.pcap.Endianness;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -40,12 +40,14 @@ import org.krakenapps.pcap.packet.PacketHeader;
 import org.krakenapps.pcap.packet.PcapPacket;
 import org.krakenapps.pcap.util.Buffer;
 import org.krakenapps.pcap.util.ByteOrderConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PcapHelper {
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   public static final int PACKET_HEADER_SIZE = 4*Integer.BYTES;
   public static final int GLOBAL_HEADER_SIZE = 24;
-  private static final Logger LOG = Logger.getLogger(PcapHelper.class);
 
   public enum PacketFields implements org.apache.metron.common.Constants.Field{
     PACKET_DATA("packet"),

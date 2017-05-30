@@ -17,6 +17,14 @@
  */
 package org.apache.metron.common.utils;
 
+import static java.lang.String.format;
+
+import java.lang.invoke.MethodHandles;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
+import java.util.Optional;
+import java.util.function.Function;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.error.MetronError;
@@ -25,16 +33,8 @@ import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadInfo;
-import java.lang.management.ThreadMXBean;
-import java.util.Optional;
-import java.util.function.Function;
-
-import static java.lang.String.format;
-
 public class ErrorUtils {
-  private final static Logger LOGGER = LoggerFactory.getLogger(ErrorUtils.class);
+  private final static Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   public enum RuntimeErrors {
     ILLEGAL_ARG(t -> new IllegalArgumentException(formatReason(t), t.getRight().orElse(null))),

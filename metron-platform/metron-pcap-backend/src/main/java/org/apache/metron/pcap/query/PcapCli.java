@@ -18,6 +18,11 @@
 package org.apache.metron.pcap.query;
 
 import com.google.common.collect.Iterables;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.conf.Configuration;
@@ -33,13 +38,8 @@ import org.apache.metron.pcap.mr.PcapJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
 public class PcapCli {
-  private static final Logger LOGGER = LoggerFactory.getLogger(PcapCli.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final CliConfig.PrefixStrategy PREFIX_STRATEGY = clock -> {
     String timestamp = new Clock().currentTimeFormatted("yyyyMMddHHmm");
     String uuid = UUID.randomUUID().toString().replaceAll("-", "");
@@ -73,7 +73,7 @@ public class PcapCli {
     try {
       otherArgs = new GenericOptionsParser(hadoopConf, commandArgs).getRemainingArgs();
     } catch (IOException e) {
-      LOGGER.error("Failed to configure hadoop with provided options: " + e.getMessage(), e);
+      LOGGER.error("Failed to configure hadoop with provided options: {}", e.getMessage(), e);
       return -1;
     }
     CliConfig commonConfig = null;
@@ -109,10 +109,10 @@ public class PcapCli {
                 FileSystem.get(hadoopConf),
                 new FixedPcapFilter.Configurator());
       } catch (IOException | ClassNotFoundException e) {
-        LOGGER.error("Failed to execute fixed filter job: " + e.getMessage(), e);
+        LOGGER.error("Failed to execute fixed filter job: {}", e.getMessage(), e);
         return -1;
       } catch (InterruptedException e) {
-        LOGGER.error("Failed to execute fixed filter job: " + e.getMessage(), e);
+        LOGGER.error("Failed to execute fixed filter job: {}", e.getMessage(), e);
         return -1;
       }
     } else if ("query".equals(jobType)) {
@@ -146,10 +146,10 @@ public class PcapCli {
                 FileSystem.get(hadoopConf),
                 new QueryPcapFilter.Configurator());
       } catch (IOException | ClassNotFoundException e) {
-        LOGGER.error("Failed to execute query filter job: " + e.getMessage(), e);
+        LOGGER.error("Failed to execute query filter job: {}", e.getMessage(), e);
         return -1;
       } catch (InterruptedException e) {
-        LOGGER.error("Failed to execute query filter job: " + e.getMessage(), e);
+        LOGGER.error("Failed to execute query filter job: {}", e.getMessage(), e);
         return -1;
       }
     } else {

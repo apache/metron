@@ -20,16 +20,16 @@ package org.apache.metron.hbase;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.log4j.Logger;
-
 import org.apache.storm.generated.Bolt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * HTable connector for Storm {@link Bolt}
@@ -39,7 +39,7 @@ import org.apache.storm.generated.Bolt;
  */
 @SuppressWarnings("serial")
 public class HTableConnector extends Connector implements Serializable{
-  private static final Logger LOG = Logger.getLogger(HTableConnector.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private Configuration conf;
   protected HTableInterface table;
   private String tableName;
@@ -63,8 +63,8 @@ public class HTableConnector extends Connector implements Serializable{
     	this.conf.set("hbase.zookeeper.property.clientPort", _port);
     }
 
-    LOG.info(String.format("Initializing connection to HBase table %s at %s", tableName,
-      this.conf.get("hbase.rootdir")));
+    LOG.info("Initializing connection to HBase table {} at {}", tableName,
+        this.conf.get("hbase.rootdir"));
 
     try {
       this.table = getTableProvider().getTable(this.conf, this.tableName);
@@ -83,10 +83,10 @@ public class HTableConnector extends Connector implements Serializable{
       try {
         this.table.setWriteBufferSize(conf.getWriteBufferSize());
 
-        LOG.info("Setting client-side write buffer to " + conf.getWriteBufferSize());
+        LOG.info("Setting client-side write buffer to {}", conf.getWriteBufferSize());
       } catch (IOException ex) {
-        LOG.error("Unable to set client-side write buffer size for HBase table " + this.tableName,
-          ex);
+        LOG.error("Unable to set client-side write buffer size for HBase table {}", this.tableName,
+            ex);
       }
     }
 
@@ -151,7 +151,7 @@ public class HTableConnector extends Connector implements Serializable{
     try {
       this.table.close();
     } catch (IOException ex) {
-      LOG.error("Unable to close connection to HBase table " + tableName, ex);
+      LOG.error("Unable to close connection to HBase table {}", tableName, ex);
     }
   }
 }

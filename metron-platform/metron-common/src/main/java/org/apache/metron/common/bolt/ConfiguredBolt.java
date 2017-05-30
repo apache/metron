@@ -17,10 +17,9 @@
  */
 package org.apache.metron.common.bolt;
 
-import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.storm.task.OutputCollector;
-import org.apache.storm.task.TopologyContext;
-import org.apache.storm.topology.base.BaseRichBolt;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.Map;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -28,18 +27,19 @@ import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.log4j.Logger;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.dsl.Context;
-
-import java.io.IOException;
-import java.util.Map;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.task.TopologyContext;
+import org.apache.storm.topology.base.BaseRichBolt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends BaseRichBolt {
 
-  private static final Logger LOG = Logger.getLogger(ConfiguredBolt.class);
+  private static final Logger LOG =  LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private String zookeeperUrl;
 

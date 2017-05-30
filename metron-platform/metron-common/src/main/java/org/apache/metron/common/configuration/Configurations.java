@@ -18,24 +18,23 @@
 package org.apache.metron.common.configuration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.apache.log4j.Logger;
-import org.apache.metron.common.field.validation.FieldValidation;
-import org.apache.metron.common.utils.JSONUtils;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import org.apache.metron.common.utils.JSONUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Configurations implements Serializable {
-
-  private static final Logger LOG = Logger.getLogger(Configurations.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private List<FieldValidator> validations = new ArrayList<>();
   protected ConcurrentMap<String, Object> configurations = new ConcurrentHashMap<>();
 

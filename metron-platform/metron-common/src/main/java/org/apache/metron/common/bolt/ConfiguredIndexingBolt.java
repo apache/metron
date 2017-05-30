@@ -17,16 +17,16 @@
  */
 package org.apache.metron.common.bolt;
 
-import org.apache.log4j.Logger;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.IndexingConfigurations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-
-public abstract class ConfiguredIndexingBolt extends ConfiguredBolt<IndexingConfigurations>{
-
-  private static final Logger LOG = Logger.getLogger(ConfiguredIndexingBolt.class);
+public abstract class ConfiguredIndexingBolt extends ConfiguredBolt<IndexingConfigurations> {
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   public ConfiguredIndexingBolt(String zookeeperUrl) {
     super(zookeeperUrl);

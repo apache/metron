@@ -17,27 +17,28 @@
  */
 package org.apache.metron.management;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
-import com.jakewharton.fliptables.FlipTable;
-import org.apache.log4j.Logger;
-import org.apache.metron.common.configuration.ConfigurationType;
-import org.apache.metron.common.configuration.FieldTransformer;
-import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.dsl.*;
-import org.apache.metron.common.field.transformation.FieldTransformation;
-import org.apache.metron.common.field.transformation.FieldTransformations;
-import org.apache.metron.common.stellar.shell.StellarExecutor;
-import org.apache.metron.common.utils.JSONUtils;
-import org.jboss.aesh.console.Console;
-
-import java.util.*;
-
 import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.jakewharton.fliptables.FlipTable;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import org.apache.metron.common.configuration.FieldTransformer;
+import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.common.dsl.Stellar;
+import org.apache.metron.common.dsl.StellarFunction;
+import org.apache.metron.common.field.transformation.FieldTransformations;
+import org.apache.metron.common.utils.JSONUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ParserConfigFunctions {
-  private static final Logger LOG = Logger.getLogger(ParserConfigFunctions.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static void pruneEmptyStellarTransformers(SensorParserConfig config) {
     List<FieldTransformer> toRemove = new ArrayList<>();
@@ -143,7 +144,7 @@ public class ParserConfigFunctions {
       try {
         return JSONUtils.INSTANCE.toJSON(configObj, true);
       } catch (JsonProcessingException e) {
-        LOG.error("Unable to convert object to JSON: " + configObj, e);
+        LOG.error("Unable to convert object to JSON: {}", configObj, e);
         return config;
       }
     }
@@ -194,7 +195,7 @@ public class ParserConfigFunctions {
       try {
         return JSONUtils.INSTANCE.toJSON(configObj, true);
       } catch (JsonProcessingException e) {
-        LOG.error("Unable to convert object to JSON: " + configObj, e);
+        LOG.error("Unable to convert object to JSON: {}", configObj, e);
         return config;
       }
     }

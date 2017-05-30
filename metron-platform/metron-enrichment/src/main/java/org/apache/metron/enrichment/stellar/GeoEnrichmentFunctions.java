@@ -17,20 +17,21 @@
  */
 package org.apache.metron.enrichment.stellar;
 
-import org.apache.log4j.Logger;
+import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GeoEnrichmentFunctions {
-  private static final Logger LOG = Logger.getLogger(GeoEnrichmentFunctions.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Stellar(name="GET"
           ,namespace="GEO"

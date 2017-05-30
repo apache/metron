@@ -18,9 +18,17 @@
 
 package org.apache.metron.common.dsl.functions.resolver;
 
+import static java.lang.String.format;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.Stellar;
@@ -28,14 +36,6 @@ import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.dsl.StellarFunctionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import static java.lang.String.format;
 
 /**
  * The base implementation of a function resolver that provides a means for lazy
@@ -46,7 +46,7 @@ import static java.lang.String.format;
  */
 public abstract class BaseFunctionResolver implements FunctionResolver, Serializable {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(BaseFunctionResolver.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * Maps a function name to the metadata necessary to execute the Stellar function.
@@ -122,9 +122,8 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
         // check for duplicate function names
         StellarFunctionInfo fnSameName = functions.get(fn.getName());
         if (fnSameName != null && ObjectUtils.notEqual(fnSameName, fn)) {
-          LOG.warn(format(
-                  "Namespace conflict: duplicate function names; `%s` implemented by [%s, %s]",
-                  fn.getName(), fnSameName.getFunction(), fn.getFunction()));
+          LOG.warn("Namespace conflict: duplicate function names; `{}` implemented by [{}, {}]",
+              fn.getName(), fnSameName.getFunction(), fn.getFunction());
         }
 
         functions.put(fn.getName(), fn);
@@ -195,7 +194,7 @@ public abstract class BaseFunctionResolver implements FunctionResolver, Serializ
       return clazz.getConstructor().newInstance();
 
     } catch (Exception e) {
-      LOG.error("Unable to load " + clazz.getName() + " because " + e.getMessage(), e);
+      LOG.error("Unable to load {} because {}", clazz.getName(), e.getMessage(), e);
       return null;
     }
   }

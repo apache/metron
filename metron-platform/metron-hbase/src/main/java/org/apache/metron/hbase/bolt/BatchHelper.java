@@ -20,21 +20,21 @@
 
 package org.apache.metron.hbase.bolt;
 
+import java.lang.invoke.MethodHandles;
+import java.util.LinkedList;
+import java.util.List;
 import org.apache.storm.Constants;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedList;
-import java.util.List;
-
 /**
  * Provides functionality for handling batch writes to HBase.
  */
 public class BatchHelper {
 
-  private static final Logger LOG = LoggerFactory.getLogger(BatchHelper.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * The batch size.  Defaults to 15,000.

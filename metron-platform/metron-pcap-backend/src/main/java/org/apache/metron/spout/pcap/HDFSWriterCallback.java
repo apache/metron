@@ -19,25 +19,26 @@
 package org.apache.metron.spout.pcap;
 
 import com.google.common.base.Joiner;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.xml.bind.DatatypeConverter;
 import org.apache.metron.spout.pcap.deserializer.KeyValueDeserializer;
 import org.apache.storm.kafka.Callback;
 import org.apache.storm.kafka.EmitContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.DatatypeConverter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * A callback which gets executed as part of the spout to write pcap data to HDFS.
  */
 public class HDFSWriterCallback implements Callback {
+
     static final long serialVersionUID = 0xDEADBEEFL;
-    private static final Logger LOG = LoggerFactory.getLogger(HDFSWriterCallback.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * A topic+partition.  We split the files up by topic+partition so the writers don't clobber each other
@@ -89,7 +90,7 @@ public class HDFSWriterCallback implements Callback {
     }
 
     public HDFSWriterCallback withConfig(HDFSWriterConfig config) {
-        LOG.info("Configured: " + config);
+        LOG.info("Configured: {}", config);
         this.config = config;
         return this;
     }
@@ -117,7 +118,7 @@ public class HDFSWriterCallback implements Callback {
             } else {
                 debugStatements.add("Value is null!");
             }
-            LOG.debug("Dropping malformed packet: " + Joiner.on(" / ").join(debugStatements));
+            LOG.debug("Dropping malformed packet: {}", Joiner.on(" / ").join(debugStatements));
         }
 
         long tsWriteStart = System.nanoTime();
@@ -131,8 +132,8 @@ public class HDFSWriterCallback implements Callback {
         }
         long tsWriteEnd = System.nanoTime();
         if(LOG.isDebugEnabled() && (Math.random() < 0.001 || !inited)) {
-            LOG.debug("Deserialize time (ns): " + (tsDeserializeEnd - tsDeserializeStart));
-            LOG.debug("Write time (ns): " + (tsWriteEnd - tsWriteStart));
+            LOG.debug("Deserialize time (ns): {}", (tsDeserializeEnd - tsDeserializeStart));
+            LOG.debug("Write time (ns): {}", (tsWriteEnd - tsWriteStart));
         }
         inited = true;
         return tuple;

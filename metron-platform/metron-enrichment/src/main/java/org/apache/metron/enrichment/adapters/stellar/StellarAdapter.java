@@ -17,6 +17,12 @@
  */
 package org.apache.metron.enrichment.adapters.stellar;
 
+import static org.apache.metron.enrichment.bolt.GenericEnrichmentBolt.STELLAR_CONTEXT_CONF;
+
+import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
+import java.util.Map;
+import java.util.function.Function;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.common.dsl.Context;
@@ -30,14 +36,8 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.util.Map;
-import java.util.function.Function;
-
-import static org.apache.metron.enrichment.bolt.GenericEnrichmentBolt.STELLAR_CONTEXT_CONF;
-
 public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable {
-  protected static final Logger _LOG = LoggerFactory.getLogger(StellarAdapter.class);
+  protected static final Logger _LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private enum EnrichmentType implements Function<SensorEnrichmentConfig, ConfigHandler>{
     ENRICHMENT(config -> config.getEnrichment().getEnrichmentConfigs().get("stellar"))
@@ -107,7 +107,7 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
       }
     }
     JSONObject enriched = new JSONObject(message);
-    _LOG.trace("Stellar Enrichment Success: " + enriched);
+    _LOG.trace("Stellar Enrichment Success: {}", enriched);
     return enriched;
   }
 

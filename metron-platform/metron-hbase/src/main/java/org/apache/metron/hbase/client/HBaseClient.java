@@ -20,6 +20,11 @@
 
 package org.apache.metron.hbase.client;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.Get;
@@ -34,17 +39,12 @@ import org.apache.metron.hbase.bolt.mapper.HBaseProjectionCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * A client that interacts with HBase.
  */
 public class HBaseClient implements Closeable {
 
-  private static final Logger LOG = LoggerFactory.getLogger(HBaseClient.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * The batch of queued Mutations.

@@ -22,6 +22,7 @@ import static org.apache.metron.pcap.PcapHelper.greaterThanOrEqualTo;
 import static org.apache.metron.pcap.PcapHelper.lessThanOrEqualTo;
 
 import com.google.common.base.Joiner;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,7 +36,7 @@ import org.slf4j.LoggerFactory;
 
 public class FileFilterUtil {
 
-  private static final Logger LOG = LoggerFactory.getLogger(FileFilterUtil.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private FileFilterUtil() {
   }
@@ -49,7 +50,7 @@ public class FileFilterUtil {
     Map<Integer, List<Path>> filesByPartition = getFilesByPartition(files);
     List<String> filteredFiles = filterByTimestampLT(beginTs, endTs, filesByPartition);
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Including files " + Joiner.on(",").join(filteredFiles));
+      LOG.debug("Including files {}", Joiner.on(",").join(filteredFiles));
     }
     return filteredFiles;
   }

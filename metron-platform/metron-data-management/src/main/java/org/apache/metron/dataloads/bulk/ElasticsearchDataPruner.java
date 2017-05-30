@@ -19,6 +19,13 @@ package org.apache.metron.dataloads.bulk;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Iterator;
 import org.apache.commons.collections.IteratorUtils;
 import org.apache.metron.common.configuration.Configuration;
 import org.elasticsearch.client.AdminClient;
@@ -28,24 +35,14 @@ import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Iterator;
-
 public class ElasticsearchDataPruner extends DataPruner {
 
+    private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    private static final String defaultDateFormat = "yyyy.MM.dd.HH";
     private String indexPattern;
     private SimpleDateFormat dateFormat;
     protected Client indexClient = null;
     protected Configuration configuration;
-
-    private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchDataPruner.class);
-    private static final String defaultDateFormat = "yyyy.MM.dd.HH";
-
-
 
     private Predicate<String> filterWithRegex = new Predicate<String>() {
 
@@ -60,7 +57,7 @@ public class ElasticsearchDataPruner extends DataPruner {
                     return true;
                 }
             } catch (ParseException e) {
-                LOG.error("Unable to parse date from + " + str.substring(indexPattern.length()), e);
+                LOG.error("Unable to parse date from {}", str.substring(indexPattern.length()), e);
             }
 
             return false;
@@ -89,9 +86,7 @@ public class ElasticsearchDataPruner extends DataPruner {
 
         }
         catch(Exception e) {
-
             LOG.error("Unable to update configs",e);
-
         }
 
         String dateString = configuration.getGlobalConfig().get("es.date.format").toString();

@@ -20,8 +20,16 @@
 
 package org.apache.metron.profiler.bolt;
 
+import static java.lang.String.format;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.ConversionUtils;
@@ -39,14 +47,6 @@ import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
-import static java.lang.String.format;
-
 /**
  * A bolt that is responsible for building a Profile.
  *
@@ -57,7 +57,7 @@ import static java.lang.String.format;
  */
 public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(ProfileBuilderBolt.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private OutputCollector collector;
 

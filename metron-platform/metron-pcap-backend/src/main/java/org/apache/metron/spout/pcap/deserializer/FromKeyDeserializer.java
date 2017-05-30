@@ -18,6 +18,7 @@
 
 package org.apache.metron.spout.pcap.deserializer;
 
+import java.lang.invoke.MethodHandles;
 import org.apache.metron.common.utils.timestamp.TimestampConverter;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.spout.pcap.Endianness;
@@ -29,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * Extract the timestamp from the key and raw data from the packet.
  */
 public class FromKeyDeserializer extends KeyValueDeserializer {
-  private static final Logger LOG = LoggerFactory.getLogger(FromKeyDeserializer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static Endianness endianness = Endianness.getNativeEndianness();
 
 

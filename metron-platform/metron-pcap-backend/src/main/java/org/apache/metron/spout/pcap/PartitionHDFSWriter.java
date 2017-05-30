@@ -18,6 +18,13 @@
 
 package org.apache.metron.spout.pcap;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
+import java.util.EnumSet;
+import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -31,19 +38,12 @@ import org.apache.metron.pcap.PcapHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.EnumSet;
-import java.util.Map;
-
 /**
  * This class is intended to handle the writing of an individual file.
  */
 public class PartitionHDFSWriter implements AutoCloseable, Serializable {
   static final long serialVersionUID = 0xDEADBEEFL;
-  private static final Logger LOG = LoggerFactory.getLogger(PartitionHDFSWriter.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 
   public static interface SyncHandler {
@@ -95,7 +95,7 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
         func.sync(input);
       }
       catch(IOException ioe) {
-        LOG.warn("Problems during sync, but this shouldn't be too concerning as long as it's intermittent: " + ioe.getMessage(), ioe);
+        LOG.warn("Problems during sync, but this shouldn't be too concerning as long as it's intermittent: {}", ioe.getMessage(), ioe);
       }
     }
   }
@@ -165,7 +165,7 @@ public class PartitionHDFSWriter implements AutoCloseable, Serializable {
     }
     catch(ArrayIndexOutOfBoundsException aioobe) {
       LOG.warn("This appears to be HDFS-7765 (https://issues.apache.org/jira/browse/HDFS-7765), " +
-              "which is an issue with syncing and not problematic: " + aioobe.getMessage(), aioobe);
+              "which is an issue with syncing and not problematic: {}", aioobe.getMessage(), aioobe);
     }
     numWritten++;
     if(numWritten % config.getSyncEvery() == 0) {

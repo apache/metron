@@ -18,6 +18,16 @@
 package org.apache.metron.parsers.asa;
 
 import com.google.common.collect.ImmutableMap;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.lang.invoke.MethodHandles;
+import java.time.Clock;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import oi.thekraken.grok.api.exception.GrokException;
@@ -29,14 +39,9 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.time.Clock;
-import java.time.ZoneId;
-import java.util.*;
-
 public class BasicAsaParser extends BasicParser {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(BasicAsaParser.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private Grok asaGrok;
     protected Clock deviceClock;

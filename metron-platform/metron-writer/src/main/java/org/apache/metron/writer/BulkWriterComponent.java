@@ -60,7 +60,7 @@ public class BulkWriterComponent<MESSAGE_T> {
   public void commit(Iterable<Tuple> tuples) {
     tuples.forEach(t -> collector.ack(t));
     if(LOG.isDebugEnabled()) {
-      LOG.debug("Acking " + Iterables.size(tuples) + " tuples");
+      LOG.debug("Acking {} tuples", Iterables.size(tuples));
     }
   }
 
@@ -75,7 +75,7 @@ public class BulkWriterComponent<MESSAGE_T> {
             .withErrorType(Constants.ErrorType.INDEXING_ERROR)
             .withThrowable(e);
     if(!Iterables.isEmpty(tuples)) {
-      LOG.error("Failing " + Iterables.size(tuples) + " tuples", e);
+      LOG.error("Failing {} tuples", Iterables.size(tuples), e);
     }
     tuples.forEach(t -> error.addRawMessage(messageGetStrategy.get(t)));
     ErrorUtils.handleError(collector, error);
@@ -161,7 +161,7 @@ public class BulkWriterComponent<MESSAGE_T> {
       }
       long endTime = System.nanoTime();
       long elapsed = endTime - startTime;
-      LOG.debug("Bulk batch completed in ~" + elapsed + " ns");
+      LOG.debug("Bulk batch completed in ~{} ns", elapsed);
     }
   }
 }

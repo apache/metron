@@ -17,27 +17,35 @@
  */
 package org.apache.metron.management;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 import com.jakewharton.fliptables.FlipTable;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.net.URI;
+import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.*;
-import org.apache.log4j.Logger;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocalFileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
 import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.utils.ConversionUtils;
-
-import java.io.IOException;
-import java.net.URI;
-import java.text.DateFormat;
-import java.util.*;
-import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileSystemFunctions {
-  private static final Logger LOG = Logger.getLogger(FileSystemFunctions.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   public interface FileSystemGetter {
     FileSystem getSystem() throws IOException ;
@@ -224,7 +232,7 @@ public class FileSystemFunctions {
             path = new Path(pathStr);
           }
           catch(IllegalArgumentException iae) {
-            LOG.error("Unable to convert " + pathStr + " to a path: " + iae.getMessage(), iae);
+            LOG.error("Unable to convert {} to a path {}", pathStr, iae.getMessage(), iae);
             return FlipTable.of(headers, new String[][]{});
           }
         }

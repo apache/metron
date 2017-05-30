@@ -19,23 +19,22 @@
 package org.apache.metron.common.hadoop;
 
 import com.google.common.collect.Iterators;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
-import org.apache.log4j.Logger;
-
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-
-import static java.lang.String.format;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SequenceFileIterable implements Iterable<byte[]> {
-  private static final Logger LOGGER = Logger.getLogger(SequenceFileIterable.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private List<Path> files;
   private Configuration config;
 
@@ -87,12 +86,12 @@ public class SequenceFileIterable implements Iterable<byte[]> {
       if (!finished && null == reader) {
         try {
           reader = new SequenceFile.Reader(config, SequenceFile.Reader.file(path));
-          LOGGER.debug("Writing file: " + path.toString());
+          LOGGER.debug("Writing file: {}", path.toString());
         } catch (IOException e) {
           throw new RuntimeException("Failed to get reader", e);
         }
       } else {
-        LOGGER.debug(format("finished=%s, reader=%s, next=%s", finished, reader, next));
+        LOGGER.debug("finished={}, reader={}, next={}", finished, reader, next);
       }
       try {
         //ensure hasnext is idempotent
@@ -111,7 +110,7 @@ public class SequenceFileIterable implements Iterable<byte[]> {
     }
 
     private void close() {
-      LOGGER.debug("Closing file: " + path.toString());
+      LOGGER.debug("Closing file: {}", path.toString());
       finished = true;
       try {
         if (reader != null) {
