@@ -53,9 +53,9 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
 
   protected transient CacheLoader<String, Map<String, Tuple>> loader;
   protected transient LoadingCache<String, Map<String, Tuple>> cache;
-  private transient MessageGetStrategy keyGetStrategy;
-  private transient MessageGetStrategy subgroupGetStrategy;
-  private transient MessageGetStrategy messageGetStrategy;
+  protected transient MessageGetStrategy keyGetStrategy;
+  protected transient MessageGetStrategy subgroupGetStrategy;
+  protected transient MessageGetStrategy messageGetStrategy;
   protected Long maxCacheSize;
   protected Long maxTimeRetain;
 
