@@ -61,6 +61,7 @@ This will set up
 ### Prerequisites
 - A cluster managed by Ambari 2.4.2+
 - Metron RPMs available on the cluster in the /localrepo directory.  See [RPM](#rpm) for further information.
+- [Node.js](https://nodejs.org/en/download/package-manager/) repository installed on the Management UI host 
 
 ### Building Management Pack
 From `metron-deployment` run

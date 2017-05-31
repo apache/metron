@@ -47,6 +47,7 @@ metron_group = config['configurations']['metron-env']['metron_group']
 metron_log_dir = config['configurations']['metron-env']['metron_log_dir']
 metron_pid_dir = config['configurations']['metron-env']['metron_pid_dir']
 metron_rest_port = config['configurations']['metron-env']['metron_rest_port']
+metron_management_ui_port = config['configurations']['metron-env']['metron_management_ui_port']
 metron_jvm_flags = ''
 metron_spring_profiles_active = config['configurations']['metron-env']['metron_spring_profiles_active']
 metron_jdbc_driver = config['configurations']['metron-env']['metron_jdbc_driver']
@@ -219,3 +220,6 @@ if security_enabled:
     kafka_keytab_path = config['configurations']['kafka-env']['kafka_keytab']
 
     nimbus_seeds = config['configurations']['storm-site']['nimbus.seeds']
+
+# Management UI
+metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", ['localhost'])[0]
