@@ -83,6 +83,12 @@
         <display-name>Metron REST port</display-name>
     </property>
     <property>
+        <name>metron_management_ui_port</name>
+        <value>4200</value>
+        <description>Port the Management UI runs on</description>
+        <display-name>Management UI port</display-name>
+    </property>
+    <property>
         <name>metron_jvm_flags</name>
         <description>JVM flags passed to Metron scripts</description>
         <display-name>Metron JVM flags</display-name>

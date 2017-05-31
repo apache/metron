@@ -98,15 +98,21 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
     prepare(map, topologyContext);
   }
 
-  class JoinRemoveListener implements RemovalListener<String, Map<String, Tuple>> {
+  class JoinRemoveListener implements RemovalListener<String, Map<String, V>> {
 
     @Override
-    public void onRemoval(RemovalNotification<String, Map<String, Tuple>> removalNotification) {
+    public void onRemoval(RemovalNotification<String, Map<String, V>> removalNotification) {
       if (removalNotification.getCause() == RemovalCause.SIZE) {
-        LOG.error("Join cache reached max size limit. Increase the maxCacheSize setting or add more tasks to " + this.getClass().getSimpleName() + ".");
+        String errorMessage = "Join cache reached max size limit. Increase the maxCacheSize setting or add more tasks to enrichment/threatintel join bolt.";
+        Exception exception = new Exception(errorMessage);
+        LOG.error(errorMessage, exception);
+        collector.reportError(exception);
       }
       if (removalNotification.getCause() == RemovalCause.EXPIRED) {
-        LOG.error("Message was in the join cache too long which may be caused by slow enrichments/threatintels.  Increase the maxTimeRetain setting.");
+        String errorMessage = "Message was in the join cache too long which may be caused by slow enrichments/threatintels.  Increase the maxTimeRetain setting.";
+        Exception exception = new Exception(errorMessage);
+        LOG.error(errorMessage, exception);
+        collector.reportError(exception);
       }
     }
   }
