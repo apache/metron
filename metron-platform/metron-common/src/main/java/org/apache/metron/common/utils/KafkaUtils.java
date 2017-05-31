@@ -68,12 +68,14 @@ public enum KafkaUtils {
     return ret;
   }
 
-  public List<String> fromEndpoint(String url) throws URISyntaxException {
+  public List<String> fromEndpoint(String url){
     List<String> ret = new ArrayList<>();
     if(url != null) {
-      URI uri = new URI(url);
-      int port = uri.getPort();
-      ret.add(uri.getHost() + ((port > 0)?(":" + port):""));
+      Iterable<String> splits = Splitter.on("//").split(url);
+      if(Iterables.size(splits) == 2) {
+        String hostPort = Iterables.getLast(splits);
+        ret.add(hostPort);
+      }
     }
     return ret;
   }

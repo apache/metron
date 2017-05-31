@@ -31,7 +31,7 @@ import java.util.List;
 @RunWith(Parameterized.class)
 public class KafkaUtilsEndpointTest {
   static String[] hostnames = new String[] { "node1", "localhost", "192.168.0.1", "my.domain.com" };
-  static String[] schemes = new String[] { "SSL", "PLAINTEXTSASL", "PLAINTEXT"};
+  static String[] schemes = new String[] { "SSL", "PLAINTEXTSASL", "PLAINTEXT", "SASL_PLAINTEXT"};
   static String[] ports = new String[] { "6667", "9091", null};
   private String endpoint;
   private String expected;
