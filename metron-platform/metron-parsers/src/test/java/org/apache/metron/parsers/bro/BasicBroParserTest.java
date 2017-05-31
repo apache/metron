@@ -17,6 +17,7 @@
  */
 package org.apache.metron.parsers.bro;
 
+import org.adrianwalker.multilinestring.Multiline
 import junit.framework.TestCase;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Level;
@@ -67,12 +68,34 @@ public class BasicBroParserTest extends TestCase {
 		}
 	}
 
+	/**
+	 * {
+	 * "ts":1449511228.474,
+	 * "uid":"CFgSLp4HgsGqXnNjZi",
+	 * "id.orig_h":"104.130.172.191",
+	 * "id.orig_p":33893,
+	 * "id.resp_h":"69.20.0.164",
+	 * "id.resp_p":53,
+	 * "proto":"udp",
+	 * "trans_id":3514,
+	 * "rcode":3,
+	 * "rcode_name":"NXDOMAIN",
+	 * "AA":false,
+	 * "TC":false,
+	 * "RD":false,
+	 * "RA":false,
+	 * "Z":0,
+	 * "rejected":false,
+	 * "sensor":"cloudbro",
+	 * "type":"dns"
+	 * }
+	 */
+	@Multiline
+	public static string unwrappedBroMessage;
+
 	public void testUnwrappedBroMessage() throws ParseException {
-        String rawMessage = "{\"ts\":1449511228.474,\"uid\":\"CFgSLp4HgsGqXnNjZi\",\"id.orig_h\":\"104.130.172.191\",\"id.orig_p\":33893,\"id.resp_h\":\"69.20.0.164\",\"id.resp_p\":53,\"proto\":\"udp\",\"trans_id\":3514,\"rcode\":3,\"rcode_name\":\"NXDOMAIN\",\"AA\":false,\"TC\":false,\"RD\":false,\"RA\":false,\"Z\":0,\"rejected\":false,\"sensor\":\"cloudbro\",\"type\":\"dns\"}";
-
-        JSONObject rawJson = (JSONObject)jsonParser.parse(rawMessage);
-
-        JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+        JSONObject rawJson = (JSONObject)jsonParser.parse(unwrappedBroMessage);
+        JSONObject broJson = broParser.parse(unwrappedBroMessage.getBytes()).get(0);
 
 	String expectedBroTimestamp = "1449511228.474";
       	Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
@@ -93,14 +116,41 @@ public class BasicBroParserTest extends TestCase {
 	Assert.assertTrue(broJson.get("original_string").toString().startsWith("DNS"));
     }
 
+        /**
+	 * {
+	 * "http":
+	 * {
+	 * "ts":1402307733.473,
+	 * "uid":"CTo78A11g7CYbbOHvj",
+	 * "id.orig_h":"192.249.113.37",
+	 * "id.orig_p":58808,
+	 * "id.resp_h":"72.163.4.161",
+	 * "id.resp_p":80,
+	 * "trans_depth":1,
+	 * "method":"GET",
+	 * "host":"www.cisco.com",
+	 * "uri":"/",
+	 * "user_agent":"curl/7.22.0 (x86_64-pc-linux-gnu) libcurl/7.22.0 OpenSSL/1.0.1 zlib/1.2.3.4 libidn/1.23 librtmp/2.3",
+	 * "request_body_len":0,
+	 * "response_body_len":25523,
+	 * "status_code":200,
+	 * "status_msg":"OK",
+	 * "tags":[],
+	 * "resp_fuids":["FJDyMC15lxUn5ngPfd"],
+	 * "resp_mime_types":["text/html"]
+	 * }
+	 * }
+	 */
+        @Multiline
+	public static string httpBroMessage;
+
 	@SuppressWarnings("rawtypes")
 	public void testHttpBroMessage() throws ParseException {
-		String rawMessage = "{\"http\":{\"ts\":1402307733.473,\"uid\":\"CTo78A11g7CYbbOHvj\",\"id.orig_h\":\"192.249.113.37\",\"id.orig_p\":58808,\"id.resp_h\":\"72.163.4.161\",\"id.resp_p\":80,\"trans_depth\":1,\"method\":\"GET\",\"host\":\"www.cisco.com\",\"uri\":\"/\",\"user_agent\":\"curl/7.22.0 (x86_64-pc-linux-gnu) libcurl/7.22.0 OpenSSL/1.0.1 zlib/1.2.3.4 libidn/1.23 librtmp/2.3\",\"request_body_len\":0,\"response_body_len\":25523,\"status_code\":200,\"status_msg\":\"OK\",\"tags\":[],\"resp_fuids\":[\"FJDyMC15lxUn5ngPfd\"],\"resp_mime_types\":[\"text/html\"]}}";
 
-		Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
+		Map rawMessageMap = (Map) jsonParser.parse(httpBroMessage);
 		JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
 
-		JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+		JSONObject broJson = broParser.parse(httpBroMessage.getBytes()).get(0);
 		String expectedBroTimestamp = "1402307733.473";
 		Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
 		String expectedTimestamp = "1402307733473";
