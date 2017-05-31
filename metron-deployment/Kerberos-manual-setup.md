@@ -17,7 +17,7 @@ This document provides instructions for kerberizing Metron's Vagrant-based devel
 Setup
 -----
 
-1. Deploy a Vagrant development environment; either [Full Dev](full-dev-platform) or [Quick Dev](quick-dev-platform).
+1. Deploy a Vagrant development environment; either [Full Dev](vagrant/full-dev-platform/README.md) or [Quick Dev](vagrant/quick-dev-platform/README.md).
 
 1. Export the following environment variables.  These need to be set for the remainder of the instructions. Replace `node1` with the appropriate hosts, if you are running Metron anywhere other than Vagrant.
 
@@ -423,6 +423,34 @@ KVNO Timestamp         Principal
 ```
 
 ### Kafka with Kerberos enabled
+
+#### Running Sensors
+
+A couple steps are required to produce data to a Kerberized Kafka topic. On the host you'll be setting up your sensor(s), switch to the metron user and create a client_jaas.conf file in the metron home directory if one doesn't already exist. It should be owned by metron:metron and
+contain at least the following stanza that tells the Kafka client how to interact with Kerberos:
+```
+su - metron
+cat ${METRON_HOME}/client_jaas.conf
+...
+KafkaClient {
+   com.sun.security.auth.module.Krb5LoginModule required
+   useKeyTab=true
+   keyTab="/etc/security/keytabs/metron.headless.keytab"
+   storeKey=true
+   useTicketCache=false
+   serviceName="kafka"
+   principal="metron@EXAMPLE.COM";
+};
+```
+
+You'll also need to set KAFKA_OPTS to tell the Kafka client how to interact with Kerberos.
+```
+export KAFKA_OPTS="-Djava.security.auth.login.config=${METRON_HOME}/client_jaas.conf"
+```
+
+For sensors that leverage the Kafka console producer to pipe data into Metron, e.g. Snort and Yaf, you will need to modify the corresponding sensor shell scripts or config to append the SASL security protocol property. `--security-protocol SASL_PLAINTEXT`. Be sure to kinit with the metron user's keytab before executing the script that starts the sensor.
+
+More notes can be found in [metron/metron-sensors/README.md](../metron-sensors/README.md)
 
 #### Write data to a topic with SASL
 
