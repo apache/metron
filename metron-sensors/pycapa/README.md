@@ -12,7 +12,7 @@ Pycapa
 Overview
 ========
 
-Pycapa performs network packet capture, both off-the-wire and from a Kafka topic, which is useful for the testing and development of [Apache Metron](https://github.com/apache/incubator-metron).  It is not intended for production use. The tool will capture packets from a specified interface and push them into a Kafka Topic.  The tool can also do the reverse.  It can consume packets from Kafka and reconstruct each network packet.  This can then be used to create a [libpcap-compliant file](https://wiki.wireshark.org/Development/LibpcapFileFormat) or even to feed directly into a tool like Wireshark to monitor ongoing activity.
+Pycapa performs network packet capture, both off-the-wire and from a Kafka topic, which is useful for the testing and development of [Apache Metron](https://github.com/apache/metron).  It is not intended for production use. The tool will capture packets from a specified interface and push them into a Kafka Topic.  The tool can also do the reverse.  It can consume packets from Kafka and reconstruct each network packet.  This can then be used to create a [libpcap-compliant file](https://wiki.wireshark.org/Development/LibpcapFileFormat) or even to feed directly into a tool like Wireshark to monitor ongoing activity.
 
 Installation
 ============
@@ -55,7 +55,7 @@ General notes on the installation of Pycapa.
 1. Install Pycapa.  This assumes that you already have the Metron source code on the host.
 
     ```
-    cd incubator-metron/metron-sensors/pycapa
+    cd metron/metron-sensors/pycapa
     pip install -r requirements.txt
     python setup.py install
     ```

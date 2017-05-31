@@ -153,6 +153,7 @@ mv %{buildroot}%{metron_extensions_etc_parsers}/sourcefire/lib/*.bundle %{buildr
 mv %{buildroot}%{metron_extensions_etc_parsers}/websphere/lib/*.bundle %{buildroot}%{metron_extensions_lib}/
 
 install %{buildroot}%{metron_home}/bin/metron-rest %{buildroot}/etc/init.d/
+install %{buildroot}%{metron_home}/bin/metron-management-ui %{buildroot}/etc/init.d/
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -835,7 +836,8 @@ This package installs the Metron Management UI %{metron_home}
 %dir %{metron_home}/web/management-ui/assets/fonts/Roboto
 %dir %{metron_home}/web/management-ui/assets/images
 %dir %{metron_home}/web/management-ui/license
-%{metron_home}/bin/start_management_ui.sh
+%{metron_home}/bin/metron-management-ui
+/etc/init.d/metron-management-ui
 %attr(0755,root,root) %{metron_home}/web/expressjs/server.js
 %attr(0644,root,root) %{metron_home}/web/expressjs/package.json
 %attr(0644,root,root) %{metron_home}/web/management-ui/favicon.ico
@@ -855,9 +857,17 @@ This package installs the Metron Management UI %{metron_home}
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/images/*
 %attr(0644,root,root) %{metron_home}/web/management-ui/license/*
 
+%post config
+chkconfig --add metron-management-ui
+
+%preun config
+chkconfig --del metron-management-ui
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
+* Thu May 15 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
+- Added Management UI
 * Tue May 9 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
 - Add Zeppelin Connection Volume Report Dashboard
 * Thu May 4 2017 Ryan Merriman <merrimanr@gmail.com> - 0.4.0
