@@ -1,0 +1,93 @@
+<div class="container-fluid px-0">
+    <div class="mrow">
+        <div class="col-md-12 px-0">
+            <div class="col-padding-50">
+                <div class="input-group search">
+                    <span class="input-group-btn">
+                        <button class="btn btn-secondary btn-saved-searches" type="button" (click)="showSavedSearches()">Searches</button>
+                    </span>
+                    <div appAceEditor style="width:100%;" placeholder="Search Alerts" [text]="queryBuilder.displayQuery" (textChanged)="onSearch($event)"> </div>
+                    <span class="input-group-btn">
+                        <button class="btn btn-secondary btn-search-clear" type="button" (click)="onClear()"></button>
+                    </span>
+                    <span class="input-group-btn">
+                        <button class="btn btn-secondary btn-search" type="button" (click)="onSearch(alertSearchDirective.getSeacrhText())"></button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="col-fixed-50">
+            <span class="save-button" (click)="showSaveSearch()">
+            </span>
+        </div>
+    </div>
+    <div class="mrow">
+        <div class="col-md-9 px-0">
+            <span class="col-form-label-lg"> Alerts ({{alerts.length}} of {{pagingData.total}}) </span>
+        </div>
+        <div class="col-md-3 px-0">
+            <div class="pull-right" style="position: relative; display: block;">
+                <div class="btn settings">
+                    <i #settingsIcon class="fa fa-sliders" aria-hidden="true"></i>
+                </div>
+                <app-configure-rows [srcElement]="settingsIcon" [tableMetaData]="tableMetaData" [(interval)]="refreshInterval" [(size)]="pagingData.size" (configRowsChange)="onConfigRowsChange()" > </app-configure-rows>
+                <div class="btn pause-play" (click)="onPausePlay()">
+                    <i *ngIf="!pauseRefresh" class="fa fa-pause" aria-hidden="true"></i>
+                    <i *ngIf="pauseRefresh" class="fa fa-play" aria-hidden="true"></i>
+                </div>
+                <div class="dropdown d-inline-block">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        ACTIONS
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processOpen()">Open</span>
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processDismiss()">Dismiss</span>
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processEscalate()">Escalate</span>
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processResolve()">Resolve</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid nav-content">
+    <div class="row">
+        <div class="col-fixed-200">
+            <div class="title"> Filters </div>
+            <div class="m-nav">
+                <metron-collapse *ngFor="let data of filtersData" [data]="getCollapseComponentData(data)"> </metron-collapse>
+            </div>
+        </div>
+        <div class="col-sm-12 col-offset-200">
+            <div class="table-wrapper">
+                <table class="table table-sm" metron-config-table [data]="alerts" [cellSelectable]="true" (onSort)="onSort($event)" style="white-space: nowrap;" (window:resize)="onResize()" #table>
+                    <thead>
+                    <tr>
+                        <th style="width:55px"> <metron-config-sorter [type]="'number'" [sortBy]="'_score'"> Score </metron-config-sorter> </th>
+                        <th *ngFor="let column of alertsColumnsToDisplay" [id]="column.name"> <metron-config-sorter [type]="column.type" [sortBy]="column.name" title="{{column.name}}"> {{ column.name | columnNameTranslate | centerEllipses:15 }}</metron-config-sorter> </th>
+                        <th style="width:25px"><i class="fa fa-cog configure-table-icon" (click)="showConfigureTable()"></i></th>
+                        <th style="width:25px"><input id="select-deselect-all" class="fontawesome-checkbox" type="checkbox" (click)="selectAllRows($event)"><label for="select-deselect-all"></label></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr *ngFor="let alert of alerts" (click)="showDetails($event, alert)" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1}">
+                        <td (click)="addFilter('score', alert.score)"> <div appAlertSeverity [severity]="alert.score"> {{ alert._score ? alert._score : '-' }} </div> </td>
+                        <td *ngFor="let column of alertsColumnsToDisplay" #cell>
+                            <a (click)="onAddFilter(column.name, getValue(alert, column, false))" title="{{getValue(alert, column, true)}}" style="color:#689AA9"> {{ getValue(alert, column, true) | centerEllipses:20:cell }} </a>
+                        </td>
+                        <td></td>
+                        <td><input id="{{ alert.alertId }}" class="fontawesome-checkbox" type="checkbox" name="{{alert.alertId}}" (click)="selectRow($event, alert)" [checked]="selectedAlerts.indexOf(alert) != -1"><label attr.for="{{ alert.alertId }}"></label></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+                <div clas="row">
+                    <div class="col-md-3 push-md-5">
+                        <metron-table-pagination [(pagingData)]="pagingData" (pageChange)="onPageChange()"> </metron-table-pagination>
+                    </div>
+                </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,82 @@
+//Bootstrap overrides
+$body-bg: #232323;
+$body-color: #999999;
+$btn-primary-bg: #006EA0;
+$btn-primary-border: #006EA0;
+$dropdown-bg: #262626;
+$dropdown-border-color: #4D4D4D;
+$dropdown-link-color: #999999;
+$dropdown-min-width: 8rem;
+$dropdown-link-hover-color: #999999;
+$dropdown-link-hover-bg: #333333;
+$table-border-color: #404040;
+$list-group-bg: #262626;
+$list-group-border-color: #404040;
+$list-group-active-bg: #28A9E2;
+$list-group-item-padding-y: 4px;
+$list-group-item-padding-x: 10px;
+
+//Metron variables
+$mine-shaft: #2E2E2E;
+$mine-shaft-1: #2D2D2D;
+$mine-shaft-2: #333333;
+$mine-shaft-3: #262626;
+$mine-shaft-4: #383838;
+$mine-shaft-5: #3D3D3D;
+$dove-grey: #737373;
+$tundora: #4D4D4D;
+$tundora-1: #404040;
+$curious-blue: #27AAE1;
+$blue-chill: #0F6F9E;
+$piction-blue: #32ABDF;
+$dove-grey: #6B6B6B;
+$dove-grey-1: #676767;
+$checkbox-checked-color: #32abe2;
+$edit-panel-background: #083b44;
+$errors-red: #D60A15;
+$warning-yellow: #D6711D;
+$info-yellow: #AC9B5A;
+$eden: #0C3B43;
+$all-ports: #006EA0;
+$blue-mine: #1B596C;
+$gothic: #689AA9;
+$tiber: #0B363E;
+$silver: #BDBDBD;
+$silver-1: #B8B8B8;
+$breaker-bay: #669AAA;
+$gray: #909090;
+$silver-chalice: #B2B2B2;
+$silver-chalice-2: #A2A2A2;
+$dusty-grey: #999999;
+$dusty-grey-1: #9B9A9A;
+$outer-space: #2D3A3F;
+$eastern-blue: #1F91BE;
+$mantis: #80BF4D;
+$sky-blue: #75D2ED;
+$outer-space: #2E3A3F;
+
+$eastern-blue-1: #1190C0;
+$matisse: #1E7490;
+$downy: #77BBD0;
+$trout: #515760;
+$oslo-gray: #808792;
+$gray-chateau: #9BA1AA;
+
+$nav-bar-bg: $mine-shaft;
+$input-background: $mine-shaft-1;
+$input-border-color: $tundora;
+$icon-button-background: $mine-shaft-2;
+$placeholder-color: $dove-grey;
+
+$nav-content-nav-width: 200px;
+
+@mixin place-holder-text
+{
+  font-family: Roboto;
+  font-size: 11px;
+  font-style: italic !important;
+}
+
+.list-group-item {
+  font-size: 14px;
+}

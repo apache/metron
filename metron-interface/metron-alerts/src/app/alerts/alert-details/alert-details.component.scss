@@ -1,0 +1,55 @@
+@import "../../../slider";
+@import "../../../variables";
+
+.container-fluid {
+  padding-top: 15px;
+}
+
+.form-title {
+  font-size: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  background: $mine-shaft-2;
+
+  table {
+    text-align: center;
+
+    td {
+      height: 35px;
+    }
+
+    .primary {
+      min-width: 95px;
+      font-size: 12px;
+      color: #fff;
+      background: $piction-blue;
+      cursor: pointer;
+    }
+
+    .secondary {
+      min-width: 95px;
+      font-size: 12px;
+      font-weight: bold;
+      background: $mine-shaft-3;
+      border: 1px solid $tundora;
+      cursor: pointer;
+    }
+
+    .title {
+      text-align: start;
+      vertical-align: top;
+    }
+  }
+}
+
+.form {
+  font-size: 14px;
+
+  .key {
+    color: $dove-grey;
+  }
+}
