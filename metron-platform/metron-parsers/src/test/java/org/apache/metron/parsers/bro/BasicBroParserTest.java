@@ -91,7 +91,7 @@ public class BasicBroParserTest extends TestCase {
 	 * }
 	 */
 	@Multiline
-	public static string unwrappedBroMessage;
+	public final static String unwrappedBroMessage;
 
 	public void testUnwrappedBroMessage() throws ParseException {
         JSONObject rawJson = (JSONObject)jsonParser.parse(unwrappedBroMessage);
@@ -142,7 +142,7 @@ public class BasicBroParserTest extends TestCase {
 	 * }
 	 */
         @Multiline
-	public static string httpBroMessage;
+	public final static String httpBroMessage;
 
 	@SuppressWarnings("rawtypes")
 	public void testHttpBroMessage() throws ParseException {
