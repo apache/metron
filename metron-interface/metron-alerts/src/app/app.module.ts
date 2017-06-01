@@ -3,6 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
+import { APP_INITIALIZER } from '@angular/core';
 
 import { AppComponent } from './app.component';
 import {MetronAlertsRoutingModule} from './app-routing.module';
@@ -17,6 +18,11 @@ import {SavedSearchesModule} from './alerts/saved-searches/saved-searches.module
 import {MetronDialogBox} from './shared/metron-dialog-box';
 import {ConfigureRowsModule} from './alerts/configure-rows/configure-rows.module';
 import {SwitchModule} from './shared/switch/switch.module';
+import {ColumnNamesService} from './service/column-names.service';
+
+export function initConfig(config: ColumnNamesService){
+  return () => config.list()
+}
 
 @NgModule({
   declarations: [
@@ -36,9 +42,11 @@ import {SwitchModule} from './shared/switch/switch.module';
     SwitchModule
   ],
   providers: [{ provide: APP_CONFIG, useValue: METRON_REST_CONFIG },
+              { provide: APP_INITIALIZER, useFactory: initConfig, deps: [ColumnNamesService], multi: true },
               ConfigureTableService,
               SaveSearchService,
-              MetronDialogBox],
+              MetronDialogBox,
+              ColumnNamesService],
   bootstrap: [AppComponent]
 })
 

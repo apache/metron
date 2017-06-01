@@ -1,4 +1,5 @@
 import {Filter} from './filter';
+import {ColumnNamesService} from '../service/column-names.service';
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,6 +19,7 @@ import {Filter} from './filter';
  */
 export class QueryBuilder {
   private _query = '*';
+  private _displayQuery = this._query;
   private from = 0;
   private size = 15;
   private sort: {}[] = [{ timestamp: {order : 'desc', ignore_unmapped: true, unmapped_type: 'date'} }];
@@ -27,11 +29,13 @@ export class QueryBuilder {
   static fromJSON(obj: QueryBuilder): QueryBuilder {
     let queryBuilder = new QueryBuilder();
     queryBuilder._query = obj._query;
+    queryBuilder._displayQuery = obj._displayQuery;
     queryBuilder.from = obj.from;
     queryBuilder.size = obj.size;
     queryBuilder.sort = obj.sort;
     queryBuilder.aggs = obj.aggs;
     queryBuilder._filters = obj._filters;
+    queryBuilder.onSearchChange();
 
     return queryBuilder;
   }
@@ -39,12 +43,22 @@ export class QueryBuilder {
   set query(value: string) {
     value = value.replace(/\\:/g, ':');
     this._query = value;
-    this.updateFilters();
+    this.updateFilters(this._query, false);
     this.onSearchChange();
   }
 
   get query(): string {
     return this._query;
+  }
+
+  set displayQuery(value:string) {
+    this._displayQuery = value;
+    this.updateFilters(this._displayQuery, true);
+    this.onSearchChange();
+  }
+
+  get displayQuery():string {
+    return this._displayQuery;
   }
 
   get filters(): Filter[] {
@@ -74,6 +88,11 @@ export class QueryBuilder {
     return (select.length === 0) ? '*' : select;
   }
 
+  generateSelectForDisplay() {
+    let select = this._filters.map(filter => ColumnNamesService.getColumnDisplayValue(filter.field) + ':' + filter.value).join(' AND ');
+    return (select.length === 0) ? '*' : select;
+  }
+
   getESSearchQuery() {
     return {
       query: { query_string: { query: this.generateSelect() } },
@@ -86,6 +105,7 @@ export class QueryBuilder {
 
   onSearchChange() {
     this._query = this.generateSelect();
+    this._displayQuery = this.generateSelectForDisplay();
   }
 
   removeFilter(field: string) {
@@ -115,8 +135,8 @@ export class QueryBuilder {
     this.sort = [sortQuery];
   }
 
-  private updateFilters() {
-    let query = this._query;
+  private updateFilters(tQuery: string, updateNameTransform = false) {
+    let query = tQuery;
     this._filters = [];
 
     if (query && query !== '' && query !== '*') {
@@ -124,6 +144,7 @@ export class QueryBuilder {
       for (let term of terms) {
         let separatorPos = term.lastIndexOf(':');
         let field = term.substring(0, separatorPos).replace('\\', '');
+        field = updateNameTransform ? ColumnNamesService.getColumnDisplayKey(field) : field;
         let value = term.substring(separatorPos + 1, term.length);
         this.addOrUpdateFilter(field, value);
       }

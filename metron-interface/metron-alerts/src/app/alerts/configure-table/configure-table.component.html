@@ -11,7 +11,8 @@
         <thead>
           <tr>
             <th style="width: 10%"> <input id="select-deselect-all-col" class="fontawesome-checkbox" type="checkbox" (click)="onSelectDeselectAll($event)"><label for="select-deselect-all-col"></label> </th>
-            <th style="width: 40%"> Field </th>
+            <th style="width: 30%"> Field </th>
+            <th style="width: 10%"> Short Name </th>
             <th style="width: 30%"> Type  </th>
             <th style="width: 10%"> </th>
             <th style="width: 10%"> </th>
@@ -21,6 +22,7 @@
           <tr>
             <td><input #selectColName id="select-deselect-score" class="fontawesome-checkbox" type="checkbox" [checked]="true" disabled><label for="select-deselect-score"></label></td>
             <td> <span> Score </span></td>
+            <td> </td>
             <td> <span> STRING </span></td>
             <td> - </td>
             <td> - </td>
@@ -32,6 +34,9 @@
             </td>
             <td #element>
               <span [attr.title]="columns.key"> {{ columns.columnMetadata.name | centerEllipses }} </span>
+            </td>
+            <td>
+              <input class="input" placeholder="rename" [(ngModel)]="columns.displayName">
             </td>
             <td>
               <span class="text-uppercase"> {{ columns.columnMetadata.type }} </span>

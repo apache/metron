@@ -27,6 +27,7 @@ export class AlertSearchDirective implements AfterViewInit, OnChanges {
     this.editor.$blockScrolling = Infinity;
     this.editor.renderer.setShowGutter(false);
     this.editor.renderer.setShowPrintMargin(false);
+    this.editor.renderer.setPadding(10);
     this.editor.setTheme('ace/theme/monokai');
     this.editor.container.style.lineHeight = '1.5';
 

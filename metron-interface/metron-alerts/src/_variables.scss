@@ -70,11 +70,11 @@ $placeholder-color: $dove-grey;
 
 $nav-content-nav-width: 200px;
 
-@mixin placeholder {
-  ::-webkit-input-placeholder {@content}
-  :-moz-placeholder           {@content}
-  ::-moz-placeholder          {@content}
-  :-ms-input-placeholder      {@content}
+@mixin place-holder-text
+{
+  font-family: Roboto;
+  font-size: 11px;
+  font-style: italic !important;
 }
 
 .list-group-item {

@@ -5,6 +5,8 @@ import {Observable} from 'rxjs/Rx';
 import {ConfigureTableService} from '../../service/configure-table.service';
 import {ClusterMetaDataService} from '../../service/cluster-metadata.service';
 import {ColumnMetadata} from '../../model/column-metadata';
+import {ColumnNamesService} from '../../service/column-names.service';
+import {ColumnNames} from '../../model/column-names';
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
@@ -12,11 +14,13 @@ export enum AlertState {
 
 export class ColumnMetadataWrapper {
   columnMetadata: ColumnMetadata;
+  displayName: string;
   selected: boolean;
 
-  constructor(columnMetadata: ColumnMetadata, selected: boolean) {
+  constructor(columnMetadata: ColumnMetadata, selected: boolean, displayName: string) {
     this.columnMetadata = columnMetadata;
     this.selected = selected;
+    this.displayName = displayName;
   }
 }
 
@@ -31,7 +35,7 @@ export class ConfigureTableComponent implements OnInit {
   allColumns: ColumnMetadataWrapper[] = [];
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute, private configureTableService: ConfigureTableService,
-              private clusterMetaDataService: ClusterMetaDataService) { }
+              private clusterMetaDataService: ClusterMetaDataService, private columnNamesService: ColumnNamesService) { }
 
   goBack() {
     this.router.navigateByUrl('/alerts-list');
@@ -60,7 +64,7 @@ export class ConfigureTableComponent implements OnInit {
     Observable.forkJoin(
       this.clusterMetaDataService.getDefaultColumns(),
       this.clusterMetaDataService.getColumnMetaData(),
-        this.configureTableService.getTableMetadata()
+      this.configureTableService.getTableMetadata()
     ).subscribe((response: any) => {
       this.prepareData(response[0], response[1], response[2].tableColumns);
     });
@@ -95,7 +99,7 @@ export class ConfigureTableComponent implements OnInit {
       allColumns.splice.apply(allColumns, [indexInAll, 0].concat(itemsToInsert));
     }
 
-    this.allColumns = allColumns.map(mData => { return new ColumnMetadataWrapper(mData, configuredColumnNames.indexOf(mData.name) > -1); });
+    this.allColumns = allColumns.map(mData => { return new ColumnMetadataWrapper(mData, configuredColumnNames.indexOf(mData.name) > -1, ColumnNamesService.columnNameToDisplayValueMap[mData.name]); });
   }
 
   postSave() {
@@ -106,13 +110,28 @@ export class ConfigureTableComponent implements OnInit {
   save() {
     let selectedColumns = this.allColumns.filter((mDataWrapper: ColumnMetadataWrapper) => mDataWrapper.selected)
                           .map((mDataWrapper: ColumnMetadataWrapper) => mDataWrapper.columnMetadata);
+
     this.configureTableService.saveColumnMetaData(selectedColumns).subscribe(() => {
-      this.postSave();
+      this.saveColumnNames();
     }, error => {
       console.log('Unable to save column preferences ...');
-      this.postSave();
+      this.saveColumnNames();
     });
 
+
+  }
+
+  saveColumnNames() {
+    let columnNames = this.allColumns.map(mDataWrapper => {
+      return new ColumnNames(mDataWrapper.columnMetadata.name, mDataWrapper.displayName);
+    });
+
+    this.columnNamesService.save(columnNames).subscribe(() => {
+      this.postSave();
+    }, error => {
+      console.log('Unable to column names ...');
+      this.postSave();
+    });
   }
 
   selectColumn(columns: ColumnMetadataWrapper) {

@@ -163,12 +163,12 @@ export class AlertsListComponent implements OnInit {
   }
 
   onClear() {
-    this.queryBuilder.query = '';
+    this.queryBuilder.displayQuery = '';
     this.search();
   }
 
   onSearch($event) {
-    this.queryBuilder.query = $event;
+    this.queryBuilder.displayQuery = $event;
     this.search();
 
     return false;

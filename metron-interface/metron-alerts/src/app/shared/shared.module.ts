@@ -23,6 +23,7 @@ import { MetronTableDirective } from './metron-table/metron-table.directive';
 import { NavContentDirective } from './directives/nav-content.directive';
 import { CenterEllipsesPipe } from './pipes/center-ellipses.pipe';
 import { AlertSearchDirective } from './directives/alert-search.directive';
+import { ColumnNameTranslatePipe } from './pipes/column-name-translate.pipe';
 
 @NgModule({
   imports:  [
@@ -33,7 +34,8 @@ import { AlertSearchDirective } from './directives/alert-search.directive';
     MetronTableDirective,
     NavContentDirective,
     CenterEllipsesPipe,
-    AlertSearchDirective
+    AlertSearchDirective,
+    ColumnNameTranslatePipe
   ],
   exports:  [
     CommonModule,
@@ -42,7 +44,8 @@ import { AlertSearchDirective } from './directives/alert-search.directive';
     MetronTableDirective,
     NavContentDirective,
     CenterEllipsesPipe,
-    AlertSearchDirective
+    AlertSearchDirective,
+    ColumnNameTranslatePipe
   ]
 })
 export class SharedModule { }
