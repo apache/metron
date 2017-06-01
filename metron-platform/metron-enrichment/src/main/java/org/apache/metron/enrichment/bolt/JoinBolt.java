@@ -98,10 +98,10 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
     prepare(map, topologyContext);
   }
 
-  class JoinRemoveListener implements RemovalListener<String, Map<String, V>> {
+  class JoinRemoveListener implements RemovalListener<String, Map<String, Tuple>> {
 
     @Override
-    public void onRemoval(RemovalNotification<String, Map<String, V>> removalNotification) {
+    public void onRemoval(RemovalNotification<String, Map<String, Tuple>> removalNotification) {
       if (removalNotification.getCause() == RemovalCause.SIZE) {
         String errorMessage = "Join cache reached max size limit. Increase the maxCacheSize setting or add more tasks to enrichment/threatintel join bolt.";
         Exception exception = new Exception(errorMessage);
