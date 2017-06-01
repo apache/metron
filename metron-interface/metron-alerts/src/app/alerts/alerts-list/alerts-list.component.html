@@ -6,7 +6,7 @@
                     <span class="input-group-btn">
                         <button class="btn btn-secondary btn-saved-searches" type="button" (click)="showSavedSearches()">Searches</button>
                     </span>
-                    <div appAceEditor style="width:100%;" placeholder="Search Alerts" [text]="queryBuilder.query" (textChanged)="onSearch($event)"> </div>
+                    <div appAceEditor style="width:100%;" placeholder="Search Alerts" [text]="queryBuilder.displayQuery" (textChanged)="onSearch($event)"> </div>
                     <span class="input-group-btn">
                         <button class="btn btn-secondary btn-search-clear" type="button" (click)="onClear()"></button>
                     </span>
@@ -64,8 +64,8 @@
                 <table class="table table-sm" metron-config-table [data]="alerts" [cellSelectable]="true" (onSort)="onSort($event)" style="white-space: nowrap;" (window:resize)="onResize()" #table>
                     <thead>
                     <tr>
-                        <th style="width:55px"> <metron-config-sorter [type]="'number'" [sortBy]="'_score'"> score </metron-config-sorter> </th>
-                        <th *ngFor="let column of alertsColumnsToDisplay" [id]="column.name"> <metron-config-sorter [type]="column.type" [sortBy]="column.name" title="{{column.name}}"> {{ column.name | centerEllipses:15 }}</metron-config-sorter> </th>
+                        <th style="width:55px"> <metron-config-sorter [type]="'number'" [sortBy]="'_score'"> Score </metron-config-sorter> </th>
+                        <th *ngFor="let column of alertsColumnsToDisplay" [id]="column.name"> <metron-config-sorter [type]="column.type" [sortBy]="column.name" title="{{column.name}}"> {{ column.name | columnNameTranslate | centerEllipses:15 }}</metron-config-sorter> </th>
                         <th style="width:25px"><i class="fa fa-cog configure-table-icon" (click)="showConfigureTable()"></i></th>
                         <th style="width:25px"><input id="select-deselect-all" class="fontawesome-checkbox" type="checkbox" (click)="selectAllRows($event)"><label for="select-deselect-all"></label></th>
                     </tr>
