@@ -2,7 +2,7 @@
 @import "../../../styles.scss";
 @import "../../../variables.scss";
 
-$searchbox-height: 40px;
+$searchbox-height: 42px;
 
 .mrow {
   @extend .my-4;
@@ -31,7 +31,7 @@ $searchbox-height: 40px;
   }
 
   .btn-search {
-    width: 35px;
+    min-width: $searchbox-height;
     padding-left: 0px;
     padding-right: 0px;
     border: 1px solid $blue-chill !important;

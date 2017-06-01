@@ -5,6 +5,7 @@ import {Observable} from 'rxjs/Rx';
 import {SaveSearchService} from '../../service/save-search.service';
 import {SaveSearch} from '../../model/save-search';
 import {MetronDialogBox} from '../../shared/metron-dialog-box';
+import {NUM_SAVED_SEARCH} from '../../utils/constants';
 
 @Component({
   selector: 'app-saved-searches',
@@ -76,7 +77,7 @@ export class SavedSearchesComponent implements OnInit {
 
   preparedRecentlyAccessedSearches(recentSearches: SaveSearch[]) {
     this.recentSearcheObj = recentSearches ? recentSearches : [];
-    let recentSearchNames = this.recentSearcheObj.sort((s1, s2) => { return s2.lastAccessed - s1.lastAccessed; }).slice(0, 5)
+    let recentSearchNames = this.recentSearcheObj.sort((s1, s2) => { return s2.lastAccessed - s1.lastAccessed; }).slice(0, NUM_SAVED_SEARCH)
                           .map(search => {
                             return {key: search.getDisplayString()};
                           });

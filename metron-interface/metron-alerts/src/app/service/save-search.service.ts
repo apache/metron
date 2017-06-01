@@ -5,7 +5,7 @@ import {Subject} from 'rxjs/Subject';
 
 import {IAppConfig} from '../app.config.interface';
 import {APP_CONFIG} from '../app.config';
-import {ALERTS_SAVED_SEARCH, ALERTS_LAST_FIVE_SAVED_SEARCH} from '../utils/constants';
+import {ALERTS_SAVED_SEARCH, ALERTS_RECENT_SEARCH, NUM_SAVED_SEARCH} from '../utils/constants';
 import {QueryBuilder} from '../model/query-builder';
 import {SaveSearch} from '../model/save-search';
 import {ColumnMetadata} from '../model/column-metadata';
@@ -27,11 +27,11 @@ export class SaveSearchService {
     return Observable.create(observer => {
       let recentSearches: SaveSearch[] = [];
       try {
-        recentSearches = JSON.parse(localStorage.getItem(ALERTS_LAST_FIVE_SAVED_SEARCH));
+        recentSearches = JSON.parse(localStorage.getItem(ALERTS_RECENT_SEARCH));
         recentSearches = recentSearches.filter(search => search.name !== saveSearch.name);
       } catch (e) {}
 
-      localStorage.setItem(ALERTS_LAST_FIVE_SAVED_SEARCH, JSON.stringify(recentSearches));
+      localStorage.setItem(ALERTS_RECENT_SEARCH, JSON.stringify(recentSearches));
 
       observer.next({});
       observer.complete();
@@ -63,7 +63,7 @@ export class SaveSearchService {
     return Observable.create(observer => {
       let savedSearches: SaveSearch[] = [];
       try {
-        savedSearches = JSON.parse(localStorage.getItem(ALERTS_LAST_FIVE_SAVED_SEARCH));
+        savedSearches = JSON.parse(localStorage.getItem(ALERTS_RECENT_SEARCH));
       } catch (e) {}
 
       savedSearches = savedSearches || [];
@@ -97,7 +97,7 @@ export class SaveSearchService {
       saveSearch.lastAccessed = new Date().getTime();
 
       try {
-        savedSearches = JSON.parse(localStorage.getItem(ALERTS_LAST_FIVE_SAVED_SEARCH));
+        savedSearches = JSON.parse(localStorage.getItem(ALERTS_RECENT_SEARCH));
       } catch (e) {}
 
       savedSearches = savedSearches || [];
@@ -115,7 +115,7 @@ export class SaveSearchService {
           }
         }
         if (!found ) {
-          if (savedSearches.length < 5) {
+          if (savedSearches.length < NUM_SAVED_SEARCH) {
             savedSearches.push(saveSearch);
           } else {
             savedSearches.sort((s1, s2) => s1.lastAccessed - s2.lastAccessed).shift();
@@ -124,7 +124,7 @@ export class SaveSearchService {
         }
       }
 
-      localStorage.setItem(ALERTS_LAST_FIVE_SAVED_SEARCH, JSON.stringify(savedSearches));
+      localStorage.setItem(ALERTS_RECENT_SEARCH, JSON.stringify(savedSearches));
 
       observer.next({});
       observer.complete();
