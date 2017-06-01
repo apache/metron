@@ -33,6 +33,11 @@ METRON_LOG_DIR="/var/log/metron"
 METRON_PID_DIR="/var/run/metron"
 METRON_USER="metron"
 METRON_GROUP="metron"
+METRON_SYSCONFIG="/etc/sysconfig/metron"
+if [ -f "$METRON_SYSCONFIG" ]; then
+    set -a
+    . "$METRON_SYSCONFIG"
+fi
 
 PIDFILE="$METRON_PID_DIR/$NAME.pid"
 LOCKFILE=/var/lock/subsys/$NAME
