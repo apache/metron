@@ -21,6 +21,9 @@ import com.google.common.base.Joiner;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalCause;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.Sets;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
@@ -90,9 +93,28 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
       }
     };
     cache = CacheBuilder.newBuilder().maximumSize(maxCacheSize)
-            .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES)
+            .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES).removalListener(new JoinRemoveListener())
             .build(loader);
     prepare(map, topologyContext);
+  }
+
+  class JoinRemoveListener implements RemovalListener<String, Map<String, V>> {
+
+    @Override
+    public void onRemoval(RemovalNotification<String, Map<String, V>> removalNotification) {
+      if (removalNotification.getCause() == RemovalCause.SIZE) {
+        String errorMessage = "Join cache reached max size limit. Increase the maxCacheSize setting or add more tasks to enrichment/threatintel join bolt.";
+        Exception exception = new Exception(errorMessage);
+        LOG.error(errorMessage, exception);
+        collector.reportError(exception);
+      }
+      if (removalNotification.getCause() == RemovalCause.EXPIRED) {
+        String errorMessage = "Message was in the join cache too long which may be caused by slow enrichments/threatintels.  Increase the maxTimeRetain setting.";
+        Exception exception = new Exception(errorMessage);
+        LOG.error(errorMessage, exception);
+        collector.reportError(exception);
+      }
+    }
   }
 
   @SuppressWarnings("unchecked")
