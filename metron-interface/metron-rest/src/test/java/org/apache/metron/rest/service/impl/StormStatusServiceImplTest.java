@@ -44,6 +44,8 @@ import static org.mockito.Mockito.when;
 public class StormStatusServiceImplTest {
 
   private static final String HTTP_STORM_UI = "http://storm_ui";
+  private static final String HTTPS_STORM_UI = "https://storm_ui";
+  private static final String NO_PROTOCOL_STORM_UI = "storm_ui";
   @Rule
   public final ExpectedException exception = ExpectedException.none();
 
@@ -56,6 +58,27 @@ public class StormStatusServiceImplTest {
     environment = mock(Environment.class);
     restTemplate = mock(RestTemplate.class);
     stormStatusService = new StormStatusServiceImpl(environment, restTemplate);
+  }
+
+  @Test
+  public void testgetStormUiPropertyHttp() {
+    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn(HTTP_STORM_UI);
+    StormStatusServiceImpl serviceImpl = (StormStatusServiceImpl) stormStatusService;
+    assertEquals(HTTP_STORM_UI, serviceImpl.getStormUiProperty());
+  }
+
+  @Test
+  public void testgetStormUiPropertyHttps() {
+    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn(HTTPS_STORM_UI);
+    StormStatusServiceImpl serviceImpl = (StormStatusServiceImpl) stormStatusService;
+    assertEquals(HTTPS_STORM_UI, serviceImpl.getStormUiProperty());
+  }
+
+  @Test
+  public void testgetStormUiPropertyNoProtocol() {
+    when(environment.getProperty(STORM_UI_SPRING_PROPERTY)).thenReturn(NO_PROTOCOL_STORM_UI);
+    StormStatusServiceImpl serviceImpl = (StormStatusServiceImpl) stormStatusService;
+    assertEquals(HTTP_STORM_UI, serviceImpl.getStormUiProperty());
   }
 
   @Test
