@@ -124,7 +124,7 @@ public class StormStatusServiceImpl implements StormStatusService {
     return topologyResponse;
   }
 
-  // If we don't have a protocol, prepend one
+  // If we don't have a protocol, choose http
   protected String getStormUiProperty() {
     String baseValue = environment.getProperty(STORM_UI_SPRING_PROPERTY);
     if(!(baseValue.contains("://"))) {
