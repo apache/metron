@@ -17,7 +17,7 @@
  */
 package org.apache.metron.parsers.bro;
 
-import org.adrianwalker.multilinestring.Multiline
+import org.adrianwalker.multilinestring.Multiline;
 import junit.framework.TestCase;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Level;
