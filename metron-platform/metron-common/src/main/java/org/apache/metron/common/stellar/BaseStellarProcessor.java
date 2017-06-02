@@ -164,14 +164,7 @@ public class BaseStellarProcessor<T> {
     lexer.removeErrorListeners();
     lexer.addErrorListener(new ErrorListener());
     TokenStream tokens = new CommonTokenStream(lexer);
-    StellarParser parser = new StellarParser(tokens) {
-      /*@Override
-      public void enterOuterAlt(ParserRuleContext localctx, int altNum) {
-        if (_parseListeners != null) {
-          triggerEnterRuleEvent();
-        }
-      }*/
-    };
+    StellarParser parser = new StellarParser(tokens);
 
     StellarCompiler treeBuilder = new StellarCompiler(
         ArithmeticEvaluator.INSTANCE,

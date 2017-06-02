@@ -66,12 +66,12 @@ public class StellarTest {
   }
 
   @Stellar(
-          description="throw exception",
+          description="Always returns true",
           name="RET_TRUE",
           params = {
-           "message - exception message"
+           "arg* - Any set of args you wish to give it (including the empty set), they're ignored."
           },
-          returns="nothing"
+          returns="true"
   )
   public static class TrueFunc implements StellarFunction {
 

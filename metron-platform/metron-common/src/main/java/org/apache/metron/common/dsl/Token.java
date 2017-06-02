@@ -24,6 +24,11 @@ public class Token<T> {
   T value;
   Class<T> underlyingType;
   FrameContext.Context multiArgContext;
+
+  public Token(T value, Class<T> clazz) {
+    this(value, clazz, null);
+  }
+
   public Token(T value, Class<T> clazz, FrameContext.Context multiArgContext) {
     this.value = value;
     this.underlyingType = clazz;

@@ -89,7 +89,7 @@ public class WindowProcessor extends WindowBaseListener {
     if(checkForException(ctx)) {
       return;
     }
-    stack.push(new Token<>(ctx.getText().substring(1), String.class));
+    stack.push(new Token<>(ctx.getText().substring(1), String.class, null));
   }
 
   /**
