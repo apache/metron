@@ -152,7 +152,7 @@ public class StellarInterpreterTest {
     StellarParser.ComparisonOpContext mockOp = mock(StellarParser.ComparisonOpContext.class);
     when(ctx.comp_operator()).thenReturn(mockOp);
     Token result = mock(Token.class);
-    when(comparisonExpressionWithOperatorEvaluator.evaluate(any(Token.class), any(Token.class), any(StellarParser.ComparisonOpContext.class), null)).thenReturn(result);
+    when(comparisonExpressionWithOperatorEvaluator.evaluate(any(Token.class), any(Token.class), any(StellarParser.ComparisonOpContext.class), any())).thenReturn(result);
 
     compiler.exitComparisonExpressionWithOperator(ctx);
     Assert.assertEquals(1, tokenStack.size());
@@ -162,7 +162,7 @@ public class StellarInterpreterTest {
     func.apply(tokenStack, new StellarCompiler.ExpressionState(context, functionResolver, variableResolver));
     Assert.assertEquals(1, tokenStack.size());
     Assert.assertEquals(tokenStack.getFirst(), result);
-    verify(comparisonExpressionWithOperatorEvaluator).evaluate(any(Token.class), any(Token.class), eq(mockOp), null);
+    verify(comparisonExpressionWithOperatorEvaluator).evaluate(any(Token.class), any(Token.class), eq(mockOp), any());
     verifyZeroInteractions(numberLiteralEvaluator);
     verifyZeroInteractions(variableResolver);
     verifyZeroInteractions(functionResolver);
