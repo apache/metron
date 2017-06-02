@@ -5,6 +5,7 @@ This document provides instructions for kerberizing Metron's Vagrant-based devel
 
 * [Setup](#setup)
 * [Setup a KDC](#setup-a-kdc)
+* [Verify KDC](#verify-kdc)
 * [Enable Kerberos](#enable-kerberos)
 * [Kafka Authorization](#kafka-authorization)
 * [HBase Authorization](#hbase-authorization)
@@ -16,7 +17,7 @@ This document provides instructions for kerberizing Metron's Vagrant-based devel
 Setup
 -----
 
-1. Deploy a Vagrant development environment; either [Full Dev](full-dev-platform) or [Quick Dev](quick-dev-platform).
+1. Deploy a Vagrant development environment; either [Full Dev](vagrant/full-dev-platform/README.md) or [Quick Dev](vagrant/quick-dev-platform/README.md).
 
 1. Export the following environment variables.  These need to be set for the remainder of the instructions. Replace `node1` with the appropriate hosts, if you are running Metron anywhere other than Vagrant.
 
@@ -75,11 +76,7 @@ Setup a KDC
    ```
    max_renewable_life = 7d
    ```
-
-   If the KDC cannot issue renewable tickets, an error will be thrown when starting Metron's Storm topologies:
-   ```
-   Exception in thread "main" java.lang.RuntimeException: java.lang.RuntimeException: The TGT found is not renewable
-   ```
+ 
 
 1. Do not copy/paste this full set of commands as the `kdb5_util` command will not run as expected. Run the commands individually to ensure they all execute.  This step takes a moment. It creates the kerberos database.
 
@@ -99,6 +96,33 @@ Setup a KDC
   	kadmin.local -q "addprinc admin/admin"
   	kadmin.local -q "addprinc metron"
   	```
+
+Verify KDC
+----------
+
+
+Ticket renewal is by default disallowed in many linux distributions. If the KDC cannot issue renewable tickets, an error will be thrown when starting Metron's Storm topologies:
+   ```
+   Exception in thread "main" java.lang.RuntimeException: java.lang.RuntimeException: The TGT found is not renewable
+   ```
+
+
+Ensure the Metron keytab is renewable.  Look for the 'R' flag from the following command
+   ```
+   klist -f
+   ```
+
+If the 'R' flags are present, you may skip to next section.
+
+If the 'R' flags are absent, you will need to follow the below steps:
+If the KDC is already setup, then editing max_life and max_renewable_life in `/var/kerberos/krb5kdc/kdc.conf`, and restarting kadmin and krb5kdc services will not change the policies for existing users. 
+
+You need to set the renew lifetime for existing users and krbtgt realm. Modify the appropriate principals to allow renewable tickets using the following commands. Adjust the parameters to match your desired KDC parameters:
+   ```
+   kadmin.local -q "modprinc -maxlife 1days -maxrenewlife 7days +allow_renewable krbtgt/EXAMPLE.COM@EXAMPLE.COM"
+   kadmin.local -q "modprinc -maxlife 1days -maxrenewlife 7days +allow_renewable metron@EXAMPLE.COM"
+   ```
+
 
 Enable Kerberos
 ---------------
@@ -247,16 +271,8 @@ Storm Authorization
   	cd /home/metron/.storm
   	```
 
-1. Ensure the Metron keytab is renewable.  Look for the 'R' flag from the following command
-    ```
-    klist -f
-    ```
+1. Ensure the Metron keytab is renewable. See [Verify KDC](#verify-kdc) above
 
-    If not present, modify the appropriate principals to allow renewable tickets.  Adjust the parameters to match desired KDC parameters
-    ```
-    kadmin.local -q "modprinc -maxlife 1days -maxrenewlife 7days +allow_renewable krbtgt/EXAMPLE.COM@EXAMPLE.COM"
-    kadmin.local -q "modprinc -maxlife 1days -maxrenewlife 7days +allow_renewable metron@EXAMPLE.COM"
-    ```
 
 1. Create a client JAAS file at `/home/metron/.storm/client_jaas.conf`.  This should look identical to the Storm client JAAS file located at `/etc/storm/conf/client_jaas.conf` except for the addition of a `Client` stanza. The `Client` stanza is used for Zookeeper. All quotes and semicolons are necessary.
 
@@ -363,7 +379,7 @@ Metron should be ready to receive data.
 
 Push Data
 ---------
-1. Push some sample data to one of the parser topics. E.g for Bro we took raw data from [incubator-metron/metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput](../metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput)
+1. Push some sample data to one of the parser topics. E.g for Bro we took raw data from [metron/metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput](../metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput)
 
     ```
   	cat sample-bro.txt | ${KAFKA_HOME}/kafka-broker/bin/kafka-console-producer.sh \
@@ -407,6 +423,34 @@ KVNO Timestamp         Principal
 ```
 
 ### Kafka with Kerberos enabled
+
+#### Running Sensors
+
+A couple steps are required to produce data to a Kerberized Kafka topic. On the host you'll be setting up your sensor(s), switch to the metron user and create a client_jaas.conf file in the metron home directory if one doesn't already exist. It should be owned by metron:metron and
+contain at least the following stanza that tells the Kafka client how to interact with Kerberos:
+```
+su - metron
+cat ${METRON_HOME}/client_jaas.conf
+...
+KafkaClient {
+   com.sun.security.auth.module.Krb5LoginModule required
+   useKeyTab=true
+   keyTab="/etc/security/keytabs/metron.headless.keytab"
+   storeKey=true
+   useTicketCache=false
+   serviceName="kafka"
+   principal="metron@EXAMPLE.COM";
+};
+```
+
+You'll also need to set KAFKA_OPTS to tell the Kafka client how to interact with Kerberos.
+```
+export KAFKA_OPTS="-Djava.security.auth.login.config=${METRON_HOME}/client_jaas.conf"
+```
+
+For sensors that leverage the Kafka console producer to pipe data into Metron, e.g. Snort and Yaf, you will need to modify the corresponding sensor shell scripts or config to append the SASL security protocol property. `--security-protocol SASL_PLAINTEXT`. Be sure to kinit with the metron user's keytab before executing the script that starts the sensor.
+
+More notes can be found in [metron/metron-sensors/README.md](../metron-sensors/README.md)
 
 #### Write data to a topic with SASL
 
