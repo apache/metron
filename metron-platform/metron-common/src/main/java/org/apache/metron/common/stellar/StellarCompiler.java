@@ -98,6 +98,7 @@ public class StellarCompiler extends StellarBaseListener {
         Token<?> token = null;
         for (Iterator<Token<?>> it = getTokenDeque().descendingIterator(); it.hasNext(); ) {
           token = it.next();
+          //if we've skipped an else previously, then we need to skip the deferred tokens associated with the else.
           if(skipElse && token.getUnderlyingType() == ElseExpr.class) {
             while(it.hasNext()) {
               token = it.next();
@@ -107,43 +108,51 @@ public class StellarCompiler extends StellarBaseListener {
             }
             skipElse = false;
           }
+          /*
+          curr is the current value on the stack.  This is the non-deferred actual evaluation for this expression
+          and with the current context.
+           */
           Token<?> curr = instanceDeque.peek();
           if( curr != null
-           && ShortCircuitOp.class.isAssignableFrom(token.getUnderlyingType())
            && curr.getValue() != null && curr.getValue() instanceof Boolean
-           ) {
+           && ShortCircuitOp.class.isAssignableFrom(token.getUnderlyingType())
+                  ) {
+            //if we have a boolean as the current value and the next non-contextual token is a short circuit op
+            //then we need to short circuit possibly
             if(token.getUnderlyingType() == BooleanArg.class) {
               if (curr.getMultiArgContext() != null
                       && curr.getMultiArgContext().getVariety() == ContextVarieties.BOOLEAN_OR
                       && (Boolean) (curr.getValue())
                       ) {
-                //skip
+                //short circuit the or
                 ContextVarieties.Context context = curr.getMultiArgContext();
                 shortCircuit(it, context);
               } else if (curr.getMultiArgContext() != null
                       && curr.getMultiArgContext().getVariety() == ContextVarieties.BOOLEAN_AND
                       && !(Boolean) (curr.getValue())
                       ) {
+                //short circuit the and
                 ContextVarieties.Context context = curr.getMultiArgContext();
                 shortCircuit(it, context);
               }
             }
             else if(token.getUnderlyingType() == IfExpr.class) {
-                instanceDeque.pop();
-                if((Boolean)curr.getValue()) {
-                  //choose then
-                  skipElse = true;
-                }
-                else {
-                  //choose else
-                  while(it.hasNext()) {
-                    Token<?> t = it.next();
-                    if(t.getUnderlyingType() == ElseExpr.class) {
-                      break;
-                    }
+              //short circuit the if/then/else
+              instanceDeque.pop();
+              if((Boolean)curr.getValue()) {
+                //choose then
+                skipElse = true;
+              }
+              else {
+                //choose else
+                while(it.hasNext()) {
+                  Token<?> t = it.next();
+                  if(t.getUnderlyingType() == ElseExpr.class) {
+                    break;
                   }
                 }
               }
+            }
           }
           if (token.getUnderlyingType() == DeferredFunction.class) {
             DeferredFunction func = (DeferredFunction) token.getValue();
@@ -378,17 +387,16 @@ public class StellarCompiler extends StellarBaseListener {
   }
 
   @Override
-  public void enterEveryRule(ParserRuleContext ctx) {
-    if(ctx instanceof StellarParser.B_exprContext) {
-      if(ctx.getParent() instanceof StellarParser.LogicalExpressionOrContext) {
-        expression.multiArgumentState.push(ContextVarieties.BOOLEAN_OR.create());
-      }
-      else if(ctx.getParent() instanceof StellarParser.LogicalExpressionAndContext) {
-        expression.multiArgumentState.push(ContextVarieties.BOOLEAN_AND.create());
-      }
+  public void enterB_expr(StellarParser.B_exprContext ctx) {
+    //Enter is not guaranteed to be called by Antlr for logical labels, so we need to
+    //emulate it like this.  See  https://github.com/antlr/antlr4/issues/802
+    if(ctx.getParent() instanceof StellarParser.LogicalExpressionOrContext) {
+      expression.multiArgumentState.push(ContextVarieties.BOOLEAN_OR.create());
+    }
+    else if(ctx.getParent() instanceof StellarParser.LogicalExpressionAndContext) {
+      expression.multiArgumentState.push(ContextVarieties.BOOLEAN_AND.create());
     }
   }
-
 
   @Override
   public void exitB_expr(StellarParser.B_exprContext ctx) {
@@ -396,6 +404,7 @@ public class StellarCompiler extends StellarBaseListener {
     || ctx.getParent() instanceof StellarParser.LogicalExpressionAndContext
       )
     {
+      //we want to know when the argument to the boolean expression is complete
       expression.tokenDeque.push(new Token<>(new BooleanArg(), BooleanArg.class, getArgContext()));
     }
   }
