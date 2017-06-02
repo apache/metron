@@ -20,7 +20,7 @@ package org.apache.metron.common.stellar.evaluators;
 
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Token;
-import org.apache.metron.common.stellar.ContextVarieties;
+import org.apache.metron.common.stellar.FrameContext;
 import org.apache.metron.common.stellar.generated.StellarParser;
 
 /**
@@ -82,7 +82,7 @@ public enum ComparisonExpressionWithOperatorEvaluator {
    * @param op The operator in the Stellar expression.
    * @return A token with type boolean. This is based on the comparison of the {@code right} and {@code left} values.
    */
-  public Token<Boolean> evaluate(final Token<?> left, final Token<?> right, final StellarParser.ComparisonOpContext op, ContextVarieties.Context context) {
+  public Token<Boolean> evaluate(final Token<?> left, final Token<?> right, final StellarParser.ComparisonOpContext op, FrameContext.Context context) {
     if (op.EQ() != null) {
       return new Token<>(Strategy.EQUALITY_OPERATORS.evaluator().evaluate(left, right, op), Boolean.class, context);
     } else if (op.NEQ() != null) {

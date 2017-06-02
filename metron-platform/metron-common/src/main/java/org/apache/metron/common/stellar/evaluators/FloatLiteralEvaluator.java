@@ -19,12 +19,12 @@
 package org.apache.metron.common.stellar.evaluators;
 
 import org.apache.metron.common.dsl.Token;
-import org.apache.metron.common.stellar.ContextVarieties;
+import org.apache.metron.common.stellar.FrameContext;
 import org.apache.metron.common.stellar.generated.StellarParser;
 
 public class FloatLiteralEvaluator implements NumberEvaluator<StellarParser.FloatLiteralContext> {
   @Override
-  public Token<Float> evaluate(StellarParser.FloatLiteralContext context, ContextVarieties.Context contextVariety) {
+  public Token<Float> evaluate(StellarParser.FloatLiteralContext context, FrameContext.Context contextVariety) {
     if (context == null) {
       throw new IllegalArgumentException("Cannot evaluate a context that is null.");
     }

@@ -20,7 +20,7 @@ package org.apache.metron.common.stellar.evaluators;
 
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Token;
-import org.apache.metron.common.stellar.ContextVarieties;
+import org.apache.metron.common.stellar.FrameContext;
 import org.apache.metron.common.stellar.generated.StellarParser;
 
 import java.util.HashMap;
@@ -54,7 +54,7 @@ public enum NumberLiteralEvaluator {
 
   Token<? extends Number> evaluate(StellarParser.Arithmetic_operandsContext context
                                          , Map<Class<? extends StellarParser.Arithmetic_operandsContext>, NumberEvaluator> instanceMap
-                                         , ContextVarieties.Context contextVariety
+                                         , FrameContext.Context contextVariety
                                          )
   {
     NumberEvaluator evaluator = instanceMap.get(context.getClass());
@@ -64,7 +64,7 @@ public enum NumberLiteralEvaluator {
     return evaluator.evaluate(context, contextVariety);
   }
 
-  public Token<? extends Number> evaluate(StellarParser.Arithmetic_operandsContext context, ContextVarieties.Context contextVariety) {
+  public Token<? extends Number> evaluate(StellarParser.Arithmetic_operandsContext context, FrameContext.Context contextVariety) {
     return evaluate(context, Strategy.strategyMap, contextVariety);
   }
 

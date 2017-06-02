@@ -20,7 +20,7 @@ package org.apache.metron.common.stellar.evaluators;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.metron.common.dsl.Token;
-import org.apache.metron.common.stellar.ContextVarieties;
+import org.apache.metron.common.stellar.FrameContext;
 
 import java.util.function.BiFunction;
 
@@ -44,7 +44,7 @@ public enum ArithmeticEvaluator {
    * types is taken for the Java spec: http://docs.oracle.com/javase/specs/jls/se8/html/jls-5.html#jls-5.6.2
    */
   public static final class ArithmeticEvaluatorFunctions {
-    public static BiFunction<Number, Number, Token<? extends Number>> addition(final ContextVarieties.Context context) {
+    public static BiFunction<Number, Number, Token<? extends Number>> addition(final FrameContext.Context context) {
       return (Number l, Number r) -> {
         if (l instanceof Double || r instanceof Double) {
           return new Token<>(l.doubleValue() + r.doubleValue(), Double.class, context);
@@ -58,7 +58,7 @@ public enum ArithmeticEvaluator {
       };
     }
 
-    public static BiFunction<Number, Number, Token<? extends Number>> multiplication(final ContextVarieties.Context context) {
+    public static BiFunction<Number, Number, Token<? extends Number>> multiplication(final FrameContext.Context context) {
       return (Number l, Number r) -> {
         if (l instanceof Double || r instanceof Double) {
           return new Token<>(l.doubleValue() * r.doubleValue(), Double.class, context);
@@ -72,7 +72,7 @@ public enum ArithmeticEvaluator {
       };
     }
 
-    public static BiFunction<Number, Number, Token<? extends Number>> subtraction(final ContextVarieties.Context context) {
+    public static BiFunction<Number, Number, Token<? extends Number>> subtraction(final FrameContext.Context context) {
       return (Number l, Number r) -> {
         if (l instanceof Double || r instanceof Double) {
           return new Token<>(l.doubleValue() - r.doubleValue(), Double.class, context);
@@ -86,7 +86,7 @@ public enum ArithmeticEvaluator {
       };
     }
 
-    public static BiFunction<Number, Number, Token<? extends Number>> division(ContextVarieties.Context context) {
+    public static BiFunction<Number, Number, Token<? extends Number>> division(FrameContext.Context context) {
       return (Number l, Number r) -> {
         if (l instanceof Double || r instanceof Double) {
           return new Token<>(l.doubleValue() / r.doubleValue(), Double.class, context);

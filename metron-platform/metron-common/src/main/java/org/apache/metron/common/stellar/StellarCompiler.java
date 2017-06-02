@@ -17,7 +17,6 @@
  */
 package org.apache.metron.common.stellar;
 
-import org.antlr.v4.runtime.ParserRuleContext;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.Token;
@@ -73,7 +72,7 @@ public class StellarCompiler extends StellarBaseListener {
 
   public static class Expression implements Serializable {
     final Deque<Token<?>> tokenDeque;
-    final Deque<ContextVarieties.Context> multiArgumentState;
+    final Deque<FrameContext.Context> multiArgumentState;
     final Set<String> variablesUsed;
     public Expression(Deque<Token<?>> tokenDeque) {
       this.tokenDeque = tokenDeque;
@@ -121,18 +120,18 @@ public class StellarCompiler extends StellarBaseListener {
             //then we need to short circuit possibly
             if(token.getUnderlyingType() == BooleanArg.class) {
               if (curr.getMultiArgContext() != null
-                      && curr.getMultiArgContext().getVariety() == ContextVarieties.BOOLEAN_OR
+                      && curr.getMultiArgContext().getVariety() == FrameContext.BOOLEAN_OR
                       && (Boolean) (curr.getValue())
                       ) {
                 //short circuit the or
-                ContextVarieties.Context context = curr.getMultiArgContext();
+                FrameContext.Context context = curr.getMultiArgContext();
                 shortCircuit(it, context);
               } else if (curr.getMultiArgContext() != null
-                      && curr.getMultiArgContext().getVariety() == ContextVarieties.BOOLEAN_AND
+                      && curr.getMultiArgContext().getVariety() == FrameContext.BOOLEAN_AND
                       && !(Boolean) (curr.getValue())
                       ) {
                 //short circuit the and
-                ContextVarieties.Context context = curr.getMultiArgContext();
+                FrameContext.Context context = curr.getMultiArgContext();
                 shortCircuit(it, context);
               }
             }
@@ -184,7 +183,7 @@ public class StellarCompiler extends StellarBaseListener {
       }
     }
 
-    public void shortCircuit(Iterator<Token<?>> it, ContextVarieties.Context context) {
+    public void shortCircuit(Iterator<Token<?>> it, FrameContext.Context context) {
       while (it.hasNext()) {
         Token<?> token = it.next();
         if (token.getUnderlyingType() == ShortCircuitFrame.class && token.getMultiArgContext() == context) {
@@ -259,7 +258,7 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitArithExpr_plus(StellarParser.ArithExpr_plusContext ctx) {
-    final ContextVarieties.Context context = getArgContext();
+    final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
       Pair<Token<? extends Number>, Token<? extends Number>> p = getArithExpressionPair(tokenDeque);
       tokenDeque.push(arithmeticEvaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.addition(context), p));
@@ -268,7 +267,7 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitArithExpr_minus(StellarParser.ArithExpr_minusContext ctx) {
-    final ContextVarieties.Context context = getArgContext();
+    final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
     Pair<Token<? extends Number>, Token<? extends Number>> p = getArithExpressionPair(tokenDeque);
     tokenDeque.push(arithmeticEvaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.subtraction(context), p));
@@ -277,7 +276,7 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitArithExpr_div(StellarParser.ArithExpr_divContext ctx) {
-    final ContextVarieties.Context context = getArgContext();
+    final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
     Pair<Token<? extends Number>, Token<? extends Number>> p = getArithExpressionPair(tokenDeque);
     tokenDeque.push(arithmeticEvaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.division(context), p));
@@ -286,7 +285,7 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitArithExpr_mul(StellarParser.ArithExpr_mulContext ctx) {
-    final ContextVarieties.Context context = getArgContext();
+    final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
     Pair<Token<? extends Number>, Token<? extends Number>> p = getArithExpressionPair(tokenDeque);
     tokenDeque.push(arithmeticEvaluator.evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.multiplication(context), p));
@@ -322,7 +321,7 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitInExpressionStatement(StellarParser.InExpressionStatementContext ctx) {
-    final ContextVarieties.Context context = getArgContext();
+    final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
     Token<?> left = popDeque(tokenDeque);
     Token<?> right = popDeque(tokenDeque);
@@ -333,7 +332,7 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitNInExpressionStatement(StellarParser.NInExpressionStatementContext ctx) {
-    final ContextVarieties.Context context = getArgContext();
+    final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
     Token<?> left = popDeque(tokenDeque);
     Token<?> right = popDeque(tokenDeque);
@@ -343,7 +342,7 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitNotFunc(StellarParser.NotFuncContext ctx) {
-    final ContextVarieties.Context context = getArgContext();
+    final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
     Token<Boolean> arg = (Token<Boolean>) popDeque(tokenDeque);
     tokenDeque.push(new Token<>(!arg.getValue(), Boolean.class, context));
@@ -352,7 +351,7 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitVariable(StellarParser.VariableContext ctx) {
-    final ContextVarieties.Context context = getArgContext();
+    final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
       tokenDeque.push(new Token<>(state.variableResolver.resolve(ctx.getText()), Object.class, context));
     }, DeferredFunction.class, context));
@@ -391,10 +390,10 @@ public class StellarCompiler extends StellarBaseListener {
     //Enter is not guaranteed to be called by Antlr for logical labels, so we need to
     //emulate it like this.  See  https://github.com/antlr/antlr4/issues/802
     if(ctx.getParent() instanceof StellarParser.LogicalExpressionOrContext) {
-      expression.multiArgumentState.push(ContextVarieties.BOOLEAN_OR.create());
+      expression.multiArgumentState.push(FrameContext.BOOLEAN_OR.create());
     }
     else if(ctx.getParent() instanceof StellarParser.LogicalExpressionAndContext) {
-      expression.multiArgumentState.push(ContextVarieties.BOOLEAN_AND.create());
+      expression.multiArgumentState.push(FrameContext.BOOLEAN_AND.create());
     }
   }
 
@@ -411,9 +410,9 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitLogicalExpressionAnd(StellarParser.LogicalExpressionAndContext ctx) {
-    final ContextVarieties.Context context = getArgContext();
+    final FrameContext.Context context = getArgContext();
     popArgContext();
-    final ContextVarieties.Context parentContext = getArgContext();
+    final FrameContext.Context parentContext = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
     Token<?> left = popDeque(tokenDeque);
     Token<?> right = popDeque(tokenDeque);
@@ -424,9 +423,9 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitLogicalExpressionOr(StellarParser.LogicalExpressionOrContext ctx) {
-    final ContextVarieties.Context context = getArgContext();
+    final FrameContext.Context context = getArgContext();
     popArgContext();
-    final ContextVarieties.Context parentContext = getArgContext();
+    final FrameContext.Context parentContext = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
     Token<?> left = popDeque(tokenDeque);
     Token<?> right = popDeque(tokenDeque);
@@ -505,7 +504,7 @@ public class StellarCompiler extends StellarBaseListener {
   }
 
   private void exitLambda(boolean hasArgs) {
-    final ContextVarieties.Context context = getArgContext();
+    final FrameContext.Context context = getArgContext();
     Token<?> t = expression.tokenDeque.pop();
     final Deque<Token<?>> instanceDeque = new ArrayDeque<>();
     for(; !expression.tokenDeque.isEmpty() && t != EXPRESSION_REFERENCE; t = expression.tokenDeque.pop()) {
@@ -540,7 +539,7 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitTransformationFunc(StellarParser.TransformationFuncContext ctx) {
-    final ContextVarieties.Context context = getArgContext();
+    final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
       // resolve and initialize the function
       String functionName = ctx.getChild(0).getText();
@@ -603,7 +602,7 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitExistsFunc(StellarParser.ExistsFuncContext ctx) {
-    final ContextVarieties.Context context = getArgContext();
+    final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
       String variable = ctx.getChild(2).getText();
       boolean exists = state.variableResolver.resolve(variable) != null;
@@ -620,7 +619,7 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitFunc_args(StellarParser.Func_argsContext ctx) {
-    final ContextVarieties.Context context = getArgContext();
+    final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
       LinkedList<Object> args = new LinkedList<>();
       while (true) {
@@ -642,7 +641,7 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitMap_entity(StellarParser.Map_entityContext ctx) {
-    final ContextVarieties.Context context = getArgContext();
+    final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
       HashMap<String, Object> args = new HashMap<>();
       Object value = null;
@@ -664,7 +663,7 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitList_entity(StellarParser.List_entityContext ctx) {
-    final ContextVarieties.Context context = getArgContext();
+    final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
       LinkedList<Object> args = new LinkedList<>();
       while (true) {
@@ -683,7 +682,7 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitComparisonExpressionWithOperator(StellarParser.ComparisonExpressionWithOperatorContext ctx) {
-    final ContextVarieties.Context context = getArgContext();
+    final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
       StellarParser.Comp_operatorContext op = ctx.comp_operator();
       Token<?> right = popDeque(tokenDeque);
@@ -704,7 +703,7 @@ public class StellarCompiler extends StellarBaseListener {
     }
   }
 
-  private ContextVarieties.Context getArgContext() {
+  private FrameContext.Context getArgContext() {
     return expression.multiArgumentState.isEmpty()?null:expression.multiArgumentState.peek();
   }
 
