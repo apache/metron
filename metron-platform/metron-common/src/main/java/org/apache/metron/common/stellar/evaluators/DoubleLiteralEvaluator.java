@@ -19,15 +19,16 @@
 package org.apache.metron.common.stellar.evaluators;
 
 import org.apache.metron.common.dsl.Token;
+import org.apache.metron.common.stellar.ContextVarieties;
 import org.apache.metron.common.stellar.generated.StellarParser;
 
 public class DoubleLiteralEvaluator implements NumberEvaluator<StellarParser.DoubleLiteralContext> {
   @Override
-  public Token<Double> evaluate(StellarParser.DoubleLiteralContext context) {
+  public Token<Double> evaluate(StellarParser.DoubleLiteralContext context, ContextVarieties.Context contextVariety) {
     if (context == null) {
       throw new IllegalArgumentException("Cannot evaluate a context that is null.");
     }
 
-    return new Token<>(Double.parseDouble(context.getText()), Double.class);
+    return new Token<>(Double.parseDouble(context.getText()), Double.class, contextVariety);
   }
 }

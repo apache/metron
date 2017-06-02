@@ -24,6 +24,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.TokenStream;
 
 import java.util.HashSet;
@@ -163,7 +164,14 @@ public class BaseStellarProcessor<T> {
     lexer.removeErrorListeners();
     lexer.addErrorListener(new ErrorListener());
     TokenStream tokens = new CommonTokenStream(lexer);
-    StellarParser parser = new StellarParser(tokens);
+    StellarParser parser = new StellarParser(tokens) {
+      /*@Override
+      public void enterOuterAlt(ParserRuleContext localctx, int altNum) {
+        if (_parseListeners != null) {
+          triggerEnterRuleEvent();
+        }
+      }*/
+    };
 
     StellarCompiler treeBuilder = new StellarCompiler(
         ArithmeticEvaluator.INSTANCE,

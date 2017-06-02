@@ -45,8 +45,8 @@ public class DoubleLiteralEvaluatorTest {
   public void verifyHappyPathEvaluation() throws Exception {
     when(context.getText()).thenReturn("100D");
 
-    Token<? extends Number> evaluated = evaluator.evaluate(context);
-    assertEquals(new Token<>(100D, Double.class), evaluated);
+    Token<? extends Number> evaluated = evaluator.evaluate(context, null);
+    assertEquals(new Token<>(100D, Double.class, null), evaluated);
 
     verify(context).getText();
     verifyNoMoreInteractions(context);
@@ -57,7 +57,7 @@ public class DoubleLiteralEvaluatorTest {
     exception.expect(NumberFormatException.class);
 
     when(context.getText()).thenReturn("");
-    evaluator.evaluate(context);
+    evaluator.evaluate(context, null);
   }
 
   @Test
@@ -65,6 +65,6 @@ public class DoubleLiteralEvaluatorTest {
     exception.expect(IllegalArgumentException.class);
     exception.expectMessage("Cannot evaluate a context that is null.");
 
-    evaluator.evaluate(null);
+    evaluator.evaluate(null, null);
   }
 }

@@ -19,8 +19,8 @@
 package org.apache.metron.common.stellar.evaluators;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Token;
+import org.apache.metron.common.stellar.ContextVarieties;
 
 import java.util.function.BiFunction;
 
@@ -44,58 +44,58 @@ public enum ArithmeticEvaluator {
    * types is taken for the Java spec: http://docs.oracle.com/javase/specs/jls/se8/html/jls-5.html#jls-5.6.2
    */
   public static final class ArithmeticEvaluatorFunctions {
-    public static BiFunction<Number, Number, Token<? extends Number>> addition() {
+    public static BiFunction<Number, Number, Token<? extends Number>> addition(final ContextVarieties.Context context) {
       return (Number l, Number r) -> {
         if (l instanceof Double || r instanceof Double) {
-          return new Token<>(l.doubleValue() + r.doubleValue(), Double.class);
+          return new Token<>(l.doubleValue() + r.doubleValue(), Double.class, context);
         } else if (l instanceof Float || r instanceof Float) {
-          return new Token<>(l.floatValue() + r.floatValue(), Float.class);
+          return new Token<>(l.floatValue() + r.floatValue(), Float.class, context);
         } else if (l instanceof Long || r instanceof Long) {
-          return new Token<>(l.longValue() + r.longValue(), Long.class);
+          return new Token<>(l.longValue() + r.longValue(), Long.class, context);
         } else {
-          return new Token<>(l.intValue() + r.intValue(), Integer.class);
+          return new Token<>(l.intValue() + r.intValue(), Integer.class, context);
         }
       };
     }
 
-    public static BiFunction<Number, Number, Token<? extends Number>> multiplication() {
+    public static BiFunction<Number, Number, Token<? extends Number>> multiplication(final ContextVarieties.Context context) {
       return (Number l, Number r) -> {
         if (l instanceof Double || r instanceof Double) {
-          return new Token<>(l.doubleValue() * r.doubleValue(), Double.class);
+          return new Token<>(l.doubleValue() * r.doubleValue(), Double.class, context);
         } else if (l instanceof Float || r instanceof Float) {
-          return new Token<>(l.floatValue() * r.floatValue(), Float.class);
+          return new Token<>(l.floatValue() * r.floatValue(), Float.class, context);
         } else if (l instanceof Long || r instanceof Long) {
-          return new Token<>(l.longValue() * r.longValue(), Long.class);
+          return new Token<>(l.longValue() * r.longValue(), Long.class, context);
         } else {
-          return new Token<>(l.intValue() * r.intValue(), Integer.class);
+          return new Token<>(l.intValue() * r.intValue(), Integer.class, context);
         }
       };
     }
 
-    public static BiFunction<Number, Number, Token<? extends Number>> subtraction() {
+    public static BiFunction<Number, Number, Token<? extends Number>> subtraction(final ContextVarieties.Context context) {
       return (Number l, Number r) -> {
         if (l instanceof Double || r instanceof Double) {
-          return new Token<>(l.doubleValue() - r.doubleValue(), Double.class);
+          return new Token<>(l.doubleValue() - r.doubleValue(), Double.class, context);
         } else if (l instanceof Float || r instanceof Float) {
-          return new Token<>(l.floatValue() - r.floatValue(), Float.class);
+          return new Token<>(l.floatValue() - r.floatValue(), Float.class, context);
         } else if (l instanceof Long || r instanceof Long) {
-          return new Token<>(l.longValue() - r.longValue(), Long.class);
+          return new Token<>(l.longValue() - r.longValue(), Long.class, context);
         } else {
-          return new Token<>(l.intValue() - r.intValue(), Integer.class);
+          return new Token<>(l.intValue() - r.intValue(), Integer.class, context);
         }
       };
     }
 
-    public static BiFunction<Number, Number, Token<? extends Number>> division() {
+    public static BiFunction<Number, Number, Token<? extends Number>> division(ContextVarieties.Context context) {
       return (Number l, Number r) -> {
         if (l instanceof Double || r instanceof Double) {
-          return new Token<>(l.doubleValue() / r.doubleValue(), Double.class);
+          return new Token<>(l.doubleValue() / r.doubleValue(), Double.class, context);
         } else if (l instanceof Float || r instanceof Float) {
-          return new Token<>(l.floatValue() / r.floatValue(), Float.class);
+          return new Token<>(l.floatValue() / r.floatValue(), Float.class, context);
         } else if (l instanceof Long || r instanceof Long) {
-          return new Token<>(l.longValue() / r.longValue(), Long.class);
+          return new Token<>(l.longValue() / r.longValue(), Long.class, context);
         } else {
-          return new Token<>(l.intValue() / r.intValue(), Integer.class);
+          return new Token<>(l.intValue() / r.intValue(), Integer.class, context);
         }
       };
     }

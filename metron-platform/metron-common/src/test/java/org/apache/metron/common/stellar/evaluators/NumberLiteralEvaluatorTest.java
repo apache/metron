@@ -60,36 +60,36 @@ public class NumberLiteralEvaluatorTest {
   @Test
   public void verifyIntLiteralContextIsProperlyEvaluated() throws Exception {
     StellarParser.IntLiteralContext context = mock(StellarParser.IntLiteralContext.class);
-    NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap);
+    NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap, null);
 
-    verify(intLiteralContextNumberEvaluator).evaluate(context);
+    verify(intLiteralContextNumberEvaluator).evaluate(context, null);
     verifyZeroInteractions(doubleLiteralContextNumberEvaluator, floatLiteralContextNumberEvaluator, longLiteralContextNumberEvaluator);
   }
 
   @Test
   public void verifyDoubleLiteralContextIsProperlyEvaluated() throws Exception {
     StellarParser.DoubleLiteralContext context = mock(StellarParser.DoubleLiteralContext.class);
-    NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap);
+    NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap, null);
 
-    verify(doubleLiteralContextNumberEvaluator).evaluate(context);
+    verify(doubleLiteralContextNumberEvaluator).evaluate(context, null);
     verifyZeroInteractions(intLiteralContextNumberEvaluator, floatLiteralContextNumberEvaluator, longLiteralContextNumberEvaluator);
   }
 
   @Test
   public void verifyFloatLiteralContextIsProperlyEvaluated() throws Exception {
     StellarParser.FloatLiteralContext context = mock(StellarParser.FloatLiteralContext.class);
-    NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap);
+    NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap, null);
 
-    verify(floatLiteralContextNumberEvaluator).evaluate(context);
+    verify(floatLiteralContextNumberEvaluator).evaluate(context, null);
     verifyZeroInteractions(doubleLiteralContextNumberEvaluator, intLiteralContextNumberEvaluator, longLiteralContextNumberEvaluator);
   }
 
   @Test
   public void verifyLongLiteralContextIsProperlyEvaluated() throws Exception {
     StellarParser.LongLiteralContext context = mock(StellarParser.LongLiteralContext.class);
-    NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap);
+    NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap, null);
 
-    verify(longLiteralContextNumberEvaluator).evaluate(context);
+    verify(longLiteralContextNumberEvaluator).evaluate(context, null);
     verifyZeroInteractions(doubleLiteralContextNumberEvaluator, floatLiteralContextNumberEvaluator, intLiteralContextNumberEvaluator);
   }
 
@@ -100,7 +100,7 @@ public class NumberLiteralEvaluatorTest {
     exception.expect(ParseException.class);
     exception.expectMessage("Does not support evaluation for type " + context.getClass());
 
-    NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap);
+    NumberLiteralEvaluator.INSTANCE.evaluate(context, instanceMap, null);
 
     verifyZeroInteractions(longLiteralContextNumberEvaluator, doubleLiteralContextNumberEvaluator, floatLiteralContextNumberEvaluator, intLiteralContextNumberEvaluator);
   }

@@ -18,13 +18,11 @@
 
 package org.apache.metron.common.stellar;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.dsl.StellarFunction;
-import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.common.dsl.*;
 import org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -33,18 +31,65 @@ import org.junit.rules.ExpectedException;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 import static org.apache.metron.common.utils.StellarProcessorUtils.run;
 import static org.apache.metron.common.utils.StellarProcessorUtils.runPredicate;
 
 @SuppressWarnings("ALL")
 public class StellarTest {
+
+  @Stellar(
+          description="throw exception",
+          name="THROW",
+          params = {
+           "message - exception message"
+          },
+          returns="nothing"
+  )
+  public static class Throw implements StellarFunction {
+
+    @Override
+    public Object apply(List<Object> args, Context context) throws ParseException {
+      throw new IllegalStateException(Joiner.on(" ").join(args));
+    }
+
+    @Override
+    public void initialize(Context context) {
+
+    }
+
+    @Override
+    public boolean isInitialized() {
+      return true;
+    }
+  }
+
+  @Stellar(
+          description="throw exception",
+          name="RET_TRUE",
+          params = {
+           "message - exception message"
+          },
+          returns="nothing"
+  )
+  public static class TrueFunc implements StellarFunction {
+
+    @Override
+    public Object apply(List<Object> args, Context context) throws ParseException {
+      return true;
+    }
+
+    @Override
+    public void initialize(Context context) {
+
+    }
+
+    @Override
+    public boolean isInitialized() {
+      return true;
+    }
+  }
 
   @Test
   public void ensureDocumentation() {
@@ -635,8 +680,35 @@ public class StellarTest {
   }
 
   @Test
-  public void testShortCircuit() throws Exception {
-    Assert.assertTrue(runPredicate("true or not(null)", x -> null));
+  public void testShortCircuit_conditional() throws Exception {
+    Assert.assertEquals("foo", run("if true then 'foo' else THROW('expression')", new HashMap<>()));
+    Assert.assertEquals("foo", run("true ? 'foo' : THROW('expression')", new HashMap<>()));
+    Assert.assertEquals("foo", run("if false then THROW('exception') else 'foo'", new HashMap<>()));
+    Assert.assertEquals("foo", run("false ? THROW('exception') : 'foo'", new HashMap<>()));
+    Assert.assertEquals(true, run("RET_TRUE(if true then 'foo' else THROW('expression'))", new HashMap<>()));
+    Assert.assertEquals("foo", run("if true or (true or THROW('if exception')) then 'foo' else THROW('expression')", new HashMap<>()));
+    Assert.assertEquals("foo", run("if true or (false or THROW('if exception')) then 'foo' else THROW('expression')", new HashMap<>()));
+    Assert.assertEquals("foo", run("if NOT(true or (false or THROW('if exception'))) then THROW('expression') else 'foo'", new HashMap<>()));
+  }
+
+  @Test
+  public void testShortCircuit_boolean() throws Exception {
+    Assert.assertTrue(runPredicate("true or (true or THROW('exception'))", x -> null));
+    Assert.assertTrue(runPredicate("true or (false or THROW('exception'))", x -> null));
+    Assert.assertTrue(runPredicate("TO_UPPER('foo') == 'FOO' or (true or THROW('exception'))", x -> null));
+    Assert.assertFalse(runPredicate("false and (true or THROW('exception'))", x -> null));
+    Assert.assertTrue(runPredicate("true or false or false or true", x -> null));
+    Assert.assertFalse(runPredicate("false or (false and THROW('exception'))", x -> null));
+    Assert.assertTrue(runPredicate("'casey' == 'casey' or THROW('exception')", x -> null));
+    Assert.assertTrue(runPredicate("TO_UPPER('casey') == 'CASEY' or THROW('exception')", x -> null));
+    Assert.assertTrue(runPredicate("NOT(TO_UPPER('casey') != 'CASEY') or THROW('exception')", x -> null));
+    Assert.assertTrue(runPredicate("(TO_UPPER('casey') == 'CASEY') or THROW('exception')", x -> null));
+    Assert.assertFalse(runPredicate("NOT(NOT(TO_UPPER('casey') != 'CASEY') or THROW('exception'))", x -> null));
+    Assert.assertFalse(runPredicate("NOT(NOT(TO_UPPER('casey') != 'CASEY')) and THROW('exception')", x -> null));
+    Assert.assertTrue(runPredicate("RET_TRUE('foo') or THROW('exception')", x -> null));
+    Assert.assertFalse(runPredicate("NOT(foo == null or THROW('exception')) and THROW('and exception')", x -> null));
+    Assert.assertTrue(runPredicate("(foo == null or THROW('exception') ) or THROW('and exception')", x -> null));
+    Assert.assertTrue(runPredicate("( RET_TRUE('foo', true, false) or ( foo == null or THROW('exception') ) or THROW('and exception')) or THROW('or exception')", x -> null));
   }
 
   @Rule
