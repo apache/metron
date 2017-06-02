@@ -689,10 +689,12 @@ public class StellarTest {
     Assert.assertEquals("foo", run("if true or (true or THROW('if exception')) then 'foo' else THROW('expression')", new HashMap<>()));
     Assert.assertEquals("foo", run("if true or (false or THROW('if exception')) then 'foo' else THROW('expression')", new HashMap<>()));
     Assert.assertEquals("foo", run("if NOT(true or (false or THROW('if exception'))) then THROW('expression') else 'foo'", new HashMap<>()));
+    Assert.assertEquals("foo", run("if NOT('metron' in [ 'metron', 'metronicus'] ) then THROW('expression') else 'foo'", new HashMap<>()));
   }
 
   @Test
   public void testShortCircuit_boolean() throws Exception {
+    Assert.assertTrue(runPredicate("'metron' in ['metron', 'metronicus', 'mortron'] or (true or THROW('exception'))", x -> null));
     Assert.assertTrue(runPredicate("true or (true or THROW('exception'))", x -> null));
     Assert.assertTrue(runPredicate("true or (false or THROW('exception'))", x -> null));
     Assert.assertTrue(runPredicate("TO_UPPER('foo') == 'FOO' or (true or THROW('exception'))", x -> null));
