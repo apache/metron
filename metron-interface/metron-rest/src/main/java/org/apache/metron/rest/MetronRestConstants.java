@@ -34,6 +34,7 @@ public class MetronRestConstants {
   public static final String GROK_PATTERN_LABEL_KEY = "patternLabel";
 
   public static final String STORM_UI_SPRING_PROPERTY = "storm.ui.url";
+  public static final String SUPERVISOR_SUMMARY_URL = "/api/v1/supervisor/summary";
   public static final String TOPOLOGY_SUMMARY_URL = "/api/v1/topology/summary";
   public static final String TOPOLOGY_URL = "/api/v1/topology";
   public static final String ENRICHMENT_TOPOLOGY_NAME = "enrichment";

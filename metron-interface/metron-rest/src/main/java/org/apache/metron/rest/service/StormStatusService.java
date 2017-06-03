@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.service;
 
+import org.apache.metron.rest.model.SupervisorSummary;
 import org.apache.metron.rest.model.TopologyResponse;
 import org.apache.metron.rest.model.TopologyStatus;
 import org.apache.metron.rest.model.TopologySummary;
@@ -24,6 +25,8 @@ import org.apache.metron.rest.model.TopologySummary;
 import java.util.List;
 
 public interface StormStatusService {
+
+  SupervisorSummary getSupervisorSummary();
 
   TopologySummary getTopologySummary();
 

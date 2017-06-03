@@ -17,10 +17,7 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import org.apache.metron.rest.model.TopologyResponse;
-import org.apache.metron.rest.model.TopologyStatus;
-import org.apache.metron.rest.model.TopologyStatusCode;
-import org.apache.metron.rest.model.TopologySummary;
+import org.apache.metron.rest.model.*;
 import org.apache.metron.rest.service.StormStatusService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -31,9 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.metron.rest.MetronRestConstants.STORM_UI_SPRING_PROPERTY;
-import static org.apache.metron.rest.MetronRestConstants.TOPOLOGY_SUMMARY_URL;
-import static org.apache.metron.rest.MetronRestConstants.TOPOLOGY_URL;
+import static org.apache.metron.rest.MetronRestConstants.*;
 
 @Service
 public class StormStatusServiceImpl implements StormStatusService {
@@ -46,6 +41,11 @@ public class StormStatusServiceImpl implements StormStatusService {
   public StormStatusServiceImpl(Environment environment, RestTemplate restTemplate) {
     this.environment = environment;
     this.restTemplate = restTemplate;
+  }
+
+  @Override
+  public SupervisorSummary getSupervisorSummary(){
+    return restTemplate.getForObject("http://" + environment.getProperty(STORM_UI_SPRING_PROPERTY) + SUPERVISOR_SUMMARY_URL, SupervisorSummary.class);
   }
 
   @Override

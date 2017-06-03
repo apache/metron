@@ -18,9 +18,7 @@
 package org.apache.metron.rest.mock;
 
 import org.apache.metron.rest.MetronRestConstants;
-import org.apache.metron.rest.model.TopologyStatus;
-import org.apache.metron.rest.model.TopologyStatusCode;
-import org.apache.metron.rest.model.TopologySummary;
+import org.apache.metron.rest.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestClientException;
@@ -64,6 +62,13 @@ public class MockStormRestTemplate extends RestTemplate {
     } else if (url.startsWith(getStormUiProperty() + MetronRestConstants.TOPOLOGY_URL + "/")){
       String name = url.substring(url.lastIndexOf('/') + 1, url.length()).replaceFirst("-id", "");
       response = getTopologyStatus(name);
+    } else if (url.startsWith("http://" + environment.getProperty(MetronRestConstants.STORM_UI_SPRING_PROPERTY) + MetronRestConstants.SUPERVISOR_SUMMARY_URL)){
+      SupervisorSummary supervisorSummary = new SupervisorSummary();
+      List<SupervisorStatus> supervisorStatusList = new ArrayList<>();
+      SupervisorStatus status = new SupervisorStatus("sup1","localhost","1m 2s",1,1);
+      supervisorStatusList.add(status);
+      supervisorSummary.setSupervisors(supervisorStatusList.toArray(new SupervisorStatus[1]));
+      response = supervisorSummary;
     }
     return response;
   }

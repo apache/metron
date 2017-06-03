@@ -23,6 +23,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.model.SupervisorSummary;
 import org.apache.metron.rest.model.TopologyResponse;
 import org.apache.metron.rest.model.TopologyStatus;
 import org.apache.metron.rest.service.StormAdminService;
@@ -48,6 +49,13 @@ public class StormController {
 
   @Autowired
   private StormAdminService stormAdminService;
+
+  @ApiOperation(value = "Retrieves the status of all Storm Supervisors")
+  @ApiResponse(message = "Returns a list of supervisors with status information", code = 200)
+  @RequestMapping(value = "/supervisors", method = RequestMethod.GET)
+  ResponseEntity<SupervisorSummary> getSupervisorSummary() throws RestException{
+    return new ResponseEntity<>(stormStatusService.getSupervisorSummary(),HttpStatus.OK);
+  }
 
   @ApiOperation(value = "Retrieves the status of all Storm topologies")
   @ApiResponse(message = "Returns a list of topologies with status information", code = 200)
