@@ -37,7 +37,6 @@ General notes on the installation of Pycapa.
 
    ```
    export PREFIX=/usr
-
    wget https://github.com/edenhill/librdkafka/archive/v0.9.4.tar.gz  -O - | tar -xz
    cd librdkafka-0.9.4/
    ./configure --prefix=$PREFIX
@@ -251,7 +250,6 @@ The probe can be used in a Kerberized environment.  Follow these additional step
       --add \
       --allow-principal User:metron \
       --topic pcap
-
     ${KAFKA_HOME}/bin/kafka-acls.sh \
       --authorizer kafka.security.auth.SimpleAclAuthorizer \
       --authorizer-properties zookeeper.connect=zookeeper1:2181 \
@@ -264,6 +262,7 @@ The probe can be used in a Kerberized environment.  Follow these additional step
   * `security.protocol`
   * `sasl.kerberos.keytab`
   * `sasl.kerberos.principal`
+
   ```
   $ pycapa --producer \
       --interface eth0 \
@@ -284,6 +283,7 @@ FAQs
 **Question**: How do I get more logs?
 
 Use the following two command-line arguments to get detailed logging.
+
 ```
 -X debug=all --log-level DEBUG
 ```
