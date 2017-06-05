@@ -17,11 +17,8 @@
  */
 package org.apache.metron.common.configuration.enrichment.handler;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import org.apache.metron.common.stellar.StellarAssignment;
-import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.metron.stellar.common.StellarAssignment;
+import org.apache.metron.stellar.common.StellarProcessor;
 import org.json.simple.JSONObject;
 
 import java.util.*;

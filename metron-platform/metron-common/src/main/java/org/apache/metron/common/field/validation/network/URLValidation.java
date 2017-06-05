@@ -19,8 +19,8 @@
 package org.apache.metron.common.field.validation.network;
 
 import org.apache.commons.validator.routines.UrlValidator;
-import org.apache.metron.common.dsl.Predicate2StellarFunction;
-import org.apache.metron.common.dsl.Stellar;
+import org.apache.metron.stellar.dsl.Predicate2StellarFunction;
+import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.common.field.validation.SimpleValidation;
 
 import java.util.function.Predicate;

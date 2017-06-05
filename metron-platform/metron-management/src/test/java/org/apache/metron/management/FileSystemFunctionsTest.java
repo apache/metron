@@ -20,7 +20,7 @@ package org.apache.metron.management;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
-import org.apache.metron.common.dsl.Context;
+import org.apache.metron.stellar.dsl.Context;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

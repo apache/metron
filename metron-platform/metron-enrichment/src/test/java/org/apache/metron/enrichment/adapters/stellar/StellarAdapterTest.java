@@ -17,15 +17,14 @@
  */
 package org.apache.metron.enrichment.adapters.stellar;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.configuration.StellarEnrichmentTest;
 import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.MapVariableResolver;
-import org.apache.metron.common.dsl.VariableResolver;
-import org.apache.metron.common.stellar.StellarProcessor;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.stellar.common.StellarProcessor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.MapVariableResolver;
+import org.apache.metron.stellar.dsl.VariableResolver;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
