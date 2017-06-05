@@ -51,11 +51,11 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
           .getLogger(JoinBolt.class);
   protected OutputCollector collector;
 
-  protected transient CacheLoader<String, Map<String, V>> loader;
-  protected transient LoadingCache<String, Map<String, V>> cache;
-  private transient MessageGetStrategy keyGetStrategy;
-  private transient MessageGetStrategy subgroupGetStrategy;
-  private transient MessageGetStrategy messageGetStrategy;
+  protected transient CacheLoader<String, Map<String, Tuple>> loader;
+  protected transient LoadingCache<String, Map<String, Tuple>> cache;
+  protected transient MessageGetStrategy keyGetStrategy;
+  protected transient MessageGetStrategy subgroupGetStrategy;
+  protected transient MessageGetStrategy messageGetStrategy;
   protected Long maxCacheSize;
   protected Long maxTimeRetain;
 
@@ -86,9 +86,9 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
     if (this.maxTimeRetain == null) {
       throw new IllegalStateException("maxTimeRetain must be specified");
     }
-    loader = new CacheLoader<String, Map<String, V>>() {
+    loader = new CacheLoader<String, Map<String, Tuple>>() {
       @Override
-      public Map<String, V> load(String key) throws Exception {
+      public Map<String, Tuple> load(String key) throws Exception {
         return new HashMap<>();
       }
     };
@@ -98,10 +98,10 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
     prepare(map, topologyContext);
   }
 
-  class JoinRemoveListener implements RemovalListener<String, Map<String, V>> {
+  class JoinRemoveListener implements RemovalListener<String, Map<String, Tuple>> {
 
     @Override
-    public void onRemoval(RemovalNotification<String, Map<String, V>> removalNotification) {
+    public void onRemoval(RemovalNotification<String, Map<String, Tuple>> removalNotification) {
       if (removalNotification.getCause() == RemovalCause.SIZE) {
         String errorMessage = "Join cache reached max size limit. Increase the maxCacheSize setting or add more tasks to enrichment/threatintel join bolt.";
         Exception exception = new Exception(errorMessage);
@@ -126,12 +126,12 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
     streamId = Joiner.on(":").join("" + streamId, subgroup == null?"":subgroup);
     V message = (V) messageGetStrategy.get(tuple);
     try {
-      Map<String, V> streamMessageMap = cache.get(key);
+      Map<String, Tuple> streamMessageMap = cache.get(key);
       if (streamMessageMap.containsKey(streamId)) {
         LOG.warn(String.format("Received key %s twice for " +
                 "stream %s", key, streamId));
       }
-      streamMessageMap.put(streamId, message);
+      streamMessageMap.put(streamId, tuple);
       Set<String> streamIds = getStreamIds(message);
       Set<String> streamMessageKeys = streamMessageMap.keySet();
       if ( streamMessageKeys.size() == streamIds.size()
@@ -141,11 +141,12 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
         collector.emit( "message"
                       , tuple
                       , new Values( key
-                                  , joinMessages(streamMessageMap)
+                                  , joinMessages(streamMessageMap, this.messageGetStrategy)
                                   )
                       );
         cache.invalidate(key);
-        collector.ack(tuple);
+        Tuple messageTuple = streamMessageMap.get("message:");
+        collector.ack(messageTuple);
         LOG.trace("Emitted message for key: {}", key);
       } else {
         cache.put(key, streamMessageMap);
@@ -177,5 +178,5 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
 
   public abstract Set<String> getStreamIds(V value);
 
-  public abstract V joinMessages(Map<String, V> streamMessageMap);
+  public abstract V joinMessages(Map<String, Tuple> streamMessageMap, MessageGetStrategy messageGetStrategy);
 }
