@@ -38,7 +38,6 @@ All Metron messages follow a specific format in order to ingest a message.  If a
 
 ```
 {"message" : message content}
-
 ```
 
 Where appropriate there is also a standardization around the 5-tuple JSON fields.  This is done so the topology correlation engine further down stream can correlate messages from different topologies by these fields.  We are currently working on expanding the message standardization beyond these fields, but this feature is not yet availabe.  The standard field names are as follows:
@@ -66,7 +65,6 @@ So putting it all together a typical Metron message with all 5-tuple fields pres
 "original_string": xxx,
 "additional-field 1": xxx,
 }
-
 }
 ```
 
