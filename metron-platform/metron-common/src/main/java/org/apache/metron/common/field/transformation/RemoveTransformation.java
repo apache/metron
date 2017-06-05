@@ -18,9 +18,9 @@
 
 package org.apache.metron.common.field.transformation;
 
-import org.apache.metron.common.dsl.*;
-import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
-import org.apache.metron.common.stellar.StellarPredicateProcessor;
+import org.apache.metron.stellar.dsl.*;
+import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
+import org.apache.metron.stellar.common.StellarPredicateProcessor;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;

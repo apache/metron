@@ -19,8 +19,6 @@
 package org.apache.metron.common.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;

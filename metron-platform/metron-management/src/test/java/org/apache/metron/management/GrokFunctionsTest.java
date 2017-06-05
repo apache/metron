@@ -19,12 +19,12 @@ package org.apache.metron.management;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.apache.metron.common.dsl.Context;
+import org.apache.metron.stellar.dsl.Context;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashMap;
-import static org.apache.metron.common.utils.StellarProcessorUtils.run;
+import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 
 public class GrokFunctionsTest {
   private String grokExpr = "%{NUMBER:timestamp}[^0-9]*%{INT:elapsed} %{IP:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url}[^0-9]*(%{IP:ip_dst_addr})?";
