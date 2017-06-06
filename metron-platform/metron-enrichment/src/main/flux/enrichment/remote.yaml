@@ -312,7 +312,7 @@ bolts:
             - "${kafka.zk}"
         configMethods:
             -   name: "withMaxCacheSize"
-                args: [10000]
+                args: [100000]
             -   name: "withMaxTimeRetain"
                 args: [10]
     -   id: "enrichmentErrorOutputBolt"
@@ -366,7 +366,7 @@ bolts:
             - "${kafka.zk}"
         configMethods:
             -   name: "withMaxCacheSize"
-                args: [10000]
+                args: [100000]
             -   name: "withMaxTimeRetain"
                 args: [10]
     -   id: "threatIntelErrorOutputBolt"
