@@ -34,7 +34,7 @@ public class ConfigHandler {
   }
 
   public ConfigHandler(List<String> obj) {
-    config = new ArrayList();
+    config = new HashMap<>();
     type = Configs.LIST;
   }
   public Object getConfig() {

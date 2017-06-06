@@ -17,7 +17,6 @@
  */
 package org.apache.metron.enrichment.adapters.stellar;
 
-import com.google.common.collect.Iterables;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.common.dsl.Context;
@@ -25,7 +24,6 @@ import org.apache.metron.common.dsl.MapVariableResolver;
 import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.stellar.StellarProcessor;
-import org.apache.metron.common.stellar.shell.StellarShell;
 import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
