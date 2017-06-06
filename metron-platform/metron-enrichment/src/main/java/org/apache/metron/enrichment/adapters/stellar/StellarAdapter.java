@@ -17,6 +17,7 @@
  */
 package org.apache.metron.enrichment.adapters.stellar;
 
+import com.google.common.collect.Iterables;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.common.dsl.Context;
@@ -24,6 +25,8 @@ import org.apache.metron.common.dsl.MapVariableResolver;
 import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.metron.common.stellar.shell.StellarShell;
+import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
@@ -38,6 +41,8 @@ import static org.apache.metron.enrichment.bolt.GenericEnrichmentBolt.STELLAR_CO
 
 public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable {
   protected static final Logger _LOG = LoggerFactory.getLogger(StellarAdapter.class);
+  public static final String STELLAR_SLOW_LOG = "stellar.slow.threshold.ms";
+  public static final Long STELLAR_SLOW_LOG_DEFAULT = 1000l;
 
   private enum EnrichmentType implements Function<SensorEnrichmentConfig, ConfigHandler>{
     ENRICHMENT(config -> config.getEnrichment().getEnrichmentConfigs().get("stellar"))
@@ -74,6 +79,63 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
     return field;
   }
 
+  public static Iterable<Map.Entry<String, Object>> getStellarStatements(ConfigHandler handler, String field) {
+    if(field.length() == 0) {
+      return handler.getType().toConfig(handler.getConfig());
+    }
+    else {
+      Map<String, Object> groupStatements = (Map<String, Object>)handler.getConfig();
+      return handler.getType().toConfig(groupStatements.get(field));
+    }
+  }
+
+  public static JSONObject process( Map<String, Object> message
+                                           , ConfigHandler handler
+                                           , String field
+                                           , long slowLogThreshold
+                                           , StellarProcessor processor
+                                           , VariableResolver resolver
+                                           , Context stellarContext
+                                           )
+  {
+    JSONObject ret = new JSONObject();
+    Iterable<Map.Entry<String, Object>> stellarStatements = getStellarStatements(handler, field);
+
+    if(stellarStatements != null) {
+      for (Map.Entry<String, Object> kv : stellarStatements) {
+        if(kv.getKey() != null && kv.getValue() != null) {
+          if (kv.getValue() instanceof String) {
+            long startTime = System.currentTimeMillis();
+            String stellarStatement = (String) kv.getValue();
+            Object o = processor.parse(stellarStatement, resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
+            if (_LOG.isDebugEnabled()) {
+              long duration = System.currentTimeMillis() - startTime;
+              if (duration > slowLogThreshold) {
+                _LOG.debug("SLOW LOG: " + stellarStatement + " took" + duration + "ms");
+              }
+            }
+            if (o != null && o instanceof Map) {
+              for (Map.Entry<Object, Object> valueKv : ((Map<Object, Object>) o).entrySet()) {
+                String newKey = ((kv.getKey().length() > 0) ? kv.getKey() + "." : "") + valueKv.getKey();
+                message.put(newKey, valueKv.getValue());
+                ret.put(newKey, valueKv.getValue());
+              }
+            }
+            else if(o == null) {
+              message.remove(kv.getKey());
+              ret.remove(kv.getKey());
+            }
+            else {
+              message.put(kv.getKey(), o);
+              ret.put(kv.getKey(), o);
+            }
+          }
+        }
+      }
+    }
+    return ret;
+  }
+
   @Override
   public JSONObject enrich(CacheKey value) {
     Context stellarContext = (Context) value.getConfig().getConfiguration().get(STELLAR_CONTEXT_CONF);
@@ -84,30 +146,22 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
         _LOG.trace("Stellar ConfigHandler is null.");
       return new JSONObject();
     }
+    Long slowLogThreshold = null;
+    if(_LOG.isDebugEnabled()) {
+      slowLogThreshold = ConversionUtils.convert(globalConfig.getOrDefault(STELLAR_SLOW_LOG, STELLAR_SLOW_LOG_DEFAULT), Long.class);
+    }
     Map<String, Object> message = value.getValue(Map.class);
     VariableResolver resolver = new MapVariableResolver(message, sensorConfig, globalConfig);
     StellarProcessor processor = new StellarProcessor();
-    Map<String, Object> stellarStatements = value.getField().length() == 0? handler.getConfig()
-                                                                          : (Map)handler.getConfig().get(value.getField());
-    if(stellarStatements != null) {
-      for (Map.Entry<String, Object> kv : stellarStatements.entrySet()) {
-        if(kv.getValue() instanceof String) {
-          String stellarStatement = (String) kv.getValue();
-          Object o = processor.parse(stellarStatement, resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
-          if(o != null && o instanceof Map) {
-            for(Map.Entry<Object, Object> valueKv : ((Map<Object, Object>)o).entrySet()) {
-              String newKey = ((kv.getKey().length() > 0)?kv.getKey() + "." : "" )+ valueKv.getKey();
-              message.put(newKey, valueKv.getValue());
-            }
-          }
-          else {
-            message.put(kv.getKey(), o);
-          }
-        }
-      }
-    }
-    JSONObject enriched = new JSONObject(message);
-    _LOG.trace("Stellar Enrichment Success: " + enriched);
+    JSONObject enriched = process(message
+                                 , handler
+                                 , value.getField()
+                                 , slowLogThreshold
+                                 , processor
+                                 , resolver
+                                 , stellarContext
+                                 );
+    _LOG.trace("Stellar Enrichment Success: {}", enriched);
     return enriched;
   }
 

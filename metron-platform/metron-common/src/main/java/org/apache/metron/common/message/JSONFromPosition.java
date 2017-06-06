@@ -40,10 +40,12 @@ public class JSONFromPosition implements MessageGetStrategy {
 
   @Override
   public JSONObject get(Tuple tuple) {
+    String s = null;
     try {
-      return (JSONObject) parser.get().parse(new String(tuple.getBinary(position), "UTF8"));
+      s =  new String(tuple.getBinary(position), "UTF8");
+      return (JSONObject) parser.get().parse(s);
     } catch (Exception e) {
-      throw new IllegalStateException(e.getMessage(), e);
+      throw new IllegalStateException("Unable to parse " + s + " due to " + e.getMessage(), e);
     }
   }
 }

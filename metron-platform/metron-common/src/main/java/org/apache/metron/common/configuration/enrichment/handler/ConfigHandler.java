@@ -17,15 +17,13 @@
  */
 package org.apache.metron.common.configuration.enrichment.handler;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ConfigHandler {
-  private Map<String, Object> config;
+  private Object config;
   private Configs type = Configs.LIST;
   public ConfigHandler(String enrichment, Map<String, Object> obj) {
-    config = (Map<String, Object>) obj.get("config");
+    config = obj.get("config");
     if(obj.containsKey("type")) {
       type = Configs.valueOf((String) obj.get("type"));
     }
@@ -36,14 +34,14 @@ public class ConfigHandler {
   }
 
   public ConfigHandler(List<String> obj) {
-    config = new HashMap<>();
+    config = new ArrayList();
     type = Configs.LIST;
   }
-  public Map<String, Object> getConfig() {
+  public Object getConfig() {
     return config;
   }
 
-  public void setConfig(Map<String, Object> config) {
+  public void setConfig(Object config) {
     this.config = config;
   }
 
