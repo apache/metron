@@ -56,7 +56,7 @@ public class KafkaUtilsTest {
 
     /**
      * {
-     * "endpoints": ["PLAINTEXT://host1:9092", "SSL://host1:9093"]
+     * "endpoints": ["PLAINTEXT://host1:9092", "SSL://host1:9093", "SASL_PLAINTEXT://host1:9094", "PLAINTEXTSASL://host1:9095"]
      * }
      */
     @Multiline
@@ -75,6 +75,8 @@ public class KafkaUtilsTest {
       ArrayList<String> expected = new ArrayList<>();
       expected.add("host1:9092");
       expected.add("host1:9093");
+      expected.add("host1:9094");
+      expected.add("host1:9095");
       assertEquals(expected, (KafkaUtils.INSTANCE.getBrokersFromZookeeper(client)));
     }
 
