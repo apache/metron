@@ -19,8 +19,12 @@
 package org.apache.metron.pcap;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
+import java.io.EOFException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 import org.apache.metron.spout.pcap.Endianness;
@@ -36,12 +40,6 @@ import org.krakenapps.pcap.packet.PacketHeader;
 import org.krakenapps.pcap.packet.PcapPacket;
 import org.krakenapps.pcap.util.Buffer;
 import org.krakenapps.pcap.util.ByteOrderConverter;
-
-import java.io.EOFException;
-import java.io.IOException;
-import java.util.*;
-
-import static org.apache.metron.pcap.Constants.*;
 
 public class PcapHelper {
 
@@ -71,16 +69,14 @@ public class PcapHelper {
     }
   };
 
-  public static Long getTimestamp(String filename) {
-    try {
-      return Long.parseUnsignedLong(Iterables.get(Splitter.on('_').split(filename), 2));
-    }
-    catch(Exception e) {
-      //something went wrong here.
-      return null;
-    }
-  }
-
+  /**
+   *
+   * @param topic
+   * @param timestamp
+   * @param partition kafka partition
+   * @param uuid
+   * @return filename in this format: pcap_topic_timestamp_partition_uuid, e.g. pcap_pcap_1494886105667571000_0_pcap-8-1494965816
+   */
   public static String toFilename(String topic, long timestamp, String partition, String uuid)
   {
     return Joiner.on("_").join("pcap"
@@ -163,6 +159,44 @@ public class PcapHelper {
     }
     return null;
   }
+
+  public static byte[] addHeaders(long tsNano, byte[] packet, Endianness endianness) {
+    byte[] ret = new byte[GLOBAL_HEADER_SIZE + PACKET_HEADER_SIZE + packet.length];
+    byte[] globalHeader = getPcapGlobalHeader(endianness);
+    int offset = 0;
+    System.arraycopy(globalHeader, 0, ret, offset, GLOBAL_HEADER_SIZE);
+    offset += globalHeader.length;
+    {
+      boolean swapBytes = swapBytes(endianness);
+      long micros = Long.divideUnsigned(tsNano, 1000);
+      int secs = (int)(micros / 1000000);
+      int usec = (int)(micros % 1000000);
+      int capLen = packet.length;
+      {
+        byte[] b = Bytes.toBytes(swapBytes?ByteOrderConverter.swap(secs):secs);
+        System.arraycopy(b, 0, ret, offset, Integer.BYTES);
+        offset += Integer.BYTES;
+      }
+      {
+        byte[] b = Bytes.toBytes(swapBytes?ByteOrderConverter.swap(usec):usec);
+        System.arraycopy(b, 0, ret, offset, Integer.BYTES);
+        offset += Integer.BYTES;
+      }
+      {
+        byte[] b = Bytes.toBytes(swapBytes?ByteOrderConverter.swap(capLen):capLen);
+        System.arraycopy(b, 0, ret, offset, Integer.BYTES);
+        offset += Integer.BYTES;
+      }
+      {
+        byte[] b = Bytes.toBytes(swapBytes?ByteOrderConverter.swap(capLen):capLen);
+        System.arraycopy(b, 0, ret, offset, Integer.BYTES);
+        offset += Integer.BYTES;
+      }
+    }
+    System.arraycopy(packet, 0, ret, offset, packet.length);
+    return ret;
+  }
+
   public static byte[] addGlobalHeader(byte[] packet, Endianness endianness) {
     byte[] globalHeader = getPcapGlobalHeader(endianness);
     byte[] ret = new byte[packet.length + GLOBAL_HEADER_SIZE];
@@ -316,4 +350,14 @@ public class PcapHelper {
     }
     return messages;
   }
+
+  public static boolean greaterThanOrEqualTo(long a, long b) {
+    return Long.compareUnsigned(a, b) >= 0;
+  }
+
+  public static boolean lessThanOrEqualTo(long a, long b) {
+    return Long.compareUnsigned(a, b) <= 0;
+  }
+
 }
+

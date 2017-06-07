@@ -3,7 +3,7 @@
 General Kerberization notes can be found in the metron-deployment [README.md](../README.md)
 
 ## Setup a KDC
-See [Setup a KDC](Kerberos-manual-setup.md#setup-a-kdc)
+See [Setup a KDC](Kerberos-manual-setup.md#setup-a-kdc) and [Verify KDC](Kerberos-manual-setup.md#verify-kdc)
 
 ## Ambari Setup
 1. Kerberize the cluster via Ambari. More detailed documentation can be found [here](http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.5.3/bk_security/content/_enabling_kerberos_security_in_ambari.html).

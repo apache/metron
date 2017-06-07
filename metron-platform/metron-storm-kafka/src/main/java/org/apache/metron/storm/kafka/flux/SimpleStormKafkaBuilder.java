@@ -20,8 +20,10 @@ package org.apache.metron.storm.kafka.flux;
 
 import com.google.common.base.Joiner;
 import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.metron.common.utils.KafkaUtils;
 import org.apache.storm.kafka.spout.*;
 import org.apache.storm.spout.SpoutOutputCollector;
@@ -30,10 +32,7 @@ import org.apache.storm.topology.OutputFieldsGetter;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -47,7 +46,6 @@ import java.util.function.Function;
  * @param <V> The kafka value type
  */
 public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V> {
-  final static String STREAM = "default";
 
   /**
    * The fields exposed by the kafka consumer.  These will show up in the Storm tuple.
@@ -113,11 +111,12 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
    * @param <K> The key type in kafka
    * @param <V> The value type in kafka
    */
-  public static class TupleBuilder<K, V> extends KafkaSpoutTupleBuilder<K,V> {
+  public static class SpoutRecordTranslator<K, V> implements RecordTranslator<K,V> {
     private List<FieldsConfiguration> configurations;
-    private TupleBuilder(String topic, List<FieldsConfiguration> configurations) {
-      super(topic);
+    private Fields fields;
+    private SpoutRecordTranslator(List<FieldsConfiguration> configurations) {
       this.configurations = configurations;
+      this.fields = FieldsConfiguration.getFields(configurations);
     }
 
     /**
@@ -127,14 +126,26 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
      * @return list of tuples
      */
     @Override
-    public List<Object> buildTuple(ConsumerRecord<K, V> consumerRecord) {
+    public List<Object> apply(ConsumerRecord<K, V> consumerRecord) {
       Values ret = new Values();
       for(FieldsConfiguration config : configurations) {
         ret.add(config.recordExtractor.apply(consumerRecord));
       }
       return ret;
     }
+
+    @Override
+    public Fields getFieldsFor(String s) {
+      return fields;
+    }
+
+    @Override
+    public List<String> streams() {
+      return DEFAULT_STREAM;
+    }
   }
+
+  public static String DEFAULT_DESERIALIZER = ByteArrayDeserializer.class.getName();
 
   private String topic;
 
@@ -165,11 +176,37 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
                                 , List<String> fieldsConfiguration
                                 )
   {
-    super( modifyKafkaProps(kafkaProps, zkQuorum)
-         , createStreams(fieldsConfiguration, topic)
-         , createTuplesBuilder(fieldsConfiguration, topic)
-         );
+    super( getBootstrapServers(zkQuorum, kafkaProps)
+         , createDeserializer(Optional.ofNullable((String)kafkaProps.get(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG)), DEFAULT_DESERIALIZER)
+         , createDeserializer(Optional.ofNullable((String)kafkaProps.get(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG)), DEFAULT_DESERIALIZER)
+         , topic
+    );
+    setProp(kafkaProps);
+    setRecordTranslator(new SpoutRecordTranslator<>(FieldsConfiguration.toList(fieldsConfiguration)));
     this.topic = topic;
+  }
+
+  private static <T> Class<Deserializer<T>> createDeserializer( Optional<String> deserializerClass
+                                                , String defaultDeserializerClass
+                                                )
+  {
+    try {
+      return (Class<Deserializer<T>>) Class.forName(deserializerClass.orElse(defaultDeserializerClass));
+    } catch (Exception e) {
+      throw new IllegalStateException("Unable to create a deserializer: " + deserializerClass.orElse(defaultDeserializerClass) + ": " + e.getMessage(), e);
+    }
+  }
+
+  private static String getBootstrapServers(String zkQuorum, Map<String, Object> kafkaProps) {
+    String brokers = (String)kafkaProps.get(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG);
+    if(brokers == null) {
+      try {
+        return Joiner.on(",").join(KafkaUtils.INSTANCE.getBrokersFromZookeeper(zkQuorum));
+      } catch (Exception e) {
+        throw new IllegalStateException("Unable to find the bootstrap servers: " + e.getMessage(), e);
+      }
+    }
+    return brokers;
   }
 
   /**
@@ -200,33 +237,6 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
     SimpleStormKafkaBuilder<K, V> builder = new SimpleStormKafkaBuilder<>(kafkaProps, topic, zkQuorum, fieldsConfiguration);
     SpoutConfiguration.configure(builder, spoutConfig);
     return new StormKafkaSpout<>(builder);
-  }
-
-  private static Map<String, Object> modifyKafkaProps(Map<String, Object> props, String zkQuorum) {
-    try {
-      if(!props.containsKey(KafkaSpoutConfig.Consumer.BOOTSTRAP_SERVERS)) {
-        //this isn't a putIfAbsent because I only want to pull the brokers from zk if it's absent.
-        List<String> brokers = KafkaUtils.INSTANCE.getBrokersFromZookeeper(zkQuorum);
-        props.put(KafkaSpoutConfig.Consumer.BOOTSTRAP_SERVERS, Joiner.on(",").join(brokers));
-      }
-      props.putIfAbsent(KafkaSpoutConfig.Consumer.KEY_DESERIALIZER, ByteArrayDeserializer.class.getName());
-      props.putIfAbsent(KafkaSpoutConfig.Consumer.VALUE_DESERIALIZER, ByteArrayDeserializer.class.getName());
-
-    } catch (Exception e) {
-      throw new IllegalStateException("Unable to retrieve brokers from zookeeper: " + e.getMessage(), e);
-    }
-    return props;
-  }
-
-  private static <K,V> KafkaSpoutTuplesBuilder<K, V> createTuplesBuilder(List<String> config, String topic) {
-    TupleBuilder<K, V> tb =  new TupleBuilder<K, V>(topic, FieldsConfiguration.toList(config));
-    return new KafkaSpoutTuplesBuilderNamedTopics.Builder<>(tb).build();
-  }
-
-
-  private static KafkaSpoutStreams createStreams(List<String> config, String topic) {
-    final Fields fields = FieldsConfiguration.getFields(FieldsConfiguration.toList(config));
-    return new KafkaSpoutStreamsNamedTopics.Builder(fields, STREAM, new String[] { topic} ).build();
   }
 
 }
