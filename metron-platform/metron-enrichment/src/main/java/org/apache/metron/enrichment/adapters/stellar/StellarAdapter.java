@@ -38,7 +38,9 @@ import java.util.function.Function;
 import static org.apache.metron.enrichment.bolt.GenericEnrichmentBolt.STELLAR_CONTEXT_CONF;
 
 public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable {
+  public static class Perf {}
   protected static final Logger _LOG = LoggerFactory.getLogger(StellarAdapter.class);
+  protected static final Logger _PERF_LOG = LoggerFactory.getLogger(Perf.class);
   public static final String STELLAR_SLOW_LOG = "stellar.slow.threshold.ms";
   public static final Long STELLAR_SLOW_LOG_DEFAULT = 1000l;
 
@@ -90,7 +92,7 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
   public static JSONObject process( Map<String, Object> message
                                            , ConfigHandler handler
                                            , String field
-                                           , long slowLogThreshold
+                                           , Long slowLogThreshold
                                            , StellarProcessor processor
                                            , VariableResolver resolver
                                            , Context stellarContext
@@ -106,10 +108,10 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
             long startTime = System.currentTimeMillis();
             String stellarStatement = (String) kv.getValue();
             Object o = processor.parse(stellarStatement, resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
-            if (_LOG.isDebugEnabled()) {
+            if (slowLogThreshold != null && _PERF_LOG.isDebugEnabled()) {
               long duration = System.currentTimeMillis() - startTime;
               if (duration > slowLogThreshold) {
-                _LOG.debug("SLOW LOG: " + stellarStatement + " took" + duration + "ms");
+                _PERF_LOG.debug("SLOW LOG: " + stellarStatement + " took" + duration + "ms");
               }
             }
             if (o != null && o instanceof Map) {
@@ -141,11 +143,11 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
     Map<String, Object> globalConfig = value.getConfig().getConfiguration();
     Map<String, Object> sensorConfig = value.getConfig().getEnrichment().getConfig();
     if(handler == null) {
-        _LOG.trace("Stellar ConfigHandler is null.");
+      _LOG.trace("Stellar ConfigHandler is null.");
       return new JSONObject();
     }
     Long slowLogThreshold = null;
-    if(_LOG.isDebugEnabled()) {
+    if(_PERF_LOG.isDebugEnabled()) {
       slowLogThreshold = ConversionUtils.convert(globalConfig.getOrDefault(STELLAR_SLOW_LOG, STELLAR_SLOW_LOG_DEFAULT), Long.class);
     }
     Map<String, Object> message = value.getValue(Map.class);
