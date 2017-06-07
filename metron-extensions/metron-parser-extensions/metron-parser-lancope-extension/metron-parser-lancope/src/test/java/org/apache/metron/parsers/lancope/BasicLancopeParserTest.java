@@ -17,144 +17,41 @@
  */
 package org.apache.metron.parsers.lancope;
 
-import org.apache.metron.parsers.AbstractSchemaTest;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Map;
+import org.apache.metron.parsers.AbstractParserConfigTest;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.Map;
+public class BasicLancopeParserTest extends AbstractParserConfigTest {
 
-/**
-* <ul>
-* <li>Title: Junit for LancopeParserTest</li>
-* <li>Description: </li>
-* <li>Created: Aug 25, 2014</li>
-* </ul>
-* @version $Revision: 1.1 $
-*/
-public class BasicLancopeParserTest extends AbstractSchemaTest {
-
-  /**
-   * The inputStrings.
-   */
-   private static String[] inputStrings;
-
-
-  /**
-   * The parser.
-   */
-  private static BasicLancopeParser parser=null;
-
-  /**
-   * Constructs a new <code>BasicLancopeParserTest</code> instance.
-   * @param name
-   */
-
-  public BasicLancopeParserTest(String name) {
-      super(name);
-  }
-
-  /**
-
-   * @throws Exception
-   */
-  protected static void setUpBeforeClass() throws Exception {
-  }
-
-  /**
-
-   * @throws Exception
-   */
-  protected static void tearDownAfterClass() throws Exception {
-  }
-
-  /*
-   * (non-Javadoc)
-   * @see junit.framework.TestCase#setUp()
-   */
-  @Override
-  protected void setUp() throws Exception {
-      super.setUp("org.apache.metron.parsers.lancope.BasicLancopeParserTest");
-      setInputStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
-      BasicLancopeParserTest.setParser(new BasicLancopeParser());
+  @Before
+  public void setUp() throws Exception {
+    inputStrings = super.readTestDataFromFile("src/test/resources/logData/LancopeParserTest.txt");
+    parser = new BasicLancopeParser();
 
       URL schema_url = getClass().getClassLoader().getResource(
           "TestSchemas/LancopeSchema.json");
       super.setSchemaJsonString(super.readSchemaFromFile(schema_url));
   }
 
-  /*
-   * (non-Javadoc)
-   * @see junit.framework.TestCase#tearDown()
-   */
-  @Override
-  protected void tearDown() throws Exception {
-      super.tearDown();
-  }
-
-  /**
-   * Test method for {@link BasicLancopeParser#parse(byte[])}.
-   * @throws Exception
-   * @throws IOException
-   */
-  public void testParse() throws IOException, Exception {
-
-      for (String inputString : getInputStrings()) {
+  @Test
+  public void testParse() throws ParseException, IOException, ProcessingException {
+    for (String inputString : inputStrings) {
           JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
-          assertNotNull(parsed);
+      Assert.assertNotNull(parsed);
 
-          System.out.println(parsed);
           JSONParser parser = new JSONParser();
 
-          Map<?, ?> json=null;
-          try {
-              json = (Map<?, ?>) parser.parse(parsed.toJSONString());
-              Assert.assertEquals(true, validateJsonData(super.getSchemaJsonString(), json.toString()));
-          } catch (ParseException e) {
-              e.printStackTrace();
+      Map<?, ?> json = (Map<?, ?>) parser.parse(parsed.toJSONString());
+      Assert.assertTrue(validateJsonData(getSchemaJsonString(), json.toString()));
           }
       }
   }
-
-  /**
-  * Returns the parser.
-  * @return the parser.
-  */
-
- public static BasicLancopeParser getParser() {
-     return parser;
- }
-
- /**
-  * Sets the parser.
-  * @param parser the parser.
-  */
-
- public static void setParser(BasicLancopeParser parser) {
-
-     BasicLancopeParserTest.parser = parser;
- }
-
- /**
-  * Returns the inputStrings.
-  * @return the inputStrings.
-  */
-
- public static String[] getInputStrings() {
-     return inputStrings;
- }
-
- /**
-  * Sets the inputStrings.
-  * @param inputStrings the inputStrings.
-  */
-
- public static void setInputStrings(String[] inputStrings) {
-
-     BasicLancopeParserTest.inputStrings = inputStrings;
- }
-}
 

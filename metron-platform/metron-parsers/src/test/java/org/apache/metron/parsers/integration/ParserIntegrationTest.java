@@ -18,7 +18,6 @@
 package org.apache.metron.parsers.integration;
 
 import com.google.common.base.Function;
-import junit.framework.Assert;
 import org.apache.metron.TestConstants;
 import org.apache.metron.bundles.BundleClassLoaders;
 import org.apache.metron.bundles.ExtensionClassInitializer;
@@ -34,6 +33,7 @@ import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
 import org.apache.metron.test.TestDataType;
 import org.apache.metron.test.utils.SampleDataUtils;
+import org.junit.Assert;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;

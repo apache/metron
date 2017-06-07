@@ -185,7 +185,7 @@ public class BasicFireEyeParser extends BasicParser {
 		if (ip_dst_port != null)
 			toReturn.put("ip_dst_port", ip_dst_port);
 
-		System.out.println(toReturn);
+//		System.out.println(toReturn);
 
 		return toReturn;
 	}

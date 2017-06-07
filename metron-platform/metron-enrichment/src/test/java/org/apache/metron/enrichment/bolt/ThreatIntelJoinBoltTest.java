@@ -18,7 +18,6 @@
 package org.apache.metron.enrichment.bolt;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
-import junit.framework.Assert;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
@@ -31,6 +30,7 @@ import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
