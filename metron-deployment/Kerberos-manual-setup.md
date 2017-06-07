@@ -381,11 +381,7 @@ Push Data
 
     ```
     cat sample-bro.txt | ${KAFKA_HOME}/kafka-broker/bin/kafka-console-producer.sh \
-<<<<<<< HEAD
             --broker-list ${BROKERLIST} \
-=======
-            --broker-list ${BROKERLIST}
->>>>>>> d550b9eff34d931aeae7151713c0e07f28719d4c
             --security-protocol SASL_PLAINTEXT \
             --topic bro
     ```
