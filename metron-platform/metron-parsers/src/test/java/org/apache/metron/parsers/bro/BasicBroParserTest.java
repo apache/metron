@@ -17,7 +17,6 @@
  */
 package org.apache.metron.parsers.bro;
 
-import junit.framework.TestCase;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Level;
 import org.apache.metron.test.utils.UnitTestHelper;
@@ -25,32 +24,32 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.junit.AfterClass;
 import org.junit.Assert;
 
 import java.util.Map;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-public class BasicBroParserTest extends TestCase {
+public class BasicBroParserTest {
+	private BasicBroParser broParser = new BasicBroParser();
+	private JSONParser jsonParser = new JSONParser();
 
-	/**
-	 * The parser.
-	 */
-	private BasicBroParser broParser = null;
-	private JSONParser jsonParser = null;
+	@BeforeClass
+	public static void setup() {
+		UnitTestHelper.setLog4jLevel(BasicBroParser.class, Level.FATAL);
+	}
 
-	/**
-	 * Constructs a new <code>BasicBroParserTest</code> instance.
-	 *
-	 * @throws Exception
-	 */
-	public BasicBroParserTest() throws Exception {
-		broParser = new BasicBroParser();
-		jsonParser = new JSONParser();
+	@AfterClass
+	public static void teardown() {
+		UnitTestHelper.setLog4jLevel(BasicBroParser.class, Level.ERROR);
 	}
 
 	/**
 	 * This test is included as a gut-check about our formatting expectations using the Java JDK
 	 * https://docs.oracle.com/javase/tutorial/i18n/format/decimalFormat.html
 	 */
+	@Test
 	public void testDecimalFormatAssumptions() {
 		Pair[] pairs = {
 						Pair.of(12345678d, "12345678.0"),
@@ -63,10 +62,11 @@ public class BasicBroParserTest extends TestCase {
 						Pair.of(12345678.111111d, "12345678.111111")
 		};
 		for (Pair pair : pairs) {
-			assertEquals("Format did not match", pair.getRight(), BasicBroParser.DECIMAL_FORMAT.get().format(pair.getLeft()));
+			Assert.assertEquals("Format did not match", pair.getRight(), BasicBroParser.DECIMAL_FORMAT.get().format(pair.getLeft()));
 		}
 	}
 
+	@Test
 	public void testUnwrappedBroMessage() throws ParseException {
         String rawMessage = "{\"timestamp\":1449511228.474,\"uid\":\"CFgSLp4HgsGqXnNjZi\",\"source_ip\":\"104.130.172.191\",\"source_port\":33893,\"dest_ip\":\"69.20.0.164\",\"dest_port\":53,\"proto\":\"udp\",\"trans_id\":3514,\"rcode\":3,\"rcode_name\":\"NXDOMAIN\",\"AA\":false,\"TC\":false,\"RD\":false,\"RA\":false,\"Z\":0,\"rejected\":false,\"sensor\":\"cloudbro\",\"type\":\"dns\"}";
 
@@ -92,6 +92,7 @@ public class BasicBroParserTest extends TestCase {
     }
 
 	@SuppressWarnings("rawtypes")
+	@Test
 	public void testHttpBroMessage() throws ParseException {
 		String rawMessage = "{\"http\":{\"ts\":1402307733.473,\"uid\":\"CTo78A11g7CYbbOHvj\",\"id.orig_h\":\"192.249.113.37\",\"id.orig_p\":58808,\"id.resp_h\":\"72.163.4.161\",\"id.resp_p\":80,\"trans_depth\":1,\"method\":\"GET\",\"host\":\"www.cisco.com\",\"uri\":\"/\",\"user_agent\":\"curl/7.22.0 (x86_64-pc-linux-gnu) libcurl/7.22.0 OpenSSL/1.0.1 zlib/1.2.3.4 libidn/1.23 librtmp/2.3\",\"request_body_len\":0,\"response_body_len\":25523,\"status_code\":200,\"status_msg\":\"OK\",\"tags\":[],\"resp_fuids\":[\"FJDyMC15lxUn5ngPfd\"],\"resp_mime_types\":[\"text/html\"]}}";
 
@@ -121,6 +122,7 @@ public class BasicBroParserTest extends TestCase {
 	 * more compactly as 123.0
 	 */
 	@SuppressWarnings("rawtypes")
+	@Test
 	public void testHttpBroMessageWithZeroDecimalTruncation() throws ParseException {
 		{
 			String rawMessage = "{\"http\": {\"ts\":1467657279,\"uid\":\"CMYLzP3PKiwZAgBa51\",\"id.orig_h\":\"192.168.138.158\",\"id.orig_p\":49206,\"id.resp_h\":\"95.163.121.204\"," +
@@ -177,6 +179,7 @@ public class BasicBroParserTest extends TestCase {
 	}
 
 	@SuppressWarnings("rawtypes")
+	@Test
 	public void testHttpDecimalBroMessage() throws ParseException {
 		String rawMessage = "{\"http\":{\"ts\":1457149494.166991,\"uid\":\"CTo78A11g7CYbbOHvj\",\"id.orig_h\":\"192.249.113.37\",\"id.orig_p\":58808,\"id.resp_h\":\"72.163.4.161\",\"id.resp_p\":80,\"trans_depth\":1,\"method\":\"GET\",\"host\":\"www.cisco.com\",\"uri\":\"/\",\"user_agent\":\"curl/7.22.0 (x86_64-pc-linux-gnu) libcurl/7.22.0 OpenSSL/1.0.1 zlib/1.2.3.4 libidn/1.23 librtmp/2.3\",\"request_body_len\":0,\"response_body_len\":25523,\"status_code\":200,\"status_msg\":\"OK\",\"tags\":[],\"resp_fuids\":[\"FJDyMC15lxUn5ngPfd\"],\"resp_mime_types\":[\"text/html\"]}}";
 		Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
@@ -201,6 +204,7 @@ public class BasicBroParserTest extends TestCase {
 
 
 	@SuppressWarnings("rawtypes")
+	@Test
 	public void testDnsBroMessage() throws ParseException {
 		String rawMessage = "{\"dns\":{\"ts\":1402308259.609,\"uid\":\"CuJT272SKaJSuqO0Ia\",\"id.orig_h\":\"10.122.196.204\",\"id.orig_p\":33976,\"id.resp_h\":\"144.254.71.184\",\"id.resp_p\":53,\"proto\":\"udp\",\"trans_id\":62418,\"query\":\"www.cisco.com\",\"qclass\":1,\"qclass_name\":\"C_INTERNET\",\"qtype\":28,\"qtype_name\":\"AAAA\",\"rcode\":0,\"rcode_name\":\"NOERROR\",\"AA\":true,\"TC\":false,\"RD\":true,\"RA\":true,\"Z\":0,\"answers\":[\"www.cisco.com.akadns.net\",\"origin-www.cisco.com\",\"2001:420:1201:2::a\"],\"TTLs\":[3600.0,289.0,14.0],\"rejected\":false}}";
 
@@ -223,6 +227,7 @@ public class BasicBroParserTest extends TestCase {
 	}
 
 	@SuppressWarnings("rawtypes")
+	@Test
 	public void testFilesBroMessage() throws ParseException {
 		String rawMessage = "{\"files\":{\"analyzers\": [\"X509\",\"MD5\",\"SHA1\"],\"conn_uids\":[\"C4tygJ3qxJBEJEBCeh\"],\"depth\": 0,\"duration\": 0.0,\"fuid\":\"FZEBC33VySG0nHSoO9\",\"is_orig\": false,\"local_orig\": false,\"md5\": \"eba37166385e3ef42464ed9752e99f1b\",\"missing_bytes\": 0,\"overflow_bytes\": 0,\"rx_hosts\": [\"10.220.15.205\"],\"seen_bytes\": 1136,\"sha1\": \"73e42686657aece354fbf685712361658f2f4357\",\"source\": \"SSL\",\"timedout\": false,\"ts\": 1425845251.334,\"tx_hosts\": [\"68.171.237.7\"]}}";
 
@@ -244,6 +249,7 @@ public class BasicBroParserTest extends TestCase {
 	}
 
 	@SuppressWarnings("rawtypes")
+	@Test
 	public void testProtocolKeyCleanedUp() throws ParseException {
 		String rawMessage = "{\"ht*tp\":{\"ts\":1402307733.473,\"uid\":\"CTo78A11g7CYbbOHvj\",\"id.orig_h\":\"192.249.113.37\",\"id.orig_p\":58808,\"id.resp_h\":\"72.163.4.161\",\"id.resp_p\":80,\"trans_depth\":1,\"method\":\"GET\",\"host\":\"www.cisco.com\",\"uri\":\"/\",\"user_agent\":\"curl/7.22.0 (x86_64-pc-linux-gnu) libcurl/7.22.0 OpenSSL/1.0.1 zlib/1.2.3.4 libidn/1.23 librtmp/2.3\",\"request_body_len\":0,\"response_body_len\":25523,\"status_code\":200,\"status_msg\":\"OK\",\"tags\":[],\"resp_fuids\":[\"FJDyMC15lxUn5ngPfd\"],\"resp_mime_types\":[\"text/html\"]}}";
 
@@ -259,23 +265,13 @@ public class BasicBroParserTest extends TestCase {
 		Assert.assertTrue(broJson.get("original_string").toString().startsWith("HTTP"));
 	}
 
-	public void testBadMessage()  throws ParseException{
-		UnitTestHelper.setLog4jLevel(BasicBroParser.class, Level.FATAL);
-		try {
-			broParser.parse("{ \"foo\" : \"bar\"}".getBytes());
-			Assert.fail("Should have marked this as a bad message.");
-		}
-		catch(IllegalStateException ise) {
+	@Test(expected=IllegalStateException.class)
+	public void testBadMessage()  throws ParseException {
+		broParser.parse("{ \"foo\" : \"bar\"}".getBytes());
+	}
 
-		}
-		//non json
-		try {
-			broParser.parse("foo bar".getBytes());
-			Assert.fail("Should have marked this as a bad message.");
-		}
-		catch(IllegalStateException ise) {
-
-		}
-		UnitTestHelper.setLog4jLevel(BasicBroParser.class, Level.ERROR);
+	@Test(expected=IllegalStateException.class)
+	public void testBadMessageNonJson() {
+		broParser.parse("foo bar".getBytes());
 	}
 }
