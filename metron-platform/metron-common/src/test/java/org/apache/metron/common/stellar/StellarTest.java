@@ -681,6 +681,8 @@ public class StellarTest {
 
   @Test
   public void testShortCircuit_conditional() throws Exception {
+    Assert.assertEquals("foo", run("if true then 'foo' else (if false then 'bar' else 'grok')", new HashMap<>()));
+    Assert.assertEquals("foo", run("if true_var != null && true_var then 'foo' else (if false then 'bar' else 'grok')", ImmutableMap.of("true_var", true)));
     Assert.assertEquals("foo", run("if true then 'foo' else THROW('expression')", new HashMap<>()));
     Assert.assertEquals("foo", run("true ? 'foo' : THROW('expression')", new HashMap<>()));
     Assert.assertEquals("foo", run("if false then THROW('exception') else 'foo'", new HashMap<>()));

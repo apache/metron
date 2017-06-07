@@ -40,21 +40,22 @@ import java.util.*;
 import static java.lang.String.format;
 
 public class StellarCompiler extends StellarBaseListener {
-  private static Token<?> EXPRESSION_REFERENCE = new Token<>(null, Object.class, null);
-  private static Token<?> LAMBDA_VARIABLES = new Token<>(null, Object.class, null);
+  private static Token<?> EXPRESSION_REFERENCE = new Token<>(null, Object.class);
+  private static Token<?> LAMBDA_VARIABLES = new Token<>(null, Object.class);
 
   private Expression expression;
   private final ArithmeticEvaluator arithmeticEvaluator;
   private final NumberLiteralEvaluator numberLiteralEvaluator;
   private final ComparisonExpressionWithOperatorEvaluator comparisonExpressionWithOperatorEvaluator;
 
+  public interface ShortCircuitOp {}
+
   public static class ShortCircuitFrame {}
-  public static class ShortCircuitOp {}
-  public static class BooleanArg extends ShortCircuitOp {}
-  public static class IfExpr extends ShortCircuitOp {}
-  public static class ThenExpr extends ShortCircuitOp {}
-  public static class ElseExpr extends ShortCircuitOp {}
-  public static class EndConditional extends ShortCircuitOp {}
+  public static class BooleanArg implements ShortCircuitOp {}
+  public static class IfExpr implements ShortCircuitOp {}
+  public static class ThenExpr implements ShortCircuitOp {}
+  public static class ElseExpr implements ShortCircuitOp {}
+  public static class EndConditional implements ShortCircuitOp {}
 
   public static class ExpressionState {
     Context context;
