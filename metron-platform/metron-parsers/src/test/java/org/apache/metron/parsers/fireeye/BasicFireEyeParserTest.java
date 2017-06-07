@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,48 +17,44 @@
  */
 package org.apache.metron.parsers.fireeye;
 
-import java.util.Iterator;
 import java.util.Map;
-
 import java.util.Map.Entry;
+import org.apache.metron.parsers.AbstractParserConfigTest;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
-import org.apache.metron.parsers.AbstractParserConfigTest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class BasicFireEyeParserTest extends AbstractParserConfigTest
-{
-	@Before
-	public void setUp() throws Exception {
-        inputStrings = super.readTestDataFromFile("src/test/resources/logData/FireEyeParserTest.txt");
-        parser = new BasicFireEyeParser();  
-	}
+public class BasicFireEyeParserTest extends AbstractParserConfigTest {
 
-	@Override
-	@SuppressWarnings({ "rawtypes"})
+  @Before
+  public void setUp() throws Exception {
+    inputStrings = super.readTestDataFromFile("src/test/resources/logData/FireEyeParserTest.txt");
+    parser = new BasicFireEyeParser();
+  }
+
+  @SuppressWarnings({"rawtypes"})
   @Test
-	public void testParse() throws ParseException {
-		for (String inputString : inputStrings) {
-			JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
-			Assert.assertNotNull(parsed);
-		
-			JSONParser parser = new JSONParser();
+  public void testParse() throws ParseException {
+    for (String inputString : inputStrings) {
+      JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
+      Assert.assertNotNull(parsed);
 
-			Map json = (Map)parser.parse(parsed.toJSONString());
+      JSONParser parser = new JSONParser();
 
-			Assert.assertNotNull(json);
-			Assert.assertFalse(json.isEmpty());
+      Map json = (Map) parser.parse(parsed.toJSONString());
 
-			for (Object o : json.entrySet()) {
-				Entry entry = (Entry) o;
-				String key = (String) entry.getKey();
-				String value = json.get(key).toString();
-				Assert.assertNotNull(value);
-			}
-		}
-	}
+      Assert.assertNotNull(json);
+      Assert.assertFalse(json.isEmpty());
+
+      for (Object o : json.entrySet()) {
+        Entry entry = (Entry) o;
+        String key = (String) entry.getKey();
+        String value = json.get(key).toString();
+        Assert.assertNotNull(value);
+      }
+    }
+  }
 }

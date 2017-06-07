@@ -53,10 +53,9 @@ public class GrokAsaParser extends BasicParser {
 	}
 
 	public GrokAsaParser() throws Exception {
-		// pattern_url = Resources.getResource("patterns/asa");
+//		 pattern_url = Resources.getResource("patterns/asa");
 
-		pattern_url = getClass().getClassLoader().getResourceAsStream(
-						"src/main/patterns/asa");
+		pattern_url = getClass().getClassLoader().getResourceAsStream("patterns/asa");
 
 		File file = stream2file(pattern_url);
 		grok = Grok.create(file.getPath());
@@ -248,7 +247,7 @@ public class GrokAsaParser extends BasicParser {
 
 			toReturn.putAll(gm.toMap());
 
-			String str = toReturn.get("ciscotag").toString();
+			String str = toReturn.get("CISCO_TAGGED_SYSLOG").toString();
 			String pattern = patternMap.get(str);
 
 			Map<String, Object> response = getMap(pattern, toParse);
