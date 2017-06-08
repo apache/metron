@@ -25,8 +25,8 @@ import org.apache.curator.test.TestingServer;
 import org.apache.log4j.Level;
 import org.apache.metron.common.cli.ConfigurationManager;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.JSONObject;
@@ -39,7 +39,7 @@ import java.util.HashMap;
 import static org.apache.metron.TestConstants.PARSER_CONFIGS_PATH;
 import static org.apache.metron.TestConstants.SAMPLE_CONFIG_PATH;
 import static org.apache.metron.management.utils.FileUtils.slurp;
-import static org.apache.metron.common.utils.StellarProcessorUtils.run;
+import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 
 public class ConfigurationFunctionsTest {
   private TestingServer testZkServer;

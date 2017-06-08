@@ -21,15 +21,14 @@
 package org.apache.metron.statistics;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.metron.common.dsl.BaseStellarFunction;
-import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.stellar.dsl.BaseStellarFunction;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.apache.metron.common.utils.ConversionUtils.convert;
+import static org.apache.metron.stellar.common.utils.ConversionUtils.convert;
 
 /**
  * Provides Stellar functions that can calculate summary statistics on
@@ -477,7 +476,7 @@ public class StellarStatisticsFunctions {
       if (stats == null || value == null || bins.size() == 0) {
         return -1;
       }
-      return MathFunctions.Bin.getBin(value, bins.size(), bin -> stats.getPercentile(bins.get(bin).doubleValue()));
+      return BinFunctions.Bin.getBin(value, bins.size(), bin -> stats.getPercentile(bins.get(bin).doubleValue()));
     }
   }
 
