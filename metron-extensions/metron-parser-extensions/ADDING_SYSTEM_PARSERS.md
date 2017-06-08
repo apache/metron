@@ -176,9 +176,9 @@ Verify that the metron-parser-extensions/pom.xml references the new module, or a
   [INFO] metron-parser-foo-assembly ......................... SUCCESS [  0.030 s]
 
 ```
-  ---
+---------
 
-  ## Build your parser
+## Build your parser
 
   - Edit the configurations for indexing, enrichment, parser
   - You must remove the config/elasticsearch directory created by the archetype!
@@ -204,7 +204,7 @@ Verify that the metron-parser-extensions/pom.xml references the new module, or a
     
 
 
-  ## Add your extension to the install
+## Add your extension to the install
   
   Once you are satisfied with your parser, it is time to add it to the install
 
@@ -224,7 +224,7 @@ Verify that the metron-parser-extensions/pom.xml references the new module, or a
 
 ```
 
-  ## Add the extension to the rpm spec
+## Add the extension to the rpm spec
   
   Open metron-deployment/packaging/docker/rpm-docker/SPECS/metron.spec
 
