@@ -53,13 +53,7 @@
 
 <div class="container-fluid nav-content">
     <div class="row">
-        <div class="col-fixed-200">
-            <div class="title"> Filters </div>
-            <div class="m-nav">
-                <metron-collapse *ngFor="let data of filtersData" [data]="getCollapseComponentData(data)"> </metron-collapse>
-            </div>
-        </div>
-        <div class="col-sm-12 col-offset-200">
+        <div class="col-sm-12 pl-0">
             <div class="table-wrapper">
                 <table class="table table-sm" metron-config-table [data]="alerts" [cellSelectable]="true" (onSort)="onSort($event)" style="white-space: nowrap;" (window:resize)="onResize()" #table>
                     <thead>
@@ -77,7 +71,7 @@
                             <a (click)="onAddFilter(column.name, getValue(alert, column, false))" title="{{getValue(alert, column, true)}}" style="color:#689AA9"> {{ getValue(alert, column, true) | centerEllipses:20:cell }} </a>
                         </td>
                         <td></td>
-                        <td><input id="{{ alert.alertId }}" class="fontawesome-checkbox" type="checkbox" name="{{alert.alertId}}" (click)="selectRow($event, alert)" [checked]="selectedAlerts.indexOf(alert) != -1"><label attr.for="{{ alert.alertId }}"></label></td>
+                        <td><input id="{{ alert._id }}" class="fontawesome-checkbox" type="checkbox" name="{{alert._id}}" (click)="selectRow($event, alert)" [checked]="selectedAlerts.indexOf(alert) != -1"><label attr.for="{{ alert._id }}"></label></td>
                     </tr>
                     </tbody>
                 </table>

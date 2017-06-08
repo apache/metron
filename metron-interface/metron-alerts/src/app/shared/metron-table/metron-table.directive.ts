@@ -74,11 +74,13 @@ export class MetronTableDirective implements AfterViewInit {
       return;
     }
 
-    $event.target.style.border = '';
-    $event.target.style.backgroundColor = '';
-
-    let parent = this.getParentTR($event.target);
-    parent.style.backgroundColor = '';
+    if (this.cellSelectable && $event.target.nodeName === 'A') {
+      $event.target.style.border = '';
+      $event.target.style.backgroundColor = '';
+    } else {
+      let parent = this.getParentTR($event.target);
+      parent.style.backgroundColor = '';
+    }
   }
 
   ngAfterViewInit() {
