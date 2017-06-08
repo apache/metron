@@ -38,7 +38,7 @@ public class StellarAdapterTest extends StellarEnrichmentTest {
     return StellarAdapter.process( message
                                  , handler
                                  , field
-                                 , 1000l
+                                 , 1000L
                                  , processor
                                  , resolver
                                  , Context.EMPTY_CONTEXT()
