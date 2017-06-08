@@ -25,6 +25,9 @@
   become: yes
   become_user: hdfs
 
+- name: Assign permissions of {{ metron_directory }}/patterns directory
+  file: path={{ metron_directory }}/patterns state=directory mode=0755
+  
 - name: Assign permissions of HDFS {{ metron_hdfs_output_dir }}/patterns directory
   command: hdfs dfs -chmod -R 775 {{ metron_hdfs_output_dir }}/patterns
   become: yes
