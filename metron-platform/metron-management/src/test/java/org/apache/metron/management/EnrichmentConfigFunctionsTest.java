@@ -21,14 +21,13 @@ import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.common.shell.StellarExecutor;
-import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -127,7 +126,7 @@ public class EnrichmentConfigFunctionsTest {
     if (fieldMap == null) {
       return new HashMap<>();
     }
-    Map<String, Object> stellarMap = (Map<String, Object>) fieldMap.get("common");
+    Map<String, Object> stellarMap = (Map<String, Object>) fieldMap.get("stellar");
     if (stellarMap == null) {
       return new HashMap<>();
     }
@@ -139,7 +138,6 @@ public class EnrichmentConfigFunctionsTest {
     return processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 
-  @Ignore
   @Test
   public void testAddEmpty() {
 
@@ -155,8 +153,6 @@ public class EnrichmentConfigFunctionsTest {
     Assert.assertEquals(variables.get("upper").getExpression(), get(stellarFunctions,"upper"));
   }
 
-
-  @Ignore
   @Test
   public void testAddHasExisting() {
     String newConfig = (String) run(
@@ -193,7 +189,6 @@ public class EnrichmentConfigFunctionsTest {
     Assert.assertEquals(0, size(stellarFunctions));
   }
 
-  @Ignore
   @Test
   public void testAddDuplicate() {
     String newConfig = (String) run(
@@ -215,7 +210,6 @@ public class EnrichmentConfigFunctionsTest {
     Assert.assertEquals(variables.get("upper").getExpression(), get(stellarFunctions,"upper"));
   }
 
-  @Ignore
   @Test
   public void testRemove() {
     String newConfig = (String) run(
@@ -257,7 +251,6 @@ public class EnrichmentConfigFunctionsTest {
     Assert.assertEquals(0, size(stellarFunctions));
   }
 
-  @Ignore
   @Test
   public void testRemoveMissing() {
     String newConfig = (String) run(
