@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,20 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.common.stellar;
 
-package org.apache.metron.common.stellar.evaluators;
+public enum FrameContext {
+  BOOLEAN_AND,
+  BOOLEAN_OR;
 
-import org.apache.metron.common.dsl.Token;
-import org.apache.metron.common.stellar.FrameContext;
-import org.apache.metron.common.stellar.generated.StellarParser;
-
-public class IntLiteralEvaluator implements NumberEvaluator<StellarParser.IntLiteralContext> {
-  @Override
-  public Token<Integer> evaluate(StellarParser.IntLiteralContext context, FrameContext.Context contextVariety) {
-    if (context == null) {
-      throw new IllegalArgumentException("Cannot evaluate a context that is null.");
+  public static class Context {
+    private FrameContext variety;
+    public Context(FrameContext variety) {
+      this.variety = variety;
     }
 
-    return new Token<>(Integer.parseInt(context.getText()), Integer.class, contextVariety);
+    public FrameContext getVariety() {
+      return variety;
+    }
+
+    @Override
+    public String toString() {
+      return "Context{" +
+              "variety=" + variety +
+              '}';
+    }
+  }
+
+  public Context create() {
+    return new Context(this);
   }
 }

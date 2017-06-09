@@ -77,9 +77,9 @@ public class StellarInterpreterTest {
     StellarParser.IntLiteralContext ctx = mock(StellarParser.IntLiteralContext.class);
     Token result = mock(Token.class);
     when(ctx.getText()).thenReturn("1000");
-    when(numberLiteralEvaluator.evaluate(ctx)).thenReturn(result);
+    when(numberLiteralEvaluator.evaluate(ctx, null)).thenReturn(result);
     compiler.exitIntLiteral(ctx);
-    verify(numberLiteralEvaluator).evaluate(ctx);
+    verify(numberLiteralEvaluator).evaluate(ctx, null);
     Assert.assertEquals(1, tokenStack.size());
     Assert.assertEquals(tokenStack.getFirst(), result);
     verifyZeroInteractions(variableResolver);
@@ -93,12 +93,12 @@ public class StellarInterpreterTest {
   public void exitDoubleLiteralShouldProperlyParseStringsAsDoubles() throws Exception {
     StellarParser.DoubleLiteralContext ctx = mock(StellarParser.DoubleLiteralContext.class);
     Token result = mock(Token.class);
-    when(numberLiteralEvaluator.evaluate(ctx)).thenReturn(result);
+    when(numberLiteralEvaluator.evaluate(ctx, null)).thenReturn(result);
     when(ctx.getText()).thenReturn("1000D");
 
     compiler.exitDoubleLiteral(ctx);
 
-    verify(numberLiteralEvaluator).evaluate(ctx);
+    verify(numberLiteralEvaluator).evaluate(ctx, null);
     Assert.assertEquals(1, tokenStack.size());
     Assert.assertEquals(tokenStack.getFirst(), result);
     verifyZeroInteractions(variableResolver);
@@ -113,11 +113,11 @@ public class StellarInterpreterTest {
     StellarParser.FloatLiteralContext ctx = mock(StellarParser.FloatLiteralContext.class);
     when(ctx.getText()).thenReturn("1000f");
     Token result = mock(Token.class);
-    when(numberLiteralEvaluator.evaluate(ctx)).thenReturn(result);
+    when(numberLiteralEvaluator.evaluate(ctx, null)).thenReturn(result);
 
     compiler.exitFloatLiteral(ctx);
 
-    verify(numberLiteralEvaluator).evaluate(ctx);
+    verify(numberLiteralEvaluator).evaluate(ctx, null);
     Assert.assertEquals(1, tokenStack.size());
     Assert.assertEquals(tokenStack.getFirst(), result);
     verifyZeroInteractions(variableResolver);
@@ -132,11 +132,11 @@ public class StellarInterpreterTest {
     StellarParser.LongLiteralContext ctx = mock(StellarParser.LongLiteralContext.class);
     when(ctx.getText()).thenReturn("1000l");
     Token result = mock(Token.class);
-    when(numberLiteralEvaluator.evaluate(ctx)).thenReturn(result);
+    when(numberLiteralEvaluator.evaluate(ctx, null)).thenReturn(result);
 
     compiler.exitLongLiteral(ctx);
 
-    verify(numberLiteralEvaluator).evaluate(ctx);
+    verify(numberLiteralEvaluator).evaluate(ctx, null);
     Assert.assertEquals(1, tokenStack.size());
     Assert.assertEquals(tokenStack.getFirst(), result);
     verifyZeroInteractions(variableResolver);
@@ -152,17 +152,17 @@ public class StellarInterpreterTest {
     StellarParser.ComparisonOpContext mockOp = mock(StellarParser.ComparisonOpContext.class);
     when(ctx.comp_operator()).thenReturn(mockOp);
     Token result = mock(Token.class);
-    when(comparisonExpressionWithOperatorEvaluator.evaluate(any(Token.class), any(Token.class), any(StellarParser.ComparisonOpContext.class))).thenReturn(result);
+    when(comparisonExpressionWithOperatorEvaluator.evaluate(any(Token.class), any(Token.class), any(StellarParser.ComparisonOpContext.class), any())).thenReturn(result);
 
     compiler.exitComparisonExpressionWithOperator(ctx);
     Assert.assertEquals(1, tokenStack.size());
     StellarCompiler.DeferredFunction func = (StellarCompiler.DeferredFunction) tokenStack.pop().getValue();
-    tokenStack.push(new Token<>(1000, Integer.class));
-    tokenStack.push(new Token<>(1500f, Float.class));
+    tokenStack.push(new Token<>(1000, Integer.class, null));
+    tokenStack.push(new Token<>(1500f, Float.class, null));
     func.apply(tokenStack, new StellarCompiler.ExpressionState(context, functionResolver, variableResolver));
     Assert.assertEquals(1, tokenStack.size());
     Assert.assertEquals(tokenStack.getFirst(), result);
-    verify(comparisonExpressionWithOperatorEvaluator).evaluate(any(Token.class), any(Token.class), eq(mockOp));
+    verify(comparisonExpressionWithOperatorEvaluator).evaluate(any(Token.class), any(Token.class), eq(mockOp), any());
     verifyZeroInteractions(numberLiteralEvaluator);
     verifyZeroInteractions(variableResolver);
     verifyZeroInteractions(functionResolver);
