@@ -158,12 +158,9 @@ public class StellarCompiler extends StellarBaseListener {
             DeferredFunction func = (DeferredFunction) token.getValue();
             func.apply(instanceDeque, state);
           }
-          else if(token.getUnderlyingType() == ShortCircuitFrame.class
-               || ShortCircuitOp.class.isAssignableFrom(token.getUnderlyingType())
+          else if(token.getUnderlyingType() != ShortCircuitFrame.class
+               && !ShortCircuitOp.class.isAssignableFrom(token.getUnderlyingType())
                   ) {
-            continue;
-          }
-          else {
             instanceDeque.push(token);
           }
 
