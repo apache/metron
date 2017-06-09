@@ -71,6 +71,8 @@ public class FunctionalFunctionsTest {
                                        , "MAP([ foo, 'bar'], (x) -> TO_UPPER(x) )"
                                        , "MAP([ foo, bar], (x) -> TO_UPPER(x) )"
                                        , "MAP([ foo, bar], x -> TO_UPPER(x) )"
+                                       , "MAP([ foo, bar], x -> true?TO_UPPER(x):THROW('error') )"
+                                       , "MAP([ foo, bar], x -> false?THROW('error'):TO_UPPER(x) )"
                                        )
         )
     {
@@ -121,6 +123,21 @@ public class FunctionalFunctionsTest {
     }
   }
 
+
+  @Test
+  public void testFilter_shortcircuit() {
+    for (String expr : ImmutableList.of("FILTER([ 'foo'], item -> item == 'foo' or THROW('exception') )"
+                                       ,"FILTER([ 'foo'], (item) -> item == 'foo' or THROW('exception') )"
+                                       )
+        )
+    {
+      Object o = run(expr, ImmutableMap.of("foo", "foo", "bar", "bar"));
+      Assert.assertTrue(o instanceof List);
+      List<String> result = (List<String>) o;
+      Assert.assertEquals(1, result.size());
+      Assert.assertEquals("foo", result.get(0));
+    }
+  }
 
   @Test
   public void testFilter_null() {
