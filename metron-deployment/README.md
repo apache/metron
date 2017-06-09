@@ -115,6 +115,7 @@ Components in the RPMs:
 - metron-parsers
 - metron-pcap
 - metron-solr
+- stellar-common
 
 ### Prerequisites
 - Docker.  The image detailed in: `metron-deployment/packaging/docker/rpm-docker/README.md` will automatically be built (or rebuilt if necessary).
