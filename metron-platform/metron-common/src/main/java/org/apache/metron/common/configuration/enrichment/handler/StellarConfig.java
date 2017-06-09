@@ -17,18 +17,18 @@
  */
 package org.apache.metron.common.configuration.enrichment.handler;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import com.google.common.base.Joiner;
 import org.apache.metron.common.stellar.StellarAssignment;
 import org.apache.metron.common.stellar.StellarProcessor;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Function;
 
 public class StellarConfig implements Config {
-
+  protected static final Logger _LOG = LoggerFactory.getLogger(StellarConfig.class);
   @Override
   public List<String> getSubgroups(Iterable<Map.Entry<String, Object>> config) {
     boolean includeEmpty = false;
@@ -103,6 +103,7 @@ public class StellarConfig implements Config {
       ret.put("", getMessage(getFields(processor, defaultStellarStatementGroup), message));
       messages.add(ret);
     }
+    _LOG.debug("Stellar enrichment split: {}", messages );
     return messages;
   }
 

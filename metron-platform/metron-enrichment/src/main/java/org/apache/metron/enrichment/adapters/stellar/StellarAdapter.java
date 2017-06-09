@@ -32,6 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -101,7 +103,9 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
     JSONObject ret = new JSONObject();
     Iterable<Map.Entry<String, Object>> stellarStatements = getStellarStatements(handler, field);
 
+    _LOG.debug("message := {}", message);
     if(stellarStatements != null) {
+      List<String> mapEntries = new ArrayList<>();
       for (Map.Entry<String, Object> kv : stellarStatements) {
         if(kv.getKey() != null && kv.getValue() != null) {
           if (kv.getValue() instanceof String) {
@@ -114,14 +118,11 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
                 _PERF_LOG.debug("SLOW LOG: " + stellarStatement + " took" + duration + "ms");
               }
             }
+            _LOG.debug("{} := {} yields {}", kv.getKey(), stellarStatement , o);
             if (o != null && o instanceof Map) {
-              for (Map.Entry<Object, Object> valueKv : ((Map<Object, Object>) o).entrySet()) {
-                String newKey = ((kv.getKey().length() > 0) ? kv.getKey() + "." : "") + valueKv.getKey();
-                message.put(newKey, valueKv.getValue());
-                ret.put(newKey, valueKv.getValue());
-              }
+              mapEntries.add(kv.getKey());
             }
-            else if(o == null) {
+            if(o == null) {
               message.remove(kv.getKey());
               ret.remove(kv.getKey());
             }
@@ -130,6 +131,28 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
               ret.put(kv.getKey(), o);
             }
           }
+        }
+      }
+      /*
+      We need to handle the map entries separately now.
+      We want to explode them out, so if "var" is
+      {
+        "foo" : "bar"
+      }
+      then we want "var.foo" == "bar"
+      and no "var"
+       */
+      for(String mapEntry : mapEntries) {
+        String key = mapEntry;
+        Map<Object, Object> value = (Map<Object, Object>) ret.get(key);
+        if(value != null) {
+          _LOG.debug("Exploding map: {} == {}", key, value);
+          for (Map.Entry<Object, Object> valueKv : value.entrySet()) {
+            String newKey = ((key.length() > 0) ? key + "." : "") + valueKv.getKey();
+            ret.put(newKey, valueKv.getValue());
+          }
+          //removing the map from downstream
+          ret.remove(key);
         }
       }
     }
