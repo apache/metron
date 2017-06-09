@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.stellar;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.Token;
@@ -345,6 +346,18 @@ public class StellarCompiler extends StellarBaseListener {
     Token<Boolean> arg = (Token<Boolean>) popDeque(tokenDeque);
     tokenDeque.push(new Token<>(!arg.getValue(), Boolean.class, context));
     }, DeferredFunction.class, context));
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * <p>The default implementation does nothing.</p>
+   *
+   * @param ctx
+   */
+  @Override
+  public void enterEveryRule(ParserRuleContext ctx) {
+    super.enterEveryRule(ctx);
   }
 
   @Override

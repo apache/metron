@@ -81,10 +81,10 @@ public class StellarConfig implements Config {
   {
     StellarProcessor processor = new StellarProcessor();
     List<JSONObject> messages = new ArrayList<>();
-    Map<String, String> defaultStellarStatementGroup = new HashMap<>();
+    List<String> defaultStellarStatementGroup = new ArrayList<>();
     for(Map.Entry<String, Object> kv : config) {
       if(kv.getValue() instanceof String) {
-        defaultStellarStatementGroup.put(kv.getKey(), (String)kv.getValue());
+        defaultStellarStatementGroup.add((String)kv.getValue());
       }
       else if(kv.getValue() instanceof Map) {
         JSONObject ret = new JSONObject();
