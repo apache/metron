@@ -18,13 +18,27 @@
 
 package org.apache.metron.common.dsl;
 
+import org.apache.metron.common.stellar.FrameContext;
+
 public class Token<T> {
   T value;
   Class<T> underlyingType;
+  FrameContext.Context multiArgContext;
+
   public Token(T value, Class<T> clazz) {
+    this(value, clazz, null);
+  }
+
+  public Token(T value, Class<T> clazz, FrameContext.Context multiArgContext) {
     this.value = value;
     this.underlyingType = clazz;
+    this.multiArgContext = multiArgContext;
   }
+
+  public FrameContext.Context getMultiArgContext() {
+    return multiArgContext;
+  }
+
   public T getValue() {
     return value;
   }
