@@ -348,17 +348,6 @@ public class StellarCompiler extends StellarBaseListener {
     }, DeferredFunction.class, context));
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * <p>The default implementation does nothing.</p>
-   *
-   * @param ctx
-   */
-  @Override
-  public void enterEveryRule(ParserRuleContext ctx) {
-    super.enterEveryRule(ctx);
-  }
 
   @Override
   public void exitVariable(StellarParser.VariableContext ctx) {
