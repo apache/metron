@@ -57,7 +57,8 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
     if(fieldMap != null) {
       for (String enrichmentType : fieldMap.keySet()) {
         ConfigHandler handler = handlerMap.get(enrichmentType);
-        for(String subgroup : handler.getType().getSubgroups(handler.getConfig())) {
+        List<String> subgroups = handler.getType().getSubgroups(handler.getType().toConfig(handler.getConfig()));
+        for(String subgroup : subgroups) {
           streamIds.add(Joiner.on(":").join(enrichmentType, subgroup));
         }
       }

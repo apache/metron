@@ -247,7 +247,7 @@ public class GetProfile implements StellarFunction {
       return provider.getTable(HBaseConfiguration.create(), tableName);
 
     } catch (IOException e) {
-      throw new IllegalArgumentException(String.format("Unable to access table: %s", tableName));
+      throw new IllegalArgumentException(String.format("Unable to access table: %s", tableName), e);
     }
   }
 
