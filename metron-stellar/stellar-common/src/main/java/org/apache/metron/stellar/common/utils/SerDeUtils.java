@@ -47,9 +47,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Modifier;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.GregorianCalendar;
+import java.util.*;
 import java.util.function.Function;
 
 import static com.esotericsoftware.kryo.util.Util.className;
@@ -101,7 +99,7 @@ public class SerDeUtils {
    * back to reflection for performance reasons alone (this is, after all, in the critical path).
    *
    */
-  static private class DefaultInstantiatorStrategy implements InstantiatorStrategy {
+  static private class DefaultInstantiatorStrategy implements org.objenesis.strategy.InstantiatorStrategy {
     private InstantiatorStrategy fallbackStrategy;
 
     public DefaultInstantiatorStrategy () {
