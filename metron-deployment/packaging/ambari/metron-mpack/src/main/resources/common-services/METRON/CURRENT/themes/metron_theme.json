@@ -183,7 +183,63 @@
                   "subsections": [
                     {
                       "name": "subsection-indexing-hdfs",
-                      "display-name": "Hdfs",
+                      "display-name": "HDFS",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "rest",
+            "display-name": "REST",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-rest",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-rest",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "management-ui",
+            "display-name": "Management UI",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-management-ui",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-management-ui",
                       "row-index": "0",
                       "column-index": "0",
                       "row-span": "1",
@@ -368,6 +424,59 @@
         {
           "config": "metron-env/bolt_hdfs_rotation_policy_count",
           "subsection-name": "subsection-indexing-hdfs"
+        },
+
+        {
+          "config": "metron-env/metron_rest_port",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-env/metron_jdbc_url",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-env/metron_jdbc_driver",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-env/metron_jdbc_username",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-env/metron_jdbc_password",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-env/metron_jdbc_platform",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-env/metron_jdbc_client_path",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-env/metron_default_grok_path",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-env/metron_temp_grok_path",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-env/metron_spring_profiles_active",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-env/metron_jvm_flags",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-env/metron_spring_options",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-env/metron_management_ui_port",
+          "subsection-name": "subsection-management-ui"
         }
       ]
     },
@@ -627,9 +736,88 @@
           "type": "text-field"
         }
       },
-
       {
         "config": "metron-env/metron_apps_indexed_hdfs_dir",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+
+
+      {
+        "config": "metron-env/metron_rest_port",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/metron_jdbc_url",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/metron_jdbc_driver",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/metron_jdbc_username",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/metron_jdbc_password",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/metron_jdbc_platform",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/metron_jdbc_client_path",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/metron_default_grok_path",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/metron_temp_grok_path",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/metron_spring_profiles_active",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/metron_jvm_flags",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/metron_spring_options",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/metron_management_ui_port",
         "widget": {
           "type": "text-field"
         }

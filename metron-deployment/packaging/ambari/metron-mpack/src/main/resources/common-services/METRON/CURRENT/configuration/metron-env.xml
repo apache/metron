@@ -137,7 +137,7 @@
         </value-attributes>
         <on-ambari-upgrade add="true"/>
     </property>
-    <property require-input="true">
+    <property>
         <name>metron_jdbc_platform</name>
         <value></value>
         <description>Database platform used by Metron.  One of: hsqldb, h2, oracle, mysql, postgresql</description>
@@ -486,15 +486,21 @@
     </property>
     <property>
         <name>bolt_hdfs_rotation_policy</name>
-        <description>Class Name of Hdfs Rotation Policy</description>
+        <description>Class Name of HDFS Rotation Policy</description>
         <value>org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy</value>
-        <display-name>Hdfs Rotation Policy</display-name>
+        <display-name>HDFS Rotation Policy</display-name>
+    </property>
+    <property>
+        <name>bolt_hdfs_rotation_policy_count</name>
+        <description>HDFS Rotation Policy Count</description>
+        <value>1</value>
+        <display-name>HDFS Rotation Policy Count</display-name>
     </property>
     <property>
         <name>bolt_hdfs_rotation_policy_units</name>
-        <description>Frequency of Hdfs File Rotation</description>
+        <description>Frequency of HDFS File Rotation</description>
         <value>DAYS</value>
-        <display-name>Hdfs Rotation Policy Units</display-name>
+        <display-name>HDFS Rotation Policy Units</display-name>
         <value-attributes>
             <type>value-list</type>
             <entries>
@@ -513,12 +519,6 @@
             </entries>
             <selection-cardinality>1</selection-cardinality>
         </value-attributes>
-    </property>
-    <property>
-        <name>bolt_hdfs_rotation_policy_count</name>
-        <description>Hdfs Rotation Policy Count</description>
-        <value>1</value>
-        <display-name>Hdfs Rotation Policy Count</display-name>
     </property>
     <property>
         <name>indexing_error_topic</name>
@@ -540,8 +540,8 @@
     </property>
     <property>
         <name>hdfs_writer_parallelism</name>
-        <description>Indexing Topology Hdfs Bolt Parallelism</description>
+        <description>Indexing Topology HDFS Bolt Parallelism</description>
         <value>1</value>
-        <display-name>Indexing Hdfs Parallelism</display-name>
+        <display-name>Indexing HDFS Parallelism</display-name>
     </property>
 </configuration>
