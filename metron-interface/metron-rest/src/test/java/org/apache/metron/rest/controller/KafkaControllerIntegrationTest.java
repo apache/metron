@@ -65,7 +65,7 @@ public class KafkaControllerIntegrationTest {
   class SampleDataRunner implements Runnable {
 
         private boolean stop = false;
-        private String path = "../../metron-extensions/metron-parser-extensions/metron-parser-bro-extension/metron-parser-bro/src/test/resources/data/raw/test.raw";
+        private String path = "../../metron-platform/metron-extensions/metron-parser-extensions/metron-parser-bro-extension/metron-parser-bro/src/test/resources/data/raw/test.raw";
 
     @Override
     public void run() {

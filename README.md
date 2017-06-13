@@ -116,7 +116,7 @@ more information:
 * [Indexing](metron-platform/metron-indexing) : Indexing the data post-enrichment into HDFS, Elasticsearch or Solr.
 
 Metron Extensions
-* [Metron Parser Extensions](metron-extensions/metron-parser-extensions) : Parser Extensions parsing data from supported sources
+* [Metron Parser Extensions](metron-platform/metron-extensions/metron-parser-extensions) : Parser Extensions parsing data from supported sources
 
 Some useful utilities that cross all of these parts of the architecture:
 * [Stellar](metron-platform/metron-common) : A custom data transformation language that is used throughout metron from simple field transformation to expressing triage rules.
