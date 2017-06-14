@@ -29,7 +29,6 @@ import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.ElasticsearchClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.node.Node;
@@ -119,8 +118,6 @@ public class ElasticSearchComponent implements InMemoryComponent {
 
         }
 
-
-
         node = new Node(settingsBuilder.build());
 
         waitForCluster(node, ClusterHealthStatus.YELLOW, new TimeValue(60000));
@@ -182,12 +179,7 @@ public class ElasticSearchComponent implements InMemoryComponent {
 
     @Override
     public void stop() {
-        try {
-            node.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        //node.close();
         node = null;
-        client = null;
     }
 }
