@@ -31,17 +31,18 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.node.InternalSettingsPreparer;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeValidationException;
+import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.transport.Netty3Plugin;
+import org.elasticsearch.transport.Netty4Plugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ElasticSearchComponent implements InMemoryComponent {
 
@@ -103,30 +104,36 @@ public class ElasticSearchComponent implements InMemoryComponent {
         }
 
         Settings.Builder settingsBuilder = Settings.builder()
-                .put("node.http.enabled", true)
-                .put("http.port", httpPort)
+                .put("cluster.name", "metron")
                 .put("path.logs",logDir.getAbsolutePath())
                 .put("path.data",dataDir.getAbsolutePath())
                 .put("path.home", indexDir.getAbsoluteFile())
-                .put("index.number_of_shards", 1)
-                .put("node.mode", "network")
-                .put("index.number_of_replicas", 1);
+                .put("transport.type", "netty4");
+
 
         if(extraElasticSearchSettings != null) {
 
             settingsBuilder = settingsBuilder.put(extraElasticSearchSettings);
-
         }
 
-        node = new Node(settingsBuilder.build());
+        Collection plugins = Collections.singletonList(Netty4Plugin.class);
+
+        node = new PluginConfigurableNode(settingsBuilder.build(), plugins);
+        client = node.client();
 
         waitForCluster(node, ClusterHealthStatus.YELLOW, new TimeValue(60000));
 
     }
 
+    private static class PluginConfigurableNode extends Node {
+        PluginConfigurableNode(Settings settings, Collection<Class<? extends Plugin>> classpathPlugins) {
+            super(InternalSettingsPreparer.prepareEnvironment(settings, null), classpathPlugins);
+        }
+    }
+
     public static void waitForCluster(Node node, ClusterHealthStatus status, TimeValue timeout) throws UnableToStartException {
         try {
-            node.start();
+           node.start();
 
             ClusterHealthResponse healthResponse =
                     (ClusterHealthResponse) node.client().execute(ClusterHealthAction.INSTANCE, new ClusterHealthRequest().waitForStatus(status).timeout(timeout)).actionGet();
