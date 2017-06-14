@@ -33,8 +33,9 @@ import org.elasticsearch.client.ElasticsearchClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.node.Node;
-import org.elasticsearch.node.NodeBuilder;
+import org.elasticsearch.node.NodeValidationException;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 import java.io.File;
 import java.io.IOException;
@@ -102,7 +103,7 @@ public class ElasticSearchComponent implements InMemoryComponent {
             throw new UnableToStartException("Unable to clean log or data directories", e);
         }
 
-        Settings.Builder settingsBuilder = Settings.settingsBuilder()
+        Settings.Builder settingsBuilder = Settings.builder()
                 .put("node.http.enabled", true)
                 .put("http.port", httpPort)
                 .put("path.logs",logDir.getAbsolutePath())
@@ -118,24 +119,27 @@ public class ElasticSearchComponent implements InMemoryComponent {
 
         }
 
-        node = NodeBuilder.nodeBuilder().settings(settingsBuilder).clusterName("metron").node();
-        node.start();
 
-        client = node.client();
 
-        waitForCluster(client, ClusterHealthStatus.YELLOW, new TimeValue(60000));
+        node = new Node(settingsBuilder.build());
+
+        waitForCluster(node, ClusterHealthStatus.YELLOW, new TimeValue(60000));
 
     }
 
-    public static void waitForCluster(ElasticsearchClient client, ClusterHealthStatus status, TimeValue timeout) throws UnableToStartException {
+    public static void waitForCluster(Node node, ClusterHealthStatus status, TimeValue timeout) throws UnableToStartException {
         try {
+            node.start();
+
             ClusterHealthResponse healthResponse =
-                    (ClusterHealthResponse)client.execute(ClusterHealthAction.INSTANCE, new ClusterHealthRequest().waitForStatus(status).timeout(timeout)).actionGet();
+                    (ClusterHealthResponse) node.client().execute(ClusterHealthAction.INSTANCE, new ClusterHealthRequest().waitForStatus(status).timeout(timeout)).actionGet();
             if (healthResponse != null && healthResponse.isTimedOut()) {
                 throw new UnableToStartException("cluster state is " + healthResponse.getStatus().name()
                         + " and not " + status.name()
                         + ", from here on, everything will fail!");
             }
+        } catch (NodeValidationException e) {
+            throw new UnableToStartException("node validation exception");
         } catch (ElasticsearchTimeoutException e) {
             throw new UnableToStartException("timeout, cluster does not respond to health request, cowardly refusing to continue with operations");
         }
@@ -148,7 +152,7 @@ public class ElasticSearchComponent implements InMemoryComponent {
         getClient().admin().indices().refresh(new RefreshRequest());
         SearchResponse response = getClient().prepareSearch(index)
                 .setTypes(sourceType)
-                .setSource("message")
+                .setSource(SearchSourceBuilder.searchSource().fetchSource("messages", ""))
                 .setFrom(0)
                 .setSize(1000)
                 .execute().actionGet();
@@ -178,7 +182,11 @@ public class ElasticSearchComponent implements InMemoryComponent {
 
     @Override
     public void stop() {
-        node.close();
+        try {
+            node.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         node = null;
         client = null;
     }

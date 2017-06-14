@@ -74,6 +74,9 @@ import org.elasticsearch.action.admin.indices.recovery.RecoveryResponse;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequestBuilder;
 import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
+import org.elasticsearch.action.admin.indices.rollover.RolloverRequest;
+import org.elasticsearch.action.admin.indices.rollover.RolloverRequestBuilder;
+import org.elasticsearch.action.admin.indices.rollover.RolloverResponse;
 import org.elasticsearch.action.admin.indices.segments.IndicesSegmentResponse;
 import org.elasticsearch.action.admin.indices.segments.IndicesSegmentsRequest;
 import org.elasticsearch.action.admin.indices.segments.IndicesSegmentsRequestBuilder;
@@ -86,6 +89,9 @@ import org.elasticsearch.action.admin.indices.settings.put.UpdateSettingsRespons
 import org.elasticsearch.action.admin.indices.shards.IndicesShardStoreRequestBuilder;
 import org.elasticsearch.action.admin.indices.shards.IndicesShardStoresRequest;
 import org.elasticsearch.action.admin.indices.shards.IndicesShardStoresResponse;
+import org.elasticsearch.action.admin.indices.shrink.ShrinkRequest;
+import org.elasticsearch.action.admin.indices.shrink.ShrinkRequestBuilder;
+import org.elasticsearch.action.admin.indices.shrink.ShrinkResponse;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsRequest;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsRequestBuilder;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsResponse;
@@ -107,15 +113,6 @@ import org.elasticsearch.action.admin.indices.upgrade.post.UpgradeResponse;
 import org.elasticsearch.action.admin.indices.validate.query.ValidateQueryRequest;
 import org.elasticsearch.action.admin.indices.validate.query.ValidateQueryRequestBuilder;
 import org.elasticsearch.action.admin.indices.validate.query.ValidateQueryResponse;
-import org.elasticsearch.action.admin.indices.warmer.delete.DeleteWarmerRequest;
-import org.elasticsearch.action.admin.indices.warmer.delete.DeleteWarmerRequestBuilder;
-import org.elasticsearch.action.admin.indices.warmer.delete.DeleteWarmerResponse;
-import org.elasticsearch.action.admin.indices.warmer.get.GetWarmersRequest;
-import org.elasticsearch.action.admin.indices.warmer.get.GetWarmersRequestBuilder;
-import org.elasticsearch.action.admin.indices.warmer.get.GetWarmersResponse;
-import org.elasticsearch.action.admin.indices.warmer.put.PutWarmerRequest;
-import org.elasticsearch.action.admin.indices.warmer.put.PutWarmerRequestBuilder;
-import org.elasticsearch.action.admin.indices.warmer.put.PutWarmerResponse;
 import org.elasticsearch.client.AdminClient;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.ClusterAdminClient;
@@ -772,51 +769,6 @@ public class ElasticsearchDataPrunerTest {
         }
 
         @Override
-        public ActionFuture<PutWarmerResponse> putWarmer(PutWarmerRequest request) {
-            return null;
-        }
-
-        @Override
-        public void putWarmer(PutWarmerRequest request, ActionListener<PutWarmerResponse> listener) {
-
-        }
-
-        @Override
-        public PutWarmerRequestBuilder preparePutWarmer(String name) {
-            return null;
-        }
-
-        @Override
-        public ActionFuture<DeleteWarmerResponse> deleteWarmer(DeleteWarmerRequest request) {
-            return null;
-        }
-
-        @Override
-        public void deleteWarmer(DeleteWarmerRequest request, ActionListener<DeleteWarmerResponse> listener) {
-
-        }
-
-        @Override
-        public DeleteWarmerRequestBuilder prepareDeleteWarmer() {
-            return null;
-        }
-
-        @Override
-        public void getWarmers(GetWarmersRequest request, ActionListener<GetWarmersResponse> listener) {
-
-        }
-
-        @Override
-        public ActionFuture<GetWarmersResponse> getWarmers(GetWarmersRequest request) {
-            return null;
-        }
-
-        @Override
-        public GetWarmersRequestBuilder prepareGetWarmers(String... indices) {
-            return null;
-        }
-
-        @Override
         public void getSettings(GetSettingsRequest request, ActionListener<GetSettingsResponse> listener) {
 
         }
@@ -829,6 +781,36 @@ public class ElasticsearchDataPrunerTest {
         @Override
         public GetSettingsRequestBuilder prepareGetSettings(String... indices) {
             return null;
+        }
+
+        @Override
+        public ShrinkRequestBuilder prepareShrinkIndex(String s, String s1) {
+            return null;
+        }
+
+        @Override
+        public ActionFuture<ShrinkResponse> shrinkIndex(ShrinkRequest shrinkRequest) {
+            return null;
+        }
+
+        @Override
+        public void shrinkIndex(ShrinkRequest shrinkRequest, ActionListener<ShrinkResponse> actionListener) {
+
+        }
+
+        @Override
+        public RolloverRequestBuilder prepareRolloverIndex(String s) {
+            return null;
+        }
+
+        @Override
+        public ActionFuture<RolloverResponse> rolloversIndex(RolloverRequest rolloverRequest) {
+            return null;
+        }
+
+        @Override
+        public void rolloverIndex(RolloverRequest rolloverRequest, ActionListener<RolloverResponse> actionListener) {
+
         }
 
         @Override
