@@ -48,10 +48,6 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
   @Override
   public InMemoryComponent getSearchComponent(final Properties topologyProperties) {
 
-    Map<String, String> extraSettings = new HashMap<String, String>();
-//    extraSettings.put("index.number_of_replicas", "1");
-//    extraSettings.put("index.number_of_shards", "1");
-
     return new ElasticSearchComponent.Builder()
             .withHttpPort(9300)
             .withIndexDir(new File(indexDir))
