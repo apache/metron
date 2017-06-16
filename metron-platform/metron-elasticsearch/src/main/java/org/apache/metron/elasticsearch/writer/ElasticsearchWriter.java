@@ -66,7 +66,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     Settings.Builder settingsBuilder = Settings.builder();
     settingsBuilder.put("cluster.name", globalConfiguration.get("es.clustername"));
     settingsBuilder.put("client.transport.ping_timeout","500s");
-    settingsBuilder.put("transport.type", "netty4");
+    settingsBuilder.put("transport.type", "security4");
     settingsBuilder.put("xpack.security.user", globalConfiguration.get("es.xpackuser"));
 
     if (optionalSettings != null) {
