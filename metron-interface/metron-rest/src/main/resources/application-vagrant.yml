@@ -42,7 +42,7 @@ grok:
 
 storm:
   ui:
-    url:   node1:8744
+    url:   http://node1:8744
   parser:
     script.path: /usr/metron/${metron.version}/bin/start_parser_topology.sh
   enrichment:
