@@ -18,6 +18,7 @@
 package org.apache.metron.integration;
 
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -110,7 +111,7 @@ public class ComponentRunner {
         return components;
     }
 
-    public void start() throws UnableToStartException {
+    public void start() throws UnableToStartException, IOException {
         for(String componentName : startupOrder) {
             components.get(componentName).start();
         }

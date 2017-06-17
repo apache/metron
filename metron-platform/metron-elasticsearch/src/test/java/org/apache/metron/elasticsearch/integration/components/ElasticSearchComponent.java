@@ -42,6 +42,8 @@ import org.elasticsearch.transport.Netty4Plugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class ElasticSearchComponent implements InMemoryComponent {
@@ -92,7 +94,7 @@ public class ElasticSearchComponent implements InMemoryComponent {
         dir.mkdirs();
     }
     @Override
-    public void start() throws UnableToStartException {
+    public void start() throws UnableToStartException, IOException {
         File logDir= new File(indexDir, "/logs");
         File dataDir= new File(indexDir, "/data");
         try {
@@ -142,6 +144,16 @@ public class ElasticSearchComponent implements InMemoryComponent {
                         + " and not " + status.name()
                         + ", from here on, everything will fail!");
             }
+
+            byte[] indexTemplate = new byte[0];
+            try {
+                indexTemplate = Files.readAllBytes(Paths.get("/Users/wbekker/metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/yaf_index.template"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            node.client().admin().indices().preparePutTemplate("yaf_index").setSource(indexTemplate).get();
+
         } catch (NodeValidationException e) {
             throw new UnableToStartException("node validation exception");
         } catch (ElasticsearchTimeoutException e) {
@@ -156,7 +168,6 @@ public class ElasticSearchComponent implements InMemoryComponent {
         getClient().admin().indices().refresh(new RefreshRequest());
         SearchResponse response = getClient().prepareSearch(index)
                 .setTypes(sourceType)
-                .setSource(SearchSourceBuilder.searchSource().fetchSource("messages", ""))
                 .setFrom(0)
                 .setSize(1000)
                 .execute().actionGet();
