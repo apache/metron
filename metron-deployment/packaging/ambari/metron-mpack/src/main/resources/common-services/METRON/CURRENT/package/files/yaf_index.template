@@ -18,7 +18,7 @@
           "match_mapping_type": "*",
           "mapping": {
             "type": "text",
-            "index": "not_analyzed"
+            "index": "false"
           }
         }
       },
@@ -28,7 +28,7 @@
           "match_mapping_type": "*",
           "mapping": {
             "type": "text",
-            "index": "not_analyzed"
+            "index": "false"
           }
         }
       },
@@ -38,7 +38,7 @@
           "match_mapping_type": "*",
           "mapping": {
             "type": "text",
-            "index": "not_analyzed"
+            "index": "false"
           }
         }
       },
@@ -48,7 +48,7 @@
           "match_mapping_type": "*",
           "mapping": {
             "type": "text",
-            "index": "not_analyzed"
+            "index": "false"
           }
         }
       },
@@ -58,7 +58,7 @@
           "match_mapping_type": "*",
           "mapping": {
             "type": "text",
-            "index": "not_analyzed"
+            "index": "false"
           }
         }
       },
@@ -125,7 +125,7 @@
         },
         "source:type": {
           "type": "text",
-          "index": "not_analyzed"
+          "index": "false"
         },
         "ip_dst_addr": {
           "type": "ip"
@@ -155,54 +155,54 @@
         },
         "proto": {
           "type": "text",
-          "index": "not_analyzed"
+          "index": "false"
         },
         "sip": {
           "type": "text",
-          "index": "not_analyzed"
+          "index": "false"
         },
         "sp": {
           "type": "text",
-          "index": "not_analyzed"
+          "index": "false"
         },
         "dip": {
           "type": "text",
-          "index": "not_analyzed"
+          "index": "false"
         },
         "dp": {
           "type": "text",
-          "index": "not_analyzed"
+          "index": "false"
         },
         "iflags": {
           "type": "text",
-          "index": "not_analyzed"
+          "index": "false"
         },
         "uflags": {
           "type": "text",
-          "index": "not_analyzed"
+          "index": "false"
         },
         "riflags": {
           "type": "text"
         },
         "ruflags": {
           "type": "text",
-          "index": "not_analyzed"
+          "index": "false"
         },
         "isn": {
           "type": "text",
-          "index": "not_analyzed"
+          "index": "false"
         },
         "risn": {
           "type": "text",
-          "index": "not_analyzed"
+          "index": "false"
         },
         "tag": {
           "type": "text",
-          "index": "not_analyzed"
+          "index": "false"
         },
         "rtag": {
           "type": "text",
-          "index": "not_analyzed"
+          "index": "false"
         },
         "pkt": {
           "type": "integer"
@@ -218,7 +218,7 @@
         },
         "app": {
           "type": "text",
-          "index": "not_analyzed"
+          "index": "false"
         },
         "end-reason": {
           "type": "text"
