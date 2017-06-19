@@ -45,7 +45,7 @@ public class StormStatusServiceImpl implements StormStatusService {
 
   @Override
   public SupervisorSummary getSupervisorSummary(){
-    return restTemplate.getForObject("http://" + environment.getProperty(STORM_UI_SPRING_PROPERTY) + SUPERVISOR_SUMMARY_URL, SupervisorSummary.class);
+    return restTemplate.getForObject(getStormUiProperty() + SUPERVISOR_SUMMARY_URL, SupervisorSummary.class);
   }
 
   @Override
