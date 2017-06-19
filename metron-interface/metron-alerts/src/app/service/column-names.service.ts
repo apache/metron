@@ -18,7 +18,6 @@
 import {Injectable, Inject} from '@angular/core';
 import {Observable} from 'rxjs/Rx';
 import {Http} from '@angular/http';
-import {Subject} from 'rxjs/Subject';
 
 import {IAppConfig} from '../app.config.interface';
 import {APP_CONFIG} from '../app.config';
@@ -31,6 +30,35 @@ export class ColumnNamesService {
   static columnNameToDisplayValueMap = {};
   static columnDisplayValueToNameMap = {};
 
+  public static getColumnDisplayValue(key: string) {
+    if (!key) {
+      return '';
+    }
+
+    let displayValue = ColumnNamesService.columnNameToDisplayValueMap[key];
+
+    return displayValue ? displayValue : key;
+  }
+
+  public static getColumnDisplayKey(key: string) {
+    if (!key) {
+      return key;
+    }
+
+    let name = ColumnNamesService.columnDisplayValueToNameMap[key];
+
+    return (!name || name.length === 0) ? key : name;
+  }
+
+  private static toMap(columnNames: ColumnNames[]) {
+    ColumnNamesService.columnNameToDisplayValueMap = {};
+    ColumnNamesService.columnDisplayValueToNameMap = {};
+
+    columnNames.forEach(columnName => {
+      ColumnNamesService.columnNameToDisplayValueMap[columnName.key] = columnName.displayValue;
+      ColumnNamesService.columnDisplayValueToNameMap[columnName.displayValue] = columnName.key;
+    });
+  }
   constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
   }
 
@@ -59,36 +87,6 @@ export class ColumnNamesService {
       observer.next({});
       observer.complete();
 
-    });
-  }
-
-  public static getColumnDisplayValue(key: string) {
-    if (!key) {
-      return '';
-    }
-
-    let displayValue = ColumnNamesService.columnNameToDisplayValueMap[key];
-
-    return displayValue ? displayValue : key;
-  }
-
-  public static getColumnDisplayKey(key: string) {
-    if (!key) {
-      return key;
-    }
-
-    let name = ColumnNamesService.columnDisplayValueToNameMap[key];
-
-    return (!name || name.length === 0) ? key : name;
-  }
-
-  private static toMap(columnNames:ColumnNames[]) {
-    ColumnNamesService.columnNameToDisplayValueMap = {};
-    ColumnNamesService.columnDisplayValueToNameMap = {};
-
-    columnNames.forEach(columnName => {
-      ColumnNamesService.columnNameToDisplayValueMap[columnName.key] = columnName.displayValue;
-      ColumnNamesService.columnDisplayValueToNameMap[columnName.displayValue] = columnName.key;
     });
   }
 }

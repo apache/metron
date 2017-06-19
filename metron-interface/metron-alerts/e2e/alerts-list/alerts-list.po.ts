@@ -11,7 +11,7 @@ export class MetronAlertsPage {
   }
 
   isMetronLogoPresent() {
-    return element(by.css('img[src="../assets/images/logo.png"]')).isPresent()
+    return element(by.css('img[src="../assets/images/logo.png"]')).isPresent();
   }
 
   isSavedSearchButtonPresent() {
@@ -89,7 +89,7 @@ export class MetronAlertsPage {
   clickSettings() {
     return element(by.css('.btn.settings')).click();
   }
-  
+
   getSettingsLabels() {
     return element.all(by.css('form label:not(.switch)')).getText();
   }
@@ -103,7 +103,7 @@ export class MetronAlertsPage {
   }
 
   getPageSizeOptions() {
-    return element.all(by.css('.preset-row.page-size .preset-cell')).getText()
+    return element.all(by.css('.preset-row.page-size .preset-cell')).getText();
   }
 
   getPageSizeSelectedOption() {
@@ -124,7 +124,7 @@ export class MetronAlertsPage {
   }
 
   clickCloseSavedSearch() {
-    element(by.css('app-saved-searches .close-button')).click();  
+    element(by.css('app-saved-searches .close-button')).click();
   }
 
   clickSavedSearch() {
@@ -135,11 +135,11 @@ export class MetronAlertsPage {
   clickPlayPause() {
     element(by.css('.btn.pause-play')).click();
   }
-  
+
   clickTableText(name: string) {
     element.all(by.linkText(name)).get(0).click();
   }
-  
+
   clickClearSearch() {
     element(by.css('.btn-search-clear')).click();
   }
@@ -182,7 +182,7 @@ export class MetronAlertsPage {
 
   getSelectedColumnNames() {
     return element.all(by.css('app-configure-table input[type="checkbox"]:checked')).map(ele => {
-      return ele.getAttribute('id').then(id => id.replace(/select-deselect-/,''));
+      return ele.getAttribute('id').then(id => id.replace(/select-deselect-/, ''));
     });
   }
 
@@ -197,7 +197,7 @@ export class MetronAlertsPage {
      return element(by.css('.save-button')).click().then(() => element(by.css('app-save-search #name')).sendKeys(name))
       .then(() => element(by.css('app-save-search button[type="submit"]')).click());
   }
-  
+
   saveConfigureColumns() {
     element(by.css('app-configure-table')).element(by.buttonText('SAVE')).click();
   }

@@ -37,8 +37,8 @@ import {ConfigureRowsModule} from './alerts/configure-rows/configure-rows.module
 import {SwitchModule} from './shared/switch/switch.module';
 import {ColumnNamesService} from './service/column-names.service';
 
-export function initConfig(config: ColumnNamesService){
-  return () => config.list()
+export function initConfig(config: ColumnNamesService) {
+  return () => config.list();
 }
 
 @NgModule({

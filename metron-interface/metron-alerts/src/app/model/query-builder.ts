@@ -51,13 +51,13 @@ export class QueryBuilder {
     return this._query;
   }
 
-  set displayQuery(value:string) {
+  set displayQuery(value: string) {
     this._displayQuery = value;
     this.updateFilters(this._displayQuery, true);
     this.onSearchChange();
   }
 
-  get displayQuery():string {
+  get displayQuery(): string {
     return this._displayQuery;
   }
 

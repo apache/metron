@@ -45,9 +45,11 @@ describe('metron-alerts Search', function() {
 
   it('manually entering search queries to search box and pressing enter key should search', () => {
     page.setSearchText('enrichments:geo:ip_dst_addr:country:US');
-    expect(page.getPaginationText()).toEqualBcoz('1 - 22 of 22', 'for pagination text with search text enrichments:geo:ip_dst_addr:country:US');
+    expect(page.getPaginationText()).toEqualBcoz('1 - 22 of 22',
+                                                'for pagination text with search text enrichments:geo:ip_dst_addr:country:US');
     page.setSearchText('enrichments:geo:ip_dst_addr:country:RU');
-    expect(page.getPaginationText()).toEqualBcoz('1 - 25 of 44', 'for pagination text with search text enrichments:geo:ip_dst_addr:country:RU as text');
+    expect(page.getPaginationText()).toEqualBcoz('1 - 25 of 44',
+                                                  'for pagination text with search text enrichments:geo:ip_dst_addr:country:RU as text');
   });
 
 });

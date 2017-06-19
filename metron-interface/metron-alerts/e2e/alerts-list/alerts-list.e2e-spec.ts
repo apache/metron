@@ -64,19 +64,24 @@ describe('metron-alerts App', function() {
   });
 
   it('should have all settings controls and they should be working', () => {
-    page.clickSettings();
-    expect(page.getSettingsLabels()).toEqualBcoz([ 'REFRESH RATE', 'ROWS PER PAGE', 'HIDE Resolved Alerts', 'HIDE Dismissed Alerts' ], 'for table settings labels');
+    let settingsPaneLbelNames = [ 'REFRESH RATE', 'ROWS PER PAGE', 'HIDE Resolved Alerts', 'HIDE Dismissed Alerts' ];
+    let settingPaneRefreshIntervals = [ '5s', '10s', '15s', '30s', '1m', '10m', '1h' ];
+    let settingsPanePageSize = [ '10', '25', '50', '100', '250', '500', '1000' ];
 
-    expect(page.getRefreshRateOptions()).toEqualBcoz([ '5s', '10s', '15s', '30s', '1m', '10m', '1h' ], 'for table settings refresh rate labels');
+    page.clickSettings();
+
+    expect(page.getSettingsLabels()).toEqualBcoz(settingsPaneLbelNames, 'for table settings labels');
+
+    expect(page.getRefreshRateOptions()).toEqualBcoz(settingPaneRefreshIntervals, 'for table settings refresh rate labels');
     expect(page.getRefreshRateSelectedOption()).toEqualBcoz([ '1m' ], 'for table settings default refresh rate');
 
     page.clickRefreshInterval('10s');
     expect(page.getRefreshRateSelectedOption()).toEqualBcoz([ '10s' ], 'for refresh interval 10s');
-    
+
     page.clickRefreshInterval('1h');
     expect(page.getRefreshRateSelectedOption()).toEqualBcoz([ '1h' ], 'for refresh interval 1h');
 
-    expect(page.getPageSizeOptions()).toEqualBcoz([ '10', '25', '50', '100', '250', '500', '1000' ], 'for table settings refresh rate labels');
+    expect(page.getPageSizeOptions()).toEqualBcoz(settingsPanePageSize, 'for table settings refresh rate labels');
     expect(page.getPageSizeSelectedOption()).toEqualBcoz([ '25' ], 'for table settings default page size');
 
     page.clickPageSize('10');

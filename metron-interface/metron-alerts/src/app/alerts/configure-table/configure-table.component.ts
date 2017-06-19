@@ -99,7 +99,10 @@ export class ConfigureTableComponent implements OnInit {
       allColumns.splice.apply(allColumns, [indexInAll, 0].concat(itemsToInsert));
     }
 
-    this.allColumns = allColumns.map(mData => { return new ColumnMetadataWrapper(mData, configuredColumnNames.indexOf(mData.name) > -1, ColumnNamesService.columnNameToDisplayValueMap[mData.name]); });
+    this.allColumns = allColumns.map(mData => {
+      return new ColumnMetadataWrapper(mData, configuredColumnNames.indexOf(mData.name) > -1,
+                                        ColumnNamesService.columnNameToDisplayValueMap[mData.name]);
+      });
   }
 
   postSave() {
