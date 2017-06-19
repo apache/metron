@@ -111,7 +111,7 @@ public class ComponentRunner {
         return components;
     }
 
-    public void start() throws UnableToStartException, IOException {
+    public void start() throws UnableToStartException {
         for(String componentName : startupOrder) {
             components.get(componentName).start();
         }

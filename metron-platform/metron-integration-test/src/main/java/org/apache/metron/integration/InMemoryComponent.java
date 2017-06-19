@@ -20,6 +20,6 @@ package org.apache.metron.integration;
 import java.io.IOException;
 
 public interface InMemoryComponent {
-    public void start() throws UnableToStartException, IOException;
+    public void start() throws UnableToStartException;
     public void stop();
 }

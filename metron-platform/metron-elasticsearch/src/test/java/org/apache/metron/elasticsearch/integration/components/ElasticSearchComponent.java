@@ -36,8 +36,6 @@ import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeValidationException;
 import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.transport.Netty3Plugin;
 import org.elasticsearch.transport.Netty4Plugin;
 
 import java.io.File;
@@ -94,7 +92,7 @@ public class ElasticSearchComponent implements InMemoryComponent {
         dir.mkdirs();
     }
     @Override
-    public void start() throws UnableToStartException, IOException {
+    public void start() throws UnableToStartException {
         File logDir= new File(indexDir, "/logs");
         File dataDir= new File(indexDir, "/data");
         try {
@@ -197,7 +195,11 @@ public class ElasticSearchComponent implements InMemoryComponent {
 
     @Override
     public void stop() {
-        //node.close();
+        try {
+            node.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         node = null;
     }
 }

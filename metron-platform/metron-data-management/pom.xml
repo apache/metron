@@ -27,8 +27,21 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <httpcore.version>4.3.2</httpcore.version>
-        <lucene.test.version>5.5.0</lucene.test.version>
+        <lucene.test.version>6.5.1</lucene.test.version>
     </properties>
+    <repositories>
+        <!-- add the elasticsearch repo -->
+        <repository>
+            <id>elasticsearch-releases</id>
+            <url>https://artifacts.elastic.co/maven</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
     <dependencies>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -226,7 +239,7 @@
         </dependency>
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
-            <artifactId>transport</artifactId>
+            <artifactId>x-pack-transport</artifactId>
             <version>${global_elasticsearch_version}</version>
         </dependency>
         <dependency>
