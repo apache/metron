@@ -215,6 +215,6 @@ export class MetronAlertsPage {
     element(by.css('app-alerts-list .ace_text-input')).sendKeys(protractor.Key.BACK_SPACE);
     element(by.css('app-alerts-list .ace_text-input')).sendKeys(search);
     element(by.css('app-alerts-list .ace_text-input')).sendKeys(protractor.Key.ENTER);
-    browser.sleep(10000);
+    browser.sleep(2000);
   }
 }

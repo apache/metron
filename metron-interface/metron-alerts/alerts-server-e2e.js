@@ -67,7 +67,7 @@ var indexHTML = function(req, res){
 
 var searchResult = function(req, res){
   console.log('Serving ', req.originalUrl ,'from alert-list.json');
-  jsonfile.readFile('e2e/mocks/alert-list.json', function(err, obj) {
+  jsonfile.readFile('e2e/mock-data/alert-list.json', function(err, obj) {
     if(err) {
       res.json({status: 'error', reason: err.toString()});
       return;
@@ -110,7 +110,7 @@ var searchResult = function(req, res){
 
 var clusterState = function(req, res){
   console.log('Serving ', req.originalUrl ,'from cluster-state.json');
-  jsonfile.readFile('e2e/mocks/cluster-state.json', function(err, obj) {
+  jsonfile.readFile('e2e/mock-data/cluster-state.json', function(err, obj) {
     if(err) {
       res.json({status: 'error', reason: err.toString()});
       return;
