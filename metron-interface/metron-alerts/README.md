@@ -1,8 +1,8 @@
 - [Caveats](#caveats)
 - [Prerequisites](#prerequisites)
 - [Development Setup](#development-setup)
-- [E2E Tests](#e2e-test)
-- [MPack Integration](#mpack-integration)
+- [E2E Tests](#e2e-tests)
+- [Mpack Integration](#mpack-integration)
 - [Installing on an existing Cluster](#installing-on-an-existing-cluster)
 
 ## Caveats
