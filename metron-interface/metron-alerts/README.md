@@ -1,14 +1,13 @@
 - [Caveats](#caveats)
 - [Prerequisites](#prerequisites)
 - [Development Setup](#development-setup)
+- [E2E Tests](#e2e-test)
 - [MPack Integration](#mpack-integration)
 - [Installing on an existing Cluster](#installing-on-an-existing-cluster)
 
 ## Caveats
 * UI doesn't have an authentication module yet
 * UI uses local storage to save all the data.  A middleware needs to be designed and developed for persisting the data
-* We need some good automation to test the UI any help in this regard is most welcome :)
-* The UI has a left panel to show filters this is just UI mock for now the functionality is not yet done
 
 ## Prerequisites
 * Elastic search should be up and running and should have some alerts populated by metron topologies
@@ -28,6 +27,23 @@ UI can be run by using the following command
 ./scripts/start-dev.sh
 ```
 **NOTE**: *In the development mode ui by default connects to ES at http://node1:9200 for fetching data. If you wish to change it you can change the ES url at incubator-metron/metron-interface/metron-alerts/proxy.conf.json*
+
+## E2E Tests
+An expressjs server is available for mocking the elastic search api.
+
+1. Run e2e webserver :
+    ```
+    cd incubator-metron/metron-interface/metron-alerts
+    sh ./scripts/start-server-for-e2e.sh
+    ```
+
+1. run e2e test using the following command
+    ```
+    cd incubator-metron/metron-interface/metron-alerts
+    npm run e2e
+    ```
+
+**NOTE**: *e2e tests covers all the general workflows and we will extend them as we need*
 
 ## Mpack Integration
 Yet to come
