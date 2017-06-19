@@ -37,10 +37,13 @@ import org.elasticsearch.node.NodeValidationException;
 import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.transport.Netty4Plugin;
+import org.elasticsearch.xpack.XPackPlugin;
+import sun.nio.ch.Net;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -143,11 +146,11 @@ public class ElasticSearchComponent implements InMemoryComponent {
                         + ", from here on, everything will fail!");
             }
 
-            byte[] indexTemplate = new byte[0];
+            byte[] indexTemplate;
             try {
-                indexTemplate = Files.readAllBytes(Paths.get("/Users/wbekker/metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/yaf_index.template"));
+                indexTemplate = Files.readAllBytes(Paths.get("../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/yaf_index.template"));
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
 
             node.client().admin().indices().preparePutTemplate("yaf_index").setSource(indexTemplate).get();
@@ -198,7 +201,7 @@ public class ElasticSearchComponent implements InMemoryComponent {
         try {
             node.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         node = null;
     }
