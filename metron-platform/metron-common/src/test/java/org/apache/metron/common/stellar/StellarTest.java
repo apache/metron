@@ -183,7 +183,12 @@ public class StellarTest {
       Assert.assertEquals(ImmutableSet.of("one", "two")
                          , processor.variablesUsed("if 1 < 2 then one else two"));
     }
+    {
+      Assert.assertEquals(ImmutableSet.of("bar")
+                         , processor.variablesUsed("MAP_GET('foo', { 'foo' : bar})"));
+    }
   }
+
 
   @Test
   public void testFunctionEmptyArgs() {

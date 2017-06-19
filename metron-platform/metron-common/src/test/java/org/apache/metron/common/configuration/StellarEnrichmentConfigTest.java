@@ -18,7 +18,9 @@
 package org.apache.metron.common.configuration;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.common.configuration.enrichment.handler.Configs;
@@ -33,6 +35,41 @@ import java.util.Map;
 
 public class StellarEnrichmentConfigTest extends StellarEnrichmentTest {
 
+  /**
+   {
+    "fieldMap": {
+      "stellar" : {
+        "config" : [
+   "dga_model_endpoint := MAAS_GET_ENDPOINT('dga')",
+   "dga_result_map := MAAS_MODEL_APPLY( dga_model_endpoint, { 'host' : domain_without_subdomains } )",
+   "dga_result := MAP_GET('is_malicious', dga_result_map)",
+   "is_dga := dga_result != null && dga_result == 'dga'",
+   "dga_model_version := MAP_GET('version', dga_model_endpoint)",
+   "dga_model_endpoint := null",
+   "dga_result_map := null",
+   "dga_result := null"
+        ]
+      }
+    }
+  }
+   */
+  @Multiline
+  public static String conf;
+
+  @Test
+  public void testSplitter_listWithTemporaryVariables() throws IOException {
+    JSONObject message = new JSONObject(ImmutableMap.of("domain_without_subdomains", "yahoo.com"));
+    EnrichmentConfig enrichmentConfig = JSONUtils.INSTANCE.load(conf, EnrichmentConfig.class);
+    Assert.assertNotNull(enrichmentConfig.getEnrichmentConfigs().get("stellar"));
+    ConfigHandler handler = enrichmentConfig.getEnrichmentConfigs().get("stellar");
+    List<JSONObject> splits = Configs.STELLAR.splitByFields(message, null, x -> null, handler );
+    Assert.assertEquals(1, splits.size());
+    Map<String, Object> split = (Map<String, Object>)(splits.get(0)).get("");
+    Assert.assertEquals("yahoo.com", split.get("domain_without_subdomains"));
+    Assert.assertTrue(split.containsKey("dga_result"));
+    Assert.assertTrue(split.containsKey("dga_model_endpoint"));
+    Assert.assertTrue(split.containsKey("dga_result_map"));
+  }
 
   @Test
   public void testSplitter_default() throws IOException {

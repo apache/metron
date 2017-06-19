@@ -59,7 +59,25 @@ public class StellarEnrichmentTest {
    */
   @Multiline
   public static String defaultStellarConfig_list;
-  public static List<String> DEFAULT_CONFIGS = ImmutableList.of(defaultStellarConfig_list, defaultStellarConfig_map);
+
+  /**
+   {
+    "fieldMap": {
+      "stellar" : {
+        "config" : [
+          "stmt1 := TO_UPPER(source.type)",
+          "stmt4 := TO_LOWER(string)",
+          "stmt2 := TO_LOWER(stmt1)",
+          "stmt3 := TO_LOWER(string)",
+          "stmt4 := null"
+        ]
+      }
+    }
+  }
+   */
+  @Multiline
+  public static String defaultStellarConfig_listWithTemp;
+  public static List<String> DEFAULT_CONFIGS = ImmutableList.of(defaultStellarConfig_list, defaultStellarConfig_map, defaultStellarConfig_listWithTemp);
 
 /**
    {
@@ -100,7 +118,29 @@ public class StellarEnrichmentTest {
    */
   @Multiline
   public static String groupedStellarConfig_list;
-  public static List<String> GROUPED_CONFIGS = ImmutableList.of(groupedStellarConfig_list, groupedStellarConfig_map);
+
+  /**
+   {
+    "fieldMap": {
+      "stellar" : {
+        "config" : {
+          "group1" : [
+            "stmt1 := TO_UPPER(source.type)",
+            "stmt2 := TO_LOWER(stmt1)"
+          ],
+          "group2" : [
+            "stmt3 := TO_LOWER(string)",
+            "stmt4 := TO_LOWER(string)",
+            "stmt4 := null"
+          ]
+        }
+      }
+    }
+  }
+   */
+  @Multiline
+  public static String groupedStellarConfig_listWithTemp;
+  public static List<String> GROUPED_CONFIGS = ImmutableList.of(groupedStellarConfig_listWithTemp, groupedStellarConfig_list, groupedStellarConfig_map);
 
   /**
    {

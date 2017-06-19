@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.stellar;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.Token;
@@ -346,6 +347,7 @@ public class StellarCompiler extends StellarBaseListener {
     tokenDeque.push(new Token<>(!arg.getValue(), Boolean.class, context));
     }, DeferredFunction.class, context));
   }
+
 
   @Override
   public void exitVariable(StellarParser.VariableContext ctx) {
