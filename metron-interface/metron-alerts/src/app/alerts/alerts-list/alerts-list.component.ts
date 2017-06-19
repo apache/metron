@@ -7,7 +7,6 @@ import {AlertService} from '../../service/alert.service';
 import {QueryBuilder} from '../../model/query-builder';
 import {ConfigureTableService} from '../../service/configure-table.service';
 import {WorkflowService} from '../../service/workflow.service';
-import {SampleData} from '../../model/sample-data';
 import {ClusterMetaDataService} from '../../service/cluster-metadata.service';
 import {ColumnMetadata} from '../../model/column-metadata';
 import {SortEvent} from '../../shared/metron-table/metron-table.directive';
@@ -31,7 +30,6 @@ export class AlertsListComponent implements OnInit {
 
   alertsColumns: ColumnMetadata[] = [];
   alertsColumnsToDisplay: ColumnMetadata[] = [];
-  filtersData = SampleData.getFilters();
   selectedAlerts: Alert[] = [];
   alerts: any[] = [];
   colNumberTimerId: number;
