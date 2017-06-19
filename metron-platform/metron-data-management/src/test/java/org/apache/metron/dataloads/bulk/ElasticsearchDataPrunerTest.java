@@ -22,6 +22,7 @@ import org.apache.commons.collections.IteratorUtils;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.configuration.Configuration;
 import org.easymock.EasyMock;
+import org.elasticsearch.Build;
 import org.elasticsearch.action.*;
 import org.elasticsearch.action.admin.cluster.state.ClusterStateRequestBuilder;
 import org.elasticsearch.action.admin.cluster.state.ClusterStateResponse;
@@ -121,6 +122,7 @@ import org.elasticsearch.cluster.ClusterState;
 import org.elasticsearch.cluster.metadata.IndexMetaData;
 import org.elasticsearch.cluster.metadata.MetaData;
 import org.elasticsearch.common.Nullable;
+import org.elasticsearch.common.ParseField;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.threadpool.ThreadPool;
@@ -172,7 +174,7 @@ public class ElasticsearchDataPrunerTest {
 
     @Before
     public void setUp() throws Exception {
-
+        
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.MONTH, Calendar.MARCH);
         calendar.set(Calendar.YEAR, 2016);
