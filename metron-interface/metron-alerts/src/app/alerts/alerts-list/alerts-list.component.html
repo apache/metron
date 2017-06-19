@@ -1,3 +1,16 @@
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at
+  http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
 <div class="container-fluid px-0">
     <div class="mrow">
         <div class="col-md-12 px-0">
@@ -36,9 +49,7 @@
                     <i *ngIf="pauseRefresh" class="fa fa-play" aria-hidden="true"></i>
                 </div>
                 <div class="dropdown d-inline-block">
-                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        ACTIONS
-                    </button>
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">ACTIONS</button>
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
                         <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processOpen()">Open</span>
                         <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processDismiss()">Dismiss</span>

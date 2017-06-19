@@ -1,4 +1,4 @@
-import {Injectable, Inject} from '@angular/core';
+import {Injectable, Inject, NgZone} from '@angular/core';
 import {Observable} from 'rxjs/Rx';
 import 'rxjs/add/observable/interval';
 import 'rxjs/add/operator/switchMap';
@@ -18,7 +18,9 @@ export class AlertService {
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
   types = ['bro_doc', 'snort_doc'];
 
-  constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
+  constructor(private http: Http,
+              @Inject(APP_CONFIG) private config: IAppConfig,
+              private ngZone: NgZone) {
   }
 
   public search(queryBuilder: QueryBuilder): Observable<{}> {
@@ -30,11 +32,13 @@ export class AlertService {
 
   public pollSearch(queryBuilder: QueryBuilder): Observable<{}> {
     let url = '/search/*,-*kibana/_search';
-    return Observable.interval(this.interval * 1000).switchMap(() => {
-      return this.http.post(url, queryBuilder.getESSearchQuery(), new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-        .map(HttpUtil.extractData)
-        .catch(HttpUtil.handleError)
-        .onErrorResumeNext();
+    return this.ngZone.runOutsideAngular(() => {
+      return Observable.interval(this.interval * 1000).switchMap(() => {
+        return this.http.post(url, queryBuilder.getESSearchQuery(), new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+          .map(HttpUtil.extractData)
+          .catch(HttpUtil.handleError)
+          .onErrorResumeNext();
+      });
     });
   }
 

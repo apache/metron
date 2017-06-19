@@ -17,6 +17,8 @@
  */
 import {EventEmitter}     from '@angular/core';
 
+declare var $;
+
 export enum DialogType {
   Confirmation, Error
 };

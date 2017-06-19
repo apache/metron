@@ -57,12 +57,12 @@ export class ColumnNamesService {
 
   public static getColumnDisplayKey(key: string) {
     if (!key) {
-      return '';
+      return key;
     }
 
     let name = ColumnNamesService.columnDisplayValueToNameMap[key];
 
-    return name ? name : '';
+    return (!name || name.length === 0) ? key : name;
   }
 
   private static toMap(columnNames:ColumnNames[]) {
