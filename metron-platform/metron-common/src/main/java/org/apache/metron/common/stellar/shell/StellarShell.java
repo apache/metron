@@ -33,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.StellarFunctionInfo;
 import org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver;
+import org.apache.metron.common.stellar.StellarAssignment;
 import org.apache.metron.common.utils.JSONUtils;
 import org.jboss.aesh.complete.CompleteOperation;
 import org.jboss.aesh.complete.Completion;
@@ -247,19 +248,17 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
    */
   private void handleStellar(String expression) {
 
-    Iterable<String> assignmentSplit = Splitter.on(":=").split(expression);
     String stellarExpression = expression;
     String variable = null;
-    if(Iterables.size(assignmentSplit) == 2) {
-      //assignment
-      variable = Iterables.getFirst(assignmentSplit, null);
-      if(variable != null) {
-        variable = variable.trim();
-      }
-      stellarExpression = Iterables.getLast(assignmentSplit, null);
+    if(StellarAssignment.isAssignment(expression)) {
+      StellarAssignment expr = StellarAssignment.from(expression);
+      variable = expr.getVariable();
+      stellarExpression = expr.getStatement();
     }
-    if(!stellarExpression.isEmpty()) {
-      stellarExpression = stellarExpression.trim();
+    else {
+      if (!stellarExpression.isEmpty()) {
+        stellarExpression = stellarExpression.trim();
+      }
     }
     Object result = executeStellar(stellarExpression);
     if(result != null && variable == null) {

@@ -18,7 +18,6 @@
 package org.apache.metron.parsers.bro;
 
 import org.adrianwalker.multilinestring.Multiline;
-import junit.framework.TestCase;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Level;
 import org.apache.metron.test.utils.UnitTestHelper;
@@ -26,32 +25,32 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.junit.AfterClass;
 import org.junit.Assert;
 
 import java.util.Map;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-public class BasicBroParserTest extends TestCase {
+public class BasicBroParserTest {
+	private BasicBroParser broParser = new BasicBroParser();
+	private JSONParser jsonParser = new JSONParser();
 
-	/**
-	 * The parser.
-	 */
-	private BasicBroParser broParser = null;
-	private JSONParser jsonParser = null;
+	@BeforeClass
+	public static void setup() {
+		UnitTestHelper.setLog4jLevel(BasicBroParser.class, Level.FATAL);
+	}
 
-	/**
-	 * Constructs a new <code>BasicBroParserTest</code> instance.
-	 *
-	 * @throws Exception
-	 */
-	public BasicBroParserTest() throws Exception {
-		broParser = new BasicBroParser();
-		jsonParser = new JSONParser();
+	@AfterClass
+	public static void teardown() {
+		UnitTestHelper.setLog4jLevel(BasicBroParser.class, Level.ERROR);
 	}
 
 	/**
 	 * This test is included as a gut-check about our formatting expectations using the Java JDK
 	 * https://docs.oracle.com/javase/tutorial/i18n/format/decimalFormat.html
 	 */
+	@Test
 	public void testDecimalFormatAssumptions() {
 		Pair[] pairs = {
 						Pair.of(12345678d, "12345678.0"),
@@ -64,7 +63,7 @@ public class BasicBroParserTest extends TestCase {
 						Pair.of(12345678.111111d, "12345678.111111")
 		};
 		for (Pair pair : pairs) {
-			assertEquals("Format did not match", pair.getRight(), BasicBroParser.DECIMAL_FORMAT.get().format(pair.getLeft()));
+			Assert.assertEquals("Format did not match", pair.getRight(), BasicBroParser.DECIMAL_FORMAT.get().format(pair.getLeft()));
 		}
 	}
 
@@ -93,6 +92,7 @@ public class BasicBroParserTest extends TestCase {
 	@Multiline
 	public final static String unwrappedBroMessage;
 
+	@Test
 	public void testUnwrappedBroMessage() throws ParseException {
         JSONObject rawJson = (JSONObject)jsonParser.parse(unwrappedBroMessage);
         JSONObject broJson = broParser.parse(unwrappedBroMessage.getBytes()).get(0);
@@ -144,6 +144,7 @@ public class BasicBroParserTest extends TestCase {
 	public final static String httpBroMessage;
 
 	@SuppressWarnings("rawtypes")
+	@Test
 	public void testHttpBroMessage() throws ParseException {
 
 		Map rawMessageMap = (Map) jsonParser.parse(httpBroMessage);
@@ -174,6 +175,7 @@ public class BasicBroParserTest extends TestCase {
 	 * more compactly as 123.0
 	 */
 	@SuppressWarnings("rawtypes")
+	@Test
 	public void testHttpBroMessageWithZeroDecimalTruncation() throws ParseException {
 		{
 			String rawMessage = "{\"http\": {\"ts\":1467657279,\"uid\":\"CMYLzP3PKiwZAgBa51\",\"id.orig_h\":\"192.168.138.158\",\"id.orig_p\":49206,\"id.resp_h\":\"95.163.121.204\"," +
@@ -257,8 +259,8 @@ public class BasicBroParserTest extends TestCase {
 	public final static String httpBroDecimalMessage;
 
 	@SuppressWarnings("rawtypes")
+	@Test
 	public void testHttpBroDecimalMessage() throws ParseException {
-		Map rawMessageMap = (Map) jsonParser.parse(httpBroDecimalMessage);
 		JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
 
 		JSONObject broJson = broParser.parse(httpBroDecimalMessage.getBytes()).get(0);
@@ -314,6 +316,7 @@ public class BasicBroParserTest extends TestCase {
 	public final static String dnsBroMessage;
 
 	@SuppressWarnings("rawtypes")
+	@Test
 	public void testDnsBroMessage() throws ParseException {
 		Map rawMessageMap = (Map) jsonParser.parse(dnsBroMessage);
 		JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -362,6 +365,7 @@ public class BasicBroParserTest extends TestCase {
 	public final static String filesBroMessage;
 
 	@SuppressWarnings("rawtypes")
+	@Test
 	public void testFilesBroMessage() throws ParseException {
 		Map rawMessageMap = (Map) jsonParser.parse(filesBroMessage);
 		JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -411,6 +415,7 @@ public class BasicBroParserTest extends TestCase {
 	public final static String connBroMessage;
 
         @SuppressWarnings("rawtypes")
+	@Test
         public void testConnBroMessage() throws ParseException {
                 Map rawMessageMap = (Map) jsonParser.parse(connBroMessage);
                 JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -462,6 +467,7 @@ public class BasicBroParserTest extends TestCase {
 	public final static String dpdBroMessage;
 
         @SuppressWarnings("rawtypes")
+	@Test
         public void testDpdBroMessage() throws ParseException {
                 Map rawMessageMap = (Map) jsonParser.parse(dpdBroMessage);
                 JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -509,6 +515,7 @@ public class BasicBroParserTest extends TestCase {
 	public final static String ftpBroMessage;
 
         @SuppressWarnings("rawtypes")
+	@Test
         public void testFtpBroMessage() throws ParseException {
                 Map rawMessageMap = (Map) jsonParser.parse(ftpBroMessage);
                 JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -553,6 +560,7 @@ public class BasicBroParserTest extends TestCase {
 	public final static String knownCertsBroMessage;
 
         @SuppressWarnings("rawtypes")
+	@Test
         public void testKnownCertsBroMessage() throws ParseException {
                 Map rawMessageMap = (Map) jsonParser.parse(knownCertsBroMessage);
                 JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -596,6 +604,7 @@ public class BasicBroParserTest extends TestCase {
 	public final static String smtpBroMessage;
 
         @SuppressWarnings("rawtypes")
+	@Test
         public void testSmtpBroMessage() throws ParseException {
                 Map rawMessageMap = (Map) jsonParser.parse(smtpBroMessage);
                 JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -648,6 +657,7 @@ public class BasicBroParserTest extends TestCase {
 	public final static String sslBroMessage;
 
         @SuppressWarnings("rawtypes")
+	@Test
         public void testSslBroMessage() throws ParseException {
                 Map rawMessageMap = (Map) jsonParser.parse(sslBroMessage);
                 JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -696,6 +706,7 @@ public class BasicBroParserTest extends TestCase {
         public final static String weirdBroMessage;
 
         @SuppressWarnings("rawtypes")
+	@Test
         public void testWeirdBroMessage() throws ParseException {
                 Map rawMessageMap = (Map) jsonParser.parse(weirdBroMessage);
                 JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -745,6 +756,7 @@ public class BasicBroParserTest extends TestCase {
         public final static String noticeBroMessage;
 
         @SuppressWarnings("rawtypes")
+	@Test
         public void testNoticeBroMessage() throws ParseException {
                 Map rawMessageMap = (Map) jsonParser.parse(noticeBroMessage);
                 JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -795,6 +807,7 @@ public class BasicBroParserTest extends TestCase {
         public final static String dhcpBroMessage;
 
         @SuppressWarnings("rawtypes")
+	@Test
         public void testDhcpBroMessage() throws ParseException {
                 Map rawMessageMap = (Map) jsonParser.parse(dhcpBroMessage);
                 JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -844,6 +857,7 @@ public class BasicBroParserTest extends TestCase {
         public final static String sshBroMessage;
 
         @SuppressWarnings("rawtypes")
+	@Test
         public void testSshBroMessage() throws ParseException {
                 Map rawMessageMap = (Map) jsonParser.parse(sshBroMessage);
                 JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -892,6 +906,7 @@ public class BasicBroParserTest extends TestCase {
         public final static String softwareBroMessage;
 
         @SuppressWarnings("rawtypes")
+	@Test
         public void testSoftwareBroMessage() throws ParseException {
                 Map rawMessageMap = (Map) jsonParser.parse(softwareBroMessage);
                 JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -931,6 +946,7 @@ public class BasicBroParserTest extends TestCase {
         public final static String softwareBroMessage2;
 
         @SuppressWarnings("rawtypes")
+	@Test
         public void testSoftwareBroMessage2() throws ParseException {
                 Map rawMessageMap = (Map) jsonParser.parse(softwareBroMessage2);
                 JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -969,6 +985,7 @@ public class BasicBroParserTest extends TestCase {
         public final static String radiusBroMessageFailed;
 
         @SuppressWarnings("rawtypes")
+	@Test
         public void testRadiusBroMessageFailed() throws ParseException {
                 Map rawMessageMap = (Map) jsonParser.parse(radiusBroMessageFailed);
                 JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -1008,6 +1025,7 @@ public class BasicBroParserTest extends TestCase {
         public final static String radiusBroMessageSuccess;
 
         @SuppressWarnings("rawtypes")
+	@Test
         public void testRadiusBroMessageSuccess() throws ParseException {
                 Map rawMessageMap = (Map) jsonParser.parse(radiusBroMessageSuccess);
                 JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -1053,6 +1071,7 @@ public class BasicBroParserTest extends TestCase {
         public final static String x509BroMessage;
 
         @SuppressWarnings("rawtypes")
+	@Test
         public void testX509BroMessage() throws ParseException {
                 Map rawMessageMap = (Map) jsonParser.parse(x509BroMessage);
                 JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -1095,6 +1114,7 @@ public class BasicBroParserTest extends TestCase {
 	public final static String knownDevicesBroMessage;
 
         @SuppressWarnings("rawtypes")
+	@Test
         public void testKnownDevicesBroMessage() throws ParseException {
                 Map rawMessageMap = (Map) jsonParser.parse(knownDevicesBroMessage);
                 JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -1140,6 +1160,7 @@ public class BasicBroParserTest extends TestCase {
 	public final static String protocolKeyCleanedUp;
 
 	@SuppressWarnings("rawtypes")
+	@Test
 	public void testProtocolKeyCleanedUp() throws ParseException {
 		Map rawMessageMap = (Map) jsonParser.parse(protocolKeyCleanedUp);
 		JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
@@ -1156,23 +1177,13 @@ public class BasicBroParserTest extends TestCase {
 		Assert.assertTrue(broJson.get("original_string").toString().startsWith("HTTP"));
 	}
 
-	public void testBadMessage()  throws ParseException{
-		UnitTestHelper.setLog4jLevel(BasicBroParser.class, Level.FATAL);
-		try {
-			broParser.parse("{ \"foo\" : \"bar\"}".getBytes());
-			Assert.fail("Should have marked this as a bad message.");
-		}
-		catch(IllegalStateException ise) {
+	@Test(expected=IllegalStateException.class)
+	public void testBadMessage()  throws ParseException {
+		broParser.parse("{ \"foo\" : \"bar\"}".getBytes());
+	}
 
-		}
-		//non json
-		try {
-			broParser.parse("foo bar".getBytes());
-			Assert.fail("Should have marked this as a bad message.");
-		}
-		catch(IllegalStateException ise) {
-
-		}
-		UnitTestHelper.setLog4jLevel(BasicBroParser.class, Level.ERROR);
+	@Test(expected=IllegalStateException.class)
+	public void testBadMessageNonJson() {
+		broParser.parse("foo bar".getBytes());
 	}
 }

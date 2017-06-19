@@ -181,7 +181,7 @@ The probe has been tested with [Librdkafka 0.9.4](https://github.com/edenhill/li
 
 2. Build Fastcapa.  The resulting binary will be placed at `build/app/fastcapa`.
     ```
-    cd incubator-metron/metron-sensors/fastcapa
+    cd metron/metron-sensors/fastcapa
     make
     ```
     

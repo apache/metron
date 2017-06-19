@@ -18,20 +18,19 @@
 package org.apache.metron.enrichment.bolt;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
-import junit.framework.Assert;
-import junit.framework.TestCase;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.apache.metron.common.configuration.enrichment.threatintel.ThreatScore;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
+import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.apache.metron.test.utils.UnitTestHelper;
+import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,8 +38,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
 
@@ -187,26 +190,29 @@ public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
     fieldMap = threatIntelJoinBolt.getFieldMap(sensorType);
     Assert.assertTrue(fieldMap.containsKey("hbaseThreatIntel"));
 
-    Map<String, JSONObject> streamMessageMap = new HashMap<>();
-    streamMessageMap.put("message", message);
-    JSONObject joinedMessage = threatIntelJoinBolt.joinMessages(streamMessageMap);
-    Assert.assertFalse(joinedMessage.containsKey("is_alert"));
+    MessageGetStrategy messageGetStrategy = mock(MessageGetStrategy.class);
+    Tuple messageTuple = mock(Tuple.class);
+    when(messageGetStrategy.get(messageTuple)).thenReturn(message);
+    Map<String, Tuple> streamMessageMap = new HashMap<>();
+    streamMessageMap.put("message", messageTuple);
+    JSONObject joinedMessage = threatIntelJoinBolt.joinMessages(streamMessageMap, messageGetStrategy);
+    assertFalse(joinedMessage.containsKey("is_alert"));
 
-    streamMessageMap.put("message", messageWithTiming);
-    joinedMessage = threatIntelJoinBolt.joinMessages(streamMessageMap);
-    Assert.assertFalse(joinedMessage.containsKey("is_alert"));
+    when(messageGetStrategy.get(messageTuple)).thenReturn(messageWithTiming);
+    joinedMessage = threatIntelJoinBolt.joinMessages(streamMessageMap, messageGetStrategy);
+    assertFalse(joinedMessage.containsKey("is_alert"));
 
-    streamMessageMap.put("message", alertMessage);
-    joinedMessage = threatIntelJoinBolt.joinMessages(streamMessageMap);
-    Assert.assertTrue(joinedMessage.containsKey("is_alert") && "true".equals(joinedMessage.get("is_alert")));
+    when(messageGetStrategy.get(messageTuple)).thenReturn(alertMessage);
+    joinedMessage = threatIntelJoinBolt.joinMessages(streamMessageMap, messageGetStrategy);
+    assertTrue(joinedMessage.containsKey("is_alert") && "true".equals(joinedMessage.get("is_alert")));
 
     if(withThreatTriage && !badConfig) {
-      Assert.assertTrue(joinedMessage.containsKey("threat.triage.score"));
+      assertTrue(joinedMessage.containsKey("threat.triage.score"));
       Double score = (Double) joinedMessage.get("threat.triage.score");
-      Assert.assertTrue(Math.abs(10d - score) < 1e-10);
+      assertTrue(Math.abs(10d - score) < 1e-10);
     }
     else {
-      Assert.assertFalse(joinedMessage.containsKey("threat.triage.score"));
+      assertFalse(joinedMessage.containsKey("threat.triage.score"));
     }
   }
 }

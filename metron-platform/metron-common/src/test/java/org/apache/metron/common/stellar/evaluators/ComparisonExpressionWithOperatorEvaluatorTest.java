@@ -54,7 +54,7 @@ public class ComparisonExpressionWithOperatorEvaluatorTest {
     StellarParser.ComparisonOpContext op = mock(StellarParser.ComparisonOpContext.class);
     when(op.EQ()).thenReturn(mock(TerminalNode.class));
 
-    Token<Boolean> evaluated = evaluator.evaluate(left, right, op);
+    Token<Boolean> evaluated = evaluator.evaluate(left, right, op, null);
 
     assertTrue(evaluated.getValue());
   }
@@ -70,7 +70,7 @@ public class ComparisonExpressionWithOperatorEvaluatorTest {
     StellarParser.ComparisonOpContext op = mock(StellarParser.ComparisonOpContext.class);
     when(op.NEQ()).thenReturn(mock(TerminalNode.class));
 
-    Token<Boolean> evaluated = evaluator.evaluate(left, right, op);
+    Token<Boolean> evaluated = evaluator.evaluate(left, right, op, null);
 
     assertFalse(evaluated.getValue());
   }
@@ -86,7 +86,7 @@ public class ComparisonExpressionWithOperatorEvaluatorTest {
     StellarParser.ComparisonOpContext op = mock(StellarParser.ComparisonOpContext.class);
     when(op.LTE()).thenReturn(mock(TerminalNode.class));
 
-    Token<Boolean> evaluated = evaluator.evaluate(left, right, op);
+    Token<Boolean> evaluated = evaluator.evaluate(left, right, op, null);
 
     assertTrue(evaluated.getValue());
   }
@@ -104,7 +104,7 @@ public class ComparisonExpressionWithOperatorEvaluatorTest {
 
     StellarParser.ComparisonOpContext op = mock(StellarParser.ComparisonOpContext.class);
 
-    evaluator.evaluate(left, right, op);
+    evaluator.evaluate(left, right, op, null);
   }
 
   @Test
@@ -121,6 +121,6 @@ public class ComparisonExpressionWithOperatorEvaluatorTest {
     StellarParser.ComparisonOpContext op = mock(StellarParser.ComparisonOpContext.class);
     when(op.LTE()).thenReturn(mock(TerminalNode.class));
 
-    evaluator.evaluate(left, right, op);
+    evaluator.evaluate(left, right, op, null);
   }
 }

@@ -25,7 +25,6 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaComponent;
@@ -36,8 +35,12 @@ import org.apache.metron.rest.service.impl.StormCLIWrapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
@@ -54,7 +57,7 @@ public class TestConfig {
   @Bean
   public ZKServerComponent zkServerComponent(Properties zkProperties) {
     return new ZKServerComponent()
-            .withPostStartCallback((zkComponent) -> zkProperties.setProperty(ZKServerComponent.ZOOKEEPER_PROPERTY, zkComponent.getConnectionString()));
+      .withPostStartCallback((zkComponent) -> zkProperties.setProperty(ZKServerComponent.ZOOKEEPER_PROPERTY, zkComponent.getConnectionString()));
   }
 
   @Bean
@@ -66,10 +69,10 @@ public class TestConfig {
   @Bean
   public ComponentRunner componentRunner(ZKServerComponent zkServerComponent, KafkaComponent kafkaWithZKComponent) {
     ComponentRunner runner = new ComponentRunner.Builder()
-            .withComponent("zk", zkServerComponent)
-            .withComponent("kafka", kafkaWithZKComponent)
-            .withCustomShutdownOrder(new String[] {"kafka","zk"})
-            .build();
+      .withComponent("zk", zkServerComponent)
+      .withComponent("kafka", kafkaWithZKComponent)
+      .withCustomShutdownOrder(new String[]{"kafka", "zk"})
+      .build();
     try {
       runner.start();
     } catch (UnableToStartException e) {
@@ -78,14 +81,14 @@ public class TestConfig {
     return runner;
   }
 
-  @Bean(initMethod = "start", destroyMethod="close")
+  @Bean(initMethod = "start", destroyMethod = "close")
   public CuratorFramework client(ComponentRunner componentRunner) {
     RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
     ZKServerComponent zkServerComponent = componentRunner.getComponent("zk", ZKServerComponent.class);
     return CuratorFrameworkFactory.newClient(zkServerComponent.getConnectionString(), retryPolicy);
   }
 
-  @Bean(destroyMethod="close")
+  @Bean(destroyMethod = "close")
   public ZkClient zkClient(ComponentRunner componentRunner) {
     ZKServerComponent zkServerComponent = componentRunner.getComponent("zk", ZKServerComponent.class);
     return new ZkClient(zkServerComponent.getConnectionString(), 10000, 10000, ZKStringSerializer$.MODULE$);
@@ -96,9 +99,9 @@ public class TestConfig {
     return ZkUtils.apply(zkClient, false);
   }
 
-  @Bean(destroyMethod="close")
-  public KafkaConsumer<String, String> kafkaConsumer(KafkaComponent kafkaWithZKComponent) {
-    Properties props = new Properties();
+  @Bean
+  public Map<String, Object> kafkaConsumer(KafkaComponent kafkaWithZKComponent) {
+    Map<String, Object> props = new HashMap<>();
     props.put("bootstrap.servers", kafkaWithZKComponent.getBrokerList());
     props.put("group.id", "metron-config");
     props.put("enable.auto.commit", "false");
@@ -106,7 +109,12 @@ public class TestConfig {
     props.put("session.timeout.ms", "30000");
     props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
     props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-    return new KafkaConsumer<>(props);
+    return props;
+  }
+
+  @Bean
+  public ConsumerFactory<String, String> createConsumerFactory() {
+    return new DefaultKafkaConsumerFactory<>(kafkaConsumer(kafkaWithZKComponent(zkProperties())));
   }
 
   @Bean
