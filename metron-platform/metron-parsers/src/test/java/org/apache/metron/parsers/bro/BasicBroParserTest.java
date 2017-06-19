@@ -118,27 +118,26 @@ public class BasicBroParserTest extends TestCase {
 
         /**
 	 * {
-	 * "http":
-	 * {
-	 * "ts":1402307733.473,
-	 * "uid":"CTo78A11g7CYbbOHvj",
-	 * "id.orig_h":"192.249.113.37",
-	 * "id.orig_p":58808,
-	 * "id.resp_h":"72.163.4.161",
-	 * "id.resp_p":80,
-	 * "trans_depth":1,
-	 * "method":"GET",
-	 * "host":"www.cisco.com",
-	 * "uri":"/",
-	 * "user_agent":"curl/7.22.0 (x86_64-pc-linux-gnu) libcurl/7.22.0 OpenSSL/1.0.1 zlib/1.2.3.4 libidn/1.23 librtmp/2.3",
-	 * "request_body_len":0,
-	 * "response_body_len":25523,
-	 * "status_code":200,
-	 * "status_msg":"OK",
-	 * "tags":[],
-	 * "resp_fuids":["FJDyMC15lxUn5ngPfd"],
-	 * "resp_mime_types":["text/html"]
-	 * }
+	 * "http": {
+	 *	"ts":1402307733.473,
+	 *	"uid":"CTo78A11g7CYbbOHvj",
+	 *	"id.orig_h":"192.249.113.37",
+	 *	"id.orig_p":58808,
+	 *	"id.resp_h":"72.163.4.161",
+	 *	"id.resp_p":80,
+	 *	"trans_depth":1,
+	 *	"method":"GET",
+	 *	"host":"www.cisco.com",
+	 *	"uri":"/",
+	 *	"user_agent":"curl/7.22.0 (x86_64-pc-linux-gnu) libcurl/7.22.0 OpenSSL/1.0.1 zlib/1.2.3.4 libidn/1.23 librtmp/2.3",
+	 *	"request_body_len":0,
+	 *	"response_body_len":25523,
+	 *	"status_code":200,
+	 *	"status_msg":"OK",
+	 *	"tags":[],
+	 *	"resp_fuids":["FJDyMC15lxUn5ngPfd"],
+	 *	"resp_mime_types":["text/html"]
+	 *	}
 	 * }
 	 */
         @Multiline
@@ -232,26 +231,26 @@ public class BasicBroParserTest extends TestCase {
 
 	/**
 	 * {
-         * "http":
-         * {"ts":1457149494.166991,
-         * "uid":"CTo78A11g7CYbbOHvj",
-         * "id.orig_h":"192.249.113.37",
-         * "id.orig_p":58808,
-         * "id.resp_h":"72.163.4.161",
-         * "id.resp_p":80,
-         * "trans_depth":1,
-         * "method":"GET",
-         * "host":"www.cisco.com",
-         * "uri":"/",
-         * "user_agent":"curl/7.22.0 (x86_64-pc-linux-gnu) libcurl/7.22.0 OpenSSL/1.0.1 zlib/1.2.3.4 libidn/1.23 librtmp/2.3",
-         * "request_body_len":0,
-         * "response_body_len":25523,
-         * "status_code":200,
-         * "status_msg":"OK",
-         * "tags":[],
-         * "resp_fuids":["FJDyMC15lxUn5ngPfd"],
-         * "resp_mime_types":["text/html"]
-         * }
+         * "http": {
+	 *	"ts":1457149494.166991,
+         *	"uid":"CTo78A11g7CYbbOHvj",
+         *	"id.orig_h":"192.249.113.37",
+         *	"id.orig_p":58808,
+         *	"id.resp_h":"72.163.4.161",
+         *	"id.resp_p":80,
+         *	"trans_depth":1,
+         *	"method":"GET",
+         *	"host":"www.cisco.com",
+         *	"uri":"/",
+         *	"user_agent":"curl/7.22.0 (x86_64-pc-linux-gnu) libcurl/7.22.0 OpenSSL/1.0.1 zlib/1.2.3.4 libidn/1.23 librtmp/2.3",
+         *	"request_body_len":0,
+         *	"response_body_len":25523,
+         *	"status_code":200,
+         *	"status_msg":"OK",
+         *	"tags":[],
+         *	"resp_fuids":["FJDyMC15lxUn5ngPfd"],
+         *	"resp_mime_types":["text/html"]
+	 *	}
          * }
 	 */
 	@Multiline
@@ -284,31 +283,31 @@ public class BasicBroParserTest extends TestCase {
 
 	/**
 	 * {
-         * "dns":
-         * {
-         * "ts":1402308259.609,
-         * "uid":"CuJT272SKaJSuqO0Ia",
-         * "id.orig_h":"10.122.196.204",
-         * "id.orig_p":33976,
-         * "id.resp_h":"144.254.71.184",
-         * "id.resp_p":53,
-         * "proto":"udp",
-         * "trans_id":62418,
-         * "query":"www.cisco.com",
-         * "qclass":1,
-         * "qclass_name":"C_INTERNET",
-         * "qtype":28,
-         * "qtype_name":"AAAA",
-         * "rcode":0,
-         * "rcode_name":"NOERROR",
-         * "AA":true,
-         * "TC":false,
-         * "RD":true,
-         * "RA":true,
-         * "Z":0,
-         * "answers":["www.cisco.com.akadns.net","origin-www.cisco.com","2001:420:1201:2::a"],
-         * "TTLs":[3600.0,289.0,14.0],
-         * "rejected":false}
+         * "dns": {
+         *	"ts":1402308259.609,
+         *	"uid":"CuJT272SKaJSuqO0Ia",
+         *	"id.orig_h":"10.122.196.204",
+         *	"id.orig_p":33976,
+         *	"id.resp_h":"144.254.71.184",
+         *	"id.resp_p":53,
+         *	"proto":"udp",
+         *	"trans_id":62418,
+         *	"query":"www.cisco.com",
+         *	"qclass":1,
+         *	"qclass_name":"C_INTERNET",
+         *	"qtype":28,
+         *	"qtype_name":"AAAA",
+         *	"rcode":0,
+         *	"rcode_name":"NOERROR",
+         *	"AA":true,
+         *	"TC":false,
+         *	"RD":true,
+         *	"RA":true,
+         *	"Z":0,
+         *	"answers":["www.cisco.com.akadns.net","origin-www.cisco.com","2001:420:1201:2::a"],
+         *	"TTLs":[3600.0,289.0,14.0],
+         *	"rejected":false
+	 *	}
          * }
 	 */
 	@Multiline
@@ -338,26 +337,25 @@ public class BasicBroParserTest extends TestCase {
 
 	/**
 	 * {
-         * "files":
-         * {
-         * "analyzers": ["X509","MD5","SHA1"],
-         * "conn_uids":["C4tygJ3qxJBEJEBCeh"],
-         * "depth": 0,
-         * "duration": 0.0,
-         * "fuid":"FZEBC33VySG0nHSoO9",
-         * "is_orig": false,
-         * "local_orig": false,
-         * "md5": "eba37166385e3ef42464ed9752e99f1b",
-         * "missing_bytes": 0,
-         * "overflow_bytes": 0,
-         * "rx_hosts": ["10.220.15.205"],
-         * "seen_bytes": 1136,
-         * "sha1": "73e42686657aece354fbf685712361658f2f4357",
-         * "source": "SSL",
-         * "timedout": false,
-         * "ts": 1425845251.334,
-         * "tx_hosts": ["68.171.237.7"]
-         * }
+         * "files": {
+         *	"analyzers": ["X509","MD5","SHA1"],
+         *	"conn_uids":["C4tygJ3qxJBEJEBCeh"],
+         *	"depth": 0,
+         *	"duration": 0.0,
+         *	"fuid":"FZEBC33VySG0nHSoO9",
+         *	"is_orig": false,
+         *	"local_orig": false,
+         *	"md5": "eba37166385e3ef42464ed9752e99f1b",
+         *	"missing_bytes": 0,
+         *	"overflow_bytes": 0,
+         *	"rx_hosts": ["10.220.15.205"],
+         *	"seen_bytes": 1136,
+         *	"sha1": "73e42686657aece354fbf685712361658f2f4357",
+         *	"source": "SSL",
+         *	"timedout": false,
+         *	"ts": 1425845251.334,
+         *	"tx_hosts": ["68.171.237.7"]
+	 *	}
          * }
 	 */
 	@Multiline
@@ -386,28 +384,27 @@ public class BasicBroParserTest extends TestCase {
 
 	/**
 	 * {
-         * "conn":
-         * {
-         * "ts":1166289883.163553,
-         * "uid":"CTKCLy1z4C9U8OqU0c",
-         * "id.orig_h":"192.168.0.114",
-         * "id.orig_p":1140,
-         * "id.resp_h":"192.168.0.193",
-         * "id.resp_p":7254,
-         * "proto":"tcp",
-         * "service":"ftp-data",
-         * "duration":0.006635,
-         * "orig_bytes":0,
-         * "resp_bytes":5808,
-         * "conn_state":"S1",
-         * "missed_bytes":0,
-         * "history":"ShAd",
-         * "orig_pkts":3,
-         * "orig_ip_bytes":128,
-         * "resp_pkts":5,
-         * "resp_ip_bytes":6016,
-         * "tunnel_parents":[]
-         * }
+         * "conn": {
+         *	"ts":1166289883.163553,
+         *	"uid":"CTKCLy1z4C9U8OqU0c",
+         *	"id.orig_h":"192.168.0.114",
+         *	"id.orig_p":1140,
+         *	"id.resp_h":"192.168.0.193",
+         *	"id.resp_p":7254,
+         *	"proto":"tcp",
+         *	"service":"ftp-data",
+         *	"duration":0.006635,
+         *	"orig_bytes":0,
+         *	"resp_bytes":5808,
+         *	"conn_state":"S1",
+         *	"missed_bytes":0,
+         *	"history":"ShAd",
+         *	"orig_pkts":3,
+         *	"orig_ip_bytes":128,
+         *	"resp_pkts":5,
+         *	"resp_ip_bytes":6016,
+         *	"tunnel_parents":[]
+	 *	}
          * }
 	 */
 	@Multiline
@@ -448,18 +445,17 @@ public class BasicBroParserTest extends TestCase {
 
         /**
 	 * {
-         * "dpd":
-         * {
-         * "ts":1216704078.712276,
-         * "uid":"CwlB8d119WPanz63J",
-         * "id.orig_h":"192.168.15.4",
-         * "id.orig_p":34508,
-         * "id.resp_h":"66.33.212.43",
-         * "id.resp_p":80,
-         * "proto":"tcp",
-         * "analyzer":"HTTP",
-         * "failure_reason":"not a http reply line"
-         * }
+         * "dpd": {
+         *	"ts":1216704078.712276,
+         *	"uid":"CwlB8d119WPanz63J",
+         *	"id.orig_h":"192.168.15.4",
+         *	"id.orig_p":34508,
+         *	"id.resp_h":"66.33.212.43",
+         *	"id.resp_p":80,
+         *	"proto":"tcp",
+         *	"analyzer":"HTTP",
+         *	"failure_reason":"not a http reply line"
+	 *	}
          * }
 	 */
         @Multiline
@@ -490,24 +486,23 @@ public class BasicBroParserTest extends TestCase {
 
         /**
 	 * {
-         * "ftp":
-         * {
-         * "ts":1166289883.164645,
-         * "uid":"CuVhX03cii8zrjrtva",
-         * "id.orig_h":"192.168.0.114",
-         * "id.orig_p":1137,
-         * "id.resp_h":"192.168.0.193",
-         * "id.resp_p":21,
-         * "user":"csanders",
-         * "password":"<hidden>",
-         * "command":"RETR",
-         * "arg":"ftp://192.168.0.193/Music.mp3",
-         * "mime_type":"<unknown>",
-         * "file_size":192,
-         * "reply_code":150,
-         * "reply_msg":"Data connection accepted from 192.168.0.114:1140; transfer starting for Music.mp3 (4980924 bytes).",
-         * "fuid":"FlS6Jg1aNdsBxNn9Bf"
-         * }
+         * "ftp": {
+         *	"ts":1166289883.164645,
+         *	"uid":"CuVhX03cii8zrjrtva",
+         *	"id.orig_h":"192.168.0.114",
+         *	"id.orig_p":1137,
+         *	"id.resp_h":"192.168.0.193",
+         *	"id.resp_p":21,
+         *	"user":"csanders",
+         *	"password":"<hidden>",
+         *	"command":"RETR",
+         *	"arg":"ftp://192.168.0.193/Music.mp3",
+         *	"mime_type":"<unknown>",
+         *	"file_size":192,
+         *	"reply_code":150,
+         *	"reply_msg":"Data connection accepted from 192.168.0.114:1140; transfer starting for Music.mp3 (4980924 bytes).",
+         *	"fuid":"FlS6Jg1aNdsBxNn9Bf"
+	 *	}
          * }
 	 */
         @Multiline
@@ -544,15 +539,14 @@ public class BasicBroParserTest extends TestCase {
 
 	/** 
 	 * {
-         * "known_certs":
-         * {
-         * "ts":1216706999.896836,
-         * "host":"65.54.186.47",
-         * "port_num":443,
-         * "subject":"CN=login.live.com,OU=MSN-Passport,O=Microsoft Corporation,street=One Microsoft Way,L=Redmond,ST=Washington,postalCode=98052,C=US,serialNumber=600413485,businessCategory=V1.0\u005c, Clause 5.(b),1.3.6.1.4.1.311.60.2.1.2=#130A57617368696E67746F6E,1.3.6.1.4.1.311.60.2.1.3=#13025553",
-         * "issuer_subject":"CN=VeriSign Class 3 Extended Validation SSL CA,OU=Terms of use at https://www.verisign.com/rpa (c)06,OU=VeriSign Trust Network,O=VeriSign\u005c, Inc.,C=US",
-         * "serial":"6905C4A47CFDBF9DBC98DACE38835FB8"
-         * }
+         * "known_certs": {
+         *	"ts":1216706999.896836,
+         *	"host":"65.54.186.47",
+         *	"port_num":443,
+         *	"subject":"CN=login.live.com,OU=MSN-Passport,O=Microsoft Corporation,street=One Microsoft Way,L=Redmond,ST=Washington,postalCode=98052,C=US,serialNumber=600413485,businessCategory=V1.0\u005c, Clause 5.(b),1.3.6.1.4.1.311.60.2.1.2=#130A57617368696E67746F6E,1.3.6.1.4.1.311.60.2.1.3=#13025553",
+         *	"issuer_subject":"CN=VeriSign Class 3 Extended Validation SSL CA,OU=Terms of use at https://www.verisign.com/rpa (c)06,OU=VeriSign Trust Network,O=VeriSign\u005c, Inc.,C=US",
+         *	"serial":"6905C4A47CFDBF9DBC98DACE38835FB8"
+	 *	}
          * }
 	 */
 	@Multiline
@@ -581,21 +575,21 @@ public class BasicBroParserTest extends TestCase {
 
 	/**
 	 * {
-         * "smtp":
-         * {"ts":1258568059.130219,
-         * "uid":"CMeLem2ouYvV8fzUp9",
-         * "id.orig_h":"192.168.1.103",
-         * "id.orig_p":1836,
-         * "id.resp_h":"192.168.1.1",
-         * "id.resp_p":25,
-         * "trans_depth":1,
-         * "helo":"m57pat",
-         * "last_reply":"220 2.0.0 Ready to start TLS",
-         * "path":["192.168.1.1","192.168.1.103"],
-         * "tls":true,
-         * "fuids":[],
-         * "is_webmail":false
-         * }
+         * "smtp": {
+         *	"ts":1258568059.130219,
+         *	"uid":"CMeLem2ouYvV8fzUp9",
+         *	"id.orig_h":"192.168.1.103",
+         *	"id.orig_p":1836,
+         *	"id.resp_h":"192.168.1.1",
+         *	"id.resp_p":25,
+         *	"trans_depth":1,
+         *	"helo":"m57pat",
+         *	"last_reply":"220 2.0.0 Ready to start TLS",
+         *	"path":["192.168.1.1","192.168.1.103"],
+         *	"tls":true,
+         *	"fuids":[],
+         *	"is_webmail":false
+	 *	}
          * }
 	 */
 	@Multiline
@@ -630,25 +624,24 @@ public class BasicBroParserTest extends TestCase {
 
 	/**
 	 * {
-         * "ssl":
-         * {
-         * "ts":1216706999.444925,
-         * "uid":"Chy3Ge1k0IceXK4Di",
-         * "id.orig_h":"192.168.15.4",
-         * "id.orig_p":36532,
-         * "id.resp_h":"65.54.186.47",
-         * "id.resp_p":443,
-         * "version":"TLSv10",
-         * "cipher":"TLS_RSA_WITH_RC4_128_MD5",
-         * "server_name":"login.live.com",
-         * "resumed":false,
-         * "established":true,
-         * "cert_chain_fuids":["FkYBO41LPAXxh44KFk","FPrzYN1SuBqHflXZId","FZ71xF13r5XVSam1z1"],
-         * "client_cert_chain_fuids":[],
-         * "subject":"CN=login.live.com,OU=MSN-Passport,O=Microsoft Corporation,street=One Microsoft Way,L=Redmond,ST=Washington,postalCode=98052,C=US,serialNumber=600413485,businessCategory=V1.0\u005c, Clause 5.(b),1.3.6.1.4.1.311.60.2.1.2=#130A57617368696E67746F6E,1.3.6.1.4.1.311.60.2.1.3=#13025553",
-         * "issuer":"CN=VeriSign Class 3 Extended Validation SSL CA,OU=Terms of use at https://www.verisign.com/rpa (c)06,OU=VeriSign Trust Network,O=VeriSign\u005c, Inc.,C=US",
-         * "validation_status":"unable to get local issuer certificate"
-         * }
+         * "ssl": {
+         *	"ts":1216706999.444925,
+         *	"uid":"Chy3Ge1k0IceXK4Di",
+         *	"id.orig_h":"192.168.15.4",
+         *	"id.orig_p":36532,
+         *	"id.resp_h":"65.54.186.47",
+         *	"id.resp_p":443,
+         *	"version":"TLSv10",
+         *	"cipher":"TLS_RSA_WITH_RC4_128_MD5",
+         *	"server_name":"login.live.com",
+         *	"resumed":false,
+         *	"established":true,
+         *	"cert_chain_fuids":["FkYBO41LPAXxh44KFk","FPrzYN1SuBqHflXZId","FZ71xF13r5XVSam1z1"],
+         *	"client_cert_chain_fuids":[],
+         *	"subject":"CN=login.live.com,OU=MSN-Passport,O=Microsoft Corporation,street=One Microsoft Way,L=Redmond,ST=Washington,postalCode=98052,C=US,serialNumber=600413485,businessCategory=V1.0\u005c, Clause 5.(b),1.3.6.1.4.1.311.60.2.1.2=#130A57617368696E67746F6E,1.3.6.1.4.1.311.60.2.1.3=#13025553",
+         *	"issuer":"CN=VeriSign Class 3 Extended Validation SSL CA,OU=Terms of use at https://www.verisign.com/rpa (c)06,OU=VeriSign Trust Network,O=VeriSign\u005c, Inc.,C=US",
+         *	"validation_status":"unable to get local issuer certificate"
+	 *	}
          * }
 	 */
 	@Multiline
@@ -686,18 +679,17 @@ public class BasicBroParserTest extends TestCase {
 
         /**
          * {
-         * "weird":
-         * {
-         * "ts":1216706886.239896,
-         * "uid":"CLSluk42pqbExeZQFl",
-         * "id.orig_h":"192.168.15.4",
-         * "id.orig_p":36336,
-         * "id.resp_h":"66.151.146.194",
-         * "id.resp_p":80,
-         * "name":"unescaped_special_URI_char",
-         * "notice":false,
-         * "peer":"bro"
-         * }
+         * "weird": {
+         *	"ts":1216706886.239896,
+         *	"uid":"CLSluk42pqbExeZQFl",
+         *	"id.orig_h":"192.168.15.4",
+         *	"id.orig_p":36336,
+         *	"id.resp_h":"66.151.146.194",
+         *	"id.resp_p":80,
+         *	"name":"unescaped_special_URI_char",
+         *	"notice":false,
+         *	"peer":"bro"
+	 *	}
          * }
          */
         @Multiline
@@ -728,26 +720,25 @@ public class BasicBroParserTest extends TestCase {
 
         /**
          * {
-         * "notice":
-         * {
-         * "ts":1216706377.196728,
-         * "uid":"CgpsTT28ZTiuSEsfVi",
-         * "id.orig_h":"192.168.15.4",
-         * "id.orig_p":35736,
-         * "id.resp_h":"74.125.19.104",
-         * "id.resp_p":443,
-         * "proto":"tcp",
-         * "note":"SSL::Invalid_Server_Cert",
-         * "msg":"SSL certificate validation failed with (unable to get local issuer certificate)",
-         * "sub":"CN=www.google.com,O=Google Inc,L=Mountain View,ST=California,C=US",
-         * "src":"192.168.15.4",
-         * "dst":"74.125.19.104",
-         * "p":443,
-         * "peer_descr":"bro",
-         * "actions":["Notice::ACTION_LOG"],
-         * "suppress_for":3600.0,
-         * "dropped":false
-         * }
+         * "notice": {
+         *	"ts":1216706377.196728,
+         *	"uid":"CgpsTT28ZTiuSEsfVi",
+         *	"id.orig_h":"192.168.15.4",
+         *	"id.orig_p":35736,
+         *	"id.resp_h":"74.125.19.104",
+         *	"id.resp_p":443,
+         *	"proto":"tcp",
+         *	"note":"SSL::Invalid_Server_Cert",
+         *	"msg":"SSL certificate validation failed with (unable to get local issuer certificate)",
+         *	"sub":"CN=www.google.com,O=Google Inc,L=Mountain View,ST=California,C=US",
+         *	"src":"192.168.15.4",
+         *	"dst":"74.125.19.104",
+         *	"p":443,
+         *	"peer_descr":"bro",
+         *	"actions":["Notice::ACTION_LOG"],
+         *	"suppress_for":3600.0,
+         *	"dropped":false
+	 *	}
          * }
          */
         @Multiline
@@ -786,19 +777,18 @@ public class BasicBroParserTest extends TestCase {
 
         /**
          * {
-         * "dhcp":
-         * {
-         * "ts":1258567562.944638,
-         * "uid":"C8rZDh400N68UV9Ulj",
-         * "id.orig_h":"192.168.1.103",
-         * "id.orig_p":68,
-         * "id.resp_h":"192.168.1.1",
-         * "id.resp_p":67,
-         * "mac":"00:0b:db:63:5b:d4",
-         * "assigned_ip":"192.168.1.103",
-         * "lease_time":3564.0,
-         * "trans_id":418901490
-         * }
+         * "dhcp": {
+         *	"ts":1258567562.944638,
+         *	"uid":"C8rZDh400N68UV9Ulj",
+         *	"id.orig_h":"192.168.1.103",
+         *	"id.orig_p":68,
+         *	"id.resp_h":"192.168.1.1",
+         *	"id.resp_p":67,
+         *	"mac":"00:0b:db:63:5b:d4",
+         *	"assigned_ip":"192.168.1.103",
+         *	"lease_time":3564.0,
+         *	"trans_id":418901490
+	 *	}
          * }
          */
         @Multiline
@@ -830,25 +820,24 @@ public class BasicBroParserTest extends TestCase {
 
         /**
          * {
-         * "ssh":
-         * {
-         * "ts":1320435870.747967,
-         * "uid":"CSbqud1LKhRqlJiLDg",
-         * "id.orig_h":"172.16.238.1",
-         * "id.orig_p":58429,
-         * "id.resp_h":"172.16.238.136",
-         * "id.resp_p":22,
-         * "version":2,
-         * "auth_success":false,
-         * "client":"SSH-2.0-OpenSSH_5.6",
-         * "server":"SSH-2.0-OpenSSH_5.8p1 Debian-7ubuntu1",
-         * "cipher_alg":"aes128-ctr",
-         * "mac_alg":"hmac-md5",
-         * "compression_alg":"none",
-         * "kex_alg":"diffie-hellman-group-exchange-sha256",
-         * "host_key_alg":"ssh-rsa",
-         * "host_key":"87:11:46:da:89:c5:2b:d9:6b:ee:e0:44:7e:73:80:f8"
-         * }
+         * "ssh": {
+         *	"ts":1320435870.747967,
+         *	"uid":"CSbqud1LKhRqlJiLDg",
+         *	"id.orig_h":"172.16.238.1",
+         *	"id.orig_p":58429,
+         *	"id.resp_h":"172.16.238.136",
+         *	"id.resp_p":22,
+         *	"version":2,
+         *	"auth_success":false,
+         *	"client":"SSH-2.0-OpenSSH_5.6",
+         *	"server":"SSH-2.0-OpenSSH_5.8p1 Debian-7ubuntu1",
+         *	"cipher_alg":"aes128-ctr",
+         *	"mac_alg":"hmac-md5",
+         *	"compression_alg":"none",
+         *	"kex_alg":"diffie-hellman-group-exchange-sha256",
+         *	"host_key_alg":"ssh-rsa",
+         *	"host_key":"87:11:46:da:89:c5:2b:d9:6b:ee:e0:44:7e:73:80:f8"
+	 *	}
          * }
          */
         @Multiline
@@ -886,18 +875,17 @@ public class BasicBroParserTest extends TestCase {
 
         /**
          * {
-         * "software":
-         * {
-         * "ts":1216707079.49066,
-         * "host":"38.102.35.231",
-         * "host_p":80,
-         * "software_type":"HTTP::SERVER",
-         * "name":"lighttpd",
-         * "version.major":1,
-         * "version.minor":4,
-         * "version.minor2":18,
-         * "unparsed_version":"lighttpd/1.4.18"
-         * }
+         * "software": {
+         *	"ts":1216707079.49066,
+         *	"host":"38.102.35.231",
+         *	"host_p":80,
+         *	"software_type":"HTTP::SERVER",
+         *	"name":"lighttpd",
+         *	"version.major":1,
+         *	"version.minor":4,
+         *	"version.minor2":18,
+         *	"unparsed_version":"lighttpd/1.4.18"
+	 *	}
          * }
          */
         @Multiline
@@ -929,15 +917,14 @@ public class BasicBroParserTest extends TestCase {
 
         /**
          * {
-         * "software":
-         * {
-         * "ts":1216707079.518447,
-         * "host":"72.21.202.98",
-         * "host_p":80,
-         * "software_type":"HTTP::SERVER",
-         * "name":"AmazonS3",
-         * "unparsed_version":"AmazonS3"
-         * }
+         * "software": {
+         *	"ts":1216707079.518447,
+         *	"host":"72.21.202.98",
+         *	"host_p":80,
+         *	"software_type":"HTTP::SERVER",
+         *	"name":"AmazonS3",
+         *	"unparsed_version":"AmazonS3"
+	 *	}
          * }
          */
         @Multiline
@@ -966,17 +953,16 @@ public class BasicBroParserTest extends TestCase {
 
         /**
          * {
-         * "radius":
-         * {
-         * "ts":1440447766.441298,
-         * "uid":"Cfvksv4SEJJiqFobPj",
-         * "id.orig_h":"127.0.0.1",
-         * "id.orig_p":53031,
-         * "id.resp_h":"127.0.0.1",
-         * "id.resp_p":1812,
-         * "username":"steve",
-         * "result":"failed"
-         * }
+         * "radius": {
+         *	"ts":1440447766.441298,
+         *	"uid":"Cfvksv4SEJJiqFobPj",
+         *	"id.orig_h":"127.0.0.1",
+         *	"id.orig_p":53031,
+         *	"id.resp_h":"127.0.0.1",
+         *	"id.resp_p":1812,
+         *	"username":"steve",
+         *	"result":"failed"
+	 *	}
          * }
          */
         @Multiline
@@ -1006,16 +992,16 @@ public class BasicBroParserTest extends TestCase {
 
         /**
          * {
-         * "radius":
-         * {
-         * "ts":1440447839.947956,
-         * "uid":"CHb5MF3GTmyPniTage",
-         * "id.orig_h":"127.0.0.1",
-         * "id.orig_p":65443,
-         * "id.resp_h":"127.0.0.1",
-         * "id.resp_p":1812,
-         * "username":"steve",
-         * "result":"success"}
+         * "radius": {
+         *	"ts":1440447839.947956,
+         *	"uid":"CHb5MF3GTmyPniTage",
+         *	"id.orig_h":"127.0.0.1",
+         *	"id.orig_p":65443,
+         *	"id.resp_h":"127.0.0.1",
+         *	"id.resp_p":1812,
+         *	"username":"steve",
+         *	"result":"success"
+	 *	}
          * }
          */
         @Multiline
@@ -1045,23 +1031,22 @@ public class BasicBroParserTest extends TestCase {
 
 	/**
          * {
-         * "x509":
-         * {
-         * "ts":1216706999.661483,
-         * "id":"FPrzYN1SuBqHflXZId",
-         * "certificate.version":3,
-         * "certificate.serial":"5B7759C61784E15EC727C0329529286B",
-         * "certificate.subject":"CN=VeriSign Class 3 Extended Validation SSL CA,OU=Terms of use at https://www.verisign.com/rpa (c)06,OU=VeriSign Trust Network,O=VeriSign\u005c, Inc.,C=US","certificate.issuer":"CN=VeriSign Class 3 Public Primary Certification Authority - G5,OU=(c) 2006 VeriSign\u005c, Inc. - For authorized use only,OU=VeriSign Trust Network,O=VeriSign\u005c, Inc.,C=US",
-         * "certificate.not_valid_before":1162944000.0,
-         * "certificate.not_valid_after":1478563199.0,
-         * "certificate.key_alg":"rsaEncryption",
-         * "certificate.sig_alg":"sha1WithRSAEncryption",
-         * "certificate.key_type":"rsa",
-         * "certificate.key_length":2048,
-         * "certificate.exponent":"65537",
-         * "basic_constraints.ca":true,
-         * "basic_constraints.path_len":0
-         * }
+         * "x509": {
+         *	"ts":1216706999.661483,
+         *	"id":"FPrzYN1SuBqHflXZId",
+         *	"certificate.version":3,
+         *	"certificate.serial":"5B7759C61784E15EC727C0329529286B",
+         *	"certificate.subject":"CN=VeriSign Class 3 Extended Validation SSL CA,OU=Terms of use at https://www.verisign.com/rpa (c)06,OU=VeriSign Trust Network,O=VeriSign\u005c, Inc.,C=US","certificate.issuer":"CN=VeriSign Class 3 Public Primary Certification Authority - G5,OU=(c) 2006 VeriSign\u005c, Inc. - For authorized use only,OU=VeriSign Trust Network,O=VeriSign\u005c, Inc.,C=US",
+         *	"certificate.not_valid_before":1162944000.0,
+         *	"certificate.not_valid_after":1478563199.0,
+         *	"certificate.key_alg":"rsaEncryption",
+         *	"certificate.sig_alg":"sha1WithRSAEncryption",
+         *	"certificate.key_type":"rsa",
+         *	"certificate.key_length":2048,
+         *	"certificate.exponent":"65537",
+         *	"basic_constraints.ca":true,
+         *	"basic_constraints.path_len":0
+	 *	}
          * }
          */
         @Multiline
@@ -1099,12 +1084,11 @@ public class BasicBroParserTest extends TestCase {
 
 	/**
 	 * {
-         * "known_devices":
-         * {
-         * "ts":1258532046.693816,
-         * "mac":"00:0b:db:4f:6b:10",
-         * "dhcp_host_name":"m57-charlie"
-         * }
+         * "known_devices": {
+         * 	"ts":1258532046.693816,
+         * 	"mac":"00:0b:db:4f:6b:10",
+         * 	"dhcp_host_name":"m57-charlie"
+	 * 	}
          * }
 	 */
 	@Multiline
@@ -1128,14 +1112,39 @@ public class BasicBroParserTest extends TestCase {
                 Assert.assertTrue(broJson.get("original_string").toString().startsWith("KNOWN_DEVICES"));
         }
 
+	/**
+	 * {
+	 * "ht*tp": {
+	 *	"ts":1402307733.473,
+	 *	"uid":"CTo78A11g7CYbbOHvj",
+	 *	"id.orig_h":"192.249.113.37",
+	 *	"id.orig_p":58808,
+	 *	"id.resp_h":"72.163.4.161",
+	 *	"id.resp_p":80,
+	 *	"trans_depth":1,
+	 *	"method":"GET",
+	 *	"host":"www.cisco.com",
+	 *	"uri":"/",
+	 *	"user_agent":"curl/7.22.0 (x86_64-pc-linux-gnu) libcurl/7.22.0 OpenSSL/1.0.1 zlib/1.2.3.4 libidn/1.23 librtmp/2.3",
+	 *	"request_body_len":0,
+	 *	"response_body_len":25523,
+	 *	"status_code":200,
+	 *	"status_msg":"OK",
+	 *	"tags":[],
+	 *	"resp_fuids":["FJDyMC15lxUn5ngPfd"],
+	 *	"resp_mime_types":["text/html"]
+	 *	}
+	 * }
+	 */
+	@Multiline
+	public final static String protocolKeyCleanedUp;
+
 	@SuppressWarnings("rawtypes")
 	public void testProtocolKeyCleanedUp() throws ParseException {
-		String rawMessage = "{\"ht*tp\":{\"ts\":1402307733.473,\"uid\":\"CTo78A11g7CYbbOHvj\",\"id.orig_h\":\"192.249.113.37\",\"id.orig_p\":58808,\"id.resp_h\":\"72.163.4.161\",\"id.resp_p\":80,\"trans_depth\":1,\"method\":\"GET\",\"host\":\"www.cisco.com\",\"uri\":\"/\",\"user_agent\":\"curl/7.22.0 (x86_64-pc-linux-gnu) libcurl/7.22.0 OpenSSL/1.0.1 zlib/1.2.3.4 libidn/1.23 librtmp/2.3\",\"request_body_len\":0,\"response_body_len\":25523,\"status_code\":200,\"status_msg\":\"OK\",\"tags\":[],\"resp_fuids\":[\"FJDyMC15lxUn5ngPfd\"],\"resp_mime_types\":[\"text/html\"]}}";
-
-		Map rawMessageMap = (Map) jsonParser.parse(rawMessage);
+		Map rawMessageMap = (Map) jsonParser.parse(protocolKeyCleanedUp);
 		JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
 
-		JSONObject broJson = broParser.parse(rawMessage.getBytes()).get(0);
+		JSONObject broJson = broParser.parse(protocolKeyCleanedUp.getBytes()).get(0);
 		String expectedBroTimestamp = "1402307733.473";
 		Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
 		String expectedTimestamp = "1402307733473";
