@@ -146,7 +146,6 @@ public class BasicBroParserTest {
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void testHttpBroMessage() throws ParseException {
-
 		Map rawMessageMap = (Map) jsonParser.parse(httpBroMessage);
 		JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
 
@@ -261,6 +260,7 @@ public class BasicBroParserTest {
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void testHttpBroDecimalMessage() throws ParseException {
+		Map rawMessageMap = (Map) jsonParser.parse(httpBroDecimalMessage);
 		JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
 
 		JSONObject broJson = broParser.parse(httpBroDecimalMessage.getBytes()).get(0);
