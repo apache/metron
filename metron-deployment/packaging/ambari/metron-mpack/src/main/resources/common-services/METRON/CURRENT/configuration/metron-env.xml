@@ -516,15 +516,21 @@
                 <entry>
                     <value>DAYS</value>
                 </entry>
+                <entry>
+                    <value>KB</value>
+                </entry>
+                <entry>
+                    <value>MB</value>
+                </entry>
+                <entry>
+                    <value>GB</value>
+                </entry>
+                <entry>
+                    <value>TB</value>
+                </entry>
             </entries>
             <selection-cardinality>1</selection-cardinality>
         </value-attributes>
-    </property>
-    <property>
-        <name>indexing_error_topic</name>
-        <description>Indexing Error Topic</description>
-        <value>indexing</value>
-        <display-name>Indexing Error Topic</display-name>
     </property>
     <property>
         <name>indexing_kafka_spout_parallelism</name>
