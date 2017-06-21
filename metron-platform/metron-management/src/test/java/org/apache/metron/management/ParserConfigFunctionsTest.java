@@ -64,7 +64,7 @@ public class ParserConfigFunctionsTest {
     sensorParserConfig.init();
     for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
       if (handler != null) {
-        handler.transformAndUpdate(ret, sensorParserConfig.getParserConfig(), context);
+        handler.transformAndUpdate(ret, context, sensorParserConfig.getParserConfig());
       }
     }
     return ret;
