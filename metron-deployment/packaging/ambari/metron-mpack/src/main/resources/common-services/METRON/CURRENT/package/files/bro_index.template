@@ -122,19 +122,32 @@
       }
       ],
       "properties": {
-        "timestamp": {
-          "type": "date",
-          "format": "epoch_millis"
-        },
+        /*
+         * WARNING
+         *
+         * Because Metron inserts many distinct bro records into a single ElasticSearch index
+	 * by default, it encounters field collisions due to field name reuse across bro logs.
+	 * Be careful when modifying this file to not unintentionally affect other logs.
+         * For instance, TODO exists in both X and Y.  If you were to only consider X, you
+	 * would set the type to TODO, but because of Y we must set the type to TODO.
+         */
+        /*
+         * Metron-specific Fields
+         */
         "source:type": {
           "type": "string",
           "index": "not_analyzed"
         },
-        "ip_dst_addr": {
-          "type": "ip"
+        /*
+         * Widely-used Bro Fields (potentially renamed during Metron ingest)
+         */
+        "timestamp": {
+          "type": "date",
+          "format": "epoch_millis"
         },
-        "ip_dst_port": {
-          "type": "integer"
+        "uid": {
+          "type": "string",
+          "index": "not_analyzed"
         },
         "ip_src_addr": {
           "type": "ip"
@@ -142,77 +155,125 @@
         "ip_src_port": {
           "type": "integer"
         },
-        "status_code": {
+        "ip_dst_addr": {
+          "type": "ip"
+        },
+        "ip_dst_port": {
+          "type": "integer"
+        },
+	/*
+         * HTTP log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/http/main.bro.html#type-HTTP::Info
+         *
+         * Notable Fields
+         *   Field:	password
+         *   Notes:	Field exists in the HTTP and FTP logs
+         *
+         *   Field:	capture_password
+         *   Notes:	Field exists in the HTTP and FTP logs
+         *
+         *   Field:	trans_depth
+         *   Notes:	Field exists in the HTTP and SMTP logs
+         *
+         *   Field:	user_agent
+         *   Notes:	Field exists in the HTTP and SMTP logs
+         *
+         *   Field:	version
+         *   Notes:	Field exists in the HTTP, SSL, and SSH logs
+         *
+         *   Field:	host
+         *   Notes:	Field exists in the HTTP and Software logs
+         *
+         *   Field:     username
+         *   Notes:     Field exists in the HTTP and RADIUS logs
+         */
+        "trans_depth": {
           "type": "integer"
         },
         "method": {
           "type": "string",
           "index": "not_analyzed"
         },
-        "protocol": {
+        "host": {
           "type": "string",
           "index": "not_analyzed"
-        },
-        "request_body_len": {
-          "type": "long"
         },
         "uri": {
           "type": "string",
           "index": "not_analyzed",
           "ignore_above": 8191
         },
-        "uid": {
-          "type": "string",
-          "index": "not_analyzed"
-        },
         "referrer": {
           "type": "string",
           "index": "not_analyzed"
         },
-        "trans_depth": {
-          "type": "integer"
-        },
-        "host": {
+        "version": {
           "type": "string",
           "index": "not_analyzed"
+        },
+        "user_agent": {
+          "type": "string"
+        },
+        "request_body_len": {
+          "type": "long"
+        },
+        "response_body_len": {
+          "type": "long"
+        },
+        "status_code": {
+          "type": "integer"
         },
         "status_msg": {
           "type": "string",
           "index": "not_analyzed"
         },
-        "response_body_len": {
+        /* TODO: info_code, info_msg, tags? */
+        "username": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "password": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "capture_password": {
+          "type": "boolean"
+        },
+        /* TODO: proxied, range_request? */
+        /*
+         * DNS log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/dns/main.bro.html#type-DNS::Info
+         *
+         * Notable Fields
+         *   Field:	proto
+         *   Notes:	Field exists in the DNS, Conn, DPD, and Notice logs
+         *
+         *   Field:	trans_id
+         *   Notes:	Field exists in the DNS and DHCP logs
+         */
+        "proto": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "trans_id": {
           "type": "long"
         },
-        "user_agent": {
-          "type": "string"
-        },
+        /* TODO:  rtt? */
         "query": {
           "type": "string",
           "index": "not_analyzed"
         },
-        "answers": {
-          "type": "string"
-        },
-        "AA": {
-          "type": "boolean"
-        },
-        "TC": {
-          "type": "boolean"
-        },
-        "RA": {
-          "type": "boolean"
-        },
-        "RD": {
-          "type": "boolean"
-        },
-        "rejected": {
-          "type": "boolean"
+        "qclass": {
+          "type": "integer"
         },
         "qclass_name": {
           "type": "string",
           "index": "not_analyzed"
         },
-        "proto": {
+        "qtype": {
+          "type": "integer"
+        },
+        "qtype_name": {
           "type": "string",
           "index": "not_analyzed"
         },
@@ -223,22 +284,105 @@
           "type": "string",
           "index": "not_analyzed"
         },
-        "trans_id": {
-          "type": "long"
+        "AA": {
+          "type": "boolean"
+        },
+        "TC": {
+          "type": "boolean"
+        },
+        "RD": {
+          "type": "boolean"
+        },
+        "RA": {
+          "type": "boolean"
         },
         "Z": {
           "type": "integer"
         },
-        "qclass": {
-          "type": "integer"
+        "answers": {
+          "type": "string"
         },
-        "qtype": {
-          "type": "integer"
+        /* TODO: TTLs? */
+        "rejected": {
+          "type": "boolean"
         },
-        "qtype_name": {
+        /* TODO: total_answers, total_replies, saw_query, saw_reply? */
+        /*
+         * Conn log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/conn/main.bro.html#type-Conn::Info
+         *
+         * Notable Fields
+         *   Field:	proto
+         *   Notes:	Field exists in the DNS, Conn, DPD, and Notice logs
+         *
+         *   Field:     duration
+         *   Notes:     Field exists in the Conn and Files logs
+         *
+         *   Field:     local_orig
+         *   Notes:     Field exists in the Conn and Files logs
+         */
+        "service": {
           "type": "string",
           "index": "not_analyzed"
         },
+        "duration": {
+          "type": "float"
+        },
+        "orig_bytes": {
+          "type": "long",
+          "index": "not_analyzed"
+        },
+        "resp_bytes": {
+          "type": "long",
+          "index": "not_analyzed"
+        },
+        "conn_state": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "local_orig": {
+          "type": "boolean"
+        },
+        "local_resp": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "missed_bytes": {
+          "type": "long",
+          "index": "not_analyzed"
+        },
+        "history": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "orig_pkts": {
+          "type": "long",
+          "index": "not_analyzed"
+        },
+        "orig_ip_bytes": {
+          "type": "long",
+          "index": "not_analyzed"
+        },
+        "resp_pkts": {
+          "type": "long",
+          "index": "not_analyzed"
+        },
+        "resp_ip_bytes": {
+          "type": "long",
+          "index": "not_analyzed"
+        },
+        "tunnel_parents": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        /*
+         * DPD log support
+         * https://www.bro.org/sphinx-git/scripts/base/frameworks/dpd/main.bro.html#type-DPD::Info
+         *
+         * Notable Fields
+         *   Field:	proto
+         *   Notes:	Field exists in the DNS, Conn, DPD, and Notice logs
+         */
         "analyzer": {
           "type": "string",
           "index": "not_analyzed"
@@ -247,11 +391,24 @@
           "type": "string",
           "index": "not_analyzed"
         },
+        /*
+         * FTP log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/ftp/info.bro.html#type-FTP::Info
+         *
+         * Notable Fields
+         *   Field:	password
+         *   Notes:	Field exists in the HTTP and FTP logs
+         *
+         *   Field:	capture_password
+         *   Notes:	Field exists in the HTTP and FTP logs
+         *
+         *   Field:     mime_type
+         *   Notes:     Field exists in the FTP and Files logs
+         *
+         *   Field:     fuid
+         *   Notes:     Field exists in the FTP and Notice logs
+         */
         "user": {
-          "type": "string",
-          "index": "not_analyzed"
-        },
-        "password": {
           "type": "string",
           "index": "not_analyzed"
         },
@@ -296,13 +453,24 @@
         "passive": {
           "type": "boolean"
         },
-        "capture_password": {
-          "type": "boolean"
-        },
         "fuid": {
           "type": "string",
           "index": "not_analyzed"
         },
+        /*
+         * Files log support
+         * https://www.bro.org/sphinx/scripts/base/frameworks/files/main.bro.html#type-Files::Info
+         *
+         * Notable Fields
+         *   Field:	tx_hosts
+         *   Notes:	Metron rewrites this to "ip_src_addr"
+         *
+         *   Field:	rx_hosts
+         *   Notes:	Metron rewrites this to "ip_dst_addr"
+         *
+         *   Field:	mime_type
+         *   Notes:	Field exists in the FTP and Files logs
+         */
         "conn_uids": {
           "type": "string",
           "analyzer": "simple"
@@ -321,12 +489,6 @@
         "filename": {
           "type": "string",
           "index": "not_analyzed"
-        },
-        "duration": {
-          "type": "float"
-        },
-        "local_orig": {
-          "type": "boolean"
         },
         "is_orig": {
           "type": "boolean"
@@ -362,6 +524,14 @@
           "type": "string",
           "index": "not_analyzed"
         },
+        /*
+         * Known::CertInfo log support
+         * https://www.bro.org/sphinx/scripts/policy/protocols/ssl/known-certs.bro.html#type-Known::CertsInfo
+         *
+         * Notable Fields
+         *   Field:     subject
+         *   Notes:     Field exists in the Known::CertInfo and SMTP logs
+         */
         "port_num": {
           "type": "integer"
         },
@@ -377,6 +547,14 @@
           "type": "string",
           "index": "not_analyzed"
         },
+        /*
+         * SMTP log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/smtp/main.bro.html#type-SMTP::Info
+         *
+         * Notable Fields
+         *   Field:     subject
+         *   Notes:     Field exists in the Known::CertInfo and SMTP logs
+         */
         "helo": {
           "type": "string",
           "analyzer": "simple"
@@ -401,6 +579,7 @@
           "type": "string",
           "analyzer": "simple"
         },
+        /* TODO: cc? */
         "reply_to": {
           "type": "string",
           "analyzer": "simple"
@@ -442,10 +621,14 @@
         "is_webmail": {
           "type": "boolean"
         },
-        "version": {
-          "type": "string",
-          "index": "not_analyzed"
-        },
+        /*
+         * SSL log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/ssl/main.bro.html#type-SSL::Info
+         *
+         * Notable Fields
+         *   Field:     version
+         *   Notes:     Field exists in the HTTP, SSL, and SSH logs
+         */
         "cipher": {
           "type": "string",
           "index": "not_analyzed"
@@ -472,6 +655,10 @@
         "established": {
           "type": "boolean"
         },
+        /*
+         * Weird log support
+         * https://www.bro.org/sphinx/scripts/base/frameworks/notice/weird.bro.html#type-Weird::Info
+         */
         "name": {
           "type": "string",
           "index": "not_analyzed"
@@ -487,54 +674,17 @@
           "type": "string",
           "index": "not_analyzed"
         },
-        "service": {
-          "type": "string",
-          "index": "not_analyzed"
-        },
-        "orig_bytes": {
-          "type": "long",
-          "index": "not_analyzed"
-        },
-        "resp_bytes": {
-          "type": "long",
-          "index": "not_analyzed"
-        },
-        "conn_state": {
-          "type": "string",
-          "index": "not_analyzed"
-        },
-        "local_resp": {
-          "type": "string",
-          "index": "not_analyzed"
-        },
-        "missed_bytes": {
-          "type": "long",
-          "index": "not_analyzed"
-        },
-        "history": {
-          "type": "string",
-          "index": "not_analyzed"
-        },
-        "orig_pkts": {
-          "type": "long",
-          "index": "not_analyzed"
-        },
-        "orig_ip_bytes": {
-          "type": "long",
-          "index": "not_analyzed"
-        },
-        "resp_pkts": {
-          "type": "long",
-          "index": "not_analyzed"
-        },
-        "resp_ip_bytes": {
-          "type": "long",
-          "index": "not_analyzed"
-        },
-        "tunnel_parents": {
-          "type": "string",
-          "index": "not_analyzed"
-        },
+        /*
+         * Notice log support
+         * https://www.bro.org/sphinx/scripts/base/frameworks/notice/main.bro.html#type-Notice::Info
+         *
+         * Notable Fields
+         *   Field:     fuid
+         *   Notes:     Field exists in the FTP and Notice logs
+         *
+         *   Field:     proto
+         *   Notes:     Field exists in the DNS, Conn, DPD, and Notice logs
+         */
         "file_mime_type": {
           "type": "string",
           "index": "not_analyzed"
@@ -580,6 +730,7 @@
           "type": "string",
           "index": "not_analyzed"
         },
+        /* TODO: email_body_sections, email_delay_tokens, identifier? */
         "suppress_for": {
           "type": "double",
           "index": "not_analyzed"
@@ -587,6 +738,17 @@
         "dropped": {
           "type": "boolean"
         },
+        /*
+         * DHCP log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/dhcp/main.bro.html#type-DHCP::Info
+         *
+         * Notable Fields
+         *   Field:	trans_id
+         *   Notes:	Field exists in the DNS and DHCP logs
+         *
+         *   Field:     mac
+         *   Notes:     Field exists in the DHCP, RADIUS, and Known::DevicesInfo logs
+         */
         "mac": {
           "type": "string",
           "index": "not_analyzed"
@@ -598,6 +760,14 @@
           "type": "float",
           "index": "not_analyzed"
         },
+        /*
+         * SSH log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/ssh/main.bro.html#type-SSH::Info
+         *
+         * Notable Fields
+         *   Field:     version
+         *   Notes:     Field exists in the HTTP, SSL, and SSH logs
+         */
         "auth_success": {
           "type": "boolean"
         },
@@ -641,6 +811,14 @@
           "type": "string",
           "index": "not_analyzed"
         },
+        /*
+         * Software log support
+         * https://www.bro.org/sphinx/scripts/base/frameworks/software/main.bro.html#type-Software::Info
+         *
+         * Notable Fields
+         *   Field:     host
+         *   Notes:     Field exists in the HTTP and Software logs
+         */
         "host_p": {
           "type": "integer",
           "index": "not_analyzed"
@@ -673,10 +851,17 @@
           "type": "string",
           "analyzer": "simple"
         },
-        "username": {
-          "type": "string",
-          "index": "not_analyzed"
-        },
+        /*
+         * RADIUS log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/radius/main.bro.html#type-RADIUS::Info
+         *
+         * Notable Fields
+         *   Field:     username
+         *   Notes:     Field exists in the HTTP and RADIUS logs
+         *
+         *   Field:     mac
+         *   Notes:     Field exists in the DHCP, RADIUS, and Known::DevicesInfo logs
+         */
         "remote_ip": {
           "type": "ip"
         },
@@ -688,6 +873,16 @@
           "type": "string",
           "index": "not_analyzed"
         },
+        /*
+         * X509 log support
+         * https://www.bro.org/sphinx/scripts/base/files/x509/main.bro.html#type-X509::Info
+         *
+         * Notable Fields
+         *   Field:     id
+         *   Notes:     In other bro records, the id field is of type conn_id, so it is
+         *              expanded in the log to provide a 4-tuple.  In this case it is a string
+         *              to identify the certificate file id.
+         */
         "id": {
           "type": "string",
           "index": "not_analyzed"
@@ -767,10 +962,23 @@
           "type": "integer",
           "index": "not_analyzed"
         },
+        /*
+         * Known::DevicesInfo log support
+         * https://www.bro.org/sphinx/scripts/policy/misc/known-devices.bro.html#type-Known::DevicesInfo
+         *
+         * Notable Fields
+         *   Field:     mac
+         *   Notes:     Field exists in the DHCP, RADIUS, and Known::DevicesInfo logs
+         */
         "dhcp_host_name": {
           "type": "string",
           "index": "not_analyzed"
         }
+	/* TODO: Unknown? I think they meant proto */
+        "protocol": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
       }
     }
   }
