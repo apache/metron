@@ -771,7 +771,7 @@
       {
         "config": "metron-env/metron_jdbc_password",
         "widget": {
-          "type": "text-field"
+          "type": "password"
         }
       },
       {
