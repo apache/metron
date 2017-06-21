@@ -126,10 +126,10 @@
          * WARNING
          *
          * Because Metron inserts many distinct bro records into a single ElasticSearch index
-	 * by default, it encounters field collisions due to field name reuse across bro logs.
-	 * Be careful when modifying this file to not unintentionally affect other logs.
+         * by default, it encounters field collisions due to field name reuse across bro logs.
+         * Be careful when modifying this file to not unintentionally affect other logs.
          * For instance, TODO exists in both X and Y.  If you were to only consider X, you
-	 * would set the type to TODO, but because of Y we must set the type to TODO.
+         * would set the type to TODO, but because of Y we must set the type to TODO.
          */
         /*
          * Metron-specific Fields
@@ -161,7 +161,7 @@
         "ip_dst_port": {
           "type": "integer"
         },
-	/*
+        /*
          * HTTP log support
          * https://www.bro.org/sphinx/scripts/base/protocols/http/main.bro.html#type-HTTP::Info
          *
@@ -974,7 +974,7 @@
           "type": "string",
           "index": "not_analyzed"
         }
-	/* TODO: Unknown? I think they meant proto */
+        /* TODO: Unknown? I think they meant proto */
         "protocol": {
           "type": "string",
           "index": "not_analyzed"
