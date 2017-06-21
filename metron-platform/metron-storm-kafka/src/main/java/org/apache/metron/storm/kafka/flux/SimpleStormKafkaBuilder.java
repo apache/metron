@@ -33,6 +33,7 @@ import org.apache.storm.topology.OutputFieldsGetter;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -48,7 +49,12 @@ import java.util.regex.Pattern;
  * @param <V> The kafka value type
  */
 public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V> {
+  /**
+   * The default partitioner, which is RR (and is not serializable for some reason).
+   */
+  public static class Partitioner extends RoundRobinManualPartitioner implements Serializable {
 
+  }
   /**
    * The fields exposed by the kafka consumer.  These will show up in the Storm tuple.
    */
@@ -206,6 +212,7 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
     setRecordTranslator(new SpoutRecordTranslator<>(FieldsConfiguration.toList(fieldsConfiguration)));
   }
 
+
   private static Subscription toSubscription(String topicOrSubscription) {
     if (StringUtils.isEmpty(topicOrSubscription)) {
       throw new IllegalStateException("Topic name is invalid: empty or null");
@@ -214,10 +221,10 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
     if(topicOrSubscription.charAt(0) == '/' && topicOrSubscription.charAt(length - 1) == '/') {
       //pattern, so strip off the preceding and ending slashes
       String substr = topicOrSubscription.substring(1, length - 1);
-      return new ManualPartitionPatternSubscription(new RoundRobinManualPartitioner(), Pattern.compile(substr));
+      return new ManualPartitionPatternSubscription(new Partitioner(), Pattern.compile(substr));
     }
     else {
-      return new ManualPartitionNamedSubscription(new RoundRobinManualPartitioner(), topicOrSubscription);
+      return new ManualPartitionNamedSubscription(new Partitioner(), topicOrSubscription);
     }
   }
 
