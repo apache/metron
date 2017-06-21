@@ -17,6 +17,7 @@
  */
 package org.apache.metron.parsers.bolt;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredParserBolt;
@@ -29,10 +30,12 @@ import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.utils.ErrorUtils;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
+import org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -42,14 +45,9 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ParserBolt extends ConfiguredParserBolt implements Serializable {
@@ -118,6 +116,24 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     StellarFunctions.initialize(stellarContext);
   }
 
+  private Map<String, Object> getMetadata(Tuple t, boolean readMetadata) {
+    Map<String, Object> ret = new HashMap<>();
+    ret.put(SimpleStormKafkaBuilder.FieldsConfiguration.TOPIC.getFieldName(), t.getString(2));
+    String keyStr = t.getString(1);
+    if(readMetadata && !StringUtils.isEmpty(keyStr)) {
+      try {
+        Map<String, Object> metadata = JSONUtils.INSTANCE.load(keyStr, new TypeReference<Map<String, Object>>() {
+        });
+        ret.putAll(metadata);
+      } catch (IOException e) {
+        String reason = "Unable to parse metadata; expected JSON Map: " + keyStr;
+        LOG.error(reason, e);
+        throw new IllegalStateException(reason, e);
+      }
+    }
+    return ret;
+  }
+
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
@@ -129,18 +145,29 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       boolean ackTuple = !writer.handleAck();
       int numWritten = 0;
       if(sensorParserConfig != null) {
+        Map<String, Object> metadata = getMetadata(tuple, sensorParserConfig.readMetadata());
         List<FieldValidator> fieldValidations = getConfigurations().getFieldValidations();
         Optional<List<JSONObject>> messages = parser.parseOptional(originalMessage);
         for (JSONObject message : messages.orElse(Collections.emptyList())) {
           message.put(Constants.SENSOR_TYPE, getSensorType());
+          if(sensorParserConfig.mergeMetadata()) {
+            message.putAll(metadata);
+          }
           for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
             if (handler != null) {
-              handler.transformAndUpdate(message, sensorParserConfig.getParserConfig(), stellarContext);
+              if(!sensorParserConfig.mergeMetadata()) {
+                //if we haven't merged metadata, then we need to pass them along as configuration params.
+                handler.transformAndUpdate(message, stellarContext, sensorParserConfig.getParserConfig(), metadata);
+              }
+              else {
+                handler.transformAndUpdate(message, stellarContext, sensorParserConfig.getParserConfig());
+              }
             }
           }
           if(!message.containsKey(Constants.GUID)) {
             message.put(Constants.GUID, UUID.randomUUID().toString());
           }
+
           if (parser.validate(message) && (filter == null || filter.emitTuple(message, stellarContext))) {
             numWritten++;
             List<FieldValidator> failedValidators = getFailedValidators(message, fieldValidations);

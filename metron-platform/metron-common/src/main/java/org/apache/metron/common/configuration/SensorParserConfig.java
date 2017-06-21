@@ -36,6 +36,24 @@ public class SensorParserConfig implements Serializable {
   private String writerClassName;
   private String errorWriterClassName;
   private String invalidWriterClassName;
+  private Boolean readMetadata = false;
+  private Boolean mergeMetadata = false;
+
+  public Boolean mergeMetadata() {
+    return mergeMetadata;
+  }
+
+  public void setMergeMetadata(Boolean mergeMetadata) {
+    this.mergeMetadata = mergeMetadata;
+  }
+
+  public Boolean readMetadata() {
+    return readMetadata;
+  }
+
+  public void setReadMetadata(Boolean readMetadata) {
+    this.readMetadata = readMetadata;
+  }
 
   public String getErrorWriterClassName() {
     return errorWriterClassName;
@@ -130,6 +148,8 @@ public class SensorParserConfig implements Serializable {
             ", invalidWriterClassName='" + invalidWriterClassName + '\'' +
             ", parserConfig=" + parserConfig +
             ", fieldTransformations=" + fieldTransformations +
+            ", readMetadata=" + readMetadata +
+            ", mergeMetadata=" + mergeMetadata +
             '}';
   }
 
@@ -154,6 +174,10 @@ public class SensorParserConfig implements Serializable {
       return false;
     if (getParserConfig() != null ? !getParserConfig().equals(that.getParserConfig()) : that.getParserConfig() != null)
       return false;
+    if (readMetadata() != null ? !readMetadata().equals(that.readMetadata()) : that.readMetadata() != null)
+      return false;
+    if (mergeMetadata() != null ? !mergeMetadata().equals(that.mergeMetadata()) : that.mergeMetadata() != null)
+      return false;
     return getFieldTransformations() != null ? getFieldTransformations().equals(that.getFieldTransformations()) : that.getFieldTransformations() == null;
 
   }
@@ -168,6 +192,8 @@ public class SensorParserConfig implements Serializable {
     result = 31 * result + (getInvalidWriterClassName() != null ? getInvalidWriterClassName().hashCode() : 0);
     result = 31 * result + (getParserConfig() != null ? getParserConfig().hashCode() : 0);
     result = 31 * result + (getFieldTransformations() != null ? getFieldTransformations().hashCode() : 0);
+    result = 31 * result + (readMetadata() != null ? readMetadata().hashCode() : 0);
+    result = 31 * result + (mergeMetadata() != null ? mergeMetadata().hashCode() : 0);
     return result;
   }
 }

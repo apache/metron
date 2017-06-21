@@ -31,14 +31,15 @@ public class StellarTransformation implements FieldTransformation {
   public Map<String, Object> map( Map<String, Object> input
                                 , List<String> outputField
                                 , LinkedHashMap<String, Object> fieldMappingConfig
-                                , Map<String, Object> sensorConfig
                                 , Context context
+                                , Map<String, Object>... sensorConfig
                                 )
   {
     Map<String, Object> ret = new HashMap<>();
     Map<String, Object> intermediateVariables = new HashMap<>();
     Set<String> outputs = new HashSet<>(outputField);
-    VariableResolver resolver = new MapVariableResolver(ret, intermediateVariables, input, sensorConfig);
+    MapVariableResolver resolver = new MapVariableResolver(ret, intermediateVariables, input);
+    resolver.add(sensorConfig);
     StellarProcessor processor = new StellarProcessor();
     for(Map.Entry<String, Object> kv : fieldMappingConfig.entrySet()) {
       String oField = kv.getKey();
