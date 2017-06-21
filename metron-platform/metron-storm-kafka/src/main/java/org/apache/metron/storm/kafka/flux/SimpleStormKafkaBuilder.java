@@ -49,12 +49,7 @@ import java.util.regex.Pattern;
  * @param <V> The kafka value type
  */
 public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V> {
-  /**
-   * The default partitioner, which is RR (and is not serializable for some reason).
-   */
-  public static class Partitioner extends RoundRobinManualPartitioner implements Serializable {
 
-  }
   /**
    * The fields exposed by the kafka consumer.  These will show up in the Storm tuple.
    */
@@ -221,10 +216,10 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
     if(topicOrSubscription.charAt(0) == '/' && topicOrSubscription.charAt(length - 1) == '/') {
       //pattern, so strip off the preceding and ending slashes
       String substr = topicOrSubscription.substring(1, length - 1);
-      return new ManualPartitionPatternSubscription(new Partitioner(), Pattern.compile(substr));
+      return new PatternSubscription(Pattern.compile(substr));
     }
     else {
-      return new ManualPartitionNamedSubscription(new Partitioner(), topicOrSubscription);
+      return new NamedSubscription(topicOrSubscription);
     }
   }
 
