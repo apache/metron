@@ -90,7 +90,7 @@
         <global_hadoop_version>${base_hadoop_version}</global_hadoop_version>
         <global_hbase_version>${base_hbase_version}</global_hbase_version>
         <global_flume_version>${base_flume_version}</global_flume_version>
-        <global_elasticsearch_version>2.3.3</global_elasticsearch_version>
+        <global_elasticsearch_version>5.0.2</global_elasticsearch_version>
         <global_json_simple_version>1.1.1</global_json_simple_version>
         <global_metrics_version>3.0.2</global_metrics_version>
         <global_junit_version>4.12</global_junit_version>
@@ -107,15 +107,15 @@
         <global_errorprone_core_version>2.0.14</global_errorprone_core_version>
         <global_jar_version>3.0.2</global_jar_version>
         <global_surefire_version>2.18</global_surefire_version>
-        <global_maven_version>[3.3.1,)</global_maven_version>
+        <global_maven_version>3.3.9</global_maven_version>
     </properties>
 
     <profiles>
         <profile>
-            <id>HDP-2.5.0.0</id>
+            <id>HDP-2.5.3.0</id>
             <properties>
-                <hdp_version>2.5.0.0</hdp_version>
-                <build_number>1245</build_number>
+                <hdp_version>2.5.3.0</hdp_version>
+                <build_number>37</build_number>
                 <global_storm_kafka_version>1.1.0</global_storm_kafka_version>
                 <global_storm_version>${base_storm_version}.${hdp_version}-${build_number}</global_storm_version>
                 <global_kafka_version>${base_kafka_version}.${hdp_version}-${build_number}</global_kafka_version>

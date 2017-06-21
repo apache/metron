@@ -75,7 +75,7 @@ public class TestConfig {
       .build();
     try {
       runner.start();
-    } catch (UnableToStartException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return runner;

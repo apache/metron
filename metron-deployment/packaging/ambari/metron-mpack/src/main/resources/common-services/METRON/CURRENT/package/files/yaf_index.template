@@ -2,9 +2,6 @@
   "template": "yaf_index*",
   "mappings": {
     "yaf_doc": {
-      "_timestamp": {
-        "enabled": true
-      },
       "dynamic_templates": [
       {
         "geo_location_point": {
@@ -20,7 +17,7 @@
           "match": "enrichments:geo:*:country",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
+            "type": "text",
             "index": "not_analyzed"
           }
         }
@@ -30,7 +27,7 @@
           "match": "enrichments:geo:*:city",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
+            "type": "text",
             "index": "not_analyzed"
           }
         }
@@ -40,7 +37,7 @@
           "match": "enrichments:geo:*:locID",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
+            "type": "text",
             "index": "not_analyzed"
           }
         }
@@ -50,7 +47,7 @@
           "match": "enrichments:geo:*:dmaCode",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
+            "type": "text",
             "index": "not_analyzed"
           }
         }
@@ -60,7 +57,7 @@
           "match": "enrichments:geo:*:postalCode",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
+            "type": "text",
             "index": "not_analyzed"
           }
         }
@@ -105,7 +102,7 @@
       {
         "threat_triage_reason": {
           "mapping": {
-            "type": "string"
+            "type": "text"
           },
           "match": "threat.triage.rules:*:reason",
           "match_mapping_type": "*"
@@ -114,7 +111,7 @@
       {
         "threat_triage_name": {
           "mapping": {
-            "type": "string"
+            "type": "text"
           },
           "match": "threat.triage.rules:*:name",
           "match_mapping_type": "*"
@@ -127,7 +124,7 @@
           "format": "epoch_millis"
         },
         "source:type": {
-          "type": "string",
+          "type": "text",
           "index": "not_analyzed"
         },
         "ip_dst_addr": {
@@ -157,54 +154,54 @@
           "type": "double"
         },
         "proto": {
-          "type": "string",
+          "type": "text",
           "index": "not_analyzed"
         },
         "sip": {
-          "type": "string",
+          "type": "text",
           "index": "not_analyzed"
         },
         "sp": {
-          "type": "string",
+          "type": "text",
           "index": "not_analyzed"
         },
         "dip": {
-          "type": "string",
+          "type": "text",
           "index": "not_analyzed"
         },
         "dp": {
-          "type": "string",
+          "type": "text",
           "index": "not_analyzed"
         },
         "iflags": {
-          "type": "string",
+          "type": "text",
           "index": "not_analyzed"
         },
         "uflags": {
-          "type": "string",
+          "type": "text",
           "index": "not_analyzed"
         },
         "riflags": {
-          "type": "string"
+          "type": "text"
         },
         "ruflags": {
-          "type": "string",
+          "type": "text",
           "index": "not_analyzed"
         },
         "isn": {
-          "type": "string",
+          "type": "text",
           "index": "not_analyzed"
         },
         "risn": {
-          "type": "string",
+          "type": "text",
           "index": "not_analyzed"
         },
         "tag": {
-          "type": "string",
+          "type": "text",
           "index": "not_analyzed"
         },
         "rtag": {
-          "type": "string",
+          "type": "text",
           "index": "not_analyzed"
         },
         "pkt": {
@@ -220,11 +217,11 @@
           "type": "integer"
         },
         "app": {
-          "type": "string",
+          "type": "text",
           "index": "not_analyzed"
         },
         "end-reason": {
-          "type": "string"
+          "type": "text"
         }
       }
     }

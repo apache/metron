@@ -33,6 +33,7 @@ import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +62,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration configurations) {
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
 
-    Settings.Builder settingsBuilder = Settings.settingsBuilder();
+    Settings.Builder settingsBuilder = Settings.builder();
     settingsBuilder.put("cluster.name", globalConfiguration.get("es.clustername"));
     settingsBuilder.put("client.transport.ping_timeout","500s");
 
@@ -74,7 +75,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     Settings settings = settingsBuilder.build();
 
     try{
-      client = TransportClient.builder().settings(settings).build();
+      client = new PreBuiltTransportClient(settings);
       for(HostnamePort hp : getIps(globalConfiguration)) {
         client.addTransportAddress(
                 new InetSocketTransportAddress(InetAddress.getByName(hp.hostname), hp.port)

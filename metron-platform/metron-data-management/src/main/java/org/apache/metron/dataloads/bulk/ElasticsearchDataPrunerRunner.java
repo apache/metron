@@ -27,6 +27,7 @@ import org.apache.metron.common.utils.ErrorUtils;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,11 +97,11 @@ public class ElasticsearchDataPrunerRunner {
 
             Map<String, Object> globalConfiguration = configuration.getGlobalConfig();
 
-            Settings.Builder settingsBuilder = Settings.settingsBuilder();
+            Settings.Builder settingsBuilder = Settings.builder();
             settingsBuilder.put("cluster.name", globalConfiguration.get("es.clustername"));
             settingsBuilder.put("curatorFramework.transport.ping_timeout","500s");
             Settings settings = settingsBuilder.build();
-            client = TransportClient.builder().settings(settings).build()
+            client = new PreBuiltTransportClient(settings)
                     .addTransportAddress(
                             new InetSocketTransportAddress(InetAddress.getByName(globalConfiguration.get("es.ip").toString()), Integer.parseInt(globalConfiguration.get("es.port").toString()) )
                     );
