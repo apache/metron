@@ -214,10 +214,10 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
     if(topicOrSubscription.charAt(0) == '/' && topicOrSubscription.charAt(length - 1) == '/') {
       //pattern, so strip off the preceding and ending slashes
       String substr = topicOrSubscription.substring(1, length - 1);
-      return new PatternSubscription(Pattern.compile(substr));
+      return new ManualPartitionPatternSubscription(new RoundRobinManualPartitioner(), Pattern.compile(substr));
     }
     else {
-      return new NamedSubscription(topicOrSubscription);
+      return new ManualPartitionNamedSubscription(new RoundRobinManualPartitioner(), topicOrSubscription);
     }
   }
 
