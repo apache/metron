@@ -29,20 +29,23 @@ import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.ElasticsearchClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.node.InternalSettingsPreparer;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeValidationException;
+import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.transport.Netty4Plugin;
+import org.elasticsearch.xpack.XPackPlugin;
+import sun.nio.ch.Net;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 
 public class ElasticSearchComponent implements InMemoryComponent {
 
@@ -104,32 +107,36 @@ public class ElasticSearchComponent implements InMemoryComponent {
         }
 
         Settings.Builder settingsBuilder = Settings.builder()
-                .put("node.http.enabled", true)
-                .put("http.port", httpPort)
+                .put("cluster.name", "metron")
                 .put("path.logs",logDir.getAbsolutePath())
                 .put("path.data",dataDir.getAbsolutePath())
                 .put("path.home", indexDir.getAbsoluteFile())
-                .put("index.number_of_shards", 1)
-                .put("node.mode", "network")
-                .put("index.number_of_replicas", 1);
+                .put("transport.type", "netty4");
+
 
         if(extraElasticSearchSettings != null) {
 
             settingsBuilder = settingsBuilder.put(extraElasticSearchSettings);
-
         }
 
+        Collection plugins = Collections.singletonList(Netty4Plugin.class);
 
-
-        node = new Node(settingsBuilder.build());
+        node = new PluginConfigurableNode(settingsBuilder.build(), plugins);
+        client = node.client();
 
         waitForCluster(node, ClusterHealthStatus.YELLOW, new TimeValue(60000));
 
     }
 
+    private static class PluginConfigurableNode extends Node {
+        PluginConfigurableNode(Settings settings, Collection<Class<? extends Plugin>> classpathPlugins) {
+            super(InternalSettingsPreparer.prepareEnvironment(settings, null), classpathPlugins);
+        }
+    }
+
     public static void waitForCluster(Node node, ClusterHealthStatus status, TimeValue timeout) throws UnableToStartException {
         try {
-            node.start();
+           node.start();
 
             ClusterHealthResponse healthResponse =
                     (ClusterHealthResponse) node.client().execute(ClusterHealthAction.INSTANCE, new ClusterHealthRequest().waitForStatus(status).timeout(timeout)).actionGet();
@@ -138,6 +145,16 @@ public class ElasticSearchComponent implements InMemoryComponent {
                         + " and not " + status.name()
                         + ", from here on, everything will fail!");
             }
+
+            byte[] indexTemplate;
+            try {
+                indexTemplate = Files.readAllBytes(Paths.get("../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/yaf_index.template"));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            node.client().admin().indices().preparePutTemplate("yaf_index").setSource(indexTemplate).get();
+
         } catch (NodeValidationException e) {
             throw new UnableToStartException("node validation exception");
         } catch (ElasticsearchTimeoutException e) {
@@ -152,7 +169,6 @@ public class ElasticSearchComponent implements InMemoryComponent {
         getClient().admin().indices().refresh(new RefreshRequest());
         SearchResponse response = getClient().prepareSearch(index)
                 .setTypes(sourceType)
-                .setSource(SearchSourceBuilder.searchSource().fetchSource("messages", ""))
                 .setFrom(0)
                 .setSize(1000)
                 .execute().actionGet();
@@ -185,9 +201,8 @@ public class ElasticSearchComponent implements InMemoryComponent {
         try {
             node.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         node = null;
-        client = null;
     }
 }

@@ -27,7 +27,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <httpcore.version>4.3.2</httpcore.version>
-        <lucene.test.version>5.5.0</lucene.test.version>
+        <lucene.test.version>6.5.1</lucene.test.version>
     </properties>
     <dependencies>
         <dependency>
@@ -225,9 +225,9 @@
             <version>${httpcore.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.elasticsearch.client</groupId>
-            <artifactId>transport</artifactId>
-            <version>${global_elasticsearch_version}</version>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>elasticsearch-shaded</artifactId>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>

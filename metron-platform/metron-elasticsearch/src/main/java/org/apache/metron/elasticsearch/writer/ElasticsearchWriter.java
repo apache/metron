@@ -33,7 +33,7 @@ import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +65,8 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     Settings.Builder settingsBuilder = Settings.builder();
     settingsBuilder.put("cluster.name", globalConfiguration.get("es.clustername"));
     settingsBuilder.put("client.transport.ping_timeout","500s");
+    settingsBuilder.put("transport.type", "security4");
+    settingsBuilder.put("xpack.security.user", globalConfiguration.get("es.xpackuser"));
 
     if (optionalSettings != null) {
 
@@ -75,7 +77,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     Settings settings = settingsBuilder.build();
 
     try{
-      client = new PreBuiltTransportClient(settings);
+      client = new PreBuiltXPackTransportClient(settings);
       for(HostnamePort hp : getIps(globalConfiguration)) {
         client.addTransportAddress(
                 new InetSocketTransportAddress(InetAddress.getByName(hp.hostname), hp.port)
