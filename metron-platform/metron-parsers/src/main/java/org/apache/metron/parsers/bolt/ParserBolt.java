@@ -118,9 +118,12 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
   private Map<String, Object> getMetadata(Tuple t, boolean readMetadata) {
     Map<String, Object> ret = new HashMap<>();
+    if(!readMetadata) {
+      return ret;
+    }
     ret.put(SimpleStormKafkaBuilder.FieldsConfiguration.TOPIC.getFieldName(), t.getString(2));
     String keyStr = t.getString(1);
-    if(readMetadata && !StringUtils.isEmpty(keyStr)) {
+    if(!StringUtils.isEmpty(keyStr)) {
       try {
         Map<String, Object> metadata = JSONUtils.INSTANCE.load(keyStr, new TypeReference<Map<String, Object>>() {
         });
