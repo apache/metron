@@ -71,7 +71,8 @@ import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
- * Packages the current project as an Apache NiFi Archive (NAR).
+ * Packages the current project as an Apache Metron Bundle Archive (BUNDLE).
+ * Apache Metron Bundles are based on Apache Nifi Archives (NAR)
  *
  * The following code is derived from maven-dependencies-plugin and
  * maven-jar-plugin. The functionality of CopyDependenciesMojo and JarMojo was

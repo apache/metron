@@ -40,6 +40,7 @@
 		</license>
 	</licenses>
 	<modules>
+		<module>metron-parser-extensions-testing</module>
 		<module>metron-parser-asa-extension</module>
         <module>metron-parser-bro-extension</module>
         <module>metron-parser-cef-extension</module>
