@@ -84,7 +84,14 @@ export class QueryBuilder {
   }
 
   generateSelect() {
-    let select = this._filters.map(filter => filter.field.replace(/:/g, '\\:') + ':' + filter.value).join(' AND ');
+    let select = this._filters.map(filter => {
+      return filter.field.replace(/:/g, '\\:') +
+              ':' +
+        filter.value
+          .replace(/[\*\+\-=~><\"\?^\${}\(\)\:\!\/[\]\\\s]/g, '\\$&') // replace single  special characters
+          .replace(/\|\|/g, '\\||') // replace ||
+          .replace(/\&\&/g, '\\&&'); // replace &&
+    }).join(' AND ');
     return (select.length === 0) ? '*' : select;
   }
 

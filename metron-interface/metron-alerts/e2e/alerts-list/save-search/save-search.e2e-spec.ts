@@ -43,6 +43,16 @@ describe('metron-alerts Search', function() {
     expect(page.getSearchText()).toEqual('*', 'for search chip remove');
   });
 
+  it('should delete first search items from search box having multiple search fields', () => {
+    page.clickTableText('US');
+    page.clickTableText('bro');
+    expect(page.getSearchText()).toEqual('enrichments:geo:ip_dst_addr:country:US AND source:type:bro', 'for search text US and bro');
+    page.clickRemoveSearchChip();
+    expect(page.getSearchText()).toEqual('source:type:bro', 'for search text bro after US is removed');
+    page.clickRemoveSearchChip();
+    expect(page.getSearchText()).toEqual('*', 'for search chip remove for two search texts');
+  });
+
   it('manually entering search queries to search box and pressing enter key should search', () => {
     page.setSearchText('enrichments:geo:ip_dst_addr:country:US');
     expect(page.getPaginationText()).toEqualBcoz('1 - 22 of 22',

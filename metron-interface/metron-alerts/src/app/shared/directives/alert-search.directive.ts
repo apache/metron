@@ -68,7 +68,15 @@ export class AlertSearchDirective implements AfterViewInit, OnChanges {
       if (event.domEvent.target.classList.contains('fa-times')) {
         let pos = event.getDocumentPosition();
         let strToDelete = this.getTextTillOperator(event.domEvent.target.parentElement);
-        let range = new ACERange(0, pos.column - (strToDelete.length + 1) , 0, pos.column);
+
+        let endIndex = pos.column;
+        let startIndex = pos.column - (strToDelete.length + 1);
+        if ( startIndex < 0) {
+          startIndex = 0;
+          endIndex = (strToDelete.length + 1);
+        }
+
+        let range = new ACERange(0, startIndex , 0, endIndex);
         this.editor.selection.addRange(range);
         this.editor.removeWordLeft();
         this.editor.renderer.showCursor();
@@ -93,6 +101,24 @@ export class AlertSearchDirective implements AfterViewInit, OnChanges {
     previousSibling = previousSibling && previousSibling.previousSibling;
     if (previousSibling && previousSibling.classList && previousSibling.classList.contains('ace_operator')) {
       str = previousSibling.textContent + str;
+    } else {
+      str = str + this.getTextTillNextOperator(valueElement);
+    }
+
+    return str;
+  }
+
+  getTextTillNextOperator(valueElement) {
+    let str = '';
+    let nextSibling = valueElement.nextSibling;
+
+    if (nextSibling && nextSibling.nodeName === '#text') {
+      str = str + nextSibling.textContent;
+    }
+
+    nextSibling = nextSibling && nextSibling.nextSibling;
+    if (nextSibling && nextSibling.classList && nextSibling.classList.contains('ace_operator')) {
+      str = str + nextSibling.textContent;
     }
 
     return str;

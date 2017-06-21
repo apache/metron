@@ -203,10 +203,10 @@ export class MetronAlertsPage {
   }
 
   clickRemoveSearchChip() {
-    let aceLine = element(by.css('.ace_keyword'));
+    let aceLine = element.all(by.css('.ace_keyword')).get(0);
     browser.actions().mouseMove(aceLine).perform().then(() => {
       browser.sleep(2000);
-      element(by.css('.ace_value i')).click();
+      element.all(by.css('.ace_value i')).get(0).click();
     });
   }
 

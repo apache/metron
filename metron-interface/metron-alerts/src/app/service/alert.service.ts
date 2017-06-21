@@ -33,7 +33,6 @@ export class AlertService {
 
   interval = 80000;
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
-  types = ['bro_doc', 'snort_doc'];
 
   constructor(private http: Http,
               @Inject(APP_CONFIG) private config: IAppConfig,
