@@ -24,15 +24,14 @@ var app         = require('express')();
 var path        = require('path');
 var compression = require('compression');
 var serveStatic = require('serve-static');
-var favicon     = require('serve-favicon');
 var proxy       = require('http-proxy-middleware');
 var argv        = require('optimist')
-                  .demand(['p', 'r'])
-                  .alias('r', 'resturl')
-                  .usage('Usage: server.js -p [port] -r [restUrl]')
-                  .describe('p', 'Port to run metron management ui')
-                  .describe('r', 'Url where metron rest application is available')
-                  .argv;
+  .demand(['p', 'r'])
+  .alias('r', 'resturl')
+  .usage('Usage: server.js -p [port] -r [restUrl]')
+  .describe('p', 'Port to run metron management ui')
+  .describe('r', 'Url where metron rest application is available')
+  .argv;
 
 var port = argv.p;
 var metronUIAddress = '';
@@ -66,15 +65,17 @@ app.use(compression());
 app.use('/api/v1', proxy(conf.rest));
 app.use('/logout', proxy(conf.rest));
 
-app.use(favicon(path.join(__dirname, '../management-ui/favicon.ico')));
-
-app.use(serveStatic(path.join(__dirname, '../management-ui'), {
+app.use(serveStatic(path.join(__dirname, './dist'), {
   maxAge: '1d',
   setHeaders: setCustomCacheControl
 }));
 
 app.get('*', function(req, res){
-  res.sendFile(path.resolve('../management-ui/index.html'));
+  res.sendFile(path.resolve('./dist/index.html'));
+});
+
+app.use(function(req, res, next){
+  res.sendStatus(404).sendStatus(304);
 });
 
 app.listen(port, function(){

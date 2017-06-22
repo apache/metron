@@ -16,13 +16,5 @@
 #  limitations under the License.
 #
 SCRIPTS_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-if [ $# -eq 0 ]
-  then
-    echo "usage: start_dev_quickdev.sh <Url where metron rest application is available>"
-    exit
-fi
-
-cp $SCRIPTS_ROOT/../proxy.conf.json $SCRIPTS_ROOT/../proxy.quickdev.conf.json
-sed -i '' "s@http://localhost:8080@$1@g" $SCRIPTS_ROOT/../proxy.quickdev.conf.json
-$SCRIPTS_ROOT/../node_modules/angular-cli/bin/ng serve --proxy-config proxy.quickdev.conf.json
+#cd $SCRIPTS_ROOT/.. && npm run build
+node $SCRIPTS_ROOT/../config-server-e2e.js  $*
