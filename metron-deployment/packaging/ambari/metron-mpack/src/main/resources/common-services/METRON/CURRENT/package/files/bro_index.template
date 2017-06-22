@@ -127,19 +127,21 @@
          *
          * Because Metron inserts many distinct bro records into a single ElasticSearch index
          * by default, it encounters field collisions due to field name reuse across bro logs.
+         *
          * Be careful when modifying this file to not unintentionally affect other logs.
-         * For instance, TODO exists in both X and Y.  If you were to only consider X, you
-         * would set the type to TODO, but because of Y we must set the type to TODO.
+         * For instance, the "version" field exists in the HTTP, SSL, and SSH logs.  If you
+         * were to only consider the SSH log, you would set the type to integer, but because
+         * in the SSL and HTTP logs version is a string, we must set the type to string.
          */
         /*
-         * Metron-specific Fields
+         * Metron-specific fields
          */
         "source:type": {
           "type": "string",
           "index": "not_analyzed"
         },
         /*
-         * Widely-used Bro Fields (potentially renamed during Metron ingest)
+         * Widely-used Bro fields (potentially renamed during Metron ingest)
          */
         "timestamp": {
           "type": "date",
@@ -227,7 +229,6 @@
           "type": "string",
           "index": "not_analyzed"
         },
-        /* TODO: info_code, info_msg, tags? */
         "username": {
           "type": "string",
           "index": "not_analyzed"
@@ -239,7 +240,6 @@
         "capture_password": {
           "type": "boolean"
         },
-        /* TODO: proxied, range_request? */
         /*
          * DNS log support
          * https://www.bro.org/sphinx/scripts/base/protocols/dns/main.bro.html#type-DNS::Info
@@ -258,7 +258,6 @@
         "trans_id": {
           "type": "long"
         },
-        /* TODO:  rtt? */
         "query": {
           "type": "string",
           "index": "not_analyzed"
@@ -302,11 +301,9 @@
         "answers": {
           "type": "string"
         },
-        /* TODO: TTLs? */
         "rejected": {
           "type": "boolean"
         },
-        /* TODO: total_answers, total_replies, saw_query, saw_reply? */
         /*
          * Conn log support
          * https://www.bro.org/sphinx/scripts/base/protocols/conn/main.bro.html#type-Conn::Info
@@ -579,7 +576,6 @@
           "type": "string",
           "analyzer": "simple"
         },
-        /* TODO: cc? */
         "reply_to": {
           "type": "string",
           "analyzer": "simple"
@@ -730,7 +726,6 @@
           "type": "string",
           "index": "not_analyzed"
         },
-        /* TODO: email_body_sections, email_delay_tokens, identifier? */
         "suppress_for": {
           "type": "double",
           "index": "not_analyzed"
@@ -974,11 +969,6 @@
           "type": "string",
           "index": "not_analyzed"
         }
-        /* TODO: Unknown? I think they meant proto */
-        "protocol": {
-          "type": "string",
-          "index": "not_analyzed"
-        },
       }
     }
   }
