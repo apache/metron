@@ -92,7 +92,7 @@ public class ProfileWriter {
    */
   private void write(ProfileMeasurement m) {
 
-    byte[] rowKey = rowKeyBuilder.rowKey(m);
+    byte[] rowKey = rowKeyBuilder.encode(m);
     ColumnList cols = columnBuilder.columns(m);
 
     hbaseClient.addMutation(rowKey, cols, Durability.SKIP_WAL);

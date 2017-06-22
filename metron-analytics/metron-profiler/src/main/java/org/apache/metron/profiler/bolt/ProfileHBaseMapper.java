@@ -66,7 +66,7 @@ public class ProfileHBaseMapper implements HBaseMapper {
   @Override
   public byte[] rowKey(Tuple tuple) {
     ProfileMeasurement measurement = (ProfileMeasurement) tuple.getValueByField("measurement");
-    return rowKeyBuilder.rowKey(measurement);
+    return rowKeyBuilder.encode(measurement);
   }
 
   /**

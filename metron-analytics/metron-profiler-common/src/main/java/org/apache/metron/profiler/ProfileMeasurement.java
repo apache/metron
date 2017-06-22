@@ -93,8 +93,13 @@ public class ProfileMeasurement {
     return this;
   }
 
-  public ProfileMeasurement withPeriod(long whenMillis, long periodDuration, TimeUnit periodUnits) {
-    this.period = new ProfilePeriod(whenMillis, periodDuration, periodUnits);
+  public ProfileMeasurement withProfilePeriod(ProfilePeriod profilePeriod) {
+    this.period = profilePeriod;
+    return this;
+  }
+
+  public ProfileMeasurement withPeriod(long timestampMillis, long periodDuration, TimeUnit periodUnits) {
+    this.period = ProfilePeriod.buildFromTimestamp(timestampMillis, periodDuration, periodUnits);
     return this;
   }
 

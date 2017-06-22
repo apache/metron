@@ -99,7 +99,7 @@ public class HBaseProfilerClient implements ProfilerClient {
     byte[] columnQualifier = columnBuilder.getColumnQualifier("value");
 
     // find all the row keys that satisfy this fetch
-    List<byte[]> keysToFetch = rowKeyBuilder.rowKeys(profile, entity, groups, start, end);
+    List<byte[]> keysToFetch = rowKeyBuilder.encode(profile, entity, groups, start, end);
 
     // create a Get for each of the row keys
     List<Get> gets = keysToFetch
@@ -127,7 +127,7 @@ public class HBaseProfilerClient implements ProfilerClient {
     byte[] columnQualifier = columnBuilder.getColumnQualifier("value");
 
     // find all the row keys that satisfy this fetch
-    List<byte[]> keysToFetch = rowKeyBuilder.rowKeys(profile, entity, groups, periods);
+    List<byte[]> keysToFetch = rowKeyBuilder.encode(profile, entity, groups, periods);
 
     // create a Get for each of the row keys
     List<Get> gets = keysToFetch

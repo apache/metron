@@ -194,10 +194,6 @@ public class GetProfile implements StellarFunction {
     return groups;
   }
 
-
-
-
-
   /**
    * Creates the ColumnBuilder to use in accessing the profile data.
    * @param global The global configuration.

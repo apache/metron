@@ -25,7 +25,6 @@ import org.apache.metron.profiler.ProfilePeriod;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Builds a row key that can be used to read or write ProfileMeasurement data
@@ -35,41 +34,49 @@ public interface RowKeyBuilder extends Serializable {
 
   /**
    * Build a row key for a given ProfileMeasurement.
-   * 
+   * <p>
    * This method is useful when writing ProfileMeasurements to HBase.
    *
    * @param measurement The profile measurement.
    * @return The HBase row key.
    */
-  byte[] rowKey(ProfileMeasurement measurement);
+  byte[] encode(ProfileMeasurement measurement);
+
+  /**
+   * Decodes a row key to build a ProfileMeasurement containing all of the
+   * relevant fields that exist within the row key.
+   *
+   * @param rowKey The row key to decode.
+   * @return A ProfileMeasurement.
+   */
+  ProfileMeasurement decode(byte[] rowKey);
 
   /**
    * Builds a list of row keys necessary to retrieve a profile's measurements over
    * a time horizon.
-   *
+   * <p>
    * This method is useful when attempting to read ProfileMeasurements stored in HBase.
    *
    * @param profile The name of the profile.
-   * @param entity The name of the entity.
-   * @param groups The group(s) used to sort the profile data.
-   * @param start When the time horizon starts in epoch milliseconds.
-   * @param end When the time horizon ends in epoch milliseconds.
+   * @param entity  The name of the entity.
+   * @param groups  The group(s) used to sort the profile data.
+   * @param start   When the time horizon starts in epoch milliseconds.
+   * @param end     When the time horizon ends in epoch milliseconds.
    * @return All of the row keys necessary to retrieve the profile measurements.
    */
-  List<byte[]> rowKeys(String profile, String entity, List<Object> groups, long start, long end);
+  List<byte[]> encode(String profile, String entity, List<Object> groups, long start, long end);
 
   /**
    * Builds a list of row keys necessary to retrieve a profile's measurements over
    * a time horizon.
-   *
+   * <p>
    * This method is useful when attempting to read ProfileMeasurements stored in HBase.
    *
    * @param profile The name of the profile.
-   * @param entity The name of the entity.
-   * @param groups The group(s) used to sort the profile data.
+   * @param entity  The name of the entity.
+   * @param groups  The group(s) used to sort the profile data.
    * @param periods The profile measurement periods to compute the rowkeys for
    * @return All of the row keys necessary to retrieve the profile measurements.
    */
-  List<byte[]> rowKeys(String profile, String entity, List<Object> groups, Iterable<ProfilePeriod> periods);
-
+  List<byte[]> encode(String profile, String entity, List<Object> groups, Iterable<ProfilePeriod> periods);
 }

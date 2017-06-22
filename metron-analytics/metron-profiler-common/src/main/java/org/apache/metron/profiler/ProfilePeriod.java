@@ -48,17 +48,49 @@ public class ProfilePeriod {
 
 
   /**
-   * @param epochMillis A timestamp contained somewhere within the profile period.
+   * Builds a ProfilePeriod from a timestamp that exists somewhere within the profile period.
+   *
+   * @param timestamp A timestamp in epoch millis contained somewhere within the profile period.
    * @param duration The duration of each profile period.
    * @param units The units of the duration; hours, minutes, etc.
+   * @return The ProfilePeriod containing the given timestamp.
    */
-  public ProfilePeriod(long epochMillis, long duration, TimeUnit units) {
+  public static ProfilePeriod buildFromTimestamp(long timestamp, long duration, TimeUnit units) {
     if(duration <= 0) {
       throw new IllegalArgumentException(format(
               "period duration must be greater than 0; got '%d %s'", duration, units));
     }
+
+    long durationMillis = units.toMillis(duration);
+    return new ProfilePeriod(timestamp / durationMillis, duration, units);
+  }
+
+  /**
+   * Builds a ProfilePeriod from the period identifier; a monotonically increasing number where
+   * the first period is 0 and begins at the epoch.
+   *
+   * @param period The period identifier; a monotonically increasing number where the first period is 0 and begins at the epoch.
+   * @param duration The duration of each profile period.
+   * @param units The units of the duration; hours, minutes, etc.
+   * @return The ProfilePeriod with the given period identifier.
+   */
+  public static ProfilePeriod buildFromPeriod(long period, long duration, TimeUnit units) {
+    return new ProfilePeriod(period, duration, units);
+  }
+
+  /**
+   * @param period The period identifier; a monotonically increasing number where the first period is 0 and begins at the epoch.
+   * @param duration The duration of each profile period.
+   * @param units The units of the duration; hours, minutes, etc.
+   */
+  private ProfilePeriod(long period, long duration, TimeUnit units) {
+    if(duration <= 0) {
+      throw new IllegalArgumentException(format(
+              "period duration must be greater than 0; got '%d %s'", duration, units));
+    }
+
     this.durationMillis = units.toMillis(duration);
-    this.period = epochMillis / durationMillis;
+    this.period = period;
   }
 
   /**
@@ -79,8 +111,7 @@ public class ProfilePeriod {
    * Returns the next ProfilePeriod in time.
    */
   public ProfilePeriod next() {
-    long nextStart = getStartTimeMillis() + durationMillis;
-    return new ProfilePeriod(nextStart, durationMillis, TimeUnit.MILLISECONDS);
+    return buildFromPeriod(period + 1, durationMillis, TimeUnit.MILLISECONDS);
   }
 
   public long getPeriod() {
@@ -125,7 +156,7 @@ public class ProfilePeriod {
                                         , Function<ProfilePeriod,T> transformation
                                         )
   {
-    ProfilePeriod period = new ProfilePeriod(startEpochMillis, duration, units);
+    ProfilePeriod period = buildFromTimestamp(startEpochMillis, duration, units);
     List<T> ret = new ArrayList<>();
     while(period.getStartTimeMillis() <= endEpochMillis) {
       if(!inclusionPredicate.isPresent() || inclusionPredicate.get().test(period)) {
