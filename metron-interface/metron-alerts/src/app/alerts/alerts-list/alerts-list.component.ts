@@ -37,6 +37,7 @@ export class AlertsListComponent implements OnInit {
   refreshTimer: Subscription;
   pauseRefresh = false;
   lastPauseRefreshValue = false;
+  threatScoreFieldName = 'threat:triage:score';
 
   @ViewChild('table') table: ElementRef;
   @ViewChild(AlertSearchDirective) alertSearchDirective: AlertSearchDirective;
@@ -126,6 +127,10 @@ export class AlertsListComponent implements OnInit {
   }
 
   getDataType(name: string): string {
+    if (name === this.threatScoreFieldName || name === '_id') {
+      return 'number';
+    }
+
     return this.alertsColumns.filter(colMetaData => colMetaData.name === name)[0].type;
   }
 
@@ -203,7 +208,8 @@ export class AlertsListComponent implements OnInit {
 
   onSort(sortEvent: SortEvent) {
     let sortOrder = (sortEvent.sortOrder === Sort.ASC ? 'asc' : 'desc');
-    this.queryBuilder.setSort(sortEvent.sortBy, sortOrder, this.getDataType(sortEvent.sortBy));
+    let sortBy = sortEvent.sortBy === '_id' ? '_uid' : sortEvent.sortBy;
+    this.queryBuilder.setSort(sortBy, sortOrder, this.getDataType(sortEvent.sortBy));
     this.search();
   }
 

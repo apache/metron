@@ -87,7 +87,7 @@ export class QueryBuilder {
     let select = this._filters.map(filter => {
       return filter.field.replace(/:/g, '\\:') +
               ':' +
-        filter.value
+        String(filter.value)
           .replace(/[\*\+\-=~><\"\?^\${}\(\)\:\!\/[\]\\\s]/g, '\\$&') // replace single  special characters
           .replace(/\|\|/g, '\\||') // replace ||
           .replace(/\&\&/g, '\\&&'); // replace &&

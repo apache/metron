@@ -69,7 +69,7 @@
                 <table class="table table-sm" metron-config-table [data]="alerts" [cellSelectable]="true" (onSort)="onSort($event)" style="white-space: nowrap;" (window:resize)="onResize()" #table>
                     <thead>
                     <tr>
-                        <th style="width:55px"> <metron-config-sorter [type]="'number'" [sortBy]="'_score'"> Score </metron-config-sorter> </th>
+                        <th style="width:55px"> <metron-config-sorter [type]="'number'" [sortBy]="threatScoreFieldName"> Score </metron-config-sorter> </th>
                         <th *ngFor="let column of alertsColumnsToDisplay" [id]="column.name"> <metron-config-sorter [type]="column.type" [sortBy]="column.name" title="{{column.name}}"> {{ column.name | columnNameTranslate | centerEllipses:15 }}</metron-config-sorter> </th>
                         <th style="width:25px"><i class="fa fa-cog configure-table-icon" (click)="showConfigureTable()"></i></th>
                         <th style="width:25px"><input id="select-deselect-all" class="fontawesome-checkbox" type="checkbox" (click)="selectAllRows($event)"><label for="select-deselect-all"></label></th>
@@ -77,7 +77,9 @@
                     </thead>
                     <tbody>
                     <tr *ngFor="let alert of alerts" (click)="showDetails($event, alert)" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1}">
-                        <td (click)="addFilter('score', alert.score)"> <div appAlertSeverity [severity]="alert.score"> {{ alert._score ? alert._score : '-' }} </div> </td>
+                        <td (click)="onAddFilter(threatScoreFieldName, alert._source[threatScoreFieldName])">
+                            <div appAlertSeverity [severity]="alert._source[threatScoreFieldName]"> <a> {{ alert._source[threatScoreFieldName] ? alert._source[threatScoreFieldName] : '-' }} </a> </div>
+                        </td>
                         <td *ngFor="let column of alertsColumnsToDisplay" #cell>
                             <a (click)="onAddFilter(column.name, getValue(alert, column, false))" title="{{getValue(alert, column, true)}}" style="color:#689AA9"> {{ getValue(alert, column, true) | centerEllipses:20:cell }} </a>
                         </td>
