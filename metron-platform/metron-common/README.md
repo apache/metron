@@ -26,6 +26,7 @@ The query language supports the following:
   * The literal `"\"foo\""` would represent `"foo"`
   * The literal `'foo \\ bar'` would represent `foo \ bar`
 * Simple boolean operations: `and`, `not`, `or`
+  * Boolean expressions are short-circuited (e.g. `true or FUNC()` would never execute `FUNC`)
 * Simple arithmetic operations: `*`, `/`, `+`, `-` on real numbers or integers
 * Simple comparison operations `<`, `>`, `<=`, `>=`
 * Simple equality comparison operations `==`, `!=`
