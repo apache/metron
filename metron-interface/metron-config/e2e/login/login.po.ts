@@ -55,8 +55,8 @@ export class LoginPage {
   getErrorMessage() {
     let errorMessage = element(by.css('div[style="color:#a94442"]')).getText();
     return errorMessage.then(message => {
-      return message.replace(/\n/,'').replace(/LOG\ IN$/,'');
-    })
+      return message.replace(/\n/, '').replace(/LOG\ IN$/, '');
+    });
   }
 
   getLocation() {

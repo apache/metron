@@ -23,33 +23,6 @@ describe('Sensor List Long Running Cases', function() {
   let loginPage = new LoginPage();
   let ASCENDING_CSS = 'fa fa-sort-asc';
   let DESCENDING_CSS = 'fa fa-sort-desc';
-  let defaultActionState = [
-    { classNames: 'fa-circle-o-notch', displayed: false },
-    { classNames: 'fa-stop', displayed: false },
-    { classNames: 'fa-ban', displayed: false },
-    { classNames: 'fa-play', displayed: true },
-    { classNames: 'fa-check-circle-o', displayed: false },
-    { classNames: 'fa-pencil', displayed: true },
-    { classNames: 'fa-trash-o', displayed: true }
-  ];
-  let runningActionstate = [
-    { classNames: 'fa-circle-o-notch', displayed: false},
-    { classNames: 'fa-stop', displayed: true},
-    { classNames: 'fa-ban', displayed: true},
-    { classNames: 'fa-play', displayed: false},
-    { classNames: 'fa-check-circle-o', displayed: false},
-    { classNames: 'fa-pencil', displayed: true},
-    { classNames: 'fa-trash-o', displayed: true}
-  ];
-  let disabledActionState = [
-    { classNames: 'fa-circle-o-notch', displayed: false},
-    { classNames: 'fa-stop', displayed: true},
-    { classNames: 'fa-ban', displayed: false},
-    { classNames: 'fa-play', displayed: false},
-    { classNames: 'fa-check-circle-o', displayed: true},
-    { classNames: 'fa-pencil', displayed: true},
-    { classNames: 'fa-trash-o', displayed: true}
-  ];
   let parsersToTest = ['snort', 'bro'];
 
   beforeAll(() => {
@@ -63,11 +36,11 @@ describe('Sensor List Long Running Cases', function() {
   it('should disable all parsers from actions', (done) => {
     expect(page.getAddButton()).toEqual(true);
     page.disableParsers(parsersToTest).then((args) => {
-      expect(args).toEqual([true, true])
+      expect(args).toEqual([true, true]);
       done();
-    })
+    });
 
-  }, 300000)
+  }, 300000);
 
   it('should have correct values when parser is disabled', () => {
     page.toggleSort('Status');
@@ -89,51 +62,51 @@ describe('Sensor List Long Running Cases', function() {
 
   it('should enable all parsers from actions', (done) => {
     page.enableParsers(parsersToTest).then((args) => {
-      expect(args).toEqual([true, true])
+      expect(args).toEqual([true, true]);
       done();
-    })
-  }, 300000)
+    });
+  }, 300000);
 
   it('should stop parsers from actions', (done) => {
     page.stopParsers(parsersToTest).then((args) => {
       expect(args).toEqual([true, true]);
       done();
-    })
-  }, 300000)
+    });
+  }, 300000);
 
   it('should start parsers from dropdown', (done) => {
     page.startParsersFromDropdown(parsersToTest).then((args) => {
       expect(args).toEqual([true, true]);
       done();
-    })
-  }, 300000)
+    });
+  }, 300000);
 
   it('should disable parsers from dropdown', (done) => {
     page.disableParsersFromDropdown(parsersToTest).then((args) => {
       expect(args).toEqual([true, true]);
       done();
-    })
-  }, 300000)
+    });
+  }, 300000);
 
   it('should enable parsers from dropdown', (done) => {
     page.enableParsersFromDropdown(parsersToTest).then((args) => {
       expect(args).toEqual([true, true]);
       done();
-    })
-  }, 300000)
+    });
+  }, 300000);
 
   it('should stop parsers from dropdown', (done) => {
     page.stopParsersFromDropdown(parsersToTest).then((args) => {
       expect(args).toEqual([true, true]);
       done();
-    })
-  }, 300000)
+    });
+  }, 300000);
 
   it('should start parsers from actions', (done) => {
     page.startParsers(parsersToTest).then((args) => {
-      expect(args).toEqual([true, true])
+      expect(args).toEqual([true, true]);
       done();
-    })
+    });
 
-  }, 300000)
+  }, 300000);
 });

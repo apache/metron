@@ -9,7 +9,7 @@
   "scripts": {
     "build": "./node_modules/angular-cli/bin/ng build -prod",
     "start": "ng serve",
-    "lint": "tslint \"src/**/*.ts\"",
+    "lint": "tslint \"src/**/*.ts\" && tslint \"e2e/**/*.ts\"",
     "test": "./node_modules/angular-cli/bin/ng test --watch=false",
     "pree2e": "webdriver-manager update",
     "e2e": "./node_modules/.bin/protractor-flake",

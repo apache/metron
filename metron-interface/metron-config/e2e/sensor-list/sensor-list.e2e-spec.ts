@@ -41,16 +41,6 @@ describe('Sensor List', function() {
     { classNames: 'fa-pencil', displayed: true},
     { classNames: 'fa-trash-o', displayed: true}
   ];
-  let disabledActionState = [
-    { classNames: 'fa-circle-o-notch', displayed: false},
-    { classNames: 'fa-stop', displayed: true},
-    { classNames: 'fa-ban', displayed: false},
-    { classNames: 'fa-play', displayed: false},
-    { classNames: 'fa-check-circle-o', displayed: true},
-    { classNames: 'fa-pencil', displayed: true},
-    { classNames: 'fa-trash-o', displayed: true}
-  ];
-
   beforeAll(() => {
     loginPage.login();
   });
@@ -122,7 +112,7 @@ describe('Sensor List', function() {
     expect(page.getSelectedRowCount()).toEqual(7);
     page.toggleSelectAll();
     expect(page.getSelectedRowCount()).toEqual(0);
-  })
+  });
 
   it('should select deselect individual rows', () => {
     ['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf'].map(pName => {
@@ -131,7 +121,7 @@ describe('Sensor List', function() {
       page.toggleRowSelect(pName);
       expect(page.getSelectedRowCount()).toEqual(0);
     });
-  })
+  });
 
   it('should enable action in dropdown', () => {
     expect(page.getDropdownActionState()).toEqual({ enabled: 0, disabled: 0, displayed: false});
@@ -153,7 +143,7 @@ describe('Sensor List', function() {
       page.toggleDropdown();
       page.toggleRowSelect(pName);
     });
-  })
+  });
 
   it('should have all the actions with default value', () => {
     ['websphere', 'jsonMap', 'squid', 'asa', 'yaf'].map(pName => {
@@ -163,19 +153,19 @@ describe('Sensor List', function() {
     ['snort', 'bro'].map(pName => {
       expect(page.getActions(pName)).toEqual(runningActionstate);
     });
-  })
+  });
 
   it('should open the details pane', (done) => {
     ['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf'].map(pName => {
-      expect(page.openDetailsPane(pName)).toEqual('http://localhost:4200/sensors(dialog:sensors-readonly/' + pName +')');
+      expect(page.openDetailsPane(pName)).toEqual('http://localhost:4200/sensors(dialog:sensors-readonly/' + pName + ')');
     });
-    page.closePane().then(() => {done();});
-  }, 300000)
+    page.closePane().then(() => { done(); });
+  }, 300000);
 
   it('should open the edit pane', () => {
     ['websphere', 'jsonMap', 'squid', 'asa', 'snort', 'bro', 'yaf'].map(pName => {
-      expect(page.openEditPaneAndClose(pName)).toEqual('http://localhost:4200/sensors(dialog:sensors-config/' + pName +')');
+      expect(page.openEditPaneAndClose(pName)).toEqual('http://localhost:4200/sensors(dialog:sensors-config/' + pName + ')');
     });
-  })
+  });
 
 });

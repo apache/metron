@@ -31,9 +31,9 @@ describe('Sensor Details View', function () {
   });
 
   it('should navigate to snort parser', () => {
-    page.navigateTo('snort')
+    page.navigateTo('snort');
     expect(page.getCurrentUrl()).toEqual('http://localhost:4200/sensors(dialog:sensors-readonly/snort)');
-    expect(page.getTitle()).toEqual("snort");
+    expect(page.getTitle()).toEqual('snort');
   });
 
 

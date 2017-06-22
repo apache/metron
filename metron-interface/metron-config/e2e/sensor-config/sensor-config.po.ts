@@ -90,7 +90,7 @@ export class SensorConfigPage {
   }
 
   getGrokStatementFromMainPane() {
-    browser.waitForAngular;
+    browser.waitForAngular();
     return element.all(by.css('input[formcontrolname="grokStatement"]')). getAttribute('value');
   }
 
@@ -113,7 +113,7 @@ export class SensorConfigPage {
 
   getFieldSchemaEditButton(name: string) {
     let fieldRowClassName = 'metron-config-sensor-field-schema .field-schema-row';
-    return element(by.cssContainingText(fieldRowClassName, name)).element(by.xpath("..")).element(by.css('.fa-pencil'));
+    return element(by.cssContainingText(fieldRowClassName, name)).element(by.xpath('..')).element(by.css('.fa-pencil'));
   }
 
   getFormData() {
@@ -150,7 +150,7 @@ export class SensorConfigPage {
         solrBatchSize: args[10],
         solrEnabled: args[11],
         advanced: args[12]
-      }
+      };
     });
   }
 
@@ -171,7 +171,7 @@ export class SensorConfigPage {
   }
 
   navigateTo(parserName: string) {
-    let url = browser.baseUrl + '/sensors(dialog:sensors-readonly/'+ parserName + ')';
+    let url = browser.baseUrl + '/sensors(dialog:sensors-readonly/' + parserName + ')';
     return changeURL(url);
   }
 
@@ -190,7 +190,7 @@ export class SensorConfigPage {
     let saveButton = element(by.cssContainingText('metron-config-sensor-grok button', 'SAVE'));
     return waitForElementVisibility(saveButton).then(() => {
       return element(by.cssContainingText('metron-config-sensor-grok button', 'SAVE')).click();
-    })
+    });
   }
 
   saveThreatTriageRule() {
@@ -217,14 +217,14 @@ export class SensorConfigPage {
   setParserType(parserName: string) {
     return element(by.css('select[formcontrolname="parserClassName"]')).click().then(() => {
       return element.all(by.cssContainingText('select[formcontrolname="parserClassName"] option', parserName)).get(0).click();
-    })
+    });
   }
 
   setSampleMessage(paneName: string, message: string) {
     let sampleMsgTextArea = element(by.css('metron-config-' + paneName + ' .form-control.sample-input'));
     return waitForElementVisibility(sampleMsgTextArea).then(() => {
       return sampleMsgTextArea.sendKeys(message);
-    })
+    });
   }
 
   setSchemaConfig(fieldName: string, transformValues: string[], enrichmentValues: string[], threatIntelValues: string[]) {
@@ -242,34 +242,34 @@ export class SensorConfigPage {
       enrichmentSelect.click().then(() => {
         enrichmentSelect.all(by.cssContainingText('option', enrichment)).last().click();
       });
-    })
+    });
 
     threatIntelValues.forEach(threatIntel => {
       let threatIntelSelect = this.getThreatIntelMultipleInput();
       threatIntelSelect.click().then(() => {
         threatIntelSelect.all(by.cssContainingText('option', threatIntel)).last().click();
       });
-    })
+    });
   }
 
   setThreatTriageRule(rule: string) {
     let threatTriageTextArea = element(by.css('metron-config-sensor-rule-editor textarea'));
     return waitForElementVisibility(threatTriageTextArea).then(() => {
       return threatTriageTextArea.sendKeys(rule);
-    })
+    });
   }
 
   setThreatTriageRuleScore(score: string) {
     let threatTriageRuleScore = element(by.css('metron-config-sensor-rule-editor metron-config-number-spinner input'));
     return waitForElementVisibility(threatTriageRuleScore).then(() => {
       return threatTriageRuleScore.sendKeys(score);
-    })
+    });
   }
 
   testGrokStatement() {
     let saveButton = element(by.cssContainingText('metron-config-sensor-grok button', 'TEST'));
     return waitForElementVisibility(saveButton).then(() => {
       return element(by.cssContainingText('metron-config-sensor-grok button', 'TEST')).click();
-    })
+    });
   }
 }
