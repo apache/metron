@@ -20,7 +20,7 @@ import {SensorConfigPage} from '../sensor-config/sensor-config.po';
 import {SensorListPage} from '../sensor-list/sensor-list.po';
 import {SensorDetailsPage} from '../sensor-config-readonly/sensor-config-readonly.po';
 
-describe('Sensor Config for parser e2e1', function() {
+describe('E2E test to add and very the config for parser "e2e1"', function() {
   let page = new SensorConfigPage();
   let sensorListPage = new SensorListPage();
   let sensorDetailsPage = new SensorDetailsPage();
@@ -35,7 +35,17 @@ describe('Sensor Config for parser e2e1', function() {
     loginPage.logout();
   });
 
-  it('should add e2e parser', (done) => {
+  it('should add mandatory fields for e2e parser', (done) => {
+
+    page.clickAddButton();
+    page.setParserName('e2e1');
+    page.setParserType('Grok');
+
+    done();
+
+  }, 50000);
+
+  it('should add grok configuration for e2e parser', (done) => {
     let expectedGrokResponse = [
       'action TCP_MISS',
       'bytes 337891',
@@ -47,11 +57,6 @@ describe('Sensor Config for parser e2e1', function() {
       'original_string 1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET http://www.aliexpress.com/af/shoes.html? - DIRECT/207.109.73.154 text/html', 'timestamp 1467011157.401', 'url http://www.aliexpress.com/af/shoes.html?' ];
     let grokStatement = '%{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}\/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}\/%{WORD:UNWANTED}';
     let sampleMessage = '1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET http://www.aliexpress.com/af/shoes.html? - DIRECT/207.109.73.154 text/html';
-    let expectedFieldSchemaResponse = [ 'elapsed', 'code', 'ip_dst_addr', 'original_string', 'method', 'bytes', 'action', 'ip_src_addr', 'url', 'timestamp' ];
-
-    page.clickAddButton();
-    page.setParserName('e2e1');
-    page.setParserType('Grok');
 
     page.clickGrokStatement();
     page.setSampleMessage('sensor-grok', sampleMessage);
@@ -61,6 +66,14 @@ describe('Sensor Config for parser e2e1', function() {
     expect(page.getGrokResponse()).toEqual(expectedGrokResponse);
     page.saveGrokStatement();
     expect(page.getGrokStatementFromMainPane()).toEqual(['E2E1 ' +grokStatement]);
+
+    done();
+
+  }, 50000);
+
+
+  it('should add Schema Configuration for e2e parser', (done) => {
+    let expectedFieldSchemaResponse = [ 'elapsed', 'code', 'ip_dst_addr', 'original_string', 'method', 'bytes', 'action', 'ip_src_addr', 'url', 'timestamp' ];
 
     page.clickSchema();
     page.setSampleMessage('sensor-field-schema', '1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET http://www.aliexpress.com/af/shoes.html? - DIRECT/207.109.73.154 text/html');
@@ -74,6 +87,12 @@ describe('Sensor Config for parser e2e1', function() {
     page.closeSchemaPane();
     expect(page.getFieldSchemaSummary()).toEqual( [ 'TRANSFORMATIONS 1', 'ENRICHMENTS 3', 'THREAT INTEL 2' ]);
 
+    done();
+
+  }, 50000);
+
+  it('should add Threat Triage fields e2e parser', (done) => {
+    
     page.clickThreatTriage();
     page.clickAddThreatTriageRule();
     page.setThreatTriageRule('IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')');
@@ -97,11 +116,17 @@ describe('Sensor Config for parser e2e1', function() {
     page.closeThreatTriagePane();
     expect(page.getThreatTriageSummary()).toEqual([ 'RULES 2' ]);
 
-    page.saveParser();
-
     done();
 
   }, 50000);
+
+  it('should save e2e parser', (done) => {
+
+    page.saveParser();
+    done();
+
+  }, 50000);
+
 
   it('should have all the config for e2e parser', (done) => {
     let grokStatement = 'E2E1 %{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}/%{WORD:UNWANTED}';
@@ -151,7 +176,7 @@ describe('Sensor Config for parser e2e1', function() {
 
     let grokStatement = 'E2E1 %{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}\/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}\/%{WORD:UNWANTED}';
 
-    sensorDetailsPage.navigateTo('e2e1')
+    sensorDetailsPage.navigateTo('e2e1');
     expect(sensorDetailsPage.getCurrentUrl()).toEqual('http://localhost:4200/sensors(dialog:sensors-readonly/e2e1)');
     expect(sensorDetailsPage.getTitle()).toEqual("e2e1");
     expect(sensorDetailsPage.getParserConfig()).toEqual(parserNotRunnigExpected);
