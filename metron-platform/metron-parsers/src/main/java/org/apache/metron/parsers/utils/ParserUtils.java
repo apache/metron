@@ -55,7 +55,7 @@ public class ParserUtils {
     Date date = new SimpleDateFormat("MMM", Locale.ENGLISH).parse(m);
     Calendar cal = Calendar.getInstance();
     cal.setTime(date);
-    String month = String.valueOf(cal.get(Calendar.MONTH));
+    String month = String.valueOf(cal.get(Calendar.MONTH) + 1);
     int year = Calendar.getInstance().get(Calendar.YEAR);
     if (month.length() <= 2) {
       month = "0" + month;
