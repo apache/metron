@@ -31,11 +31,9 @@ import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
-import org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -52,6 +50,8 @@ import java.util.stream.Collectors;
 
 public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
+  private static final int KEY_INDEX = 1;
+  private static final String METADATA_PREFIX = "metron.metadata.";
   private static final Logger LOG = LoggerFactory.getLogger(ParserBolt.class);
   private OutputCollector collector;
   private MessageParser<JSONObject> parser;
@@ -121,13 +121,22 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     if(!readMetadata) {
       return ret;
     }
-    ret.put(SimpleStormKafkaBuilder.FieldsConfiguration.TOPIC.getFieldName(), t.getString(2));
-    String keyStr = t.getString(1);
+    Fields tupleFields = t.getFields();
+    for(int i = 2;i < tupleFields.size();++i) {
+      String envMetadataFieldName = tupleFields.get(i);
+      Object envMetadataFieldValue = t.getValue(i);
+      if(!StringUtils.isEmpty(envMetadataFieldName) && envMetadataFieldValue != null) {
+        ret.put(METADATA_PREFIX + envMetadataFieldName, envMetadataFieldValue);
+      }
+    }
+    String keyStr = t.getString(KEY_INDEX);
     if(!StringUtils.isEmpty(keyStr)) {
       try {
         Map<String, Object> metadata = JSONUtils.INSTANCE.load(keyStr, new TypeReference<Map<String, Object>>() {
         });
-        ret.putAll(metadata);
+        for(Map.Entry<String, Object> kv : metadata.entrySet()) {
+          ret.put(METADATA_PREFIX + kv.getKey(), kv.getValue());
+        }
       } catch (IOException e) {
         String reason = "Unable to parse metadata; expected JSON Map: " + keyStr;
         LOG.error(reason, e);
