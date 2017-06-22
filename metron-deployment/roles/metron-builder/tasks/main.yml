@@ -21,6 +21,6 @@
   run_once: true
 
 - name: Build Metron RPMs
-  local_action: shell cd {{ metron_build_dir }} && mvn clean package -DskipTests -P build-rpms
+  local_action: shell cd {{ metron_build_dir }}/metron-deployment && mvn clean package -DskipTests -P build-rpms
   become: false
   run_once: true

@@ -21,6 +21,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>elasticsearch-shaded</artifactId>
+    <name>elasticsearch-shaded</name>
+    <url>https://metron.apache.org/</url>
     <dependencies>
         <dependency>
             <groupId>com.google.guava</groupId>

@@ -94,7 +94,7 @@ public class FunctionalFunctions {
     @Override
     public Object apply(List<Object> args) {
       List<Object> input = (List<Object>) args.get(0);
-      if(input == null || input.size() < 3) {
+      if(input == null || args.size() < 3) {
         return null;
       }
       LambdaExpression expression = (LambdaExpression) args.get(1);

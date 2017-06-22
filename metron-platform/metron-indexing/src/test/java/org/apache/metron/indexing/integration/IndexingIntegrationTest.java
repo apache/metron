@@ -128,6 +128,7 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
       setProperty("index.input.topic", Constants.INDEXING_TOPIC);
       setProperty("index.error.topic", ERROR_TOPIC);
       setProperty("index.date.format", dateFormat);
+      setProperty("topology.auto-credentials", "[]");
       //HDFS settings
 
       setProperty("bolt.hdfs.rotation.policy", TimedRotationPolicy.class.getCanonicalName());
@@ -181,9 +182,9 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
             .withMaxTimeMS(150000)
             .withCustomShutdownOrder(new String[] {"search","storm","config","kafka","zk"})
             .build();
-    runner.start();
 
     try {
+      runner.start();
       while(!isLoaded.get()) {
         Thread.sleep(100);
       }

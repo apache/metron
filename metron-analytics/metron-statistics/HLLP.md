@@ -30,7 +30,7 @@ manipulated during the test: cardinality, sparse set precision, and normal set p
 ### Choosing p, sp
 There is a tradeoff when choosing values for p and sp. A higher value for sp means a lower error rate for instances when the sparse set is being used. However, a higher value for sp also requires
 more memory, which means the algorithm will cut over to the dense representation more quickly. The Google paper (listed above) recommends settings of p=25, sp=14 for optimal memory use and
-algorithm accuracy, and these are the defaults provided by the Apache Metron (Incubating) implementation in Stellar. You'll notice in the tests below, memory consumption tops out around 12KB
+algorithm accuracy, and these are the defaults provided by the Apache Metron implementation in Stellar. You'll notice in the tests below, memory consumption tops out around 12KB
 for this setting, regardless of cardinality size.
 
 ### Key

@@ -45,11 +45,13 @@ public class ParserTopologyComponent implements InMemoryComponent {
   private String brokerUrl;
   private String sensorType;
   private LocalCluster stormCluster;
+  private String outputTopic;
 
   public static class Builder {
     Properties topologyProperties;
     String brokerUrl;
     String sensorType;
+    String outputTopic;
     public Builder withTopologyProperties(Properties topologyProperties) {
       this.topologyProperties = topologyProperties;
       return this;
@@ -63,15 +65,21 @@ public class ParserTopologyComponent implements InMemoryComponent {
       return this;
     }
 
+    public Builder withOutputTopic(String topic) {
+      this.outputTopic = topic;
+      return this;
+    }
+
     public ParserTopologyComponent build() {
-      return new ParserTopologyComponent(topologyProperties, brokerUrl, sensorType);
+      return new ParserTopologyComponent(topologyProperties, brokerUrl, sensorType, outputTopic);
     }
   }
 
-  public ParserTopologyComponent(Properties topologyProperties, String brokerUrl, String sensorType) {
+  public ParserTopologyComponent(Properties topologyProperties, String brokerUrl, String sensorType, String outputTopic) {
     this.topologyProperties = topologyProperties;
     this.brokerUrl = brokerUrl;
     this.sensorType = sensorType;
+    this.outputTopic = outputTopic;
   }
 
 
@@ -89,6 +97,7 @@ public class ParserTopologyComponent implements InMemoryComponent {
                                                                    , 1
                                                                    , null
                                                                    , Optional.empty()
+                                                                   , Optional.ofNullable(outputTopic)
                                                                    );
       Map<String, Object> stormConf = new HashMap<>();
       stormConf.put(Config.TOPOLOGY_DEBUG, true);

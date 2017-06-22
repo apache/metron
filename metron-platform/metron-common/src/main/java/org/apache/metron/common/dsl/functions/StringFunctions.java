@@ -21,7 +21,7 @@ package org.apache.metron.common.dsl.functions;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.dsl.BaseStellarFunction;
 import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.Stellar;
@@ -343,4 +343,134 @@ public class StringFunctions {
       return String.format(format, formatArgs);
     }
   }
+
+  @Stellar( name="CHOMP"
+          , description = "Removes one newline from end of a String if it's there, otherwise leave it alone. A newline is \"\\n\", \"\\r\", or \"\\r\\n\""
+          , params = { "the String to chomp a newline from, may be null"}
+          , returns = "String without newline, null if null String input"
+  )
+  public static class Chomp extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> strings) {
+
+      if(strings == null || strings.size() == 0 ) {
+        throw new IllegalArgumentException("[CHOMP] missing argument: string to be chopped");
+      }
+      String var = strings.get(0) == null?null: (String) strings.get(0);
+      if(var == null) {
+        return null;
+      }
+      else if(var.length() == 0) {
+        return var;
+      }
+      else {
+        return StringUtils.chomp(var);
+      }
+    }
+  }
+  @Stellar( name="CHOP"
+          , description = "Remove the last character from a String"
+          , params = { "the String to chop last character from, may be null"}
+          , returns = "String without last character, null if null String input"
+  )
+  public static class Chop extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> strings) {
+
+      if(strings == null || strings.size() == 0 ) {
+        throw new IllegalArgumentException("[CHOP] missing argument: string to be chopped");
+      }
+      String var = strings.get(0) == null?null: (String) strings.get(0);
+      if(var == null) {
+        return null;
+      }
+      else if(var.length() == 0) {
+        return var;
+      }
+      else {
+        return StringUtils.chop(var);
+      }
+    }
+  }
+
+  @Stellar( name = "PREPEND_IF_MISSING"
+          , description = "Prepends the prefix to the start of the string if the string does not already start with any of the prefixes"
+          , params = {
+          "str - The string."
+          , "prefix - The string prefix to prepend to the start of the string"
+          , "additionalprefix - Optional - Additional string prefix that is valid"
+  }
+          , returns = "A new String if prefix was prepended, the same string otherwise."
+  )
+  public static class PrependIfMissing extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> strings) {
+
+      String prefixed;
+      switch (strings.size()) {
+        case 2: prefixed = StringUtils.prependIfMissing((String) strings.get(0), (String) strings.get(1));
+          break;
+        case 3: prefixed = StringUtils.prependIfMissing((String) strings.get(0), (String) strings.get(1), (String) strings.get(2));
+          break;
+        default: throw new IllegalArgumentException("[PREPEND_IF_MISSING] incorrect arguments: " + strings.toString() + "\nUsage: PREPEND_IF_MISSING <String> <prefix> [<prefix>...]");
+      }
+      return prefixed;
+    }
+  }
+
+  @Stellar( name = "APPEND_IF_MISSING"
+          , description = "Appends the suffix to the end of the string if the string does not already end with any of the suffixes"
+          , params = {
+          "str - The string."
+          , "suffix - The string suffix to append to the end of the string"
+          , "additionalsuffix - Optional - Additional string suffix that is a valid terminator"
+  }
+          , returns = "A new String if suffix was appended, the same string otherwise."
+  )
+  public static class AppendIfMissing extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> strings) {
+
+      String suffixed;
+      switch (strings.size()) {
+        case 2:
+          suffixed = StringUtils.appendIfMissing((String) strings.get(0), (String) strings.get(1));
+          break;
+        case 3:
+          suffixed = StringUtils.appendIfMissing((String) strings.get(0), (String) strings.get(1), (String) strings.get(2));
+          break;
+        default:
+          throw new IllegalArgumentException("[APPEND_IF_MISSING] incorrect arguments. Usage: APPEND_IF_MISSING <String> <prefix> [<prefix>...]");
+      }
+      return suffixed;
+    }
+  }
+
+  @Stellar( name = "COUNT_MATCHES"
+          , description = "Counts how many times the substring appears in the larger string"
+          , params = {
+          "str - the CharSequence to check, may be null"
+          , "sub - the substring to count, may be null"
+  }
+          , returns = "the number of non-overlapping occurrences, 0 if either CharSequence is null"
+  )
+  public static class CountMatches extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> strings) {
+
+      if(strings.size() != 2) {
+        throw new IllegalArgumentException("[COUNT_MATCHES] incorrect arguments. Usage: COUNT_MATCHES <String> <substring>");
+      }
+
+      int matchcount;
+      matchcount = StringUtils.countMatches((String) strings.get(0), (String) strings.get(1));
+      return matchcount;
+    }
+  }
+
 }

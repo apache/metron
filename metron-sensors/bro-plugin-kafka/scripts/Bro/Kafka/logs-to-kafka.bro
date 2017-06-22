@@ -35,7 +35,8 @@ event bro_init() &priority=-5
 		{
 			local filter: Log::Filter = [
 				$name = fmt("kafka-%s", stream_id),
-				$writer = Log::WRITER_KAFKAWRITER
+				$writer = Log::WRITER_KAFKAWRITER,
+				$config = table(["stream_id"] = fmt("%s", stream_id))
 			];
 
 			Log::add_filter(stream_id, filter);

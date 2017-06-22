@@ -1,0 +1,12 @@
+ul {
+  margin: 10px 0px;
+}
+.list-group-item {
+  span {
+    padding-left: 25px;
+  }
+
+  i+span {
+    padding-left: 10px;
+  }
+}

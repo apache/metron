@@ -1,0 +1,34 @@
+<div class="metron-slider-pane-details load-right-to-left dialog1x">
+    <div class="container-fluid">
+        <div class="row mb-3">
+            <div class="col-md-10">
+                <div class="form-title" appAlertSeverity [severity]="alert.score"> {{ alert.score }} {{ alert._id }}</div>
+            </div>
+            <div class="col-md-2"><i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="goBack()"></i></div>
+        </div>
+        <div class="row justify-content-center py-4 actions">
+            <table>
+                <tr>
+                    <td class="title"> Status</td>
+                    <td class="secondary" [ngClass]="{'primary': selectedAlertState === alertState.ESCALATE, 'secondary': selectedAlertState !== alertState.ESCALATE}" (click)="processEscalate()">ESCALATE</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td class="secondary" [ngClass]="{'primary': selectedAlertState === alertState.NEW, 'secondary': selectedAlertState !== alertState.NEW}" (click)="processNew()">NEW</td>
+                    <td class="primary" [ngClass]="{'primary': selectedAlertState === alertState.OPEN, 'secondary': selectedAlertState !== alertState.OPEN}" (click)="processOpen()">OPEN</td>
+                    <td class="secondary" [ngClass]="{'primary': selectedAlertState === alertState.DISMISS, 'secondary': selectedAlertState !== alertState.DISMISS}" (click)="processDismiss()">DISMISS</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td class="secondary" [ngClass]="{'primary': selectedAlertState === alertState.RESOLVE, 'secondary': selectedAlertState !== alertState.RESOLVE}" (click)="processResolve()">RESOLVE</td>
+                    <td></td>
+                </tr>
+            </table>
+        </div>
+        <div class="ml-1 my-4 form">
+            <div *ngFor="let field of alertFields" class="row">
+              <div class="col-6 mb-1 key">{{ field }}</div>   <div class="col-6"> {{ alert._source[field] }} </div>
+            </div>
+        </div>
+    </div>
+</div>

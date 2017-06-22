@@ -24,13 +24,15 @@ import org.apache.commons.cli.ParseException;
 public class QueryCliParser extends CliParser {
   private Options queryOptions;
 
-  public QueryCliParser() {
+  public QueryCliParser(CliConfig.PrefixStrategy prefixStrategy) {
+    super(prefixStrategy);
     queryOptions = setupOptions();
   }
 
   private Options setupOptions() {
     Options options = buildOptions();
     options.addOption(newOption("q", "query", true, "Query string to use as a filter"));
+    options.addOption(newOption("pre", "prefix", true, "Result file prefix to use"));
     return options;
   }
 
@@ -43,10 +45,13 @@ public class QueryCliParser extends CliParser {
    */
   public QueryCliConfig parse(String[] args) throws ParseException, java.text.ParseException {
     CommandLine commandLine = getParser().parse(queryOptions, args);
-    QueryCliConfig config = new QueryCliConfig();
+    QueryCliConfig config = new QueryCliConfig(prefixStrategy);
     super.parse(commandLine, config);
     if (commandLine.hasOption("query")) {
       config.setQuery(commandLine.getOptionValue("query"));
+    }
+    if(commandLine.hasOption("prefix")) {
+      config.setPrefix(commandLine.getOptionValue("prefix"));
     }
     return config;
   }

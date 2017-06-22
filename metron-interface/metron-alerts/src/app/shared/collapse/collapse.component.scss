@@ -1,0 +1,75 @@
+@import "../../../variables.scss";
+
+.font-size-14 {
+  font-size: 14px;
+}
+
+.font-size-15 {
+  font-size: 15px;
+}
+
+.border-bottom {
+  margin-bottom: 0px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid $tundora;
+  color: $silver-chalice-2;
+}
+
+a {
+  display: block;
+  margin: 5px 0px;
+  text-decoration: none;
+  color: $silver;
+
+  &::after {
+    font-family: "FontAwesome";
+    font-style: normal;
+    font-size: 14px;
+    content: '\f106';
+    float: right;
+    color: $dove-grey;
+  }
+}
+
+a.collapsed::after {
+  font-family: "FontAwesome";
+  font-style: normal;
+  font-size: 14px;
+  content: '\f107';
+  float: right;
+  color: $dove-grey;
+}
+
+.list-group {
+  padding: 10px 0px;
+}
+
+.list-group-item {
+  border: none;
+  background: none;
+  color: $curious-blue;
+}
+
+.delete {
+  line-height: 0px;
+  opacity: 0;
+  transition: opacity .35s ease;
+
+  &::before {
+    font-family: "FontAwesome";
+    content: '\f014';
+    color: $dove-grey;
+  }
+}
+
+.list-group-item:hover {
+  background: $outer-space;
+
+  .delete {
+    opacity: 1;
+  }
+}
+
+.no-data-text {
+  font-size: 12px;
+}

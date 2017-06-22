@@ -36,22 +36,28 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 public class PcapCli {
   private static final Logger LOGGER = LoggerFactory.getLogger(PcapCli.class);
+  public static final CliConfig.PrefixStrategy PREFIX_STRATEGY = clock -> {
+    String timestamp = new Clock().currentTimeFormatted("yyyyMMddHHmm");
+    String uuid = UUID.randomUUID().toString().replaceAll("-", "");
+    return String.format("%s-%s", timestamp, uuid);
+  };
   private final PcapJob jobRunner;
   private final ResultsWriter resultsWriter;
-  private final Clock clock;
+  private final CliConfig.PrefixStrategy prefixStrategy;
 
   public static void main(String[] args) {
-    int status = new PcapCli(new PcapJob(), new ResultsWriter(), new Clock()).run(args);
+    int status = new PcapCli(new PcapJob(), new ResultsWriter(), PREFIX_STRATEGY).run(args);
     System.exit(status);
   }
 
-  public PcapCli(PcapJob jobRunner, ResultsWriter resultsWriter, Clock clock) {
+  public PcapCli(PcapJob jobRunner, ResultsWriter resultsWriter, CliConfig.PrefixStrategy prefixStrategy) {
     this.jobRunner = jobRunner;
     this.resultsWriter = resultsWriter;
-    this.clock = clock;
+    this.prefixStrategy = prefixStrategy;
   }
 
   public int run(String[] args) {
@@ -72,7 +78,7 @@ public class PcapCli {
     }
     CliConfig commonConfig = null;
     if ("fixed".equals(jobType)) {
-      FixedCliParser fixedParser = new FixedCliParser();
+      FixedCliParser fixedParser = new FixedCliParser(prefixStrategy);
       FixedCliConfig config = null;
       try {
         config = fixedParser.parse(otherArgs);
@@ -110,7 +116,7 @@ public class PcapCli {
         return -1;
       }
     } else if ("query".equals(jobType)) {
-      QueryCliParser queryParser = new QueryCliParser();
+      QueryCliParser queryParser = new QueryCliParser(prefixStrategy);
       QueryCliConfig config = null;
       try {
         config = queryParser.parse(otherArgs);
@@ -151,11 +157,12 @@ public class PcapCli {
       return -1;
     }
     try {
+
       Iterable<List<byte[]>> partitions = Iterables.partition(results, commonConfig.getNumRecordsPerFile());
+      int part = 1;
       if (partitions.iterator().hasNext()) {
         for (List<byte[]> data : partitions) {
-          String timestamp = clock.currentTimeFormatted("yyyyMMddHHmmssSSSZ");
-          String outFileName = String.format("pcap-data-%s.pcap", timestamp);
+          String outFileName = String.format("pcap-data-%s+%04d.pcap", commonConfig.getPrefix(), part++);
           if(data.size() > 0) {
             resultsWriter.write(data, outFileName);
           }

@@ -34,6 +34,7 @@ public class HyperLogLogPlusFunctionsIntegrationTest {
     put("val2", "miklavcic");
     put("val3", "metron");
     put("val4", "batman");
+    put("nullArg", null);
   }};
 
   /**
@@ -115,6 +116,18 @@ public class HyperLogLogPlusFunctionsIntegrationTest {
   public void merges_estimators() {
     Long estimate = (Long) StellarProcessorUtils.run(hllpMergeRule, values);
     Assert.assertThat("Incorrect cardinality returned", estimate, equalTo(4L));
+  }
+
+  /**
+   *HLLP_CARDINALITY(nullArg)
+   */
+  @Multiline
+  private static String zeroCardinalityRule;
+
+  @Test
+  public void cardinality_of_null_value_is_0() {
+    Long estimate = (Long) StellarProcessorUtils.run(zeroCardinalityRule, values);
+    Assert.assertThat("Incorrect cardinality returned", estimate, equalTo(0L));
   }
 
 }

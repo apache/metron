@@ -32,7 +32,7 @@ export METRON_HOME=/usr/metron/$METRON_VERSION
 export CLASSNAME="org.apache.metron.dataloads.nonbulk.flatfile.SimpleEnrichmentFlatFileLoader"
 export DM_JAR=${project.artifactId}-$METRON_VERSION.jar
 export HBASE_HOME=${HBASE_HOME:-/usr/hdp/current/hbase-client}
-
+export HADOOP_OPTS="$HADOOP_OPTS $METRON_JVMFLAGS"
 if [ $(which hadoop) ]
 then
   HADOOP_CLASSPATH=${HBASE_HOME}/lib/hbase-server.jar:`${HBASE_HOME}/bin/hbase classpath`
@@ -46,6 +46,6 @@ then
 else
   echo "Warning: Metron cannot find the hadoop client on this node.  This means that loading via Map Reduce will NOT function."
   CP=$METRON_HOME/lib/$DM_JAR:/usr/metron/${METRON_VERSION}/lib/taxii-1.1.0.1.jar:`${HBASE_HOME}/bin/hbase classpath`
-  java -cp $CP $CLASSNAME "$@"
+  java $METRON_JVMFLAGS -cp $CP $CLASSNAME "$@"
 fi
 

@@ -62,6 +62,7 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
     ParserTopologyComponent parserTopologyComponent = new ParserTopologyComponent.Builder()
             .withSensorType(sensorType)
             .withTopologyProperties(topologyProperties)
+            .withOutputTopic(Constants.ENRICHMENT_TOPIC)
             .withBrokerUrl(kafkaComponent.getBrokerList()).build();
 
     //UnitTestHelper.verboseLogging();
@@ -74,8 +75,8 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
             .withNumRetries(10)
             .withCustomShutdownOrder(new String[] {"org/apache/storm","config","kafka","zk"})
             .build();
-    runner.start();
     try {
+      runner.start();
       kafkaComponent.writeMessages(sensorType, inputMessages);
       ProcessorResult<List<byte[]>> result = runner.process(getProcessor());
       List<byte[]> outputMessages = result.getResult();

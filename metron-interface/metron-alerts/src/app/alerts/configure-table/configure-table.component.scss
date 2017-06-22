@@ -1,0 +1,38 @@
+@import "../../../slider";
+@import "../../../variables";
+
+.container-fluid {
+  padding-top: 15px;
+}
+
+.form-title {
+  font-size: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table th, .table td {
+  padding: 0.6rem 0.25rem;
+}
+
+.up:before {
+  font-family: "FontAwesome";
+  font-style: normal;
+  font-size: 14px;
+  content: '\f077';
+  color: $gothic;
+}
+
+.down:before {
+  font-family: "FontAwesome";
+  font-style: normal;
+  font-size: 14px;
+  content: '\f078';
+  color: $gothic;
+}
+
+.disabled:before {
+  opacity: 0.3;
+  cursor: default;
+}

@@ -24,6 +24,8 @@ import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.dsl.VariableResolver;
 import org.apache.metron.common.stellar.StellarCompiler;
 import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.metron.common.utils.SerDeUtils;
+import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
@@ -36,19 +38,20 @@ import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.hdfs.common.rotation.RotationAction;
 import org.json.simple.JSONObject;
 
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 import java.util.*;
+import java.util.function.Function;
 
 public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
   List<RotationAction> rotationActions = new ArrayList<>();
   FileRotationPolicy rotationPolicy = new NoRotationPolicy();
-  SyncPolicy syncPolicy = new CountSyncPolicy(1); //sync every time, duh.
+  SyncPolicy syncPolicy;
   FileNameFormat fileNameFormat;
   Map<SourceHandlerKey, SourceHandler> sourceHandlerMap = new HashMap<>();
   int maxOpenFiles = 500;
   transient StellarProcessor stellarProcessor;
   transient Map stormConfig;
+  transient SyncPolicyCreator syncPolicyCreator;
 
 
   public HdfsWriter withFileNameFormat(FileNameFormat fileNameFormat){
@@ -76,9 +79,18 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
   }
 
   @Override
-  public void init(Map stormConfig, WriterConfiguration configurations) {
+  public void init(Map stormConfig, TopologyContext topologyContext, WriterConfiguration configurations) {
     this.stormConfig = stormConfig;
     this.stellarProcessor = new StellarProcessor();
+    this.fileNameFormat.prepare(stormConfig,topologyContext);
+    if(syncPolicy != null) {
+      //if the user has specified the sync policy, we don't want to override their wishes.
+      syncPolicyCreator = new ClonedSyncPolicyCreator(syncPolicy);
+    }
+    else {
+      //if the user has not, then we want to have the sync policy depend on the batch size.
+      syncPolicyCreator = (source, config) -> new CountSyncPolicy(config == null?1:config.getBatchSize(source));
+    }
   }
 
 
@@ -90,18 +102,18 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
                    ) throws Exception
   {
     BulkWriterResponse response = new BulkWriterResponse();
+
     // Currently treating all the messages in a group for pass/failure.
     try {
       // Messages can all result in different HDFS paths, because of Stellar Expressions, so we'll need to iterate through
       for(JSONObject message : messages) {
-        Map<String, Object> val = configurations.getSensorConfig(sourceType);
         String path = getHdfsPathExtension(
                 sourceType,
                 (String)configurations.getSensorConfig(sourceType).getOrDefault(IndexingConfigurations.OUTPUT_PATH_FUNCTION_CONF, ""),
                 message
         );
-        SourceHandler handler = getSourceHandler(sourceType, path);
-        handler.handle(message);
+        SourceHandler handler = getSourceHandler(sourceType, path, configurations);
+        handler.handle(message, sourceType, configurations, syncPolicyCreator);
       }
     } catch (Exception e) {
       response.addAllErrors(e, tuples);
@@ -140,7 +152,7 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
     sourceHandlerMap.clear();
   }
 
-  synchronized SourceHandler getSourceHandler(String sourceType, String stellarResult) throws IOException {
+  synchronized SourceHandler getSourceHandler(String sourceType, String stellarResult, WriterConfiguration config) throws IOException {
     SourceHandlerKey key = new SourceHandlerKey(sourceType, stellarResult);
     SourceHandler ret = sourceHandlerMap.get(key);
     if(ret == null) {
@@ -149,7 +161,7 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
       }
       ret = new SourceHandler(rotationActions,
                               rotationPolicy,
-                              syncPolicy,
+                              syncPolicyCreator.create(sourceType, config),
                               new PathExtensionFileNameFormat(key.getStellarResult(), fileNameFormat),
                               new SourceHandlerCallback(sourceHandlerMap, key));
       sourceHandlerMap.put(key, ret);
