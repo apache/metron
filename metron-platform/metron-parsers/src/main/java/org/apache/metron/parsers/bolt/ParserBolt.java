@@ -133,7 +133,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     byte[] keyObj = t.getBinary(KEY_INDEX);
     String keyStr = null;
     try {
-      keyStr = new String(keyObj);
+      keyStr = keyObj == null?null:new String(keyObj);
       if(!StringUtils.isEmpty(keyStr)) {
         Map<String, Object> metadata = JSONUtils.INSTANCE.load(keyStr, new TypeReference<Map<String, Object>>() {
         });
