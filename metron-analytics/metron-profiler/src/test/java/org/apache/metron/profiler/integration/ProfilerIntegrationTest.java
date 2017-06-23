@@ -44,6 +44,7 @@ import org.apache.metron.test.mock.MockHTable;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -284,7 +285,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   }
 
   @BeforeClass
-  public static void setup() throws UnableToStartException {
+  public static void setupBeforeClass() throws UnableToStartException {
     columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
 
     // create input messages for the profiler to consume
@@ -364,6 +365,12 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     if (runner != null) {
       runner.stop();
     }
+  }
+
+  @Before
+  public void setup() {
+    // create the mock table
+    profilerTable = (MockHTable) MockHTable.Provider.addToCache(tableName, columnFamily);
   }
 
   @After

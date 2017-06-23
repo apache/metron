@@ -185,15 +185,18 @@ public class FluxTopologyComponent implements InMemoryComponent {
   public void reset() {
     if (stormCluster != null) {
       // lower the kill wait
+      // Give it a couple seconds to die.
       KillOptions ko = new KillOptions();
-      ko.set_wait_secs(10);
+      ko.set_wait_secs(5);
       System.err.println("******* KILLING TOPOLOGY NAME: <" + topologyName +">");
       System.err.println("****** TOPOLOGIES: " + Lists.newArrayList(stormCluster.getClusterInfo().get_topologies()));
       stormCluster.killTopologyWithOpts(topologyName, ko);
+//      stormCluster.killTopology(topologyName);
       try {
-        Thread.sleep(20000);
+        // Actually wait for it to die.
+        Thread.sleep(7500);
       } catch (InterruptedException e) {
-        // Do nothing
+//         Do nothing
       }
       try {
         System.err.println("******* SLEEP DONE: " + new Date());

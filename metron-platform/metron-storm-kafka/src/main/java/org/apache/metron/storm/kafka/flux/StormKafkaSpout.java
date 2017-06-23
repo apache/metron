@@ -20,6 +20,7 @@ package org.apache.metron.storm.kafka.flux;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.log4j.Logger;
 import org.apache.storm.kafka.spout.KafkaSpout;
@@ -35,6 +36,9 @@ public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
   private static final Logger LOG = Logger.getLogger(StormKafkaSpout.class);
   protected KafkaSpoutConfig<K,V> _spoutConfig;
   protected String _topic;
+
+  protected AtomicBoolean isShutdown = new AtomicBoolean(false);
+
   public StormKafkaSpout(SimpleStormKafkaBuilder<K,V> builder) {
     super(builder.build());
     this._topic = builder.getTopic();
@@ -53,6 +57,9 @@ public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
       //see https://issues.apache.org/jira/browse/STORM-2184
       LOG.warn("You can generally ignore these, as per https://issues.apache.org/jira/browse/STORM-2184 -- " + we.getMessage(), we);
     }
+    finally {
+      isShutdown.set(true);
+    }
   }
 
   @Override
@@ -60,7 +67,10 @@ public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
     try {
       System.err.println("***** CLOSING SPOUT: " + new Date());
       System.err.println("***** CLOSING SPOUT: " + Arrays.toString(new Throwable().getStackTrace()));
-      super.close();
+      if(!isShutdown.get()) {
+        super.close();
+        isShutdown.set(true);
+      }
       System.err.println("***** CLOSED SPOUT: " + new Date());
     }
     catch(WakeupException we) {
