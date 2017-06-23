@@ -68,8 +68,6 @@ public class KafkaComponent implements InMemoryComponent {
     }
   }
 
-  private static final String LOG_DIR = "/tmp/kafka-logs";
-
   private List<KafkaProducer> producersCreated = new ArrayList<>();
   private transient KafkaServer kafkaServer;
   private transient ZkClient zkClient;
@@ -224,8 +222,7 @@ public class KafkaComponent implements InMemoryComponent {
 
     // Delete the actual data.
     if(kafkaServer != null) {
-//    throw new IllegalStateException(FileUtils.listFilesAndDirs(FileUtils.getFile(LOG_DIR), TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE).toString());
-      for(File f: FileUtils.getFile(LOG_DIR).listFiles()) {
+      for(File f: FileUtils.getFile(TMP_KAFKA_LOGS).listFiles()) {
         // Delete any data files
         if (f.getName().endsWith(".log") || f.getName().endsWith(".index")) {
           boolean delete = f.delete();

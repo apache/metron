@@ -150,7 +150,6 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
     // verify - only 10.0.0.2 sends 'HTTP', thus there should be only 1 value
     List<Double> actuals = read(profilerTable.getPutLog(), columnFamily, columnBuilder.getColumnQualifier("value"), Double.class);
-    System.out.println("Actuals are: " + actuals);
 
     // verify - there are 5 'HTTP' each with 390 bytes
     Assert.assertTrue(actuals.stream().anyMatch(val ->
@@ -288,6 +287,12 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   public static void setupBeforeClass() throws UnableToStartException {
     columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
 
+    List<String> inputNew = Stream.of(message1, message2, message3)
+        .map(m -> Collections.nCopies(5, m))
+        .flatMap(l -> l.stream())
+        .collect(Collectors.toList());
+    System.err.println("*** INPUT NEW: " + inputNew);
+
     // create input messages for the profiler to consume
     input = Stream.of(message1, message2, message3)
             .map(Bytes::toBytes)
@@ -376,6 +381,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   @After
   public void tearDown() throws Exception {
     MockHTable.Provider.clear();
+    profilerTable.clear();
     if (runner != null) {
       runner.reset();
     }

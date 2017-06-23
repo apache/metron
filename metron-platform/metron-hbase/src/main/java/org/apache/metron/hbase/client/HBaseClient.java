@@ -20,7 +20,6 @@
 
 package org.apache.metron.hbase.client;
 
-import java.util.Arrays;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Durability;
 import org.apache.hadoop.hbase.client.Get;
@@ -138,9 +137,6 @@ public class HBaseClient implements Closeable {
   public void mutate() {
     Object[] result = new Object[mutations.size()];
     try {
-      System.err.println("*** MUTATIONS: " + mutations);
-      System.err.println("*** RESULT: " + Arrays.toString(result));
-      System.err.println("*** TABLE: " + table);
       table.batch(mutations, result);
       mutations.clear();
 

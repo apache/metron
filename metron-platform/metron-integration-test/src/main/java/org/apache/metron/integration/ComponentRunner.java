@@ -18,8 +18,6 @@
 package org.apache.metron.integration;
 
 
-import java.util.Arrays;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -139,11 +137,8 @@ public class ComponentRunner {
         }
     }
     public void reset() {
-        System.err.println("***** RESET ORDER: " + Arrays.toString(resetOrder));
         for(String componentName : resetOrder) {
-            System.err.println("***** RESETTING: " + componentName + ", " + new Date());
             components.get(componentName).reset();
-            System.err.println("***** RESET: " + componentName + ", " + new Date());
         }
     }
 

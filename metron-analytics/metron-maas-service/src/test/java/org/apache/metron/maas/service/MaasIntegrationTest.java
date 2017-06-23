@@ -66,14 +66,13 @@ public class MaasIntegrationTest {
   private static ComponentRunner runner;
   private static YarnComponent yarnComponent;
   private static ZKServerComponent zkServerComponent;
+
   @BeforeClass
   public static void setupBeforeClass() throws Exception {
     UnitTestHelper.setJavaLoggingLevel(Level.SEVERE);
     LOG.info("Starting up YARN cluster");
 
-    Map<String, String> properties = new HashMap<>();
     zkServerComponent = new ZKServerComponent();
-
     yarnComponent = new YarnComponent().withApplicationMasterClass(ApplicationMaster.class).withTestName(MaasIntegrationTest.class.getSimpleName());
 
     runner = new ComponentRunner.Builder()

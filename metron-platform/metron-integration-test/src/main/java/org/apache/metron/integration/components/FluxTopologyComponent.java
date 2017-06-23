@@ -18,17 +18,14 @@
 package org.apache.metron.integration.components;
 
 import com.google.common.collect.Lists;
-import java.util.Date;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.imps.CuratorFrameworkImpl;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.generated.KillOptions;
 import org.apache.storm.generated.StormTopology;
-import org.apache.storm.generated.TopologyInfo;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.storm.flux.FluxBuilder;
@@ -50,7 +47,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 public class FluxTopologyComponent implements InMemoryComponent {
 
@@ -184,27 +180,25 @@ public class FluxTopologyComponent implements InMemoryComponent {
   @Override
   public void reset() {
     if (stormCluster != null) {
-      // lower the kill wait
-      // Give it a couple seconds to die.
       KillOptions ko = new KillOptions();
-      ko.set_wait_secs(5);
+      ko.set_wait_secs(0);
       System.err.println("******* KILLING TOPOLOGY NAME: <" + topologyName +">");
       System.err.println("****** TOPOLOGIES: " + Lists.newArrayList(stormCluster.getClusterInfo().get_topologies()));
       stormCluster.killTopologyWithOpts(topologyName, ko);
 //      stormCluster.killTopology(topologyName);
-      try {
+//      try {
         // Actually wait for it to die.
-        Thread.sleep(7500);
-      } catch (InterruptedException e) {
+//        Thread.sleep(7500);
+//      } catch (InterruptedException e) {
 //         Do nothing
-      }
-      try {
-        System.err.println("******* SLEEP DONE: " + new Date());
+//      }
+//      try {
+//        System.err.println("******* SLEEP DONE: " + new Date());
         System.err.println("****** TOPOLOGIES: " + Lists.newArrayList(stormCluster.getClusterInfo().get_topologies()));
-        System.err.println("******* Topo status: " + stormCluster.getTopologyInfo(topologyName));
-      } catch(Exception e) {
+//        System.err.println("******* Topo status: " + stormCluster.getTopologyInfo(topologyName));
+//      } catch(Exception e) {
         // Do nothing
-      }
+//      }
     }
   }
 
@@ -236,7 +230,9 @@ public class FluxTopologyComponent implements InMemoryComponent {
     Assert.assertNotNull(topology);
     topology.validate();
     try {
+      System.err.println("****** TOPOLOGIES (STARTING): " + Lists.newArrayList(stormCluster.getClusterInfo().get_topologies()));
       stormCluster.submitTopology(topologyName, conf, topology);
+      System.err.println("****** TOPOLOGIES (STARTED): " + Lists.newArrayList(stormCluster.getClusterInfo().get_topologies()));
     }
     catch(Exception nne) {
       System.err.println("Caught exception");

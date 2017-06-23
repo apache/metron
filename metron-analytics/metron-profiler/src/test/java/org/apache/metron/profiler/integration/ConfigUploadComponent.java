@@ -59,9 +59,6 @@ public class ConfigUploadComponent implements InMemoryComponent {
 
   public void update()
       throws UnableToStartException {
-//    withTopologyProperties(topologyProperties);
-//    withGlobalConfiguration(globalConfiguration);
-//    withProfilerConfiguration(profilerConfiguration);
     try {
       upload();
     } catch (Exception e) {
@@ -102,7 +99,7 @@ public class ConfigUploadComponent implements InMemoryComponent {
    * @param client The zookeeper client.
    */
   private void uploadGlobalConfig(CuratorFramework client) throws Exception {
-    if (globalConfiguration == null) {
+    if (globalConfiguration != null) {
       byte[] globalConfig = readGlobalConfigFromFile(globalConfiguration);
       if (globalConfig.length > 0) {
         writeGlobalConfigToZookeeper(readGlobalConfigFromFile(globalConfiguration), client);
