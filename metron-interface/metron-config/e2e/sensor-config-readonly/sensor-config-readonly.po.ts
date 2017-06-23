@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { browser, element, by, protractor } from 'protractor/globals';
-import {changeURL, waitForElementVisibility} from '../utils/e2e_util';
+import {waitForElementVisibility} from '../utils/e2e_util';
 
 export class SensorDetailsPage {
 
@@ -51,25 +51,25 @@ export class SensorDetailsPage {
 
     disableParser() {
         return waitForElementVisibility(this.disableButton).then(this.disableButton.click())
-          .then(protractor.promise.controlFlow().execute(() =>{waitForElementVisibility(this.enableButton)}))
+          .then(protractor.promise.controlFlow().execute(() => { waitForElementVisibility(this.enableButton); }))
           .then(() => true);
     }
 
     enableParser() {
         return waitForElementVisibility(this.enableButton).then(this.enableButton.click())
-          .then(protractor.promise.controlFlow().execute(() =>{ waitForElementVisibility(this.disableButton)}))
+          .then(protractor.promise.controlFlow().execute(() => { waitForElementVisibility(this.disableButton); }))
           .then(() => true);
     }
 
     startParser() {
         return waitForElementVisibility(this.startButton).then(this.startButton.click())
-          .then(protractor.promise.controlFlow().execute(() => { waitForElementVisibility(this.stopButton)}))
+          .then(protractor.promise.controlFlow().execute(() => { waitForElementVisibility(this.stopButton); }))
           .then(() => true);
     }
 
     stopParser() {
         return waitForElementVisibility(this.stopButton).then(this.stopButton.click())
-          .then(protractor.promise.controlFlow().execute(() => {waitForElementVisibility(this.startButton)}))
+          .then(protractor.promise.controlFlow().execute(() => { waitForElementVisibility(this.startButton); }))
           .then(() => true);
     }
 
@@ -86,7 +86,8 @@ export class SensorDetailsPage {
     }
 
     getKafkaState() {
-        return element(by.cssContainingText('metron-config-sensor-parser-readonly .form-label', 'KAFKA')).all(by.xpath('..//div')).getText().then(data => data[1]);
+        return element(by.cssContainingText('metron-config-sensor-parser-readonly .form-label', 'KAFKA'))
+                .all(by.xpath('..//div')).getText().then(data => data[1]);
     }
 
     getParserConfig() {
@@ -96,7 +97,8 @@ export class SensorDetailsPage {
     }
 
     getParserState() {
-        return element(by.cssContainingText('metron-config-sensor-parser-readonly .form-label', 'STATE')).all(by.xpath('..//div')).getText().then(data => data[1]);
+        return element(by.cssContainingText('metron-config-sensor-parser-readonly .form-label', 'STATE'))
+          .all(by.xpath('..//div')).getText().then(data => data[1]);
     }
 
     getSchemaSummary() {
@@ -114,16 +116,17 @@ export class SensorDetailsPage {
         ]).then(args => {
             let labels = args[0];
             let values = args[1];
-            return labels.reduce((acc, val, ind) => { acc[val] = values[ind]; return acc;}, {})
+            return labels.reduce((acc, val, ind) => { acc[val] = values[ind]; return acc; }, {});
         });
     }
 
     getStormStatus() {
-        return element(by.cssContainingText('metron-config-sensor-parser-readonly .form-label', 'STORM')).all(by.xpath('..//div')).getText().then(data => data[1]);
+        return element(by.cssContainingText('metron-config-sensor-parser-readonly .form-label', 'STORM'))
+                .all(by.xpath('..//div')).getText().then(data => data[1]);
     }
 
     getThreatTriageSummary() {
-        return element(by.css('.threat-triage-rules')).all(by.xpath("./div")).getText();
+        return element(by.css('.threat-triage-rules')).all(by.xpath('./div')).getText();
     }
 
     getThreatTriageTableHeaders() {
@@ -137,7 +140,7 @@ export class SensorDetailsPage {
         ]).then(args => {
             let labels = args[0];
             let values = args[1];
-            return labels.reduce((acc, val, ind) => { acc[val] = values[ind]; return acc;}, {})
+            return labels.reduce((acc, val, ind) => { acc[val] = values[ind]; return acc; }, {});
         });
     }
 

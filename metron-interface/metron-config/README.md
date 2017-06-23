@@ -12,7 +12,7 @@ This module provides a user interface for management functions in Metron.
     ```
     mvn clean package -DskipTests
     ```
-  
+
 1. Copy `incubator-metron/metron-interface/metron-config/target/metron-config-METRON_VERSION-archive.tar.gz` to the desired host.
 
 1. Untar the archive in the target directory.  The directory structure will look like:
@@ -27,7 +27,7 @@ This module provides a user interface for management functions in Metron.
         web assets (html, css, js, ...)
     ```
 
-1. For production use, the contents of the `./web/management-ui` directory should be deployed to a web server with paths `/api/v1` and `/logout` mapped to the REST application url.  
+1. For production use, the contents of the `./web/management-ui` directory should be deployed to a web server with paths `/api/v1` and `/logout` mapped to the REST application url.
 
 1. As an example, a convenience script is included that will install a simple [expressjs](https://github.com/expressjs/express) webserver.
 
@@ -82,11 +82,16 @@ The application will be available at http://localhost:4200/.  The REST applicati
 - Port 4200 should be available on the machine running management ui.
 
 ### Running E2E tests
-1. Execute the script 'start_dev_quickdev.sh' by passing metron rest URL as an argument. This will start management ui on port 4200 and proxy the rest calls to metron rest on quick-dev-platform
+1. Execute the script 'start_server_for_e2e.sh' by passing the port to run the config UI and metron rest URL as arguments. The script perform two tasks:
+    - Build the UI
+    - Start a expressjs server for the UI on the given port and proxy the rest calls to metron rest on quick-dev-platform
 
-    Ex: If metron rest on quick-dev-platform is available on node1:8081 the command would look like
+    Ex: If metron rest on quick-dev-platform is available on node1:8081 and you wish to start UI on port 4200 the command would look like
     ```
-     ./scripts/start_dev_quickdev.sh http://node1:8081
+      sh ./scripts/start_server_for_e2e.sh  -p 4200 -r http://node1:8081
+
+       -p  Port to run metron management ui                [required]
+       -r  Url where metron rest application is available  [required]
     ```
 
 1. You can execute all the test cases by issuing the following command.

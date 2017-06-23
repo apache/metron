@@ -17,8 +17,8 @@
  */
 
 import { browser, element, by, protractor } from 'protractor/globals';
-import { waitForElementPresence, waitForStalenessOf, waitForElementVisibility } from '../utils/e2e_util';
-var Promise = require('bluebird');
+import { waitForStalenessOf, waitForElementVisibility } from '../utils/e2e_util';
+let Promise = require('bluebird');
 
 export class SensorListPage {
 
@@ -41,7 +41,7 @@ export class SensorListPage {
     clickOnDropdownAndWait(parserNames: string[], dropDownLinkName: string, waitOnClassName: string) {
         return protractor.promise.all([this.toggleRowsSelect(parserNames), this.toggleDropdown()]).then(() => {
 
-            return element(by.css('span[data-action=\"'+ dropDownLinkName +'\"]')).click().then(() => {
+            return element(by.css('span[data-action=\"' + dropDownLinkName + '\"]')).click().then(() => {
                 let promiseArray = parserNames.map(name => waitForElementVisibility(this.getIconButton(name, waitOnClassName)));
                 return protractor.promise.all(promiseArray).then(args => {
                     this.toggleRowsSelect(parserNames);
@@ -51,14 +51,14 @@ export class SensorListPage {
         });
     }
 
-    closePane(className: string ='.close-button') {
+    closePane(className = '.close-button') {
         return waitForElementVisibility(element(by.css(className))).then(() => {
             return element(by.css(className)).click();
         });
     }
 
     disableParsers(names: string[]) {
-        return waitForElementVisibility(this.getIconButton(names[0], 'i.fa-ban')).then(()=> {
+        return waitForElementVisibility(this.getIconButton(names[0], 'i.fa-ban')).then(() => {
             return this.clickOnActionsAndWait(names, 'i.fa-ban', 'i.fa-check-circle-o');
         });
     }
@@ -73,10 +73,10 @@ export class SensorListPage {
             return element(by.css('.metron-dialog .btn-primary')).click().then(() => {
                 browser.sleep(1000);
                 return element(by.css('.alert .close')).click().then(() => {
-                    return waitForStalenessOf(element(by.cssContainingText('td', name))).then(() =>{
+                    return waitForStalenessOf(element(by.cssContainingText('td', name))).then(() => {
                         return true;
                     });
-                })
+                });
             });
         });
     }
@@ -93,7 +93,7 @@ export class SensorListPage {
         return element.all(by.css('table>tbody>tr')).filter(row => {
             return row.all(by.tagName('td')).get(0).getText().then(pName => {
                 return pName === name;
-            })
+            });
         }).get(0).all(by.tagName('i')).map(icon => {
             return icon.getAttribute('class').then(classNames => {
                 let className = classNames.replace('fa ', '').replace('fa-lg', '').replace('fa-spin  fa-fw', '').trim();
@@ -122,7 +122,7 @@ export class SensorListPage {
                 enabled: args[0],
                 disabled: args[1],
                 displayed: args[2][0],
-            }
+            };
         });
     }
 
@@ -139,7 +139,7 @@ export class SensorListPage {
         return element.all(by.css('table>tbody>tr')).filter(row => {
             return row.all(by.tagName('td')).get(0).getText().then(pName => {
                 return pName === name;
-            })
+            });
         }).get(0);
     }
 
@@ -169,7 +169,7 @@ export class SensorListPage {
     }
 
     openDetailsPane(name: string) {
-        return this.getRow(name).click().then(() =>{
+        return this.getRow(name).click().then(() => {
             return browser.getCurrentUrl();
         });
     }
@@ -178,14 +178,14 @@ export class SensorListPage {
         let row = element(by.cssContainingText('td', name));
         let protactorControlFlow = protractor.promise.controlFlow();
 
-        protactorControlFlow.execute(() => {waitForElementVisibility(row)})
-          .then(protactorControlFlow.execute(() => {this.getIconButton(name, '.fa-pencil').click()}))
+        protactorControlFlow.execute(() => { waitForElementVisibility(row); })
+          .then(protactorControlFlow.execute(() => { this.getIconButton(name, '.fa-pencil').click(); }));
 
         return browser.getCurrentUrl();
     }
 
     openEditPaneAndClose(name: string) {
-        return this.getIconButton(name, '.fa-pencil').click().then(() =>{
+        return this.getIconButton(name, '.fa-pencil').click().then(() => {
             let url = browser.getCurrentUrl();
             browser.sleep(500);
             return this.closePane('.main.close-button').then(() => {
@@ -215,12 +215,12 @@ export class SensorListPage {
     }
 
     toggleRowSelect(name: string) {
-        element.all(by.css('label[for=\"'+name+'\"]')).click();
+        element.all(by.css('label[for=\"' + name + '\"]')).click();
     }
 
     toggleRowsSelect(parserNames: string[]) {
         parserNames.forEach((name) => {
-            element.all(by.css('label[for=\"'+name+'\"]')).click();
+            element.all(by.css('label[for=\"' + name + '\"]')).click();
         });
     }
 

@@ -41,7 +41,15 @@ exports.config = {
     './e2e/use-cases/sensor-config-single-parser.e2e-spec.ts'
   ],
   capabilities: {
-    'browserName': 'chrome'
+    'browserName': 'chrome',
+    'chromeOptions': {
+      'prefs': {
+        'credentials_enable_service': false,
+        'profile': {
+          'password_manager_enabled': false
+        }
+      }
+    }
   },
   directConnect: true,
   baseUrl: 'http://localhost:4200',

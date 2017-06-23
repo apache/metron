@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import {routing} from "./login.routing";
+import {routing} from './login.routing';
 
 @NgModule ({
   imports: [ routing ]

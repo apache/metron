@@ -46,5 +46,4 @@ describe('Application Skeleton', function() {
     expect(page.selectNavLink('Sensors')).toEqual(true);
     expect(page.getUrl()).toEqual('http://localhost:4200/sensors');
   });
-  
 });

@@ -20,12 +20,18 @@ import {SensorConfigPage} from '../sensor-config/sensor-config.po';
 import {SensorListPage} from '../sensor-list/sensor-list.po';
 import {SensorDetailsPage} from '../sensor-config-readonly/sensor-config-readonly.po';
 
-describe('Sensor Config for parser e2e1', function() {
+describe('E2E test to add and very the config for parser "e2e1"', function() {
   let page = new SensorConfigPage();
   let sensorListPage = new SensorListPage();
   let sensorDetailsPage = new SensorDetailsPage();
   let loginPage = new LoginPage();
-  let grokPathFore2e1 = '/apps/metron/patterns/e2e1';
+
+  let grokSampleMsg = '1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET http://www.aliexpress.com/af/shoes.html? - ' +
+                      'DIRECT/207.109.73.154 text/html';
+  let grokStatement = '%{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} ' +
+                      '%{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}\/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}\/%{WORD:UNWANTED}';
+  let threatTriageRule1 = 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')';
+  let threatTriageRule2 = 'ip_src_addr == \'10.0.2.3\' or ip_dst_addr == \'10.0.2.3\'';
 
   beforeAll(() => {
     loginPage.login();
@@ -35,7 +41,17 @@ describe('Sensor Config for parser e2e1', function() {
     loginPage.logout();
   });
 
-  it('should add e2e parser', (done) => {
+  it('should add mandatory fields for e2e parser', (done) => {
+
+    page.clickAddButton();
+    page.setParserName('e2e1');
+    page.setParserType('Grok');
+
+    done();
+
+  }, 50000);
+
+  it('should add grok configuration for e2e parser', (done) => {
     let expectedGrokResponse = [
       'action TCP_MISS',
       'bytes 337891',
@@ -44,28 +60,33 @@ describe('Sensor Config for parser e2e1', function() {
       'ip_dst_addr 207.109.73.154',
       'ip_src_addr 127.0.0.1',
       'method GET',
-      'original_string 1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET http://www.aliexpress.com/af/shoes.html? - DIRECT/207.109.73.154 text/html', 'timestamp 1467011157.401', 'url http://www.aliexpress.com/af/shoes.html?' ];
-    let grokStatement = '%{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}\/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}\/%{WORD:UNWANTED}';
-    let sampleMessage = '1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET http://www.aliexpress.com/af/shoes.html? - DIRECT/207.109.73.154 text/html';
-    let expectedFieldSchemaResponse = [ 'elapsed', 'code', 'ip_dst_addr', 'original_string', 'method', 'bytes', 'action', 'ip_src_addr', 'url', 'timestamp' ];
-
-    page.clickAddButton();
-    page.setParserName('e2e1');
-    page.setParserType('Grok');
+      'original_string ' + grokSampleMsg,
+      'timestamp 1467011157.401',
+      'url http://www.aliexpress.com/af/shoes.html?'
+    ];
 
     page.clickGrokStatement();
-    page.setSampleMessage('sensor-grok', sampleMessage);
+    page.setSampleMessage('sensor-grok', grokSampleMsg);
     page.clearGrokStatement(5);
     page.setGrokStatement('E2E1 ' + grokStatement);
     page.testGrokStatement();
     expect(page.getGrokResponse()).toEqual(expectedGrokResponse);
     page.saveGrokStatement();
-    expect(page.getGrokStatementFromMainPane()).toEqual(['E2E1 ' +grokStatement]);
+    expect(page.getGrokStatementFromMainPane()).toEqual(['E2E1 ' + grokStatement]);
+
+    done();
+
+  }, 50000);
+
+
+  it('should add Schema Configuration for e2e parser', (done) => {
+    let parsedFieldSchemaResponse = [ 'elapsed', 'code', 'ip_dst_addr', 'original_string', 'method', 'bytes',
+                                        'action', 'ip_src_addr', 'url', 'timestamp' ];
 
     page.clickSchema();
-    page.setSampleMessage('sensor-field-schema', '1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET http://www.aliexpress.com/af/shoes.html? - DIRECT/207.109.73.154 text/html');
+    page.setSampleMessage('sensor-field-schema', grokSampleMsg);
     page.clickSchema();
-    expect(page.getFieldSchemaValues()).toEqual(expectedFieldSchemaResponse);
+    expect(page.getFieldSchemaValues()).toEqual(parsedFieldSchemaResponse);
     page.setSchemaConfig('elapsed', ['TRIM', 'TO_INTEGER'], ['geo', 'host'], ['malicious_ip']);
     expect(page.getTransformText()).toEqual(['TO_INTEGER(TRIM(elapsed))']);
     page.saveFieldSchemaConfig();
@@ -74,42 +95,55 @@ describe('Sensor Config for parser e2e1', function() {
     page.closeSchemaPane();
     expect(page.getFieldSchemaSummary()).toEqual( [ 'TRANSFORMATIONS 1', 'ENRICHMENTS 3', 'THREAT INTEL 2' ]);
 
+    done();
+
+  }, 50000);
+
+  it('should add Threat Triage fields e2e parser', (done) => {
+
     page.clickThreatTriage();
     page.clickAddThreatTriageRule();
-    page.setThreatTriageRule('IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')');
+    page.setThreatTriageRule(threatTriageRule1);
     page.setThreatTriageRuleScore('10');
     page.saveThreatTriageRule();
-    expect(page.getThreatTrigaeRule()).toEqual([ 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')']);
+    expect(page.getThreatTrigaeRule()).toEqual([ threatTriageRule1 ]);
 
     page.clickThreatTriage();
     page.clickAddThreatTriageRule();
-    page.setThreatTriageRule('ip_src_addr == \'10.0.2.3\' or ip_dst_addr == \'10.0.2.3\'');
+    page.setThreatTriageRule(threatTriageRule2);
     page.setThreatTriageRuleScore('5');
     page.saveThreatTriageRule();
-    expect(page.getThreatTrigaeRule()).toEqual([ 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')', 'ip_src_addr == \'10.0.2.3\' or ip_dst_addr == \'10.0.2.3\'']);
+    expect(page.getThreatTrigaeRule()).toEqual([threatTriageRule1, threatTriageRule2]);
 
     page.setThreatTriageRuleSortBy('Lowest Score');
-    expect(page.getThreatTrigaeRule()).toEqual([ 'ip_src_addr == \'10.0.2.3\' or ip_dst_addr == \'10.0.2.3\'', 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')']);
+    expect(page.getThreatTrigaeRule()).toEqual([threatTriageRule2, threatTriageRule1]);
 
     page.setThreatTriageRuleSortBy('Lowest Name');
-    expect(page.getThreatTrigaeRule()).toEqual([ 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')', 'ip_src_addr == \'10.0.2.3\' or ip_dst_addr == \'10.0.2.3\'']);
+    expect(page.getThreatTrigaeRule()).toEqual([threatTriageRule1, threatTriageRule2]);
 
     page.closeThreatTriagePane();
     expect(page.getThreatTriageSummary()).toEqual([ 'RULES 2' ]);
-
-    page.saveParser();
 
     done();
 
   }, 50000);
 
+  it('should save e2e parser', (done) => {
+
+    page.saveParser();
+    done();
+
+  }, 50000);
+
+
   it('should have all the config for e2e parser', (done) => {
-    let grokStatement = 'E2E1 %{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}/%{WORD:UNWANTED}';
+    let tGrokStatement = 'E2E1 ' + grokStatement;
+
     let expectedFormData = {
       title: 'e2e1',
       parserName: 'e2e1',
       parserType: 'org.apache.metron.parsers.GrokParser',
-      grokStatement: grokStatement,
+      grokStatement: tGrokStatement,
       fieldSchemaSummary: [ 'TRANSFORMATIONS 1', 'ENRICHMENTS 3', 'THREAT INTEL 2' ],
       threatTriageSummary: [ 'RULES 2' ],
       hdfsIndex: 'e2e1',
@@ -129,6 +163,7 @@ describe('Sensor Config for parser e2e1', function() {
   });
 
   it('should have all the config details for  e2e parser', () => {
+    let tGrokStatement = 'E2E1 ' + grokStatement;
     let parserNotRunnigExpected = [ '',
       'PARSER:Grok',
       'LAST UPDATED:-',
@@ -148,26 +183,27 @@ describe('Sensor Config for parser e2e1', function() {
       'REPLICATION FACTOR:-',
       ''
     ];
+    let threatTriageTableValues = {};
+    threatTriageTableValues[threatTriageRule1] = '10';
+    threatTriageTableValues[threatTriageRule2] = '5';
 
-    let grokStatement = 'E2E1 %{NUMBER:timestamp} %{INT:elapsed} %{IPV4:ip_src_addr} %{WORD:action}/%{NUMBER:code} %{NUMBER:bytes} %{WORD:method} %{NOTSPACE:url} - %{WORD:UNWANTED}\/%{IPV4:ip_dst_addr} %{WORD:UNWANTED}\/%{WORD:UNWANTED}';
-
-    sensorDetailsPage.navigateTo('e2e1')
+    sensorDetailsPage.navigateTo('e2e1');
     expect(sensorDetailsPage.getCurrentUrl()).toEqual('http://localhost:4200/sensors(dialog:sensors-readonly/e2e1)');
-    expect(sensorDetailsPage.getTitle()).toEqual("e2e1");
+    expect(sensorDetailsPage.getTitle()).toEqual('e2e1');
     expect(sensorDetailsPage.getParserConfig()).toEqual(parserNotRunnigExpected);
     expect(sensorDetailsPage.getButtons()).toEqual([ 'EDIT', 'START', 'Delete' ]);
-    expect(sensorDetailsPage.getGrokStatement()).toEqual(grokStatement);
+    expect(sensorDetailsPage.getGrokStatement()).toEqual(tGrokStatement);
 
     expect(sensorDetailsPage.getSchemaSummaryTitle()).toEqual(['Transforms']);
     expect(sensorDetailsPage.getSchemaSummary()).toEqual(['elapsed']);
     sensorDetailsPage.clickToggleShowMoreLess('show more', 1);
-    expect(sensorDetailsPage.getSchemaFullSummary()).toEqual({ 'elapsed':'TO_INTEGER(TRIM(elapsed))' });
+    expect(sensorDetailsPage.getSchemaFullSummary()).toEqual({ 'elapsed': 'TO_INTEGER(TRIM(elapsed))' });
     sensorDetailsPage.clickToggleShowMoreLess('show less', 0);
 
-    expect(sensorDetailsPage.getThreatTriageSummary()).toEqual([ 'AGGREGATOR', 'MAX', '', 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\'), ip_src_addr == \'10.0.2.3\' or ip_dst_addr == \'10.0.2.3\'' ]);
+    expect(sensorDetailsPage.getThreatTriageSummary()).toEqual([ 'AGGREGATOR', 'MAX', '', threatTriageRule1 + ', ' + threatTriageRule2 ]);
     sensorDetailsPage.clickToggleShowMoreLess('show more', 2);
     expect(sensorDetailsPage.getThreatTriageTableHeaders()).toEqual([ 'NAME', 'SCORE' ]);
-    expect(sensorDetailsPage.getThreatTriageTableValues()).toEqual({ 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')': '10', 'ip_src_addr == \'10.0.2.3\' or ip_dst_addr == \'10.0.2.3\'': '5' });
+    expect(sensorDetailsPage.getThreatTriageTableValues()).toEqual(threatTriageTableValues);
     sensorDetailsPage.clickToggleShowMoreLess('show less', 0);
 
     sensorDetailsPage.closePane('e2e1');
@@ -180,6 +216,6 @@ describe('Sensor Config for parser e2e1', function() {
     expect(sensorListPage.deleteParser('e2e1')).toEqual(true);
     expect(sensorListPage.getParserCount()).toEqual(7);
     done();
-  })
+  });
 
 });
