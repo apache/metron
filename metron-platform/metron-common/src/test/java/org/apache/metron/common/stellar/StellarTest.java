@@ -18,13 +18,11 @@
 
 package org.apache.metron.common.stellar;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.dsl.StellarFunction;
-import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.common.dsl.*;
 import org.apache.metron.common.dsl.functions.resolver.ClasspathFunctionResolver;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -33,18 +31,65 @@ import org.junit.rules.ExpectedException;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 import static org.apache.metron.common.utils.StellarProcessorUtils.run;
 import static org.apache.metron.common.utils.StellarProcessorUtils.runPredicate;
 
 @SuppressWarnings("ALL")
 public class StellarTest {
+
+  @Stellar(
+          description="throw exception",
+          name="THROW",
+          params = {
+           "message - exception message"
+          },
+          returns="nothing"
+  )
+  public static class Throw implements StellarFunction {
+
+    @Override
+    public Object apply(List<Object> args, Context context) throws ParseException {
+      throw new IllegalStateException(Joiner.on(" ").join(args));
+    }
+
+    @Override
+    public void initialize(Context context) {
+
+    }
+
+    @Override
+    public boolean isInitialized() {
+      return true;
+    }
+  }
+
+  @Stellar(
+          description="Always returns true",
+          name="RET_TRUE",
+          params = {
+           "arg* - Any set of args you wish to give it (including the empty set), they're ignored."
+          },
+          returns="true"
+  )
+  public static class TrueFunc implements StellarFunction {
+
+    @Override
+    public Object apply(List<Object> args, Context context) throws ParseException {
+      return true;
+    }
+
+    @Override
+    public void initialize(Context context) {
+
+    }
+
+    @Override
+    public boolean isInitialized() {
+      return true;
+    }
+  }
 
   @Test
   public void ensureDocumentation() {
@@ -64,6 +109,22 @@ public class StellarTest {
     Assert.assertTrue(numFound > 0);
   }
 
+  @Test
+  public void testEscapedLiterals() {
+    Assert.assertEquals("'bar'", run("\"'bar'\"", new HashMap<>()));
+    Assert.assertEquals("'BAR'", run("TO_UPPER('\\'bar\\'')", new HashMap<>()));
+    Assert.assertEquals("\"bar\"", run("\"\\\"bar\\\"\"", new HashMap<>()));
+    Assert.assertEquals("\"bar\"", run("'\"bar\"'", new HashMap<>()));
+    Assert.assertEquals("\"BAR\"", run("TO_UPPER(\"\\\"bar\\\"\")", new HashMap<>()));
+    Assert.assertEquals("bar \\ foo", run("'bar \\\\ foo'", new HashMap<>()));
+    Assert.assertEquals("bar \\\\ foo", run("'bar \\\\\\\\ foo'", new HashMap<>()));
+    Assert.assertEquals("bar\nfoo", run("'bar\\nfoo'", new HashMap<>()));
+    Assert.assertEquals("bar\n\nfoo", run("'bar\\n\\nfoo'", new HashMap<>()));
+    Assert.assertEquals("bar\tfoo", run("'bar\\tfoo'", new HashMap<>()));
+    Assert.assertEquals("bar\t\tfoo", run("'bar\\t\\tfoo'", new HashMap<>()));
+    Assert.assertEquals("bar\rfoo", run("'bar\\rfoo'", new HashMap<>()));
+    Assert.assertEquals("'bar'", run("'\\'bar\\''", new HashMap<>()));
+  }
 
   @Test
   public void testVariableResolution() {
@@ -122,7 +183,12 @@ public class StellarTest {
       Assert.assertEquals(ImmutableSet.of("one", "two")
                          , processor.variablesUsed("if 1 < 2 then one else two"));
     }
+    {
+      Assert.assertEquals(ImmutableSet.of("bar")
+                         , processor.variablesUsed("MAP_GET('foo', { 'foo' : bar})"));
+    }
   }
+
 
   @Test
   public void testFunctionEmptyArgs() {
@@ -616,6 +682,42 @@ public class StellarTest {
     Assert.assertFalse(runPredicate("not(IN_SUBNET(ip_src_addr, '192.168.0.0/24'))", v-> variableMap.get(v)));
     Assert.assertFalse(runPredicate("IN_SUBNET(ip_dst_addr, '192.168.0.0/24')", v-> variableMap.get(v)));
     Assert.assertTrue(runPredicate("not(IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))", v-> variableMap.get(v)));
+  }
+
+  @Test
+  public void testShortCircuit_conditional() throws Exception {
+    Assert.assertEquals("foo", run("if true then 'foo' else (if false then 'bar' else 'grok')", new HashMap<>()));
+    Assert.assertEquals("foo", run("if true_var != null && true_var then 'foo' else (if false then 'bar' else 'grok')", ImmutableMap.of("true_var", true)));
+    Assert.assertEquals("foo", run("if true then 'foo' else THROW('expression')", new HashMap<>()));
+    Assert.assertEquals("foo", run("true ? 'foo' : THROW('expression')", new HashMap<>()));
+    Assert.assertEquals("foo", run("if false then THROW('exception') else 'foo'", new HashMap<>()));
+    Assert.assertEquals("foo", run("false ? THROW('exception') : 'foo'", new HashMap<>()));
+    Assert.assertEquals(true, run("RET_TRUE(if true then 'foo' else THROW('expression'))", new HashMap<>()));
+    Assert.assertEquals("foo", run("if true or (true or THROW('if exception')) then 'foo' else THROW('expression')", new HashMap<>()));
+    Assert.assertEquals("foo", run("if true or (false or THROW('if exception')) then 'foo' else THROW('expression')", new HashMap<>()));
+    Assert.assertEquals("foo", run("if NOT(true or (false or THROW('if exception'))) then THROW('expression') else 'foo'", new HashMap<>()));
+    Assert.assertEquals("foo", run("if NOT('metron' in [ 'metron', 'metronicus'] ) then THROW('expression') else 'foo'", new HashMap<>()));
+  }
+
+  @Test
+  public void testShortCircuit_boolean() throws Exception {
+    Assert.assertTrue(runPredicate("'metron' in ['metron', 'metronicus', 'mortron'] or (true or THROW('exception'))", x -> null));
+    Assert.assertTrue(runPredicate("true or (true or THROW('exception'))", x -> null));
+    Assert.assertTrue(runPredicate("true or (false or THROW('exception'))", x -> null));
+    Assert.assertTrue(runPredicate("TO_UPPER('foo') == 'FOO' or (true or THROW('exception'))", x -> null));
+    Assert.assertFalse(runPredicate("false and (true or THROW('exception'))", x -> null));
+    Assert.assertTrue(runPredicate("true or false or false or true", x -> null));
+    Assert.assertFalse(runPredicate("false or (false and THROW('exception'))", x -> null));
+    Assert.assertTrue(runPredicate("'casey' == 'casey' or THROW('exception')", x -> null));
+    Assert.assertTrue(runPredicate("TO_UPPER('casey') == 'CASEY' or THROW('exception')", x -> null));
+    Assert.assertTrue(runPredicate("NOT(TO_UPPER('casey') != 'CASEY') or THROW('exception')", x -> null));
+    Assert.assertTrue(runPredicate("(TO_UPPER('casey') == 'CASEY') or THROW('exception')", x -> null));
+    Assert.assertFalse(runPredicate("NOT(NOT(TO_UPPER('casey') != 'CASEY') or THROW('exception'))", x -> null));
+    Assert.assertFalse(runPredicate("NOT(NOT(TO_UPPER('casey') != 'CASEY')) and THROW('exception')", x -> null));
+    Assert.assertTrue(runPredicate("RET_TRUE('foo') or THROW('exception')", x -> null));
+    Assert.assertFalse(runPredicate("NOT(foo == null or THROW('exception')) and THROW('and exception')", x -> null));
+    Assert.assertTrue(runPredicate("(foo == null or THROW('exception') ) or THROW('and exception')", x -> null));
+    Assert.assertTrue(runPredicate("( RET_TRUE('foo', true, false) or ( foo == null or THROW('exception') ) or THROW('and exception')) or THROW('or exception')", x -> null));
   }
 
   @Rule

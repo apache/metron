@@ -16,7 +16,7 @@
 spring:
   datasource:
       driverClassName: org.h2.Driver
-      url: jdbc:h2:file:./metrondb
+      url: jdbc:h2:file:~/metrondb
       username: root
       password: root
       platform: h2
@@ -42,10 +42,16 @@ grok:
 
 storm:
   ui:
-    url:   node1:8744
+    url:   http://node1:8744
   parser:
     script.path: /usr/metron/${metron.version}/bin/start_parser_topology.sh
   enrichment:
     script.path: /usr/metron/${metron.version}/bin/start_enrichment_topology.sh
   indexing:
     script.path: /usr/metron/${metron.version}/bin/start_elasticsearch_topology.sh
+
+kerberos:
+  enabled: false
+  principal: metron@EXAMPLE.COM
+  keytab: /etc/security/keytabs/metron.headless.keytab
+

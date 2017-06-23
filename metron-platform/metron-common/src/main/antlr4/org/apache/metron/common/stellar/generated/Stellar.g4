@@ -100,8 +100,8 @@ IDENTIFIER : IDENTIFIER_START
            ;
 
 STRING_LITERAL :
-  DOUBLE_QUOTE SCHAR* DOUBLE_QUOTE
-  | SINGLE_QUOTE SCHAR* SINGLE_QUOTE
+      SINGLE_QUOTE (~('\'' | '\\') | '\\' ('\'' | '\\' | 'r' | 'n' | 't'))* SINGLE_QUOTE
+     |DOUBLE_QUOTE (~('"' | '\\') | '\\' ('"' | '\\' | 'r' | 'n' | 't'))* DOUBLE_QUOTE
   ;
 
 // COMMENT and WS are stripped from the output token stream by sending
@@ -114,7 +114,6 @@ WS : [ \r\t\u000C\n]+ -> skip;
 fragment ZERO: '0';
 fragment FIRST_DIGIT: '1'..'9';
 fragment DIGIT: '0'..'9';
-fragment SCHAR:  ~['"\\\r\n];
 fragment D: ('d'|'D');
 fragment E: ('e'|'E');
 fragment F: ('f'|'F');
@@ -140,9 +139,21 @@ transformation_expr:
   | in_expr #InExpression
   ;
 
+if_expr:
+  logical_expr
+  ;
+
+then_expr:
+  transformation_expr
+  ;
+
+else_expr:
+  transformation_expr
+  ;
+
 conditional_expr :
-  logical_expr QUESTION transformation_expr COLON transformation_expr #TernaryFuncWithoutIf
-  | IF logical_expr THEN transformation_expr ELSE transformation_expr #TernaryFuncWithIf
+  if_expr QUESTION then_expr COLON else_expr #TernaryFuncWithoutIf
+  | IF if_expr THEN then_expr ELSE else_expr #TernaryFuncWithIf
   ;
 
 logical_expr:

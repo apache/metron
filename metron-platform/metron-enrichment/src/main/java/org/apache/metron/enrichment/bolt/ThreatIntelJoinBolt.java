@@ -27,11 +27,13 @@ import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriag
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
+import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.threatintel.triage.ThreatTriageProcessor;
 import org.apache.storm.task.TopologyContext;
+import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,8 +134,8 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
   }
 
   @Override
-  public JSONObject joinMessages(Map<String, JSONObject> streamMessageMap) {
-    JSONObject ret = super.joinMessages(streamMessageMap);
+  public JSONObject joinMessages(Map<String, Tuple> streamMessageMap, MessageGetStrategy messageGetStrategy) {
+    JSONObject ret = super.joinMessages(streamMessageMap, messageGetStrategy);
     LOG.trace("Received joined messages: {}", ret);
     boolean isAlert = ret.containsKey("is_alert");
     if(!isAlert) {

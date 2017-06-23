@@ -2,6 +2,15 @@
 This document constitutes a per-version listing of changes of
 configuration which are non-backwards compatible.
 
+## 0.3.1 to 0.4.0
+
+### [METRON-671: Refactor existing Ansible deployment to use Ambari MPack](https://issues.apache.org/jira/browse/METRON-671)
+
+#### Description
+Since the Ansible Deployment uses the MPack, RPMs must be built prior to deployment. As a result,
+[Docker](https://www.docker.com/) is required to perform a Quick-Dev, Full-Dev or Ansible deployment.
+This effectively limits the build environment to Docker supported [platforms](https://docs.docker.com/engine/installation/#platform-support-matrix).
+
 ## 0.3.0 to 0.3.1
 
 ### [METRON-664: Make the index configuration per-writer with enabled/disabled](https://issues.apache.org/jira/browse/METRON-664)
@@ -15,7 +24,7 @@ As of 0.3.0 the indexing configuration
 In the 0.3.1 release, this configuration has been broken out
 and control for individual writers are separated.
 
-Please see the description of the configurations in the indexing [README](https://github.com/apache/incubator-metron/tree/Metron_0.3.1/metron-platform/metron-indexing#sensor-indexing-configuration)
+Please see the description of the configurations in the indexing [README](https://github.com/apache/metron/tree/Metron_0.3.1/metron-platform/metron-indexing#sensor-indexing-configuration)
 
 #### Migration
 
@@ -151,12 +160,3 @@ When using Ansible to deploy the latest Metron bits to an existing installation,
 
 #### Workaround
 Set the `topology.classpath` property for storm in Ambari to `/etc/hbase/conf:/etc/hadoop/conf`
-
-## 0.3.1 to PLACEHOLDER
-
-### [METRON-671: Refactor existing Ansible deployment to use Ambari MPack](https://issues.apache.org/jira/browse/METRON-671)
-
-#### Description
-Since the Ansible Deployment uses the MPack, RPMs must be built prior to deployment. As a result,
-[Docker](https://www.docker.com/) is required to perform a Quick-Dev, Full-Dev or Ansible deployment.
-This effectively limits the build environment to Docker supported [platforms](https://docs.docker.com/engine/installation/#platform-support-matrix).

@@ -17,7 +17,6 @@
  */
 package org.apache.metron.common.stellar.benchmark;
 
-import com.clearspring.analytics.util.Lists;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -26,11 +25,9 @@ import org.apache.commons.cli.*;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.metron.common.dsl.Context;
 import org.apache.metron.common.dsl.MapVariableResolver;
-import org.apache.metron.common.dsl.ParseException;
 import org.apache.metron.common.dsl.StellarFunctions;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.common.utils.cli.OptionHandler;
-import scala.testing.Benchmark;
 
 import javax.annotation.Nullable;
 import java.io.File;

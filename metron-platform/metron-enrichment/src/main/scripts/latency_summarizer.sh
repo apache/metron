@@ -29,4 +29,4 @@ fi
 export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
 export TOPOLOGIES_JAR=Metron-Topologies-$METRON_VERSION.jar
-java -cp $METRON_HOME/lib/$TOPOLOGIES_JAR org.apache.metron.enrichment.cli.LatencySummarizer "$@"
+java $METRON_JVMFLAGS -cp $METRON_HOME/lib/$TOPOLOGIES_JAR org.apache.metron.enrichment.cli.LatencySummarizer "$@"

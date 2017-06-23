@@ -17,6 +17,8 @@
  */
 package org.apache.metron.storm.kafka.flux;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 
@@ -49,12 +51,6 @@ public enum SpoutConfiguration {
                  , container -> container.builder.setFirstPollOffsetStrategy(KafkaSpoutConfig.FirstPollOffsetStrategy.valueOf(container.value.toString()))
                  )
   /**
-   * The maximum number of retries
-   */
-  ,MAX_RETRIES("spout.maxRetries"
-                 , container -> container.builder.setMaxRetries(ConversionUtils.convert(container.value, Integer.class))
-                 )
-  /**
    * The maximum amount of uncommitted offsets
    */
   ,MAX_UNCOMMITTED_OFFSETS("spout.maxUncommittedOffsets"
@@ -65,6 +61,12 @@ public enum SpoutConfiguration {
    */
   ,OFFSET_COMMIT_PERIOD_MS("spout.offsetCommitPeriodMs"
                  , container -> container.builder.setOffsetCommitPeriodMs(ConversionUtils.convert(container.value, Long.class))
+                 )
+  /**
+   * The partition refresh period in milliseconds
+   */
+  ,PARTITION_REFRESH_PERIOD_MS("spout.partitionRefreshPeriodMs"
+                 , container -> container.builder.setPartitionRefreshPeriodMs(ConversionUtils.convert(container.value, Long.class))
                  )
   ;
   private static class Container {
@@ -131,9 +133,9 @@ public enum SpoutConfiguration {
     for(SpoutConfiguration spoutConfig : SpoutConfiguration.values()) {
       ret.add(spoutConfig.key);
     }
-    ret.add(KafkaSpoutConfig.Consumer.GROUP_ID);
-    ret.add(KafkaSpoutConfig.Consumer.AUTO_COMMIT_INTERVAL_MS);
-    ret.add(KafkaSpoutConfig.Consumer.ENABLE_AUTO_COMMIT);
+    ret.add(ConsumerConfig.GROUP_ID_CONFIG);
+    ret.add(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG);
+    ret.add(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG);
     return ret;
   }
 }

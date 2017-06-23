@@ -33,11 +33,13 @@ kibana_master: [KIBANA_MASTER]
 metron_indexing: [METRON_INDEXING]
 metron_enrichment_master : [METRON_ENRICHMENT_MASTER]
 metron_parsers : [METRON_PARSERS]
+metron_rest: [METRON_REST]
+metron_management_ui: [METRON_MANAGEMENT_UI]
 
 metron_components: >
   {{ hadoop_master | union(zookeeper_master) | union(storm_master) | union(hbase_master) | union(hadoop_slave) | union(zookeeper_slave) |
   union(storm_slave) | union(kafka_broker) | union(hbase_slave) | union(kibana_master) | union(metron_indexing) |
-  union(metron_enrichment_master) | union(metron_parsers) | union(es_master) }}
+  union(metron_enrichment_master) | union(metron_parsers) | union(metron_rest) | union(metron_management_ui) | union(es_master) }}
 
 cluster_name: "metron_cluster"
 blueprint_name: "metron_blueprint"
@@ -90,19 +92,25 @@ configurations:
       delete.topic.enable: "true"
   - metron-env:
       parsers: "bro,snort"
+      metron_spring_profiles_active: "dev"
   - elastic-site:
       index_number_of_shards: 1
       index_number_of_replicas: 0
-      zen_discovery_ping_unicast_hosts: "{{ groups.search | join(',') }}"
+      zen_discovery_ping_unicast_hosts: "[ {{ groups.search | join(', ') }} ]"
       gateway_recover_after_data_nodes: 1
-      network_host: "_lo_,_eth0_,_eth1_"
+      network_host: "[ _local_, {{ elasticsearch_network_interface }} ]"
       masters_also_are_datanodes: "1"
 
 required_configurations:
   - metron-env:
-      storm_rest_addr: "{{ groups.ambari_slave[0] }}:8744"
+      storm_rest_addr: "http://{{ groups.ambari_slave[0] }}:8744"
       es_hosts: "{{ groups.search | join(',') }}"
       zeppelin_server_url: "{{ groups.zeppelin[0] }}:9995"
+      metron_jdbc_driver: "org.h2.Driver"
+      metron_jdbc_url: "jdbc:h2:file:~/metrondb"
+      metron_jdbc_username: "root"
+      metron_jdbc_password: "root"
+      metron_jdbc_platform: "h2"
   - kibana-env:
       kibana_pid_dir: /var/run/kibana
       kibana_es_url: http://{{ groups.search[0] }}:9200

@@ -23,7 +23,7 @@ We are still in the process of merging/porting additional features from our prod
 
 # metron-platform
 
-Extensible set of Storm topologies and topology attributes for streaming, enriching, indexing, and storing telemetry in Hadoop.  General information on Metron is available at https://metron.incubator.apache.org/
+Extensible set of Storm topologies and topology attributes for streaming, enriching, indexing, and storing telemetry in Hadoop.  General information on Metron is available at https://metron.apache.org/
 
 # Documentation
 

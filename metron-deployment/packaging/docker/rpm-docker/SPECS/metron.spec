@@ -19,7 +19,7 @@
 %define full_version        %{version}%{?_prerelease}
 %define prerelease_fmt      %{?_prerelease:.%{_prerelease}}
 %define vendor_version      %{?_vendor_version}%{!?_vendor_version: UNKNOWN}
-%define url                 http://metron.incubator.apache.org/
+%define url                 http://metron.apache.org/
 %define base_name           metron
 %define name                %{base_name}-%{vendor_version}
 %define versioned_app_name  %{base_name}-%{version}
@@ -50,6 +50,7 @@ Source5:        metron-enrichment-%{full_version}-archive.tar.gz
 Source6:        metron-indexing-%{full_version}-archive.tar.gz
 Source7:        metron-pcap-backend-%{full_version}-archive.tar.gz
 Source8:        metron-profiler-%{full_version}-archive.tar.gz
+Source9:        metron-rest-%{full_version}-archive.tar.gz
 Source10:       metron-config-%{full_version}-archive.tar.gz
 
 %description
@@ -70,6 +71,7 @@ rm -rf %{_builddir}/*
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{metron_home}
+mkdir -p %{buildroot}/etc/init.d
 
 # copy source files and untar
 tar -xzf %{SOURCE0} -C %{buildroot}%{metron_home}
@@ -81,7 +83,11 @@ tar -xzf %{SOURCE5} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE6} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE7} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE8} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE9} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE10} -C %{buildroot}%{metron_home}
+
+install %{buildroot}%{metron_home}/bin/metron-rest %{buildroot}/etc/init.d/
+install %{buildroot}%{metron_home}/bin/metron-management-ui %{buildroot}/etc/init.d/
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -264,6 +270,9 @@ This package installs the Metron Indexing files
 %{metron_home}/config/zookeeper/indexing/asa.json
 %{metron_home}/config/zookeeper/indexing/error.json
 %{metron_home}/config/zeppelin/metron/metron-yaf-telemetry.json
+%{metron_home}/config/zeppelin/metron/metron-connection-report.json
+%{metron_home}/config/zeppelin/metron/metron-ip-report.json
+%{metron_home}/config/zeppelin/metron/metron-connection-volume-report.json
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -288,7 +297,9 @@ This package installs the Metron PCAP files %{metron_home}
 %{metron_home}/bin/pcap_inspector.sh
 %{metron_home}/bin/pcap_query.sh
 %{metron_home}/bin/start_pcap_topology.sh
+%{metron_home}/bin/pcap_zeppelin_run.sh
 %{metron_home}/flux/pcap/remote.yaml
+%{metron_home}/config/zeppelin/metron/metron-pcap.json
 %attr(0644,root,root) %{metron_home}/lib/metron-pcap-backend-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -317,6 +328,34 @@ This package installs the Metron Profiler %{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+%package        rest
+Summary:        Metron Rest
+Group:          Applications/Internet
+Provides:       rest = %{version}
+
+%description    rest
+This package installs the Metron Rest %{metron_home}
+
+%files          rest
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/config
+%dir %{metron_home}/bin
+%dir %{metron_home}/lib
+%{metron_home}/config/rest_application.yml
+%{metron_home}/bin/metron-rest
+/etc/init.d/metron-rest
+%attr(0644,root,root) %{metron_home}/lib/metron-rest-%{full_version}.jar
+
+%post rest
+chkconfig --add metron-rest
+
+%preun rest
+chkconfig --del metron-rest
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 %package        config
 Summary:        Metron Management UI
 Group:          Applications/Internet
@@ -340,7 +379,8 @@ This package installs the Metron Management UI %{metron_home}
 %dir %{metron_home}/web/management-ui/assets/fonts/Roboto
 %dir %{metron_home}/web/management-ui/assets/images
 %dir %{metron_home}/web/management-ui/license
-%{metron_home}/bin/start_management_ui.sh
+%{metron_home}/bin/metron-management-ui
+/etc/init.d/metron-management-ui
 %attr(0755,root,root) %{metron_home}/web/expressjs/server.js
 %attr(0644,root,root) %{metron_home}/web/expressjs/package.json
 %attr(0644,root,root) %{metron_home}/web/management-ui/favicon.ico
@@ -360,9 +400,25 @@ This package installs the Metron Management UI %{metron_home}
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/images/*
 %attr(0644,root,root) %{metron_home}/web/management-ui/license/*
 
+%post config
+chkconfig --add metron-management-ui
+
+%preun config
+chkconfig --del metron-management-ui
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
+* Thu May 15 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
+- Added Management UI
+* Tue May 9 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
+- Add Zeppelin Connection Volume Report Dashboard
+* Thu May 4 2017 Ryan Merriman <merrimanr@gmail.com> - 0.4.0
+- Added REST
+* Tue May 2 2017 David Lyle <dlyle65535@gmail.com> - 0.4.0
+- Add Metron IP Report
+* Fri Apr 28 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
+- Add Zeppelin Connection Report Dashboard
 * Thu Jan 19 2017 Justin Leet <justinjleet@gmail.com> - 0.3.1
 - Replace GeoIP files with new implementation
 * Thu Nov 03 2016 David Lyle <dlyle65535@gmail.com> - 0.2.1

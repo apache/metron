@@ -17,6 +17,7 @@
  */
 package org.apache.metron.parsers.topology;
 
+import org.apache.metron.common.Constants;
 import org.apache.metron.storm.kafka.flux.SpoutConfiguration;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
@@ -188,6 +189,18 @@ public class ParserTopologyCLI {
       return o;
     }
     )
+    ,OUTPUT_TOPIC("ot", code -> {
+      Option o = new Option(code
+                           , "output_topic"
+                           , true
+                           , "The output kafka topic for the parser.  If unset, the default is " + Constants.ENRICHMENT_TOPIC
+                           );
+      o.setArgName("KAFKA_TOPIC");
+      o.setRequired(false);
+      o.setType(String.class);
+      return o;
+    }
+    )
     ,TEST("t", code ->
     {
       Option o = new Option("t", "test", true, "Run in Test Mode");
@@ -296,6 +309,7 @@ public class ParserTopologyCLI {
       if(ParserOptions.SPOUT_CONFIG.has(cmd)) {
         spoutConfig = readSpoutConfig(new File(ParserOptions.SPOUT_CONFIG.get(cmd)));
       }
+      Optional<String> outputTopic = ParserOptions.OUTPUT_TOPIC.has(cmd)?Optional.of(ParserOptions.OUTPUT_TOPIC.get(cmd)):Optional.empty();
       Optional<String> securityProtocol = ParserOptions.SECURITY_PROTOCOL.has(cmd)?Optional.of(ParserOptions.SECURITY_PROTOCOL.get(cmd)):Optional.empty();
       securityProtocol = getSecurityProtocol(securityProtocol, spoutConfig);
       TopologyBuilder builder = ParserTopologyBuilder.build(zookeeperUrl,
@@ -308,7 +322,8 @@ public class ParserTopologyCLI {
               errorParallelism,
               errorNumTasks,
               spoutConfig,
-              securityProtocol
+              securityProtocol,
+              outputTopic
       );
       Config stormConf = ParserOptions.getConfig(cmd);
       if (ParserOptions.TEST.has(cmd)) {

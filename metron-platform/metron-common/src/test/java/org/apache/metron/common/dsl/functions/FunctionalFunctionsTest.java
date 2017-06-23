@@ -20,6 +20,7 @@ package org.apache.metron.common.dsl.functions;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -70,6 +71,8 @@ public class FunctionalFunctionsTest {
                                        , "MAP([ foo, 'bar'], (x) -> TO_UPPER(x) )"
                                        , "MAP([ foo, bar], (x) -> TO_UPPER(x) )"
                                        , "MAP([ foo, bar], x -> TO_UPPER(x) )"
+                                       , "MAP([ foo, bar], x -> true?TO_UPPER(x):THROW('error') )"
+                                       , "MAP([ foo, bar], x -> false?THROW('error'):TO_UPPER(x) )"
                                        )
         )
     {
@@ -120,6 +123,21 @@ public class FunctionalFunctionsTest {
     }
   }
 
+
+  @Test
+  public void testFilter_shortcircuit() {
+    for (String expr : ImmutableList.of("FILTER([ 'foo'], item -> item == 'foo' or THROW('exception') )"
+                                       ,"FILTER([ 'foo'], (item) -> item == 'foo' or THROW('exception') )"
+                                       )
+        )
+    {
+      Object o = run(expr, ImmutableMap.of("foo", "foo", "bar", "bar"));
+      Assert.assertTrue(o instanceof List);
+      List<String> result = (List<String>) o;
+      Assert.assertEquals(1, result.size());
+      Assert.assertEquals("foo", result.get(0));
+    }
+  }
 
   @Test
   public void testFilter_null() {
@@ -205,8 +223,8 @@ public class FunctionalFunctionsTest {
 
   @Test
   public void testReduce() {
-    for (String expr : ImmutableList.of("REDUCE([ 1, 2, 3], (x, y) -> x + y , 0 )"
-                                       ,"REDUCE([ foo, bar, 3], (x, y) -> x + y , 0 )"
+    for (String expr : ImmutableList.of("REDUCE([ 1, 2, 3 ], (x, y) -> x + y , 0 )"
+                                       ,"REDUCE([ foo, bar, 3 ], (x, y) -> x + y , 0 )"
                                        )
         )
     {
@@ -214,6 +232,31 @@ public class FunctionalFunctionsTest {
       Assert.assertTrue(o instanceof Number);
       Number result = (Number) o;
       Assert.assertEquals(6, result.intValue());
+    }
+  }
+
+  @Test
+  public void testReduce_on_various_list_sizes() {
+    {
+      String expr = "REDUCE([ 1, 2, 3, 4 ], (x, y) -> x + y , 0 )";
+      Object o = run(expr, ImmutableMap.of());
+      Assert.assertTrue(o instanceof Number);
+      Number result = (Number) o;
+      Assert.assertEquals(10, result.intValue());
+    }
+    {
+      String expr = "REDUCE([ 1, 2 ], (x, y) -> x + y , 0 )";
+      Object o = run(expr, ImmutableMap.of());
+      Assert.assertTrue(o instanceof Number);
+      Number result = (Number) o;
+      Assert.assertEquals(3, result.intValue());
+    }
+    {
+      String expr = "REDUCE([ 1 ], (x, y) -> x + y , 0 )";
+      Object o = run(expr, ImmutableMap.of());
+      Assert.assertTrue(o instanceof Number);
+      Number result = (Number) o;
+      Assert.assertEquals(1, result.intValue());
     }
   }
 
@@ -232,4 +275,17 @@ public class FunctionalFunctionsTest {
       Assert.assertEquals("grok", result.get(2));
     }
   }
+
+  @Test
+  public void testReduce_returns_null_when_less_than_3_args() {
+    {
+      String expr = "REDUCE([ 1, 2, 3 ], (x, y) -> LIST_ADD(x, y))";
+      Assert.assertThat(run(expr, ImmutableMap.of()), CoreMatchers.equalTo(null));
+    }
+    {
+      String expr = "REDUCE([ 1, 2, 3 ])";
+      Assert.assertThat(run(expr, ImmutableMap.of()), CoreMatchers.equalTo(null));
+    }
+  }
+
 }

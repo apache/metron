@@ -14,9 +14,6 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-drop table if exists authorities;
-drop table if exists users;
-
 create table if not exists users(
   username varchar(50) not null primary key,
   password varchar(50) not null,
