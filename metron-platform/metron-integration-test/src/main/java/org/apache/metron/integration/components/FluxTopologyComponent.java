@@ -187,6 +187,7 @@ public class FluxTopologyComponent implements InMemoryComponent {
       AutoCloseable slot = (AutoCloseable) t;
       try {
         slot.close();
+        t.stop();
       } catch (Exception e) {
         LOG.error("Tried to kill " + t.getName() + " but.." + e.getMessage(), e);
       }
