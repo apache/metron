@@ -75,7 +75,7 @@ app.get('*', function(req, res){
 });
 
 app.use(function(req, res, next){
-  res.sendStatus(404).sendStatus(304);
+  res.status(404).sendStatus(304);
 });
 
 app.listen(port, function(){

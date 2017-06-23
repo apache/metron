@@ -16,5 +16,5 @@
 #  limitations under the License.
 #
 SCRIPTS_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-#cd $SCRIPTS_ROOT/.. && npm run build
+cd $SCRIPTS_ROOT/.. && npm install && npm run build
 node $SCRIPTS_ROOT/../config-server-e2e.js  $*
