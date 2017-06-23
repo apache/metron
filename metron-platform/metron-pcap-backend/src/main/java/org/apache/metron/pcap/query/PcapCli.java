@@ -177,7 +177,7 @@ public class PcapCli {
       try {
         results.cleanup();
       } catch(IOException e) {
-        LOGGER.warn("Unable to cleanup files in HDFS", e);
+        LOGGER.warn("Unable to reset files in HDFS", e);
       }
     }
     return 0;

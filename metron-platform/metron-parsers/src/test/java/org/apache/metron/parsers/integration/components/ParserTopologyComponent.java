@@ -135,4 +135,11 @@ public class ParserTopologyComponent implements InMemoryComponent {
 
     }
   }
+
+  @Override
+  public void reset() {
+    if (stormCluster != null) {
+      stormCluster.killTopology(sensorType);
+    }
+  }
 }

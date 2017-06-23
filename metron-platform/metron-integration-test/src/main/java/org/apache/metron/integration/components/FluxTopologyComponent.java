@@ -17,6 +17,8 @@
  */
 package org.apache.metron.integration.components;
 
+import com.google.common.collect.Lists;
+import java.util.Date;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -24,6 +26,7 @@ import org.apache.curator.framework.imps.CuratorFrameworkImpl;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
+import org.apache.storm.generated.KillOptions;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.generated.TopologyInfo;
 import org.apache.metron.integration.InMemoryComponent;
@@ -178,6 +181,30 @@ public class FluxTopologyComponent implements InMemoryComponent {
     }
   }
 
+  @Override
+  public void reset() {
+    if (stormCluster != null) {
+      // lower the kill wait
+      KillOptions ko = new KillOptions();
+      ko.set_wait_secs(10);
+      System.err.println("******* KILLING TOPOLOGY NAME: <" + topologyName +">");
+      System.err.println("****** TOPOLOGIES: " + Lists.newArrayList(stormCluster.getClusterInfo().get_topologies()));
+      stormCluster.killTopologyWithOpts(topologyName, ko);
+      try {
+        Thread.sleep(20000);
+      } catch (InterruptedException e) {
+        // Do nothing
+      }
+      try {
+        System.err.println("******* SLEEP DONE: " + new Date());
+        System.err.println("****** TOPOLOGIES: " + Lists.newArrayList(stormCluster.getClusterInfo().get_topologies()));
+        System.err.println("******* Topo status: " + stormCluster.getTopologyInfo(topologyName));
+      } catch(Exception e) {
+        // Do nothing
+      }
+    }
+  }
+
   public static void assassinateSlots() {
     /*
     You might be wondering why I'm not just casting to slot here, but that's because the Slot class moved locations
@@ -194,6 +221,7 @@ public class FluxTopologyComponent implements InMemoryComponent {
   }
 
   public void submitTopology() throws NoSuchMethodException, IOException, InstantiationException, TException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, NoSuchFieldException {
+    System.err.println("****** STARTING TOPOLOGY: <" + getTopologyName() + ">");
     startTopology(getTopologyName(), getTopologyLocation(), getTopologyProperties());
   }
 
@@ -208,6 +236,8 @@ public class FluxTopologyComponent implements InMemoryComponent {
       stormCluster.submitTopology(topologyName, conf, topology);
     }
     catch(Exception nne) {
+      System.err.println("Caught exception");
+      nne.printStackTrace();
       try {
         Thread.sleep(2000);
       } catch (InterruptedException e) {

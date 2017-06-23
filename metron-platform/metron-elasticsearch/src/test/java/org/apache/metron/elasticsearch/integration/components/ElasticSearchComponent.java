@@ -24,6 +24,8 @@ import org.elasticsearch.ElasticsearchTimeoutException;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthAction;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.admin.indices.get.GetIndexRequest;
 import org.elasticsearch.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsRequest;
@@ -181,5 +183,21 @@ public class ElasticSearchComponent implements InMemoryComponent {
         node.close();
         node = null;
         client = null;
+    }
+
+    @Override
+    public void reset() {
+        String[] indices = client.admin()
+            .indices()
+            .getIndex(new GetIndexRequest())
+            .actionGet()
+            .getIndices();
+        for(String index : indices) {
+            client
+                .admin()
+                .indices()
+                .delete(new DeleteIndexRequest(index))
+                .actionGet();
+        }
     }
 }

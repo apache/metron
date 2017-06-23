@@ -18,6 +18,8 @@
 
 package org.apache.metron.storm.kafka.flux;
 
+import java.util.Arrays;
+import java.util.Date;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.log4j.Logger;
 import org.apache.storm.kafka.spout.KafkaSpout;
@@ -42,7 +44,10 @@ public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
   @Override
   public void deactivate() {
     try {
+      System.err.println("***** DEACTIVATING SPOUT: " + new Date());
+      System.err.println("***** DEACT SPOUT: " + Arrays.toString(new Throwable().getStackTrace()));
       super.deactivate();
+      System.err.println("***** DEACTIVATED SPOUT: " + new Date());
     }
     catch(WakeupException we) {
       //see https://issues.apache.org/jira/browse/STORM-2184
@@ -53,7 +58,10 @@ public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
   @Override
   public void close() {
     try {
+      System.err.println("***** CLOSING SPOUT: " + new Date());
+      System.err.println("***** CLOSING SPOUT: " + Arrays.toString(new Throwable().getStackTrace()));
       super.close();
+      System.err.println("***** CLOSED SPOUT: " + new Date());
     }
     catch(WakeupException we) {
       //see https://issues.apache.org/jira/browse/STORM-2184

@@ -20,6 +20,7 @@
 package org.apache.metron.profiler.integration;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.ZKServerComponent;
@@ -56,6 +57,18 @@ public class ConfigUploadComponent implements InMemoryComponent {
     // nothing to do
   }
 
+  public void update()
+      throws UnableToStartException {
+//    withTopologyProperties(topologyProperties);
+//    withGlobalConfiguration(globalConfiguration);
+//    withProfilerConfiguration(profilerConfiguration);
+    try {
+      upload();
+    } catch (Exception e) {
+      throw new UnableToStartException(e.getMessage(), e);
+    }
+  }
+
   /**
    * Uploads configuration to Zookeeper.
    * @throws Exception
@@ -63,7 +76,9 @@ public class ConfigUploadComponent implements InMemoryComponent {
   private void upload() throws Exception {
     final String zookeeperUrl = topologyProperties.getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY);
     try(CuratorFramework client = getClient(zookeeperUrl)) {
-      client.start();
+      if(client.getState() != CuratorFrameworkState.STARTED) {
+        client.start();
+      }
       uploadGlobalConfig(client);
       uploadProfilerConfig(client);
     }
