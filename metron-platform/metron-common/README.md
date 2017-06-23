@@ -26,6 +26,7 @@ The query language supports the following:
   * The literal `"\"foo\""` would represent `"foo"`
   * The literal `'foo \\ bar'` would represent `foo \ bar`
 * Simple boolean operations: `and`, `not`, `or`
+  * Boolean expressions are short-circuited (e.g. `true or FUNC()` would never execute `FUNC`)
 * Simple arithmetic operations: `*`, `/`, `+`, `-` on real numbers or integers
 * Simple comparison operations `<`, `>`, `<=`, `>=`
 * Simple equality comparison operations `==`, `!=`
@@ -784,7 +785,9 @@ mvn exec:java -Dexec.mainClass="org.apache.metron.common.stellar.benchmark.Stell
  ```
 ## Stellar Shell
 
-A REPL (Read Eval Print Loop) for the Stellar language that helps in debugging, troubleshooting and learning Stellar.  The Stellar DSL (domain specific language) is used to act upon streaming data within Apache Storm.  It is difficult to troubleshoot Stellar when it can only be executed within a Storm topology.  This REPL is intended to help mitigate that problem by allowing a user to replicate data encountered in production, isolate initialization errors, or understand function resolution problems.
+The Stellar Shell is a REPL (Read Eval Print Loop) for the Stellar language that helps troubleshooting, learning Stellar or even interacting with a live Metron cluster.  
+
+The Stellar DSL (domain specific language) is used to act upon streaming data within Apache Storm.  It is difficult to troubleshoot Stellar when it can only be executed within a Storm topology.  This REPL is intended to help mitigate that problem by allowing a user to replicate data encountered in production, isolate initialization errors, or understand function resolution problems.
 
 The shell supports customization via `~/.inputrc` as it is
 backed by a proper readline implementation.  
@@ -800,6 +803,7 @@ Note: Stellar classpath configuration from the global config is honored here if 
 
 ### Getting Started
 
+To run the Stellar Shell from within a deployed Metron cluster, run the following command on the host where Metron is installed.
 ```
 $ $METRON_HOME/bin/stellar
 
@@ -925,6 +929,37 @@ IS_EMAIL
  args: address - The String to test                                
   ret: True if the string is a valid email address and false otherwise.
 [Stellar]>>> 
+```
+
+### Advanced Usage
+
+To run the Stellar Shell directly from the Metron source code, run a command like the following.  Ensure that Metron has already been built and installed with `mvn clean install -DskipTests`.
+```
+$ mvn exec:java \
+   -Dexec.mainClass="org.apache.metron.common.stellar.shell.StellarShell" \
+   -pl metron-platform/metron-enrichment
+...
+Stellar, Go!
+Please note that functions are loading lazily in the background and will be unavailable until loaded fully.
+[Stellar]>>> Functions loaded, you may refer to functions now...
+[Stellar]>>> %functions
+ABS, APPEND_IF_MISSING, BIN, BLOOM_ADD, BLOOM_EXISTS, BLOOM_INIT, BLOOM_MERGE, CHOMP, CHOP, COUNT_MATCHES, DAY_OF_MONTH, DAY_OF_WEEK, DAY_OF_YEAR, DOMAIN_REMOVE_SUBDOMAINS, DOMAIN_REMOVE_TLD, DOMAIN_TO_TLD, ENDS_WITH, ENRICHMENT_EXISTS, ENRICHMENT_GET, FILL_LEFT, FILL_RIGHT, FILTER, FORMAT, GEO_GET, GET, GET_FIRST, GET_LAST, HLLP_ADD, HLLP_CARDINALITY, HLLP_INIT, HLLP_MERGE, IN_SUBNET, IS_DATE, IS_DOMAIN, IS_EMAIL, IS_EMPTY, IS_INTEGER, IS_IP, IS_URL, JOIN, LENGTH, LIST_ADD, MAAS_GET_ENDPOINT, MAAS_MODEL_APPLY, MAP, MAP_EXISTS, MAP_GET, MONTH, OUTLIER_MAD_ADD, OUTLIER_MAD_SCORE, OUTLIER_MAD_STATE_MERGE, PREPEND_IF_MISSING, PROFILE_FIXED, PROFILE_GET, PROFILE_WINDOW, PROTOCOL_TO_NAME, REDUCE, REGEXP_MATCH, SPLIT, STARTS_WITH, STATS_ADD, STATS_BIN, STATS_COUNT, STATS_GEOMETRIC_MEAN, STATS_INIT, STATS_KURTOSIS, STATS_MAX, STATS_MEAN, STATS_MERGE, STATS_MIN, STATS_PERCENTILE, STATS_POPULATION_VARIANCE, STATS_QUADRATIC_MEAN, STATS_SD, STATS_SKEWNESS, STATS_SUM, STATS_SUM_LOGS, STATS_SUM_SQUARES, STATS_VARIANCE, STRING_ENTROPY, SYSTEM_ENV_GET, SYSTEM_PROPERTY_GET, TO_DOUBLE, TO_EPOCH_TIMESTAMP, TO_FLOAT, TO_INTEGER, TO_LONG, TO_LOWER, TO_STRING, TO_UPPER, TRIM, URL_TO_HOST, URL_TO_PATH, URL_TO_PORT, URL_TO_PROTOCOL, WEEK_OF_MONTH, WEEK_OF_YEAR, YEAR
+```
+
+Changing the project passed to the `-pl` argument will define which dependencies are included and ultimately which Stellar functions are available within the shell environment.  
+
+This can be useful for troubleshooting function resolution problems.  The previous example defines which functions are available during Enrichment.  For example, to determine which functions are available within the Profiler run the following.
+
+```
+ $ mvn exec:java \
+   -Dexec.mainClass="org.apache.metron.common.stellar.shell.StellarShell" \
+   -pl metron-analytics/metron-profiler
+...
+Stellar, Go!
+Please note that functions are loading lazily in the background and will be unavailable until loaded fully.
+[Stellar]>>> Functions loaded, you may refer to functions now...
+%functions
+ABS, APPEND_IF_MISSING, BIN, BLOOM_ADD, BLOOM_EXISTS, BLOOM_INIT, BLOOM_MERGE, CHOMP, CHOP, COUNT_MATCHES, DAY_OF_MONTH, DAY_OF_WEEK, DAY_OF_YEAR, DOMAIN_REMOVE_SUBDOMAINS, DOMAIN_REMOVE_TLD, DOMAIN_TO_TLD, ENDS_WITH, FILL_LEFT, FILL_RIGHT, FILTER, FORMAT, GET, GET_FIRST, GET_LAST, HLLP_ADD, HLLP_CARDINALITY, HLLP_INIT, HLLP_MERGE, IN_SUBNET, IS_DATE, IS_DOMAIN, IS_EMAIL, IS_EMPTY, IS_INTEGER, IS_IP, IS_URL, JOIN, LENGTH, LIST_ADD, MAAS_GET_ENDPOINT, MAAS_MODEL_APPLY, MAP, MAP_EXISTS, MAP_GET, MONTH, OUTLIER_MAD_ADD, OUTLIER_MAD_SCORE, OUTLIER_MAD_STATE_MERGE, PREPEND_IF_MISSING, PROFILE_FIXED, PROFILE_GET, PROFILE_WINDOW, PROTOCOL_TO_NAME, REDUCE, REGEXP_MATCH, SPLIT, STARTS_WITH, STATS_ADD, STATS_BIN, STATS_COUNT, STATS_GEOMETRIC_MEAN, STATS_INIT, STATS_KURTOSIS, STATS_MAX, STATS_MEAN, STATS_MERGE, STATS_MIN, STATS_PERCENTILE, STATS_POPULATION_VARIANCE, STATS_QUADRATIC_MEAN, STATS_SD, STATS_SKEWNESS, STATS_SUM, STATS_SUM_LOGS, STATS_SUM_SQUARES, STATS_VARIANCE, STRING_ENTROPY, SYSTEM_ENV_GET, SYSTEM_PROPERTY_GET, TO_DOUBLE, TO_EPOCH_TIMESTAMP, TO_FLOAT, TO_INTEGER, TO_LONG, TO_LOWER, TO_STRING, TO_UPPER, TRIM, URL_TO_HOST, URL_TO_PATH, URL_TO_PORT, URL_TO_PROTOCOL, WEEK_OF_MONTH, WEEK_OF_YEAR, YEAR 
 ```
 
 # Global Configuration

@@ -12,7 +12,7 @@ The site-book is also part of the Maven site lifecycle, and will be included by 
 
 To build only the book, do the following:
 
-In any git clone of incubator-metron containing the site-book subdirectory,
+In any git clone of metron containing the site-book subdirectory,
 
 ```
 cd site-book
@@ -22,7 +22,7 @@ mvn site
 It only takes a few seconds. You may now view your copy of the book in a browser by opening 
 
 ```
-file:///your/path/to/incubator-metron/site-book/target/site/index.html
+file:///your/path/to/metron/site-book/target/site/index.html
 ```
 
 On a Mac, you can just type the following on the command line
@@ -32,22 +32,22 @@ open target/site/index.html
 ```
 
 
-##Key Components:
+## Key Components:
 
-###bin/generate-md.sh
+### bin/generate-md.sh
 
 - Copies all .md files from the code directory tree into the site tree
 - Performs some transformations on them
 - Generates the nav tree structure and labels
 - Happens during the site:pre-site phase of Maven.
 
-###bin/fix-md-dialect.py
+### bin/fix-md-dialect.py
 
 - Called by 'generate-md.sh'
 - Does transforms within the text of each file
     - Converts the Github-MD dialect of markdown into the doxia-markdown dialect
 
-###pom.xml and src/site/site.xml
+### pom.xml and src/site/site.xml
 
 - [Doxia](https://maven.apache.org/doxia/) boilerplate, tweaked for our specific needs
 
