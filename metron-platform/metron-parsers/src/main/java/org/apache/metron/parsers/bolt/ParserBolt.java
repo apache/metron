@@ -48,10 +48,11 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.apache.metron.common.Constants.METADATA_PREFIX;
+
 public class ParserBolt extends ConfiguredParserBolt implements Serializable {
 
   private static final int KEY_INDEX = 1;
-  private static final String METADATA_PREFIX = "metron.metadata.";
   private static final Logger LOG = LoggerFactory.getLogger(ParserBolt.class);
   private OutputCollector collector;
   private MessageParser<JSONObject> parser;
@@ -129,20 +130,23 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
         ret.put(METADATA_PREFIX + envMetadataFieldName, envMetadataFieldValue);
       }
     }
-    String keyStr = t.getString(KEY_INDEX);
-    if(!StringUtils.isEmpty(keyStr)) {
-      try {
+    byte[] keyObj = t.getBinary(KEY_INDEX);
+    String keyStr = null;
+    try {
+      keyStr = new String(keyObj);
+      if(!StringUtils.isEmpty(keyStr)) {
         Map<String, Object> metadata = JSONUtils.INSTANCE.load(keyStr, new TypeReference<Map<String, Object>>() {
         });
         for(Map.Entry<String, Object> kv : metadata.entrySet()) {
           ret.put(METADATA_PREFIX + kv.getKey(), kv.getValue());
         }
-      } catch (IOException e) {
-        String reason = "Unable to parse metadata; expected JSON Map: " + keyStr;
+
+      }
+    } catch (IOException e) {
+        String reason = "Unable to parse metadata; expected JSON Map: " + (keyStr == null?"NON-STRING!":keyStr);
         LOG.error(reason, e);
         throw new IllegalStateException(reason, e);
       }
-    }
     return ret;
   }
 
