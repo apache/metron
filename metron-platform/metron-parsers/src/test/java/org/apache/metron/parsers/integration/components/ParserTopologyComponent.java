@@ -20,6 +20,7 @@ package org.apache.metron.parsers.integration.components;
 import com.google.common.collect.ImmutableMap;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
+import org.apache.storm.generated.KillOptions;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
@@ -113,6 +114,9 @@ public class ParserTopologyComponent implements InMemoryComponent {
     if (stormCluster != null) {
       try {
         try {
+          KillOptions ko = new KillOptions();
+          ko.set_wait_secs(0);
+          stormCluster.killTopologyWithOpts(sensorType, ko);
           stormCluster.shutdown();
         } catch (IllegalStateException ise) {
           if (!(ise.getMessage().contains("It took over") && ise.getMessage().contains("to shut down slot"))) {

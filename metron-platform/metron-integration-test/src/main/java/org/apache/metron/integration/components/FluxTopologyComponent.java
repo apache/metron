@@ -24,6 +24,7 @@ import org.apache.curator.framework.imps.CuratorFrameworkImpl;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
+import org.apache.storm.generated.KillOptions;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.generated.TopologyInfo;
 import org.apache.metron.integration.InMemoryComponent;
@@ -156,6 +157,9 @@ public class FluxTopologyComponent implements InMemoryComponent {
     if (stormCluster != null) {
       try {
           try {
+            KillOptions ko = new KillOptions();
+            ko.set_wait_secs(0);
+            stormCluster.killTopologyWithOpts(topologyName, ko);
             stormCluster.shutdown();
           } catch (IllegalStateException ise) {
             if (!(ise.getMessage().contains("It took over") && ise.getMessage().contains("to shut down slot"))) {
