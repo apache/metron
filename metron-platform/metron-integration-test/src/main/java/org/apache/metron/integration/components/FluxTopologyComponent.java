@@ -162,6 +162,7 @@ public class FluxTopologyComponent implements InMemoryComponent {
               throw ise;
             }
             else {
+              LOG.error("Attempting to assassinate slots");
               assassinateSlots();
               LOG.error("Storm slots didn't shut down entirely cleanly *sigh*.  " +
                       "I gave them the old one-two-skadoo and killed the slots with prejudice.  " +
@@ -202,12 +203,15 @@ public class FluxTopologyComponent implements InMemoryComponent {
     You might be wondering why I'm not just casting to slot here, but that's because the Slot class moved locations
     and we're supporting multiple versions of storm.
      */
+    LOG.error("During slot assassination, all candidate threads: " + Thread.getAllStackTraces().keySet());
     Thread.getAllStackTraces().keySet().stream().filter(t -> t instanceof AutoCloseable && t.getName().toLowerCase().contains("slot")).forEach(t -> {
-      AutoCloseable slot = (AutoCloseable) t;
+      LOG.error("Attempting to close thread: " + t + " with state: " + t.getState());
+      // With extreme prejudice.  Safety doesn't matter
       try {
-        slot.close();
-      } catch (Exception e) {
-        LOG.error("Tried to kill " + t.getName() + " but.." + e.getMessage(), e);
+        t.stop();
+        LOG.error("Called thread.stop() on " + t.getName() + ". State is: " + t.getState());
+      } catch(Exception e) {
+        // Just swallow anything arising from the threads being killed.
       }
     });
   }
