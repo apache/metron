@@ -21,9 +21,11 @@ import com.google.common.cache.LoadingCache;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.error.MetronError;
+import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
 import org.apache.storm.task.TopologyContext;
+import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -44,6 +46,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class JoinBoltTest extends BaseEnrichmentBoltTest {
@@ -65,11 +68,12 @@ public class JoinBoltTest extends BaseEnrichmentBoltTest {
       for(String s : streamIds) {
         ret.add(s + ":");
       }
+      ret.add("message:");
       return ret;
     }
 
     @Override
-    public JSONObject joinMessages(Map<String, JSONObject> streamMessageMap) {
+    public JSONObject joinMessages(Map<String, Tuple> streamMessageMap, MessageGetStrategy messageGetStrategy) {
       return joinedMessage;
     }
   }
@@ -83,6 +87,7 @@ public class JoinBoltTest extends BaseEnrichmentBoltTest {
   private String joinedMessageString;
 
   private JSONObject joinedMessage;
+  private JoinBolt<JSONObject> joinBolt;
 
   @Before
   public void parseMessages() {
@@ -92,13 +97,13 @@ public class JoinBoltTest extends BaseEnrichmentBoltTest {
     } catch (ParseException e) {
       e.printStackTrace();
     }
+    joinBolt = new StandAloneJoinBolt("zookeeperUrl");
+    joinBolt.setCuratorFramework(client);
+    joinBolt.setTreeCache(cache);
   }
 
   @Test
-  public void test() throws Exception {
-    StandAloneJoinBolt joinBolt = new StandAloneJoinBolt("zookeeperUrl");
-    joinBolt.setCuratorFramework(client);
-    joinBolt.setTreeCache(cache);
+  public void testPrepare() {
     try {
       joinBolt.prepare(new HashMap(), topologyContext, outputCollector);
       fail("Should fail if a maxCacheSize property is not set");
@@ -110,38 +115,79 @@ public class JoinBoltTest extends BaseEnrichmentBoltTest {
     } catch(IllegalStateException e) {}
     joinBolt.withMaxTimeRetain(10000);
     joinBolt.prepare(new HashMap(), topologyContext, outputCollector);
+  }
+
+  @Test
+  public void testDeclareOutputFields() {
     joinBolt.declareOutputFields(declarer);
     verify(declarer, times(1)).declareStream(eq("message"), argThat(new FieldsMatcher("key", "message")));
-    when(tuple.getValueByField("key")).thenReturn(key);
-    when(tuple.getSourceStreamId()).thenReturn("geo");
-    when(tuple.getValueByField("message")).thenReturn(geoMessage);
-    joinBolt.execute(tuple);
-    verify(outputCollector, times(0)).emit(eq("message"), any(tuple.getClass()), any(Values.class));
-    verify(outputCollector, times(0)).ack(tuple);
-    when(tuple.getSourceStreamId()).thenReturn("host");
-    when(tuple.getValueByField("message")).thenReturn(hostMessage);
-    joinBolt.execute(tuple);
-    verify(outputCollector, times(0)).emit(eq("message"), any(tuple.getClass()), any(Values.class));
-    verify(outputCollector, times(0)).ack(tuple);
-    when(tuple.getSourceStreamId()).thenReturn("hbaseEnrichment");
-    when(tuple.getValueByField("message")).thenReturn(hbaseEnrichmentMessage);
-    joinBolt.execute(tuple);
-    when(tuple.getSourceStreamId()).thenReturn("stellar");
-    when(tuple.getValueByField("message")).thenReturn(new JSONObject());
-    verify(outputCollector, times(0)).emit(eq("message"), any(tuple.getClass()), eq(new Values(key, joinedMessage)));
-    joinBolt.execute(tuple);
-    verify(outputCollector, times(1)).emit(eq("message"), any(tuple.getClass()), eq(new Values(key, joinedMessage)));
-    verify(outputCollector, times(1)).ack(tuple);
+    verify(declarer, times(1)).declareStream(eq("error"), argThat(new FieldsMatcher("message")));
+    verifyNoMoreInteractions(declarer);
+  }
 
+  @Test
+  public void testExecute() {
+    joinBolt.withMaxCacheSize(100);
+    joinBolt.withMaxTimeRetain(10000);
+    joinBolt.prepare(new HashMap(), topologyContext, outputCollector);
+
+    Tuple geoTuple = mock(Tuple.class);
+    when(geoTuple.getValueByField("key")).thenReturn(key);
+    when(geoTuple.getSourceStreamId()).thenReturn("geo");
+    when(geoTuple.getValueByField("message")).thenReturn(geoMessage);
+    joinBolt.execute(geoTuple);
+
+    Tuple messageTuple = mock(Tuple.class);
+    when(messageTuple.getValueByField("key")).thenReturn(key);
+    when(messageTuple.getSourceStreamId()).thenReturn("message");
+    when(messageTuple.getValueByField("message")).thenReturn(sampleMessage);
+    joinBolt.execute(messageTuple);
+
+    Tuple hostTuple = mock(Tuple.class);
+    when(hostTuple.getValueByField("key")).thenReturn(key);
+    when(hostTuple.getSourceStreamId()).thenReturn("host");
+    when(hostTuple.getValueByField("message")).thenReturn(hostMessage);
+    joinBolt.execute(hostTuple);
+
+    Tuple hbaseEnrichmentTuple = mock(Tuple.class);
+    when(hbaseEnrichmentTuple.getValueByField("key")).thenReturn(key);
+    when(hbaseEnrichmentTuple.getSourceStreamId()).thenReturn("hbaseEnrichment");
+    when(hbaseEnrichmentTuple.getValueByField("message")).thenReturn(hbaseEnrichmentMessage);
+    joinBolt.execute(hbaseEnrichmentTuple);
+
+    Tuple stellarTuple = mock(Tuple.class);
+    when(stellarTuple.getValueByField("key")).thenReturn(key);
+    when(stellarTuple.getSourceStreamId()).thenReturn("stellar");
+    when(stellarTuple.getValueByField("message")).thenReturn(new JSONObject());
+    joinBolt.execute(stellarTuple);
+
+    verify(outputCollector, times(1)).emit(eq("message"), any(tuple.getClass()), eq(new Values(key, joinedMessage)));
+    verify(outputCollector, times(1)).ack(messageTuple);
+
+    verifyNoMoreInteractions(outputCollector);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testExecuteShouldReportError() throws ExecutionException {
+    joinBolt.withMaxCacheSize(100);
+    joinBolt.withMaxTimeRetain(10000);
+    joinBolt.prepare(new HashMap(), topologyContext, outputCollector);
+    when(tuple.getValueByField("key")).thenReturn(key);
+    when(tuple.getValueByField("message")).thenReturn(new JSONObject());
     joinBolt.cache = mock(LoadingCache.class);
     when(joinBolt.cache.get(key)).thenThrow(new ExecutionException(new Exception("join exception")));
-    joinBolt.execute(tuple);
 
+    joinBolt.execute(tuple);
+    ExecutionException expectedExecutionException = new ExecutionException(new Exception("join exception"));
     MetronError error = new MetronError()
             .withErrorType(Constants.ErrorType.ENRICHMENT_ERROR)
             .withMessage("Joining problem: {}")
-            .withThrowable(new ExecutionException(new Exception("join exception")))
+            .withThrowable(expectedExecutionException)
             .addRawMessage(new JSONObject());
     verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), argThat(new MetronErrorJSONMatcher(error.getJSONObject())));
+    verify(outputCollector, times(1)).reportError(any(ExecutionException.class));
+    verify(outputCollector, times(1)).ack(eq(tuple));
+    verifyNoMoreInteractions(outputCollector);
   }
 }

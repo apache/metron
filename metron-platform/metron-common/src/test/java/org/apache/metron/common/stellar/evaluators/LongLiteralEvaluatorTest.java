@@ -49,8 +49,8 @@ public class LongLiteralEvaluatorTest {
   public void verifyHappyPathEvaluation() throws Exception {
     when(context.getText()).thenReturn("100L");
 
-    Token<? extends Number> evaluated = evaluator.evaluate(context);
-    assertEquals(new Token<>(100L, Long.class), evaluated);
+    Token<? extends Number> evaluated = evaluator.evaluate(context, null);
+    assertEquals(new Token<>(100L, Long.class, null), evaluated);
 
     verify(context).getText();
     verifyNoMoreInteractions(context);
@@ -62,7 +62,7 @@ public class LongLiteralEvaluatorTest {
     exception.expectMessage("Invalid format for long. Failed trying to parse a long with the following value: ");
 
     when(context.getText()).thenReturn("");
-    evaluator.evaluate(context);
+    evaluator.evaluate(context, null);
   }
 
   @Test
@@ -70,6 +70,6 @@ public class LongLiteralEvaluatorTest {
     exception.expect(IllegalArgumentException.class);
     exception.expectMessage("Cannot evaluate a context that is null.");
 
-    evaluator.evaluate(null);
+    evaluator.evaluate(null, null);
   }
 }

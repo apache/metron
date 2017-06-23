@@ -83,6 +83,12 @@
         <display-name>Metron REST port</display-name>
     </property>
     <property>
+        <name>metron_management_ui_port</name>
+        <value>4200</value>
+        <description>Port the Management UI runs on</description>
+        <display-name>Management UI port</display-name>
+    </property>
+    <property>
         <name>metron_jvm_flags</name>
         <description>JVM flags passed to Metron scripts</description>
         <display-name>Metron JVM flags</display-name>
@@ -218,7 +224,7 @@
     <property require-input = "true">
         <name>storm_rest_addr</name>
         <display-name>Storm Rest Server Address</display-name>
-        <description>URL of Storm UI (storm.ui.hostname:8744)</description>
+        <description>URL of Storm UI (http://storm.ui.hostname:8744). If no protocol is provided, http is assumed.</description>
         <value></value>
     </property>
     <property require-input = "true">

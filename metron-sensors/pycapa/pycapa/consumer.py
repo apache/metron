@@ -23,7 +23,7 @@ import random
 import logging
 import time
 import struct
-from confluent_kafka import Consumer, KafkaException, KafkaError
+from confluent_kafka import Consumer, KafkaException, KafkaError, OFFSET_BEGINNING, OFFSET_END, OFFSET_STORED
 from common import to_date, to_hex, unpack_ts
 
 
@@ -56,16 +56,51 @@ def packet_header(msg):
     return hdr
 
 
+def seek_to_end(consumer, partitions):
+    """ Advance all partitions to the last offset. """
+
+    # advance to the end, ignoring any committed offsets
+    for p in partitions:
+        p.offset = OFFSET_END
+    consumer.assign(partitions)
+
+
+def seek_to_begin(consumer, partitions):
+    """ Advance all partitions to the first offset. """
+
+    # advance to the end, ignoring any committed offsets
+    for p in partitions:
+        p.offset = OFFSET_BEGINNING
+    consumer.assign(partitions)
+
+
+def seek_to_stored(consumer, partitions):
+    """ Advance all partitions to the stored offset. """
+
+    # advance to the end, ignoring any committed offsets
+    for p in partitions:
+        p.offset = OFFSET_STORED
+    consumer.assign(partitions)
+
+
 def consumer(args, poll_timeout=3.0):
     """ Consumes packets from a Kafka topic. """
 
     # setup the signal handler
     signal.signal(signal.SIGINT, signal_handler)
 
+    # where to start consuming messages from
+    kafka_offset_options = {
+        "begin": seek_to_begin,
+        "end": seek_to_end,
+        "stored": seek_to_stored
+    }
+    on_assign_cb = kafka_offset_options[args.kafka_offset]
+
     # connect to kafka
     logging.debug("Connecting to Kafka; %s", args.kafka_configs)
     kafka_consumer = Consumer(args.kafka_configs)
-    kafka_consumer.subscribe([args.kafka_topic])
+    kafka_consumer.subscribe([args.kafka_topic], on_assign=on_assign_cb)
 
     # if 'pretty-print' not set, write libpcap global header
     if args.pretty_print == 0:
@@ -85,8 +120,10 @@ def consumer(args, poll_timeout=3.0):
             elif msg.error():
 
                 if msg.error().code() == KafkaError._PARTITION_EOF:
-                    logging.debug("reached end of topar: topic=%s, partition=%d, offset=%s", msg.topic(), msg.partition(), msg.offset())
-                elif msg.error():
+                    if args.pretty_print > 0:
+                        print "Reached end of topar: topic=%s, partition=%d, offset=%s" % (
+                            msg.topic(), msg.partition(), msg.offset())
+                else:
                     raise KafkaException(msg.error())
 
             else:
@@ -103,9 +140,9 @@ def consumer(args, poll_timeout=3.0):
                 elif pkts_in % args.pretty_print == 0:
 
                     # pretty print
-                    print 'Packet: count=%s date=%s topic=%s' % (
-                        pkts_in, to_date(unpack_ts(msg.key())), args.kafka_topic)
-                    print to_hex(msg.value())
+                    print 'Packet[%s]: date=%s topic=%s partition=%s offset=%s len=%s' % (
+                        pkts_in, to_date(unpack_ts(msg.key())), args.kafka_topic,
+                        msg.partition(), msg.offset(), len(msg.value()))
 
     finally:
         sys.stdout.close()
