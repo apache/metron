@@ -17,7 +17,6 @@
  */
 package org.apache.metron.integration.components;
 
-import com.google.common.collect.Lists;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;

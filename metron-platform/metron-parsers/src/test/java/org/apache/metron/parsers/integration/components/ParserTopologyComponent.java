@@ -76,6 +76,9 @@ public class ParserTopologyComponent implements InMemoryComponent {
     this.outputTopic = outputTopic;
   }
 
+  public void updateSensorType(String sensorType) {
+    this.sensorType = sensorType;
+  }
 
   @Override
   public void start() throws UnableToStartException {

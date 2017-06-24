@@ -30,7 +30,11 @@ import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
 import org.apache.metron.test.TestDataType;
 import org.apache.metron.test.utils.SampleDataUtils;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
@@ -39,14 +43,15 @@ import java.util.*;
 public abstract class ParserIntegrationTest extends BaseIntegrationTest {
   protected static final String ERROR_TOPIC = "parser_error";
   protected List<byte[]> inputMessages;
-  @Test
-  public void test() throws Exception {
-    final String sensorType = getSensorType();
-    inputMessages = TestUtils.readSampleData(SampleDataUtils.getSampleDataPath(sensorType, TestDataType.RAW));
+  protected static ParserTopologyComponent parserTopologyComponent;
+  protected static KafkaComponent kafkaComponent;
+  protected static ConfigUploadComponent configUploadComponent;
+  protected static ComponentRunner runner;
 
+  @BeforeClass
+  public static void setupBeforeClass() throws UnableToStartException {
     final Properties topologyProperties = new Properties();
-    final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
-      add(new KafkaComponent.Topic(sensorType, 1));
+    kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
       add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
       add(new KafkaComponent.Topic(ERROR_TOPIC,1));
     }});
@@ -54,29 +59,87 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
 
     ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
 
-    ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
-            .withTopologyProperties(topologyProperties)
-            .withGlobalConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
-            .withParserConfigsPath(TestConstants.PARSER_CONFIGS_PATH);
+    configUploadComponent = new ConfigUploadComponent()
+        .withTopologyProperties(topologyProperties)
+        .withGlobalConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
+        .withParserConfigsPath(TestConstants.PARSER_CONFIGS_PATH);
 
-    ParserTopologyComponent parserTopologyComponent = new ParserTopologyComponent.Builder()
-            .withSensorType(sensorType)
-            .withTopologyProperties(topologyProperties)
-            .withOutputTopic(Constants.ENRICHMENT_TOPIC)
-            .withBrokerUrl(kafkaComponent.getBrokerList()).build();
+    parserTopologyComponent = new ParserTopologyComponent.Builder()
+        .withTopologyProperties(topologyProperties)
+        .withOutputTopic(Constants.ENRICHMENT_TOPIC)
+        .withBrokerUrl(kafkaComponent.getBrokerList()).build();
 
     //UnitTestHelper.verboseLogging();
-    ComponentRunner runner = new ComponentRunner.Builder()
-            .withComponent("zk", zkServerComponent)
-            .withComponent("kafka", kafkaComponent)
-            .withComponent("config", configUploadComponent)
-            .withComponent("org/apache/storm", parserTopologyComponent)
-            .withMillisecondsBetweenAttempts(5000)
-            .withNumRetries(10)
-            .withCustomShutdownOrder(new String[] {"org/apache/storm","config","kafka","zk"})
-            .build();
-    try {
-      runner.start();
+    runner = new ComponentRunner.Builder()
+        .withComponent("zk", zkServerComponent)
+        .withComponent("kafka", kafkaComponent)
+        .withComponent("config", configUploadComponent)
+        .withComponent("org/apache/storm", parserTopologyComponent)
+        .withMillisecondsBetweenAttempts(5000)
+        .withNumRetries(10)
+        .withCustomStartupOrder(new String[] {"zk", "kafka", "config"}) // Skip starting Parser Topology and config
+        .withCustomShutdownOrder(new String[] {"org/apache/storm","config","kafka","zk"})
+        .build();
+
+    runner.start();
+  }
+
+  @AfterClass
+  public static void teardownAfterClass() {
+    runner.stop();
+  }
+
+  @Before
+  public void setup() {
+  }
+
+  @After
+  public void teardown() {
+    runner.reset();
+  }
+
+  @Test
+  public void test() throws Exception {
+    String sensorType = getSensorType();
+    inputMessages = TestUtils.readSampleData(SampleDataUtils.getSampleDataPath(sensorType, TestDataType.RAW));
+    parserTopologyComponent.updateSensorType(sensorType);
+    parserTopologyComponent.start();
+
+    kafkaComponent.createTopic(sensorType, 1, true);
+
+//    final Properties topologyProperties = new Properties();
+//    final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
+//      add(new KafkaComponent.Topic(sensorType, 1));
+//      add(new KafkaComponent.Topic(Constants.ENRICHMENT_TOPIC, 1));
+//      add(new KafkaComponent.Topic(ERROR_TOPIC,1));
+//    }});
+//    topologyProperties.setProperty("kafka.broker", kafkaComponent.getBrokerList());
+
+//    ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
+//
+//    ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
+//            .withTopologyProperties(topologyProperties)
+//            .withGlobalConfigsPath(TestConstants.SAMPLE_CONFIG_PATH)
+//            .withParserConfigsPath(TestConstants.PARSER_CONFIGS_PATH);
+//
+//    ParserTopologyComponent parserTopologyComponent = new ParserTopologyComponent.Builder()
+//            .withSensorType(sensorType)
+//            .withTopologyProperties(topologyProperties)
+//            .withOutputTopic(Constants.ENRICHMENT_TOPIC)
+//            .withBrokerUrl(kafkaComponent.getBrokerList()).build();
+
+    //UnitTestHelper.verboseLogging();
+//    ComponentRunner runner = new ComponentRunner.Builder()
+//            .withComponent("zk", zkServerComponent)
+//            .withComponent("kafka", kafkaComponent)
+//            .withComponent("config", configUploadComponent)
+//            .withComponent("org/apache/storm", parserTopologyComponent)
+//            .withMillisecondsBetweenAttempts(5000)
+//            .withNumRetries(10)
+//            .withCustomShutdownOrder(new String[] {"org/apache/storm","config","kafka","zk"})
+//            .build();
+//    try {
+//      runner.start();
       kafkaComponent.writeMessages(sensorType, inputMessages);
       ProcessorResult<List<byte[]>> result = runner.process(getProcessor());
       List<byte[]> outputMessages = result.getResult();
@@ -99,9 +162,9 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
           }
         }
       }
-    } finally {
-      runner.stop();
-    }
+//    } finally {
+//      runner.stop();
+//    }
   }
 
   public void dumpParsedMessages(List<byte[]> outputMessages, StringBuffer buffer) {
