@@ -22,6 +22,7 @@ import com.google.common.base.Function;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import kafka.admin.AdminUtils;
 import kafka.api.FetchRequest;
 import kafka.api.FetchRequestBuilder;
 import kafka.common.TopicExistsException;
@@ -56,7 +57,6 @@ import java.util.logging.Level;
 public class KafkaComponent implements InMemoryComponent {
 
   protected static final Logger LOG = LoggerFactory.getLogger(KafkaComponent.class);
-  private static final String TMP_KAFKA_LOGS = "/tmp/kafka-logs";
 
   public static class Topic {
     public int numPartitions;
@@ -156,9 +156,6 @@ public class KafkaComponent implements InMemoryComponent {
     // setup Broker
     Properties props = TestUtilsWrapper.createBrokerConfig(0, zookeeperConnectString, brokerPort);
     props.setProperty("zookeeper.connection.timeout.ms","1000000");
-    props.setProperty("log.dir", TMP_KAFKA_LOGS);
-
-    props.setProperty("delete.topic.enable", "true");
     KafkaConfig config = new KafkaConfig(props);
     Time mock = new MockTime();
     kafkaServer = TestUtils.createServer(config, mock);
@@ -187,22 +184,12 @@ public class KafkaComponent implements InMemoryComponent {
 
   @Override
   public void stop() {
-    // Catch any exception in case things have already been cleared out from another component or reset.
-    try {
-      shutdownConsumer();
-      shutdownProducers();
-    } catch (Exception e) {
-      // Do nothing
-    }
+    shutdownConsumer();
+    shutdownProducers();
 
     if(kafkaServer != null) {
       kafkaServer.shutdown();
       kafkaServer.awaitShutdown();
-      try {
-        FileUtils.deleteDirectory(new File(TMP_KAFKA_LOGS));
-      } catch (IOException e) {
-        // Do nothing
-      }
     }
     if(zkClient != null) {
       zkClient.close();
@@ -211,45 +198,10 @@ public class KafkaComponent implements InMemoryComponent {
 
   @Override
   public void reset() {
-    // Catch any exception in case things have already been cleared out from another component or reset.
-    try {
-      shutdownConsumer();
-      shutdownProducers();
-    } catch (Exception e) {
-       // Do nothing
-    }
-
-
-    // Delete the actual data.
-    if(kafkaServer != null) {
-      for(File f: FileUtils.getFile(TMP_KAFKA_LOGS).listFiles()) {
-        // Delete any data files
-        if (f.getName().endsWith(".log") || f.getName().endsWith(".index")) {
-          boolean delete = f.delete();
-          if (!delete) {
-            throw new IllegalStateException("Unable to delete Kafka data at: " + f.getAbsolutePath());
-          }
-        }
-
-        // Delete any directories (consumer offsets and data)
-        if (f.isDirectory()) {
-          try {
-            FileUtils.deleteDirectory(f);
-          } catch (IOException e) {
-            throw new IllegalStateException("Unable to delete Kafka data at: " + f.getAbsolutePath());
-          }
-        }
-      }
-    }
-
-    // Delete data in ZK
-    if(zkClient != null) {
-      for(Topic topic : topics) {
-        System.err.println("******* Topic path is: " + ZkUtils.getTopicPath(topic.name));
-        zkClient.deleteRecursive(ZkUtils.getTopicPath(topic.name));
-      }
-      zkClient.deleteRecursive(ZkUtils.ConsumersPath());
-    }
+    // Unfortunately, there's no clean way to (quickly) purge or delete a topic.
+    // At least without killing and restarting broker anyway.
+    stop();
+    start();
   }
 
   public List<byte[]> readMessages(String topic) {

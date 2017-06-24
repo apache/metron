@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -155,6 +155,8 @@ public class FluxTopologyComponent implements InMemoryComponent {
     if (stormCluster != null) {
       try {
           try {
+            // Kill the topology directly instead of sitting through the wait period
+            killTopology();
             stormCluster.shutdown();
           } catch (IllegalStateException ise) {
             if (!(ise.getMessage().contains("It took over") && ise.getMessage().contains("to shut down slot"))) {
@@ -180,25 +182,19 @@ public class FluxTopologyComponent implements InMemoryComponent {
   @Override
   public void reset() {
     if (stormCluster != null) {
-      KillOptions ko = new KillOptions();
-      ko.set_wait_secs(0);
-      System.err.println("******* KILLING TOPOLOGY NAME: <" + topologyName +">");
-      System.err.println("****** TOPOLOGIES: " + Lists.newArrayList(stormCluster.getClusterInfo().get_topologies()));
-      stormCluster.killTopologyWithOpts(topologyName, ko);
-//      stormCluster.killTopology(topologyName);
-//      try {
-        // Actually wait for it to die.
-//        Thread.sleep(7500);
-//      } catch (InterruptedException e) {
-//         Do nothing
-//      }
-//      try {
-//        System.err.println("******* SLEEP DONE: " + new Date());
-        System.err.println("****** TOPOLOGIES: " + Lists.newArrayList(stormCluster.getClusterInfo().get_topologies()));
-//        System.err.println("******* Topo status: " + stormCluster.getTopologyInfo(topologyName));
-//      } catch(Exception e) {
-        // Do nothing
-//      }
+      killTopology();
+    }
+  }
+
+  protected void killTopology() {
+    KillOptions ko = new KillOptions();
+    ko.set_wait_secs(0);
+    stormCluster.killTopologyWithOpts(topologyName, ko);
+    try {
+      // Actually wait for it to die.
+      Thread.sleep(2000);
+    } catch (InterruptedException e) {
+      // Do nothing
     }
   }
 
@@ -218,7 +214,6 @@ public class FluxTopologyComponent implements InMemoryComponent {
   }
 
   public void submitTopology() throws NoSuchMethodException, IOException, InstantiationException, TException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, NoSuchFieldException {
-    System.err.println("****** STARTING TOPOLOGY: <" + getTopologyName() + ">");
     startTopology(getTopologyName(), getTopologyLocation(), getTopologyProperties());
   }
 
@@ -230,13 +225,9 @@ public class FluxTopologyComponent implements InMemoryComponent {
     Assert.assertNotNull(topology);
     topology.validate();
     try {
-      System.err.println("****** TOPOLOGIES (STARTING): " + Lists.newArrayList(stormCluster.getClusterInfo().get_topologies()));
       stormCluster.submitTopology(topologyName, conf, topology);
-      System.err.println("****** TOPOLOGIES (STARTED): " + Lists.newArrayList(stormCluster.getClusterInfo().get_topologies()));
     }
     catch(Exception nne) {
-      System.err.println("Caught exception");
-      nne.printStackTrace();
       try {
         Thread.sleep(2000);
       } catch (InterruptedException e) {

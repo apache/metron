@@ -184,20 +184,4 @@ public class ElasticSearchComponent implements InMemoryComponent {
         node = null;
         client = null;
     }
-
-    @Override
-    public void reset() {
-        String[] indices = client.admin()
-            .indices()
-            .getIndex(new GetIndexRequest())
-            .actionGet()
-            .getIndices();
-        for(String index : indices) {
-            client
-                .admin()
-                .indices()
-                .delete(new DeleteIndexRequest(index))
-                .actionGet();
-        }
-    }
 }

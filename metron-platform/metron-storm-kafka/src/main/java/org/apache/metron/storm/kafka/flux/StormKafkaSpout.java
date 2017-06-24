@@ -48,10 +48,7 @@ public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
   @Override
   public void deactivate() {
     try {
-      System.err.println("***** DEACTIVATING SPOUT: " + new Date());
-      System.err.println("***** DEACT SPOUT: " + Arrays.toString(new Throwable().getStackTrace()));
       super.deactivate();
-      System.err.println("***** DEACTIVATED SPOUT: " + new Date());
     }
     catch(WakeupException we) {
       //see https://issues.apache.org/jira/browse/STORM-2184
@@ -65,13 +62,10 @@ public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
   @Override
   public void close() {
     try {
-      System.err.println("***** CLOSING SPOUT: " + new Date());
-      System.err.println("***** CLOSING SPOUT: " + Arrays.toString(new Throwable().getStackTrace()));
       if(!isShutdown.get()) {
         super.close();
         isShutdown.set(true);
       }
-      System.err.println("***** CLOSED SPOUT: " + new Date());
     }
     catch(WakeupException we) {
       //see https://issues.apache.org/jira/browse/STORM-2184
