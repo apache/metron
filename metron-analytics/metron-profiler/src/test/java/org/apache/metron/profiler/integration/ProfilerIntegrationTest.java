@@ -291,7 +291,6 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
         .map(m -> Collections.nCopies(5, m))
         .flatMap(l -> l.stream())
         .collect(Collectors.toList());
-    System.err.println("*** INPUT NEW: " + inputNew);
 
     // create input messages for the profiler to consume
     input = Stream.of(message1, message2, message3)
@@ -335,8 +334,6 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     // upload profiler configuration to zookeeper
     configUploadComponent = new ConfigUploadComponent()
             .withTopologyProperties(topologyProperties);
-//            .withGlobalConfiguration(pathToConfig)
-//            .withProfilerConfiguration(pathToConfig);
 
     // load flux definition for the profiler topology
     fluxComponent = new FluxTopologyComponent.Builder()
