@@ -57,6 +57,7 @@ import java.util.logging.Level;
 public class KafkaComponent implements InMemoryComponent {
 
   protected static final Logger LOG = LoggerFactory.getLogger(KafkaComponent.class);
+  protected static String logDir = "";
 
   public static class Topic {
     public int numPartitions;
@@ -157,6 +158,7 @@ public class KafkaComponent implements InMemoryComponent {
     Properties props = TestUtilsWrapper.createBrokerConfig(0, zookeeperConnectString, brokerPort);
     props.setProperty("zookeeper.connection.timeout.ms","1000000");
     KafkaConfig config = new KafkaConfig(props);
+    logDir = config.getString("log.dir");
     Time mock = new MockTime();
     kafkaServer = TestUtils.createServer(config, mock);
 
@@ -192,6 +194,23 @@ public class KafkaComponent implements InMemoryComponent {
       kafkaServer.awaitShutdown();
     }
     if(zkClient != null) {
+      // Delete data in ZK to avoid startup interference.
+      for(Topic topic : topics) {
+        zkClient.deleteRecursive(ZkUtils.getTopicPath(topic.name));
+      }
+
+      zkClient.deleteRecursive(ZkUtils.BrokerIdsPath());
+      zkClient.deleteRecursive(ZkUtils.BrokerTopicsPath());
+      zkClient.deleteRecursive(ZkUtils.ConsumersPath());
+      zkClient.deleteRecursive(ZkUtils.ControllerPath());
+      zkClient.deleteRecursive(ZkUtils.ControllerEpochPath());
+      zkClient.deleteRecursive(ZkUtils.ReassignPartitionsPath());
+      zkClient.deleteRecursive(ZkUtils.DeleteTopicsPath());
+      zkClient.deleteRecursive(ZkUtils.PreferredReplicaLeaderElectionPath());
+      zkClient.deleteRecursive(ZkUtils.BrokerSequenceIdPath());
+      zkClient.deleteRecursive(ZkUtils.IsrChangeNotificationPath());
+      zkClient.deleteRecursive(ZkUtils.EntityConfigPath());
+      zkClient.deleteRecursive(ZkUtils.EntityConfigChangesPath());
       zkClient.close();
     }
   }
