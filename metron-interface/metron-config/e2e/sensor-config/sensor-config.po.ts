@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { browser, element, by, protractor } from 'protractor/globals';
+import { browser, element, by, protractor } from 'protractor';
 import {changeURL, waitForElementVisibility, waitForElementInVisibility, waitForElementPresence} from '../utils/e2e_util';
 
 export class SensorConfigPage {
