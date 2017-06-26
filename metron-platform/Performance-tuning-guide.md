@@ -12,27 +12,122 @@ for streaming PCAP data to HDFS. We found that the architecture can be tuned alm
 Kafka parameters along with a few Metron-specific options. You can think of the data flow as being similar to water flowing through a
 pipe, and the majority of these options assist in tweaking the various pipe widths in the system.
 
-## General Suggestions
+## General Tuning Suggestions
 
 Note that there is currently no method for specifying the number of tasks from the number of executors in Flux topologies (enrichment,
  indexing). By default, the number of tasks will equal the number of executors. Logically, setting the number of tasks equal to the number
-of executors is sensible. Storm enforces # executors <= # tasks. The reason you might set the number of tasks higher than the number of
+of executors is sensible. Storm enforces num executors <= num tasks. The reason you might set the number of tasks higher than the number of
 executors is for future performance tuning and rebalancing without the need to bring down your topologies. The number of tasks is fixed
 at topology startup time whereas the number of executors can be increased up to a maximum value equal to the number of tasks.
 
-We found that the default values for poll.timeout.ms, offset.commit.period.ms, and max.uncommitted.offsets worked well in nearly all cases.
+When configuring Storm Kafka spouts, we found that the default values for poll.timeout.ms, offset.commit.period.ms, and max.uncommitted.offsets worked well in nearly all cases.
 As a general rule, it was optimal to set spout parallelism equal to the number of partitions used in your Kafka topic. Any greater
 parallelism will leave you with idle consumers since Kafka limits the max number of consumers to the number of partitions. This is
 important because Kafka has certain ordering guarantees for message delivery per partition that would not be possible if more than
 one consumer in a given consumer group were able to read from that partition.
 
-## Tooling
+## Component Tuning Levers
 
-Before we get to the actual tooling used to monitor performance, it helps to describe what we might actually want to monitor and potential
+- Kafka
+    - Number partitions
+- Storm
+    - Kafka spout
+        - Polling frequency
+        - Polling timeouts
+        - Offset commit period
+        - Max uncommitted offsets
+    - Number workers (OS processes)
+    - Number executors (threads in a process)
+    - Number ackers
+    - Max spout pending
+    - Spout and bolt parallelism
+- HDFS
+    - Replication factor
+
+### Kafka Tuning
+
+The main lever you're going to work with when tuning Kafka throughput will be the number of partitions. A handy method for deciding how many partitions to use
+is to first calculate the throughput for a single producer (p) and a single consumer (c), and then use that with the desired throughput (t) to roughly estimate the number
+of partitions to use. You would want at least max(t/p, t/c) partitions to attain the desired throughput. https://www.confluent.io/blog/how-to-choose-the-number-of-topicspartitions-in-a-kafka-cluster/
+
+### Storm Tuning
+
+There are quite a few options you will be confronted with when tuning your Storm topologies and this is largely trial and error. As a general rule of thumb,
+we recommend starting with the defaults and smaller numbers in terms of parallelism while iteratively working up until the desired performance is achieved.
+You will find the offset lag tool indispensable while verifying your settings.
+
+We won't go into a full discussion about Storm's architecture - see references section for more info - but there are some general rules of thumb that should be
+followed. It's first important to understand the ways you can impact parallelism in a Storm topology.
+- num tasks
+- num executors (parallelism hint)
+- num workers
+
+Tasks are instances of a given spout or bolt, executors are threads in a process, and workers are jvm processes. You'll want the number of tasks as a multiple of the number of executors,
+the number of executors as multiple of the number of workers, and the number of workers as a multiple of the number of machines. The main reason for this approach is
+ that it will give a uniform distribution of work to each machine and jvm process. More often than not, your number of tasks will be equal to the number of executors, which
+ is the default in Storm. Flux does not actually provide a way to independently set number of tasks, so for enrichments and indexing which use Flux, num tasks will always equal
+ num executors.
+
+You can change the number of workers via the property `topology.workers`
+
+__Other Storm Settings__
+
+```
+topology.max.spout.pending
+```
+This is the maximum number of tuples that can be in flight (ie, not yet acked) at any given time within your topology. You set this as a form of backpressure to ensure
+you don't flood your topology.
+
+```
+topology.ackers.executors
+```
+This specifies how many threads should be dedicated to tuple acking. We found that setting this equal to the number of partitions in your inbound Kafka topic worked well.
+
+__spout-config.json__
+```
+{
+    ...
+    "spout.pollTimeoutMs" : 200,
+    "spout.maxUncommittedOffsets" : 10000000,
+    "spout.offsetCommitPeriodMs" : 30000
+}
+```
+
+These are the spout recommended defaults from Storm and are currently the defaults provided in the Kafka spout itself. In fact, if you find the recommended defaults work fine for you,
+then you can omit these settings altogether.
+
+## Use Case Specific Tuning Suggestions
+
+The below discussion outlines a specific tuning exercise we went through for driving 1 Gbps of traffic through a Metron cluster running with 4 Kafka brokers and 4
+Storm Supervisors.
+
+General machine specs
+- 10 Gb network cards
+- 256 GB memory
+- 12 disks
+- 32 cores
+
+### Performance Monitoring Tools
+
+Before we get to tuning our cluster, it helps to describe what we might actually want to monitor as well as any potential
 pain points. Prior to switching over to the new Storm Kafka client, which leverages the new Kafka consumer API under the hood, offsets
 were stored in Zookeeper. While the broker hosts are still stored in Zookeeper, this is no longer true for the offsets which are now
 stored in Kafka itself. This is a configurable option, and you may switch back to Zookeeper if you choose, but Metron is currently using
-the new defaults. This is useful to know as you're investigating both correctness as well as throughput performance.
+the new defaults. With this in mind, there are some useful tools that come with Storm and Kafka that we can use to monitor our topologies.
+
+#### Tooling
+
+Kafka
+
+- consumer group offset lag viewer
+- There is a GUI tool to make creating, modifying, and generally managing your Kafka topics a bit easier - see https://github.com/yahoo/kafka-manager
+- console consumer - useful for quickly verifying topic contents
+
+Storm
+
+- Storm UI - http://www.malinga.me/reading-and-understanding-the-storm-ui-storm-ui-explained/
+
+#### Example - Viewing Kafka Offset Lags
 
 First we need to setup some environment variables
 ```
@@ -91,38 +186,15 @@ watch -n 10 -d ${KAFKA_HOME}/bin/kafka-consumer-groups.sh \
 Every 10 seconds the command will re-run and the screen will be refreshed with new information. The most useful bit is that the
 watch command will highlight the differences from the current output and the last output screens.
 
-We can also monitor our Storm topologies by using the Storm UI - see http://www.malinga.me/reading-and-understanding-the-storm-ui-storm-ui-explained/
+### Parser Tuning
 
-And lastly, you can leverage some GUI tooling to make creating and modifying your Kafka topics a bit easier -
-see https://github.com/yahoo/kafka-manager
+We'll be using the bro sensor in this example. Note that the parsers and PCAP use a builder utility, as opposed to enrichments and indexing, which use Flux.
 
-## General Knobs and Levers
+We started with a single partition for the inbound Kafka topics and eventually worked our way up to 48. And We're using the following pending value, as shown below.
+The default is 'null' which would result in no limit.
 
-Kafka
-    - # partitions
-Storm
-    Kafka
-        - polling frequency and timeouts
-    - # workers
-    - ackers
-    - max spout pending
-    - spout parallelism
-    - bolt parallelism
-    - # executors
-Metron
-    - bolt cache size - handles how many messages can be cached. This cache is used while waiting for all parts of the message to be rejoined.
-
-## Topologies
-
-### Parsers
-
-The parsers and PCAP use a builder utility, as opposed to enrichments and indexing, which use Flux.
-
-We set the number of partitions for our inbound Kafka topics to 48.
-
+__storm-bro.config__
 ```
-$ cat ~metron/.storm/storm-bro.config
-
 {
     ...
     "topology.max.spout.pending" : 2000
@@ -130,10 +202,10 @@ $ cat ~metron/.storm/storm-bro.config
 }
 ```
 
-These are the spout recommended defaults from Storm and are currently the defaults provided in the Kafka spout itself.
-In fact, if you find the recommended defaults work fine for you, then this file might not be necessary at all.
+And the following default spout settings. Again, this can be ommitted entirely since we are using the defaults.
+
+__spout-bro.config__
 ```
-$ cat ~/.storm/spout-bro.config
 {
     ...
     "spout.pollTimeoutMs" : 200,
@@ -142,7 +214,8 @@ $ cat ~/.storm/spout-bro.config
 }
 ```
 
-We ran our bro parser topology with the following options
+And we ran our bro parser topology with the following options. We did not need to fully match the number of Kafka partitions with our parallelism in this case,
+though you could certainly do so if necessary. Notice that we only needed 1 worker.
 
 ```
 /usr/metron/0.4.0/bin/start_parser_topology.sh -k $BROKERLIST -z $ZOOKEEPER -s bro -ksp SASL_PLAINTEXT
@@ -179,23 +252,22 @@ From the usage docs, here are the options we've used. The full reference can be 
 -pp,--parser_p <PARALLELISM_HINT>              Parser Parallelism Hint
 ```
 
-### Enrichment
+### Enrichment Tuning
 
-Kafka - partitions setup
-    bro topic set to 48 partitions (referenced in the parser settings above)
-    indexing topic set to 48 partitions
+We landed on the same number of partitions for enrichemnt and indexing as we did for bro - 48.
 
-Here are the settings we changed for bro in Flux. Note that the main Metron-specific option we've changed to accomodate the desired rate
-of data throughput is max cache size in the join bolts. More information on Flux can be found here - http://storm.apache.org/releases/1.0.1/flux.html
+For configuring Storm, there is a flux file and properties file that we modified. Here are the settings we changed for bro in Flux.
+Note that the main Metron-specific option we've changed to accomodate the desired rate of data throughput is max cache size in the join bolts.
+More information on Flux can be found here - http://storm.apache.org/releases/1.0.1/flux.html
 
-general storm settings
+__general storm settings__
 ```
 topology.workers: 8
 topology.acker.executors: 48
 topology.max.spout.pending: 2000
 ```
 
-Spout and Bolt Settings
+__Spout and Bolt Settings__
 ```
 kafkaSpout
     parallelism=48
@@ -220,9 +292,11 @@ outputBolt
     parallelism=48
 ```
 
-### Indexing (HDFS)
+### Indexing (HDFS) Tuning
 
-Here are the batch size settings for the bro index
+There are 48 partitions set for the indexing partition, per the enrichment exercise above.
+
+These are the batch size settings for the bro index
 
 ```
 cat ${METRON_HOME}/config/zookeeper/indexing/bro.json
@@ -235,16 +309,16 @@ cat ${METRON_HOME}/config/zookeeper/indexing/bro.json
 }
 ```
 
-Below are the settings we used for the indexing topology
+And here are the settings we used for the indexing topology
 
-General storm settings
+__General storm settings__
 ```
 topology.workers: 4
 topology.acker.executors: 24
 topology.max.spout.pending: 2000
 ```
 
-Spout and Bolt Settings
+__Spout and Bolt Settings__
 ```
 hdfsSyncPolicy
     org.apache.storm.hdfs.bolt.sync.CountSyncPolicy
@@ -263,18 +337,18 @@ hdfsIndexingBolt
     parallelism: 24
 ```
 
-### PCAP
+### PCAP Tuning
 
 PCAP is a specialized topology that is a Spout-only topology. Both Kafka topic consumption and HDFS writing is done within a spout to
 avoid the additional network hop required if using an additional bolt.
 
-General Storm topology properties
+__General Storm topology properties__
 ```
 topology.workers=16
 topology.ackers.executors: 0
 ```
 
-Spout and Bolt properties
+__Spout and Bolt properties__
 ```
 kafkaSpout
     parallelism: 128
@@ -323,4 +397,5 @@ modifying the options outlined above, increasing the poll timeout, or both.
 * https://stackoverflow.com/questions/17257448/what-is-the-task-in-storm-parallelism
 * http://storm.apache.org/releases/current/Understanding-the-parallelism-of-a-Storm-topology.html
 * http://www.malinga.me/reading-and-understanding-the-storm-ui-storm-ui-explained/
+* https://www.confluent.io/blog/how-to-choose-the-number-of-topicspartitions-in-a-kafka-cluster/
 
