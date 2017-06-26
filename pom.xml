@@ -97,7 +97,7 @@
         <global_guava_version>17.0</global_guava_version>
         <global_hbase_guava_version>12.0</global_hbase_guava_version>
         <global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
-        <global_slf4j_version>1.7.7</global_slf4j_version>
+        <global_slf4j_version>1.7.21</global_slf4j_version>
         <global_opencsv_version>3.7</global_opencsv_version>
         <global_java_version>1.8</global_java_version>
         <global_solr_version>5.2.1</global_solr_version>
