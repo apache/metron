@@ -90,23 +90,6 @@ public class PcapTopologyIntegrationTest {
   }
 
   @Test
-  public void testTimestampInPacket() throws Exception {
-    testTopology(new Function<Properties, Void>() {
-      @Nullable
-      @Override
-      public Void apply(@Nullable Properties input) {
-        input.setProperty("kafka.pcap.ts_scheme", Deserializers.FROM_PACKET.toString());
-        return null;
-      }
-    }, (kafkaComponent, pcapEntries) -> kafkaComponent.writeMessages( KAFKA_TOPIC
-                                                                    , Collections2.transform(pcapEntries
-                                                                                            , input -> input.getValue()
-                                                                                            )
-                                                                    )
-    , true
-               );
-  }
-  @Test
   public void testTimestampInKey() throws Exception {
     testTopology(new Function<Properties, Void>() {
       @Nullable
