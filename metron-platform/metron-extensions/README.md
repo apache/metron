@@ -1,6 +1,6 @@
 # Metron Extensions
 
-[Metron Extensions](extension_terms.md/#metron-extensions) allow the Metron system to be extended with new capabilities and support for new types of data.
+[Metron Extensions](extension_terms.md#metron-extensions) allow the Metron system to be extended with new capabilities and support for new types of data.
 Extensions may be new telemetry parsers or libraries of Stellar functions (Coming Soon).
 
 Providing an extension mechanism, which includes maven archetype support, installation and loading is important not only for allowing new capabilities to be added to Metron,
@@ -8,7 +8,7 @@ but for allowing those capabilities to be developed and maintained outside the M
 
 ## Exposing functionality
 
-[Metron Extensions](extension_terms.md/#metron-extensions) expose functionality through the [ClassIndex Library](https://github.com/atteo/classindex).
+[Metron Extensions](extension_terms.md#metron-extensions) expose functionality through the [ClassIndex Library](https://github.com/atteo/classindex).
 The default dependency on ClassIndex produced by the Metron Extension archetypes ensures that any classes in an
 extension bundle that derive from an interface or base class in the system are exposed automatically at compile time
 without the need to manual expose provided service interfaces ( such as you would have to do with ServiceLoader implementations).
@@ -31,11 +31,11 @@ more than one parser classes, each with it's own configurations but sharing a bu
 
 ### Parsers
 
-The parsers that are developed and deployed with Metron are developed as [Metron Extensions](extension_terms/#metron-extensions.md) as well.
+The parsers that are developed and deployed with Metron are developed as [Metron Extensions](extension_terms.md#metron-extensions) as well.
 See [Adding a new Parser to Metron System](metron-parser-extensions/adding_system_parsers.md) for a guide to adding a new parser to be built and deployed as part of Metron itself.
 
 
 
 [Extension Packaging](extension_packaging.md)
-[Extension Glossary](extension_terms.md)
+[Extension Terms](extension_terms.md)
 
