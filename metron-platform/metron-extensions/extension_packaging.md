@@ -1,33 +1,16 @@
 # Metron Extension Packaging
 
+Metron Extensions have varied packaging, as it is defined by the extension type and it's requirements.
+
+## The Package
+
+The package itself is a tar.gz file created at build time.  The configuration for this packaging
+in the project as produced by the specific extension archetype, and within the
+XXXX-assembly module, specifically in the src/main/assembly/assembly.xml file.
 
 
-Extensions are packaged as a .tar.gz composed of its:
-
-- Configurations
-- Patterns
-- Bundle
 
 
-## Configurations
+See specific extension packaging information
 
-The extension's configurations may vary by type, but would include:
-
-- Configurations to be loaded into Zookeeper
-- [TBD] Log rotation scripts
-- [TBD] Elasticsearch tempates
-
-## Patterns
-
-These may be Grok patterns used by a parser
-
-## Bundle
-
-Bundles are the runtime components of an extension.
-
-A bundle is jar package that includes the extension jar file, and all of it's dependency jars ( that are not provided by the system).
-It also includes some metadata about the extension.
-
-Bundles are deployed into the system in HDFS, and are unpacked and loaded into applications that use extensions.
-Each bundle is loaded with it's own classloader, which will allow for isolation of dependencies between extensions (for things not loaded by
-by the host application itself).
+- [Parser Extension Packaging](metron-parser-extensions/parser_extension_packaging.md)

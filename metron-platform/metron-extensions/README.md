@@ -6,6 +6,12 @@ Extensions may be new telemetry parsers or libraries of Stellar functions (Comin
 Providing an extension mechanism, which includes maven archetype support, installation and loading is important not only for allowing new capabilities to be added to Metron,
 but for allowing those capabilities to be developed and maintained outside the Metron code tree, without the need or rather the requiement to fork the project in order to integrate changes.
 
+The may be multiple types of [Metron Extensions](extension_terms.md#metron-extensions), and each extension type will define it's own specific structure
+for packaging, and have it's own deployment and installation details.
+
+The important idea in [extension packaging](extension_packaging.md) is that a parser extension should be able to be deployed as a single
+self contained unit.
+
 ## Exposing functionality
 
 [Metron Extensions](extension_terms.md#metron-extensions) expose functionality through the [ClassIndex Library](https://github.com/atteo/classindex).
@@ -36,6 +42,5 @@ See [Adding a new Parser to Metron System](metron-parser-extensions/adding_syste
 
 
 
-[Extension Packaging](extension_packaging.md)
 [Extension Terms](extension_terms.md)
 
