@@ -157,9 +157,6 @@ public class FluxTopologyComponent implements InMemoryComponent {
     if (stormCluster != null) {
       try {
           try {
-            KillOptions ko = new KillOptions();
-            ko.set_wait_secs(0);
-            stormCluster.killTopologyWithOpts(topologyName, ko);
             stormCluster.shutdown();
           } catch (IllegalStateException ise) {
             if (!(ise.getMessage().contains("It took over") && ise.getMessage().contains("to shut down slot"))) {
@@ -191,7 +188,6 @@ public class FluxTopologyComponent implements InMemoryComponent {
       AutoCloseable slot = (AutoCloseable) t;
       try {
         slot.close();
-        t.stop();
       } catch (Exception e) {
         LOG.error("Tried to kill " + t.getName() + " but.." + e.getMessage(), e);
       }

@@ -114,9 +114,6 @@ public class ParserTopologyComponent implements InMemoryComponent {
     if (stormCluster != null) {
       try {
         try {
-          KillOptions ko = new KillOptions();
-          ko.set_wait_secs(0);
-          stormCluster.killTopologyWithOpts(sensorType, ko);
           stormCluster.shutdown();
         } catch (IllegalStateException ise) {
           if (!(ise.getMessage().contains("It took over") && ise.getMessage().contains("to shut down slot"))) {
