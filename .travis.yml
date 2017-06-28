@@ -27,5 +27,5 @@ cache:
   directories:
   - $HOME/.npm-cache
   - $HOME/.npm-prefix
-  - metron/metron-interface/metron-config/node_modules
+  - metron-interface/metron-config/node_modules
   - $HOME/.m2
