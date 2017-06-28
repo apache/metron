@@ -17,13 +17,14 @@ before_install:
   - export PATH=$M2_HOME/bin:$PATH
   - npm config set cache $HOME/.npm-cache --global 
   - npm config set prefix $HOME/.npm-prefix --global
-  - [ -d $HOME/.npm-local/node_modules ] && mv $HOME/.npm-local/node_modules metron/metron-interface/metron-config/node_modules || mkdir -p $HOME/.npm-local/node_modules
+  - bash metron/push_npm_cache.sh
 script:
   - |
     time mvn -q -T 2C -DskipTests install 
 before_cache:
   - rm -rf $HOME/.m2/repository/org/apache/metron
-  - [ -d metron/metron-interface/metron-config/node_modules ] && mv metron/metron-interface/metron-config/node_modules $HOME/.npm-local/node_modules
+  - bash metron/pop_npm_cache.sh
+
 cache:
   directories:
   - $HOME/.npm-cache
