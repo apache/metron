@@ -24,6 +24,7 @@ before_cache:
   - rm -rf $HOME/.m2/repository/org/apache/metron
 
 cache:
+  timeout: 1000
   directories:
   - $HOME/.npm-cache
   - $HOME/.npm-prefix
