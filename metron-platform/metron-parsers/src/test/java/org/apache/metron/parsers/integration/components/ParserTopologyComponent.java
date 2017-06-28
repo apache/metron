@@ -24,6 +24,7 @@ import org.apache.storm.topology.TopologyBuilder;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.parsers.topology.ParserTopologyBuilder;
+import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,6 +114,11 @@ public class ParserTopologyComponent implements InMemoryComponent {
     if (stormCluster != null) {
       try {
         try {
+          stormCluster.killTopology(sensorType);
+        }catch(Exception ex) {
+          LOG.error("Killing the topology directly didn't work, uh oh: " + ex.getMessage(), ex);
+        }
+        try {
           stormCluster.shutdown();
         } catch (IllegalStateException ise) {
           if (!(ise.getMessage().contains("It took over") && ise.getMessage().contains("to shut down slot"))) {
@@ -120,6 +126,7 @@ public class ParserTopologyComponent implements InMemoryComponent {
           }
           else {
             assassinateSlots();
+            Utils.threadDump();
             LOG.error("Storm slots didn't shut down entirely cleanly *sigh*.  " +
                     "I gave them the old one-two-skadoo and killed the slots with prejudice.  " +
                     "If tests fail, we'll have to find a better way of killing them.", ise);

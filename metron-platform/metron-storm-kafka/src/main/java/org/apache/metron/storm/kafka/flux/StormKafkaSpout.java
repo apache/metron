@@ -59,5 +59,13 @@ public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
       //see https://issues.apache.org/jira/browse/STORM-2184
       LOG.warn("You can generally ignore these, as per https://issues.apache.org/jira/browse/STORM-2184 -- " + we.getMessage(), we);
     }
+    catch(IllegalStateException ise) {
+      if(ise.getMessage().equalsIgnoreCase("This consumer has already been closed.")) {
+        LOG.error("We're already shutting down, but you should know: " + ise.getMessage(), ise);
+      }
+      else {
+        throw ise;
+      }
+    }
   }
 }

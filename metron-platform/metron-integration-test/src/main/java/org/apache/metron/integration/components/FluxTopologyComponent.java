@@ -24,6 +24,7 @@ import org.apache.curator.framework.imps.CuratorFrameworkImpl;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
+import org.apache.storm.generated.KillOptions;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.generated.TopologyInfo;
 import org.apache.metron.integration.InMemoryComponent;
@@ -33,6 +34,7 @@ import org.apache.storm.flux.model.ExecutionContext;
 import org.apache.storm.flux.model.TopologyDef;
 import org.apache.storm.flux.parser.FluxParser;
 import org.apache.storm.thrift.TException;
+import org.apache.storm.utils.Utils;
 import org.apache.zookeeper.data.Stat;
 import org.junit.Assert;
 import org.slf4j.Logger;
@@ -155,18 +157,24 @@ public class FluxTopologyComponent implements InMemoryComponent {
   public void stop() {
     if (stormCluster != null) {
       try {
-          try {
-            stormCluster.shutdown();
-          } catch (IllegalStateException ise) {
-            if (!(ise.getMessage().contains("It took over") && ise.getMessage().contains("to shut down slot"))) {
-              throw ise;
-            }
-            else {
-              assassinateSlots();
-              LOG.error("Storm slots didn't shut down entirely cleanly *sigh*.  " +
-                      "I gave them the old one-two-skadoo and killed the slots with prejudice.  " +
-                      "If tests fail, we'll have to find a better way of killing them.", ise);
-            }
+        try {
+          stormCluster.killTopology(topologyName);
+        }catch(Exception ex) {
+          LOG.error("Killing the topology directly didn't work, uh oh: " + ex.getMessage(), ex);
+        }
+        try {
+          stormCluster.shutdown();
+        } catch (IllegalStateException ise) {
+          if (!(ise.getMessage().contains("It took over") && ise.getMessage().contains("to shut down slot"))) {
+            throw ise;
+          }
+          else {
+            assassinateSlots();
+            Utils.threadDump();
+            LOG.error("Storm slots didn't shut down entirely cleanly *sigh*.  " +
+                    "I gave them the old one-two-skadoo and killed the slots with prejudice.  " +
+                    "If tests fail, we'll have to find a better way of killing them.", ise);
+          }
         }
       }
       catch(Throwable t) {

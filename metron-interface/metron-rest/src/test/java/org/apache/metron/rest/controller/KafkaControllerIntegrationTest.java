@@ -41,6 +41,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.util.NestedServletException;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -137,39 +138,79 @@ public class KafkaControllerIntegrationTest {
             .andExpect(status().isUnauthorized());
   }
 
+  interface Evaluation {
+    void tryTest() throws Exception;
+  }
+
+  private void testAndRetry(Evaluation evaluation) throws Exception{
+    testAndRetry(KAFKA_RETRY, evaluation);
+  }
+
+  private void testAndRetry(int numRetries, Evaluation evaluation) throws Exception {
+    AssertionError lastError = null;
+    for(int i = 0;i < numRetries;++i) {
+      try {
+        evaluation.tryTest();
+        return;
+      }
+      catch(AssertionError error) {
+        if(error.getMessage().contains("but was:<404>")) {
+          lastError = error;
+          Thread.sleep(1000);
+          continue;
+        }
+        else {
+          throw error;
+        }
+      }
+    }
+    if(lastError != null) {
+      throw lastError;
+    }
+  }
+
+
   @Test
   public void test() throws Exception {
     this.kafkaService.deleteTopic("bro");
     this.kafkaService.deleteTopic("someTopic");
     Thread.sleep(1000);
 
-    this.mockMvc.perform(delete(kafkaUrl + "/topic/bro").with(httpBasic(user,password)).with(csrf()))
-            .andExpect(status().isNotFound());
+    testAndRetry(() -> this.mockMvc.perform(delete(kafkaUrl + "/topic/bro").with(httpBasic(user,password)).with(csrf()))
+            .andExpect(status().isNotFound())
+    );
 
+    testAndRetry(() ->
     this.mockMvc.perform(post(kafkaUrl + "/topic").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broTopic))
             .andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.name").value("bro"))
             .andExpect(jsonPath("$.numPartitions").value(1))
-            .andExpect(jsonPath("$.replicationFactor").value(1));
+            .andExpect(jsonPath("$.replicationFactor").value(1))
+    );
 
     sampleDataThread.start();
     Thread.sleep(1000);
 
+
+    testAndRetry(() ->
     this.mockMvc.perform(get(kafkaUrl + "/topic/bro").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.name").value("bro"))
             .andExpect(jsonPath("$.numPartitions").value(1))
-            .andExpect(jsonPath("$.replicationFactor").value(1));
+            .andExpect(jsonPath("$.replicationFactor").value(1))
+    );
 
     this.mockMvc.perform(get(kafkaUrl + "/topic/someTopic").with(httpBasic(user,password)))
             .andExpect(status().isNotFound());
 
+    testAndRetry( () ->
     this.mockMvc.perform(get(kafkaUrl + "/topic").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$", Matchers.hasItem("bro")));
+            .andExpect(jsonPath("$", Matchers.hasItem("bro")))
+    );
     for(int i = 0;i < KAFKA_RETRY;++i) {
       MvcResult result = this.mockMvc.perform(get(kafkaUrl + "/topic/bro/sample").with(httpBasic(user, password)))
               .andReturn();
@@ -178,10 +219,12 @@ public class KafkaControllerIntegrationTest {
       }
       Thread.sleep(1000);
     }
+    testAndRetry( () ->
     this.mockMvc.perform(get(kafkaUrl + "/topic/bro/sample").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("text/plain;charset=UTF-8")))
-            .andExpect(jsonPath("$").isNotEmpty());
+            .andExpect(jsonPath("$").isNotEmpty())
+    );
 
     this.mockMvc.perform(get(kafkaUrl + "/topic/someTopic/sample").with(httpBasic(user,password)))
             .andExpect(status().isNotFound());
