@@ -19,7 +19,7 @@ before_install:
   - npm config set prefix $HOME/.npm-prefix --global
 script:
   - |
-    time mvn -q -T 2C -DskipTests install 
+    time mvn -T 2C -DskipTests install 
 before_cache:
   - rm -rf $HOME/.m2/repository/org/apache/metron
 
