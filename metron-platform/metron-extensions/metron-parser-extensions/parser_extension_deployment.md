@@ -104,8 +104,6 @@ extension_etc
     │   │       │   └── bro.json
     │   │       └── parsers
     │   │           └── bro.json
-    │   └── patterns
-    │       └── common
     ├── cef
     │   ├── config
     │   │   └── zookeeper
@@ -115,8 +113,6 @@ extension_etc
     │   │       │   └── cef.json
     │   │       └── parsers
     │   │           └── cef.json
-    │   └── patterns
-    │       └── common
     ├── fireeye
     │   ├── config
     │   │   └── zookeeper
@@ -138,8 +134,6 @@ extension_etc
     │   │       │   └── ise.json
     │   │       └── parsers
     │   │           └── ise.json
-    │   └── patterns
-    │       └── common
     ├── lancope
     │   ├── config
     │   │   └── zookeeper
@@ -149,8 +143,6 @@ extension_etc
     │   │       │   └── lancope.json
     │   │       └── parsers
     │   │           └── lancope.json
-    │   └── patterns
-    │       └── common
     ├── logstash
     │   ├── config
     │   │   └── zookeeper
@@ -160,8 +152,6 @@ extension_etc
     │   │       │   └── logstash.json
     │   │       └── parsers
     │   │           └── logstash.json
-    │   └── patterns
-    │       └── common
     ├── paloalto
     │   ├── config
     │   │   └── zookeeper
@@ -171,8 +161,6 @@ extension_etc
     │   │       │   └── paloalto.json
     │   │       └── parsers
     │   │           └── paloalto.json
-    │   └── patterns
-    │       └── common
     ├── snort
     │   ├── config
     │   │   ├── elasticsearch
@@ -184,8 +172,6 @@ extension_etc
     │   │       │   └── snort.json
     │   │       └── parsers
     │   │           └── snort.json
-    │   └── patterns
-    │       └── common
     ├── sourcefire
     │   ├── config
     │   │   └── zookeeper

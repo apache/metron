@@ -261,13 +261,11 @@ This package installs the Metron BRO Parser Extension files
 %dir %{metron_extensions_etc_parsers}/bro/config/zookeeper/parsers
 %dir %{metron_extensions_etc_parsers}/bro/config/zookeeper/enrichments
 %dir %{metron_extensions_etc_parsers}/bro/config/zookeeper/indexing
-%dir %{metron_extensions_etc_parsers}/bro/patterns
 %dir %{metron_extensions_lib}
 %{metron_extensions_etc_parsers}/bro/config/zookeeper/parsers/bro.json
 %{metron_extensions_etc_parsers}/bro/config/zookeeper/enrichments/bro.json
 %{metron_extensions_etc_parsers}/bro/config/zookeeper/indexing/bro.json
 %{metron_extensions_etc_parsers}/bro/config/elasticsearch/bro_index.template
-%{metron_extensions_etc_parsers}/bro/patterns/common
 %attr(0644,root,root) %{metron_extensions_lib}/metron-parser-bro-bundle-%{full_version}.bundle
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -293,12 +291,10 @@ This package installs the Metron CEF Parser Extension files
 %dir %{metron_extensions_etc_parsers}/cef/config/zookeeper/parsers
 %dir %{metron_extensions_etc_parsers}/cef/config/zookeeper/enrichments
 %dir %{metron_extensions_etc_parsers}/cef/config/zookeeper/indexing
-%dir %{metron_extensions_etc_parsers}/cef/patterns
 %dir %{metron_extensions_lib}
 %{metron_extensions_etc_parsers}/cef/config/zookeeper/parsers/cef.json
 %{metron_extensions_etc_parsers}/cef/config/zookeeper/enrichments/cef.json
 %{metron_extensions_etc_parsers}/cef/config/zookeeper/indexing/cef.json
-%{metron_extensions_etc_parsers}/cef/patterns/common
 %attr(0644,root,root) %{metron_extensions_lib}/metron-parser-cef-bundle-%{full_version}.bundle
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -356,12 +352,10 @@ This package installs the Metron ISE Parser Extension files
 %dir %{metron_extensions_etc_parsers}/ise/config/zookeeper/parsers
 %dir %{metron_extensions_etc_parsers}/ise/config/zookeeper/enrichments
 %dir %{metron_extensions_etc_parsers}/ise/config/zookeeper/indexing
-%dir %{metron_extensions_etc_parsers}/ise/patterns
 %dir %{metron_extensions_lib}
 %{metron_extensions_etc_parsers}/ise/config/zookeeper/parsers/ise.json
 %{metron_extensions_etc_parsers}/ise/config/zookeeper/enrichments/ise.json
 %{metron_extensions_etc_parsers}/ise/config/zookeeper/indexing/ise.json
-%{metron_extensions_etc_parsers}/ise/patterns/common
 %attr(0644,root,root) %{metron_extensions_lib}/metron-parser-ise-bundle-%{full_version}.bundle
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -387,12 +381,10 @@ This package installs the Metron Lancope Parser Extension files
 %dir %{metron_extensions_etc_parsers}/lancope/config/zookeeper/parsers
 %dir %{metron_extensions_etc_parsers}/lancope/config/zookeeper/enrichments
 %dir %{metron_extensions_etc_parsers}/lancope/config/zookeeper/indexing
-%dir %{metron_extensions_etc_parsers}/lancope/patterns
 %dir %{metron_extensions_lib}
 %{metron_extensions_etc_parsers}/lancope/config/zookeeper/parsers/lancope.json
 %{metron_extensions_etc_parsers}/lancope/config/zookeeper/enrichments/lancope.json
 %{metron_extensions_etc_parsers}/lancope/config/zookeeper/indexing/lancope.json
-%{metron_extensions_etc_parsers}/lancope/patterns/common
 %attr(0644,root,root) %{metron_extensions_lib}/metron-parser-lancope-bundle-%{full_version}.bundle
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -418,12 +410,10 @@ This package installs the Metron Logstash Parser Extension files
 %dir %{metron_extensions_etc_parsers}/logstash/config/zookeeper/parsers
 %dir %{metron_extensions_etc_parsers}/logstash/config/zookeeper/enrichments
 %dir %{metron_extensions_etc_parsers}/logstash/config/zookeeper/indexing
-%dir %{metron_extensions_etc_parsers}/logstash/patterns
 %dir %{metron_extensions_lib}
 %{metron_extensions_etc_parsers}/logstash/config/zookeeper/parsers/logstash.json
 %{metron_extensions_etc_parsers}/logstash/config/zookeeper/enrichments/logstash.json
 %{metron_extensions_etc_parsers}/logstash/config/zookeeper/indexing/logstash.json
-%{metron_extensions_etc_parsers}/logstash/patterns/common
 %attr(0644,root,root) %{metron_extensions_lib}/metron-parser-logstash-bundle-%{full_version}.bundle
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -449,12 +439,10 @@ This package installs the Metron PaloAlto Parser Extension files
 %dir %{metron_extensions_etc_parsers}/paloalto/config/zookeeper/parsers
 %dir %{metron_extensions_etc_parsers}/paloalto/config/zookeeper/enrichments
 %dir %{metron_extensions_etc_parsers}/paloalto/config/zookeeper/indexing
-%dir %{metron_extensions_etc_parsers}/paloalto/patterns
 %dir %{metron_extensions_lib}
 %{metron_extensions_etc_parsers}/paloalto/config/zookeeper/parsers/paloalto.json
 %{metron_extensions_etc_parsers}/paloalto/config/zookeeper/enrichments/paloalto.json
 %{metron_extensions_etc_parsers}/paloalto/config/zookeeper/indexing/paloalto.json
-%{metron_extensions_etc_parsers}/paloalto/patterns/common
 %attr(0644,root,root) %{metron_extensions_lib}/metron-parser-paloalto-bundle-%{full_version}.bundle
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -481,13 +469,11 @@ This package installs the Metron Snort Parser Extension files
 %dir %{metron_extensions_etc_parsers}/snort/config/zookeeper/parsers
 %dir %{metron_extensions_etc_parsers}/snort/config/zookeeper/enrichments
 %dir %{metron_extensions_etc_parsers}/snort/config/zookeeper/indexing
-%dir %{metron_extensions_etc_parsers}/snort/patterns
 %dir %{metron_extensions_lib}
 %{metron_extensions_etc_parsers}/snort/config/zookeeper/parsers/snort.json
 %{metron_extensions_etc_parsers}/snort/config/zookeeper/enrichments/snort.json
 %{metron_extensions_etc_parsers}/snort/config/zookeeper/indexing/snort.json
 %{metron_extensions_etc_parsers}/snort/config/elasticsearch/snort_index.template
-%{metron_extensions_etc_parsers}/snort/patterns/common
 %attr(0644,root,root) %{metron_extensions_lib}/metron-parser-snort-bundle-%{full_version}.bundle
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

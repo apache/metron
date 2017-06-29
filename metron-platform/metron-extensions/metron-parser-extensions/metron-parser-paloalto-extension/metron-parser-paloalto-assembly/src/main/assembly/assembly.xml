@@ -31,17 +31,6 @@
             <filtered>true</filtered>
         </fileSet>
         <fileSet>
-            <directory>${project.basedir}/../metron-parser-paloalto/src/main/resources/patterns</directory>
-            <outputDirectory>/patterns</outputDirectory>
-            <useDefaultExcludes>true</useDefaultExcludes>
-            <excludes>
-                <exclude>**/*.formatted</exclude>
-                <exclude>**/*.filtered</exclude>
-            </excludes>
-            <fileMode>0644</fileMode>
-            <lineEnding>unix</lineEnding>
-        </fileSet>
-        <fileSet>
             <directory>${project.basedir}/../metron-parser-paloalto-bundle/target</directory>
             <includes>
                 <include>metron-parser-paloalto-bundle-${project.version}.bundle</include>
