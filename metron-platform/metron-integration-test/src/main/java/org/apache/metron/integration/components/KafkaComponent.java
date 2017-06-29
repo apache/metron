@@ -19,10 +19,6 @@ package org.apache.metron.integration.components;
 
 
 import com.google.common.base.Function;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import kafka.admin.AdminUtils;
 import kafka.api.FetchRequest;
 import kafka.api.FetchRequestBuilder;
 import kafka.common.TopicExistsException;
@@ -35,9 +31,6 @@ import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.message.MessageAndOffset;
 import kafka.server.*;
 import kafka.utils.TestUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import kafka.utils.*;
@@ -190,8 +183,15 @@ public class KafkaComponent implements InMemoryComponent {
     shutdownProducers();
 
     if(kafkaServer != null) {
-      kafkaServer.shutdown();
-      kafkaServer.awaitShutdown();
+      try {
+        kafkaServer.shutdown();
+        kafkaServer.awaitShutdown();
+      }
+      catch(Throwable fnf) {
+        if(!fnf.getMessage().contains("Error writing to highwatermark file")) {
+          throw fnf;
+        }
+      }
     }
     if(zkClient != null) {
       // Delete data in ZK to avoid startup interference.
