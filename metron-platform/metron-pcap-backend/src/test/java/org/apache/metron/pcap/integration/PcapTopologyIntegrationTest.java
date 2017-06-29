@@ -64,6 +64,7 @@ import org.apache.metron.spout.pcap.deserializer.Deserializers;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class PcapTopologyIntegrationTest {
@@ -87,6 +88,26 @@ public class PcapTopologyIntegrationTest {
         return !name.endsWith(".crc");
       }
     }).length;
+  }
+
+  // This will eventually be completely deprecated.  As it takes a significant amount of testing, the test is being disabled.
+  @Ignore
+  @Test
+  public void testTimestampInPacket() throws Exception {
+    testTopology(new Function<Properties, Void>() {
+      @Nullable
+      @Override
+      public Void apply(@Nullable Properties input) {
+        input.setProperty("kafka.pcap.ts_scheme", Deserializers.FROM_PACKET.toString());
+        return null;
+      }
+    }, (kafkaComponent, pcapEntries) -> kafkaComponent.writeMessages( KAFKA_TOPIC
+                                                                    , Collections2.transform(pcapEntries
+                                                                                            , input -> input.getValue()
+                                                                                            )
+                                                                    )
+    , true
+               );
   }
 
   @Test
