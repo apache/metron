@@ -428,7 +428,8 @@ chkconfig --del metron-management-ui
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
-* Thu Jun 29 2017 Add Metron Management jar - 0.4.0+1
+* Thu Jun 29 2017 <dev@metron.apache.org> - 0.4.0+1
+- Add Metron Management jar 
 * Thu May 15 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
 - Added Management UI
 * Tue May 9 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
