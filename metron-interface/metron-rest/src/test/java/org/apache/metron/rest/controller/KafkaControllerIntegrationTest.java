@@ -19,6 +19,8 @@ package org.apache.metron.rest.controller;
 
 import kafka.common.TopicAlreadyMarkedForDeletionException;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.integration.ComponentRunner;
+import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.rest.generator.SampleDataGenerator;
 import org.apache.metron.rest.service.KafkaService;
@@ -35,7 +37,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.util.NestedServletException;
@@ -61,6 +62,7 @@ public class KafkaControllerIntegrationTest {
   private static final int KAFKA_RETRY = 10;
   @Autowired
   private KafkaComponent kafkaWithZKComponent;
+  private ComponentRunner runner;
 
 
   interface Evaluation {
@@ -148,6 +150,15 @@ public class KafkaControllerIntegrationTest {
 
   @Before
   public void setup() throws Exception {
+    runner = new ComponentRunner.Builder()
+            .withComponent("kafka", kafkaWithZKComponent)
+            .withCustomShutdownOrder(new String[]{"kafka"})
+            .build();
+    try {
+      runner.start();
+    } catch (UnableToStartException e) {
+      e.printStackTrace();
+    }
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
   }
 
@@ -257,5 +268,6 @@ public class KafkaControllerIntegrationTest {
   @After
   public void tearDown() {
     sampleDataRunner.stop();
+    runner.stop();
   }
 }
