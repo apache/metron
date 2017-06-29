@@ -16,8 +16,8 @@ $ mvn install
 Create a directory to host your extension code
 
 ```
-$ mkdir ~/src/my-parser-extension
-$ cd ~/src/my-parser-extension
+$ mkdir ~/src/metron-parser-nice-extension
+$ cd ~/src/metron-parser-nice-extension
 ```
 
 Use the archetype to create your project
@@ -30,13 +30,13 @@ $ mvn archetype:generate -DarchetypeCatalog=local
 Configure the project properties.  Ending up with something like this:
 
 Confirm properties configuration:
-groupId: org.someorg
-artifactId: someparser
-version: 1.0-SNAPSHOT
-package: org.someorg.parsers
-metronVersion: 0.4.0
-parserClassName: Nice
-parserName: nice
+* groupId: org.someorg
+* artifactId: metron-parser-nice-extension
+* version: 0.4.0
+* package: org.someorg.parsers
+* metronVersion: 0.4.0
+* parserClassName: Nice
+* parserName: nice
 
 This will produce a project:
 
@@ -44,6 +44,7 @@ This will produce a project:
 
 
 #### Project description
+##### metron-parser-nice-extension (The extension project)
 
 ##### metron-parser-nice (The Parser Project)
 This project contains the sample parser code, configuration, and tests
