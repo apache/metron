@@ -17,8 +17,6 @@ The /apps/metron/extension_working directory is used at runtime by the bundle sy
     drwxrwxr-x   - metron hadoop          0 2017-06-27 16:15 /apps/metron/extension_lib
     drwxrwxr-x   - metron hadoop          0 2017-06-27 16:15 /apps/metron/extension_alt_lib
     drwxrwxr-x   - metron hadoop          0 2017-06-27 16:16 /apps/metron/extension_working
-    
-    
 ```
 The system parsers bundles being deployed as such:
 ```bash
@@ -245,7 +243,6 @@ extension_etc
 
 [zk: localhost(CONNECTED) 4] ls /metron/topology/parsers
 [websphere, cef, fireeye, asa, paloalto, logstash, jsonMap, lancope, sourcefire, ise, squid, bro, snort, yaf]
-
 
 [zk: localhost(CONNECTED) 5] ls /metron/topology/indexing
 [websphere, cef, fireeye, error, asa, paloalto, logstash, lancope, sourcefire, ise, squid, bro, snort, yaf]

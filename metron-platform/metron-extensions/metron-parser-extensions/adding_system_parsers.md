@@ -39,7 +39,7 @@ Define value for property 'parserClassName' (should match expression '^[A-Z].*$'
 Define value for property 'parserName' (should match expression '^[a-z]+[A-Z,a-z]+$'): foo
 Confirm properties configuration:
 groupId: org.apache.metron
-artifactId: metron-parser-Name-extension
+artifactId: metron-parser-foo-extension
 version: 0.4.0
 package: org.apache.metron.parsers
 metronVersion: 0.4.0
