@@ -1,8 +1,8 @@
 # Metron Extension Deployment
 
 Metron Extensions have varied packaging, as it is defined by the extension type and it's requirements.
-What is common across extension types is the deployment of the [Metron Bundles](../../bundles-lib) containing the runtime
-executable portion of the extension (if present).
+What is common across extension types is the deployment of the [Metron Bundles](../../bundles-lib) containing 
+the extension library (if present).
 
 These Bundles are deployed to HDFS under /apps/metron/extension_lib.
 The /apps/metron/extension_working directory is used at runtime by the bundle system.
