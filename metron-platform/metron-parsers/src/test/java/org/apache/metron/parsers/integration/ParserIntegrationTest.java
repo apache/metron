@@ -46,12 +46,12 @@ import java.util.*;
 public abstract class ParserIntegrationTest extends BaseIntegrationTest {
   protected List<byte[]> inputMessages;
 
-  private String readGlobalConfig() throws IOException {
+  protected String readGlobalConfig() throws IOException {
     File configsRoot = new File(TestConstants.SAMPLE_CONFIG_PATH);
     return new String(Files.readAllBytes(new File(configsRoot, "global.json").toPath()));
   }
 
-  private String readSensorConfig(String sensorType) throws IOException {
+  protected String readSensorConfig(String sensorType) throws IOException {
     File configsRoot = new File(TestConstants.PARSER_CONFIGS_PATH);
     File parsersRoot = new File(configsRoot, "parsers");
     return new String(Files.readAllBytes(new File(parsersRoot, sensorType + ".json").toPath()));
