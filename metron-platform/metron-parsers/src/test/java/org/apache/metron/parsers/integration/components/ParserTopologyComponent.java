@@ -17,9 +17,9 @@
  */
 package org.apache.metron.parsers.integration.components;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
+import org.apache.storm.generated.KillOptions;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
@@ -27,12 +27,6 @@ import org.apache.metron.parsers.topology.ParserTopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileVisitOption;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 import static org.apache.metron.integration.components.FluxTopologyComponent.assassinateSlots;
@@ -82,6 +76,9 @@ public class ParserTopologyComponent implements InMemoryComponent {
     this.outputTopic = outputTopic;
   }
 
+  public void updateSensorType(String sensorType) {
+    this.sensorType = sensorType;
+  }
 
   @Override
   public void start() throws UnableToStartException {
@@ -113,6 +110,8 @@ public class ParserTopologyComponent implements InMemoryComponent {
     if (stormCluster != null) {
       try {
         try {
+          // Kill the topology directly instead of sitting through the wait period
+          killTopology();
           stormCluster.shutdown();
         } catch (IllegalStateException ise) {
           if (!(ise.getMessage().contains("It took over") && ise.getMessage().contains("to shut down slot"))) {
@@ -133,6 +132,25 @@ public class ParserTopologyComponent implements InMemoryComponent {
         cleanupWorkerDir();
       }
 
+    }
+  }
+
+  @Override
+  public void reset() {
+    if (stormCluster != null) {
+      killTopology();
+    }
+  }
+
+  protected void killTopology() {
+    KillOptions ko = new KillOptions();
+    ko.set_wait_secs(0);
+    stormCluster.killTopologyWithOpts(sensorType, ko);
+    try {
+      // Actually wait for it to die.
+      Thread.sleep(2000);
+    } catch (InterruptedException e) {
+      // Do nothing
     }
   }
 }

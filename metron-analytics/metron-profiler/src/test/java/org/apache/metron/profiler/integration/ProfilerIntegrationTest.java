@@ -33,6 +33,7 @@ import org.apache.metron.common.utils.SerDeUtils;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
+import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
@@ -41,7 +42,10 @@ import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.metron.statistics.OnlineStatisticsProvider;
 import org.apache.metron.test.mock.MockHTable;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
@@ -76,7 +80,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    * }
    */
   @Multiline
-  private String message1;
+  private static String message1;
 
   /**
    * {
@@ -87,7 +91,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    * }
    */
   @Multiline
-  private String message2;
+  private static String message2;
 
   /**
    * {
@@ -98,15 +102,16 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    * }
    */
   @Multiline
-  private String message3;
+  private static String message3;
 
-  private ColumnBuilder columnBuilder;
-  private ZKServerComponent zkComponent;
-  private FluxTopologyComponent fluxComponent;
-  private KafkaComponent kafkaComponent;
-  private List<byte[]> input;
-  private ComponentRunner runner;
-  private MockHTable profilerTable;
+  private static ColumnBuilder columnBuilder;
+  private static ZKServerComponent zkComponent;
+  private static FluxTopologyComponent fluxComponent;
+  private static KafkaComponent kafkaComponent;
+  private static ConfigUploadComponent configUploadComponent;
+  private static List<byte[]> input;
+  private static ComponentRunner runner;
+  private static MockHTable profilerTable;
 
   private static final String tableName = "profiler";
   private static final String columnFamily = "P";
@@ -133,7 +138,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   @Test
   public void testExample1() throws Exception {
 
-    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-1");
+    update(TEST_RESOURCES + "/config/zookeeper/readme-example-1");
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
@@ -158,7 +163,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   @Test
   public void testExample2() throws Exception {
 
-    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-2");
+    update(TEST_RESOURCES + "/config/zookeeper/readme-example-2");
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
@@ -191,7 +196,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   @Test
   public void testExample3() throws Exception {
 
-    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-3");
+    update(TEST_RESOURCES + "/config/zookeeper/readme-example-3");
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
@@ -216,7 +221,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   @Test
   public void testExample4() throws Exception {
 
-    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-4");
+    update(TEST_RESOURCES + "/config/zookeeper/readme-example-4");
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
@@ -239,7 +244,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   @Test
   public void testPercentiles() throws Exception {
 
-    setup(TEST_RESOURCES + "/config/zookeeper/percentiles");
+    update(TEST_RESOURCES + "/config/zookeeper/percentiles");
+
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
@@ -277,8 +283,14 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     return results;
   }
 
-  public void setup(String pathToConfig) throws Exception {
+  @BeforeClass
+  public static void setupBeforeClass() throws UnableToStartException {
     columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
+
+    List<String> inputNew = Stream.of(message1, message2, message3)
+        .map(m -> Collections.nCopies(5, m))
+        .flatMap(l -> l.stream())
+        .collect(Collectors.toList());
 
     // create input messages for the profiler to consume
     input = Stream.of(message1, message2, message3)
@@ -320,10 +332,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             new KafkaComponent.Topic(outputTopic, 1)));
 
     // upload profiler configuration to zookeeper
-    ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
-            .withTopologyProperties(topologyProperties)
-            .withGlobalConfiguration(pathToConfig)
-            .withProfilerConfiguration(pathToConfig);
+    configUploadComponent = new ConfigUploadComponent()
+            .withTopologyProperties(topologyProperties);
 
     // load flux definition for the profiler topology
     fluxComponent = new FluxTopologyComponent.Builder()
@@ -345,11 +355,32 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     runner.start();
   }
 
-  @After
-  public void tearDown() throws Exception {
+  public void update(String path) throws Exception {
+    configUploadComponent.withGlobalConfiguration(path)
+        .withProfilerConfiguration(path);
+    configUploadComponent.update();
+  }
+
+  @AfterClass
+  public static void tearDownAfterClass() throws Exception {
     MockHTable.Provider.clear();
     if (runner != null) {
       runner.stop();
+    }
+  }
+
+  @Before
+  public void setup() {
+    // create the mock table
+    profilerTable = (MockHTable) MockHTable.Provider.addToCache(tableName, columnFamily);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    MockHTable.Provider.clear();
+    profilerTable.clear();
+    if (runner != null) {
+      runner.reset();
     }
   }
 }
