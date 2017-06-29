@@ -133,7 +133,7 @@ The functions are split roughly into a few sections:
 * `CONFIG_GET`
   * Description: Retrieve a Metron configuration from zookeeper.
   * Input:
-    * type - One of ENRICHMENT, INDEXING, PARSER, GLOBAL, PROFILER
+    * type - One of ENRICHMENT, INDEXING, PARSER, PARSER_EXTENSION, GLOBAL, PROFILER
     * sensor - Sensor to retrieve (required for enrichment and parser, not used for profiler and global)
     * emptyIfNotPresent - If true, then return an empty, minimally viable config
   * Returns: The String representation of the config in zookeeper
