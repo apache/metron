@@ -79,6 +79,10 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     return this;
   }
 
+  public MessageParser<JSONObject> getParser() {
+    return parser;
+  }
+
   @SuppressWarnings("unchecked")
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {

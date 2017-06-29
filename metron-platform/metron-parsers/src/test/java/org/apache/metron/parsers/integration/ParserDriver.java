@@ -90,6 +90,7 @@ public class ParserDriver {
   private class ShimParserBolt extends ParserBolt {
     List<byte[]> output;
     List<byte[]> errors = new ArrayList<>();
+
     public ShimParserBolt(List<byte[]> output) {
       super(null
            , sensorType == null?config.getSensorTopic():sensorType
@@ -97,6 +98,7 @@ public class ParserDriver {
            , new WriterHandler( new CollectingWriter(output))
       );
       this.output = output;
+      getParser().configure(config.getParserConfig());
     }
 
     @Override
