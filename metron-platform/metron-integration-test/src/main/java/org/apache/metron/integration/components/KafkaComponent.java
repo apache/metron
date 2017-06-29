@@ -50,7 +50,6 @@ import java.util.logging.Level;
 public class KafkaComponent implements InMemoryComponent {
 
   protected static final Logger LOG = LoggerFactory.getLogger(KafkaComponent.class);
-  protected static String logDir = "";
 
   public static class Topic {
     public int numPartitions;
@@ -151,7 +150,6 @@ public class KafkaComponent implements InMemoryComponent {
     Properties props = TestUtilsWrapper.createBrokerConfig(0, zookeeperConnectString, brokerPort);
     props.setProperty("zookeeper.connection.timeout.ms","1000000");
     KafkaConfig config = new KafkaConfig(props);
-    logDir = config.getString("log.dir");
     Time mock = new MockTime();
     kafkaServer = TestUtils.createServer(config, mock);
 
