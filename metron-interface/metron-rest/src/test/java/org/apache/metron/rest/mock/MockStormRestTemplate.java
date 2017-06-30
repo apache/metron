@@ -45,7 +45,7 @@ public class MockStormRestTemplate extends RestTemplate {
   @Override
   public Object getForObject(String url, Class responseType, Object... urlVariables) throws RestClientException {
     Object response = null;
-    if (url.equals("http://" + environment.getProperty(MetronRestConstants.STORM_UI_SPRING_PROPERTY) + MetronRestConstants.TOPOLOGY_SUMMARY_URL)) {
+    if (url.equals(getStormUiProperty() + MetronRestConstants.TOPOLOGY_SUMMARY_URL)) {
       TopologySummary topologySummary = new TopologySummary();
       List<TopologyStatus> topologyStatusList = new ArrayList<>();
       for(String name: mockStormCLIClientWrapper.getParserTopologyNames()) {
@@ -61,7 +61,7 @@ public class MockStormRestTemplate extends RestTemplate {
       }
       topologySummary.setTopologies(topologyStatusList.toArray(new TopologyStatus[topologyStatusList.size()]));
       response =  topologySummary;
-    } else if (url.startsWith("http://" + environment.getProperty(MetronRestConstants.STORM_UI_SPRING_PROPERTY) + MetronRestConstants.TOPOLOGY_URL + "/")){
+    } else if (url.startsWith(getStormUiProperty() + MetronRestConstants.TOPOLOGY_URL + "/")){
       String name = url.substring(url.lastIndexOf('/') + 1, url.length()).replaceFirst("-id", "");
       response = getTopologyStatus(name);
     }
@@ -112,5 +112,14 @@ public class MockStormRestTemplate extends RestTemplate {
       result.put("status", "error");
     }
     return result;
+  }
+
+  // If we don't have a protocol, prepend one
+  protected String getStormUiProperty() {
+    String baseValue = environment.getProperty(MetronRestConstants.STORM_UI_SPRING_PROPERTY);
+    if(!(baseValue.contains("://"))) {
+      return "http://" + baseValue;
+    }
+    return baseValue;
   }
 }

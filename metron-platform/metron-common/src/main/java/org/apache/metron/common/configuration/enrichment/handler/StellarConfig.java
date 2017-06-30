@@ -20,12 +20,14 @@ package org.apache.metron.common.configuration.enrichment.handler;
 import org.apache.metron.stellar.common.StellarAssignment;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Function;
 
 public class StellarConfig implements Config {
-
+  protected static final Logger _LOG = LoggerFactory.getLogger(StellarConfig.class);
   @Override
   public List<String> getSubgroups(Iterable<Map.Entry<String, Object>> config) {
     boolean includeEmpty = false;
@@ -78,10 +80,10 @@ public class StellarConfig implements Config {
   {
     StellarProcessor processor = new StellarProcessor();
     List<JSONObject> messages = new ArrayList<>();
-    Map<String, String> defaultStellarStatementGroup = new HashMap<>();
+    List<String> defaultStellarStatementGroup = new ArrayList<>();
     for(Map.Entry<String, Object> kv : config) {
       if(kv.getValue() instanceof String) {
-        defaultStellarStatementGroup.put(kv.getKey(), (String)kv.getValue());
+        defaultStellarStatementGroup.add((String)kv.getValue());
       }
       else if(kv.getValue() instanceof Map) {
         JSONObject ret = new JSONObject();
@@ -100,6 +102,7 @@ public class StellarConfig implements Config {
       ret.put("", getMessage(getFields(processor, defaultStellarStatementGroup), message));
       messages.add(ret);
     }
+    _LOG.debug("Stellar enrichment split: {}", messages );
     return messages;
   }
 

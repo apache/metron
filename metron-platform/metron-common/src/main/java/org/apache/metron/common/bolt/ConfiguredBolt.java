@@ -68,6 +68,10 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
 
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
+    prepCache();
+  }
+
+  protected void prepCache() {
     try {
       if (client == null) {
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);

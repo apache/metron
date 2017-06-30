@@ -17,6 +17,7 @@
  */
 package org.apache.metron.enrichment.adapters.stellar;
 
+import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.StellarEnrichmentTest;
 import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
@@ -28,6 +29,8 @@ import org.apache.metron.stellar.dsl.VariableResolver;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.List;
 
 public class StellarAdapterTest extends StellarEnrichmentTest {
   StellarProcessor processor = new StellarProcessor();
@@ -129,5 +132,57 @@ public class StellarAdapterTest extends StellarEnrichmentTest {
       Assert.assertEquals("stellar_test", enriched.get("stmt5"));
       Assert.assertEquals(2, enriched.size());
     }
+  }
+
+  /**
+   {
+    "fieldMap": {
+      "stellar" : {
+        "config" : {
+          "group1" : [
+            "stmt1 := TO_UPPER(source.type)",
+            "stmt2 := { 'foo' : source.type }"
+          ]
+        }
+      }
+    }
+  }
+   */
+  @Multiline
+  public static String mapConfig_subgroup;
+  /**
+   {
+    "fieldMap": {
+      "stellar" : {
+        "config" : [
+            "stmt1 := TO_UPPER(source.type)",
+            "stmt2 := { 'foo' : source.type }"
+        ]
+      }
+    }
+  }
+   */
+  @Multiline
+  public static String mapConfig_default;
+
+  private void testMapEnrichment(String config, String field) throws Exception {
+    JSONObject message = getMessage();
+    EnrichmentConfig enrichmentConfig = JSONUtils.INSTANCE.load(config, EnrichmentConfig.class);
+    Assert.assertNotNull(enrichmentConfig.getEnrichmentConfigs().get("stellar"));
+    ConfigHandler handler = enrichmentConfig.getEnrichmentConfigs().get("stellar");
+    JSONObject enriched = enrich(message, field, handler);
+    Assert.assertEquals(2, enriched.size());
+    Assert.assertEquals("stellar_test", enriched.get("stmt2.foo"));
+    Assert.assertEquals("stellar_test".toUpperCase(), enriched.get("stmt1"));
+  }
+
+  @Test
+  public void testMapEnrichment_subgroup() throws Exception {
+    testMapEnrichment(mapConfig_subgroup, "group1");
+  }
+
+  @Test
+  public void testMapEnrichment_default() throws Exception {
+    testMapEnrichment(mapConfig_default, "");
   }
 }
