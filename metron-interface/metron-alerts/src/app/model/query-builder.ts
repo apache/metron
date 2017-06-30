@@ -23,7 +23,6 @@ export class QueryBuilder {
   private from = 0;
   private size = 15;
   private sort: {}[] = [{ timestamp: {order : 'desc', ignore_unmapped: true, unmapped_type: 'date'} }];
-  private aggs: {};
   private _filters: Filter[] = [];
 
   static fromJSON(obj: QueryBuilder): QueryBuilder {
@@ -33,7 +32,6 @@ export class QueryBuilder {
     queryBuilder.from = obj.from;
     queryBuilder.size = obj.size;
     queryBuilder.sort = obj.sort;
-    queryBuilder.aggs = obj.aggs;
     queryBuilder._filters = obj._filters;
     queryBuilder.onSearchChange();
 
@@ -105,8 +103,7 @@ export class QueryBuilder {
       query: { query_string: { query: this.generateSelect() } },
       from: this.from,
       size: this.size,
-      sort: this.sort,
-      aggs: {}
+      sort: this.sort
     };
   }
 
@@ -120,10 +117,6 @@ export class QueryBuilder {
     this._filters.splice(this._filters.indexOf(filter), 1);
 
     this.onSearchChange();
-  }
-
-  setAggregations(value: any) {
-    this.aggs = value;
   }
 
   setFromAndSize(from: number, size: number) {

@@ -33,9 +33,9 @@ export class MetadataUtil {
      } catch (e) {}
   }
 
-  public static extractData(res: Response): any {
+  public static extractData(res: Response): ColumnMetadata[] {
     let response: any = res || {};
-    let columnMetadata = [];
+    let columnMetadata: ColumnMetadata[] = [];
     let seen: string[] = [];
 
     for (let index in response.metadata.indices) {

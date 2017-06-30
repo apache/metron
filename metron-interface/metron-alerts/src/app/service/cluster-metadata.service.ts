@@ -50,7 +50,7 @@ export class ClusterMetaDataService {
     });
   }
 
-  getColumnMetaData(): Observable<any> {
+  getColumnMetaData(): Observable<ColumnMetadata[]> {
     return this.http.get(this.url, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
       .map(HttpUtil.extractData)
       .map(MetadataUtil.extractData)
