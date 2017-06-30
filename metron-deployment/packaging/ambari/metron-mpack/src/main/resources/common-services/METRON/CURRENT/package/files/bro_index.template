@@ -168,23 +168,23 @@
          * https://www.bro.org/sphinx/scripts/base/protocols/http/main.bro.html#type-HTTP::Info
          *
          * Notable Fields
-         *   Field:	password
-         *   Notes:	Field exists in the HTTP and FTP logs
+         *   Field:     password
+         *   Notes:     Field exists in the HTTP and FTP logs
          *
-         *   Field:	capture_password
-         *   Notes:	Field exists in the HTTP and FTP logs
+         *   Field:     capture_password
+         *   Notes:     Field exists in the HTTP and FTP logs
          *
-         *   Field:	trans_depth
-         *   Notes:	Field exists in the HTTP and SMTP logs
+         *   Field:     trans_depth
+         *   Notes:     Field exists in the HTTP and SMTP logs
          *
-         *   Field:	user_agent
-         *   Notes:	Field exists in the HTTP and SMTP logs
+         *   Field:     user_agent
+         *   Notes:     Field exists in the HTTP and SMTP logs
          *
-         *   Field:	version
-         *   Notes:	Field exists in the HTTP, SSL, and SSH logs
+         *   Field:     version
+         *   Notes:     Field exists in the HTTP, SSL, and SSH logs
          *
-         *   Field:	host
-         *   Notes:	Field exists in the HTTP and Software logs
+         *   Field:     host
+         *   Notes:     Field exists in the HTTP and Software logs
          *
          *   Field:     username
          *   Notes:     Field exists in the HTTP and RADIUS logs
@@ -245,11 +245,11 @@
          * https://www.bro.org/sphinx/scripts/base/protocols/dns/main.bro.html#type-DNS::Info
          *
          * Notable Fields
-         *   Field:	proto
-         *   Notes:	Field exists in the DNS, Conn, DPD, and Notice logs
+         *   Field:     proto
+         *   Notes:     Field exists in the DNS, Conn, DPD, and Notice logs
          *
-         *   Field:	trans_id
-         *   Notes:	Field exists in the DNS and DHCP logs
+         *   Field:     trans_id
+         *   Notes:     Field exists in the DNS and DHCP logs
          */
         "proto": {
           "type": "string",
@@ -309,8 +309,8 @@
          * https://www.bro.org/sphinx/scripts/base/protocols/conn/main.bro.html#type-Conn::Info
          *
          * Notable Fields
-         *   Field:	proto
-         *   Notes:	Field exists in the DNS, Conn, DPD, and Notice logs
+         *   Field:     proto
+         *   Notes:     Field exists in the DNS, Conn, DPD, and Notice logs
          *
          *   Field:     duration
          *   Notes:     Field exists in the Conn and Files logs
@@ -377,8 +377,8 @@
          * https://www.bro.org/sphinx-git/scripts/base/frameworks/dpd/main.bro.html#type-DPD::Info
          *
          * Notable Fields
-         *   Field:	proto
-         *   Notes:	Field exists in the DNS, Conn, DPD, and Notice logs
+         *   Field:     proto
+         *   Notes:     Field exists in the DNS, Conn, DPD, and Notice logs
          */
         "analyzer": {
           "type": "string",
@@ -393,11 +393,11 @@
          * https://www.bro.org/sphinx/scripts/base/protocols/ftp/info.bro.html#type-FTP::Info
          *
          * Notable Fields
-         *   Field:	password
-         *   Notes:	Field exists in the HTTP and FTP logs
+         *   Field:     password
+         *   Notes:     Field exists in the HTTP and FTP logs
          *
-         *   Field:	capture_password
-         *   Notes:	Field exists in the HTTP and FTP logs
+         *   Field:     capture_password
+         *   Notes:     Field exists in the HTTP and FTP logs
          *
          *   Field:     mime_type
          *   Notes:     Field exists in the FTP and Files logs
@@ -459,14 +459,14 @@
          * https://www.bro.org/sphinx/scripts/base/frameworks/files/main.bro.html#type-Files::Info
          *
          * Notable Fields
-         *   Field:	tx_hosts
-         *   Notes:	Metron rewrites this to "ip_src_addr"
+         *   Field:     tx_hosts
+         *   Notes:     Metron rewrites this to "ip_src_addr"
          *
-         *   Field:	rx_hosts
-         *   Notes:	Metron rewrites this to "ip_dst_addr"
+         *   Field:     rx_hosts
+         *   Notes:     Metron rewrites this to "ip_dst_addr"
          *
-         *   Field:	mime_type
-         *   Notes:	Field exists in the FTP and Files logs
+         *   Field:     mime_type
+         *   Notes:     Field exists in the FTP and Files logs
          */
         "conn_uids": {
           "type": "string",
@@ -738,8 +738,8 @@
          * https://www.bro.org/sphinx/scripts/base/protocols/dhcp/main.bro.html#type-DHCP::Info
          *
          * Notable Fields
-         *   Field:	trans_id
-         *   Notes:	Field exists in the DNS and DHCP logs
+         *   Field:     trans_id
+         *   Notes:     Field exists in the DNS and DHCP logs
          *
          *   Field:     mac
          *   Notes:     Field exists in the DHCP, RADIUS, and Known::DevicesInfo logs
@@ -875,13 +875,10 @@
          * Notable Fields
          *   Field:     id
          *   Notes:     In other bro records, the id field is of type conn_id, so it is
-         *              expanded in the log to provide a 4-tuple.  In this case it is a string
-         *              to identify the certificate file id.
+         *              expanded before being logged into 4 fields, all of which are addressed
+         *              under the "Widely-used Bro fields" section of this template.  In X509
+         *              logs, however, id is a string to identify the certificate file id.
          */
-        "id": {
-          "type": "string",
-          "index": "not_analyzed"
-        },
         "id": {
           "type": "string",
           "index": "not_analyzed"
