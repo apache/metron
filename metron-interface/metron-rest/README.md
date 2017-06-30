@@ -273,7 +273,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 404 - The ParserExtensionConfig is missing
 
 ### `DELETE /api/v1/ext/parsers/{name}`
-  * Description: Uninstalls a Parser Extension and all parsers from the system 
+  * Description: Uninstalls a Parser Extension and all parsers from the system, does not remove kafka topics or topologies 
   * Input:
     * name - the name of the Parser Extension
   * Returns:
