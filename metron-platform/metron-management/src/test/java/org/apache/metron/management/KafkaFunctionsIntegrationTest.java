@@ -26,6 +26,7 @@ import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -93,8 +94,13 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
   }
 
   @AfterClass
-  public static void tearDown() throws Exception {
+  public static void tearDownAfterClass() throws Exception {
     runner.stop();
+  }
+
+  @After
+  public void tearDown() {
+    runner.reset();
   }
 
   /**
