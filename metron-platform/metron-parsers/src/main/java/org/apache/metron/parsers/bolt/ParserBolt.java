@@ -95,7 +95,11 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     FileUtils.reset();
     super.cleanup();
   }
-  
+
+  public MessageParser<JSONObject> getParser() {
+    return parser;
+  }
+
   @SuppressWarnings("unchecked")
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
@@ -197,14 +201,18 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
         collector.ack(tuple);
       }
     } catch (Throwable ex) {
-      MetronError error = new MetronError()
-              .withErrorType(Constants.ErrorType.PARSER_ERROR)
-              .withThrowable(ex)
-              .withSensorType(getSensorType())
-              .addRawMessage(originalMessage);
-      ErrorUtils.handleError(collector, error);
-      collector.ack(tuple);
+      handleError(originalMessage, tuple, ex, collector);
     }
+  }
+
+  protected void handleError(byte[] originalMessage, Tuple tuple, Throwable ex, OutputCollector collector) {
+    MetronError error = new MetronError()
+            .withErrorType(Constants.ErrorType.PARSER_ERROR)
+            .withThrowable(ex)
+            .withSensorType(getSensorType())
+            .addRawMessage(originalMessage);
+    ErrorUtils.handleError(collector, error);
+    collector.ack(tuple);
   }
 
   private List<FieldValidator> getFailedValidators(JSONObject input, List<FieldValidator> validators) {

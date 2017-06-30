@@ -83,33 +83,55 @@ public class StixExtractorTest {
     testStixAddresses(stixDocWithoutCondition);
   }
 
-  public void testStixAddresses(String stixDoc) throws Exception {
+  public void testStixAddresses(final String stixDoc) throws Exception {
+    Thread t1 = new Thread( () ->
     {
-      ExtractorHandler handler = ExtractorHandler.load(stixConfigOnlyIPV4);
-      Extractor extractor = handler.getExtractor();
-      Iterable<LookupKV> results = extractor.extract(stixDoc);
+      try {
+        ExtractorHandler handler = ExtractorHandler.load(stixConfigOnlyIPV4);
+        Extractor extractor = handler.getExtractor();
+        Iterable<LookupKV> results = extractor.extract(stixDoc);
 
-      Assert.assertEquals(3, Iterables.size(results));
-      Assert.assertEquals("10.0.0.0", ((EnrichmentKey)(Iterables.get(results, 0).getKey())).indicator);
-      Assert.assertEquals("10.0.0.1", ((EnrichmentKey)(Iterables.get(results, 1).getKey())).indicator);
-      Assert.assertEquals("10.0.0.2", ((EnrichmentKey)(Iterables.get(results, 2).getKey())).indicator);
-    }
+        Assert.assertEquals(3, Iterables.size(results));
+        Assert.assertEquals("10.0.0.0", ((EnrichmentKey) (Iterables.get(results, 0).getKey())).indicator);
+        Assert.assertEquals("10.0.0.1", ((EnrichmentKey) (Iterables.get(results, 1).getKey())).indicator);
+        Assert.assertEquals("10.0.0.2", ((EnrichmentKey) (Iterables.get(results, 2).getKey())).indicator);
+      }
+      catch(Exception ex) {
+        throw new RuntimeException(ex.getMessage(), ex);
+      }
+    });
+    Thread t2 = new Thread( () ->
     {
-
-      ExtractorHandler handler = ExtractorHandler.load(stixConfig);
-      Extractor extractor = handler.getExtractor();
-      Iterable<LookupKV> results = extractor.extract(stixDoc);
-      Assert.assertEquals(3, Iterables.size(results));
-      Assert.assertEquals("10.0.0.0", ((EnrichmentKey)(Iterables.get(results, 0).getKey())).indicator);
-      Assert.assertEquals("10.0.0.1", ((EnrichmentKey)(Iterables.get(results, 1).getKey())).indicator);
-      Assert.assertEquals("10.0.0.2", ((EnrichmentKey)(Iterables.get(results, 2).getKey())).indicator);
-    }
+      try {
+        ExtractorHandler handler = ExtractorHandler.load(stixConfig);
+        Extractor extractor = handler.getExtractor();
+        Iterable<LookupKV> results = extractor.extract(stixDoc);
+        Assert.assertEquals(3, Iterables.size(results));
+        Assert.assertEquals("10.0.0.0", ((EnrichmentKey) (Iterables.get(results, 0).getKey())).indicator);
+        Assert.assertEquals("10.0.0.1", ((EnrichmentKey) (Iterables.get(results, 1).getKey())).indicator);
+        Assert.assertEquals("10.0.0.2", ((EnrichmentKey) (Iterables.get(results, 2).getKey())).indicator);
+      }
+      catch(Exception ex) {
+        throw new RuntimeException(ex.getMessage(), ex);
+      }
+    });
+    Thread t3 = new Thread( () ->
     {
-
-      ExtractorHandler handler = ExtractorHandler.load(stixConfigOnlyIPV6);
-      Extractor extractor = handler.getExtractor();
-      Iterable<LookupKV> results = extractor.extract(stixDoc);
-      Assert.assertEquals(0, Iterables.size(results));
-    }
+      try {
+        ExtractorHandler handler = ExtractorHandler.load(stixConfigOnlyIPV6);
+        Extractor extractor = handler.getExtractor();
+        Iterable<LookupKV> results = extractor.extract(stixDoc);
+        Assert.assertEquals(0, Iterables.size(results));
+      }
+      catch(Exception ex) {
+        throw new RuntimeException(ex.getMessage(), ex);
+      }
+    });
+    t1.run();
+    t2.run();
+    t3.run();
+    t1.join();
+    t2.join();
+    t3.join();
   }
 }

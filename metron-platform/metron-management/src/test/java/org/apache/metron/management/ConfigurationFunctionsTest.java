@@ -32,6 +32,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -42,15 +43,15 @@ import static org.apache.metron.management.utils.FileUtils.slurp;
 import static org.apache.metron.common.utils.StellarProcessorUtils.run;
 
 public class ConfigurationFunctionsTest {
-  private TestingServer testZkServer;
-  private CuratorFramework client;
-  private String zookeeperUrl;
+  private static TestingServer testZkServer;
+  private static CuratorFramework client;
+  private static String zookeeperUrl;
   private static final String sensorType = "bro";
   private Context context = new Context.Builder()
             .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
             .build();
-  @Before
-  public void setup() throws Exception {
+  @BeforeClass
+  public static void setup() throws Exception {
     testZkServer = new TestingServer(true);
     zookeeperUrl = testZkServer.getConnectString();
     client = ConfigurationsUtils.getClient(zookeeperUrl);
@@ -62,7 +63,7 @@ public class ConfigurationFunctionsTest {
 
   }
 
-  private void pushConfigs(String inputPath) throws Exception {
+  private static void pushConfigs(String inputPath) throws Exception {
     String[] args = new String[]{
             "-z", zookeeperUrl
             , "--mode", "PUSH"
