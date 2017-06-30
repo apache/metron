@@ -60,6 +60,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class KafkaControllerIntegrationTest {
 
   private static final int KAFKA_RETRY = 10;
+  // A bug in Spring and/or Kafka forced us to move into a component that is spun up and down per test-case
+  // Given the large spinup time of components, please avoid this pattern until we upgrade Spring.
+  // See: https://issues.apache.org/jira/browse/METRON-1009
   @Autowired
   private KafkaComponent kafkaWithZKComponent;
   private ComponentRunner runner;
@@ -113,7 +116,7 @@ public class KafkaControllerIntegrationTest {
           broSampleDataGenerator.generateSampleData(path);
         }
       } catch (ParseException|IOException e) {
-        e.printStackTrace();
+        throw new IllegalStateException("Caught an error generating sample data", e);
       }
     }
 
