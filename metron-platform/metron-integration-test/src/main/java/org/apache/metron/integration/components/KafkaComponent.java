@@ -179,13 +179,46 @@ public class KafkaComponent implements InMemoryComponent {
   public void stop() {
     shutdownConsumer();
     shutdownProducers();
+
     if(kafkaServer != null) {
-      kafkaServer.shutdown();
-      kafkaServer.awaitShutdown();
+      try {
+        kafkaServer.shutdown();
+        kafkaServer.awaitShutdown();
+      }
+      catch(Throwable fnf) {
+        if(!fnf.getMessage().contains("Error writing to highwatermark file")) {
+          throw fnf;
+        }
+      }
     }
     if(zkClient != null) {
+      // Delete data in ZK to avoid startup interference.
+      for(Topic topic : topics) {
+        zkClient.deleteRecursive(ZkUtils.getTopicPath(topic.name));
+      }
+
+      zkClient.deleteRecursive(ZkUtils.BrokerIdsPath());
+      zkClient.deleteRecursive(ZkUtils.BrokerTopicsPath());
+      zkClient.deleteRecursive(ZkUtils.ConsumersPath());
+      zkClient.deleteRecursive(ZkUtils.ControllerPath());
+      zkClient.deleteRecursive(ZkUtils.ControllerEpochPath());
+      zkClient.deleteRecursive(ZkUtils.ReassignPartitionsPath());
+      zkClient.deleteRecursive(ZkUtils.DeleteTopicsPath());
+      zkClient.deleteRecursive(ZkUtils.PreferredReplicaLeaderElectionPath());
+      zkClient.deleteRecursive(ZkUtils.BrokerSequenceIdPath());
+      zkClient.deleteRecursive(ZkUtils.IsrChangeNotificationPath());
+      zkClient.deleteRecursive(ZkUtils.EntityConfigPath());
+      zkClient.deleteRecursive(ZkUtils.EntityConfigChangesPath());
       zkClient.close();
     }
+  }
+
+  @Override
+  public void reset() {
+    // Unfortunately, there's no clean way to (quickly) purge or delete a topic.
+    // At least without killing and restarting broker anyway.
+    stop();
+    start();
   }
 
   public List<byte[]> readMessages(String topic) {
