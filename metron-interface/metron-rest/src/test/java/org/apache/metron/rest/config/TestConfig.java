@@ -129,7 +129,6 @@ public class TestConfig {
       }
     });
   }
-  //@Bean(destroyMethod = "stop")
   @Bean(destroyMethod = "stop")
   public ComponentRunner componentRunner(ZKServerComponent zkServerComponent, KafkaComponent kafkaWithZKComponent, ConfigUploadComponent configUploadComponent) {
     ComponentRunner runner = new ComponentRunner.Builder()

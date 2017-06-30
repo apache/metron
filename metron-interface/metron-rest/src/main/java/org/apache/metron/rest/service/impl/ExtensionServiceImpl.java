@@ -133,8 +133,11 @@ public class ExtensionServiceImpl implements ExtensionService{
       // NOTE if any one parser fails, then we will not continue
       // we may continue and then we have to think through a more
       // complicated failure mode
-      stormAdminService.stopParserTopology(parser, true);
-      kafkaService.deleteTopic(parser);
+
+      // We don't create these, so we won't delete them
+
+      //stormAdminService.stopParserTopology(parser, true);
+      //kafkaService.deleteTopic(parser);
       // should we delete them?
       //deleteGrokRulesFromHdfs(parser);
       sensorEnrichmentConfigService.delete(parser);
