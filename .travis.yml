@@ -6,6 +6,7 @@ addons:
     - ubuntu-toolchain-r-test
     packages:
     - g++-4.8
+sudo: required
 install: true
 language: java
 jdk:
@@ -15,9 +16,18 @@ before_install:
   - unzip -qq apache-maven-3.3.9-bin.zip
   - export M2_HOME=$PWD/apache-maven-3.3.9
   - export PATH=$M2_HOME/bin:$PATH
+  - npm config set cache $HOME/.npm-cache --global 
+  - npm config set prefix $HOME/.npm-prefix --global
 script:
   - |
-    time mvn -q -T 2C -DskipTests install && time mvn -q -T 2C jacoco:prepare-agent surefire:test@unit-tests && mvn -q jacoco:prepare-agent surefire:test@integration-tests  && time mvn -q jacoco:prepare-agent test --projects metron-interface/metron-config && time build_utils/verify_licenses.sh
+    time mvn -q -T 2C -DskipTests install && time mvn -q -T 2C surefire:test@unit-tests && time mvn -q surefire:test@integration-tests  && time mvn -q test --projects metron-interface/metron-config && time build_utils/verify_licenses.sh
+before_cache:
+  - rm -rf $HOME/.m2/repository/org/apache/metron
+
 cache:
+  timeout: 1000
   directories:
+  - $HOME/.npm-cache
+  - $HOME/.npm-prefix
+  - metron-interface/metron-config/node_modules
   - $HOME/.m2

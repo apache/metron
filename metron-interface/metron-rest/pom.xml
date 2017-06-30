@@ -257,6 +257,7 @@
             <version>1.7</version>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <dependencyManagement>
