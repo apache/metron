@@ -23,7 +23,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.dsl.Context;
+import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;

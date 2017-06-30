@@ -17,9 +17,7 @@
  */
 package org.apache.metron.pcap.pattern;
 
-import com.google.common.collect.ImmutableMap;
-import org.apache.metron.common.utils.StellarProcessorUtils;
-import org.apache.metron.pcap.pattern.ByteArrayMatchingUtil;
+import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +26,6 @@ import org.junit.runners.Parameterized;
 import javax.xml.bind.DatatypeConverter;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Predicate;
 
 @RunWith(Parameterized.class)
 public class ByteArrayMatchingUtilTest {
