@@ -244,9 +244,9 @@ The functions are split roughly into a few sections:
   * Returns: The String representation of the enrichment config
 
 ## Deployment Instructions
-* Ambari
+* Clusters installed via Ambari Management Pack (default)
     * Automatically deployed
-* Non Ambari
+* Manual installation
     * Deployment is as simple as dropping the jar created by this project into
     `$METRON_HOME/lib` and starting the Stellar shell via
     `$METRON_HOME/bin/stellar`
