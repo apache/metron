@@ -19,10 +19,10 @@
  */
 package org.apache.metron.statistics.outlier;
 
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.dsl.StellarFunction;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.dsl.StellarFunction;
 import org.apache.metron.statistics.OnlineStatisticsProvider;
 
 import java.util.ArrayList;

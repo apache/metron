@@ -32,7 +32,6 @@ import org.apache.log4j.Logger;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.dsl.Context;
 
 import java.io.IOException;
 import java.util.Map;
