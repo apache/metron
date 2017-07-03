@@ -140,8 +140,8 @@ public class SimpleHBaseEnrichmentFunctions {
       if(!initialized) {
         return false;
       }
-      if(args.size() < 2) {
-        throw new IllegalStateException("Requires at least an enrichment type and indicator");
+      if(!args.size() == 4) {
+        throw new IllegalStateException("All parameters are mandatory, submit 'enrichment type', 'indicator', 'nosql_table' and 'column_family'");
       }
       int i = 0;
       String enrichmentType = (String) args.get(i++);
@@ -217,8 +217,8 @@ public class SimpleHBaseEnrichmentFunctions {
       if(!initialized) {
         return false;
       }
-      if(args.size() < 2) {
-        throw new IllegalStateException("Requires at least an enrichment type and indicator");
+      if(!args.size() == 4) {
+        throw new IllegalStateExceptionIllegalStateException("All parameters are mandatory, submit 'enrichment type', 'indicator', 'nosql_table' and 'column_family'");
       }
       int i = 0;
       String enrichmentType = (String) args.get(i++);
