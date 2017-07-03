@@ -57,7 +57,7 @@ export class ColumnNamesService {
       ColumnNamesService.columnDisplayValueToNameMap[columnName.displayValue] = columnName.key;
     });
   }
-  
+
   constructor(private http: Http,
               private dataSource: DataSource) {}
 

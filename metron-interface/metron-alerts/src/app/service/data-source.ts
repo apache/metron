@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 import {Observable} from 'rxjs/Rx';
-import {Injectable, Inject, NgZone} from '@angular/core';
-import {Http, Headers, RequestOptions} from '@angular/http';
+import {Injectable} from '@angular/core';
+import {Http} from '@angular/http';
 
 import {QueryBuilder} from '../model/query-builder';
 import {Alert} from '../model/alert';

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {Observable} from 'rxjs/Rx';
-import {Http, Headers, RequestOptions} from '@angular/http';
+import {Headers, RequestOptions} from '@angular/http';
 
 import {HttpUtil} from '../utils/httpUtil';
 import {DataSource} from './data-source';
@@ -46,8 +46,8 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
     new ColumnMetadata('host', 'string'),
     new ColumnMetadata('alert_status', 'string')
   ];
-  
-  getAlerts(queryBuilder:QueryBuilder): Observable<AlertsSearchResponse> {
+
+  getAlerts(queryBuilder: QueryBuilder): Observable<AlertsSearchResponse> {
     let url = '/search/*,-*kibana/_search';
     return this.http.post(url, queryBuilder.getESSearchQuery(), new RequestOptions({headers: new Headers(this.defaultHeaders)}))
       .map(HttpUtil.extractData)
@@ -71,7 +71,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
     return Observable.create(observer => {
       observer.next(JSON.parse(JSON.stringify(this.defaultColumnMetadata)));
       observer.complete();
-    });  
+    });
   }
 
   getAllFieldNames(): Observable<ColumnMetadata[]> {

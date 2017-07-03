@@ -17,7 +17,6 @@
  */
 import {ColumnMetadata} from '../model/column-metadata';
 import {AlertsSearchResponse} from '../model/alerts-search-response';
-import {Alert} from '../model/alert';
 
 export class ElasticsearchUtils {
 
@@ -69,5 +68,5 @@ export class ElasticsearchUtils {
 
     return message;
   }
-  
+
 }

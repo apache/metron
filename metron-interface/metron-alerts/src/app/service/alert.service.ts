@@ -15,15 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, Inject, NgZone} from '@angular/core';
+import {Injectable, NgZone} from '@angular/core';
 import {Observable} from 'rxjs/Rx';
 import 'rxjs/add/observable/interval';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/onErrorResumeNext';
 
 import {Alert} from '../model/alert';
-import {Http, Headers, RequestOptions} from '@angular/http';
-import {HttpUtil} from '../utils/httpUtil';
+import {Http} from '@angular/http';
 import {QueryBuilder} from '../model/query-builder';
 import {DataSource} from './data-source';
 import {AlertsSearchResponse} from '../model/alerts-search-response';

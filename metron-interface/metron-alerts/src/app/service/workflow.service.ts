@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, Inject} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Rx';
 import {Alert} from '../model/alert';
 import {Http, Headers, RequestOptions} from '@angular/http';

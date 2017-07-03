@@ -15,12 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, Inject, } from '@angular/core';
+import {Injectable, } from '@angular/core';
 import {Observable} from 'rxjs/Rx';
 import {Http} from '@angular/http';
 import {Subject} from 'rxjs/Subject';
-
-import {ALERTS_SAVED_SEARCH, ALERTS_RECENT_SEARCH, NUM_SAVED_SEARCH} from '../utils/constants';
 import {QueryBuilder} from '../model/query-builder';
 import {SaveSearch} from '../model/save-search';
 import {ColumnMetadata} from '../model/column-metadata';

@@ -1,6 +1,6 @@
 import {Alert} from './alert';
 
 export class AlertsSearchResponse {
-  total: number = 0;
+  total = 0;
   results: Alert[] = [];
 }

@@ -15,12 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, Inject} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Rx';
 import {Http} from '@angular/http';
 import {Subject} from 'rxjs/Subject';
-
-import {ALERTS_TABLE_METADATA} from '../utils/constants';
 import {ColumnMetadata} from '../model/column-metadata';
 import {TableMetadata} from '../model/table-metadata';
 import {DataSource} from './data-source';

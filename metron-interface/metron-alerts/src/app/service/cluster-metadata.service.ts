@@ -15,11 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, Inject} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Rx';
-import {Http, Headers, RequestOptions} from '@angular/http';
-import {HttpUtil} from '../utils/httpUtil';
-import {ElasticsearchUtils} from '../utils/metadata-utils';
+import {Http} from '@angular/http';
 import {ColumnMetadata} from '../model/column-metadata';
 import {DataSource} from './data-source';
 

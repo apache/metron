@@ -17,7 +17,7 @@ export class Alert {
     'source:type': string;
     ip_dst_addr: number;
     original_string: string;
-    tos:number;
+    tos: number;
     id: number;
     ip_src_addr: string;
     timestamp: number;
