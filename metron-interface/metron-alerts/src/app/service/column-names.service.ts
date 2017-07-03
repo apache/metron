@@ -15,14 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, Inject} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Rx';
 import {Http} from '@angular/http';
 
-import {IAppConfig} from '../app.config.interface';
-import {APP_CONFIG} from '../app.config';
-import {ALERTS_COLUMN_NAMES} from '../utils/constants';
 import {ColumnNames} from '../model/column-names';
+import {DataSource} from './data-source';
 
 @Injectable()
 export class ColumnNamesService {
@@ -50,7 +48,7 @@ export class ColumnNamesService {
     return (!name || name.length === 0) ? key : name;
   }
 
-  private static toMap(columnNames: ColumnNames[]) {
+  public static toMap(columnNames: ColumnNames[]) {
     ColumnNamesService.columnNameToDisplayValueMap = {};
     ColumnNamesService.columnDisplayValueToNameMap = {};
 
@@ -59,34 +57,15 @@ export class ColumnNamesService {
       ColumnNamesService.columnDisplayValueToNameMap[columnName.displayValue] = columnName.key;
     });
   }
-  constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
-  }
+  
+  constructor(private http: Http,
+              private dataSource: DataSource) {}
 
-  list(): Promise<ColumnNames> {
-    return Observable.create(observer => {
-      let columnNames: ColumnNames[];
-      try {
-        columnNames = JSON.parse(localStorage.getItem(ALERTS_COLUMN_NAMES));
-        ColumnNamesService.toMap(columnNames);
-      } catch (e) {}
-
-      columnNames = columnNames || [];
-
-      observer.next(columnNames);
-      observer.complete();
-
-    }).toPromise();
+  list(): Promise<ColumnNames[]> {
+    return this.dataSource.getAlertTableColumnNames().toPromise();
   }
 
   save(columns: ColumnNames[]): Observable<{}> {
-    return Observable.create(observer => {
-      try {
-        localStorage.setItem(ALERTS_COLUMN_NAMES, JSON.stringify(columns));
-      } catch (e) {}
-      ColumnNamesService.toMap(columns);
-      observer.next({});
-      observer.complete();
-
-    });
+    return this.dataSource.saveAlertTableColumnNames(columns);
   }
 }

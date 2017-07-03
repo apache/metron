@@ -17,8 +17,9 @@ import {RefreshInterval} from '../configure-rows/configure-rows-enums';
 import {SaveSearch} from '../../model/save-search';
 import {TableMetadata} from '../../model/table-metadata';
 import {MetronDialogBox, DialogType} from '../../shared/metron-dialog-box';
-import {MetadataUtil} from '../../utils/metadata-utils';
+import {ElasticsearchUtils} from '../../utils/metadata-utils';
 import {AlertSearchDirective} from '../../shared/directives/alert-search.directive';
+import {AlertsSearchResponse} from '../../model/alerts-search-response';
 
 @Component({
   selector: 'app-alerts-list',
@@ -292,8 +293,8 @@ export class AlertsListComponent implements OnInit {
     this.alertsService.search(this.queryBuilder).subscribe(results => {
       this.setData(results);
     }, error => {
-      this.setData({hits: {hits: [], total: 0}});
-      this.metronDialogBox.showConfirmationMessage(MetadataUtil.extractESErrorMessage(error), DialogType.Error);
+      this.setData(new AlertsSearchResponse());
+      this.metronDialogBox.showConfirmationMessage(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
     });
 
     this.tryStartPolling();
@@ -307,9 +308,9 @@ export class AlertsListComponent implements OnInit {
     }
   }
 
-  setData(results) {
-    this.alerts = results['hits'].hits;
-    this.pagingData.total = results['hits'].total;
+  setData(results: AlertsSearchResponse) {
+    this.alerts = results.results;
+    this.pagingData.total = results.total;
   }
 
   showConfigureTable() {

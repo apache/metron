@@ -133,7 +133,7 @@ app.use('/_cluster', clusterState);
 app.get('/alerts-list', indexHTML);
 app.get('', indexHTML);
 app.use(function(req, res, next){
-  res.sendStatus(404).send(304);
+  res.status(404).sendStatus(304);
 });
 
 

@@ -20,7 +20,7 @@ export class AlertDetailsComponent implements OnInit {
   alertType = '';
   alertState = AlertState;
   selectedAlertState: AlertState = AlertState.NEW;
-  alert: Alert = new Alert(-1, '', '', '', '', '', '', '', '', '', '', '', {});
+  alert: Alert = new Alert();
   alertFields: string[] = [];
 
   constructor(private router: Router,

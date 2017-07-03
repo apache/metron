@@ -16,8 +16,10 @@
  * limitations under the License.
  */
 import {ColumnMetadata} from '../model/column-metadata';
+import {AlertsSearchResponse} from '../model/alerts-search-response';
+import {Alert} from '../model/alert';
 
-export class MetadataUtil {
+export class ElasticsearchUtils {
 
   private static createColumMetaData(properties: any, columnMetadata: ColumnMetadata[], seen: string[]) {
      try {
@@ -33,7 +35,7 @@ export class MetadataUtil {
      } catch (e) {}
   }
 
-  public static extractData(res: Response): ColumnMetadata[] {
+  public static extractColumnNameData(res: Response): ColumnMetadata[] {
     let response: any = res || {};
     let columnMetadata: ColumnMetadata[] = [];
     let seen: string[] = [];
@@ -42,13 +44,21 @@ export class MetadataUtil {
       if (index.startsWith('bro') || index.startsWith('bro') || index.startsWith('bro')) {
         let mappings = response.metadata.indices[index].mappings;
         for (let type of Object.keys(mappings)) {
-          MetadataUtil.createColumMetaData(response.metadata.indices[index].mappings[type].properties, columnMetadata, seen);
+          ElasticsearchUtils.createColumMetaData(response.metadata.indices[index].mappings[type].properties, columnMetadata, seen);
         }
       }
     }
 
     columnMetadata.push(new ColumnMetadata('_id', 'string'));
     return columnMetadata;
+  }
+
+  public static extractAlertsData(res: Response): AlertsSearchResponse {
+    let response: any = res || {};
+    let alertsSearchResponse: AlertsSearchResponse = new AlertsSearchResponse();
+    alertsSearchResponse.total = response['hits']['total'];
+    alertsSearchResponse.results = response['hits']['hits'];
+    return alertsSearchResponse;
   }
 
   public static extractESErrorMessage(error: any): any {
@@ -59,4 +69,5 @@ export class MetadataUtil {
 
     return message;
   }
+  
 }
