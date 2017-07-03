@@ -37,6 +37,7 @@ import {SwitchModule} from './shared/switch/switch.module';
 import {ColumnNamesService} from './service/column-names.service';
 import {ElasticSearchLocalstorageImpl} from './service/elasticsearch-localstorage-impl';
 import {DataSource} from './service/data-source';
+import {environment} from '../environments/environment.prod';
 
 
 export function initConfig(config: ColumnNamesService) {
@@ -61,7 +62,7 @@ export function initConfig(config: ColumnNamesService) {
     SwitchModule
   ],
   providers: [{ provide: APP_INITIALIZER, useFactory: initConfig, deps: [ColumnNamesService], multi: true },
-              { provide: DataSource, useClass: ElasticSearchLocalstorageImpl},
+              { provide: DataSource, useClass: environment.dataSource === 'elastic' ? ElasticSearchLocalstorageImpl : null},
               ConfigureTableService,
               SaveSearchService,
               MetronDialogBox,
