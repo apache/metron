@@ -25,13 +25,12 @@ import org.apache.metron.common.bolt.ConfiguredParserBolt;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.FieldValidator;
 import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.utils.ErrorUtils;
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.parsers.filters.Filters;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
@@ -62,7 +61,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   //default filter is noop, so pass everything through.
   private MessageFilter<JSONObject> filter;
   private WriterHandler writer;
-  private org.apache.metron.common.dsl.Context stellarContext;
+  private Context stellarContext;
   private transient MessageGetStrategy messageGetStrategy;
   public ParserBolt( String zookeeperUrl
                    , String sensorType

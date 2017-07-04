@@ -36,6 +36,7 @@
             <module>metron-deployment</module>
             <module>metron-docker</module>
             <module>metron-interface</module>
+            <module>metron-stellar</module>
             <module>site-book</module>
     </modules>
 
@@ -110,6 +111,8 @@
         <global_jar_version>3.0.2</global_jar_version>
         <global_surefire_version>2.18</global_surefire_version>
         <global_maven_version>[3.3.1,)</global_maven_version>
+        <global_kryo_version>3.0.3</global_kryo_version>
+        <global_kryo_serializers_version>0.38</global_kryo_serializers_version>
         <argLine></argLine>
     </properties>
 

@@ -18,7 +18,7 @@
 package org.apache.metron.common.configuration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.ByteArrayInputStream;

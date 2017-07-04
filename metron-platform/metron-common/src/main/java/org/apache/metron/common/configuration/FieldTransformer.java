@@ -20,7 +20,7 @@ package org.apache.metron.common.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableList;
-import org.apache.metron.common.dsl.Context;
+import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.common.field.transformation.FieldTransformation;
 import org.apache.metron.common.field.transformation.FieldTransformations;
 import org.json.simple.JSONObject;
