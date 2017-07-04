@@ -18,8 +18,13 @@
 package org.apache.metron.rest.service;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.extensions.ParserExtensionConfig;
+import org.apache.metron.rest.RestException;
 
 import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 
 public interface ExtensionService {
   public enum ExtensionType{
@@ -39,4 +44,8 @@ public interface ExtensionService {
     //, SEARCH, ELASTICSEARCH, SOLR, LOGROTATE
   }
   void install(ExtensionType extensionType, String extensionPackageName, TarArchiveInputStream tgzStream) throws Exception;
+  ParserExtensionConfig findOneParserExtension(String name) throws RestException;
+  Map<String, ParserExtensionConfig> getAllParserExtensions() throws RestException;
+  List<String> getAllParserExtensionTypes() throws RestException;
+  boolean deleteParserExtension(String name) throws RestException;
 }
