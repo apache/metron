@@ -24,6 +24,7 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.extensions.ParserExtensionConfig;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.common.utils.JSONUtils;
@@ -103,9 +104,28 @@ public class ConfigurationsUtils {
     writeToZookeeper(PARSER.getZookeeperRoot() + "/" + sensorType, configData, client);
   }
 
+  public static void writeParserExtensionConfigToZookeeper(String extensionID, byte[] configData, CuratorFramework client) throws Exception {
+    ParserExtensionConfig c = (ParserExtensionConfig) PARSER_EXTENSION.deserialize(new String(configData));
+    writeToZookeeper(PARSER_EXTENSION.getZookeeperRoot() + "/" + extensionID, configData, client);
+  }
+
+  public static void writeParserExtensionConfigToZookeeper(String extensionID, ParserExtensionConfig parserExtensionConfig, String zookeeperUrl) throws Exception {
+    writeParserExtensionConfigToZookeeper(extensionID, JSONUtils.INSTANCE.toJSON(parserExtensionConfig), zookeeperUrl);
+  }
+
+  public static void writeParserExtensionConfigToZookeeper(String extensionID, byte[] configData, String zookeeperUrl) throws Exception {
+    try(CuratorFramework client = getClient(zookeeperUrl)) {
+      client.start();
+      writeSensorParserConfigToZookeeper(extensionID, configData, client);
+    }
+  }
+
+
+
   public static void writeSensorIndexingConfigToZookeeper(String sensorType, Map<String, Object> sensorIndexingConfig, String zookeeperUrl) throws Exception {
     writeSensorIndexingConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSON(sensorIndexingConfig), zookeeperUrl);
   }
+
 
   public static void writeSensorIndexingConfigToZookeeper(String sensorType, byte[] configData, String zookeeperUrl) throws Exception {
     try(CuratorFramework client = getClient(zookeeperUrl)) {
@@ -189,6 +209,11 @@ public class ConfigurationsUtils {
   public static SensorParserConfig readSensorParserConfigFromZookeeper(String sensorType, CuratorFramework client) throws Exception {
     return JSONUtils.INSTANCE.load(new ByteArrayInputStream(readFromZookeeper(PARSER.getZookeeperRoot() + "/" + sensorType, client)), SensorParserConfig.class);
   }
+
+  public static ParserExtensionConfig readParserExtensionConfigFromZookeeper(String extensionID, CuratorFramework client) throws Exception {
+    return JSONUtils.INSTANCE.load(new ByteArrayInputStream(readFromZookeeper(PARSER_EXTENSION.getZookeeperRoot() + "/" + extensionID, client)), ParserExtensionConfig.class);
+  }
+
 
   public static byte[] readGlobalConfigBytesFromZookeeper(CuratorFramework client) throws Exception {
     return readFromZookeeper(GLOBAL.getZookeeperRoot(), client);

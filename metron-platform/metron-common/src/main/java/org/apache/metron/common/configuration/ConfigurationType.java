@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.extensions.ParserExtensionConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.common.utils.JSONUtils;
 
@@ -65,6 +66,13 @@ public enum ConfigurationType implements Function<String, Object> {
     try {
       return JSONUtils.INSTANCE.load(s, ProfilerConfig.class);
     } catch (IOException e) {
+      throw new RuntimeException("Unable to load " + s, e);
+    }
+  }),
+  PARSER_EXTENSION("parser_extensions","extensions/parser", s-> {
+    try{
+      return JSONUtils.INSTANCE.load(s, ParserExtensionConfig.class);
+    }catch(IOException e){
       throw new RuntimeException("Unable to load " + s, e);
     }
   });

@@ -1,0 +1,7 @@
+{
+  "extensionAssemblyName" : "test.fool-1.0.tar.gz",
+  "extensionBundleName" : "metron-test-parsers-1.0.bundle",
+  "extensionsBundleID" : "metron-test-parsers",
+  "extensionsBundleVersion" : "1.0.0",
+  "parserExtensionParserName" : [ "test2", "test" ]
+}

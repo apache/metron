@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -24,12 +25,17 @@ import org.apache.commons.io.FileUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.extensions.ParserExtensionConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.guava.io.Files;
+import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.*;
+import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -72,6 +78,55 @@ public class ExtensionServiceImpl implements ExtensionService{
      }
      // stellar etc....
   }
+  @Override
+  public ParserExtensionConfig findOneParserExtension(String name) throws RestException{
+    ParserExtensionConfig parserExtensionConfig;
+    try {
+      parserExtensionConfig = ConfigurationsUtils.readParserExtensionConfigFromZookeeper(name, client);
+    } catch (KeeperException.NoNodeException e) {
+      return null;
+    } catch (Exception e) {
+      throw new RestException(e);
+    }
+    return parserExtensionConfig;
+  }
+
+  @Override
+  public Map<String, ParserExtensionConfig> getAllParserExtensions() throws RestException{
+    Map<String, ParserExtensionConfig> parserExtensionConfigs = new HashMap<>();
+    List<String> sensorNames = getAllParserExtensionTypes();
+    for (String name : sensorNames) {
+      parserExtensionConfigs.put(name, findOneParserExtension(name));
+    }
+    return parserExtensionConfigs;
+  }
+
+  @Override
+  public List<String> getAllParserExtensionTypes() throws RestException {
+    List<String> types;
+    try {
+      types = client.getChildren().forPath(ConfigurationType.PARSER_EXTENSION.getZookeeperRoot());
+    } catch (KeeperException.NoNodeException e) {
+      types = new ArrayList<>();
+    } catch (Exception e) {
+      throw new RestException(e);
+    }
+    return types;
+  }
+
+  @Override
+  public boolean deleteParserExtension(String name) throws RestException{
+      // in order to delete the parser extension, we need to
+      // delete the:
+      // parsers
+      // enrichments
+      // indexing
+      // TBD: other configurations
+      // the extension bundle
+      // the extension configuration
+
+      return true;
+  }
 
   private void installParserExtension(Path extensionPath, String extentionPackageName) throws Exception{
     final InstallContext context = new InstallContext();
@@ -94,6 +149,7 @@ public class ExtensionServiceImpl implements ExtensionService{
         saveIndexingConfigs(context, loadedIndexingConfigs);
         saveParserConfigs(context, loadedParserConfigs);
         deployBundleToHdfs(context);
+        writeExtensionConfiguration(context);
     }catch(Exception e){
       for(String name : loadedEnrichementConfigs){
         sensorEnrichmentConfigService.delete(name);
@@ -171,9 +227,14 @@ public class ExtensionServiceImpl implements ExtensionService{
     }
 
     List<Path> enrichmentConfigPaths = new ArrayList<>();
+    Map<String,SensorEnrichmentConfig> defaultEnrichmentConfigs = new HashMap<>();
     for(File thisConfigFile : configurations){
       enrichmentConfigPaths.add(thisConfigFile.toPath());
+      String name = thisConfigFile.getName().substring(0,thisConfigFile.getName().lastIndexOf('.'));
+      SensorEnrichmentConfig enrichmentConfig = SensorEnrichmentConfig.fromBytes(Files.toByteArray(thisConfigFile));
+      defaultEnrichmentConfigs.put(name,enrichmentConfig);
     }
+    context.defaultEnrichmentConfigs = Optional.of(defaultEnrichmentConfigs);
 
     List<Path> zookeeperPaths = new ArrayList<>();
     zookeeperPaths.add(enrichments.getParent());
@@ -196,10 +257,14 @@ public class ExtensionServiceImpl implements ExtensionService{
 
 
     List<Path> indexingConfigPaths = new ArrayList<>();
+    Map<String,Map<String,Object>> defaultIndexingConfigs = new HashMap<>();
     for(File thisConfigFile : configurations){
       indexingConfigPaths.add(thisConfigFile.toPath());
+      String name = thisConfigFile.getName().substring(0,thisConfigFile.getName().lastIndexOf('.'));
+      Map<String,Object> indexingConfig = JSONUtils.INSTANCE.load(new ByteArrayInputStream(Files.toByteArray(thisConfigFile)), new TypeReference<Map<String, Object>>() {});
+      defaultIndexingConfigs.put(name,indexingConfig);
     }
-
+    context.defaultIndexingConfigs = Optional.of(defaultIndexingConfigs);
     List<Path> indexingConfigDirPaths = new ArrayList<>();
     indexingConfigDirPaths.add(indexing);
     context.pathContext.put(Paths.INDEXING_CONFIG,indexingConfigPaths);
@@ -215,10 +280,16 @@ public class ExtensionServiceImpl implements ExtensionService{
     }
 
     List<Path> parserConfigPaths = new ArrayList<>();
+    Map<String,SensorParserConfig> defaultParserConfigs = new HashMap<>();
     for(File thisConfigFile : configurations){
       parserConfigPaths.add(thisConfigFile.toPath());
-      context.extensionParserNames.add(thisConfigFile.getName().substring(0,thisConfigFile.getName().lastIndexOf('.')));
+      String parserName = thisConfigFile.getName().substring(0,thisConfigFile.getName().lastIndexOf('.'));
+      context.extensionParserNames.add(parserName);
+      SensorParserConfig defaultParserConfig = SensorParserConfig.fromBytes(Files.toByteArray(thisConfigFile));
+      defaultParserConfigs.put(parserName,defaultParserConfig);
     }
+
+    context.defaultParserConfigs = Optional.of(defaultParserConfigs);
 
     List<Path> parserConfigDirPaths = new ArrayList<>();
     parserConfigDirPaths.add(indexing);
@@ -247,17 +318,14 @@ public class ExtensionServiceImpl implements ExtensionService{
     bundlePathList.add(bundlePath);
     context.pathContext.put(Paths.BUNDLE,bundlePathList);
     context.bundleName = Optional.of(bundlePath.toFile().getName());
-    // TODO - load the bundle and verify the metadata
-    // TODO - get the bundle.properties out of zk to get the correct prefixes etc
     try (final JarFile bundle = new JarFile(bundlePath.toFile())) {
       final Manifest manifest = bundle.getManifest();
-
-      // lookup the nar id
       final Attributes attributes = manifest.getMainAttributes();
       final String bundleId = attributes.getValue(String.format("%s-Id",context.bundleProperties.get().getMetaIdPrefix()));
+      final String bundleVersion = attributes.getValue(String.format("%s-Version",context.bundleProperties.get().getMetaIdPrefix()));
       context.bundleID = Optional.of(bundleId);
+      context.bundleVersion = Optional.of(bundleVersion);
     }
-
   }
 
   private void saveEnrichmentConfigs(InstallContext context , List<String> loadedConfigs) throws Exception{
@@ -335,12 +403,29 @@ public class ExtensionServiceImpl implements ExtensionService{
     }
   }
 
+  private void writeExtensionConfiguration(InstallContext context) throws Exception {
+    ParserExtensionConfig config = new ParserExtensionConfig();
+    config.setParserExtensionParserName(context.extensionParserNames);
+    config.setExtensionsBundleID(context.bundleID.get());
+    config.setExtensionsBundleVersion(context.bundleVersion.get());
+    config.setExtensionBundleName(context.bundleName.get());
+    config.setExtensionAssemblyName(context.extensionPackageName.get());
+    config.setDefaultParserConfigs(context.defaultParserConfigs.get());
+    config.setDefaultEnrichementConfigs(context.defaultEnrichmentConfigs.get());
+    config.setDefaultIndexingConfigs(context.defaultIndexingConfigs.get());
+    ConfigurationsUtils.writeParserExtensionConfigToZookeeper(context.extensionPackageName.get(),config.toJSON().getBytes(), client);
+  }
+
   class InstallContext {
     public Map<Paths,List<Path>> pathContext = new HashMap<>();
     public Set<String> extensionParserNames = new HashSet<>();
     public Optional<String> bundleID = Optional.empty();
+    public Optional<String> bundleVersion = Optional.empty();
     public Optional<String> bundleName = Optional.empty();
     public Optional<BundleProperties> bundleProperties = Optional.empty();
     public Optional<String> extensionPackageName = Optional.empty();
+    public Optional<Map<String,SensorParserConfig>> defaultParserConfigs = Optional.empty();
+    public Optional<Map<String,SensorEnrichmentConfig>> defaultEnrichmentConfigs = Optional.empty();
+    public Optional<Map<String,Map<String,Object>>> defaultIndexingConfigs = Optional.empty();
   }
 }
