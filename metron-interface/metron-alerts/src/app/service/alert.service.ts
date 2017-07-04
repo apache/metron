@@ -26,6 +26,7 @@ import {Http} from '@angular/http';
 import {QueryBuilder} from '../model/query-builder';
 import {DataSource} from './data-source';
 import {AlertsSearchResponse} from '../model/alerts-search-response';
+import {SearchRequest} from '../model/search-request';
 
 @Injectable()
 export class AlertService {
@@ -37,14 +38,14 @@ export class AlertService {
               private dataSource: DataSource,
               private ngZone: NgZone) { }
 
-  public search(queryBuilder: QueryBuilder): Observable<AlertsSearchResponse> {
-    return this.dataSource.getAlerts(queryBuilder);
+  public search(searchRequest: SearchRequest): Observable<AlertsSearchResponse> {
+    return this.dataSource.getAlerts(searchRequest);
   }
 
-  public pollSearch(queryBuilder: QueryBuilder): Observable<AlertsSearchResponse> {
+  public pollSearch(searchRequest: SearchRequest): Observable<AlertsSearchResponse> {
     return this.ngZone.runOutsideAngular(() => {
       return Observable.interval(this.interval * 1000).switchMap(() => {
-        return this.dataSource.getAlerts(queryBuilder);
+        return this.dataSource.getAlerts(searchRequest);
       });
     });
   }

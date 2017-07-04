@@ -20,10 +20,9 @@ import {Headers, RequestOptions} from '@angular/http';
 
 import {HttpUtil} from '../utils/httpUtil';
 import {DataSource} from './data-source';
-import {QueryBuilder} from '../model/query-builder';
 import {Alert} from '../model/alert';
 import {ColumnMetadata} from '../model/column-metadata';
-import {ElasticsearchUtils} from '../utils/metadata-utils';
+import {ElasticsearchUtils} from '../utils/elasticsearch-utils';
 import {
   ALERTS_COLUMN_NAMES, ALERTS_TABLE_METADATA, ALERTS_RECENT_SEARCH,
   ALERTS_SAVED_SEARCH, NUM_SAVED_SEARCH
@@ -33,6 +32,7 @@ import {ColumnNamesService} from './column-names.service';
 import {TableMetadata} from '../model/table-metadata';
 import {SaveSearch} from '../model/save-search';
 import {AlertsSearchResponse} from '../model/alerts-search-response';
+import {SearchRequest} from '../model/search-request';
 
 export class ElasticSearchLocalstorageImpl extends DataSource {
 
@@ -47,9 +47,9 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
     new ColumnMetadata('alert_status', 'string')
   ];
 
-  getAlerts(queryBuilder: QueryBuilder): Observable<AlertsSearchResponse> {
+  getAlerts(searchRequest: SearchRequest): Observable<AlertsSearchResponse> {
     let url = '/search/*,-*kibana/_search';
-    return this.http.post(url, queryBuilder.getESSearchQuery(), new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    return this.http.post(url, searchRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
       .map(HttpUtil.extractData)
       .map(ElasticsearchUtils.extractAlertsData)
       .catch(HttpUtil.handleError)
@@ -278,7 +278,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
         savedSearches = JSON.parse(localStorage.getItem(ALERTS_SAVED_SEARCH));
         let savedItem = savedSearches.find(search => search.name === saveSearch.name);
         savedItem.lastAccessed = saveSearch.lastAccessed;
-        savedItem.queryBuilder = saveSearch.queryBuilder;
+        savedItem.searchRequest = saveSearch.searchRequest;
       } catch (e) {}
 
       localStorage.setItem(ALERTS_SAVED_SEARCH, JSON.stringify(savedSearches));

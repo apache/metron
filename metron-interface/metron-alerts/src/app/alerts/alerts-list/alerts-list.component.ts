@@ -17,9 +17,9 @@ import {RefreshInterval} from '../configure-rows/configure-rows-enums';
 import {SaveSearch} from '../../model/save-search';
 import {TableMetadata} from '../../model/table-metadata';
 import {MetronDialogBox, DialogType} from '../../shared/metron-dialog-box';
-import {ElasticsearchUtils} from '../../utils/metadata-utils';
 import {AlertSearchDirective} from '../../shared/directives/alert-search.directive';
 import {AlertsSearchResponse} from '../../model/alerts-search-response';
+import {ElasticsearchUtils} from '../../utils/elasticsearch-utils';
 
 @Component({
   selector: 'app-alerts-list',
@@ -72,7 +72,9 @@ export class AlertsListComponent implements OnInit {
 
   addLoadSavedSearchListner() {
     this.saveSearchService.loadSavedSearch$.subscribe((savedSearch: SaveSearch) => {
-      this.queryBuilder = savedSearch.queryBuilder;
+      let queryBuilder = new QueryBuilder();
+      queryBuilder.searchRequest = savedSearch.searchRequest;
+      this.queryBuilder = queryBuilder;
       this.prepareColumnData(savedSearch.tableColumns, []);
       this.search(true, savedSearch);
     });
@@ -282,7 +284,7 @@ export class AlertsListComponent implements OnInit {
     if (this.queryBuilder.query !== '*') {
       if (!savedSearch) {
         savedSearch = new SaveSearch();
-        savedSearch.queryBuilder = this.queryBuilder;
+        savedSearch.searchRequest = this.queryBuilder.searchRequest;
         savedSearch.tableColumns = this.alertsColumns;
         savedSearch.name = savedSearch.getDisplayString();
       }
@@ -290,7 +292,7 @@ export class AlertsListComponent implements OnInit {
       this.saveSearchService.saveAsRecentSearches(savedSearch).subscribe(() => {});
     }
 
-    this.alertsService.search(this.queryBuilder).subscribe(results => {
+    this.alertsService.search(this.queryBuilder.searchRequest).subscribe(results => {
       this.setData(results);
     }, error => {
       this.setData(new AlertsSearchResponse());
@@ -347,7 +349,7 @@ export class AlertsListComponent implements OnInit {
   tryStartPolling() {
     if (!this.pauseRefresh) {
       this.tryStopPolling();
-      this.refreshTimer = this.alertsService.pollSearch(this.queryBuilder).subscribe(results => {
+      this.refreshTimer = this.alertsService.pollSearch(this.queryBuilder.searchRequest).subscribe(results => {
         this.setData(results);
       });
     }

@@ -21,7 +21,7 @@
   </div>
   <ul  *ngIf="data.getData().length > 0"  class="list-group">
     <li *ngFor="let data of data.getData()" class="list-group-item justify-content-between anchor"
-        [ngClass]="{'font-size-14' : fontSize === 14, 'font-size-15' : fontSize === 15}"
+        [ngClass]="{'font-size-14' : fontSize === 14, 'font-size-15' : fontSize === 15}" [attr.title]="data.key"
         (click)="onSelectClick(data.key)">
       {{ data.key | centerEllipses: strLength }}
       <span *ngIf="data.doc_count" class="badge badge-default badge-pill"> {{ data.doc_count }} </span>

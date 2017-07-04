@@ -1,5 +1,3 @@
-import {Filter} from './filter';
-import {ColumnNamesService} from '../service/column-names.service';
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,26 +15,15 @@ import {ColumnNamesService} from '../service/column-names.service';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {Filter} from './filter';
+import {ColumnNamesService} from '../service/column-names.service';
+import {SearchRequest} from './search-request';
+
 export class QueryBuilder {
+  private _searchRequest = new SearchRequest();
   private _query = '*';
   private _displayQuery = this._query;
-  private from = 0;
-  private size = 15;
-  private sort: {}[] = [{ timestamp: {order : 'desc', ignore_unmapped: true, unmapped_type: 'date'} }];
   private _filters: Filter[] = [];
-
-  static fromJSON(obj: QueryBuilder): QueryBuilder {
-    let queryBuilder = new QueryBuilder();
-    queryBuilder._query = obj._query;
-    queryBuilder._displayQuery = obj._displayQuery;
-    queryBuilder.from = obj.from;
-    queryBuilder.size = obj.size;
-    queryBuilder.sort = obj.sort;
-    queryBuilder._filters = obj._filters;
-    queryBuilder.onSearchChange();
-
-    return queryBuilder;
-  }
 
   set query(value: string) {
     value = value.replace(/\\:/g, ':');
@@ -63,6 +50,17 @@ export class QueryBuilder {
     return this._filters;
   }
 
+
+  get searchRequest():SearchRequest {
+    this._searchRequest.query = { query_string: { query: this.generateSelect() } };
+    return this._searchRequest;
+  }
+
+  set searchRequest(value:SearchRequest) {
+    this._searchRequest = value;
+    this.query = this._searchRequest.query.query_string.query;
+  }
+
   addOrUpdateFilter(field: string, value: string) {
     let filter = this._filters.find(tFilter => tFilter.field === field);
     if (filter) {
@@ -72,13 +70,6 @@ export class QueryBuilder {
     }
 
     this.onSearchChange();
-  }
-
-  asString(): string {
-    let json = JSON.stringify(this.getESSearchQuery());
-    json = json.replace(/"/g, '').replace(/^{/, '').replace(/}$/, '');
-
-    return json;
   }
 
   generateSelect() {
@@ -98,15 +89,6 @@ export class QueryBuilder {
     return (select.length === 0) ? '*' : select;
   }
 
-  getESSearchQuery() {
-    return {
-      query: { query_string: { query: this.generateSelect() } },
-      from: this.from,
-      size: this.size,
-      sort: this.sort
-    };
-  }
-
   onSearchChange() {
     this._query = this.generateSelect();
     this._displayQuery = this.generateSelectForDisplay();
@@ -120,8 +102,8 @@ export class QueryBuilder {
   }
 
   setFromAndSize(from: number, size: number) {
-    this.from = from;
-    this.size = size;
+    this.searchRequest.from = from;
+    this.searchRequest.size = size;
   }
 
   setSort(sortBy: string, order: string, dataType: string) {
@@ -132,7 +114,7 @@ export class QueryBuilder {
       unmapped_type: dataType,
       missing: '_last'
     };
-    this.sort = [sortQuery];
+    this.searchRequest.sort = [sortQuery];
   }
 
   private updateFilters(tQuery: string, updateNameTransform = false) {
