@@ -23,7 +23,6 @@ import 'rxjs/add/operator/onErrorResumeNext';
 
 import {Alert} from '../model/alert';
 import {Http} from '@angular/http';
-import {QueryBuilder} from '../model/query-builder';
 import {DataSource} from './data-source';
 import {AlertsSearchResponse} from '../model/alerts-search-response';
 import {SearchRequest} from '../model/search-request';

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {QueryBuilder} from './query-builder';
+import {QueryBuilder} from '../alerts/alerts-list/query-builder';
 import {ColumnMetadata} from './column-metadata';
 import {SearchRequest} from './search-request';
 
@@ -39,7 +39,7 @@ export class SaveSearch {
   getDisplayString() {
     if (this.name && this.name.length > 0) {
       return this.name;
-    } 
+    }
 
     let queryBuilder = new QueryBuilder();
     queryBuilder.searchRequest = this.searchRequest;

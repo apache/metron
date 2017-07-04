@@ -4,7 +4,7 @@ import {Observable, Subscription} from 'rxjs/Rx';
 
 import {Alert} from '../../model/alert';
 import {AlertService} from '../../service/alert.service';
-import {QueryBuilder} from '../../model/query-builder';
+import {QueryBuilder} from './query-builder';
 import {ConfigureTableService} from '../../service/configure-table.service';
 import {WorkflowService} from '../../service/workflow.service';
 import {ClusterMetaDataService} from '../../service/cluster-metadata.service';

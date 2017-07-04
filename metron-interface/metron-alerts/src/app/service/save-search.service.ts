@@ -19,7 +19,7 @@ import {Injectable, } from '@angular/core';
 import {Observable} from 'rxjs/Rx';
 import {Http} from '@angular/http';
 import {Subject} from 'rxjs/Subject';
-import {QueryBuilder} from '../model/query-builder';
+import {QueryBuilder} from '../alerts/alerts-list/query-builder';
 import {SaveSearch} from '../model/save-search';
 import {ColumnMetadata} from '../model/column-metadata';
 import {DataSource} from './data-source';

@@ -15,9 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Filter} from './filter';
-import {ColumnNamesService} from '../service/column-names.service';
-import {SearchRequest} from './search-request';
+import {Filter} from '../../model/filter';
+import {ColumnNamesService} from '../../service/column-names.service';
+import {SearchRequest} from '../../model/search-request';
 
 export class QueryBuilder {
   private _searchRequest = new SearchRequest();
@@ -51,12 +51,12 @@ export class QueryBuilder {
   }
 
 
-  get searchRequest():SearchRequest {
+  get searchRequest(): SearchRequest {
     this._searchRequest.query = { query_string: { query: this.generateSelect() } };
     return this._searchRequest;
   }
 
-  set searchRequest(value:SearchRequest) {
+  set searchRequest(value: SearchRequest) {
     this._searchRequest = value;
     this.query = this._searchRequest.query.query_string.query;
   }
