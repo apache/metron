@@ -38,6 +38,16 @@
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.metron</groupId>
+      <artifactId>metron-common</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.metron</groupId>
+      <artifactId>stellar-common</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-yarn-server-common</artifactId>
       <version>${hadoop.version}</version>

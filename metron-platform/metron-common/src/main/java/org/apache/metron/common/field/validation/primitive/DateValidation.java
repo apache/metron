@@ -18,9 +18,9 @@
 
 package org.apache.metron.common.field.validation.primitive;
 
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.Predicate2StellarFunction;
-import org.apache.metron.common.dsl.Stellar;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.Predicate2StellarFunction;
+import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.common.field.validation.FieldValidation;
 
 import java.text.ParseException;

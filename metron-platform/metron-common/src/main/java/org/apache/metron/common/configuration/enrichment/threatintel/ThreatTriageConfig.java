@@ -20,8 +20,8 @@ package org.apache.metron.common.configuration.enrichment.threatintel;
 
 import com.google.common.base.Joiner;
 import org.apache.metron.common.aggregator.Aggregators;
-import org.apache.metron.common.stellar.StellarPredicateProcessor;
-import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.metron.stellar.common.StellarPredicateProcessor;
+import org.apache.metron.stellar.common.StellarProcessor;
 
 import java.util.ArrayList;
 import java.util.HashMap;

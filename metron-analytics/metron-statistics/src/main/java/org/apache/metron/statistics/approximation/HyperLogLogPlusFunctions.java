@@ -17,9 +17,9 @@
  */
 package org.apache.metron.statistics.approximation;
 
-import org.apache.metron.common.dsl.BaseStellarFunction;
-import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.stellar.dsl.BaseStellarFunction;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
