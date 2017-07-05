@@ -16,30 +16,36 @@
  * limitations under the License.
  */
 
-#ifndef METRON_ARGS_H
-#define METRON_ARGS_H
+#ifndef METRON_WORKER_H
+#define METRON_WORKER_H
 
+#include <stdint.h>
 #include <unistd.h>
-#include <string.h>
-#include <getopt.h>
-#include <sys/stat.h>
-#include <rte_memory.h>
+
 #include <rte_ethdev.h>
+
 #include "types.h"
+#include "kafka.h"
 
-#define DEFAULT_RX_BURST_SIZE 32
-#define DEFAULT_TX_BURST_SIZE 256
-#define DEFAULT_PORT_MASK 0x01
-#define DEFAULT_KAFKA_TOPIC pcap
-#define DEFAULT_NB_RX_QUEUE 1
-#define DEFAULT_NB_RX_DESC 1024
-#define DEFAULT_TX_RING_SIZE 2048
-#define DEFAULT_KAFKA_STATS_PATH 0
-#define MAX_RX_BURST_SIZE 1024
+volatile uint8_t quit_signal;
 
-/**
- * Parse the command line arguments passed to the application.
+/*
+ * Start the receive and transmit works.
  */
-int parse_args(int argc, char** argv, app_params* app);
+int start_workers(
+    rx_worker_params* rx_params,
+    tx_worker_params* tx_params,
+    struct rte_ring **tx_rings,
+    app_params *p);
+
+/*
+ * Monitors the receive and transmit workers.  Executed by the main thread, while
+ * other threads are created to perform the actual packet processing.
+ */
+int monitor_workers(
+    const rx_worker_params *rx_params,
+    const unsigned nb_rx_workers,
+    const tx_worker_params *tx_params,
+    const unsigned nb_tx_workers);
 
 #endif
