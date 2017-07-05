@@ -37,7 +37,7 @@ before_install:
   - unzip -qq apache-maven-3.3.9-bin.zip
   - export M2_HOME=$PWD/apache-maven-3.3.9
   - export PATH=$M2_HOME/bin:$PATH
-  - export MAVEN_OPTS="-Xmx2g"
+  - echo "MAVEN_OPTS='-Xmx2g'" > ~/.mavenrc
   - npm config set cache $HOME/.npm-cache --global
   - npm config set prefix $HOME/.npm-prefix --global
   - time build_utils/verify_licenses.sh
