@@ -74,21 +74,21 @@ title: Apache Metron Documentation
 <section class="events-section info-block darken" id="releases">
     <div class="wrapper downloads">
         <div class="text-center">
-            <h4>Current Release: 0.3.1</h4>
+            <h4>Current Release: 0.4.0</h4>
         </div>
         <div class="content-960 hover-btn text-center">
             <ul>
                 <li>
-                <a href="http://www.apache.org/dyn/closer.cgi/incubator/metron/0.3.1/apache-metron-0.3.1-incubating.tar.gz" target="new">
-                    apache-metron-0.3.1-incubating.tar.gz
+                <a href="http://www.apache.org/dyn/closer.cgi/metron/0.4.0/apache-metron-0.4.0.tar.gz" target="new">
+                    apache-metron-0.4.0.tar.gz
                 </a>
-                 [ <a href="https://dist.apache.org/repos/dist/release/incubator/metron/0.3.1/apache-metron-0.3.1-incubating.tar.gz.asc" target="new">
+                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.4.0/apache-metron-0.4.0.tar.gz.asc" target="new">
                     PGP
                  </a>]
-                 [ <a href="https://dist.apache.org/repos/dist/release/incubator/metron/0.3.1/apache-metron-0.3.1-incubating.tar.gz.sha" target="new">
+                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.4.0/apache-metron-0.4.0.tar.gz.sha" target="new">
                     SHA512
                  </a>]
-                 [ <a href="https://dist.apache.org/repos/dist/release/incubator/metron/0.3.1/apache-metron-0.3.1-incubating.tar.gz.md5" target="new">
+                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.4.0/apache-metron-0.4.0.tar.gz.md5" target="new">
                     MD5
                   </a>]
                  [ <a href="/current-book/index.html" target="new"> Book </a>]
@@ -102,7 +102,7 @@ title: Apache Metron Documentation
             <h4>Older Releases</h4>
         </div>
         <div class="content-960 hover-btn text-center">
-        If you need access to older releases they can be found in the <a href="https://archive.apache.org/dist/incubator/metron/">release archives</a>.
+        If you need access to older releases they can be found in the <a href="https://archive.apache.org/dist/metron/">release archives</a>.
         </div>
     </div>
 </section>
