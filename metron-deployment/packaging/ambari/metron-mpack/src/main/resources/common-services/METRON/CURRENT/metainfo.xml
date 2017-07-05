@@ -296,6 +296,9 @@
               <name>metron-data-management</name>
             </package>
             <package>
+              <name>metron-management</name>
+            </package>
+            <package>
               <name>metron-parsers</name>
             </package>
             <package>

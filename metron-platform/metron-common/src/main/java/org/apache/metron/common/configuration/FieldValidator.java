@@ -19,7 +19,7 @@
 package org.apache.metron.common.configuration;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.metron.common.dsl.Context;
+import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.common.field.validation.FieldValidation;
 import org.apache.metron.common.field.validation.FieldValidations;
 import org.json.simple.JSONObject;

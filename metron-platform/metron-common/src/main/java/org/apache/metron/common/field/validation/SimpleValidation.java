@@ -18,7 +18,7 @@
 
 package org.apache.metron.common.field.validation;
 
-import org.apache.metron.common.dsl.Context;
+import org.apache.metron.stellar.dsl.Context;
 
 import java.util.List;
 import java.util.Map;
