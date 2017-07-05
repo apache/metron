@@ -49,3 +49,36 @@ metron-parser-asa-assembly-0.4.0-archive.tar.gz
     ├── asa
     └── common
 ```
+
+### Multiple Parsers in one extension
+Parser extensions support packaging multiple parsers in one extension.  This could be multiple configurations of a single 
+parser class, or multiple configurations of multiple parser classes
+
+for example:
+
+```
+├── config
+│   └── zookeeper
+│       ├── enrichments
+│       │   └── nice.json
+│       │   └── nice_other_config.json
+│       │   └── amazing.json
+│       │   └── amazing_other_config.json
+│       ├── indexing
+│       │   └── nice.json
+│       │   └── nice_other_config.json
+│       │   └── amazing.json
+│       │   └── amazing_other_config.json
+│       └── parsers
+│       │   └── nice.json
+│       │   └── nice_other_config.json
+│       │   └── amazing.json
+│       │   └── amazing_other_config.json
+├── lib
+│   └── metron-parser-amazinglynice-bundle-0.4.0.bundle
+└── patterns
+    ├── ancommon
+    ├── nice
+    ├── amazing 
+    └── common
+```
