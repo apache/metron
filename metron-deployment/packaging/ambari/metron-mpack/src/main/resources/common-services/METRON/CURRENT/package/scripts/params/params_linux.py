@@ -169,6 +169,7 @@ HdfsResource = functools.partial(
 )
 
 # HBase
+enrichment_hbase_provider_impl = 'org.apache.metron.hbase.HTableProvider'
 enrichment_table = status_params.enrichment_table
 enrichment_cf = status_params.enrichment_cf
 threatintel_table = status_params.threatintel_table

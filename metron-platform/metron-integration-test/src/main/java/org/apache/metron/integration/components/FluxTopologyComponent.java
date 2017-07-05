@@ -17,6 +17,7 @@
  */
 package org.apache.metron.integration.components;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -45,7 +46,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 public class FluxTopologyComponent implements InMemoryComponent {
 
@@ -54,12 +57,14 @@ public class FluxTopologyComponent implements InMemoryComponent {
   LocalCluster stormCluster;
   String topologyName;
   File topologyLocation;
+  File templateLocation;
   Properties topologyProperties;
 
   public static class Builder {
 
     String topologyName;
     File topologyLocation;
+    File templateLocation;
     Properties topologyProperties;
 
     public Builder withTopologyName(String name) {
@@ -72,6 +77,11 @@ public class FluxTopologyComponent implements InMemoryComponent {
       return this;
     }
 
+    public Builder withTemplateLocation(File location) {
+      this.templateLocation = location;
+      return this;
+    }
+
     public Builder withTopologyProperties(Properties properties) {
       this.topologyProperties = properties;
       this.topologyProperties.put("storm.home", "target");
@@ -79,13 +89,14 @@ public class FluxTopologyComponent implements InMemoryComponent {
     }
 
     public FluxTopologyComponent build() {
-      return new FluxTopologyComponent(topologyName, topologyLocation, topologyProperties);
+      return new FluxTopologyComponent(topologyName, topologyLocation, templateLocation, topologyProperties);
     }
   }
 
-  public FluxTopologyComponent(String topologyName, File topologyLocation, Properties topologyProperties) {
+  public FluxTopologyComponent(String topologyName, File topologyLocation, File templateLocation, Properties topologyProperties) {
     this.topologyName = topologyName;
     this.topologyLocation = topologyLocation;
+    this.templateLocation = templateLocation;
     this.topologyProperties = topologyProperties;
   }
 
@@ -99,6 +110,10 @@ public class FluxTopologyComponent implements InMemoryComponent {
 
   public File getTopologyLocation() {
     return topologyLocation;
+  }
+
+  public File getTemplateLocation() {
+    return templateLocation;
   }
 
   public Properties getTopologyProperties() {
@@ -217,11 +232,11 @@ public class FluxTopologyComponent implements InMemoryComponent {
   }
 
   public void submitTopology() throws NoSuchMethodException, IOException, InstantiationException, TException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, NoSuchFieldException {
-    startTopology(getTopologyName(), getTopologyLocation(), getTopologyProperties());
+    startTopology(getTopologyName(), getTopologyLocation(), getTemplateLocation(), getTopologyProperties());
   }
 
-  private void startTopology(String topologyName, File topologyLoc, Properties properties) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, TException, NoSuchFieldException{
-    TopologyDef topologyDef = loadYaml(topologyName, topologyLoc, properties);
+  private void startTopology(String topologyName, File topologyLoc, File templateFile, Properties properties) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, TException, NoSuchFieldException{
+    TopologyDef topologyDef = loadYaml(topologyName, topologyLoc, templateFile, properties);
     Config conf = FluxBuilder.buildConfig(topologyDef);
     ExecutionContext context = new ExecutionContext(topologyDef, conf);
     StormTopology topology = FluxBuilder.buildTopology(context);
@@ -239,12 +254,26 @@ public class FluxTopologyComponent implements InMemoryComponent {
     }
   }
 
-  private static TopologyDef loadYaml(String topologyName, File yamlFile, Properties properties) throws IOException {
+  private static TopologyDef loadYaml(String topologyName, File yamlFile, File templateFile, Properties properties) throws IOException {
     File tmpFile = File.createTempFile(topologyName, "props");
     tmpFile.deleteOnExit();
-    try (FileWriter propWriter = new FileWriter(tmpFile)){
-      properties.store(propWriter, topologyName + " properties");
-      return FluxParser.parseFile(yamlFile.getAbsolutePath(), false, true, tmpFile.getAbsolutePath(), false);
+    if (templateFile != null) {
+      try (FileWriter propWriter = new FileWriter(tmpFile)){
+        String templateContents = FileUtils.readFileToString(templateFile);
+        for(Map.Entry prop: properties.entrySet()) {
+          String replacePattern = String.format("{{%s}}", prop.getKey());
+          templateContents = templateContents.replaceAll(Pattern.quote(replacePattern), (String) prop.getValue());
+        }
+        propWriter.write(templateContents);
+        propWriter.flush();
+        return FluxParser.parseFile(yamlFile.getAbsolutePath(), false, true, tmpFile.getAbsolutePath(), false);
+      }
+    } else {
+      try (FileWriter propWriter = new FileWriter(tmpFile)){
+        properties.store(propWriter, topologyName + " properties");
+        return FluxParser.parseFile(yamlFile.getAbsolutePath(), false, true, tmpFile.getAbsolutePath(), false);
+      }
     }
+
   }
 }

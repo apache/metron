@@ -26,6 +26,8 @@
           }
           ,"dst_enrichment" : {
             "dst_classification" : "ENRICHMENT_GET('playful_classification', ip_dst_addr, 'enrichments', 'cf')"
+          },"error_test" : {
+            "error_test": "1/0"
           }
         }
       }

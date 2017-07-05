@@ -197,7 +197,6 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
       else {
         throw new RuntimeException("Source type is missing from enrichment fragment: " + rawMessage.toJSONString());
       }
-      boolean error = false;
       String prefix = null;
       for (Object o : rawMessage.keySet()) {
         String field = (String) o;
@@ -210,7 +209,11 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
             SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sourceType);
             if(config == null) {
               LOG.error("Unable to find SensorEnrichmentConfig for sourceType: " + sourceType);
-              error = true;
+              MetronError metronError = new MetronError()
+                      .withErrorType(Constants.ErrorType.ENRICHMENT_ERROR)
+                      .withMessage("Unable to find SensorEnrichmentConfig for sourceType: " + sourceType)
+                      .addRawMessage(rawMessage);
+              ErrorUtils.handleError(collector, metronError);
               continue;
             }
             config.getConfiguration().putIfAbsent(STELLAR_CONTEXT_CONF, stellarContext);
@@ -226,7 +229,6 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
             }
             catch(Exception e) {
               LOG.error(e.getMessage(), e);
-              error = true;
               MetronError metronError = new MetronError()
                       .withErrorType(Constants.ErrorType.ENRICHMENT_ERROR)
                       .withThrowable(e)
@@ -250,9 +252,6 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
       }
 
       enrichedMessage.put("adapter." + adapter.getClass().getSimpleName().toLowerCase() + ".end.ts", "" + System.currentTimeMillis());
-      if(error) {
-        throw new Exception("Unable to enrich " + rawMessage + " check logs for specifics.");
-      }
       if (!enrichedMessage.isEmpty()) {
         collector.emit(enrichmentType, new Values(key, enrichedMessage, subGroup));
       }

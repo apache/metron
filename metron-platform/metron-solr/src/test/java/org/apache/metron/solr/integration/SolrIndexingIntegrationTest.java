@@ -115,11 +115,16 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
 
   @Override
   public void setAdditionalProperties(Properties topologyProperties) {
-    topologyProperties.setProperty("indexing.writer.class.name", "org.apache.metron.solr.writer.SolrWriter");
+    topologyProperties.setProperty("indexing_writer_class_name", "org.apache.metron.solr.writer.SolrWriter");
   }
 
   @Override
   public String cleanField(String field) {
     return field.replaceFirst("_[dfils]$", "");
+  }
+
+  @Override
+  public String getTemplatePath() {
+    return "../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/templates/elasticsearch.properties.j2";
   }
 }

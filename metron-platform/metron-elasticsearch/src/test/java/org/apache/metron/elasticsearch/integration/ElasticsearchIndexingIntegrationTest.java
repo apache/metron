@@ -102,11 +102,16 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
     topologyProperties.setProperty("es.clustername", "metron");
     topologyProperties.setProperty("es.port", "9300");
     topologyProperties.setProperty("es.ip", "localhost");
-    topologyProperties.setProperty("indexing.writer.class.name", "org.apache.metron.elasticsearch.writer.ElasticsearchWriter");
+    topologyProperties.setProperty("indexing_writer_class_name", "org.apache.metron.elasticsearch.writer.ElasticsearchWriter");
   }
 
   @Override
   public String cleanField(String field) {
     return field;
+  }
+
+  @Override
+  public String getTemplatePath() {
+    return "../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/templates/elasticsearch.properties.j2";
   }
 }

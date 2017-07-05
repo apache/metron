@@ -28,7 +28,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public class ZKServerComponent implements InMemoryComponent {
-  public static final String ZOOKEEPER_PROPERTY = "kafka.zk";
+  public static final String ZOOKEEPER_PROPERTY = "zookeeper_quorum";
   private TestingServer testZkServer;
   private String zookeeperUrl = null;
   private Map<String,String> properties = null;
