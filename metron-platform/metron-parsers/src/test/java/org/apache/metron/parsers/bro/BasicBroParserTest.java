@@ -544,7 +544,7 @@ public class BasicBroParserTest {
 		Assert.assertTrue(broJson.get("original_string").toString().startsWith("FTP"));
         }
 
-	/** 
+	/**
 	 * {
          * "known_certs": {
          *	"ts":1216706999.896836,
