@@ -1,6 +1,6 @@
 [//]: # (Metron 0.4.0 bare metal installation guide for CentOS 6)
 [//]: # (Written by Laurens Vets, laurens@daemon.be)
-[//]: # (Version 0.3.1, June 2017)
+[//]: # (Version 0.3.2, July 2017)
 
 ## Metron 0.4.0 with HDP 2.5 bare-metal install on Centos 6 with MariaDB for Metron REST: ##
 
@@ -9,11 +9,14 @@ We will be installing Metron 0.4.0 with HDP 2.5 on CentOS 6. We will also instal
 I installed Metron in a test environment with 3 VMs to try it out as well as a single node. I'll try to write this guide so that the necessary steps can easily be adapted for other environments.
 
 ### Environment ###
-- 3 VMs, 2 CPUs per VM and 8 GB RAM per VM.
-- Hosts:
-10.10.10.1 node1
-10.10.10.2 node2
-10.10.10.3 node3
+- Single node: 4 CPUs, 16 GB RAM.
+
+- Multiple nodes:
+	- 3 VMs, 2 CPUs per VM and 8 GB RAM per VM.
+	- Hosts:
+	10.10.10.1 node1
+	10.10.10.2 node2
+	10.10.10.3 node3
 
 ### Prerequisites: ###
 - CentOS 6
@@ -848,14 +851,14 @@ For example:
 curl -s -w "%{http_code}" -u admin:admin -H "X-Requested-By: ambari" -X POST -d '{ "RequestInfo": { "context": "Install Kibana Dashboard from REST", "command": "LOAD_TEMPLATE"},"Requests/resource_filters": [{"service_name": "KIBANA","component_name": "KIBANA_MASTER","hosts" : "metron"}]}' http://192.168.10.10:8080/api/v1/clusters/metron/requests
 ```
 
-- You might have to increase the number of Storm supervisor slots from the default 2 to 5 or more. This can be done by editing the "supervisor.slots.ports" under Storm in the Ambari UI.
+- If you installed Metron on a single node, you might have to increase the number of Storm supervisor slots from the default 2 to 5 or more. This can be done by editing the "supervisor.slots.ports" under Storm in the Ambari UI.
 Change:
 ```
-supervisor.slots.ports: [6700, 6701, 6702, 6703, 6704, 6705]
+supervisor.slots.ports: [6700, 6701]
 ```
 To:
 ```
-supervisor.slots.ports: [6700, 6701]
+supervisor.slots.ports: [6700, 6701, 6702, 6703, 6704, 6705]
 ```
 
 - Install Apache NiFi. Download nifi-1.2.0-bin.tar.gz from https://nifi.apache.org/download.html
@@ -871,16 +874,16 @@ Before we run NiFi, we need to change the port as the default port collides with
 
 ### Exposed Interfaces ##
 In the end, you'll end up with a bunch of exposed UIs:
-- Ambari: http://metron1:8080/
-- Kibana: http://metron1:5000/
-- Sensor Status (monit): http://metron1:2812
-- Elasticsearch: http://metron1:9200/
-- Storm UI: http://metron1:8744/
-- Metron REST interface: http://metron1:8082/swagger-ui.html#/
+- Ambari: http://node1:8080/
+- Kibana: http://node1:5000/
+- Sensor Status (monit): http://node1:2812
+- Elasticsearch: http://node1:9200/
+- Storm UI: http://node1:8744/
+- Metron REST interface: http://node1:8082/swagger-ui.html#/
 - Management UI: http://node1:4200/ (user/password)
-- Apache Nifi: http://metron1:8089/nifi/
-- Zookeeper: http://metron1:2181
-- Kafka: http://metron1:6667
+- Apache Nifi: http://node1:8089/nifi/
+- Zookeeper: http://node1:2181
+- Kafka: http://node1:6667
 
 ### TROUBLESHOOTING ###
 
