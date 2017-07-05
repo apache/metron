@@ -22,12 +22,6 @@ env:
   - TEST_TYPE=unit
   - TEST_TYPE=ui
 
-#addons:
-#  apt:
-#    sources:
-#    - ubuntu-toolchain-r-test
-#    packages:
-#    - g++-4.8
 install: true
 language: java
 jdk:
