@@ -132,7 +132,7 @@
         <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo-shaded</artifactId>
-            <version>3.0.3</version>
+            <version>${global_kryo_version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>

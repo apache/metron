@@ -19,17 +19,15 @@ package org.apache.metron.management;
 
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.stellar.shell.StellarExecutor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.common.shell.StellarExecutor;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import static org.apache.metron.common.utils.StellarProcessorUtils.run;
+import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 
 public class ShellFunctionsTest {
 

@@ -124,6 +124,10 @@ public class ConfigUploadComponent implements InMemoryComponent {
 
   @Override
   public void start() throws UnableToStartException {
+    update();
+  }
+
+  public void update() throws UnableToStartException {
     try {
       final String zookeeperUrl = topologyProperties.getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY);
 
@@ -151,6 +155,7 @@ public class ConfigUploadComponent implements InMemoryComponent {
       throw new UnableToStartException(e.getMessage(), e);
     }
   }
+
 
   public SensorParserConfig getSensorParserConfig(String sensorType) {
     SensorParserConfig sensorParserConfig = new SensorParserConfig();

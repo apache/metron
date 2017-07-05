@@ -29,12 +29,13 @@
         <url>https://www.apache.org</url>
     </organization>
     <modules>
-            <module>metron-analytics</module>
-            <module>metron-platform</module>
-            <module>metron-deployment</module>
-            <module>metron-docker</module>
-            <module>metron-interface</module>
-            <module>site-book</module>
+        <module>metron-analytics</module>
+        <module>metron-platform</module>
+        <module>metron-deployment</module>
+        <module>metron-docker</module>
+        <module>metron-interface</module>
+        <module>site-book</module>
+        <module>metron-stellar</module>
     </modules>
 
     <repositories>
@@ -107,7 +108,10 @@
         <global_errorprone_core_version>2.0.14</global_errorprone_core_version>
         <global_jar_version>3.0.2</global_jar_version>
         <global_surefire_version>2.18</global_surefire_version>
-        <global_maven_version>3.3.9</global_maven_version>
+        <global_maven_version>[3.3.1,)</global_maven_version>
+        <global_kryo_version>3.0.3</global_kryo_version>
+        <global_kryo_serializers_version>0.38</global_kryo_serializers_version>
+        <argLine></argLine>
     </properties>
 
     <profiles>
@@ -283,6 +287,7 @@
                         <exclude>**/*.md</exclude>
                         <exclude>**/VERSION</exclude>
                         <exclude>**/*.json</exclude>
+                        <exclude>**/*.json.j2</exclude>
                         <exclude>**/*.tokens</exclude>
                         <exclude>**/*.log</exclude>
                         <exclude>**/*.template</exclude>
