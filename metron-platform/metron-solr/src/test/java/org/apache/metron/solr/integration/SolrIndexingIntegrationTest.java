@@ -115,7 +115,7 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
 
   @Override
   public void setAdditionalProperties(Properties topologyProperties) {
-    topologyProperties.setProperty("writer.class.name", "org.apache.metron.solr.writer.SolrWriter");
+    topologyProperties.setProperty("indexing.writer.class.name", "org.apache.metron.solr.writer.SolrWriter");
   }
 
   @Override
