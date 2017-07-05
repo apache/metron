@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="Date-Revision-yyyymmdd" content="20170627" />
     <meta http-equiv="Content-Language" content="en" />
-    <title>Metron &#x2013; Metron PCAP Service</title>
+    <title>Metron &#x2013; Custom Stellar Functions</title>
     <link rel="stylesheet" href="../../css/apache-maven-fluido-1.3.0.min.css" />
     <link rel="stylesheet" href="../../css/site.css" />
     <link rel="stylesheet" href="../../css/print.css" media="print" />
@@ -57,7 +57,7 @@
         Documentation</a>
         </li>
       <li class="divider ">/</li>
-        <li class="">Metron PCAP Service</li>
+        <li class="">Custom Stellar Functions</li>
         
                 
                     
@@ -132,17 +132,26 @@
         Platform</a>
                     <ul class="nav nav-list">
                       
-      <li class="active">
+      <li>
     
-            <a href="#"><i class="none"></i>Api</a>
-          </li>
-                                                                        
+                          <a href="../../metron-platform/metron-api/index.html" title="Api">
+          <i class="none"></i>
+        Api</a>
+            </li>
+                                                                                  
       <li>
     
                           <a href="../../metron-platform/metron-common/index.html" title="Common">
-          <i class="icon-chevron-right"></i>
+          <i class="icon-chevron-down"></i>
         Common</a>
-                  </li>
+                    <ul class="nav nav-list">
+                      
+      <li class="active">
+    
+            <a href="#"><i class="none"></i>3rdPartyStellar</a>
+          </li>
+              </ul>
+        </li>
                       
       <li>
     
@@ -223,65 +232,150 @@
                 
         <div id="bodyColumn"  class="span9" >
                                   
-            <h1>Metron PCAP Service</h1>
-<p><a name="Metron_PCAP_Service"></a></p>
-<p>The purpose of the Metron PCAP service is to provide a middle tier to negotiate retrieving packet capture data which flows into Metron. This packet data is of a form which <tt>libpcap</tt> based tools can read.</p>
+            <h1>Custom Stellar Functions</h1>
+<p><a name="Custom_Stellar_Functions"></a></p>
+<p>Metron is fundamentally a programmable, extensible system and Stellar is the extension language. We have some great Stellar functions available out of the box and we&#x2019;ll be adding more over time, but they may not quite scratch quite your particular itch. </p>
+<p>Of course, we&#x2019;d love to have your contribution inside of Metron if you think it general purpose enough, but not every function is general-purpose or it may rely on libraries those licenses aren&#x2019;t acceptable for an Apache project. In that case, then you will be wondering how to add your custom function to a running instance of Metron.</p>
 <div class="section">
-<h2><a name="Starting_the_Service"></a>Starting the Service</h2>
-<p>You can start the service either via the init.d script installed, <tt>/etc/init.d/pcapservice</tt> or directly via the <tt>yarn jar</tt> command: <tt>yarn jar $METRON_HOME/lib/metron-api-$METRON_VERSION.jar org.apache.metron.pcapservice.rest.PcapService -port $SERVICE_PORT -query_hdfs_path $QUERY_PATH -pcap_hdfs_path $PCAP_PATH</tt></p>
-<p>where</p>
+<h2><a name="Building_Your_Own_Function"></a>Building Your Own Function</h2>
+<p>Let&#x2019;s say that I need a function that returns the current time in milliseconds since the epoch. I notice that there&#x2019;s nothing like that currently in Metron, so I embark on the adventure of adding it for my cluster.</p>
+<p>I will presume that you have an installed Metron into your local maven repo via <tt>mvn install</tt> . In the future, when we publish to a maven repo, you will not need this. I will depend on 0.4.0 for the purpose of this demonstration</p>
+<div class="section">
+<h3><a name="Hack_Hack_Hack"></a>Hack, Hack, Hack</h3>
+<p>I like to use Maven, so we&#x2019;ll use that for this demonstration, but you can use whatever build system that you like. Here&#x2019;s my favorite way to build a project with groupId <tt>com.mycompany.stellar</tt> and artifactId of <tt>tempus</tt> <tt>mvn archetype:create -DgroupId=com.mycompany.stellar -DartifactId=tempus -DarchetypeArtifactId=maven-archetype-quickstart</tt></p>
+<p>First, we should depend on <tt>metron-common</tt> and we can do that by adjusting the <tt>pom.xml</tt> just created:</p>
+
+<div class="source">
+<div class="source">
+<pre>&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+  
+  &lt;groupId&gt;com.mycompany.stellar&lt;/groupId&gt;
+  &lt;artifactId&gt;tempus&lt;/artifactId&gt;
+  &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+  &lt;packaging&gt;jar&lt;/packaging&gt;
+  
+  &lt;name&gt;Stellar Time Functions&lt;/name&gt;
+  &lt;url&gt;http://mycompany.com&lt;/url&gt;
+  
+  &lt;properties&gt;
+    &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+  &lt;/properties&gt;
+  
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.apache.metron&lt;/groupId&gt;
+      &lt;artifactId&gt;metron-common&lt;/artifactId&gt;
+      &lt;version&gt;0.4.0&lt;/version&gt;
+      &lt;!-- NOTE: We will want to depend on the deployed common on the classpath. --&gt;
+      &lt;scope&gt;provided&lt;/scope&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+       &lt;groupId&gt;junit&lt;/groupId&gt;
+       &lt;artifactId&gt;junit&lt;/artifactId&gt;
+       &lt;version&gt;3.8.1&lt;/version&gt;
+      &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+&lt;/project&gt;
+</pre></div></div>
+<p>Let&#x2019;s add our implementation in <tt>src/main/java/com/mycompany/stellar/TimeFunctions.java</tt> with the following content:</p>
+
+<div class="source">
+<div class="source">
+<pre>package com.notmetron.stellar;
+    
+import org.apache.metron.common.dsl.Context;
+import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.common.dsl.Stellar;
+import org.apache.metron.common.dsl.StellarFunction;
+    
+import java.util.List;
+    
+public class TimeFunction {
+  @Stellar( name=&quot;NOW&quot;,
+            description = &quot;Right now!&quot;,
+            params = {},
+            returns=&quot;Timestamp&quot;
+          )
+  public static class Now implements StellarFunction {
+    
+    public Object apply(List&lt;Object&gt; list, Context context) throws ParseException {
+      return System.currentTimeMillis();
+    }
+    
+    public void initialize(Context context) { }
+    
+    public boolean isInitialized() {
+      return true;
+    }
+  }
+}
+</pre></div></div>
+<p>Now we can build the project via <tt>mvn package</tt> which will create a <tt>target/tempus-1.0-SNAPSHOT.jar</tt> file.</p></div></div>
+<div class="section">
+<h2><a name="Install_the_Function"></a>Install the Function</h2>
+<p>Now that we have a jar with our custom function, we must make Metron aware of it.</p>
+<div class="section">
+<h3><a name="Deploy_the_Jar"></a>Deploy the Jar</h3>
+<p>First you need to place the jar in HDFS, if we have it on an access node, one way to do that is:</p>
 
 <ul>
   
-<li><tt>METRON_HOME</tt> is the location of the metron installation</li>
+<li><tt>hadoop fs -put tempus-1.0-SNAPSHOT.jar /apps/metron/stellar</tt> This presumes that:</li>
   
-<li><tt>METRON_VERSION</tt> is the version of the metron installation</li>
+<li>you&#x2019;ve standardized on <tt>/apps/metron/stellar</tt> as the location for custom jars</li>
   
-<li><tt>SERVICE_PORT</tt> is the port to bind the REST service to.</li>
+<li>you are running the command from an access node with the <tt>hadoop</tt> command installed</li>
   
-<li><tt>QUERY_PATH</tt> is the temporary location to store query results. They are deleted after the service reads them.</li>
-  
-<li><tt>PCAP_PATH</tt> is the path to the packet data on HDFS</li>
+<li>you are running from a user that has write access to <tt>/apps/metron/stellar</tt></li>
 </ul></div>
 <div class="section">
-<h2><a name="The_pcapGettergetPcapsByIdentifiers_endpoint"></a>The <tt>/pcapGetter/getPcapsByIdentifiers</tt> endpoint</h2>
-<p>This endpoint takes the following query parameters and returns the subset of packets matching this query:</p>
+<h3><a name="Set_Global_Config"></a>Set Global Config</h3>
+<p>You may not need this if your Metron administrator already has this setup.</p>
+<p>With that dispensed with, we need to ensure that Metron knows to look at that location. We need to ensure that the <tt>stellar.function.paths</tt> property in the <tt>global.json</tt> is in place that makes Metron aware to look for Stellar functions in <tt>/apps/metron/stellar</tt> on HDFS. </p>
+<p>This property looks like, the following for a vagrant install</p>
 
-<ul>
-  
-<li><tt>srcIp</tt> : The source IP to match on</li>
-  
-<li><tt>srcPort</tt> : The source port to match on</li>
-  
-<li><tt>dstIp</tt> : The destination IP to match on</li>
-  
-<li><tt>dstPort</tt> : The destination port to match on</li>
-  
-<li><tt>startTime</tt> : The start time in milliseconds</li>
-  
-<li><tt>endTime</tt> : The end time in milliseconds</li>
-  
-<li><tt>numReducers</tt> : Specify the number of reducers to use when executing the mapreduce job</li>
-  
-<li><tt>includeReverseTraffic</tt> : Indicates if filter should check swapped src/dest addresses and IPs</li>
-</ul></div>
+<div class="source">
+<div class="source">
+<pre>{
+  &quot;es.clustername&quot;: &quot;metron&quot;,
+  &quot;es.ip&quot;: &quot;node1&quot;,
+  &quot;es.port&quot;: &quot;9300&quot;,
+  &quot;es.date.format&quot;: &quot;yyyy.MM.dd.HH&quot;,
+  &quot;stellar.function.paths&quot; : &quot;hdfs://node1:8020/apps/metron/stellar/.*.jar&quot;,
+}
+</pre></div></div>
+<p>The <tt>stellar.function.paths</tt> property takes a comma separated list of URIs or URIs with regex expressions at the end. Also, note path is prefaced by the HDFS default name, which, if you do not know, can be found by executing, <tt>hdfs getconf -confKey fs.default.name</tt>, such as</p>
+
+<div class="source">
+<div class="source">
+<pre>[root@node1 ~]# hdfs getconf -confKey fs.default.name
+hdfs://node1:8020
+</pre></div></div></div>
 <div class="section">
-<h2><a name="The_pcapGettergetPcapsByQuery_endpoint"></a>The <tt>/pcapGetter/getPcapsByQuery</tt> endpoint</h2>
-<p>This endpoint takes the following query parameters and returns the subset of packets matching this query. This endpoint exposes Stellar querying capabilities:</p>
+<h3><a name="Use_the_Function"></a>Use the Function</h3>
+<p>Now that we have deployed the function, if we want to use it, any running topologies that use Stellar will need to be restarted.</p>
+<p>Beyond that, let&#x2019;s take a look at it in the REPL:</p>
 
-<ul>
-  
-<li><tt>query</tt> : The Stellar query to execute</li>
-  
-<li><tt>startTime</tt> : The start time in milliseconds</li>
-  
-<li><tt>endTime</tt> : The end time in milliseconds</li>
-  
-<li><tt>numReducers</tt> : Specify the number of reducers to use when executing the mapreduce job</li>
-</ul>
-<p>Example: <tt>curl -XGET &quot;http://node1:8081/pcapGetter/getPcapsByQuery?query=ip_src_addr+==+'192.168.66.121'+and+ip_src_port+==+'60500'&amp;startTime=1476936000000&quot;</tt></p>
-<p>All of these parameters are optional. In the case of a missing parameter, it is treated as a wildcard.</p>
-<p>Unlike the CLI tool, there is no paging mechanism. The REST API will stream back data as a single file.</p></div>
+<div class="source">
+<div class="source">
+<pre>Stellar, Go!
+Please note that functions are loading lazily in the background and will be unavailable until loaded fully.
+{es.clustername=metron, es.ip=node1, es.port=9300, es.date.format=yyyy.MM.dd.HH, stellar.function.paths=hdfs://node1:8020/apps/metron/stellar/.*.jar, profiler.client.period.duration=1, profiler.client.period.duration.units=MINUTES}
+[Stellar]&gt;&gt;&gt; # Get the help for NOW
+[Stellar]&gt;&gt;&gt; ?NOW
+Functions loaded, you may refer to functions now...
+NOW
+Description: Right now!
+     
+Returns: Timestamp
+[Stellar]&gt;&gt;&gt; # Try to run the NOW function, which we added:
+[Stellar]&gt;&gt;&gt; NOW()
+1488400515655
+[Stellar]&gt;&gt;&gt; # Looks like I got a timestamp, success!
+</pre></div></div></div></div>
                   </div>
             </div>
           </div>
