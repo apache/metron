@@ -185,7 +185,7 @@
         </value-attributes>
         <on-ambari-upgrade add="true"/>
     </property>
-    <property require-input="true">
+    <property>
         <name>metron_jdbc_platform</name>
         <value></value>
         <description>Database platform used by Metron.  One of: hsqldb, h2, oracle, mysql, postgresql</description>
@@ -301,69 +301,301 @@
         </value-attributes>
     </property>
     <property>
-        <name>global-json</name>
-        <display-name>global.json template</display-name>
-        <description>This is the jinja template for global.json file</description>
-        <value>
-{
-"es.clustername": "{{ es_cluster_name }}",
-"es.ip": "{{ es_url }}",
-"es.date.format": "yyyy.MM.dd.HH",
-"parser.error.topic": "indexing"
-}
-        </value>
+        <name>es_date_format</name>
+        <description>Elasticsearch Date Format</description>
+        <value>yyyy.MM.dd.HH</value>
+        <display-name>Elasticsearch Date Format</display-name>
+    </property>
+    <property>
+        <name>parser_error_topic</name>
+        <description>Parser Error Topic</description>
+        <value>indexing</value>
+        <display-name>Parser Error Topic</display-name>
+    </property>
+    <property>
+        <name>enrichment_workers</name>
+        <description>Number of Enrichment Topology Workers</description>
+        <value>1</value>
+        <display-name>Enrichment Workers</display-name>
+    </property>
+    <property>
+        <name>enrichment_acker_executors</name>
+        <description>Number of Enrichment Topology Ackers</description>
+        <value>1</value>
+        <display-name>Enrichment Ackers</display-name>
+    </property>
+    <property>
+        <name>enrichment_topology_worker_childopts</name>
+        <description>Enrichment Topology JVM Options</description>
+        <value/>
+        <display-name>Enrichment childopts</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+    <property>
+        <name>enrichment_topology_max_spout_pending</name>
+        <description>Enrichment Topology Spout Max Pending Tuples</description>
+        <value/>
+        <display-name>Enrichment Max Pending</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+    <property>
+        <name>enrichment_kafka_start</name>
+        <description>Enrichment Topology Spout Offset</description>
+        <value>UNCOMMITTED_EARLIEST</value>
+        <display-name>Enrichment Offset</display-name>
+        <value-attributes>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>EARLIEST</value>
+                </entry>
+                <entry>
+                    <value>LATEST</value>
+                </entry>
+                <entry>
+                    <value>UNCOMMITTED_EARLIEST</value>
+                </entry>
+                <entry>
+                    <value>UNCOMMITTED_LATEST</value>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
+        </value-attributes>
+    </property>
+    <property>
+        <name>enrichment_input_topic</name>
+        <description>Enrichment Input Topic</description>
+        <value>enrichments</value>
+        <display-name>Enrichment Input Topic</display-name>
+    </property>
+    <property>
+        <name>enrichment_output_topic</name>
+        <description>Enrichment Output Topic</description>
+        <value>indexing</value>
+        <display-name>Enrichment Output Topic</display-name>
+    </property>
+    <property>
+        <name>enrichment_error_topic</name>
+        <description>Enrichment Error Topic</description>
+        <value>indexing</value>
+        <display-name>Enrichment Error Topic</display-name>
+    </property>
+    <property>
+        <name>threatintel_error_topic</name>
+        <description>Threat Intel Error Topic</description>
+        <value>indexing</value>
+        <display-name>Threat Intel Error Topic</display-name>
+    </property>
+    <property>
+        <name>enrichment_join_cache_size</name>
+        <description>Enrichment Join Bolt Cache Max Size</description>
+        <value>100000</value>
+        <display-name>Enrichment Join Size</display-name>
+    </property>
+    <property>
+        <name>threatintel_join_cache_size</name>
+        <description>Threat Intel Join Bolt Cache Max Size</description>
+        <value>100000</value>
+        <display-name>Threat Intel Join Size</display-name>
+    </property>
+    <property>
+        <name>enrichment_host_known_hosts</name>
+        <description>List of Known Hosts for Host Enrichment</description>
+        <value>[{"ip":"10.1.128.236", "local":"YES", "type":"webserver", "asset_value" : "important"},{"ip":"10.1.128.237", "local":"UNKNOWN", "type":"unknown", "asset_value" : "important"},{"ip":"10.60.10.254", "local":"YES", "type":"printer", "asset_value" : "important"}]</value>
+        <display-name>Host Enrichment</display-name>
         <value-attributes>
             <type>content</type>
         </value-attributes>
     </property>
     <property>
-        <name>elasticsearch-properties</name>
-        <description>The template for the elasticsearch.properties file.</description>
-        <display-name>elasticsearch.properties template</display-name>
-        <value>
-##### Storm #####
-indexing.workers=1
-indexing.executors=0
-topology.worker.childopts={{topology_worker_childopts}}
-topology.auto-credentials={{topology_auto_credentials}}
-##### Kafka #####
-kafka.zk={{ zookeeper_quorum }}
-kafka.broker={{ kafka_brokers }}
-kafka.start=UNCOMMITTED_EARLIEST
-kafka.security.protocol={{kafka_security_protocol}}
-storm.auto.credentials=[]
-##### Indexing #####
-index.input.topic=indexing
-index.error.topic=indexing
-writer.class.name=org.apache.metron.elasticsearch.writer.ElasticsearchWriter
-##### Metrics #####
-#reporters
-org.apache.metron.metrics.reporter.graphite=true
-org.apache.metron.metrics.reporter.console=false
-org.apache.metron.metrics.reporter.jmx=false
-#Graphite Addresses
-org.apache.metron.metrics.graphite.address=localhost
-org.apache.metron.metrics.graphite.port=2023
-#TelemetryParserBolt
-org.apache.metron.metrics.TelemetryParserBolt.acks=true
-org.apache.metron.metrics.TelemetryParserBolt.emits=true
-org.apache.metron.metrics.TelemetryParserBolt.fails=true
-##### HDFS #####
-bolt.hdfs.batch.size=5000
-bolt.hdfs.field.delimiter=|
-bolt.hdfs.rotation.policy=org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy
-bolt.hdfs.rotation.policy.units=DAYS
-bolt.hdfs.rotation.policy.count=1
-bolt.hdfs.file.rotation.size.in.mb=5
-bolt.hdfs.file.system.url={{ default_fs }}
-bolt.hdfs.wip.file.path=/paloalto/wip
-bolt.hdfs.finished.file.path=/paloalto/rotated
-bolt.hdfs.compression.codec.class=org.apache.hadoop.io.compress.SnappyCodec
-index.hdfs.output={{ metron_apps_indexed_hdfs_dir }}
-        </value>
+        <name>enrichment_kafka_spout_parallelism</name>
+        <description>Enrichment Topology Kafka Spout Parallelism</description>
+        <value>1</value>
+        <display-name>Enrichment Spout Parallelism</display-name>
+    </property>
+    <property>
+        <name>enrichment_split_parallelism</name>
+        <description>Enrichment Topology Enrichment Split Bolt Parallelism</description>
+        <value>1</value>
+        <display-name>Enrichment Split Parallelism</display-name>
+    </property>
+    <property>
+        <name>enrichment_stellar_parallelism</name>
+        <description>Enrichment Topology Enrichment Stellar Bolt Parallelism</description>
+        <value>1</value>
+        <display-name>Enrichment Stellar Parallelism</display-name>
+    </property>
+    <property>
+        <name>enrichment_join_parallelism</name>
+        <description>Enrichment Topology Enrichment Join Bolt Parallelism</description>
+        <value>1</value>
+        <display-name>Enrichment Join Parallelism</display-name>
+    </property>
+    <property>
+        <name>threat_intel_split_parallelism</name>
+        <description>Enrichment Topology Threat Intel Split Bolt Parallelism</description>
+        <value>1</value>
+        <display-name>Threat Intel Spout Parallelism</display-name>
+    </property>
+    <property>
+        <name>threat_intel_stellar_parallelism</name>
+        <description>Enrichment Topology Threat Intel Stellar Bolt Parallelism</description>
+        <value>1</value>
+        <display-name>Threat Intel Spout Parallelism</display-name>
+    </property>
+    <property>
+        <name>threat_intel_join_parallelism</name>
+        <description>Enrichment Topology Threat Intel Join Bolt Parallelism</description>
+        <value>1</value>
+        <display-name>Threat Intel Join Parallelism</display-name>
+    </property>
+    <property>
+        <name>kafka_writer_parallelism</name>
+        <description>Enrichment Topology Kafka Writer Parallelism</description>
+        <value>1</value>
+        <display-name>Enrichment Kafka Writer Parallelism</display-name>
+    </property>
+
+    <property>
+        <name>indexing_workers</name>
+        <description>Number of Indexing Topology Workers</description>
+        <value>1</value>
+        <display-name>Indexing Workers</display-name>
+    </property>
+    <property>
+        <name>indexing_acker_executors</name>
+        <description>Number of Indexing Topology Ackers</description>
+        <value>1</value>
+        <display-name>Enrichment Ackers</display-name>
+    </property>
+    <property>
+        <name>indexing_topology_worker_childopts</name>
+        <description>Indexing Topology JVM Options</description>
+        <value/>
+        <display-name>Indexing childopts</display-name>
         <value-attributes>
-            <type>content</type>
+            <empty-value-valid>true</empty-value-valid>
         </value-attributes>
-        <on-ambari-upgrade add="true"/>
+    </property>
+    <property>
+        <name>indexing_topology_max_spout_pending</name>
+        <description>Indexing Topology Spout Max Pending Tuples</description>
+        <value/>
+        <display-name>Indexing Max Pending</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+    <property>
+        <name>indexing_kafka_start</name>
+        <description>Indexing Topology Spout Offset</description>
+        <value>UNCOMMITTED_EARLIEST</value>
+        <display-name>Indexing Offset</display-name>
+        <value-attributes>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>EARLIEST</value>
+                </entry>
+                <entry>
+                    <value>LATEST</value>
+                </entry>
+                <entry>
+                    <value>UNCOMMITTED_EARLIEST</value>
+                </entry>
+                <entry>
+                    <value>UNCOMMITTED_LATEST</value>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
+        </value-attributes>
+    </property>
+    <property>
+        <name>indexing_input_topic</name>
+        <description>Indexing Input Topic</description>
+        <value>indexing</value>
+        <display-name>Indexing Input Topic</display-name>
+    </property>
+    <property>
+        <name>indexing_error_topic</name>
+        <description>Indexing Error Topic</description>
+        <value>indexing</value>
+        <display-name>Indexing Error Topic</display-name>
+    </property>
+    <property>
+        <name>indexing_writer_class_name</name>
+        <description>Indexing Writer Class Name</description>
+        <value>org.apache.metron.elasticsearch.writer.ElasticsearchWriter</value>
+        <display-name>Indexing Writer Class Name</display-name>
+    </property>
+    <property>
+        <name>bolt_hdfs_rotation_policy</name>
+        <description>Class Name of HDFS Rotation Policy</description>
+        <value>org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy</value>
+        <display-name>HDFS Rotation Policy</display-name>
+    </property>
+    <property>
+        <name>bolt_hdfs_rotation_policy_count</name>
+        <description>HDFS Rotation Policy Count</description>
+        <value>1</value>
+        <display-name>HDFS Rotation Policy Count</display-name>
+    </property>
+    <property>
+        <name>bolt_hdfs_rotation_policy_units</name>
+        <description>Frequency of HDFS File Rotation</description>
+        <value>DAYS</value>
+        <display-name>HDFS Rotation Policy Units</display-name>
+        <value-attributes>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>SECONDS</value>
+                </entry>
+                <entry>
+                    <value>MINUTES</value>
+                </entry>
+                <entry>
+                    <value>HOURS</value>
+                </entry>
+                <entry>
+                    <value>DAYS</value>
+                </entry>
+                <entry>
+                    <value>KB</value>
+                </entry>
+                <entry>
+                    <value>MB</value>
+                </entry>
+                <entry>
+                    <value>GB</value>
+                </entry>
+                <entry>
+                    <value>TB</value>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
+        </value-attributes>
+    </property>
+    <property>
+        <name>indexing_kafka_spout_parallelism</name>
+        <description>Indexing Topology Kafka Spout Parallelism</description>
+        <value>1</value>
+        <display-name>Indexing Spout Parallelism</display-name>
+    </property>
+    <property>
+        <name>indexing_writer_parallelism</name>
+        <description>Indexing Topology Writer Bolt Parallelism</description>
+        <value>1</value>
+        <display-name>Indexing Writer Parallelism</display-name>
+    </property>
+    <property>
+        <name>hdfs_writer_parallelism</name>
+        <description>Indexing Topology HDFS Bolt Parallelism</description>
+        <value>1</value>
+        <display-name>Indexing HDFS Parallelism</display-name>
     </property>
 </configuration>

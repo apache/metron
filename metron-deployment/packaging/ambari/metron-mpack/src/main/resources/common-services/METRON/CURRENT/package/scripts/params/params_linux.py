@@ -47,6 +47,7 @@ metron_extensions_alt_etc_parsers = status_params.metron_extensions_alt_etc_pars
 parsers = status_params.parsers
 all_parsers = status_params.all_parsers
 all_alt_parsers = status_params.all_alt_parsers
+parser_error_topic = config['configurations']['metron-env']['parser_error_topic']
 geoip_url = config['configurations']['metron-env']['geoip_url']
 geoip_hdfs_dir = "/apps/metron/geo/default/"
 metron_indexing_topology = status_params.metron_indexing_topology
@@ -92,6 +93,7 @@ es_binary_port = config['configurations']['metron-env']['es_binary_port']
 es_url = ",".join([host + ":" + es_binary_port for host in es_host_list])
 es_http_port = config['configurations']['metron-env']['es_http_port']
 es_http_url = es_host_list[0] + ":" + es_http_port
+es_date_format = config['configurations']['metron-env']['es_date_format']
 
 # hadoop params
 stack_root = Script.get_stack_root()
@@ -231,3 +233,41 @@ if security_enabled:
 
 # Management UI
 metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", ['localhost'])[0]
+
+# Enrichment
+enrichment_workers = config['configurations']['metron-env']['enrichment_workers']
+enrichment_acker_executors = config['configurations']['metron-env']['enrichment_acker_executors']
+enrichment_topology_worker_childopts = config['configurations']['metron-env']['enrichment_topology_worker_childopts']
+enrichment_topology_max_spout_pending = config['configurations']['metron-env']['enrichment_topology_max_spout_pending']
+enrichment_kafka_start = config['configurations']['metron-env']['enrichment_kafka_start']
+enrichment_input_topic = config['configurations']['metron-env']['enrichment_input_topic']
+enrichment_output_topic = config['configurations']['metron-env']['enrichment_output_topic']
+enrichment_error_topic = config['configurations']['metron-env']['enrichment_error_topic']
+threatintel_error_topic = config['configurations']['metron-env']['threatintel_error_topic']
+enrichment_join_cache_size = config['configurations']['metron-env']['enrichment_join_cache_size']
+threatintel_join_cache_size = config['configurations']['metron-env']['threatintel_join_cache_size']
+enrichment_host_known_hosts = config['configurations']['metron-env']['enrichment_host_known_hosts']
+enrichment_kafka_spout_parallelism = config['configurations']['metron-env']['enrichment_kafka_spout_parallelism']
+enrichment_split_parallelism = config['configurations']['metron-env']['enrichment_split_parallelism']
+enrichment_stellar_parallelism = config['configurations']['metron-env']['enrichment_stellar_parallelism']
+enrichment_join_parallelism = config['configurations']['metron-env']['enrichment_join_parallelism']
+threat_intel_split_parallelism = config['configurations']['metron-env']['threat_intel_split_parallelism']
+threat_intel_stellar_parallelism = config['configurations']['metron-env']['threat_intel_stellar_parallelism']
+threat_intel_join_parallelism = config['configurations']['metron-env']['threat_intel_join_parallelism']
+kafka_writer_parallelism = config['configurations']['metron-env']['kafka_writer_parallelism']
+
+# Threat Intel
+indexing_workers = config['configurations']['metron-env']['indexing_workers']
+indexing_acker_executors = config['configurations']['metron-env']['indexing_acker_executors']
+indexing_topology_worker_childopts = config['configurations']['metron-env']['indexing_topology_worker_childopts']
+indexing_topology_max_spout_pending = config['configurations']['metron-env']['indexing_topology_max_spout_pending']
+indexing_kafka_start = config['configurations']['metron-env']['indexing_kafka_start']
+indexing_input_topic = config['configurations']['metron-env']['indexing_input_topic']
+indexing_error_topic = config['configurations']['metron-env']['indexing_error_topic']
+indexing_writer_class_name = config['configurations']['metron-env']['indexing_writer_class_name']
+bolt_hdfs_rotation_policy = config['configurations']['metron-env']['bolt_hdfs_rotation_policy']
+bolt_hdfs_rotation_policy_units = config['configurations']['metron-env']['bolt_hdfs_rotation_policy_units']
+bolt_hdfs_rotation_policy_count = config['configurations']['metron-env']['bolt_hdfs_rotation_policy_count']
+indexing_kafka_spout_parallelism = config['configurations']['metron-env']['indexing_kafka_spout_parallelism']
+indexing_writer_parallelism = config['configurations']['metron-env']['indexing_writer_parallelism']
+hdfs_writer_parallelism = config['configurations']['metron-env']['hdfs_writer_parallelism']
