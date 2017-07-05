@@ -1,0 +1,165 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration supports_final="true">
+    <property>
+        <name>indexing_kafka_start</name>
+        <description>Indexing Topology Spout Offset</description>
+        <value>UNCOMMITTED_EARLIEST</value>
+        <display-name>Indexing Offset</display-name>
+        <value-attributes>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>EARLIEST</value>
+                </entry>
+                <entry>
+                    <value>LATEST</value>
+                </entry>
+                <entry>
+                    <value>UNCOMMITTED_EARLIEST</value>
+                </entry>
+                <entry>
+                    <value>UNCOMMITTED_LATEST</value>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
+        </value-attributes>
+    </property>
+    <property>
+        <name>indexing_input_topic</name>
+        <description>Indexing Input Topic</description>
+        <value>indexing</value>
+        <display-name>Indexing Input Topic</display-name>
+    </property>
+    <property>
+        <name>indexing_error_topic</name>
+        <description>Indexing Error Topic</description>
+        <value>indexing</value>
+        <display-name>Indexing Error Topic</display-name>
+    </property>
+    <property>
+        <name>indexing_writer_class_name</name>
+        <description>Indexing Writer Class Name</description>
+        <value>org.apache.metron.elasticsearch.writer.ElasticsearchWriter</value>
+        <display-name>Indexing Writer Class Name</display-name>
+    </property>
+    <property>
+        <name>indexing_workers</name>
+        <description>Number of Indexing Topology Workers</description>
+        <value>1</value>
+        <display-name>Indexing Workers</display-name>
+    </property>
+    <property>
+        <name>indexing_acker_executors</name>
+        <description>Number of Indexing Topology Ackers</description>
+        <value>1</value>
+        <display-name>Enrichment Ackers</display-name>
+    </property>
+    <property>
+        <name>indexing_topology_worker_childopts</name>
+        <description>Indexing Topology JVM Options</description>
+        <value/>
+        <display-name>Indexing childopts</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+    <property>
+        <name>indexing_topology_max_spout_pending</name>
+        <description>Indexing Topology Spout Max Pending Tuples</description>
+        <value/>
+        <display-name>Indexing Max Pending</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+    <property>
+        <name>indexing_kafka_spout_parallelism</name>
+        <description>Indexing Topology Kafka Spout Parallelism</description>
+        <value>1</value>
+        <display-name>Indexing Spout Parallelism</display-name>
+    </property>
+    <property>
+        <name>indexing_writer_parallelism</name>
+        <description>Indexing Topology Writer Bolt Parallelism</description>
+        <value>1</value>
+        <display-name>Indexing Writer Parallelism</display-name>
+    </property>
+    <property>
+        <name>hdfs_writer_parallelism</name>
+        <description>Indexing Topology HDFS Bolt Parallelism</description>
+        <value>1</value>
+        <display-name>Indexing HDFS Parallelism</display-name>
+    </property>
+    <property>
+        <name>metron_apps_indexed_hdfs_dir</name>
+        <value>{{metron_apps_hdfs_dir}}/indexing/indexed</value>
+        <description>Indexing bolts will write to this HDFS directory</description>
+        <display-name>Metron apps indexed HDFS dir</display-name>
+    </property>
+    <property>
+        <name>bolt_hdfs_rotation_policy</name>
+        <description>Class Name of HDFS Rotation Policy</description>
+        <value>org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy</value>
+        <display-name>HDFS Rotation Policy</display-name>
+    </property>
+    <property>
+        <name>bolt_hdfs_rotation_policy_count</name>
+        <description>HDFS Rotation Policy Count</description>
+        <value>1</value>
+        <display-name>HDFS Rotation Policy Count</display-name>
+    </property>
+    <property>
+        <name>bolt_hdfs_rotation_policy_units</name>
+        <description>Frequency of HDFS File Rotation</description>
+        <value>DAYS</value>
+        <display-name>HDFS Rotation Policy Units</display-name>
+        <value-attributes>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>SECONDS</value>
+                </entry>
+                <entry>
+                    <value>MINUTES</value>
+                </entry>
+                <entry>
+                    <value>HOURS</value>
+                </entry>
+                <entry>
+                    <value>DAYS</value>
+                </entry>
+                <entry>
+                    <value>KB</value>
+                </entry>
+                <entry>
+                    <value>MB</value>
+                </entry>
+                <entry>
+                    <value>GB</value>
+                </entry>
+                <entry>
+                    <value>TB</value>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
+        </value-attributes>
+    </property>
+</configuration>
