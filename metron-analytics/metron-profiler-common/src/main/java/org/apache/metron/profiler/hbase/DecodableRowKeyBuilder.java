@@ -35,14 +35,15 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A builder that creates a row key that is decodable.  A decodable row key is one that can be interrogated to extract
- * the constituent components of that row key.  For example given a row key generated using this builder, the profile name,
- * entity name, group name(s), period duration, and period can be extracted.
+ * Responsible for building the row keys used to store profile data in HBase.
  *
- * Responsible for building the row keys used to store profile data in HBase.  The row key is composed of the following
- * fields in the given order.
+ * This builder generates decodable row keys.  A decodable row key is one that can be interrogated to extract
+ * the constituent components of that row key.  Given a previously generated row key this builder
+ * can extract the profile name, entity name, group name(s), period duration, and period.
+ *
+ * The row key is composed of the following fields.
  * <ul>
- * <li>magic number - A value used to validate the key.</li>
+ * <li>magic number - Helps to validate the row key.</li>
  * <li>version - The version number of the row key.</li>
  * <li>salt - A salt that helps prevent hot-spotting.
  * <li>profile - The name of the profile.
@@ -164,7 +165,6 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
    * @return The HBase row key.
    */
   private byte[] encode(String profile, String entity, ProfilePeriod period, List<Object> groups) {
-
     if(profile == null)
       throw new IllegalArgumentException("Cannot encode row key; invalid profile name.");
     if(entity == null)
@@ -223,7 +223,6 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
             .order(byteOrder);
 
     try {
-
       // validate the magic number
       short magicNumber = buffer.getShort();
       if(magicNumber != MAGIC_NUMBER) {
