@@ -24,7 +24,7 @@ config:
 components:
 
     -   id: "rowKeyBuilder"
-        className: "org.apache.metron.profiler.hbase.SaltyRowKeyBuilder"
+        className: ${profiler.row.key.builder}
         properties:
             - name: "saltDivisor"
               value: ${profiler.hbase.salt.divisor}

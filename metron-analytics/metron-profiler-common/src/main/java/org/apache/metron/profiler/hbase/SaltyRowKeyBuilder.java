@@ -20,12 +20,12 @@
 
 package org.apache.metron.profiler.hbase;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -49,11 +49,6 @@ import java.util.concurrent.TimeUnit;
 public class SaltyRowKeyBuilder implements RowKeyBuilder {
 
   /**
-   * Defines the byte order when encoding and decoding the row keys.
-   */
-  private static final ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
-
-  /**
    * A salt can be prepended to the row key to help prevent hot-spotting.  The salt
    * divisor is used to generate the salt.  The salt divisor should be roughly equal
    * to the number of nodes in the Hbase cluster.
@@ -66,7 +61,8 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
   private long periodDurationMillis;
 
   public SaltyRowKeyBuilder() {
-    this(1000, 15, TimeUnit.MINUTES);
+    this.saltDivisor = 1000;
+    this.periodDurationMillis = TimeUnit.MINUTES.toMillis(15);
   }
 
   public SaltyRowKeyBuilder(int saltDivisor, long duration, TimeUnit units) {
@@ -93,12 +89,12 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
 
     // find the starting period and advance until the end time is reached
     return ProfilePeriod.visitPeriods( start
-                                        , end
-                                        , periodDurationMillis
-                                        , TimeUnit.MILLISECONDS
-                                        , Optional.empty()
-                                        , period -> encode(profile, entity, period, groups)
-                                        );
+            , end
+            , periodDurationMillis
+            , TimeUnit.MILLISECONDS
+            , Optional.empty()
+            , period -> encode(profile, entity, period, groups)
+    );
 
   }
 
@@ -116,11 +112,11 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    */
   @Override
   public List<byte[]> encode(String profile, String entity, List<Object> groups, Iterable<ProfilePeriod> periods) {
-    List<byte[]> rowKeys = new ArrayList<>();
+    List<byte[]> ret = new ArrayList<>();
     for(ProfilePeriod period : periods) {
-      rowKeys.add(encode(profile, entity, period, groups));
+      ret.add(encode(profile, entity, period, groups));
     }
-    return rowKeys;
+    return ret;
   }
 
   /**
@@ -134,6 +130,17 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
   }
 
   /**
+   * The row keys generated with this builder cannot be decoded.  The `DecodableRowKeyBuilder` should be
+   * used instead, if this functionality is necessary.
+   * @param rowKey The row key to decode.
+   * @return
+   */
+  @Override
+  public ProfileMeasurement decode(byte[] rowKey) {
+    throw new NotImplementedException("The row key cannot be decoded.  Try the `DecodableRowKeyBuilder` instead.");
+  }
+
+  /**
    * Build the row key.
    * @param profile The name of the profile.
    * @param entity The name of the entity.
@@ -142,136 +149,72 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    * @return The HBase row key.
    */
   private byte[] encode(String profile, String entity, ProfilePeriod period, List<Object> groups) {
-    return encode(profile, entity, period.getPeriod(), period.getDurationMillis(), groups);
+    return encode(profile, entity, period.getPeriod(), groups);
   }
 
   /**
    * Build the row key.
    * @param profile The name of the profile.
    * @param entity The name of the entity.
-   * @param periodId The period identifier
+   * @param period The measure period
    * @param groups The groups.
    * @return The HBase row key.
    */
-  public byte[] encode(String profile, String entity, long periodId, long periodDurationMillis, List<Object> groups) {
-    byte[] salt = encodeSalt(periodId, saltDivisor);
-    byte[] profileB = Bytes.toBytes(profile);
-    byte[] entityB = Bytes.toBytes(entity);
-    byte[] groupB = encodeGroups(groups);
+  private byte[] encode(String profile, String entity, long period, List<Object> groups) {
 
-    int capacity = salt.length + profileB.length + entityB.length + groupB.length + (Integer.BYTES * 3) + (Long.BYTES * 2);
-    ByteBuffer buffer = ByteBuffer
+    // row key = salt + prefix + group(s) + time
+    byte[] salt = getSalt(period, saltDivisor);
+    byte[] prefixKey = prefixKey(profile, entity);
+    byte[] groupKey = groupKey(groups);
+    byte[] timeKey = timeKey(period);
+
+    int capacity = salt.length + prefixKey.length + groupKey.length + timeKey.length;
+    return ByteBuffer
             .allocate(capacity)
-            .order(byteOrder)
-            .putInt(salt.length)
             .put(salt)
-            .putInt(profileB.length)
-            .put(profileB)
-            .putInt(entityB.length)
-            .put(entityB)
-            .put(groupB)
-            .putLong(periodId)
-            .putLong(periodDurationMillis);
-
-    return buffer.array();
+            .put(prefixKey)
+            .put(groupKey)
+            .put(timeKey)
+            .array();
   }
 
   /**
-   * Decodes a row key to build a ProfileMeasurement containing all of the
-   * relevant fields that exist within the row key.
-   *
-   * @param rowKey The row key to decode.
-   * @return A ProfileMeasurement.
+   * Builds the 'prefix' component of the row key.
+   * @param profile The name of the profile.
+   * @param entity The name of the entity.
    */
-  @Override
-  public ProfileMeasurement decode(byte[] rowKey) {
-    ByteBuffer buffer = ByteBuffer
-            .wrap(rowKey)
-            .order(byteOrder);
-
-    // decode the salt
-    int saltLength = buffer.getInt();
-    byte[] salt = new byte[saltLength];
-    buffer.get(salt);
-
-    // decode the profile name
-    int profileLength = buffer.getInt();
-    byte[] profileBytes = new byte[profileLength];
-    buffer.get(profileBytes);
-    String profile = new String(profileBytes);
-
-    // decode the entity
-    int entityLength = buffer.getInt();
-    byte[] entityBytes = new byte[entityLength];
-    buffer.get(entityBytes);
-    String entity = new String(entityBytes);
-
-    // decode the groups
-    List<Object> groups = new ArrayList<>();
-    int numberOfGroups = buffer.getInt();
-    for(int i = 0; i < numberOfGroups; i++) {
-
-      int groupLength = buffer.getInt();
-      byte[] groupBytes = new byte[groupLength];
-      buffer.get(groupBytes);
-
-      String group = new String(groupBytes);
-      groups.add(group);
-    }
-
-    // decode the period
-    long periodId = buffer.getLong();
-    long duration = buffer.getLong();
-    ProfilePeriod period = ProfilePeriod.buildFromPeriod(periodId, duration, TimeUnit.MILLISECONDS);
-
-    return new ProfileMeasurement()
-            .withProfileName(profile)
-            .withEntity(entity)
-            .withGroups(groups)
-            .withProfilePeriod(period);
+  private static byte[] prefixKey(String profile, String entity) {
+    byte[] profileBytes = Bytes.toBytes(profile);
+    byte[] entityBytes = Bytes.toBytes(entity);
+    return ByteBuffer
+            .allocate(profileBytes.length + entityBytes.length)
+            .put(profileBytes)
+            .put(entityBytes)
+            .array();
   }
 
   /**
    * Builds the 'group' component of the row key.
    * @param groups The groups to include in the row key.
    */
-  private byte[] encodeGroups(List<Object> groups) {
-
-    // encode each of the groups and determine their size
-    int lengthOfGroups = 0;
-    List<byte[]> groupBytes = new ArrayList<>();
-    for(Object group : groups) {
-      byte[] groupB = Bytes.toBytes(String.valueOf(group));
-      groupBytes.add(groupB);
-      lengthOfGroups += groupB.length;
-    }
-
-    // encode each of the groups
-    ByteBuffer buffer = ByteBuffer
-            .allocate((Integer.BYTES * (1 + groups.size())) + lengthOfGroups)
-            .order(byteOrder)
-            .putInt(groups.size());
-
-    for(byte[] groupB : groupBytes) {
-      buffer.putInt(groupB.length).put(groupB);
-    }
-
-    return buffer.array();
+  private static byte[] groupKey(List<Object> groups) {
+    StringBuilder builder = new StringBuilder();
+    groups.forEach(g -> builder.append(g));
+    return Bytes.toBytes(builder.toString());
   }
-
   /**
    * Builds the 'time' portion of the row key
    * @param period The ProfilePeriod in which the ProfileMeasurement was taken.
    */
-  private static byte[] encodePeriod(ProfilePeriod period) {
-    return encodePeriod(period.getPeriod());
+  private static byte[] timeKey(ProfilePeriod period) {
+    return timeKey(period.getPeriod());
   }
 
   /**
    * Builds the 'time' portion of the row key
    * @param period the period
    */
-  private static byte[] encodePeriod(long period) {
+  private static byte[] timeKey(long period) {
     return Bytes.toBytes(period);
   }
 
@@ -283,8 +226,8 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    *
    * @param period The period in which a profile measurement is taken.
    */
-  public static byte[] encodeSalt(ProfilePeriod period, int saltDivisor) {
-    return encodeSalt(period.getPeriod(), saltDivisor);
+  public static byte[] getSalt(ProfilePeriod period, int saltDivisor) {
+    return getSalt(period.getPeriod(), saltDivisor);
   }
 
   /**
@@ -296,11 +239,11 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    * @param period The period
    * @param saltDivisor The salt divisor
    */
-  public static byte[] encodeSalt(long period, int saltDivisor) {
+  public static byte[] getSalt(long period, int saltDivisor) {
     try {
       // an MD5 is 16 bytes aka 128 bits
       MessageDigest digest = MessageDigest.getInstance("MD5");
-      byte[] hash = digest.digest(encodePeriod(period));
+      byte[] hash = digest.digest(timeKey(period));
       int salt = Bytes.toShort(hash) % saltDivisor;
       return Bytes.toBytes(salt);
 
@@ -309,13 +252,11 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
     }
   }
 
-  public SaltyRowKeyBuilder withPeriodDuration(long duration, TimeUnit units) {
+  public void withPeriodDuration(long duration, TimeUnit units) {
     periodDurationMillis = units.toMillis(duration);
-    return this;
   }
 
-  public SaltyRowKeyBuilder setSaltDivisor(int saltDivisor) {
+  public void setSaltDivisor(int saltDivisor) {
     this.saltDivisor = saltDivisor;
-    return this;
   }
 }

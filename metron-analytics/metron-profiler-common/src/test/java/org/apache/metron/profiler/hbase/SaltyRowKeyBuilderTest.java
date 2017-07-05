@@ -20,11 +20,9 @@
 
 package org.apache.metron.profiler.hbase;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.storm.tuple.Tuple;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
-import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +50,7 @@ public class SaltyRowKeyBuilderTest {
   private static final long periodDuration = 15;
   private static final TimeUnit periodUnits = TimeUnit.MINUTES;
 
-  private SaltyRowKeyBuilder rowKeyBuilder;
+  private SaltyRowKeyBuilder encodeBuilder;
   private ProfileMeasurement measurement;
   private Tuple tuple;
 
@@ -74,222 +72,150 @@ public class SaltyRowKeyBuilderTest {
     tuple = mock(Tuple.class);
     when(tuple.getValueByField(eq("measurement"))).thenReturn(measurement);
 
-    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
+    encodeBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
   }
 
   /**
    * Build a row key that includes only one group.
    */
   @Test
-  public void testRowKeyWithOneGroup() throws Exception {
+  public void testEncodeWithOneGroup() throws Exception {
     // setup
     measurement.withGroups(Arrays.asList("group1"));
 
     // the expected row key
     ByteBuffer buffer = ByteBuffer
             .allocate(100)
-            .putInt(SaltyRowKeyBuilder.encodeSalt(measurement.getPeriod(), saltDivisor).length)
-            .put(SaltyRowKeyBuilder.encodeSalt(measurement.getPeriod(), saltDivisor))
-            .putInt(measurement.getProfileName().getBytes().length)
+            .put(SaltyRowKeyBuilder.getSalt(measurement.getPeriod(), saltDivisor))
             .put(measurement.getProfileName().getBytes())
-            .putInt(measurement.getEntity().getBytes().length)
             .put(measurement.getEntity().getBytes())
-            .putInt(measurement.getGroups().size())
-            .putInt("group1".getBytes().length)
             .put("group1".getBytes())
-            .putLong(measurement.getPeriod().getPeriod())
-            .putLong(measurement.getPeriod().getDurationMillis());
+            .putLong(1635701L);
 
     buffer.flip();
     final byte[] expected = new byte[buffer.limit()];
     buffer.get(expected, 0, buffer.limit());
 
-    // validate encoding
-    byte[] actual = rowKeyBuilder.encode(measurement);
+    // validate
+    byte[] actual = encodeBuilder.encode(measurement);
     Assert.assertTrue(Arrays.equals(expected, actual));
-
-    // validate decoding
-    ProfileMeasurement decoded = rowKeyBuilder.decode(actual);
-    Assert.assertEquals(measurement.getProfileName(), decoded.getProfileName());
-    Assert.assertEquals(measurement.getEntity(), decoded.getEntity());
-    Assert.assertEquals(measurement.getPeriod(), decoded.getPeriod());
-    Assert.assertEquals(measurement.getGroups(), decoded.getGroups());
   }
 
   /**
    * Build a row key that includes two groups.
    */
   @Test
-  public void testRowKeyWithTwoGroups() throws Exception {
+  public void testEncodeWithTwoGroups() throws Exception {
     // setup
     measurement.withGroups(Arrays.asList("group1","group2"));
 
     // the expected row key
     ByteBuffer buffer = ByteBuffer
             .allocate(100)
-            .putInt(SaltyRowKeyBuilder.encodeSalt(measurement.getPeriod(), saltDivisor).length)
-            .put(SaltyRowKeyBuilder.encodeSalt(measurement.getPeriod(), saltDivisor))
-            .putInt(measurement.getProfileName().getBytes().length)
+            .put(SaltyRowKeyBuilder.getSalt(measurement.getPeriod(), saltDivisor))
             .put(measurement.getProfileName().getBytes())
-            .putInt(measurement.getEntity().getBytes().length)
             .put(measurement.getEntity().getBytes())
-            .putInt(measurement.getGroups().size())
-            .putInt("group1".getBytes().length)
             .put("group1".getBytes())
-            .putInt("group2".getBytes().length)
             .put("group2".getBytes())
-            .putLong(measurement.getPeriod().getPeriod())
-            .putLong(measurement.getPeriod().getDurationMillis());
+            .putLong(1635701L);
 
     buffer.flip();
     final byte[] expected = new byte[buffer.limit()];
     buffer.get(expected, 0, buffer.limit());
 
-    // validate encoding
-    byte[] actual = rowKeyBuilder.encode(measurement);
+    // validate
+    byte[] actual = encodeBuilder.encode(measurement);
     Assert.assertTrue(Arrays.equals(expected, actual));
-
-    // validate decoding
-    ProfileMeasurement decoded = rowKeyBuilder.decode(actual);
-    Assert.assertEquals(measurement.getProfileName(), decoded.getProfileName());
-    Assert.assertEquals(measurement.getEntity(), decoded.getEntity());
-    Assert.assertEquals(measurement.getPeriod(), decoded.getPeriod());
-    Assert.assertEquals(measurement.getGroups(), decoded.getGroups());
   }
 
   /**
    * Build a row key that includes a single group that is an integer.
    */
   @Test
-  public void testRowKeyWithOneIntegerGroup() throws Exception {
+  public void testEncodeWithOneIntegerGroup() throws Exception {
     // setup
-    // when decoding have to treat all groups as strings, thus we expect 200 to be decoded as "200"
-    List actualGroups = Arrays.asList(200);
-    List expectedGroups = Arrays.asList("200");
-    measurement.withGroups(actualGroups);
+    measurement.withGroups(Arrays.asList(200));
 
     // the expected row key
     ByteBuffer buffer = ByteBuffer
             .allocate(100)
-            .putInt(SaltyRowKeyBuilder.encodeSalt(measurement.getPeriod(), saltDivisor).length)
-            .put(SaltyRowKeyBuilder.encodeSalt(measurement.getPeriod(), saltDivisor))
-            .putInt(measurement.getProfileName().getBytes().length)
+            .put(SaltyRowKeyBuilder.getSalt(measurement.getPeriod(), saltDivisor))
             .put(measurement.getProfileName().getBytes())
-            .putInt(measurement.getEntity().getBytes().length)
             .put(measurement.getEntity().getBytes())
-            .putInt(measurement.getGroups().size())
-            .putInt("200".getBytes().length)
             .put("200".getBytes())
-            .putLong(measurement.getPeriod().getPeriod())
-            .putLong(measurement.getPeriod().getDurationMillis());
+            .putLong(1635701L);
 
     buffer.flip();
     final byte[] expected = new byte[buffer.limit()];
     buffer.get(expected, 0, buffer.limit());
 
-    // validate encoding
-    byte[] actual = rowKeyBuilder.encode(measurement);
+    // validate
+    byte[] actual = encodeBuilder.encode(measurement);
     Assert.assertTrue(Arrays.equals(expected, actual));
-
-    // validate decoding
-    ProfileMeasurement decoded = rowKeyBuilder.decode(actual);
-    Assert.assertEquals(measurement.getProfileName(), decoded.getProfileName());
-    Assert.assertEquals(measurement.getEntity(), decoded.getEntity());
-    Assert.assertEquals(measurement.getPeriod(), decoded.getPeriod());
-    Assert.assertEquals(expectedGroups, decoded.getGroups());
   }
 
   /**
    * Build a row key that includes a single group that is an integer.
    */
   @Test
-  public void testRowKeyWithMixedGroups() throws Exception {
+  public void testEncodeWithMixedGroups() throws Exception {
     // setup
-    // when decoding have to treat all groups as strings, thus we expect 200 to be decoded as "200"
-    List actualGroups = Arrays.asList(200, "group1");
-    List expectedGroups = Arrays.asList("200", "group1");
-    measurement.withGroups(actualGroups);
+    measurement.withGroups(Arrays.asList(200, "group1"));
 
     // the expected row key
     ByteBuffer buffer = ByteBuffer
             .allocate(100)
-            .putInt(SaltyRowKeyBuilder.encodeSalt(measurement.getPeriod(), saltDivisor).length)
-            .put(SaltyRowKeyBuilder.encodeSalt(measurement.getPeriod(), saltDivisor))
-            .putInt(measurement.getProfileName().getBytes().length)
+            .put(SaltyRowKeyBuilder.getSalt(measurement.getPeriod(), saltDivisor))
             .put(measurement.getProfileName().getBytes())
-            .putInt(measurement.getEntity().getBytes().length)
             .put(measurement.getEntity().getBytes())
-            .putInt(measurement.getGroups().size())
-            .putInt("200".getBytes().length)
             .put("200".getBytes())
-            .putInt("group1".getBytes().length)
             .put("group1".getBytes())
-            .putLong(measurement.getPeriod().getPeriod())
-            .putLong(measurement.getPeriod().getDurationMillis());
+            .putLong(1635701L);
 
     buffer.flip();
     final byte[] expected = new byte[buffer.limit()];
     buffer.get(expected, 0, buffer.limit());
 
-    // validate encoding
-    byte[] actual = rowKeyBuilder.encode(measurement);
+    // validate
+    byte[] actual = encodeBuilder.encode(measurement);
     Assert.assertTrue(Arrays.equals(expected, actual));
-
-    // validate decoding
-    ProfileMeasurement decoded = rowKeyBuilder.decode(actual);
-    Assert.assertEquals(measurement.getProfileName(), decoded.getProfileName());
-    Assert.assertEquals(measurement.getEntity(), decoded.getEntity());
-    Assert.assertEquals(measurement.getPeriod(), decoded.getPeriod());
-    Assert.assertEquals(expectedGroups, decoded.getGroups());
   }
 
   /**
    * Build a row key that does not include any groups.
    */
   @Test
-  public void testRowKeyWithNoGroup() throws Exception {
+  public void testEncodeWithNoGroup() throws Exception {
     // setup
     measurement.withGroups(Collections.emptyList());
 
     // the expected row key
     ByteBuffer buffer = ByteBuffer
             .allocate(100)
-            .putInt(SaltyRowKeyBuilder.encodeSalt(measurement.getPeriod(), saltDivisor).length)
-            .put(SaltyRowKeyBuilder.encodeSalt(measurement.getPeriod(), saltDivisor))
-            .putInt(measurement.getProfileName().getBytes().length)
+            .put(SaltyRowKeyBuilder.getSalt(measurement.getPeriod(), saltDivisor))
             .put(measurement.getProfileName().getBytes())
-            .putInt(measurement.getEntity().getBytes().length)
             .put(measurement.getEntity().getBytes())
-            .putInt(measurement.getGroups().size())
-            .putLong(measurement.getPeriod().getPeriod())
-            .putLong(measurement.getPeriod().getDurationMillis());
+            .putLong(1635701L);
 
     buffer.flip();
     final byte[] expected = new byte[buffer.limit()];
     buffer.get(expected, 0, buffer.limit());
 
-    // validate encoding
-    byte[] actual = rowKeyBuilder.encode(measurement);
+    // validate
+    byte[] actual = encodeBuilder.encode(measurement);
     Assert.assertTrue(Arrays.equals(expected, actual));
-
-    // validate decoding
-    ProfileMeasurement decoded = rowKeyBuilder.decode(actual);
-    Assert.assertEquals(measurement.getProfileName(), decoded.getProfileName());
-    Assert.assertEquals(measurement.getEntity(), decoded.getEntity());
-    Assert.assertEquals(measurement.getPeriod(), decoded.getPeriod());
-    Assert.assertEquals(measurement.getGroups(), decoded.getGroups());
   }
 
   /**
-   * `rowKeys` should return all of the row keys needed to retrieve the profile values over a given time horizon.
+   * Tests encoding multiple row keys at once.
    */
   @Test
-  public void testRowKeys() throws Exception {
+  public void testEncodeMultipleRowKeys() throws Exception {
     int hoursAgo = 1;
 
     // setup
     List<Object> groups = Collections.emptyList();
-    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
+    encodeBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
 
     // a dummy profile measurement
     long now = System.currentTimeMillis();
@@ -305,7 +231,7 @@ public class SaltyRowKeyBuilderTest {
     for  (int i=0; i<(hoursAgo * 4)+1; i++) {
 
       // generate the expected key
-      byte[] rk = rowKeyBuilder.encode(m);
+      byte[] rk = encodeBuilder.encode(m);
       expectedKeys.add(rk);
 
       // advance to the next period
@@ -317,7 +243,7 @@ public class SaltyRowKeyBuilderTest {
     }
 
     // execute
-    List<byte[]> actualKeys = rowKeyBuilder.encode(measurement.getProfileName(), measurement.getEntity(), groups, oldest, now);
+    List<byte[]> actualKeys = encodeBuilder.encode(measurement.getProfileName(), measurement.getEntity(), groups, oldest, now);
 
     // validate - expectedKeys == actualKeys
     for(int i=0; i<actualKeys.size(); i++) {
