@@ -72,7 +72,7 @@ Source20:       metron-parser-sourcefire-assembly-%{full_version}-archive.tar.gz
 Source21:       metron-parser-squid-assembly-%{full_version}-archive.tar.gz
 Source22:       metron-parser-websphere-assembly-%{full_version}-archive.tar.gz
 Source23:       metron-parser-yaf-assembly-%{full_version}-archive.tar.gz
-
+Source24:       metron-management-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -138,6 +138,7 @@ tar -xzf %{SOURCE20} -C %{buildroot}%{metron_extensions_etc_parsers}/sourcefire
 tar -xzf %{SOURCE21} -C %{buildroot}%{metron_extensions_etc_parsers}/squid
 tar -xzf %{SOURCE22} -C %{buildroot}%{metron_extensions_etc_parsers}/websphere
 tar -xzf %{SOURCE23} -C %{buildroot}%{metron_extensions_etc_parsers}/yaf
+tar -xzf %{SOURCE24} -C %{buildroot}%{metron_home}
 
 # move the bundles from config to extensions lib
 mv %{buildroot}%{metron_extensions_etc_parsers}/asa/lib/*.bundle %{buildroot}%{metron_extensions_lib}/
@@ -669,7 +670,7 @@ This package installs the Metron Solr files
 %{metron_home}/config/solr.properties
 %attr(0644,root,root) %{metron_home}/lib/metron-solr-%{full_version}-uber.jar
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %package        enrichment
 Summary:        Metron Enrichment Files
@@ -694,7 +695,7 @@ This package installs the Metron Enrichment files
 %exclude %{metron_home}/flux/enrichment/test.yaml
 %attr(0644,root,root) %{metron_home}/lib/metron-enrichment-%{full_version}-uber.jar
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %package        indexing
 Summary:        Metron Indexing Files
@@ -716,6 +717,23 @@ This package installs the Metron Indexing files
 %{metron_home}/config/zeppelin/metron/metron-connection-report.json
 %{metron_home}/config/zeppelin/metron/metron-ip-report.json
 %{metron_home}/config/zeppelin/metron/metron-connection-volume-report.json
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        metron-management
+Summary:        Metron Management Libary
+Group:          Applications/Internet
+Provides:       metron-management = %{version}
+
+%description    metron-management
+This package installs the Metron Management Library
+
+%files          metron-management
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}/lib
+%attr(0644,root,root) %{metron_home}/lib/metron-management-%{full_version}.jar
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -852,6 +870,8 @@ chkconfig --del metron-management-ui
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
+* Thu Jun 29 2017 Apache Metron <dev@metron.apache.org> - 0.4.0+1
+- Add Metron Management jar
 * Thu May 15 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
 - Added Management UI
 * Tue May 9 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
