@@ -20,13 +20,12 @@
 
 package org.apache.metron.hbase.client;
 
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.storm.tuple.Tuple;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.client.Durability;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.hbase.Widget;
 import org.apache.metron.hbase.WidgetMapper;
@@ -40,6 +39,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -61,8 +61,9 @@ public class HBaseClientTest {
   private static final String tableName = "widgets";
 
   private static HBaseTestingUtility util;
-  private HBaseClient client;
-  private HTableInterface table;
+  private static HBaseClient client;
+  private static HTableInterface table;
+  private static Admin admin;
   private Tuple tuple1;
   private Tuple tuple2;
   byte[] rowKey1;
@@ -80,16 +81,35 @@ public class HBaseClientTest {
     config.set("hbase.regionserver.hostname", "localhost");
     util = new HBaseTestingUtility(config);
     util.startMiniCluster();
+    admin = util.getHBaseAdmin();
+    // create the table
+    table = util.createTable(Bytes.toBytes(tableName), WidgetMapper.CF);
+    util.waitTableEnabled(table.getName());
+    // setup the client
+    client = new HBaseClient((c,t) -> table, table.getConfiguration(), tableName);
   }
 
   @AfterClass
   public static void stopHBase() throws Exception {
+    util.deleteTable(tableName);
     util.shutdownMiniCluster();
     util.cleanupTestDir();
   }
 
+  @After
+  public void clearTable() throws Exception {
+    List<Delete> deletions = new ArrayList<>();
+    for(Result r : table.getScanner(new Scan())) {
+      deletions.add(new Delete(r.getRow()));
+    }
+    table.delete(deletions);
+  }
+
   @Before
   public void setupTuples() throws Exception {
+
+    // create a mapper
+    mapper = new WidgetMapper();
 
     // setup the first tuple
     widget1 = new Widget("widget1", 100);
@@ -106,25 +126,6 @@ public class HBaseClientTest {
 
     rowKey2 = mapper.rowKey(tuple2);
     cols2 = mapper.columns(tuple2);
-  }
-
-  @Before
-  public void setup() throws Exception {
-
-    // create a mapper
-    mapper = new WidgetMapper();
-
-    // create the table
-    table = util.createTable(Bytes.toBytes(tableName), WidgetMapper.CF);
-    util.waitTableEnabled(table.getName());
-
-    // setup the client
-    client = new HBaseClient((c,t) -> table, table.getConfiguration(), tableName);
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    util.deleteTable(tableName);
   }
 
   /**

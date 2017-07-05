@@ -103,7 +103,7 @@ configurations:
 
 required_configurations:
   - metron-env:
-      storm_rest_addr: "{{ groups.ambari_slave[0] }}:8744"
+      storm_rest_addr: "http://{{ groups.ambari_slave[0] }}:8744"
       es_hosts: "{{ groups.search | join(',') }}"
       zeppelin_server_url: "{{ groups.zeppelin[0] }}:9995"
       metron_jdbc_driver: "org.h2.Driver"

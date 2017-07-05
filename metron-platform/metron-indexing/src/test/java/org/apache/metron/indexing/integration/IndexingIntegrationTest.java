@@ -197,6 +197,8 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
       // on the field name converter
       assertInputDocsMatchOutputs(inputDocs, docs, getFieldNameConverter());
       assertInputDocsMatchOutputs(inputDocs, readDocsFromDisk(hdfsDir), x -> x);
+    } catch(Throwable e) {
+      e.printStackTrace();
     }
     finally {
       if(runner != null) {

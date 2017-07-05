@@ -16,7 +16,9 @@
       "stellar" : {
         "config" : {
           "numeric" : {
-                      "foo": "1 + 1"
+                      "map" : "{ 'blah' : 1}"
+                      ,"one" : "MAP_GET('blah', map)"
+                      ,"foo": "1 + 1"
                       }
           ,"ALL_CAPS" : "TO_UPPER(source.type)"
           ,"src_enrichment" : {

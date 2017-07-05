@@ -224,7 +224,7 @@
     <property require-input = "true">
         <name>storm_rest_addr</name>
         <display-name>Storm Rest Server Address</display-name>
-        <description>URL of Storm UI (storm.ui.hostname:8744)</description>
+        <description>URL of Storm UI (http://storm.ui.hostname:8744). If no protocol is provided, http is assumed.</description>
         <value></value>
     </property>
     <property require-input = "true">
