@@ -102,7 +102,7 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
     topologyProperties.setProperty("es.clustername", "metron");
     topologyProperties.setProperty("es.port", "9300");
     topologyProperties.setProperty("es.ip", "localhost");
-    topologyProperties.setProperty("writer.class.name", "org.apache.metron.elasticsearch.writer.ElasticsearchWriter");
+    topologyProperties.setProperty("indexing.writer.class.name", "org.apache.metron.elasticsearch.writer.ElasticsearchWriter");
   }
 
   @Override
