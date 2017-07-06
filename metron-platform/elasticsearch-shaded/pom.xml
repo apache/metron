@@ -56,6 +56,10 @@
                                     <pattern>com.google.common</pattern>
                                     <shadedPattern>org.apache.metron.guava.elasticsearch-shaded</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>com.fasterxml.jackson.core</pattern>
+                                    <shadedPattern>org.apache.metron.com.fasterxml.jackson.core.elasticsearch-shaded</shadedPattern>
+                                </relocation>
                             </relocations>
                             <artifactSet>
                                 <excludes>
