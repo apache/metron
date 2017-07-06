@@ -120,7 +120,7 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
             , periodDurationMillis
             , TimeUnit.MILLISECONDS
             , Optional.empty()
-            , period -> encode(profile, entity, period, groups)
+            , period -> encode(profile, entity, groups, period)
     );
 
   }
@@ -141,7 +141,7 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
   public List<byte[]> encode(String profile, String entity, List<Object> groups, Iterable<ProfilePeriod> periods) {
     List<byte[]> rowKeys = new ArrayList<>();
     for(ProfilePeriod period : periods) {
-      rowKeys.add(encode(profile, entity, period, groups));
+      rowKeys.add(encode(profile, entity, groups, period));
     }
     return rowKeys;
   }
@@ -153,7 +153,7 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
    */
   @Override
   public byte[] encode(ProfileMeasurement m) {
-    return encode(m.getProfileName(), m.getEntity(), m.getPeriod(), m.getGroups());
+    return encode(m.getProfileName(), m.getEntity(), m.getGroups(), m.getPeriod());
   }
 
   /**
@@ -164,7 +164,8 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
    * @param groups The groups.
    * @return The HBase row key.
    */
-  private byte[] encode(String profile, String entity, ProfilePeriod period, List<Object> groups) {
+  public byte[] encode(String profile, String entity, List<Object> groups, ProfilePeriod period) {
+
     if(profile == null)
       throw new IllegalArgumentException("Cannot encode row key; invalid profile name.");
     if(entity == null)
@@ -172,18 +173,8 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
     if(period == null)
       throw new IllegalArgumentException("Cannot encode row key; invalid profile period.");
 
-    return encode(profile, entity, period.getPeriod(), period.getDurationMillis(), groups);
-  }
-
-  /**
-   * Build the row key.
-   * @param profile The name of the profile.
-   * @param entity The name of the entity.
-   * @param periodId The period identifier
-   * @param groups The groups.
-   * @return The HBase row key.
-   */
-  public byte[] encode(String profile, String entity, long periodId, long periodDurationMillis, List<Object> groups) {
+    long periodId = period.getPeriod();
+    long periodDurationMillis = period.getDurationMillis();
 
     byte[] salt = encodeSalt(periodId, saltDivisor);
     byte[] profileB = Bytes.toBytes(profile);

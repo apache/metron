@@ -46,7 +46,6 @@ public class ProfilePeriod {
    */
   private long durationMillis;
 
-
   /**
    * Builds a ProfilePeriod from a timestamp that exists somewhere within the profile period.
    *
@@ -57,8 +56,7 @@ public class ProfilePeriod {
    */
   public static ProfilePeriod buildFromTimestamp(long timestamp, long duration, TimeUnit units) {
     if(duration <= 0) {
-      throw new IllegalArgumentException(format(
-              "period duration must be greater than 0; got '%d %s'", duration, units));
+      throw new IllegalArgumentException(format("period duration must be greater than 0; got '%d %s'", duration, units));
     }
 
     long durationMillis = units.toMillis(duration);

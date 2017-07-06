@@ -20,8 +20,11 @@
 
 package org.apache.metron.profiler.client.stellar;
 
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.metron.common.utils.ReflectionUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
@@ -92,8 +95,6 @@ import static org.apache.metron.profiler.client.stellar.Util.getEffectiveConfig;
         returns="The selected profile measurements."
 )
 public class GetProfile implements StellarFunction {
-
-
 
   /**
    * Cached client that can retrieve profile values.
@@ -226,6 +227,14 @@ public class GetProfile implements StellarFunction {
     Integer saltDivisor = PROFILER_SALT_DIVISOR.get(global, Integer.class);
     LOG.debug("profiler client: {}={}", PROFILER_SALT_DIVISOR, saltDivisor);
 
+    // which row key builder?
+    String rowKeyBuilderClass = PROFILER_ROW_KEY_BUILDER.get(global, String.class);
+    LOG.debug("profiler client: {}={}", PROFILER_ROW_KEY_BUILDER, rowKeyBuilderClass);
+
+    // TODO instantiate the row key builder
+    RowKeyBuilder builder = ReflectionUtils.createInstance(rowKeyBuilderClass);
+
+    // TODO need to be able to instantiate another row key builder
     return new SaltyRowKeyBuilder(saltDivisor, duration, units);
   }
 

@@ -56,11 +56,17 @@ public enum ProfilerConfig {
   /**
    * A global property that defines the salt divisor used to store profile data.
    */
-  PROFILER_SALT_DIVISOR("profiler.client.salt.divisor", 1000L, Long.class);
+  PROFILER_SALT_DIVISOR("profiler.client.salt.divisor", 1000L, Long.class),
+
+  /**
+   * A global property that defines which RowKeyBuilder should be used.
+   */
+  PROFILER_ROW_KEY_BUILDER("profiler.client.row.key.builder", "org.apache.metron.profiler.hbase.SaltyRowKeyBuilder", String.class);
 
   String key;
   Object defaultValue;
   Class<?> valueType;
+
   ProfilerConfig(String key, Object defaultValue, Class<?> valueType) {
     this.key = key;
     this.defaultValue = defaultValue;

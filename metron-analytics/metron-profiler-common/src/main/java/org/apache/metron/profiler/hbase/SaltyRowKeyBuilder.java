@@ -34,7 +34,8 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A RowKeyBuilder that uses a salt to prevent hot-spotting.
+ * Responsible for building the row keys used to store profile data in HBase. This builder uses a salt to
+ * prevent hot-spotting.
  *
  * Responsible for building the row keys used to store profile data in HBase.  The row key is composed of the following
  * fields in the given order.
@@ -103,9 +104,8 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
             , periodDurationMillis
             , TimeUnit.MILLISECONDS
             , Optional.empty()
-            , period -> encode(profile, entity, period, groups)
+            , period -> encode(profile, entity, groups, period)
     );
-
   }
 
   /**
@@ -122,11 +122,11 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    */
   @Override
   public List<byte[]> encode(String profile, String entity, List<Object> groups, Iterable<ProfilePeriod> periods) {
-    List<byte[]> ret = new ArrayList<>();
+    List<byte[]> keys = new ArrayList<>();
     for(ProfilePeriod period : periods) {
-      ret.add(encode(profile, entity, period, groups));
+      keys.add(encode(profile, entity, groups, period));
     }
-    return ret;
+    return keys;
   }
 
   /**
@@ -136,7 +136,7 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    */
   @Override
   public byte[] encode(ProfileMeasurement m) {
-    return encode(m.getProfileName(), m.getEntity(), m.getPeriod(), m.getGroups());
+    return encode(m.getProfileName(), m.getEntity(), m.getGroups(), m.getPeriod());
   }
 
   /**
@@ -158,8 +158,8 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    * @param groups The groups.
    * @return The HBase row key.
    */
-  private byte[] encode(String profile, String entity, ProfilePeriod period, List<Object> groups) {
-    return encode(profile, entity, period.getPeriod(), groups);
+  private byte[] encode(String profile, String entity, List<Object> groups, ProfilePeriod period) {
+    return encode(profile, entity, groups, period.getPeriod());
   }
 
   /**
@@ -170,7 +170,7 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
    * @param groups The groups.
    * @return The HBase row key.
    */
-  private byte[] encode(String profile, String entity, long period, List<Object> groups) {
+  private byte[] encode(String profile, String entity,  List<Object> groups, long period) {
 
     // row key = salt + prefix + group(s) + time
     byte[] salt = getSalt(period, saltDivisor);
@@ -262,7 +262,7 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
     }
   }
 
-  public void withPeriodDuration(long duration, TimeUnit units) {
+  public void setPeriodDuration(long duration, TimeUnit units) {
     periodDurationMillis = units.toMillis(duration);
   }
 
