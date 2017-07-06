@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="Date-Revision-yyyymmdd" content="20170627" />
     <meta http-equiv="Content-Language" content="en" />
-    <title>Metron &#x2013; Ansible Roles</title>
+    <title>Metron &#x2013; Metron Management UI</title>
     <link rel="stylesheet" href="../../css/apache-maven-fluido-1.3.0.min.css" />
     <link rel="stylesheet" href="../../css/site.css" />
     <link rel="stylesheet" href="../../css/print.css" media="print" />
@@ -57,7 +57,7 @@
         Documentation</a>
         </li>
       <li class="divider ">/</li>
-        <li class="">Ansible Roles</li>
+        <li class="">Metron Management UI</li>
         
                 
                     
@@ -96,106 +96,13 @@
           <i class="icon-chevron-right"></i>
         Analytics</a>
                   </li>
-                                                                                                                                                                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                                                                                                                                                    
       <li>
     
                           <a href="../../metron-deployment/index.html" title="Deployment">
-          <i class="icon-chevron-down"></i>
-        Deployment</a>
-                    <ul class="nav nav-list">
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/Kerberos-ambari-setup.html" title="Kerberos-ambari-setup">
-          <i class="none"></i>
-        Kerberos-ambari-setup</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/Kerberos-manual-setup.html" title="Kerberos-manual-setup">
-          <i class="none"></i>
-        Kerberos-manual-setup</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/amazon-ec2/index.html" title="Amazon-ec2">
-          <i class="none"></i>
-        Amazon-ec2</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/packaging/docker/ansible-docker/index.html" title="Ansible-docker">
-          <i class="none"></i>
-        Ansible-docker</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/packaging/docker/rpm-docker/index.html" title="Rpm-docker">
-          <i class="none"></i>
-        Rpm-docker</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/packaging/packer-build/index.html" title="Packer-build">
-          <i class="none"></i>
-        Packer-build</a>
-            </li>
-                                                                                                                                                    
-      <li class="active">
-    
-            <a href="#"><i class="icon-chevron-down"></i>Roles</a>
-                  <ul class="nav nav-list">
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/roles/monit/index.html" title="Monit">
-          <i class="none"></i>
-        Monit</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/roles/opentaxii/index.html" title="Opentaxii">
-          <i class="none"></i>
-        Opentaxii</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/roles/pcap_replay/index.html" title="Pcap_replay">
-          <i class="none"></i>
-        Pcap_replay</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/roles/sensor-stubs/index.html" title="Sensor-stubs">
-          <i class="none"></i>
-        Sensor-stubs</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/roles/sensor-test-mode/index.html" title="Sensor-test-mode">
-          <i class="none"></i>
-        Sensor-test-mode</a>
-            </li>
-              </ul>
-        </li>
-                                                                                                                              
-      <li>
-    
-                          <a href="../../metron-deployment/vagrant/index.html" title="Vagrant">
           <i class="icon-chevron-right"></i>
-        Vagrant</a>
+        Deployment</a>
                   </li>
-              </ul>
-        </li>
                       
       <li>
     
@@ -204,12 +111,10 @@
         Docker</a>
             </li>
                       
-      <li>
+      <li class="active">
     
-                          <a href="../../metron-interface/metron-config/index.html" title="Config">
-          <i class="none"></i>
-        Config</a>
-            </li>
+            <a href="#"><i class="none"></i>Config</a>
+          </li>
                       
       <li>
     
@@ -253,21 +158,154 @@
                 
         <div id="bodyColumn"  class="span9" >
                                   
-            <h1>Ansible Roles</h1>
-<p><a name="Ansible_Roles"></a></p>
+            <h1>Metron Management UI</h1>
+<p><a name="Metron_Management_UI"></a></p>
+<p>This module provides a user interface for management functions in Metron.</p>
+<div class="section">
+<h2><a name="Prerequisites"></a>Prerequisites</h2>
 
 <ul>
   
-<li>Monit</li>
+<li>A network accessible Metron REST application</li>
   
-<li>OpenTaxii</li>
+<li>nodejs v6.9+ (nodejs can be installed on quick dev with <tt>curl --silent --location https://rpm.nodesource.com/setup_6.x | bash - &amp;&amp; yum install -y nodejs</tt>)</li>
+</ul></div>
+<div class="section">
+<h2><a name="Installation"></a>Installation</h2>
+<div class="section">
+<h3><a name="From_Source"></a>From Source</h3>
+
+<ol style="list-style-type: decimal">
   
-<li>Pcap Replay</li>
+<li>
+<p>Package the application with Maven:</p>
   
-<li>Sensor Stubs</li>
+<div class="source">
+<div class="source">
+<pre>cd metron-interface/metron-config
+mvn clean package
+</pre></div></div></li>
   
-<li>Sensor Test Mode</li>
-</ul>
+<li>
+<p>Untar the archive in the $METRON_HOME directory. The directory structure will look like:</p>
+  
+<div class="source">
+<div class="source">
+<pre>bin
+  metron-management-ui
+web
+  expressjs
+    package.json
+    server.js
+  management-ui
+    web assets (html, css, js, ...)
+</pre></div></div></li>
+  
+<li>
+<p>Copy the <tt>$METRON_HOME/bin/metron-management-ui</tt> script to <tt>/etc/init.d/metron-management-ui</tt></p></li>
+  
+<li>
+<p>Install the <a class="externalLink" href="https://expressjs.com/">Express</a> web framework from the <tt>package.json</tt> file in <tt>$METRON_HOME/web/expressjs</tt>:</p>
+  
+<div class="source">
+<div class="source">
+<pre>npm --prefix $METRON_HOME/web/expressjs/ install
+</pre></div></div></li>
+</ol></div>
+<div class="section">
+<h3><a name="From_Package_Manager"></a>From Package Manager</h3>
+
+<ol style="list-style-type: decimal">
+  
+<li>
+<p>Deploy the RPM at <tt>/metron/metron-deployment/packaging/docker/rpm-docker/target/RPMS/noarch/metron-config-$METRON_VERSION-*.noarch.rpm</tt></p></li>
+  
+<li>
+<p>Install the RPM with:</p>
+  
+<div class="source">
+<div class="source">
+<pre>rpm -ih metron-config-$METRON_VERSION-*.noarch.rpm
+</pre></div></div></li>
+  
+<li>
+<p>Install the <a class="externalLink" href="https://expressjs.com/">Express</a> web framework from the <tt>package.json</tt> file in <tt>$METRON_HOME/web/expressjs</tt>:</p>
+  
+<div class="source">
+<div class="source">
+<pre>npm --prefix $METRON_HOME/web/expressjs/ install
+</pre></div></div></li>
+</ol></div></div>
+<div class="section">
+<h2><a name="Configuration"></a>Configuration</h2>
+<p>The Managment UI is configured in the <tt>$METRON_HOME/config/management_ui.yml</tt> file. Create this file and set the values to match your environment:</p>
+
+<div class="source">
+<div class="source">
+<pre>port: port the managment UI will run on
+
+rest:
+  host: REST application host
+  port: REST applciation port
+</pre></div></div></div>
+<div class="section">
+<h2><a name="Usage"></a>Usage</h2>
+<p>After configuration is complete, the Management UI can be managed as a service:</p>
+
+<div class="source">
+<div class="source">
+<pre>service metron-management-ui start
+</pre></div></div>
+<p>The application will be available at <a class="externalLink" href="http://host:4200">http://host:4200</a> assuming the port is set to <tt>4200</tt>. Logs can be found at <tt>/var/log/metron/metron-management-ui.log</tt>.</p></div>
+<div class="section">
+<h2><a name="Development"></a>Development</h2>
+<p>The Management UI can also be started in development mode. This allows changes to web assets to be seen interactively.</p>
+
+<ol style="list-style-type: decimal">
+  
+<li>
+<p>Install the application with dev dependencies:</p>
+  
+<div class="source">
+<div class="source">
+<pre>cd metron-interface/metron-config
+npm install
+</pre></div></div></li>
+  
+<li>
+<p>Start the application:</p>
+  
+<div class="source">
+<div class="source">
+<pre>./scripts/start_dev.sh
+</pre></div></div></li>
+</ol>
+<p>The application will be available at <a class="externalLink" href="http://localhost:4200/">http://localhost:4200/</a>. The REST application url defaults to <tt>http://localhost:8080</tt> but can be changed in the <tt>proxy.conf.json</tt> file.</p></div>
+<div class="section">
+<h2><a name="Testing"></a>Testing</h2>
+
+<ol style="list-style-type: decimal">
+  
+<li>
+<p>Install the application with dev dependencies:</p>
+  
+<div class="source">
+<div class="source">
+<pre>cd metron-interface/metron-config
+npm install
+</pre></div></div></li>
+  
+<li>
+<p>Unit tests can be run with:</p>
+  
+<div class="source">
+<div class="source">
+<pre>npm test
+</pre></div></div></li>
+</ol></div>
+<div class="section">
+<h2><a name="License"></a>License</h2>
+<p>This projects bundles Font Awesome which is available under the SIL Open Font License. See <a class="externalLink" href="http://fontawesome.io/license/">http://fontawesome.io/license/</a> for more details.</p></div>
                   </div>
             </div>
           </div>
