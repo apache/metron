@@ -362,7 +362,7 @@
         <service>STORM</service>
         <service>ZOOKEEPER</service>
         <service>HBASE</service>
-        <!--service>ZEPPELIN</service-->
+        <service>ZEPPELIN</service>
       </requiredServices>
 
       <configuration-dependencies>
