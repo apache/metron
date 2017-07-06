@@ -19,6 +19,8 @@ from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import File
+from resource_management.core.source import Template
+from resource_management.libraries.functions.format import format
 from resource_management.core.source import StaticFile
 from resource_management.libraries.functions import format as ambari_format
 from resource_management.libraries.script import Script
@@ -39,6 +41,13 @@ class Indexing(Script):
     def configure(self, env, upgrade_type=None, config_dir=None):
         from params import params
         env.set_params(params)
+
+        Logger.info("Running indexing configure")
+        File(format("{metron_config_path}/elasticsearch.properties"),
+             content=Template("elasticsearch.properties.j2"),
+             owner=params.metron_user,
+             group=params.metron_group
+             )
 
         commands = IndexingCommands(params)
         metron_service.load_global_config(params)

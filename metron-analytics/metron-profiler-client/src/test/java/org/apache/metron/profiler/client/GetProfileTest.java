@@ -22,10 +22,9 @@ package org.apache.metron.profiler.client;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.functions.resolver.SimpleFunctionResolver;
-import org.apache.metron.common.dsl.functions.resolver.SingletonFunctionResolver;
-import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
+import org.apache.metron.stellar.dsl.functions.resolver.SingletonFunctionResolver;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.client.stellar.FixedLookback;
@@ -34,8 +33,8 @@ import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
-import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
-import org.apache.metron.profiler.stellar.StellarExecutor;
+import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
+import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.test.mock.MockHTable;
 import org.junit.Assert;
 import org.junit.Before;
@@ -62,7 +61,7 @@ public class GetProfileTest {
   private static final int saltDivisor = 1000;
   private static final String tableName = "profiler";
   private static final String columnFamily = "P";
-  private StellarExecutor executor;
+  private StellarStatefulExecutor executor;
   private Map<String, Object> state;
   private ProfileWriter profileWriter;
   // different values of period and salt divisor, used to test config_overrides feature
@@ -119,7 +118,7 @@ public class GetProfileTest {
     }};
 
     // create the stellar execution environment
-    executor = new DefaultStellarExecutor(
+    executor = new DefaultStellarStatefulExecutor(
             new SimpleFunctionResolver()
                     .withClass(GetProfile.class)
                     .withClass(FixedLookback.class),
@@ -140,9 +139,9 @@ public class GetProfileTest {
    * original context values in the PROFILE_GET config_overrides argument gets all expected results.
    *
    * @return context2 - The profiler client configuration context created by this method.
-   *    The context2 values are also set in the configuration of the StellarExecutor
+   *    The context2 values are also set in the configuration of the StellarStatefulExecutor
    *    stored in the global variable 'executor'.  However, there is no API for querying the
-   *    context values from a StellarExecutor, so we output the context2 Context object itself,
+   *    context values from a StellarStatefulExecutor, so we output the context2 Context object itself,
    *    for validation purposes (so that its values can be validated as being significantly
    *    different from the setup() settings).
    */
@@ -165,7 +164,7 @@ public class GetProfileTest {
             .build();
 
     // create the stellar execution environment
-    executor = new DefaultStellarExecutor(
+    executor = new DefaultStellarStatefulExecutor(
             new SimpleFunctionResolver()
                     .withClass(GetProfile.class)
                     .withClass(FixedLookback.class),

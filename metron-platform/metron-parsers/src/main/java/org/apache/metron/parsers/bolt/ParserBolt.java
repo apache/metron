@@ -24,8 +24,8 @@ import org.apache.metron.common.bolt.ConfiguredParserBolt;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.FieldValidator;
 import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
@@ -59,7 +59,7 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   //default filter is noop, so pass everything through.
   private MessageFilter<JSONObject> filter;
   private WriterHandler writer;
-  private org.apache.metron.common.dsl.Context stellarContext;
+  private Context stellarContext;
   private transient MessageGetStrategy messageGetStrategy;
   public ParserBolt( String zookeeperUrl
                    , String sensorType
@@ -76,6 +76,10 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   public ParserBolt withMessageFilter(MessageFilter<JSONObject> filter) {
     this.filter = filter;
     return this;
+  }
+
+  public MessageParser<JSONObject> getParser() {
+    return parser;
   }
 
   @SuppressWarnings("unchecked")
@@ -213,14 +217,18 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
         collector.ack(tuple);
       }
     } catch (Throwable ex) {
-      MetronError error = new MetronError()
-              .withErrorType(Constants.ErrorType.PARSER_ERROR)
-              .withThrowable(ex)
-              .withSensorType(getSensorType())
-              .addRawMessage(originalMessage);
-      ErrorUtils.handleError(collector, error);
-      collector.ack(tuple);
+      handleError(originalMessage, tuple, ex, collector);
     }
+  }
+
+  protected void handleError(byte[] originalMessage, Tuple tuple, Throwable ex, OutputCollector collector) {
+    MetronError error = new MetronError()
+            .withErrorType(Constants.ErrorType.PARSER_ERROR)
+            .withThrowable(ex)
+            .withSensorType(getSensorType())
+            .addRawMessage(originalMessage);
+    ErrorUtils.handleError(collector, error);
+    collector.ack(tuple);
   }
 
   private List<FieldValidator> getFailedValidators(JSONObject input, List<FieldValidator> validators) {

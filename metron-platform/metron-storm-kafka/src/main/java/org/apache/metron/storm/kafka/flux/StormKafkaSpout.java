@@ -18,6 +18,9 @@
 
 package org.apache.metron.storm.kafka.flux;
 
+import java.util.Arrays;
+import java.util.Date;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.log4j.Logger;
 import org.apache.storm.kafka.spout.KafkaSpout;
@@ -32,6 +35,8 @@ import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
   private static final Logger LOG = Logger.getLogger(StormKafkaSpout.class);
   protected KafkaSpoutConfig<K,V> _spoutConfig;
+  protected AtomicBoolean isShutdown = new AtomicBoolean(false);
+
   public StormKafkaSpout(SimpleStormKafkaBuilder<K,V> builder) {
     super(builder.build());
     this._spoutConfig = builder.build();
@@ -46,12 +51,18 @@ public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
       //see https://issues.apache.org/jira/browse/STORM-2184
       LOG.warn("You can generally ignore these, as per https://issues.apache.org/jira/browse/STORM-2184 -- " + we.getMessage(), we);
     }
+    finally {
+      isShutdown.set(true);
+    }
   }
 
   @Override
   public void close() {
     try {
-      super.close();
+      if(!isShutdown.get()) {
+        super.close();
+        isShutdown.set(true);
+      }
     }
     catch(WakeupException we) {
       //see https://issues.apache.org/jira/browse/STORM-2184

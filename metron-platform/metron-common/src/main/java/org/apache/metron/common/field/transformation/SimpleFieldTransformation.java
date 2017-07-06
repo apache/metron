@@ -19,7 +19,7 @@
 package org.apache.metron.common.field.transformation;
 
 import com.google.common.collect.Iterables;
-import org.apache.metron.common.dsl.Context;
+import org.apache.metron.stellar.dsl.Context;
 
 import java.util.LinkedHashMap;
 import java.util.List;

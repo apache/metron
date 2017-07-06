@@ -26,6 +26,7 @@ public class ComponentRunner {
         LinkedHashMap<String, InMemoryComponent> components;
         String[] startupOrder;
         String[] shutdownOrder;
+        String[] resetOrder;
         long timeBetweenAttempts = 1000;
         int numRetries = 5;
         long maxTimeMS = 120000;
@@ -56,6 +57,10 @@ public class ComponentRunner {
             this.shutdownOrder = shutdownOrder;
             return this;
         }
+        public Builder withCustomResetOrder(String[] resetOrder) {
+            this.resetOrder = resetOrder;
+            return this;
+        }
         public Builder withMillisecondsBetweenAttempts(long timeBetweenAttempts) {
             this.timeBetweenAttempts = timeBetweenAttempts;
             return this;
@@ -75,7 +80,15 @@ public class ComponentRunner {
             if(startupOrder == null) {
                 startupOrder = toOrderedList(components);
             }
-            return new ComponentRunner(components, startupOrder, shutdownOrder, timeBetweenAttempts, numRetries, maxTimeMS);
+            if(resetOrder == null) {
+                // Reset in the order of shutdown, if no reset is defined. Otherwise, just order them.
+                if (shutdownOrder != null) {
+                    resetOrder = shutdownOrder;
+                } else {
+                    resetOrder = toOrderedList(components);
+                }
+            }
+            return new ComponentRunner(components, startupOrder, shutdownOrder, resetOrder, timeBetweenAttempts, numRetries, maxTimeMS);
         }
 
     }
@@ -83,12 +96,14 @@ public class ComponentRunner {
     LinkedHashMap<String, InMemoryComponent> components;
     String[] startupOrder;
     String[] shutdownOrder;
+    String[] resetOrder;
     long timeBetweenAttempts;
     int numRetries;
     long maxTimeMS;
     public ComponentRunner( LinkedHashMap<String, InMemoryComponent> components
                           , String[] startupOrder
                           , String[] shutdownOrder
+                          , String[] resetOrder
                           , long timeBetweenAttempts
                           , int numRetries
                           , long maxTimeMS
@@ -97,6 +112,7 @@ public class ComponentRunner {
         this.components = components;
         this.startupOrder = startupOrder;
         this.shutdownOrder = shutdownOrder;
+        this.resetOrder = resetOrder;
         this.timeBetweenAttempts = timeBetweenAttempts;
         this.numRetries = numRetries;
         this.maxTimeMS = maxTimeMS;
@@ -118,6 +134,11 @@ public class ComponentRunner {
     public void stop() {
         for(String componentName : shutdownOrder) {
             components.get(componentName).stop();
+        }
+    }
+    public void reset() {
+        for(String componentName : resetOrder) {
+            components.get(componentName).reset();
         }
     }
 
