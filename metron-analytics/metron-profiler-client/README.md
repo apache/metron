@@ -362,7 +362,7 @@ These instructions step through the process of using the Stellar Client API on a
 To validate that everything is working, login to the server hosting Metron.  We will use the Stellar Shell to replicate the execution environment of Stellar running in a Storm topology, like Metron's Parser or Enrichment topology.  Replace 'node1:2181' with the URL to a Zookeeper Broker.  
 
 ```
-[root@node1 0.3.1]# bin/stellar -z node1:2181
+[root@node1 0.4.1]# bin/stellar -z node1:2181
 Stellar, Go!
 Please note that functions are loading lazily in the background and will be unavailable until loaded fully.
 {es.clustername=metron, es.ip=node1, es.port=9300, es.date.format=yyyy.MM.dd.HH}
