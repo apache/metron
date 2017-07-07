@@ -15,10 +15,10 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-parser-fireeye-extension</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1</version>
     </parent>
     <artifactId>metron-parser-fireeye</artifactId>
-    <version>0.4.0</version>
+    <version>0.4.1</version>
     <name>metron-parser-fireeye</name>
     <packaging>jar</packaging>
     <properties>
@@ -29,7 +29,7 @@
         <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-common</artifactId>
-            <version>0.4.0</version>
+            <version>0.4.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

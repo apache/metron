@@ -15,13 +15,13 @@
 	<parent>
 		<groupId>org.apache.metron</groupId>
 		<artifactId>metron-extensions</artifactId>
-		<version>0.4.0</version>
+		<version>0.4.1</version>
 	</parent>
 	<groupId>org.apache.metron</groupId>
 	<artifactId>metron-parser-extensions</artifactId>
 	<packaging>pom</packaging>
 	<name>metron-parser-extensions</name>
-	<version>0.4.0</version>
+	<version>0.4.1</version>
 
 	<description>Parser Extensions for Metron</description>
 	<url>https://metron.incubator.apache.org/</url>

@@ -15,10 +15,10 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-parser-snort-extension</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1</version>
     </parent>
     <artifactId>metron-parser-snort</artifactId>
-    <version>0.4.0</version>
+    <version>0.4.1</version>
     <name>metron-parser-snort</name>
     <packaging>jar</packaging>
     <properties>

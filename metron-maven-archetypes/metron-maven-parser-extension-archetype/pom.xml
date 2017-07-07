@@ -18,7 +18,7 @@
 
   <groupId>org.apache.metron</groupId>
   <artifactId>metron-maven-parser-extension-archetype</artifactId>
-  <version>0.4.0</version>
+  <version>0.4.1</version>
   <packaging>maven-archetype</packaging>
 
   <name>metron-maven-parser-extension-archetype</name>

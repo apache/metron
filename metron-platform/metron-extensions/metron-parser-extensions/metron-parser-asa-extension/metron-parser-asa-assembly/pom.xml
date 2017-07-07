@@ -19,12 +19,12 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-parser-asa-extension</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1</version>
     </parent>
 
     <groupId>org.apache.metron</groupId>
     <artifactId>metron-parser-asa-assembly</artifactId>
-    <version>0.4.0</version>
+    <version>0.4.1</version>
     <packaging>pom</packaging>
     <name>metron-parser-asa-assembly</name>
 

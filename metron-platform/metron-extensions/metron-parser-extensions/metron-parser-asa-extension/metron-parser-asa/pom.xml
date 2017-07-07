@@ -18,10 +18,10 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-parser-asa-extension</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1</version>
     </parent>
     <artifactId>metron-parser-asa</artifactId>
-    <version>0.4.0</version>
+    <version>0.4.1</version>
     <name>metron-parser-asa</name>
     <packaging>jar</packaging>
     <properties>

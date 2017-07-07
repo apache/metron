@@ -15,13 +15,13 @@
 	<parent>
 		<groupId>org.apache.metron</groupId>
 		<artifactId>metron-parser-extensions</artifactId>
-		<version>0.4.0</version>
+		<version>0.4.1</version>
 	</parent>
 	<groupId>org.apache.metron</groupId>
 	<artifactId>metron-parser-bundle-tests</artifactId>
 	<packaging>jar</packaging>
 	<name>metron-parser-bundle-tests</name>
-	<version>0.4.0</version>
+	<version>0.4.1</version>
 	<description>Parser Extension bundle tests</description>
 	<dependencies>
 		<dependency>
@@ -37,7 +37,7 @@
 		<dependency>
 			<groupId>org.apache.metron</groupId>
 			<artifactId>bundles-lib</artifactId>
-			<version>0.4.0</version>
+			<version>0.4.1</version>
 		</dependency>
 		<!-- testing -->
 		<dependency>

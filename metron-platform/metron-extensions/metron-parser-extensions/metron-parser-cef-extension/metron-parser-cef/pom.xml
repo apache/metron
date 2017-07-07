@@ -15,10 +15,10 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-parser-cef-extension</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1</version>
     </parent>
     <artifactId>metron-parser-cef</artifactId>
-    <version>0.4.0</version>
+    <version>0.4.1</version>
     <name>metron-parser-cef</name>
     <packaging>jar</packaging>
     <properties>

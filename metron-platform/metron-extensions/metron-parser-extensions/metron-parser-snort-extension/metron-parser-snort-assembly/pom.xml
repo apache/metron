@@ -18,12 +18,12 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-parser-snort-extension</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1</version>
     </parent>
 
     <groupId>org.apache.metron</groupId>
     <artifactId>metron-parser-snort-assembly</artifactId>
-    <version>0.4.0</version>
+    <version>0.4.1</version>
     <packaging>pom</packaging>
     <name>metron-parser-snort-assembly</name>
 
