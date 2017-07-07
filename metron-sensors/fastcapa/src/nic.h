@@ -16,30 +16,35 @@
  * limitations under the License.
  */
 
-#ifndef METRON_ARGS_H
-#define METRON_ARGS_H
+#ifndef METRON_NIC_H
+#define METRON_NIC_H
 
+#include <signal.h>
 #include <unistd.h>
-#include <string.h>
-#include <getopt.h>
-#include <sys/stat.h>
-#include <rte_memory.h>
 #include <rte_ethdev.h>
+#include <rte_mempool.h>
+#include <rte_mbuf.h>
+#include <rte_errno.h>
 #include "types.h"
 
-#define DEFAULT_RX_BURST_SIZE 32
-#define DEFAULT_TX_BURST_SIZE 256
-#define DEFAULT_PORT_MASK 0x01
-#define DEFAULT_KAFKA_TOPIC pcap
-#define DEFAULT_NB_RX_QUEUE 1
-#define DEFAULT_NB_RX_DESC 1024
-#define DEFAULT_TX_RING_SIZE 2048
-#define DEFAULT_KAFKA_STATS_PATH 0
-#define MAX_RX_BURST_SIZE 1024
+#define MBUF_CACHE_SIZE 250
+#define TX_QUEUE_SIZE 64
+#define NUM_MBUFS ((64 * 1024) - 1)
 
-/**
- * Parse the command line arguments passed to the application.
+/*
+ * Preparation for receiving and processing packets.
  */
-int parse_args(int argc, char** argv, app_params* app);
+int init_receive(
+    const uint8_t enabled_port_mask,
+    const uint16_t nb_rx_queue,
+    const uint16_t nb_rx_desc);
+
+/*
+ * Preparation for transmitting packets.
+ */
+int init_transmit(
+    struct rte_ring **tx_rings,
+    const unsigned int count,
+    const unsigned int size);
 
 #endif

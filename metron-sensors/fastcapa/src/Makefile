@@ -29,9 +29,9 @@ include $(RTE_SDK)/mk/rte.vars.mk
 APP = fastcapa
 
 # all source are stored in SRCS-y
-SRCS-y := main.c args.c kafka.c
+SRCS-y := main.c args.c kafka.c nic.c worker.c
 
-KAFKALIB = -L/usr/local/lib -lrdkafka 
+KAFKALIB = -L/usr/local/lib -lrdkafka
 KAFKAINC = -I/usr/local/include/librdkafka/
 
 GLIB     = $(shell pkg-config --libs glib-2.0) -lgthread-2.0
@@ -47,6 +47,6 @@ CFLAGS_main.o += -Wno-return-type
 endif
 
 EXTRA_CFLAGS += -O3 -Wall
-#EXTRA_CFLAGS += -g -Wall
+#EXTRA_CFLAGS += -g -Wall -DDEBUG
 
 include $(RTE_SDK)/mk/rte.extapp.mk

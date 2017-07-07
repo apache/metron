@@ -18,28 +18,25 @@
 
 #include "args.h"
 
-typedef int bool;
-#define true 1
-#define false 0
-#define valid(s) (s == NULL ? false : strlen(s) > 1)
-
 /*
  * Print usage information to the user.
  */
 static void print_usage(void)
 {
     printf("fastcapa [EAL options] -- [APP options]\n"
-           "  -p PORT_MASK     bitmask of ports to bind                     [%s]\n"
-           "  -b BURST_SIZE    max packets to retrieve at a time            [%d]\n"
-           "  -r NB_RX_DESC    num of descriptors for receive ring          [%d]\n"
-           "  -x TX_RING_SIZE  size of tx rings (must be a power of 2)      [%d]\n"
-           "  -q NB_RX_QUEUE   num of receive queues for each device        [%d]\n"
-           "  -t KAFKA_TOPIC   name of the kafka topic                      [%s]\n"
-           "  -c KAFKA_CONF    file containing configs for kafka client         \n"
-           "  -s KAFKA_STATS   append kafka client stats to a file              \n"
-           "  -h               print this help message                          \n",
-        STR(DEFAULT_PORT_MASK), 
-        DEFAULT_BURST_SIZE, 
+           "  -p PORT_MASK        bitmask of ports to bind                     [%s]\n"
+           "  -b RX_BURST_SIZE    burst size of receive worker                 [%d]\n"
+           "  -w TX_BURST_SIZE    burst size of transmit worker                [%d]\n"
+           "  -d NB_RX_DESC       num of descriptors for receive ring          [%d]\n"
+           "  -x TX_RING_SIZE     size of tx rings (must be a power of 2)      [%d]\n"
+           "  -q NB_RX_QUEUE      num of receive queues for each device        [%d]\n"
+           "  -t KAFKA_TOPIC      name of the kafka topic                      [%s]\n"
+           "  -c KAFKA_CONF       file containing configs for kafka client         \n"
+           "  -s KAFKA_STATS      append kafka client stats to a file              \n"
+           "  -h                  print this help message                          \n",
+        STR(DEFAULT_PORT_MASK),
+        DEFAULT_RX_BURST_SIZE,
+        DEFAULT_TX_BURST_SIZE,
         DEFAULT_NB_RX_DESC,
         DEFAULT_TX_RING_SIZE,
         DEFAULT_NB_RX_QUEUE,
@@ -77,25 +74,32 @@ static bool file_exists(const char* filepath)
     return (stat(filepath, &buf) == 0);
 }
 
-/**
- * Parse the command line arguments passed to the application.
+/*
+ * Parse the command line arguments passed to the application; the arguments
+ * which no not go directly to DPDK's EAL.
  */
-int parse_args(int argc, char** argv)
+static int parse_app_args(int argc, char** argv, app_params* p)
 {
     int opt;
     char** argvopt;
     int option_index;
-    int nb_workers;
+    unsigned int nb_workers;
     static struct option lgopts[] = {
         { NULL, 0, 0, 0 }
     };
 
-    // initialize args
-    memset(&app, 0, sizeof(struct app_params));
+    // set default args
+    p->enabled_port_mask = parse_portmask(STR(DEFAULT_PORT_MASK));
+    p->kafka_topic = STR(DEFAULT_KAFKA_TOPIC);
+    p->rx_burst_size = DEFAULT_RX_BURST_SIZE;
+    p->tx_burst_size = DEFAULT_TX_BURST_SIZE;
+    p->nb_rx_desc = DEFAULT_NB_RX_DESC;
+    p->nb_rx_queue = DEFAULT_NB_RX_QUEUE;
+    p->tx_ring_size = DEFAULT_TX_RING_SIZE;
 
     // parse arguments to this application
     argvopt = argv;
-    while ((opt = getopt_long(argc, argvopt, "hp:b:t:c:r:q:s:x:", lgopts, &option_index)) != EOF) {
+    while ((opt = getopt_long(argc, argvopt, "b:c:d:hp:q:s:t:w:x:", lgopts, &option_index)) != EOF) {
         switch (opt) {
 
             // help
@@ -103,24 +107,30 @@ int parse_args(int argc, char** argv)
                 print_usage();
                 return -1;
 
-            // burst size
+            // rx burst size
             case 'b':
-                app.burst_size = atoi(optarg);
-                printf("[ -b BURST_SIZE ] defined as %d \n", app.burst_size);
+                p->rx_burst_size = atoi(optarg);
+                if(p->rx_burst_size < 1 || p->rx_burst_size > MAX_RX_BURST_SIZE) {
+                    fprintf(stderr, "Invalid burst size; burst=%u must be in [1, %u]. \n", p->rx_burst_size, MAX_RX_BURST_SIZE);
+                    print_usage();
+                    return -1;
+                }
+                break;
 
-                if(app.burst_size < 1 || app.burst_size > MAX_BURST_SIZE) {
-                    fprintf(stderr, "Invalid burst size; burst=%u must be in [1, %u]. \n", app.burst_size, MAX_BURST_SIZE);
+            // tx burst size
+            case 'w':
+                p->tx_burst_size = atoi(optarg);
+                if(p->tx_burst_size < 1) {
+                    fprintf(stderr, "Invalid burst size; burst=%u must be > 0. \n", p->tx_burst_size);
                     print_usage();
                     return -1;
                 }
                 break;
 
             // number of receive descriptors
-            case 'r':
-                app.nb_rx_desc = atoi(optarg);
-                printf("[ -r NB_RX_DESC ] defined as %d \n", app.nb_rx_desc);
-
-                if (app.nb_rx_desc < 1) {
+            case 'd':
+                p->nb_rx_desc = atoi(optarg);
+                if (p->nb_rx_desc < 1) {
                     fprintf(stderr, "Invalid num of receive descriptors: '%s' \n", optarg);
                     print_usage();
                     return -1;
@@ -129,23 +139,14 @@ int parse_args(int argc, char** argv)
 
             // size of each transmit ring
             case 'x':
-                app.tx_ring_size = atoi(optarg);
-                printf("[ -x TX_RING_SIZE ] defined as %d \n", app.tx_ring_size);
+                p->tx_ring_size = atoi(optarg);
 
-                // must be a power of 2 and not 0
-                if (app.tx_ring_size == 0 || (app.tx_ring_size & (app.tx_ring_size - 1)) != 0) {
-                    fprintf(stderr, "Invalid tx ring size (must be power of 2): '%s' \n", optarg);
-                    print_usage();
-                    return -1;
-                }
                 break;
 
             // number of receive queues for each device
             case 'q':
-                app.nb_rx_queue = atoi(optarg);
-                printf("[ -q NB_RX_QUEUE ] defined as %d \n", app.nb_rx_queue);
-
-                if (app.nb_rx_queue < 1) {
+                p->nb_rx_queue = atoi(optarg);
+                if (p->nb_rx_queue < 1) {
                     fprintf(stderr, "Invalid num of receive queues: '%s' \n", optarg);
                     print_usage();
                     return -1;
@@ -154,10 +155,8 @@ int parse_args(int argc, char** argv)
 
           // port mask
           case 'p':
-              app.enabled_port_mask = parse_portmask(optarg);
-              printf("[ -p PORT_MASK ] defined as %d \n", app.enabled_port_mask);
-
-              if (app.enabled_port_mask == 0) {
+              p->enabled_port_mask = parse_portmask(optarg);
+              if (p->enabled_port_mask == 0) {
                   fprintf(stderr, "Invalid portmask: '%s'\n", optarg);
                   print_usage();
                   return -1;
@@ -166,10 +165,8 @@ int parse_args(int argc, char** argv)
 
           // kafka topic
           case 't':
-              app.kafka_topic = strdup(optarg);
-              printf("[ -t KAFKA_TOPIC ] defined as %s \n", app.kafka_topic);
-
-              if (!valid(app.kafka_topic)) {
+              p->kafka_topic = strdup(optarg);
+              if (!valid(p->kafka_topic)) {
                   printf("Invalid kafka topic: '%s'\n", optarg);
                   print_usage();
                   return -1;
@@ -178,10 +175,8 @@ int parse_args(int argc, char** argv)
 
           // kafka config path
           case 'c':
-              app.kafka_config_path = strdup(optarg);
-              printf("[ -c KAFKA_CONFIG ] defined as %s \n", app.kafka_config_path);
-
-              if (!valid(app.kafka_config_path) || !file_exists(app.kafka_config_path)) {
+              p->kafka_config_path = strdup(optarg);
+              if (!valid(p->kafka_config_path) || !file_exists(p->kafka_config_path)) {
                   fprintf(stderr, "Invalid kafka config: '%s'\n", optarg);
                   print_usage();
                   return -1;
@@ -190,50 +185,13 @@ int parse_args(int argc, char** argv)
 
           // kafka stats path
           case 's':
-              app.kafka_stats_path = strdup(optarg);
-              printf("[ -s KAFKA_STATS ] defined as %s \n", app.kafka_stats_path);
+              p->kafka_stats_path = strdup(optarg);
               break;
 
           default:
               print_usage();
               return -1;
           }
-    }
-
-    // default PORT_MASK
-    if (app.enabled_port_mask == 0) {
-        printf("[ -p PORT_MASK ] undefined; defaulting to %s \n", STR(DEFAULT_PORT_MASK));
-        app.enabled_port_mask = DEFAULT_PORT_MASK;
-    }
-
-    // default KAFKA_TOPIC
-    if (!valid(app.kafka_topic)) {
-        printf("[ -t KAFKA_TOPIC ] undefined; defaulting to %s \n", STR(DEFAULT_KAFKA_TOPIC));
-        app.kafka_topic = STR(DEFAULT_KAFKA_TOPIC);
-    }
-
-    // default BURST_SIZE 
-    if (app.burst_size == 0) {
-        printf("[ -b BURST_SIZE ] undefined; defaulting to %d \n", DEFAULT_BURST_SIZE);
-        app.burst_size = DEFAULT_BURST_SIZE;
-    }
-
-    // default NB_RX_DESC
-    if (app.nb_rx_desc == 0) {
-        printf("[ -r NB_RX_DESC ] undefined; defaulting to %d \n", DEFAULT_NB_RX_DESC);
-        app.nb_rx_desc = DEFAULT_NB_RX_DESC;
-    }
-
-    // default NB_RX_QUEUE
-    if (app.nb_rx_queue == 0) {
-        printf("[ -q NB_RX_QUEUE ] undefined; defaulting to %d \n", DEFAULT_NB_RX_QUEUE);
-        app.nb_rx_queue = DEFAULT_NB_RX_QUEUE;
-    }
-
-    // default TX_RING_SIZE
-    if (app.tx_ring_size == 0) {
-        printf("[ -x TX_RING_SIZE ] undefined; defaulting to %u \n", DEFAULT_TX_RING_SIZE);
-        app.tx_ring_size = DEFAULT_TX_RING_SIZE;
     }
 
     // check number of ethernet devices
@@ -243,19 +201,63 @@ int parse_args(int argc, char** argv)
 
     // check number of workers
     nb_workers = rte_lcore_count() - 1;
-    if (nb_workers < 1) {
-        rte_exit(EXIT_FAILURE, "Minimum 2 logical cores required. \n");
-    }
 
     // need at least 1 worker for each receive queue
-    if(nb_workers < app.nb_rx_queue) {
-        rte_exit(EXIT_FAILURE, "Minimum 1 worker per receive queue; workers=%u rx_queues=%u. \n", 
-            nb_workers, app.nb_rx_queue);
+    if(nb_workers < p->nb_rx_queue) {
+        rte_exit(EXIT_FAILURE, "Minimum 1 worker per receive queue; workers=%u rx_queues=%u. \n",
+            nb_workers, p->nb_rx_queue);
     }
+
+    p->nb_rx_workers = p->nb_rx_queue;
+    p->nb_tx_workers = nb_workers - p->nb_rx_workers;
+
+    printf("[ -p PORT_MASK ] defined as %d \n", p->enabled_port_mask);
+    printf("[ -b RX_BURST_SIZE ] defined as %d \n", p->rx_burst_size);
+    printf("[ -w TX_BURST_SIZE ] defined as %d \n", p->tx_burst_size);
+    printf("[ -d NB_RX_DESC ] defined as %d \n", p->nb_rx_desc);
+    printf("[ -x TX_RING_SIZE ] defined as %d \n", p->tx_ring_size);
+    printf("[ -q NB_RX_QUEUE ] defined as %d \n", p->nb_rx_queue);
+    printf("[ -t KAFKA_TOPIC ] defined as %s \n", p->kafka_topic);
+    printf("[ -c KAFKA_CONFIG ] defined as %s \n", p->kafka_config_path);
+    printf("[ -s KAFKA_STATS ] defined as %s \n", p->kafka_stats_path);
+    printf("[ NUM_RX_WORKERS ] defined as %d \n", p->nb_rx_workers);
+    printf("[ NUM_TX_WORKERS ] defined as %d \n", p->nb_tx_workers);
 
     // reset getopt lib
     optind = 0;
-
     return 0;
 }
 
+/*
+ * Parse the command line arguments passed to the application.
+ */
+int parse_args(int argc, char** argv, app_params* p)
+{
+  // initialize the environment
+  int ret = rte_eal_init(argc, argv);
+  if (ret < 0) {
+      rte_exit(EXIT_FAILURE, "Failed to initialize EAL: %i\n", ret);
+  }
+
+  // advance past the environmental settings
+  argc -= ret;
+  argv += ret;
+
+  // parse arguments to the application
+  ret = parse_app_args(argc, argv, p);
+  if (ret < 0) {
+      rte_exit(EXIT_FAILURE, "\n");
+  }
+
+  p->nb_ports = rte_eth_dev_count();
+  p->nb_rx_workers = p->nb_rx_queue;
+  p->nb_tx_workers = (rte_lcore_count() - 1) - p->nb_rx_workers;
+
+  // validate the number of workers
+  if(p->nb_tx_workers < p->nb_rx_workers) {
+      rte_exit(EXIT_FAILURE, "Additional lcore(s) required; found=%u, required=%u \n",
+          rte_lcore_count(), (p->nb_rx_queue*2) + 1);
+  }
+
+  return 0;
+}
