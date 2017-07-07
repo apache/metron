@@ -35,7 +35,8 @@ fastcapa_bin: fastcapa
 fastcapa_portmask: 0x01
 fastcapa_kafka_config: /etc/fastcapa.conf
 fastcapa_topic: pcap
-fastcapa_burst_size: 32
+fastcapa_rx_burst_size: 32
+fastcapa_tx_burst_size: 256
 fastcapa_nb_rx_desc: 1024
 fastcapa_nb_rx_queue: 1
 fastcapa_tx_ring_size: 2048
