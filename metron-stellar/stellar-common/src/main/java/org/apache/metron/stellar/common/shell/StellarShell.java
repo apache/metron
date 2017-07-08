@@ -127,8 +127,13 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
       System.exit(0);
     }
 
-    StellarShellOptionsValidator.validateOptions(commandLine);
-
+    try {
+      StellarShellOptionsValidator.validateOptions(commandLine);
+    }catch(IllegalArgumentException e){
+      System.out.println(e.getMessage());
+      System.exit(1);
+    }
+    
     console = createConsole(commandLine);
     executor = createExecutor(commandLine, console, getStellarProperties(commandLine));
     loadVariables(commandLine, executor);
