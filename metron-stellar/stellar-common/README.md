@@ -116,6 +116,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `DAY_OF_MONTH`](#day_of_month)                                                                   |
 | [ `DAY_OF_WEEK`](#day_of_week)                                                                     |
 | [ `DAY_OF_YEAR`](#day_of_year)                                                                     |
+| [ `DECODE`](#decode)                                                                               |
 | [ `DOMAIN_REMOVE_SUBDOMAINS`](#domain_remove_subdomains)                                           |
 | [ `DOMAIN_REMOVE_TLD`](#domain_remove_tld)                                                         |
 | [ `DOMAIN_TO_TLD`](#domain_to_tld)                                                                 |
@@ -124,7 +125,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `ENRICHMENT_GET`](#enrichment_get)                                                               |
 | [ `FILL_LEFT`](#fill_left)                                                                         |
 | [ `FILL_RIGHT`](#fill_right)                                                                       |
-| [ `FILTER`](#filter)                                                                         |
+| [ `FILTER`](#filter)                                                                               |
 | [ `FORMAT`](#format)                                                                               |
 | [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality)                   |
 | [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
@@ -136,6 +137,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `GET_LAST`](#get_last)                                                                           |
 | [ `IN_SUBNET`](#in_subnet)                                                                         |
 | [ `IS_DATE`](#is_date)                                                                             |
+| [ `IS_ENCODING`](#is_encoding)                                                                     |
 | [ `IS_DOMAIN`](#is_domain)                                                                         |
 | [ `IS_EMAIL`](#is_email)                                                                           |
 | [ `IS_EMPTY`](#is_empty)                                                                           |
@@ -148,10 +150,11 @@ In the core language functions, we support basic functional programming primitiv
 | [ `KAFKA_PUT`](#kafka_put)                                                                         |
 | [ `KAFKA_TAIL`](#kafka_tail)                                                                       |
 | [ `LENGTH`](#length)                                                                               |
-| [ `LIST_ADD`](#list_add)                                                                               |
+| [ `LIST_ADD`](#list_add)                                                                           |
+| [ `LIST_SUPPORTED_ENCODINGS`](#list_supported_encodings)                                           |
 | [ `MAAS_GET_ENDPOINT`](#maas_get_endpoint)                                                         |
 | [ `MAAS_MODEL_APPLY`](#maas_model_apply)                                                           |
-| [ `MAP`](#map)                                                                       |
+| [ `MAP`](#map)                                                                                     |
 | [ `MAP_EXISTS`](#map_exists)                                                                       |
 | [ `MONTH`](#month)                                                                                 |
 | [ `PREPEND_IF_MISSING`](#prepend_if_missing)                                                       |
@@ -159,7 +162,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `PROFILE_FIXED`](#profile_fixed)                                                                 |
 | [ `PROFILE_WINDOW`](#profile_window)                                                               |
 | [ `PROTOCOL_TO_NAME`](#protocol_to_name)                                                           |
-| [ `REDUCE`](#reduce)                                                                   |
+| [ `REDUCE`](#reduce)                                                                               |
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
 | [ `SPLIT`](#split)                                                                                 |
 | [ `STARTS_WITH`](#starts_with)                                                                     |
@@ -274,6 +277,19 @@ In the core language functions, we support basic functional programming primitiv
     * dateTime - The datetime as a long representing the milliseconds since unix epoch
   * Returns: The day number within the year.
 
+### `DECODE`
+  * Description: Decodes the passed string with the provided encoding, which
+                 must be one of the encodings returned from [ `LIST_SUPPORTED_ENCODINGS`](#list_supported_encodings)   
+  * Input:
+    * string - the string to test
+    * encoding - the encoding to use, must be one of encodings returned from [ `LIST_SUPPORTED_ENCODINGS`](#list_supported_encodings) 
+    * verify - (optional), true or false to determine if string should be verified as being
+                encoded with the passed encoding
+  * Returns:  
+    * The decoded string on success
+    * The original string the string cannot be decoded
+    * null on usage error
+  
 ### `DOMAIN_REMOVE_SUBDOMAINS`
   * Description: Removes the subdomains from a domain.
   * Input:
@@ -402,8 +418,15 @@ In the core language functions, we support basic functional programming primitiv
 ### `IS_EMPTY`
   * Description: Returns true if string or collection is empty or null and false if otherwise.
   * Input:
-    * input - Object of string or collection type (for example, list)
+    * Object of string or collection type (for example, list)
   * Returns: True if the string or collection is empty or null and false if otherwise.
+
+### `IS_ENCODING`
+  * Description: Returns true if the passed string is encoded in one of the supported encodings and false if otherwise.
+  * Input:
+      * string - The string to test
+        * encoding - The name of the encoding as string.  See [ `LIST_SUPPORTED_ENCODINGS`](#list_supported_encodings).
+  * Returns: True if the passed string is encoded in one of the supported encodings and false if otherwise.
 
 ### `IS_INTEGER`
   * Description: Determines whether or not an object is an integer.
@@ -474,6 +497,10 @@ In the core language functions, we support basic functional programming primitiv
     * element - Element to add to list
   * Returns: Resulting list with the item added at the end.
   
+### `LIST_SUPPORTED_ENCODINGS`
+  * Description: Returns a list of the encodings that are currently supported as a comma separated string.
+  * Returns: Comma Separated string with the currently supported encodings
+        
 ### `MAAS_GET_ENDPOINT`
   * Description: Inspects ZooKeeper and returns a map containing the name, version and url for the model referred to by the input parameters.
   * Input:
@@ -887,13 +914,13 @@ This command lists all functions resolvable in the Stellar environment.  Stellar
 ```
 [Stellar]>>> %functions
 BLOOM_ADD, BLOOM_EXISTS, BLOOM_INIT, BLOOM_MERGE, DAY_OF_MONTH, DAY_OF_WEEK, DAY_OF_YEAR, 
-DOMAIN_REMOVE_SUBDOMAINS, DOMAIN_REMOVE_TLD, DOMAIN_TO_TLD, ENDS_WITH, GET, GET_FIRST, 
-GET_LAST, IN_SUBNET, IS_DATE, IS_DOMAIN, IS_EMAIL, IS_EMPTY, IS_INTEGER, IS_IP, IS_URL, 
+DECODE, DOMAIN_REMOVE_SUBDOMAINS, DOMAIN_REMOVE_TLD, DOMAIN_TO_TLD, ENDS_WITH, GET, GET_FIRST, 
+GET_LAST, IN_SUBNET, IS_DATE, IS_DOMAIN, IS_EMAIL, IS_EMPTY, IS_ENCODING, IS_INTEGER, IS_IP, IS_URL, 
 JOIN, LENGTH, MAAS_GET_ENDPOINT, MAAS_MODEL_APPLY, MAP_EXISTS, MAP_GET, MONTH, PROTOCOL_TO_NAME, 
 REGEXP_MATCH, SPLIT, STARTS_WITH, STATS_ADD, STATS_COUNT, STATS_GEOMETRIC_MEAN, STATS_INIT, 
 STATS_KURTOSIS, STATS_MAX, STATS_MEAN, STATS_MERGE, STATS_MIN, STATS_PERCENTILE, 
 STATS_POPULATION_VARIANCE, STATS_QUADRATIC_MEAN, STATS_SD, STATS_SKEWNESS, STATS_SUM, 
-STATS_SUM_LOGS, STATS_SUM_SQUARES, STATS_VARIANCE, TO_DOUBLE, TO_EPOCH_TIMESTAMP, TO_FLOAT, 
+STATS_SUM_LOGS, STATS_SUM_SQUARES, STATS_VARIANCE, SUPPORTED_ENCODINGS_LIST, TO_DOUBLE, TO_EPOCH_TIMESTAMP, TO_FLOAT, 
 TO_INTEGER, TO_LOWER, TO_STRING, TO_UPPER, TRIM, URL_TO_HOST, URL_TO_PATH, URL_TO_PORT, 
 URL_TO_PROTOCOL, WEEK_OF_MONTH, WEEK_OF_YEAR, YEAR
 [Stellar]>>> 
