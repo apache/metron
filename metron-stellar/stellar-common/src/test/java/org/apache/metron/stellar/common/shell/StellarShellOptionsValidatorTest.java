@@ -17,6 +17,7 @@
  *  limitations under the License.
  *
  */
+
 package org.apache.metron.stellar.common.shell;
 
 import org.apache.commons.cli.CommandLine;
@@ -34,38 +35,41 @@ public class StellarShellOptionsValidatorTest {
 
   @Test
   public void validateOptions() throws Exception {
-    String[] validZHostArg = new String[]{"-z","host1:8888"};
-    String[] validZIPArg = new String[]{"-z","10.10.10.3:9999"};
-    String[] invalidZNoPortArg = new String[]{"-z","host1"};
-    String[] invalidZIPNoPortArg = new String[]{"-z","10.10.10.3"};
-    String[] invalidZNameArg = new String[]{"-z","!!!@!!@!:8882"};
-    String[] invalidZIPArg = new String[]{"-z","11111.22222.10.3:3332"};
-    String[] invalidZMissingNameArg = new String[]{"-z",":8882"};
+    String[] validZHostArg = new String[]{"-z", "host1:8888"};
+    String[] validZIPArg = new String[]{"-z", "10.10.10.3:9999"};
+    String[] invalidZNoPortArg = new String[]{"-z", "host1"};
+    String[] invalidZIPNoPortArg = new String[]{"-z", "10.10.10.3"};
+    String[] invalidZNameArg = new String[]{"-z", "!!!@!!@!:8882"};
+    String[] invalidZIPArg = new String[]{"-z", "11111.22222.10.3:3332"};
+    String[] invalidZMissingNameArg = new String[]{"-z", ":8882"};
+    String[] invalidZZeroPortArg = new String[]{"-z", "host1:0"};
+    String[] invalidZHugePortArg = new String[]{"-z", "host1:75565"};
+
 
     String existingFileName = "./target/existsFile";
     String nonExistentFile = "./target/doesNotExist";
 
-    String[] validVFileArg = new String[] {"-v",existingFileName};
-    String[] validIrcFileArg = new String[] {"-irc",existingFileName};
-    String[] validPFileArg = new String[] {"-p",existingFileName};
-    String[] invalidVFileArg = new String[] {"-v",nonExistentFile};
-    String[] invalidIrcFileArg = new String[] {"-irc",nonExistentFile};
-    String[] invalidPFileArg = new String[] {"-p",nonExistentFile};
+    String[] validVFileArg = new String[]{"-v", existingFileName};
+    String[] validIrcFileArg = new String[]{"-irc", existingFileName};
+    String[] validPFileArg = new String[]{"-p", existingFileName};
+    String[] invalidVFileArg = new String[]{"-v", nonExistentFile};
+    String[] invalidIrcFileArg = new String[]{"-irc", nonExistentFile};
+    String[] invalidPFileArg = new String[]{"-p", nonExistentFile};
 
     File existingFile = new File(existingFileName);
-    if(!existingFile.exists()){
+    if (!existingFile.exists()) {
       existingFile.createNewFile();
     }
     Options options = new Options();
     options.addOption("z", "zookeeper", true, "Zookeeper URL");
     options.addOption("v", "variables", true, "File containing a JSON Map of variables");
-    options.addOption("irc", "inputrc", true, "File containing the inputrc if not the default ~/.inputrc");
+    options.addOption("irc", "inputrc", true,
+        "File containing the inputrc if not the default ~/.inputrc");
     options.addOption("na", "no_ansi", false, "Make the input prompt not use ANSI colors.");
     options.addOption("h", "help", false, "Print help");
     options.addOption("p", "properties", true, "File containing Stellar properties");
 
     CommandLineParser parser = new PosixParser();
-
 
     // these should work
     CommandLine commandLine = parser.parse(options, validZHostArg);
@@ -87,82 +91,100 @@ public class StellarShellOptionsValidatorTest {
 
     boolean caught = false;
 
-    try{
-      commandLine = parser.parse(options,invalidZNoPortArg);
+    try {
+      commandLine = parser.parse(options, invalidZNoPortArg);
       StellarShellOptionsValidator.validateOptions(commandLine);
-    }catch(IllegalArgumentException e){
+    } catch (IllegalArgumentException e) {
       caught = true;
     }
     Assert.assertTrue("Did not catch failure for not providing port with host name ", caught);
     caught = false;
 
-    try{
-      commandLine = parser.parse(options,invalidZIPNoPortArg);
+    try {
+      commandLine = parser.parse(options, invalidZIPNoPortArg);
       StellarShellOptionsValidator.validateOptions(commandLine);
-    }catch(IllegalArgumentException e){
+    } catch (IllegalArgumentException e) {
       caught = true;
     }
     Assert.assertTrue("Did not catch failure for not providing port with ip address ", caught);
     caught = false;
 
-    try{
-      commandLine = parser.parse(options,invalidZNameArg);
+    try {
+      commandLine = parser.parse(options, invalidZNameArg);
       StellarShellOptionsValidator.validateOptions(commandLine);
-    }catch(IllegalArgumentException e){
+    } catch (IllegalArgumentException e) {
       caught = true;
     }
     Assert.assertTrue("Did not catch failure for providing invalid host name ", caught);
     caught = false;
 
-    try{
-      commandLine = parser.parse(options,invalidZIPArg);
+    try {
+      commandLine = parser.parse(options, invalidZIPArg);
       StellarShellOptionsValidator.validateOptions(commandLine);
-    }catch(IllegalArgumentException e){
+    } catch (IllegalArgumentException e) {
       caught = true;
     }
     Assert.assertTrue("Did not catch failure for providing invalid ip address ", caught);
     caught = false;
 
-    try{
-      commandLine = parser.parse(options,invalidZMissingNameArg);
+    try {
+      commandLine = parser.parse(options, invalidZMissingNameArg);
       StellarShellOptionsValidator.validateOptions(commandLine);
-    }catch(IllegalArgumentException e){
+    } catch (IllegalArgumentException e) {
       caught = true;
     }
     Assert.assertTrue("Did not catch failure for only providing port ", caught);
     caught = false;
 
-    try{
-      commandLine = parser.parse(options,invalidVFileArg);
+    try {
+      commandLine = parser.parse(options, invalidZZeroPortArg);
       StellarShellOptionsValidator.validateOptions(commandLine);
-    }catch(IllegalArgumentException e){
+    } catch (IllegalArgumentException e) {
+      caught = true;
+    }
+    Assert.assertTrue("Did not catch failure for 0 port ", caught);
+    caught = false;
+
+    try {
+      commandLine = parser.parse(options, invalidZHugePortArg);
+      StellarShellOptionsValidator.validateOptions(commandLine);
+    } catch (IllegalArgumentException e) {
+      caught = true;
+    }
+    Assert.assertTrue("Did not catch failure for port out of range ", caught);
+    caught = false;
+
+    try {
+      commandLine = parser.parse(options, invalidVFileArg);
+      StellarShellOptionsValidator.validateOptions(commandLine);
+    } catch (IllegalArgumentException e) {
       caught = true;
     }
     Assert.assertTrue("Did not catch failure for passing non-existant file to -v ", caught);
     caught = false;
 
-    try{
-      commandLine = parser.parse(options,invalidVFileArg);
+    try {
+      commandLine = parser.parse(options, invalidVFileArg);
       StellarShellOptionsValidator.validateOptions(commandLine);
-    }catch(IllegalArgumentException e){
+    } catch (IllegalArgumentException e) {
       caught = true;
     }
     Assert.assertTrue("Did not catch failure for passing non-existant file to -v ", caught);
     caught = false;
 
-    try{
-      commandLine = parser.parse(options,invalidIrcFileArg);
+    try {
+      commandLine = parser.parse(options, invalidIrcFileArg);
       StellarShellOptionsValidator.validateOptions(commandLine);
-    }catch(IllegalArgumentException e){
+    } catch (IllegalArgumentException e) {
       caught = true;
     }
     Assert.assertTrue("Did not catch failure for passing non-existant file to -irc ", caught);
     caught = false;
 
-    try{
-      commandLine = parser.parse(options,invalidPFileArg);
+    try {
+      commandLine = parser.parse(options, invalidPFileArg);
       StellarShellOptionsValidator.validateOptions(commandLine);
-    }catch(IllegalArgumentException e){
+    } catch (IllegalArgumentException e) {
       caught = true;
     }
     Assert.assertTrue("Did not catch failure for passing non-existant file to -p ", caught);

@@ -17,77 +17,95 @@
  *  limitations under the License.
  *
  */
-package org.apache.metron.stellar.common.shell;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.validator.routines.InetAddressValidator;
+package org.apache.metron.stellar.common.shell;
 
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.validator.routines.InetAddressValidator;
 
 public class StellarShellOptionsValidator {
 
   private static final Pattern validPortPattern = Pattern.compile("(^.*)[:](\\d+)$");
-  private static final Pattern validHostNamePattern = Pattern.compile("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\\\-]*[a-zA-Z0-9])\\\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\\\-]*[A-Za-z0-9])$");
-  private static final InetAddressValidator inetAddressValidator = InetAddressValidator.getInstance();
+  private static final Pattern validHostNamePattern;
+
+  static {
+    validHostNamePattern = Pattern.compile(
+        "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\\\-]*[a-zA-Z0-9])\\\\.)"
+            + "*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\\\-]*[A-Za-z0-9])$");
+  }
+
+  private static final InetAddressValidator inetAddressValidator = InetAddressValidator
+      .getInstance();
+
   /**
-   * Validates Stellar CLI Options
-   * @param commandLine
+   * Validates Stellar CLI Options.
    */
-  public static void validateOptions(CommandLine commandLine) throws IllegalArgumentException{
-    if(commandLine.hasOption('z')){
+  public static void validateOptions(CommandLine commandLine) throws IllegalArgumentException {
+    if (commandLine.hasOption('z')) {
       validateZookeeperOption(commandLine.getOptionValue('z'));
     }
     // v, irc, p are files
-    if(commandLine.hasOption('v')){
+    if (commandLine.hasOption('v')) {
       validateFileOption("v", commandLine.getOptionValue('v'));
     }
-    if(commandLine.hasOption("irc")){
+    if (commandLine.hasOption("irc")) {
       validateFileOption("irc", commandLine.getOptionValue("irc"));
     }
-    if(commandLine.hasOption('p')){
+    if (commandLine.hasOption('p')) {
       validateFileOption("p", commandLine.getOptionValue('p'));
     }
 
   }
 
   /**
-   * Zookeeper argument should be in the form [HOST|IP]:PORT
+   * Zookeeper argument should be in the form [HOST|IP]:PORT.
+   *
    * @param z the zookeeper url fragment
-   * @throws IllegalArgumentException
    */
-  private static void validateZookeeperOption(String z) throws IllegalArgumentException{
+  private static void validateZookeeperOption(String z) throws IllegalArgumentException {
 
     Matcher matcher = validPortPattern.matcher(z);
-    if(!matcher.matches()){
-      throw new IllegalArgumentException(String.format("Zookeeper option must have port: %s",z));
+    if (!matcher.matches()) {
+      throw new IllegalArgumentException(String.format("Zookeeper option must have port: %s", z));
     }
 
-    if(matcher.groupCount() != 2){
-      throw new IllegalArgumentException(String.format("Zookeeper Option must be in the form of [HOST|IP]:PORT  %s",z));
+    if (matcher.groupCount() != 2) {
+      throw new IllegalArgumentException(
+          String.format("Zookeeper Option must be in the form of [HOST|IP]:PORT  %s", z));
     }
     String name = matcher.group(1);
     Integer port = Integer.parseInt(matcher.group(2));
 
-    if(!validHostNamePattern.matcher(name).matches() && !inetAddressValidator.isValid(name)){
-      throw new IllegalArgumentException(String.format("Zookeeper Option %s is not a valid host name or ip address  %s",name,z));
+    if (!validHostNamePattern.matcher(name).matches() && !inetAddressValidator.isValid(name)) {
+      throw new IllegalArgumentException(
+          String.format("Zookeeper Option %s is not a valid host name or ip address  %s", name, z));
+    }
+
+    if(port == 0 || port > 65535){
+      throw new IllegalArgumentException(
+          String.format("Zookeeper Option %s port is not valid",z));
     }
   }
 
   /**
-   * File options must exist and be readable
+   * File options must exist and be readable.
+   *
    * @param option name of the option
    * @param fileName the file name
-   * @throws IllegalArgumentException
    */
-  private static void validateFileOption(String option, String fileName)throws IllegalArgumentException{
+  private static void validateFileOption(String option, String fileName)
+      throws IllegalArgumentException {
     File file = new File(fileName);
-    if(!file.exists()){
-      throw new IllegalArgumentException(String.format("%s: File %s doesn't exist", option, fileName));
+    if (!file.exists()) {
+      throw new IllegalArgumentException(
+          String.format("%s: File %s doesn't exist", option, fileName));
     }
-    if(!file.canRead()){
-      throw new IllegalArgumentException(String.format("%s: File %s is not readable", option, fileName));
+    if (!file.canRead()) {
+      throw new IllegalArgumentException(
+          String.format("%s: File %s is not readable", option, fileName));
     }
   }
 }
