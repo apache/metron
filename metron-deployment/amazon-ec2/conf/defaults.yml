@@ -67,7 +67,7 @@ num_partitions: 3
 retention_in_gb: 25
 
 # metron variables
-metron_version: 0.4.0
+metron_version: 0.4.1
 metron_directory: /usr/metron/{{ metron_version }}
 pcapservice_port: 8081
 

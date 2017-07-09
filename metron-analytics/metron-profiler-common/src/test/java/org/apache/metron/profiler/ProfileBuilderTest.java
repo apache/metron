@@ -23,7 +23,6 @@ package org.apache.metron.profiler;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.profiler.clock.Clock;
 import org.apache.metron.profiler.clock.FixedClock;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -32,7 +31,7 @@ import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.apache.metron.common.utils.ConversionUtils.convert;
+import static org.apache.metron.stellar.common.utils.ConversionUtils.convert;
 import static org.junit.Assert.assertEquals;
 
 /**

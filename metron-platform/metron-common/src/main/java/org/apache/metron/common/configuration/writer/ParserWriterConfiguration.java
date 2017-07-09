@@ -20,7 +20,7 @@ package org.apache.metron.common.configuration.writer;
 
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.ParserConfigurations;
-import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 
 import java.util.Map;
 
