@@ -22,34 +22,27 @@
 var os          = require('os');
 var app         = require('express')();
 var path        = require('path');
-var compression = require('compression')
+var compression = require('compression');
 var serveStatic = require('serve-static');
 var favicon     = require('serve-favicon');
 var proxy       = require('http-proxy-middleware');
 var argv        = require('optimist')
-                  .demand(['p', 'r'])
-                  .alias('r', 'resturl')
-                  .usage('Usage: server.js -p [port] -r [restUrl]')
-                  .describe('p', 'Port to run metron management ui')
-                  .describe('r', 'Url where metron rest application is available')
+                  .demand(['c'])
+                  .alias('c', 'config_file')
+                  .usage('Usage: server.js -c [config_file]')
+                  .describe('c', 'Path to management_ui.yml')
                   .argv;
+var YAML        = require('yamljs');
 
-var port = argv.p;
 var metronUIAddress = '';
 var ifaces = os.networkInterfaces();
-var restUrl =  argv.r || argv.resturl;
-var conf = {
-  "rest": {
-    "target": restUrl,
-    "secure": false
-  }
-};
+var uiConfig = YAML.load(argv.c);
 
 Object.keys(ifaces).forEach(function (dev) {
   ifaces[dev].forEach(function (details) {
     if (details.family === 'IPv4') {
       metronUIAddress += '\n';
-      metronUIAddress += 'http://' + details.address + ':' + port;
+      metronUIAddress += 'http://' + details.address + ':' + uiConfig.port;
     }
   });
 });
@@ -63,8 +56,9 @@ function setCustomCacheControl (res, path) {
 
 app.use(compression());
 
-app.use('/api/v1', proxy(conf.rest));
-app.use('/logout', proxy(conf.rest));
+var restUrl = 'http://' + uiConfig.rest.host + ':' + uiConfig.rest.port;
+app.use('/api/v1', proxy(restUrl));
+app.use('/logout', proxy(restUrl));
 
 app.use(favicon(path.join(__dirname, '../management-ui/favicon.ico')));
 
@@ -74,9 +68,9 @@ app.use(serveStatic(path.join(__dirname, '../management-ui'), {
 }));
 
 app.get('*', function(req, res){
-  res.sendFile(path.resolve('../management-ui/index.html'));
+  res.sendFile(path.join(__dirname, '../management-ui/index.html'));
 });
 
-app.listen(port, function(){
+app.listen(uiConfig.port, function(){
   console.log("Metron server listening on " + metronUIAddress);
 });

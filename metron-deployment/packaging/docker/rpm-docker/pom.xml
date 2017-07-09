@@ -21,11 +21,11 @@
     <artifactId>metron-rpm</artifactId>
     <packaging>pom</packaging>
     <name>metron-rpm</name>
-    <version>0.4.0</version>
+    <version>0.4.1</version>
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-deployment</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1</version>
         <relativePath>../../..</relativePath>
     </parent>
     <description>RPM Builder for Apache Metron</description>
@@ -127,6 +127,12 @@
                                 </resource>
                                 <resource>
                                     <directory>${metron_dir}/metron-platform/metron-indexing/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-platform/metron-management/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>

@@ -48,3 +48,7 @@
     dest: "/etc/logrotate.d/metron-ambari"
     mode: 0644
 
+- name: Install Nodejs repository
+  shell: curl --silent --location https://rpm.nodesource.com/setup_6.x | bash -
+  args:
+    warn: false

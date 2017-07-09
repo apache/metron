@@ -32,7 +32,7 @@ Requirements
 
 The following system requirements must be met to run the Fastcapa probe.
 
-* Linux kernel >= 2.6.34 
+* Linux kernel >= 2.6.34
 * A [DPDK supported ethernet device; NIC](http://dpdk.org/doc/nics).
 * Port(s) on the ethernet device that can be dedicated for exclusive use by Fastcapa
 
@@ -128,7 +128,7 @@ The size of THPs that are supported will vary based on your CPU.  These typicall
     09:00.0 Ethernet controller: Cisco Systems Inc VIC Ethernet NIC (rev a2)
     0a:00.0 Ethernet controller: Cisco Systems Inc VIC Ethernet NIC (rev a2)
     ```
-    
+
 5. Bind the device.  Replace the device name and PCI address with what is appropriate for your environment.
     ```
     ifdown enp9s0f0
@@ -137,7 +137,7 @@ The size of THPs that are supported will vary based on your CPU.  These typicall
     ```
 
 6. Ensure that the device was bound. It should be shown as a 'network device using DPDK-compatible driver.'
-    ``` 
+    ```
     $ dpdk-devbind --status
     Network devices using DPDK-compatible driver
     ============================================
@@ -151,7 +151,7 @@ The size of THPs that are supported will vary based on your CPU.  These typicall
 
 The probe has been tested with [Librdkafka 0.9.4](https://github.com/edenhill/librdkafka/releases/tag/v0.9.4).
 
-1. Choose an installation path.  In this example, the libs will actually be installed at `/usr/local/lib`; note that `lib` is appended to the prefix. 
+1. Choose an installation path.  In this example, the libs will actually be installed at `/usr/local/lib`; note that `lib` is appended to the prefix.
     ```
     export RDK_PREFIX=/usr/local
     ```
@@ -161,7 +161,7 @@ The probe has been tested with [Librdkafka 0.9.4](https://github.com/edenhill/li
     wget https://github.com/edenhill/librdkafka/archive/v0.9.4.tar.gz  -O - | tar -xz
     cd librdkafka-0.9.4/
     ./configure --prefix=$RDK_PREFIX
-    make 
+    make
     make install
     ```
 
@@ -181,10 +181,10 @@ The probe has been tested with [Librdkafka 0.9.4](https://github.com/edenhill/li
 
 2. Build Fastcapa.  The resulting binary will be placed at `build/app/fastcapa`.
     ```
-    cd incubator-metron/metron-sensors/fastcapa
+    cd metron/metron-sensors/fastcapa
     make
     ```
-    
+
 
 Usage
 -----
@@ -196,7 +196,7 @@ Follow these steps to run Fastcapa.
     [kafka-global]
     metadata.broker.list = kafka-broker1:9092
     ```
-    
+
 2. Bind the capture device.  This is only needed if the device is not already bound.  In this example, the device `enp9s0f0` with a PCI address of `09:00:0` is bound.  Use values specific to your environment.
     ```
     ifdown enp9s0f0
@@ -215,7 +215,7 @@ Follow these steps to run Fastcapa.
 
 Fastcapa accepts three sets of parameters.  
 
-1. Command-line parameters passed directly to DPDK's Environmental Abstraction Layer (EAL) 
+1. Command-line parameters passed directly to DPDK's Environmental Abstraction Layer (EAL)
 2. Command-line parameters that define how Fastcapa will interact with DPDK.  These parametera are separated on the command line by a  double-dash (`--`).
 3. A configuration file that define how Fastcapa interacts with Librdkafka.
 
@@ -247,8 +247,9 @@ fastcapa -h
 | Name | Command | Description | Default |
 |--------------------------|-----------------|---------------------------------------------------------------------------------------------------------------------------|---------|
 | Port Mask | -p PORT_MASK | A bit mask identifying which ports to bind. | 0x01 |
-| Burst Size | -b BURST_SIZE | Maximum number of packets to receive at one time. | 32 |
-| Receive Descriptors | -r NB_RX_DESC | The number of descriptors for each receive queue (the size of the receive queue.)  Limited by the ethernet device in use. | 1024 |
+| Receive Burst Size | -b RX_BURST_SIZE | The max number of packets processed by a receive worker. | 32 |
+| Transmit Burst Size | -w TX_BURST_SIZE | The max number of packets processed by a transmit worker.  | 256 |
+| Receive Descriptors | -d NB_RX_DESC | The number of descriptors for each receive queue (the size of the receive queue.)  Limited by the ethernet device in use. | 1024 |
 | Transmission Ring Size | -x TX_RING_SIZE | The size of each transmission ring.  This must be a power of 2. | 2048 |
 | Number Receive Queues | -q NB_RX_QUEUE | Number of receive queues to use for each port.  Limited by the ethernet device in use. | 2 |
 | Kafka Topic | -t KAFKA_TOPIC | The name of the Kafka topic. | pcap |
@@ -258,6 +259,18 @@ fastcapa -h
 To get more information about the Fastcapa specific parameters, run the following.  Note that this puts the `-h` after the double-dash `--`.
 ```
 fastcapa -- -h
+
+fastcapa [EAL options] -- [APP options]
+  -p PORT_MASK        bitmask of ports to bind                     [0x01]
+  -b RX_BURST_SIZE    burst size of receive worker                 [32]
+  -w TX_BURST_SIZE    burst size of transmit worker                [256]
+  -d NB_RX_DESC       num of descriptors for receive ring          [1024]
+  -x TX_RING_SIZE     size of tx rings (must be a power of 2)      [2048]
+  -q NB_RX_QUEUE      num of receive queues for each device        [1]
+  -t KAFKA_TOPIC      name of the kafka topic                      [pcap]
+  -c KAFKA_CONF       file containing configs for kafka client
+  -s KAFKA_STATS      append kafka client stats to a file
+  -h                  print this help message
 ```
 
 #### Fastcapa-Kafka Configuration File
@@ -283,7 +296,7 @@ Global configuration values that should be located under the `[kafka-global]` he
 | queue.buffering.max.messages | Maximum number of messages allowed on the producer queue | 100000 |
 | queue.buffering.max.ms | Maximum time, in milliseconds, for buffering data on the producer queue | 1000 |
 | message.copy.max.bytes | Maximum size for message to be copied to buffer. Messages larger than this will be passed by reference (zero-copy) at the expense of larger iovecs. | 65535 |
-| batch.num.messages | Maximum number of messages batched in one MessageSet | 10000 | 
+| batch.num.messages | Maximum number of messages batched in one MessageSet | 10000 |
 | statistics.interval.ms | How often statistics are emitted; 0 = never | 0 |
 | compression.codec | Compression codec to use for compressing message sets; {none, gzip, snappy, lz4 } | none |
 
@@ -314,10 +327,10 @@ When running the probe some basic counters are output to stdout.  Of course duri
 * `[rx]` + `out`: The receive workers have enqueued 8 packets onto the transmission rings.
 * `[rx]` + `drops`: If the transmission rings become full it will prevent the receive workers from enqueuing additional packets.  The excess packets are dropped.  This value will never decrease.
 * `[tx]` + `in`: The transmission workers have consumed 8 packets.
-* `[tx]` + `out`: The transmission workers have packaged 8 packets into Kafka messages. 
+* `[tx]` + `out`: The transmission workers have packaged 8 packets into Kafka messages.
 * `[tx]` + `drops`: If the Kafka client library accepted fewer packets than expected.  This value can increase or decrease over time as additional packets are acknowledged by the Kafka client library at a later point in time.
 * `[kaf]` + `in`: The Kafka client library has received 8 packets.
-* `[kaf]` + `out`: A total of 7 packets has successfully reached Kafka. 
+* `[kaf]` + `out`: A total of 7 packets has successfully reached Kafka.
 * `[kaf]` + `queued`: There is 1 packet within the `rdkafka` queue waiting to be sent.
 
 ### Kerberos
@@ -335,7 +348,7 @@ The probe can be used in a Kerberized environment.  Follow these additional step
     wget https://github.com/edenhill/librdkafka/archive/v0.9.4.tar.gz  -O - | tar -xz
     cd librdkafka-0.9.4/
     ./configure --prefix=$RDK_PREFIX --enable-sasl
-    make 
+    make
     make install
     ```
 
@@ -368,7 +381,7 @@ The probe can be used in a Kerberized environment.  Follow these additional step
     sasl.kerberos.keytab = /etc/security/keytabs/metron.headless.keytab
     sasl.kerberos.principal = metron@EXAMPLE.COM
     ```
-    
+
 1. Now run Fastcapa as you normally would.  It should have no problem landing packets in your kerberized Kafka broker.
 
 How It Works
@@ -461,13 +474,13 @@ PANIC in rte_eal_init():
 Cannot get hugepage information
 ```
 
-Solution: This can occur if any process that has been allocated THPs crashes and fails to return the resources. 
+Solution: This can occur if any process that has been allocated THPs crashes and fails to return the resources.
 
 * Delete the THP files that are not in use.
     ```
     rm -f /mnt/huge_1GB/rtemap_*
     ```
-      
+
 * If the first option does not work, re-mount the `hugetlbfs` file system.
     ```
     umount -a -t hugetlbfs
@@ -493,4 +506,3 @@ modprobe uio_pci_generic
  dpdk-devbind --bind=uio_pci_generic "09:00.0"
  dpdk-devbind --status
 ```
-

@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-analytics</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1</version>
     </parent>
     <artifactId>metron-profiler</artifactId>
     <url>https://metron.apache.org/</url>
@@ -132,7 +132,7 @@
         <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo-shaded</artifactId>
-            <version>3.0.3</version>
+            <version>${global_kryo_version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>

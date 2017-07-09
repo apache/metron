@@ -20,7 +20,7 @@
 
 package org.apache.metron.profiler.client.stellar;
 
-import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.hbase.HTableProvider;
 
 import java.util.Map;

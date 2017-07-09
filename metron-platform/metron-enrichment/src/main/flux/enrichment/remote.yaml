@@ -16,10 +16,11 @@
 
 name: "enrichment"
 config:
-    topology.workers: 1
-    topology.acker.executors: 0
+    topology.workers: ${enrichment.workers}
+    topology.acker.executors: ${enrichment.acker.executors}
     topology.worker.childopts: ${topology.worker.childopts}
     topology.auto-credentials: ${topology.auto-credentials}
+    topology.max.spout.pending: ${topology.max.spout.pending}
 
 components:
 
@@ -56,7 +57,7 @@ components:
     -   id: "hostEnrichmentAdapter"
         className: "org.apache.metron.enrichment.adapters.host.HostFromJSONListAdapter"
         constructorArgs:
-            - '${org.apache.metron.enrichment.host.known_hosts}'
+            - '${enrichment.host.known_hosts}'
     -   id: "hostEnrichment"
         className: "org.apache.metron.enrichment.configuration.Enrichment"
         constructorArgs:
@@ -231,14 +232,13 @@ components:
         constructorArgs:
           - ref: "kafkaProps"
           # topic name
-          - "enrichments"
+          - "${enrichment.input.topic}"
           - "${kafka.zk}"
           - ref: "fields"
         configMethods:
             -   name: "setFirstPollOffsetStrategy"
                 args:
-                    # One of EARLIEST, LATEST, UNCOMMITTED_EARLIEST, UNCOMMITTED_LATEST
-                    - "UNCOMMITTED_EARLIEST"
+                    - "${kafka.start}"
 
 
 spouts:
@@ -246,6 +246,7 @@ spouts:
         className: "org.apache.metron.storm.kafka.flux.StormKafkaSpout"
         constructorArgs:
             - ref: "kafkaConfig"
+        parallelism: ${kafka.spout.parallelism}
 
 bolts:
 # Enrichment Bolts
@@ -257,6 +258,8 @@ bolts:
             -   name: "withEnrichments"
                 args:
                     - ref: "enrichments"
+        parallelism: ${enrichment.split.parallelism}
+
     -   id: "geoEnrichmentBolt"
         className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
         constructorArgs:
@@ -269,6 +272,7 @@ bolts:
                 args: [10000]
             -   name: "withMaxTimeRetain"
                 args: [10]
+
     -   id: "stellarEnrichmentBolt"
         className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
         constructorArgs:
@@ -281,6 +285,7 @@ bolts:
                 args: [10000]
             -   name: "withMaxTimeRetain"
                 args: [10]
+        parallelism: ${enrichment.stellar.parallelism}
 
     -   id: "hostEnrichmentBolt"
         className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
@@ -294,6 +299,7 @@ bolts:
                 args: [10000]
             -   name: "withMaxTimeRetain"
                 args: [10]
+
     -   id: "simpleHBaseEnrichmentBolt"
         className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
         constructorArgs:
@@ -306,15 +312,18 @@ bolts:
                 args: [10000]
             -   name: "withMaxTimeRetain"
                 args: [10]
+
     -   id: "enrichmentJoinBolt"
         className: "org.apache.metron.enrichment.bolt.EnrichmentJoinBolt"
         constructorArgs:
             - "${kafka.zk}"
         configMethods:
             -   name: "withMaxCacheSize"
-                args: [10000]
+                args: [${enrichment.join.cache.size}]
             -   name: "withMaxTimeRetain"
                 args: [10]
+        parallelism: ${enrichment.join.parallelism}
+
     -   id: "enrichmentErrorOutputBolt"
         className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
         constructorArgs:
@@ -336,6 +345,8 @@ bolts:
                     - ref: "threatIntels"
             -   name: "withMessageFieldName"
                 args: ["message"]
+        parallelism: ${threat.intel.split.parallelism}
+
     -   id: "simpleHBaseThreatIntelBolt"
         className: "org.apache.metron.enrichment.bolt.GenericEnrichmentBolt"
         constructorArgs:
@@ -360,15 +371,19 @@ bolts:
                 args: [10000]
             -   name: "withMaxTimeRetain"
                 args: [10]
+        parallelism: ${threat.intel.stellar.parallelism}
+
     -   id: "threatIntelJoinBolt"
         className: "org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt"
         constructorArgs:
             - "${kafka.zk}"
         configMethods:
             -   name: "withMaxCacheSize"
-                args: [10000]
+                args: [${threat.intel.join.cache.size}]
             -   name: "withMaxTimeRetain"
                 args: [10]
+        parallelism: ${threat.intel.join.parallelism}
+
     -   id: "threatIntelErrorOutputBolt"
         className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
         constructorArgs:
@@ -387,6 +402,7 @@ bolts:
             -   name: "withMessageWriter"
                 args:
                     - ref: "kafkaWriter"
+        parallelism: ${kafka.writer.parallelism}
 
 
 streams:

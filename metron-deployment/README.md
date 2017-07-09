@@ -42,10 +42,10 @@ Use quick-dev for testing out changes to core Metron services.
 installed
 
 ### Full-Dev
-Navigate to `incubator-metron/metron-deployment/vagrant/full-dev-platform` and run `vagrant up`.
+Navigate to `metron/metron-deployment/vagrant/full-dev-platform` and run `vagrant up`.
 
 ### Quick-Dev
-Navigate to `incubator-metron/metron-deployment/vagrant/quick-dev-platform` and run `vagrant up`.
+Navigate to `metron/metron-deployment/vagrant/quick-dev-platform` and run `vagrant up`.
 
 ## Ambari Management Pack
 An Ambari Management Pack can be built in order to make the Metron service available on top of an existing stack, rather than needing a direct stack update.
@@ -61,6 +61,7 @@ This will set up
 ### Prerequisites
 - A cluster managed by Ambari 2.4.2+
 - Metron RPMs available on the cluster in the /localrepo directory.  See [RPM](#rpm) for further information.
+- [Node.js](https://nodejs.org/en/download/package-manager/) repository installed on the Management UI host 
 
 ### Building Management Pack
 From `metron-deployment` run
@@ -114,6 +115,7 @@ Components in the RPMs:
 - metron-parsers
 - metron-pcap
 - metron-solr
+- stellar-common
 
 ### Prerequisites
 - Docker.  The image detailed in: `metron-deployment/packaging/docker/rpm-docker/README.md` will automatically be built (or rebuilt if necessary).

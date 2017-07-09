@@ -24,7 +24,6 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -32,8 +31,6 @@ import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
-import org.apache.metron.enrichment.bolt.ErrorEnrichmentBolt;
-import org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt;
 import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
@@ -44,7 +41,6 @@ import org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
-import org.apache.metron.integration.Processor;
 import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaComponent;
@@ -128,7 +124,21 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     final String threatIntelTableName = "threat_intel";
     final String enrichmentsTableName = "enrichments";
     final Properties topologyProperties = new Properties() {{
-      setProperty("org.apache.metron.enrichment.host.known_hosts", "[{\"ip\":\"10.1.128.236\", \"local\":\"YES\", \"type\":\"webserver\", \"asset_value\" : \"important\"},\n" +
+      setProperty("enrichment.workers", "1");
+      setProperty("enrichment.acker.executors", "0");
+      setProperty("topology.worker.childopts", "");
+      setProperty("topology.auto-credentials", "[]");
+      setProperty("topology.max.spout.pending", "");
+      setProperty("kafka.start", "UNCOMMITTED_EARLIEST");
+      setProperty("kafka.security.protocol", "PLAINTEXT");
+      setProperty("enrichment.input.topic", Constants.ENRICHMENT_TOPIC);
+      setProperty("enrichment.output.topic", Constants.INDEXING_TOPIC);
+      setProperty("enrichment.error.topic", ERROR_TOPIC);
+      setProperty("threat.intel.error.topic", ERROR_TOPIC);
+      setProperty("enrichment.join.cache.size", "1000");
+      setProperty("threat.intel.join.cache.size", "1000");
+
+      setProperty("enrichment.host.known_hosts", "[{\"ip\":\"10.1.128.236\", \"local\":\"YES\", \"type\":\"webserver\", \"asset_value\" : \"important\"},\n" +
               "{\"ip\":\"10.1.128.237\", \"local\":\"UNKNOWN\", \"type\":\"unknown\", \"asset_value\" : \"important\"},\n" +
               "{\"ip\":\"10.60.10.254\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"},\n" +
               "{\"ip\":\"10.0.2.15\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"}]");
@@ -139,10 +149,16 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       setProperty("threat.intel.simple.hbase.cf", cf);
       setProperty("enrichment.simple.hbase.table", enrichmentsTableName);
       setProperty("enrichment.simple.hbase.cf", cf);
-      setProperty("enrichment.output.topic", Constants.INDEXING_TOPIC);
-      setProperty("enrichment.error.topic", ERROR_TOPIC);
-      setProperty("kafka.security.protocol", "PLAINTEXT");
-      setProperty("storm.auto.credentials", "[]");
+
+      setProperty("kafka.spout.parallelism", "1");
+      setProperty("enrichment.split.parallelism", "1");
+      setProperty("enrichment.stellar.parallelism", "1");
+      setProperty("enrichment.join.parallelism", "1");
+      setProperty("threat.intel.split.parallelism", "1");
+      setProperty("threat.intel.stellar.parallelism", "1");
+      setProperty("threat.intel.join.parallelism", "1");
+      setProperty("kafka.writer.parallelism", "1");
+
     }};
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
@@ -260,6 +276,11 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     Assert.assertNotNull(jsonDoc.get(DST_IP));
 
     Assert.assertNotNull(jsonDoc.get("ALL_CAPS"));
+    Assert.assertNotNull(jsonDoc.get("map.blah"));
+    Assert.assertNull(jsonDoc.get("map"));
+    Assert.assertNotNull(jsonDoc.get("one"));
+    Assert.assertEquals(1, jsonDoc.get("one"));
+    Assert.assertEquals(1, jsonDoc.get("map.blah"));
     Assert.assertNotNull(jsonDoc.get("foo"));
     Assert.assertEquals("TEST", jsonDoc.get("ALL_CAPS"));
     Assert.assertNotNull(jsonDoc.get("bar"));

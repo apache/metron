@@ -40,7 +40,7 @@
       <outputDirectory>/bin</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <includes>
-        <include>start_management_ui.sh</include>
+        <include>metron-management-ui</include>
       </includes>
       <fileMode>0755</fileMode>
       <lineEnding>unix</lineEnding>

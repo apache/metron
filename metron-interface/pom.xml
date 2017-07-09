@@ -21,15 +21,15 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>Metron</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1</version>
     </parent>
     <description>Interfaces for Metron</description>
     <url>https://metron.apache.org/</url>
     <scm>
-        <connection>scm:git:https://git-wip-us.apache.org/repos/asf/incubator-metron.git</connection>
-        <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/incubator-metron.git</developerConnection>
+        <connection>scm:git:https://git-wip-us.apache.org/repos/asf/metron.git</connection>
+        <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/metron.git</developerConnection>
         <tag>HEAD</tag>
-        <url>https://git-wip-us.apache.org/repos/asf/incubator-metron</url>
+        <url>https://git-wip-us.apache.org/repos/asf/metron</url>
     </scm>
     <licenses>
         <license>

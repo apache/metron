@@ -1,4 +1,4 @@
-#Stellar REPL Management Utilities
+# Stellar REPL Management Utilities
 
 In order to augment the functionality of the Stellar REPL, a few
 management functions surrounding the management of the configurations
@@ -244,10 +244,12 @@ The functions are split roughly into a few sections:
   * Returns: The String representation of the enrichment config
 
 ## Deployment Instructions
-
-Deployment is as simple as dropping the jar created by this project into
-`$METRON_HOME/lib` and starting the Stellar shell via
-`$METRON_HOME/bin/stellar`
+* Clusters installed via Ambari Management Pack (default)
+    * Automatically deployed
+* Manual installation
+    * Deployment is as simple as dropping the jar created by this project into
+    `$METRON_HOME/lib` and starting the Stellar shell via
+    `$METRON_HOME/bin/stellar`
 
 ## Examples
 Included for description and education purposes are a couple example Stellar REPL transcripts
