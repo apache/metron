@@ -101,6 +101,10 @@ export class QueryBuilder {
     this.onSearchChange();
   }
 
+  setFields(fieldNames: string[]) {
+      this.searchRequest._source = fieldNames;
+  }
+
   setFromAndSize(from: number, size: number) {
     this.searchRequest.from = from;
     this.searchRequest.size = size;

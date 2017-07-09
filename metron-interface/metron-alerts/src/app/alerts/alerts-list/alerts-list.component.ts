@@ -65,7 +65,7 @@ export class AlertsListComponent implements OnInit {
   addAlertColChangedListner() {
     this.configureTableService.tableChanged$.subscribe(colChanged => {
       if (colChanged) {
-        this.getAlertColumnNames();
+        this.getAlertColumnNames(false);
       }
     });
   }
@@ -109,12 +109,12 @@ export class AlertsListComponent implements OnInit {
     return returnValue;
   }
 
-  getAlertColumnNames() {
+  getAlertColumnNames(resetPaginationForSearch: boolean) {
     Observable.forkJoin(
       this.configureTableService.getTableMetadata(),
       this.clusterMetaDataService.getDefaultColumns()
     ).subscribe((response: any) => {
-      this.prepareData(response[0], response[1]);
+      this.prepareData(response[0], response[1], resetPaginationForSearch);
     });
   }
 
@@ -127,6 +127,13 @@ export class AlertsListComponent implements OnInit {
         return data.aggregations[Object.keys(data.aggregations)[0]].buckets;
       },
     };
+  }
+
+  getColumnNamesForQuery() {
+    let fieldNames = this.alertsColumns.map(columnMetadata => columnMetadata.name);
+    fieldNames = fieldNames.filter(name => !(name === '_id' || name === 'alert_status'));
+    fieldNames.push(this.threatScoreFieldName);
+    return fieldNames;
   }
 
   getDataType(name: string): string {
@@ -161,11 +168,9 @@ export class AlertsListComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.getAlertColumnNames();
+    this.getAlertColumnNames(true);
     this.addAlertColChangedListner();
     this.addLoadSavedSearchListner();
-
-    this.search();
   }
 
   onClear() {
@@ -218,16 +223,19 @@ export class AlertsListComponent implements OnInit {
 
   prepareColumnData(configuredColumns: ColumnMetadata[], defaultColumns: ColumnMetadata[]) {
     this.alertsColumns = (configuredColumns && configuredColumns.length > 0) ? configuredColumns : defaultColumns;
+    this.queryBuilder.setFields(this.getColumnNamesForQuery());
     this.calcColumnsToDisplay();
   }
 
-  prepareData(tableMetaData: TableMetadata, defaultColumns: ColumnMetadata[]) {
+  prepareData(tableMetaData: TableMetadata, defaultColumns: ColumnMetadata[], resetPagination: boolean) {
     this.tableMetaData = tableMetaData;
     this.pagingData.size = this.tableMetaData.size;
     this.refreshInterval = this.tableMetaData.refreshInterval;
 
     this.updateConfigRowsSettings();
     this.prepareColumnData(tableMetaData.tableColumns, defaultColumns);
+
+    this.search(resetPagination);
   }
 
   processEscalate() {

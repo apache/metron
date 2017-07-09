@@ -1,4 +1,5 @@
 export class SearchRequest {
+  _source: string[];
   query = { query_string: { query: '' } };
   from = 0;
   size = 15;
