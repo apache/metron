@@ -33,6 +33,7 @@ public class EncodingFunctions {
   @Stellar(name = "LIST_SUPPORTED_ENCODINGS",
       description = "Returns a list of the encodings that are currently supported as a comma "
           + "separated list",
+      params = {},
       returns = "A common separated list of supported encodings as a string"
   )
   public static class ListSupportedEncodings extends BaseStellarFunction {
