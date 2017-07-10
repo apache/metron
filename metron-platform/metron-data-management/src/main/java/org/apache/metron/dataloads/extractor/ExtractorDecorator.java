@@ -39,4 +39,8 @@ public class ExtractorDecorator implements Extractor {
   public void initialize(Map<String, Object> config) {
     decoratedExtractor.initialize(config);
   }
+
+  public Extractor getUnderlyingExtractor() {
+    return decoratedExtractor;
+  }
 }

@@ -29,7 +29,9 @@ import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.metron.dataloads.extractor.Extractor;
+import org.apache.metron.dataloads.extractor.ExtractorDecorator;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
+import org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator;
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentUpdateConfig;
 import org.apache.metron.common.utils.JSONUtils;
@@ -165,6 +167,19 @@ public class TaxiiLoader {
   public static final long DEFAULT_TIME_BETWEEN_POLLS = ONE_HR_IN_MS;
 
 
+  public static boolean isStixExtractor(Extractor e) {
+    if(e instanceof StixExtractor) {
+      return true;
+    }
+    else if(e instanceof ExtractorDecorator) {
+      ExtractorDecorator decorator = (ExtractorDecorator)e;
+      if(decorator.getUnderlyingExtractor() != null && decorator.getUnderlyingExtractor() instanceof StixExtractor) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public static void main(String... argv) throws Exception {
     Configuration conf = HBaseConfiguration.create();
     String zkQuorum = conf.get(HConstants.ZOOKEEPER_QUORUM);
@@ -185,7 +200,7 @@ public class TaxiiLoader {
     }
 
     Timer timer = new Timer();
-    if(e instanceof StixExtractor) {
+    if(isStixExtractor(e)) {
       StixExtractor extractor = (StixExtractor)e;
       TaxiiConnectionConfig connectionConfig = TaxiiConnectionConfig.load(FileUtils.readFileToString(new File(TaxiiOptions.CONNECTION_CONFIG.get(cli))));
       if(TaxiiOptions.BEGIN_TIME.has(cli)) {
