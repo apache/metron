@@ -1,0 +1,120 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@import "../../_variables.scss";
+@import "../../../styles.scss";
+
+.form-title
+{
+  padding-left: 25px;
+}
+
+.form-group
+{
+  padding-left: 25px;
+  padding-right: 20px;
+  padding-bottom: 10px;
+}
+
+.close-button
+{
+  padding-right: 20px;
+}
+
+.advanced-link {
+  padding-left: 10px;
+  cursor: pointer;
+  color: $field-button-color;
+  font-size: 14px;
+
+}
+
+.advanced-title {
+  font-size: 16px;
+  color: $form-field-text-color;
+  display: inline-block;
+}
+
+.small-close-button {
+  font-size: 16px;
+  padding-right: 10px;
+  cursor: pointer;
+}
+
+.input-placeholder {
+  font-size: 11px;
+  font-style: italic;
+  color:#999999;
+}
+
+.metron-slider-pane-edit {
+  background: $edit-background;
+}
+
+.input-group[disabled='true'] {
+  cursor: not-allowed;
+  opacity: .65;
+  background-color: #333333;
+
+  .btn {
+    cursor: inherit;
+  }
+
+  table tr td {
+    border: none !important;
+  }
+}
+
+.button-container {
+  padding-top: 5px;
+}
+
+.button-row {
+  padding-top: 10px;
+}
+
+.form-enable-disable-button {
+  width: 32%;
+}
+
+.save-button {
+  background-color: $form-button-border;
+  border-color: $form-button-border;
+  color: white;
+  font-size: 14px;
+  width: 32%;
+
+  &:hover
+  {
+
+  }
+
+  &:focus
+  {
+    outline: none;
+  }
+}
+
+.panel-selected {
+  background-color: $edit-background-border;
+}
+
+metron-config-sensor-grok, metron-config-sensor-raw-json, metron-config-sensor-field-schema,
+metron-config-sensor-threat-triage, metron-config-sensor-threat-triage
+{
+  @extend .flexbox-row-reverse;
+}

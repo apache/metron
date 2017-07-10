@@ -19,19 +19,17 @@
 package org.apache.metron.pcap.filter.query;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.common.stellar.StellarPredicateProcessor;
-import org.apache.metron.common.dsl.VariableResolver;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.MapVariableResolver;
+import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.stellar.common.StellarPredicateProcessor;
+import org.apache.metron.stellar.dsl.VariableResolver;
 import org.apache.metron.pcap.PacketInfo;
 import org.apache.metron.pcap.PcapHelper;
-import org.apache.metron.pcap.filter.PcapFieldResolver;
 import org.apache.metron.pcap.filter.PcapFilter;
 import org.apache.metron.pcap.filter.PcapFilterConfigurator;
 import org.apache.metron.pcap.filter.PcapFilters;
 
-import java.util.EnumMap;
 import java.util.Map;
 
 public class QueryPcapFilter implements PcapFilter {
@@ -69,12 +67,12 @@ public class QueryPcapFilter implements PcapFilter {
 
   @Override
   public boolean test(PacketInfo input) {
-    EnumMap<Constants.Fields, Object> fields = packetToFields(input);
-    VariableResolver resolver = new PcapFieldResolver(fields);
+    Map<String, Object> fields = packetToFields(input);
+    VariableResolver resolver = new MapVariableResolver(fields);
     return predicateProcessor.parse(queryString, resolver, StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
   }
 
-  protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
+  protected Map<String, Object> packetToFields(PacketInfo pi) {
     return PcapHelper.packetToFields(pi);
   }
 }

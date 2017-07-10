@@ -28,27 +28,19 @@
 
     <custom>
         <fluidoSkin>
-            <project>Apache Metron - Incubating</project>
+            <project>Apache Metron</project>
 	    <topBarEnabled>false</topBarEnabled>
             <sideBarEnabled>true</sideBarEnabled>
         </fluidoSkin>
     </custom>
 
     <bannerLeft>
-        <name>Apache Metron - Incubating</name>
+        <name>Apache Metron</name>
         <src>images/metron-logo.png</src>
-	<href>http://metron.incubator.apache.org/</href>
+	<href>http://metron.apache.org/</href>
         <width>148px</width>
         <height>48px</height>
     </bannerLeft>
-
-    <bannerRight>
-        <name>Apache Incubating</name>
-	<src>images/ApacheIncubating_Logo.png</src>
-	<href>http://incubator.apache.org/</href>
-        <width>192px</width>
-        <height>48px</height>
-    </bannerRight>
 
     <publishDate position="right"/>
     <version position="right"/>
@@ -62,7 +54,7 @@
 
         <breadcrumbs position="left">
             <item name="Apache" href="http://www.apache.org"/>
-            <item name="Metron-Incubating" title="Apache Metron - Incubating" href="http://metron.incubator.apache.org/"/>
+            <item name="Metron" title="Apache Metron" href="http://metron.apache.org/"/>
 	    <item name="Documentation" title="Metron Docs" href="index.html"/>
         </breadcrumbs>
 

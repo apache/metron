@@ -1,0 +1,594 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@import "_variables.scss";
+@import "_main.scss";
+
+$height: 60px;
+
+html,body
+{
+  height:100%;
+  background-color: $gray-dark;
+  color: $text-color-white;
+  font-family: "Roboto";
+}
+
+.header
+{
+  height: $height;
+}
+
+.body-fill
+{
+  height: -webkit-calc(100% - 60px);
+  height: calc(100% - 60px);
+  min-height: -webkit-calc(100% - 60px);
+  min-height: calc(100% - 60px);
+}
+
+.fill
+{
+  min-height: 100%;
+  height: 100%;
+}
+
+.metron-bg-inverse
+{
+  background-color: $gray-dark;
+}
+
+.btn
+{
+  font-size: 0.9em;
+}
+
+.metron-title
+{
+  font-family: Roboto-Medium;
+  font-size: 14px;
+  font-weight: 500;
+  color: $text-color-white;
+}
+
+table, .table
+{
+  margin-top: 0.5rem;
+
+  thead {
+    th {
+      font-family: Roboto-Regular;
+      font-size: 11px;
+      color: $text-color-white;
+      border-top: hidden !important;
+      border-bottom: 2px solid #404040 !important;
+    }
+  }
+  tr
+  {
+    font-family: Roboto-Regular;
+    font-size: 12px;
+    letter-spacing: 0.1px;
+    color: $table-cell-text-color;
+    td:first-child
+    {
+      color: $text-color-white;
+    }
+    td
+    {
+      border-bottom: 1px solid #404040 !important;
+    }
+  }
+  .active
+  {
+    background: $edit-background;
+    border-left: 1px solid $edit-background-border;
+    border-right: 1px solid $edit-background-border;
+    td
+    {
+      border-top: 1px solid  $edit-background-border !important;
+      border-bottom: 1px solid $edit-background-border;
+    }
+  }
+}
+
+input:-webkit-autofill {
+   -webkit-box-shadow: 0 0 0px 100px $field-background inset;
+   -webkit-text-fill-color: $form-field-text-color !important;
+   background-color: $field-background !important;
+ }
+
+.table
+{
+  thead
+  {
+    th
+    {
+      padding: 0.60em;
+    }
+  }
+  tr
+  {
+    td
+    {
+      padding: 0.60em;
+    }
+  }
+}
+
+.form-table {
+  background: $field-background;
+}
+
+.metron-add-button
+{
+  position: fixed;
+  right: 50px;
+  bottom: 37px;
+  background: none;
+  border:none;
+  cursor: pointer;
+
+  &:focus
+  {
+    outline: none;
+  }
+
+  i
+  {
+    color: #ffffff;
+  }
+}
+
+.metron-slider-pane
+{
+  background-color: $gray-light;
+  border: solid 1px $gray-border;
+  height: auto;
+  display: inline-block;
+  vertical-align:top;
+  float: right;
+  padding: 15px 20px 0px 25px;
+  word-wrap: break-word;
+
+  .close-button
+  {
+    font-size: 26px;
+    cursor: pointer;
+  }
+}
+
+.dialog1x
+{
+  width: 320px;
+}
+
+.dialog2x
+{
+  width :640px
+}
+
+//.metron-slider-pane-edit
+//{
+//  @extend .metron-slider-pane;
+//  background: $edit-background;
+//  border: 1px solid $edit-background-border;
+//}
+//
+//.metron-slider-pane-edit-child
+//{
+//  @extend .metron-slider-pane-edit;
+//  background-color: #083b44;
+//}
+
+form
+{
+  label
+  {
+    font-family: Roboto-Medium;
+    font-size: 12px;
+    //letter-spacing: -0.8px;
+    color: $form-label;
+  }
+
+  input
+  {
+    background: $form-input-background;
+  }
+}
+
+.form-label
+{
+  font-family: Roboto-Medium;
+  font-size: 12px;
+  //letter-spacing: -0.8px;
+  color: $form-label
+}
+
+.form-value
+{
+  font-family: Roboto;
+  font-size: 14px;
+  color: $form-field-text-color;
+
+}
+
+.form-title
+{
+  font-family: Roboto-Medium;
+  font-size: 18px;
+  color: $form-field-text-color;
+  display: inline-block;
+}
+
+.form-title-subscript
+{
+  font-family: Roboto-Medium;
+  font-size: 12px;
+  color: $title-subscript-color;
+}
+
+.form-seperator
+{
+  border: solid 1px $form-field-separator-color;
+  margin: 10px 0px 10px 0px;
+}
+
+.form-seperator-edit
+{
+  border: solid 1px $edit-background-border;
+  margin: 10px 0px 10px 0px;
+}
+
+.form-edit-button
+{
+  color: $field-button-color;
+  padding-left: 5px;
+  cursor: pointer;
+}
+
+.form-enable-disable-button
+{
+  background-color: $gray-light;
+  border-color: $form-button-border;
+  color: $field-button-color;
+  font-size: 14px;
+
+  &:hover
+  {
+
+  }
+
+  &:focus
+  {
+    outline: none;
+  }
+}
+
+
+.form-control, select
+{
+  border: solid 1px $gray-border;
+  background-color: $field-background;
+  font-family: Roboto;
+  font-size: 13px;
+  color: $form-field-text-color;
+  height: 35px;
+
+  &[readonly]
+  {
+    background: $form-field-separator-color;
+    border: 1px solid $gray-border;
+  }
+
+  &:focus
+  {
+    background-color: $field-background;
+    border-color: $gray-border;
+  }
+}
+
+.input-group button
+{
+  border: solid 1px $gray-border;
+  background: $field-background;
+  border-left: none;
+  font-size: 14px;
+
+  &:focus
+  {
+    outline: none;
+  }
+
+  &[readonly]
+  {
+    background: $form-field-separator-color;
+    border: 1px solid $gray-border;
+  }
+}
+
+@mixin keyframes($animation-name, $start) {
+  @-webkit-keyframes #{$animation-name} {
+    0% {
+      --webkit-transform: translateX(#{$start});
+    }
+    100% {
+      -webkit-transform: translateX(0);
+    }
+  }
+  @-moz-keyframes #{$animation-name} {
+    0% {
+      -moz-transform: translateX(#{$start});
+    }
+    100% {
+      -moz-transform: translateX(0);
+    }
+  }
+  @-ms-keyframes #{$animation-name} {
+    0% {
+      -ms-transform: translateX(#{$start});
+    }
+    100% {
+      -ms-transform: translateX(0);
+    }
+  }
+  @-o-keyframes #{$animation-name} {
+    0% {
+      -o-transform: translateX(#{$start});
+    }
+    100% {
+      -o-transform: translateX(0);
+    }
+  }
+  @keyframes #{$animation-name} {
+    0% {
+      transform: translateX(#{$start});
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+}
+
+@mixin keyframesWidth($animation-name) {
+  @-webkit-keyframes #{$animation-name} {
+    @content
+  }
+  @-moz-keyframes #{$animation-name} {
+    @content
+  }
+  @-ms-keyframes #{$animation-name} {
+    @content
+  }
+  @-o-keyframes #{$animation-name} {
+    @content
+  }
+  @keyframes #{$animation-name} {
+    @content
+  }
+}
+
+@mixin animation($name, $duration, $function)
+{
+  -moz-animation: #{$name} #{$duration} #{$function};
+  -webkit-animation: #{$name} #{$duration} #{$function};
+  animation: #{$name} #{$duration} #{$function};
+}
+
+@include keyframes("keyframe-dialog-rtl", "320px")
+
+.load-right-to-left{
+  @include animation("keyframe-dialog-rtl", "0.5s", "linear")
+}
+
+//@include keyframes("keyframe-dialog-ltr", "320px")
+
+@include keyframesWidth("keyframe-dialog-width")
+{
+  0%   { margin-right: -640px; }
+  100% { margin-right: 0px; }
+}
+
+.load-left-to-right {
+  @include animation("keyframe-dialog-width", "0.5s", "ease-in-out")
+}
+
+.btn-primary
+{
+  background-color: $form-button-border;
+  border-color: $form-button-border;
+  &:hover, &:active, &:focus
+  {
+    background-color: $form-button-border;
+    border-color: $form-button-border;
+  }
+}
+
+.open > .btn-primary.dropdown-toggle
+{
+  &:hover, &:active, &:focus
+  {
+    background-color: $form-button-border;
+    border-color: $form-button-border;
+  }
+}
+
+.fontawesome-checkbox
+{
+  display: none;
+}
+
+.fontawesome-checkbox ~label
+{
+  margin: 0px;
+  display: inline-block;
+  height: 13px;
+  line-height: 13px;
+  border: 1px solid $gray-border;
+  border-radius: 2px;
+}
+
+.fontawesome-checkbox ~label:before {
+  font-family: "FontAwesome";
+  font-style: normal;
+  font-size: 12px;
+  content: '\f0c8';
+  color: $gray-light;
+}
+
+.fontawesome-checkbox:checked ~ label:before {
+  content: '\f14a';
+  color: $nav-active-color;
+}
+
+.hexa-button
+{
+  display: inline-block;
+  text-align: center;
+  z-index: 0;
+  line-height: 0.7em;
+  font-size: 30px;
+  height: 28px;
+  width: 49px;
+  background: $form-button-border;
+
+  &::before, &::after
+  {
+    position: absolute;
+    content: "";
+    left: 0px;
+    top: 0;
+    z-index: -1;
+    height: 28px;
+    width: 49px;
+    background: $form-button-border;
+  }
+  &::before
+  {
+    @include transform(rotate(60deg));
+  }
+  &::after
+  {
+    @include transform(rotate(-60deg));
+  }
+}
+
+.warning-text
+{
+  color: $warning-color;
+}
+
+.icon-container
+{
+  width: 100px;
+  i
+  {
+    color: #33a6dd;
+    padding: 0px 2px;
+    cursor: pointer;
+  }
+}
+
+.dropdown-item
+{
+  cursor: pointer;
+  color: #818a91;
+
+  &:focus, &:hover
+  {
+    background-color: $edit-background-border ;
+  }
+}
+
+a.blue-label
+{
+  color: #33a6dd;
+  font-size: 14px;
+  text-decoration: none ;
+}
+
+.input-placeholder {
+  font-size: 11px;
+  font-style: italic;
+  color:#999999;
+}
+
+.popover
+{
+  border: 1px solid #195d68;
+  //background-color: #0b4451;
+  background-color:#195d68;
+}
+
+.popover-title
+{
+  color: #bdbdbd;
+  background-color:#195d68;
+  border-color: #195d68;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+
+.popover-content {
+  background-color: #404040;
+  padding: 9px 14px;
+  color: #bdbdbd;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+  white-space:pre-wrap;
+}
+
+.metron-dialog.modal {
+  .modal-content {
+    background-color: $gray-light;
+    border: solid 1px $gray-border;
+  }
+
+  .close {
+    color: #BDBDBD;
+    text-shadow: 0 1px 0 $silver-color;
+    opacity: 1;
+    font-size: 28px;
+  }
+
+  .modal-title {
+    color: $silver-color;
+    font-size: 18px;
+  }
+
+  .modal-body {
+    color: $dusty-grey;
+  }
+
+  .modal-header {
+    border-bottom: none;
+  }
+
+  .modal-footer
+  {
+    text-align: left;
+    border-top: none;
+  }
+}
+
+button
+{
+  i
+  {
+    color: $text-color-white;
+  }
+}

@@ -21,9 +21,10 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>Metron</artifactId>
-        <version>0.3.1</version>
+        <version>0.4.1</version>
     </parent>
     <description>Metron Docker</description>
+    <url>https://metron.apache.org/</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

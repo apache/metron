@@ -26,7 +26,7 @@ import org.apache.storm.hdfs.common.rotation.RotationAction;
 import java.io.IOException;
 
 public class SourceAwareMoveAction implements RotationAction{
-  private static final Logger LOG = Logger.getLogger(SourceHandler.class);
+  private static final Logger LOG = Logger.getLogger(SourceAwareMoveAction.class);
   private String destination;
 
   public SourceAwareMoveAction toDestination(String destDir){
@@ -43,6 +43,5 @@ public class SourceAwareMoveAction implements RotationAction{
     Path destPath = new Path(new Path(destination, getSource(filePath)), filePath.getName());
     LOG.info("Moving file " + filePath + " to " + destPath);
     boolean success = fileSystem.rename(filePath, destPath);
-    return;
   }
 }

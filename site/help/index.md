@@ -8,16 +8,16 @@ Need help with Metron? Try these resources.
 ## Mailing Lists
 
 The best option is to send email to the user list
-[user@metron.incubator.apache.org](mailto:user@metron.incubator.apache.org), which is for user
+[user@metron.apache.org](mailto:user@metron.apache.org), which is for user
 discussions. All of the historic traffic is available in the
-[archive](http://mail-archives.apache.org/mod_mbox/incubator-metron-user/). To
+[archive](http://mail-archives.apache.org/mod_mbox/metron-user/). To
 subscribe to the user list, please send email to
-[user-subscribe@metron.incubator.apache.org](mailto:user-subscribe@metron.incubator.apache.org).
+[user-subscribe@metron.apache.org](mailto:user-subscribe@metron.apache.org).
 
 ## Bug Reports
 
 Please file any issues you encounter or fixes you'd like on the
-[Apache Metron (Incubating) Jira](https://issues.apache.org/jira/browse/metron). We welcome
+[Apache Metron Jira](https://issues.apache.org/jira/browse/metron). We welcome
 patches!
 
 ## StackOverflow
@@ -29,4 +29,4 @@ your question.
 ## Browse the code
 
 One of the advantages of open source software is that you can browse the code.
-The code is available on [github](https://github.com/apache/incubator-metron/tree/master).
+The code is available on [github](https://github.com/apache/metron/tree/master).

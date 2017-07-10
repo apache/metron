@@ -18,9 +18,10 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-interface</artifactId>
-        <version>0.3.1</version>
+        <version>0.4.1</version>
     </parent>
     <artifactId>metron-rest</artifactId>
+    <url>https://metron.apache.org/</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -29,11 +30,39 @@
         <curator.version>2.7.1</curator.version>
         <powermock.version>1.6.4</powermock.version>
         <spring.boot.version>1.4.1.RELEASE</spring.boot.version>
+        <spring.kerberos.version>1.0.1.RELEASE</spring.kerberos.version>
         <swagger.version>2.5.0</swagger.version>
         <mysql.client.version>5.1.40</mysql.client.version>
-        <emma.version>1.0-alpha-3</emma.version>
+        <spring-kafka.version>1.1.1.RELEASE</spring-kafka.version>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+            <version>${spring-kafka.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.kafka</groupId>
+                    <artifactId>kafka-clients</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.retry</groupId>
+                    <artifactId>spring-retry</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-messaging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -57,6 +86,11 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.security.kerberos</groupId>
+            <artifactId>spring-security-kerberos-client</artifactId>
+            <version>${spring.kerberos.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
@@ -69,7 +103,7 @@
                     <groupId>com.google.guava</groupId>
                     <artifactId>guava</artifactId>
                 </exclusion>
-              </exclusions>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
@@ -106,8 +140,8 @@
                     <artifactId>jackson-databind</artifactId>
                 </exclusion>
                 <exclusion>
-                  <groupId>org.reflections</groupId>
-                  <artifactId>reflections</artifactId>
+                    <groupId>org.reflections</groupId>
+                    <artifactId>reflections</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -223,6 +257,7 @@
             <version>1.7</version>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <dependencyManagement>
@@ -248,22 +283,6 @@
         </dependencies>
     </dependencyManagement>
 
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>emma-maven-plugin</artifactId>
-                <version>${emma.version}</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-                <configuration>
-                    <targetJdk>${global_java_version}</targetJdk>
-                </configuration>
-            </plugin>
-        </plugins>
-    </reporting>
     <build>
         <plugins>
             <plugin>

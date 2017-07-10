@@ -16,8 +16,9 @@
 
 name: "pcap"
 config:
-    topology.workers: 1
-    topology.auto-credentials: ${storm.auto.credentials}
+    topology.workers: ${topology.workers}
+    topology.worker.childopts: ${topology.worker.childopts}
+    topology.auto-credentials: ${topology.auto-credentials}
 
 components:
 
@@ -53,7 +54,7 @@ components:
       -   name: "setFirstPollOffsetStrategy"
           args:
             # One of EARLIEST, LATEST, UNCOMMITTED_EARLIEST, UNCOMMITTED_LATEST
-            - "UNCOMMITTED_EARLIEST"
+            - ${kafka.pcap.start}
 
   - id: "writerConfig"
     className: "org.apache.metron.spout.pcap.HDFSWriterConfig"
@@ -70,6 +71,12 @@ components:
       -   name: "withZookeeperQuorum"
           args:
             - "${kafka.zk}"
+      -   name: "withSyncEvery"
+          args:
+            - ${hdfs.sync.every}
+      -   name: "withReplicationFactor"
+          args:
+            - ${hdfs.replication.factor}
       -   name: "withDeserializer"
           args:
             - "${kafka.pcap.ts_scheme}"
@@ -77,6 +84,7 @@ components:
 spouts:
   - id: "kafkaSpout"
     className: "org.apache.metron.spout.pcap.KafkaToHDFSSpout"
+    parallelism: ${kafka.spout.parallelism}
     constructorArgs:
       - ref: "kafkaConfig"
       - ref: "writerConfig"

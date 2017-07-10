@@ -18,6 +18,7 @@
 package org.apache.metron.rest.controller;
 
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +30,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.io.File;
 
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -127,5 +130,16 @@ public class GrokControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
                 .andExpect(jsonPath("$").isNotEmpty());
+
+        String statement = FileUtils.readFileToString(new File("../../metron-platform/metron-parsers/src/main/resources/patterns/squid"));
+        this.mockMvc.perform(get(grokUrl + "/get/statement?path=/patterns/squid").with(httpBasic(user,password)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.parseMediaType("text/plain;charset=UTF-8")))
+                .andExpect(content().bytes(statement.getBytes()));
+
+        this.mockMvc.perform(get(grokUrl + "/get/statement?path=/bad/path").with(httpBasic(user,password)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.responseCode").value(500))
+                .andExpect(jsonPath("$.message").value("Could not find a statement at path /bad/path"));
     }
 }

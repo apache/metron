@@ -20,6 +20,10 @@ package org.apache.metron.pcap.query;
 public class QueryCliConfig extends CliConfig {
   private String query;
 
+  public QueryCliConfig(PrefixStrategy prefixStrategy) {
+    super(prefixStrategy);
+  }
+
   public String getQuery() {
     return query;
   }

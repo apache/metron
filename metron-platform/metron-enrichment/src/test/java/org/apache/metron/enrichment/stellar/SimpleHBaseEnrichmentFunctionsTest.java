@@ -21,13 +21,12 @@ package org.apache.metron.enrichment.stellar;
 import com.google.common.collect.ImmutableMap;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.lookup.EnrichmentLookup;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.test.mock.MockHTable;
@@ -37,6 +36,8 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SimpleHBaseEnrichmentFunctionsTest {
@@ -94,6 +95,7 @@ public class SimpleHBaseEnrichmentFunctionsTest {
     Assert.assertTrue(result instanceof Boolean);
     Assert.assertFalse((Boolean)result);
   }
+
   @Test
   public void testSuccessfulGet() throws Exception {
     String stellar = "ENRICHMENT_GET('et', indicator, 'enrichments', 'cf')";
@@ -103,6 +105,18 @@ public class SimpleHBaseEnrichmentFunctionsTest {
     Assert.assertEquals("value0", out.get("key0"));
   }
 
+  @Test
+  public void testMultiGet() throws Exception {
+    String stellar = "MAP([ 'indicator0', 'indicator1' ], indicator -> ENRICHMENT_GET('et', indicator, 'enrichments', 'cf') )";
+    Object result = run(stellar, new HashMap<>());
+    Assert.assertTrue(result instanceof List);
+    List<Map<String, Object>> out = (List<Map<String, Object>>) result;
+    Assert.assertEquals(2, out.size());
+    for(int i = 0;i < 2;++i) {
+      Map<String, Object> map = out.get(i);
+      Assert.assertEquals("value" +i, map.get("key" + i));
+    }
+  }
   @Test
   public void testUnsuccessfulGet() throws Exception {
     String stellar = "ENRICHMENT_GET('et', indicator, 'enrichments', 'cf')";

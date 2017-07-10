@@ -17,9 +17,13 @@
  */
 package org.apache.metron.rest.config;
 
+import org.apache.metron.rest.MetronRestConstants;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
+import org.springframework.security.kerberos.client.KerberosRestTemplate;
 import org.springframework.web.client.RestTemplate;
 
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
@@ -28,9 +32,23 @@ import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 @Profile("!" + TEST_PROFILE)
 public class RestTemplateConfig {
 
+    private Environment environment;
+
+    @Autowired
+    public RestTemplateConfig(Environment environment) {
+      this.environment = environment;
+    }
+
     @Bean
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        if (environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)) {
+            String keyTabLocation = environment.getProperty(MetronRestConstants.KERBEROS_KEYTAB_SPRING_PROPERTY);
+            String userPrincipal = environment.getProperty(MetronRestConstants.KERBEROS_PRINCIPLE_SPRING_PROPERTY);
+            return new KerberosRestTemplate(keyTabLocation, userPrincipal);
+        } else {
+            return new RestTemplate();
+        }
+
     }
 
 }

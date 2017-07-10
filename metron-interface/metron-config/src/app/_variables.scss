@@ -1,0 +1,71 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+$gray-dark: #232323;
+$gray-light: #333333;
+$gray-border: #4d4d4d;
+$tundora: #404040;
+$text-color-white:  #999999;
+$nav-active-color: #32abe2;
+$nav-active-text-color: #ffffff;
+$table-cell-text-color: #a7a9ac;
+$form-label: #999999;
+$field-background: #2e2e2e;
+$form-field-text-color: #bdbdbd;
+$field-button-color: #27aae1;
+$edit-background: #0b4451;
+$edit-background-border: #17596d;
+$title-subscript-color: #666666;
+$form-field-separator-color: #404040;
+$form-button-border: #006ea0;
+$form-input-background: #2d2d2d;
+$warning-color: #C0661D;
+$black: #000000;
+$login-label: #606060;
+$silver-color: #BDBDBD;
+$dusty-grey: #9b9a9a;
+$ocean-green: #3AA570;
+$edit-child-background: #083b44;
+$edit-child-highlight: #07333a;
+$table-selection: $gray-light;
+$table-selection-lr-border: #2F2F2F;
+$table-selection-tb-border: #3E3E3E;
+
+$dialog-1x-width: 320px;
+$dialog-2x-width: 640px;
+$dialog-4x-width: 1380px;
+$slider-left-padding: 25px;
+
+$button-bar-height: 70px;
+
+@mixin transform($transforms) {
+  -moz-transform: $transforms;
+  -o-transform: $transforms;
+  -ms-transform: $transforms;
+  -webkit-transform: $transforms;
+  transform: $transforms;
+}
+
+@mixin place-holder-text
+{
+  font-family: Roboto;
+  font-size: 12px;
+  color:#bdbdbd !important;
+  font-weight: 300 !important;
+  text-align: center !important;
+  font-style: italic !important;
+}

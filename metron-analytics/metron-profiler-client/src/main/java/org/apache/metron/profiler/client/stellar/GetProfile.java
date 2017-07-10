@@ -22,10 +22,10 @@ package org.apache.metron.profiler.client.stellar;
 
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.dsl.StellarFunction;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.dsl.StellarFunction;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.profiler.ProfilePeriod;
@@ -247,7 +247,7 @@ public class GetProfile implements StellarFunction {
       return provider.getTable(HBaseConfiguration.create(), tableName);
 
     } catch (IOException e) {
-      throw new IllegalArgumentException(String.format("Unable to access table: %s", tableName));
+      throw new IllegalArgumentException(String.format("Unable to access table: %s", tableName), e);
     }
   }
 

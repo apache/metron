@@ -26,8 +26,6 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +42,7 @@ public enum KafkaUtils {
       framework.close();
     }
   }
+
   public List<String> getBrokersFromZookeeper(CuratorFramework client) throws Exception {
     List<String> ret = new ArrayList<>();
     for(String id : client.getChildren().forPath("/brokers/ids")) {
@@ -68,12 +67,18 @@ public enum KafkaUtils {
     return ret;
   }
 
-  public List<String> fromEndpoint(String url) throws URISyntaxException {
+  /*
+  The URL accepted is NOT a general URL, and is assumed to follow the format used by the Kafka structures in Zookeeper.
+  See: https://cwiki.apache.org/confluence/display/KAFKA/Kafka+data+structures+in+Zookeeper
+   */
+  List<String> fromEndpoint(String url){
     List<String> ret = new ArrayList<>();
     if(url != null) {
-      URI uri = new URI(url);
-      int port = uri.getPort();
-      ret.add(uri.getHost() + ((port > 0)?(":" + port):""));
+      Iterable<String> splits = Splitter.on("//").split(url);
+      if(Iterables.size(splits) == 2) {
+        String hostPort = Iterables.getLast(splits);
+        ret.add(hostPort);
+      }
     }
     return ret;
   }

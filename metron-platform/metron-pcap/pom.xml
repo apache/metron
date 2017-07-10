@@ -18,13 +18,27 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-platform</artifactId>
-        <version>0.3.1</version>
+        <version>0.4.1</version>
     </parent>
     <artifactId>metron-pcap</artifactId>
+    <name>metron-pcap</name>
     <description>Metron Pcap</description>
+    <url>https://metron.apache.org/</url>
     <properties>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>net.byteseek</groupId>
+            <artifactId>byteseek</artifactId>
+            <version>2.0.3</version>
+            <exclusions>
+                <!-- This is a LGPL dependency of byteseek, so we need to replace/mimic it minimally -->
+                <exclusion>
+                    <groupId>net.sf.trove4j</groupId>
+                    <artifactId>trove4j</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-hbase</artifactId>

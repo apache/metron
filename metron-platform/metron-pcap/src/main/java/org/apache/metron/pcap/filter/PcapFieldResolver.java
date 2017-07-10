@@ -18,21 +18,21 @@
 
 package org.apache.metron.pcap.filter;
 
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.dsl.VariableResolver;
+import org.apache.metron.stellar.dsl.VariableResolver;
 
-import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PcapFieldResolver implements VariableResolver {
-  EnumMap<Constants.Fields, Object> fieldsMap = null;
+  Map<String, Object> fieldsMap = new HashMap<>();
 
-  public PcapFieldResolver(EnumMap<Constants.Fields, Object> fieldsMap) {
+  public PcapFieldResolver(Map<String, Object> fieldsMap) {
     this.fieldsMap = fieldsMap;
   }
 
   @Override
   public Object resolve(String variable) {
-    return fieldsMap.get(Constants.Fields.fromString(variable));
+    return fieldsMap.get(variable);
   }
 
 }

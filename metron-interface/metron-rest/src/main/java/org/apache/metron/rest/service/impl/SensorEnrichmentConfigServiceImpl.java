@@ -19,6 +19,7 @@ package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.metron.common.aggregator.Aggregators;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
@@ -29,9 +30,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfigService {
@@ -113,4 +116,8 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
         }};
     }
 
+    @Override
+    public List<String> getAvailableThreatTriageAggregators() {
+      return Arrays.asList(Aggregators.values()).stream().map(Enum::toString).collect(Collectors.toList());
+    }
 }

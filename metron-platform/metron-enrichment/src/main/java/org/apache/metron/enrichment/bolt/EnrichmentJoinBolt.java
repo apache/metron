@@ -17,11 +17,13 @@
  */
 package org.apache.metron.enrichment.bolt;
 
+import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.storm.task.TopologyContext;
 import com.google.common.base.Joiner;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.common.utils.MessageUtils;
+import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +57,8 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
     if(fieldMap != null) {
       for (String enrichmentType : fieldMap.keySet()) {
         ConfigHandler handler = handlerMap.get(enrichmentType);
-        for(String subgroup : handler.getType().getSubgroups(handler.getConfig())) {
+        List<String> subgroups = handler.getType().getSubgroups(handler.getType().toConfig(handler.getConfig()));
+        for(String subgroup : subgroups) {
           streamIds.add(Joiner.on(":").join(enrichmentType, subgroup));
         }
       }
@@ -66,10 +69,11 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
 
 
   @Override
-  public JSONObject joinMessages(Map<String, JSONObject> streamMessageMap) {
+  public JSONObject joinMessages(Map<String, Tuple> streamMessageMap, MessageGetStrategy messageGetStrategy) {
     JSONObject message = new JSONObject();
     for (String key : streamMessageMap.keySet()) {
-      JSONObject obj = streamMessageMap.get(key);
+      Tuple tuple = streamMessageMap.get(key);
+      JSONObject obj = (JSONObject) messageGetStrategy.get(tuple);
       message.putAll(obj);
     }
     List<Object> emptyKeys = new ArrayList<>();

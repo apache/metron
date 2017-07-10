@@ -1,0 +1,43 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol":
+    {
+      "type":"HTTP_ONLY"
+    },
+
+    "links": [
+      {
+        "name": "es_health_link",
+        "label": "Elasticsearch Health",
+        "requires_user_name": "false",
+        "component_name": "ES_MASTER",
+        "url":"%@://%@:%@/_cat/health?v",
+        "port":{
+          "http_property": "http_port",
+          "http_default_port": "9200",
+          "https_property": "http_port",
+          "https_default_port": "9200",
+          "regex": "^(\\d+)",
+          "site": "elastic-site"
+        }
+      },
+      {
+        "name": "es_indices_link",
+        "label": "Elasticsearch Indexes",
+        "requires_user_name": "false",
+        "component_name": "ES_MASTER",
+        "url":"%@://%@:%@/_cat/indices?v",
+        "port":{
+          "http_property": "http_port",
+          "http_default_port": "9200",
+          "https_property": "http_port",
+          "https_default_port": "9200",
+          "regex": "^(\\d+)",
+          "site": "elastic-site"
+        }
+      }
+    ]
+  }
+}

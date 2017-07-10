@@ -19,17 +19,15 @@
 package org.apache.metron.common.field.transformation;
 
 
-import org.apache.hadoop.yarn.util.ConverterUtils;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.dsl.StellarFunction;
-import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.dsl.StellarFunction;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 @Stellar(name="PROTOCOL_TO_NAME"
         , description="Converts the IANA protocol number to the protocol name"

@@ -15,7 +15,12 @@
 #  limitations under the License.
 #
 ---
-- name: Build Deployment Artifacts
-  local_action: shell cd {{ metron_build_dir }} && mvn clean package -DskipTests -T 2C -P HDP-2.5.0.0,mpack,build-rpms
+- name: Build Metron
+  local_action: shell cd {{ metron_build_dir }} && mvn clean package -DskipTests -T 2C -P HDP-2.5.0.0,mpack
+  become: false
+  run_once: true
+
+- name: Build Metron RPMs
+  local_action: shell cd {{ metron_build_dir }}/metron-deployment && mvn clean package -DskipTests -P build-rpms
   become: false
   run_once: true

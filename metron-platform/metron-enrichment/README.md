@@ -1,4 +1,4 @@
-#Enrichment
+# Enrichment
 
 ## Introduction
 
@@ -29,7 +29,7 @@ There are two types of configurations at the moment, `global` and
 
 See the "[Global Configuration](../metron-common)" section.
 
-##Sensor Enrichment Configuration
+## Sensor Enrichment Configuration
 
 The sensor specific configuration is intended to configure the
 individual enrichments and threat intelligence enrichments for a given
@@ -41,7 +41,7 @@ The configuration is a complex JSON object with the following top level fields:
 * `enrichment` : A complex JSON object representing the configuration of the enrichments
 * `threatIntel` : A complex JSON object representing the configuration of the threat intelligence enrichments
 
-###The `enrichment` Configuration 
+### The `enrichment` Configuration
 
 
 | Field            | Description                                                                                                                                                                                                                   | Example                                                          |
@@ -54,7 +54,9 @@ The `config` map is intended to house enrichment specific configuration.
 For instance, for the `hbaseEnrichment`, the mappings between the
 enrichment types to the column families is specified.
 
-The `fieldMap`contents are of interest because they contain the routing and configuration information for the enrichments.  When we say 'routing', we mean how the messages get split up and sent to the enrichment adapter bolts.  The simplest, by far, is just providing a simple list as in
+The `fieldMap`contents are of interest because they contain the routing and configuration information for the enrichments.  
+When we say 'routing', we mean how the messages get split up and sent to the enrichment adapter bolts.  
+The simplest, by far, is just providing a simple list as in
 ```
     "fieldMap": {
       "geo": [
@@ -71,42 +73,96 @@ The `fieldMap`contents are of interest because they contain the routing and conf
       ]
       }
 ```
-Based on this sample config, both ip_src_addr and ip_dst_addr will go to the `geo`, `host`, and `hbaseEnrichment` adapter bolts. For the `geo`, `host` and `hbaseEnrichment`, this is sufficient.  However, more complex enrichments may contain their own configuration.  Currently, the `stellar` enrichment requires a more complex configuration, such as:
+Based on this sample config, both `ip_src_addr` and `ip_dst_addr` will go to the `geo`, `host`, and 
+`hbaseEnrichment` adapter bolts. 
+ 
+#### Stellar Enrichment Configuration
+For the `geo`, `host` and `hbaseEnrichment`, this is sufficient. However, more complex enrichments 
+may contain their own configuration.  Currently, the `stellar` enrichment is more adaptable and thus
+requires a more nuanced configuration.
+
+At its most basic, we want to take a message and apply a couple of enrichments, such as converting the
+`hostname` field to lowercase. We do this by specifying the transformation inside of the 
+`config` for the `stellar` fieldMap.  There are two syntaxes that are supported, specifying the transformations
+as a map with the key as the field and the value the stellar expression:
 ```
     "fieldMap": {
        ...
       "stellar" : {
         "config" : {
-          "numeric" : {
-                      "foo": "1 + 1"
-                      }
-          ,"ALL_CAPS" : "TO_UPPER(source.type)"
+          "hostname" : "TO_LOWER(hostname)"
         }
       }
     }
 ```
 
-Whereas the simpler enrichments just need a set of fields explicitly stated so they can be separated from the message and sent to the enrichment adapter bolt for enrichment and ultimately joined back in the join bolt, the stellar enrichment has its set of required fields implicitly stated through usage.  For instance, if your stellar statement references a field, it should be included and if not, then it should not be included.  We did not want to require users to make explicit the implicit.
-
-The other way in which the stellar enrichment is somewhat more complex is in how the statements are executed.  In the general purpose case for a list of fields, those fields are used to create a message to send to the enrichment adapter bolt and that bolt's worker will handle the fields one by one in serial for a given message.  For stellar enrichment, we wanted to have a more complex design so that users could specify the groups of stellar statements sent to the same worker in the same message (and thus executed sequentially).  Consider the following configuration:
+Another approach is to make the transformations as a list with the same `var := expr` syntax as is used
+in the Stellar REPL, such as:
 ```
     "fieldMap": {
+       ...
+      "stellar" : {
+        "config" : [
+          "hostname := TO_LOWER(hostname)"
+        ]
+      }
+    }
+```
+
+Sometimes arbitrary stellar enrichments may take enough time that you would prefer to split some of them
+into groups and execute the groups of stellar enrichments in parallel.  Take, for instance, if you wanted
+to do an HBase enrichment and a profiler call which were independent of one another.  This usecase is 
+supported by splitting the enrichments up as groups.
+
+Consider the following example:
+```
+    "fieldMap": {
+       ...
       "stellar" : {
         "config" : {
-          "numeric" : {
-                      "foo": "1 + 1"
-                      "bar" : TO_LOWER(source.type)"
-                      }
-         ,"text" : {
-                   "ALL_CAPS" : "TO_UPPER(source.type)"
-                   }
+          "malicious_domain_enrichment" : {
+            "is_bad_domain" : "ENRICHMENT_EXISTS('malicious_domains', ip_dst_addr, 'enrichments', 'cf')"
+          },
+          "login_profile" : [
+            "profile_window := PROFILE_WINDOW('from 6 months ago')", 
+            "global_login_profile := PROFILE_GET('distinct_login_attempts', 'global', profile_window)",
+            "stats := STATS_MERGE(global_login_profile)",
+            "auth_attempts_median := STATS_PERCENTILE(stats, 0.5)", 
+            "auth_attempts_sd := STATS_SD(stats)",
+            "profile_window := null", 
+            "global_login_profile := null", 
+            "stats := null"
+          ]
         }
       }
     }
 ```
-We have a group called `numeric` whose stellar statements will be executed sequentially.  In parallel to that, we have the group of stellar statements under the group `text` executing.  The intent here is to allow you to not force higher latency operations to be done sequentially. You can use any name for your groupings you like. Be aware that the configuration is a map and duplicate configuration keys' values are not combined, so the duplicate configuration value will be overwritten.
 
-###The `threatIntel` Configuration 
+Here we want to perform two enrichments that hit HBase and we would rather not run in sequence.  These
+enrichments are entirely independent of one another (i.e. neither relies on the output of the other).  In
+this case, we've created a group called `malicious_domain_enrichment` to inquire about whether the destination
+address exists in the HBase enrichment table in the `malicious_domains` enrichment type.  This is a simple
+enrichment, so we can express the enrichment group as a map with the new field `is_bad_domain` being a key
+and the stellar expression associated with that operation being the associated value.
+
+In contrast, the stellar enrichment group `login_profile` is interacting with the profiler, has multiple temporary
+expressions (i.e. `profile_window`, `global_login_profile`, and `stats`) that are useful only within the context
+of this group of stellar expressions.  In this case, we would need to ensure that we use the list construct
+when specifying the group and remember to set the temporary variables to `null` so they are not passed along.
+
+In general, things to note from this section are as follows:
+* The stellar enrichments for the `stellar` enrichment adapter are specified in the `config` for the `stellar` enrichment
+adapter in the `fieldMap`
+* Groups of independent (i.e. no expression in any group depend on the output of an expression from an other group) may be executed in parallel
+* If you have the need to use temporary variables, you may use the list construct.  Ensure that you assign the variables to `null` before the end of the group.
+* **Ensure that you do not assign a field to a stellar expression which returns an object which JSON cannot represent.**
+* Fields assigned to Maps as part of stellar enrichments have the maps unfolded, similar to the HBase Enrichment
+  * For example the stellar enrichment for field `foo` which assigns a map such as `foo := { 'grok' : 1, 'bar' : 'baz'}`
+  would yield the following fields:
+    * `foo.grok` == `1`
+    * `foo.bar` == `'baz'`
+
+### The `threatIntel` Configuration
 
 | Field            | Description                                                                                                                                                                                                                                   | Example                                                                  |
 |------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
@@ -117,7 +173,8 @@ We have a group called `numeric` whose stellar statements will be executed seque
 
 The `config` map is intended to house threat intel specific configuration.
 For instance, for the `hbaseThreatIntel` threat intel adapter, the mappings between the
-enrichment types to the column families is specified.
+enrichment types to the column families is specified.  The `fieldMap` configuration is similar to the `enrichment`
+configuration in that the adapters available are the same.
 
 The `triageConfig` field is also a complex field and it bears some description:
 
@@ -131,6 +188,7 @@ A risk level rule is of the following format:
 * `comment` : A comment describing the rule
 * `rule` : The rule, represented as a Stellar statement
 * `score` : Associated threat triage score for the rule
+* `reason` : Reason the rule tripped. Can be represented as a Stellar statement
 
 An example of a rule is as follows:
 ```
@@ -138,8 +196,9 @@ An example of a rule is as follows:
         { 
           "name" : "is internal"
         , "comment" : "determines if the destination is internal."
-        , rule" : "IN_SUBNET(ip_dst_addr, '192.168.0.0/24')"
-        , "score" : 10 
+        , "rule" : "IN_SUBNET(ip_dst_addr, '192.168.0.0/24')"
+        , "score" : 10
+        , "reason" : "FORMAT('%s is internal', ip_dst_addr)"
         }
                        ]
 ```
@@ -150,7 +209,7 @@ The supported aggregation functions are:
 * `MEAN` : The mean of all of the associated values for matching queries
 * `POSITIVE_MEAN` : The mean of the positive associated values for the matching queries.
 
-###Example Configuration
+### Example Configuration
 
 An example configuration for the YAF sensor is as follows:
 ```json
