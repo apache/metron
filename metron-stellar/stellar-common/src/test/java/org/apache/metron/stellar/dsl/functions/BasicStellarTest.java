@@ -104,8 +104,6 @@ public class BasicStellarTest {
         Stellar annotation = clazz.getAnnotation(Stellar.class);
         Assert.assertFalse("Must specify a name for " + clazz.getName(),StringUtils.isEmpty(annotation.name()));
         Assert.assertFalse("Must specify a description annotation for " + clazz.getName(),StringUtils.isEmpty(annotation.description()));
-        Assert.assertTrue("Must specify a non-empty params for " + clazz.getName(), annotation.params().length > 0);
-        Assert.assertTrue("Must specify a non-empty params for " + clazz.getName(), StringUtils.isNoneEmpty(annotation.params()));
         Assert.assertFalse("Must specify a returns annotation for " + clazz.getName(), StringUtils.isEmpty(annotation.returns()));
       }
     }
