@@ -117,7 +117,8 @@ public class BatchTimeoutHelper {
     else {
       //Recommended value for safe batchTimeout is 1/2 * TOPOLOGY_MESSAGE_TIMEOUT_SECS.
       //We further divide this by batchTimeoutDivisor for the particular Writer Bolt we are in,
-      //and subtract a delta of 1 second for surety (as well as rounding down)
+      //and subtract a delta of 1 second for surety (as well as rounding down).
+      //So if everything is defaulted, maxBatchTimeoutAllowedSecs is 14.
       maxBatchTimeoutAllowedSecs = effectiveMessageTimeoutSecs / 2 / batchTimeoutDivisor - 1;
       if (maxBatchTimeoutAllowedSecs <= 0) { //disallowed, and shouldn't happen with reasonable configs
         maxBatchTimeoutAllowedSecs = 1;
@@ -164,11 +165,17 @@ public class BatchTimeoutHelper {
     // Remember that parameter settings in the CLI override parameter settings set by the Storm component.
     // We shouldn't have to deal with this in the Metron environment, but just in case,
     // warn if our recommended value will be overridden by cliTickTupleFreqSecs.
-    if (cliTickTupleFreqSecs > 0 && cliTickTupleFreqSecs < recommendedTickIntervalSecs) {
+    if (cliTickTupleFreqSecs > 0 && cliTickTupleFreqSecs > recommendedTickIntervalSecs) {
       LOG.warn("Parameter '" + Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS + "' has been forced to value '" +
               Integer.toString(cliTickTupleFreqSecs) + "' via CLI configuration.  This will override the desired " +
               "setting of '" + Integer.toString(recommendedTickIntervalSecs) +
               "' and may lead to delayed batch flushing.");
+    }
+    if (cliTickTupleFreqSecs > 0 && cliTickTupleFreqSecs < recommendedTickIntervalSecs) {
+      LOG.info("Parameter '" + Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS + "' has been forced to value '" +
+              Integer.toString(cliTickTupleFreqSecs) + "' via CLI configuration.  This will override the desired " +
+              "setting of '" + Integer.toString(recommendedTickIntervalSecs) +
+              "' and may lead to unexpected periodicity in batch flushing.");
     }
     return recommendedTickIntervalSecs;
   }
