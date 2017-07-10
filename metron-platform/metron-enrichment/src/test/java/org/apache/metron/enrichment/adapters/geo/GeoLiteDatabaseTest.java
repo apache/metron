@@ -112,6 +112,15 @@ public class GeoLiteDatabaseTest {
   }
 
   @Test
+  public void testExternalAddressNotFound() throws Exception {
+    GeoLiteDatabase.INSTANCE.update(geoHdfsFile.getAbsolutePath());
+
+    // the range 203.0.113.0/24 is assigned as "TEST-NET-3" and should never be locatable
+    Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get("203.0.113.1");
+    Assert.assertFalse("External address not found", result.isPresent());
+  }
+
+  @Test
   @SuppressWarnings("unchecked")
   public void testGetRemoteWithDma() throws Exception {
     GeoLiteDatabase.INSTANCE.update(geoHdfsFile.getAbsolutePath());
