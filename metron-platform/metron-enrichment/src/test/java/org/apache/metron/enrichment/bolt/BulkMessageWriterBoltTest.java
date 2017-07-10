@@ -191,8 +191,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     Map stormConf = new HashMap();
     when(bulkMessageWriter.getName()).thenReturn("elasticsearch");
     bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector, clock);
-    verify(bulkMessageWriter, times(1)).init(eq(stormConf)
-            , any(WriterConfiguration.class));
+    verify(bulkMessageWriter, times(1)).init(eq(stormConf),any(TopologyContext.class), any(WriterConfiguration.class));
     int batchTimeout = bulkMessageWriterBolt.getDefaultBatchTimeout();
     assertEquals(4, batchTimeout);
     tupleList = new ArrayList<>();
@@ -236,7 +235,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     Map stormConf = new HashMap();
     when(bulkMessageWriter.getName()).thenReturn("elasticsearch");
     bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector, clock);
-    verify(bulkMessageWriter, times(1)).init(eq(stormConf)
+    verify(bulkMessageWriter, times(1)).init(eq(stormConf),any(TopologyContext.class)
             , any(WriterConfiguration.class));
     int batchTimeout = bulkMessageWriterBolt.getDefaultBatchTimeout();
     assertEquals(14, batchTimeout);
