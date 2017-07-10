@@ -372,13 +372,11 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
     }
   }
 
-  public DecodableRowKeyBuilder withPeriodDuration(long duration, TimeUnit units) {
+  public void setPeriodDuration(long duration, TimeUnit units) {
     periodDurationMillis = units.toMillis(duration);
-    return this;
   }
 
-  public DecodableRowKeyBuilder setSaltDivisor(int saltDivisor) {
+  public void setSaltDivisor(int saltDivisor) {
     this.saltDivisor = saltDivisor;
-    return this;
   }
 }

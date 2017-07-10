@@ -22,6 +22,7 @@ package org.apache.metron.profiler.client;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.metron.profiler.hbase.DecodableRowKeyBuilder;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.SingletonFunctionResolver;
@@ -56,24 +57,24 @@ import static org.apache.metron.profiler.client.stellar.ProfilerConfig.*;
  */
 public class GetProfileTest {
 
-  private static final long periodDuration = 15;
-  private static final TimeUnit periodUnits = TimeUnit.MINUTES;
-  private static final int saltDivisor = 1000;
   private static final String tableName = "profiler";
   private static final String columnFamily = "P";
-  private StellarStatefulExecutor executor;
-  private Map<String, Object> state;
-  private ProfileWriter profileWriter;
+
+  private static final long periodDuration = 30;
+  private static final TimeUnit periodUnits = TimeUnit.MINUTES;
+  private static final int saltDivisor = 10;
+
   // different values of period and salt divisor, used to test config_overrides feature
   private static final long periodDuration2 = 1;
   private static final TimeUnit periodUnits2 = TimeUnit.HOURS;
   private static final int saltDivisor2 = 2050;
 
+  private HTableInterface table;
+
   /**
    * A TableProvider that allows us to mock HBase.
    */
   public static class MockTableProvider implements TableProvider, Serializable {
-
     MockHTable.Provider provider = new MockHTable.Provider();
 
     @Override
@@ -82,43 +83,58 @@ public class GetProfileTest {
     }
   }
 
-  private <T> T run(String expression, Class<T> clazz) {
-    return executor.execute(expression, state, clazz);
+  @Before
+  public void setup() {
+    table = MockHTable.Provider.addToCache(tableName, columnFamily);
   }
 
   /**
-   * This method sets up the configuration context for both writing profile data
-   * (using profileWriter to mock the complex process of what the Profiler topology
-   * actually does), and then reading that profile data (thereby testing the PROFILE_GET
-   * Stellar client implemented in GetProfile).
+   * Creates a ProfileWriter that can be used to write Profile data for testing.
    *
-   * It runs at @Before time, and sets testclass global variables used by the writers and readers.
-   * The various writers and readers are in each test case, not here.
-   *
-   * @return void
+   * @return A ProfileWriter
    */
-  @Before
-  public void setup() {
-    state = new HashMap<>();
-    final HTableInterface table = MockHTable.Provider.addToCache(tableName, columnFamily);
+  private ProfileWriter getProfileWriter(int saltDivisor, long periodDuration, TimeUnit periodUnits) {
 
     // used to write values to be read during testing
-    RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();
-    ColumnBuilder columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
-    profileWriter = new ProfileWriter(rowKeyBuilder, columnBuilder, table);
+    DecodableRowKeyBuilder rowKeyBuilder = new DecodableRowKeyBuilder();
+    rowKeyBuilder.setSaltDivisor(saltDivisor);
+    rowKeyBuilder.setPeriodDuration(periodDuration, periodUnits);
 
-    // global properties
-    Map<String, Object> global = new HashMap<String, Object>() {{
+    ColumnBuilder columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
+    return new ProfileWriter(rowKeyBuilder, columnBuilder, table);
+  }
+
+  /**
+   * Returns sensible default global properties.
+   */
+  private Map<String, Object> getDefaultProperties() {
+    Map<String, Object> defaults = new HashMap<String, Object>() {{
       put(PROFILER_HBASE_TABLE.getKey(), tableName);
       put(PROFILER_COLUMN_FAMILY.getKey(), columnFamily);
       put(PROFILER_HBASE_TABLE_PROVIDER.getKey(), MockTableProvider.class.getName());
       put(PROFILER_PERIOD.getKey(), Long.toString(periodDuration));
       put(PROFILER_PERIOD_UNITS.getKey(), periodUnits.toString());
       put(PROFILER_SALT_DIVISOR.getKey(), Integer.toString(saltDivisor));
+      put(PROFILER_ROW_KEY_BUILDER.getKey(), "org.apache.metron.profiler.hbase.DecodableRowKeyBuilder");
     }};
 
-    // create the stellar execution environment
-    executor = new DefaultStellarStatefulExecutor(
+    return defaults;
+  }
+
+  /**
+   * Creates a Stellar executor using a set of default global properties.
+   */
+  private StellarStatefulExecutor getExecutor() {
+    return getExecutor(getDefaultProperties());
+  }
+
+  /**
+   * Creates a Stellar executor.
+   *
+   * @param global The global properties.
+   */
+  private StellarStatefulExecutor getExecutor(Map<String, Object> global) {
+    return new DefaultStellarStatefulExecutor(
             new SimpleFunctionResolver()
                     .withClass(GetProfile.class)
                     .withClass(FixedLookback.class),
@@ -128,172 +144,118 @@ public class GetProfileTest {
   }
 
   /**
-   * This method is similar to setup(), in that it sets up profiler configuration context,
-   * but only for the client.  Additionally, it uses periodDuration2, periodUnits2
-   * and saltDivisor2, instead of periodDuration, periodUnits and saltDivisor respectively.
+   * Calculates the number of profile values that need to be written.
    *
-   * This is used in the unit tests that test the config_overrides feature of PROFILE_GET.
-   * In these tests, the context from @Before setup() is used to write the data, then the global
-   * context is changed to context2 (from this method).  Each test validates that a default read
-   * using global context2 then gets no valid results (as expected), and that a read using
-   * original context values in the PROFILE_GET config_overrides argument gets all expected results.
-   *
-   * @return context2 - The profiler client configuration context created by this method.
-   *    The context2 values are also set in the configuration of the StellarStatefulExecutor
-   *    stored in the global variable 'executor'.  However, there is no API for querying the
-   *    context values from a StellarStatefulExecutor, so we output the context2 Context object itself,
-   *    for validation purposes (so that its values can be validated as being significantly
-   *    different from the setup() settings).
+   * @param hours          The number of hours that values are needed for.
+   * @param periodDuration The period duration.
+   * @param periodUnits    The period duration units.
+   * @return The number of profile values to write.
    */
-  private Context setup2() {
-    state = new HashMap<>();
-
-    // global properties
-    Map<String, Object> global = new HashMap<String, Object>() {{
-      put(PROFILER_HBASE_TABLE.getKey(), tableName);
-      put(PROFILER_COLUMN_FAMILY.getKey(), columnFamily);
-      put(PROFILER_HBASE_TABLE_PROVIDER.getKey(), MockTableProvider.class.getName());
-      put(PROFILER_PERIOD.getKey(), Long.toString(periodDuration2));
-      put(PROFILER_PERIOD_UNITS.getKey(), periodUnits2.toString());
-      put(PROFILER_SALT_DIVISOR.getKey(), Integer.toString(saltDivisor2));
-    }};
-
-    // create the modified context
-    Context context2 = new Context.Builder()
-            .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
-            .build();
-
-    // create the stellar execution environment
-    executor = new DefaultStellarStatefulExecutor(
-            new SimpleFunctionResolver()
-                    .withClass(GetProfile.class)
-                    .withClass(FixedLookback.class),
-            context2);
-
-    return context2; //because there is no executor.getContext() method
+  private int howManyToWrite(int hours, long periodDuration, TimeUnit periodUnits) {
+    final long millisPerHour = TimeUnit.HOURS.toMillis(1);
+    final long periodsPerHour = millisPerHour / periodUnits.toMillis(periodDuration);
+    return new Long(hours * periodsPerHour).intValue();
   }
 
   /**
-   * Values should be retrievable that have NOT been stored within a group.
+   * Ensure that `PROFILE_GET` functions when used with no groups.  This is the most common scenario.
    */
   @Test
-  public void testWithNoGroups() {
-    final int periodsPerHour = 4;
+  public void testProfileGet() {
     final int expectedValue = 2302;
-    final int hours = 2;
+    final int hours = 4;
     final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
     final List<Object> group = Collections.emptyList();
+    Map<String, Object> state = new HashMap<>();
 
     // setup - write some measurements to be read later
-    final int count = hours * periodsPerHour;
-    ProfileMeasurement m = new ProfileMeasurement()
+    ProfileMeasurement prototype = new ProfileMeasurement()
             .withProfileName("profile1")
             .withEntity("entity1")
             .withPeriod(startTime, periodDuration, periodUnits);
+    final int expected = howManyToWrite(hours, periodDuration, periodUnits);
+    getProfileWriter(saltDivisor, periodDuration, periodUnits).write(prototype, expected, group, val -> expectedValue);
 
-    profileWriter.write(m, count, group, val -> expectedValue);
-
-    // execute - read the profile values - no groups
+    // execute
     String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))";
-    @SuppressWarnings("unchecked")
-    List<Integer> result = run(expr, List.class);
+    List<Integer> result = getExecutor().execute(expr, state, List.class);
 
-    // validate - expect to read all values from the past 4 hours
-    Assert.assertEquals(count, result.size());
+    // validate - expect to see all profile values over the past 4 hours
+    Assert.assertEquals(expected, result.size());
   }
 
   /**
-   * Values should be retrievable that have been stored within a 'group'.
+   * Ensure that `PROFILE_GET` functions when used with one group.
    */
   @Test
-  public void testWithOneGroup() {
-    final int periodsPerHour = 4;
+  public void testProfileGetWithOneGroup() {
+
     final int expectedValue = 2302;
     final int hours = 2;
     final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
     final List<Object> group = Arrays.asList("weekends");
 
     // setup - write some measurements to be read later
-    final int count = hours * periodsPerHour;
-    ProfileMeasurement m = new ProfileMeasurement()
+    ProfileMeasurement prototype = new ProfileMeasurement()
             .withProfileName("profile1")
             .withEntity("entity1")
             .withPeriod(startTime, periodDuration, periodUnits);
-    profileWriter.write(m, count, group, val -> expectedValue);
+    final int expected = howManyToWrite(hours, periodDuration, periodUnits);
+    getProfileWriter(saltDivisor, periodDuration, periodUnits).write(prototype, expected, group, val -> expectedValue);
 
     // create a variable that contains the groups to use
+    Map<String, Object> state = new HashMap<>();
     state.put("groups", group);
 
-    // execute - read the profile values
-    String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), ['weekends'])";
-    @SuppressWarnings("unchecked")
-    List<Integer> result = run(expr, List.class);
-
-    // validate - expect to read all values from the past 4 hours
-    Assert.assertEquals(count, result.size());
-
-    // test the deprecated but allowed "varargs" form of groups specification
-    expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), 'weekends')";
-    result = run(expr, List.class);
-
-    // validate - expect to read all values from the past 4 hours
-    Assert.assertEquals(count, result.size());
+    {
+      // execute
+      String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), ['weekends'])";
+      List<Integer> result = getExecutor().execute(expr, state, List.class);
+      Assert.assertEquals(expected, result.size());
+    }
+    {
+      // test the deprecated but allowed "varargs" form of groups specification
+      String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), 'weekends')";
+      List<Integer> result = getExecutor().execute(expr, state, List.class);
+      Assert.assertEquals(expected, result.size());
+    }
   }
 
   /**
    * Values should be retrievable that have been stored within a 'group'.
    */
   @Test
-  public void testWithTwoGroups() {
-    final int periodsPerHour = 4;
+  public void testProfileGetWithTwoGroups() {
+
     final int expectedValue = 2302;
     final int hours = 2;
     final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
     final List<Object> group = Arrays.asList("weekdays", "tuesday");
 
     // setup - write some measurements to be read later
-    final int count = hours * periodsPerHour;
-    ProfileMeasurement m = new ProfileMeasurement()
+    ProfileMeasurement prototype = new ProfileMeasurement()
             .withProfileName("profile1")
             .withEntity("entity1")
             .withPeriod(startTime, periodDuration, periodUnits);
-    profileWriter.write(m, count, group, val -> expectedValue);
+    final int expected = howManyToWrite(hours, periodDuration, periodUnits);
+    getProfileWriter(saltDivisor, periodDuration, periodUnits).write(prototype, expected, group, val -> expectedValue);
 
     // create a variable that contains the groups to use
+    Map<String, Object> state = new HashMap<>();
     state.put("groups", group);
 
-    // execute - read the profile values
-    String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), ['weekdays', 'tuesday'])";
-    @SuppressWarnings("unchecked")
-    List<Integer> result = run(expr, List.class);
-
-    // validate - expect to read all values from the past 4 hours
-    Assert.assertEquals(count, result.size());
-
-    // test the deprecated but allowed "varargs" form of groups specification
-    expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), 'weekdays', 'tuesday')";
-    result = run(expr, List.class);
-
-    // validate - expect to read all values from the past 4 hours
-    Assert.assertEquals(count, result.size());
-  }
-
-  /**
-   * Initialization should fail if the required context values are missing.
-   */
-  @Test(expected = IllegalStateException.class)
-  public void testMissingContext() {
-    Context empty = Context.EMPTY_CONTEXT();
-
-    // 'unset' the context that was created during setup()
-    executor.setContext(empty);
-
-    // force re-initialization with no context
-    SingletonFunctionResolver.getInstance().initialize(empty);
-
-    // validate - function should be unable to initialize
-    String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(1000, 'SECONDS'), groups)";
-    run(expr, List.class);
+    {
+      // execute the test
+      String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), ['weekdays', 'tuesday'])";
+      List<Integer> result = getExecutor().execute(expr, state, List.class);
+      Assert.assertEquals(expected, result.size());
+    }
+    {
+      // test the deprecated but allowed "varargs" form of groups specification
+      String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), 'weekdays', 'tuesday')";
+      List<Integer> result = getExecutor().execute(expr, state, List.class);
+      Assert.assertEquals(expected, result.size());
+    }
   }
 
   /**
@@ -301,135 +263,102 @@ public class GetProfileTest {
    * none should be returned.
    */
   @Test
-  public void testOutsideTimeHorizon() {
+  public void testProfileGetOutsideTimeHorizon() {
     final int expectedValue = 2302;
     final int hours = 2;
     final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
-    final List<Object> group = Collections.emptyList();
+    Map<String, Object> state = new HashMap<>();
 
-    // setup - write a single value from 2 hours ago
-    ProfileMeasurement m = new ProfileMeasurement()
+    // setup - write 2 values starting from 2 hours ago
+    ProfileMeasurement prototype = new ProfileMeasurement()
             .withProfileName("profile1")
             .withEntity("entity1")
             .withPeriod(startTime, periodDuration, periodUnits);
-    profileWriter.write(m, 1, group, val -> expectedValue);
+    getProfileWriter(saltDivisor, periodDuration, periodUnits).write(prototype, 2, Collections.emptyList(), val -> expectedValue);
 
-    // create a variable that contains the groups to use
-    state.put("groups", group);
-
-    // execute - read the profile values
+    // execute - there is no profile data within the past 4 seconds
     String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'SECONDS'))";
-    @SuppressWarnings("unchecked")
-    List<Integer> result = run(expr, List.class);
-
-    // validate - there should be no values from only 4 seconds ago
+    List<Integer> result = getExecutor().execute(expr, state, List.class);
     Assert.assertEquals(0, result.size());
   }
 
   /**
-   * Values should be retrievable that were written with configuration different than current global config.
+   * Profile values should be retrievable that were written with configuration different than current global config.
    */
   @Test
-  public void testWithConfigOverride() {
-    final int periodsPerHour = 4;
+  @SuppressWarnings("unchecked")
+  public void testProfileGetWithConfigOverride() {
     final int expectedValue = 2302;
     final int hours = 2;
     final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
     final List<Object> group = Collections.emptyList();
+    Map<String, Object> state = new HashMap<>();
 
-    // setup - write some measurements to be read later
-    final int count = hours * periodsPerHour;
-    ProfileMeasurement m = new ProfileMeasurement()
+    // setup - write some measurements using different period duration values
+    ProfileMeasurement prototype = new ProfileMeasurement()
             .withProfileName("profile1")
             .withEntity("entity1")
-            .withPeriod(startTime, periodDuration, periodUnits);
-    profileWriter.write(m, count, group, val -> expectedValue);
+            .withPeriod(startTime, periodDuration2, periodUnits2);
+    final int expected = howManyToWrite(hours, periodDuration2, periodUnits2);
+    getProfileWriter(saltDivisor2, periodDuration2, periodUnits2).write(prototype, expected, group, val -> expectedValue);
 
-    // now change the executor configuration
-    Context context2 = setup2();
-    // validate it is changed in significant way
-    @SuppressWarnings("unchecked")
-    Map<String, Object> global = (Map<String, Object>) context2.getCapability(Context.Capabilities.GLOBAL_CONFIG).get();
-    Assert.assertEquals(PROFILER_PERIOD.get(global), periodDuration2);
-    Assert.assertNotEquals(periodDuration, periodDuration2);
-
-    // execute - read the profile values - with (wrong) default global config values.
-    // No error message at this time, but returns empty results list, because
-    // row keys are not correctly calculated.
-    String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))";
-    @SuppressWarnings("unchecked")
-    List<Integer> result = run(expr, List.class);
-
-    // validate - expect to fail to read any values
-    Assert.assertEquals(0, result.size());
-
-    // execute - read the profile values - with config_override.
-    // first two override values are strings, third is deliberately a number.
-    String overrides = "{'profiler.client.period.duration' : '" + periodDuration + "', "
-            + "'profiler.client.period.duration.units' : '" + periodUnits.toString() + "', "
-            + "'profiler.client.salt.divisor' : " + saltDivisor + " }";
-    expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS', " + overrides + "), [], " + overrides + ")"
-            ;
-    result = run(expr, List.class);
-
-    // validate - expect to read all values from the past 4 hours
-    Assert.assertEquals(count, result.size());
+    {
+      // execute - should not be able to read any values since the period duration and salt used is different
+      String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))";
+      List<Integer> result = getExecutor().execute(expr, state, List.class);
+      Assert.assertEquals(0, result.size());
+    }
+    {
+      // execute - use the configuration override to use the correct period and salt values
+      String overrides = String.format(
+              "{" +
+                      "'profiler.client.period.duration': '%s', " +
+                      "'profiler.client.period.duration.units': '%s', " +
+                      "'profiler.client.salt.divisor': %d " +
+                      "}", periodDuration2, periodUnits2.toString(), saltDivisor2);
+      String expr = String.format("PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS', %s), [], %s)", overrides, overrides);
+      List<Integer> result = getExecutor().execute(expr, state, List.class);
+      Assert.assertEquals(expected, result.size());
+    }
   }
 
   /**
-   * Values should be retrievable that have been stored within a 'group', with
-   * configuration different than current global config.
-   * This time put the config_override case before the non-override case.
+   * Profile values should be retrievable that were written with configuration different than current global config.
    */
   @Test
-  public void testWithConfigAndOneGroup() {
-    final int periodsPerHour = 4;
+  @SuppressWarnings("unchecked")
+  public void testProfileGetWithOneGroupAndConfigOverride() {
     final int expectedValue = 2302;
     final int hours = 2;
     final long startTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(hours);
     final List<Object> group = Arrays.asList("weekends");
+    Map<String, Object> state = new HashMap<>();
 
-    // setup - write some measurements to be read later
-    final int count = hours * periodsPerHour;
-    ProfileMeasurement m = new ProfileMeasurement()
+    // setup - write some measurements using different period duration values
+    ProfileMeasurement prototype = new ProfileMeasurement()
             .withProfileName("profile1")
             .withEntity("entity1")
-            .withPeriod(startTime, periodDuration, periodUnits);
-    profileWriter.write(m, count, group, val -> expectedValue);
+            .withPeriod(startTime, periodDuration2, periodUnits2);
+    final int expected = howManyToWrite(hours, periodDuration2, periodUnits2);
+    getProfileWriter(saltDivisor2, periodDuration2, periodUnits2).write(prototype, expected, group, val -> expectedValue);
 
-    // create a variable that contains the groups to use
-    state.put("groups", group);
-
-    // now change the executor configuration
-    Context context2 = setup2();
-    // validate it is changed in significant way
-    @SuppressWarnings("unchecked")
-    Map<String, Object> global = (Map<String, Object>) context2.getCapability(Context.Capabilities.GLOBAL_CONFIG).get();
-    Assert.assertEquals(global.get(PROFILER_PERIOD.getKey()), Long.toString(periodDuration2));
-    Assert.assertNotEquals(periodDuration, periodDuration2);
-
-    // execute - read the profile values - with config_override.
-    // first two override values are strings, third is deliberately a number.
-    String overrides = "{'profiler.client.period.duration' : '" + periodDuration + "', "
-            + "'profiler.client.period.duration.units' : '" + periodUnits.toString() + "', "
-            + "'profiler.client.salt.divisor' : " + saltDivisor + " }";
-    String expr = "PROFILE_GET('profile1', 'entity1'" +
-            ", PROFILE_FIXED(4, 'HOURS', " + overrides + "), ['weekends'], " +
-            overrides + ")";
-    @SuppressWarnings("unchecked")
-    List<Integer> result = run(expr, List.class);
-
-    // validate - expect to read all values from the past 4 hours
-    Assert.assertEquals(count, result.size());
-
-    // execute - read the profile values - with (wrong) default global config values.
-    // No error message at this time, but returns empty results list, because
-    // row keys are not correctly calculated.
-    expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), ['weekends'])";
-    result = run(expr, List.class);
-
-    // validate - expect to fail to read any values
-    Assert.assertEquals(0, result.size());
+    {
+      // execute - should not be able to read any values since the period duration and salt used is different
+      String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'))";
+      List<Integer> result = getExecutor().execute(expr, state, List.class);
+      Assert.assertEquals(0, result.size());
+    }
+    {
+      // execute - use the configuration override to use the correct period and salt values
+      String overrides = String.format(
+              "{" +
+                      "'profiler.client.period.duration': '%s', " +
+                      "'profiler.client.period.duration.units': '%s', " +
+                      "'profiler.client.salt.divisor': %d " +
+                      "}", periodDuration2, periodUnits2.toString(), saltDivisor2);
+      String expr = String.format("PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS', %s), ['weekends'], %s)", overrides, overrides);
+      List<Integer> result = getExecutor().execute(expr, state, List.class);
+      Assert.assertEquals(expected, result.size());
+    }
   }
-
 }

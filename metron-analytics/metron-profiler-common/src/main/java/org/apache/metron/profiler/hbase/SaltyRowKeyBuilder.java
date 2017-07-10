@@ -266,7 +266,13 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
     periodDurationMillis = units.toMillis(duration);
   }
 
+  public void setPeriodDurationMillis(long durationMillis) {
+    periodDurationMillis = durationMillis;
+  }
+
   public void setSaltDivisor(int saltDivisor) {
     this.saltDivisor = saltDivisor;
   }
+
+
 }

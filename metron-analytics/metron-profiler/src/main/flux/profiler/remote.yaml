@@ -24,12 +24,12 @@ config:
 components:
 
     -   id: "rowKeyBuilder"
-        className: ${profiler.row.key.builder}
+        className: "org.apache.metron.profiler.hbase.SaltyRowKeyBuilder"
         properties:
             - name: "saltDivisor"
               value: ${profiler.hbase.salt.divisor}
         configMethods:
-            - name: "withPeriodDuration"
+            - name: "setPeriodDuration"
               args: [${profiler.period.duration}, "${profiler.period.duration.units}"]
 
     -   id: "columnBuilder"
