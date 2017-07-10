@@ -210,7 +210,7 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
 
   private static Subscription toSubscription(String topicOrSubscription) {
     if (StringUtils.isEmpty(topicOrSubscription)) {
-      throw new IllegalStateException("Topic name is invalid: empty or null");
+      throw new IllegalArgumentException("Topic name is invalid (empty or null): " + topicOrSubscription);
     }
     int length = topicOrSubscription.length();
     if(topicOrSubscription.charAt(0) == '/' && topicOrSubscription.charAt(length - 1) == '/') {
