@@ -164,7 +164,7 @@ public enum GeoLiteDatabase {
 
       return Optional.of(geoInfo);
     } catch (UnknownHostException | AddressNotFoundException e) {
-      LOG.warn("[Metron] No result found for IP {}", ip);
+      LOG.debug("[Metron] No result found for IP {}", ip);
     } catch (GeoIp2Exception | IOException e) {
       LOG.warn("[Metron] GeoLite2 DB encountered an error", e);
     } finally {
