@@ -128,7 +128,8 @@ public enum GeoLiteDatabase {
       return Optional.empty();
     }
     if (isIneligibleAddress(ip, addr)) {
-      return Optional.of(new HashMap());
+      LOG.debug("[Metron] IP ineligible for GeoLite2 lookup {}", ip);
+      return Optional.empty();
     }
 
     try {

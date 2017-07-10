@@ -108,7 +108,7 @@ public class GeoLiteDatabaseTest {
     GeoLiteDatabase.INSTANCE.update(geoHdfsFile.getAbsolutePath());
 
     Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get("192.168.0.1");
-    Assert.assertEquals("Local IP should return empty map", new HashMap<String, String>(), result.get());
+    Assert.assertFalse("Local address result should be empty", result.isPresent());
   }
 
   @Test
