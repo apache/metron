@@ -26,7 +26,7 @@ public class EncodingsTest {
   public static final String STRING_FIXTURE = "Hello World";
   public static final String STRING_FIXTURE_PLUS_NULL = "Hello World\0";
   public static final String BASE32HEX_FIXTURE = "91IMOR3F41BMUSJCCG======";
-  public static final String BASE32_FIXTURE = "JBSWY3DPEBLW64TMMQ======\r\n";
+  public static final String BASE32_FIXTURE = "JBSWY3DPEBLW64TMMQ======";
   public static final String BASE64_FIXTURE = "SGVsbG8gV29ybGQ=";
   public static final String BINARY_FIXTURE = "0110010001101100011100100110111101010111001000000110111101101100011011000110010101001000";
   public static final String HEX_FIXTURE = "48656c6c6f20576f726c64";
@@ -91,5 +91,14 @@ public class EncodingsTest {
     Assert.assertEquals(STRING_FIXTURE + "\0",Encodings.BASE64.decode(STRING_FIXTURE + "\0",true));
     Assert.assertEquals(STRING_FIXTURE,Encodings.BINARY.decode(STRING_FIXTURE,true));
     Assert.assertEquals(STRING_FIXTURE,Encodings.HEX.decode(STRING_FIXTURE,true));
+  }
+
+  @Test
+  public void testEncode() throws Exception{
+    Assert.assertEquals(BASE32_FIXTURE,Encodings.BASE32.encode(STRING_FIXTURE));
+    Assert.assertEquals(BASE32HEX_FIXTURE,Encodings.BASE32HEX.encode(STRING_FIXTURE));
+    Assert.assertEquals(BASE64_FIXTURE,Encodings.BASE64.encode(STRING_FIXTURE));
+    Assert.assertEquals(BINARY_FIXTURE,Encodings.BINARY.encode(STRING_FIXTURE));
+    Assert.assertEquals(HEX_FIXTURE,Encodings.HEX.encode(STRING_FIXTURE));
   }
 }

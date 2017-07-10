@@ -33,21 +33,26 @@ import org.apache.commons.lang.StringUtils;
  */
 public enum Encodings {
   BASE32((possible) -> new Base32().isInAlphabet(possible),
-      (possible) -> new String(new Base32().decode(possible), StandardCharsets.UTF_8)),
+      (possible) -> new String(new Base32().decode(possible), StandardCharsets.UTF_8),
+      (possible) -> new String( new Base32().encode(possible.getBytes(StandardCharsets.UTF_8)),StandardCharsets.UTF_8)),
   BASE32HEX((possible) -> new Base32(true).isInAlphabet(possible),
       (possible) -> new String(new Base32(true).decode(possible.getBytes(StandardCharsets.UTF_8)),
+          StandardCharsets.UTF_8),
+      (possible) -> new String(new Base32(true).encode(possible.getBytes(StandardCharsets.UTF_8)),
           StandardCharsets.UTF_8)),
   BASE64((possible) -> Base64.isBase64(possible),
       (possible) -> new String(new Base64().decode(possible.getBytes(StandardCharsets.UTF_8)),
+          StandardCharsets.UTF_8),
+      (possible) -> new String(new Base64().encode(possible.getBytes(StandardCharsets.UTF_8)),
           StandardCharsets.UTF_8)),
   BINARY((possible) -> {
-    for (byte b : possible.getBytes(StandardCharsets.UTF_8)) {
-      if ((b != 48 && b != 49)) {
-        return false;
+      for (byte b : possible.getBytes(StandardCharsets.UTF_8)) {
+        if ((b != 48 && b != 49)) {
+          return false;
+        }
       }
-    }
-    return true;
-  },
+      return true;
+    },
       (possible) -> {
         String str = new String(BinaryCodec.fromAscii(possible.getBytes(StandardCharsets.UTF_8)),
             StandardCharsets.UTF_8);
@@ -55,16 +60,17 @@ public enum Encodings {
           return possible;
         }
         return str;
-      }),
+      },
+      (possible) -> BinaryCodec.toAsciiString(possible.getBytes(StandardCharsets.UTF_8))),
   HEX((possible) -> {
-    try {
-      Hex hex = new Hex(StandardCharsets.UTF_8);
-      hex.decode(possible.getBytes(StandardCharsets.UTF_8));
-      return true;
-    } catch (DecoderException e) {
-      return false;
-    }
-  },
+      try {
+        Hex hex = new Hex(StandardCharsets.UTF_8);
+        hex.decode(possible.getBytes(StandardCharsets.UTF_8));
+        return true;
+      } catch (DecoderException e) {
+        return false;
+      }
+    },
       (possible) -> {
         try {
           Hex hex = new Hex(StandardCharsets.UTF_8);
@@ -73,10 +79,12 @@ public enum Encodings {
         } catch (DecoderException e) {
           return possible;
         }
-      });
+      },
+      (possible) -> new String(new Hex(StandardCharsets.UTF_8).encode(possible.getBytes(StandardCharsets.UTF_8)),StandardCharsets.UTF_8));
 
   Predicate<String> is;
   Function<String, String> decode;
+  Function<String, String> encode;
 
   /**
    * Create a specialed Endodings enum member.
@@ -84,9 +92,10 @@ public enum Encodings {
    * @param is function for detecting
    * @param decode funtion for decoding
    */
-  Encodings(Predicate<String> is, Function<String, String> decode) {
+  Encodings(Predicate<String> is, Function<String, String> decode, Function<String,String> encode) {
     this.is = is;
     this.decode = decode;
+    this.encode = encode;
   }
 
   public static final String SUPPORTED_LIST = BASE32.name() + "," + BASE32HEX.name() + ","
@@ -133,5 +142,14 @@ public enum Encodings {
       }
     }
     return decode.apply(encoded);
+  }
+
+  /**
+   * Encodes the given String
+   * @param toEncode
+   * @return an encoded String
+   */
+  public String encode(String toEncode) {
+    return encode.apply(toEncode);
   }
 }

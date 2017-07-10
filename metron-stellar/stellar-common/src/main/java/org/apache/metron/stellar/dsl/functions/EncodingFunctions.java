@@ -79,7 +79,7 @@ public class EncodingFunctions {
   @Stellar(name = "DECODE",
       description = "Decodes the passed string with the provided encoding, "
           + " must be one of the encodings returned from LIST_SUPPORTED_ENCODINGS",
-      params = {"string - the string to test",
+      params = {"string - the string to decode",
           "encoding - the encoding to use, must be one of encodings returned from "
               + "LIST_SUPPORTED_ENCODINGS",
           "verify - (optional), true or false to determine if string should be verified as being "
@@ -120,4 +120,38 @@ public class EncodingFunctions {
     }
   }
 
+  @Stellar(name = "ENCODE",
+      description = "Encodes the passed string with the provided encoding, "
+          + " must be one of the encodings returned from LIST_SUPPORTED_ENCODINGS",
+      params = {"string - the string to encode",
+          "encoding - the encoding to use, must be one of encodings returned from "
+              + "LIST_SUPPORTED_ENCODINGS"
+      },
+      returns = "The encoded string or null on error"
+  )
+  public static class Encode extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> list) {
+      if (list.size() != 2 && list.size() != 3) {
+        throw new IllegalStateException(
+            "ENCODE expects two or three args: [string, encoding] where encoding is one from "
+                + "the supported list");
+      }
+      String str = (String) list.get(0);
+      String encoding = (String) list.get(1);
+
+      if (StringUtils.isEmpty(str) || StringUtils.isEmpty(encoding)) {
+        return null;
+      }
+
+      Encodings enc = null;
+      try {
+        enc = Encodings.valueOf(encoding.toUpperCase());
+      } catch (IllegalArgumentException iae) {
+        throw new IllegalStateException(String.format("Encoding %s not supported", encoding), iae);
+      }
+      return enc.encode(str);
+    }
+  }
 }

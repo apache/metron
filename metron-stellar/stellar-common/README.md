@@ -120,6 +120,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `DOMAIN_REMOVE_SUBDOMAINS`](#domain_remove_subdomains)                                           |
 | [ `DOMAIN_REMOVE_TLD`](#domain_remove_tld)                                                         |
 | [ `DOMAIN_TO_TLD`](#domain_to_tld)                                                                 |
+| [ `ENCODE`](#encode)                                                                               |
 | [ `ENDS_WITH`](#ends_with)                                                                         |
 | [ `ENRICHMENT_EXISTS`](#enrichment_exists)                                                         |
 | [ `ENRICHMENT_GET`](#enrichment_get)                                                               |
@@ -281,7 +282,7 @@ In the core language functions, we support basic functional programming primitiv
   * Description: Decodes the passed string with the provided encoding, which
                  must be one of the encodings returned from [ `LIST_SUPPORTED_ENCODINGS`](#list_supported_encodings)   
   * Input:
-    * string - the string to test
+    * string - the string to decode
     * encoding - the encoding to use, must be one of encodings returned from [ `LIST_SUPPORTED_ENCODINGS`](#list_supported_encodings) 
     * verify - (optional), true or false to determine if string should be verified as being
                 encoded with the passed encoding
@@ -308,6 +309,16 @@ In the core language functions, we support basic functional programming primitiv
     * domain - Fully qualified domain name
   * Returns: The TLD of the domain.  (for example, DOMAIN_TO_TLD('mail.yahoo.co.uk') yields 'co.uk')
 
+### `ENCODE`
+  * Description: Encodes the passed string with the provided encoding, which
+                 must be one of the encodings returned from [ `LIST_SUPPORTED_ENCODINGS`](#list_supported_encodings)   
+  * Input:
+    * string - the string to encode
+    * encoding - the encoding to use, must be one of encodings returned from [ `LIST_SUPPORTED_ENCODINGS`](#list_supported_encodings) 
+  * Returns:  
+    * The encoded string on success
+    * null on error
+    
 ### `ENDS_WITH`
   * Description: Determines whether a string ends with a specified suffix
   * Input:

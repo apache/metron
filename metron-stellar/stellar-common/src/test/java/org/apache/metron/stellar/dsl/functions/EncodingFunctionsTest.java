@@ -18,6 +18,11 @@
 
 package org.apache.metron.stellar.dsl.functions;
 
+import static org.apache.metron.stellar.common.encoding.EncodingsTest.BASE32HEX_FIXTURE;
+import static org.apache.metron.stellar.common.encoding.EncodingsTest.BASE32_FIXTURE;
+import static org.apache.metron.stellar.common.encoding.EncodingsTest.BASE64_FIXTURE;
+import static org.apache.metron.stellar.common.encoding.EncodingsTest.BINARY_FIXTURE;
+import static org.apache.metron.stellar.common.encoding.EncodingsTest.HEX_FIXTURE;
 import static org.apache.metron.stellar.common.encoding.EncodingsTest.STRING_FIXTURE;
 import static org.apache.metron.stellar.common.encoding.EncodingsTest.STRING_FIXTURE_PLUS_NULL;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
@@ -79,8 +84,8 @@ public class EncodingFunctionsTest {
 
     // these codecs will fail to decode and return the original string without
     // verification
-    Assert.assertEquals(STRING_FIXTURE,Encodings.BINARY.decode(STRING_FIXTURE));
-    Assert.assertEquals(STRING_FIXTURE,Encodings.HEX.decode(STRING_FIXTURE));
+    Assert.assertEquals(STRING_FIXTURE,run("DECODE(STRING_FIXTURE,'BINARY')",variableMap));
+    Assert.assertEquals(STRING_FIXTURE,run("DECODE(STRING_FIXTURE, 'HEX')", variableMap));
   }
 
   @Test
@@ -102,5 +107,14 @@ public class EncodingFunctionsTest {
     Assert.assertEquals(STRING_FIXTURE_PLUS_NULL,run("DECODE(STRING_FIXTURE_PLUS_NULL,'BASE64',true)",variableMap));
     Assert.assertEquals(STRING_FIXTURE,run("DECODE(STRING_FIXTURE,'BINARY',true)",variableMap));
     Assert.assertEquals(STRING_FIXTURE,run("DECODE(STRING_FIXTURE,'HEX',true)",variableMap));
+  }
+
+  @Test
+  public void testEncode() throws Exception {
+    Assert.assertEquals(BASE32_FIXTURE,run("ENCODE(STRING_FIXTURE,'BASE32')",variableMap));
+    Assert.assertEquals(BASE32HEX_FIXTURE, run("ENCODE(STRING_FIXTURE,'BASE32HEX')",variableMap));
+    Assert.assertEquals(BASE64_FIXTURE, run("ENCODE(STRING_FIXTURE,'BASE64')",variableMap));
+    Assert.assertEquals(BINARY_FIXTURE, run("ENCODE(STRING_FIXTURE,'BINARY')",variableMap));
+    Assert.assertEquals(HEX_FIXTURE, run("ENCODE(STRING_FIXTURE,'HEX')",variableMap));
   }
 }
