@@ -288,6 +288,11 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>org.elasticsearch</groupId>
+                <artifactId>elasticsearch</artifactId>
+                <version>${global_elasticsearch_version}</version>
+            </dependency>
+            <dependency>
                 <!-- Import dependency management from Spring Boot -->
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
