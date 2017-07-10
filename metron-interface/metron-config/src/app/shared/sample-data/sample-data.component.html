@@ -1,0 +1,22 @@
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+<label attr.for="sampleData">SAMPLE&nbsp;( {{sampleDataIndex + 1}} of {{sampleData.length}} )</label>
+<div>
+  <i class="fa fa-caret-left sample-iterator sample-unavailable" aria-hidden="true" [class.sample-available]="sampleDataIndex > 0" [class.sample-unavailable]="sampleDataIndex < 1" (click)="getPreviousSample()"></i>
+  <textarea #sampleDataElement type="text" class="form-control sample-input" name="sampleData"  [ngModel]="sampleData[sampleDataIndex]" (blur)="onBlur(sample)"
+            [attr.placeholder]="placeHolderText" (focus)="sampleDataElement.placeholder=''"> </textarea>
+  <i class="fa fa-caret-right sample-iterator sample-available" aria-hidden="true" (click)="getNextSample()"></i>
+</div>

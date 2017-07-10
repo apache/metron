@@ -19,11 +19,10 @@ package org.apache.metron.management;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.metron.common.configuration.IndexingConfigurations;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.common.stellar.StellarProcessor;
-import org.apache.metron.common.stellar.shell.StellarExecutor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.stellar.common.StellarProcessor;
+import org.apache.metron.stellar.common.shell.StellarExecutor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

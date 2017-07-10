@@ -24,6 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
@@ -37,6 +38,7 @@ import java.util.Map;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyVararg;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.verifyNew;
@@ -73,6 +75,7 @@ public class StormCLIWrapperTest {
     when(environment.getProperty(MetronRestConstants.PARSER_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/start_parser");
     when(environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY)).thenReturn("kafka_broker_url");
     when(environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY)).thenReturn("zookeeper_url");
+    when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
     when(process.exitValue()).thenReturn(0);
 
     assertEquals(0, stormCLIWrapper.startParserTopology("bro"));
@@ -85,6 +88,7 @@ public class StormCLIWrapperTest {
     whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
 
     when(processBuilder.start()).thenReturn(process);
+    when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
     when(process.exitValue()).thenReturn(0);
 
     assertEquals(0, stormCLIWrapper.stopParserTopology("bro", false));
@@ -97,6 +101,7 @@ public class StormCLIWrapperTest {
     whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
 
     when(processBuilder.start()).thenReturn(process);
+    when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
     when(process.exitValue()).thenReturn(0);
 
     assertEquals(0, stormCLIWrapper.stopParserTopology("bro", true));
@@ -110,6 +115,7 @@ public class StormCLIWrapperTest {
 
     when(processBuilder.start()).thenReturn(process);
     when(environment.getProperty(MetronRestConstants.ENRICHMENT_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/start_enrichment");
+    when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
     when(process.exitValue()).thenReturn(0);
 
     assertEquals(0, stormCLIWrapper.startEnrichmentTopology());
@@ -123,6 +129,7 @@ public class StormCLIWrapperTest {
     whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
 
     when(processBuilder.start()).thenReturn(process);
+    when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
     when(process.exitValue()).thenReturn(0);
 
     assertEquals(0, stormCLIWrapper.stopEnrichmentTopology(false));
@@ -136,6 +143,7 @@ public class StormCLIWrapperTest {
 
     when(processBuilder.start()).thenReturn(process);
     when(environment.getProperty(MetronRestConstants.INDEXING_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/start_indexing");
+    when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
     when(process.exitValue()).thenReturn(0);
 
     assertEquals(0, stormCLIWrapper.startIndexingTopology());
@@ -149,6 +157,7 @@ public class StormCLIWrapperTest {
     whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
 
     when(processBuilder.start()).thenReturn(process);
+    when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
     when(process.exitValue()).thenReturn(0);
 
     assertEquals(0, stormCLIWrapper.stopIndexingTopology(false));
@@ -212,5 +221,20 @@ public class StormCLIWrapperTest {
     when(processBuilder.start()).thenThrow(new IOException());
 
     stormCLIWrapper.stormClientVersionInstalled();
+  }
+
+  @Test
+  public void kinitShouldRunCommandProperly() throws Exception {
+    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
+
+    when(processBuilder.start()).thenReturn(process);
+    when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(true);
+    when(environment.getProperty(MetronRestConstants.KERBEROS_KEYTAB_SPRING_PROPERTY)).thenReturn("metron keytabLocation");
+    when(environment.getProperty(MetronRestConstants.KERBEROS_PRINCIPLE_SPRING_PROPERTY)).thenReturn("metron principal");
+    when(process.exitValue()).thenReturn(0);
+
+    stormCLIWrapper.kinit();
+    verify(process, times(1)).waitFor();
+    verifyNew(ProcessBuilder.class).withArguments("kinit", "-kt", "metron keytabLocation", "metron principal");
   }
 }

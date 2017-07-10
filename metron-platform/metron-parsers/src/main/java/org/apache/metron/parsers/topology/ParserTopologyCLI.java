@@ -17,6 +17,8 @@
  */
 package org.apache.metron.parsers.topology;
 
+import org.apache.metron.common.Constants;
+import org.apache.metron.storm.kafka.flux.SpoutConfiguration;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
@@ -26,19 +28,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
-import org.apache.metron.common.spout.kafka.SpoutConfig;
-import org.apache.metron.common.spout.kafka.SpoutConfigOptions;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.parsers.topology.config.Arg;
 import org.apache.metron.parsers.topology.config.ConfigHandlers;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.function.Function;
 
 public class ParserTopologyCLI {
@@ -58,7 +54,7 @@ public class ParserTopologyCLI {
     BROKER_URL("k", code -> {
       Option o = new Option(code, "kafka", true, "Kafka Broker URL");
       o.setArgName("BROKER_URL");
-      o.setRequired(true);
+      o.setRequired(false);
       return o;
     }),
     SENSOR_TYPE("s", code -> {
@@ -156,7 +152,11 @@ public class ParserTopologyCLI {
     }, new ConfigHandlers.SetMessageTimeoutHandler()
     )
     ,EXTRA_OPTIONS("e", code -> {
-      Option o = new Option(code, "extra_topology_options", true, "Extra options in the form of a JSON file with a map for content.");
+      Option o = new Option(code, "extra_topology_options", true
+                           , "Extra options in the form of a JSON file with a map for content." +
+                             "  Available options are those in the Kafka Consumer Configs at http://kafka.apache.org/0100/documentation.html#newconsumerconfigs" +
+                             " and " + Joiner.on(",").join(SpoutConfiguration.allOptions())
+                           );
       o.setArgName("JSON_FILE");
       o.setRequired(false);
       o.setType(String.class);
@@ -167,9 +167,33 @@ public class ParserTopologyCLI {
       Option o = new Option(code
                            , "extra_kafka_spout_config"
                            , true
-                           , "Extra spout config options in the form of a JSON file with a map for content.  " +
-                             "Possible keys are: " + Joiner.on(",").join(SpoutConfigOptions.values()));
+                           , "Extra spout config options in the form of a JSON file with a map for content."
+                           );
       o.setArgName("JSON_FILE");
+      o.setRequired(false);
+      o.setType(String.class);
+      return o;
+    }
+    )
+    ,SECURITY_PROTOCOL("ksp", code -> {
+      Option o = new Option(code
+                           , "kafka_security_protocol"
+                           , true
+                           , "The kafka security protocol to use (if running with a kerberized cluster).  E.g. PLAINTEXTSASL"
+                           );
+      o.setArgName("SECURITY_PROTOCOL");
+      o.setRequired(false);
+      o.setType(String.class);
+      return o;
+    }
+    )
+    ,OUTPUT_TOPIC("ot", code -> {
+      Option o = new Option(code
+                           , "output_topic"
+                           , true
+                           , "The output kafka topic for the parser.  If unset, the default is " + Constants.ENRICHMENT_TOPIC
+                           );
+      o.setArgName("KAFKA_TOPIC");
       o.setRequired(false);
       o.setType(String.class);
       return o;
@@ -179,13 +203,6 @@ public class ParserTopologyCLI {
     {
       Option o = new Option("t", "test", true, "Run in Test Mode");
       o.setArgName("TEST");
-      o.setRequired(false);
-      return o;
-    })
-    ,KAFKA_OFFSET("koff", code ->
-    {
-      Option o = new Option("koff", "kafka_offset", true, "Kafka offset");
-      o.setArgName("BEGINNING|WHERE_I_LEFT_OFF");
       o.setRequired(false);
       return o;
     })
@@ -276,7 +293,7 @@ public class ParserTopologyCLI {
         System.exit(0);
       }
       String zookeeperUrl = ParserOptions.ZK_QUORUM.get(cmd);;
-      String brokerUrl = ParserOptions.BROKER_URL.get(cmd);
+      Optional<String> brokerUrl = ParserOptions.BROKER_URL.has(cmd)?Optional.of(ParserOptions.BROKER_URL.get(cmd)):Optional.empty();
       String sensorType= ParserOptions.SENSOR_TYPE.get(cmd);
       int spoutParallelism = Integer.parseInt(ParserOptions.SPOUT_PARALLELISM.get(cmd, "1"));
       int spoutNumTasks = Integer.parseInt(ParserOptions.SPOUT_NUM_TASKS.get(cmd, "1"));
@@ -286,28 +303,27 @@ public class ParserTopologyCLI {
       int errorNumTasks= Integer.parseInt(ParserOptions.ERROR_WRITER_NUM_TASKS.get(cmd, "1"));
       int invalidParallelism = Integer.parseInt(ParserOptions.INVALID_WRITER_PARALLELISM.get(cmd, "1"));
       int invalidNumTasks= Integer.parseInt(ParserOptions.INVALID_WRITER_NUM_TASKS.get(cmd, "1"));
-      EnumMap<SpoutConfigOptions, Object> spoutConfig = new EnumMap<SpoutConfigOptions, Object>(SpoutConfigOptions.class);
+      Map<String, Object> spoutConfig = new HashMap<>();
       if(ParserOptions.SPOUT_CONFIG.has(cmd)) {
         spoutConfig = readSpoutConfig(new File(ParserOptions.SPOUT_CONFIG.get(cmd)));
       }
-      SpoutConfig.Offset offset = cmd.hasOption("t") ? SpoutConfig.Offset.BEGINNING : SpoutConfig.Offset.WHERE_I_LEFT_OFF;
-      if(cmd.hasOption("koff")) {
-        offset = SpoutConfig.Offset.valueOf(cmd.getOptionValue("koff"));
-      }
+      Optional<String> outputTopic = ParserOptions.OUTPUT_TOPIC.has(cmd)?Optional.of(ParserOptions.OUTPUT_TOPIC.get(cmd)):Optional.empty();
+      Optional<String> securityProtocol = ParserOptions.SECURITY_PROTOCOL.has(cmd)?Optional.of(ParserOptions.SECURITY_PROTOCOL.get(cmd)):Optional.empty();
+      securityProtocol = getSecurityProtocol(securityProtocol, spoutConfig);
       TopologyBuilder builder = ParserTopologyBuilder.build(zookeeperUrl,
               brokerUrl,
               sensorType,
-              offset,
               spoutParallelism,
               spoutNumTasks,
               parserParallelism,
               parserNumTasks,
               errorParallelism,
               errorNumTasks,
-              spoutConfig
+              spoutConfig,
+              securityProtocol,
+              outputTopic
       );
       Config stormConf = ParserOptions.getConfig(cmd);
-
       if (ParserOptions.TEST.has(cmd)) {
         stormConf.put(Config.TOPOLOGY_DEBUG, true);
         LocalCluster cluster = new LocalCluster();
@@ -322,7 +338,22 @@ public class ParserTopologyCLI {
       System.exit(-1);
     }
   }
-  private static EnumMap<SpoutConfigOptions, Object> readSpoutConfig(File inputFile) {
+
+  private static Optional<String> getSecurityProtocol(Optional<String> protocol, Map<String, Object> spoutConfig) {
+    Optional<String> ret = protocol;
+    if(ret.isPresent() && protocol.get().equalsIgnoreCase("PLAINTEXT")) {
+      ret = Optional.empty();
+    }
+    if(!ret.isPresent()) {
+      ret = Optional.ofNullable((String) spoutConfig.get("security.protocol"));
+    }
+    if(ret.isPresent() && protocol.get().equalsIgnoreCase("PLAINTEXT")) {
+      ret = Optional.empty();
+    }
+    return ret;
+  }
+
+  private static Map<String, Object> readSpoutConfig(File inputFile) {
     String json = null;
     if (inputFile.exists()) {
       try {
@@ -335,8 +366,8 @@ public class ParserTopologyCLI {
       throw new IllegalArgumentException("Unable to load JSON file at " + inputFile.getAbsolutePath());
     }
     try {
-      return SpoutConfigOptions.coerceMap(JSONUtils.INSTANCE.load(json, new TypeReference<Map<String, Object>>() {
-      }));
+      return JSONUtils.INSTANCE.load(json, new TypeReference<Map<String, Object>>() {
+      });
     } catch (IOException e) {
       throw new IllegalStateException("Unable to process JSON.", e);
     }

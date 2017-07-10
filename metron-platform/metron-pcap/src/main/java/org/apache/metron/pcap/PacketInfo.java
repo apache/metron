@@ -37,6 +37,9 @@ import org.apache.metron.pcap.utils.PcapUtils;
  */
 public class PacketInfo {
 
+  /** The packet data */
+  private byte[] packetBytes = null;
+
   /** The packetHeader. */
   private PacketHeader packetHeader = null;
 
@@ -158,9 +161,18 @@ public class PacketInfo {
    *          the tcp packet
    * @param udpPacket
    *          the udp packet
+   * @param packetBytes
+   *          the raw packet data
    */
-  public PacketInfo(GlobalHeader globalHeader, PacketHeader packetHeader, PcapPacket packet, Ipv4Packet ipv4Packet, TcpPacket tcpPacket,
-      UdpPacket udpPacket) {
+  public PacketInfo( GlobalHeader globalHeader
+                   , PacketHeader packetHeader
+                   , PcapPacket packet
+                   , Ipv4Packet ipv4Packet
+                   , TcpPacket tcpPacket
+                   , UdpPacket udpPacket
+                   , byte[] packetBytes
+                   ) {
+    this.packetBytes = packetBytes;
     this.packetHeader = packetHeader;
     this.packet = packet;
     this.ipv4Packet = ipv4Packet;
@@ -176,6 +188,15 @@ public class PacketInfo {
    */
   public GlobalHeader getGlobalHeader() {
     return globalHeader;
+  }
+  /**
+   * Gets the packet raw data.
+   *
+   *
+   * @return the packet data
+   */
+  public byte[] getPacketBytes() {
+    return packetBytes;
   }
 
   /**

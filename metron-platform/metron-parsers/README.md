@@ -1,4 +1,4 @@
-#Parsers
+# Parsers
 
 ## Introduction
 
@@ -32,13 +32,12 @@ topology in kafka.  Errors are collected with the context of the error
 `error` queue.  Invalid messages as determined by global validation
 functions are also treated as errors and sent to an `error` queue. 
  
-##Message Format
+## Message Format
 
 All Metron messages follow a specific format in order to ingest a message.  If a message does not conform to this format it will be dropped and put onto an error queue for further examination.  The message must be of a JSON format and must have a JSON tag message like so:
 
 ```
 {"message" : message content}
-
 ```
 
 Where appropriate there is also a standardization around the 5-tuple JSON fields.  This is done so the topology correlation engine further down stream can correlate messages from different topologies by these fields.  We are currently working on expanding the message standardization beyond these fields, but this feature is not yet availabe.  The standard field names are as follows:
@@ -66,15 +65,14 @@ So putting it all together a typical Metron message with all 5-tuple fields pres
 "original_string": xxx,
 "additional-field 1": xxx,
 }
-
 }
 ```
 
-##Global Configuration 
+## Global Configuration 
 
 See the "[Global Configuration](../metron-common)" section.
 
-##Parser Configuration
+## Parser Configuration
 
 The configuration for the various parser topologies is defined by JSON
 documents stored in zookeeper.
@@ -103,7 +101,7 @@ transformation which can be done to a message.  This transformation can
 * Add new fields given the values of existing fields of a message
 * Remove existing fields of a message
 
-###`fieldTransformation` configuration
+### `fieldTransformation` configuration
 
 The format of a `fieldTransformation` is as follows:
 * `input` : An array of fields or a single field representing the input.  This is optional; if unspecified, then the whole message is passed as input.
@@ -201,7 +199,7 @@ HH:mm:ss', MAP_GET(dc, dc2tz, 'UTC') )"
 Note that the `dc2tz` map is in the parser config, so it is accessible
 in the functions.
 
-###An Example Configuration for a Sensor
+### An Example Configuration for a Sensor
 Consider the following example configuration for the `yaf` sensor:
 
 ```
@@ -225,12 +223,12 @@ Consider the following example configuration for the `yaf` sensor:
 }
 ```
 
-##Parser Adapters
+## Parser Adapters
 
 Parser adapters are loaded dynamically in each Metron topology.  They
 are defined in the Parser Config (defined above) JSON file in Zookeeper.
 
-###Java Parser Adapters
+### Java Parser Adapters
 Java parser adapters are indended for higher-velocity topologies and are not easily changed or extended.  As the adoption of Metron continues we plan on extending our library of Java adapters to process more log formats.  As of this moment the Java adapters included with Metron are:
 
 * org.apache.metron.parsers.ise.BasicIseParser : Parse ISE messages
@@ -238,7 +236,7 @@ Java parser adapters are indended for higher-velocity topologies and are not eas
 * org.apache.metron.parsers.sourcefire.BasicSourcefireParser : Parse Sourcefire messages
 * org.apache.metron.parsers.lancope.BasicLancopeParser : Parse Lancope messages
 
-###Grok Parser Adapters
+### Grok Parser Adapters
 Grok parser adapters are designed primarly for someone who is not a Java coder for quickly standing up a parser adapter for lower velocity topologies.  Grok relies on Regex for message parsing, which is much slower than purpose-built Java parsers, but is more extensible.  Grok parsers are defined via a config file and the topplogy does not need to be recombiled in order to make changes to them.  An example of a Grok perser is:
 
 * org.apache.metron.parsers.GrokParser
@@ -247,7 +245,7 @@ For more information on the Grok project please refer to the following link:
 
 https://github.com/thekrakken/java-grok
 
-#Starting the Parser Topology
+# Starting the Parser Topology
 
 Starting a particular parser topology on a running Metron deployment is
 as easy as running the `start_parser_topology.sh` script located in
@@ -296,24 +294,21 @@ usage: start_parser_topology.sh
 These options are intended to configure the Storm Kafka Spout more completely.  These options can be
 specified in a JSON file containing a map associating the kafka spout configuration parameter to a value.
 The range of values possible to configure are:
-* retryDelayMaxMs
-* retryDelayMultiplier
-* retryInitialDelayMs
-* stateUpdateIntervalMs
-* bufferSizeBytes
-* fetchMaxWait
-* fetchSizeBytes
-* maxOffsetBehind
-* metricsTimeBucketSizeInSecs
-* socketTimeoutMs
+* `spout.pollTimeoutMs` -  Specifies the time, in milliseconds, spent waiting in poll if data is not available. Default is 2s
+* `spout.firstPollOffsetStrategy` - Sets the offset used by the Kafka spout in the first poll to Kafka broker upon process start.  One of
+  * `EARLIEST`
+  * `LATEST`
+  * `UNCOMMITTED_EARLIEST` - Last uncommitted and if offsets aren't found, defaults to earliest. NOTE: This is the default.
+  * `UNCOMMITTED_LATEST` - Last uncommitted and if offsets aren't found, defaults to latest.
+* `spout.offsetCommitPeriodMs` - Specifies the period, in milliseconds, the offset commit task is periodically called. Default is 15s.
+* `spout.maxUncommittedOffsets` - Defines the max number of polled offsets (records) that can be pending commit, before another poll can take place. Once this limit is reached, no more offsets (records) can be polled until the next successful commit(s) sets the number of pending offsets bellow the threshold. The default is 10,000,000. 
+* `spout.maxRetries` -  Defines the max number of retrials in case of tuple failure. The default is to retry forever, which means that no new records are committed until the previous polled records have been acked. This guarantees at once delivery of all the previously polled records.  By specifying a finite value for maxRetries, the user decides to sacrifice guarantee of delivery for the previous polled records in favor of processing more records.
+* Any of the configs in the Consumer API for [Kafka 0.10.x](http://kafka.apache.org/0100/documentation.html#newconsumerconfigs)
 
-These are described in some detail [here](https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.4/bk_storm-user-guide/content/storm-kafka-api-ref.html).
-
-For instance, creating a JSON file which will set the `bufferSizeBytes` to 2MB and `retryDelayMaxMs` to 2000 would look like
+For instance, creating a JSON file which will set the offsets to `UNCOMMITTED_EARLIEST`
 ```
 {
-  "bufferSizeBytes" : 2000000,
-  "retryDelayMaxMs" : 2000
+  "spout.firstPollOffsetStrategy" : "UNCOMMITTED_EARLIEST"
 }
 ```
 

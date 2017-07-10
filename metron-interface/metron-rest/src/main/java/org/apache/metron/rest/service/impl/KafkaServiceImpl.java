@@ -21,6 +21,7 @@ import kafka.admin.AdminOperationException;
 import kafka.admin.AdminUtils$;
 import kafka.admin.RackAwareMode;
 import kafka.utils.ZkUtils;
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.PartitionInfo;
@@ -29,6 +30,7 @@ import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.KafkaTopic;
 import org.apache.metron.rest.service.KafkaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -37,88 +39,106 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * The default service layer implementation of {@link KafkaService}.
+ *
+ * @see KafkaService
+ */
 @Service
 public class KafkaServiceImpl implements KafkaService {
-    private ZkUtils zkUtils;
-    private KafkaConsumer<String, String> kafkaConsumer;
-    private AdminUtils$ adminUtils;
+  /**
+   * The timeout used when polling Kafka.
+   */
+  private static final int KAFKA_CONSUMER_TIMEOUT = 100;
 
-    @Autowired
-    public KafkaServiceImpl(ZkUtils zkUtils, KafkaConsumer<String, String> kafkaConsumer, AdminUtils$ adminUtils) {
-        this.zkUtils = zkUtils;
-        this.kafkaConsumer = kafkaConsumer;
-        this.adminUtils = adminUtils;
+  private final ZkUtils zkUtils;
+  private final ConsumerFactory<String, String> kafkaConsumerFactory;
+  private final AdminUtils$ adminUtils;
+
+  /**
+   * @param zkUtils              A utility class used to interact with ZooKeeper.
+   * @param kafkaConsumerFactory A class used to create {@link KafkaConsumer} in order to interact with Kafka.
+   * @param adminUtils           A utility class used to do administration operations on Kafka.
+   */
+  @Autowired
+  public KafkaServiceImpl(final ZkUtils zkUtils,
+                          final ConsumerFactory<String, String> kafkaConsumerFactory,
+                          final AdminUtils$ adminUtils) {
+    this.zkUtils = zkUtils;
+    this.kafkaConsumerFactory = kafkaConsumerFactory;
+    this.adminUtils = adminUtils;
+  }
+
+  @Override
+  public KafkaTopic createTopic(final KafkaTopic topic) throws RestException {
+    if (!listTopics().contains(topic.getName())) {
+      try {
+        adminUtils.createTopic(zkUtils, topic.getName(), topic.getNumPartitions(), topic.getReplicationFactor(), topic.getProperties(), RackAwareMode.Disabled$.MODULE$);
+      } catch (AdminOperationException e) {
+        throw new RestException(e);
+      }
     }
+    return topic;
+  }
 
-    @Override
-    public KafkaTopic createTopic(KafkaTopic topic) throws RestException {
-        if (!listTopics().contains(topic.getName())) {
-          try {
-              adminUtils.createTopic(zkUtils, topic.getName(), topic.getNumPartitions(), topic.getReplicationFactor(), topic.getProperties(), RackAwareMode.Disabled$.MODULE$);
-          } catch (AdminOperationException e) {
-              throw new RestException(e);
-          }
+  @Override
+  public boolean deleteTopic(final String name) {
+    final Set<String> topics = listTopics();
+    if (topics != null && topics.contains(name)) {
+      adminUtils.deleteTopic(zkUtils, name);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public KafkaTopic getTopic(final String name) {
+    KafkaTopic kafkaTopic = null;
+    if (listTopics().contains(name)) {
+      try (Consumer<String, String> consumer = kafkaConsumerFactory.createConsumer()) {
+        final List<PartitionInfo> partitionInfos = consumer.partitionsFor(name);
+        if (partitionInfos.size() > 0) {
+          final PartitionInfo partitionInfo = partitionInfos.get(0);
+          kafkaTopic = new KafkaTopic();
+          kafkaTopic.setName(name);
+          kafkaTopic.setNumPartitions(partitionInfos.size());
+          kafkaTopic.setReplicationFactor(partitionInfo.replicas().length);
         }
-        return topic;
+      }
     }
+    return kafkaTopic;
+  }
 
-    @Override
-    public boolean deleteTopic(String name) {
-        Set<String> topics = listTopics();
-        if (topics != null && topics.contains(name)) {
-            adminUtils.deleteTopic(zkUtils, name);
-            return true;
-        } else {
-            return false;
-        }
+  @Override
+  public Set<String> listTopics() {
+    try (Consumer<String, String> consumer = kafkaConsumerFactory.createConsumer()) {
+      final Map<String, List<PartitionInfo>> topicsInfo = consumer.listTopics();
+      final Set<String> topics = topicsInfo == null ? new HashSet<>() : topicsInfo.keySet();
+      topics.remove(CONSUMER_OFFSETS_TOPIC);
+      return topics;
     }
+  }
 
-    @Override
-    public KafkaTopic getTopic(String name) {
-        KafkaTopic kafkaTopic = null;
-        if (listTopics().contains(name)) {
-            List<PartitionInfo> partitionInfos = kafkaConsumer.partitionsFor(name);
-            if (partitionInfos.size() > 0) {
-                PartitionInfo partitionInfo = partitionInfos.get(0);
-                kafkaTopic = new KafkaTopic();
-                kafkaTopic.setName(name);
-                kafkaTopic.setNumPartitions(partitionInfos.size());
-                kafkaTopic.setReplicationFactor(partitionInfo.replicas().length);
-            }
-        }
-        return kafkaTopic;
+  @Override
+  public String getSampleMessage(final String topic) {
+    String message = null;
+    if (listTopics().contains(topic)) {
+      try (Consumer<String, String> kafkaConsumer = kafkaConsumerFactory.createConsumer()) {
+        kafkaConsumer.assign(kafkaConsumer.partitionsFor(topic).stream()
+          .map(partitionInfo -> new TopicPartition(topic, partitionInfo.partition()))
+          .collect(Collectors.toList()));
+
+        kafkaConsumer.assignment().stream()
+          .filter(p -> (kafkaConsumer.position(p) - 1) >= 0)
+          .forEach(p -> kafkaConsumer.seek(p, kafkaConsumer.position(p) - 1));
+
+        final ConsumerRecords<String, String> records = kafkaConsumer.poll(KAFKA_CONSUMER_TIMEOUT);
+        message = records.isEmpty() ? null : records.iterator().next().value();
+        kafkaConsumer.unsubscribe();
+      }
     }
-
-    @Override
-    public Set<String> listTopics() {
-        Set<String> topics;
-        synchronized (this) {
-            Map<String, List<PartitionInfo>> topicsInfo = kafkaConsumer.listTopics();
-            topics = topicsInfo == null ? new HashSet<>() : topicsInfo.keySet();
-            topics.remove(CONSUMER_OFFSETS_TOPIC);
-        }
-        return topics;
-    }
-
-    @Override
-    public String getSampleMessage(String topic) {
-        String message = null;
-        if (listTopics().contains(topic)) {
-            synchronized (this) {
-                kafkaConsumer.assign(kafkaConsumer.partitionsFor(topic).stream()
-                    .map(partitionInfo -> new TopicPartition(topic, partitionInfo.partition()))
-                    .collect(Collectors.toList()));
-
-                kafkaConsumer.assignment().stream()
-                    .filter(p -> (kafkaConsumer.position(p) -1) >= 0)
-                    .forEach(p -> kafkaConsumer.seek(p, kafkaConsumer.position(p) - 1));
-
-                ConsumerRecords<String, String> records = kafkaConsumer.poll(100);
-                message  = records.isEmpty() ? null : records.iterator().next().value();
-                kafkaConsumer.unsubscribe();
-            }
-        }
-        return message;
-    }
+    return message;
+  }
 
 }

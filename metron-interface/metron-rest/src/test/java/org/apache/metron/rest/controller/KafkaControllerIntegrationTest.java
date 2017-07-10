@@ -17,7 +17,10 @@
  */
 package org.apache.metron.rest.controller;
 
+import kafka.common.TopicAlreadyMarkedForDeletionException;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.integration.ComponentRunner;
+import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.rest.generator.SampleDataGenerator;
 import org.apache.metron.rest.service.KafkaService;
@@ -33,8 +36,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.util.NestedServletException;
 
 import java.io.IOException;
 
@@ -54,135 +59,218 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles(TEST_PROFILE)
 public class KafkaControllerIntegrationTest {
 
-    @Autowired
-    private KafkaComponent kafkaWithZKComponent;
+  private static final int KAFKA_RETRY = 10;
+  // A bug in Spring and/or Kafka forced us to move into a component that is spun up and down per test-case
+  // Given the large spinup time of components, please avoid this pattern until we upgrade Spring.
+  // See: https://issues.apache.org/jira/browse/METRON-1009
+  @Autowired
+  private KafkaComponent kafkaWithZKComponent;
+  private ComponentRunner runner;
 
-    class SampleDataRunner implements Runnable {
 
-        private boolean stop = false;
-        private String path = "../../metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput";
+  interface Evaluation {
+    void tryTest() throws Exception;
+  }
 
-        @Override
-        public void run() {
-            SampleDataGenerator broSampleDataGenerator = new SampleDataGenerator();
-            broSampleDataGenerator.setBrokerUrl(kafkaWithZKComponent.getBrokerList());
-            broSampleDataGenerator.setNum(1);
-            broSampleDataGenerator.setSelectedSensorType("bro");
-            broSampleDataGenerator.setDelay(0);
-            try {
-                while(!stop) {
-                    broSampleDataGenerator.generateSampleData(path);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+  private void testAndRetry(Evaluation evaluation) throws Exception{
+    testAndRetry(KAFKA_RETRY, evaluation);
+  }
+
+  private void testAndRetry(int numRetries, Evaluation evaluation) throws Exception {
+    AssertionError lastError = null;
+    for(int i = 0;i < numRetries;++i) {
+      try {
+        evaluation.tryTest();
+        return;
+      }
+      catch(AssertionError error) {
+        if(error.getMessage().contains("but was:<404>")) {
+          lastError = error;
+          Thread.sleep(1000);
+          continue;
         }
-
-        public void stop() {
-            stop = true;
+        else {
+          throw error;
         }
+      }
+    }
+    if(lastError != null) {
+      throw lastError;
+    }
+  }
+
+  class SampleDataRunner implements Runnable {
+
+    private boolean stop = false;
+    private String path = "../../metron-platform/metron-integration-test/src/main/sample/data/bro/raw/BroExampleOutput";
+
+    @Override
+    public void run() {
+      SampleDataGenerator broSampleDataGenerator = new SampleDataGenerator();
+      broSampleDataGenerator.setBrokerUrl(kafkaWithZKComponent.getBrokerList());
+      broSampleDataGenerator.setNum(1);
+      broSampleDataGenerator.setSelectedSensorType("bro");
+      broSampleDataGenerator.setDelay(0);
+      try {
+        while(!stop) {
+          broSampleDataGenerator.generateSampleData(path);
+        }
+      } catch (ParseException|IOException e) {
+        throw new IllegalStateException("Caught an error generating sample data", e);
+      }
     }
 
-    private SampleDataRunner sampleDataRunner =  new SampleDataRunner();
-    private Thread sampleDataThread = new Thread(sampleDataRunner);
+    public void stop() {
+      stop = true;
+    }
+  }
 
-    /**
-     {
-     "name": "bro",
-     "numPartitions": 1,
-     "properties": {},
-     "replicationFactor": 1
-     }
-     */
-    @Multiline
-    public static String broTopic;
+  private SampleDataRunner sampleDataRunner =  new SampleDataRunner();
+  private Thread sampleDataThread = new Thread(sampleDataRunner);
 
-    @Autowired
-    private WebApplicationContext wac;
+  /**
+   {
+   "name": "bro",
+   "numPartitions": 1,
+   "properties": {},
+   "replicationFactor": 1
+   }
+   */
+  @Multiline
+  public static String broTopic;
 
-    @Autowired
-    private KafkaService kafkaService;
+  @Autowired
+  private WebApplicationContext wac;
 
-    private MockMvc mockMvc;
+  @Autowired
+  private KafkaService kafkaService;
 
-    private String kafkaUrl = "/api/v1/kafka";
-    private String user = "user";
-    private String password = "password";
+  private MockMvc mockMvc;
 
-    @Before
-    public void setup() throws Exception {
-        this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
+  private String kafkaUrl = "/api/v1/kafka";
+  private String user = "user";
+  private String password = "password";
+
+  @Before
+  public void setup() throws Exception {
+    runner = new ComponentRunner.Builder()
+            .withComponent("kafka", kafkaWithZKComponent)
+            .withCustomShutdownOrder(new String[]{"kafka"})
+            .build();
+    try {
+      runner.start();
+    } catch (UnableToStartException e) {
+      e.printStackTrace();
+    }
+    this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
+  }
+
+  @Test
+  public void testSecurity() throws Exception {
+    this.mockMvc.perform(post(kafkaUrl + "/topic").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broTopic))
+            .andExpect(status().isUnauthorized());
+
+    this.mockMvc.perform(get(kafkaUrl + "/topic/bro"))
+            .andExpect(status().isUnauthorized());
+
+    this.mockMvc.perform(get(kafkaUrl + "/topic"))
+            .andExpect(status().isUnauthorized());
+
+    this.mockMvc.perform(get(kafkaUrl + "/topic/bro/sample"))
+            .andExpect(status().isUnauthorized());
+
+    this.mockMvc.perform(delete(kafkaUrl + "/topic/bro").with(csrf()))
+            .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  public void test() throws Exception {
+    this.kafkaService.deleteTopic("bro");
+    this.kafkaService.deleteTopic("someTopic");
+    Thread.sleep(1000);
+    testAndRetry(() -> this.mockMvc.perform(delete(kafkaUrl + "/topic/bro").with(httpBasic(user,password)).with(csrf()))
+            .andExpect(status().isNotFound())
+    );
+
+    testAndRetry(() ->
+    this.mockMvc.perform(post(kafkaUrl + "/topic").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broTopic))
+            .andExpect(status().isCreated())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.name").value("bro"))
+            .andExpect(jsonPath("$.numPartitions").value(1))
+            .andExpect(jsonPath("$.replicationFactor").value(1))
+    );
+    sampleDataThread.start();
+    Thread.sleep(1000);
+    testAndRetry(() ->
+    this.mockMvc.perform(get(kafkaUrl + "/topic/bro").with(httpBasic(user,password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.name").value("bro"))
+            .andExpect(jsonPath("$.numPartitions").value(1))
+            .andExpect(jsonPath("$.replicationFactor").value(1))
+    );
+
+
+    this.mockMvc.perform(get(kafkaUrl + "/topic/someTopic").with(httpBasic(user,password)))
+            .andExpect(status().isNotFound());
+
+    testAndRetry(() ->
+    this.mockMvc.perform(get(kafkaUrl + "/topic").with(httpBasic(user,password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$", Matchers.hasItem("bro")))
+    );
+
+    for(int i = 0;i < KAFKA_RETRY;++i) {
+      MvcResult result = this.mockMvc.perform(get(kafkaUrl + "/topic/bro/sample").with(httpBasic(user, password)))
+              .andReturn();
+      if(result.getResponse().getStatus() == 200) {
+        break;
+      }
+      Thread.sleep(1000);
     }
 
-    @Test
-    public void testSecurity() throws Exception {
-        this.mockMvc.perform(post(kafkaUrl + "/topic").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broTopic))
-                .andExpect(status().isUnauthorized());
+    testAndRetry(() ->
+    this.mockMvc.perform(get(kafkaUrl + "/topic/bro/sample").with(httpBasic(user,password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("text/plain;charset=UTF-8")))
+            .andExpect(jsonPath("$").isNotEmpty())
+    );
 
-        this.mockMvc.perform(get(kafkaUrl + "/topic/bro"))
-                .andExpect(status().isUnauthorized());
-
-        this.mockMvc.perform(get(kafkaUrl + "/topic"))
-                .andExpect(status().isUnauthorized());
-
-        this.mockMvc.perform(get(kafkaUrl + "/topic/bro/sample"))
-                .andExpect(status().isUnauthorized());
-
-        this.mockMvc.perform(delete(kafkaUrl + "/topic/bro").with(csrf()))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    public void test() throws Exception {
-        this.kafkaService.deleteTopic("bro");
-        this.kafkaService.deleteTopic("someTopic");
+    this.mockMvc.perform(get(kafkaUrl + "/topic/someTopic/sample").with(httpBasic(user,password)))
+            .andExpect(status().isNotFound());
+    boolean deleted = false;
+    for(int i = 0;i < KAFKA_RETRY;++i) {
+      try {
+        MvcResult result = this.mockMvc.perform(delete(kafkaUrl + "/topic/bro").with(httpBasic(user, password)).with(csrf())).andReturn();
+        if(result.getResponse().getStatus() == 200) {
+          deleted = true;
+          break;
+        }
         Thread.sleep(1000);
-
-        this.mockMvc.perform(delete(kafkaUrl + "/topic/bro").with(httpBasic(user,password)).with(csrf()))
-                .andExpect(status().isNotFound());
-
-        this.mockMvc.perform(post(kafkaUrl + "/topic").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broTopic))
-                .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-                .andExpect(jsonPath("$.name").value("bro"))
-                .andExpect(jsonPath("$.numPartitions").value(1))
-                .andExpect(jsonPath("$.replicationFactor").value(1));
-
-        sampleDataThread.start();
-        Thread.sleep(1000);
-
-        this.mockMvc.perform(get(kafkaUrl + "/topic/bro").with(httpBasic(user,password)))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-                .andExpect(jsonPath("$.name").value("bro"))
-                .andExpect(jsonPath("$.numPartitions").value(1))
-                .andExpect(jsonPath("$.replicationFactor").value(1));
-
-        this.mockMvc.perform(get(kafkaUrl + "/topic/someTopic").with(httpBasic(user,password)))
-                .andExpect(status().isNotFound());
-
-        this.mockMvc.perform(get(kafkaUrl + "/topic").with(httpBasic(user,password)))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-                .andExpect(jsonPath("$", Matchers.hasItem("bro")));
-
-
-        this.mockMvc.perform(get(kafkaUrl + "/topic/bro/sample").with(httpBasic(user,password)))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.parseMediaType("text/plain;charset=UTF-8")))
-                .andExpect(jsonPath("$").isNotEmpty());
-
-        this.mockMvc.perform(get(kafkaUrl + "/topic/someTopic/sample").with(httpBasic(user,password)))
-                .andExpect(status().isNotFound());
-
-        this.mockMvc.perform(delete(kafkaUrl + "/topic/bro").with(httpBasic(user,password)).with(csrf()))
-                .andExpect(status().isOk());
+      }
+      catch(NestedServletException nse) {
+        Throwable t = nse.getRootCause();
+        if(t instanceof TopicAlreadyMarkedForDeletionException) {
+          continue;
+        }
+        else {
+          throw nse;
+        }
+      }
+      catch(Throwable t) {
+        throw t;
+      }
     }
-
-    @After
-    public void tearDown() {
-        sampleDataRunner.stop();
+    if(!deleted) {
+      throw new IllegalStateException("Unable to delete kafka topic \"bro\"");
     }
+  }
+
+  @After
+  public void tearDown() {
+    sampleDataRunner.stop();
+    runner.stop();
+  }
 }

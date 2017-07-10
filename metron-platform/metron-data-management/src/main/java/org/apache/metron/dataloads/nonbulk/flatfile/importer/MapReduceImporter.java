@@ -21,6 +21,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
+import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
 import org.apache.hadoop.hbase.mapreduce.TableOutputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.log4j.Logger;
@@ -66,6 +67,7 @@ public enum MapReduceImporter implements Importer{
     job.setNumReduceTasks(0);
     List<Path> paths = inputs.stream().map(p -> new Path(p)).collect(Collectors.toList());
     handler.getInputFormat().set(job, paths, handler.getConfig());
+    TableMapReduceUtil.initCredentials(job);
     try {
       job.waitForCompletion(true);
     } catch (Exception e) {

@@ -19,25 +19,48 @@
 #ifndef METRON_KAFKA_H
 #define METRON_KAFKA_H
 
+#include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
 #include <endian.h>
+#include <glib.h>
 #include <librdkafka/rdkafka.h>
 #include <rte_common.h>
 #include <rte_mbuf.h>
 #include "args.h"
+#include "types.h"
 
-/**
+#define POLL_TIMEOUT_MS 1000
+
+/*
  * Initializes a pool of Kafka connections.
  */
-void kaf_init(int num_of_conns);
+void kaf_init(
+    int num_of_conns,
+    const char* kafka_topic,
+    const char* kafka_config_path,
+    const char* kafka_stats_path);
 
-/**
+/*
  * Publish a set of packets to a kafka topic.
  */
-int kaf_send(struct rte_mbuf* data, int num_to_send, int conn_id);
+int kaf_send(
+    struct rte_mbuf* data[],
+    int num_to_send,
+    int conn_id);
 
-/**
+/*
+ * Executes polling across all of the kafka client connections.  Ensures that any queued
+ * callbacks are served.
+ */
+void kaf_poll(void);
+
+/*
+ * Retrieves a summary of statistics across all of the kafka client connections.
+ */
+int kaf_stats(app_stats *stats);
+
+/*
  * Closes the pool of Kafka connections.
  */
 void kaf_close(void);

@@ -19,17 +19,23 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.metron</groupId>
     <artifactId>Metron</artifactId>
-    <version>0.3.1</version>
+    <version>0.4.1</version>
     <packaging>pom</packaging>
     <name>Metron</name>
     <description>Metron Top Level Project</description>
-    <url>https://metron.incubator.apache.org/</url>
+    <url>https://metron.apache.org/</url>
+    <organization>
+        <name>The Apache Software Foundation</name>
+        <url>https://www.apache.org</url>
+    </organization>
     <modules>
-            <module>metron-analytics</module>
-            <module>metron-platform</module>
-            <module>metron-deployment</module>
-            <module>metron-docker</module>
-            <module>metron-interface</module>
+        <module>metron-analytics</module>
+        <module>metron-platform</module>
+        <module>metron-deployment</module>
+        <module>metron-docker</module>
+        <module>metron-interface</module>
+        <module>site-book</module>
+        <module>metron-stellar</module>
     </modules>
 
     <repositories>
@@ -67,20 +73,21 @@
         <!-- base project versions -->
         <base_storm_version>1.0.1</base_storm_version>
         <base_flux_version>1.0.1</base_flux_version>
-        <base_kafka_version>0.10.0.1</base_kafka_version>
+        <base_kafka_version>0.10.0</base_kafka_version>
         <base_hadoop_version>2.7.1</base_hadoop_version>
         <base_hbase_version>1.1.1</base_hbase_version>
-        <global_accumulo_version>1.8.0</global_accumulo_version>
         <base_flume_version>1.5.2</base_flume_version>
         <!-- full dependency versions -->
+        <global_accumulo_version>1.8.0</global_accumulo_version>
         <global_antlr_version>4.5</global_antlr_version>
         <global_opencsv_version>3.7</global_opencsv_version>
         <global_curator_version>2.7.1</global_curator_version>
         <global_classindex_version>3.3</global_classindex_version>
-        <global_storm_version>${base_storm_version}</global_storm_version>
+        <global_storm_version>1.0.3</global_storm_version>
+        <global_storm_kafka_version>1.1.0</global_storm_kafka_version>
         <global_flux_version>${base_flux_version}</global_flux_version>
         <global_pcap_version>1.7.1</global_pcap_version>
-        <global_kafka_version>${base_kafka_version}</global_kafka_version>
+        <global_kafka_version>0.10.0.1</global_kafka_version>
         <global_hadoop_version>${base_hadoop_version}</global_hadoop_version>
         <global_hbase_version>${base_hbase_version}</global_hbase_version>
         <global_flume_version>${base_flume_version}</global_flume_version>
@@ -100,6 +107,11 @@
         <global_jackson_version>2.7.4</global_jackson_version>
         <global_errorprone_core_version>2.0.14</global_errorprone_core_version>
         <global_jar_version>3.0.2</global_jar_version>
+        <global_surefire_version>2.18</global_surefire_version>
+        <global_maven_version>[3.3.1,)</global_maven_version>
+        <global_kryo_version>3.0.3</global_kryo_version>
+        <global_kryo_serializers_version>0.38</global_kryo_serializers_version>
+        <argLine></argLine>
     </properties>
 
     <profiles>
@@ -108,7 +120,9 @@
             <properties>
                 <hdp_version>2.5.0.0</hdp_version>
                 <build_number>1245</build_number>
+                <global_storm_kafka_version>1.1.0</global_storm_kafka_version>
                 <global_storm_version>${base_storm_version}.${hdp_version}-${build_number}</global_storm_version>
+                <global_kafka_version>${base_kafka_version}.${hdp_version}-${build_number}</global_kafka_version>
             </properties>
         </profile>
     </profiles>
@@ -134,10 +148,10 @@
                     <!-- Separates the unit tests from the integration tests. -->
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.18</version>
+                    <version>${global_surefire_version}</version>
                     <configuration>
                         <!-- Skip the default running of this plug-in (or everything is run twice...see below) -->
-                        <argLine>-Xmx2048m</argLine>
+                        <argLine>@{argLine} -Xmx2048m</argLine>
                         <skip>true</skip>
                         <!-- Show 100% of the lines from the stack trace (doesn't work) -->
                         <trimStackTrace>false</trimStackTrace>
@@ -183,10 +197,18 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
                     <version>2.6</version>
+                    <configuration>
+                        <tarLongFileMode>posix</tarLongFileMode>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-site-plugin</artifactId>
+              <version>3.6</version>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -227,6 +249,25 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.9</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.rat</groupId>
                 <artifactId>apache-rat-plugin</artifactId>
                 <version>0.12</version>
@@ -239,13 +280,14 @@
                     </execution>
                 </executions>
                 <configuration>
-                  <excludes>
+                    <excludes>
                         <exclude>dependencies_with_url.csv</exclude>
                         <!-- In travis we need to pull down maven 3.3.9, so we should exclude it here as it is not our code. -->
                         <exclude>apache-maven-3.3.9/**</exclude>
                         <exclude>**/*.md</exclude>
                         <exclude>**/VERSION</exclude>
                         <exclude>**/*.json</exclude>
+                        <exclude>**/*.json.j2</exclude>
                         <exclude>**/*.tokens</exclude>
                         <exclude>**/*.log</exclude>
                         <exclude>**/*.template</exclude>
@@ -263,7 +305,6 @@
                         <exclude>**/dependency-reduced-pom.xml</exclude>
                         <exclude>**/target/**</exclude>
                         <exclude>**/bro-plugin-kafka/build/**</exclude>
-                        <exclude>**/files/opensoc-ui</exclude>
                         <!-- pickle file - binary format -->
                         <exclude>**/src/main/resources/common-services/KIBANA/4.5.1/package/scripts/dashboard/dashboard.p</exclude>
                         <!-- Files from Chef/bento -->
@@ -274,10 +315,142 @@
                         <exclude>**/hbase/data/**</exclude>
                         <exclude>**/kafkazk/data/**</exclude>
                         <exclude>**/wait-for-it.sh</exclude>
-			<exclude>**/*.out</exclude>
+                        <exclude>**/*.out</exclude>
+                        <!-- Directory containing dependencies downloaded by NPM -->
+                        <exclude>node_modules/**</exclude>
+                        <!-- Nodejs installed locally by the frontend-maven-plugin -->
+                        <exclude>node/**</exclude>
+                        <!-- Javascript code coverage report generated by Istanbul -->
+                        <exclude>coverage/**</exclude>
+                        <!-- ACE editor assets are covered in the metron-config NOTICE file -->
+                        <exclude>**/src/assets/ace/**</exclude>
+                        <exclude>dist/assets/ace/**</exclude>
+                        <!-- Generated svg containing Font Awesome fonts are covered in the metron-config README and NOTICE file -->
+                        <exclude>dist/*.svg</exclude>
+
+                        <exclude>e2e/*.js.map</exclude>
                     </excludes>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.4.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-versions</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>${global_maven_version}</version>
+                                </requireMavenVersion>
+                                <requireJavaVersion>
+                                    <version>${global_java_version}</version>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <distributionManagement>
+        <site>
+            <id>metron</id>
+            <name>Metron</name>
+            <url>file:///tmp/metron/site/</url>
+        </site>
+    </distributionManagement>
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jxr-plugin</artifactId>
+                <version>2.3</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.4</version>
+                <configuration>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <id>default</id>
+                        <reports>
+                            <report>javadoc</report>
+                            <report>test-javadoc</report>
+                        </reports>
+                    </reportSet>
+                    <reportSet>
+                        <id>aggregate</id>
+                        <reports>
+                            <report>aggregate</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.9</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <!-- Normally, dependency report takes time, skip it -->
+                            <!--<report>dependencies</report>-->
+                            <report>index</report>
+                            <report>cim</report>
+                            <report>issue-tracking</report>
+                            <report>license</report>
+                            <report>mailing-list</report>
+                            <report>plugins</report>
+                            <report>project-team</report>
+                            <report>scm</report>
+                            <report>summary</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.17</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>checkstyle</report>
+                            <report>checkstyle-aggregate</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.9</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <!-- select non-aggregate reports -->
+                            <report>report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>3.7</version>
+                <configuration>
+                    <targetJdk>${global_java_version}</targetJdk>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
 </project>

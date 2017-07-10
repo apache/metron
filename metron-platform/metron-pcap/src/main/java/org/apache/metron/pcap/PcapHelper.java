@@ -19,8 +19,12 @@
 package org.apache.metron.pcap;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
+import java.io.EOFException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 import org.apache.metron.spout.pcap.Endianness;
@@ -37,19 +41,27 @@ import org.krakenapps.pcap.packet.PcapPacket;
 import org.krakenapps.pcap.util.Buffer;
 import org.krakenapps.pcap.util.ByteOrderConverter;
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-
-import static org.apache.metron.pcap.Constants.*;
-
 public class PcapHelper {
 
   public static final int PACKET_HEADER_SIZE = 4*Integer.BYTES;
   public static final int GLOBAL_HEADER_SIZE = 24;
   private static final Logger LOG = Logger.getLogger(PcapHelper.class);
+
+  public enum PacketFields implements org.apache.metron.common.Constants.Field{
+    PACKET_DATA("packet"),
+    PACKET_FILTER("packet_filter")
+    ;
+    String name;
+    PacketFields(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String getName() {
+      return name;
+    }
+  }
+
   public static ThreadLocal<MetronEthernetDecoder> ETHERNET_DECODER = new ThreadLocal<MetronEthernetDecoder>() {
     @Override
     protected MetronEthernetDecoder initialValue() {
@@ -57,16 +69,14 @@ public class PcapHelper {
     }
   };
 
-  public static Long getTimestamp(String filename) {
-    try {
-      return Long.parseUnsignedLong(Iterables.get(Splitter.on('_').split(filename), 2));
-    }
-    catch(Exception e) {
-      //something went wrong here.
-      return null;
-    }
-  }
-
+  /**
+   *
+   * @param topic
+   * @param timestamp
+   * @param partition kafka partition
+   * @param uuid
+   * @return filename in this format: pcap_topic_timestamp_partition_uuid, e.g. pcap_pcap_1494886105667571000_0_pcap-8-1494965816
+   */
   public static String toFilename(String topic, long timestamp, String partition, String uuid)
   {
     return Joiner.on("_").join("pcap"
@@ -149,6 +159,44 @@ public class PcapHelper {
     }
     return null;
   }
+
+  public static byte[] addHeaders(long tsNano, byte[] packet, Endianness endianness) {
+    byte[] ret = new byte[GLOBAL_HEADER_SIZE + PACKET_HEADER_SIZE + packet.length];
+    byte[] globalHeader = getPcapGlobalHeader(endianness);
+    int offset = 0;
+    System.arraycopy(globalHeader, 0, ret, offset, GLOBAL_HEADER_SIZE);
+    offset += globalHeader.length;
+    {
+      boolean swapBytes = swapBytes(endianness);
+      long micros = Long.divideUnsigned(tsNano, 1000);
+      int secs = (int)(micros / 1000000);
+      int usec = (int)(micros % 1000000);
+      int capLen = packet.length;
+      {
+        byte[] b = Bytes.toBytes(swapBytes?ByteOrderConverter.swap(secs):secs);
+        System.arraycopy(b, 0, ret, offset, Integer.BYTES);
+        offset += Integer.BYTES;
+      }
+      {
+        byte[] b = Bytes.toBytes(swapBytes?ByteOrderConverter.swap(usec):usec);
+        System.arraycopy(b, 0, ret, offset, Integer.BYTES);
+        offset += Integer.BYTES;
+      }
+      {
+        byte[] b = Bytes.toBytes(swapBytes?ByteOrderConverter.swap(capLen):capLen);
+        System.arraycopy(b, 0, ret, offset, Integer.BYTES);
+        offset += Integer.BYTES;
+      }
+      {
+        byte[] b = Bytes.toBytes(swapBytes?ByteOrderConverter.swap(capLen):capLen);
+        System.arraycopy(b, 0, ret, offset, Integer.BYTES);
+        offset += Integer.BYTES;
+      }
+    }
+    System.arraycopy(packet, 0, ret, offset, packet.length);
+    return ret;
+  }
+
   public static byte[] addGlobalHeader(byte[] packet, Endianness endianness) {
     byte[] globalHeader = getPcapGlobalHeader(endianness);
     byte[] ret = new byte[packet.length + GLOBAL_HEADER_SIZE];
@@ -190,23 +238,25 @@ public class PcapHelper {
     System.arraycopy(packet, 0, ret, offset, packet.length);
     return ret;
   }
-  public static EnumMap<org.apache.metron.common.Constants.Fields, Object> packetToFields(PacketInfo pi) {
-    EnumMap<org.apache.metron.common.Constants.Fields, Object> ret = new EnumMap(org.apache.metron.common.Constants.Fields.class);
+
+  public static Map<String, Object> packetToFields(PacketInfo pi) {
+    Map<String, Object> ret = new HashMap<>();
+    ret.put(PacketFields.PACKET_DATA.getName(), pi.getPacketBytes());
     if(pi.getTcpPacket() != null) {
       if(pi.getTcpPacket().getSourceAddress() != null) {
-        ret.put(org.apache.metron.common.Constants.Fields.SRC_ADDR, pi.getTcpPacket().getSourceAddress().getHostAddress());
+        ret.put(org.apache.metron.common.Constants.Fields.SRC_ADDR.getName(), pi.getTcpPacket().getSourceAddress().getHostAddress());
       }
       if(pi.getTcpPacket().getSource() != null ) {
-        ret.put(org.apache.metron.common.Constants.Fields.SRC_PORT, pi.getTcpPacket().getSource().getPort());
+        ret.put(org.apache.metron.common.Constants.Fields.SRC_PORT.getName(), pi.getTcpPacket().getSource().getPort());
       }
       if(pi.getTcpPacket().getDestinationAddress() != null ) {
-        ret.put(org.apache.metron.common.Constants.Fields.DST_ADDR, pi.getTcpPacket().getDestinationAddress().getHostAddress());
+        ret.put(org.apache.metron.common.Constants.Fields.DST_ADDR.getName(), pi.getTcpPacket().getDestinationAddress().getHostAddress());
       }
       if(pi.getTcpPacket().getDestination() != null ) {
-        ret.put(org.apache.metron.common.Constants.Fields.DST_PORT, pi.getTcpPacket().getDestination().getPort());
+        ret.put(org.apache.metron.common.Constants.Fields.DST_PORT.getName(), pi.getTcpPacket().getDestination().getPort());
       }
       if(pi.getIpv4Packet() != null) {
-        ret.put(org.apache.metron.common.Constants.Fields.PROTOCOL, pi.getIpv4Packet().getProtocol());
+        ret.put(org.apache.metron.common.Constants.Fields.PROTOCOL.getName(), pi.getIpv4Packet().getProtocol());
       }
     }
     return ret;
@@ -281,7 +331,7 @@ public class PcapHelper {
         }
 
         packetInfoList.add(new PacketInfo(globalHeader, packetHeader, packet,
-            ipv4Packet, tcpPacket, udpPacket));
+            ipv4Packet, tcpPacket, udpPacket, pcap));
       } catch (NegativeArraySizeException ignored) {
         LOG.debug("Ignorable exception while parsing packet.", ignored);
       } catch (EOFException eof) { // $codepro.audit.disable logExceptions
@@ -300,4 +350,14 @@ public class PcapHelper {
     }
     return messages;
   }
+
+  public static boolean greaterThanOrEqualTo(long a, long b) {
+    return Long.compareUnsigned(a, b) >= 0;
+  }
+
+  public static boolean lessThanOrEqualTo(long a, long b) {
+    return Long.compareUnsigned(a, b) <= 0;
+  }
+
 }
+

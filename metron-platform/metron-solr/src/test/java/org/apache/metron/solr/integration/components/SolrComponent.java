@@ -109,6 +109,15 @@ public class SolrComponent implements InMemoryComponent {
     }
   }
 
+  @Override
+  public void reset() {
+    try {
+      miniSolrCloudCluster.deleteCollection("metron");
+    } catch (SolrServerException | IOException e) {
+      // Do nothing
+    }
+  }
+
   public MetronSolrClient getSolrClient() {
     return new MetronSolrClient(getZookeeperUrl());
   }

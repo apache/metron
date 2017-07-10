@@ -18,9 +18,10 @@
     <parent>
         <artifactId>metron-analytics</artifactId>
         <groupId>org.apache.metron</groupId>
-        <version>0.3.1</version>
+        <version>0.4.1</version>
     </parent>
     <artifactId>metron-profiler-common</artifactId>
+    <url>https://metron.apache.org/</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

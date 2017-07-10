@@ -1,0 +1,110 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@import "../../_variables.scss";
+@import "../../../styles.scss";
+
+.metron-readonly-pane {
+  margin-bottom: $button-bar-height + 10px;
+}
+
+.metron-button-bar
+{
+  background: $gray-light;
+  border-top: solid 2px $gray-border;
+  border-left: solid 1px $gray-border;
+  position: fixed;
+  width: inherit;
+}
+
+.grok
+{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: Roboto-Regular;
+  font-size: 13px;
+  color: $text-color-white
+}
+
+.in + .grok
+{
+  font-size: 13px;
+  overflow: auto;
+  display: inline-block;
+  white-space: normal;
+  font-family: Roboto-Regular;
+  color: $text-color-white;
+}
+
+.threatIntel
+{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.in ~ .transforms, .in + .threatIntel
+{
+  display: none;
+}
+
+a
+{
+  width: 100%;
+  text-align: center;
+  font-family: Roboto-Regular;
+}
+
+.form-enable-disable-button
+{
+  min-width: 50px;
+}
+
+.delete
+{
+  color:#E45D55;
+  font-weight: bold;
+  padding: 0.1rem;
+}
+
+.form-sub-sub-title
+{
+  font-size: 14px;
+  font-family: Roboto-Regular;
+  color: $text-color-white;
+}
+
+.form-sub-title
+{
+  font-size: 16px;
+  font-family: Roboto-Regular;
+  color: $form-field-text-color;
+}
+
+.start-stop-progress
+{
+  position: absolute;
+  top: 20px;
+  right: 140px;
+}
+
+.threat-triage-rules {
+  .form-label {
+    word-wrap: initial;
+  }
+}

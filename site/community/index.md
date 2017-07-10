@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Apache Metron (Incubating) Community
+title: Apache Metron Community
 ---
 
 <section class="hero-second-level no-padding">
@@ -79,6 +79,12 @@ title: Apache Metron (Incubating) Community
       <td style="text-align: left">Otto Fowler</td> <td style="text-align: left">otto</td> <td style="text-align: left">Committer</td> </tr>
     <tr>
       <td style="text-align: left">Kyle Richardson</td> <td style="text-align: left">kylerichardson</td> <td style="text-align: left">Committer</td> </tr>
+    <tr>
+      <td style="text-align: left">Matt Foley</td> <td style="text-align: left">mattf</td> <td style="text-align: left">Committer</td> </tr>
+    <tr>
+      <td style="text-align: left">Jon Zeolla</td> <td style="text-align: left">jonzeolla</td> <td style="text-align: left">Committer</td> </tr>
+    <tr>
+      <td style="text-align: left">JJ Meyer</td> <td style="text-align: left">jmeyer</td> <td style="text-align: left">Committer</td> </tr>
     </tbody>
 </table>
 </section>
@@ -88,7 +94,7 @@ title: Apache Metron (Incubating) Community
           <h2>Community Resources</h2>
         </div>
         <div class="content-960 hover-btn text-center">
-            <p>Apache Metron (Incubating) provides user and development mailing lists, a Github repository, a JIRA site, and list of community members to enable you to learn more about Metron. Feel free to join any of the mailing lists and the Metron IRC channel, and view the code on Github.</p>
+            <p>Apache Metron provides user and development mailing lists, a Github repository, a JIRA site, and list of community members to enable you to learn more about Metron. Feel free to join any of the mailing lists and the Metron IRC channel, and view the code on Github.</p>
             <a class="button-default" href="https://cwiki.apache.org/confluence/display/METRON/Community+Resources#CommunityResources-ApacheMetronCommunityResources" target="_blank">LEARN MORE</a>
         </div>
 </section>
@@ -98,7 +104,7 @@ title: Apache Metron (Incubating) Community
           <h2>Get Involved</h2>
         </div>
         <div class="content-960 hover-btn text-center">
-            <p> Do you want to contribute to Apache Metron (Incubating)? Follow these simple steps to subscribe to the user and development mailing lists, familiarize yourself with the Metron code, set up your development environment, and start contributing.</p>
+            <p> Do you want to contribute to Apache Metron? Follow these simple steps to subscribe to the user and development mailing lists, familiarize yourself with the Metron code, set up your development environment, and start contributing.</p>
             <a class="button-default" href="https://cwiki.apache.org/confluence/display/METRON/Community+Resources#CommunityResources-JointheCommunity-GetingStarted" target="_blank">Take Me There</a>
         </div>
 </section>
@@ -109,13 +115,13 @@ title: Apache Metron (Incubating) Community
         </div>
         <div class="content-960 hover-btn text-center">
             <h4> General & Public Discussion </h4>
-                [<a href="mailto:user-subscribe@metron.incubator.apache.org">Subscribe</a>]
-                [<a href="mailto:user-unsubscribe@metron.incubator.apache.org">Unsubscribe</a>]
-                [<a href="http://mail-archives.apache.org/mod_mbox/incubator-metron-user/">Archives</a>]
+                [<a href="mailto:user-subscribe@metron.apache.org">Subscribe</a>]
+                [<a href="mailto:user-unsubscribe@metron.apache.org">Unsubscribe</a>]
+                [<a href="http://mail-archives.apache.org/mod_mbox/metron-user/">Archives</a>]
             <h4> Code & Documentation Change </h4>
-                [<a href="mailto:dev-subscribe@metron.incubator.apache.org">Subscribe</a>]
-                [<a href="mailto:dev-unsubscribe@metron.incubator.apache.org">Unsubscribe</a>]
-                [<a href="http://mail-archives.apache.org/mod_mbox/incubator-metron-dev/">Archives</a>]
+                [<a href="mailto:dev-subscribe@metron.apache.org">Subscribe</a>]
+                [<a href="mailto:dev-unsubscribe@metron.apache.org">Unsubscribe</a>]
+                [<a href="http://mail-archives.apache.org/mod_mbox/metron-dev/">Archives</a>]
         </div>
 </section>
 

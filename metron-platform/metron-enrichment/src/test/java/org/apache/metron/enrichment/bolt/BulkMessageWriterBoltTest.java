@@ -30,6 +30,7 @@ import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.metron.writer.BulkWriterComponent;
 import org.apache.metron.writer.bolt.BulkMessageWriterBolt;
+import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.hamcrest.Description;
@@ -129,7 +130,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     verify(declarer, times(1)).declareStream(eq("error"), argThat(
             new FieldsMatcher("message")));
     Map stormConf = new HashMap();
-    doThrow(new Exception()).when(bulkMessageWriter).init(eq(stormConf), any(WriterConfiguration.class));
+    doThrow(new Exception()).when(bulkMessageWriter).init(eq(stormConf),any(TopologyContext.class), any(WriterConfiguration.class));
     try {
       bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector);
       fail("A runtime exception should be thrown when bulkMessageWriter.init throws an exception");
@@ -137,7 +138,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
     reset(bulkMessageWriter);
     when(bulkMessageWriter.getName()).thenReturn("hdfs");
     bulkMessageWriterBolt.prepare(stormConf, topologyContext, outputCollector);
-    verify(bulkMessageWriter, times(1)).init(eq(stormConf), any(WriterConfiguration.class));
+    verify(bulkMessageWriter, times(1)).init(eq(stormConf),any(TopologyContext.class), any(WriterConfiguration.class));
     tupleList = new ArrayList<>();
     messageList = new ArrayList<>();
     for(int i = 0; i < 4; i++) {

@@ -68,6 +68,10 @@ public class EnrichmentSplitterBoltTest extends BaseEnrichmentBoltTest {
     when(tuple.getStringByField("key")).thenReturn(someKey);
     key = enrichmentSplitterBolt.getKey(tuple, sampleMessage);
     Assert.assertEquals(someKey, key);
+    String guid = "sample-guid";
+    when(sampleMessage.get("guid")).thenReturn(guid);
+    key = enrichmentSplitterBolt.getKey(tuple, sampleMessage);
+    Assert.assertEquals(guid, key);
     when(tuple.getBinary(0)).thenReturn(sampleMessageString.getBytes());
     JSONObject generatedMessage = enrichmentSplitterBolt.generateMessage(tuple);
     removeTimingFields(generatedMessage);

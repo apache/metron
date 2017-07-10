@@ -17,12 +17,13 @@
  */
 package org.apache.metron.writer;
 
+import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
-import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.json.simple.JSONObject;
 
@@ -126,7 +127,7 @@ public class NoopWriter extends AbstractWriter implements BulkMessageWriter<JSON
   }
 
   @Override
-  public void init(Map stormConf, WriterConfiguration config) throws Exception {
+  public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration config) throws Exception {
   }
 
   @Override

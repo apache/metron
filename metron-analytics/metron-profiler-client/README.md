@@ -253,6 +253,35 @@ The specifiers are a set of fixed specifiers available as part of the language:
     * Countries supported are those supported in [jollyday](https://github.com/svendiedrichsen/jollyday/tree/master/src/main/resources/holidays)
     * Example: `holiday:us:nyc` would be the holidays of New York City, USA
     * Example: `holiday:hu` would be the holidays of Hungary
+    
+**WARNING: Daylight Savings Time effects**
+
+While Universal Time (UTC) is nice and constant, many servers are set to local timezones that enable Daylight Savings Time (DST).
+This means that twice a year, on DST transition weekends, "Sunday" is either 23 or 25 hours long.  However, durations specified
+as "7 days ago" are always interpreted as "7*24 hours ago".  This can lead to some surprising effects when using days of the week
+as inclusion or exclusion specifiers.
+
+For example, the profile window specified by the phrase "30 minute window every 24 hours from 7 days ago"
+will always have 7 thirty-minute intervals, and these will normally occur on 5 weekdays and 2 weekend days.
+However, if you invoke this window at 12:15am any day during the week following the start of DST, you will get
+these intervals (supposing you start early on a Wednesday morning):
+```
+Tuesday 12:15am-12:45am (yesterday)
+Monday 12:15am-12:45am
+Saturday 11:15pm-11:45pm (skipped Sunday!)
+Friday 11:15pm-11:45pm
+Thursday 11:15pm-11:45pm
+Wednesday 11:15pm-11:45pm
+Tuesday 11:15pm-11:45pm
+```
+
+Sunday got skipped over because it was only 23 hours long; that is, there were 24 hours between Saturday 11:15pm and Monday 12:15am.
+So if you specified "excluding weekends", you would get 6 days' intervals instead of the expected 5.  There are multiple variations
+on this theme.
+
+Remember that the underlying time is kept in UTC, so the data is always correct.  It is only when attempting to interpret UTC as
+local time, date, and day, that these confusions may occur.  They may be eliminated by setting your server timezone to UTC, or otherwise
+disabling DST.
      
 **Examples**
 
@@ -333,7 +362,7 @@ These instructions step through the process of using the Stellar Client API on a
 To validate that everything is working, login to the server hosting Metron.  We will use the Stellar Shell to replicate the execution environment of Stellar running in a Storm topology, like Metron's Parser or Enrichment topology.  Replace 'node1:2181' with the URL to a Zookeeper Broker.  
 
 ```
-[root@node1 0.3.1]# bin/stellar -z node1:2181
+[root@node1 0.4.1]# bin/stellar -z node1:2181
 Stellar, Go!
 Please note that functions are loading lazily in the background and will be unavailable until loaded fully.
 {es.clustername=metron, es.ip=node1, es.port=9300, es.date.format=yyyy.MM.dd.HH}

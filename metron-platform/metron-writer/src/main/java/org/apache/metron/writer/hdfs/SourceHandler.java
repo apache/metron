@@ -21,23 +21,22 @@ package org.apache.metron.writer.hdfs;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocalFileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.client.HdfsDataOutputStream;
-import org.apache.hadoop.hdfs.util.MD5FileUtils;
-import org.apache.hadoop.io.MD5Hash;
 import org.apache.log4j.Logger;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 import org.apache.storm.hdfs.bolt.rotation.FileRotationPolicy;
 import org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy;
+import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.hdfs.common.rotation.RotationAction;
-import org.apache.storm.hdfs.common.security.HdfsSecurityUtil;
 import org.json.simple.JSONObject;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 
 public class SourceHandler {
   private static final Logger LOG = Logger.getLogger(SourceHandler.class);
@@ -45,6 +44,7 @@ public class SourceHandler {
   FileRotationPolicy rotationPolicy;
   SyncPolicy syncPolicy;
   FileNameFormat fileNameFormat;
+  SourceHandlerCallback cleanupCallback;
   private long offset = 0;
   private int rotation = 0;
   private transient FSDataOutputStream out;
@@ -56,45 +56,42 @@ public class SourceHandler {
                       , FileRotationPolicy rotationPolicy
                       , SyncPolicy syncPolicy
                       , FileNameFormat fileNameFormat
-                      , Map config
-                      ) throws IOException {
+                      , SourceHandlerCallback cleanupCallback) throws IOException {
     this.rotationActions = rotationActions;
     this.rotationPolicy = rotationPolicy;
     this.syncPolicy = syncPolicy;
     this.fileNameFormat = fileNameFormat;
-    initialize(config);
+    initialize();
   }
 
-  public void handle(List<JSONObject> messages) throws Exception{
 
-    for(JSONObject message : messages) {
-      byte[] bytes = (message.toJSONString() + "\n").getBytes();
-      synchronized (this.writeLock) {
-        out.write(bytes);
-        this.offset += bytes.length;
+  protected void handle(JSONObject message, String sensor, WriterConfiguration config, SyncPolicyCreator syncPolicyCreator) throws IOException {
+    byte[] bytes = (message.toJSONString() + "\n").getBytes();
+    synchronized (this.writeLock) {
+      out.write(bytes);
+      this.offset += bytes.length;
 
-        if (this.syncPolicy.mark(null, this.offset)) {
-          if (this.out instanceof HdfsDataOutputStream) {
-            ((HdfsDataOutputStream) this.out).hsync(EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH));
-          } else {
-            this.out.hsync();
-          }
-          this.syncPolicy.reset();
+      if (this.syncPolicy.mark(null, this.offset)) {
+        if (this.out instanceof HdfsDataOutputStream) {
+          ((HdfsDataOutputStream) this.out).hsync(EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH));
+        } else {
+          this.out.hsync();
         }
+        //recreate the sync policy for the next batch just in case something changed in the config
+        //and the sync policy depends on the config.
+        this.syncPolicy = syncPolicyCreator.create(sensor, config);
       }
+    }
 
-      if (this.rotationPolicy.mark(null, this.offset)) {
-        rotateOutputFile(); // synchronized
-        this.offset = 0;
-        this.rotationPolicy.reset();
-      }
+    if (this.rotationPolicy.mark(null, this.offset)) {
+      rotateOutputFile(); // synchronized
+      this.offset = 0;
+      this.rotationPolicy.reset();
     }
   }
 
-  private void initialize(Map config) throws IOException {
-    Configuration hdfsConfig = new Configuration();
+  private void initialize() throws IOException {
     this.fs = FileSystem.get(new Configuration());
-    HdfsSecurityUtil.login(config, hdfsConfig);
     this.currentFile = createOutputFile();
     if(this.rotationPolicy instanceof TimedRotationPolicy){
       long interval = ((TimedRotationPolicy)this.rotationPolicy).getInterval();
@@ -118,6 +115,8 @@ public class SourceHandler {
     long start = System.currentTimeMillis();
     synchronized (this.writeLock) {
       closeOutputFile();
+      // Want to use the callback to make sure we have an accurate count of open files.
+      cleanupCallback();
       this.rotation++;
 
       Path newFile = createOutputFile();
@@ -148,12 +147,33 @@ public class SourceHandler {
     this.out.close();
   }
 
+  private void cleanupCallback() {
+    this.cleanupCallback.removeKey();
+  }
 
   public void close() {
     try {
       closeOutputFile();
+      // Don't call cleanup, to avoid HashMap's ConcurrentModificationException while iterating
     } catch (IOException e) {
       throw new RuntimeException("Unable to close output file.", e);
     }
+  }
+
+  @Override
+  public String toString() {
+    return "SourceHandler{" +
+            "rotationActions=" + rotationActions +
+            ", rotationPolicy=" + rotationPolicy +
+            ", syncPolicy=" + syncPolicy +
+            ", fileNameFormat=" + fileNameFormat +
+            ", offset=" + offset +
+            ", rotation=" + rotation +
+            ", out=" + out +
+            ", writeLock=" + writeLock +
+            ", rotationTimer=" + rotationTimer +
+            ", fs=" + fs +
+            ", currentFile=" + currentFile +
+            '}';
   }
 }

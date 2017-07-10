@@ -18,9 +18,10 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-interface</artifactId>
-        <version>0.3.1</version>
+        <version>0.4.1</version>
     </parent>
     <artifactId>metron-rest-client</artifactId>
+    <url>https://metron.apache.org/</url>
     <properties>
     </properties>
     <dependencies>

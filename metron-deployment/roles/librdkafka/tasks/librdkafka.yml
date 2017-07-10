@@ -34,6 +34,6 @@
     creates: "{{ librdkafka_home }}/lib/librdkafka.so"
   with_items:
     - rm -rf build/
-    - "./configure --prefix={{ librdkafka_home }}"
+    - "./configure --prefix={{ librdkafka_home }} --enable-sasl"
     - make
     - make install

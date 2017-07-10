@@ -20,7 +20,7 @@ DOCUMENTATION = '''
 ---
 module: ambari_service_state
 version_added: "2.1"
-author: Apache Metron (Incubating : https://github.com/apache/incubator-metron )
+author: Apache Metron (https://metron.apache.org)
 short_description: Start/Stop/Change Service or Component State
 description:
     - Start/Stop/Change Service or Component State
@@ -137,7 +137,7 @@ def main():
         service_name=dict(type='str', required=False),
         component_name=dict(type='str', default=None, required=False),
         component_host=dict(type='str', default=None, required=False),
-        wait_for_complete=dict(default=False, required=False, choices=BOOLEANS),
+        wait_for_complete=dict(default=False, required=False, type='bool'),
     )
 
     required_together = ['component_name', 'component_host']

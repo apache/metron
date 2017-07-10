@@ -24,7 +24,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.MessageWriter;
-import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.KafkaUtils;
 import org.apache.metron.common.utils.StringUtils;
 import org.apache.metron.writer.AbstractWriter;
@@ -105,7 +105,12 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
   }
 
   public KafkaWriter withProducerConfigs(Map<String, Object> extraConfigs) {
-    this.producerConfigs = extraConfigs;
+    if(producerConfigs == null) {
+      this.producerConfigs = extraConfigs;
+    }
+    else if(extraConfigs != null){
+      producerConfigs.putAll(extraConfigs);
+    }
     return this;
   }
 

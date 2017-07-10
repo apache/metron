@@ -18,9 +18,11 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-platform</artifactId>
-        <version>0.3.1</version>
+        <version>0.4.1</version>
     </parent>
     <artifactId>metron-solr</artifactId>
+    <name>metron-solr</name>
+    <url>https://metron.apache.org/</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -215,55 +217,6 @@
     <build>
         <plugins>
             <plugin>
-                <!-- Separates the unit tests from the integration tests. -->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.12.4</version>
-                <configuration>
-                    <!-- Skip the default running of this plug-in (or everything is run twice...see below) -->
-                    <argLine>-Xmx2048m</argLine>
-                    <skip>true</skip>
-                    <!-- Show 100% of the lines from the stack trace (doesn't work) -->
-                    <trimStackTrace>false</trimStackTrace>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>unit-tests</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                        <configuration>
-                            <!-- Never skip running the tests when the test phase is invoked -->
-                            <skip>false</skip>
-                            <includes>
-                                <!-- Include unit tests within integration-test phase. -->
-                                <include>**/*Test.java</include>
-                            </includes>
-                            <excludes>
-                                <!-- Exclude integration tests within (unit) test phase. -->
-                                <exclude>**/*IntegrationTest.java</exclude>
-                            </excludes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>integration-tests</id>
-                        <phase>integration-test</phase>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                        <configuration>
-                            <!-- Never skip running the tests when the integration-test phase is invoked -->
-                            <skip>false</skip>
-                            <includes>
-                                <!-- Include integration tests within integration-test phase. -->
-                                <include>**/*IntegrationTest.java</include>
-                            </includes>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>${global_shade_version}</version>
@@ -315,7 +268,6 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
                     <descriptor>src/main/assembly/assembly.xml</descriptor>
-                    <tarLongFileMode>posix</tarLongFileMode>
                 </configuration>
                 <executions>
                     <execution>

@@ -57,7 +57,11 @@ public class CEFParser extends BasicParser {
 		String syslogPriority = "<(?:[0-9]+)>";
 		String syslogHost = "[a-z0-9\\.\\\\-_]+";
 
-		StringBuilder sb = new StringBuilder("(?<syslogTime>");
+		StringBuilder sb = new StringBuilder("");
+		sb.append("(?<syslogPriority>");
+		sb.append(syslogPriority);
+		sb.append(")?");
+		sb.append("(?<syslogTime>");
 		sb.append(syslogTime);
 		sb.append("|");
 		sb.append(syslogTime5424);
@@ -67,13 +71,9 @@ public class CEFParser extends BasicParser {
 		sb.append(syslogHost);
 		sb.append(")?");
 
-		sb.append("(?<syslogPriority>");
-		sb.append(syslogPriority);
-		sb.append(")?");
-
 		sb.append(".*");
 
-		sb.append("CEF:0\\|");
+		sb.append("CEF: ?0\\|");
 
 		headerBlock("DeviceVendor", sb);
 		sb.append("\\|");

@@ -18,9 +18,10 @@
 all: src
 
 src:
-	cd src; make
+	cd src; make O=../build
 
 clean:
 	cd src; make clean
+	rm -rf build
 
 .PHONY: all src clean

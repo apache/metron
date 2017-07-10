@@ -22,22 +22,20 @@ import org.apache.metron.common.configuration.*;
 
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
-import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.task.OutputCollector;
+import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.dsl.Context;
+import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.parsers.BasicParser;
-import org.apache.metron.parsers.csv.CSVParser;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
@@ -48,7 +46,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -91,7 +88,7 @@ public class ParserBoltTest extends BaseBoltTest {
     List<JSONObject> records = new ArrayList<>();
 
     @Override
-    public void init(Map stormConf, WriterConfiguration config) throws Exception {
+    public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration config) throws Exception {
 
     }
 
@@ -184,7 +181,6 @@ public class ParserBoltTest extends BaseBoltTest {
           }
         };
       }
-
     };
 
     buildGlobalConfig(parserBolt);
@@ -197,6 +193,7 @@ public class ParserBoltTest extends BaseBoltTest {
     when(tuple.getBinary(0)).thenReturn(sampleBinary);
     JSONObject parsedMessage = new JSONObject();
     parsedMessage.put("field", "invalidValue");
+    parsedMessage.put("guid", "this-is-unique-identifier-for-tuple");
     List<JSONObject> messageList = new ArrayList<>();
     messageList.add(parsedMessage);
     when(parser.parseOptional(sampleBinary)).thenReturn(Optional.of(messageList));
@@ -210,6 +207,7 @@ public class ParserBoltTest extends BaseBoltTest {
             .addRawMessage(new JSONObject(){{
               put("field", "invalidValue");
               put("source.type", "yaf");
+              put("guid", "this-is-unique-identifier-for-tuple");
             }});
     verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), argThat(new MetronErrorJSONMatcher(error.getJSONObject())));
   }
@@ -234,9 +232,7 @@ public class ParserBoltTest extends BaseBoltTest {
           }
         };
       }
-
     };
-
     parserBolt.setCuratorFramework(client);
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
@@ -244,14 +240,14 @@ public class ParserBoltTest extends BaseBoltTest {
     verify(writer, times(1)).init();
     byte[] sampleBinary = "some binary message".getBytes();
     JSONParser jsonParser = new JSONParser();
-    final JSONObject sampleMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\" }");
-    final JSONObject sampleMessage2 = (JSONObject) jsonParser.parse("{ \"field2\":\"value2\" }");
+    final JSONObject sampleMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\", \"guid\": \"this-is-unique-identifier-for-tuple\" }");
+    final JSONObject sampleMessage2 = (JSONObject) jsonParser.parse("{ \"field2\":\"value2\", \"guid\": \"this-is-unique-identifier-for-tuple\" }");
     List<JSONObject> messages = new ArrayList<JSONObject>() {{
       add(sampleMessage1);
       add(sampleMessage2);
     }};
-    final JSONObject finalMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\", \"source.type\":\"" + sensorType + "\" }");
-    final JSONObject finalMessage2 = (JSONObject) jsonParser.parse("{ \"field2\":\"value2\", \"source.type\":\"" + sensorType + "\" }");
+    final JSONObject finalMessage1 = (JSONObject) jsonParser.parse("{ \"field1\":\"value1\", \"source.type\":\"" + sensorType + "\", \"guid\": \"this-is-unique-identifier-for-tuple\" }");
+    final JSONObject finalMessage2 = (JSONObject) jsonParser.parse("{ \"field2\":\"value2\", \"source.type\":\"" + sensorType + "\", \"guid\": \"this-is-unique-identifier-for-tuple\" }");
     when(tuple.getBinary(0)).thenReturn(sampleBinary);
     when(parser.parseOptional(sampleBinary)).thenReturn(Optional.of(messages));
     when(parser.validate(eq(messages.get(0)))).thenReturn(true);
@@ -298,7 +294,7 @@ public void testImplicitBatchOfOne() throws Exception {
   parserBolt.setTreeCache(cache);
   parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
   verify(parser, times(1)).init();
-  verify(batchWriter, times(1)).init(any(), any());
+  verify(batchWriter, times(1)).init(any(), any(), any());
   when(parser.validate(any())).thenReturn(true);
   when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
   when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
@@ -344,7 +340,7 @@ public void testImplicitBatchOfOne() throws Exception {
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(parser, times(1)).init();
-    verify(batchWriter, times(1)).init(any(), any());
+    verify(batchWriter, times(1)).init(any(), any(), any());
     BulkWriterResponse successResponse = mock(BulkWriterResponse.class);
     when(successResponse.getSuccesses()).thenReturn(ImmutableList.of(t1));
     when(batchWriter.write(any(), any(), any(), any())).thenReturn(successResponse);
@@ -381,7 +377,7 @@ public void testImplicitBatchOfOne() throws Exception {
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(parser, times(1)).init();
-    verify(batchWriter, times(1)).init(any(), any());
+    verify(batchWriter, times(1)).init(any(), any(), any());
     when(parser.validate(any())).thenReturn(true);
     when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject(new HashMap<String, Object>() {{
       put("field2", "blah");
@@ -484,7 +480,7 @@ public void testImplicitBatchOfOne() throws Exception {
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(parser, times(1)).init();
-    verify(batchWriter, times(1)).init(any(), any());
+    verify(batchWriter, times(1)).init(any(), any(), any());
     when(parser.validate(any())).thenReturn(true);
     when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
     when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
@@ -523,7 +519,7 @@ public void testImplicitBatchOfOne() throws Exception {
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(parser, times(1)).init();
-    verify(batchWriter, times(1)).init(any(), any());
+    verify(batchWriter, times(1)).init(any(), any(), any());
     when(parser.validate(any())).thenReturn(true);
     when(parser.parseOptional(any())).thenReturn(Optional.of(ImmutableList.of(new JSONObject())));
     when(filter.emitTuple(any(), any(Context.class))).thenReturn(true);
@@ -572,7 +568,7 @@ public void testImplicitBatchOfOne() throws Exception {
     parserBolt.setTreeCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(parser, times(1)).init();
-    verify(batchWriter, times(1)).init(any(), any());
+    verify(batchWriter, times(1)).init(any(), any(), any());
 
     doThrow(new Exception()).when(batchWriter).write(any(), any(), any(), any());
     when(parser.validate(any())).thenReturn(true);

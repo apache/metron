@@ -14,39 +14,45 @@ Getting Started
 
 As with the Full Development Platform (`metron-deployment/vagrant/full-dev-platform`), the computer used to deploy Apache Metron will need the following components installed.
 
- - [Ansible](https://github.com/ansible/ansible) 2.0.0.2
+ - [Ansible](https://github.com/ansible/ansible) (2.0.0.2 or 2.2.2.0)
+ - [Docker](https://www.docker.com/community-edition)
  - [Vagrant](https://www.vagrantup.com) 1.8.1
+ - [Vagrant Hostmanager Plugin](https://github.com/devopsgroup-io/vagrant-hostmanager) `vagrant plugin install vagrant-hostmanager`
  - [Virtualbox](https://virtualbox.org) 5.0.16
  - Python 2.7.11
  - Maven 3.3.9
 
+#### macOS
+
+ Any platform that supports these tools is suitable, but the following instructions cover installation on macOS.  The easiest means of installing these tools on a Mac is to use the excellent [Homebrew](http://brew.sh/) project.
+
+ 1. Install Homebrew by following the instructions at [Homebrew](http://brew.sh/).
+
+ 1. Run the following command in a terminal to install all of the required tools.
+
+     ```  
+     brew cask install vagrant virtualbox java docker
+     brew install maven git
+     ```
+
+ 1. Install Ansible by following the instructions [here](http://docs.ansible.com/ansible/intro_installation.html#latest-releases-via-pip).
+
 ### Deploy Metron
 
-1. Build Metron
+1. Ensure that the Docker service is running.
 
-  ```
-  cd incubator-metron
-  mvn clean package -DskipTests
-  ```
+1. Deploy Metron
 
-2. Install Vagrant Hostmanager.
+    ```
+    cd metron-deployment/vagrant/quick-dev-platform
+    vagrant up
+    ```
 
-  ```
-  vagrant plugin install vagrant-hostmanager
-  ```
+    Should the process fail before completing the deployment, the following command will continue the deployment process without re-instantiating the host.
 
-3. Deploy Metron
-
-  ```
-  cd metron-deployment/vagrant/quick-dev-platform
-  vagrant up
-  ```
-
-  Should the process fail before completing the deployment, the following command will continue the deployment process without re-instantiating the host.
-
-  ```
-  vagrant provision
-  ```
+    ```
+    vagrant provision
+    ```
 
 ### Explore Metron
 

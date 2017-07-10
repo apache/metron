@@ -186,7 +186,7 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
         defaultBatchTimeout = timeoutHelper.getDefaultBatchTimeout();
       }
       writerComponent.setDefaultBatchTimeout(defaultBatchTimeout);
-      bulkMessageWriter.init(stormConf, writerconf);
+      bulkMessageWriter.init(stormConf, context, writerconf);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

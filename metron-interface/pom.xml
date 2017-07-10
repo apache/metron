@@ -21,15 +21,15 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>Metron</artifactId>
-        <version>0.3.1</version>
+        <version>0.4.1</version>
     </parent>
     <description>Interfaces for Metron</description>
-    <url>https://metron.incubator.apache.org/</url>
+    <url>https://metron.apache.org/</url>
     <scm>
-        <connection>scm:git:https://git-wip-us.apache.org/repos/asf/incubator-metron.git</connection>
-        <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/incubator-metron.git</developerConnection>
+        <connection>scm:git:https://git-wip-us.apache.org/repos/asf/metron.git</connection>
+        <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/metron.git</developerConnection>
         <tag>HEAD</tag>
-        <url>https://git-wip-us.apache.org/repos/asf/incubator-metron</url>
+        <url>https://git-wip-us.apache.org/repos/asf/metron</url>
     </scm>
     <licenses>
         <license>
@@ -39,6 +39,7 @@
         </license>
     </licenses>
     <modules>
+        <module>metron-config</module>
         <module>metron-rest</module>
         <module>metron-rest-client</module>
     </modules>
@@ -60,24 +61,6 @@
         <plugins>
         </plugins>
     </build>
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.3</version>
-                <configuration>
-                    <targetJdk>${global_java_version}</targetJdk>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>emma-maven-plugin</artifactId>
-                <version>1.0-alpha-3</version>
-                <inherited>true</inherited>
-            </plugin>
-        </plugins>
-    </reporting>
     <repositories>
         <repository>
             <id>multiline-release-repo</id>

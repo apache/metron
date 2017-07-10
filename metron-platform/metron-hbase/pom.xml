@@ -18,9 +18,11 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-platform</artifactId>
-        <version>0.3.1</version>
+        <version>0.4.1</version>
     </parent>
     <artifactId>metron-hbase</artifactId>
+    <name>metron-hbase</name>
+    <url>https://metron.apache.org/</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -113,6 +115,21 @@
                 <exclusion>
                     <groupId>com.google.guava</groupId>
                     <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.storm</groupId>
+            <artifactId>storm-hbase</artifactId>
+            <version>${global_storm_version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.hbase</groupId>
+                    <artifactId>hbase-server</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.hbase</groupId>
+                    <artifactId>hbase-client</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

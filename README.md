@@ -1,13 +1,15 @@
-[![Build Status](https://travis-ci.org/apache/incubator-metron.svg?branch=master)](https://travis-ci.org/apache/incubator-metron)
+[![Build Status](https://travis-ci.org/apache/metron.svg?branch=master)](https://travis-ci.org/apache/metron)
  
-# Apache Metron (Incubating)
- 
+# Apache Metron
+
 Metron integrates a variety of open source big data technologies in order
 to offer a centralized tool for security monitoring and analysis. Metron
 provides capabilities for log aggregation, full packet capture indexing,
 storage, advanced behavioral analytics and data enrichment, while applying
 the most current threat intelligence information to security telemetry
 within a single platform.
+
+For the latest information, please visit our website at http://metron.apache.org/
  
 Metron can be divided into 4 areas:
 
@@ -50,12 +52,14 @@ enable rapid detection and rapid response for advanced security threats.
 
 # Obtaining Metron
 
+To obtain a release of Metron, please visit http://metron.apache.org/documentation/#releases
+
 This repository is a collection of submodules for convenience which is regularly
 updated to point to the latest versions. Github provides multiple ways to obtain
 Metron's code:
 
-1. git clone --recursive https://github.com/apache/incubator-metron
-2. [Download ZIP](https://github.com/apache/incubator-metron/archive/master.zip)
+1. git clone --recursive https://github.com/apache/metron
+2. [Download ZIP](https://github.com/apache/metron/archive/master.zip)
 3. Clone or download each repository individually
 
 Option 3 is more likely to have the latest code.
@@ -78,6 +82,21 @@ $ mvn clean install -PHDP-2.5.0.0
 ```
 
 You can swap "install" for "package" in the commands above if you don't want to deploy the artifacts to your local .m2 repo.
+
+# Build Metron Reporting
+
+To build and run reporting with code coverage:
+```
+$ mvn clean install
+$ mvn site site:stage-deploy site:deploy
+```
+
+Code coverage can be skipped by skipping tests:
+```
+$ mvn clean install -DskipTests site site:stage-deploy site:deploy
+```
+
+The staged site is deployed to /tmp/metron/site/index.html, and can be viewed by opening the file in a browser.
 
 # Navigating the Architecture
 

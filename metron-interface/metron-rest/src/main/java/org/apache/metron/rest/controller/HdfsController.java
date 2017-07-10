@@ -44,8 +44,8 @@ public class HdfsController {
   @Autowired
   private HdfsService hdfsService;
 
-  @ApiOperation(value = "Reads a file from HDFS and returns the contents")
-  @ApiResponse(message = "Returns file contents", code = 200)
+  @ApiOperation(value = "Lists an HDFS directory")
+  @ApiResponse(message = "HDFS directory list", code = 200)
   @RequestMapping(value = "/list", method = RequestMethod.GET)
   ResponseEntity<List<String>> list(@ApiParam(name = "path", value = "Path to HDFS directory", required = true) @RequestParam String path) throws RestException {
     return new ResponseEntity<>(hdfsService.list(new Path(path)), HttpStatus.OK);
@@ -64,7 +64,7 @@ public class HdfsController {
 
   }
 
-  @ApiOperation(value = "Writes contents to an HDFS file.  Warning: this will overwite the contents of a file if it already exists.")
+  @ApiOperation(value = "Writes contents to an HDFS file.  Warning: this will overwrite the contents of a file if it already exists.")
   @ApiResponse(message = "Contents were written", code = 200)
   @RequestMapping(method = RequestMethod.POST)
   ResponseEntity<Void> write(@ApiParam(name="path", value="Path to HDFS file", required=true) @RequestParam String path,

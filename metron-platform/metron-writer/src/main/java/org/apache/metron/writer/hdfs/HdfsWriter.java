@@ -17,8 +17,14 @@
  */
 package org.apache.metron.writer.hdfs;
 
+import org.apache.metron.common.configuration.IndexingConfigurations;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.MapVariableResolver;
+import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.stellar.dsl.VariableResolver;
+import org.apache.metron.stellar.common.StellarProcessor;
+import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
@@ -30,17 +36,21 @@ import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.hdfs.common.rotation.RotationAction;
 import org.json.simple.JSONObject;
 
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 import java.util.*;
 
 public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
   List<RotationAction> rotationActions = new ArrayList<>();
   FileRotationPolicy rotationPolicy = new NoRotationPolicy();
-  SyncPolicy syncPolicy = new CountSyncPolicy(1); //sync every time, duh.
+  SyncPolicy syncPolicy;
   FileNameFormat fileNameFormat;
-  Map<String, SourceHandler> sourceHandlerMap = new HashMap<>();
+  Map<SourceHandlerKey, SourceHandler> sourceHandlerMap = new HashMap<>();
+  int maxOpenFiles = 500;
+  transient StellarProcessor stellarProcessor;
   transient Map stormConfig;
+  transient SyncPolicyCreator syncPolicyCreator;
+
+
   public HdfsWriter withFileNameFormat(FileNameFormat fileNameFormat){
     this.fileNameFormat = fileNameFormat;
     return this;
@@ -60,9 +70,24 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
     return this;
   }
 
+  public HdfsWriter withMaxOpenFiles(int maxOpenFiles) {
+    this.maxOpenFiles = maxOpenFiles;
+    return this;
+  }
+
   @Override
-  public void init(Map stormConfig, WriterConfiguration configurations) {
+  public void init(Map stormConfig, TopologyContext topologyContext, WriterConfiguration configurations) {
     this.stormConfig = stormConfig;
+    this.stellarProcessor = new StellarProcessor();
+    this.fileNameFormat.prepare(stormConfig,topologyContext);
+    if(syncPolicy != null) {
+      //if the user has specified the sync policy, we don't want to override their wishes.
+      syncPolicyCreator = new ClonedSyncPolicyCreator(syncPolicy);
+    }
+    else {
+      //if the user has not, then we want to have the sync policy depend on the batch size.
+      syncPolicyCreator = (source, config) -> new CountSyncPolicy(config == null?1:config.getBatchSize(source));
+    }
   }
 
 
@@ -74,15 +99,40 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
                    ) throws Exception
   {
     BulkWriterResponse response = new BulkWriterResponse();
-    SourceHandler handler = getSourceHandler(configurations.getIndex(sourceType));
+
+    // Currently treating all the messages in a group for pass/failure.
     try {
-      handler.handle(messages);
-    } catch(Exception e) {
+      // Messages can all result in different HDFS paths, because of Stellar Expressions, so we'll need to iterate through
+      for(JSONObject message : messages) {
+        String path = getHdfsPathExtension(
+                sourceType,
+                (String)configurations.getSensorConfig(sourceType).getOrDefault(IndexingConfigurations.OUTPUT_PATH_FUNCTION_CONF, ""),
+                message
+        );
+        SourceHandler handler = getSourceHandler(sourceType, path, configurations);
+        handler.handle(message, sourceType, configurations, syncPolicyCreator);
+      }
+    } catch (Exception e) {
       response.addAllErrors(e, tuples);
     }
 
     response.addAllSuccesses(tuples);
     return response;
+  }
+
+  public String getHdfsPathExtension(String sourceType, String stellarFunction, JSONObject message) {
+    // If no function is provided, just use the sourceType directly
+    if(stellarFunction == null || stellarFunction.trim().isEmpty()) {
+      return sourceType;
+    }
+
+    //processor is a StellarProcessor();
+    VariableResolver resolver = new MapVariableResolver(message);
+    Object objResult = stellarProcessor.parse(stellarFunction, resolver, StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
+    if(objResult != null && !(objResult instanceof String)) {
+      throw new IllegalArgumentException("Stellar Function <" + stellarFunction + "> did not return a String value. Returned: " + objResult);
+    }
+    return objResult == null ? "" : (String)objResult;
   }
 
   @Override
@@ -95,12 +145,23 @@ public class HdfsWriter implements BulkMessageWriter<JSONObject>, Serializable {
     for(SourceHandler handler : sourceHandlerMap.values()) {
       handler.close();
     }
+    // Everything is closed, so just clear it
+    sourceHandlerMap.clear();
   }
-  private synchronized SourceHandler getSourceHandler(String sourceType) throws IOException {
-    SourceHandler ret = sourceHandlerMap.get(sourceType);
+
+  synchronized SourceHandler getSourceHandler(String sourceType, String stellarResult, WriterConfiguration config) throws IOException {
+    SourceHandlerKey key = new SourceHandlerKey(sourceType, stellarResult);
+    SourceHandler ret = sourceHandlerMap.get(key);
     if(ret == null) {
-      ret = new SourceHandler(rotationActions, rotationPolicy, syncPolicy, new SourceFileNameFormat(sourceType, fileNameFormat), stormConfig);
-      sourceHandlerMap.put(sourceType, ret);
+      if(sourceHandlerMap.size() >= maxOpenFiles) {
+        throw new IllegalStateException("Too many HDFS files open!");
+      }
+      ret = new SourceHandler(rotationActions,
+                              rotationPolicy,
+                              syncPolicyCreator.create(sourceType, config),
+                              new PathExtensionFileNameFormat(key.getStellarResult(), fileNameFormat),
+                              new SourceHandlerCallback(sourceHandlerMap, key));
+      sourceHandlerMap.put(key, ret);
     }
     return ret;
   }

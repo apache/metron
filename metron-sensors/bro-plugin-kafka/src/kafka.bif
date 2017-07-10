@@ -21,3 +21,4 @@ const kafka_conf: config;
 const topic_name: string;
 const max_wait_on_shutdown: count;
 const tag_json: bool;
+const debug: string;

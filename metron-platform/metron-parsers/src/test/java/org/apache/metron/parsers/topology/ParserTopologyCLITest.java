@@ -34,9 +34,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.Map;
+import java.util.*;
 
 public class ParserTopologyCLITest {
 
@@ -75,6 +73,20 @@ public class ParserTopologyCLITest {
     }
   }
 
+  @Test
+  public void testNoOverlappingArgs() throws Exception {
+    Set<String> optionStrs = new HashSet<>();
+    for(ParserTopologyCLI.ParserOptions option : ParserTopologyCLI.ParserOptions.values()) {
+      if(optionStrs.contains(option.option.getLongOpt())) {
+        throw new IllegalStateException("Reused long option: " + option.option.getLongOpt());
+      }
+      if(optionStrs.contains(option.shortCode)) {
+        throw new IllegalStateException("Reused short option: " + option.shortCode);
+      }
+      optionStrs.add(option.option.getLongOpt());
+      optionStrs.add(option.shortCode);
+    }
+  }
 
   @Test
   public void testKafkaOffset_happyPath() throws ParseException {
@@ -85,12 +97,10 @@ public class ParserTopologyCLITest {
     CommandLine cli = new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")
                                       .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
                                       .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPE, "mysensor")
-                                      .with(ParserTopologyCLI.ParserOptions.KAFKA_OFFSET, "BEGINNING")
                                       .build(longOpt);
     Assert.assertEquals("myzk", ParserTopologyCLI.ParserOptions.ZK_QUORUM.get(cli));
     Assert.assertEquals("mybroker", ParserTopologyCLI.ParserOptions.BROKER_URL.get(cli));
     Assert.assertEquals("mysensor", ParserTopologyCLI.ParserOptions.SENSOR_TYPE.get(cli));
-    Assert.assertEquals("BEGINNING", ParserTopologyCLI.ParserOptions.KAFKA_OFFSET.get(cli));
   }
   @Test
   public void testCLI_happyPath() throws ParseException {
@@ -106,6 +116,7 @@ public class ParserTopologyCLITest {
                                       .build(true);
     UnitTestHelper.setLog4jLevel(Parser.class, Level.ERROR);
   }
+
   public void happyPath(boolean longOpt) throws ParseException {
     CommandLine cli = new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")
                                       .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
@@ -137,6 +148,22 @@ public class ParserTopologyCLITest {
     Assert.assertEquals(3, config.get(Config.TOPOLOGY_MAX_TASK_PARALLELISM));
     Assert.assertEquals(4, config.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS));
   }
+
+  @Test
+  public void testOutputTopic() throws Exception {
+    testOutputTopic(true);
+    testOutputTopic(false);
+  }
+
+  public void testOutputTopic(boolean longOpt) throws ParseException {
+     CommandLine cli = new CLIBuilder().with(ParserTopologyCLI.ParserOptions.BROKER_URL, "mybroker")
+                                      .with(ParserTopologyCLI.ParserOptions.ZK_QUORUM, "myzk")
+                                      .with(ParserTopologyCLI.ParserOptions.SENSOR_TYPE, "mysensor")
+                                      .with(ParserTopologyCLI.ParserOptions.OUTPUT_TOPIC, "my_topic")
+                                      .build(longOpt);
+    Assert.assertEquals("my_topic", ParserTopologyCLI.ParserOptions.OUTPUT_TOPIC.get(cli));
+  }
+
   /**
     {
       "string" : "foo"

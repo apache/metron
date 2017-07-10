@@ -26,7 +26,6 @@ import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.interfaces.FieldNameConverter;
-import org.apache.metron.common.spout.kafka.SpoutConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.BaseIntegrationTest;
@@ -118,21 +117,25 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
   @Test
   public void test() throws Exception {
     cleanHdfsDir(hdfsDir);
-    final String dateFormat = "yyyy.MM.dd.HH";
     final List<byte[]> inputMessages = TestUtils.readSampleData(sampleParsedPath);
     final Properties topologyProperties = new Properties() {{
-      setProperty("kafka.start", SpoutConfig.Offset.BEGINNING.name());
+      setProperty("kafka.start", "UNCOMMITTED_EARLIEST");
+      setProperty("kafka.security.protocol", "PLAINTEXT");
+      setProperty("storm.auto.credentials", "[]");
       setProperty("indexing.workers", "1");
-      setProperty("indexing.executors", "0");
-      setProperty("index.input.topic", Constants.INDEXING_TOPIC);
-      setProperty("index.error.topic", ERROR_TOPIC);
-      setProperty("index.date.format", dateFormat);
+      setProperty("indexing.acker.executors", "0");
+      setProperty("topology.max.spout.pending", "");
+      setProperty("indexing.input.topic", Constants.INDEXING_TOPIC);
+      setProperty("indexing.error.topic", ERROR_TOPIC);
+      setProperty("topology.auto-credentials", "[]");
       //HDFS settings
-
       setProperty("bolt.hdfs.rotation.policy", TimedRotationPolicy.class.getCanonicalName());
       setProperty("bolt.hdfs.rotation.policy.count", "1");
       setProperty("bolt.hdfs.rotation.policy.units", "DAYS");
-      setProperty("index.hdfs.output", hdfsDir);
+      setProperty("indexing.hdfs.output", hdfsDir);
+      setProperty("kafka.spout.parallelism", "1");
+      setProperty("indexing.writer.parallelism", "1");
+      setProperty("hdfs.writer.parallelism", "1");
     }};
     setAdditionalProperties(topologyProperties);
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
@@ -180,9 +183,9 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
             .withMaxTimeMS(150000)
             .withCustomShutdownOrder(new String[] {"search","storm","config","kafka","zk"})
             .build();
-    runner.start();
 
     try {
+      runner.start();
       while(!isLoaded.get()) {
         Thread.sleep(100);
       }
@@ -194,6 +197,8 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
       // on the field name converter
       assertInputDocsMatchOutputs(inputDocs, docs, getFieldNameConverter());
       assertInputDocsMatchOutputs(inputDocs, readDocsFromDisk(hdfsDir), x -> x);
+    } catch(Throwable e) {
+      e.printStackTrace();
     }
     finally {
       if(runner != null) {

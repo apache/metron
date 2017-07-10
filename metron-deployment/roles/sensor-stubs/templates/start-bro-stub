@@ -47,8 +47,8 @@ TOPIC="bro"
 while true; do
   
   # transform the bro timestamp and push to kafka
-  SEARCH="\"ts\"\:[0-9]\+.[0-9]\{6\}"
-  REPLACE="\"ts\"\:`date +%s`.000000"
+  SEARCH="\"ts\"\:[0-9]\+\."
+  REPLACE="\"ts\"\:`date +%s`\."
   shuf -n $COUNT $INPUT | sed -e "s/$SEARCH/$REPLACE/g" | $PRODUCER --broker-list {{ kafka_broker_url }} --topic $TOPIC
   
   sleep $DELAY

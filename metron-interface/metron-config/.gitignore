@@ -1,0 +1,42 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# compiled output
+/dist
+/tmp
+
+# dependencies
+/node
+/node_modules
+/bower_components
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+*.launch
+.settings/
+
+# misc
+/.sass-cache
+/connect.lock
+/coverage
+/libpeerconnection.log
+npm-debug.log
+testem.log
+/typings
+
+# e2e
+/e2e/*.js
+/e2e/*.map
+
+#assets
+/src/assets/ace/snippets/json.js
+/src/assets/ace/snippets/text.js
+/src/assets/ace/ext-language_tools.js
+/src/assets/ace/mode-json.js
+/src/assets/ace/theme-monokai.js
+/src/assets/ace/worker-json.js
+
+#System Files
+.DS_Store
+Thumbs.db

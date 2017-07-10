@@ -59,6 +59,21 @@ python --version 2>&1
 echo "--"
 mvn --version
 
+# docker
+echo "--"
+docker --version
+
+# node
+echo "--"
+echo "node"
+node --version
+
+# npm
+echo "--"
+echo "npm"
+npm --version
+
+
 # operating system
 echo "--"
 uname -a
@@ -73,7 +88,12 @@ case "${OSTYPE}" in
     cat /proc/cpuinfo | grep -i '^processor' | wc -l | awk '{print "Total Physical Processors: " $0}'
     cat /proc/cpuinfo | grep -i cores | cut -d: -f2 | awk '{corecount+=$1} END {print "Total cores: " corecount}'
     echo "Disk information:"
-    df -h | grep "^/" 
+    df -h | grep "^/"
+    if [[ $(egrep '(vmx|svm)' /proc/cpuinfo) ]]; then
+      echo "This CPU appears to support virtualization"
+    else
+      echo "This CPU may not support virtualization"
+    fi
     ;;
   darwin*)
     sysctl hw.memsize | awk '{print "Total System Memory = " $2/1048576 " MB"}'
@@ -82,10 +102,14 @@ case "${OSTYPE}" in
     sysctl hw.physicalcpu | cut -d: -f2 | awk '{print "Total Physical Processors:" $0}'
     sysctl machdep.cpu | grep 'machdep.cpu.core_count' | cut -d: -f2 | cut -d\@ -f2 | awk '{print "Total cores:" $0}'
     echo "Disk information:"
-    df -h | grep "^/" 
+    df -h | grep "^/"
+    if [[ $(sysctl kern.hv_support | awk -F' ' '{print $2}') == "1" && $(sysctl -a | grep machdep.cpu.features | grep VMX) ]]; then
+      echo "This CPU appears to support virtualization"
+    else
+      echo "This CPU may not support virtualization"
+    fi
     ;;
   *)
     echo "Unable to detect system resources for ${OSTYPE}"
     ;;
 esac
-

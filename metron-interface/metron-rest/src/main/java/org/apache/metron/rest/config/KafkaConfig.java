@@ -27,39 +27,84 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 
-import java.util.Properties;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 
+/**
+ * Configuration used for connecting to Kafka.
+ */
 @Configuration
 @Profile("!" + TEST_PROFILE)
 public class KafkaConfig {
-
-  @Autowired
+  /**
+   * The Spring environment.
+   */
   private Environment environment;
 
+  /**
+   * Construvtor used to inject {@link Environment}.
+   * @param environment Spring environment to inject.
+   */
+  @Autowired
+  public KafkaConfig(final Environment environment) {
+    this.environment = environment;
+  }
+
+  /**
+   * The client used for ZooKeeper.
+   */
   @Autowired
   private ZkClient zkClient;
 
+  /**
+   * Bean for ZooKeeper
+   */
   @Bean
   public ZkUtils zkUtils() {
     return ZkUtils.apply(zkClient, false);
   }
 
-  @Bean(destroyMethod = "close")
-  public KafkaConsumer<String, String> kafkaConsumer() {
-    Properties props = new Properties();
+  /**
+   * Create properties that will be used by {@link this#createConsumerFactory()}
+   *
+   * @return Configurations used by {@link this#createConsumerFactory()}.
+   */
+  @Bean
+  public Map<String, Object> consumerProperties() {
+    final Map<String, Object> props = new HashMap<>();
     props.put("bootstrap.servers", environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY));
-    props.put("group.id", "metron-config");
+    props.put("group.id", "metron-rest");
     props.put("enable.auto.commit", "false");
     props.put("auto.commit.interval.ms", "1000");
     props.put("session.timeout.ms", "30000");
     props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
     props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-    return new KafkaConsumer<>(props);
+    if (environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)) {
+      props.put("security.protocol", "SASL_PLAINTEXT");
+    }
+    return props;
   }
 
+  /**
+   * Create a {@link ConsumerFactory} which will be used for certain Kafka interactions within config API.
+   *
+   * @return a {@link ConsumerFactory} used to create {@link KafkaConsumer} for interactions with Kafka.
+   */
+  @Bean
+  public ConsumerFactory<String, String> createConsumerFactory() {
+    return new DefaultKafkaConsumerFactory<>(consumerProperties());
+  }
+
+  /**
+   * Create a bean for {@link AdminUtils$}. This is primarily done to make testing a bit easier.
+   *
+   * @return {@link AdminUtils$} is written in scala. We return a reference to this class.
+   */
   @Bean
   public AdminUtils$ adminUtils() {
     return AdminUtils$.MODULE$;

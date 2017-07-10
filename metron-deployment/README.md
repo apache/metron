@@ -17,7 +17,7 @@ The following tools are required to run these scripts:
 
 - [Maven](https://maven.apache.org/)
 - [Git](https://git-scm.com/)
-- [Ansible](http://www.ansible.com/) (version 2.0.0.2)
+- [Ansible](http://www.ansible.com/) (2.0.0.2 or 2.2.2.0)
 - [Docker](https://www.docker.com/) (Docker for Mac on OSX)
 
 These scripts depend on two files for configuration:
@@ -42,10 +42,10 @@ Use quick-dev for testing out changes to core Metron services.
 installed
 
 ### Full-Dev
-Navigate to `incubator-metron/metron-deployment/vagrant/full-dev-platform` and run `vagrant up`.
+Navigate to `metron/metron-deployment/vagrant/full-dev-platform` and run `vagrant up`.
 
 ### Quick-Dev
-Navigate to `incubator-metron/metron-deployment/vagrant/quick-dev-platform` and run `vagrant up`.
+Navigate to `metron/metron-deployment/vagrant/quick-dev-platform` and run `vagrant up`.
 
 ## Ambari Management Pack
 An Ambari Management Pack can be built in order to make the Metron service available on top of an existing stack, rather than needing a direct stack update.
@@ -59,8 +59,9 @@ This will set up
 - Optional Kibana
 
 ### Prerequisites
-- A cluster managed by Ambari 2.4
+- A cluster managed by Ambari 2.4.2+
 - Metron RPMs available on the cluster in the /localrepo directory.  See [RPM](#rpm) for further information.
+- [Node.js](https://nodejs.org/en/download/package-manager/) repository installed on the Management UI host 
 
 ### Building Management Pack
 From `metron-deployment` run
@@ -114,10 +115,23 @@ Components in the RPMs:
 - metron-parsers
 - metron-pcap
 - metron-solr
+- stellar-common
 
 ### Prerequisites
 - Docker.  The image detailed in: `metron-deployment/packaging/docker/rpm-docker/README.md` will automatically be built (or rebuilt if necessary).
 - Artifacts for metron-platform have been produced.  E.g. `mvn clean package -DskipTests` in `metron-platform`
+
+The artifacts are required because there is a dependency on modules not expressed via Maven (we grab the resulting assemblies, but don't need the jars).  These are
+- metron-common
+- metron-data-management
+- metron-elasticsearch
+- metron-enrichment
+- metron-indexing
+- metron-parsers
+- metron-pcap-backend
+- metron-solr
+- metron-profiler
+- metron-config
 
 ### Building RPMs
 From `metron-deployment` run
@@ -146,6 +160,21 @@ Build the Ambari Mpack to get the dashboard updated appropriately.
 
 Once the MPack is installed, run the Kibana service's action "Load Template" to install dashboards.  This will completely overwrite the .kibana in Elasticsearch, so use with caution.
 
+## Kerberos
+The MPack can allow Metron to be installed and then Kerberized, or installed on top of an already Kerberized cluster.  This is done through Ambari's standard Kerberization setup.
+
+### Caveats
+* For nodes using a Metron client and a local repo, the repo must exist on all nodes (e.g via createrepo). This repo can be empty; only the main Metron services need the RPMs.
+* A Metron client must be installed on each supervisor node in a secured cluster.  This is to ensure that the Metron keytab and client_jaas.conf get distributed in order to allow reading and writing from Kafka.
+  * When Metron is already installed on the cluster, this should be done before Kerberizing.
+  * When addding Metron to an already Kerberized cluster, ensure that all supervisor nodes receive a Metron client.
+* Storm (and Metron) must be restarted after Metron is installed on an already Kerberized cluster.  Several Storm configs get updated, and Metron will be unable to write to Kafka without a restart.
+  * Kerberizing a cluster with an existing Metron already has restarts of all services during Kerberization, so it's unneeded.
+
+Instructions for setup on Full Dev can be found at [Kerberos-ambari-setup.md](Kerberos-ambari-setup.md).  These instructions reference the manual install instructions.
+
+### Kerberos Without an MPack
+Using the MPack is preferred, but instructions for Kerberizing manually can be found at [Kerberos-manual-setup.md](Kerberos-manual-setup.md). These instructions are reference by the Ambari Kerberos install instructions and include commands for setting up a KDC.
 
 ## TODO
 - Support Ubuntu deployments

@@ -18,6 +18,7 @@
 #ifndef BRO_PLUGIN_BRO_KAFKA
 #define BRO_PLUGIN_BRO_KAFKA
 
+#include "KafkaWriter.h"
 #include <plugin/Plugin.h>
 
 namespace plugin { namespace Bro_Kafka {
