@@ -203,7 +203,8 @@ hbase_user = config['configurations']['hbase-env']['hbase_user']
 security_enabled = status_params.security_enabled
 client_jaas_path = metron_home + '/client_jaas.conf'
 client_jaas_arg = '-Djava.security.auth.login.config=' + metron_home + '/client_jaas.conf'
-topology_worker_childopts = client_jaas_arg if security_enabled else ''
+enrichment_topology_worker_childopts = client_jaas_arg if security_enabled else ''
+indexing_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 topology_auto_credentials = config['configurations']['storm-site'].get('nimbus.credential.renewers.classes', [])
 # Needed for storm.config, because it needs Java String
 topology_auto_credentials_double_quotes = str(topology_auto_credentials).replace("'", '"')
@@ -229,7 +230,9 @@ metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", ['localhost'])[
 # Enrichment
 enrichment_workers = config['configurations']['metron-env']['enrichment_workers']
 enrichment_acker_executors = config['configurations']['metron-env']['enrichment_acker_executors']
-enrichment_topology_worker_childopts = config['configurations']['metron-env']['enrichment_topology_worker_childopts']
+if not len(enrichment_topology_worker_childopts) == 0:
+    enrichment_topology_worker_childopts += ' '
+enrichment_topology_worker_childopts += config['configurations']['metron-env']['enrichment_topology_worker_childopts']
 enrichment_topology_max_spout_pending = config['configurations']['metron-env']['enrichment_topology_max_spout_pending']
 enrichment_kafka_start = config['configurations']['metron-env']['enrichment_kafka_start']
 enrichment_input_topic = config['configurations']['metron-env']['enrichment_input_topic']
@@ -251,7 +254,9 @@ kafka_writer_parallelism = config['configurations']['metron-env']['kafka_writer_
 # Threat Intel
 indexing_workers = config['configurations']['metron-env']['indexing_workers']
 indexing_acker_executors = config['configurations']['metron-env']['indexing_acker_executors']
-indexing_topology_worker_childopts = config['configurations']['metron-env']['indexing_topology_worker_childopts']
+if not len(indexing_topology_worker_childopts) == 0:
+    indexing_topology_worker_childopts += ' '
+indexing_topology_worker_childopts += config['configurations']['metron-env']['indexing_topology_worker_childopts']
 indexing_topology_max_spout_pending = config['configurations']['metron-env']['indexing_topology_max_spout_pending']
 indexing_kafka_start = config['configurations']['metron-env']['indexing_kafka_start']
 indexing_input_topic = config['configurations']['metron-env']['indexing_input_topic']
