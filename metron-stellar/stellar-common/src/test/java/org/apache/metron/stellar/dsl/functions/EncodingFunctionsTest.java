@@ -53,7 +53,7 @@ public class EncodingFunctionsTest {
 
   @Test
   public void testSupportedEncodingsList() throws Exception{
-    Object ret = run("LIST_SUPPORTED_ENCODINGS()", new HashMap());
+    Object ret = run("GET_SUPPORTED_ENCODINGS()", new HashMap());
     Assert.assertTrue(ret instanceof List );
     List<String> list = (List<String>)ret;
     List<String> expected = new ArrayList<>(Arrays.asList("BASE32","BASE32HEX","BASE64","BINARY","HEX"));
