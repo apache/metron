@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.SearchRequest;
 import org.apache.metron.rest.model.SearchResponse;
@@ -29,6 +30,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -38,14 +40,19 @@ import java.util.stream.Collectors;
 public class ElasticsearchServiceImpl implements SearchService {
 
   private TransportClient client;
+  private int searchMaxResults;
 
   @Autowired
-  public ElasticsearchServiceImpl(TransportClient client) {
+  public ElasticsearchServiceImpl(TransportClient client, Environment environment) {
     this.client = client;
+    this.searchMaxResults = Integer.parseInt(environment.getProperty(MetronRestConstants.SEARCH_MAX_RESULTS));
   }
 
   @Override
   public SearchResponse search(SearchRequest searchRequest) throws RestException {
+    if (searchRequest.getSize() > searchMaxResults) {
+      throw new RestException("Search result size must be less than " + searchMaxResults);
+    }
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
             .size(searchRequest.getSize())
             .from(searchRequest.getFrom())

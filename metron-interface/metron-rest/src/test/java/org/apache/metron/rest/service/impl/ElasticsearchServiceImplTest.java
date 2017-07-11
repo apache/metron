@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.matcher.SearchRequestMatcher;
 import org.apache.metron.rest.model.SearchRequest;
@@ -30,7 +31,10 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.springframework.core.env.Environment;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -47,13 +51,18 @@ import static org.mockito.Mockito.when;
 
 public class ElasticsearchServiceImplTest {
 
+  @Rule
+  public final ExpectedException exception = ExpectedException.none();
+
   private SearchService searchService;
   TransportClient client;
 
   @Before
   public void setUp() throws Exception {
     client = mock(TransportClient.class);
-    searchService = new ElasticsearchServiceImpl(client);
+    Environment environment = mock(Environment.class);
+    when(environment.getProperty(MetronRestConstants.SEARCH_MAX_RESULTS)).thenReturn("50");
+    searchService = new ElasticsearchServiceImpl(client, environment);
   }
 
   @Test
@@ -99,6 +108,16 @@ public class ElasticsearchServiceImplTest {
     assertEquals("value2", actualSearchResults.get(1).getSource().get("field"));
     assertEquals(0.2f, actualSearchResults.get(1).getScore(), 0.0f);
     verifyNoMoreInteractions(client);
+  }
+
+  @Test
+  public void searchShouldThrowExceptionWhenMaxResultsAreExceeded() throws RestException {
+    exception.expect(RestException.class);
+    exception.expectMessage("Search result size must be less than 50");
+
+    SearchRequest searchRequest = new SearchRequest();
+    searchRequest.setSize(51);
+    searchService.search(searchRequest);
   }
 
 

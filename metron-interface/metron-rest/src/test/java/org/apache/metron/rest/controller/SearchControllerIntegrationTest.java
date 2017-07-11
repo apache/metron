@@ -174,6 +174,23 @@ public class SearchControllerIntegrationTest {
   @Multiline
   public static String indexQuery;
 
+  /**
+   * {
+   * "indices": ["bro", "snort"],
+   * "query": "*",
+   * "from": 0,
+   * "size": 101,
+   * "sort": [
+   *   {
+   *     "field": "timestamp",
+   *     "sortOrder": "desc"
+   *   }
+   * ]
+   * }
+   */
+  @Multiline
+  public static String exceededMaxResultsQuery;
+
 
   @Autowired
   private TransportClient client;
@@ -282,6 +299,12 @@ public class SearchControllerIntegrationTest {
             .andExpect(jsonPath("$.results[3].source.timestamp").value(2))
             .andExpect(jsonPath("$.results[4].source.source:type").value("bro"))
             .andExpect(jsonPath("$.results[4].source.timestamp").value(1));
+
+    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(exceededMaxResultsQuery))
+            .andExpect(status().isInternalServerError())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.responseCode").value(500))
+            .andExpect(jsonPath("$.message").value("Search result size must be less than 100"));
   }
 
 
