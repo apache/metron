@@ -136,6 +136,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `GET`](#get)                                                                                     |
 | [ `GET_FIRST`](#get_first)                                                                         |
 | [ `GET_LAST`](#get_last)                                                                           |
+| [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)                                           |
 | [ `IN_SUBNET`](#in_subnet)                                                                         |
 | [ `IS_DATE`](#is_date)                                                                             |
 | [ `IS_ENCODING`](#is_encoding)                                                                     |
@@ -152,7 +153,6 @@ In the core language functions, we support basic functional programming primitiv
 | [ `KAFKA_TAIL`](#kafka_tail)                                                                       |
 | [ `LENGTH`](#length)                                                                               |
 | [ `LIST_ADD`](#list_add)                                                                           |
-| [ `LIST_SUPPORTED_ENCODINGS`](#list_supported_encodings)                                           |
 | [ `MAAS_GET_ENDPOINT`](#maas_get_endpoint)                                                         |
 | [ `MAAS_MODEL_APPLY`](#maas_model_apply)                                                           |
 | [ `MAP`](#map)                                                                                     |
@@ -280,10 +280,10 @@ In the core language functions, we support basic functional programming primitiv
 
 ### `DECODE`
   * Description: Decodes the passed string with the provided encoding, which
-                 must be one of the encodings returned from [ `LIST_SUPPORTED_ENCODINGS`](#list_supported_encodings)   
+                 must be one of the encodings returned from [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)   
   * Input:
     * string - the string to decode
-    * encoding - the encoding to use, must be one of encodings returned from [ `LIST_SUPPORTED_ENCODINGS`](#list_supported_encodings) 
+    * encoding - the encoding to use, must be one of encodings returned from [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings) 
     * verify - (optional), true or false to determine if string should be verified as being
                 encoded with the passed encoding
   * Returns:  
@@ -311,10 +311,10 @@ In the core language functions, we support basic functional programming primitiv
 
 ### `ENCODE`
   * Description: Encodes the passed string with the provided encoding, which
-                 must be one of the encodings returned from [ `LIST_SUPPORTED_ENCODINGS`](#list_supported_encodings)   
+                 must be one of the encodings returned from [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)   
   * Input:
     * string - the string to encode
-    * encoding - the encoding to use, must be one of encodings returned from [ `LIST_SUPPORTED_ENCODINGS`](#list_supported_encodings) 
+    * encoding - the encoding to use, must be one of encodings returned from [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings) 
   * Returns:  
     * The encoded string on success
     * null on error
@@ -436,7 +436,7 @@ In the core language functions, we support basic functional programming primitiv
   * Description: Returns true if the passed string is encoded in one of the supported encodings and false if otherwise.
   * Input:
       * string - The string to test
-        * encoding - The name of the encoding as string.  See [ `LIST_SUPPORTED_ENCODINGS`](#list_supported_encodings).
+        * encoding - The name of the encoding as string.  See [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings).
   * Returns: True if the passed string is encoded in one of the supported encodings and false if otherwise.
 
 ### `IS_INTEGER`
@@ -508,9 +508,9 @@ In the core language functions, we support basic functional programming primitiv
     * element - Element to add to list
   * Returns: Resulting list with the item added at the end.
   
-### `LIST_SUPPORTED_ENCODINGS`
-  * Description: Returns a list of the encodings that are currently supported as a comma separated string.
-  * Returns: Comma Separated string with the currently supported encodings
+### `GET_SUPPORTED_ENCODINGS`
+  * Description: Returns a list of the encodings that are currently supported.
+  * Returns: A List of String
         
 ### `MAAS_GET_ENDPOINT`
   * Description: Inspects ZooKeeper and returns a map containing the name, version and url for the model referred to by the input parameters.
@@ -926,12 +926,12 @@ This command lists all functions resolvable in the Stellar environment.  Stellar
 [Stellar]>>> %functions
 BLOOM_ADD, BLOOM_EXISTS, BLOOM_INIT, BLOOM_MERGE, DAY_OF_MONTH, DAY_OF_WEEK, DAY_OF_YEAR, 
 DECODE, DOMAIN_REMOVE_SUBDOMAINS, DOMAIN_REMOVE_TLD, DOMAIN_TO_TLD, ENDS_WITH, GET, GET_FIRST, 
-GET_LAST, IN_SUBNET, IS_DATE, IS_DOMAIN, IS_EMAIL, IS_EMPTY, IS_ENCODING, IS_INTEGER, IS_IP, IS_URL, 
+GET_LAST, GET_ENCODINGS_LIST, IN_SUBNET, IS_DATE, IS_DOMAIN, IS_EMAIL, IS_EMPTY, IS_ENCODING, IS_INTEGER, IS_IP, IS_URL, 
 JOIN, LENGTH, MAAS_GET_ENDPOINT, MAAS_MODEL_APPLY, MAP_EXISTS, MAP_GET, MONTH, PROTOCOL_TO_NAME, 
 REGEXP_MATCH, SPLIT, STARTS_WITH, STATS_ADD, STATS_COUNT, STATS_GEOMETRIC_MEAN, STATS_INIT, 
 STATS_KURTOSIS, STATS_MAX, STATS_MEAN, STATS_MERGE, STATS_MIN, STATS_PERCENTILE, 
 STATS_POPULATION_VARIANCE, STATS_QUADRATIC_MEAN, STATS_SD, STATS_SKEWNESS, STATS_SUM, 
-STATS_SUM_LOGS, STATS_SUM_SQUARES, STATS_VARIANCE, SUPPORTED_ENCODINGS_LIST, TO_DOUBLE, TO_EPOCH_TIMESTAMP, TO_FLOAT, 
+STATS_SUM_LOGS, STATS_SUM_SQUARES, STATS_VARIANCE, TO_DOUBLE, TO_EPOCH_TIMESTAMP, TO_FLOAT, 
 TO_INTEGER, TO_LOWER, TO_STRING, TO_UPPER, TRIM, URL_TO_HOST, URL_TO_PATH, URL_TO_PORT, 
 URL_TO_PROTOCOL, WEEK_OF_MONTH, WEEK_OF_YEAR, YEAR
 [Stellar]>>> 

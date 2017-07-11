@@ -28,8 +28,12 @@ import static org.apache.metron.stellar.common.encoding.EncodingsTest.STRING_FIX
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.metron.stellar.common.encoding.Encodings;
 import org.junit.Assert;
 import org.junit.Test;
@@ -50,9 +54,10 @@ public class EncodingFunctionsTest {
   @Test
   public void testSupportedEncodingsList() throws Exception{
     Object ret = run("LIST_SUPPORTED_ENCODINGS()", new HashMap());
-    Assert.assertTrue(ret instanceof String);
-    String list = (String)ret;
-    Assert.assertEquals("BASE32,BASE32HEX,BASE64,BINARY,HEX",list);
+    Assert.assertTrue(ret instanceof List );
+    List<String> list = (List<String>)ret;
+    List<String> expected = new ArrayList<>(Arrays.asList("BASE32","BASE32HEX","BASE64","BINARY","HEX"));
+    Assert.assertTrue(ListUtils.isEqualList(expected,list));
   }
 
   @Test

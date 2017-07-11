@@ -30,13 +30,12 @@ import org.apache.metron.stellar.dsl.Stellar;
  */
 public class EncodingFunctions {
 
-  @Stellar(name = "LIST_SUPPORTED_ENCODINGS",
-      description = "Returns a list of the encodings that are currently supported as a comma "
-          + "separated list",
+  @Stellar(name = "GET_SUPPORTED_ENCODINGS",
+      description = "Returns a list of the encodings that are currently supported as a list",
       params = {},
-      returns = "A common separated list of supported encodings as a string"
+      returns = "A list of supported encodings"
   )
-  public static class ListSupportedEncodings extends BaseStellarFunction {
+  public static class GetSupportedEncodings extends BaseStellarFunction {
 
     @Override
     public Object apply(List<Object> list) {

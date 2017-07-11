@@ -19,6 +19,9 @@
 package org.apache.metron.stellar.common.encoding;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import org.apache.commons.codec.DecoderException;
@@ -98,8 +101,8 @@ public enum Encodings {
     this.encode = encode;
   }
 
-  public static final String SUPPORTED_LIST = BASE32.name() + "," + BASE32HEX.name() + ","
-      + BASE64.name() + "," + BINARY.name() + "," + HEX.name();
+  public static final List<String> SUPPORTED_LIST = new ArrayList<>(Arrays.asList(BASE32.name(),
+      BASE32HEX.name(), BASE64.name(), BINARY.name() , HEX.name()));
 
   /**
    * Determines if the passed String is encoded in this encoding.
