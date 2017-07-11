@@ -139,9 +139,12 @@
     </property>
     <property>
         <name>metron_jdbc_platform</name>
-        <value></value>
         <description>Database platform used by Metron.  One of: hsqldb, h2, oracle, mysql, postgresql</description>
         <display-name>Metron JDBC platform</display-name>
+        <value/>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
     </property>
     <property>
         <name>metron_jdbc_client_path</name>
