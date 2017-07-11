@@ -207,6 +207,7 @@ org.eclipse.jetty:jetty-server:jar:9.3.0.M0:compile,ASLv2,http://www.eclipse.org
 org.eclipse.jetty:jetty-servlet:jar:9.3.0.M0:compile,ASLv2,http://www.eclipse.org/jetty
 org.eclipse.jetty:jetty-util:jar:9.3.0.M0:compile,ASLv2,http://www.eclipse.org/jetty
 org.elasticsearch:elasticsearch:jar:2.3.3:compile,ASLv2,
+org.elasticsearch:elasticsearch:jar:2.3.3:import,ASLv2,
 org.elasticsearch:securesm:jar:1.0:compile,ASLv2,
 org.hdrhistogram:HdrHistogram:jar:2.1.6:compile,Public Domain, per Creative Commons CC0,http://hdrhistogram.github.io/HdrHistogram/
 org.javassist:javassist:jar:3.18.1-GA:compile,Apache License 2.0,http://www.javassist.org/

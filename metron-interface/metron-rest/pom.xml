@@ -287,10 +287,12 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Spring Boot brings in an Elasticsearch dependency so we need to ensure the Metron's version is used -->
             <dependency>
                 <groupId>org.elasticsearch</groupId>
                 <artifactId>elasticsearch</artifactId>
                 <version>${global_elasticsearch_version}</version>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <!-- Import dependency management from Spring Boot -->
