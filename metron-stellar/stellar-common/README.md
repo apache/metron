@@ -161,6 +161,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `PROTOCOL_TO_NAME`](#protocol_to_name)                                                           |
 | [ `REDUCE`](#reduce)                                                                   |
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
+| [ `REGEXP_GROUP_VAL`](#regexp_group_val)                                                                   |
 | [ `SPLIT`](#split)                                                                                 |
 | [ `STARTS_WITH`](#starts_with)                                                                     |
 | [ `STATS_ADD`](../../metron-analytics/metron-statistics#stats_add)                                 |
@@ -571,6 +572,14 @@ In the core language functions, we support basic functional programming primitiv
     * string - The string to test
     * pattern - The proposed regex pattern
   * Returns: True if the regex pattern matches the string and false if otherwise.
+  
+### `REGEXP_GROUP_VAL`
+  * Description: Returns the value of a group in a regex against a string
+  * Input:
+    * string - The string to test
+    * pattern - The proposed regex pattern
+    * group - The integer that selects what group to select, starting at 1
+  * Returns: The value of the group, or null if not matched or no group at index.
 
 ### `STRING_ENTROPY`
   * Description: Computes the base-2 shannon entropy of a string.

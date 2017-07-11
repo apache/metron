@@ -34,29 +34,6 @@ import java.util.Map;
 
 public class StringFunctions {
 
-  @Stellar(name="REGEXP_MATCH"
-          ,description = "Determines whether a regex matches a string"
-          , params = {
-             "string - The string to test"
-            ,"pattern - The proposed regex pattern"
-            }
-          , returns = "True if the regex pattern matches the string and false if otherwise.")
-  public static class RegexpMatch extends BaseStellarFunction {
-
-    @Override
-    public Object apply(List<Object> list) {
-      if(list.size() < 2) {
-        throw new IllegalStateException("REGEXP_MATCH expects two args: [string, pattern] where pattern is a regexp pattern");
-      }
-      String pattern = (String) list.get(1);
-      String str = (String) list.get(0);
-      if(str == null || pattern == null) {
-        return false;
-      }
-      return str.matches(pattern);
-    }
-  }
-
   @Stellar(name="ENDS_WITH"
           ,description = "Determines whether a string ends with a specified suffix"
           , params = {
