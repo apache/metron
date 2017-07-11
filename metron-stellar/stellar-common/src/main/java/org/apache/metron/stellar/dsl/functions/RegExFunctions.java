@@ -64,7 +64,7 @@ public class RegExFunctions {
 
     @Override
     public Object apply(List<Object> list) {
-      if (list.size() < 3) {
+      if (list.size() != 3) {
         throw new IllegalStateException(
             "REGEXP_GROUP_VAL expects three args: [string, pattern, int]" + ""
                 + "where pattern is a regexp pattern");
