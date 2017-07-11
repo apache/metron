@@ -36,6 +36,8 @@ zookeeper:
 kafka:
   broker:
     url: ${docker.host.address}:9092
+  security:
+    protocol: PLAINTEXT
 
 hdfs:
   namenode:
@@ -55,3 +57,4 @@ storm:
     script.path: /usr/metron/${metron.version}/bin/start_enrichment_topology.sh
   indexing:
     script.path: /usr/metron/${metron.version}/bin/start_elasticsearch_topology.sh
+  ksp: PLAINTEXT

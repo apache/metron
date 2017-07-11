@@ -28,6 +28,8 @@ zookeeper:
 kafka:
   broker:
     url: ${BROKERLIST}
+  security:
+    protocol: ${KAFKA_SECURITY_PROTOCOL}
 
 hdfs:
   namenode:

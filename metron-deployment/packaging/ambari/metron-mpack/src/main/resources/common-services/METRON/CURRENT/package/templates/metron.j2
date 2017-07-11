@@ -37,3 +37,4 @@ SECURITY_ENABLED={{security_enabled|lower}}
 {% endif %}
 {% if metron_keytab_path is defined %}METRON_SERVICE_KEYTAB="{{metron_keytab_path}}"
 {% endif %}
+KAFKA_SECURITY_PROTOCOL="{{kafka_security_protocol}}"

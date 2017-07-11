@@ -19,12 +19,16 @@ package org.apache.metron.rest.service.impl;
 
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +38,8 @@ import static org.apache.metron.rest.MetronRestConstants.ENRICHMENT_TOPOLOGY_NAM
 import static org.apache.metron.rest.MetronRestConstants.INDEXING_TOPOLOGY_NAME;
 
 public class StormCLIWrapper {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private Environment environment;
 
@@ -75,18 +81,25 @@ public class StormCLIWrapper {
   protected int runCommand(String[] command) throws RestException {
     ProcessBuilder pb = getProcessBuilder(command);
     pb.inheritIO();
-    Process process = null;
+    LOG.debug("Running command: cmd={}", String.join(" ", command));
+
+    Process process;
     try {
       process = pb.start();
       process.waitFor();
+
     } catch (Exception e) {
       throw new RestException(e);
     }
-    return process.exitValue();
+
+    int exitValue = process.exitValue();
+    LOG.debug("Command completed: cmd={}, exit={}", String.join(" ", command), exitValue);
+
+    return exitValue;
   }
 
   protected String[] getParserStartCommand(String name) {
-    String[] command = new String[7];
+    String[] command = new String[9];
     command[0] = environment.getProperty(MetronRestConstants.PARSER_SCRIPT_PATH_SPRING_PROPERTY);
     command[1] = "-k";
     command[2] = environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY);
@@ -94,18 +107,24 @@ public class StormCLIWrapper {
     command[4] = environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY);
     command[5] = "-s";
     command[6] = name;
+    command[7] = "-ksp";
+    command[8] = environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY);
     return command;
   }
 
   protected String[] getEnrichmentStartCommand() {
-    String[] command = new String[1];
+    String[] command = new String[3];
     command[0] = environment.getProperty(MetronRestConstants.ENRICHMENT_SCRIPT_PATH_SPRING_PROPERTY);
+    command[1] = "-ksp";
+    command[2] = environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY);
     return command;
   }
 
   protected String[] getIndexingStartCommand() {
-    String[] command = new String[1];
+    String[] command = new String[3];
     command[0] = environment.getProperty(MetronRestConstants.INDEXING_SCRIPT_PATH_SPRING_PROPERTY);
+    command[1] = "-ksp";
+    command[2] = environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY);
     return command;
   }
 

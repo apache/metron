@@ -40,3 +40,4 @@ storm:
     script.path: /usr/metron/${metron.version}/bin/start_enrichment_topology.sh
   indexing:
     script.path: /usr/metron/${metron.version}/bin/start_elasticsearch_topology.sh
+

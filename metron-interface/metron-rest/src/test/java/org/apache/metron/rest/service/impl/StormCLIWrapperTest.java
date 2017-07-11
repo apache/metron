@@ -76,11 +76,16 @@ public class StormCLIWrapperTest {
     when(environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY)).thenReturn("kafka_broker_url");
     when(environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY)).thenReturn("zookeeper_url");
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
+    when(environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY)).thenReturn("kafka_security_protocol");
     when(process.exitValue()).thenReturn(0);
 
     assertEquals(0, stormCLIWrapper.startParserTopology("bro"));
     verify(process).waitFor();
-    verifyNew(ProcessBuilder.class).withArguments("/start_parser", "-k", "kafka_broker_url", "-z", "zookeeper_url", "-s", "bro");
+    verifyNew(ProcessBuilder.class).withArguments("/start_parser",
+            "-k", "kafka_broker_url",
+            "-z", "zookeeper_url",
+            "-s", "bro",
+            "-ksp", "kafka_security_protocol");
   }
 
   @Test
@@ -116,11 +121,12 @@ public class StormCLIWrapperTest {
     when(processBuilder.start()).thenReturn(process);
     when(environment.getProperty(MetronRestConstants.ENRICHMENT_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/start_enrichment");
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
+    when(environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY)).thenReturn("kafka_security_protocol");
     when(process.exitValue()).thenReturn(0);
 
     assertEquals(0, stormCLIWrapper.startEnrichmentTopology());
     verify(process).waitFor();
-    verifyNew(ProcessBuilder.class).withArguments("/start_enrichment");
+    verifyNew(ProcessBuilder.class).withArguments("/start_enrichment", "-ksp", "kafka_security_protocol");
 
   }
 
@@ -144,11 +150,12 @@ public class StormCLIWrapperTest {
     when(processBuilder.start()).thenReturn(process);
     when(environment.getProperty(MetronRestConstants.INDEXING_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/start_indexing");
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
+    when(environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY)).thenReturn("kafka_security_protocol");
     when(process.exitValue()).thenReturn(0);
 
     assertEquals(0, stormCLIWrapper.startIndexingTopology());
     verify(process).waitFor();
-    verifyNew(ProcessBuilder.class).withArguments("/start_indexing");
+    verifyNew(ProcessBuilder.class).withArguments("/start_indexing", "-ksp", "kafka_security_protocol");
 
   }
 
