@@ -30,12 +30,19 @@ public class MapVariableResolver implements VariableResolver {
     if(variableMappingOne != null) {
       variableMappings.add(variableMappingOne);
     }
-    for(Map m : variableMapping) {
-      if(m != null) {
-        this.variableMappings.add(m);
+    add(variableMapping);
+  }
+
+  public void add(Map... ms) {
+    if(ms != null) {
+      for (Map m : ms) {
+        if (m != null) {
+          this.variableMappings.add(m);
+        }
       }
     }
   }
+
   @Override
   public Object resolve(String variable) {
     for(Map variableMapping : variableMappings) {
