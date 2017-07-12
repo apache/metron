@@ -175,6 +175,7 @@ commons-net:commons-net:jar:3.1:compile,ASLv2,http://commons.apache.org/net/
 commons-net:commons-net:jar:3.1:provided,ASLv2,http://commons.apache.org/net/
 commons-validator:commons-validator:jar:1.4.0:compile,ASLv2,http://commons.apache.org/validator/
 commons-validator:commons-validator:jar:1.5.1:compile,ASLv2,http://commons.apache.org/proper/commons-validator/
+commons-validator:commons-validator:jar:1.6:compile,ASLv2,http://commons.apache.org/proper/commons-validator/
 io.confluent:kafka-avro-serializer:jar:1.0:compile,ASLv2,https://github.com/confluentinc/schema-registry/
 io.confluent:kafka-schema-registry-client:jar:1.0:compile,ASLv2,https://github.com/confluentinc/schema-registry/
 io.netty:netty-all:jar:4.0.23.Final:compile,ASLv2,
