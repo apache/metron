@@ -46,7 +46,6 @@ public class GeoAdapter implements EnrichmentAdapter<CacheKey>, Serializable {
     JSONObject enriched = new JSONObject();
     Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(value.coerceValue(String.class));
     if(!result.isPresent()) {
-      _LOG.error("GEO Enrichment failure: {}", value.coerceValue(String.class));
       return new JSONObject();
     }
 

@@ -30,8 +30,8 @@ public abstract class SimpleFieldTransformation implements FieldTransformation {
   public Map<String, Object> map (Map<String, Object> input
                                 , List<String> outputField
                                 , LinkedHashMap<String, Object> fieldMappingConfig
-                                , Map<String, Object> sensorConfig
                                 , Context context
+                                , Map<String, Object>... sensorConfig
                                 )
   {
     Object value = (input == null)

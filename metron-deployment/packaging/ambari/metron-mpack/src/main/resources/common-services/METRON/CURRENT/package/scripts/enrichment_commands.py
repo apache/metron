@@ -39,7 +39,7 @@ class EnrichmentCommands:
             raise ValueError("params argument is required for initialization")
         self.__params = params
         self.__enrichment_topology = params.metron_enrichment_topology
-        self.__enrichment_topic = params.metron_enrichment_topic
+        self.__enrichment_topic = params.enrichment_input_topic
         self.__kafka_configured = os.path.isfile(self.__params.enrichment_kafka_configured_flag_file)
         self.__kafka_acl_configured = os.path.isfile(self.__params.enrichment_kafka_acl_configured_flag_file)
         self.__hbase_configured = os.path.isfile(self.__params.enrichment_hbase_configured_flag_file)
@@ -124,14 +124,14 @@ class EnrichmentCommands:
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics for enrichment')
         # All errors go to indexing topics, so create it here if it's not already
-        metron_service.init_kafka_topics(self.__params, [self.__enrichment_topic, self.__params.metron_error_topic])
+        metron_service.init_kafka_topics(self.__params, [self.__enrichment_topic, self.__params.enrichment_error_topic])
         self.set_kafka_configured()
 
     def init_kafka_acls(self):
         Logger.info('Creating Kafka ACls for enrichment')
         # Enrichment topic names matches group
         metron_service.init_kafka_acls(self.__params,
-                                       [self.__enrichment_topic, self.__params.metron_error_topic],
+                                       [self.__enrichment_topic, self.__params.enrichment_error_topic],
                                        [self.__enrichment_topic])
 
         self.set_kafka_acl_configured()

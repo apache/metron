@@ -277,205 +277,209 @@
           "subsection-name": "subsection-index-settings"
         },
         {
-          "config": "metron-env/parsers",
+          "config": "metron-parsers-env/parsers",
           "subsection-name": "subsection-parsers"
         },
         {
-          "config": "metron-env/parser_error_topic",
+          "config": "metron-parsers-env/parser_error_topic",
           "subsection-name": "subsection-parsers"
         },
         {
-          "config": "metron-env/geoip_url",
+          "config": "metron-enrichment-env/geoip_url",
           "subsection-name": "subsection-enrichment-adapters"
         },
         {
-          "config": "metron-env/enrichment_host_known_hosts",
+          "config": "metron-enrichment-env/enrichment_host_known_hosts",
           "subsection-name": "subsection-enrichment-adapters"
         },
         {
-          "config": "metron-env/enrichment_kafka_start",
+          "config": "metron-enrichment-env/enrichment_kafka_start",
           "subsection-name": "subsection-enrichment-kafka"
         },
         {
-          "config": "metron-env/enrichment_input_topic",
+          "config": "metron-enrichment-env/enrichment_input_topic",
           "subsection-name": "subsection-enrichment-kafka"
         },
         {
-          "config": "metron-env/enrichment_output_topic",
+          "config": "metron-enrichment-env/enrichment_output_topic",
           "subsection-name": "subsection-enrichment-kafka"
         },
         {
-          "config": "metron-env/enrichment_error_topic",
+          "config": "metron-enrichment-env/enrichment_error_topic",
           "subsection-name": "subsection-enrichment-kafka"
         },
         {
-          "config": "metron-env/threatintel_error_topic",
+          "config": "metron-enrichment-env/threatintel_error_topic",
           "subsection-name": "subsection-enrichment-kafka"
         },
         {
-          "config": "metron-env/enrichment_workers",
+          "config": "metron-enrichment-env/enrichment_workers",
           "subsection-name": "subsection-enrichment-storm"
         },
         {
-          "config": "metron-env/enrichment_acker_executors",
+          "config": "metron-enrichment-env/enrichment_acker_executors",
           "subsection-name": "subsection-enrichment-storm"
         },
         {
-          "config": "metron-env/enrichment_topology_worker_childopts",
+          "config": "metron-enrichment-env/enrichment_topology_worker_childopts",
           "subsection-name": "subsection-enrichment-storm"
         },
         {
-          "config": "metron-env/enrichment_topology_max_spout_pending",
+          "config": "metron-enrichment-env/enrichment_topology_max_spout_pending",
           "subsection-name": "subsection-enrichment-storm"
         },
         {
-          "config": "metron-env/enrichment_join_cache_size",
+          "config": "metron-enrichment-env/enrichment_join_cache_size",
           "subsection-name": "subsection-enrichment-storm"
         },
         {
-          "config": "metron-env/threatintel_join_cache_size",
+          "config": "metron-enrichment-env/threatintel_join_cache_size",
           "subsection-name": "subsection-enrichment-storm"
         },
         {
-          "config": "metron-env/enrichment_kafka_spout_parallelism",
+          "config": "metron-enrichment-env/enrichment_kafka_spout_parallelism",
           "subsection-name": "subsection-enrichment-storm"
         },
         {
-          "config": "metron-env/enrichment_split_parallelism",
+          "config": "metron-enrichment-env/enrichment_split_parallelism",
           "subsection-name": "subsection-enrichment-storm"
         },
         {
-          "config": "metron-env/enrichment_stellar_parallelism",
+          "config": "metron-enrichment-env/enrichment_stellar_parallelism",
           "subsection-name": "subsection-enrichment-storm"
         },
         {
-          "config": "metron-env/enrichment_join_parallelism",
+          "config": "metron-enrichment-env/enrichment_join_parallelism",
           "subsection-name": "subsection-enrichment-storm"
         },
         {
-          "config": "metron-env/threat_intel_split_parallelism",
+          "config": "metron-enrichment-env/threat_intel_split_parallelism",
           "subsection-name": "subsection-enrichment-storm"
         },
         {
-          "config": "metron-env/threat_intel_stellar_parallelism",
+          "config": "metron-enrichment-env/threat_intel_stellar_parallelism",
           "subsection-name": "subsection-enrichment-storm"
         },
         {
-          "config": "metron-env/threat_intel_join_parallelism",
+          "config": "metron-enrichment-env/threat_intel_join_parallelism",
           "subsection-name": "subsection-enrichment-storm"
         },
         {
-          "config": "metron-env/kafka_writer_parallelism",
+          "config": "metron-enrichment-env/kafka_writer_parallelism",
           "subsection-name": "subsection-enrichment-storm"
         },
 
         {
-          "config": "metron-env/indexing_kafka_start",
+          "config": "metron-indexing-env/indexing_kafka_start",
           "subsection-name": "subsection-indexing-kafka"
         },
         {
-          "config": "metron-env/indexing_input_topic",
+          "config": "metron-indexing-env/indexing_input_topic",
           "subsection-name": "subsection-indexing-kafka"
         },
         {
-          "config": "metron-env/indexing_error_topic",
+          "config": "metron-indexing-env/indexing_error_topic",
           "subsection-name": "subsection-indexing-kafka"
         },
         {
-          "config": "metron-env/indexing_workers",
+          "config": "metron-indexing-env/indexing_writer_class_name",
           "subsection-name": "subsection-indexing-storm"
         },
         {
-          "config": "metron-env/indexing_acker_executors",
+          "config": "metron-indexing-env/indexing_workers",
           "subsection-name": "subsection-indexing-storm"
         },
         {
-          "config": "metron-env/indexing_topology_worker_childopts",
+          "config": "metron-indexing-env/indexing_acker_executors",
           "subsection-name": "subsection-indexing-storm"
         },
         {
-          "config": "metron-env/indexing_topology_max_spout_pending",
+          "config": "metron-indexing-env/indexing_topology_worker_childopts",
           "subsection-name": "subsection-indexing-storm"
         },
         {
-          "config": "metron-env/indexing_kafka_spout_parallelism",
+          "config": "metron-indexing-env/indexing_topology_max_spout_pending",
           "subsection-name": "subsection-indexing-storm"
         },
         {
-          "config": "metron-env/indexing_writer_parallelism",
+          "config": "metron-indexing-env/indexing_kafka_spout_parallelism",
           "subsection-name": "subsection-indexing-storm"
         },
         {
-          "config": "metron-env/hdfs_writer_parallelism",
+          "config": "metron-indexing-env/indexing_writer_parallelism",
           "subsection-name": "subsection-indexing-storm"
         },
         {
-          "config": "metron-env/metron_apps_indexed_hdfs_dir",
+          "config": "metron-indexing-env/hdfs_writer_parallelism",
+          "subsection-name": "subsection-indexing-storm"
+        },
+        {
+          "config": "metron-indexing-env/metron_apps_indexed_hdfs_dir",
           "subsection-name": "subsection-indexing-hdfs"
         },
         {
-          "config": "metron-env/bolt_hdfs_rotation_policy",
+          "config": "metron-indexing-env/bolt_hdfs_rotation_policy",
           "subsection-name": "subsection-indexing-hdfs"
         },
         {
-          "config": "metron-env/bolt_hdfs_rotation_policy_units",
+          "config": "metron-indexing-env/bolt_hdfs_rotation_policy_units",
           "subsection-name": "subsection-indexing-hdfs"
         },
         {
-          "config": "metron-env/bolt_hdfs_rotation_policy_count",
+          "config": "metron-indexing-env/bolt_hdfs_rotation_policy_count",
           "subsection-name": "subsection-indexing-hdfs"
         },
 
         {
-          "config": "metron-env/metron_rest_port",
+          "config": "metron-rest-env/metron_rest_port",
           "subsection-name": "subsection-rest"
         },
         {
-          "config": "metron-env/metron_jdbc_url",
+          "config": "metron-rest-env/metron_jdbc_url",
           "subsection-name": "subsection-rest"
         },
         {
-          "config": "metron-env/metron_jdbc_driver",
+          "config": "metron-rest-env/metron_jdbc_driver",
           "subsection-name": "subsection-rest"
         },
         {
-          "config": "metron-env/metron_jdbc_username",
+          "config": "metron-rest-env/metron_jdbc_username",
           "subsection-name": "subsection-rest"
         },
         {
-          "config": "metron-env/metron_jdbc_password",
+          "config": "metron-rest-env/metron_jdbc_password",
           "subsection-name": "subsection-rest"
         },
         {
-          "config": "metron-env/metron_jdbc_platform",
+          "config": "metron-rest-env/metron_jdbc_platform",
           "subsection-name": "subsection-rest"
         },
         {
-          "config": "metron-env/metron_jdbc_client_path",
+          "config": "metron-rest-env/metron_jdbc_client_path",
           "subsection-name": "subsection-rest"
         },
         {
-          "config": "metron-env/metron_default_grok_path",
+          "config": "metron-rest-env/metron_default_grok_path",
           "subsection-name": "subsection-rest"
         },
         {
-          "config": "metron-env/metron_temp_grok_path",
+          "config": "metron-rest-env/metron_temp_grok_path",
           "subsection-name": "subsection-rest"
         },
         {
-          "config": "metron-env/metron_spring_profiles_active",
+          "config": "metron-rest-env/metron_spring_profiles_active",
           "subsection-name": "subsection-rest"
         },
         {
-          "config": "metron-env/metron_jvm_flags",
+          "config": "metron-rest-env/metron_jvm_flags",
           "subsection-name": "subsection-rest"
         },
         {
-          "config": "metron-env/metron_spring_options",
+          "config": "metron-rest-env/metron_spring_options",
           "subsection-name": "subsection-rest"
         },
         {
-          "config": "metron-env/metron_management_ui_port",
+          "config": "metron-management-ui-env/metron_management_ui_port",
           "subsection-name": "subsection-management-ui"
         }
       ]
@@ -512,232 +516,231 @@
         }
       },
       {
-        "config": "metron-env/parsers",
+        "config": "metron-parsers-env/parsers",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/parser_error_topic",
+        "config": "metron-parsers-env/parser_error_topic",
         "widget": {
           "type": "text-field"
         }
       },
 
-
       {
-        "config": "metron-env/enrichment_workers",
+        "config": "metron-enrichment-env/geoip_url",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/geoip_url",
+        "config": "metron-enrichment-env/enrichment_host_known_hosts",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/enrichment_acker_executors",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-env/enrichment_topology_worker_childopts",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-env/enrichment_topology_max_spout_pending",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-env/enrichment_kafka_start",
+        "config": "metron-enrichment-env/enrichment_kafka_start",
         "widget": {
           "type": "combo"
         }
       },
       {
-        "config": "metron-env/enrichment_input_topic",
+        "config": "metron-enrichment-env/enrichment_input_topic",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/enrichment_output_topic",
+        "config": "metron-enrichment-env/enrichment_output_topic",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/enrichment_error_topic",
+        "config": "metron-enrichment-env/enrichment_error_topic",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/threatintel_error_topic",
+        "config": "metron-enrichment-env/threatintel_error_topic",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/enrichment_join_cache_size",
+        "config": "metron-enrichment-env/enrichment_workers",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/threatintel_join_cache_size",
+        "config": "metron-enrichment-env/enrichment_acker_executors",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/enrichment_host_known_hosts",
+        "config": "metron-enrichment-env/enrichment_topology_worker_childopts",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/enrichment_kafka_spout_parallelism",
+        "config": "metron-enrichment-env/enrichment_topology_max_spout_pending",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/enrichment_split_parallelism",
+        "config": "metron-enrichment-env/enrichment_join_cache_size",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/enrichment_stellar_parallelism",
+        "config": "metron-enrichment-env/threatintel_join_cache_size",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/enrichment_join_parallelism",
+        "config": "metron-enrichment-env/enrichment_kafka_spout_parallelism",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/threat_intel_split_parallelism",
+        "config": "metron-enrichment-env/enrichment_split_parallelism",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/threat_intel_stellar_parallelism",
+        "config": "metron-enrichment-env/enrichment_stellar_parallelism",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/threat_intel_join_parallelism",
+        "config": "metron-enrichment-env/enrichment_join_parallelism",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/kafka_writer_parallelism",
+        "config": "metron-enrichment-env/threat_intel_split_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/threat_intel_stellar_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/threat_intel_join_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/kafka_writer_parallelism",
         "widget": {
           "type": "text-field"
         }
       },
 
       {
-        "config": "metron-env/indexing_workers",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-env/indexing_acker_executors",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-env/indexing_topology_worker_childopts",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-env/indexing_topology_max_spout_pending",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-env/indexing_kafka_start",
+        "config": "metron-indexing-env/indexing_kafka_start",
         "widget": {
           "type": "combo"
         }
       },
       {
-        "config": "metron-env/indexing_input_topic",
+        "config": "metron-indexing-env/indexing_input_topic",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/indexing_error_topic",
+        "config": "metron-indexing-env/indexing_error_topic",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/bolt_hdfs_rotation_policy",
+        "config": "metron-indexing-env/indexing_writer_class_name",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/bolt_hdfs_rotation_policy_units",
+        "config": "metron-indexing-env/indexing_workers",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/indexing_acker_executors",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/indexing_topology_worker_childopts",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/indexing_topology_max_spout_pending",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/indexing_kafka_spout_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/indexing_writer_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/hdfs_writer_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/metron_apps_indexed_hdfs_dir",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/bolt_hdfs_rotation_policy",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/bolt_hdfs_rotation_policy_units",
         "widget": {
           "type": "combo"
         }
       },
       {
-        "config": "metron-env/bolt_hdfs_rotation_policy_count",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-env/indexing_error_topic",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-env/indexing_kafka_spout_parallelism",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-env/indexing_writer_parallelism",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-env/hdfs_writer_parallelism",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "metron-env/metron_apps_indexed_hdfs_dir",
+        "config": "metron-indexing-env/bolt_hdfs_rotation_policy_count",
         "widget": {
           "type": "text-field"
         }
@@ -745,79 +748,79 @@
 
 
       {
-        "config": "metron-env/metron_rest_port",
+        "config": "metron-rest-env/metron_rest_port",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/metron_jdbc_url",
+        "config": "metron-rest-env/metron_jdbc_url",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/metron_jdbc_driver",
+        "config": "metron-rest-env/metron_jdbc_driver",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/metron_jdbc_username",
+        "config": "metron-rest-env/metron_jdbc_username",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/metron_jdbc_password",
+        "config": "metron-rest-env/metron_jdbc_password",
         "widget": {
           "type": "password"
         }
       },
       {
-        "config": "metron-env/metron_jdbc_platform",
+        "config": "metron-rest-env/metron_jdbc_platform",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/metron_jdbc_client_path",
+        "config": "metron-rest-env/metron_jdbc_client_path",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/metron_default_grok_path",
+        "config": "metron-rest-env/metron_default_grok_path",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/metron_temp_grok_path",
+        "config": "metron-rest-env/metron_temp_grok_path",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/metron_spring_profiles_active",
+        "config": "metron-rest-env/metron_spring_profiles_active",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/metron_jvm_flags",
+        "config": "metron-rest-env/metron_jvm_flags",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/metron_spring_options",
+        "config": "metron-rest-env/metron_spring_options",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-env/metron_management_ui_port",
+        "config": "metron-management-ui-env/metron_management_ui_port",
         "widget": {
           "type": "text-field"
         }
