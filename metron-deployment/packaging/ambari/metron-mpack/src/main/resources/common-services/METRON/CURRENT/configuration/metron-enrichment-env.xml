@@ -1,0 +1,174 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration supports_final="true">
+  <property>
+    <name>geoip_url</name>
+    <value>http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz</value>
+    <description>Location of the GeoIP data to load.</description>
+    <display-name>GEOIP Load Datafile URL</display-name>
+  </property>
+  <property>
+    <name>enrichment_host_known_hosts</name>
+    <description>List of Known Hosts for Host Enrichment</description>
+    <value>[{"ip":"10.1.128.236", "local":"YES", "type":"webserver", "asset_value" : "important"},{"ip":"10.1.128.237", "local":"UNKNOWN", "type":"unknown", "asset_value" : "important"},{"ip":"10.60.10.254", "local":"YES", "type":"printer", "asset_value" : "important"}]</value>
+    <display-name>Host Enrichment</display-name>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+  </property>
+  <property>
+    <name>enrichment_kafka_start</name>
+    <description>Enrichment Topology Spout Offset</description>
+    <value>UNCOMMITTED_EARLIEST</value>
+    <display-name>Enrichment Offset</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>EARLIEST</value>
+        </entry>
+        <entry>
+          <value>LATEST</value>
+        </entry>
+        <entry>
+          <value>UNCOMMITTED_EARLIEST</value>
+        </entry>
+        <entry>
+          <value>UNCOMMITTED_LATEST</value>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+  <property>
+    <name>enrichment_input_topic</name>
+    <description>Enrichment Input Topic</description>
+    <value>enrichments</value>
+    <display-name>Enrichment Input Topic</display-name>
+  </property>
+  <property>
+    <name>enrichment_output_topic</name>
+    <description>Enrichment Output Topic</description>
+    <value>indexing</value>
+    <display-name>Enrichment Output Topic</display-name>
+  </property>
+  <property>
+    <name>enrichment_error_topic</name>
+    <description>Enrichment Error Topic</description>
+    <value>indexing</value>
+    <display-name>Enrichment Error Topic</display-name>
+  </property>
+  <property>
+    <name>threatintel_error_topic</name>
+    <description>Threat Intel Error Topic</description>
+    <value>indexing</value>
+    <display-name>Threat Intel Error Topic</display-name>
+  </property>
+  <property>
+    <name>enrichment_workers</name>
+    <description>Number of Enrichment Topology Workers</description>
+    <value>1</value>
+    <display-name>Enrichment Workers</display-name>
+  </property>
+  <property>
+    <name>enrichment_acker_executors</name>
+    <description>Number of Enrichment Topology Ackers</description>
+    <value>1</value>
+    <display-name>Enrichment Ackers</display-name>
+  </property>
+  <property>
+    <name>enrichment_topology_worker_childopts</name>
+    <description>Enrichment Topology JVM Options</description>
+    <value/>
+    <display-name>Enrichment childopts</display-name>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+  <property>
+    <name>enrichment_topology_max_spout_pending</name>
+    <description>Enrichment Topology Spout Max Pending Tuples</description>
+    <value/>
+    <display-name>Enrichment Max Pending</display-name>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+  <property>
+    <name>enrichment_join_cache_size</name>
+    <description>Enrichment Join Bolt Cache Max Size</description>
+    <value>100000</value>
+    <display-name>Enrichment Join Size</display-name>
+  </property>
+  <property>
+    <name>threatintel_join_cache_size</name>
+    <description>Threat Intel Join Bolt Cache Max Size</description>
+    <value>100000</value>
+    <display-name>Threat Intel Join Size</display-name>
+  </property>
+  <property>
+    <name>enrichment_kafka_spout_parallelism</name>
+    <description>Enrichment Topology Kafka Spout Parallelism</description>
+    <value>1</value>
+    <display-name>Enrichment Spout Parallelism</display-name>
+  </property>
+  <property>
+    <name>enrichment_split_parallelism</name>
+    <description>Enrichment Topology Enrichment Split Bolt Parallelism</description>
+    <value>1</value>
+    <display-name>Enrichment Split Parallelism</display-name>
+  </property>
+  <property>
+    <name>enrichment_stellar_parallelism</name>
+    <description>Enrichment Topology Enrichment Stellar Bolt Parallelism</description>
+    <value>1</value>
+    <display-name>Enrichment Stellar Parallelism</display-name>
+  </property>
+  <property>
+    <name>enrichment_join_parallelism</name>
+    <description>Enrichment Topology Enrichment Join Bolt Parallelism</description>
+    <value>1</value>
+    <display-name>Enrichment Join Parallelism</display-name>
+  </property>
+  <property>
+    <name>threat_intel_split_parallelism</name>
+    <description>Enrichment Topology Threat Intel Split Bolt Parallelism</description>
+    <value>1</value>
+    <display-name>Threat Intel Spout Parallelism</display-name>
+  </property>
+  <property>
+    <name>threat_intel_stellar_parallelism</name>
+    <description>Enrichment Topology Threat Intel Stellar Bolt Parallelism</description>
+    <value>1</value>
+    <display-name>Threat Intel Spout Parallelism</display-name>
+  </property>
+  <property>
+    <name>threat_intel_join_parallelism</name>
+    <description>Enrichment Topology Threat Intel Join Bolt Parallelism</description>
+    <value>1</value>
+    <display-name>Threat Intel Join Parallelism</display-name>
+  </property>
+  <property>
+    <name>kafka_writer_parallelism</name>
+    <description>Enrichment Topology Kafka Writer Parallelism</description>
+    <value>1</value>
+    <display-name>Enrichment Kafka Writer Parallelism</display-name>
+  </property>
+</configuration>
