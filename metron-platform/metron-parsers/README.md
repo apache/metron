@@ -20,8 +20,14 @@ There are two general types types of parsers:
     * `timestampFormat` : The date format of the timestamp to use.  If unspecified, the parser assumes the timestamp is ms since unix epoch.
     * `columns` : A map of column names you wish to extract from the CSV to their offsets (e.g. `{ 'name' : 1, 'profession' : 3}`  would be a column map for extracting the 2nd and 4th columns from a CSV)
     * `separator` : The column separator, `,` by default.
-just
-
+  * JSON Map Parser: `org.apache.metron.parsers.json.JSONMapParser` with possible `parserConfig` entries of
+    * `mapStrategy` : A strategy to indicate how to handle multi-dimensional Maps.  This is one of
+      * `DROP` : Drop fields which contain maps
+      * `UNFOLD` : Unfold inner maps.  So `{ "foo" : { "bar" : 1} }` would turn into `{"foo.bar" : 1}`
+      * `ALLOW` : Allow multidimensional maps
+      * `ERROR` : Throw an error when a multidimensional map is encountered
+    * A field called `timestamp` is expected to exist and, if it does not, then current time is inserted.  
+    
 ## Parser Architecture
 
 ![Architecture](parser_arch.png)
@@ -91,7 +97,10 @@ Example Stellar Filter which includes messages which contain a the `field1` fiel
     }
    }
 ```
-* `sensorTopic` : The kafka topic to send the parsed messages to.
+* `sensorTopic` : The kafka topic to send the parsed messages to.  If the topic is prefixed and suffixed by `/` 
+then it is assumed to be a regex and will match any topic matching the pattern (e.g. `/bro.*/` would match `bro_cust0`, `bro_cust1` and `bro_cust2`)
+* `readMetadata` : Boolean indicating whether to read metadata or not (`false` by default).  See below for a discussion about metadata.
+* `mergeMetadata` : Boolean indicating whether to merge metadata with the message or not (`false` by default).  See below for a discussion about metadata.
 * `parserConfig` : A JSON Map representing the parser implementation specific configuration.
 * `fieldTransformations` : An array of complex objects representing the transformations to be done on the message generated from the parser before writing out to the kafka topic.
 
@@ -100,6 +109,44 @@ transformation which can be done to a message.  This transformation can
 * Modify existing fields to a message
 * Add new fields given the values of existing fields of a message
 * Remove existing fields of a message
+
+### Metadata
+
+Metadata is a useful thing to send to Metron and use during enrichment or threat intelligence.  
+Consider the following scenarios:
+* You have multiple telemetry sources of the same type that you want to 
+  * ensure downstream analysts can differentiate
+  * ensure profiles consider independently as they have different seasonality or some other fundamental characteristic
+
+As such, there are two types of metadata that we seek to support in Metron:
+* Environmental metadata : Metadata about the system at large
+   * Consider the possibility that you have multiple kafka topics being processed by one parser and you want to tag the messages with the kafka topic
+   * At the moment, only the kafka topic is kept as the field name.
+* Custom metadata: Custom metadata from an individual telemetry source that one might want to use within Metron. 
+
+Metadata is controlled by two fields in the parser:
+* `readMetadata` : This is a boolean indicating whether metadata will be read and made available to Field 
+transformations (i.e. Stellar field transformations).  The default is `false`.
+* `mergeMetadata` : This is a boolean indicating whether metadata fields will be merged with the message automatically.  
+That is to say, if this property is set to `true` then every metadata field will become part of the messages and, 
+consequently, also available for use in field transformations.
+#### Field Naming
+
+In order to avoid collisions from metadata fields, metadata fields will be prefixed with `metron.metadata.`.  
+So, for instance the kafka topic would be in the field `metron.metadata.topic`.
+
+#### Specifying Custom Metadata
+Custom metadata is specified by sending a JSON Map in the key.  If no key is sent, then, obviously, no metadata will be parsed.
+For instance, sending a metadata field called `customer_id` could be done by sending
+```
+{
+"customer_id" : "my_customer_id"
+}
+```
+in the kafka key.  This would be exposed as the field `metron.metadata.customer_id` to stellar field transformations
+as well, if `mergeMetadata` is `true`, available as a field in its own right.
+
+
 
 ### `fieldTransformation` configuration
 
