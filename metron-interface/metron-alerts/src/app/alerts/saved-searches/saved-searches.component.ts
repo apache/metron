@@ -6,6 +6,7 @@ import {SaveSearchService} from '../../service/save-search.service';
 import {SaveSearch} from '../../model/save-search';
 import {MetronDialogBox} from '../../shared/metron-dialog-box';
 import {NUM_SAVED_SEARCH} from '../../utils/constants';
+import {CollapseComponentData, CollapseComponentDataItems} from '../../shared/collapse/collapse-component-data';
 
 @Component({
   selector: 'app-saved-searches',
@@ -16,8 +17,8 @@ export class SavedSearchesComponent implements OnInit {
 
   searches: SaveSearch[];
   recentSearcheObj: SaveSearch[];
-  savedSearches: any = {};
-  recentSearches: any = {};
+  savedSearches: CollapseComponentData = new CollapseComponentData();
+  recentSearches: CollapseComponentData = new CollapseComponentData();
   constructor(private router: Router,
               private saveSearchService: SaveSearchService,
               private metronDialog: MetronDialogBox) {
@@ -79,30 +80,18 @@ export class SavedSearchesComponent implements OnInit {
     this.recentSearcheObj = recentSearches ? recentSearches : [];
     let recentSearchNames = this.recentSearcheObj.sort((s1, s2) => { return s2.lastAccessed - s1.lastAccessed; }).slice(0, NUM_SAVED_SEARCH)
                           .map(search => {
-                            return {key: search.getDisplayString()};
+                            return  new CollapseComponentDataItems(search.getDisplayString());
                           });
 
-    this.recentSearches = {
-      getName: () => {
-        return 'Recent Searches';
-      },
-      getData: () => {
-        return recentSearchNames;
-      },
-    };
+    this.recentSearches.groupName =  'Recent Searches';
+    this.recentSearches.groupItems = recentSearchNames;
   }
 
   preparedSavedSearches(savedSearches: SaveSearch[]) {
-    let savedSearchNames = savedSearches.map(savedSearch => { return {key: savedSearch.name}; });
+    let savedSearchNames = savedSearches.map(savedSearch => { return new CollapseComponentDataItems(savedSearch.name); });
 
-    this.savedSearches = {
-      getName: () => {
-        return 'Saved Searches';
-      },
-      getData: () => {
-        return savedSearchNames;
-      },
-    };
+    this.savedSearches.groupName =  'Saved Searches';
+    this.savedSearches.groupItems = savedSearchNames;
   }
 
   goBack() {

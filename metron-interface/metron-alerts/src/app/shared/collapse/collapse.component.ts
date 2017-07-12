@@ -17,11 +17,7 @@
  */
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import 'bootstrap';
-
-export interface CollapseComponentData {
-  getName(): string;
-  getBuckets(): any[];
-}
+import {CollapseComponentData} from './collapse-component-data';
 
 @Component({
   selector: 'metron-collapse',
@@ -33,7 +29,7 @@ export class CollapseComponent implements OnInit {
   static counter = 0;
   uniqueId = '';
 
-  @Input() data: any;
+  @Input() data = new CollapseComponentData();
   @Input() fontSize = 14;
   @Input() titleSeperator = false;
   @Input() deleteOption = false;
@@ -51,12 +47,12 @@ export class CollapseComponent implements OnInit {
   }
 
   onDeleteClick($event, key: string) {
-    this.onDelete.emit({name: this.data.getName(), key: key});
+    this.onDelete.emit({name: this.data.groupName, key: key});
     $event.stopPropagation();
     return false;
   }
 
   onSelectClick(key: string) {
-    this.onSelect.emit({name: this.data.getName(), key: key});
+    this.onSelect.emit({name: this.data.groupName, key: key});
   }
 }

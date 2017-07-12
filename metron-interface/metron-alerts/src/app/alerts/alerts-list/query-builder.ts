@@ -52,13 +52,13 @@ export class QueryBuilder {
 
 
   get searchRequest(): SearchRequest {
-    this._searchRequest.query = { query_string: { query: this.generateSelect() } };
+    this._searchRequest.query = this.generateSelect();
     return this._searchRequest;
   }
 
   set searchRequest(value: SearchRequest) {
     this._searchRequest = value;
-    this.query = this._searchRequest.query.query_string.query;
+    this.query = this._searchRequest.query;
   }
 
   addOrUpdateFilter(field: string, value: string) {
