@@ -19,6 +19,7 @@ package org.apache.metron.enrichment.adapters.geo;
 
 import com.maxmind.db.CHMCache;
 import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.exception.AddressNotFoundException;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CityResponse;
 import com.maxmind.geoip2.record.City;
@@ -127,7 +128,8 @@ public enum GeoLiteDatabase {
       return Optional.empty();
     }
     if (isIneligibleAddress(ip, addr)) {
-      return Optional.of(new HashMap());
+      LOG.debug("[Metron] IP ineligible for GeoLite2 lookup {}", ip);
+      return Optional.empty();
     }
 
     try {
@@ -162,8 +164,8 @@ public enum GeoLiteDatabase {
       }
 
       return Optional.of(geoInfo);
-    } catch (UnknownHostException e) {
-      LOG.warn("[Metron] No result found for IP {}", ip);
+    } catch (UnknownHostException | AddressNotFoundException e) {
+      LOG.debug("[Metron] No result found for IP {}", ip);
     } catch (GeoIp2Exception | IOException e) {
       LOG.warn("[Metron] GeoLite2 DB encountered an error", e);
     } finally {
