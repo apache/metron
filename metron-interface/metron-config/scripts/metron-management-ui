@@ -33,7 +33,7 @@ METRON_LOG_DIR="/var/log/metron"
 METRON_PID_DIR="/var/run/metron"
 METRON_USER="metron"
 METRON_GROUP="metron"
-METRON_SYSCONFIG="/etc/sysconfig/metron"
+METRON_SYSCONFIG="/etc/default/metron-rest"
 if [ -f "$METRON_SYSCONFIG" ]; then
     set -a
     . "$METRON_SYSCONFIG"

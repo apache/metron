@@ -35,7 +35,7 @@ METRON_USER="metron"
 METRON_GROUP="metron"
 METRON_REST_PORT=8082
 METRON_JDBC_PASSWORD="$2"
-METRON_SYSCONFIG="/etc/sysconfig/metron"
+METRON_SYSCONFIG="/etc/default/metron-rest"
 if [ -f "$METRON_SYSCONFIG" ]; then
     set -a
     . "$METRON_SYSCONFIG"
