@@ -67,6 +67,9 @@
             <script>scripts/parser_master.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>metron-parsers-env</config-type>
+          </configuration-dependencies>
         </component>
 
         <component>
@@ -110,6 +113,9 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>metron-enrichment-env</config-type>
+          </configuration-dependencies>
         </component>
 
         <component>
@@ -173,6 +179,9 @@
                 </commandScript>
               </customCommand>
           </customCommands>
+          <configuration-dependencies>
+            <config-type>metron-indexing-env</config-type>
+          </configuration-dependencies>
         </component>
 
         <component>
@@ -217,6 +226,9 @@
             <script>scripts/rest_master.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>metron-rest-env</config-type>
+          </configuration-dependencies>
         </component>
 
         <component>
@@ -261,6 +273,10 @@
             <script>scripts/management_ui_master.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+            <configuration-dependencies>
+                <config-type>metron-rest-env</config-type>
+                <config-type>metron-management-ui-env</config-type>
+            </configuration-dependencies>
         </component>
 
         <component>

@@ -35,13 +35,10 @@ import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
   private static final Logger LOG = Logger.getLogger(StormKafkaSpout.class);
   protected KafkaSpoutConfig<K,V> _spoutConfig;
-  protected String _topic;
-
   protected AtomicBoolean isShutdown = new AtomicBoolean(false);
 
   public StormKafkaSpout(SimpleStormKafkaBuilder<K,V> builder) {
     super(builder.build());
-    this._topic = builder.getTopic();
     this._spoutConfig = builder.build();
   }
 
@@ -70,6 +67,14 @@ public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
     catch(WakeupException we) {
       //see https://issues.apache.org/jira/browse/STORM-2184
       LOG.warn("You can generally ignore these, as per https://issues.apache.org/jira/browse/STORM-2184 -- " + we.getMessage(), we);
+    }
+    catch(IllegalStateException ise) {
+      if(ise.getMessage().contains("This consumer has already been closed")) {
+        LOG.warn(ise.getMessage());
+      }
+      else {
+        throw ise;
+      }
     }
   }
 }

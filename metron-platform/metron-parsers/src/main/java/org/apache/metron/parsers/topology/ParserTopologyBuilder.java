@@ -132,7 +132,14 @@ public class ParserTopologyBuilder {
     if(securityProtocol.isPresent()) {
       kafkaSpoutConfigOptions.putIfAbsent("security.protocol", securityProtocol.get());
     }
-    return SimpleStormKafkaBuilder.create(inputTopic, zkQuorum, Arrays.asList("value"), kafkaSpoutConfigOptions);
+    return SimpleStormKafkaBuilder.create( inputTopic
+                                         , zkQuorum
+                                         , Arrays.asList( SimpleStormKafkaBuilder.FieldsConfiguration.VALUE.getFieldName()
+                                                        , SimpleStormKafkaBuilder.FieldsConfiguration.KEY.getFieldName()
+                                                        , SimpleStormKafkaBuilder.FieldsConfiguration.TOPIC.getFieldName()
+                                                        )
+                                         , kafkaSpoutConfigOptions
+                                         );
   }
 
   private static KafkaWriter createKafkaWriter( Optional<String> broker
