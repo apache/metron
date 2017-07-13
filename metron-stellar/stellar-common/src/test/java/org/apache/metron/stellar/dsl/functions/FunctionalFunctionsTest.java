@@ -54,6 +54,21 @@ public class FunctionalFunctionsTest {
             "list1" , ImmutableList.of(1, 2, 3)
             ,"list2", ImmutableList.of(4, 5, 6, 7)
     );
+    for (String expr : ImmutableList.of( "ZIP_LONGEST(list1)"
+            , "ZIP_LONGEST( [1, 2, 3])"
+    )
+            )
+    {
+      List<List<Object>> o = (List<List<Object>>) run(expr, variables);
+      Assert.assertEquals(3, o.size());
+      for (int i = 0; i < 3; ++i) {
+        List l = o.get(i);
+        Assert.assertEquals(1, l.size());
+        Assert.assertEquals(i+1, l.get(0));
+      }
+
+    }
+
     for (String expr : ImmutableList.of( "ZIP_LONGEST(list1, list2)"
             , "ZIP_LONGEST( [1, 2, 3], [4, 5, 6, 7] )"
     )
@@ -112,6 +127,21 @@ public class FunctionalFunctionsTest {
             "list1" , ImmutableList.of(1, 2, 3)
             ,"list2", ImmutableList.of(4, 5, 6)
     );
+
+    for (String expr : ImmutableList.of( "ZIP(list1)"
+            , "ZIP( [1, 2, 3])"
+    )
+            )
+    {
+      List<List<Object>> o = (List<List<Object>>) run(expr, variables);
+      Assert.assertEquals(3, o.size());
+      for (int i = 0; i < 3; ++i) {
+        List l = o.get(i);
+        Assert.assertEquals(1, l.size());
+        Assert.assertEquals(i+1, l.get(0));
+      }
+
+    }
     for (String expr : ImmutableList.of( "ZIP(list1, list2)"
             , "ZIP( [1, 2, 3], [4, 5, 6] )"
             , "ZIP( [1, 2, 3], [4, 5, 6, 7] )"
