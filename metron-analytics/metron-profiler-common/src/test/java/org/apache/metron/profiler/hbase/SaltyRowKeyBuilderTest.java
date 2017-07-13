@@ -50,7 +50,7 @@ public class SaltyRowKeyBuilderTest {
   private static final long periodDuration = 15;
   private static final TimeUnit periodUnits = TimeUnit.MINUTES;
 
-  private SaltyRowKeyBuilder encodeBuilder;
+  private SaltyRowKeyBuilder rowKeyBuilder;
   private ProfileMeasurement measurement;
   private Tuple tuple;
 
@@ -72,7 +72,7 @@ public class SaltyRowKeyBuilderTest {
     tuple = mock(Tuple.class);
     when(tuple.getValueByField(eq("measurement"))).thenReturn(measurement);
 
-    encodeBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
+    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
   }
 
   /**
@@ -97,7 +97,7 @@ public class SaltyRowKeyBuilderTest {
     buffer.get(expected, 0, buffer.limit());
 
     // validate
-    byte[] actual = encodeBuilder.encode(measurement);
+    byte[] actual = rowKeyBuilder.encode(measurement);
     Assert.assertTrue(Arrays.equals(expected, actual));
   }
 
@@ -124,7 +124,7 @@ public class SaltyRowKeyBuilderTest {
     buffer.get(expected, 0, buffer.limit());
 
     // validate
-    byte[] actual = encodeBuilder.encode(measurement);
+    byte[] actual = rowKeyBuilder.encode(measurement);
     Assert.assertTrue(Arrays.equals(expected, actual));
   }
 
@@ -150,7 +150,7 @@ public class SaltyRowKeyBuilderTest {
     buffer.get(expected, 0, buffer.limit());
 
     // validate
-    byte[] actual = encodeBuilder.encode(measurement);
+    byte[] actual = rowKeyBuilder.encode(measurement);
     Assert.assertTrue(Arrays.equals(expected, actual));
   }
 
@@ -177,7 +177,7 @@ public class SaltyRowKeyBuilderTest {
     buffer.get(expected, 0, buffer.limit());
 
     // validate
-    byte[] actual = encodeBuilder.encode(measurement);
+    byte[] actual = rowKeyBuilder.encode(measurement);
     Assert.assertTrue(Arrays.equals(expected, actual));
   }
 
@@ -202,7 +202,7 @@ public class SaltyRowKeyBuilderTest {
     buffer.get(expected, 0, buffer.limit());
 
     // validate
-    byte[] actual = encodeBuilder.encode(measurement);
+    byte[] actual = rowKeyBuilder.encode(measurement);
     Assert.assertTrue(Arrays.equals(expected, actual));
   }
 
@@ -215,7 +215,7 @@ public class SaltyRowKeyBuilderTest {
 
     // setup
     List<Object> groups = Collections.emptyList();
-    encodeBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
+    rowKeyBuilder = new SaltyRowKeyBuilder(saltDivisor, periodDuration, periodUnits);
 
     // a dummy profile measurement
     long now = System.currentTimeMillis();
@@ -231,7 +231,7 @@ public class SaltyRowKeyBuilderTest {
     for  (int i=0; i<(hoursAgo * 4)+1; i++) {
 
       // generate the expected key
-      byte[] rk = encodeBuilder.encode(m);
+      byte[] rk = rowKeyBuilder.encode(m);
       expectedKeys.add(rk);
 
       // advance to the next period
@@ -243,7 +243,7 @@ public class SaltyRowKeyBuilderTest {
     }
 
     // execute
-    List<byte[]> actualKeys = encodeBuilder.encode(measurement.getProfileName(), measurement.getEntity(), groups, oldest, now);
+    List<byte[]> actualKeys = rowKeyBuilder.encode(measurement.getProfileName(), measurement.getEntity(), groups, oldest, now);
 
     // validate - expectedKeys == actualKeys
     for(int i=0; i<actualKeys.size(); i++) {
