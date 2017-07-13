@@ -1,9 +1,9 @@
 # Metron Profiler
 
-The Profiler is a feature extraction mechanism that can generate a profile describing the behavior of an entity.  An entity might be a server, user, subnet or application. Once a profile has been generated defining what normal behavior looks-like, models can be built that identify anomalous behavior. 
+The Profiler is a feature extraction mechanism that can generate a profile describing the behavior of an entity.  An entity might be a server, user, subnet or application. Once a profile has been generated defining what normal behavior looks-like, models can be built that identify anomalous behavior.
 
 This is achieved by summarizing the streaming telemetry data consumed by Metron over sliding windows. A summary statistic is applied to the data received within a given window.  Collecting this summary across many windows results in a time series that is useful for analysis.
- 
+
 Any field contained within a message can be used to generate a profile.  A profile can even be produced by combining fields that originate in different data sources.  A user has considerable power to transform the data used in a profile by leveraging the Stellar language. A user only need configure the desired profiles and ensure that the Profiler topology is running.
 
 * [Getting Started](#getting-started)
@@ -23,7 +23,7 @@ This section will describe the steps required to get your first profile running.
     $ /usr/hdp/current/hbase-client/bin/hbase shell
     hbase(main):001:0> create 'profiler', 'P'
     ```
-    
+
 1. Edit the configuration file located at `$METRON_HOME/config/profiler.properties`.  Change the kafka.zk and kafka.broker values from "node1" to the appropriate host name.  Keep the same port numbers:
     ```
     kafka.zk=node1:2181
@@ -62,7 +62,7 @@ This section will describe the steps required to get your first profile running.
     ```
     $ /usr/hdp/current/hbase-client/bin/hbase shell
     hbase(main):001:0> count 'profiler'
-    ``` 
+    ```
 
 1. Use the Profiler Client to read the profile data.  The below example `PROFILE_GET` command will read data written by the sample profile given above, if 10.0.0.1 is one of the input values for `ip_src_addr`.
 More information on configuring and using the client can be found [here](../metron-profiler-client).
@@ -76,25 +76,25 @@ It is assumed that the `PROFILE_GET` client is correctly configured before using
 ## Creating Profiles
 
 The Profiler specification requires a JSON-formatted set of elements, many of which can contain Stellar code.  The specification contains the following elements.  (For the impatient, skip ahead to the [Examples](#examples).)
-The specification for the Profiler topology is stored in Zookeeper at  `/metron/topology/profiler`.  These properties also exist in the local filesystem at `$METRON_HOME/config/zookeeper/profiler.json`. 
+The specification for the Profiler topology is stored in Zookeeper at  `/metron/topology/profiler`.  These properties also exist in the local filesystem at `$METRON_HOME/config/zookeeper/profiler.json`.
 The values can be changed on disk and then uploaded to Zookeeper using `$METRON_HOME/bin/zk_load_configs.sh`.
 
 | Name                          |               | Description
 |---                            |---            |---
-| [profile](#profile)           | Required      | Unique name identifying the profile. 
-| [foreach](#foreach)           | Required      | A separate profile is maintained "for each" of these. 
+| [profile](#profile)           | Required      | Unique name identifying the profile.
+| [foreach](#foreach)           | Required      | A separate profile is maintained "for each" of these.
 | [onlyif](#onlyif)             | Optional      | Boolean expression that determines if a message should be applied to the profile.
 | [groupBy](#groupby)           | Optional      | One or more Stellar expressions used to group the profile measurements when persisted.
 | [init](#init)                 | Optional      | One or more expressions executed at the start of a window period.
 | [update](#update)             | Required      | One or more expressions executed when a message is applied to the profile.
 | [result](#result)             | Required      | Stellar expressions that are executed when the window period expires.
-| [expires](#expires)           | Optional      | Profile data is purged after this period of time, specified in milliseconds.
+| [expires](#expires)           | Optional      | Profile data is purged after this period of time, specified in days.
 
-### `profile` 
+### `profile`
 
 *Required*
 
-A unique name identifying the profile.  The field is treated as a string. 
+A unique name identifying the profile.  The field is treated as a string.
 
 ### `foreach`
 
@@ -108,18 +108,18 @@ For example, if `ip_src_addr` then a separate profile would be maintained for ea
 
 *Optional*
 
-An expression that determines if a message should be applied to the profile.  A Stellar expression that returns a Boolean is expected.  A message is only applied to a profile if this expression is true. This allows a profile to filter the messages that get applied to it. 
+An expression that determines if a message should be applied to the profile.  A Stellar expression that returns a Boolean is expected.  A message is only applied to a profile if this expression is true. This allows a profile to filter the messages that get applied to it.
 
 ### `groupBy`
 
 *Optional*
 
-One or more Stellar expressions used to group the profile measurements when persisted. This is intended to sort the Profile data to allow for a contiguous scan when accessing subsets of the data. 
+One or more Stellar expressions used to group the profile measurements when persisted. This is intended to sort the Profile data to allow for a contiguous scan when accessing subsets of the data.
 
-The 'groupBy' expressions can refer to any field within a `org.apache.metron.profiler.ProfileMeasurement`.  A common use case would be grouping by day of week.  This allows a contiguous scan to access all profile data for Mondays only.  Using the following definition would achieve this. 
+The 'groupBy' expressions can refer to any field within a `org.apache.metron.profiler.ProfileMeasurement`.  A common use case would be grouping by day of week.  This allows a contiguous scan to access all profile data for Mondays only.  Using the following definition would achieve this.
 
 ```
-"groupBy": [ "DAY_OF_WEEK()" ] 
+"groupBy": [ "DAY_OF_WEEK()" ]
 ```
 
 ### `init`
@@ -140,13 +140,13 @@ One or more expressions executed at the start of a window period.  A map is expe
 *Required*
 
 One or more expressions executed when a message is applied to the profile.  A map is expected where the key is the variable name and the value is a Stellar expression.  The map can include 0 or more variables/expressions. When each message is applied to the profile, the expression is executed and stored in a variable with the given name.
- 
+
 ```
 "update": {
   "var1": "var1 + 1",
   "var2": "var2 + 1"
 }
-``` 
+```
 
 ### `result`
 
@@ -157,13 +157,13 @@ Stellar expressions that are executed when the window period expires.  The expre
 "result": "var1 + var2"
 ```
 
-For more advanced use cases, a profile can generate two types of results.  A profile can define one or both of these result types at the same time. 
+For more advanced use cases, a profile can generate two types of results.  A profile can define one or both of these result types at the same time.
 * `profile`:  A required expression that defines a value that is persisted for later retrieval.
 * `triage`: An optional expression that defines values that are accessible within the Threat Triage process.
 
 **profile**
 
-A required Stellar expression that results in a value that is persisted in the profile store for later retrieval.  The expression can result in any object that is Kryo serializable.  These values can be retrieved for later use with the [Profiler Client](../metron-profiler-client). 
+A required Stellar expression that results in a value that is persisted in the profile store for later retrieval.  The expression can result in any object that is Kryo serializable.  These values can be retrieved for later use with the [Profiler Client](../metron-profiler-client).
 ```
 "result": {
     "profile": "2 + 2"
@@ -198,7 +198,7 @@ A numeric value that defines how many days the profile data is retained.  After 
 
 ## Configuring the Profiler
 
-The Profiler runs as an independent Storm topology.  The configuration for the Profiler topology is stored in local filesystem at `$METRON_HOME/config/profiler.properties`. 
+The Profiler runs as an independent Storm topology.  The configuration for the Profiler topology is stored in local filesystem at `$METRON_HOME/config/profiler.properties`.
 The values can be changed on disk and then the Profiler topology must be restarted.
 
 
@@ -314,7 +314,7 @@ This creates a profile...
  * Named ‘example2’
  * That for each IP source address
  * Only if the 'protocol' field equals 'HTTP' or 'DNS'
- * Accumulates the number of DNS requests 
+ * Accumulates the number of DNS requests
  * Accumulates the number of HTTP requests
  * Returns the ratio of these as the result
 
@@ -348,7 +348,7 @@ This creates a profile...
 It is important to note that the Profiler can persist any serializable Object, not just numeric values.  An alternative to the previous example could take advantage of this.  
 
 Instead of storing the mean of the lengths, the profile could store a statistical summarization of the lengths.  This summary can then be used at a later time to calculate the mean, min, max, percentiles, or any other sensible metric.  This provides a much greater degree of flexibility.
- 
+
 ```
 {
   "profiles": [
@@ -361,7 +361,7 @@ Instead of storing the mean of the lengths, the profile could store a statistica
     }
   ]
 }
-``` 
+```
 
 The following Stellar REPL session shows how you might use this summary to calculate different metrics with the same underlying profile data.
 It is assumed that the PROFILE_GET client is configured as described [here](../metron-profiler-client).
@@ -420,4 +420,3 @@ The Profiler is implemented as a Storm topology using the following bolts and sp
 * `ProfileBuilderBolt` - This bolt maintains all of the state required to build a profile.  When the window period expires, the data is summarized as a `ProfileMeasurement`, all state is flushed, and the `ProfileMeasurement` is emitted.  Each instance of this bolt is responsible for maintaining the state for a single Profile-Entity pair.
 
 * `HBaseBolt` - A bolt that is responsible for writing to HBase.  Most profiles will be flushed every 15 minutes or so.  If each `ProfileBuilderBolt` were responsible for writing to HBase itself, there would be little to no opportunity to optimize these writes.  By aggregating the writes from multiple Profile-Entity pairs these writes can be batched, for example.
-
