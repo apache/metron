@@ -26,9 +26,16 @@ import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class MathFunctionsTest {
+
+  public static final double EPSILON = 1e-7;
+  public static Map<Double, Double> baseExpectations = new HashMap<Double, Double>() {{
+    put(Double.NaN, Double.NaN);
+  }};
+
   public static Object run(String rule, Map<String, Object> variables) {
     Context context = Context.EMPTY_CONTEXT();
     StellarProcessor processor = new StellarProcessor();
@@ -38,10 +45,122 @@ public class MathFunctionsTest {
 
   @Test
   public void testAbs() {
-    Assert.assertEquals((Double)run("ABS(value)", ImmutableMap.of("value", 0)), 0, 1e-7);
-    Assert.assertTrue(Double.isNaN((Double)run("ABS(value)", ImmutableMap.of("value", Double.NaN))));
-    Assert.assertEquals((Double)run("ABS(value)", ImmutableMap.of("value", 10.5)), 10.5, 1e-7);
-    Assert.assertEquals((Double)run("ABS(value)", ImmutableMap.of("value", -10.5)), 10.5, 1e-7);
+    assertValues("ABS",
+           new HashMap<Double, Double>(baseExpectations) {{
+             put(0d, 0d);
+             put(10.5d, 10.5d);
+             put(-10.5d, 10.5d);
+           }}
+    );
+  }
+
+  @Test
+  public void testSqrt() {
+    assertValues("SQRT",
+           new HashMap<Double, Double>(baseExpectations) {{
+             put(0d, 0d);
+             put(25d, 5d);
+             put(-10.5d, Double.NaN);
+           }}
+    );
+  }
+
+  @Test
+  public void testCeil() {
+    assertValues("CEIL",
+           new HashMap<Double, Double>(baseExpectations) {{
+             put(0d, 0d);
+             put(10.5d, 11d);
+             put(-10.5d, -10d);
+           }}
+    );
+  }
+
+  @Test
+  public void testFloor() {
+    assertValues("FLOOR",
+           new HashMap<Double, Double>(baseExpectations) {{
+             put(0d, 0d);
+             put(10.5d, 10d);
+             put(-10.5d, -11d);
+           }}
+    );
+  }
+
+  @Test
+  public void testSin() {
+    assertValues("SIN",
+           new HashMap<Double, Double>(baseExpectations) {{
+             put(0d, 0d);
+             put(Math.PI/6, 0.5);
+             put(Math.PI/4, Math.sqrt(2)/2.0);
+             put(Math.PI/3, Math.sqrt(3)/2.0);
+             put(Math.PI/2, 1d);
+           }}
+    );
+  }
+
+  @Test
+  public void testCos() {
+    assertValues("COS",
+           new HashMap<Double, Double>(baseExpectations) {{
+             put(0d, 1d);
+             put(Math.PI/6, Math.sqrt(3)/2.0);
+             put(Math.PI/4, Math.sqrt(2)/2.0);
+             put(Math.PI/3, 0.5d);
+             put(Math.PI/2, 0d);
+           }}
+    );
+  }
+
+  @Test
+  public void testTan() {
+    assertValues("TAN",
+           new HashMap<Double, Double>(baseExpectations) {{
+             put(0d, 0d);
+             put(Math.PI/6, Math.sqrt(3)/3.0);
+             put(Math.PI/4, 1d);
+             put(Math.PI/3, Math.sqrt(3));
+             put(Math.PI/2, Math.sin(Math.PI/2)/Math.cos(Math.PI/2));
+           }}
+    );
+  }
+
+  @Test
+  public void testNaturalLog() {
+    testLog("LN", Math.E);
+  }
+
+  @Test
+  public void testLog2() {
+    testLog("LOG2", 2);
+  }
+
+  @Test
+  public void testLog10() {
+    testLog("LOG10", 10);
+  }
+
+  public void assertValues(String func, Map<Double, Double> expected) {
+    for(Map.Entry<Double, Double> test : expected.entrySet()) {
+      String expr = func + "(value)";
+      if(Double.isNaN(test.getValue())) {
+        Assert.assertTrue(expr + " != NaN", Double.isNaN((Double)run(expr, ImmutableMap.of("value", test.getKey()))));
+      }
+      else {
+        Assert.assertEquals((Double)run(expr, ImmutableMap.of("value", test.getKey())), test.getValue(), EPSILON);
+
+      }
+    }
+  }
+
+  public void testLog(String logExpr, double base) {
+    Assert.assertEquals((Double)run(logExpr + "(value)", ImmutableMap.of("value", base)), 1, 1e-7);
+    Assert.assertTrue(Double.isNaN((Double)run(logExpr + "(value)", ImmutableMap.of("value", Double.NaN))));
+    Assert.assertTrue(Double.isInfinite((Double)run(logExpr + "(value)", ImmutableMap.of("value", 0))));
+    for(int i = 1;i <= 10;++i) {
+      Assert.assertEquals((Double)run(logExpr + "(value)", ImmutableMap.of("value", Math.pow(base, i))), i, 1e-7);
+    }
   }
 
 }
