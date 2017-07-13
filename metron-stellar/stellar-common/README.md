@@ -154,6 +154,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `MAP`](#map)                                                                       |
 | [ `MAP_EXISTS`](#map_exists)                                                                       |
 | [ `MONTH`](#month)                                                                                 |
+| [ `POWER`](#power)                                                                                 |
 | [ `PREPEND_IF_MISSING`](#prepend_if_missing)                                                       |
 | [ `PROFILE_GET`](#profile_get)                                                                     |
 | [ `PROFILE_FIXED`](#profile_fixed)                                                                 |
@@ -517,6 +518,13 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * dateTime - The datetime as a long representing the milliseconds since unix epoch
   * Returns: The current month (0-based).
+
+### `POWER`
+  * Description: Raises the number to a given power.
+  * Input:
+    * number - the number
+    * power - the exponent to raise the number to
+  * Returns: The power-th power of the number passed in.
 
 ### `PREPEND_IF_MISSING`
   * Description: Prepends the prefix to the start of the string if the string does not already start with any of the prefixes.

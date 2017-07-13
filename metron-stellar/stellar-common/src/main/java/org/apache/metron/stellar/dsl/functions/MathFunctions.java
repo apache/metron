@@ -60,4 +60,38 @@ public class MathFunctions {
     }
   }
 
+  @Stellar(name="POWER"
+           ,description="Raises the number to a given power"
+           ,params = {
+                  "number - the number",
+                  "power - the exponent to raise the number to"
+                     }
+           , returns="The power-th power of the number passed in."
+  )
+
+  public static class Power implements StellarFunction {
+    @Override
+    public Object apply(List<Object> args, Context context) throws ParseException {
+      if(args.size() != 2) {
+        return Double.NaN;
+      }
+      Number b = (Number)args.get(0);
+      Number e = (Number)args.get(1);
+      if (b == null || e == null) {
+        return Double.NaN;
+      }
+      return Math.pow(b.doubleValue(), e.doubleValue());
+    }
+
+    @Override
+    public void initialize(Context context) {
+
+    }
+
+    @Override
+    public boolean isInitialized() {
+      return true;
+    }
+  }
+
 }
