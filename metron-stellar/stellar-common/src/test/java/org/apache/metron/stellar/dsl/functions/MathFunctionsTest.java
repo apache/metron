@@ -19,6 +19,7 @@
  */
 package org.apache.metron.stellar.dsl.functions;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
@@ -127,6 +128,31 @@ public class MathFunctionsTest {
   }
 
   @Test
+  public void testExp() {
+    assertValues("EXP",
+           new HashMap<Double, Double>(baseExpectations) {{
+             put(0d, 1d);
+             put(0.5d, Math.sqrt(Math.E));
+             put(-0.5d, 1/Math.sqrt(Math.E));
+             put(1d, Math.E);
+             put(2d, Math.E*Math.E);
+           }}
+    );
+  }
+
+  @Test
+  public void testRound() {
+    assertValues("ROUND",
+           new HashMap<Double, Double>(baseExpectations) {{
+             put(0d, 0d);
+             put(0.5d, 1d);
+             put(0.4d, 0d);
+             put(-0.5d, 0d);
+           }}
+    );
+  }
+
+  @Test
   public void testNaturalLog() {
     testLog("LN", Math.E);
   }
@@ -143,15 +169,22 @@ public class MathFunctionsTest {
 
   public void assertValues(String func, Map<Double, Double> expected) {
     for(Map.Entry<Double, Double> test : expected.entrySet()) {
-      String expr = func + "(value)";
-      if(Double.isNaN(test.getValue())) {
-        Assert.assertTrue(expr + " != NaN", Double.isNaN((Double)run(expr, ImmutableMap.of("value", test.getKey()))));
-      }
-      else {
-        Assert.assertEquals((Double)run(expr, ImmutableMap.of("value", test.getKey())), test.getValue(), EPSILON);
-
+      for(String expr : ImmutableList.of(func + "(value)"
+                                        ,func + "(" + test.getKey() + ")"
+                                        )
+         )
+      {
+        if (Double.isNaN(test.getValue())) {
+          Assert.assertTrue(expr + " != NaN, where value == " + test.getKey(), Double.isNaN(toDouble(run(expr, ImmutableMap.of("value", test.getKey())))));
+        } else {
+          Assert.assertEquals(expr + " != " + test.getValue() + " (where value == " + test.getKey() + ")", test.getValue(), toDouble(run(expr, ImmutableMap.of("value", test.getKey()))), EPSILON);
+        }
       }
     }
+  }
+
+  public Double toDouble(Object n) {
+    return ((Number)n).doubleValue();
   }
 
   public void testLog(String logExpr, double base) {

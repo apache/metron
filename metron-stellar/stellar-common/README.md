@@ -124,6 +124,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `ENDS_WITH`](#ends_with)                                                                         |
 | [ `ENRICHMENT_EXISTS`](#enrichment_exists)                                                         |
 | [ `ENRICHMENT_GET`](#enrichment_get)                                                               |
+| [ `EXP`](#exp)                                                               |
 | [ `FILL_LEFT`](#fill_left)                                                                         |
 | [ `FILL_RIGHT`](#fill_right)                                                                       |
 | [ `FILTER`](#filter)                                                                         |
@@ -168,6 +169,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `REDUCE`](#reduce)                                                                   |
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
 | [ `REGEXP_GROUP_VAL`](#regexp_group_val)                                                                   |
+| [ `ROUND`](#round)                                                                   |
 | [ `SPLIT`](#split)                                                                                 |
 | [ `SIN`](#sin)                                                                                 |
 | [ `SQRT`](#sqrt)                                                                                 |
@@ -338,6 +340,12 @@ In the core language functions, we support basic functional programming primitiv
     * nosql_table - The NoSQL Table to use
     * column_family - The Column Family to use
   * Returns: A Map associated with the indicator and enrichment type.  Empty otherwise.
+
+### `EXP`
+  * Description: Returns Euler's number raised to the power of the argument.
+  * Input:
+    * number - The power to which e is raised.
+  * Returns: Euler's number raised to the power of the argument.
 
 ### `FILL_LEFT`
   * Description: Fills or pads a given string with a given character, to a given length on the left
@@ -625,6 +633,12 @@ In the core language functions, we support basic functional programming primitiv
     * pattern - The proposed regex pattern
     * group - The integer that selects what group to select, starting at 1
   * Returns: The value of the group, or null if not matched or no group at index.
+
+### `ROUND`
+  * Description: Rounds a number to the nearest integer
+  * Input:
+    * number - The number to round
+  * Returns: The nearest integer.
 
 ### `SIN`
   * Description: Returns the `sin` of a number.

@@ -19,6 +19,8 @@
  */
 package org.apache.metron.stellar.dsl.functions;
 
+import org.apache.metron.stellar.common.utils.math.MathOperations;
+import org.apache.metron.stellar.common.utils.math.StellarMathFunction;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
@@ -29,59 +31,6 @@ import java.util.function.Function;
 
 public class MathFunctions {
 
-  private enum SingleArgMathFunctions implements Function<Double, Double> {
-    ABS(d -> Math.abs(d)),
-    CEIL(d -> Math.ceil(d)),
-    COS(d -> Math.cos(d)),
-    FLOOR(d -> Math.floor(d)),
-    LOG10(d -> Math.log10(d)),
-    LOG2(d -> Math.log(d)/Math.log(2)),
-    LN(d -> Math.log(d)),
-    SIN(d -> Math.sin(d)),
-    SQRT(d -> Math.sqrt(d)),
-    TAN(d -> Math.tan(d)),
-    ;
-
-    Function<Double, Double> _func;
-    SingleArgMathFunctions(Function<Double, Double> _func) {
-      this._func = _func;
-    }
-
-    @Override
-    public Double apply(Double d) {
-      return _func.apply(d);
-    }
-  }
-
-  private static class SingleArgMathFunction implements StellarFunction {
-    Function<Double, Double> _func;
-    public SingleArgMathFunction(Function<Double, Double> _func) {
-      this._func = _func;
-    }
-
-    @Override
-    public Object apply(List<Object> args, Context context) throws ParseException {
-      if(args.size() < 1) {
-        return Double.NaN;
-      }
-      Number n = (Number)args.get(0);
-      if(n == null) {
-        return Double.NaN;
-      }
-      return _func.apply(n.doubleValue());
-    }
-
-    @Override
-    public void initialize(Context context) {
-
-    }
-
-    @Override
-    public boolean isInitialized() {
-      return true;
-    }
-  }
-
 
   @Stellar(name="ABS"
           ,description="Returns the absolute value of a number."
@@ -90,11 +39,11 @@ public class MathFunctions {
                     }
           , returns="The absolute value of the number passed in."
           )
-  public static class Abs extends SingleArgMathFunction{
+  public static class Abs extends StellarMathFunction{
 
 
     public Abs() {
-      super(SingleArgMathFunctions.ABS);
+      super(MathOperations.ABS);
     }
   }
 
@@ -105,9 +54,9 @@ public class MathFunctions {
                     }
           , returns="The log (base 10) of the number passed in."
           )
-  public static class Log10 extends SingleArgMathFunction {
+  public static class Log10 extends StellarMathFunction {
    public Log10() {
-      super(SingleArgMathFunctions.LOG10);
+      super(MathOperations.LOG10);
     }
 
   }
@@ -119,9 +68,9 @@ public class MathFunctions {
                     }
           , returns="The log (base 2) of the number passed in."
           )
-  public static class Log2 extends SingleArgMathFunction {
+  public static class Log2 extends StellarMathFunction {
    public Log2() {
-      super(SingleArgMathFunctions.LOG2);
+      super(MathOperations.LOG2);
     }
 
   }
@@ -133,9 +82,9 @@ public class MathFunctions {
                     }
           , returns="The natural log of the number passed in."
           )
-  public static class Ln extends SingleArgMathFunction {
+  public static class Ln extends StellarMathFunction {
    public Ln() {
-      super(SingleArgMathFunctions.LN);
+      super(MathOperations.LN);
     }
 
   }
@@ -147,9 +96,9 @@ public class MathFunctions {
                     }
           , returns="The square root of the number passed in."
           )
-  public static class Sqrt extends SingleArgMathFunction {
+  public static class Sqrt extends StellarMathFunction {
    public Sqrt() {
-      super(SingleArgMathFunctions.SQRT);
+      super(MathOperations.SQRT);
     }
 
   }
@@ -161,9 +110,9 @@ public class MathFunctions {
                     }
           , returns="The ceiling of the number passed in."
           )
-  public static class Ceil extends SingleArgMathFunction {
+  public static class Ceil extends StellarMathFunction {
    public Ceil() {
-      super(SingleArgMathFunctions.CEIL);
+      super(MathOperations.CEIL);
     }
 
   }
@@ -175,9 +124,9 @@ public class MathFunctions {
                     }
           , returns="The floor of the number passed in."
           )
-  public static class Floor extends SingleArgMathFunction {
+  public static class Floor extends StellarMathFunction {
    public Floor() {
-      super(SingleArgMathFunctions.FLOOR);
+      super(MathOperations.FLOOR);
     }
   }
 
@@ -188,9 +137,9 @@ public class MathFunctions {
                     }
           , returns="The sin of the number passed in."
           )
-  public static class Sin extends SingleArgMathFunction {
+  public static class Sin extends StellarMathFunction {
    public Sin() {
-      super(SingleArgMathFunctions.SIN);
+      super(MathOperations.SIN);
     }
   }
 
@@ -201,9 +150,9 @@ public class MathFunctions {
                     }
           , returns="The cos of the number passed in."
           )
-  public static class Cos extends SingleArgMathFunction {
+  public static class Cos extends StellarMathFunction {
    public Cos() {
-      super(SingleArgMathFunctions.COS);
+      super(MathOperations.COS);
     }
   }
 
@@ -214,9 +163,35 @@ public class MathFunctions {
                     }
           , returns="The tan of the number passed in."
           )
-  public static class Tan extends SingleArgMathFunction {
+  public static class Tan extends StellarMathFunction {
    public Tan() {
-      super(SingleArgMathFunctions.TAN);
+      super(MathOperations.TAN);
+    }
+  }
+
+  @Stellar(name="EXP"
+          ,description="Returns Euler's number raised to the power of the argument"
+          ,params = {
+                "number - The power to which e is raised."
+                    }
+          , returns="Euler's number raised to the power of the argument."
+          )
+  public static class Exp extends StellarMathFunction {
+   public Exp() {
+      super(MathOperations.EXP);
+    }
+  }
+
+  @Stellar(name="ROUND"
+          ,description="Rounds a number to the nearest integer"
+          ,params = {
+                "number - The number to round"
+                    }
+          , returns="The nearest integer."
+          )
+  public static class Round extends StellarMathFunction {
+   public Round() {
+      super(MathOperations.ROUND);
     }
   }
 }
