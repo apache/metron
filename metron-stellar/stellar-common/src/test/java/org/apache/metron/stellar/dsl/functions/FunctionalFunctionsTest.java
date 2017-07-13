@@ -25,10 +25,89 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 
 public class FunctionalFunctionsTest {
+
+  @Test
+  public void testZip_jagged() {
+    Map<String, Object> variables = ImmutableMap.of(
+            "list1" , ImmutableList.of(1, 2, 3)
+            ,"list2", ImmutableList.of(4, 5, 6, 7)
+    );
+    for (String expr : ImmutableList.of( "ZIP_JAGGED(list1, list2)"
+            , "ZIP_JAGGED( [1, 2, 3], [4, 5, 6, 7] )"
+    )
+            )
+    {
+      List<List<Object>> o = (List<List<Object>>) run(expr, variables);
+      Assert.assertEquals(4, o.size());
+      for (int i = 0; i < 3; ++i) {
+        List l = o.get(i);
+        Assert.assertEquals(2, l.size());
+        Assert.assertEquals(i+1, l.get(0));
+        Assert.assertEquals(i+4, l.get(1));
+      }
+      {
+        int i = 3;
+        List l = o.get(i);
+        Assert.assertEquals(2, l.size());
+        Assert.assertNull(l.get(0));
+        Assert.assertEquals(i+4, l.get(1));
+      }
+    }
+
+
+    for (String expr : ImmutableList.of(
+             "REDUCE(ZIP_JAGGED(list2, list1), (s, x) -> s + GET_FIRST(x) * GET_LAST(x), 0)"
+            , "REDUCE(ZIP_JAGGED( [1, 2, 3], [4, 5, 6, 7] ), (s, x) -> s + GET_FIRST(x) * GET_LAST(x), 0)"
+            , "REDUCE(ZIP_JAGGED(list1, list2), (s, x) -> s + GET_FIRST(x) * GET_LAST(x), 0)" //this works because stellar treats nulls as 0 in arithmetic operations.
+            , "REDUCE(ZIP_JAGGED(list1, list2), (s, x) -> s + (GET_FIRST(x) == null?0:GET_FIRST(x)) * (GET_LAST(x) == null?0:GET_LAST(x)), 0)" //with proper guarding NOT assuming stellar peculiarities
+    )
+            )
+    {
+      int o = (int) run(expr, variables);
+      Assert.assertEquals(1*4 + 2*5 + 3*6, o, 1e-7);
+    }
+
+  }
+
+  @Test
+  public void testZip_nonJagged() {
+    Map<String, Object> variables = ImmutableMap.of(
+            "list1" , ImmutableList.of(1, 2, 3)
+            ,"list2", ImmutableList.of(4, 5, 6)
+    );
+    for (String expr : ImmutableList.of( "ZIP(list1, list2)"
+            , "ZIP( [1, 2, 3], [4, 5, 6] )"
+            , "ZIP( [1, 2, 3], [4, 5, 6, 7] )"
+    )
+            )
+    {
+      List<List<Object>> o = (List<List<Object>>) run(expr, variables);
+      Assert.assertEquals(3, o.size());
+      for (int i = 0; i < 3; ++i) {
+        List l = o.get(i);
+        Assert.assertEquals(2, l.size());
+        Assert.assertEquals(i+1, l.get(0));
+        Assert.assertEquals(i+4, l.get(1));
+      }
+    }
+
+    for (String expr : ImmutableList.of(
+            "REDUCE(ZIP(list1, list2), (s, x) -> s + GET_FIRST(x) * GET_LAST(x), 0)"
+            , "REDUCE(ZIP( [1, 2, 3], [4, 5, 6] ), (s, x) -> s + GET_FIRST(x) * GET_LAST(x), 0)"
+            , "REDUCE(ZIP( [1, 2, 3], [4, 5, 6, 7] ), (s, x) -> s + GET_FIRST(x) * GET_LAST(x), 0)"
+    )
+            )
+    {
+      int o = (int) run(expr, variables);
+      Assert.assertEquals(1*4 + 2*5 + 3*6, o, 1e-7);
+    }
+
+  }
 
   @Test
   public void testRecursive() {

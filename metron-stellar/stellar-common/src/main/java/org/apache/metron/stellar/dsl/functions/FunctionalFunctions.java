@@ -24,6 +24,8 @@ import org.apache.metron.stellar.common.LambdaExpression;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class FunctionalFunctions {
 
@@ -109,6 +111,79 @@ public class FunctionalFunctions {
       }
       return runningResult;
     }
+  }
+
+  @Stellar(name="ZIP_JAGGED"
+          , description="Zips lists into a single list where the ith element is an list " +
+          "containing the ith items from the constituent lists."
+          , params = {
+                      "list* - Lists to zip."
+                     }
+          , returns = "The zip of the lists.  The returned list is the max size of all the lists.  " +
+          "Empty elements are null " +
+          "e.g. ZIP_JAGGED( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4], [null, 5] ]"
+          )
+  public static class JaggedZip extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> args) {
+      if(args == null || args.size() == 0) {
+        return new ArrayList<>();
+      }
+      return zip(args, true);
+    }
+  }
+
+  @Stellar(name="ZIP"
+          , description="Zips lists into a single list where the ith element is an list containing the ith items from the constituent lists."
+          , params = {
+                      "list* - Lists to zip."
+                     }
+          ,returns = "The zip of the lists.  The returned list is the min size of all the lists.  " +
+          "e.g. ZIP( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4] ]"
+          )
+  public static class Zip extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> args) {
+      if(args == null || args.size() == 0) {
+        return new ArrayList<>();
+      }
+      return zip(args, false);
+    }
+  }
+
+  private static List<List<Object>> zip(List<Object> args, boolean jagged) {
+    List<List<Object>> lists = new ArrayList<>();
+    Integer resultSize = null;
+    for(Object o : args) {
+      if(o instanceof List) {
+        List<Object> l = (List<Object>)o;
+        if( resultSize == null) {
+          resultSize = l.size();
+        }
+        else if(jagged) {
+          resultSize = Math.max(l.size(), resultSize);
+        }
+        else {
+          resultSize = Math.min(l.size(), resultSize);
+        }
+        lists.add(l);
+      }
+    }
+    if(resultSize == null) {
+      return new ArrayList<>();
+    }
+
+    return IntStream.range(0, resultSize)
+            .mapToObj(i -> {
+              List<Object> o = new ArrayList<>();
+              for(List<Object> list : lists) {
+                o.add( i < list.size() ? list.get(i): null);
+              }
+              return o;
+            })
+            .collect(Collectors.toList());
   }
 
   private static List<Object> listOf(Object... vals) {

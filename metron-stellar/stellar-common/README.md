@@ -202,6 +202,8 @@ In the core language functions, we support basic functional programming primitiv
 | [ `WEEK_OF_MONTH`](#week_of_month)                                                                 |
 | [ `WEEK_OF_YEAR`](#week_of_year)                                                                   |
 | [ `YEAR`](#year)                                                                                   |
+| [ `ZIP`](#zip)                                                                                   |
+| [ `ZIP_JAGGED`](#zip_jagged)                                                                                   |
 
 ### `APPEND_IF_MISSING`
   * Description: Appends the suffix to the end of the string if the string does not already end with any of the suffixes.
@@ -710,6 +712,18 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * dateTime - The datetime as a long representing the milliseconds since unix epoch
   * Returns: The current year
+
+### `ZIP`
+  * Description: Zips lists into a single list where the ith element is an list containing the ith items from the constituent lists.
+  * Input:
+    * list* - Lists to zip.
+  * Returns: The zip of the lists.  The returned list is the min size of all the lists. e.g. `ZIP( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4] ]`
+
+### `ZIP_JAGGED`
+  * Description: Zips lists into a single list where the ith element is an list containing the ith items from the constituent lists.
+  * Input:
+    * list* - Lists to zip.
+  * Returns: The zip of the lists.  The returned list is the max size of all the lists.  Empty elements are null e.g. `ZIP_JAGGED( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4], [null, 5] ]`
 
 The following is an example query (i.e. a function which returns a
 boolean) which would be seen possibly in threat triage:
