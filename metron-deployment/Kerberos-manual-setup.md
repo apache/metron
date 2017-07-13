@@ -30,7 +30,7 @@ Setup
     export BROKERLIST=node1:6667
     export HDP_HOME="/usr/hdp/current"
     export KAFKA_HOME="${HDP_HOME}/kafka-broker"
-    export METRON_VERSION="0.4.0"
+    export METRON_VERSION="0.4.1"
     export METRON_HOME="/usr/metron/${METRON_VERSION}"
     ```
 
@@ -478,6 +478,22 @@ for sensorstub in bro snort; do
     service sensor-stubs start ${sensorstub};
 done
 ```
+
+#### Model as a Service on Kerberos
+
+MaaS works with kerberos, you have to remember to kinit with the metron
+user.  There is one small issue out of the box (particularly on vagrant), you get an error like so
+when running `$METRON_HOME/bin/maas_service.sh`:
+```
+Requested user metron is not whitelisted and has id 501,which is below the minimum allowed 1000.
+```
+
+In order to correct this, you should:
+* Navigate to the Yarn configuration in Ambari
+* Click on "Advanced"
+* Scroll to "Advanced yarn-env"
+* Adjust the "Minimum user ID for submitting job" config to 500 from 1000
+* You should then restart Yarn to have the change take effect.
 
 ### References
 
