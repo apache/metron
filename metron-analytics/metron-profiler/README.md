@@ -93,7 +93,7 @@ This section will describe the steps required to get your first "Hello, World!""
       "profiles": [
         {
           "profile": "hello-world",
-          "onlyif": "exists(ip_src_addr)",
+          "onlyif":  "exists(ip_src_addr)",
           "foreach": "ip_src_addr",
           "init":    { "count": "0" },
           "update":  { "count": "count + 1" },
