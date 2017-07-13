@@ -103,9 +103,28 @@ This section will describe the steps required to get your first "Hello, World!""
     ```
 
 1. Upload the profile definition to Zookeeper.  Change `node1:2181` to refer the actual Zookeeper host in your environment.
+
     ```
     $ cd $METRON_HOME
     $ bin/zk_load_configs.sh -m PUSH -i config/zookeeper/ -z node1:2181
+    ```
+
+    You can validate this by reading back the Metron configuration from Zookeeper using the same script. The result should look-like the following.
+    ```
+    $ bin/zk_load_configs.sh -m DUMP -z node1:2181
+    ...
+    PROFILER Config: profiler
+    {
+      "profiles": [
+        {
+          "profile": "hello-world",
+          "foreach": "ip_src_addr",
+          "init":    { "count": "0" },
+          "update":  { "count": "count + 1" },
+          "result":  "count"
+        }
+      ]
+    }
     ```
 
 1. Ensure that test messages are being sent to the Profiler's input topic in Kafka.  The Profiler will consume messages from the `inputTopic` defined in the [Profiler's configuration](#configuring-the-profiler).  By default this is the `indexing` topic.
