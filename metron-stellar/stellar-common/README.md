@@ -632,6 +632,12 @@ In the core language functions, we support basic functional programming primitiv
     * number - The number to take the `sin` of
   * Returns: The `sin` of the number passed in.
 
+### `SQRT`
+  * Description: Returns the `sqrt` of a number.
+  * Input:
+    * number - The number to take the `sqrt` of
+  * Returns: The `sqrt` of the number passed in.
+
 ### `STRING_ENTROPY`
   * Description: Computes the base-2 shannon entropy of a string.
   * Input:
