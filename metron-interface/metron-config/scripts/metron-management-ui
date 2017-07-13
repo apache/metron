@@ -36,14 +36,13 @@ METRON_LOG_DIR="/var/log/metron"
 METRON_PID_DIR="/var/run/metron"
 METRON_USER="metron"
 METRON_GROUP="metron"
-METRON_SYSCONFIG="/etc/default/metron-rest"
+METRON_SYSCONFIG="/etc/default/metron"
 if [ -f "$METRON_SYSCONFIG" ]; then
     set -a
     . "$METRON_SYSCONFIG"
 fi
 
 PIDFILE="$METRON_PID_DIR/$NAME.pid"
-LOCKFILE=/var/lock/subsys/$NAME
 
 DAEMON="node $METRON_HOME/web/expressjs/server.js -c $METRON_HOME/config/management_ui.yml"
 
@@ -74,7 +73,7 @@ start() {
   if [ -z $PID ]; then
       printf "Fail\n"
   else
-      echo $PID > $PIDFILE && touch $LOCKFILE
+      echo $PID > $PIDFILE
       printf "Ok [$PID]\n"
   fi
 }
@@ -89,7 +88,7 @@ stop() {
       echo -n "."
       kill -0 $PID >/dev/null 2>&1
     do
-      kill -SIGINT $PID
+      kill $PID
     done
     rm -f $PIDFILE
     printf "%s\n" "Ok"

@@ -44,6 +44,10 @@ class ManagementUIMaster(Script):
         from params import params
         env.set_params(params)
 
+        File(format("/etc/default/metron"),
+             content=Template("metron.j2")
+             )
+
         File(format("{metron_config_path}/management_ui.yml"),
              mode=0755,
              content=Template("management_ui.yml.j2"),

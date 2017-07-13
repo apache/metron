@@ -38,7 +38,7 @@ METRON_USER="metron"
 METRON_GROUP="metron"
 METRON_REST_PORT=8082
 METRON_JDBC_PASSWORD="$2"
-METRON_SYSCONFIG="/etc/default/metron-rest"
+METRON_SYSCONFIG="/etc/default/metron"
 if [ -f "$METRON_SYSCONFIG" ]; then
     set -a
     . "$METRON_SYSCONFIG"
@@ -65,7 +65,7 @@ DAEMON="java $METRON_JVMFLAGS -jar $METRON_HOME/lib/metron-rest-$METRON_VERSION.
 #
 # start the rest application
 #
-start() {  
+start() {
 
   # if pidfile exists, do not start another
   if [ -f $PIDFILE ]; then
@@ -104,7 +104,7 @@ stop() {
       echo -n "."
       kill -0 $PID >/dev/null 2>&1
     do
-      kill -SIGINT $PID
+      kill $PID
     done
     rm -f $PIDFILE
     printf "%s\n" "Ok"
