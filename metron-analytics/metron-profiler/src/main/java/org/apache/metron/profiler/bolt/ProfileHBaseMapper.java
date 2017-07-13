@@ -31,6 +31,7 @@ import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.storm.tuple.Tuple;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * An HbaseMapper that defines how a ProfileMeasurement is persisted within an HBase table.
@@ -91,15 +92,19 @@ public class ProfileHBaseMapper implements HBaseMapper {
    */
   @Override
   public Optional<Long> getTTL(Tuple tuple) {
-    Optional<Long> result = Optional.empty();
+    Optional<Long> expiresMillis = Optional.empty();
 
     ProfileMeasurement measurement = (ProfileMeasurement) tuple.getValueByField("measurement");
     ProfileConfig profileConfig = measurement.getDefinition();
+
     if(profileConfig.getExpires() != null) {
-      result = Optional.of(profileConfig.getExpires());
+
+      // a profile's `expires` field is in days, but hbase expects milliseconds
+      long expiresDays = profileConfig.getExpires();
+      expiresMillis = Optional.of(TimeUnit.DAYS.toMillis(expiresDays));
     }
 
-    return result;
+    return expiresMillis;
   }
 
   public void setRowKeyBuilder(RowKeyBuilder rowKeyBuilder) {

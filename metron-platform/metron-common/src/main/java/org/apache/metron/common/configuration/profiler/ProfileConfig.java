@@ -167,7 +167,7 @@ public class ProfileConfig implements Serializable {
   }
 
   public void setExpires(Long expiresDays) {
-    this.expires = TimeUnit.DAYS.toMillis(expiresDays);
+    this.expires = expiresDays;
   }
 
   @Override
