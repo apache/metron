@@ -44,4 +44,16 @@ public class MathFunctionsTest {
     Assert.assertEquals((Double)run("ABS(value)", ImmutableMap.of("value", -10.5)), 10.5, 1e-7);
   }
 
+  @Test
+  public void testPower() {
+    Assert.assertEquals((Double)run("POWER(e,b)", ImmutableMap.of("e", 2.0, "b", 2.0)), 4.0, 1e-7 );
+    Assert.assertTrue(Double.isNaN((Double)run("ABS(value)", ImmutableMap.of("e", Double.NaN, "b", 2.0))));
+    Assert.assertTrue(Double.isNaN((Double)run("ABS(value)", ImmutableMap.of("e", 2.0, "b", Double.NaN))));
+    Assert.assertTrue(Double.isNaN((Double)run("ABS(value)", ImmutableMap.of("e", Double.NaN, "b", Double.NaN))));
+
+    Double e = Math.random();
+    Double b = Math.random();
+    Assert.assertEquals((Double)run("POWER(e,b)", ImmutableMap.of("e", e, "b", b)), Math.pow(e,b), 1e-7);
+  }
+
 }
