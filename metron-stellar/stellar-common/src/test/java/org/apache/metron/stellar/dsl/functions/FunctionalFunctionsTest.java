@@ -24,6 +24,8 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,7 +34,22 @@ import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 public class FunctionalFunctionsTest {
 
   @Test
-  public void testZip_jagged() {
+  public void testZipLongest_boundary() {
+    for (String expr : ImmutableList.of( "ZIP_LONGEST()"
+            , "ZIP_LONGEST( null, null )"
+            , "ZIP_LONGEST( [], null )"
+            , "ZIP_LONGEST( [], [] )"
+            , "ZIP_LONGEST( null, [] )"
+    )
+            )
+    {
+      List<List<Object>> o = (List<List<Object>>) run(expr, new HashMap<>());
+      Assert.assertEquals(0, o.size());
+    }
+  }
+
+  @Test
+  public void testZip_longest() {
     Map<String, Object> variables = ImmutableMap.of(
             "list1" , ImmutableList.of(1, 2, 3)
             ,"list2", ImmutableList.of(4, 5, 6, 7)
@@ -75,7 +92,22 @@ public class FunctionalFunctionsTest {
   }
 
   @Test
-  public void testZip_nonJagged() {
+  public void testZip_boundary() {
+    for (String expr : ImmutableList.of( "ZIP()"
+            , "ZIP( null, null )"
+            , "ZIP( [], null )"
+            , "ZIP( [], [] )"
+            , "ZIP( null, [] )"
+    )
+            )
+    {
+      List<List<Object>> o = (List<List<Object>>) run(expr, new HashMap<>());
+      Assert.assertEquals(0, o.size());
+    }
+  }
+
+  @Test
+  public void testZip() {
     Map<String, Object> variables = ImmutableMap.of(
             "list1" , ImmutableList.of(1, 2, 3)
             ,"list2", ImmutableList.of(4, 5, 6)
