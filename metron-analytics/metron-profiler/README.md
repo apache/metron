@@ -19,7 +19,7 @@ Follow these instructions to install the Profiler.  This assumes that core Metro
 
 1. Build the Metron RPMs by [following these instructions](../../metron-deployment#rpm).  
 
-    Note: You may have already built the Metron RPMs when core Metron was installed.
+    You may have already built the Metron RPMs when core Metron was installed.
 
     ```
     $ find metron-deployment/ -name "metron-profiler*.rpm"
@@ -42,7 +42,7 @@ Follow these instructions to install the Profiler.  This assumes that core Metro
     Preparing...                ########################################### [100%]
        1:metron-profiler        ########################################### [100%]
     ```
-    
+
     ```
     [root@node1 ~]# rpm -ql metron-profiler
     /usr/metron
@@ -58,28 +58,41 @@ Follow these instructions to install the Profiler.  This assumes that core Metro
     /usr/metron/0.4.1/lib/metron-profiler-0.4.0-uber.jar
     ```
 
-## Getting Started
+1. Create a table within HBase that will store the profile data. The table name and column family must match the [Profiler's configuration](#configuring-the-profiler).  
 
-This section will describe the steps required to get your first profile running.
+    By default, the table is named `profiler` with a column family `P`.
 
-1. Create a table within HBase that will store the profile data. The table name and column family must match the [Profiler's configuration](#configuring-the-profiler).
     ```
     $ /usr/hdp/current/hbase-client/bin/hbase shell
     hbase(main):001:0> create 'profiler', 'P'
     ```
 
-1. Edit the configuration file located at `$METRON_HOME/config/profiler.properties`.  Change the kafka.zk and kafka.broker values from "node1" to the appropriate host name.  Keep the same port numbers:
+1. Edit the configuration file located at `$METRON_HOME/config/profiler.properties`.  
     ```
     kafka.zk=node1:2181
     kafka.broker=node1:6667
     ```
+    Change `kafka.zk` to refer to Zookeeper in your environment.  
+    Change `kafka.broker` to refer to a Kafka Broker in your environment.
 
-1. Define the profile in a file located at `$METRON_HOME/config/zookeeper/profiler.json`.  The following example JSON will create a profile that simply counts the number of messages per `ip_src_addr`, during each sampling interval.
+1. Start the Profiler topology.
+    ```
+    $ cd $METRON_HOME
+    $ bin/start_profiler_topology.sh
+    ```
+
+## Getting Started
+
+This section will describe the steps required to get your first profile running.  This assumes that you have successfully [installed the Profiler](#installation).
+
+1. Create the profile definition in a file located at `$METRON_HOME/config/zookeeper/profiler.json`.  
+
+    The following example will create a profile that simply counts the number of messages per `ip_src_addr`.
     ```
     {
       "profiles": [
         {
-          "profile": "test",
+          "profile": "hello-world",
           "foreach": "ip_src_addr",
           "init":    { "count": "0" },
           "update":  { "count": "count + 1" },
@@ -89,18 +102,13 @@ This section will describe the steps required to get your first profile running.
     }
     ```
 
-1. Upload the profile definition to Zookeeper.  (As always, change "node1" to the actual hostname.)
+1. Upload the profile definition to Zookeeper.  Change `node1:2181` to refer the actual Zookeeper host in your environment.
     ```
     $ cd $METRON_HOME
     $ bin/zk_load_configs.sh -m PUSH -i config/zookeeper/ -z node1:2181
     ```
 
-1. Start the Profiler topology.
-    ```
-    $ bin/start_profiler_topology.sh
-    ```
-
-1. Ensure that test messages are being sent to the Profiler's input topic in Kafka.  The Profiler will consume messages from the `inputTopic` defined in the [Profiler's configuration](#configuring-the-profiler).
+1. Ensure that test messages are being sent to the Profiler's input topic in Kafka.  The Profiler will consume messages from the `inputTopic` defined in the [Profiler's configuration](#configuring-the-profiler).  By default this is the `indexing` topic.
 
 1. Check the HBase table to validate that the Profiler is writing the profile.  Remember that the Profiler is flushing the profile every 15 minutes.  You will need to wait at least this long to start seeing profile data in HBase.
     ```
@@ -113,7 +121,7 @@ More information on configuring and using the client can be found [here](../metr
 It is assumed that the `PROFILE_GET` client is correctly configured before using it.
     ```
     $ bin/stellar -z node1:2181
-    [Stellar]>>> PROFILE_GET( "test", "10.0.0.1", PROFILE_FIXED(30, "MINUTES"))
+    [Stellar]>>> PROFILE_GET( "hello-world", "10.0.0.1", PROFILE_FIXED(30, "MINUTES"))
     [451, 448]
     ```
 
