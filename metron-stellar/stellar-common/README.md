@@ -110,6 +110,8 @@ In the core language functions, we support basic functional programming primitiv
 | [ `BLOOM_EXISTS`](#bloom_exists)                                                                   |
 | [ `BLOOM_INIT`](#bloom_init)                                                                       |
 | [ `BLOOM_MERGE`](#bloom_merge)                                                                     |
+| [ `CEIL`](#ceil)                                                                                   |
+| [ `COS`](#ceil)                                                                                   |
 | [ `CHOP`](#chop)                                                                                   |
 | [ `CHOMP`](#chomp)                                                                                 |
 | [ `COUNT_MATCHES`](#count_matches)                                                                 |
@@ -125,6 +127,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `FILL_LEFT`](#fill_left)                                                                         |
 | [ `FILL_RIGHT`](#fill_right)                                                                       |
 | [ `FILTER`](#filter)                                                                         |
+| [ `FLOOR`](#floor)                                                                         |
 | [ `FORMAT`](#format)                                                                               |
 | [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality)                   |
 | [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
@@ -149,6 +152,9 @@ In the core language functions, we support basic functional programming primitiv
 | [ `KAFKA_TAIL`](#kafka_tail)                                                                       |
 | [ `LENGTH`](#length)                                                                               |
 | [ `LIST_ADD`](#list_add)                                                                               |
+| [ `LOG2`](#log2)                                                                               |
+| [ `LOG10`](#log10)                                                                               |
+| [ `LN`](#ln)                                                                               |
 | [ `MAAS_GET_ENDPOINT`](#maas_get_endpoint)                                                         |
 | [ `MAAS_MODEL_APPLY`](#maas_model_apply)                                                           |
 | [ `MAP`](#map)                                                                       |
@@ -163,6 +169,8 @@ In the core language functions, we support basic functional programming primitiv
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
 | [ `REGEXP_GROUP_VAL`](#regexp_group_val)                                                                   |
 | [ `SPLIT`](#split)                                                                                 |
+| [ `SIN`](#sin)                                                                                 |
+| [ `SQRT`](#sqrt)                                                                                 |
 | [ `STARTS_WITH`](#starts_with)                                                                     |
 | [ `STATS_ADD`](../../metron-analytics/metron-statistics#stats_add)                                 |
 | [ `STATS_BIN`](../../metron-analytics/metron-statistics#stats_bin)                                 |
@@ -186,6 +194,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `STRING_ENTROPY`](#string_entropy)                                                               |
 | [ `SYSTEM_ENV_GET`](#system_env_get)                                                               |
 | [ `SYSTEM_PROPERTY_GET`](#system_property_get)                                                     |
+| [ `TAN`](#tan)                                                                         |
 | [ `TO_DOUBLE`](#to_double)                                                                         |
 | [ `TO_EPOCH_TIMESTAMP`](#to_epoch_timestamp)                                                       |
 | [ `TO_FLOAT`](#to_float)                                                                           |
@@ -237,6 +246,18 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * bloomfilters - A list of bloom filters to merge
   * Returns: Bloom Filter or null if the list is empty
+
+### `CEIL`
+  * Description: Returns the ceiling of a number.
+  * Input:
+    * number - The number to take the ceiling of
+  * Returns: The ceiling of the number passed in.
+
+### `COS`
+  * Description: Returns the `cos` of a number.
+  * Input:
+    * number - The number to take the `cos` of
+  * Returns: The `cos` of the number passed in.
 
 ### `CHOP`
   * Description: Remove the last character from a String
@@ -340,6 +361,12 @@ In the core language functions, we support basic functional programming primitiv
     * list - List of arguments.
     * predicate - The lambda expression to apply.  This expression is assumed to take one argument and return a boolean.
   * Returns: The input list filtered by the predicate.
+
+### `FLOOR`
+  * Description: Returns the floor of a number.
+  * Input:
+    * number - The number to take the floor of
+  * Returns: The floor of the number passed in.
 
 ### `FORMAT`
   * Description: Returns a formatted string using the specified format string and arguments. Uses Java's string formatting conventions.
@@ -474,7 +501,25 @@ In the core language functions, we support basic functional programming primitiv
     * list - List to add element to.
     * element - Element to add to list
   * Returns: Resulting list with the item added at the end.
-  
+
+### `LOG2`
+  * Description: Returns the log (base `2`) of a number.
+  * Input:
+    * number - The number to take the log (base `2`) of
+  * Returns: The log (base `2`) of the number passed in.
+
+### `LOG10`
+  * Description: Returns the log (base `10`) of a number.
+  * Input:
+    * number - The number to take the log (base `10`) of
+  * Returns: The log (base `10`) of the number passed in.
+
+### `LN`
+  * Description: Returns the natural log of a number.
+  * Input:
+    * number - The number to take the natural log of
+  * Returns: The natural log of the number passed in.
+
 ### `MAAS_GET_ENDPOINT`
   * Description: Inspects ZooKeeper and returns a map containing the name, version and url for the model referred to by the input parameters.
   * Input:
@@ -581,6 +626,12 @@ In the core language functions, we support basic functional programming primitiv
     * group - The integer that selects what group to select, starting at 1
   * Returns: The value of the group, or null if not matched or no group at index.
 
+### `SIN`
+  * Description: Returns the `sin` of a number.
+  * Input:
+    * number - The number to take the `sin` of
+  * Returns: The `sin` of the number passed in.
+
 ### `STRING_ENTROPY`
   * Description: Computes the base-2 shannon entropy of a string.
   * Input:
@@ -612,6 +663,12 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * key - Property to get the value for
   * Returns: String
+
+### `TAN`
+  * Description: Returns the `tan` of a number.
+  * Input:
+    * number - The number to take the `tan` of
+  * Returns: The `tan` of the number passed in.
 
 ### `TO_DOUBLE`
   * Description: Transforms the first argument to a double precision number

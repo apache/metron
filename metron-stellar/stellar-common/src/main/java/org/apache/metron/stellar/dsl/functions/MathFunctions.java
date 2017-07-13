@@ -31,14 +31,14 @@ public class MathFunctions {
 
   private enum SingleArgMathFunctions implements Function<Double, Double> {
     ABS(d -> Math.abs(d)),
+    CEIL(d -> Math.ceil(d)),
+    COS(d -> Math.cos(d)),
+    FLOOR(d -> Math.floor(d)),
     LOG10(d -> Math.log10(d)),
     LOG2(d -> Math.log(d)/Math.log(2)),
     LN(d -> Math.log(d)),
-    SQRT(d -> Math.sqrt(d)),
-    CEIL(d -> Math.ceil(d)),
-    FLOOR(d -> Math.floor(d)),
     SIN(d -> Math.sin(d)),
-    COS(d -> Math.cos(d)),
+    SQRT(d -> Math.sqrt(d)),
     TAN(d -> Math.tan(d)),
     ;
 
@@ -103,7 +103,7 @@ public class MathFunctions {
           ,params = {
                 "number - The number to take the log (base 10) value of"
                     }
-          , returns="The log base 10 of the number passed in."
+          , returns="The log (base 10) of the number passed in."
           )
   public static class Log10 extends SingleArgMathFunction {
    public Log10() {
@@ -117,7 +117,7 @@ public class MathFunctions {
           ,params = {
                 "number - The number to take the log (base 2) value of"
                     }
-          , returns="The log base 2 of the number passed in."
+          , returns="The log (base 2) of the number passed in."
           )
   public static class Log2 extends SingleArgMathFunction {
    public Log2() {

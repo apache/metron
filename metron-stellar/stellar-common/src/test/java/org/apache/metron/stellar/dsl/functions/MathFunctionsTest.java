@@ -155,12 +155,14 @@ public class MathFunctionsTest {
   }
 
   public void testLog(String logExpr, double base) {
-    Assert.assertEquals((Double)run(logExpr + "(value)", ImmutableMap.of("value", base)), 1, 1e-7);
-    Assert.assertTrue(Double.isNaN((Double)run(logExpr + "(value)", ImmutableMap.of("value", Double.NaN))));
-    Assert.assertTrue(Double.isInfinite((Double)run(logExpr + "(value)", ImmutableMap.of("value", 0))));
+    Map<Double, Double> expectedValues = new HashMap<Double, Double>(baseExpectations) {{
+      put(base, 1d);
+      put(0d, Double.NEGATIVE_INFINITY);
+    }};
     for(int i = 1;i <= 10;++i) {
-      Assert.assertEquals((Double)run(logExpr + "(value)", ImmutableMap.of("value", Math.pow(base, i))), i, 1e-7);
+      expectedValues.put(Math.pow(base, i), (double)i);
     }
+    assertValues(logExpr, expectedValues);
   }
 
 }
