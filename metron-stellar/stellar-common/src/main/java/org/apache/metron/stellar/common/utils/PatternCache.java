@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,21 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.stellar.common.utils;
 
-package org.apache.metron.common.field.transformation;
+import java.util.HashMap;
+import java.util.regex.Pattern;
 
-import org.apache.metron.stellar.dsl.Context;
+public enum PatternCache {
+  INSTANCE;
 
-import java.io.Serializable;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+  private static final ThreadLocal<HashMap<String,Pattern>> _cache = ThreadLocal.withInitial(() ->
+          new HashMap<>());
 
-public interface FieldTransformation extends Serializable {
-  Map<String, Object> map( Map<String, Object> input
-                         , List<String> outputField
-                         , LinkedHashMap<String, Object> fieldMappingConfig
-                         , Context context
-                         , Map<String, Object>... sensorConfig
-                         );
+  public Pattern getPattern(String patternString){
+    Pattern pattern = _cache.get().get(patternString);
+    if(pattern == null){
+      pattern = Pattern.compile(patternString);
+      _cache.get().put(patternString,pattern);
+    }
+    return pattern;
+  }
 }
