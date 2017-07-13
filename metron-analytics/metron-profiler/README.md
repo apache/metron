@@ -58,9 +58,7 @@ Follow these instructions to install the Profiler.  This assumes that core Metro
     /usr/metron/0.4.1/lib/metron-profiler-0.4.0-uber.jar
     ```
 
-1. Create a table within HBase that will store the profile data. The table name and column family must match the [Profiler's configuration](#configuring-the-profiler).  
-
-    By default, the table is named `profiler` with a column family `P`.
+1. Create a table within HBase that will store the profile data. The table name and column family must match the [Profiler's configuration](#configuring-the-profiler).  By default, the table is named `profiler` with a column family `P`.
 
     ```
     $ /usr/hdp/current/hbase-client/bin/hbase shell
@@ -81,9 +79,11 @@ Follow these instructions to install the Profiler.  This assumes that core Metro
     $ bin/start_profiler_topology.sh
     ```
 
+At this point the Profiler is running and consuming telemetry messages.  We have not defined any profiles yet, so it is not doing anything very useful.  The next section walks you through the steps to create your very first "Hello, World!" profile.
+
 ## Getting Started
 
-This section will describe the steps required to get your first profile running.  This assumes that you have successfully [installed the Profiler](#installation).
+This section will describe the steps required to get your first "Hello, World!"" profile running.  This assumes that you have successfully [installed the Profiler](#installation) and have it running.
 
 1. Create the profile definition in a file located at `$METRON_HOME/config/zookeeper/profiler.json`.  
 
