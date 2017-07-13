@@ -715,15 +715,19 @@ In the core language functions, we support basic functional programming primitiv
 
 ### `ZIP`
   * Description: Zips lists into a single list where the ith element is an list containing the ith items from the constituent lists.
+  See [python](https://docs.python.org/3/library/functions.html#zip)
+  and [wikipedia](https://en.wikipedia.org/wiki/Convolution_(computer_science)) for more context.
   * Input:
     * list* - Lists to zip.
   * Returns: The zip of the lists.  The returned list is the min size of all the lists. e.g. `ZIP( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4] ]`
 
-### `ZIP_JAGGED`
+### `ZIP_LONGEST`
   * Description: Zips lists into a single list where the ith element is an list containing the ith items from the constituent lists.
+  See [python](https://docs.python.org/3/library/itertools.html#itertools.zip_longest)
+  and [wikipedia](https://en.wikipedia.org/wiki/Convolution_(computer_science)) for more context.
   * Input:
     * list* - Lists to zip.
-  * Returns: The zip of the lists.  The returned list is the max size of all the lists.  Empty elements are null e.g. `ZIP_JAGGED( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4], [null, 5] ]`
+  * Returns: The zip of the lists.  The returned list is the max size of all the lists.  Empty elements are null e.g. `ZIP_LONGEST( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4], [null, 5] ]`
 
 The following is an example query (i.e. a function which returns a
 boolean) which would be seen possibly in threat triage:

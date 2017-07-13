@@ -37,8 +37,8 @@ public class FunctionalFunctionsTest {
             "list1" , ImmutableList.of(1, 2, 3)
             ,"list2", ImmutableList.of(4, 5, 6, 7)
     );
-    for (String expr : ImmutableList.of( "ZIP_JAGGED(list1, list2)"
-            , "ZIP_JAGGED( [1, 2, 3], [4, 5, 6, 7] )"
+    for (String expr : ImmutableList.of( "ZIP_LONGEST(list1, list2)"
+            , "ZIP_LONGEST( [1, 2, 3], [4, 5, 6, 7] )"
     )
             )
     {
@@ -61,10 +61,10 @@ public class FunctionalFunctionsTest {
 
 
     for (String expr : ImmutableList.of(
-             "REDUCE(ZIP_JAGGED(list2, list1), (s, x) -> s + GET_FIRST(x) * GET_LAST(x), 0)"
-            , "REDUCE(ZIP_JAGGED( [1, 2, 3], [4, 5, 6, 7] ), (s, x) -> s + GET_FIRST(x) * GET_LAST(x), 0)"
-            , "REDUCE(ZIP_JAGGED(list1, list2), (s, x) -> s + GET_FIRST(x) * GET_LAST(x), 0)" //this works because stellar treats nulls as 0 in arithmetic operations.
-            , "REDUCE(ZIP_JAGGED(list1, list2), (s, x) -> s + (GET_FIRST(x) == null?0:GET_FIRST(x)) * (GET_LAST(x) == null?0:GET_LAST(x)), 0)" //with proper guarding NOT assuming stellar peculiarities
+             "REDUCE(ZIP_LONGEST(list2, list1), (s, x) -> s + GET_FIRST(x) * GET_LAST(x), 0)"
+            , "REDUCE(ZIP_LONGEST( [1, 2, 3], [4, 5, 6, 7] ), (s, x) -> s + GET_FIRST(x) * GET_LAST(x), 0)"
+            , "REDUCE(ZIP_LONGEST(list1, list2), (s, x) -> s + GET_FIRST(x) * GET_LAST(x), 0)" //this works because stellar treats nulls as 0 in arithmetic operations.
+            , "REDUCE(ZIP_LONGEST(list1, list2), (s, x) -> s + (GET_FIRST(x) == null?0:GET_FIRST(x)) * (GET_LAST(x) == null?0:GET_LAST(x)), 0)" //with proper guarding NOT assuming stellar peculiarities
     )
             )
     {
