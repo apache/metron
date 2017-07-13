@@ -118,6 +118,20 @@ public class BulkWriterComponentTest {
   }
 
   @Test
+  public void writeShouldProperlyAckTuplesWhenWriterDisabled() throws Exception {
+    when(configurations.isEnabled(any())).thenReturn(false);
+
+    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(collector);
+    bulkWriterComponent.write(sensorType, tuple1, message1, bulkMessageWriter, configurations, messageGetStrategy);
+    bulkWriterComponent.write(sensorType, tuple2, message2, bulkMessageWriter, configurations, messageGetStrategy);
+
+    verify(collector, times(1)).ack(tuple1);
+    verify(collector, times(1)).ack(tuple2);
+    verifyStatic(times(0));
+    ErrorUtils.handleError(eq(collector), any(MetronError.class));
+  }
+
+  @Test
   public void writeShouldProperlyHandleWriterErrors() throws Exception {
     Throwable e = new Exception("test exception");
     MetronError error = new MetronError()
