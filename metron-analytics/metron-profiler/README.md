@@ -6,17 +6,61 @@ This is achieved by summarizing the streaming telemetry data consumed by Metron 
 
 Any field contained within a message can be used to generate a profile.  A profile can even be produced by combining fields that originate in different data sources.  A user has considerable power to transform the data used in a profile by leveraging the Stellar language. A user only need configure the desired profiles and ensure that the Profiler topology is running.
 
+* [Installation](#installation)
 * [Getting Started](#getting-started)
 * [Creating Profiles](#creating-profiles)
 * [Configuring the Profiler](#configuring-the-profiler)
 * [Examples](#examples)
 * [Implementation](#implementation)
 
+## Installation
+
+Follow these instructions to install the Profiler.  This assumes that core Metron has already been installed and validated.  
+
+1. Build the Metron RPMs by [following these instructions](../../metron-deployment#rpm).  
+
+    Note: You may have already built the Metron RPMs when core Metron was installed.
+
+    ```
+    $ find metron-deployment/ -name "metron-profiler*.rpm"
+    metron-deployment//packaging/docker/rpm-docker/RPMS/noarch/metron-profiler-0.4.1-201707131420.noarch.rpm
+    ```
+
+1. Copy the Profiler RPM to the installation host.  
+
+    The installation host must be the same host on which core Metron was installed.  Depending on how you installed Metron, the Profiler RPM might have already been copied to this host with the other Metron RPMs.
+
+    ```
+    [root@node1 ~]# find /localrepo/  -name "metron-profiler*.rpm"
+    /localrepo/metron-profiler-0.4.0-201707112313.noarch.rpm
+    ```
+
+1. Install the RPM.
+
+    ```
+    [root@node1 ~]# rpm -ivh metron-profiler-*.noarch.rpm
+    Preparing...                ########################################### [100%]
+       1:metron-profiler        ########################################### [100%]
+    ```
+    
+    ```
+    [root@node1 ~]# rpm -ql metron-profiler
+    /usr/metron
+    /usr/metron/0.4.1
+    /usr/metron/0.4.1/bin
+    /usr/metron/0.4.1/bin/start_profiler_topology.sh
+    /usr/metron/0.4.1/config
+    /usr/metron/0.4.1/config/profiler.properties
+    /usr/metron/0.4.1/flux
+    /usr/metron/0.4.1/flux/profiler
+    /usr/metron/0.4.1/flux/profiler/remote.yaml
+    /usr/metron/0.4.1/lib
+    /usr/metron/0.4.1/lib/metron-profiler-0.4.0-uber.jar
+    ```
+
 ## Getting Started
 
 This section will describe the steps required to get your first profile running.
-
-1. Stand-up a Metron environment.  For this example, we will use the 'Quick Dev' environment.  Follow the instructions included with [Quick Dev](../../metron-deployment/vagrant/quick-dev-platform) or build your own.
 
 1. Create a table within HBase that will store the profile data. The table name and column family must match the [Profiler's configuration](#configuring-the-profiler).
     ```
