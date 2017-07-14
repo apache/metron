@@ -29,10 +29,6 @@ kafka:
   broker:
     url: ${BROKERLIST}
 
-hdfs:
-  namenode:
-    url: ${HDFS_URL}
-
 grok:
   path:
     temp: ${METRON_TEMP_GROK_PATH}

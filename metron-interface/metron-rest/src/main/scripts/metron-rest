@@ -44,6 +44,8 @@ fi
 PIDFILE="$METRON_PID_DIR/$NAME.pid"
 LOCKFILE=/var/lock/subsys/$NAME
 
+LOADER_PATH="$HADOOP_CONF_DIR"
+
 # the vagrant Spring profile provides configuration values, otherwise configuration is provided by rest_application.yml
 if [[ !($METRON_SPRING_PROFILES_ACTIVE == *"vagrant"*) ]]; then
   METRON_SPRING_OPTIONS+=" --spring.config.location=$METRON_HOME/config/rest_application.yml"
@@ -56,8 +58,9 @@ if [ $METRON_JDBC_PASSWORD ]; then
     METRON_SPRING_OPTIONS+=" --spring.datasource.password=$METRON_JDBC_PASSWORD"
 fi
 if [ $METRON_JDBC_CLIENT_PATH ]; then
-    METRON_JVMFLAGS+=" -Dloader.path=$METRON_JDBC_CLIENT_PATH"
+    LOADER_PATH+=",$METRON_JDBC_CLIENT_PATH"
 fi
+METRON_JVMFLAGS+=" -Dloader.path=$LOADER_PATH"
 DAEMON="java $METRON_JVMFLAGS -jar $METRON_HOME/lib/metron-rest-$METRON_VERSION.jar $METRON_SPRING_OPTIONS"
 
 #

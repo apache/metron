@@ -56,7 +56,6 @@ public class HadoopConfigTest {
 
   @Test
   public void configurationShouldReturnProperKerberosConfiguration() throws IOException {
-    when(environment.getProperty(MetronRestConstants.HDFS_URL_SPRING_PROPERTY, MetronRestConstants.DEFAULT_HDFS_URL)).thenReturn("default filesystem");
     when(environment.getProperty(MetronRestConstants.KERBEROS_KEYTAB_SPRING_PROPERTY)).thenReturn("metron keytabLocation");
     when(environment.getProperty(MetronRestConstants.KERBEROS_PRINCIPLE_SPRING_PROPERTY)).thenReturn("metron principal");
 
@@ -67,14 +66,10 @@ public class HadoopConfigTest {
     verifyStatic();
     UserGroupInformation.setConfiguration(any(Configuration.class));
     UserGroupInformation.loginUserFromKeytab("metron keytabLocation", "metron principal");
-
-    assertEquals("default filesystem", configuration.get("fs.defaultFS"));
-    assertEquals("KERBEROS", configuration.get("hadoop.security.authentication"));
   }
 
   @Test
   public void configurationShouldReturnProperConfiguration() throws IOException {
-    when(environment.getProperty(MetronRestConstants.HDFS_URL_SPRING_PROPERTY, MetronRestConstants.DEFAULT_HDFS_URL)).thenReturn("default filesystem");
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
 
     Configuration configuration = hadoopConfig.configuration();
@@ -83,7 +78,6 @@ public class HadoopConfigTest {
     UserGroupInformation.setConfiguration(any(Configuration.class));
     UserGroupInformation.loginUserFromKeytab(anyString(), anyString());
 
-    assertEquals("default filesystem", configuration.get("fs.defaultFS"));
     assertEquals("simple", configuration.get("hadoop.security.authentication"));
   }
 }
