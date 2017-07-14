@@ -34,11 +34,10 @@ before_install:
   - time build_utils/verify_licenses.sh
 
 install:
+  - cd bundles-maven-plugin && mvn -q install && cd ..
   - time mvn -q -T 2C -DskipTests clean install
 
 script:
-  - cd bundles-maven-plugin && mvn -q install && cd ..
-  - |
   - time mvn -q -T 2C surefire:test@unit-tests && time mvn -q surefire:test@integration-tests && time mvn -q test --projects metron-interface/metron-config
 
 before_cache:
