@@ -110,7 +110,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
 
     // define valid command-line options
     Options options = new Options();
-    options.addOption("z", "zookeeper", true, "Zookeeper URL");
+    options.addOption("z", "zookeeper", true, "Zookeeper URL fragment in the form [HOSTNAME|IPADDRESS]:PORT");
     options.addOption("v", "variables", true, "File containing a JSON Map of variables");
     options.addOption("irc", "inputrc", true, "File containing the inputrc if not the default ~/.inputrc");
     options.addOption("na", "no_ansi", false, "Make the input prompt not use ANSI colors.");
@@ -127,6 +127,13 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
       System.exit(0);
     }
 
+    try {
+      StellarShellOptionsValidator.validateOptions(commandLine);
+    }catch(IllegalArgumentException e){
+      System.out.println(e.getMessage());
+      System.exit(1);
+    }
+    
     console = createConsole(commandLine);
     executor = createExecutor(commandLine, console, getStellarProperties(commandLine));
     loadVariables(commandLine, executor);
