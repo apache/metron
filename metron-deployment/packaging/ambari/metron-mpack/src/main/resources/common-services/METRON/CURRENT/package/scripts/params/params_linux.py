@@ -245,20 +245,27 @@ threat_intel_stellar_parallelism = config['configurations']['metron-enrichment-e
 threat_intel_join_parallelism = config['configurations']['metron-enrichment-env']['threat_intel_join_parallelism']
 kafka_writer_parallelism = config['configurations']['metron-enrichment-env']['kafka_writer_parallelism']
 
-# Threat Intel
-indexing_workers = config['configurations']['metron-env']['indexing_workers']
-indexing_acker_executors = config['configurations']['metron-env']['indexing_acker_executors']
+# Indexing
+indexing_kafka_start = config['configurations']['metron-indexing-env']['indexing_kafka_start']
+indexing_input_topic = status_params.indexing_input_topic
+indexing_error_topic = config['configurations']['metron-indexing-env']['indexing_error_topic']
+metron_indexing_topology = status_params.metron_indexing_topology
+indexing_writer_class_name = config['configurations']['metron-indexing-env']['indexing_writer_class_name']
+indexing_workers = config['configurations']['metron-indexing-env']['indexing_workers']
+indexing_acker_executors = config['configurations']['metron-indexing-env']['indexing_acker_executors']
 if not len(indexing_topology_worker_childopts) == 0:
     indexing_topology_worker_childopts += ' '
-indexing_topology_worker_childopts += config['configurations']['metron-env']['indexing_topology_worker_childopts']
-indexing_topology_max_spout_pending = config['configurations']['metron-env']['indexing_topology_max_spout_pending']
-indexing_kafka_start = config['configurations']['metron-env']['indexing_kafka_start']
-indexing_input_topic = config['configurations']['metron-env']['indexing_input_topic']
-indexing_error_topic = config['configurations']['metron-env']['indexing_error_topic']
-indexing_writer_class_name = config['configurations']['metron-env']['indexing_writer_class_name']
-bolt_hdfs_rotation_policy = config['configurations']['metron-env']['bolt_hdfs_rotation_policy']
-bolt_hdfs_rotation_policy_units = config['configurations']['metron-env']['bolt_hdfs_rotation_policy_units']
-bolt_hdfs_rotation_policy_count = config['configurations']['metron-env']['bolt_hdfs_rotation_policy_count']
-indexing_kafka_spout_parallelism = config['configurations']['metron-env']['indexing_kafka_spout_parallelism']
-indexing_writer_parallelism = config['configurations']['metron-env']['indexing_writer_parallelism']
-hdfs_writer_parallelism = config['configurations']['metron-env']['hdfs_writer_parallelism']
+indexing_topology_worker_childopts += config['configurations']['metron-indexing-env']['indexing_topology_worker_childopts']
+indexing_topology_max_spout_pending = config['configurations']['metron-indexing-env']['indexing_topology_max_spout_pending']
+indexing_kafka_spout_parallelism = config['configurations']['metron-indexing-env']['indexing_kafka_spout_parallelism']
+indexing_writer_parallelism = config['configurations']['metron-indexing-env']['indexing_writer_parallelism']
+hdfs_writer_parallelism = config['configurations']['metron-indexing-env']['hdfs_writer_parallelism']
+
+# the double "format" is not an error - we are pulling in a jinja-templated param. This is a bit of a hack, but works
+# well enough until we find a better way via Ambari
+metron_apps_indexed_hdfs_dir = format(format(config['configurations']['metron-indexing-env']['metron_apps_indexed_hdfs_dir']))
+
+bolt_hdfs_rotation_policy = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy']
+bolt_hdfs_rotation_policy_units = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_units']
+bolt_hdfs_rotation_policy_count = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_count']
+
