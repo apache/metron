@@ -88,7 +88,7 @@ public class StormCLIWrapperTest {
   }
 
   /**
-   * If Kerberos is enabled and the PARSER_TOPOLOGY_OPTIONS are defined, then extra topology options
+   * If Kerberos is enabled and the PARSER_TOPOLOGY_OPTIONS field is defined, then extra topology options
    * will be passed to the Parser topology.
    */
   @Test
@@ -102,7 +102,7 @@ public class StormCLIWrapperTest {
     when(environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY)).thenReturn("zookeeper_url");
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(true);
     when(environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY)).thenReturn("kafka_security_protocol");
-    when(environment.getProperty(MetronRestConstants.PARSER_TOPOLOGY_OPTIONS)).thenReturn("parser_topology_options");
+    when(environment.getProperty(MetronRestConstants.PARSER_TOPOLOGY_OPTIONS_SPRING_PROPERTY)).thenReturn("parser_topology_options");
     when(process.exitValue()).thenReturn(0);
 
     assertEquals(0, stormCLIWrapper.startParserTopology("bro"));
