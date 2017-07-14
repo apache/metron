@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,32 +101,45 @@ public class StormCLIWrapper {
   }
 
   protected String[] getParserStartCommand(String name) {
-    String[] command = new String[9];
-    command[0] = environment.getProperty(MetronRestConstants.PARSER_SCRIPT_PATH_SPRING_PROPERTY);
-    command[1] = "-k";
-    command[2] = environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY);
-    command[3] = "-z";
-    command[4] = environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY);
-    command[5] = "-s";
-    command[6] = name;
-    command[7] = "-ksp";
-    command[8] = environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY);
-    return command;
+    List<String> command = new ArrayList<>();
+    command.add( environment.getProperty(MetronRestConstants.PARSER_SCRIPT_PATH_SPRING_PROPERTY));
+
+    // sensor type
+    command.add( "-s");
+    command.add( name);
+
+    // zookeeper
+    command.add( "-z");
+    command.add( environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY));
+
+    // kafka broker
+    command.add( "-k");
+    command.add( environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY));
+
+    // kafka security protocol
+    command.add( "-ksp");
+    command.add( environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY));
+
+    // extra topology options
+    boolean kerberosEnabled = environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false);
+    boolean topologyOptionsDefined = StringUtils.isNotBlank(environment.getProperty(MetronRestConstants.PARSER_TOPOLOGY_OPTIONS));
+    if (kerberosEnabled && topologyOptionsDefined) {
+        command.add("-e");
+        command.add(environment.getProperty(MetronRestConstants.PARSER_TOPOLOGY_OPTIONS));
+    }
+
+    return command.toArray(new String[0]);
   }
 
   protected String[] getEnrichmentStartCommand() {
-    String[] command = new String[3];
+    String[] command = new String[1];
     command[0] = environment.getProperty(MetronRestConstants.ENRICHMENT_SCRIPT_PATH_SPRING_PROPERTY);
-    command[1] = "-ksp";
-    command[2] = environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY);
     return command;
   }
 
   protected String[] getIndexingStartCommand() {
-    String[] command = new String[3];
+    String[] command = new String[1];
     command[0] = environment.getProperty(MetronRestConstants.INDEXING_SCRIPT_PATH_SPRING_PROPERTY);
-    command[1] = "-ksp";
-    command[2] = environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY);
     return command;
   }
 
