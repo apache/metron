@@ -44,6 +44,7 @@ import java.util.List;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -113,20 +114,14 @@ public class BulkWriterComponentTest {
 
     verify(collector, times(1)).ack(tuple1);
     verify(collector, times(1)).ack(tuple2);
-    verifyStatic(times(0));
-    ErrorUtils.handleError(eq(collector), any(MetronError.class));
-  }
 
-  @Test
-  public void writeShouldProperlyAckTuplesWhenWriterDisabled() throws Exception {
-    when(configurations.isEnabled(any())).thenReturn(false);
+    // A disabled writer should still ack
+    Tuple disabledTuple = mock(Tuple.class);
+    String disabledSensorType = "disabled";
+    when(configurations.isEnabled(disabledSensorType)).thenReturn(false);
+    bulkWriterComponent.write(disabledSensorType, disabledTuple, message2, bulkMessageWriter, configurations, messageGetStrategy);
+    verify(collector, times(1)).ack(disabledTuple);
 
-    BulkWriterComponent<JSONObject> bulkWriterComponent = new BulkWriterComponent<>(collector);
-    bulkWriterComponent.write(sensorType, tuple1, message1, bulkMessageWriter, configurations, messageGetStrategy);
-    bulkWriterComponent.write(sensorType, tuple2, message2, bulkMessageWriter, configurations, messageGetStrategy);
-
-    verify(collector, times(1)).ack(tuple1);
-    verify(collector, times(1)).ack(tuple2);
     verifyStatic(times(0));
     ErrorUtils.handleError(eq(collector), any(MetronError.class));
   }
