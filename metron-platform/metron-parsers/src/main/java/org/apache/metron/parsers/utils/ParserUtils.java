@@ -46,6 +46,17 @@ public class ParserUtils {
     return tempFile;
   }
 
+  /**
+   * Converts passed month (human short form), day, time and current year
+   * to milliseconds since epoch
+   *
+   * @param m                   Month in human short form (3 letters) (MMM)
+   * @param d                   Day (dd)
+   * @param ts                  Time (HH:mm:ss)
+   * @param adjust_timezone     If True set GMT timezone for input time
+   * @return                    Number of milliseconds since epoch
+   * @exception ParseException  If a date parsing error occured
+   */
   public static Long convertToEpoch(String m, String d, String ts,
                                     boolean adjust_timezone) throws ParseException {
     d = d.trim();
@@ -55,7 +66,7 @@ public class ParserUtils {
     Date date = new SimpleDateFormat("MMM", Locale.ENGLISH).parse(m);
     Calendar cal = Calendar.getInstance();
     cal.setTime(date);
-    String month = String.valueOf(cal.get(Calendar.MONTH));
+    String month = String.valueOf(cal.get(Calendar.MONTH) + 1);
     int year = Calendar.getInstance().get(Calendar.YEAR);
     if (month.length() <= 2) {
       month = "0" + month;
