@@ -72,7 +72,7 @@ public class StellarServiceImpl implements StellarService {
   public Map<String, Object> applyTransformations(SensorParserContext sensorParserContext) {
     JSONObject sampleJson = new JSONObject(sensorParserContext.getSampleData());
     sensorParserContext.getSensorParserConfig().getFieldTransformations().forEach(fieldTransformer -> {
-              fieldTransformer.transformAndUpdate(sampleJson, sensorParserContext.getSensorParserConfig().getParserConfig(), Context.EMPTY_CONTEXT());
+              fieldTransformer.transformAndUpdate(sampleJson, Context.EMPTY_CONTEXT(), sensorParserContext.getSensorParserConfig().getParserConfig());
             }
     );
     return sampleJson;
