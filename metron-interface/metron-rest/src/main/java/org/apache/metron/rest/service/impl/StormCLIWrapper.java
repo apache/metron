@@ -17,14 +17,19 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +39,8 @@ import static org.apache.metron.rest.MetronRestConstants.ENRICHMENT_TOPOLOGY_NAM
 import static org.apache.metron.rest.MetronRestConstants.INDEXING_TOPOLOGY_NAME;
 
 public class StormCLIWrapper {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private Environment environment;
 
@@ -75,26 +82,52 @@ public class StormCLIWrapper {
   protected int runCommand(String[] command) throws RestException {
     ProcessBuilder pb = getProcessBuilder(command);
     pb.inheritIO();
-    Process process = null;
+    LOG.debug("Running command: cmd={}", String.join(" ", command));
+
+    Process process;
     try {
       process = pb.start();
       process.waitFor();
+
     } catch (Exception e) {
       throw new RestException(e);
     }
-    return process.exitValue();
+
+    int exitValue = process.exitValue();
+    LOG.debug("Command completed: cmd={}, exit={}", String.join(" ", command), exitValue);
+
+    return exitValue;
   }
 
   protected String[] getParserStartCommand(String name) {
-    String[] command = new String[7];
-    command[0] = environment.getProperty(MetronRestConstants.PARSER_SCRIPT_PATH_SPRING_PROPERTY);
-    command[1] = "-k";
-    command[2] = environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY);
-    command[3] = "-z";
-    command[4] = environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY);
-    command[5] = "-s";
-    command[6] = name;
-    return command;
+    List<String> command = new ArrayList<>();
+    command.add( environment.getProperty(MetronRestConstants.PARSER_SCRIPT_PATH_SPRING_PROPERTY));
+
+    // sensor type
+    command.add( "-s");
+    command.add( name);
+
+    // zookeeper
+    command.add( "-z");
+    command.add( environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY));
+
+    // kafka broker
+    command.add( "-k");
+    command.add( environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY));
+
+    // kafka security protocol
+    command.add( "-ksp");
+    command.add( environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY));
+
+    // extra topology options
+    boolean kerberosEnabled = environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false);
+    boolean topologyOptionsDefined = StringUtils.isNotBlank(environment.getProperty(MetronRestConstants.PARSER_TOPOLOGY_OPTIONS_SPRING_PROPERTY));
+    if (kerberosEnabled && topologyOptionsDefined) {
+        command.add("-e");
+        command.add(environment.getProperty(MetronRestConstants.PARSER_TOPOLOGY_OPTIONS_SPRING_PROPERTY));
+    }
+
+    return command.toArray(new String[0]);
   }
 
   protected String[] getEnrichmentStartCommand() {
