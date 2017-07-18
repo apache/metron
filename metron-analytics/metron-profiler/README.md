@@ -277,25 +277,103 @@ The values can be changed on disk and then the Profiler topology must be restart
 
 | Setting                               | Description
 |---                                    |---
-| profiler.workers                      | The number of worker processes to create for the topology.
-| profiler.executors                    | The number of executors to spawn per component.
-| profiler.input.topic                  | The name of the Kafka topic from which to consume data.
-| profiler.output.topic                 | The name of the Kafka topic to which profile data is written.  Only used with profiles that use the [`triage` result field](#result).
-| profiler.period.duration              | The duration of each profile period.  This value should be defined along with `profiler.period.duration.units`.
-| profiler.period.duration.units        | The units used to specify the `profiler.period.duration`.
-| profiler.ttl                          | If a message has not been applied to a Profile in this period of time, the Profile will be forgotten and its resources will be cleaned up. This value should be defined along with `profiler.ttl.units`.
-| profiler.ttl.units                    | The units used to specify the `profiler.ttl`.
-| profiler.hbase.salt.divisor           | A salt is prepended to the row key to help prevent hotspotting.  This constant is used to generate the salt.  Ideally, this constant should be roughly equal to the number of nodes in the Hbase cluster.
-| profiler.hbase.table                  | The name of the HBase table that profiles are written to.
-| profiler.hbase.column.family          | The column family used to store profiles.
-| profiler.hbase.batch                  | The number of puts that are written in a single batch.
-| profiler.hbase.flush.interval.seconds | The maximum number of seconds between batch writes to HBase.
+| [`profiler.input.topic`](#profilerinputtopic) | The name of the Kafka topic from which to consume data.
+| [`profiler.output.topic`](#profileroutputtopic) | The name of the Kafka topic to which profile data is written.  Only used with profiles that use the [`triage` result field](#result).
+| [`profiler.period.duration`](#profilerperiodduration) | The duration of each profile period.  
+| [`profiler.period.duration.units`](#profilerperioddurationunits) | The units used to specify the [`profiler.period.duration`](#profilerperiodduration).  
+| [`profiler.workers`](#profilerworkers) | The number of worker processes for the topology.
+| [`profiler.executors`](#profilerexecutors) | The number of executors to spawn per component.
+| [`profiler.ttl`](#profilerttl) | If a message has not been applied to a Profile in this period of time, the Profile will be forgotten and its resources will be cleaned up. 
+| [`profiler.ttl.units`](#profilerttlunits) | The units used to specify the `profiler.ttl`.
+| [`profiler.hbase.salt.divisor`](#profilerhbasesaltdivisor) | A salt is prepended to the row key to help prevent hotspotting. 
+| [`profiler.hbase.table`](#profilerhbasetable) | The name of the HBase table that profiles are written to.
+| [`profiler.hbase.column.family`](#profilerhbasecolumnfamily) | The column family used to store profiles.
+| [`profiler.hbase.batch`](#profilerhbasebatch) | The number of puts that are written to HBase in a single batch.
+| [`profiler.hbase.flush.interval.seconds`](#profilerhbaseflushintervalseconds) | The maximum number of seconds between batch writes to HBase.
 
-After altering the configuration, start the Profiler.
+### `profiler.input.topic`
 
-```
-$ $METRON_HOME/start_profiler_topology.sh
-```
+*Default*: indexing
+
+The name of the Kafka topic from which to consume data.  By default, the Profiler consumes data from the `indexing` topic so that it has access to fully enriched telemetry.
+
+### `profiler.output.topic`
+
+*Default*: enrichments
+
+The name of the Kafka topic to which profile data is written.  This property is only applicable to profiles that define  the [`triage` result field](#result).  This allows Profile data to be selectively triaged like any other source of telemetry in Metron.
+
+### `profiler.period.duration` 
+
+*Default*: 15
+
+The duration of each profile period.  This value should be defined along with [`profiler.period.duration.units`](#profilerperioddurationunits). 
+
+*Important*: To read a profile using the [Profiler Client](metron-analytics/metron-profiler-client), the Profiler Client's `profiler.client.period.duration` property must match this value.  Otherwise, the Profiler Client will be unable to read the profile data.  
+
+### `profiler.period.duration.units` 
+
+*Default*: MINUTES
+
+The units used to specify the `profiler.period.duration`.  This value should be defined along with [`profiler.period.duration`](#profilerperiodduration). 
+
+*Important*: To read a profile using the Profiler Client, the Profiler Client's `profiler.client.period.duration.units` property must match this value.  Otherwise, the [Profiler Client](metron-analytics/metron-profiler-client) will be unable to read the profile data. 
+
+### `profiler.workers`
+
+*Default*: 1
+
+The number of worker processes to create for the Profiler topology.  This property is useful for performance tuning the Profiler.
+
+### `profiler.executors`
+
+*Default*: 0
+
+The number of executors to spawn per component for the Profiler topology.  This property is useful for performance tuning the Profiler. 
+
+### `profiler.ttl`
+
+*Default*: 30
+
+ If a message has not been applied to a Profile in this period of time, the Profile will be forgotten and its resources will be cleaned up. This value should be defined along with [`profiler.ttl.units`](#profilerttlunits).
+ 
+ This property does not affect the persisted Profile data in HBase, only the state stored in memory during the execution of each profile period.  
+
+### `profiler.ttl.units`
+
+*Default*: MINUTES
+
+The units used to specify the [`profiler.ttl`](#profilerttl).
+ 
+### `profiler.hbase.salt.divisor`
+
+*Default*: 1000
+
+A salt is prepended to the row key to help prevent hotspotting.  This constant is used to generate the salt.  Ihis constant should be roughly equal to the number of nodes in the Hbase cluster to ensure even distribution of data.
+
+### `profiler.hbase.table`
+
+*Default*: profiler
+
+The name of the HBase table that profile data is written to.  The Profiler expects that the table exists and is writable.  It will not create the table.
+
+### `profiler.hbase.column.family`
+
+*Default*: P
+
+The column family used to store profile data in HBase.
+
+### `profiler.hbase.batch`
+
+*Default*: 10
+
+The number of puts that are written to HBase in a single batch.
+
+### `profiler.hbase.flush.interval.seconds`
+
+*Default*: 30
+
+The maximum number of seconds between batch writes to HBase.
 
 ## Examples
 
