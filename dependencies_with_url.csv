@@ -98,6 +98,7 @@ com.github.stephenc.findbugs:findbugs-annotations:jar:1.3.9-1:compile,Apache Lic
 com.github.tony19:named-regexp:jar:0.2.3:compile,Apache License, Version 2.0,
 com.google.code.findbugs:jsr305:jar:1.3.9:compile,The Apache Software License, Version 2.0,http://findbugs.sourceforge.net/
 com.google.code.findbugs:jsr305:jar:3.0.0:compile,The Apache Software License, Version 2.0,http://findbugs.sourceforge.net/
+com.google.code.findbugs:annotations:jar:2.0.1:compile,The Apache Software License, Version 2.0,http://findbugs.sourceforge.net/
 com.carrotsearch:hppc:jar:0.7.1:compile,ASLv2,
 com.clearspring.analytics:stream:jar:2.9.5:compile,ASLv2,https://github.com/addthis/stream-lib
 com.codahale.metrics:metrics-core:jar:3.0.2:compile,MIT,https://github.com/codahale/metrics
@@ -116,6 +117,9 @@ com.fasterxml.jackson.core:jackson-databind:jar:2.8.3:compile,ASLv2,http://githu
 com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:jar:2.6.6:compile,ASLv2,http://wiki.fasterxml.com/JacksonForCbor
 com.fasterxml.jackson.dataformat:jackson-dataformat-smile:jar:2.6.6:compile,ASLv2,http://wiki.fasterxml.com/JacksonForSmile
 com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar:2.6.6:compile,ASLv2,https://github.com/FasterXML/jackson
+com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:jar:2.7.4:compile,ASLv2,http://wiki.fasterxml.com/JacksonForCbor
+com.fasterxml.jackson.dataformat:jackson-dataformat-smile:jar:2.7.4:compile,ASLv2,http://wiki.fasterxml.com/JacksonForSmile
+com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar:2.7.4:compile,ASLv2,https://github.com/FasterXML/jackson
 com.fasterxml.jackson.datatype:jackson-datatype-joda:jar:2.8.1:compile,ASLv2,https://github.com/FasterXML/jackson-datatype-joda
 com.fasterxml:classmate:jar:1.3.1:compile,ASLv2,http://github.com/cowtowncoder/java-classmate
 com.google.code.gson:gson:jar:2.2.4:compile,The Apache Software License, Version 2.0,http://code.google.com/p/google-gson/
