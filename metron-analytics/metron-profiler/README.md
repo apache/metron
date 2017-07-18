@@ -85,7 +85,7 @@ At this point the Profiler is running and consuming telemetry messages.  We have
 
 This section will describe the steps required to get your first "Hello, World!"" profile running.  This assumes that you have successfully [installed the Profiler](#installation) and have it running.
 
-1. Create the profile definition in a file located at `$METRON_HOME/config/zookeeper/profiler.json`.  
+1. Create the profile definition in a file located at `$METRON_HOME/config/zookeeper/profiler.json`.  This file will not exist, if you have never created Profiles previously.
 
     The following example will create a profile that simply counts the number of messages per `ip_src_addr`.
     ```
@@ -137,14 +137,19 @@ This section will describe the steps required to get your first "Hello, World!""
     hbase(main):001:0> count 'profiler'
     ```
 
-1. Use the Profiler Client to read the profile data.  The below example `PROFILE_GET` command will read data written by the sample profile given above, if 10.0.0.1 is one of the input values for `ip_src_addr`.
-More information on configuring and using the client can be found [here](../metron-profiler-client).
-It is assumed that the `PROFILE_GET` client is correctly configured before using it.
+1. Use the [Profiler Client]((../metron-profiler-client)) to read the profile data.  The following `PROFILE_GET` command will read the data written by the "Hello, World" profile. This assumes that `10.0.0.1` is one of the values for `ip_src_addr` contained within the telemetry consumed by the Profiler.
+
     ```
     $ bin/stellar -z node1:2181
     [Stellar]>>> PROFILE_GET( "hello-world", "10.0.0.1", PROFILE_FIXED(30, "MINUTES"))
     [451, 448]
     ```
+
+    This result indicates that over the past 30 minutes, the Profiler stored two values.  In the first 15 minute period, the IP `10.0.0.1` was seen in 451 telemetry messages.  In the second 15 minute period, the same IP was seen in 448 telemetry messages.
+
+    More information on configuring and using the Profiler client can be found [here](../metron-profiler-client).
+It is assumed that the `PROFILE_GET` client is correctly configured before using it.
+
 
 ## Creating Profiles
 
