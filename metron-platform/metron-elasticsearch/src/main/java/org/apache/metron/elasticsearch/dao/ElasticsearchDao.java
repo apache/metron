@@ -15,43 +15,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service.impl;
+package org.apache.metron.elasticsearch.dao;
 
-import org.apache.metron.rest.MetronRestConstants;
-import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.SearchRequest;
-import org.apache.metron.rest.model.SearchResponse;
-import org.apache.metron.rest.model.SearchResult;
-import org.apache.metron.rest.model.SortField;
-import org.apache.metron.rest.service.SearchService;
+import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
+import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.search.*;
+import org.apache.metron.indexing.dao.search.SortOrder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.FieldSortBuilder;
-import org.elasticsearch.search.sort.SortOrder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
+import org.elasticsearch.search.sort.*;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-@Service
-public class ElasticsearchServiceImpl implements SearchService {
+public class ElasticsearchDao implements IndexDao {
+  private transient TransportClient client;
+  private AccessConfig accessConfig;
 
-  private TransportClient client;
-  private int searchMaxResults;
-
-  @Autowired
-  public ElasticsearchServiceImpl(TransportClient client, Environment environment) {
+  protected ElasticsearchDao(TransportClient client, AccessConfig config) {
     this.client = client;
-    this.searchMaxResults = Integer.parseInt(environment.getProperty(MetronRestConstants.SEARCH_MAX_RESULTS));
+    this.accessConfig = config;
+  }
+
+  public ElasticsearchDao() {
+    //uninitialized.
   }
 
   @Override
-  public SearchResponse search(SearchRequest searchRequest) throws RestException {
-    if (searchRequest.getSize() > searchMaxResults) {
-      throw new RestException("Search result size must be less than " + searchMaxResults);
+  public SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
+    if(client == null) {
+      throw new InvalidSearchException("Uninitialized Dao!  You must call init() prior to use.");
+    }
+    if (searchRequest.getSize() > accessConfig.getMaxSearchResults()) {
+      throw new InvalidSearchException("Search result size must be less than " + accessConfig.getMaxSearchResults());
     }
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
             .size(searchRequest.getSize())
@@ -59,9 +58,13 @@ public class ElasticsearchServiceImpl implements SearchService {
             .query(new QueryStringQueryBuilder(searchRequest.getQuery()))
             .fetchSource(true)
             .trackScores(true);
-    for(SortField sortField: searchRequest.getSort()) {
+    for (SortField sortField : searchRequest.getSort()) {
       FieldSortBuilder fieldSortBuilder = new FieldSortBuilder(sortField.getField());
-      fieldSortBuilder.order(sortField.getSortOrder() == org.apache.metron.rest.model.SortOrder.DESC ? SortOrder.DESC : SortOrder.ASC);
+      if (sortField.getSortOrder() == org.apache.metron.indexing.dao.search.SortOrder.DESC) {
+        fieldSortBuilder.order(org.elasticsearch.search.sort.SortOrder.DESC);
+      } else {
+        fieldSortBuilder.order(org.elasticsearch.search.sort.SortOrder.ASC);
+      }
       searchSourceBuilder = searchSourceBuilder.sort(fieldSortBuilder);
     }
     String[] wildcardIndices = searchRequest.getIndices().stream().map(index -> String.format("%s*", index)).toArray(value -> new String[searchRequest.getIndices().size()]);
@@ -77,5 +80,11 @@ public class ElasticsearchServiceImpl implements SearchService {
       return searchResult;
     }).collect(Collectors.toList()));
     return searchResponse;
+  }
+
+  @Override
+  public void init(Map<String, Object> globalConfig, AccessConfig config) {
+    this.client = ElasticsearchUtils.getClient(globalConfig, config.getOptionalSettings());
+    this.accessConfig = config;
   }
 }

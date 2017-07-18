@@ -15,26 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service.impl;
+package org.apache.metron.elasticsearch.dao;
 
-import org.apache.metron.rest.MetronRestConstants;
-import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.matcher.SearchRequestMatcher;
-import org.apache.metron.rest.model.SearchRequest;
-import org.apache.metron.rest.model.SearchResponse;
-import org.apache.metron.rest.model.SearchResult;
-import org.apache.metron.rest.model.SortField;
-import org.apache.metron.rest.model.SortOrder;
-import org.apache.metron.rest.service.SearchService;
+import org.apache.metron.elasticsearch.matcher.SearchRequestMatcher;
+import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.search.*;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.springframework.core.env.Environment;
+import org.mockito.Mock;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,30 +39,26 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-public class ElasticsearchServiceImplTest {
+public class ElasticsearchDaoTest {
 
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
+  private IndexDao searchService;
 
-  private SearchService searchService;
+  @Mock
   TransportClient client;
 
   @Before
   public void setUp() throws Exception {
     client = mock(TransportClient.class);
-    Environment environment = mock(Environment.class);
-    when(environment.getProperty(MetronRestConstants.SEARCH_MAX_RESULTS)).thenReturn("50");
-    searchService = new ElasticsearchServiceImpl(client, environment);
+    AccessConfig config = mock(AccessConfig.class);
+    when(config.getMaxSearchResults()).thenReturn(50);
+    searchService = new ElasticsearchDao(client, config);
+
   }
 
   @Test
-  public void searchShouldProperlyBuildSearchRequest() throws RestException {
+  public void searchShouldProperlyBuildSearchRequest() throws Exception {
     SearchHit searchHit1 = mock(SearchHit.class);
     when(searchHit1.getId()).thenReturn("id1");
     when(searchHit1.getSource()).thenReturn(new HashMap<String, Object>(){{ put("field", "value1"); }});
@@ -90,10 +82,10 @@ public class ElasticsearchServiceImplTest {
     searchRequest.setFrom(5);
     SortField sortField1 = new SortField();
     sortField1.setField("sortField1");
-    sortField1.setSortOrder(SortOrder.DESC);
+    sortField1.setSortOrder(SortOrder.DESC.toString());
     SortField sortField2 = new SortField();
     sortField2.setField("sortField2");
-    sortField2.setSortOrder(SortOrder.ASC);
+    sortField2.setSortOrder(SortOrder.ASC.toString());
     searchRequest.setSort(Arrays.asList(sortField1, sortField2));
     searchRequest.setQuery("some query");
     SearchResponse searchResponse = searchService.search(searchRequest);
@@ -111,13 +103,16 @@ public class ElasticsearchServiceImplTest {
   }
 
   @Test
-  public void searchShouldThrowExceptionWhenMaxResultsAreExceeded() throws RestException {
-    exception.expect(RestException.class);
-    exception.expectMessage("Search result size must be less than 50");
-
+  public void searchShouldThrowExceptionWhenMaxResultsAreExceeded() throws Exception {
     SearchRequest searchRequest = new SearchRequest();
     searchRequest.setSize(51);
-    searchService.search(searchRequest);
+    try {
+      searchService.search(searchRequest);
+      Assert.fail("Did not throw expected exception");
+    }
+    catch(InvalidSearchException ise) {
+      Assert.assertEquals("Search result size must be less than 50", ise.getMessage());
+    }
   }
 
 

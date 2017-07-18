@@ -15,37 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.model;
+package org.apache.metron.indexing.dao;
+
+import org.apache.metron.indexing.dao.search.InvalidSearchException;
+import org.apache.metron.indexing.dao.search.SearchRequest;
+import org.apache.metron.indexing.dao.search.SearchResponse;
 
 import java.util.Map;
 
-public class SearchResult {
-
-  private String id;
-  private Map<String, Object> source;
-  private float score;
-
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
-  }
-
-  public Map<String, Object> getSource() {
-    return source;
-  }
-
-  public void setSource(Map<String, Object> source) {
-    this.source = source;
-  }
-
-  public float getScore() {
-    return score;
-  }
-
-  public void setScore(float score) {
-    this.score = score;
-  }
+public interface IndexDao {
+  SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException;
+  void init(Map<String, Object> globalConfig, AccessConfig config);
 }

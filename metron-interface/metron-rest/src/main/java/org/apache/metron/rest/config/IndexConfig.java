@@ -17,35 +17,50 @@
  */
 package org.apache.metron.rest.config;
 
-import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
+import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.IndexDaoFactory;
+import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.GlobalConfigService;
-import org.elasticsearch.client.transport.TransportClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 
-import java.util.HashMap;
+import java.lang.reflect.InvocationTargetException;
 
+import static org.apache.metron.rest.MetronRestConstants.INDEX_DAO_IMPL;
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 
 @Configuration
-@Profile("!" + TEST_PROFILE)
-public class ElasticsearchConfig {
+public class IndexConfig {
 
   @Autowired
   private GlobalConfigService globalConfigService;
 
   @Autowired
-  public ElasticsearchConfig(GlobalConfigService globalConfigService) {
-    this.globalConfigService = globalConfigService;
+  private Environment environment;
+
+  @Autowired
+  public IndexConfig(Environment environment) {
+    this.environment = environment;
   }
 
   @Bean
-  public TransportClient transportClient() throws RestException {
-    return ElasticsearchUtils.getClient(globalConfigService.get(), new HashMap<>());
+  public IndexDao indexDao() {
+    String indexDaoImpl = environment.getProperty(MetronRestConstants.INDEX_DAO_IMPL, String.class, null);
+    int searchMaxResults = environment.getProperty(MetronRestConstants.SEARCH_MAX_RESULTS, Integer.class, -1);
+    AccessConfig config = new AccessConfig();
+    config.setMaxSearchResults(searchMaxResults);
+    if(indexDaoImpl == null) {
+      throw new IllegalStateException("You must provide an index DAO implementation via the " + INDEX_DAO_IMPL + " config");
+    }
+    try {
+      return IndexDaoFactory.create(indexDaoImpl, globalConfigService.get(), config);
+    } catch (Exception e) {
+      throw new IllegalStateException("Unable to instantiate " + indexDaoImpl + ": " + e.getMessage(), e);
+    }
   }
-
-
 }

@@ -44,3 +44,6 @@ storm:
 search:
   max:
     results: 100
+index:
+  dao:
+     impl: org.apache.metron.indexing.dao.InMemoryDao

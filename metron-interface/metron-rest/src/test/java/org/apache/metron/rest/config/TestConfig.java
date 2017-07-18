@@ -25,17 +25,13 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
-import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
-import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.mock.MockStormCLIClientWrapper;
 import org.apache.metron.rest.mock.MockStormRestTemplate;
 import org.apache.metron.rest.service.impl.StormCLIWrapper;
-import org.elasticsearch.client.transport.TransportClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -43,7 +39,6 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -70,19 +65,11 @@ public class TestConfig {
     return new KafkaComponent().withTopologyProperties(zkProperties);
   }
 
-  @Bean
-  public ElasticSearchComponent elasticSearchComponent() {
-    return new ElasticSearchComponent.Builder()
-            .withHttpPort(9211)
-            .withIndexDir(new File("target/elasticsearch"))
-            .build();
-  }
 
   @Bean(destroyMethod = "stop")
-  public ComponentRunner componentRunner(ZKServerComponent zkServerComponent, KafkaComponent kafkaWithZKComponent, ElasticSearchComponent elasticSearchComponent) {
+  public ComponentRunner componentRunner(ZKServerComponent zkServerComponent, KafkaComponent kafkaWithZKComponent) {
     ComponentRunner runner = new ComponentRunner.Builder()
       .withComponent("zk", zkServerComponent)
-      .withComponent("search", elasticSearchComponent)
       .withCustomShutdownOrder(new String[]{"search", "zk"})
       .build();
     try {
@@ -144,16 +131,6 @@ public class TestConfig {
   @Bean
   public AdminUtils$ adminUtils() {
     return AdminUtils$.MODULE$;
-  }
-
-  @Bean
-  public TransportClient transportClient() throws RestException {
-    Map<String, Object> globalConfig = new HashMap<String, Object>() {{
-      put("es.clustername", "metron");
-      put("es.ip", "localhost");
-      put("es.port", 9300);
-    }};
-    return ElasticsearchUtils.getClient(globalConfig, new HashMap<>());
   }
 
 }

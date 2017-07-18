@@ -15,23 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.model;
+package org.apache.metron.indexing.dao.search;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-public enum SortOrder {
-  @JsonProperty("desc")
-  DESC("desc"),
-  @JsonProperty("asc")
-  ASC("asc");
-
-  private String sortOrder;
-
-  SortOrder(String sortOrder) {
-    this.sortOrder = sortOrder;
+public class InvalidSearchException extends Exception {
+  public InvalidSearchException(String message) {
+    super(message);
   }
-
-  public String getSortOrder() {
-    return sortOrder;
+  public InvalidSearchException(String message, Throwable t) {
+    super(message, t);
   }
 }

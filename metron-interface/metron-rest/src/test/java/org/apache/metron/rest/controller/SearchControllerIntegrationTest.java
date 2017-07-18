@@ -17,22 +17,16 @@
  */
 package org.apache.metron.rest.controller;
 
+import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.commons.io.FileUtils;
-import org.apache.metron.rest.model.SearchRequest;
-import org.apache.metron.rest.model.SearchResponse;
-import org.apache.metron.rest.model.SortField;
-import org.apache.metron.rest.model.SortOrder;
-import org.apache.metron.rest.service.GlobalConfigService;
+import org.apache.metron.indexing.dao.InMemoryDao;
+import org.apache.metron.indexing.dao.IndexingDaoIntegrationTest;
 import org.apache.metron.rest.service.SearchService;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.index.IndexRequestBuilder;
-import org.elasticsearch.client.transport.TransportClient;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,9 +39,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
@@ -65,135 +59,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles(TEST_PROFILE)
 public class SearchControllerIntegrationTest {
 
-  /**
-   * [
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.1", "ip_src_port": 8010, "timestamp":1, "rejected":true},
-   * {"source:type": "bro" "ip_src_addr":"192.168.1.2", "ip_src_port": 8009, "timestamp":2, "rejected":false},
-   * {"source:type": "bro" "ip_src_addr":"192.168.1.3", "ip_src_port": 8008, "timestamp":3, "rejected":true},
-   * {"source:type": "bro" "ip_src_addr":"192.168.1.4", "ip_src_port": 8007, "timestamp":4, "rejected":false},
-   * {"source:type": "bro" "ip_src_addr":"192.168.1.5", "ip_src_port": 8006, "timestamp":5, "rejected":true}
-   * ]
-   */
-  @Multiline
-  public static String broData;
 
-  /**
-   * [
-   * {"source:type": "snort" "ip_src_addr":"192.168.1.6", "ip_src_port": 8005, "timestamp":6, "is_alert":false},
-   * {"source:type": "snort" "ip_src_addr":"192.168.1.1", "ip_src_port": 8004, "timestamp":7, "is_alert":true},
-   * {"source:type": "snort" "ip_src_addr":"192.168.1.7", "ip_src_port": 8003, "timestamp":8, "is_alert":false},
-   * {"source:type": "snort" "ip_src_addr":"192.168.1.1", "ip_src_port": 8002, "timestamp":9, "is_alert":true},
-   * {"source:type": "snort" "ip_src_addr":"192.168.1.8", "ip_src_port": 8001, "timestamp":10, "is_alert":false}
-   * ]
-   */
-  @Multiline
-  public static String snortData;
-
-  /**
-   * {
-   * "indices": ["bro", "snort"],
-   * "query": "*",
-   * "from": 0,
-   * "size": 10,
-   * "sort": [
-   *   {
-   *     "field": "timestamp",
-   *     "sortOrder": "desc"
-   *   }
-   * ]
-   * }
-   */
-  @Multiline
-  public static String allQuery;
-
-  /**
-   * {
-   * "indices": ["bro", "snort"],
-   * "query": "ip_src_addr:192.168.1.1",
-   * "from": 0,
-   * "size": 10,
-   * "sort": [
-   *   {
-   *     "field": "timestamp",
-   *     "sortOrder": "desc"
-   *   }
-   * ]
-   * }
-   */
-  @Multiline
-  public static String filterQuery;
-
-  /**
-   * {
-   * "indices": ["bro", "snort"],
-   * "query": "*",
-   * "from": 0,
-   * "size": 10,
-   * "sort": [
-   *   {
-   *     "field": "ip_src_port",
-   *     "sortOrder": "asc"
-   *   }
-   * ]
-   * }
-   */
-  @Multiline
-  public static String sortQuery;
-
-  /**
-   * {
-   * "indices": ["bro", "snort"],
-   * "query": "*",
-   * "from": 4,
-   * "size": 3,
-   * "sort": [
-   *   {
-   *     "field": "timestamp",
-   *     "sortOrder": "desc"
-   *   }
-   * ]
-   * }
-   */
-  @Multiline
-  public static String paginationQuery;
-
-  /**
-   * {
-   * "indices": ["bro"],
-   * "query": "*",
-   * "from": 0,
-   * "size": 10,
-   * "sort": [
-   *   {
-   *     "field": "timestamp",
-   *     "sortOrder": "desc"
-   *   }
-   * ]
-   * }
-   */
-  @Multiline
-  public static String indexQuery;
-
-  /**
-   * {
-   * "indices": ["bro", "snort"],
-   * "query": "*",
-   * "from": 0,
-   * "size": 101,
-   * "sort": [
-   *   {
-   *     "field": "timestamp",
-   *     "sortOrder": "desc"
-   *   }
-   * ]
-   * }
-   */
-  @Multiline
-  public static String exceededMaxResultsQuery;
-
-
-  @Autowired
-  private TransportClient client;
 
   @Autowired
   private SearchService searchService;
@@ -210,19 +76,24 @@ public class SearchControllerIntegrationTest {
   @Before
   public void setup() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
+    loadTestData();
+  }
+
+  @After
+  public void cleanup() throws Exception {
+    InMemoryDao.clear();
   }
 
   @Test
   public void testSecurity() throws Exception {
-    this.mockMvc.perform(post(searchUrl + "/search").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(allQuery))
+    this.mockMvc.perform(post(searchUrl + "/search").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(IndexingDaoIntegrationTest.allQuery))
             .andExpect(status().isUnauthorized());
   }
 
   @Test
   public void test() throws Exception {
-    loadTestData();
 
-    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(allQuery))
+    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(IndexingDaoIntegrationTest.allQuery))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.total").value(10))
@@ -247,7 +118,7 @@ public class SearchControllerIntegrationTest {
             .andExpect(jsonPath("$.results[9].source.source:type").value("bro"))
             .andExpect(jsonPath("$.results[9].source.timestamp").value(1));
 
-    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(filterQuery))
+    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(IndexingDaoIntegrationTest.filterQuery))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.total").value(3))
@@ -259,7 +130,7 @@ public class SearchControllerIntegrationTest {
             .andExpect(jsonPath("$.results[2].source.timestamp").value(1));
 
 
-    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(sortQuery))
+    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(IndexingDaoIntegrationTest.sortQuery))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.total").value(10))
@@ -274,7 +145,7 @@ public class SearchControllerIntegrationTest {
             .andExpect(jsonPath("$.results[8].source.ip_src_port").value(8009))
             .andExpect(jsonPath("$.results[9].source.ip_src_port").value(8010));
 
-    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(paginationQuery))
+    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(IndexingDaoIntegrationTest.paginationQuery))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.total").value(10))
@@ -285,7 +156,7 @@ public class SearchControllerIntegrationTest {
             .andExpect(jsonPath("$.results[2].source.source:type").value("bro"))
             .andExpect(jsonPath("$.results[2].source.timestamp").value(4));
 
-    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(indexQuery))
+    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(IndexingDaoIntegrationTest.indexQuery))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.total").value(5))
@@ -300,7 +171,7 @@ public class SearchControllerIntegrationTest {
             .andExpect(jsonPath("$.results[4].source.source:type").value("bro"))
             .andExpect(jsonPath("$.results[4].source.timestamp").value(1));
 
-    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(exceededMaxResultsQuery))
+    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(IndexingDaoIntegrationTest.exceededMaxResultsQuery))
             .andExpect(status().isInternalServerError())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.responseCode").value(500))
@@ -310,26 +181,22 @@ public class SearchControllerIntegrationTest {
 
 
   private void loadTestData() throws ParseException {
-    BulkRequestBuilder bulkRequest = client.prepareBulk().setRefresh(true);
-    JSONArray broArray = (JSONArray) new JSONParser().parse(broData);
-    for(Object o: broArray) {
-      JSONObject jsonObject = (JSONObject) o;
-      IndexRequestBuilder indexRequestBuilder = client.prepareIndex("bro_index_2017.01.01.01", "bro_doc");
-      indexRequestBuilder = indexRequestBuilder.setSource(jsonObject.toJSONString());
-      indexRequestBuilder = indexRequestBuilder.setTimestamp(jsonObject.get("timestamp").toString());
-      bulkRequest.add(indexRequestBuilder);
+    Map<String, List<String>> backingStore = new HashMap<>();
+    for(Map.Entry<String, String> indices :
+            ImmutableMap.of(
+                    "bro_index_2017.01.01.01", IndexingDaoIntegrationTest.broData,
+                    "snort_index_2017.01.01.01", IndexingDaoIntegrationTest.snortData
+            ).entrySet()
+       )
+    {
+      List<String> results = new ArrayList<>();
+      backingStore.put(indices.getKey(), results);
+      JSONArray broArray = (JSONArray) new JSONParser().parse(indices.getValue());
+      for(Object o: broArray) {
+        JSONObject jsonObject = (JSONObject) o;
+        results.add(jsonObject.toJSONString());
+      }
     }
-    JSONArray snortArray = (JSONArray) new JSONParser().parse(snortData);
-    for(Object o: snortArray) {
-      JSONObject jsonObject = (JSONObject) o;
-      IndexRequestBuilder indexRequestBuilder = client.prepareIndex("snort_index_2017.01.01.02", "snort_doc");
-      indexRequestBuilder = indexRequestBuilder.setSource(jsonObject.toJSONString());
-      indexRequestBuilder = indexRequestBuilder.setTimestamp(jsonObject.get("timestamp").toString());
-      bulkRequest.add(indexRequestBuilder);
-    }
-    BulkResponse bulkResponse = bulkRequest.execute().actionGet();
-    if (bulkResponse.hasFailures()) {
-      throw new RuntimeException("Failed to index test data");
-    }
+    InMemoryDao.load(backingStore);
   }
 }

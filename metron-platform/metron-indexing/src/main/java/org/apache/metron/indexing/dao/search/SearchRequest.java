@@ -15,10 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.model;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+package org.apache.metron.indexing.dao.search;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +31,7 @@ public class SearchRequest {
   public SearchRequest() {
     SortField defaultSortField = new SortField();
     defaultSortField.setField("timestamp");
-    defaultSortField.setSortOrder(SortOrder.DESC);
+    defaultSortField.setSortOrder(SortOrder.DESC.toString());
     sort = new ArrayList<>();
     sort.add(defaultSortField);
   }

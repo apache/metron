@@ -15,14 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
+package org.apache.metron.indexing.dao.search;
 
-import org.apache.metron.rest.RestException;
-import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public interface SearchService {
+public enum SortOrder {
+  @JsonProperty("desc")
+  DESC("desc"),
+  @JsonProperty("asc")
+  ASC("asc");
 
-  SearchResponse search(SearchRequest searchRequest) throws RestException;
+  private String sortOrder;
 
+  SortOrder(String sortOrder) {
+    this.sortOrder = sortOrder;
+  }
+
+  public String getSortOrder() {
+    return sortOrder;
+  }
+
+  public static SortOrder fromString(String order) {
+    return SortOrder.valueOf(order.toUpperCase());
+  }
 }
