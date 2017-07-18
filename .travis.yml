@@ -35,7 +35,6 @@ before_install:
 
 install:
   - cd bundles-maven-plugin && mvn -q install && cd ..
-  - |
   - time mvn -q -T 2C -DskipTests clean install
 
 script:
