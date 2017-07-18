@@ -125,6 +125,6 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
 
   @Override
   public String getTemplatePath() {
-    return "../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/templates/elasticsearch.properties.j2";
+    return "../metron-solr/src/main/config/solr.properties.j2";
   }
 }

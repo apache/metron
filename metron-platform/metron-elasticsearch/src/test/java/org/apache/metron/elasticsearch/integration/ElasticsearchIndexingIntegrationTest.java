@@ -112,6 +112,6 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
 
   @Override
   public String getTemplatePath() {
-    return "../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/templates/elasticsearch.properties.j2";
+    return "../metron-elasticsearch/src/main/config/elasticsearch.properties.j2";
   }
 }

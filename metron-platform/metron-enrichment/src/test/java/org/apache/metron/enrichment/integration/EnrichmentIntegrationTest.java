@@ -90,7 +90,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   public static final String DEFAULT_LOCATION_POINT= Joiner.on(',').join(DEFAULT_LATITUDE,DEFAULT_LONGITUDE);
 
   protected String fluxPath = "../metron-enrichment/src/main/flux/enrichment/remote.yaml";
-  protected String templatePath = "../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/templates/enrichment.properties.j2";
+  protected String templatePath = "../metron-enrichment/src/main/config/enrichment.properties.j2";
   protected String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
   private final List<byte[]> inputMessages = getInputMessages(sampleParsedPath);
 
