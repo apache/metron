@@ -74,13 +74,13 @@ public class SimpleHBaseEnrichmentWriterLoggingTest {
   public void shouldWarnOnMissingConfig() {
     SimpleHbaseEnrichmentWriter.Configurations config = getHbaseTableConfig();
     config.get(Collections.emptyMap());
-    verify(logger).warn("No config object found for key: '{}'", config.getKey());
+    verify(logger, atLeastOnce()).warn("No config object found for key: '{}'", config.getKey());
   }
 
   @Test
   public void shouldWarnOnMissedConfigConversion() {
     getHbaseTableConfig().getAndConvert(Collections.emptyMap(), String.class);
-    verify(logger).warn("No object of type '{}' found in config", String.class);
+    verify(logger, atLeastOnce()).warn("No object of type '{}' found in config", String.class);
   }
 
   @Test
@@ -98,14 +98,14 @@ public class SimpleHBaseEnrichmentWriterLoggingTest {
     keyTransformer.transform(message);
 
     // Proof the result has been captured
-    verify(logger).debug("Transformed message: '{}'", value);
+    verify(logger, atLeastOnce()).debug("Transformed message: '{}'", value);
   }
 
   @Test
   public void shouldDebugSensorConfig() {
     String sensorName = "someSensor";
     hbaseEnrichmentWriter.configure(sensorName, getMockWriterConfiguration());
-    verify(logger).debug("Sensor: '{}': {Provider: '{}', Converter: '{}'}",
+    verify(logger, atLeastOnce()).debug("Sensor: '{}': {Provider: '{}', Converter: '{}'}",
         sensorName, MockTableProvider.class.getName(), EnrichmentConverter.class.getName());
   }
 
@@ -115,7 +115,7 @@ public class SimpleHBaseEnrichmentWriterLoggingTest {
     String tableName = "someTable";
     hbaseEnrichmentWriter.configure(sensorName, getMockWriterConfiguration());
     hbaseEnrichmentWriter.getTable(tableName, COLUMN_FAMILY);
-    verify(logger).debug("Fetching table '{}', column family: '{}'", tableName, COLUMN_FAMILY);
+    verify(logger, atLeastOnce()).debug("Fetching table '{}', column family: '{}'", tableName, COLUMN_FAMILY);
   }
 
   @Test
