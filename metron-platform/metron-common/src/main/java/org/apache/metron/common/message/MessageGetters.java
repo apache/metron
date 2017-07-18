@@ -17,7 +17,7 @@
  */
 package org.apache.metron.common.message;
 
-import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 
 import java.util.function.Function;
 

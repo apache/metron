@@ -1,7 +1,7 @@
 # Metron PCAP Backend
 
 The purpose of the Metron PCAP backend is to create a storm topology
-capable of ingesting rapidly raw packet capture data directly into HDFS
+capable of rapidly ingesting raw packet capture data directly into HDFS
 from Kafka.
 
 * [Sensors](#the-sensors-feeding-kafka)

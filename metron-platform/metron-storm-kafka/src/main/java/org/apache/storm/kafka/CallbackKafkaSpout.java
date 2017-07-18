@@ -49,8 +49,8 @@ public class CallbackKafkaSpout<K, V> extends StormKafkaSpout<K, V> {
   public void initialize(TopologyContext context) {
     _callback = createCallback(callbackClazz);
     _context = new EmitContext().with(EmitContext.Type.SPOUT_CONFIG, _spoutConfig)
-            .with(EmitContext.Type.UUID, context.getStormId())
-            .with(EmitContext.Type.TOPIC, _topic);
+                                .with(EmitContext.Type.UUID, context.getStormId())
+                                ;
     _callback.initialize(_context);
   }
 

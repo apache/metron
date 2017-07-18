@@ -29,6 +29,7 @@ import javax.xml.bind.DatatypeConverter;
 import org.apache.metron.spout.pcap.deserializer.KeyValueDeserializer;
 import org.apache.storm.kafka.Callback;
 import org.apache.storm.kafka.EmitContext;
+import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -159,12 +160,18 @@ public class HDFSWriterCallback implements Callback {
     @Override
     public void initialize(EmitContext context) {
         this.context = context;
-        Object topics = context.get(EmitContext.Type.TOPIC);
-        if(topics instanceof List) {
-            this.topic = Joiner.on(",").join((List<String>)topics);
+        KafkaSpoutConfig spoutConfig = context.get(EmitContext.Type.SPOUT_CONFIG);
+        if(spoutConfig != null && spoutConfig.getSubscription() != null) {
+            this.topic = spoutConfig.getSubscription().getTopicsString();
+            if(this.topic.length() > 0) {
+                int len = this.topic.length();
+                if(this.topic.charAt(0) == '[' && this.topic.charAt(len - 1) == ']') {
+                    this.topic = this.topic.substring(1, len - 1);
+                }
+            }
         }
         else {
-            this.topic = "" + topics;
+            throw new IllegalStateException("Unable to initialize, because spout config is not correctly specified");
         }
     }
 

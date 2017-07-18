@@ -16,72 +16,48 @@
 # limitations under the License.
 #}
 
-##### Kafka #####
+##### Storm #####
+enrichment.workers={{enrichment_workers}}
+enrichment.acker.executors={{enrichment_acker_executors}}
+topology.worker.childopts={{enrichment_topology_worker_childopts}}
+topology.auto-credentials={{topology_auto_credentials}}
+topology.max.spout.pending={{enrichment_topology_max_spout_pending}}
 
+##### Kafka #####
 kafka.zk={{zookeeper_quorum}}
 kafka.broker={{kafka_brokers}}
 kafka.security.protocol={{kafka_security_protocol}}
-topology.worker.childopts={{topology_worker_childopts}}
-topology.auto-credentials={{topology_auto_credentials}}
-enrichment.output.topic=indexing
-enrichment.error.topic=indexing
-threat.intel.error.topic=indexing
 
-##### Metrics #####
+# One of EARLIEST, LATEST, UNCOMMITTED_EARLIEST, UNCOMMITTED_LATEST
+kafka.start={{enrichment_kafka_start}}
 
-#reporters
-org.apache.metron.metrics.reporter.graphite=true
-org.apache.metron.metrics.reporter.console=false
-org.apache.metron.metrics.reporter.jmx=false
+enrichment.input.topic={{enrichment_input_topic}}
+enrichment.output.topic={{enrichment_output_topic}}
+enrichment.error.topic={{enrichment_error_topic}}
+threat.intel.error.topic={{threatintel_error_topic}}
 
-#Graphite Addresses
+##### JoinBolt #####
+enrichment.join.cache.size={{enrichment_join_cache_size}}
+threat.intel.join.cache.size={{threatintel_join_cache_size}}
 
-org.apache.metron.metrics.graphite.address=localhost
-org.apache.metron.metrics.graphite.port=2023
-
-#TelemetryParserBolt
-org.apache.metron.metrics.TelemetryParserBolt.acks=true
-org.apache.metron.metrics.TelemetryParserBolt.emits=true
-org.apache.metron.metrics.TelemetryParserBolt.fails=true
-
-
-#GenericEnrichmentBolt
-org.apache.metron.metrics.GenericEnrichmentBolt.acks=true
-org.apache.metron.metrics.GenericEnrichmentBolt.emits=true
-org.apache.metron.metrics.GenericEnrichmentBolt.fails=true
-
-
-#TelemetryIndexingBolt
-org.apache.metron.metrics.TelemetryIndexingBolt.acks=true
-org.apache.metron.metrics.TelemetryIndexingBolt.emits=true
-org.apache.metron.metrics.TelemetryIndexingBolt.fails=true
-
-##### Host Enrichment #####
-
+##### Enrichment #####
 hbase.provider.impl=org.apache.metron.hbase.HTableProvider
 enrichment.simple.hbase.table={{enrichment_table}}
 enrichment.simple.hbase.cf={{enrichment_cf}}
-org.apache.metron.enrichment.host.known_hosts=[{"ip":"10.1.128.236", "local":"YES", "type":"webserver", "asset_value" : "important"},\
-{"ip":"10.1.128.237", "local":"UNKNOWN", "type":"unknown", "asset_value" : "important"},\
-{"ip":"10.60.10.254", "local":"YES", "type":"printer", "asset_value" : "important"}]
-
-
-##### HBase #####
-bolt.hbase.table.name=pcap
-bolt.hbase.table.fields=t:value
-bolt.hbase.table.key.tuple.field.name=key
-bolt.hbase.table.timestamp.tuple.field.name=timestamp
-bolt.hbase.enable.batching=false
-bolt.hbase.write.buffer.size.in.bytes=2000000
-bolt.hbase.durability=SKIP_WAL
-bolt.hbase.partitioner.region.info.refresh.interval.mins=60
+enrichment.host.known_hosts={{enrichment_host_known_hosts}}
 
 ##### Threat Intel #####
-
 threat.intel.tracker.table={{threatintel_table}}
 threat.intel.tracker.cf={{threatintel_cf}}
 threat.intel.simple.hbase.table={{threatintel_table}}
 threat.intel.simple.hbase.cf={{threatintel_cf}}
-threat.intel.ip.table=
-threat.intel.ip.cf=
 
+##### Parallelism #####
+kafka.spout.parallelism={{enrichment_kafka_spout_parallelism}}
+enrichment.split.parallelism={{enrichment_split_parallelism}}
+enrichment.stellar.parallelism={{enrichment_stellar_parallelism}}
+enrichment.join.parallelism={{enrichment_join_parallelism}}
+threat.intel.split.parallelism={{threat_intel_split_parallelism}}
+threat.intel.stellar.parallelism={{threat_intel_stellar_parallelism}}
+threat.intel.join.parallelism={{threat_intel_join_parallelism}}
+kafka.writer.parallelism={{kafka_writer_parallelism}}

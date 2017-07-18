@@ -20,18 +20,14 @@
 
 package org.apache.metron.profiler.client;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
-import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
-import org.apache.metron.profiler.stellar.StellarExecutor;
+import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
+import org.apache.metron.stellar.common.StellarStatefulExecutor;
+import org.apache.metron.test.mock.MockHTable;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -62,31 +58,15 @@ public class HBaseProfilerClientTest {
   private static final int periodsPerHour = 4;
 
   private HBaseProfilerClient client;
-  private HTableInterface table;
-  private StellarExecutor executor;
-  private static HBaseTestingUtility util;
+  private StellarStatefulExecutor executor;
+  private MockHTable table;
   private ProfileWriter profileWriter;
-
-  @BeforeClass
-  public static void startHBase() throws Exception {
-    Configuration config = HBaseConfiguration.create();
-    config.set("hbase.master.hostname", "localhost");
-    config.set("hbase.regionserver.hostname", "localhost");
-    util = new HBaseTestingUtility(config);
-    util.startMiniCluster();
-  }
-
-  @AfterClass
-  public static void stopHBase() throws Exception {
-    util.shutdownMiniCluster();
-    util.cleanupTestDir();
-  }
 
   @Before
   public void setup() throws Exception {
 
-    table = util.createTable(Bytes.toBytes(tableName), Bytes.toBytes(columnFamily));
-    executor = new DefaultStellarExecutor();
+    table = new MockHTable(tableName, columnFamily);
+    executor = new DefaultStellarStatefulExecutor();
 
     // used to write values to be read during testing
     RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();
@@ -99,7 +79,7 @@ public class HBaseProfilerClientTest {
 
   @After
   public void tearDown() throws Exception {
-    util.deleteTable(tableName);
+    table.clear();
   }
 
   /**

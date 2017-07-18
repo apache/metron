@@ -21,11 +21,11 @@ package org.apache.metron.profiler.client.stellar;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.Range;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
-import org.apache.metron.common.dsl.functions.resolver.SimpleFunctionResolver;
-import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
+import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
+import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.profiler.ProfilePeriod;
 import org.apache.metron.profiler.client.window.WindowProcessor;
 import org.junit.Assert;

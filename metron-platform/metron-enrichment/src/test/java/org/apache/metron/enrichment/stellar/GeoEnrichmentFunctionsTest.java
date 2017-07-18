@@ -20,9 +20,9 @@ package org.apache.metron.enrichment.stellar;
 
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
@@ -141,7 +141,7 @@ public class GeoEnrichmentFunctionsTest {
     Assert.assertEquals("Remote IP should return country result based on DB", expectedSubsetMessage, result);
   }
 
-  @Test(expected=org.apache.metron.common.dsl.ParseException.class)
+  @Test(expected=org.apache.metron.stellar.dsl.ParseException.class)
   @SuppressWarnings("unchecked")
   public void testGetTooManyParams() throws Exception {
     String stellar = "GEO_GET('216.160.83.56', ['country', 'city', 'dmaCode', 'location_point'], 'garbage')";

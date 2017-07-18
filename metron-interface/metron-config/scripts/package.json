@@ -1,6 +1,6 @@
 {
   "name": "metron-management-ui-web-server",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Metron management ui web server",
   "main": "server.js",
   "dependencies": {
@@ -9,7 +9,8 @@
     "http-proxy-middleware": "0.17.4",
     "optimist": "0.6.1",
     "serve-favicon": "2.4.2",
-    "serve-static": "1.12.1"
+    "serve-static": "1.12.1",
+    "yamljs": "0.2.9"
   },
   "devDependencies": {},
   "scripts": {

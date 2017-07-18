@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.apache.metron.common.csv.CSVConverter;
-import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;

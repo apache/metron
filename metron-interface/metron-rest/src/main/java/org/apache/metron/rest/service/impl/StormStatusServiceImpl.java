@@ -50,7 +50,7 @@ public class StormStatusServiceImpl implements StormStatusService {
 
   @Override
   public TopologySummary getTopologySummary() {
-    return restTemplate.getForObject("http://" + environment.getProperty(STORM_UI_SPRING_PROPERTY) + TOPOLOGY_SUMMARY_URL, TopologySummary.class);
+    return restTemplate.getForObject(getStormUiProperty() + TOPOLOGY_SUMMARY_URL, TopologySummary.class);
   }
 
   @Override
@@ -64,7 +64,7 @@ public class StormStatusServiceImpl implements StormStatusService {
       }
     }
     if (id != null) {
-      topologyResponse = restTemplate.getForObject("http://" + environment.getProperty(STORM_UI_SPRING_PROPERTY) + TOPOLOGY_URL + "/" + id, TopologyStatus.class);
+      topologyResponse = restTemplate.getForObject(getStormUiProperty() + TOPOLOGY_URL + "/" + id, TopologyStatus.class);
     }
     return topologyResponse;
   }
@@ -73,7 +73,7 @@ public class StormStatusServiceImpl implements StormStatusService {
   public List<TopologyStatus> getAllTopologyStatus() {
     List<TopologyStatus> topologyStatus = new ArrayList<>();
     for (TopologyStatus topology : getTopologySummary().getTopologies()) {
-      topologyStatus.add(restTemplate.getForObject("http://" + environment.getProperty(STORM_UI_SPRING_PROPERTY) + TOPOLOGY_URL + "/" + topology.getId(), TopologyStatus.class));
+      topologyStatus.add(restTemplate.getForObject(getStormUiProperty() + TOPOLOGY_URL + "/" + topology.getId(), TopologyStatus.class));
     }
     return topologyStatus;
   }
@@ -89,7 +89,7 @@ public class StormStatusServiceImpl implements StormStatusService {
       }
     }
     if (id != null) {
-      Map result = restTemplate.postForObject("http://" + environment.getProperty(STORM_UI_SPRING_PROPERTY) + TOPOLOGY_URL + "/" + id + "/activate", null, Map.class);
+      Map result = restTemplate.postForObject(getStormUiProperty() + TOPOLOGY_URL + "/" + id + "/activate", null, Map.class);
       if("success".equals(result.get("status"))) {
         topologyResponse.setSuccessMessage(TopologyStatusCode.ACTIVE.toString());
       } else {
@@ -112,7 +112,7 @@ public class StormStatusServiceImpl implements StormStatusService {
       }
     }
     if (id != null) {
-      Map result = restTemplate.postForObject("http://" + environment.getProperty(STORM_UI_SPRING_PROPERTY) + TOPOLOGY_URL + "/" + id + "/deactivate", null, Map.class);
+      Map result = restTemplate.postForObject(getStormUiProperty() + TOPOLOGY_URL + "/" + id + "/deactivate", null, Map.class);
       if("success".equals(result.get("status"))) {
         topologyResponse.setSuccessMessage(TopologyStatusCode.INACTIVE.toString());
       } else {
@@ -122,5 +122,14 @@ public class StormStatusServiceImpl implements StormStatusService {
       topologyResponse.setErrorMessage(TopologyStatusCode.TOPOLOGY_NOT_FOUND.toString());
     }
     return topologyResponse;
+  }
+
+  // If we don't have a protocol, choose http
+  protected String getStormUiProperty() {
+    String baseValue = environment.getProperty(STORM_UI_SPRING_PROPERTY);
+    if(!(baseValue.contains("://"))) {
+      return "http://" + baseValue;
+    }
+    return baseValue;
   }
 }

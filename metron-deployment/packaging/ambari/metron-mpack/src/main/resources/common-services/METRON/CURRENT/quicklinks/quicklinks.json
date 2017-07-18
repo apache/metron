@@ -35,7 +35,22 @@
           "https_property": "metron_rest_port",
           "https_default_port": "8082",
           "regex": "^(\\d+)$",
-          "site": "metron-env"
+          "site": "metron-rest-env"
+        }
+      },
+      {
+        "name": "metron_management_ui",
+        "label": "Management UI",
+        "requires_user_name": "false",
+        "component_name": "METRON_MANAGEMENT_UI",
+        "url": "%@://%@:%@/",
+        "port": {
+          "http_property": "metron_management_ui_port",
+          "http_default_port": "4200",
+          "https_property": "metron_management_ui_port",
+          "https_default_port": "4200",
+          "regex": "^(\\d+)$",
+          "site": "metron-management-ui-env"
         }
       }
     ]

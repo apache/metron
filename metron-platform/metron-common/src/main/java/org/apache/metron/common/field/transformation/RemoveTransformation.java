@@ -18,9 +18,9 @@
 
 package org.apache.metron.common.field.transformation;
 
-import org.apache.metron.common.dsl.*;
-import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
-import org.apache.metron.common.stellar.StellarPredicateProcessor;
+import org.apache.metron.stellar.dsl.*;
+import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
+import org.apache.metron.stellar.common.StellarPredicateProcessor;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -68,8 +68,8 @@ public class RemoveTransformation implements FieldTransformation {
   public Map<String, Object> map( Map<String, Object> input
                                 , final List<String> outputFields
                                 , LinkedHashMap<String, Object> fieldMappingConfig
-                                , Map<String, Object> sensorConfig
                                 , Context context
+                                , Map<String, Object>... sensorConfig
                                 ) {
     String condition = getCondition(fieldMappingConfig);
     StellarPredicateProcessor processor = getPredicateProcessor(condition);

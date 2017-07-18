@@ -20,18 +20,16 @@
 
 package org.apache.metron.profiler.bolt;
 
-import static java.lang.String.format;
-
 import java.io.UnsupportedEncodingException;
 import java.lang.invoke.MethodHandles;
 import java.util.Map;
 import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
-import org.apache.metron.profiler.stellar.StellarExecutor;
+import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
+import org.apache.metron.stellar.common.StellarStatefulExecutor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -63,7 +61,7 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
   /**
    * Executes Stellar code.
    */
-  private StellarExecutor executor;
+  private StellarStatefulExecutor executor;
 
   /**
    * @param zookeeperUrl The Zookeeper URL that contains the configuration for this bolt.
@@ -77,7 +75,7 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
     super.prepare(stormConf, context, collector);
     this.collector = collector;
     this.parser = new JSONParser();
-    this.executor = new DefaultStellarExecutor();
+    this.executor = new DefaultStellarStatefulExecutor();
     initializeStellar();
   }
 
@@ -97,7 +95,7 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
       doExecute(input);
 
     } catch (IllegalArgumentException | ParseException | UnsupportedEncodingException e) {
-      LOG.error(format("Unexpected failure: message='%s', tuple='%s'", e.getMessage(), input), e);
+      LOG.error("Unexpected failure: message='{}', tuple='{}'", e.getMessage(), input, e);
       collector.reportError(e);
 
     } finally {
@@ -159,11 +157,11 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
     declarer.declare(new Fields("entity", "profile", "message"));
   }
 
-  public StellarExecutor getExecutor() {
+  public StellarStatefulExecutor getExecutor() {
     return executor;
   }
 
-  public void setExecutor(StellarExecutor executor) {
+  public void setExecutor(StellarStatefulExecutor executor) {
     this.executor = executor;
   }
 }

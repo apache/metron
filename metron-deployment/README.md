@@ -61,6 +61,7 @@ This will set up
 ### Prerequisites
 - A cluster managed by Ambari 2.4.2+
 - Metron RPMs available on the cluster in the /localrepo directory.  See [RPM](#rpm) for further information.
+- [Node.js](https://nodejs.org/en/download/package-manager/) repository installed on the Management UI host 
 
 ### Building Management Pack
 From `metron-deployment` run
@@ -114,6 +115,7 @@ Components in the RPMs:
 - metron-parsers
 - metron-pcap
 - metron-solr
+- stellar-common
 
 ### Prerequisites
 - Docker.  The image detailed in: `metron-deployment/packaging/docker/rpm-docker/README.md` will automatically be built (or rebuilt if necessary).
@@ -132,8 +134,8 @@ The artifacts are required because there is a dependency on modules not expresse
 - metron-config
 
 ### Building RPMs
-From `metron-deployment` run
 ```
+cd metron-deployment
 mvn clean package -Pbuild-rpms
 ```
 

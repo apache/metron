@@ -17,7 +17,7 @@
  */
 package org.apache.metron.management;
 
-import static org.apache.metron.common.stellar.shell.StellarExecutor.CONSOLE;
+import static org.apache.metron.stellar.common.shell.StellarExecutor.CONSOLE;
 
 import com.jakewharton.fliptables.FlipTable;
 import java.io.BufferedReader;
@@ -33,20 +33,19 @@ import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.text.WordUtils;
-import org.apache.metron.common.dsl.BaseStellarFunction;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.dsl.StellarFunction;
-import org.apache.metron.common.stellar.shell.PausableInput;
-import org.apache.metron.common.stellar.shell.StellarExecutor;
-import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.stellar.common.shell.PausableInput;
+import org.apache.metron.stellar.common.shell.StellarExecutor;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.metron.stellar.dsl.BaseStellarFunction;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.dsl.StellarFunction;
 import org.jboss.aesh.console.Console;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ShellFunctions {
-  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Stellar(
            namespace = "SHELL"

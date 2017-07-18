@@ -334,8 +334,6 @@ Create the following in
 
 ```
 {
-  "index": "mad",
-  "batchSize": 1,
   "enrichment": {
     "fieldMap": {
       "stellar" : {
@@ -360,6 +358,23 @@ PROFILE_GET( 'sketchy_mad', 'global', PROFILE_FIXED(10, 'MINUTES')) ), value)"
       ],
       "aggregator" : "MAX"
     }
+  }
+}
+```
+
+We also need an indexing configuration. Create the following in
+`$METRON_HOME/config/zookeeper/indexing/mad.json`:
+```
+{
+  "hdfs" : {
+    "index": "mad",
+    "batchSize": 1,
+    "enabled" : true
+  },
+  "elasticsearch" : {
+    "index": "mad",
+    "batchSize": 1,
+    "enabled" : true
   }
 }
 ```

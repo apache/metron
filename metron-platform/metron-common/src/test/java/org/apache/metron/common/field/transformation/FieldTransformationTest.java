@@ -26,7 +26,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.dsl.Context;
+import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -43,8 +43,8 @@ public class FieldTransformationTest {
     public Map<String, Object> map( Map<String, Object> input
                                   , List<String> outputField
                                   , LinkedHashMap<String, Object> fieldMappingConfig
-                                  , Map<String, Object> sensorConfig
                                   , Context context
+                                  , Map<String, Object>... sensorConfig
                                   )
     {
       return ImmutableMap.of(outputField.get(0), Joiner.on(fieldMappingConfig.get("delim").toString()).join(input.entrySet()));
@@ -134,8 +134,8 @@ public class FieldTransformationTest {
                                                                   ,"field2", "value2"
                                                                   )
                                                   )
-                                   , c.getParserConfig()
                                    , Context.EMPTY_CONTEXT()
+                                   , c.getParserConfig()
                                    )
                        );
   }
@@ -146,7 +146,10 @@ public class FieldTransformationTest {
 
     Assert.assertNotNull(handler);
     Assert.assertEquals(ImmutableMap.of("protocol", "TCP")
-                       ,handler.transform(new JSONObject(ImmutableMap.of("protocol", 6)), c.getParserConfig(), Context.EMPTY_CONTEXT())
+                       ,handler.transform(new JSONObject(ImmutableMap.of("protocol", 6))
+                                         , Context.EMPTY_CONTEXT()
+                                         , c.getParserConfig()
+                                         )
                        );
   }
 }

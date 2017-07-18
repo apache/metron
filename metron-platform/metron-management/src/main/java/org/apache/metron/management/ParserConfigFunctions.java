@@ -28,17 +28,16 @@ import java.util.List;
 import java.util.Map;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.common.field.transformation.FieldTransformations;
 import org.apache.metron.common.utils.JSONUtils;
-import org.slf4j.Logger;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.dsl.StellarFunction;
 import org.slf4j.LoggerFactory;
 
 public class ParserConfigFunctions {
-  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static void pruneEmptyStellarTransformers(SensorParserConfig config) {
     List<FieldTransformer> toRemove = new ArrayList<>();

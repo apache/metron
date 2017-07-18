@@ -158,33 +158,32 @@ The dashboard expects fields to be of a certain type.  If the index templates ha
 
 If you see this error, please report your findings by creating a JIRA or dropping an email to the Metron Users mailing list.  Follow these steps to work around the problem.
 
-(1) Define which Elasticsearch host to interact with.  Any Elasticsearch host should work.
-```
-export ES_HOST="http://ec2-52-25-237-20.us-west-2.compute.amazonaws.com:9200"
-```
+1. Define which Elasticsearch host to interact with.  Any Elasticsearch host should work.
+    ```
+    export ES_HOST="http://ec2-52-25-237-20.us-west-2.compute.amazonaws.com:9200"
+    ```
 
-(2) Confirm the index templates are in fact missing.  
-```
-curl -s -XGET $ES_HOST/_template
-```
+1. Confirm the index templates are in fact missing.  
+    ```
+    curl -s -XGET $ES_HOST/_template
+    ```
 
-(3) Manually load the index templates.
-```
-cd metron-deployment
-curl -s -XPOST $ES_HOST/_template/bro_index -d @roles/metron_elasticsearch_templates/files/es_templates/bro_index.template
-curl -s -XPOST $ES_HOST/_template/snort_index -d @roles/metron_elasticsearch_templates/files/es_templates/snort_index.template
-curl -s -XPOST $ES_HOST/_template/yaf_index -d @roles/metron_elasticsearch_templates/files/es_templates/yaf_index.template
-```
+1. Manually load the index templates.
+    ```
+    cd metron-deployment
+    curl -s -XPOST $ES_HOST/_template/bro_index -d @roles/metron_elasticsearch_templates/files/es_templates/bro_index.template
+    curl -s -XPOST $ES_HOST/_template/snort_index -d @roles/metron_elasticsearch_templates/files/es_templates/snort_index.template
+    curl -s -XPOST $ES_HOST/_template/yaf_index -d @roles/metron_elasticsearch_templates/files/es_templates/yaf_index.template
+    ```
 
-(4) Delete the existing indexes.  Only a new index will use the templates defined in the previous step.
+1. Delete the existing indexes.  Only a new index will use the templates defined in the previous step.
+    ```
+    curl -s -XDELETE "$ES_HOST/yaf_index*"
+    curl -s -XDELETE "$ES_HOST/bro_index*"
+    curl -s -XDELETE "$ES_HOST/snort_index*"
+    ```
 
-```
-curl -s -XDELETE "$ES_HOST/yaf_index*"
-curl -s -XDELETE "$ES_HOST/bro_index*"
-curl -s -XDELETE "$ES_HOST/snort_index*"
-```
-
-(5) Open up Kibana and wait for the new indexes to be created.  The dashboard should now work.
+1. Open up Kibana and wait for the new indexes to be created.  The dashboard should now work.
 
 ### Error: 'No handler was ready to authenticate...Check your credentials'
 

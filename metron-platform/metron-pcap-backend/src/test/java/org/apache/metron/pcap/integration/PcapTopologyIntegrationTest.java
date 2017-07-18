@@ -64,6 +64,7 @@ import org.apache.metron.spout.pcap.deserializer.Deserializers;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class PcapTopologyIntegrationTest {
@@ -89,6 +90,8 @@ public class PcapTopologyIntegrationTest {
     }).length;
   }
 
+  // This will eventually be completely deprecated.  As it takes a significant amount of testing, the test is being disabled.
+  @Ignore
   @Test
   public void testTimestampInPacket() throws Exception {
     testTopology(new Function<Properties, Void>() {
@@ -106,6 +109,7 @@ public class PcapTopologyIntegrationTest {
     , true
                );
   }
+
   @Test
   public void testTimestampInKey() throws Exception {
     testTopology(new Function<Properties, Void>() {

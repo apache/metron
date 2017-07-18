@@ -21,11 +21,11 @@ import pcapy
 import argparse
 import random
 import logging
-from common import to_date, to_hex, pack_ts
+from common import to_date, to_hex, pack_ts, unpack_ts
 from confluent_kafka import Producer
 
 finished = threading.Event()
-
+producer_args = None
 
 def signal_handler(signum, frame):
     """ Initiates a clean shutdown for a SIGINT """
@@ -57,9 +57,17 @@ def delivery_callback(err, msg):
 
     if err:
         logging.error("message delivery failed: error=%s", err)
-    else:
-        logging.debug("message delivery succeeded: pkts_out=%d", delivery_callback.pkts_out)
+
+    elif msg is not None:
         delivery_callback.pkts_out += 1
+
+        pretty_print = 0
+        pretty_print = producer_args.pretty_print
+
+        if pretty_print > 0 and delivery_callback.pkts_out % pretty_print == 0:
+            print 'Packet delivered[%s]: date=%s topic=%s partition=%s offset=%s len=%s' % (
+                delivery_callback.pkts_out, to_date(unpack_ts(msg.key())), msg.topic(),
+                msg.partition(), msg.offset(), len(msg.value()))
 
 
 def producer(args, sniff_timeout_ms=500, sniff_promisc=True):
@@ -67,6 +75,9 @@ def producer(args, sniff_timeout_ms=500, sniff_promisc=True):
 
     # setup the signal handler
     signal.signal(signal.SIGINT, signal_handler)
+
+    global producer_args
+    producer_args = args
 
     # connect to kafka
     logging.info("Connecting to Kafka; %s", args.kafka_configs)
@@ -88,10 +99,9 @@ def producer(args, sniff_timeout_ms=500, sniff_promisc=True):
                 pkt_ts = timestamp(pkt_hdr)
                 kafka_producer.produce(args.kafka_topic, key=pack_ts(pkt_ts), value=pkt_raw, callback=delivery_callback)
 
-                # debug messages, if needed
+                # pretty print, if needed
                 if args.pretty_print > 0 and pkts_in % args.pretty_print == 0:
-                    print '{} packet(s) received'.format(pkts_in)
-                    print to_hex(pkt_raw)
+                    print 'Packet received[%s]' % (pkts_in)
 
             # serve the callback queue
             kafka_producer.poll(0)

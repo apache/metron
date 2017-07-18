@@ -19,7 +19,7 @@
 package org.apache.metron.common.field.transformation;
 
 import com.google.common.collect.Iterables;
-import org.apache.metron.common.dsl.Context;
+import org.apache.metron.stellar.dsl.Context;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,8 +30,8 @@ public abstract class SimpleFieldTransformation implements FieldTransformation {
   public Map<String, Object> map (Map<String, Object> input
                                 , List<String> outputField
                                 , LinkedHashMap<String, Object> fieldMappingConfig
-                                , Map<String, Object> sensorConfig
                                 , Context context
+                                , Map<String, Object>... sensorConfig
                                 )
   {
     Object value = (input == null)

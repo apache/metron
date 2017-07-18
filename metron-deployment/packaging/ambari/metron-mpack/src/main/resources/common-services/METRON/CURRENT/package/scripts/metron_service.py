@@ -20,7 +20,7 @@ import subprocess
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.resources.system import Execute
-from resource_management.core.source import InlineTemplate
+from resource_management.core.source import Template
 from resource_management.libraries.functions import format as ambari_format
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 from metron_security import kinit
@@ -80,14 +80,11 @@ def load_global_config(params):
               group=params.metron_group
               )
 
-    File("{0}/global.json".format(params.metron_zookeeper_config_path),
+    File(ambari_format("{metron_zookeeper_config_path}/global.json"),
+         content=Template("global.json.j2"),
          owner=params.metron_user,
-         content=InlineTemplate(params.global_json_template)
+         group=params.metron_group
          )
-
-    File("{0}/elasticsearch.properties".format(params.metron_zookeeper_config_path + '/..'),
-         owner=params.metron_user,
-         content=InlineTemplate(params.global_properties_template))
 
     init_config()
 

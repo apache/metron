@@ -105,6 +105,7 @@ class Enrichment(Script):
     def restart(self, env):
         from params import params
         env.set_params(params)
+        self.configure(env)
         commands = EnrichmentCommands(params)
         commands.restart_enrichment_topology(env)
 

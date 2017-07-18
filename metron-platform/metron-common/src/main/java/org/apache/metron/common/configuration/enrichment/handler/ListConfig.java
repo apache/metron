@@ -20,6 +20,8 @@ package org.apache.metron.common.configuration.enrichment.handler;
 import com.google.common.collect.ImmutableList;
 import org.json.simple.JSONObject;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -30,7 +32,7 @@ public class ListConfig implements Config {
   public List<JSONObject> splitByFields( JSONObject message
                                  , Object fieldsObj
                                  , Function<String, String> fieldToEnrichmentKey
-                                 , Map<String, Object> config
+                                 , Iterable<Map.Entry<String, Object>> config
                                  )
   {
     List<String> fields = (List<String>)fieldsObj;
@@ -45,7 +47,17 @@ public class ListConfig implements Config {
   }
 
   @Override
-  public List<String> getSubgroups(Map<String, Object> config) {
+  public List<String> getSubgroups(Iterable<Map.Entry<String, Object>> config) {
     return ImmutableList.of("");
+  }
+
+  @Override
+  public Iterable<Map.Entry<String, Object>> toConfig(Object c) {
+    if(c instanceof Map) {
+      return ((Map<String, Object>)c).entrySet();
+    }
+    else {
+      return new ArrayList<>();
+    }
   }
 }

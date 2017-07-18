@@ -23,7 +23,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.dsl.Context;
+import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -51,7 +51,7 @@ public class RemoveTransformationTest {
     JSONObject input = new JSONObject(new HashMap<String, Object>() {{
       put("field1", "foo");
     }});
-    handler.transformAndUpdate(input, new HashMap<>(), Context.EMPTY_CONTEXT());
+    handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
     Assert.assertFalse(input.containsKey("field1"));
   }
 
@@ -78,7 +78,7 @@ public class RemoveTransformationTest {
       JSONObject input = new JSONObject(new HashMap<String, Object>() {{
         put("field1", "foo");
       }});
-      handler.transformAndUpdate(input, new HashMap<>(), Context.EMPTY_CONTEXT());
+      handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
       //no removal happened because field2 does not exist
       Assert.assertTrue(input.containsKey("field1"));
       Assert.assertFalse(input.containsKey("field2"));
@@ -88,7 +88,7 @@ public class RemoveTransformationTest {
         put("field1", "foo");
         put("field2", "bar");
       }});
-      handler.transformAndUpdate(input, new HashMap<>(), Context.EMPTY_CONTEXT());
+      handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
       //no removal happened because field2 != bar
       Assert.assertTrue(input.containsKey("field1"));
       Assert.assertTrue(input.containsKey("field2"));
@@ -99,7 +99,7 @@ public class RemoveTransformationTest {
         put("field2", "foo");
       }});
       //removal of field1 happens because field2 exists and is 'bar'
-      handler.transformAndUpdate(input, new HashMap<>(), Context.EMPTY_CONTEXT());
+      handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
       Assert.assertFalse(input.containsKey("field1"));
       Assert.assertTrue(input.containsKey("field2"));
     }

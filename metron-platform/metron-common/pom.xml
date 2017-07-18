@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-platform</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1</version>
     </parent>
     <artifactId>metron-common</artifactId>
     <name>metron-common</name>
@@ -43,6 +43,11 @@
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>stellar-common</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-math3</artifactId>
             <version>3.6.1</version>
@@ -51,12 +56,6 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-integration-test</artifactId>
             <version>${project.parent.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-auth</artifactId>
-            <version>${global_hadoop_version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -336,7 +335,7 @@
         <dependency>
             <groupId>de.javakaffee</groupId>
             <artifactId>kryo-serializers</artifactId>
-            <version>0.38</version>
+            <version>${global_kryo_serializers_version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -352,12 +351,6 @@
             <groupId>com.clearspring.analytics</groupId>
             <artifactId>stream</artifactId>
             <version>2.9.5</version>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.metron</groupId>
-          <artifactId>metron-test-utilities</artifactId>
-          <version>${project.parent.version}</version>
-          <scope>test</scope>
         </dependency>
     </dependencies>
 

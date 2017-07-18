@@ -17,156 +17,40 @@
  */
 package org.apache.metron.parsers.ise;
 
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
-
+import org.apache.metron.parsers.AbstractParserConfigTest;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
-import org.apache.metron.parsers.AbstractSchemaTest;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
+public class BasicIseParserTest extends AbstractParserConfigTest {
 
-/**
- * <ul>
- * <li>Title: Basic ISE Parser</li>
- * <li>Description: Junit Test Case for BasicISE Parser</li>
- * <li>Created: AUG 25, 2014</li>
- * </ul>
- * 
- * @version $Revision: 1.1 $
- */
+  @Before
+  public void setUp() throws Exception {
+    inputStrings = super.readTestDataFromFile("src/test/resources/logData/IseParserTest.txt");
+    parser = new BasicIseParser();
 
-public class BasicIseParserTest extends AbstractSchemaTest {
-    /**
-     * The inputStrings.
-     */
-     private static String[] inputStrings;   
+    URL schema_url = getClass().getClassLoader().getResource(
+        "TestSchemas/IseSchema.json");
+    super.setSchemaJsonString(super.readSchemaFromFile(schema_url));
+  }
 
-	 /**
-	 * The parser.
-	 */
-	private static BasicIseParser parser = null;
+  @Test
+  public void testParse()
+      throws org.json.simple.parser.ParseException, IOException, ProcessingException {
+    for (String inputString : inputStrings) {
+      JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
+      Assert.assertNotNull(parsed);
 
+      JSONParser parser = new JSONParser();
 
-	/**
-	 * Constructs a new <code>BasicIseParserTest</code> instance.
-	 * 
-	 * @param name
-	 */
-
-	public BasicIseParserTest(String name) {
-		super(name);
-	}
-
-	/**
-	 * 
-	 * @throws java.lang.Exception
-	 */
-	protected static void setUpBeforeClass() throws Exception {
-	}
-
-	/**
-	 * 
-	 * @throws java.lang.Exception
-	 */
-	protected static void tearDownAfterClass() throws Exception {
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see junit.framework.TestCase#setUp()
-	 */
-
-	@Override
-	protected void setUp() throws Exception {
-        super.setUp("org.apache.metron.parsers.lancope.BasicLancopeParserTest");
-        setInputStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
-        BasicIseParserTest.setIseParser(new BasicIseParser());
-		
-		URL schema_url = getClass().getClassLoader().getResource(
-				"TestSchemas/IseSchema.json");
-		 super.setSchemaJsonString(super.readSchemaFromFile(schema_url));
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see junit.framework.TestCase#tearDown()
-	 */
-
-	@Override
-	protected void tearDown() throws Exception {
-		super.tearDown();
-	}
-
-	/**
-	 * Test method for
-	 * {@link BasicIseParser#parse(byte[])}.
-	 * 
-	 * @throws IOException
-	 * @throws Exception
-	 */
-	public void testParse() throws ParseException, IOException, Exception {
-        for (String inputString : getInputStrings()) {
-            JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
-            assertNotNull(parsed);
-        
-            System.out.println(parsed);
-            JSONParser parser = new JSONParser();
-
-            Map<?, ?> json=null;
-            try {
-                json = (Map<?, ?>) parser.parse(parsed.toJSONString());
-                Assert.assertEquals(true, validateJsonData(super.getSchemaJsonString(), json.toString()));
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        }
-	}
-
-	/**
-	 * Returns the iseParser.
-	 * 
-	 * @return the iseParser.
-	 */
-
-	public BasicIseParser getIseParser() {
-		return parser;
-	}
-
-	/**
-	 * Sets the iseParser.
-	 * 
-	 * @param parser
-	 */
-
-
-	public static void setIseParser(BasicIseParser parser) {
-
-		BasicIseParserTest.parser = parser;
-	}
-   /**
-    * Returns the inputStrings.
-    * @return the inputStrings.
-    */
-   
-   public static String[] getInputStrings() {
-       return inputStrings;
-   }
-
-   /**
-    * Sets the inputStrings.
-    * @param inputStrings the inputStrings.
-    */
-   
-   public static void setInputStrings(String[] inputStrings) {
-       BasicIseParserTest.inputStrings = inputStrings;
-   }   
-
-
-
+      Map<?, ?> json = (Map<?, ?>) parser.parse(parsed.toJSONString());
+      Assert.assertTrue(validateJsonData(getSchemaJsonString(), json.toString()));
+    }
+  }
 }

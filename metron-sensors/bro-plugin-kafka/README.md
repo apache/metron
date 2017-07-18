@@ -36,13 +36,14 @@ Installation
 Activation
 ----------
 
-The following examples highlight different ways that the plugin can be used.  Simply add Bro script to your `local.bro` file (for example, `/usr/share/bro/site/local.bro`) as shown to activate the plugin.
+The following examples highlight different ways that the plugin can be used.  Simply add the Bro script language to your `local.bro` file (for example, `/usr/share/bro/site/local.bro`) as shown to demonstrate the example.
 
 ### Example 1
 
 The goal in this example is to send all HTTP and DNS records to a Kafka topic named `bro`. 
  * Any configuration value accepted by librdkafka can be added to the `kafka_conf` configuration table.  
  * By defining `topic_name` all records will be sent to the same Kafka topic.
+ * Defining `logs_to_send` will ensure that only HTTP and DNS records are sent.
 
 ```
 @load Bro/Kafka/logs-to-kafka.bro
@@ -73,7 +74,6 @@ event bro_init()
         $name = "kafka-http",
         $writer = Log::WRITER_KAFKAWRITER,
         $config = table(
-                ["stream_id"] = "HTTP::LOG",
                 ["metadata.broker.list"] = "localhost:9092"
         ),
         $path = "http"
@@ -85,7 +85,6 @@ event bro_init()
         $name = "kafka-dns",
         $writer = Log::WRITER_KAFKAWRITER,
         $config = table(
-                ["stream_id"] = "DNS::LOG",
                 ["metadata.broker.list"] = "localhost:9092"
         ),
         $path = "dns"
@@ -93,6 +92,57 @@ event bro_init()
     Log::add_filter(DNS::LOG, dns_filter);
 }
 ```
+
+### Example 3
+
+You may want to configure bro to filter log messages with certain characteristics from being sent to your kafka topics.  For instance, Metron currently doesn't support IPv6 source or destination IPs in the default enrichments, so it may be helpful to filter those log messages from being sent to kafka (although there are [multiple ways](#notes) to approach this).  In this example we will do that that, and are assuming a somewhat standard bro kafka plugin configuration, such that:
+ * All bro logs are sent to the `bro` topic, by configuring `Kafka::topic_name`.
+ * Each JSON message is tagged with the appropriate log type (such as `http`, `dns`, or `conn`), by setting `tag_json` to true.
+ * If the log message contains a 128 byte long source or destination IP address, the log is not sent to kafka.
+
+```
+@load Bro/Kafka/logs-to-kafka.bro
+redef Kafka::topic_name = "bro";
+redef Kafka::tag_json = T;
+
+event bro_init() &priority=-5
+{
+    # handles HTTP
+    Log::add_filter(HTTP::LOG, [
+        $name = "kafka-http",
+        $writer = Log::WRITER_KAFKAWRITER,
+        $pred(rec: HTTP::Info) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
+        $config = table(
+            ["metadata.broker.list"] = "localhost:9092"
+        )
+    ]);
+
+    # handles DNS
+    Log::add_filter(DNS::LOG, [
+        $name = "kafka-dns",
+        $writer = Log::WRITER_KAFKAWRITER,
+        $pred(rec: DNS::Info) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
+        $config = table(
+            ["metadata.broker.list"] = "localhost:9092"
+        )
+    ]);
+
+    # handles Conn
+    Log::add_filter(Conn::LOG, [
+        $name = "kafka-conn",
+        $writer = Log::WRITER_KAFKAWRITER,
+        $pred(rec: Conn::Info) = { return ! (( |rec$id$orig_h| == 128 || |rec$id$resp_h| == 128 )); },
+        $config = table(
+            ["metadata.broker.list"] = "localhost:9092"
+        )
+    ]);
+}
+```
+
+#### Notes
+ * `logs_to_send` is mutually exclusive with `$pred`, thus for each log you want to set `$pred` on, you must individually setup a `Log::add_filter` and refrain from including that log in `logs_to_send`.
+ * You can also filter IPv6 logs from within your Metron cluster [using Stellar](../../metron-platform/metron-common#IS_IP).  In that case, you wouldn't apply a predicate in your bro configuration, and instead Stellar would filter the logs out before they were processed by the enrichment layer of Metron.
+ * It is also possible to use the `is_v6_subnet()` bro function in your predicate, as of their [2.5 release](https://www.bro.org/sphinx-git/install/release-notes.html#bro-2-5), however the above example should work on [bro 2.4](https://www.bro.org/sphinx-git/install/release-notes.html#bro-2-4) and newer, which has been the focus of the kafka plugin.
 
 Settings
 --------

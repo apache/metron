@@ -31,12 +31,6 @@
         <display-name>Metron apps HDFS dir</display-name>
     </property>
     <property>
-        <name>metron_apps_indexed_hdfs_dir</name>
-        <value>{{metron_apps_hdfs_dir}}/indexing/indexed</value>
-        <description>Indexing bolts will write to this HDFS directory</description>
-        <display-name>Metron apps indexed HDFS dir</display-name>
-    </property>
-    <property>
         <name>metron_zookeeper_config_dir</name>
         <value>config/zookeeper</value>
         <description>Metron Zookeeper config dir. Relative path to Metron home.</description>
@@ -77,125 +71,16 @@
         <display-name>Metron pid dir</display-name>
     </property>
     <property>
-        <name>metron_rest_port</name>
-        <value>8082</value>
-        <description>Port the REST application runs on</description>
-        <display-name>Metron REST port</display-name>
-    </property>
-    <property>
-        <name>metron_jvm_flags</name>
-        <description>JVM flags passed to Metron scripts</description>
-        <display-name>Metron JVM flags</display-name>
-        <value/>
-        <value-attributes>
-            <empty-value-valid>true</empty-value-valid>
-        </value-attributes>
-    </property>
-    <property>
-        <name>metron_spring_profiles_active</name>
-        <description>Active Spring profiles</description>
-        <display-name>Active Spring profiles</display-name>
-        <value/>
-        <value-attributes>
-            <empty-value-valid>true</empty-value-valid>
-        </value-attributes>
-    </property>
-    <property require-input="true">
-        <name>metron_jdbc_driver</name>
-        <value></value>
-        <description>Class name of the JDBC Driver used by Metron</description>
-        <display-name>Metron JDBC Driver</display-name>
-    </property>
-    <property require-input="true">
-        <name>metron_jdbc_url</name>
-        <value></value>
-        <description>JDBC Connection URL used by Metron</description>
-        <display-name>Metron JDBC URL</display-name>
-    </property>
-    <property require-input="true">
-        <name>metron_jdbc_username</name>
-        <value></value>
-        <description>Metron JDBC Username</description>
-        <display-name>Metron JDBC username</display-name>
-    </property>
-    <property require-input="true">
-        <name>metron_jdbc_password</name>
-        <value></value>
-        <property-type>PASSWORD</property-type>
-        <description>Metron JDBC Password</description>
-        <display-name>Metron JDBC password</display-name>
-        <value-attributes>
-            <type>password</type>
-            <overridable>false</overridable>
-            <hidden>METRON_CLIENT</hidden>
-        </value-attributes>
-        <on-ambari-upgrade add="true"/>
-    </property>
-    <property require-input="true">
-        <name>metron_jdbc_platform</name>
-        <value></value>
-        <description>Database platform used by Metron.  One of: hsqldb, h2, oracle, mysql, postgresql</description>
-        <display-name>Metron JDBC platform</display-name>
-    </property>
-    <property>
-        <name>metron_jdbc_client_path</name>
-        <description>Path to JDBC jar for selected platform</description>
-        <display-name>Metron JDBC client path</display-name>
-        <value/>
-        <value-attributes>
-            <empty-value-valid>true</empty-value-valid>
-        </value-attributes>
-    </property>
-    <property>
-        <name>metron_temp_grok_path</name>
-        <description>Temporary local file path where grok patterns are written during testing</description>
-        <value>./patterns/temp</value>
-        <display-name>Metron temp grok path</display-name>
-    </property>
-    <property>
-        <name>metron_default_grok_path</name>
-        <description>Default HDFS directory path used when storing Grok patterns</description>
-        <value>/apps/metron/patterns</value>
-        <display-name>Metron default grok path</display-name>
-    </property>
-    <property>
-        <name>metron_spring_options</name>
-        <description>Additional Spring options not included in the rest_application.yml file</description>
-        <display-name>Metron Spring options</display-name>
-        <value/>
-        <value-attributes>
-            <empty-value-valid>true</empty-value-valid>
-        </value-attributes>
-    </property>
-    <property>
         <name>metron_topic_retention</name>
         <description>Kafka Retention in GB</description>
         <value>10</value>
         <display-name>Topic Retention</display-name>
     </property>
     <property>
-        <name>parsers</name>
-        <value>bro,snort,yaf</value>
-        <description>Metron parsers to deploy</description>
-        <display-name>Metron Parsers</display-name>
-    </property>
-    <property>
-        <name>metron_indexing_topology</name>
-        <value>indexing</value>
-        <description>The Storm topology name for Indexing</description>
-        <display-name>Indexing Topology Name</display-name>
-    </property>
-    <property>
         <name>es_cluster_name</name>
         <value>metron</value>
         <description>Name of Elasticsearch Cluster</description>
         <display-name>Elasticsearch Cluster Name</display-name>
-    </property>
-    <property>
-        <name>geoip_url</name>
-        <value>http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz</value>
-        <description>Location of the GeoIP data to load.</description>
-        <display-name>GEOIP Load Datafile URL</display-name>
     </property>
     <property require-input="true">
         <name>es_hosts</name>
@@ -218,7 +103,7 @@
     <property require-input = "true">
         <name>storm_rest_addr</name>
         <display-name>Storm Rest Server Address</display-name>
-        <description>URL of Storm UI (storm.ui.hostname:8744)</description>
+        <description>URL of Storm UI (http://storm.ui.hostname:8744). If no protocol is provided, http is assumed.</description>
         <value></value>
     </property>
     <property require-input = "true">
@@ -247,69 +132,11 @@
         </value-attributes>
     </property>
     <property>
-        <name>global-json</name>
-        <display-name>global.json template</display-name>
-        <description>This is the jinja template for global.json file</description>
-        <value>
-{
-"es.clustername": "{{ es_cluster_name }}",
-"es.ip": "{{ es_url }}",
-"es.date.format": "yyyy.MM.dd.HH",
-"parser.error.topic": "indexing"
-}
-        </value>
-        <value-attributes>
-            <type>content</type>
-        </value-attributes>
+        <name>es_date_format</name>
+        <description>Elasticsearch Date Format</description>
+        <value>yyyy.MM.dd.HH</value>
+        <display-name>Elasticsearch Date Format</display-name>
     </property>
-    <property>
-        <name>elasticsearch-properties</name>
-        <description>The template for the elasticsearch.properties file.</description>
-        <display-name>elasticsearch.properties template</display-name>
-        <value>
-##### Storm #####
-indexing.workers=1
-indexing.executors=0
-topology.worker.childopts={{topology_worker_childopts}}
-topology.auto-credentials={{topology_auto_credentials}}
-##### Kafka #####
-kafka.zk={{ zookeeper_quorum }}
-kafka.broker={{ kafka_brokers }}
-kafka.start=UNCOMMITTED_EARLIEST
-kafka.security.protocol={{kafka_security_protocol}}
-storm.auto.credentials=[]
-##### Indexing #####
-index.input.topic=indexing
-index.error.topic=indexing
-writer.class.name=org.apache.metron.elasticsearch.writer.ElasticsearchWriter
-##### Metrics #####
-#reporters
-org.apache.metron.metrics.reporter.graphite=true
-org.apache.metron.metrics.reporter.console=false
-org.apache.metron.metrics.reporter.jmx=false
-#Graphite Addresses
-org.apache.metron.metrics.graphite.address=localhost
-org.apache.metron.metrics.graphite.port=2023
-#TelemetryParserBolt
-org.apache.metron.metrics.TelemetryParserBolt.acks=true
-org.apache.metron.metrics.TelemetryParserBolt.emits=true
-org.apache.metron.metrics.TelemetryParserBolt.fails=true
-##### HDFS #####
-bolt.hdfs.batch.size=5000
-bolt.hdfs.field.delimiter=|
-bolt.hdfs.rotation.policy=org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy
-bolt.hdfs.rotation.policy.units=DAYS
-bolt.hdfs.rotation.policy.count=1
-bolt.hdfs.file.rotation.size.in.mb=5
-bolt.hdfs.file.system.url={{ default_fs }}
-bolt.hdfs.wip.file.path=/paloalto/wip
-bolt.hdfs.finished.file.path=/paloalto/rotated
-bolt.hdfs.compression.codec.class=org.apache.hadoop.io.compress.SnappyCodec
-index.hdfs.output={{ metron_apps_indexed_hdfs_dir }}
-        </value>
-        <value-attributes>
-            <type>content</type>
-        </value-attributes>
-        <on-ambari-upgrade add="true"/>
-    </property>
+
+
 </configuration>

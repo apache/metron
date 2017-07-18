@@ -21,6 +21,7 @@
 package org.apache.metron.common.utils;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.metron.stellar.common.utils.BloomFilter;
 import org.junit.Assert;
 import org.junit.Test;
 
