@@ -49,7 +49,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
 
   getAlerts(searchRequest: SearchRequest): Observable<AlertsSearchResponse> {
     let url = '/search/*,-*' + ElasticsearchUtils.excludeIndexName + '/_search';
-    let request: any  = searchRequest;
+    let request: any  = JSON.parse(JSON.stringify(searchRequest));
     request.query = { query_string: { query: searchRequest.query } };
 
     return this.http.post(url, request, new RequestOptions({headers: new Headers(this.defaultHeaders)}))

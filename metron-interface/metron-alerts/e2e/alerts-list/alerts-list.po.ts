@@ -205,8 +205,9 @@ export class MetronAlertsPage {
   clickRemoveSearchChip() {
     let aceLine = element.all(by.css('.ace_keyword')).get(0);
     browser.actions().mouseMove(aceLine).perform().then(() => {
-      browser.sleep(2000);
-      element.all(by.css('.ace_value i')).get(0).click();
+      this.waitForElementPresence(element(by.css('.ace_value i'))).then(() => {
+        element.all(by.css('.ace_value i')).get(0).click();
+      });
     });
   }
 
@@ -216,5 +217,10 @@ export class MetronAlertsPage {
     element(by.css('app-alerts-list .ace_text-input')).sendKeys(search);
     element(by.css('app-alerts-list .ace_text-input')).sendKeys(protractor.Key.ENTER);
     browser.sleep(2000);
+  }
+
+  waitForElementPresence (element ) {
+    let EC = protractor.ExpectedConditions;
+    return browser.wait(EC.presenceOf(element));
   }
 }

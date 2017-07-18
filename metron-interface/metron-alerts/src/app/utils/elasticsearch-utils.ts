@@ -29,7 +29,7 @@ export class ElasticsearchUtils {
          if (seen.indexOf(columnName) === -1) {
            seen.push(columnName);
            columnMetadata.push(
-             new ColumnMetadata(columnName, (properties[columnName].type ? properties[columnName].type.toUpperCase() : ''))
+             new ColumnMetadata(columnName, (properties[columnName].type ? properties[columnName].type : ''))
            );
          }
        }
