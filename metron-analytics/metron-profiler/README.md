@@ -278,7 +278,7 @@ The values can be changed on disk and then the Profiler topology must be restart
 | Setting                               | Description
 |---                                    |---
 | [`profiler.input.topic`](#profilerinputtopic) | The name of the Kafka topic from which to consume data.
-| [`profiler.output.topic`](#profileroutputtopic) | The name of the Kafka topic to which profile data is written.  Only used with profiles that use the [`triage` result field](#result).
+| [`profiler.output.topic`](#profileroutputtopic) | The name of the Kafka topic to which profile data is written.  Only used with profiles that define the [`triage` result field](#result).
 | [`profiler.period.duration`](#profilerperiodduration) | The duration of each profile period.  
 | [`profiler.period.duration.units`](#profilerperioddurationunits) | The units used to specify the [`profiler.period.duration`](#profilerperiodduration).  
 | [`profiler.workers`](#profilerworkers) | The number of worker processes for the topology.
