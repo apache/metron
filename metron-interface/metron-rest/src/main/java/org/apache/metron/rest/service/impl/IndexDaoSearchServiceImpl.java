@@ -15,37 +15,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.config;
+package org.apache.metron.rest.service.impl;
 
-import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
+import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.search.InvalidSearchException;
+import org.apache.metron.indexing.dao.search.SearchRequest;
+import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.service.GlobalConfigService;
-import org.elasticsearch.client.transport.TransportClient;
+import org.apache.metron.rest.service.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-
-import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
-
-@Configuration
-@Profile("!" + TEST_PROFILE)
-public class ElasticsearchConfig {
+@Service
+public class IndexDaoSearchServiceImpl implements SearchService {
+  private IndexDao dao;
 
   @Autowired
-  private GlobalConfigService globalConfigService;
-
-  @Autowired
-  public ElasticsearchConfig(GlobalConfigService globalConfigService) {
-    this.globalConfigService = globalConfigService;
+  public IndexDaoSearchServiceImpl(IndexDao dao) {
+    this.dao = dao;
   }
 
-  @Bean
-  public TransportClient transportClient() throws RestException {
-    return ElasticsearchUtils.getClient(globalConfigService.get(), new HashMap<>());
+  @Override
+  public SearchResponse search(SearchRequest searchRequest) throws RestException {
+    try {
+      return dao.search(searchRequest);
+    }
+    catch(InvalidSearchException ise) {
+      throw new RestException(ise.getMessage(), ise);
+    }
   }
-
-
 }

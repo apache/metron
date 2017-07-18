@@ -15,14 +15,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
+package org.apache.metron.indexing.dao.search;
 
-import org.apache.metron.rest.RestException;
-import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
+import java.util.Map;
 
-public interface SearchService {
+public class SearchResult {
 
-  SearchResponse search(SearchRequest searchRequest) throws RestException;
+  private String id;
+  private Map<String, Object> source;
+  private float score;
 
+  public String getId() {
+    return id;
+  }
+
+  public void setId(String id) {
+    this.id = id;
+  }
+
+  public Map<String, Object> getSource() {
+    return source;
+  }
+
+  public void setSource(Map<String, Object> source) {
+    this.source = source;
+  }
+
+  public float getScore() {
+    return score;
+  }
+
+  public void setScore(float score) {
+    this.score = score;
+  }
 }

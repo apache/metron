@@ -15,14 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
+package org.apache.metron.indexing.dao;
 
-import org.apache.metron.rest.RestException;
-import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
+import java.util.HashMap;
+import java.util.Map;
 
-public interface SearchService {
+public class AccessConfig {
+  private Integer maxSearchResults;
+  private Map<String, String> optionalSettings = new HashMap<>();
 
-  SearchResponse search(SearchRequest searchRequest) throws RestException;
+  public Integer getMaxSearchResults() {
+    return maxSearchResults;
+  }
 
+  public void setMaxSearchResults(Integer maxSearchResults) {
+    this.maxSearchResults = maxSearchResults;
+  }
+
+  public Map<String, String> getOptionalSettings() {
+    return optionalSettings;
+  }
+
+  public void setOptionalSettings(Map<String, String> optionalSettings) {
+    this.optionalSettings = optionalSettings;
+  }
 }

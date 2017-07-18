@@ -15,9 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.matcher;
+package org.apache.metron.elasticsearch.matcher;
 
-import org.apache.metron.rest.model.SortField;
+import org.apache.metron.indexing.dao.search.SortField;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.client.Requests;
 import org.elasticsearch.common.bytes.BytesReference;
@@ -44,7 +44,7 @@ public class SearchRequestMatcher extends ArgumentMatcher<SearchRequest> {
             .trackScores(true);
     for(SortField sortField: sortFields) {
       FieldSortBuilder fieldSortBuilder = new FieldSortBuilder(sortField.getField());
-      fieldSortBuilder.order(sortField.getSortOrder() == org.apache.metron.rest.model.SortOrder.DESC ? SortOrder.DESC : SortOrder.ASC);
+      fieldSortBuilder.order(sortField.getSortOrder() == org.apache.metron.indexing.dao.search.SortOrder.DESC ? SortOrder.DESC : SortOrder.ASC);
       searchSourceBuilder = searchSourceBuilder.sort(fieldSortBuilder);
     }
     expectedSource = searchSourceBuilder.buildAsBytes(Requests.CONTENT_TYPE);

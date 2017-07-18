@@ -15,37 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.model;
+package org.apache.metron.indexing.dao.search;
 
-import java.util.Map;
+public class SortField {
+  private String field;
+  private SortOrder sortOrder;
 
-public class SearchResult {
-
-  private String id;
-  private Map<String, Object> source;
-  private float score;
-
-  public String getId() {
-    return id;
+  public String getField() {
+    return field;
   }
 
-  public void setId(String id) {
-    this.id = id;
+  public void setField(String field) {
+    this.field = field;
   }
 
-  public Map<String, Object> getSource() {
-    return source;
+  public SortOrder getSortOrder() {
+    return sortOrder;
   }
 
-  public void setSource(Map<String, Object> source) {
-    this.source = source;
-  }
-
-  public float getScore() {
-    return score;
-  }
-
-  public void setScore(float score) {
-    this.score = score;
+  public void setSortOrder(String sortOrder) {
+    this.sortOrder = SortOrder.fromString(sortOrder);
   }
 }

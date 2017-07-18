@@ -15,14 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
+package org.apache.metron.indexing.dao;
 
-import org.apache.metron.rest.RestException;
+import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 
-public interface SearchService {
+import java.util.Map;
 
-  SearchResponse search(SearchRequest searchRequest) throws RestException;
-
+public interface IndexDao {
+  SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException;
+  void init(Map<String, Object> globalConfig, AccessConfig config);
 }

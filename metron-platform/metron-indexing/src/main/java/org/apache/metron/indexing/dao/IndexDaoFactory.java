@@ -15,29 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.model;
+package org.apache.metron.indexing.dao;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
-public class SearchResponse {
-
-  private long total;
-  private List<SearchResult> results = new ArrayList<>();
-
-  public long getTotal() {
-    return total;
-  }
-
-  public void setTotal(long total) {
-    this.total = total;
-  }
-
-  public List<SearchResult> getResults() {
-    return results;
-  }
-
-  public void setResults(List<SearchResult> results) {
-    this.results = results;
+public class IndexDaoFactory {
+  public static IndexDao create(String daoImpl, Map<String, Object> globalConfig, AccessConfig config) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    Class<? extends IndexDao> clazz = (Class<? extends IndexDao>) Class.forName(daoImpl);
+    IndexDao instance = clazz.getConstructor().newInstance();
+    instance.init(globalConfig, config);
+    return instance;
   }
 }

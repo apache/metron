@@ -58,6 +58,11 @@ fi
 if [ $METRON_JDBC_CLIENT_PATH ]; then
     METRON_JVMFLAGS+=" -Dloader.path=$METRON_JDBC_CLIENT_PATH"
 fi
+if [ $METRON_INDEX_CP ]; then
+    METRON_JVMFLAGS+=" -cp $METRON_INDEX_CP"
+else
+    METRON_JVMFLAGS+=" -cp $METRON_HOME/lib/metron-elasticsearch-$METRON_VERSION-uber.jar"
+fi
 DAEMON="java $METRON_JVMFLAGS -jar $METRON_HOME/lib/metron-rest-$METRON_VERSION.jar $METRON_SPRING_OPTIONS"
 
 #

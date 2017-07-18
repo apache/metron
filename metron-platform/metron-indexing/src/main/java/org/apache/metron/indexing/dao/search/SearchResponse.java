@@ -15,25 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.model;
+package org.apache.metron.indexing.dao.search;
 
-public class SortField {
-  private String field;
-  private SortOrder sortOrder;
+import java.util.ArrayList;
+import java.util.List;
 
-  public String getField() {
-    return field;
+public class SearchResponse {
+
+  private long total;
+  private List<SearchResult> results = new ArrayList<>();
+
+  public long getTotal() {
+    return total;
   }
 
-  public void setField(String field) {
-    this.field = field;
+  public void setTotal(long total) {
+    this.total = total;
   }
 
-  public SortOrder getSortOrder() {
-    return sortOrder;
+  public List<SearchResult> getResults() {
+    return results;
   }
 
-  public void setSortOrder(SortOrder sortOrder) {
-    this.sortOrder = sortOrder;
+  public void setResults(List<SearchResult> results) {
+    this.results = results;
   }
 }

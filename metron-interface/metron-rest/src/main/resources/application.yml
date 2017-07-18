@@ -44,3 +44,7 @@ curator:
 search:
   max:
     results: 1000
+
+index:
+  dao:
+     impl: org.apache.metron.elasticsearch.dao.ElasticsearchDao
