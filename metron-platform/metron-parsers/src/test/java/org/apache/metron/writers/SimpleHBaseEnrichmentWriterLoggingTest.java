@@ -41,6 +41,7 @@ import java.util.*;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.*;
 
@@ -80,7 +81,7 @@ public class SimpleHBaseEnrichmentWriterLoggingTest {
   @Test
   public void shouldWarnOnMissedConfigConversion() {
     getHbaseTableConfig().getAndConvert(Collections.emptyMap(), String.class);
-    verify(logger).warn("No object of type '{}' found in config", String.class);
+    verify(logger, atLeastOnce()).warn("No object of type '{}' found in config", String.class);
   }
 
   @Test
