@@ -280,20 +280,20 @@ The Profiler runs as an independent Storm topology.  The configuration for the P
 The values can be changed on disk and then the Profiler topology must be restarted.
 
 
-| Setting                               | Description
-|---                                    |---
-| [`profiler.input.topic`](#profilerinputtopic) | The name of the Kafka topic from which to consume data.
-| [`profiler.output.topic`](#profileroutputtopic) | The name of the Kafka topic to which profile data is written.  Only used with profiles that define the [`triage` result field](#result).
-| [`profiler.period.duration`](#profilerperiodduration) | The duration of each profile period.  
-| [`profiler.period.duration.units`](#profilerperioddurationunits) | The units used to specify the [`profiler.period.duration`](#profilerperiodduration).  
-| [`profiler.workers`](#profilerworkers) | The number of worker processes for the topology.
-| [`profiler.executors`](#profilerexecutors) | The number of executors to spawn per component.
-| [`profiler.ttl`](#profilerttl) | If a message has not been applied to a Profile in this period of time, the Profile will be forgotten and its resources will be cleaned up. 
-| [`profiler.ttl.units`](#profilerttlunits) | The units used to specify the `profiler.ttl`.
-| [`profiler.hbase.salt.divisor`](#profilerhbasesaltdivisor) | A salt is prepended to the row key to help prevent hotspotting. 
-| [`profiler.hbase.table`](#profilerhbasetable) | The name of the HBase table that profiles are written to.
-| [`profiler.hbase.column.family`](#profilerhbasecolumnfamily) | The column family used to store profiles.
-| [`profiler.hbase.batch`](#profilerhbasebatch) | The number of puts that are written to HBase in a single batch.
+| Setting                                                                       | Description
+|---                                                                            |---
+| [`profiler.input.topic`](#profilerinputtopic)                                 | The name of the Kafka topic from which to consume data.
+| [`profiler.output.topic`](#profileroutputtopic)                               | The name of the Kafka topic to which profile data is written.  Only used with profiles that define the [`triage` result field](#result).
+| [`profiler.period.duration`](#profilerperiodduration)                         | The duration of each profile period.  
+| [`profiler.period.duration.units`](#profilerperioddurationunits)              | The units used to specify the [`profiler.period.duration`](#profilerperiodduration).  
+| [`profiler.workers`](#profilerworkers)                                        | The number of worker processes for the topology.
+| [`profiler.executors`](#profilerexecutors)                                    | The number of executors to spawn per component.
+| [`profiler.ttl`](#profilerttl)                                                | If a message has not been applied to a Profile in this period of time, the Profile will be forgotten and its resources will be cleaned up. 
+| [`profiler.ttl.units`](#profilerttlunits)                                     | The units used to specify the `profiler.ttl`.
+| [`profiler.hbase.salt.divisor`](#profilerhbasesaltdivisor)                    | A salt is prepended to the row key to help prevent hotspotting. 
+| [`profiler.hbase.table`](#profilerhbasetable)                                 | The name of the HBase table that profiles are written to.
+| [`profiler.hbase.column.family`](#profilerhbasecolumnfamily)                  | The column family used to store profiles.
+| [`profiler.hbase.batch`](#profilerhbasebatch)                                 | The number of puts that are written to HBase in a single batch.
 | [`profiler.hbase.flush.interval.seconds`](#profilerhbaseflushintervalseconds) | The maximum number of seconds between batch writes to HBase.
 
 ### `profiler.input.topic`
