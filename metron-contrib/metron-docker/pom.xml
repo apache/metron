@@ -20,7 +20,7 @@
     <name>metron-docker</name>
     <parent>
         <groupId>org.apache.metron</groupId>
-        <artifactId>Metron</artifactId>
+        <artifactId>metron-contrib</artifactId>
         <version>0.4.1</version>
     </parent>
     <description>Metron Docker</description>
