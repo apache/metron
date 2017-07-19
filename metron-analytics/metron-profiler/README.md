@@ -137,7 +137,7 @@ This section will describe the steps required to get your first "Hello, World!""
     hbase(main):001:0> count 'profiler'
     ```
 
-1. Use the [Profiler Client]((../metron-profiler-client)) to read the profile data.  The following `PROFILE_GET` command will read the data written by the "Hello, World" profile. This assumes that `10.0.0.1` is one of the values for `ip_src_addr` contained within the telemetry consumed by the Profiler.
+1. Use the [Profiler Client]((../metron-profiler-client)) to read the profile data.  The following `PROFILE_GET` command will read the data written by the `hello-world` profile. This assumes that `10.0.0.1` is one of the values for `ip_src_addr` contained within the telemetry consumed by the Profiler.
 
     ```
     $ bin/stellar -z node1:2181
