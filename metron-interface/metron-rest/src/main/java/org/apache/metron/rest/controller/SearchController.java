@@ -18,6 +18,7 @@
 package org.apache.metron.rest.controller;
 
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
@@ -38,10 +39,10 @@ public class SearchController {
   @Autowired
   private SearchService searchService;
 
-  @ApiOperation(value = "Search")
+  @ApiOperation(value = "Searches the indexing store")
   @ApiResponse(message = "Search results", code = 200)
   @RequestMapping(value = "/search", method = RequestMethod.POST)
-  ResponseEntity<SearchResponse> search(@RequestBody SearchRequest searchRequest) throws RestException {
+  ResponseEntity<SearchResponse> search(final @ApiParam(name = "searchRequest", value = "Search request", required = true) @RequestBody SearchRequest searchRequest) throws RestException {
     return new ResponseEntity<>(searchService.search(searchRequest), HttpStatus.OK);
   }
 }
