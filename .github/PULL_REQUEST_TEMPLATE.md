@@ -20,7 +20,7 @@ In order to streamline the review of the contribution we ask you follow these gu
 ### For code changes:
 - [ ] Have you included steps to reproduce the behavior or problem that is being changed or addressed?
 - [ ] Have you included steps or a guide to how the change may be verified and tested manually?
-- [ ] Have you ensured that the full suite of tests and checks have been executed in the root incubating-metron folder via:
+- [ ] Have you ensured that the full suite of tests and checks have been executed in the root metron folder via:
   ```
   mvn -q clean integration-test install && build_utils/verify_licenses.sh 
   ```

@@ -35,7 +35,7 @@
           "https_property": "metron_rest_port",
           "https_default_port": "8082",
           "regex": "^(\\d+)$",
-          "site": "metron-env"
+          "site": "metron-rest-env"
         }
       },
       {
@@ -50,7 +50,7 @@
           "https_property": "metron_management_ui_port",
           "https_default_port": "4200",
           "regex": "^(\\d+)$",
-          "site": "metron-env"
+          "site": "metron-management-ui-env"
         }
       }
     ]
