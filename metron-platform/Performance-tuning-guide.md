@@ -48,7 +48,8 @@ one consumer in a given consumer group were able to read from that partition.
 
 The main lever you're going to work with when tuning Kafka throughput will be the number of partitions. A handy method for deciding how many partitions to use
 is to first calculate the throughput for a single producer (p) and a single consumer (c), and then use that with the desired throughput (t) to roughly estimate the number
-of partitions to use. You would want at least max(t/p, t/c) partitions to attain the desired throughput. https://www.confluent.io/blog/how-to-choose-the-number-of-topicspartitions-in-a-kafka-cluster/
+of partitions to use. You would want at least max(t/p, t/c) partitions to attain the desired throughput. See https://www.confluent.io/blog/how-to-choose-the-number-of-topicspartitions-in-a-kafka-cluster/
+for more details.
 
 ### Storm Tuning
 
@@ -260,7 +261,7 @@ For configuring Storm, there is a flux file and properties file that we modified
 Note that the main Metron-specific option we've changed to accomodate the desired rate of data throughput is max cache size in the join bolts.
 More information on Flux can be found here - http://storm.apache.org/releases/1.0.1/flux.html
 
-__general storm settings__
+__General storm settings__
 ```
 topology.workers: 8
 topology.acker.executors: 48
@@ -398,4 +399,5 @@ modifying the options outlined above, increasing the poll timeout, or both.
 * http://storm.apache.org/releases/current/Understanding-the-parallelism-of-a-Storm-topology.html
 * http://www.malinga.me/reading-and-understanding-the-storm-ui-storm-ui-explained/
 * https://www.confluent.io/blog/how-to-choose-the-number-of-topicspartitions-in-a-kafka-cluster/
+* https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.1/bk_storm-component-guide/content/storm-kafkaspout-perf.html
 
