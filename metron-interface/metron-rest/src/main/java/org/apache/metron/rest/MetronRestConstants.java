@@ -58,4 +58,7 @@ public class MetronRestConstants {
   public static final String KERBEROS_ENABLED_SPRING_PROPERTY = "kerberos.enabled";
   public static final String KERBEROS_PRINCIPLE_SPRING_PROPERTY = "kerberos.principal";
   public static final String KERBEROS_KEYTAB_SPRING_PROPERTY = "kerberos.keytab";
+
+  public static final String SEARCH_MAX_RESULTS = "search.max.results";
+  public static final String INDEX_DAO_IMPL = "index.dao.impl";
 }
