@@ -15,31 +15,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.apache.metron.enrichment.integration.mock;
+package org.apache.metron.hbase.mock;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.hbase.TableProvider;
-import org.apache.metron.test.mock.MockHTable;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
-public class MockTableProvider implements TableProvider, Serializable {
-  static MockHTable.Provider provider = new MockHTable.Provider();
-  @Override
+public class MockProvider implements Serializable, TableProvider {
+  private static Map<String, HTableInterface> _cache = new HashMap<>();
   public HTableInterface getTable(Configuration config, String tableName) throws IOException {
-    return provider.getTable(config, tableName);
+    HTableInterface ret = _cache.get(tableName);
+    return ret;
   }
-  public static void addTable(String tableName, String... cf) {
-    provider.addToCache(tableName, cf);
+
+  public static HTableInterface getFromCache(String tableName) {
+    return _cache.get(tableName);
   }
-  public static MockHTable getTable(String tableName) {
-    try {
-      return (MockHTable) provider.getTable(null, tableName);
-    } catch (IOException e) {
-      throw new RuntimeException("Unable to get table: " + tableName);
-    }
+
+  public static HTableInterface addToCache(String tableName, String... columnFamilies) {
+    MockHTable ret =  new MockHTable(tableName, columnFamilies);
+    _cache.put(tableName, ret);
+    return ret;
+  }
+
+  public static void clear() {
+    _cache.clear();
   }
 }

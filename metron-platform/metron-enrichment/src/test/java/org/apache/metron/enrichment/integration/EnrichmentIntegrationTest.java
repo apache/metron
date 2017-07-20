@@ -39,6 +39,8 @@ import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentBloomTrackerCreator;
 import org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions;
 import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.hbase.mock.MockProvider;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.ProcessorResult;
@@ -48,7 +50,6 @@ import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.processors.KafkaMessageSet;
 import org.apache.metron.integration.processors.KafkaProcessor;
 import org.apache.metron.integration.utils.TestUtils;
-import org.apache.metron.test.mock.MockHTable;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
@@ -95,13 +96,6 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
   private static File geoHdfsFile;
 
-  public static class Provider implements TableProvider, Serializable {
-    MockHTable.Provider  provider = new MockHTable.Provider();
-    @Override
-    public HTableInterface getTable(Configuration config, String tableName) throws IOException {
-      return provider.getTable(config, tableName);
-    }
-  }
 
   private static List<byte[]> getInputMessages(String path){
     try{
@@ -142,7 +136,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
               "{\"ip\":\"10.1.128.237\", \"local\":\"UNKNOWN\", \"type\":\"unknown\", \"asset_value\" : \"important\"},\n" +
               "{\"ip\":\"10.60.10.254\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"},\n" +
               "{\"ip\":\"10.0.2.15\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"}]");
-      setProperty("hbase.provider.impl", "" + Provider.class.getName());
+      setProperty("hbase.provider.impl", "" + MockProvider.class.getName());
       setProperty("threat.intel.tracker.table", trackerHBaseTableName);
       setProperty("threat.intel.tracker.cf", cf);
       setProperty("threat.intel.simple.hbase.table", threatIntelTableName);
@@ -171,7 +165,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       File globalConfig = new File(new File(TestConstants.SAMPLE_CONFIG_PATH), "global.json");
       Map<String, Object> config = JSONUtils.INSTANCE.load(globalConfig, new TypeReference<Map<String, Object>>() {
       });
-      config.put(SimpleHBaseEnrichmentFunctions.TABLE_PROVIDER_TYPE_CONF, Provider.class.getName());
+      config.put(SimpleHBaseEnrichmentFunctions.TABLE_PROVIDER_TYPE_CONF, MockProvider.class.getName());
       config.put(SimpleHBaseEnrichmentFunctions.ACCESS_TRACKER_TYPE_CONF, "PERSISTENT_BLOOM");
       config.put(PersistentBloomTrackerCreator.Config.PERSISTENT_BLOOM_TABLE, trackerHBaseTableName);
       config.put(PersistentBloomTrackerCreator.Config.PERSISTENT_BLOOM_CF, cf);
@@ -184,12 +178,12 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
             .withEnrichmentConfigsPath(TestConstants.SAMPLE_CONFIG_PATH);
 
     //create MockHBaseTables
-    final MockHTable trackerTable = (MockHTable) MockHTable.Provider.addToCache(trackerHBaseTableName, cf);
-    final MockHTable threatIntelTable = (MockHTable) MockHTable.Provider.addToCache(threatIntelTableName, cf);
+    final MockHTable trackerTable = (MockHTable) MockProvider.addToCache(trackerHBaseTableName, cf);
+    final MockHTable threatIntelTable = (MockHTable) MockProvider.addToCache(threatIntelTableName, cf);
     EnrichmentHelper.INSTANCE.load(threatIntelTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
       add(new LookupKV<>(new EnrichmentKey(MALICIOUS_IP_TYPE, "10.0.2.3"), new EnrichmentValue(new HashMap<>())));
     }});
-    final MockHTable enrichmentTable = (MockHTable) MockHTable.Provider.addToCache(enrichmentsTableName, cf);
+    final MockHTable enrichmentTable = (MockHTable) MockProvider.addToCache(enrichmentsTableName, cf);
     EnrichmentHelper.INSTANCE.load(enrichmentTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
       add(new LookupKV<>(new EnrichmentKey(PLAYFUL_CLASSIFICATION_TYPE, "10.0.2.3")
                       , new EnrichmentValue(PLAYFUL_ENRICHMENT)

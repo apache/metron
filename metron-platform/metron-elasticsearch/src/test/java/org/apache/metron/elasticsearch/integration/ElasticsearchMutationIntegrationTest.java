@@ -22,15 +22,12 @@ import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
-import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
-import org.apache.metron.elasticsearch.writer.ElasticsearchWriter;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.indexing.dao.*;
 import org.apache.metron.test.mock.MockHTable;
@@ -42,7 +39,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 

@@ -29,13 +29,13 @@ import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
-import org.apache.metron.enrichment.integration.mock.MockTableProvider;
 import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.hbase.mock.MockProvider;
 import org.apache.metron.integration.*;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
-import org.apache.metron.test.mock.MockHTable;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -75,7 +75,7 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
       add(Bytes.toBytes("col21,col22,col23"));
       add(Bytes.toBytes("col31,col32,col33"));
     }};
-    MockTableProvider.addTable(sensorType, "cf");
+    MockProvider.addToCache(sensorType, "cf");
     final Properties topologyProperties = new Properties();
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
@@ -112,7 +112,7 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
 
                 @Override
                 public ReadinessState process(ComponentRunner runner) {
-                  MockHTable table = MockTableProvider.getTable(sensorType);
+                  MockHTable table = (MockHTable)MockProvider.getFromCache(sensorType);
                   if (table != null && table.size() == inputMessages.size()) {
                     EnrichmentConverter converter = new EnrichmentConverter();
                     messages = new ArrayList<>();

@@ -19,6 +19,7 @@ package org.apache.metron.rest.controller;
 
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.hbase.mock.MockProvider;
 import org.apache.metron.indexing.dao.InMemoryDao;
 import org.apache.metron.indexing.dao.IndexingDaoIntegrationTest;
 import org.apache.metron.rest.service.SearchService;
@@ -77,6 +78,7 @@ public class SearchControllerIntegrationTest {
   public void setup() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
     loadTestData();
+    MockProvider.addToCache("updates", "t");
   }
 
   @After

@@ -21,6 +21,8 @@ package org.apache.metron.enrichment.stellar;
 import com.google.common.collect.ImmutableMap;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.hbase.mock.MockProvider;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.stellar.common.StellarProcessor;
@@ -29,7 +31,6 @@ import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.hbase.TableProvider;
-import org.apache.metron.test.mock.MockHTable;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,18 +47,12 @@ public class SimpleHBaseEnrichmentFunctionsTest {
   private String cf = "cf";
   private static Context context;
 
-  public static class TP implements TableProvider {
 
-    @Override
-    public HTableInterface getTable(Configuration config, String tableName) throws IOException {
-      return MockHTable.Provider.getFromCache(tableName);
-    }
-  }
 
   @Before
   public void setup() throws Exception {
 
-    final MockHTable hbaseTable = (MockHTable) MockHTable.Provider.addToCache(hbaseTableName, cf);
+    final MockHTable hbaseTable = (MockHTable) MockProvider.addToCache(hbaseTableName, cf);
     EnrichmentHelper.INSTANCE.load(hbaseTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
       for(int i = 0;i < 5;++i) {
         add(new LookupKV<>(new EnrichmentKey(ENRICHMENT_TYPE, "indicator" + i)
@@ -69,7 +64,7 @@ public class SimpleHBaseEnrichmentFunctionsTest {
     context = new Context.Builder()
             .with( Context.Capabilities.GLOBAL_CONFIG
                  , () -> ImmutableMap.of( SimpleHBaseEnrichmentFunctions.TABLE_PROVIDER_TYPE_CONF
-                                        , TP.class.getName()
+                                        , MockProvider.class.getName()
                                         )
                  )
             .build();
