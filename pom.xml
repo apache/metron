@@ -112,7 +112,7 @@
         <global_kryo_version>3.0.3</global_kryo_version>
         <global_kryo_serializers_version>0.38</global_kryo_serializers_version>
         <global_reflections_version>0.9.10</global_reflections_version>
-        <global_checkstyle_version>7.7</global_checkstyle_version>
+        <global_checkstyle_version>8.0</global_checkstyle_version>
         <argLine></argLine>
     </properties>
 
