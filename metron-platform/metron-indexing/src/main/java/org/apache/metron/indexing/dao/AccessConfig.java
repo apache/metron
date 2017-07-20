@@ -17,12 +17,18 @@
  */
 package org.apache.metron.indexing.dao;
 
+import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.hbase.TableProvider;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public class AccessConfig {
   private Integer maxSearchResults;
   private Map<String, String> optionalSettings = new HashMap<>();
+  private TableProvider tableProvider = null;
+  private String columnFamily;
+  private String table;
 
   public Integer getMaxSearchResults() {
     return maxSearchResults;
@@ -38,5 +44,29 @@ public class AccessConfig {
 
   public void setOptionalSettings(Map<String, String> optionalSettings) {
     this.optionalSettings = optionalSettings;
+  }
+
+  public TableProvider getTableProvider() {
+    return tableProvider;
+  }
+
+  public void setTableProvider(TableProvider tableProvider) {
+    this.tableProvider = tableProvider;
+  }
+
+  public String getColumnFamily() {
+    return columnFamily;
+  }
+
+  public void setColumnFamily(String columnFamily) {
+    this.columnFamily = columnFamily;
+  }
+
+  public String getTable() {
+    return table;
+  }
+
+  public void setTable(String table) {
+    this.table = table;
   }
 }

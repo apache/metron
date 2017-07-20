@@ -15,23 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.hbase;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.client.HTableInterface;
+package org.apache.metron.indexing.mutation;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.util.function.Supplier;
 
-public interface TableProvider extends Serializable {
-  HTableInterface getTable(Configuration config, String tableName) throws IOException;
-  static TableProvider create(String impl, Supplier<TableProvider> defaultSupplier) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-    if(impl == null) {
-      return defaultSupplier.get();
-    }
-    Class<? extends TableProvider> clazz = (Class<? extends TableProvider>) Class.forName(impl);
-    return clazz.getConstructor().newInstance();
-  }
+public interface Mutator {
+  String mutate(Supplier<JsonNode> original, String arg) throws MutationException;
 }

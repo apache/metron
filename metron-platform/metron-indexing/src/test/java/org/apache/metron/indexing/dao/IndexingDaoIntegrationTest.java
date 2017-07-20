@@ -156,14 +156,16 @@ public abstract class IndexingDaoIntegrationTest {
   @Multiline
   public static String exceededMaxResultsQuery;
 
-  protected IndexDao dao;
-  protected InMemoryComponent indexComponent;
+  protected static IndexDao dao;
+  protected static InMemoryComponent indexComponent;
 
   @Before
-  public void setup() throws Exception {
-    indexComponent = startIndex();
-    loadTestData();
-    dao = createDao();
+  public synchronized void setup() throws Exception {
+    if(dao == null && indexComponent == null) {
+      indexComponent = startIndex();
+      loadTestData();
+      dao = createDao();
+    }
   }
 
   @Test
@@ -244,8 +246,8 @@ public abstract class IndexingDaoIntegrationTest {
     }
   }
 
-  @After
-  public void stop() throws Exception {
+  @AfterClass
+  public static void stop() throws Exception {
     indexComponent.stop();
   }
 

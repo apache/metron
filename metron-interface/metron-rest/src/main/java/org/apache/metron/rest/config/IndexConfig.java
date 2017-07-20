@@ -17,6 +17,8 @@
  */
 package org.apache.metron.rest.config;
 
+import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.IndexDaoFactory;
@@ -50,17 +52,32 @@ public class IndexConfig {
 
   @Bean
   public IndexDao indexDao() {
-    String indexDaoImpl = environment.getProperty(MetronRestConstants.INDEX_DAO_IMPL, String.class, null);
-    int searchMaxResults = environment.getProperty(MetronRestConstants.SEARCH_MAX_RESULTS, Integer.class, -1);
-    AccessConfig config = new AccessConfig();
-    config.setMaxSearchResults(searchMaxResults);
-    if(indexDaoImpl == null) {
-      throw new IllegalStateException("You must provide an index DAO implementation via the " + INDEX_DAO_IMPL + " config");
-    }
     try {
-      return IndexDaoFactory.create(indexDaoImpl, globalConfigService.get(), config);
-    } catch (Exception e) {
-      throw new IllegalStateException("Unable to instantiate " + indexDaoImpl + ": " + e.getMessage(), e);
+      String hbaseProviderImpl = environment.getProperty(MetronRestConstants.INDEX_HBASE_TABLE_PROVIDER_IMPL, String.class, null);
+      String hbaseTable = environment.getProperty(MetronRestConstants.INDEX_HBASE_TABLE, String.class, null);
+      String hbaseCf = environment.getProperty(MetronRestConstants.INDEX_HBASE_CF, String.class, null);
+      String indexDaoImpl = environment.getProperty(MetronRestConstants.INDEX_DAO_IMPL, String.class, null);
+      int searchMaxResults = environment.getProperty(MetronRestConstants.SEARCH_MAX_RESULTS, Integer.class, -1);
+      AccessConfig config = new AccessConfig();
+      config.setMaxSearchResults(searchMaxResults);
+      config.setTable(hbaseTable);
+      config.setColumnFamily(hbaseCf);
+      config.setTableProvider(TableProvider.create(hbaseProviderImpl, () -> new HTableProvider()));
+      if (indexDaoImpl == null) {
+        throw new IllegalStateException("You must provide an index DAO implementation via the " + INDEX_DAO_IMPL + " config");
+      }
+      IndexDao ret = IndexDaoFactory.combine(IndexDaoFactory.create(indexDaoImpl, globalConfigService.get(), config));
+      if (ret == null) {
+        throw new IllegalStateException("IndexDao is unable to be created.");
+      }
+      return ret;
+    }
+    catch(RuntimeException re) {
+      throw re;
+    }
+    catch(Exception e) {
+      throw new IllegalStateException("Unable to create index DAO: " + e.getMessage(), e);
     }
   }
+
 }

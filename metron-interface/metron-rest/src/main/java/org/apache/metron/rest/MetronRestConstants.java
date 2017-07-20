@@ -61,4 +61,7 @@ public class MetronRestConstants {
 
   public static final String SEARCH_MAX_RESULTS = "search.max.results";
   public static final String INDEX_DAO_IMPL = "index.dao.impl";
+  public static final String INDEX_HBASE_TABLE_PROVIDER_IMPL = "index.hbase.provider";
+  public static final String INDEX_HBASE_TABLE = "index.hbase.table";
+  public static final String INDEX_HBASE_CF = "index.hbase.cf";
 }

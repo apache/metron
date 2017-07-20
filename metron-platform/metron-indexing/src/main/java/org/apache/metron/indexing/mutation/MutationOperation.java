@@ -15,23 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.hbase;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.client.HTableInterface;
+package org.apache.metron.indexing.mutation;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.metron.indexing.mutation.mutators.Patch;
+import org.apache.metron.indexing.mutation.mutators.Replace;
+
 import java.util.function.Supplier;
 
-public interface TableProvider extends Serializable {
-  HTableInterface getTable(Configuration config, String tableName) throws IOException;
-  static TableProvider create(String impl, Supplier<TableProvider> defaultSupplier) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-    if(impl == null) {
-      return defaultSupplier.get();
-    }
-    Class<? extends TableProvider> clazz = (Class<? extends TableProvider>) Class.forName(impl);
-    return clazz.getConstructor().newInstance();
+public enum MutationOperation implements Mutator{
+  PATCH(new Patch()),
+  REPLACE(new Replace())
+  ;
+
+  Mutator mutator;
+
+  MutationOperation(Mutator mutator) {
+    this.mutator = mutator;
+  }
+
+  @Override
+  public String mutate(Supplier<JsonNode> originalNode, String arg) throws MutationException {
+    return this.mutator.mutate(originalNode, arg);
   }
 }

@@ -15,23 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.hbase;
+package org.apache.metron.indexing.mutation.mutators;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.client.HTableInterface;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.flipkart.zjsonpatch.JsonPatch;
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.indexing.mutation.MutationException;
+import org.apache.metron.indexing.mutation.Mutator;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 import java.util.function.Supplier;
 
-public interface TableProvider extends Serializable {
-  HTableInterface getTable(Configuration config, String tableName) throws IOException;
-  static TableProvider create(String impl, Supplier<TableProvider> defaultSupplier) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-    if(impl == null) {
-      return defaultSupplier.get();
+public class Patch implements Mutator {
+  @Override
+  public String mutate(Supplier<JsonNode> originalSupplier, String arg) throws MutationException {
+    final JsonNode orig = originalSupplier.get();
+    try {
+      JsonNode out = JsonPatch.apply(JSONUtils.INSTANCE.load(arg, JsonNode.class), orig);
+      return new String(JSONUtils.INSTANCE.toJSON(out));
+
+    } catch (Exception e) {
+      throw new MutationException("Unable to mutate: " + orig.asText() + " with " + arg + " because " + e.getMessage(), e);
     }
-    Class<? extends TableProvider> clazz = (Class<? extends TableProvider>) Class.forName(impl);
-    return clazz.getConstructor().newInstance();
   }
 }

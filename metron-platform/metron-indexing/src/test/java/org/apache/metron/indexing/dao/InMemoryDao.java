@@ -22,6 +22,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.*;
 
@@ -130,6 +131,37 @@ public class InMemoryDao implements IndexDao {
   @Override
   public void init(Map<String, Object> globalConfig, AccessConfig config) {
     this.config = config;
+  }
+
+  @Override
+  public Document getLatest(String uuid, String sensorType) throws IOException {
+    for(Map.Entry<String, List<String>> kv: BACKING_STORE.entrySet()) {
+      if(kv.getKey().startsWith(sensorType)) {
+        for(String doc : kv.getValue()) {
+          Map<String, Object> docParsed = parse(doc);
+          if(docParsed.getOrDefault(Constants.GUID, "").equals(uuid)) {
+            return new Document(doc, uuid, sensorType, 0L);
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public void update(Document update, WriterConfiguration configurations) throws IOException {
+    for(Map.Entry<String, List<String>> kv: BACKING_STORE.entrySet()) {
+      if (kv.getKey().startsWith(update.getSensorType())) {
+        for(Iterator<String> it = kv.getValue().iterator();it.hasNext();) {
+          String doc = it.next();
+          Map<String, Object> docParsed = parse(doc);
+          if(docParsed.getOrDefault(Constants.GUID, "").equals(update.getUuid())) {
+            it.remove();
+          }
+        }
+        kv.getValue().add(update.getDocument());
+      }
+    }
   }
 
   public static void load(Map<String, List<String>> backingStore) {
