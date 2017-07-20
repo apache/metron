@@ -17,7 +17,7 @@ Any field contained within a message can be used to generate a profile.  A profi
 
 Follow these instructions to install the Profiler.  This assumes that core Metron has already been installed and validated.  
 
-1. Build the Metron RPMs by [following these instructions](../../metron-deployment#rpm).  
+1. Build the Metron RPMs (see Building the [RPM](../../metron-deployment#rpm)s).  
 
     You may have already built the Metron RPMs when core Metron was installed.
 
@@ -58,7 +58,7 @@ Follow these instructions to install the Profiler.  This assumes that core Metro
     /usr/metron/0.4.1/lib/metron-profiler-0.4.0-uber.jar
     ```
 
-1. Create a table within HBase that will store the profile data. The table name and column family must match the [Profiler's configuration](#configuring-the-profiler).  By default, the table is named `profiler` with a column family `P`.
+1. Create a table within HBase that will store the profile data. The table name and column family must match the Profiler's configuration (see [Configuring the Profiler](#configuring-the-profiler)).  By default, the table is named `profiler` with a column family `P`.
 
     ```
     $ /usr/hdp/current/hbase-client/bin/hbase shell
@@ -83,7 +83,7 @@ At this point the Profiler is running and consuming telemetry messages.  We have
 
 ## Getting Started
 
-This section will describe the steps required to get your first "Hello, World!"" profile running.  This assumes that you have successfully [installed the Profiler](#installation) and have it running.
+This section will describe the steps required to get your first "Hello, World!"" profile running.  This assumes that you have a successful Profiler [installation](#installation) and have it running.
 
 1. Create the profile definition in a file located at `$METRON_HOME/config/zookeeper/profiler.json`.  This file will not exist, if you have never created Profiles previously.
 
@@ -129,7 +129,7 @@ This section will describe the steps required to get your first "Hello, World!""
     }
     ```
 
-1. Ensure that test messages are being sent to the Profiler's input topic in Kafka.  The Profiler will consume messages from the `inputTopic` defined in the [Profiler's configuration](#configuring-the-profiler).  By default this is the `indexing` topic.
+1. Ensure that test messages are being sent to the Profiler's input topic in Kafka.  The Profiler will consume messages from the `inputTopic` defined in the Profiler's configuration (see [Configuring the Profiler](#configuring-the-profiler)).  By default this is the `indexing` topic.
 
 1. Check the HBase table to validate that the Profiler is writing the profile.  Remember that the Profiler is flushing the profile every 15 minutes.  You will need to wait at least this long to start seeing profile data in HBase.
     ```
