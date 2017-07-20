@@ -18,7 +18,7 @@
 package org.apache.metron.statistics.approximation;
 
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.utils.StellarProcessorUtils;
+import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
 import org.junit.Assert;
 import org.junit.Test;
 

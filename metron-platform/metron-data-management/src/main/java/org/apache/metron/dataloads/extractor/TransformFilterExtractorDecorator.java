@@ -22,12 +22,12 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.log4j.Logger;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.MapVariableResolver;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.common.stellar.StellarPredicateProcessor;
-import org.apache.metron.common.stellar.StellarProcessor;
-import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.MapVariableResolver;
+import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.stellar.common.StellarPredicateProcessor;
+import org.apache.metron.stellar.common.StellarProcessor;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.lookup.LookupKV;
 

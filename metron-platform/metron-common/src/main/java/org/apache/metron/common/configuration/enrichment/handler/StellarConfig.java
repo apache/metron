@@ -17,9 +17,8 @@
  */
 package org.apache.metron.common.configuration.enrichment.handler;
 
-import com.google.common.base.Joiner;
-import org.apache.metron.common.stellar.StellarAssignment;
-import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.metron.stellar.common.StellarAssignment;
+import org.apache.metron.stellar.common.StellarProcessor;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -21,8 +21,6 @@ import org.apache.log4j.Logger;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.StellarFunctions;
 
 import java.io.IOException;
 

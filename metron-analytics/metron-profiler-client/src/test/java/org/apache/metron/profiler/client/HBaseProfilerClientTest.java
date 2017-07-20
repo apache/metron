@@ -25,8 +25,8 @@ import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
-import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
-import org.apache.metron.profiler.stellar.StellarExecutor;
+import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
+import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.test.mock.MockHTable;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -58,15 +58,15 @@ public class HBaseProfilerClientTest {
   private static final int periodsPerHour = 4;
 
   private HBaseProfilerClient client;
+  private StellarStatefulExecutor executor;
   private MockHTable table;
-  private StellarExecutor executor;
   private ProfileWriter profileWriter;
 
   @Before
   public void setup() throws Exception {
 
     table = new MockHTable(tableName, columnFamily);
-    executor = new DefaultStellarExecutor();
+    executor = new DefaultStellarStatefulExecutor();
 
     // used to write values to be read during testing
     RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();

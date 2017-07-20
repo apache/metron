@@ -21,8 +21,8 @@ import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.stellar.shell.StellarExecutor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.common.shell.StellarExecutor;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,7 +34,7 @@ import java.util.Map;
 import static org.apache.metron.TestConstants.PARSER_CONFIGS_PATH;
 import static org.apache.metron.management.utils.FileUtils.slurp;
 import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
-import static org.apache.metron.common.utils.StellarProcessorUtils.run;
+import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 
 public class ParserConfigFunctionsTest {
 
@@ -64,7 +64,7 @@ public class ParserConfigFunctionsTest {
     sensorParserConfig.init();
     for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
       if (handler != null) {
-        handler.transformAndUpdate(ret, sensorParserConfig.getParserConfig(), context);
+        handler.transformAndUpdate(ret, context, sensorParserConfig.getParserConfig());
       }
     }
     return ret;

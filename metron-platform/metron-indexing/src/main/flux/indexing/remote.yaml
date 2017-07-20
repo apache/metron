@@ -18,9 +18,10 @@ name: "indexing"
 
 config:
     topology.workers: ${indexing.workers}
-    topology.acker.executors: ${indexing.executors}
+    topology.acker.executors: ${indexing.acker.executors}
     topology.worker.childopts: ${topology.worker.childopts}
     topology.auto-credentials: ${topology.auto-credentials}
+    topology.max.spout.pending: ${topology.max.spout.pending}
 
 components:
 
@@ -35,7 +36,7 @@ components:
                   - ".json"
             -   name: "withPath"
                 args:
-                    - "${index.hdfs.output}"
+                    - "${indexing.hdfs.output}"
 
     -   id: "hdfsRotationPolicy"
         className: "${bolt.hdfs.rotation.policy}"
@@ -66,7 +67,7 @@ components:
         configMethods:
             -   name: "withTopic"
                 args:
-                    - "${index.error.topic}"
+                    - "${indexing.error.topic}"
             -   name: "withZkQuorum"
                 args:
                     - "${kafka.zk}"
@@ -74,7 +75,7 @@ components:
                 args: [ref: "kafkaWriterProps"]
 
     -   id: "indexWriter"
-        className: "${writer.class.name}"
+        className: "${indexing.writer.class.name}"
 
 #kafka/zookeeper
 # Any kafka props for the producer go here.
@@ -111,13 +112,12 @@ components:
         constructorArgs:
             - ref: "kafkaProps"
             # topic name
-            - "${index.input.topic}"
+            - "${indexing.input.topic}"
             - "${kafka.zk}"
             - ref: "fields"
         configMethods:
             -   name: "setFirstPollOffsetStrategy"
                 args:
-                    # One of EARLIEST, LATEST, UNCOMMITTED_EARLIEST, UNCOMMITTED_LATEST
                     - "${kafka.start}"
 
 
@@ -126,6 +126,8 @@ spouts:
         className: "org.apache.metron.storm.kafka.flux.StormKafkaSpout"
         constructorArgs:
             - ref: "kafkaConfig"
+        parallelism: ${kafka.spout.parallelism}
+
 bolts:
 
 # Indexing Bolts
@@ -140,6 +142,7 @@ bolts:
             -   name: "withMessageGetter"
                 args:
                     - "DEFAULT_JSON_FROM_POSITION"
+        parallelism: ${indexing.writer.parallelism}
 
     -   id: "hdfsIndexingBolt"
         className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
@@ -152,6 +155,7 @@ bolts:
             -   name: "withMessageGetter"
                 args:
                     - "DEFAULT_JSON_FROM_POSITION"
+        parallelism: ${hdfs.writer.parallelism}
 
     -   id: "indexingErrorBolt"
         className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"

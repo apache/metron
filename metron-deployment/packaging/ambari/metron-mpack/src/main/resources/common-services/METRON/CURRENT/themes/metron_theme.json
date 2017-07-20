@@ -1,71 +1,830 @@
 {
   "configuration": {
-    "layouts": [{
-      "name": "default",
-      "tabs": [{
-        "name": "metron_general",
-        "display-name": "Index Settings",
-        "layout": {
-          "tab-columns": "1",
-          "tab-rows": "1",
-          "sections": [{
-            "name": "section-general",
-            "row-index": "0",
-            "column-index": "0",
-            "row-span": "1",
-            "column-span": "1",
-            "section-columns": "1",
-            "section-rows": "1",
-            "subsections": [{
-              "name": "subsection-general-indexing",
-              "row-index": "0",
-              "column-index": "0",
-              "row-span": "1",
-              "column-span": "1"
-            }]
-          }]
-        }
-      }]
-    }],
+    "layouts": [
+      {
+        "name": "default",
+        "tabs": [
+          {
+            "name": "index_settings",
+            "display-name": "Index Settings",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-index-settings",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-index-settings",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "parsers",
+            "display-name": "Parsers",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-parsers",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-parsers",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "enrichment",
+            "display-name": "Enrichment",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "4",
+              "sections": [
+                {
+                  "name": "section-enrichment-adapters",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-enrichment-adapters",
+                      "display-name": "Adapters",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-enrichment-kafka",
+                  "row-index": "1",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-enrichment-kafka",
+                      "display-name": "Kafka",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-enrichment-storm",
+                  "row-index": "2",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-enrichment-storm",
+                      "display-name": "Storm",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "indexing",
+            "display-name": "Indexing",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "3",
+              "sections": [
+                {
+                  "name": "section-indexing-kafka",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-indexing-kafka",
+                      "display-name": "Kafka",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-indexing-storm",
+                  "row-index": "1",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-indexing-storm",
+                      "display-name": "Storm",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-indexing-hdfs",
+                  "row-index": "2",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-indexing-hdfs",
+                      "display-name": "HDFS",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "rest",
+            "display-name": "REST",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-rest",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-rest",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "management-ui",
+            "display-name": "Management UI",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-management-ui",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-management-ui",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
     "placement": {
       "configuration-layout": "default",
-      "configs": [{
-        "config": "metron-env/metron_enrichment_db_port",
-        "subsection-name": "subsection-general-database"
-      }, {
-        "config": "metron-env/es_hosts",
-        "subsection-name": "subsection-general-indexing"
-      }, {
-        "config": "metron-env/es_binary_port",
-        "subsection-name": "subsection-general-indexing"
-      }, {
-        "config": "metron-env/es_http_port",
-        "subsection-name": "subsection-general-indexing"
-      }, {
-        "config": "metron-env/es_cluster_name",
-        "subsection-name": "subsection-general-indexing"
-      }]
+      "configs": [
+        {
+          "config": "metron-env/es_hosts",
+          "subsection-name": "subsection-index-settings"
+        },
+        {
+          "config": "metron-env/es_binary_port",
+          "subsection-name": "subsection-index-settings"
+        },
+        {
+          "config": "metron-env/es_http_port",
+          "subsection-name": "subsection-index-settings"
+        },
+        {
+          "config": "metron-env/es_cluster_name",
+          "subsection-name": "subsection-index-settings"
+        },
+        {
+          "config": "metron-env/es_date_format",
+          "subsection-name": "subsection-index-settings"
+        },
+        {
+          "config": "metron-parsers-env/parsers",
+          "subsection-name": "subsection-parsers"
+        },
+        {
+          "config": "metron-parsers-env/parser_error_topic",
+          "subsection-name": "subsection-parsers"
+        },
+        {
+          "config": "metron-enrichment-env/geoip_url",
+          "subsection-name": "subsection-enrichment-adapters"
+        },
+        {
+          "config": "metron-enrichment-env/enrichment_host_known_hosts",
+          "subsection-name": "subsection-enrichment-adapters"
+        },
+        {
+          "config": "metron-enrichment-env/enrichment_kafka_start",
+          "subsection-name": "subsection-enrichment-kafka"
+        },
+        {
+          "config": "metron-enrichment-env/enrichment_input_topic",
+          "subsection-name": "subsection-enrichment-kafka"
+        },
+        {
+          "config": "metron-enrichment-env/enrichment_output_topic",
+          "subsection-name": "subsection-enrichment-kafka"
+        },
+        {
+          "config": "metron-enrichment-env/enrichment_error_topic",
+          "subsection-name": "subsection-enrichment-kafka"
+        },
+        {
+          "config": "metron-enrichment-env/threatintel_error_topic",
+          "subsection-name": "subsection-enrichment-kafka"
+        },
+        {
+          "config": "metron-enrichment-env/enrichment_workers",
+          "subsection-name": "subsection-enrichment-storm"
+        },
+        {
+          "config": "metron-enrichment-env/enrichment_acker_executors",
+          "subsection-name": "subsection-enrichment-storm"
+        },
+        {
+          "config": "metron-enrichment-env/enrichment_topology_worker_childopts",
+          "subsection-name": "subsection-enrichment-storm"
+        },
+        {
+          "config": "metron-enrichment-env/enrichment_topology_max_spout_pending",
+          "subsection-name": "subsection-enrichment-storm"
+        },
+        {
+          "config": "metron-enrichment-env/enrichment_join_cache_size",
+          "subsection-name": "subsection-enrichment-storm"
+        },
+        {
+          "config": "metron-enrichment-env/threatintel_join_cache_size",
+          "subsection-name": "subsection-enrichment-storm"
+        },
+        {
+          "config": "metron-enrichment-env/enrichment_kafka_spout_parallelism",
+          "subsection-name": "subsection-enrichment-storm"
+        },
+        {
+          "config": "metron-enrichment-env/enrichment_split_parallelism",
+          "subsection-name": "subsection-enrichment-storm"
+        },
+        {
+          "config": "metron-enrichment-env/enrichment_stellar_parallelism",
+          "subsection-name": "subsection-enrichment-storm"
+        },
+        {
+          "config": "metron-enrichment-env/enrichment_join_parallelism",
+          "subsection-name": "subsection-enrichment-storm"
+        },
+        {
+          "config": "metron-enrichment-env/threat_intel_split_parallelism",
+          "subsection-name": "subsection-enrichment-storm"
+        },
+        {
+          "config": "metron-enrichment-env/threat_intel_stellar_parallelism",
+          "subsection-name": "subsection-enrichment-storm"
+        },
+        {
+          "config": "metron-enrichment-env/threat_intel_join_parallelism",
+          "subsection-name": "subsection-enrichment-storm"
+        },
+        {
+          "config": "metron-enrichment-env/kafka_writer_parallelism",
+          "subsection-name": "subsection-enrichment-storm"
+        },
+
+        {
+          "config": "metron-indexing-env/indexing_kafka_start",
+          "subsection-name": "subsection-indexing-kafka"
+        },
+        {
+          "config": "metron-indexing-env/indexing_input_topic",
+          "subsection-name": "subsection-indexing-kafka"
+        },
+        {
+          "config": "metron-indexing-env/indexing_error_topic",
+          "subsection-name": "subsection-indexing-kafka"
+        },
+        {
+          "config": "metron-indexing-env/indexing_writer_class_name",
+          "subsection-name": "subsection-indexing-storm"
+        },
+        {
+          "config": "metron-indexing-env/indexing_workers",
+          "subsection-name": "subsection-indexing-storm"
+        },
+        {
+          "config": "metron-indexing-env/indexing_acker_executors",
+          "subsection-name": "subsection-indexing-storm"
+        },
+        {
+          "config": "metron-indexing-env/indexing_topology_worker_childopts",
+          "subsection-name": "subsection-indexing-storm"
+        },
+        {
+          "config": "metron-indexing-env/indexing_topology_max_spout_pending",
+          "subsection-name": "subsection-indexing-storm"
+        },
+        {
+          "config": "metron-indexing-env/indexing_kafka_spout_parallelism",
+          "subsection-name": "subsection-indexing-storm"
+        },
+        {
+          "config": "metron-indexing-env/indexing_writer_parallelism",
+          "subsection-name": "subsection-indexing-storm"
+        },
+        {
+          "config": "metron-indexing-env/hdfs_writer_parallelism",
+          "subsection-name": "subsection-indexing-storm"
+        },
+        {
+          "config": "metron-indexing-env/metron_apps_indexed_hdfs_dir",
+          "subsection-name": "subsection-indexing-hdfs"
+        },
+        {
+          "config": "metron-indexing-env/bolt_hdfs_rotation_policy",
+          "subsection-name": "subsection-indexing-hdfs"
+        },
+        {
+          "config": "metron-indexing-env/bolt_hdfs_rotation_policy_units",
+          "subsection-name": "subsection-indexing-hdfs"
+        },
+        {
+          "config": "metron-indexing-env/bolt_hdfs_rotation_policy_count",
+          "subsection-name": "subsection-indexing-hdfs"
+        },
+
+        {
+          "config": "metron-rest-env/metron_rest_port",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-rest-env/metron_jdbc_url",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-rest-env/metron_jdbc_driver",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-rest-env/metron_jdbc_username",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-rest-env/metron_jdbc_password",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-rest-env/metron_jdbc_platform",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-rest-env/metron_jdbc_client_path",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-rest-env/metron_default_grok_path",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-rest-env/metron_temp_grok_path",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-rest-env/metron_spring_profiles_active",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-rest-env/metron_jvm_flags",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-rest-env/metron_spring_options",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-management-ui-env/metron_management_ui_port",
+          "subsection-name": "subsection-management-ui"
+        }
+      ]
     },
-    "widgets": [{
-      "config": "metron-env/es_hosts",
-      "widget": {
-        "type": "text-field"
+    "widgets": [
+      {
+        "config": "metron-env/es_hosts",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/es_binary_port",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/es_http_port",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/es_cluster_name",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/es_date_format",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-parsers-env/parsers",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-parsers-env/parser_error_topic",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+
+      {
+        "config": "metron-enrichment-env/geoip_url",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/enrichment_host_known_hosts",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/enrichment_kafka_start",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/enrichment_input_topic",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/enrichment_output_topic",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/enrichment_error_topic",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/threatintel_error_topic",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/enrichment_workers",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/enrichment_acker_executors",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/enrichment_topology_worker_childopts",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/enrichment_topology_max_spout_pending",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/enrichment_join_cache_size",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/threatintel_join_cache_size",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/enrichment_kafka_spout_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/enrichment_split_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/enrichment_stellar_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/enrichment_join_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/threat_intel_split_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/threat_intel_stellar_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/threat_intel_join_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-enrichment-env/kafka_writer_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+
+      {
+        "config": "metron-indexing-env/indexing_kafka_start",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "metron-indexing-env/indexing_input_topic",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/indexing_error_topic",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/indexing_writer_class_name",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/indexing_workers",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/indexing_acker_executors",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/indexing_topology_worker_childopts",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/indexing_topology_max_spout_pending",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/indexing_kafka_spout_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/indexing_writer_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/hdfs_writer_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/metron_apps_indexed_hdfs_dir",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/bolt_hdfs_rotation_policy",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/bolt_hdfs_rotation_policy_units",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "metron-indexing-env/bolt_hdfs_rotation_policy_count",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+
+
+      {
+        "config": "metron-rest-env/metron_rest_port",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-rest-env/metron_jdbc_url",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-rest-env/metron_jdbc_driver",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-rest-env/metron_jdbc_username",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-rest-env/metron_jdbc_password",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
+        "config": "metron-rest-env/metron_jdbc_platform",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-rest-env/metron_jdbc_client_path",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-rest-env/metron_default_grok_path",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-rest-env/metron_temp_grok_path",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-rest-env/metron_spring_profiles_active",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-rest-env/metron_jvm_flags",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-rest-env/metron_spring_options",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-management-ui-env/metron_management_ui_port",
+        "widget": {
+          "type": "text-field"
+        }
       }
-    }, {
-      "config": "metron-env/es_binary_port",
-      "widget": {
-        "type": "text-field"
-      }
-    }, {
-      "config": "metron-env/es_http_port",
-      "widget": {
-        "type": "text-field"
-      }
-    }, {
-      "config": "metron-env/es_cluster_name",
-      "widget": {
-        "type": "text-field"
-      }
-    }]
+    ]
   }
 }
