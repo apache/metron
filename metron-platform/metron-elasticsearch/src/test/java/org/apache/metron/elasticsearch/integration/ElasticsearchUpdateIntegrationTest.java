@@ -220,8 +220,9 @@ public class ElasticsearchUpdateIntegrationTest {
           Assert.fail("Elasticsearch is not updated!");
         }
       }
-
     }
   }
+
+
 
 }

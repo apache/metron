@@ -17,6 +17,7 @@
  */
 package org.apache.metron.elasticsearch.writer;
 
+import org.apache.metron.common.Constants;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
@@ -91,6 +92,11 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
               sensorType + "_doc");
 
       indexRequestBuilder = indexRequestBuilder.setSource(esDoc.toJSONString());
+      String guid = (String)esDoc.get(Constants.GUID);
+      if(guid != null) {
+        indexRequestBuilder.setId(guid);
+      }
+
       Object ts = esDoc.get("timestamp");
       if(ts != null) {
         indexRequestBuilder = indexRequestBuilder.setTimestamp(ts.toString());
