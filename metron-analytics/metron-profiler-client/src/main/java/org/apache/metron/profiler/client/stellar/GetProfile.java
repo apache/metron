@@ -22,6 +22,7 @@ package org.apache.metron.profiler.client.stellar;
 
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.metron.common.utils.ReflectionUtils;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.profiler.ProfilePeriod;
@@ -44,9 +45,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.apache.metron.profiler.client.stellar.ProfilerConfig.PROFILER_COLUMN_FAMILY;
-import static org.apache.metron.profiler.client.stellar.ProfilerConfig.PROFILER_HBASE_TABLE;
-import static org.apache.metron.profiler.client.stellar.ProfilerConfig.PROFILER_HBASE_TABLE_PROVIDER;
+import static org.apache.metron.profiler.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
+import static org.apache.metron.profiler.ProfilerClientConfig.PROFILER_HBASE_TABLE;
+import static org.apache.metron.profiler.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
+import static org.apache.metron.profiler.ProfilerClientConfig.PROFILER_ROW_KEY_BUILDER;
 import static org.apache.metron.profiler.client.stellar.Util.getArg;
 import static org.apache.metron.profiler.client.stellar.Util.getEffectiveConfig;
 
@@ -211,7 +213,14 @@ public class GetProfile implements StellarFunction {
    * @param global The global configuration.
    */
   private RowKeyBuilder getRowKeyBuilder(Map<String, Object> global) {
-    return RowKeyBuilderFactory.create(global);
+    String rowKeyBuilderClass = PROFILER_ROW_KEY_BUILDER.get(global, String.class);
+    LOG.debug("profiler client: {}={}", PROFILER_ROW_KEY_BUILDER, rowKeyBuilderClass);
+
+    // instantiate the RowKeyBuilder
+    RowKeyBuilder builder = ReflectionUtils.createInstance(rowKeyBuilderClass);
+    builder.configure(global);
+
+    return builder;
   }
 
   /**

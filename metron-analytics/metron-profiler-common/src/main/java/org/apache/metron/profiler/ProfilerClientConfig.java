@@ -18,14 +18,15 @@
  *
  */
 
-package org.apache.metron.profiler.client.stellar;
+package org.apache.metron.profiler;
 
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.hbase.HTableProvider;
 
 import java.util.Map;
 
-public enum ProfilerConfig {
+public enum ProfilerClientConfig {
+
   /**
    * A global property that defines the name of the HBase table used to store profile data.
    */
@@ -67,7 +68,7 @@ public enum ProfilerConfig {
   Object defaultValue;
   Class<?> valueType;
 
-  ProfilerConfig(String key, Object defaultValue, Class<?> valueType) {
+  ProfilerClientConfig(String key, Object defaultValue, Class<?> valueType) {
     this.key = key;
     this.defaultValue = defaultValue;
     this.valueType = valueType;
@@ -100,6 +101,10 @@ public enum ProfilerConfig {
   public <T> T getOrDefault(Map<String, Object> profilerConfig, Object defaultValue, Class<T> clazz) {
     Object o = profilerConfig.getOrDefault(key, defaultValue);
     return o == null?null:ConversionUtils.convert(o, clazz);
+  }
+
+  public Class<?> getValueType() {
+    return valueType;
   }
 
   @Override

@@ -25,6 +25,7 @@ import org.apache.metron.profiler.ProfilePeriod;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Builds a row key that can be used to read or write ProfileMeasurement data
@@ -79,4 +80,10 @@ public interface RowKeyBuilder extends Serializable {
    * @return All of the row keys necessary to retrieve the profile measurements.
    */
   List<byte[]> encode(String profile, String entity, List<Object> groups, Iterable<ProfilePeriod> periods);
+
+  /**
+   * Configure the RowKeyBuilder with a set of properties.
+   * @param properties The properties to configure.
+   */
+  void configure(Map<String, Object> properties);
 }

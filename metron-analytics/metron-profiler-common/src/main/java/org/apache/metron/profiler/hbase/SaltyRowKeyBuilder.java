@@ -30,8 +30,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+
+import static org.apache.metron.profiler.ProfilerClientConfig.PROFILER_PERIOD;
+import static org.apache.metron.profiler.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
+import static org.apache.metron.profiler.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
 
 /**
  * Responsible for building the row keys used to store profile data in HBase. This builder uses a salt to
@@ -72,8 +77,9 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
   private long periodDurationMillis;
 
   public SaltyRowKeyBuilder() {
-    this.saltDivisor = 1000;
-    this.periodDurationMillis = TimeUnit.MINUTES.toMillis(15);
+    this(PROFILER_SALT_DIVISOR.getDefault(Integer.class),
+            PROFILER_PERIOD.getDefault(Long.class),
+            TimeUnit.valueOf(PROFILER_PERIOD_UNITS.getDefault(String.class)));
   }
 
   public SaltyRowKeyBuilder(int saltDivisor, long duration, TimeUnit units) {
@@ -260,6 +266,19 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
     } catch(NoSuchAlgorithmException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public void configure(Map<String, Object> properties) {
+
+    // configure the period - uses default if not defined
+    long duration = PROFILER_PERIOD.get(properties, Long.class);
+    String units = PROFILER_PERIOD_UNITS.get(properties, String.class);
+    setPeriodDuration(duration, TimeUnit.valueOf(units));
+
+    // configure the salt divisor - uses default if not defined
+    int saltDivisor = PROFILER_SALT_DIVISOR.get(properties, Integer.class);
+    setSaltDivisor(saltDivisor);
   }
 
   public void setPeriodDuration(long duration, TimeUnit units) {
