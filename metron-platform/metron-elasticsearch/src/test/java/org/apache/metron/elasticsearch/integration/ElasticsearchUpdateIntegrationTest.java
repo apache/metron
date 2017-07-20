@@ -18,6 +18,7 @@
 package org.apache.metron.elasticsearch.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -29,10 +30,11 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.hbase.mock.MockProvider;
 import org.apache.metron.indexing.dao.*;
-import org.apache.metron.test.mock.MockHTable;
-import org.apache.metron.indexing.mutation.Mutation;
-import org.apache.metron.indexing.mutation.MutationOperation;
+import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -42,11 +44,8 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-public class ElasticsearchMutationIntegrationTest {
+public class ElasticsearchUpdateIntegrationTest {
   private static final int MAX_RETRIES = 10;
   private static final int SLEEP_MS = 500;
   private static final String SENSOR_NAME= "test";
@@ -59,13 +58,12 @@ public class ElasticsearchMutationIntegrationTest {
   private static IndexDao esDao;
   private static IndexDao hbaseDao;
   private static MultiIndexDao dao;
-  private static WriterConfiguration configurations;
   private static ElasticSearchComponent es;
 
   @BeforeClass
   public static void setup() throws Exception {
     Configuration config = HBaseConfiguration.create();
-    MockHTable.Provider tableProvider = new MockHTable.Provider();
+    MockProvider tableProvider = new MockProvider();
     tableProvider.addToCache(TABLE_NAME, CF);
     table = (MockHTable)tableProvider.getTable(config, TABLE_NAME);
     // setup the client
@@ -79,21 +77,20 @@ public class ElasticsearchMutationIntegrationTest {
     AccessConfig accessConfig = new AccessConfig();
     accessConfig.setColumnFamily(CF);
     accessConfig.setTable(TABLE_NAME);
-    accessConfig.setTableProvider((TableProvider) (config1, tableName) -> table);
+    accessConfig.setTableProvider(tableProvider);
     Map<String, Object> globalConfig = new HashMap<String, Object>() {{
       put("es.clustername", "metron");
       put("es.port", "9300");
       put("es.ip", "localhost");
       put("es.date.format", dateFormat);
     }};
+    accessConfig.setGlobalConfigSupplier(() -> globalConfig);
 
     esDao = new ElasticsearchDao();
 
     dao = new MultiIndexDao(hbaseDao, esDao);
-    dao.init(globalConfig, accessConfig);
-    configurations = mock(WriterConfiguration.class);
-    when(configurations.getIndex(any())).thenReturn(SENSOR_NAME);
-    when(configurations.getGlobalConfig()).thenReturn(globalConfig);
+    dao.init(accessConfig);
+
   }
 
   @AfterClass
@@ -143,20 +140,25 @@ public class ElasticsearchMutationIntegrationTest {
       Map<String, Object> message0 = new HashMap<String, Object>(inputData.get(0)) {{
         put("new-field", "metron");
       }};
-      String message0Json = JSONUtils.INSTANCE.toJSON(message0, true);
       String uuid = "" + message0.get(Constants.GUID);
-      Mutation mutation = Mutation.of(MutationOperation.REPLACE, message0Json);
-      dao.update(uuid, SENSOR_NAME, mutation, Optional.empty(), configurations);
+      dao.replace(new ReplaceRequest(){{
+        setReplacement(message0);
+        setUuid(uuid);
+        setSensorType(SENSOR_NAME);
+      }}, Optional.empty());
       Assert.assertEquals(1, table.size());
       Document doc = dao.getLatest(uuid, SENSOR_NAME);
-      Assert.assertEquals(message0Json, doc.getDocument());
+      Assert.assertEquals(message0, doc.getDocument());
       {
         //ensure hbase is up to date
         Get g = new Get(uuid.getBytes());
         Result r = table.get(g);
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
         Assert.assertEquals(1, columns.size());
-        Assert.assertEquals(message0Json, new String(columns.lastEntry().getValue()));
+        Assert.assertEquals(message0
+                , JSONUtils.INSTANCE.load(new String(columns.lastEntry().getValue())
+                        , new TypeReference<Map<String, Object>>() {})
+        );
       }
       {
         //ensure ES is up-to-date
@@ -180,21 +182,27 @@ public class ElasticsearchMutationIntegrationTest {
       Map<String, Object> message0 = new HashMap<String, Object>(inputData.get(0)) {{
         put("new-field", "metron2");
       }};
-      String message0Json = JSONUtils.INSTANCE.toJSON(message0, true);
       String uuid = "" + message0.get(Constants.GUID);
-      Mutation mutation = Mutation.of(MutationOperation.REPLACE, message0Json);
-      dao.update(uuid, SENSOR_NAME, mutation, Optional.empty(), configurations);
+      dao.replace(new ReplaceRequest(){{
+        setReplacement(message0);
+        setUuid(uuid);
+        setSensorType(SENSOR_NAME);
+      }}, Optional.empty());
       Assert.assertEquals(1, table.size());
       Document doc = dao.getLatest(uuid, SENSOR_NAME);
-      Assert.assertEquals(message0Json, doc.getDocument());
+      Assert.assertEquals(message0, doc.getDocument());
       {
         //ensure hbase is up to date
         Get g = new Get(uuid.getBytes());
         Result r = table.get(g);
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
         Assert.assertEquals(2, columns.size());
-        Assert.assertEquals(message0Json, new String(columns.lastEntry().getValue()));
-        Assert.assertNotEquals(message0Json, new String(columns.firstEntry().getValue()));
+        Assert.assertEquals(message0, JSONUtils.INSTANCE.load(new String(columns.lastEntry().getValue())
+                        , new TypeReference<Map<String, Object>>() {})
+        );
+        Assert.assertNotEquals(message0, JSONUtils.INSTANCE.load(new String(columns.firstEntry().getValue())
+                        , new TypeReference<Map<String, Object>>() {})
+        );
       }
       {
         //ensure ES is up-to-date

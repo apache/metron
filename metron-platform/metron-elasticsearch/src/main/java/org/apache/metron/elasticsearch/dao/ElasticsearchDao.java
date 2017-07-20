@@ -21,14 +21,14 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
-import org.apache.metron.indexing.dao.Document;
+import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.*;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.apache.metron.indexing.dao.search.SortOrder;
 import org.elasticsearch.action.search.*;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
@@ -36,11 +36,9 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.*;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
-import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.search.SearchHits;
 import java.io.IOException;
 import java.util.Arrays;
@@ -100,9 +98,9 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
-  public synchronized void init(Map<String, Object> globalConfig, AccessConfig config) {
+  public synchronized void init(AccessConfig config) {
     if(this.client == null) {
-      this.client = ElasticsearchUtils.getClient(globalConfig, config.getOptionalSettings());
+      this.client = ElasticsearchUtils.getClient(config.getGlobalConfigSupplier().get(), config.getOptionalSettings());
       this.accessConfig = config;
     }
   }
@@ -136,14 +134,14 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
-  public void update(Document update, WriterConfiguration configurations) throws IOException {
-    String indexPostfix = ElasticsearchUtils.getIndexFormat(configurations).format(new Date());
+  public void update(Document update) throws IOException {
+    String indexPostfix = ElasticsearchUtils.getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
     String sensorType = update.getSensorType();
-    String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, configurations);
+    String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, null);
     IndexRequestBuilder indexRequestBuilder = client.prepareIndex(indexName,
             sensorType + "_doc");
 
-    indexRequestBuilder = indexRequestBuilder.setSource(update.getDocument());
+    indexRequestBuilder = indexRequestBuilder.setSource(new String(JSONUtils.INSTANCE.toJSON(update.getDocument())));
     Object ts = update.getTimestamp();
     if(ts != null) {
       indexRequestBuilder = indexRequestBuilder.setTimestamp(ts.toString());

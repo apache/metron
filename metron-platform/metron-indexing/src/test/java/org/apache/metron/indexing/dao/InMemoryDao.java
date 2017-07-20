@@ -25,6 +25,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.*;
+import org.apache.metron.indexing.dao.update.Document;
 
 import java.io.IOException;
 import java.util.*;
@@ -129,7 +130,7 @@ public class InMemoryDao implements IndexDao {
   }
 
   @Override
-  public void init(Map<String, Object> globalConfig, AccessConfig config) {
+  public void init(AccessConfig config) {
     this.config = config;
   }
 
@@ -149,7 +150,7 @@ public class InMemoryDao implements IndexDao {
   }
 
   @Override
-  public void update(Document update, WriterConfiguration configurations) throws IOException {
+  public void update(Document update) throws IOException {
     for(Map.Entry<String, List<String>> kv: BACKING_STORE.entrySet()) {
       if (kv.getKey().startsWith(update.getSensorType())) {
         for(Iterator<String> it = kv.getValue().iterator();it.hasNext();) {
@@ -159,7 +160,7 @@ public class InMemoryDao implements IndexDao {
             it.remove();
           }
         }
-        kv.getValue().add(update.getDocument());
+        kv.getValue().add(JSONUtils.INSTANCE.toJSON(update.getDocument(), true));
       }
     }
   }

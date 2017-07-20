@@ -18,20 +18,26 @@
 package org.apache.metron.rest.service.impl;
 
 import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.util.Map;
+import java.util.Optional;
+
 @Service
-public class IndexDaoSearchServiceImpl implements SearchService {
+public class SearchServiceImpl implements SearchService {
   private IndexDao dao;
 
   @Autowired
-  public IndexDaoSearchServiceImpl(IndexDao dao) {
+  public SearchServiceImpl(IndexDao dao) {
     this.dao = dao;
   }
 
@@ -42,6 +48,15 @@ public class IndexDaoSearchServiceImpl implements SearchService {
     }
     catch(InvalidSearchException ise) {
       throw new RestException(ise.getMessage(), ise);
+    }
+  }
+
+  @Override
+  public Optional<Map<String, Object>> getLatest(GetRequest request) throws RestException {
+    try {
+      return dao.getLatestResult(request);
+    } catch (IOException e) {
+      throw new RestException(e.getMessage(), e);
     }
   }
 }

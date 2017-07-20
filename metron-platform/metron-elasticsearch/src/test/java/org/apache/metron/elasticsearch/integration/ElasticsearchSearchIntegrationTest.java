@@ -22,7 +22,7 @@ import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
-import org.apache.metron.indexing.dao.IndexingDaoIntegrationTest;
+import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.integration.InMemoryComponent;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -31,13 +31,11 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Before;
-import org.junit.BeforeClass;
 
 import java.io.File;
 import java.util.HashMap;
 
-public class ElasticsearchDaoIntegrationTest extends IndexingDaoIntegrationTest {
+public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   private static String indexDir = "target/elasticsearch_search";
   private static String dateFormat = "yyyy.MM.dd.HH";
 
@@ -46,14 +44,16 @@ public class ElasticsearchDaoIntegrationTest extends IndexingDaoIntegrationTest 
   protected IndexDao createDao() throws Exception {
     IndexDao ret = new ElasticsearchDao();
     ret.init(
-            new HashMap<String, Object>() {{
-              put("es.clustername", "metron");
-              put("es.port", "9300");
-              put("es.ip", "localhost");
-              put("es.date.format", dateFormat);
-            }},
             new AccessConfig() {{
               setMaxSearchResults(100);
+              setGlobalConfigSupplier( () ->
+                new HashMap<String, Object>() {{
+                  put("es.clustername", "metron");
+                  put("es.port", "9300");
+                  put("es.ip", "localhost");
+                  put("es.date.format", dateFormat);
+                  }}
+              );
             }}
     );
     return ret;

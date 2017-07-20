@@ -15,18 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.indexing.mutation.mutators;
+package org.apache.metron.indexing.dao.update;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.apache.metron.indexing.mutation.MutationException;
-import org.apache.metron.indexing.mutation.Mutator;
+public class OriginalNotFoundException extends Exception {
+  public OriginalNotFoundException(String s) {
+    super(s);
+  }
 
-import java.util.function.Supplier;
-
-public class Replace implements Mutator {
-
-  @Override
-  public String mutate(Supplier<JsonNode> original, String arg) throws MutationException {
-    return arg;
+  public OriginalNotFoundException(String s, Exception e) {
+    super(s, e);
   }
 }

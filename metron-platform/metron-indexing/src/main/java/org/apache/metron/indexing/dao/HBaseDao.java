@@ -25,9 +25,11 @@ import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.update.Document;
 
 import java.io.IOException;
 import java.util.Map;
@@ -47,7 +49,7 @@ public class HBaseDao implements IndexDao {
   }
 
   @Override
-  public synchronized void init(Map<String, Object> globalConfig, AccessConfig config) {
+  public synchronized void init(AccessConfig config) {
     if(tableInterface == null) {
       try {
         tableInterface = config.getTableProvider().getTable(HBaseConfiguration.create(), config.getTable());
@@ -79,11 +81,12 @@ public class HBaseDao implements IndexDao {
   }
 
   @Override
-  public void update(Document update, WriterConfiguration configurations) throws IOException {
+  public void update(Document update) throws IOException {
     Put put = new Put(update.getUuid().getBytes());
     long ts = update.getTimestamp() == null?System.currentTimeMillis():update.getTimestamp();
     byte[] columnQualifier = Bytes.toBytes(ts);
-    put.addColumn(cf, columnQualifier, Bytes.toBytes(update.getDocument()));
+    byte[] doc = JSONUtils.INSTANCE.toJSON(update.getDocument());
+    put.addColumn(cf, columnQualifier, doc);
     tableInterface.put(put);
   }
 }

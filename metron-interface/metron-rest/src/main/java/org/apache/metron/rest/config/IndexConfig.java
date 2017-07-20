@@ -62,6 +62,13 @@ public class IndexConfig {
       config.setMaxSearchResults(searchMaxResults);
       config.setTable(hbaseTable);
       config.setColumnFamily(hbaseCf);
+      config.setGlobalConfigSupplier(() -> {
+        try {
+          return globalConfigService.get();
+        } catch (RestException e) {
+          throw new IllegalStateException("Unable to retrieve the global config.", e);
+        }
+      });
       config.setTableProvider(TableProvider.create(hbaseProviderImpl, () -> new HTableProvider()));
       if (indexDaoImpl == null) {
         throw new IllegalStateException("You must provide an index DAO implementation via the " + INDEX_DAO_IMPL + " config");

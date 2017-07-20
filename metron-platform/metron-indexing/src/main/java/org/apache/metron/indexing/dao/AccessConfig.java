@@ -22,13 +22,23 @@ import org.apache.metron.hbase.TableProvider;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class AccessConfig {
   private Integer maxSearchResults;
+  private Supplier<Map<String, Object>> globalConfigSupplier;
   private Map<String, String> optionalSettings = new HashMap<>();
   private TableProvider tableProvider = null;
   private String columnFamily;
   private String table;
+
+  public Supplier<Map<String, Object>> getGlobalConfigSupplier() {
+    return globalConfigSupplier;
+  }
+
+  public void setGlobalConfigSupplier(Supplier<Map<String, Object>> globalConfigSupplier) {
+    this.globalConfigSupplier = globalConfigSupplier;
+  }
 
   public Integer getMaxSearchResults() {
     return maxSearchResults;

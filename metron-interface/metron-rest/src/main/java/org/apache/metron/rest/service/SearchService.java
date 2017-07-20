@@ -17,12 +17,17 @@
  */
 package org.apache.metron.rest.service;
 
+import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 
+import java.util.Map;
+import java.util.Optional;
+
 public interface SearchService {
 
   SearchResponse search(SearchRequest searchRequest) throws RestException;
-
+  Optional<Map<String, Object>> getLatest(GetRequest request) throws RestException;
 }

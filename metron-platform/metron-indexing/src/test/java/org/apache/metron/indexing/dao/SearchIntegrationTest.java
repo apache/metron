@@ -29,7 +29,7 @@ import org.junit.*;
 
 import java.util.List;
 
-public abstract class IndexingDaoIntegrationTest {
+public abstract class SearchIntegrationTest {
   /**
    * [
    * {"source:type": "bro", "ip_src_addr":"192.168.1.1", "ip_src_port": 8010, "timestamp":1, "rejected":true},

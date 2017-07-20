@@ -18,6 +18,8 @@
 
 package org.apache.metron.indexing.dao;
 
+import org.apache.metron.indexing.dao.update.Document;
+
 import java.io.IOException;
 
 public interface IndexUpdateCallback {

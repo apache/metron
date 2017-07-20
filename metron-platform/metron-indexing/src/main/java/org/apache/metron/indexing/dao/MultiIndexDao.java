@@ -25,6 +25,7 @@ import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.update.Document;
 
 import java.io.IOException;
 import java.util.*;
@@ -51,11 +52,11 @@ public class MultiIndexDao implements IndexDao {
   }
 
   @Override
-  public void update(final Document update, WriterConfiguration configurations) throws IOException {
+  public void update(final Document update) throws IOException {
     List<String> exceptions =
     indices.parallelStream().map(dao -> {
       try {
-        dao.update(update, configurations);
+        dao.update(update);
         return null;
       } catch (Throwable e) {
         return dao.getClass() + ": " + e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e);
@@ -97,9 +98,9 @@ public class MultiIndexDao implements IndexDao {
   }
 
   @Override
-  public void init(Map<String, Object> globalConfig, AccessConfig config) {
+  public void init(AccessConfig config) {
     for(IndexDao dao : indices) {
-      dao.init(globalConfig, config);
+      dao.init(config);
     }
   }
 

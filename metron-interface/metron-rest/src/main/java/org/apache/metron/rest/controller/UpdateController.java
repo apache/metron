@@ -20,12 +20,11 @@ package org.apache.metron.rest.controller;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
-import org.apache.metron.indexing.dao.search.GetRequest;
-import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
+import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.apache.metron.rest.RestException;
-import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.apache.metron.rest.service.SearchService;
+import org.apache.metron.rest.service.UpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,39 +33,38 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-import java.util.Optional;
-
 @RestController
-@RequestMapping("/api/v1/search")
-public class SearchController {
+@RequestMapping("/api/v1/update")
+public class UpdateController {
 
   @Autowired
-  private SearchService searchService;
+  private UpdateService service;
 
-  @ApiOperation(value = "Searches the indexing store")
-  @ApiResponse(message = "Search results", code = 200)
-  @RequestMapping(value = "/search", method = RequestMethod.POST)
-  ResponseEntity<SearchResponse> search(final @ApiParam(name = "searchRequest", value = "Search request", required = true) @RequestBody SearchRequest searchRequest) throws RestException {
-    return new ResponseEntity<>(searchService.search(searchRequest), HttpStatus.OK);
-  }
-
-  @ApiOperation(value = "Returns latest document for a uuid and sensor")
-  @ApiResponse(message = "Document representing the output", code = 200)
-  @RequestMapping(value = "/findOne", method = RequestMethod.POST)
-  ResponseEntity<Map<String, Object>> getLatest(
-          final @ApiParam(name = "getRequest", value = "Get Request", required = true)
+  @ApiOperation(value = "Update a document with a patch")
+  @ApiResponse(message = "Nothing", code = 200)
+  @RequestMapping(value = "/patch", method = RequestMethod.PATCH)
+  ResponseEntity<Void> patch(
+          final @ApiParam(name = "request", value = "Patch request", required = true)
                 @RequestBody
-          GetRequest request
-  ) throws RestException
-  {
-    Optional<Map<String, Object>> latest = searchService.getLatest(request);
-    if(latest.isPresent()) {
-      return new ResponseEntity<>(latest.get(), HttpStatus.OK);
-    }
-    else {
+          PatchRequest request
+  ) throws RestException {
+    try {
+      service.patch(request);
+    } catch (OriginalNotFoundException e) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
+    return new ResponseEntity<>(HttpStatus.OK);
   }
 
+  @ApiOperation(value = "Update a document with a patch")
+  @ApiResponse(message = "Nothing", code = 200)
+  @RequestMapping(value = "/replace", method = RequestMethod.POST)
+  ResponseEntity<Void> replace(
+          final @ApiParam(name = "request", value = "Replacement request", required = true)
+                @RequestBody
+          ReplaceRequest request
+  ) throws RestException {
+    service.replace(request);
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
 }

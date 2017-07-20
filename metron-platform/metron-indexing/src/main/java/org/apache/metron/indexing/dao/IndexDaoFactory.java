@@ -36,7 +36,7 @@ public class IndexDaoFactory {
     for(String daoImpl : Splitter.on(",").split(daoImpls)) {
       Class<? extends IndexDao> clazz = (Class<? extends IndexDao>) Class.forName(daoImpl);
       IndexDao instance = clazz.getConstructor().newInstance();
-      instance.init(globalConfig, config);
+      instance.init(config);
       ret.add(instance);
     }
     return ret;

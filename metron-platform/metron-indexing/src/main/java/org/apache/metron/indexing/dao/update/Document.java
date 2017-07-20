@@ -16,23 +16,41 @@
  * limitations under the License.
  */
 
-package org.apache.metron.indexing.dao;
+package org.apache.metron.indexing.dao.update;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.metron.common.utils.JSONUtils;
+
+import java.io.IOException;
+import java.util.Map;
 
 public class Document {
   Long timestamp;
-  String document;
+  Map<String, Object> document;
   String uuid;
   String sensorType;
 
-  public Document(String document, String uuid, String sensorType, Long timestamp) {
+  public Document(Map<String, Object> document, String uuid, String sensorType, Long timestamp) {
     setDocument(document);
     setUuid(uuid);
     setTimestamp(timestamp);
     setSensorType(sensorType);
   }
 
-  public Document(String document, String uuid, String sensorType) {
+
+  public Document(String document, String uuid, String sensorType, Long timestamp) throws IOException {
+    this(convertDoc(document), uuid, sensorType, timestamp);
+  }
+
+  public Document(String document, String uuid, String sensorType) throws IOException {
     this( document, uuid, sensorType, null);
+  }
+
+  private static Map<String, Object> convertDoc(String document) throws IOException {
+      return JSONUtils.INSTANCE.load(document, new TypeReference<Map<String, Object>>() {
+      });
   }
 
   public String getSensorType() {
@@ -51,11 +69,11 @@ public class Document {
     this.timestamp = timestamp != null?timestamp:System.currentTimeMillis();
   }
 
-  public String getDocument() {
+  public Map<String, Object> getDocument() {
     return document;
   }
 
-  public void setDocument(String document) {
+  public void setDocument(Map<String, Object> document) {
     this.document = document;
   }
 
