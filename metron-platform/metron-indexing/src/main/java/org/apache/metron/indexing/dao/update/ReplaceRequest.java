@@ -25,6 +25,15 @@ public class ReplaceRequest {
   Map<String, Object> replacement;
   String uuid;
   String sensorType;
+  String index;
+
+  public String getIndex() {
+    return index;
+  }
+
+  public void setIndex(String index) {
+    this.index = index;
+  }
 
   public String getSensorType() {
     return sensorType;

@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface IndexDao {
+
   SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException;
   void init(AccessConfig config);
   Document getLatest(String uuid, String sensorType) throws IOException;
@@ -49,7 +50,7 @@ public interface IndexDao {
     }
   }
 
-  void update(Document update) throws IOException;
+  void update(Document update, Optional<String> index) throws IOException;
 
 
   default void patch( PatchRequest request
@@ -69,12 +70,12 @@ public interface IndexDao {
     JsonNode patched = JsonPatch.apply(request.getPatch(), originalNode);
     Map<String, Object> updated = JSONUtils.INSTANCE.getMapper()
                                            .convertValue(patched, new TypeReference<Map<String, Object>>() {});
-    Document d = new Document(updated
+    Document d = new Document( updated
                              , request.getUuid()
                              , request.getSensorType()
                              , timestamp.orElse(System.currentTimeMillis())
                              );
-    update(d);
+    update(d, Optional.ofNullable(request.getIndex()));
   }
 
   default void replace( ReplaceRequest request
@@ -85,7 +86,7 @@ public interface IndexDao {
                              , request.getSensorType()
                              , timestamp.orElse(System.currentTimeMillis())
                              );
-    update(d);
+    update(d, Optional.ofNullable(request.getIndex()));
   }
 
 }

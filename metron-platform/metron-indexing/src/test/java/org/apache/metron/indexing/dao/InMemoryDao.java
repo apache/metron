@@ -150,7 +150,7 @@ public class InMemoryDao implements IndexDao {
   }
 
   @Override
-  public void update(Document update) throws IOException {
+  public void update(Document update, Optional<String> index) throws IOException {
     for(Map.Entry<String, List<String>> kv: BACKING_STORE.entrySet()) {
       if (kv.getKey().startsWith(update.getSensorType())) {
         for(Iterator<String> it = kv.getValue().iterator();it.hasNext();) {

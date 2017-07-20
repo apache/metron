@@ -34,6 +34,7 @@ import org.apache.metron.indexing.dao.update.Document;
 import java.io.IOException;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Optional;
 
 public class HBaseDao implements IndexDao {
   private HTableInterface tableInterface;
@@ -81,7 +82,7 @@ public class HBaseDao implements IndexDao {
   }
 
   @Override
-  public void update(Document update) throws IOException {
+  public void update(Document update, Optional<String> index) throws IOException {
     Put put = new Put(update.getUuid().getBytes());
     long ts = update.getTimestamp() == null?System.currentTimeMillis():update.getTimestamp();
     byte[] columnQualifier = Bytes.toBytes(ts);

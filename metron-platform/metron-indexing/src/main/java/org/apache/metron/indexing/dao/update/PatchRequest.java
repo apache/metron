@@ -26,6 +26,15 @@ public class PatchRequest {
   Map<String, Object> source;
   String uuid;
   String sensorType;
+  String index;
+
+  public String getIndex() {
+    return index;
+  }
+
+  public void setIndex(String index) {
+    this.index = index;
+  }
 
   public JsonNode getPatch() {
     return patch;

@@ -29,7 +29,12 @@ import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.*;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.elasticsearch.action.get.GetRequestBuilder;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.*;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -44,6 +49,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ElasticsearchDao implements IndexDao {
@@ -92,6 +100,7 @@ public class ElasticsearchDao implements IndexDao {
       searchResult.setId(searchHit.getId());
       searchResult.setSource(searchHit.getSource());
       searchResult.setScore(searchHit.getScore());
+      searchResult.setId(searchHit.getIndex());
       return searchResult;
     }).collect(Collectors.toList()));
     return searchResponse;
@@ -106,7 +115,25 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
-  public Document getLatest(String uuid, String sensorType) throws IOException {
+  public Document getLatest(final String uuid, final String sensorType) throws IOException {
+    Optional<Document> ret = searchByUuid(
+            uuid
+            , sensorType
+            , hit -> {
+              Long ts = 0L;
+              String doc = hit.getSourceAsString();
+              String sourceType = Iterables.getFirst(Splitter.on("_doc").split(hit.getType()), null);
+              try {
+                return Optional.of(new Document(doc, uuid, sourceType, ts));
+              } catch (IOException e) {
+                throw new IllegalStateException("Unable to retrieve latest: " + e.getMessage(), e);
+              }
+            }
+            );
+    return ret.orElse(null);
+  }
+
+  <T> Optional<T> searchByUuid(String uuid, String sensorType, Function<SearchHit, Optional<T>> callback) throws IOException{
     QueryBuilder query =  QueryBuilders.matchQuery(Constants.GUID, uuid);
     SearchRequestBuilder request = client.prepareSearch()
                                          .setTypes(sensorType + "_doc")
@@ -123,33 +150,46 @@ public class ElasticsearchDao implements IndexDao {
       org.elasticsearch.action.search.SearchResponse resp = i.getResponse();
       SearchHits hits = resp.getHits();
       for(SearchHit hit : hits) {
-        Long ts = 0L;
-        String doc = hit.getSourceAsString();
-        String sourceType = Iterables.getFirst(Splitter.on("_doc").split(hit.getType()), null);
-        Document d = new Document(doc, uuid, sourceType, ts);
-        return d;
+        Optional<T> ret = callback.apply(hit);
+        if(ret.isPresent()) {
+          return ret;
+        }
       }
     }
-    return null;
+    return Optional.empty();
+
   }
 
   @Override
-  public void update(Document update) throws IOException {
+  public void update(Document update, Optional<String> index) throws IOException {
     String indexPostfix = ElasticsearchUtils.getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
     String sensorType = update.getSensorType();
     String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, null);
-    IndexRequestBuilder indexRequestBuilder = client.prepareIndex(indexName,
-            sensorType + "_doc");
 
-    indexRequestBuilder = indexRequestBuilder.setSource(new String(JSONUtils.INSTANCE.toJSON(update.getDocument())));
+    String type = sensorType + "_doc";
+    byte[] source = JSONUtils.INSTANCE.toJSON(update.getDocument());
     Object ts = update.getTimestamp();
+    IndexRequest indexRequest = new IndexRequest(indexName, type, update.getUuid())
+            .source(source)
+            ;
     if(ts != null) {
-      indexRequestBuilder = indexRequestBuilder.setTimestamp(ts.toString());
+      indexRequest = indexRequest.timestamp(ts.toString());
     }
+    String existingIndex = index.orElse(
+            searchByUuid(update.getUuid()
+                        , sensorType
+                        , hit -> Optional.ofNullable(hit.getIndex())
+                        ).orElse(indexName)
+                                       );
+    UpdateRequest updateRequest = new UpdateRequest(existingIndex, type, update.getUuid())
+            .doc(source)
+            .upsert(indexRequest)
+            ;
 
-    BulkResponse bulkResponse = client.prepareBulk().add(indexRequestBuilder).execute().actionGet();
-    if(bulkResponse.hasFailures()) {
-      throw new IOException(bulkResponse.buildFailureMessage());
+    try {
+      client.update(updateRequest).get();
+    } catch (Exception e) {
+      throw new IOException(e.getMessage(), e);
     }
   }
 

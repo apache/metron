@@ -24,6 +24,15 @@ public class SearchResult {
   private String id;
   private Map<String, Object> source;
   private float score;
+  private String index;
+
+  public String getIndex() {
+    return index;
+  }
+
+  public void setIndex(String index) {
+    this.index = index;
+  }
 
   public String getId() {
     return id;

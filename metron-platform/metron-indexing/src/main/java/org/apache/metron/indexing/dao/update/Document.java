@@ -25,6 +25,7 @@ import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 
 public class Document {
   Long timestamp;
