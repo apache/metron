@@ -392,5 +392,3 @@ Retrieve all values of 'snort-alerts' from '10.0.0.1' that occurred on 'weekdays
 PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(30, 'DAYS', {'profiler.client.period.duration' : '2', 'profiler.client.period.duration.units' : 'MINUTES'}), ['weekdays'] )
 ```
 
-
-
