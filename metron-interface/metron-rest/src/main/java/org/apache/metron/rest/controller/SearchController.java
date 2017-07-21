@@ -20,6 +20,7 @@ package org.apache.metron.rest.controller;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
+import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
@@ -31,6 +32,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/search")
@@ -44,5 +48,19 @@ public class SearchController {
   @RequestMapping(value = "/search", method = RequestMethod.POST)
   ResponseEntity<SearchResponse> search(final @ApiParam(name = "searchRequest", value = "Search request", required = true) @RequestBody SearchRequest searchRequest) throws RestException {
     return new ResponseEntity<>(searchService.search(searchRequest), HttpStatus.OK);
+  }
+
+  @ApiOperation(value = "Get Column Metadata")
+  @ApiResponse(message = "Column Metadata", code = 200)
+  @RequestMapping(value = "/column/metadata", method = RequestMethod.POST)
+  ResponseEntity<Map<String, Map<String, FieldType>>> getColumnMetadata(@RequestBody List<String> indices) throws RestException {
+    return new ResponseEntity<>(searchService.getColumnMetadata(indices), HttpStatus.OK);
+  }
+
+  @ApiOperation(value = "Get Common Column Metadata")
+  @ApiResponse(message = "Common Column Metadata", code = 200)
+  @RequestMapping(value = "/column/metadata/common", method = RequestMethod.POST)
+  ResponseEntity<Map<String, FieldType>> getCommonColumnMetadata(@RequestBody List<String> indices) throws RestException {
+    return new ResponseEntity<>(searchService.getCommonColumnMetadata(indices), HttpStatus.OK);
   }
 }

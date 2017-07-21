@@ -21,27 +21,52 @@ import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.*;
-import org.apache.metron.indexing.dao.search.SortOrder;
+import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.*;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ElasticsearchDao implements IndexDao {
   private transient TransportClient client;
   private AccessConfig accessConfig;
+  private List<String> ignoredIndices = new ArrayList<>();
 
   protected ElasticsearchDao(TransportClient client, AccessConfig config) {
     this.client = client;
     this.accessConfig = config;
+    this.ignoredIndices.add(".kibana");
   }
 
   public ElasticsearchDao() {
     //uninitialized.
+  }
+
+  private static Map<String, FieldType> elasticsearchSearchTypeMap;
+
+  static {
+    Map<String, FieldType> fieldTypeMap = new HashMap<>();
+    fieldTypeMap.put("string", FieldType.STRING);
+    fieldTypeMap.put("ip", FieldType.IP);
+    fieldTypeMap.put("integer", FieldType.INTEGER);
+    fieldTypeMap.put("long", FieldType.LONG);
+    fieldTypeMap.put("date", FieldType.DATE);
+    fieldTypeMap.put("float", FieldType.FLOAT);
+    fieldTypeMap.put("double", FieldType.DOUBLE);
+    fieldTypeMap.put("boolean", FieldType.BOOLEAN);
+    elasticsearchSearchTypeMap = Collections.unmodifiableMap(fieldTypeMap);
   }
 
   @Override
@@ -87,4 +112,71 @@ public class ElasticsearchDao implements IndexDao {
     this.client = ElasticsearchUtils.getClient(globalConfig, config.getOptionalSettings());
     this.accessConfig = config;
   }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException {
+    Map<String, Map<String, FieldType>> allColumnMetadata = new HashMap<>();
+    ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings =
+            client.admin().indices().getMappings(new GetMappingsRequest().indices(getLatestIndices(indices))).actionGet().getMappings();
+    for(Object index: mappings.keys().toArray()) {
+      Map<String, FieldType> indexColumnMetadata = new HashMap<>();
+      ImmutableOpenMap<String, MappingMetaData> mapping = mappings.get(index.toString());
+      Iterator<String> mappingIterator = mapping.keysIt();
+      while(mappingIterator.hasNext()) {
+        MappingMetaData mappingMetaData = mapping.get(mappingIterator.next());
+        Map<String, Map<String, String>> map = (Map<String, Map<String, String>>) mappingMetaData.getSourceAsMap().get("properties");
+        for(String field: map.keySet()) {
+          indexColumnMetadata.put(field, elasticsearchSearchTypeMap.getOrDefault(map.get(field).get("type"), FieldType.OTHER));
+        }
+      }
+      allColumnMetadata.put(index.toString().split("_index_")[0], indexColumnMetadata);
+    }
+    return allColumnMetadata;
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException {
+    Map<String, FieldType> commonColumnMetadata = null;
+    ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings =
+            client.admin().indices().getMappings(new GetMappingsRequest().indices(getLatestIndices(indices))).actionGet().getMappings();
+    for(Object index: mappings.keys().toArray()) {
+      ImmutableOpenMap<String, MappingMetaData> mapping = mappings.get(index.toString());
+      Iterator<String> mappingIterator = mapping.keysIt();
+      while(mappingIterator.hasNext()) {
+        MappingMetaData mappingMetaData = mapping.get(mappingIterator.next());
+        Map<String, Map<String, String>> map = (Map<String, Map<String, String>>) mappingMetaData.getSourceAsMap().get("properties");
+        Map<String, FieldType> mappingsWithTypes = map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+                e-> elasticsearchSearchTypeMap.getOrDefault(e.getValue().get("type"), FieldType.OTHER)));
+        if (commonColumnMetadata == null) {
+          commonColumnMetadata = mappingsWithTypes;
+        } else {
+          commonColumnMetadata.entrySet().retainAll(mappingsWithTypes.entrySet());
+        }
+      }
+    }
+    return commonColumnMetadata;
+  }
+
+  protected String[] getLatestIndices(List<String> includeIndices) {
+    Map<String, String> latestIndices = new HashMap<>();
+    String[] indices = client.admin().indices().prepareGetIndex().setFeatures().get().getIndices();
+    for (String index : indices) {
+      if (!ignoredIndices.contains(index)) {
+        int prefixEnd = index.indexOf("_index_");
+        if (prefixEnd != -1) {
+          String prefix = index.substring(0, prefixEnd);
+          if (includeIndices.contains(prefix)) {
+            String latestIndex = latestIndices.get(prefix);
+            if (latestIndex == null || index.compareTo(latestIndex) > 0) {
+              latestIndices.put(prefix, index);
+            }
+          }
+        }
+      }
+    }
+    return latestIndices.values().toArray(new String[latestIndices.size()]);
+  }
+
 }
