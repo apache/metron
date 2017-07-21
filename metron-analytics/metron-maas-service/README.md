@@ -1,6 +1,6 @@
 # Model Management Infrastructure
 
-##Introduction
+## Introduction
 
 One of the main features envisioned and requested is the ability to augment the threat intelligence and enrichment processes with insights derived from machine learning or statistical models.  The challenges with this sort of infrastructure are
 * Applying the model may be sufficiently computationally/resource intensive that we need to support scaling via load balancing, which will require service discovery and management.
@@ -12,7 +12,7 @@ To support a high throughput environment that is manageable, it is evident that
 * Deployment should happen using Yarn to manage resources
 * Clients should have new model endpoints pushed to them
 
-##Architecture
+## Architecture
 
 ![Architecture](maas_arch.png)
 
@@ -95,7 +95,15 @@ usage: ModelSubmission
  -zr,--zk_root <arg>             Zookeeper Root
 ```
 
-##Stellar Integration
+## Kerberos Support
+
+Model as a service will run on a kerberized cluster (see
+[here](../../metron-deployment/vagrant/Kerberos-setup.md) for
+instructions for vagrant) with a caveat.  The user who submits 
+the service will be the user who executes the models on the cluster.  That
+is to say that user impersonation of models deployed is not done at the moment.
+
+## Stellar Integration
 
 Two Stellar functions have been added to provide the ability to call out to models deployed via Model as a Service.
 One aimed at recovering a load balanced endpoint of a deployed model given the name and, optionally, the version.

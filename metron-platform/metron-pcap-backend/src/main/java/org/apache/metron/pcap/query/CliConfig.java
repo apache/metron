@@ -18,12 +18,19 @@
 package org.apache.metron.pcap.query;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.common.system.Clock;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class CliConfig {
+  public interface PrefixStrategy extends Function<Clock, String>{}
+
   private boolean showHelp;
+  private String prefix;
   private String basePath;
   private String baseOutputPath;
   private long startTime;
@@ -32,13 +39,23 @@ public class CliConfig {
   private int numRecordsPerFile;
   private DateFormat dateFormat;
 
-  public CliConfig() {
+
+  public CliConfig(PrefixStrategy prefixStrategy) {
     showHelp = false;
     basePath = "";
     baseOutputPath = "";
     startTime = -1L;
     endTime = -1L;
     numReducers = 0;
+    prefix = prefixStrategy.apply(new Clock());
+  }
+
+  public String getPrefix() {
+    return prefix;
+  }
+
+  public void setPrefix(String prefix) {
+    this.prefix = prefix;
   }
 
   public int getNumReducers() {

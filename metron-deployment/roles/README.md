@@ -1,7 +1,7 @@
 # Ansible Roles
 
-- Kibana
 - Monit
 - OpenTaxii
-- Pcap Relay
+- Pcap Replay
+- Sensor Stubs
 - Sensor Test Mode

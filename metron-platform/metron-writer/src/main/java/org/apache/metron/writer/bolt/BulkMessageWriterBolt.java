@@ -92,8 +92,10 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
       configurationTransformation = x -> x;
     }
     try {
-      bulkMessageWriter.init(stormConf
-                            , configurationTransformation.apply(new IndexingWriterConfiguration(bulkMessageWriter.getName(), getConfigurations()))
+      bulkMessageWriter.init(stormConf,
+                             context,
+                             configurationTransformation.apply(new IndexingWriterConfiguration(bulkMessageWriter.getName(),
+                             getConfigurations()))
                             );
     } catch (Exception e) {
       throw new RuntimeException(e);

@@ -18,19 +18,18 @@
 
 package org.apache.metron.spout.pcap.deserializer;
 
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.log4j.Logger;
 import org.apache.metron.common.utils.timestamp.TimestampConverter;
 import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.spout.pcap.Endianness;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
  * Extract the timestamp from the key and raw data from the packet.
  */
 public class FromKeyDeserializer extends KeyValueDeserializer {
-  private static final Logger LOG = Logger.getLogger(FromKeyDeserializer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(FromKeyDeserializer.class);
   private static Endianness endianness = Endianness.getNativeEndianness();
 
 
@@ -39,13 +38,12 @@ public class FromKeyDeserializer extends KeyValueDeserializer {
   }
 
   @Override
-  public boolean deserializeKeyValue(byte[] key, byte[] value, LongWritable outKey, BytesWritable outValue) {
-    Long ts = converter.toNanoseconds(fromBytes(key));
-    outKey.set(ts);
-    byte[] packetHeaderized = PcapHelper.addPacketHeader(ts, value, endianness);
-    byte[] globalHeaderized= PcapHelper.addGlobalHeader(packetHeaderized, endianness);
-    outValue.set(globalHeaderized, 0, globalHeaderized.length);
-    return true;
+  public Result deserializeKeyValue(byte[] key, byte[] value) {
+    if (key == null) {
+      throw new IllegalArgumentException("Expected a key but none provided");
+    }
+    long ts = converter.toNanoseconds(fromBytes(key));
+    return new Result(ts, PcapHelper.addHeaders(ts, value, endianness), true);
   }
 
   /**
@@ -65,6 +63,6 @@ public class FromKeyDeserializer extends KeyValueDeserializer {
       value |= (long)(b & 255);
     }
 
-    return Long.valueOf(value);
+    return value;
   }
 }

@@ -67,6 +67,9 @@
             <script>scripts/parser_master.py</script>
             <scriptType>PYTHON</scriptType>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>metron-parsers-env</config-type>
+          </configuration-dependencies>
         </component>
 
         <component>
@@ -110,6 +113,9 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <configuration-dependencies>
+            <config-type>metron-enrichment-env</config-type>
+          </configuration-dependencies>
         </component>
 
         <component>
@@ -173,7 +179,119 @@
                 </commandScript>
               </customCommand>
           </customCommands>
+          <configuration-dependencies>
+            <config-type>metron-indexing-env</config-type>
+          </configuration-dependencies>
         </component>
+
+        <component>
+          <name>METRON_REST</name>
+          <displayName>Metron REST</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <reassignAllowed>false</reassignAllowed>
+          <clientsToUpdateConfigs></clientsToUpdateConfigs>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>STORM/SUPERVISOR</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>KAFKA/KAFKA_BROKER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/rest_master.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <configuration-dependencies>
+            <config-type>metron-rest-env</config-type>
+          </configuration-dependencies>
+        </component>
+
+        <component>
+          <name>METRON_MANAGEMENT_UI</name>
+          <displayName>Metron Management UI</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <reassignAllowed>false</reassignAllowed>
+          <clientsToUpdateConfigs></clientsToUpdateConfigs>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>STORM/SUPERVISOR</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>KAFKA/KAFKA_BROKER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/management_ui_master.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+            <configuration-dependencies>
+                <config-type>metron-rest-env</config-type>
+                <config-type>metron-management-ui-env</config-type>
+            </configuration-dependencies>
+        </component>
+
+        <component>
+          <name>METRON_CLIENT</name>
+          <displayName>Metron Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <commandScript>
+            <script>scripts/metron_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+        </component>
+
       </components>
 
       <themes>
@@ -194,6 +312,9 @@
               <name>metron-data-management</name>
             </package>
             <package>
+              <name>metron-management</name>
+            </package>
+            <package>
               <name>metron-parsers</name>
             </package>
             <package>
@@ -207,6 +328,15 @@
             </package>
             <package>
               <name>metron-pcap</name>
+            </package>
+            <package>
+              <name>metron-rest</name>
+            </package>
+            <package>
+              <name>nodejs</name>
+            </package>
+            <package>
+              <name>metron-config</name>
             </package>
           </packages>
         </osSpecific>

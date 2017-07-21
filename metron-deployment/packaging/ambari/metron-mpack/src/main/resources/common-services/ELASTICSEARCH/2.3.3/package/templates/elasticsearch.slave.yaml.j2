@@ -30,7 +30,7 @@ discovery:
       multicast:
         enabled: {{discovery_zen_ping_multicast_enabled}}
       unicast:
-        hosts: "{{zen_discovery_ping_unicast_hosts}}"
+        hosts: {{zen_discovery_ping_unicast_hosts}}
 
 node:
   data: true
@@ -82,3 +82,4 @@ discovery.zen.fd.ping_timeout: {{discovery_zen_fd_ping_timeout}}
 discovery.zen.fd.ping_retries: {{discovery_zen_fd_ping_retries}}
 
 network.host: {{network_host}}
+network.publish_host: {{network_publish_host}}

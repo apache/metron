@@ -26,14 +26,13 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
-import org.apache.metron.common.configuration.profiler.ProfileResult;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.StellarFunctions;
+import org.apache.metron.stellar.common.StellarStatefulExecutor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.profiler.clock.Clock;
 import org.apache.metron.profiler.clock.WallClock;
-import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
-import org.apache.metron.profiler.stellar.StellarExecutor;
+import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -81,7 +79,7 @@ public class ProfileBuilder implements Serializable {
   /**
    * Executes Stellar code and maintains state across multiple invocations.
    */
-  private StellarExecutor executor;
+  private StellarStatefulExecutor executor;
 
   /**
    * Has the profile been initialized?
@@ -114,7 +112,7 @@ public class ProfileBuilder implements Serializable {
     this.entity = entity;
     this.clock = clock;
     this.periodDurationMillis = periodDurationMillis;
-    this.executor = new DefaultStellarExecutor();
+    this.executor = new DefaultStellarStatefulExecutor();
     Context context = new Context.Builder()
             .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
             .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)

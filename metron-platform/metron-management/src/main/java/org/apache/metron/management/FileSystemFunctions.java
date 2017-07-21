@@ -17,24 +17,21 @@
  */
 package org.apache.metron.management;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 import com.jakewharton.fliptables.FlipTable;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.log4j.Logger;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.dsl.StellarFunction;
-import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.dsl.StellarFunction;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 
 import java.io.IOException;
 import java.net.URI;
 import java.text.DateFormat;
 import java.util.*;
-import java.util.function.Function;
 
 public class FileSystemFunctions {
   private static final Logger LOG = Logger.getLogger(FileSystemFunctions.class);

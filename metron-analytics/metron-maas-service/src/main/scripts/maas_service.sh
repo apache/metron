@@ -31,6 +31,7 @@ export HBASE_HOME=${HBASE_HOME:-/usr/hdp/current/hbase-client}
 export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
 export DM_JAR=metron-maas-service-$METRON_VERSION-uber.jar
+export HADOOP_OPTS="$HADOOP_OPTS $METRON_JVMFLAGS"
 CP=$METRON_HOME/lib/$DM_JAR
 HADOOP_CLASSPATH=$(echo $CP )
 for jar in $(echo $HADOOP_CLASSPATH | sed 's/:/ /g');do

@@ -23,6 +23,17 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import javax.annotation.Nullable;
 import kafka.consumer.ConsumerIterator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -53,14 +64,8 @@ import org.apache.metron.spout.pcap.deserializer.Deserializers;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
-
-import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.util.*;
 
 public class PcapTopologyIntegrationTest {
   final static String KAFKA_TOPIC = "pcap";
@@ -69,22 +74,7 @@ public class PcapTopologyIntegrationTest {
   private static String QUERY_DIR = BASE_DIR + "/query";
   private String topologiesDir = "src/main/flux";
   private String targetDir = "target";
-  private File getOutDir(String targetDir) {
-    File outDir = new File(new File(targetDir), DATA_DIR);
-    if (!outDir.exists()) {
-      outDir.mkdirs();
-    }
 
-    return outDir;
-  }
-
-  private File getQueryDir(String targetDir) {
-    File outDir = new File(new File(targetDir), QUERY_DIR);
-    if (!outDir.exists()) {
-      outDir.mkdirs();
-    }
-    return outDir;
-  }
   private static void clearOutDir(File outDir) {
     for(File f : outDir.listFiles()) {
       f.delete();
@@ -100,36 +90,8 @@ public class PcapTopologyIntegrationTest {
     }).length;
   }
 
-  private static Iterable<Map.Entry<byte[], byte[]>> readPcaps(Path pcapFile, boolean withHeaders) throws IOException {
-    SequenceFile.Reader reader = new SequenceFile.Reader(new Configuration(),
-            SequenceFile.Reader.file(pcapFile)
-    );
-    List<Map.Entry<byte[], byte[]> > ret = new ArrayList<>();
-    IntWritable key = new IntWritable();
-    BytesWritable value = new BytesWritable();
-    while (reader.next(key, value)) {
-      byte[] pcapWithHeader = value.copyBytes();
-      long calculatedTs = PcapHelper.getTimestamp(pcapWithHeader);
-      {
-        List<PacketInfo> info = PcapHelper.toPacketInfo(pcapWithHeader);
-        for(PacketInfo pi : info) {
-          Assert.assertEquals(calculatedTs, pi.getPacketTimeInNanos());
-          //IF you are debugging and want to see the packets, uncomment the following.
-          //System.out.println( Long.toUnsignedString(calculatedTs) + " => " + pi.getJsonDoc());
-        }
-      }
-      if(withHeaders) {
-        ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(calculatedTs), pcapWithHeader));
-      }
-      else {
-        byte[] pcapRaw = new byte[pcapWithHeader.length - PcapHelper.GLOBAL_HEADER_SIZE - PcapHelper.PACKET_HEADER_SIZE];
-        System.arraycopy(pcapWithHeader, PcapHelper.GLOBAL_HEADER_SIZE + PcapHelper.PACKET_HEADER_SIZE, pcapRaw, 0, pcapRaw.length);
-        ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(calculatedTs), pcapRaw));
-      }
-    }
-    return Iterables.limit(ret, 2*(ret.size()/2));
-  }
-
+  // This will eventually be completely deprecated.  As it takes a significant amount of testing, the test is being disabled.
+  @Ignore
   @Test
   public void testTimestampInPacket() throws Exception {
     testTopology(new Function<Properties, Void>() {
@@ -147,6 +109,7 @@ public class PcapTopologyIntegrationTest {
     , true
                );
   }
+
   @Test
   public void testTimestampInKey() throws Exception {
     testTopology(new Function<Properties, Void>() {
@@ -206,14 +169,19 @@ public class PcapTopologyIntegrationTest {
     final List<Map.Entry<byte[], byte[]>> pcapEntries = Lists.newArrayList(readPcaps(pcapFile, withHeaders));
     Assert.assertTrue(Iterables.size(pcapEntries) > 0);
     final Properties topologyProperties = new Properties() {{
+      setProperty("topology.workers", "1");
+      setProperty("topology.worker.childopts", "");
       setProperty("spout.kafka.topic.pcap", KAFKA_TOPIC);
-      setProperty("kafka.pcap.start", "BEGINNING");
+      setProperty("kafka.pcap.start", "EARLIEST");
       setProperty("kafka.pcap.out", outDir.getAbsolutePath());
       setProperty("kafka.pcap.numPackets", "2");
       setProperty("kafka.pcap.maxTimeMS", "200000000");
       setProperty("kafka.pcap.ts_granularity", "NANOSECONDS");
-      setProperty("storm.auto.credentials", "[]");
+      setProperty("kafka.spout.parallelism", "1");
+      setProperty("topology.auto-credentials", "[]");
       setProperty("kafka.security.protocol", "PLAINTEXT");
+      setProperty("hdfs.sync.every", "1");
+      setProperty("hdfs.replication.factor", "-1");
     }};
     updatePropertiesCallback.apply(topologyProperties);
 
@@ -274,7 +242,7 @@ public class PcapTopologyIntegrationTest {
                         , getTimestamp(4, pcapEntries)
                         , getTimestamp(5, pcapEntries)
                         , 10
-                        , new EnumMap<>(Constants.Fields.class)
+                        , new HashMap<>()
                         , new Configuration()
                         , FileSystem.get(new Configuration())
                         , new FixedPcapFilter.Configurator()
@@ -307,8 +275,8 @@ public class PcapTopologyIntegrationTest {
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(1, pcapEntries)
                         , 10
-                        , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
-                          put(Constants.Fields.DST_ADDR, "207.28.210.1");
+                        , new HashMap<String, String>() {{
+                          put(Constants.Fields.DST_ADDR.getName(), "207.28.210.1");
                         }}
                         , new Configuration()
                         , FileSystem.get(new Configuration())
@@ -342,8 +310,8 @@ public class PcapTopologyIntegrationTest {
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(1, pcapEntries)
                         , 10
-                        , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
-                          put(Constants.Fields.PROTOCOL, "foo");
+                        , new HashMap<String, String>() {{
+                          put(Constants.Fields.PROTOCOL.getName(), "foo");
                         }}
                         , new Configuration()
                         , FileSystem.get(new Configuration())
@@ -377,7 +345,7 @@ public class PcapTopologyIntegrationTest {
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
                         , 10
-                        , new EnumMap<>(Constants.Fields.class)
+                        , new HashMap<>()
                         , new Configuration()
                         , FileSystem.get(new Configuration())
                         , new FixedPcapFilter.Configurator()
@@ -409,8 +377,8 @@ public class PcapTopologyIntegrationTest {
                         , getTimestamp(0, pcapEntries)
                         , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
                         , 10
-                        , new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
-                          put(Constants.Fields.DST_PORT, "22");
+                        , new HashMap<String, String>() {{
+                          put(Constants.Fields.DST_PORT.getName(), "22");
                         }}
                         , new Configuration()
                         , FileSystem.get(new Configuration())
@@ -428,6 +396,25 @@ public class PcapTopologyIntegrationTest {
                         }, withHeaders)
                 )
         );
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PcapMerger.merge(baos, Iterables.partition(results, 1).iterator().next());
+        Assert.assertTrue(baos.toByteArray().length > 0);
+      }
+      {
+        //test with query filter and byte array matching
+        Iterable<byte[]> results =
+                job.query(new Path(outDir.getAbsolutePath())
+                        , new Path(queryDir.getAbsolutePath())
+                        , getTimestamp(0, pcapEntries)
+                        , getTimestamp(pcapEntries.size()-1, pcapEntries) + 1
+                        , 10
+                        , "BYTEARRAY_MATCHER('2f56abd814bc56420489ca38e7faf8cec3d4', packet)"
+                        , new Configuration()
+                        , FileSystem.get(new Configuration())
+                        , new QueryPcapFilter.Configurator()
+                );
+        assertInOrder(results);
+        Assert.assertEquals(1, Iterables.size(results));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PcapMerger.merge(baos, Iterables.partition(results, 1).iterator().next());
         Assert.assertTrue(baos.toByteArray().length > 0);
@@ -528,6 +515,59 @@ public class PcapTopologyIntegrationTest {
       clearOutDir(outDir);
       clearOutDir(queryDir);
     }
+  }
+
+  private File getOutDir(String targetDir) {
+    File outDir = new File(new File(targetDir), DATA_DIR);
+    if (!outDir.exists()) {
+      outDir.mkdirs();
+    }
+    return outDir;
+  }
+
+  private File getQueryDir(String targetDir) {
+    File outDir = new File(new File(targetDir), QUERY_DIR);
+    if (!outDir.exists()) {
+      outDir.mkdirs();
+    }
+    return outDir;
+  }
+
+  private static Iterable<Map.Entry<byte[], byte[]>> readPcaps(Path pcapFile, boolean withHeaders) throws IOException {
+    SequenceFile.Reader reader = new SequenceFile.Reader(new Configuration(),
+        SequenceFile.Reader.file(pcapFile)
+    );
+    List<Map.Entry<byte[], byte[]> > ret = new ArrayList<>();
+    IntWritable key = new IntWritable();
+    BytesWritable value = new BytesWritable();
+    while (reader.next(key, value)) {
+      byte[] pcapWithHeader = value.copyBytes();
+      //if you are debugging and want the hex dump of the packets, uncomment the following:
+
+      //for(byte b : pcapWithHeader) {
+      //  System.out.print(String.format("%02x", b));
+      //}
+      //System.out.println("");
+
+      long calculatedTs = PcapHelper.getTimestamp(pcapWithHeader);
+      {
+        List<PacketInfo> info = PcapHelper.toPacketInfo(pcapWithHeader);
+        for(PacketInfo pi : info) {
+          Assert.assertEquals(calculatedTs, pi.getPacketTimeInNanos());
+          //IF you are debugging and want to see the packets, uncomment the following.
+          //System.out.println( Long.toUnsignedString(calculatedTs) + " => " + pi.getJsonDoc());
+        }
+      }
+      if(withHeaders) {
+        ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(calculatedTs), pcapWithHeader));
+      }
+      else {
+        byte[] pcapRaw = new byte[pcapWithHeader.length - PcapHelper.GLOBAL_HEADER_SIZE - PcapHelper.PACKET_HEADER_SIZE];
+        System.arraycopy(pcapWithHeader, PcapHelper.GLOBAL_HEADER_SIZE + PcapHelper.PACKET_HEADER_SIZE, pcapRaw, 0, pcapRaw.length);
+        ret.add(new AbstractMap.SimpleImmutableEntry<>(Bytes.toBytes(calculatedTs), pcapRaw));
+      }
+    }
+    return Iterables.limit(ret, 2*(ret.size()/2));
   }
 
   public static void assertInOrder(Iterable<byte[]> packets) {

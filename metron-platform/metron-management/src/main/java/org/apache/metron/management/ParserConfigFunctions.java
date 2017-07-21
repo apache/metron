@@ -18,19 +18,16 @@
 package org.apache.metron.management;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 import com.jakewharton.fliptables.FlipTable;
 import org.apache.log4j.Logger;
-import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.dsl.*;
-import org.apache.metron.common.field.transformation.FieldTransformation;
 import org.apache.metron.common.field.transformation.FieldTransformations;
-import org.apache.metron.common.stellar.shell.StellarExecutor;
 import org.apache.metron.common.utils.JSONUtils;
-import org.jboss.aesh.console.Console;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.dsl.StellarFunction;
 
 import java.util.*;
 

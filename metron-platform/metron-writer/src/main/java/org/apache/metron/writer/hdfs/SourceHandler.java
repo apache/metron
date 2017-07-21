@@ -24,9 +24,11 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.client.HdfsDataOutputStream;
 import org.apache.log4j.Logger;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 import org.apache.storm.hdfs.bolt.rotation.FileRotationPolicy;
 import org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy;
+import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.hdfs.common.rotation.RotationAction;
 import org.json.simple.JSONObject;
@@ -34,6 +36,7 @@ import org.json.simple.JSONObject;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 
 public class SourceHandler {
   private static final Logger LOG = Logger.getLogger(SourceHandler.class);
@@ -61,13 +64,8 @@ public class SourceHandler {
     initialize();
   }
 
-  public void handle(List<JSONObject> messages) throws Exception{
-    for(JSONObject message : messages) {
-      handle(message);
-    }
-  }
 
-  protected void handle(JSONObject message) throws IOException {
+  protected void handle(JSONObject message, String sensor, WriterConfiguration config, SyncPolicyCreator syncPolicyCreator) throws IOException {
     byte[] bytes = (message.toJSONString() + "\n").getBytes();
     synchronized (this.writeLock) {
       out.write(bytes);
@@ -79,7 +77,9 @@ public class SourceHandler {
         } else {
           this.out.hsync();
         }
-        this.syncPolicy.reset();
+        //recreate the sync policy for the next batch just in case something changed in the config
+        //and the sync policy depends on the config.
+        this.syncPolicy = syncPolicyCreator.create(sensor, config);
       }
     }
 

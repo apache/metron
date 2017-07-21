@@ -26,6 +26,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.EnumMap;
+import java.util.HashMap;
 
 public class QueryPcapFilterTest {
 
@@ -37,12 +38,12 @@ public class QueryPcapFilterTest {
     {
       PcapFilter filter = new QueryPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip");
-            put(Constants.Fields.SRC_PORT, 0);
-            put(Constants.Fields.DST_ADDR, "dst_ip");
-            put(Constants.Fields.DST_PORT, 1);
+        protected HashMap<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 0);
+            put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.DST_PORT.getName(), 1);
           }};
         }
       };
@@ -59,12 +60,12 @@ public class QueryPcapFilterTest {
     {
       PcapFilter filter = new QueryPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip");
-            put(Constants.Fields.SRC_PORT, 0);
-            put(Constants.Fields.DST_ADDR, "dst_ip");
-            put(Constants.Fields.DST_PORT, 1);
+        protected HashMap<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 0);
+            put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.DST_PORT.getName(), 1);
           }};
         }
       };
@@ -81,12 +82,12 @@ public class QueryPcapFilterTest {
     {
       QueryPcapFilter filter = new QueryPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip");
-            put(Constants.Fields.SRC_PORT, 0);
-            put(Constants.Fields.DST_ADDR, "dst_ip");
-            put(Constants.Fields.DST_PORT, 1);
+        protected HashMap<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 0);
+            put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.DST_PORT.getName(), 1);
           }};
         }
       };
@@ -97,12 +98,12 @@ public class QueryPcapFilterTest {
     {
       QueryPcapFilter filter = new QueryPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip_no_match");
-            put(Constants.Fields.SRC_PORT, 0);
-            put(Constants.Fields.DST_ADDR, "dst_ip");
-            put(Constants.Fields.DST_PORT, 1);
+        protected HashMap<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "src_ip_no_match");
+            put(Constants.Fields.SRC_PORT.getName(), 0);
+            put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.DST_PORT.getName(), 1);
           }};
         }
       };
@@ -119,12 +120,12 @@ public class QueryPcapFilterTest {
     {
       QueryPcapFilter filter = new QueryPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip");
-            put(Constants.Fields.SRC_PORT, 0);
-            put(Constants.Fields.DST_ADDR, "dst_ip");
-            put(Constants.Fields.DST_PORT, 1);
+        protected HashMap<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 0);
+            put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.DST_PORT.getName(), 1);
           }};
         }
       };
@@ -135,12 +136,12 @@ public class QueryPcapFilterTest {
     {
       QueryPcapFilter filter = new QueryPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip");
-            put(Constants.Fields.SRC_PORT, 0);
-            put(Constants.Fields.DST_ADDR, "dst_ip");
-            put(Constants.Fields.DST_PORT, 100);
+        protected HashMap<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 0);
+            put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.DST_PORT.getName(), 100);
           }};
         }
       };
@@ -151,12 +152,12 @@ public class QueryPcapFilterTest {
     {
       QueryPcapFilter filter = new QueryPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip");
-            put(Constants.Fields.SRC_PORT, 100);
-            put(Constants.Fields.DST_ADDR, "dst_ip");
-            put(Constants.Fields.DST_PORT, 100);
+        protected HashMap<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 100);
+            put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.DST_PORT.getName(), 100);
           }};
         }
       };
@@ -173,12 +174,12 @@ public class QueryPcapFilterTest {
     {
       QueryPcapFilter filter = new QueryPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip");
-            put(Constants.Fields.SRC_PORT, 0);
-            put(Constants.Fields.DST_ADDR, "dst_ip");
-            put(Constants.Fields.DST_PORT, 1);
+        protected HashMap<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 0);
+            put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.DST_PORT.getName(), 1);
           }};
         }
       };
@@ -195,12 +196,12 @@ public class QueryPcapFilterTest {
     {
       QueryPcapFilter filter = new QueryPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip");
-            put(Constants.Fields.SRC_PORT, 0);
-            put(Constants.Fields.DST_ADDR, "dst_ip");
-            put(Constants.Fields.DST_PORT, 1);
+        protected HashMap<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 0);
+            put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.DST_PORT.getName(), 1);
           }};
         }
       };
@@ -211,12 +212,12 @@ public class QueryPcapFilterTest {
     {
       QueryPcapFilter filter = new QueryPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip");
-            put(Constants.Fields.SRC_PORT, 100);
-            put(Constants.Fields.DST_ADDR, "dst_ip");
-            put(Constants.Fields.DST_PORT, 1);
+        protected HashMap<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 100);
+            put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.DST_PORT.getName(), 1);
           }};
         }
       };

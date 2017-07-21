@@ -16,33 +16,6 @@
 #
 ---
 
-- name: Clean out localrepo
-  file:
-    state: absent
-    path: /localrepo
-
-- name: Create localrepo directory
-  file:
-    path: /localrepo
-    state: directory
-    mode: 0755
-
-- name: Copy Metron RPMs
-  copy:
-    src: "{{ item }}"
-    dest: /localrepo
-    owner: root
-    mode: 0755
-  with_fileglob:
-    - "{{ metron_rpm_glob }}"
-
-- name: Install createrepo
-  package:
-    name: createrepo
-    state: installed
-
-- name: Create local repo with new packages
-  shell: "createrepo /localrepo"
-  args:
-      creates: /localrepo/repodata
-
+- include: create_directory.yml
+- include: copy_rpms.yml
+- include: create_repo.yml

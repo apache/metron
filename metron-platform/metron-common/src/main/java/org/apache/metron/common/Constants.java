@@ -17,11 +17,14 @@
  */
 package org.apache.metron.common;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Constants {
 
+  public static final String METADATA_PREFIX = "metron.metadata.";
   public static final String ZOOKEEPER_ROOT = "/metron";
   public static final String ZOOKEEPER_TOPOLOGY_ROOT = ZOOKEEPER_ROOT + "/topology";
   public static final long DEFAULT_CONFIGURED_BOLT_TIMEOUT = 5000;
@@ -33,7 +36,10 @@ public class Constants {
   public static final String SIMPLE_HBASE_THREAT_INTEL = "hbaseThreatIntel";
   public static final String GUID = "guid";
 
-  public static enum Fields {
+  public interface Field {
+    String getName();
+  }
+  public enum Fields implements Field {
      SRC_ADDR("ip_src_addr")
     ,SRC_PORT("ip_src_port")
     ,DST_ADDR("ip_dst_addr")

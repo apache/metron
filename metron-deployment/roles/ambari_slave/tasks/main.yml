@@ -15,7 +15,9 @@
 #  limitations under the License.
 #
 ---
-# tasks file for ambari_slave
+- include: ../roles/metron-rpms/tasks/create_directory.yml
+- include: ../roles/metron-rpms/tasks/create_repo.yml
+
 - name: Install ambari-agent
   yum:
     name: ambari-agent

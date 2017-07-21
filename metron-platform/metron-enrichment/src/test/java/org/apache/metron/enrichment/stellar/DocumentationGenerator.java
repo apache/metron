@@ -18,8 +18,8 @@
 package org.apache.metron.enrichment.stellar;
 
 import com.google.common.collect.Lists;
-import org.apache.metron.common.dsl.functions.resolver.SingletonFunctionResolver;
-import org.apache.metron.common.dsl.StellarFunctionInfo;
+import org.apache.metron.stellar.dsl.functions.resolver.SingletonFunctionResolver;
+import org.apache.metron.stellar.dsl.StellarFunctionInfo;
 
 import java.util.Collections;
 import java.util.List;

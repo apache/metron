@@ -27,9 +27,6 @@ $(document).ready(function () {
         window.location = window.location.origin + "/documentation/#releases";
     });
 
-    $('.main-menu #apache-website').on('click', function() {
-        window.open("http://incubator.apache.org/", "_blank");
-    });
 
     /*
      * Top-form UI/UX effects

@@ -4,7 +4,7 @@
 
 ## Pull Request Checklist
 
-Thank you for submitting a contribution to Apache Metron (Incubating).  
+Thank you for submitting a contribution to Apache Metron.  
 Please refer to our [Development Guidelines](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=61332235) for the complete guide to follow for contributions.  
 Please refer also to our [Build Verification Guidelines](https://cwiki.apache.org/confluence/display/METRON/Verifying+Builds?show-miniview) for complete smoke testing guides.  
 
@@ -20,7 +20,7 @@ In order to streamline the review of the contribution we ask you follow these gu
 ### For code changes:
 - [ ] Have you included steps to reproduce the behavior or problem that is being changed or addressed?
 - [ ] Have you included steps or a guide to how the change may be verified and tested manually?
-- [ ] Have you ensured that the full suite of tests and checks have been executed in the root incubating-metron folder via:
+- [ ] Have you ensured that the full suite of tests and checks have been executed in the root metron folder via:
   ```
   mvn -q clean integration-test install && build_utils/verify_licenses.sh 
   ```
@@ -34,11 +34,10 @@ In order to streamline the review of the contribution we ask you follow these gu
 
   ```
   cd site-book
-  bin/generate-md.sh
-  mvn site:site
+  mvn site
   ```
 
 #### Note:
 Please ensure that once the PR is submitted, you check travis-ci for build issues and submit an update to your PR as soon as possible.
-It is also recommened that [travis-ci](https://travis-ci.org) is set up for your personal repository such that your branches are built there before submitting a pull request.
+It is also recommended that [travis-ci](https://travis-ci.org) is set up for your personal repository such that your branches are built there before submitting a pull request.
 

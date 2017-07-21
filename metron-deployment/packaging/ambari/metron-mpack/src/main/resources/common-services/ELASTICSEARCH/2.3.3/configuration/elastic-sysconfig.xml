@@ -58,7 +58,7 @@
     <!--/etc/sysconfig/elasticsearch-->
     <property>
         <name>content</name>
-        <description>This is the jinja template for elastic-env.sh file</description>
+        <description>This is the jinja template for elastic sysconfig file (/etc/sysconfig/elasticsearch)</description>
         <value>
 # Directory where the Elasticsearch binary distribution resides
 ES_HOME={{elastic_home}}
@@ -88,6 +88,12 @@ CONF_DIR={{conf_dir}}
 # Also make sure, this user can write into the log directories in case you change them
 # This setting only works for the init script, but has to be configured separately for systemd startup
 ES_USER={{elastic_user}}
+
+# Elasticsearch pid directory
+PID_DIR={{pid_dir}}
+
+# JAVA_HOME must be provided here for OS that use systemd service launch
+JAVA_HOME={{java64_home}}
 
 # Additional Java OPTS
 ES_JAVA_OPTS="-verbose:gc -Xloggc:{{log_dir}}/elasticsearch_gc.log -XX:-CMSConcurrentMTEnabled \

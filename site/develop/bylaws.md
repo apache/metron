@@ -1,11 +1,11 @@
 ---
 layout: page
-title: Apache Metron (Incubating) Bylaws
+title: Apache Metron Bylaws
 ---
 
 ## Introduction
 
-This document defines the bylaws under which the Apache Metron (Incubating) project
+This document defines the bylaws under which the Apache Metron project
 operates. It defines the roles and responsibilities of the project,
 who may vote, how voting works, how conflicts are resolved, etc.
 
@@ -32,8 +32,8 @@ it expects its members to follow. In particular:
 
 Metron is typical of Apache projects in that it operates under a set of
 principles, known collectively as the "Apache Way". If you are new to
-Apache development, please refer to the [Incubator
-project](http://incubator.apache.org/) for more
+Apache development, please refer to
+[this](http://www.apache.org/foundation/how-it-works.html) for more
 information on how Apache projects operate.
 
 ## Roles and Responsibilities

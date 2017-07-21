@@ -21,14 +21,12 @@ limitations under the License.
 import functools
 import os
 
-from ambari_commons.os_check import OSCheck
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
-from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script import Script
 
@@ -41,19 +39,39 @@ tmp_dir = Script.get_tmp_dir()
 hostname = config['hostname']
 metron_home = status_params.metron_home
 parsers = status_params.parsers
-geoip_url = config['configurations']['metron-env']['geoip_url']
+parser_error_topic = config['configurations']['metron-parsers-env']['parser_error_topic']
 geoip_hdfs_dir = "/apps/metron/geo/default/"
-metron_indexing_topology = status_params.metron_indexing_topology
-metron_user = config['configurations']['metron-env']['metron_user']
+metron_user = status_params.metron_user
 metron_group = config['configurations']['metron-env']['metron_group']
+metron_log_dir = config['configurations']['metron-env']['metron_log_dir']
+metron_pid_dir = config['configurations']['metron-env']['metron_pid_dir']
+metron_rest_port = config['configurations']['metron-rest-env']['metron_rest_port']
+metron_management_ui_port = config['configurations']['metron-management-ui-env']['metron_management_ui_port']
+metron_jvm_flags = config['configurations']['metron-rest-env']['metron_jvm_flags']
+metron_spring_profiles_active = config['configurations']['metron-rest-env']['metron_spring_profiles_active']
+metron_jdbc_driver = config['configurations']['metron-rest-env']['metron_jdbc_driver']
+metron_jdbc_url = config['configurations']['metron-rest-env']['metron_jdbc_url']
+metron_jdbc_username = config['configurations']['metron-rest-env']['metron_jdbc_username']
+metron_jdbc_password = config['configurations']['metron-rest-env']['metron_jdbc_password']
+metron_jdbc_platform = config['configurations']['metron-rest-env']['metron_jdbc_platform']
+metron_jdbc_client_path = config['configurations']['metron-rest-env']['metron_jdbc_client_path']
+metron_temp_grok_path = config['configurations']['metron-rest-env']['metron_temp_grok_path']
+metron_default_grok_path = config['configurations']['metron-rest-env']['metron_default_grok_path']
+metron_spring_options = config['configurations']['metron-rest-env']['metron_spring_options']
 metron_config_path = metron_home + '/config'
 metron_zookeeper_config_dir = status_params.metron_zookeeper_config_dir
 metron_zookeeper_config_path = status_params.metron_zookeeper_config_path
 parsers_configured_flag_file = status_params.parsers_configured_flag_file
+parsers_acl_configured_flag_file = status_params.parsers_acl_configured_flag_file
+rest_acl_configured_flag_file = status_params.rest_acl_configured_flag_file
 enrichment_kafka_configured_flag_file = status_params.enrichment_kafka_configured_flag_file
+enrichment_kafka_acl_configured_flag_file = status_params.enrichment_kafka_acl_configured_flag_file
 enrichment_hbase_configured_flag_file = status_params.enrichment_hbase_configured_flag_file
+enrichment_hbase_acl_configured_flag_file = status_params.enrichment_hbase_acl_configured_flag_file
 enrichment_geo_configured_flag_file = status_params.enrichment_geo_configured_flag_file
 indexing_configured_flag_file = status_params.indexing_configured_flag_file
+indexing_acl_configured_flag_file = status_params.indexing_acl_configured_flag_file
+indexing_hdfs_perm_configured_flag_file = status_params.indexing_hdfs_perm_configured_flag_file
 global_json_template = config['configurations']['metron-env']['global-json']
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 
@@ -65,6 +83,7 @@ es_binary_port = config['configurations']['metron-env']['es_binary_port']
 es_url = ",".join([host + ":" + es_binary_port for host in es_host_list])
 es_http_port = config['configurations']['metron-env']['es_http_port']
 es_http_url = es_host_list[0] + ":" + es_http_port
+es_date_format = config['configurations']['metron-env']['es_date_format']
 
 # hadoop params
 stack_root = Script.get_stack_root()
@@ -110,9 +129,6 @@ if has_kafka_host:
 
 metron_apps_hdfs_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
 
-# the double "format" is not an error - we are pulling in a jinja-templated param. This is a bit of a hack, but works
-# well enough until we find a better way via Ambari
-metron_apps_indexed_hdfs_dir = format(format(config['configurations']['metron-env']['metron_apps_indexed_hdfs_dir']))
 metron_topic_retention = config['configurations']['metron-env']['metron_topic_retention']
 
 local_grok_patterns_dir = format("{metron_home}/patterns")
@@ -153,8 +169,9 @@ enrichment_cf = status_params.enrichment_cf
 threatintel_table = status_params.threatintel_table
 threatintel_cf = status_params.threatintel_cf
 
-metron_enrichment_topology = status_params.metron_enrichment_topology
-metron_enrichment_topic = status_params.metron_enrichment_topic
+# Kafka Topics
+ambari_kafka_service_check_topic = 'ambari_kafka_service_check'
+consumer_offsets_topic = '__consumer_offsets'
 
 # ES Templates
 bro_index_path = tmp_dir + "/bro_index.template"
@@ -164,3 +181,91 @@ error_index_path = tmp_dir + "/error_index.template"
 
 # Zeppelin Notebooks
 metron_config_zeppelin_path = format("{metron_config_path}/zeppelin")
+
+# kafka_security
+kafka_security_protocol = config['configurations']['kafka-broker'].get('security.inter.broker.protocol', 'PLAINTEXT')
+
+kafka_user = config['configurations']['kafka-env']['kafka_user']
+storm_user = config['configurations']['storm-env']['storm_user']
+
+# HBase user table creation and ACLs
+hbase_user = config['configurations']['hbase-env']['hbase_user']
+
+# Security
+security_enabled = status_params.security_enabled
+client_jaas_path = metron_home + '/client_jaas.conf'
+client_jaas_arg = '-Djava.security.auth.login.config=' + metron_home + '/client_jaas.conf'
+enrichment_topology_worker_childopts = client_jaas_arg if security_enabled else ''
+indexing_topology_worker_childopts = client_jaas_arg if security_enabled else ''
+topology_auto_credentials = config['configurations']['storm-site'].get('nimbus.credential.renewers.classes', [])
+# Needed for storm.config, because it needs Java String
+topology_auto_credentials_double_quotes = str(topology_auto_credentials).replace("'", '"')
+
+if security_enabled:
+    hostname_lowercase = config['hostname'].lower()
+    metron_principal_name = status_params.metron_principal_name
+    metron_keytab_path = status_params.metron_keytab_path
+    kinit_path_local = status_params.kinit_path_local
+
+    hbase_principal_name = config['configurations']['hbase-env']['hbase_principal_name']
+    hbase_keytab_path = config['configurations']['hbase-env']['hbase_user_keytab']
+
+    kafka_principal_raw = config['configurations']['kafka-env']['kafka_principal_name']
+    kafka_principal_name = kafka_principal_raw.replace('_HOST', hostname_lowercase)
+    kafka_keytab_path = config['configurations']['kafka-env']['kafka_keytab']
+
+    nimbus_seeds = config['configurations']['storm-site']['nimbus.seeds']
+
+# Management UI
+metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", ['localhost'])[0]
+
+# Enrichment
+geoip_url = config['configurations']['metron-enrichment-env']['geoip_url']
+enrichment_host_known_hosts = config['configurations']['metron-enrichment-env']['enrichment_host_known_hosts']
+enrichment_kafka_start = config['configurations']['metron-enrichment-env']['enrichment_kafka_start']
+enrichment_input_topic = status_params.enrichment_input_topic
+enrichment_output_topic = config['configurations']['metron-enrichment-env']['enrichment_output_topic']
+enrichment_error_topic = config['configurations']['metron-enrichment-env']['enrichment_error_topic']
+threatintel_error_topic = config['configurations']['metron-enrichment-env']['threatintel_error_topic']
+metron_enrichment_topology = status_params.metron_enrichment_topology
+enrichment_workers = config['configurations']['metron-enrichment-env']['enrichment_workers']
+enrichment_acker_executors = config['configurations']['metron-enrichment-env']['enrichment_acker_executors']
+if not len(enrichment_topology_worker_childopts) == 0:
+    enrichment_topology_worker_childopts += ' '
+enrichment_topology_worker_childopts += config['configurations']['metron-enrichment-env']['enrichment_topology_worker_childopts']
+enrichment_topology_max_spout_pending = config['configurations']['metron-enrichment-env']['enrichment_topology_max_spout_pending']
+enrichment_join_cache_size = config['configurations']['metron-enrichment-env']['enrichment_join_cache_size']
+threatintel_join_cache_size = config['configurations']['metron-enrichment-env']['threatintel_join_cache_size']
+enrichment_kafka_spout_parallelism = config['configurations']['metron-enrichment-env']['enrichment_kafka_spout_parallelism']
+enrichment_split_parallelism = config['configurations']['metron-enrichment-env']['enrichment_split_parallelism']
+enrichment_stellar_parallelism = config['configurations']['metron-enrichment-env']['enrichment_stellar_parallelism']
+enrichment_join_parallelism = config['configurations']['metron-enrichment-env']['enrichment_join_parallelism']
+threat_intel_split_parallelism = config['configurations']['metron-enrichment-env']['threat_intel_split_parallelism']
+threat_intel_stellar_parallelism = config['configurations']['metron-enrichment-env']['threat_intel_stellar_parallelism']
+threat_intel_join_parallelism = config['configurations']['metron-enrichment-env']['threat_intel_join_parallelism']
+kafka_writer_parallelism = config['configurations']['metron-enrichment-env']['kafka_writer_parallelism']
+
+# Indexing
+indexing_kafka_start = config['configurations']['metron-indexing-env']['indexing_kafka_start']
+indexing_input_topic = status_params.indexing_input_topic
+indexing_error_topic = config['configurations']['metron-indexing-env']['indexing_error_topic']
+metron_indexing_topology = status_params.metron_indexing_topology
+indexing_writer_class_name = config['configurations']['metron-indexing-env']['indexing_writer_class_name']
+indexing_workers = config['configurations']['metron-indexing-env']['indexing_workers']
+indexing_acker_executors = config['configurations']['metron-indexing-env']['indexing_acker_executors']
+if not len(indexing_topology_worker_childopts) == 0:
+    indexing_topology_worker_childopts += ' '
+indexing_topology_worker_childopts += config['configurations']['metron-indexing-env']['indexing_topology_worker_childopts']
+indexing_topology_max_spout_pending = config['configurations']['metron-indexing-env']['indexing_topology_max_spout_pending']
+indexing_kafka_spout_parallelism = config['configurations']['metron-indexing-env']['indexing_kafka_spout_parallelism']
+indexing_writer_parallelism = config['configurations']['metron-indexing-env']['indexing_writer_parallelism']
+hdfs_writer_parallelism = config['configurations']['metron-indexing-env']['hdfs_writer_parallelism']
+
+# the double "format" is not an error - we are pulling in a jinja-templated param. This is a bit of a hack, but works
+# well enough until we find a better way via Ambari
+metron_apps_indexed_hdfs_dir = format(format(config['configurations']['metron-indexing-env']['metron_apps_indexed_hdfs_dir']))
+
+bolt_hdfs_rotation_policy = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy']
+bolt_hdfs_rotation_policy_units = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_units']
+bolt_hdfs_rotation_policy_count = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_count']
+

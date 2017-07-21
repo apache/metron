@@ -293,27 +293,27 @@ public class WindowProcessorTest {
     }
   }
 
-  @Test(expected=org.apache.metron.common.dsl.ParseException.class)
+  @Test(expected=org.apache.metron.stellar.dsl.ParseException.class)
   public void testWithInvalidDaySpecifier() throws ParseException {
     WindowProcessor.process("30 minute window every 24 hours from 14 days ago excluding hoolidays:us");
   }
 
-  @Test(expected=org.apache.metron.common.dsl.ParseException.class)
+  @Test(expected=org.apache.metron.stellar.dsl.ParseException.class)
   public void testWithInvalidTimeUnit() throws ParseException {
     WindowProcessor.process("30 minute window every 24 months from 14 days ago");
   }
 
-  @Test(expected=org.apache.metron.common.dsl.ParseException.class)
+  @Test(expected=org.apache.metron.stellar.dsl.ParseException.class)
   public void testWithInvalidWindowUnit() throws ParseException {
     WindowProcessor.process("30 minuete window every 24 hours from 14 days ago");
   }
 
-  @Test(expected=org.apache.metron.common.dsl.ParseException.class)
+  @Test(expected=org.apache.metron.stellar.dsl.ParseException.class)
   public void testWithInvalidTimeNumber() throws ParseException {
     WindowProcessor.process("30p minute window every 24 hours from 14 days ago");
   }
 
-  @Test(expected=org.apache.metron.common.dsl.ParseException.class)
+  @Test(expected=org.apache.metron.stellar.dsl.ParseException.class)
   public void testInvalidDaySpecifier() throws ParseException {
     WindowProcessor.process("30 minute window every 14 hours from 14 days ago including date");
   }

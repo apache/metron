@@ -1,4 +1,4 @@
-#Parsers
+# Parsers
 
 ## Introduction
 
@@ -20,8 +20,14 @@ There are two general types types of parsers:
     * `timestampFormat` : The date format of the timestamp to use.  If unspecified, the parser assumes the timestamp is ms since unix epoch.
     * `columns` : A map of column names you wish to extract from the CSV to their offsets (e.g. `{ 'name' : 1, 'profession' : 3}`  would be a column map for extracting the 2nd and 4th columns from a CSV)
     * `separator` : The column separator, `,` by default.
-just
-
+  * JSON Map Parser: `org.apache.metron.parsers.json.JSONMapParser` with possible `parserConfig` entries of
+    * `mapStrategy` : A strategy to indicate how to handle multi-dimensional Maps.  This is one of
+      * `DROP` : Drop fields which contain maps
+      * `UNFOLD` : Unfold inner maps.  So `{ "foo" : { "bar" : 1} }` would turn into `{"foo.bar" : 1}`
+      * `ALLOW` : Allow multidimensional maps
+      * `ERROR` : Throw an error when a multidimensional map is encountered
+    * A field called `timestamp` is expected to exist and, if it does not, then current time is inserted.  
+    
 ## Parser Architecture
 
 ![Architecture](parser_arch.png)
@@ -32,13 +38,12 @@ topology in kafka.  Errors are collected with the context of the error
 `error` queue.  Invalid messages as determined by global validation
 functions are also treated as errors and sent to an `error` queue. 
  
-##Message Format
+## Message Format
 
 All Metron messages follow a specific format in order to ingest a message.  If a message does not conform to this format it will be dropped and put onto an error queue for further examination.  The message must be of a JSON format and must have a JSON tag message like so:
 
 ```
 {"message" : message content}
-
 ```
 
 Where appropriate there is also a standardization around the 5-tuple JSON fields.  This is done so the topology correlation engine further down stream can correlate messages from different topologies by these fields.  We are currently working on expanding the message standardization beyond these fields, but this feature is not yet availabe.  The standard field names are as follows:
@@ -66,15 +71,14 @@ So putting it all together a typical Metron message with all 5-tuple fields pres
 "original_string": xxx,
 "additional-field 1": xxx,
 }
-
 }
 ```
 
-##Global Configuration 
+## Global Configuration 
 
 See the "[Global Configuration](../metron-common)" section.
 
-##Parser Configuration
+## Parser Configuration
 
 The configuration for the various parser topologies is defined by JSON
 documents stored in zookeeper.
@@ -93,7 +97,10 @@ Example Stellar Filter which includes messages which contain a the `field1` fiel
     }
    }
 ```
-* `sensorTopic` : The kafka topic to send the parsed messages to.
+* `sensorTopic` : The kafka topic to send the parsed messages to.  If the topic is prefixed and suffixed by `/` 
+then it is assumed to be a regex and will match any topic matching the pattern (e.g. `/bro.*/` would match `bro_cust0`, `bro_cust1` and `bro_cust2`)
+* `readMetadata` : Boolean indicating whether to read metadata or not (`false` by default).  See below for a discussion about metadata.
+* `mergeMetadata` : Boolean indicating whether to merge metadata with the message or not (`false` by default).  See below for a discussion about metadata.
 * `parserConfig` : A JSON Map representing the parser implementation specific configuration.
 * `fieldTransformations` : An array of complex objects representing the transformations to be done on the message generated from the parser before writing out to the kafka topic.
 
@@ -103,7 +110,45 @@ transformation which can be done to a message.  This transformation can
 * Add new fields given the values of existing fields of a message
 * Remove existing fields of a message
 
-###`fieldTransformation` configuration
+### Metadata
+
+Metadata is a useful thing to send to Metron and use during enrichment or threat intelligence.  
+Consider the following scenarios:
+* You have multiple telemetry sources of the same type that you want to 
+  * ensure downstream analysts can differentiate
+  * ensure profiles consider independently as they have different seasonality or some other fundamental characteristic
+
+As such, there are two types of metadata that we seek to support in Metron:
+* Environmental metadata : Metadata about the system at large
+   * Consider the possibility that you have multiple kafka topics being processed by one parser and you want to tag the messages with the kafka topic
+   * At the moment, only the kafka topic is kept as the field name.
+* Custom metadata: Custom metadata from an individual telemetry source that one might want to use within Metron. 
+
+Metadata is controlled by two fields in the parser:
+* `readMetadata` : This is a boolean indicating whether metadata will be read and made available to Field 
+transformations (i.e. Stellar field transformations).  The default is `false`.
+* `mergeMetadata` : This is a boolean indicating whether metadata fields will be merged with the message automatically.  
+That is to say, if this property is set to `true` then every metadata field will become part of the messages and, 
+consequently, also available for use in field transformations.
+#### Field Naming
+
+In order to avoid collisions from metadata fields, metadata fields will be prefixed with `metron.metadata.`.  
+So, for instance the kafka topic would be in the field `metron.metadata.topic`.
+
+#### Specifying Custom Metadata
+Custom metadata is specified by sending a JSON Map in the key.  If no key is sent, then, obviously, no metadata will be parsed.
+For instance, sending a metadata field called `customer_id` could be done by sending
+```
+{
+"customer_id" : "my_customer_id"
+}
+```
+in the kafka key.  This would be exposed as the field `metron.metadata.customer_id` to stellar field transformations
+as well, if `mergeMetadata` is `true`, available as a field in its own right.
+
+
+
+### `fieldTransformation` configuration
 
 The format of a `fieldTransformation` is as follows:
 * `input` : An array of fields or a single field representing the input.  This is optional; if unspecified, then the whole message is passed as input.
@@ -201,7 +246,7 @@ HH:mm:ss', MAP_GET(dc, dc2tz, 'UTC') )"
 Note that the `dc2tz` map is in the parser config, so it is accessible
 in the functions.
 
-###An Example Configuration for a Sensor
+### An Example Configuration for a Sensor
 Consider the following example configuration for the `yaf` sensor:
 
 ```
@@ -225,12 +270,12 @@ Consider the following example configuration for the `yaf` sensor:
 }
 ```
 
-##Parser Adapters
+## Parser Adapters
 
 Parser adapters are loaded dynamically in each Metron topology.  They
 are defined in the Parser Config (defined above) JSON file in Zookeeper.
 
-###Java Parser Adapters
+### Java Parser Adapters
 Java parser adapters are indended for higher-velocity topologies and are not easily changed or extended.  As the adoption of Metron continues we plan on extending our library of Java adapters to process more log formats.  As of this moment the Java adapters included with Metron are:
 
 * org.apache.metron.parsers.ise.BasicIseParser : Parse ISE messages
@@ -238,7 +283,7 @@ Java parser adapters are indended for higher-velocity topologies and are not eas
 * org.apache.metron.parsers.sourcefire.BasicSourcefireParser : Parse Sourcefire messages
 * org.apache.metron.parsers.lancope.BasicLancopeParser : Parse Lancope messages
 
-###Grok Parser Adapters
+### Grok Parser Adapters
 Grok parser adapters are designed primarly for someone who is not a Java coder for quickly standing up a parser adapter for lower velocity topologies.  Grok relies on Regex for message parsing, which is much slower than purpose-built Java parsers, but is more extensible.  Grok parsers are defined via a config file and the topplogy does not need to be recombiled in order to make changes to them.  An example of a Grok perser is:
 
 * org.apache.metron.parsers.GrokParser
@@ -247,7 +292,7 @@ For more information on the Grok project please refer to the following link:
 
 https://github.com/thekrakken/java-grok
 
-#Starting the Parser Topology
+# Starting the Parser Topology
 
 Starting a particular parser topology on a running Metron deployment is
 as easy as running the `start_parser_topology.sh` script located in

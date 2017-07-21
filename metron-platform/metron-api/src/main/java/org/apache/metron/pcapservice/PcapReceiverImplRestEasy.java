@@ -27,6 +27,7 @@ import org.apache.log4j.Logger;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
+import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.pcap.mr.PcapJob;
@@ -37,10 +38,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.List;
+import java.util.*;
 
 @Path("/")
 public class PcapReceiverImplRestEasy {
@@ -197,6 +195,7 @@ public class PcapReceiverImplRestEasy {
           @DefaultValue("-1") @QueryParam ("endTime")long endTime,
           @DefaultValue("10") @QueryParam ("numReducers")int numReducers,
           @DefaultValue("false") @QueryParam ("includeReverseTraffic") boolean includeReverseTraffic,
+          @DefaultValue("") @QueryParam ("packetFilter") String packetFilter,
           @Context HttpServletResponse servlet_response)
 
           throws IOException {
@@ -225,23 +224,26 @@ public class PcapReceiverImplRestEasy {
       //convert to nanoseconds since the epoch
       startTime = TimestampConverters.MILLISECONDS.toNanoseconds(startTime);
       endTime = TimestampConverters.MILLISECONDS.toNanoseconds(endTime);
-      EnumMap<Constants.Fields, String> query = new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
+      Map<String, String> query = new HashMap<String, String>() {{
                                       if(srcIp != null) {
-                                        put(Constants.Fields.SRC_ADDR, srcIp);
+                                        put(Constants.Fields.SRC_ADDR.getName(), srcIp);
                                       }
                                       if(dstIp != null) {
-                                        put(Constants.Fields.DST_ADDR, dstIp);
+                                        put(Constants.Fields.DST_ADDR.getName(), dstIp);
                                       }
                                       if(srcPort != null) {
-                                        put(Constants.Fields.SRC_PORT, srcPort);
+                                        put(Constants.Fields.SRC_PORT.getName(), srcPort);
                                       }
                                       if(dstPort != null) {
-                                        put(Constants.Fields.DST_PORT, dstPort);
+                                        put(Constants.Fields.DST_PORT.getName(), dstPort);
                                       }
                                       if(protocol != null) {
-                                        put(Constants.Fields.PROTOCOL, protocol);
+                                        put(Constants.Fields.PROTOCOL.getName(), protocol);
                                       }
-                                      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "" + includeReverseTrafficF);
+                                      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName(), "" + includeReverseTrafficF);
+                                      if(!org.apache.commons.lang3.StringUtils.isEmpty(packetFilter)) {
+                                        put(PcapHelper.PacketFields.PACKET_FILTER.getName(), packetFilter);
+                                      }
                                     }};
       if(LOGGER.isDebugEnabled()) {
         LOGGER.debug("Query received: " + Joiner.on(",").join(query.entrySet()));

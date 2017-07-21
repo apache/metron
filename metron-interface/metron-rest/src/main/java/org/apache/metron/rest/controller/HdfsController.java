@@ -44,8 +44,8 @@ public class HdfsController {
   @Autowired
   private HdfsService hdfsService;
 
-  @ApiOperation(value = "Reads a file from HDFS and returns the contents")
-  @ApiResponse(message = "Returns file contents", code = 200)
+  @ApiOperation(value = "Lists an HDFS directory")
+  @ApiResponse(message = "HDFS directory list", code = 200)
   @RequestMapping(value = "/list", method = RequestMethod.GET)
   ResponseEntity<List<String>> list(@ApiParam(name = "path", value = "Path to HDFS directory", required = true) @RequestParam String path) throws RestException {
     return new ResponseEntity<>(hdfsService.list(new Path(path)), HttpStatus.OK);

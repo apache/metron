@@ -24,29 +24,30 @@ import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FixedPcapFilterTest {
   @Test
   public void testTrivialEquality() throws Exception {
     Configuration config = new Configuration();
-    final EnumMap<Constants.Fields, String> fields = new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
-      put(Constants.Fields.SRC_ADDR, "src_ip");
-      put(Constants.Fields.SRC_PORT, "0");
-      put(Constants.Fields.DST_ADDR, "dst_ip");
-      put(Constants.Fields.DST_PORT, "1");
-      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "false");
+    final Map<String, String> fields = new HashMap<String, String>() {{
+      put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+      put(Constants.Fields.SRC_PORT.getName(), "0");
+      put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+      put(Constants.Fields.DST_PORT.getName(), "1");
+      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName(), "false");
     }};
     new FixedPcapFilter.Configurator().addToConfig(fields, config);
     {
       FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip");
-            put(Constants.Fields.SRC_PORT, 0);
-            put(Constants.Fields.DST_ADDR, "dst_ip");
-            put(Constants.Fields.DST_PORT, 1);
+        protected Map<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 0);
+            put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.DST_PORT.getName(), 1);
           }};
         }
       };
@@ -58,23 +59,23 @@ public class FixedPcapFilterTest {
   @Test
   public void testReverseTraffic() throws Exception {
     Configuration config = new Configuration();
-    final EnumMap<Constants.Fields, String> fields = new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
-      put(Constants.Fields.SRC_ADDR, "src_ip");
-      put(Constants.Fields.SRC_PORT, "0");
-      put(Constants.Fields.DST_ADDR, "dst_ip");
-      put(Constants.Fields.DST_PORT, "1");
-      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "true");
+    final Map<String, String> fields = new HashMap<String, String>() {{
+      put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+      put(Constants.Fields.SRC_PORT.getName(), "0");
+      put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+      put(Constants.Fields.DST_PORT.getName(), "1");
+      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName(), "true");
     }};
     new FixedPcapFilter.Configurator().addToConfig(fields, config);
     {
       FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip");
-            put(Constants.Fields.SRC_PORT, 0);
-            put(Constants.Fields.DST_ADDR, "dst_ip");
-            put(Constants.Fields.DST_PORT, 1);
+        protected Map<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 0);
+            put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.DST_PORT.getName(), 1);
           }};
         }
       };
@@ -85,12 +86,12 @@ public class FixedPcapFilterTest {
     {
       FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "dst_ip");
-            put(Constants.Fields.SRC_PORT, 1);
-            put(Constants.Fields.DST_ADDR, "src_ip");
-            put(Constants.Fields.DST_PORT, 0);
+        protected Map<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 1);
+            put(Constants.Fields.DST_ADDR.getName(), "src_ip");
+            put(Constants.Fields.DST_PORT.getName(), 0);
           }};
         }
       };
@@ -101,12 +102,12 @@ public class FixedPcapFilterTest {
     {
       FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "dst_ip");
-            put(Constants.Fields.SRC_PORT, 0);
-            put(Constants.Fields.DST_ADDR, "src_ip");
-            put(Constants.Fields.DST_PORT, 1);
+        protected Map<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 0);
+            put(Constants.Fields.DST_ADDR.getName(), "src_ip");
+            put(Constants.Fields.DST_PORT.getName(), 1);
           }};
         }
       };
@@ -117,22 +118,22 @@ public class FixedPcapFilterTest {
 @Test
 public void testMissingDstAddr() throws Exception {
   Configuration config = new Configuration();
-  final EnumMap<Constants.Fields, String> fields = new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
-    put(Constants.Fields.SRC_ADDR, "src_ip");
-    put(Constants.Fields.SRC_PORT, "0");
-    put(Constants.Fields.DST_PORT, "1");
-    put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "false");
+  final HashMap<String, String> fields = new HashMap<String, String>() {{
+    put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+    put(Constants.Fields.SRC_PORT.getName(), "0");
+    put(Constants.Fields.DST_PORT.getName(), "1");
+    put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName(), "false");
   }};
   new FixedPcapFilter.Configurator().addToConfig(fields, config);
   {
     FixedPcapFilter filter = new FixedPcapFilter() {
       @Override
-      protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-        return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-          put(Constants.Fields.SRC_ADDR, "src_ip");
-          put(Constants.Fields.SRC_PORT, 0);
-          put(Constants.Fields.DST_ADDR, "dst_ip");
-          put(Constants.Fields.DST_PORT, 1);
+      protected HashMap<String, Object> packetToFields(PacketInfo pi) {
+        return new HashMap<String, Object>() {{
+          put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+          put(Constants.Fields.SRC_PORT.getName(), 0);
+          put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+          put(Constants.Fields.DST_PORT.getName(), 1);
         }};
       }
     };
@@ -143,12 +144,12 @@ public void testMissingDstAddr() throws Exception {
   {
     FixedPcapFilter filter = new FixedPcapFilter() {
       @Override
-      protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-        return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-          put(Constants.Fields.SRC_ADDR, "src_ip1");
-          put(Constants.Fields.SRC_PORT, 0);
-          put(Constants.Fields.DST_ADDR, "dst_ip");
-          put(Constants.Fields.DST_PORT, 1);
+      protected HashMap<String, Object> packetToFields(PacketInfo pi) {
+        return new HashMap<String, Object>() {{
+          put(Constants.Fields.SRC_ADDR.getName(), "src_ip1");
+          put(Constants.Fields.SRC_PORT.getName(), 0);
+          put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+          put(Constants.Fields.DST_PORT.getName(), 1);
         }};
       }
     };
@@ -159,22 +160,22 @@ public void testMissingDstAddr() throws Exception {
   @Test
   public void testMissingDstPort() throws Exception {
     Configuration config = new Configuration();
-    final EnumMap<Constants.Fields, String> fields = new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
-      put(Constants.Fields.SRC_ADDR, "src_ip");
-      put(Constants.Fields.SRC_PORT, "0");
-      put(Constants.Fields.DST_ADDR, "dst_ip");
-      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "false");
+    final HashMap<String, String> fields = new HashMap<String, String>() {{
+      put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+      put(Constants.Fields.SRC_PORT.getName(), "0");
+      put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName(), "false");
     }};
     new FixedPcapFilter.Configurator().addToConfig(fields, config);
     {
       FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip");
-            put(Constants.Fields.SRC_PORT, 0);
-            put(Constants.Fields.DST_ADDR, "dst_ip");
-            put(Constants.Fields.DST_PORT, 1);
+        protected HashMap<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 0);
+            put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.DST_PORT.getName(), 1);
           }};
         }
       };
@@ -185,12 +186,12 @@ public void testMissingDstAddr() throws Exception {
     {
       FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip");
-            put(Constants.Fields.SRC_PORT, 0);
-            put(Constants.Fields.DST_ADDR, "dst_ip");
-            put(Constants.Fields.DST_PORT, 100);
+        protected HashMap<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 0);
+            put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.DST_PORT.getName(), 100);
           }};
         }
       };
@@ -201,12 +202,12 @@ public void testMissingDstAddr() throws Exception {
     {
       FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip");
-            put(Constants.Fields.SRC_PORT, 100);
-            put(Constants.Fields.DST_ADDR, "dst_ip");
-            put(Constants.Fields.DST_PORT, 100);
+        protected HashMap<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 100);
+            put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.DST_PORT.getName(), 100);
           }};
         }
       };
@@ -217,22 +218,22 @@ public void testMissingDstAddr() throws Exception {
   @Test
   public void testMissingSrcAddr() throws Exception {
     Configuration config = new Configuration();
-    final EnumMap<Constants.Fields, String> fields = new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
-      put(Constants.Fields.SRC_PORT, "0");
-      put(Constants.Fields.DST_ADDR, "dst_ip");
-      put(Constants.Fields.DST_PORT, "1");
-      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "false");
+    final HashMap<String, String> fields = new HashMap<String, String>() {{
+      put(Constants.Fields.SRC_PORT.getName(), "0");
+      put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+      put(Constants.Fields.DST_PORT.getName(), "1");
+      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName(), "false");
     }};
     new FixedPcapFilter.Configurator().addToConfig(fields, config);
     {
       FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip");
-            put(Constants.Fields.SRC_PORT, 0);
-            put(Constants.Fields.DST_ADDR, "dst_ip");
-            put(Constants.Fields.DST_PORT, 1);
+        protected HashMap<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 0);
+            put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.DST_PORT.getName(), 1);
           }};
         }
       };
@@ -243,22 +244,22 @@ public void testMissingDstAddr() throws Exception {
   @Test
   public void testMissingSrcPort() throws Exception {
     Configuration config = new Configuration();
-    final EnumMap<Constants.Fields, String> fields = new EnumMap<Constants.Fields, String>(Constants.Fields.class) {{
-      put(Constants.Fields.SRC_ADDR, "src_ip");
-      put(Constants.Fields.DST_ADDR, "dst_ip");
-      put(Constants.Fields.DST_PORT, "1");
-      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC, "false");
+    final HashMap<String, String> fields = new HashMap<String, String>() {{
+      put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+      put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+      put(Constants.Fields.DST_PORT.getName(), "1");
+      put(Constants.Fields.INCLUDES_REVERSE_TRAFFIC.getName(), "false");
     }};
     new FixedPcapFilter.Configurator().addToConfig(fields, config);
     {
       FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip");
-            put(Constants.Fields.SRC_PORT, 0);
-            put(Constants.Fields.DST_ADDR, "dst_ip");
-            put(Constants.Fields.DST_PORT, 1);
+        protected HashMap<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 0);
+            put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.DST_PORT.getName(), 1);
           }};
         }
       };
@@ -269,12 +270,12 @@ public void testMissingDstAddr() throws Exception {
     {
       FixedPcapFilter filter = new FixedPcapFilter() {
         @Override
-        protected EnumMap<Constants.Fields, Object> packetToFields(PacketInfo pi) {
-          return new EnumMap<Constants.Fields, Object>(Constants.Fields.class) {{
-            put(Constants.Fields.SRC_ADDR, "src_ip");
-            put(Constants.Fields.SRC_PORT, 100);
-            put(Constants.Fields.DST_ADDR, "dst_ip");
-            put(Constants.Fields.DST_PORT, 1);
+        protected HashMap<String, Object> packetToFields(PacketInfo pi) {
+          return new HashMap<String, Object>() {{
+            put(Constants.Fields.SRC_ADDR.getName(), "src_ip");
+            put(Constants.Fields.SRC_PORT.getName(), 100);
+            put(Constants.Fields.DST_ADDR.getName(), "dst_ip");
+            put(Constants.Fields.DST_PORT.getName(), 1);
           }};
         }
       };

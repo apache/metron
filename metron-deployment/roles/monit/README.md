@@ -17,7 +17,7 @@ This role will leverage Monit as a process watchdog to manage sensors, topologie
         "   Ambari          @ http://ec2-52-39-4-93.us-west-2.compute.amazonaws.com:8080",
         "   Sensor Status   @ http://ec2-52-39-4-93.us-west-2.compute.amazonaws.com:2812",
         "   Topology Status @ http://ec2-52-39-130-62.us-west-2.compute.amazonaws.com:2812",
-        "For additional information, see https://metron.incubator.apache.org/'"
+        "For additional information, see https://metron.apache.org/'"
     ]
   }
   ```

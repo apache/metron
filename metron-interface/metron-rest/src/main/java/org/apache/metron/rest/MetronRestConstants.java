@@ -41,6 +41,8 @@ public class MetronRestConstants {
   public static final String PARSER_SCRIPT_PATH_SPRING_PROPERTY = "storm.parser.script.path";
   public static final String ENRICHMENT_SCRIPT_PATH_SPRING_PROPERTY = "storm.enrichment.script.path";
   public static final String INDEXING_SCRIPT_PATH_SPRING_PROPERTY = "storm.indexing.script.path";
+  public static final String PARSER_TOPOLOGY_OPTIONS_SPRING_PROPERTY = "storm.parser.topology.options";
+  public static final String KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY = "kafka.security.protocol";
 
   public static final String ZK_URL_SPRING_PROPERTY = "zookeeper.url";
   public static final String ZK_CLIENT_SESSION_TIMEOUT = "zookeeper.client.timeout.session";
@@ -52,4 +54,11 @@ public class MetronRestConstants {
 
   public static final String HDFS_URL_SPRING_PROPERTY = "hdfs.namenode.url";
   public static final String DEFAULT_HDFS_URL = "file:///";
+
+  public static final String KERBEROS_ENABLED_SPRING_PROPERTY = "kerberos.enabled";
+  public static final String KERBEROS_PRINCIPLE_SPRING_PROPERTY = "kerberos.principal";
+  public static final String KERBEROS_KEYTAB_SPRING_PROPERTY = "kerberos.keytab";
+
+  public static final String SEARCH_MAX_RESULTS = "search.max.results";
+  public static final String INDEX_DAO_IMPL = "index.dao.impl";
 }

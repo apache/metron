@@ -124,7 +124,7 @@ public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
               .splitByFields( message
                       , fields
                       , field -> getKeyName(enrichmentType, field)
-                      , retriever.getConfig()
+                      , retriever
               );
       for(JSONObject eo : enrichmentObject) {
         eo.put(Constants.SENSOR_TYPE, sensorType);

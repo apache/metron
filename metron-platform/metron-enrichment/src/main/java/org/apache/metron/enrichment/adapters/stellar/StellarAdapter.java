@@ -19,11 +19,12 @@ package org.apache.metron.enrichment.adapters.stellar;
 
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.MapVariableResolver;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.common.dsl.VariableResolver;
-import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.MapVariableResolver;
+import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.stellar.dsl.VariableResolver;
+import org.apache.metron.stellar.common.StellarProcessor;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
@@ -31,13 +32,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 import static org.apache.metron.enrichment.bolt.GenericEnrichmentBolt.STELLAR_CONTEXT_CONF;
 
 public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable {
+  public static class Perf {}
   protected static final Logger _LOG = LoggerFactory.getLogger(StellarAdapter.class);
+  protected static final Logger _PERF_LOG = LoggerFactory.getLogger(Perf.class);
+  public static final String STELLAR_SLOW_LOG = "stellar.slow.threshold.ms";
+  public static final Long STELLAR_SLOW_LOG_DEFAULT = 1000l;
 
   private enum EnrichmentType implements Function<SensorEnrichmentConfig, ConfigHandler>{
     ENRICHMENT(config -> config.getEnrichment().getEnrichmentConfigs().get("stellar"))
@@ -74,6 +81,84 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
     return field;
   }
 
+  public static Iterable<Map.Entry<String, Object>> getStellarStatements(ConfigHandler handler, String field) {
+    if(field.length() == 0) {
+      return handler.getType().toConfig(handler.getConfig());
+    }
+    else {
+      Map<String, Object> groupStatements = (Map<String, Object>)handler.getConfig();
+      return handler.getType().toConfig(groupStatements.get(field));
+    }
+  }
+
+  public static JSONObject process( Map<String, Object> message
+                                           , ConfigHandler handler
+                                           , String field
+                                           , Long slowLogThreshold
+                                           , StellarProcessor processor
+                                           , VariableResolver resolver
+                                           , Context stellarContext
+                                           )
+  {
+    JSONObject ret = new JSONObject();
+    Iterable<Map.Entry<String, Object>> stellarStatements = getStellarStatements(handler, field);
+
+    _LOG.debug("message := {}", message);
+    if(stellarStatements != null) {
+      List<String> mapEntries = new ArrayList<>();
+      for (Map.Entry<String, Object> kv : stellarStatements) {
+        if(kv.getKey() != null && kv.getValue() != null) {
+          if (kv.getValue() instanceof String) {
+            long startTime = System.currentTimeMillis();
+            String stellarStatement = (String) kv.getValue();
+            Object o = processor.parse(stellarStatement, resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
+            if (slowLogThreshold != null && _PERF_LOG.isDebugEnabled()) {
+              long duration = System.currentTimeMillis() - startTime;
+              if (duration > slowLogThreshold) {
+                _PERF_LOG.debug("SLOW LOG: " + stellarStatement + " took" + duration + "ms");
+              }
+            }
+            _LOG.debug("{} := {} yields {}", kv.getKey(), stellarStatement , o);
+            if (o != null && o instanceof Map) {
+              mapEntries.add(kv.getKey());
+            }
+            if(o == null) {
+              message.remove(kv.getKey());
+              ret.remove(kv.getKey());
+            }
+            else {
+              message.put(kv.getKey(), o);
+              ret.put(kv.getKey(), o);
+            }
+          }
+        }
+      }
+      /*
+      We need to handle the map entries separately now.
+      We want to explode them out, so if "var" is
+      {
+        "foo" : "bar"
+      }
+      then we want "var.foo" == "bar"
+      and no "var"
+       */
+      for(String mapEntry : mapEntries) {
+        String key = mapEntry;
+        Map<Object, Object> value = (Map<Object, Object>) ret.get(key);
+        if(value != null) {
+          _LOG.debug("Exploding map: {} == {}", key, value);
+          for (Map.Entry<Object, Object> valueKv : value.entrySet()) {
+            String newKey = ((key.length() > 0) ? key + "." : "") + valueKv.getKey();
+            ret.put(newKey, valueKv.getValue());
+          }
+          //removing the map from downstream
+          ret.remove(key);
+        }
+      }
+    }
+    return ret;
+  }
+
   @Override
   public JSONObject enrich(CacheKey value) {
     Context stellarContext = (Context) value.getConfig().getConfiguration().get(STELLAR_CONTEXT_CONF);
@@ -81,33 +166,25 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
     Map<String, Object> globalConfig = value.getConfig().getConfiguration();
     Map<String, Object> sensorConfig = value.getConfig().getEnrichment().getConfig();
     if(handler == null) {
-        _LOG.trace("Stellar ConfigHandler is null.");
+      _LOG.trace("Stellar ConfigHandler is null.");
       return new JSONObject();
+    }
+    Long slowLogThreshold = null;
+    if(_PERF_LOG.isDebugEnabled()) {
+      slowLogThreshold = ConversionUtils.convert(globalConfig.getOrDefault(STELLAR_SLOW_LOG, STELLAR_SLOW_LOG_DEFAULT), Long.class);
     }
     Map<String, Object> message = value.getValue(Map.class);
     VariableResolver resolver = new MapVariableResolver(message, sensorConfig, globalConfig);
     StellarProcessor processor = new StellarProcessor();
-    Map<String, Object> stellarStatements = value.getField().length() == 0? handler.getConfig()
-                                                                          : (Map)handler.getConfig().get(value.getField());
-    if(stellarStatements != null) {
-      for (Map.Entry<String, Object> kv : stellarStatements.entrySet()) {
-        if(kv.getValue() instanceof String) {
-          String stellarStatement = (String) kv.getValue();
-          Object o = processor.parse(stellarStatement, resolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
-          if(o != null && o instanceof Map) {
-            for(Map.Entry<Object, Object> valueKv : ((Map<Object, Object>)o).entrySet()) {
-              String newKey = ((kv.getKey().length() > 0)?kv.getKey() + "." : "" )+ valueKv.getKey();
-              message.put(newKey, valueKv.getValue());
-            }
-          }
-          else {
-            message.put(kv.getKey(), o);
-          }
-        }
-      }
-    }
-    JSONObject enriched = new JSONObject(message);
-    _LOG.trace("Stellar Enrichment Success: " + enriched);
+    JSONObject enriched = process(message
+                                 , handler
+                                 , value.getField()
+                                 , slowLogThreshold
+                                 , processor
+                                 , resolver
+                                 , stellarContext
+                                 );
+    _LOG.trace("Stellar Enrichment Success: {}", enriched);
     return enriched;
   }
 

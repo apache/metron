@@ -19,7 +19,7 @@ package org.apache.metron.common.utils;
 
 import java.lang.reflect.InvocationTargetException;
 
-public class ReflectionUtils<T> {
+public class ReflectionUtils {
 
   public static <T> T createInstance(String className, T defaultClass) {
     T instance;

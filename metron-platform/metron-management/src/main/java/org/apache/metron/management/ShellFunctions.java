@@ -19,23 +19,18 @@ package org.apache.metron.management;
 
 import com.jakewharton.fliptables.FlipTable;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.log4j.Logger;
-import org.apache.metron.common.dsl.*;
-import org.apache.metron.common.stellar.shell.PausableInput;
-import org.apache.metron.common.stellar.shell.StellarExecutor;
-import org.apache.metron.common.utils.ConversionUtils;
-import org.jboss.aesh.console.AeshProcess;
+import org.apache.metron.stellar.common.shell.PausableInput;
+import org.apache.metron.stellar.common.shell.StellarExecutor;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.metron.stellar.dsl.*;
 import org.jboss.aesh.console.Console;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.nio.charset.Charset;
 import java.util.*;
 
-import static org.apache.metron.common.stellar.shell.StellarExecutor.CONSOLE;
+import static org.apache.metron.stellar.common.shell.StellarExecutor.CONSOLE;
 
 public class ShellFunctions {
   private static final Logger LOG = Logger.getLogger(ShellFunctions.class);

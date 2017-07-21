@@ -13,9 +13,11 @@ Getting Started
 The computer used to deploy Apache Metron will need to have the following components installed.
 
  - [Ansible](https://github.com/ansible/ansible) (2.0.0.2 or 2.2.2.0)
- - [Vagrant](https://www.vagrantup.com) 1.8.1
- - [Virtualbox](https://virtualbox.org) 5.0.16
- - Python 2.7.11
+ - [Docker](https://www.docker.com/community-edition)
+ - [Vagrant](https://www.vagrantup.com) 1.8+
+ - [Vagrant Hostmanager Plugin](https://github.com/devopsgroup-io/vagrant-hostmanager)
+ - [Virtualbox](https://virtualbox.org) 5.0+
+ - Python 2.7
  - Maven 3.3.9
 
 #### macOS
@@ -24,35 +26,32 @@ Any platform that supports these tools is suitable, but the following instructio
 
 1. Install Homebrew by following the instructions at [Homebrew](http://brew.sh/).
 
-2. Run the following command in a terminal to install all of the required tools.
+1. Run the following command in a terminal to install all of the required tools.
 
-  ```  
-  brew cask install vagrant virtualbox java
-  brew install maven git
-  ```
-
-3. Install Ansible by following the instructions [here](http://docs.ansible.com/ansible/intro_installation.html#latest-releases-via-pip).
+    ```  
+    brew cask install vagrant virtualbox java docker
+    brew install maven@3.3 git
+    pip install ansible==2.2.2.0
+    vagrant plugin install vagrant-hostmanager
+    open /Applications/Docker.app
+    ```
 
 ### Deploy Metron
 
-1. Install Vagrant Hostmanager.
+1. Ensure that the Docker service is running.
 
-  ```
-  vagrant plugin install vagrant-hostmanager
-  ```
+1. Deploy Metron
 
-2. Deploy Metron
+    ```
+    cd metron-deployment/vagrant/full-dev-platform
+    vagrant up
+    ```
 
-  ```
-  cd metron-deployment/vagrant/full-dev-platform
-  vagrant up
-  ```
+    Should the process fail before completing the deployment, the following command will continue the deployment process without re-instantiating the host.
 
-  Should the process fail before completing the deployment, the following command will continue the deployment process without re-instantiating the host.
-
-  ```
-  vagrant provision
-  ```
+    ```
+    vagrant provision
+    ```
 
 ### Explore Metron
 

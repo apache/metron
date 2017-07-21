@@ -58,6 +58,7 @@ public class KafkaProcessor<T> implements Processor<T> {
     private Function<KafkaMessageSet, Boolean> validateReadMessages;
     private Function<KafkaMessageSet,T> provideResult;
 
+    @Override
     public ReadinessState process(ComponentRunner runner){
         KafkaComponent kafkaComponent = runner.getComponent(kafkaComponentName, KafkaComponent.class);
         LinkedList<byte[]> outputMessages = new LinkedList<>(kafkaComponent.readMessages(readTopic));
@@ -79,6 +80,8 @@ public class KafkaProcessor<T> implements Processor<T> {
         }
         return ReadinessState.NOT_READY;
     }
+
+    @Override
     @SuppressWarnings("unchecked")
     public ProcessorResult<T> getResult(){
         ProcessorResult.Builder<T> builder = new ProcessorResult.Builder();

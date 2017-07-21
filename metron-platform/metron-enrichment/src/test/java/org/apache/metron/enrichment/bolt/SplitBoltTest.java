@@ -22,10 +22,10 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import com.google.common.collect.ImmutableList;
-import junit.framework.Assert;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
 import org.json.simple.JSONObject;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashMap;

@@ -38,7 +38,7 @@ public class JSONCleaner implements Serializable {
 	 * @param jsonString
 	 * @return
 	 * @throws ParseException
-	 * Takes a json String as input and removes any Special Chars (^ a-z A-Z 0-9) in the keys
+	 * Takes a json String as input and modifies the keys to remove any characters other than . _ a-z A-Z or 0-9
 	 */
 	@SuppressWarnings({"unchecked","rawtypes"})
 	public JSONObject clean(String jsonString) throws ParseException

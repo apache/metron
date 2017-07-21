@@ -23,7 +23,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.*;
 
@@ -84,10 +86,11 @@ public class HyperLogLogPlusFunctionsTest {
   }
 
   @Test
-  public void hllp_cardinality_with_invalid_arguments_throws_exception() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Must pass an hllp set to get the cardinality for");
-    new HyperLogLogPlusFunctions.HLLPCardinality().apply(ImmutableList.of());
+  public void hllp_cardinality_returns_0_for_null_set() {
+    List nullArg = new ArrayList() {{
+      add(null);
+    }};
+    Assert.assertThat("Cardinality should be 0", new HyperLogLogPlusFunctions.HLLPCardinality().apply(nullArg), equalTo(0L));
   }
 
   @Test
@@ -137,6 +140,12 @@ public class HyperLogLogPlusFunctionsTest {
     HyperLogLogPlus hllp1 = (HyperLogLogPlus) new HyperLogLogPlusFunctions.HLLPInit().apply(ImmutableList.of());
     HyperLogLogPlus hllp2 = (HyperLogLogPlus) new HyperLogLogPlusFunctions.HLLPInit().apply(ImmutableList.of());
     new HyperLogLogPlusFunctions.HLLPMerge().apply(ImmutableList.of(hllp1, hllp2));
+  }
+
+  @Test
+  public void merge_returns_null_if_passed_an_empty_list_to_merge() {
+    List emptyList = ImmutableList.of();
+    Assert.assertThat("Should be empty list", new HyperLogLogPlusFunctions.HLLPMerge().apply(ImmutableList.of(emptyList)), equalTo(null));
   }
 
 }

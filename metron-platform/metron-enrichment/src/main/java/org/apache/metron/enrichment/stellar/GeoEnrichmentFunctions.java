@@ -18,12 +18,13 @@
 package org.apache.metron.enrichment.stellar;
 
 import org.apache.log4j.Logger;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.dsl.StellarFunction;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.dsl.StellarFunction;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,7 @@ public class GeoEnrichmentFunctions {
           ,namespace="GEO"
           ,description="Look up an IPV4 address and returns geographic information about it"
           ,params = {
-                      "ip - The IPV4 address to lookup" +
+                      "ip - The IPV4 address to lookup",
                       "fields - Optional list of GeoIP fields to grab. Options are locID, country, city, postalCode, dmaCode, latitude, longitude, location_point"
                     }
           ,returns = "If a Single field is requested a string of the field, If multiple fields a map of string of the fields, and null otherwise"
@@ -63,6 +64,8 @@ public class GeoEnrichmentFunctions {
         Optional<HashMap<String, String>> result = GeoLiteDatabase.INSTANCE.get(ip);
         if(result.isPresent()) {
           return result.get();
+        } else {
+          return Collections.EMPTY_MAP;
         }
       } else if (args.size() == 2 && args.get(1) instanceof List) {
         // If fields are provided, return just those fields.

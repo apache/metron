@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.writer;
 
+import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
@@ -28,7 +29,7 @@ import java.util.Map;
 
 public interface BulkMessageWriter<MESSAGE_T> extends AutoCloseable, Serializable {
 
-  void init(Map stormConf, WriterConfiguration config) throws Exception;
+  void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration config) throws Exception;
 
   /**
   * Writes the messages to a particular output (e.g. Elasticsearch). Exceptions trigger failure of the entire batch.

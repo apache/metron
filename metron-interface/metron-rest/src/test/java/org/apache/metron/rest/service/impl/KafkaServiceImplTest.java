@@ -41,6 +41,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.kafka.core.ConsumerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,6 +72,7 @@ public class KafkaServiceImplTest {
 
   private ZkUtils zkUtils;
   private KafkaConsumer<String, String> kafkaConsumer;
+  private ConsumerFactory<String, String> kafkaConsumerFactory;
   private AdminUtils$ adminUtils;
 
   private KafkaService kafkaService;
@@ -86,10 +88,13 @@ public class KafkaServiceImplTest {
   @Before
   public void setUp() throws Exception {
     zkUtils = mock(ZkUtils.class);
+    kafkaConsumerFactory = mock(ConsumerFactory.class);
     kafkaConsumer = mock(KafkaConsumer.class);
     adminUtils = mock(AdminUtils$.class);
 
-    kafkaService = new KafkaServiceImpl(zkUtils, kafkaConsumer, adminUtils);
+    when(kafkaConsumerFactory.createConsumer()).thenReturn(kafkaConsumer);
+
+    kafkaService = new KafkaServiceImpl(zkUtils, kafkaConsumerFactory, adminUtils);
   }
 
   @Test
@@ -104,6 +109,7 @@ public class KafkaServiceImplTest {
 
     verifyZeroInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
+    verify(kafkaConsumer).close();
     verifyNoMoreInteractions(kafkaConsumer, zkUtils, adminUtils);
   }
 
@@ -119,6 +125,7 @@ public class KafkaServiceImplTest {
 
     verifyZeroInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
+    verify(kafkaConsumer).close();
     verifyNoMoreInteractions(kafkaConsumer, zkUtils);
   }
 
@@ -137,6 +144,7 @@ public class KafkaServiceImplTest {
 
     verifyZeroInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
+    verify(kafkaConsumer).close();
     verifyNoMoreInteractions(kafkaConsumer, zkUtils);
   }
 
@@ -156,6 +164,7 @@ public class KafkaServiceImplTest {
 
     verifyZeroInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
+    verify(kafkaConsumer).close();
     verifyNoMoreInteractions(kafkaConsumer, zkUtils);
   }
 
@@ -167,6 +176,7 @@ public class KafkaServiceImplTest {
 
     verifyZeroInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
+    verify(kafkaConsumer).close();
     verifyNoMoreInteractions(kafkaConsumer, zkUtils);
   }
 
@@ -180,6 +190,7 @@ public class KafkaServiceImplTest {
     assertTrue(kafkaService.deleteTopic("non_existent_topic"));
 
     verify(kafkaConsumer).listTopics();
+    verify(kafkaConsumer).close();
     verify(adminUtils).deleteTopic(zkUtils, "non_existent_topic");
     verifyNoMoreInteractions(kafkaConsumer);
   }
@@ -193,6 +204,7 @@ public class KafkaServiceImplTest {
     assertFalse(kafkaService.deleteTopic("non_existent_topic"));
 
     verify(kafkaConsumer).listTopics();
+    verify(kafkaConsumer).close();
     verifyNoMoreInteractions(kafkaConsumer);
   }
 
@@ -230,6 +242,7 @@ public class KafkaServiceImplTest {
 
     verify(kafkaConsumer).listTopics();
     verify(kafkaConsumer, times(0)).partitionsFor("t");
+    verify(kafkaConsumer).close();
     verifyZeroInteractions(zkUtils);
     verifyNoMoreInteractions(kafkaConsumer);
   }

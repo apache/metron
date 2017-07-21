@@ -33,17 +33,14 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.curator.test.TestingServer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.net.NetUtils;
-import org.apache.hadoop.util.JarFinder;
 import org.apache.hadoop.util.Shell;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.apache.hadoop.yarn.server.MiniYARNCluster;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.components.YarnComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
@@ -57,25 +54,25 @@ import org.apache.metron.maas.util.ConfigUtil;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.zookeeper.KeeperException;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class MaasIntegrationTest {
   private static final Log LOG =
           LogFactory.getLog(MaasIntegrationTest.class);
-  private CuratorFramework client;
-  private ComponentRunner runner;
-  private YarnComponent yarnComponent;
-  private ZKServerComponent zkServerComponent;
-  @Before
-  public void setup() throws Exception {
+  private static CuratorFramework client;
+  private static ComponentRunner runner;
+  private static YarnComponent yarnComponent;
+  private static ZKServerComponent zkServerComponent;
+
+  @BeforeClass
+  public static void setupBeforeClass() throws Exception {
     UnitTestHelper.setJavaLoggingLevel(Level.SEVERE);
     LOG.info("Starting up YARN cluster");
 
-    Map<String, String> properties = new HashMap<>();
     zkServerComponent = new ZKServerComponent();
-
     yarnComponent = new YarnComponent().withApplicationMasterClass(ApplicationMaster.class).withTestName(MaasIntegrationTest.class.getSimpleName());
 
     runner = new ComponentRunner.Builder()
@@ -92,12 +89,17 @@ public class MaasIntegrationTest {
     client.start();
   }
 
-  @After
-  public void tearDown(){
+  @AfterClass
+  public static void tearDownAfterClass(){
     if(client != null){
       client.close();
     }
     runner.stop();
+  }
+
+  @After
+  public void tearDown() {
+    runner.reset();
   }
 
   @Test(timeout=900000)
