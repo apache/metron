@@ -247,7 +247,6 @@ public abstract class IndexingDaoIntegrationTest {
         Assert.assertEquals("Search result size must be less than 100", ise.getMessage());
       }
     }
-
     // getColumnMetadata with multiple indices
     {
       Map<String, Map<String, FieldType>> fieldTypes = dao.getColumnMetadata(Arrays.asList("bro", "snort"));
@@ -279,7 +278,6 @@ public abstract class IndexingDaoIntegrationTest {
       Assert.assertEquals(FieldType.INTEGER, snortTypes.get("snort_field"));
       Assert.assertEquals(FieldType.INTEGER, snortTypes.get("duplicate_name_field"));
     }
-
     // getColumnMetadata with only bro
     {
       Map<String, Map<String, FieldType>> fieldTypes = dao.getColumnMetadata(Collections.singletonList("bro"));
@@ -288,7 +286,6 @@ public abstract class IndexingDaoIntegrationTest {
       Assert.assertEquals(11, broTypes.size());
       Assert.assertEquals(FieldType.STRING, broTypes.get("bro_field"));
     }
-
     // getColumnMetadata with only snort
     {
       Map<String, Map<String, FieldType>> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
@@ -297,7 +294,6 @@ public abstract class IndexingDaoIntegrationTest {
       Assert.assertEquals(11, snortTypes.size());
       Assert.assertEquals(FieldType.INTEGER, snortTypes.get("snort_field"));
     }
-
     // getCommonColumnMetadata with multiple Indices
     {
       Map<String, FieldType> fieldTypes = dao.getCommonColumnMetadata(Arrays.asList("bro", "snort"));
