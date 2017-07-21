@@ -50,17 +50,17 @@ public class SearchController {
     return new ResponseEntity<>(searchService.search(searchRequest), HttpStatus.OK);
   }
 
-  @ApiOperation(value = "Get Column Metadata")
+  @ApiOperation(value = "Get column metadata for each index in the list of indices")
   @ApiResponse(message = "Column Metadata", code = 200)
   @RequestMapping(value = "/column/metadata", method = RequestMethod.POST)
-  ResponseEntity<Map<String, Map<String, FieldType>>> getColumnMetadata(@RequestBody List<String> indices) throws RestException {
+  ResponseEntity<Map<String, Map<String, FieldType>>> getColumnMetadata(final @ApiParam(name = "indices", value = "Indices", required = true) @RequestBody List<String> indices) throws RestException {
     return new ResponseEntity<>(searchService.getColumnMetadata(indices), HttpStatus.OK);
   }
 
-  @ApiOperation(value = "Get Common Column Metadata")
+  @ApiOperation(value = "Get metadata for columns shared by the list of indices")
   @ApiResponse(message = "Common Column Metadata", code = 200)
   @RequestMapping(value = "/column/metadata/common", method = RequestMethod.POST)
-  ResponseEntity<Map<String, FieldType>> getCommonColumnMetadata(@RequestBody List<String> indices) throws RestException {
+  ResponseEntity<Map<String, FieldType>> getCommonColumnMetadata(final @ApiParam(name = "indices", value = "Indices", required = true) @RequestBody List<String> indices) throws RestException {
     return new ResponseEntity<>(searchService.getCommonColumnMetadata(indices), HttpStatus.OK);
   }
 }
