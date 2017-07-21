@@ -19,6 +19,10 @@ package org.apache.metron.parsers.fireeye;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.time.Year;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
 import org.apache.metron.parsers.AbstractParserConfigTest;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -28,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class BasicFireEyeParserTest extends AbstractParserConfigTest {
+  private static final ZoneId UTC = ZoneId.of("UTC");
 
   @Before
   public void setUp() throws Exception {
@@ -56,5 +61,17 @@ public class BasicFireEyeParserTest extends AbstractParserConfigTest {
         Assert.assertNotNull(value);
       }
     }
+  }
+
+  private final static String fireeyeMessage = "<164>Mar 19 05:24:39 10.220.15.15 fenotify-851983.alert: CEF:0|FireEye|CMS|7.2.1.244420|DM|domain-match|1|rt=Feb 09 2015 12:28:26 UTC dvc=10.201.78.57 cn3Label=cncPort cn3=53 cn2Label=sid cn2=80494706 shost=dev001srv02.example.com proto=udp cs5Label=cncHost cs5=mfdclk001.org dvchost=DEVFEYE1 spt=54527 dvc=10.100.25.16 smac=00:00:0c:07:ac:00 cn1Label=vlan cn1=0 externalId=851983 cs4Label=link cs4=https://DEVCMS01.example.com/event_stream/events_for_bot?ev_id\\=851983 dmac=00:1d:a2:af:32:a1 cs1Label=sname cs1=Trojan.Generic.DNS";
+
+  @SuppressWarnings("rawtypes")
+  @Test
+  public void testTimestampParsing() throws ParseException {
+    JSONObject parsed = parser.parse(fireeyeMessage.getBytes()).get(0);
+    JSONParser parser = new JSONParser();
+    Map json = (Map) parser.parse(parsed.toJSONString());
+    long expectedTimestamp = ZonedDateTime.of(Year.now(UTC).getValue(), 3, 19, 5, 24, 39, 0, UTC).toInstant().toEpochMilli();
+    Assert.assertEquals(expectedTimestamp, json.get("timestamp"));
   }
 }
