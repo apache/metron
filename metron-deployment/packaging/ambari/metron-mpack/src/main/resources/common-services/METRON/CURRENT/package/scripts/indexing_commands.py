@@ -98,14 +98,12 @@ class IndexingCommands:
     def start_indexing_topology(self, env):
         Logger.info('Starting ' + self.__indexing_topology)
 
-        if self.is_topology_active(env):
-
+        if not self.is_topology_active(env):
             if self.__params.security_enabled:
                 metron_security.kinit(self.__params.kinit_path_local,
                                       self.__params.metron_keytab_path,
                                       self.__params.metron_principal_name,
                                       execute_user=self.__params.metron_user)
-
             start_cmd_template = """{0}/bin/start_elasticsearch_topology.sh \
                                     -s {1} \
                                     -z {2}"""
@@ -123,7 +121,6 @@ class IndexingCommands:
         Logger.info('Stopping ' + self.__indexing_topology)
 
         if self.is_topology_active(env):
-
             if self.__params.security_enabled:
                 metron_security.kinit(self.__params.kinit_path_local,
                                       self.__params.metron_keytab_path,
@@ -139,7 +136,7 @@ class IndexingCommands:
 
     def restart_indexing_topology(self, env):
         Logger.info('Restarting the indexing topologies')
-        self.stop_indexing_topology()
+        self.stop_indexing_topology(env)
 
         # Wait for old topology to be cleaned up by Storm, before starting again.
         retries = 0

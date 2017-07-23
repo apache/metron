@@ -139,7 +139,7 @@ class EnrichmentCommands:
     def start_enrichment_topology(self, env):
         Logger.info("Starting Metron enrichment topology: {0}".format(self.__enrichment_topology))
 
-        if self.is_topology_active(env):
+        if not self.is_topology_active(env):
             start_cmd_template = """{0}/bin/start_enrichment_topology.sh \
                                         -s {1} \
                                         -z {2}"""
