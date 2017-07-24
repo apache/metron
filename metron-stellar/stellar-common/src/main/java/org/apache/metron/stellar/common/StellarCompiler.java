@@ -17,26 +17,8 @@
  */
 package org.apache.metron.stellar.common;
 
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.Context.ActivityType;
-import org.apache.metron.stellar.dsl.Token;
-import org.apache.metron.stellar.dsl.VariableResolver;
-import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
-import org.apache.metron.stellar.common.evaluators.ArithmeticEvaluator;
-import org.apache.metron.stellar.common.evaluators.ComparisonExpressionWithOperatorEvaluator;
-import org.apache.metron.stellar.common.evaluators.NumberLiteralEvaluator;
-import org.apache.metron.stellar.common.generated.StellarBaseListener;
-import org.apache.metron.stellar.common.generated.StellarParser;
 import com.google.common.base.Joiner;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.metron.stellar.dsl.FunctionMarker;
-import org.apache.metron.stellar.dsl.ParseException;
-import org.apache.metron.stellar.dsl.StellarFunction;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
-
 import java.io.Serializable;
-
 import static java.lang.String.format;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -49,6 +31,21 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.metron.stellar.common.evaluators.ArithmeticEvaluator;
+import org.apache.metron.stellar.common.evaluators.ComparisonExpressionWithOperatorEvaluator;
+import org.apache.metron.stellar.common.evaluators.NumberLiteralEvaluator;
+import org.apache.metron.stellar.common.generated.StellarBaseListener;
+import org.apache.metron.stellar.common.generated.StellarParser;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.FunctionMarker;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.StellarFunction;
+import org.apache.metron.stellar.dsl.Token;
+import org.apache.metron.stellar.dsl.VariableResolver;
+import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 
 public class StellarCompiler extends StellarBaseListener {
   private static Token<?> EXPRESSION_REFERENCE = new Token<>(null, Object.class);

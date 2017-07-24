@@ -21,14 +21,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.Files;
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.MapVariableResolver;
-import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.apache.metron.stellar.common.utils.JSONUtils;
-import org.apache.metron.stellar.common.utils.cli.OptionHandler;
-
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -41,12 +33,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.metron.stellar.common.utils.JSONUtils;
+import org.apache.metron.stellar.common.utils.cli.OptionHandler;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.MapVariableResolver;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 
 public class StellarMicrobenchmark {
 

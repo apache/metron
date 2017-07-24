@@ -31,15 +31,15 @@ import org.apache.commons.vfs2.impl.VFSClassLoader;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.common.utils.VFSClassloaderUtil;
 import org.apache.metron.stellar.dsl.Context;
+import static org.apache.metron.stellar.dsl.Context.Capabilities.STELLAR_CONFIG;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
-import org.atteo.classindex.ClassIndex;
-import org.reflections.util.FilterBuilder;
 
-import static org.apache.metron.stellar.dsl.Context.Capabilities.STELLAR_CONFIG;
 import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_EXCLUDES_KEY;
 import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_INCLUDES_KEY;
 import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_VFS_PATHS;
+import org.atteo.classindex.ClassIndex;
+import org.reflections.util.FilterBuilder;
 
 /**
  * Performs function resolution for Stellar by searching the classpath.
