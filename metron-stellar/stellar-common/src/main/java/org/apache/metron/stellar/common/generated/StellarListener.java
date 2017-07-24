@@ -20,7 +20,6 @@ package org.apache.metron.stellar.common.generated;
  * limitations under the License.
  */
 
-import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
