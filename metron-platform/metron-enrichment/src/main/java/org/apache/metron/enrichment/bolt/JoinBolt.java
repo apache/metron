@@ -46,9 +46,9 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
-
-  private static final Logger LOG = LoggerFactory
-          .getLogger(JoinBolt.class);
+  public static class Perf {} // used for performance logging
+  private static final Logger LOG = LoggerFactory.getLogger(JoinBolt.class);
+  private static final Logger PERF_LOG = LoggerFactory.getLogger(Perf.class);
   protected OutputCollector collector;
 
   protected transient CacheLoader<String, Map<String, Tuple>> loader;
@@ -120,6 +120,7 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
+    long texecute1 = System.currentTimeMillis();
     String streamId = tuple.getSourceStreamId();
     String key = (String) keyGetStrategy.get(tuple);
     String subgroup = (String) subgroupGetStrategy.get(tuple);
@@ -138,12 +139,17 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
         && Sets.symmetricDifference(streamMessageKeys, streamIds)
                .isEmpty()
          ) {
-        collector.emit( "message"
-                      , tuple
-                      , new Values( key
-                                  , joinMessages(streamMessageMap, this.messageGetStrategy)
-                                  )
-                      );
+
+        long tjoin1 = System.currentTimeMillis();
+        V joinedMessages = joinMessages(streamMessageMap, this.messageGetStrategy);
+        PERF_LOG.debug("key={}, join message time (ms): {}", key, System.currentTimeMillis() - tjoin1);
+
+        long temit1 = System.currentTimeMillis();
+        collector.emit("message",
+                       tuple,
+                       new Values(key, joinedMessages));
+        PERF_LOG.debug("key={}, emit time (ms): {}", key, System.currentTimeMillis() - temit1);
+
         cache.invalidate(key);
         Tuple messageTuple = streamMessageMap.get("message:");
         collector.ack(messageTuple);
@@ -166,6 +172,7 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
       ErrorUtils.handleError(collector, error);
       collector.ack(tuple);
     }
+    PERF_LOG.debug("key={}, execute() time (ms): {}", key, System.currentTimeMillis() - texecute1);
   }
 
   @Override

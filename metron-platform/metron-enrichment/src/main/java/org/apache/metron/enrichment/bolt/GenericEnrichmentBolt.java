@@ -65,7 +65,8 @@ import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings({"rawtypes", "serial"})
 public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
-
+  public static class Perf {} // used for performance logging
+  private static final Logger PERF_LOG = LoggerFactory.getLogger(Perf.class);
   private static final Logger LOG = LoggerFactory
           .getLogger(GenericEnrichmentBolt.class);
   public static final String STELLAR_CONTEXT_CONF = "stellarContext";
@@ -179,6 +180,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
+    long texecute1 = System.currentTimeMillis();
     String key = tuple.getStringByField("key");
     JSONObject rawMessage = (JSONObject) tuple.getValueByField("message");
     String subGroup = "";
@@ -219,7 +221,10 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
               adapter.logAccess(cacheKey);
               prefix = adapter.getOutputPrefix(cacheKey);
               subGroup = adapter.getStreamSubGroup(enrichmentType, field);
+
+              long tenrich1 = System.currentTimeMillis();
               enrichedField = cache.getUnchecked(cacheKey);
+              PERF_LOG.debug("key={}, enrich type={}, enrich time (ms): {}", key, enrichmentType, System.currentTimeMillis() - tenrich1);
               if (enrichedField == null)
                 throw new Exception("[Metron] Could not enrich string: "
                         + value);
@@ -259,6 +264,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
     } catch (Exception e) {
       handleError(key, rawMessage, subGroup, enrichedMessage, e);
     }
+    PERF_LOG.debug("key={}, execute() time (ms): {}", key, System.currentTimeMillis() - texecute1);
   }
 
   // Made protected to allow for error testing in integration test. Directly flaws inputs while everything is functioning hits other

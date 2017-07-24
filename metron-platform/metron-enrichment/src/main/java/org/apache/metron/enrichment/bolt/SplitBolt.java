@@ -17,21 +17,22 @@
  */
 package org.apache.metron.enrichment.bolt;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
-import org.apache.metron.common.bolt.ConfiguredBolt;
-import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-public abstract class SplitBolt<T extends Cloneable> extends
-        ConfiguredEnrichmentBolt {
+public abstract class SplitBolt<T extends Cloneable> extends ConfiguredEnrichmentBolt {
+  public static class Perf {} // used for performance logging
+  private static final Logger PERF_LOG = LoggerFactory.getLogger(Perf.class);
 
   protected OutputCollector collector;
 
@@ -63,9 +64,14 @@ public abstract class SplitBolt<T extends Cloneable> extends
   }
 
   public void emit(Tuple tuple, T message) {
+    long texecute1 = System.currentTimeMillis();
     if (message == null) return;
     String key = getKey(tuple, message);
+
+    long tsplit1 = System.currentTimeMillis();
     Map<String, List<T>> streamMessageMap = splitMessage(message);
+    PERF_LOG.debug("key={}, execute() time (ms): {}", key, System.currentTimeMillis() - tsplit1);
+
     for (String streamId : streamMessageMap.keySet()) {
       List<T> streamMessages = streamMessageMap.get(streamId);
       if(streamMessages != null) {
@@ -83,6 +89,7 @@ public abstract class SplitBolt<T extends Cloneable> extends
     collector.emit("message", tuple, new Values(key, message, ""));
     collector.ack(tuple);
     emitOther(tuple, message);
+    PERF_LOG.debug("key={}, execute() time (ms): {}", key, System.currentTimeMillis() - texecute1);
   }
 
   protected T getDefaultMessage(String streamId) {
