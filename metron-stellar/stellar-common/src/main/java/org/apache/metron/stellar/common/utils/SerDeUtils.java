@@ -25,7 +25,6 @@ import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.util.Util;
-import static com.esotericsoftware.kryo.util.Util.className;
 import com.esotericsoftware.reflectasm.ConstructorAccess;
 import de.javakaffee.kryoserializers.*;
 import de.javakaffee.kryoserializers.cglib.CGLibProxySerializer;
@@ -51,6 +50,8 @@ import org.objenesis.strategy.InstantiatorStrategy;
 import org.objenesis.strategy.StdInstantiatorStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.esotericsoftware.kryo.util.Util.className;
 
 /**
  * Provides basic functionality to serialize and deserialize the allowed

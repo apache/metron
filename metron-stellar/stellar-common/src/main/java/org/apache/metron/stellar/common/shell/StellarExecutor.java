@@ -38,14 +38,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.common.configuration.ConfigurationsUtils;
-import static org.apache.metron.stellar.common.configuration.ConfigurationsUtils.readGlobalConfigBytesFromZookeeper;
-import static org.apache.metron.stellar.common.shell.StellarExecutor.OperationType.DOC;
-import static org.apache.metron.stellar.common.shell.StellarExecutor.OperationType.NORMAL;
 import org.apache.metron.stellar.common.utils.JSONUtils;
 import org.apache.metron.stellar.dsl.Context;
-import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
-import static org.apache.metron.stellar.dsl.Context.Capabilities.STELLAR_CONFIG;
-import static org.apache.metron.stellar.dsl.Context.Capabilities.ZOOKEEPER_CLIENT;
 import org.apache.metron.stellar.dsl.MapVariableResolver;
 import org.apache.metron.stellar.dsl.StellarFunctionInfo;
 import org.apache.metron.stellar.dsl.StellarFunctions;
@@ -53,6 +47,12 @@ import org.apache.metron.stellar.dsl.VariableResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 import org.jboss.aesh.console.Console;
 
+import static org.apache.metron.stellar.common.configuration.ConfigurationsUtils.readGlobalConfigBytesFromZookeeper;
+import static org.apache.metron.stellar.common.shell.StellarExecutor.OperationType.DOC;
+import static org.apache.metron.stellar.common.shell.StellarExecutor.OperationType.NORMAL;
+import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
+import static org.apache.metron.stellar.dsl.Context.Capabilities.STELLAR_CONFIG;
+import static org.apache.metron.stellar.dsl.Context.Capabilities.ZOOKEEPER_CLIENT;
 
 /**
  * Executes Stellar expressions and maintains state across multiple invocations.
