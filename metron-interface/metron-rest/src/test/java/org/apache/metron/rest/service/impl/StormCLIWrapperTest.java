@@ -24,7 +24,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
@@ -76,11 +75,44 @@ public class StormCLIWrapperTest {
     when(environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY)).thenReturn("kafka_broker_url");
     when(environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY)).thenReturn("zookeeper_url");
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
+    when(environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY)).thenReturn("kafka_security_protocol");
     when(process.exitValue()).thenReturn(0);
 
     assertEquals(0, stormCLIWrapper.startParserTopology("bro"));
     verify(process).waitFor();
-    verifyNew(ProcessBuilder.class).withArguments("/start_parser", "-k", "kafka_broker_url", "-z", "zookeeper_url", "-s", "bro");
+    verifyNew(ProcessBuilder.class).withArguments("/start_parser",
+            "-s", "bro",
+            "-z", "zookeeper_url",
+            "-k", "kafka_broker_url",
+            "-ksp", "kafka_security_protocol");
+  }
+
+  /**
+   * If Kerberos is enabled and the PARSER_TOPOLOGY_OPTIONS field is defined, then extra topology options
+   * will be passed to the Parser topology.
+   */
+  @Test
+  public void startParserTopologyWithExtraTopologyOptions() throws Exception {
+
+    whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
+
+    when(processBuilder.start()).thenReturn(process);
+    when(environment.getProperty(MetronRestConstants.PARSER_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/start_parser");
+    when(environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY)).thenReturn("kafka_broker_url");
+    when(environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY)).thenReturn("zookeeper_url");
+    when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(true);
+    when(environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY)).thenReturn("kafka_security_protocol");
+    when(environment.getProperty(MetronRestConstants.PARSER_TOPOLOGY_OPTIONS_SPRING_PROPERTY)).thenReturn("parser_topology_options");
+    when(process.exitValue()).thenReturn(0);
+
+    assertEquals(0, stormCLIWrapper.startParserTopology("bro"));
+    verify(process, times(2)).waitFor();
+    verifyNew(ProcessBuilder.class).withArguments("/start_parser",
+            "-s", "bro",
+            "-z", "zookeeper_url",
+            "-k", "kafka_broker_url",
+            "-ksp", "kafka_security_protocol",
+            "-e", "parser_topology_options");
   }
 
   @Test
