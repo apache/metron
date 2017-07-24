@@ -47,10 +47,12 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Modifier;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
 import java.util.function.Function;
 
 import static com.esotericsoftware.kryo.util.Util.className;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.GregorianCalendar;
 
 /**
  * Provides basic functionality to serialize and deserialize the allowed

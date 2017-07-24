@@ -18,11 +18,6 @@
 
 package org.apache.metron.stellar.dsl.functions.resolver;
 
-import static org.apache.metron.stellar.dsl.Context.Capabilities.STELLAR_CONFIG;
-import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_EXCLUDES_KEY;
-import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_INCLUDES_KEY;
-import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_VFS_PATHS;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -40,6 +35,11 @@ import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
 import org.atteo.classindex.ClassIndex;
 import org.reflections.util.FilterBuilder;
+
+import static org.apache.metron.stellar.dsl.Context.Capabilities.STELLAR_CONFIG;
+import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_EXCLUDES_KEY;
+import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_INCLUDES_KEY;
+import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_VFS_PATHS;
 
 /**
  * Performs function resolution for Stellar by searching the classpath.
@@ -186,7 +186,7 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
 
         include(STELLAR_SEARCH_INCLUDES_KEY.get(stellarConfig, String.class).split(STELLAR_SEARCH_DELIMS));
         exclude(STELLAR_SEARCH_EXCLUDES_KEY.get(stellarConfig, String.class).split(STELLAR_SEARCH_DELIMS));
-        Optional<ClassLoader> vfsLoader = null;
+        Optional<ClassLoader> vfsLoader = Optional.empty();
         try {
           vfsLoader = VFSClassloaderUtil.configureClassloader(STELLAR_VFS_PATHS.get(stellarConfig, String.class));
           if(vfsLoader.isPresent()) {
