@@ -51,8 +51,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import static org.apache.metron.stellar.common.configuration.ConfigurationsUtils.readGlobalConfigBytesFromZookeeper;
 import static org.apache.metron.stellar.common.shell.StellarExecutor.OperationType.DOC;
 import static org.apache.metron.stellar.common.shell.StellarExecutor.OperationType.NORMAL;
+import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
+import static org.apache.metron.stellar.dsl.Context.Capabilities.STELLAR_CONFIG;
+import static org.apache.metron.stellar.dsl.Context.Capabilities.ZOOKEEPER_CLIENT;
 
-import static org.apache.metron.stellar.dsl.Context.Capabilities.*;
 
 /**
  * Executes Stellar expressions and maintains state across multiple invocations.

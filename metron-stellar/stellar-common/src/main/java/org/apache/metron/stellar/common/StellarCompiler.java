@@ -36,9 +36,19 @@ import org.apache.metron.stellar.dsl.StellarFunction;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 
 import java.io.Serializable;
-import java.util.*;
 
 import static java.lang.String.format;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class StellarCompiler extends StellarBaseListener {
   private static Token<?> EXPRESSION_REFERENCE = new Token<>(null, Object.class);
