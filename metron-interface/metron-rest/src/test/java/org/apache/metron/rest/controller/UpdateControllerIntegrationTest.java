@@ -35,6 +35,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -124,14 +126,20 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
   @Test
   public void test() throws Exception {
     String uuid = "bro_index_2017.01.01.01:1";
-    this.mockMvc.perform(post(searchUrl + "/findOne").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(findMessage0))
-            .andExpect(status().isOk())
+    ResultActions result =   this.mockMvc.perform(post(searchUrl + "/findOne").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(findMessage0));
+    try {
+     result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.source:type").value("bro"))
             .andExpect(jsonPath("$.guid").value(uuid))
             .andExpect(jsonPath("$.project").doesNotExist())
             .andExpect(jsonPath("$.timestamp").value(2))
-            ;
+      ;
+    }
+    catch(Throwable t) {
+      System.err.println(result.andReturn().getResponse().getContentAsString());
+      throw t;
+    }
     MockHTable table = (MockHTable) MockProvider.getFromCache(TABLE);
     Assert.assertEquals(0,table.size());
     this.mockMvc.perform(patch(updateUrl+ "/patch").with(httpBasic(user, password))
