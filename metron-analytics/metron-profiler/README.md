@@ -353,7 +353,7 @@ The units used to specify the [`profiler.ttl`](#profilerttl).
 
 *Default*: 1000
 
-A salt is prepended to the row key to help prevent hotspotting.  This constant is used to generate the salt.  Ihis constant should be roughly equal to the number of nodes in the Hbase cluster to ensure even distribution of data.
+A salt is prepended to the row key to help prevent hotspotting.  This constant is used to generate the salt.  This constant should be roughly equal to the number of nodes in the Hbase cluster to ensure even distribution of data.
 
 ### `profiler.hbase.table`
 
