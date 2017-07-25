@@ -40,3 +40,11 @@ curator:
     time: 1000
   max:
     retries: 3
+
+search:
+  max:
+    results: 1000
+
+index:
+  dao:
+     impl: org.apache.metron.elasticsearch.dao.ElasticsearchDao

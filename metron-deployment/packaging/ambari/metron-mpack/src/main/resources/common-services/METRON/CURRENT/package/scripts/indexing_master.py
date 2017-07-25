@@ -73,13 +73,13 @@ class Indexing(Script):
         env.set_params(params)
         self.configure(env)
         commands = IndexingCommands(params)
-        commands.start_indexing_topology()
+        commands.start_indexing_topology(env)
 
     def stop(self, env, upgrade_type=None):
         from params import params
         env.set_params(params)
         commands = IndexingCommands(params)
-        commands.stop_indexing_topology()
+        commands.stop_indexing_topology(env)
 
     def status(self, env):
         from params import status_params
