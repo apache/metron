@@ -134,8 +134,8 @@ The artifacts are required because there is a dependency on modules not expresse
 - metron-config
 
 ### Building RPMs
-From `metron-deployment` run
 ```
+cd metron-deployment
 mvn clean package -Pbuild-rpms
 ```
 
