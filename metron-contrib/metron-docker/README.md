@@ -1,6 +1,8 @@
 # Metron Docker
 
-Metron Docker is a [Docker Compose](https://docs.docker.com/compose/overview/) application that is intended for development and integration testing of Metron.  Use this instead of Vagrant when:
+Metron Docker is a [Docker Compose](https://docs.docker.com/compose/overview/) application that is intended only for development and integration testing of Metron.  These images can quickly spin-up the underlying components on which Apache Metron runs.
+
+None of the core Metron components are setup or launched automatically with these Docker images.  You will need to manually setup and start the Metron components that you require.  You should not expect to see telemetry being parsed, enriched, or indexed.  If you are looking to try-out, experiment or demo Metron capabilities on a single node, then the [Vagrant-driven VM](../../metron-deployment/vagrant/full-dev-platform) is what you need.  Use this instead of Vagrant when:
   
   - You want an environment that can be built and spun up quickly
   - You need to frequently rebuild and restart services
@@ -10,7 +12,7 @@ Metron Docker includes these images that have been customized for Metron:
 
   - Kafka (with Zookeeper)
   - HBase
-  - Storm (with all topologies deployed)
+  - Storm
   - Elasticsearch
   - Kibana
   - HDFS
@@ -32,8 +34,9 @@ $ mvn clean install -DskipTests
 
 You are welcome to use an existing Docker host but we prefer one with more resources.  You can create one of those with this script:
 ```
-$ export METRON_DOCKER_HOME=$METRON_HOME/metron-docker
-$ cd $METRON_DOCKER_HOME && ./scripts/create-docker-machine.sh
+$ export METRON_DOCKER_HOME=$METRON_HOME/metron-contrib/metron-docker
+$ cd $METRON_DOCKER_HOME 
+$ ./scripts/create-docker-machine.sh
 ```
 
 This will create a host called "metron-machine".  Anytime you want to run Docker commands against this host, make sure you run this first to set the Docker environment variables:
@@ -201,7 +204,7 @@ $ docker-compose exec kafkazk ./bin/produce-data.sh /data/BroExampleOutput.txt b
 
 Open a separate console session and verify the sensor is running by consuming a message from Kafka:
 ```
-$ export METRON_DOCKER_HOME=$METRON_HOME/metron-docker
+$ export METRON_DOCKER_HOME=$METRON_HOME/metron-contrib/metron-docker
 $ cd $METRON_DOCKER_HOME/compose
 $ docker-compose exec kafkazk ./bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic bro
 ```
