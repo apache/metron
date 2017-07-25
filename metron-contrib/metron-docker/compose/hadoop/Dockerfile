@@ -16,11 +16,12 @@
 #
 FROM openjdk:7
 
-ENV HADOOP_PREFIX=/opt/hadoop-2.7.3
+ENV HADOOP_PREFIX=/opt/hadoop
 ENV HADOOP_CONF_DIR=$HADOOP_PREFIX/etc/hadoop
 ENV HADOOP_IDENT_STRING=root
 
-RUN curl -sL http://archive.apache.org/dist/hadoop/core/hadoop-2.7.3/hadoop-2.7.3.tar.gz | tar -xzC /opt
+RUN curl -sL http://archive.apache.org/dist/hadoop/core/hadoop-2.7.3/hadoop-2.7.3.tar.gz | tar -xzC /tmp
+RUN mv /tmp/hadoop-2.7.3 /opt/hadoop
 
 COPY ./conf/* $HADOOP_CONF_DIR/
 RUN mkdir -p /hadoop/dfs/name \
