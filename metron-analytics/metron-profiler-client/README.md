@@ -60,7 +60,6 @@ want to change the global Client configuration so as not to disrupt the work of 
 | profiler.client.salt.divisor          | The salt divisor used to store profile data.                                                                                       | Optional | 1000     |
 | hbase.provider.impl                   | The name of the HBaseTableProvider implementation class.                                                                           | Optional |          |
 
-
 ### Profile Selectors
 
 You will notice that the third argument for `PROFILE_GET` is a list of `ProfilePeriod` objects.  This list is expected to
