@@ -52,10 +52,12 @@ public class HBaseDao implements IndexDao {
   @Override
   public synchronized void init(AccessConfig config) {
     if(config == null) {
+      System.out.println("Initializing " + config.getTable());
       this.config = config;
       try {
         tableInterface = config.getTableProvider().getTable(HBaseConfiguration.create(), config.getTable());
         cf = config.getColumnFamily().getBytes();
+        System.out.println("Initialized " + config.getTable());
       } catch (IOException e) {
         throw new IllegalStateException("Unable to initialize HBaseDao: " + e.getMessage(), e);
       }
