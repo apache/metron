@@ -100,7 +100,7 @@ public class ElasticsearchDao implements IndexDao {
       searchResult.setId(searchHit.getId());
       searchResult.setSource(searchHit.getSource());
       searchResult.setScore(searchHit.getScore());
-      searchResult.setId(searchHit.getIndex());
+      searchResult.setIndex(searchHit.getIndex());
       return searchResult;
     }).collect(Collectors.toList()));
     return searchResponse;
