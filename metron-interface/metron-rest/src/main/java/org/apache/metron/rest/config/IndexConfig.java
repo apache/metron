@@ -73,7 +73,7 @@ public class IndexConfig {
       if (indexDaoImpl == null) {
         throw new IllegalStateException("You must provide an index DAO implementation via the " + INDEX_DAO_IMPL + " config");
       }
-      IndexDao ret = IndexDaoFactory.combine(IndexDaoFactory.create(indexDaoImpl, globalConfigService.get(), config));
+      IndexDao ret = IndexDaoFactory.combine(IndexDaoFactory.create(indexDaoImpl, config));
       if (ret == null) {
         throw new IllegalStateException("IndexDao is unable to be created.");
       }

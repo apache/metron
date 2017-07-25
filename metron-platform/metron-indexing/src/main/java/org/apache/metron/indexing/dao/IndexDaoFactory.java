@@ -28,7 +28,6 @@ import java.util.function.Function;
 
 public class IndexDaoFactory {
   public static List<IndexDao> create( String daoImpls
-                                     , Map<String, Object> globalConfig
                                      , AccessConfig config
                                      ) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException
   {

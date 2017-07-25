@@ -39,19 +39,20 @@ import java.util.Optional;
 public class HBaseDao implements IndexDao {
   private HTableInterface tableInterface;
   private byte[] cf;
-
+  private AccessConfig config;
   public HBaseDao() {
 
   }
 
   @Override
-  public SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
+  public synchronized SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
     return null;
   }
 
   @Override
   public synchronized void init(AccessConfig config) {
-    if(tableInterface == null) {
+    if(config == null) {
+      this.config = config;
       try {
         tableInterface = config.getTableProvider().getTable(HBaseConfiguration.create(), config.getTable());
         cf = config.getColumnFamily().getBytes();
@@ -62,7 +63,7 @@ public class HBaseDao implements IndexDao {
   }
 
   @Override
-  public Document getLatest(String uuid, String sensorType) throws IOException {
+  public synchronized Document getLatest(String uuid, String sensorType) throws IOException {
     Get get = new Get(uuid.getBytes());
     get.addFamily(cf);
     Result result = tableInterface.get(get);
@@ -82,7 +83,7 @@ public class HBaseDao implements IndexDao {
   }
 
   @Override
-  public void update(Document update, Optional<String> index) throws IOException {
+  public synchronized void update(Document update, Optional<String> index) throws IOException {
     Put put = new Put(update.getUuid().getBytes());
     long ts = update.getTimestamp() == null?System.currentTimeMillis():update.getTimestamp();
     byte[] columnQualifier = Bytes.toBytes(ts);
