@@ -126,6 +126,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `FILL_RIGHT`](#fill_right)                                                                       |
 | [ `FILTER`](#filter)                                                                         |
 | [ `FORMAT`](#format)                                                                               |
+| [ `FUZZY_SCORE`](#fuzzy_score)                                                                     |
 | [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality)                   |
 | [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
 | [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)                               |
@@ -349,6 +350,14 @@ In the core language functions, we support basic functional programming primitiv
     * format - string
     * arguments... - object(s)
   * Returns: A formatted string.
+  
+### `FUZZY_SCORE`
+  * Description: Returns the Fuzzy Score which indicates the similarity score between two strings. One point is given for every matched character. Subsequent matches yield two bonus points. A higher score indicates a higher similarity.
+  * Input:
+    * string - The full term that should be matched against.
+    * string - The query that will be matched against a term.
+    * string - The IETF BCP 47 language code to use.
+  * Returns: An Integer representing the score.
 
 ### `GEO_GET`
   * Description: Look up an IPV4 address and returns geographic information about it
