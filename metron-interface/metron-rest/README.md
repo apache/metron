@@ -199,6 +199,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/kafka/topic/{name}`](#get-apiv1kafkatopicname)|
 | [ `DELETE /api/v1/kafka/topic/{name}`](#delete-apiv1kafkatopicname)|
 | [ `GET /api/v1/kafka/topic/{name}/sample`](#get-apiv1kafkatopicnamesample)|
+| [ `GET /api/v1/search/search`](#get-apiv1searchsearch)|
 | [ `GET /api/v1/sensor/enrichment/config`](#get-apiv1sensorenrichmentconfig)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available/enrichments`](#get-apiv1sensorenrichmentconfiglistavailableenrichments)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available/threat/triage/aggregators`](#get-apiv1sensorenrichmentconfiglistavailablethreattriageaggregators)|
@@ -345,6 +346,13 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns sample message
     * 404 - Either Kafka topic is missing or contains no messages
+
+### `GET /api/v1/search/search`
+  * Description: Searches the indexing store
+  * Input:
+      * searchRequest - Search request
+  * Returns:
+    * 200 - Search results
 
 ### `GET /api/v1/sensor/enrichment/config`
   * Description: Retrieves all SensorEnrichmentConfigs from Zookeeper
