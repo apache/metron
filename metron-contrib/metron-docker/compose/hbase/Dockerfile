@@ -28,7 +28,7 @@ ADD ./data /data
 ADD ./data-management /data-management
 RUN mkdir -p $METRON_HOME
 RUN tar -xzf /data-management/metron-data-management-$METRON_VERSION-archive.tar.gz -C /usr/metron/$METRON_VERSION/
-ADD http://archive.apache.org/dist/hbase/1.1.6/hbase-1.1.6-bin.tar.gz /tmp
+RUN curl -sL http://archive.apache.org/dist/hbase/1.1.6/hbase-1.1.6-bin.tar.gz | tar -xzC /tmp
 RUN mv /tmp/hbase-1.1.6 /opt/hbase
 RUN yum install -y java-1.8.0-openjdk lsof
 ADD ./conf/enrichment-extractor.json /conf/enrichment-extractor.json

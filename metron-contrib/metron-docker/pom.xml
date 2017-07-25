@@ -45,7 +45,7 @@
                             <outputDirectory>${project.basedir}/compose/kafkazk/packages</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>../metron-platform/metron-common/target/</directory>
+                                    <directory>${project.parent.parent.basedir}/metron-platform/metron-common/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
@@ -63,7 +63,7 @@
                             <outputDirectory>${project.basedir}/compose/kafkazk/packages</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>../metron-platform/metron-parsers/target/</directory>
+                                    <directory>${project.parent.parent.basedir}/metron-platform/metron-parsers/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
@@ -81,7 +81,7 @@
                             <outputDirectory>${project.basedir}/compose/kafkazk/packages</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>../metron-platform/metron-enrichment/target/</directory>
+                                    <directory>${project.parent.parent.basedir}/metron-platform/metron-enrichment/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
@@ -99,7 +99,7 @@
                             <outputDirectory>${project.basedir}/compose/kafkazk/packages</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>../metron-platform/metron-indexing/target/</directory>
+                                    <directory>${project.parent.parent.basedir}/metron-platform/metron-indexing/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
@@ -117,7 +117,7 @@
                             <outputDirectory>${project.basedir}/compose/elasticsearch/es_templates</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>../metron-deployment/roles/metron_elasticsearch_templates/files/es_templates/</directory>
+                                    <directory>${project.parent.parent.basedir}/metron-deployment/roles/metron_elasticsearch_templates/files/es_templates/</directory>
                                     <includes>
                                         <include>*.template</include>
                                     </includes>
@@ -135,7 +135,7 @@
                             <outputDirectory>${project.basedir}/compose/hbase/data-management</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>../metron-platform/metron-data-management/target/</directory>
+                                    <directory>${project.parent.parent.basedir}/metron-platform/metron-data-management/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
@@ -153,7 +153,7 @@
                             <outputDirectory>${project.basedir}/compose/storm/parser</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.basedir}/../metron-platform/metron-parsers/target/</directory>
+                                    <directory>${project.parent.parent.basedir}/metron-platform/metron-parsers/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
@@ -171,7 +171,7 @@
                             <outputDirectory>${project.basedir}/compose/storm/enrichment</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.basedir}/../metron-platform/metron-enrichment/target/</directory>
+                                    <directory>${project.parent.parent.basedir}/metron-platform/metron-enrichment/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
@@ -189,7 +189,7 @@
                             <outputDirectory>${project.basedir}/compose/storm/indexing</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.basedir}/../metron-platform/metron-indexing/target/</directory>
+                                    <directory>${project.parent.parent.basedir}/metron-platform/metron-indexing/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
@@ -207,7 +207,7 @@
                             <outputDirectory>${project.basedir}/compose/storm/elasticsearch</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>../metron-platform/metron-elasticsearch/target/</directory>
+                                    <directory>${project.parent.parent.basedir}/metron-platform/metron-elasticsearch/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>
