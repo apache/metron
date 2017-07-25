@@ -843,7 +843,7 @@ usage: stellar
  -irc,--inputrc <arg>   File containing the inputrc if not the default
                         ~/.inputrc
  -v,--variables <arg>   File containing a JSON Map of variables
- -z,--zookeeper <arg>   Zookeeper URL
+ -z,--zookeeper <arg>   Zookeeper URL fragment in the form [HOSTNAME|IPADDRESS]:PORT
  -na,--no_ansi          Make the input prompt not use ANSI colors.
 ```
 
