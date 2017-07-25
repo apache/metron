@@ -51,7 +51,7 @@ public class HBaseDao implements IndexDao {
 
   @Override
   public synchronized void init(AccessConfig config) {
-    if(config == null) {
+    if(this.config == null) {
       System.out.println("Initializing " + config.getTable());
       this.config = config;
       try {
