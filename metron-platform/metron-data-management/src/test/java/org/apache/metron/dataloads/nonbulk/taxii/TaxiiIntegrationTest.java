@@ -31,8 +31,10 @@ import org.apache.metron.dataloads.extractor.stix.StixExtractor;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.test.mock.MockHTable;
 import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.hbase.mock.MockProvider;
 import org.junit.*;
 
 import java.io.IOException;
@@ -49,7 +51,7 @@ public class TaxiiIntegrationTest {
     @AfterClass
     public static void teardown() {
         MockTaxiiService.shutdown();
-        MockHTable.Provider.clear();
+        MockProvider.clear();
     }
 
     /**
@@ -91,7 +93,7 @@ public class TaxiiIntegrationTest {
     @Test
     public void testTaxii() throws Exception {
 
-        final MockHTable.Provider provider = new MockHTable.Provider();
+        final MockProvider provider = new MockProvider();
         final Configuration config = HBaseConfiguration.create();
         TaxiiHandler handler = new TaxiiHandler(TaxiiConnectionConfig.load(taxiiConnectionConfig), new StixExtractor(), config ) {
             @Override
@@ -115,7 +117,7 @@ public class TaxiiIntegrationTest {
         }
         Assert.assertTrue(maliciousAddresses.contains("94.102.53.142"));
         Assert.assertEquals(numStringsMatch(MockTaxiiService.pollMsg, "AddressObj:Address_Value condition=\"Equal\""), maliciousAddresses.size());
-        MockHTable.Provider.clear();
+        MockProvider.clear();
 
         // Ensure that the handler can be run multiple times without connection issues.
         handler.run();
