@@ -1,4 +1,4 @@
-#${parserClassName} Parser
+# ${parserClassName} Parser
 
 ## Introduction
 
