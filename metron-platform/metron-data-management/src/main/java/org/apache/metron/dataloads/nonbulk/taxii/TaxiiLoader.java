@@ -198,7 +198,7 @@ public class TaxiiLoader {
 
     Timer timer = new Timer();
     if(isStixExtractor(e)) {
-      StixExtractor extractor = (StixExtractor)e;
+      Extractor extractor = e;
       TaxiiConnectionConfig connectionConfig = TaxiiConnectionConfig.load(FileUtils.readFileToString(new File(TaxiiOptions.CONNECTION_CONFIG.get(cli))));
       if(TaxiiOptions.BEGIN_TIME.has(cli)) {
         Date d = DATE_FORMAT.parse(TaxiiOptions.BEGIN_TIME.get(cli));
