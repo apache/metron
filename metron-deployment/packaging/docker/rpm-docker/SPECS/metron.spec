@@ -245,7 +245,6 @@ This package installs the Metron Enrichment files
 %{metron_home}/config/zookeeper/enrichments/yaf.json
 %{metron_home}/config/zookeeper/enrichments/asa.json
 %{metron_home}/flux/enrichment/remote.yaml
-%exclude %{metron_home}/flux/enrichment/test.yaml
 %attr(0644,root,root) %{metron_home}/lib/metron-enrichment-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -22,18 +22,17 @@ ARG METRON_VERSION
 
 ENV METRON_VERSION $METRON_VERSION
 ENV METRON_HOME /usr/metron/$METRON_VERSION/
-ENV ZK_CLIENT_JARS /opt/kafka_2.11-0.10.0.0/libs
+ENV ZK_CLIENT_JARS /opt/kafka/libs
 
-ADD https://archive.apache.org/dist/kafka/0.10.0.0/kafka_2.11-0.10.0.0.tgz /opt/kafka_2.11-0.10.0.0.tgz
-RUN tar -xzf /opt/kafka_2.11-0.10.0.0.tgz -C /opt
-RUN echo -n 'advertised.listeners=PLAINTEXT://' >> /opt/kafka_2.11-0.10.0.0/config/server.properties
-RUN echo $DOCKER_HOST | sed "s/^$/"$BROKER_IP_ADDR":/g" | sed "s/tcp:\\/\\///g" | sed "s/:.*/:9092/g" >> /opt/kafka_2.11-0.10.0.0/config/server.properties
-RUN echo 'delete.topic.enable=true' >> /opt/kafka_2.11-0.10.0.0/config/server.properties
+RUN curl -sL https://archive.apache.org/dist/kafka/0.10.0.0/kafka_2.11-0.10.0.0.tgz | tar -xzC /tmp
+RUN mv /tmp/kafka_2.11-0.10.0.0 /opt/kafka
+RUN echo -n 'advertised.listeners=PLAINTEXT://' >> /opt/kafka/config/server.properties
+RUN echo $DOCKER_HOST | sed "s/^$/"$BROKER_IP_ADDR":/g" | sed "s/tcp:\\/\\///g" | sed "s/:.*/:9092/g" >> /opt/kafka/config/server.properties
+RUN echo 'delete.topic.enable=true' >> /opt/kafka/config/server.properties
 RUN yum install -y java-1.8.0-openjdk lsof
-
 RUN mkdir -p $METRON_HOME
-ADD ./bin /opt/kafka_2.11-0.10.0.0/bin
-RUN chmod 755 /opt/kafka_2.11-0.10.0.0/bin/wait-for-it.sh
+ADD ./bin /opt/kafka/bin
+RUN chmod 755 /opt/kafka/bin/wait-for-it.sh
 COPY ./data /data/
 COPY ./packages/* /packages/
 RUN find /packages -type f -name '*.tar.gz' -exec tar -xzf {} -C /usr/metron/$METRON_VERSION/ \;
@@ -41,5 +40,5 @@ ADD ./conf /$METRON_HOME/config/zookeeper
 
 EXPOSE 2181 9092
 
-WORKDIR /opt/kafka_2.11-0.10.0.0
+WORKDIR /opt/kafka
 CMD ./bin/start.sh
