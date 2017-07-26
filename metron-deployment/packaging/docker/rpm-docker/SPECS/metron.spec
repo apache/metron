@@ -692,7 +692,6 @@ This package installs the Metron Enrichment files
 %{metron_home}/bin/start_enrichment_topology.sh
 %{metron_home}/config/enrichment.properties
 %{metron_home}/flux/enrichment/remote.yaml
-%exclude %{metron_home}/flux/enrichment/test.yaml
 %attr(0644,root,root) %{metron_home}/lib/metron-enrichment-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
