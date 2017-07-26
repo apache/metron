@@ -69,20 +69,10 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
 
   private MockMvc mockMvc;
 
-  private String globalConfigUrl = "/api/v1/global/config";
   private String updateUrl = "/api/v1/update";
   private String searchUrl = "/api/v1/search";
   private String user = "user";
   private String password = "password";
-
-  /**
-   {
-    "update.hbase.table" : "updates",
-    "update.hbase.cf" : "t"
-   }
-   */
-  @Multiline
-  public static String globalJson;
 
   /**
    {
