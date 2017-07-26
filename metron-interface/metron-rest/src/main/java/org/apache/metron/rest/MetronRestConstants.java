@@ -30,8 +30,6 @@ public class MetronRestConstants {
   public static final String GROK_TEMP_PATH_SPRING_PROPERTY = "grok.path.temp";
   public static final String GROK_CLASS_NAME = GrokParser.class.getName();
   public static final String GROK_PATH_KEY = "grokPath";
-  public static final String GROK_STATEMENT_KEY = "grokStatement";
-  public static final String GROK_PATTERN_LABEL_KEY = "patternLabel";
 
   public static final String STORM_UI_SPRING_PROPERTY = "storm.ui.url";
   public static final String TOPOLOGY_SUMMARY_URL = "/api/v1/topology/summary";
@@ -51,8 +49,6 @@ public class MetronRestConstants {
   public static final String CURATOR_MAX_RETRIES = "curator.max.retries";
 
   public static final String KAFKA_BROKER_URL_SPRING_PROPERTY = "kafka.broker.url";
-
-  public static final String HDFS_URL_SPRING_PROPERTY = "hdfs.namenode.url";
 
   public static final String KERBEROS_ENABLED_SPRING_PROPERTY = "kerberos.enabled";
   public static final String KERBEROS_PRINCIPLE_SPRING_PROPERTY = "kerberos.principal";
