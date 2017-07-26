@@ -158,8 +158,14 @@ public class BasicAsaParser extends BasicParser {
 	metronJson.put(Constants.Fields.TIMESTAMP.getName(),
 	    SyslogUtils.parseTimestampToEpochMillis((String) syslogJson.get("CISCOTIMESTAMP"), deviceClock));
 	metronJson.put("ciscotag", syslogJson.get("CISCOTAG"));
-	metronJson.put("syslog_severity", SyslogUtils.getSeverityFromPriority((int) syslogJson.get("syslog_pri")));
-	metronJson.put("syslog_facility", SyslogUtils.getFacilityFromPriority((int) syslogJson.get("syslog_pri")));
+
+	if (syslogJson.get("syslog_pri") != null) {
+    metronJson.put("syslog_severity", SyslogUtils.getSeverityFromPriority((int) syslogJson.get("syslog_pri")));
+    metronJson.put("syslog_facility", SyslogUtils.getFacilityFromPriority((int) syslogJson.get("syslog_pri")));
+  } else {
+	  int severity = Integer.parseInt(syslogJson.get("CISCOTAG").toString().split("-")[1]);
+    metronJson.put("syslog_severity", SyslogUtils.getSeverityFromPriority(severity));
+  }
 
 	if (syslogJson.get("syslog_host") != null) {
 	  metronJson.put("syslog_host", syslogJson.get("syslog_host"));
