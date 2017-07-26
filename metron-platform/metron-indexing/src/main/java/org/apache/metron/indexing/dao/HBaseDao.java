@@ -51,24 +51,29 @@ public class HBaseDao implements IndexDao {
 
   @Override
   public synchronized void init(AccessConfig config) {
-    if(this.config == null) {
-      System.out.println("Initializing " + config.getTable());
+    if(this.tableInterface == null) {
       this.config = config;
       try {
         tableInterface = config.getTableProvider().getTable(HBaseConfiguration.create(), config.getTable());
         cf = config.getColumnFamily().getBytes();
-        System.out.println("Initialized " + config.getTable());
       } catch (IOException e) {
         throw new IllegalStateException("Unable to initialize HBaseDao: " + e.getMessage(), e);
       }
     }
   }
 
+  public HTableInterface getTableInterface() {
+    if(tableInterface == null) {
+      init(config);
+    }
+    return tableInterface;
+  }
+
   @Override
   public synchronized Document getLatest(String uuid, String sensorType) throws IOException {
     Get get = new Get(uuid.getBytes());
     get.addFamily(cf);
-    Result result = tableInterface.get(get);
+    Result result = getTableInterface().get(get);
     NavigableMap<byte[], byte[]> columns = result.getFamilyMap( cf);
     if(columns == null || columns.size() == 0) {
       return null;
@@ -91,6 +96,6 @@ public class HBaseDao implements IndexDao {
     byte[] columnQualifier = Bytes.toBytes(ts);
     byte[] doc = JSONUtils.INSTANCE.toJSON(update.getDocument());
     put.addColumn(cf, columnQualifier, doc);
-    tableInterface.put(put);
+    getTableInterface().put(put);
   }
 }
