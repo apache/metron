@@ -171,7 +171,7 @@ The REST application comes with a few [Spring Profiles](http://docs.spring.io/au
 | test                     | sets variables to in-memory services, only used for integration testing |
 | dev                      | adds a test user to the database with credentials `user/password`       |
 | vagrant                  | sets configuration variables to match the Metron vagrant environment    |
-| docker                   | sets configuration variables to match the Metron dcoker environment     |
+| docker                   | sets configuration variables to match the Metron docker environment     |
 
 Setting active profiles is done with the METRON_SPRING_PROFILES_ACTIVE variable.  For example, set this variable in `/etc/sysconfig/metron` to configure the REST application for the Vagrant environment and add a test user:
 ```
