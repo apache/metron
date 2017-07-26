@@ -17,9 +17,12 @@
  */
 package org.apache.metron.rest.controller;
 
+import org.I0Itec.zkclient.ZkClient;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.hbase.mock.MockProvider;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
@@ -58,16 +61,28 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class UpdateControllerIntegrationTest extends DaoControllerTest {
   @Autowired
   private UpdateService searchService;
+  @Autowired
+  public CuratorFramework client;
 
   @Autowired
   private WebApplicationContext wac;
 
   private MockMvc mockMvc;
 
+  private String globalConfigUrl = "/api/v1/global/config";
   private String updateUrl = "/api/v1/update";
   private String searchUrl = "/api/v1/search";
   private String user = "user";
   private String password = "password";
+
+  /**
+   {
+    "update.hbase.table" : "updates",
+    "update.hbase.cf" : "t"
+   }
+   */
+  @Multiline
+  public static String globalJson;
 
   /**
    {

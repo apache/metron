@@ -47,4 +47,4 @@ search:
 
 index:
   dao:
-     impl: org.apache.metron.elasticsearch.dao.ElasticsearchDao
+     impl: org.apache.metron.elasticsearch.dao.ElasticsearchDao,org.apache.metron.indexing.dao.HBaseDao

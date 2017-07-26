@@ -50,5 +50,3 @@ index:
      impl: org.apache.metron.indexing.dao.InMemoryDao,org.apache.metron.indexing.dao.HBaseDao
   hbase:
      provider: org.apache.metron.hbase.mock.MockProvider
-     table: updates
-     cf: t

@@ -33,6 +33,8 @@ class IndexingCommands:
     __configured = False
     __acl_configured = False
     __hdfs_perm_configured = False
+    __hbase_configured = False
+    __hbase_acl_configured = False
 
     def __init__(self, params):
         if params is None:
@@ -42,6 +44,8 @@ class IndexingCommands:
         self.__indexing_topic = params.indexing_input_topic
         self.__configured = os.path.isfile(self.__params.indexing_configured_flag_file)
         self.__acl_configured = os.path.isfile(self.__params.indexing_acl_configured_flag_file)
+        self.__hbase_configured = os.path.isfile(self.__params.indexing_hbase_configured_flag_file)
+        self.__hbase_acl_configured = os.path.isfile(self.__params.indexing_hbase_acl_configured_flag_file)
 
     def is_configured(self):
         return self.__configured
@@ -57,6 +61,66 @@ class IndexingCommands:
              content="",
              owner=self.__params.metron_user,
              mode=0755)
+
+    def is_hbase_configured(self):
+        return self.__hbase_configured
+
+    def is_hbase_acl_configured(self):
+        return self.__hbase_acl_configured
+
+    def set_hbase_configured(self):
+        Logger.info("Setting HBase Configured to True")
+        File(self.__params.indexing_hbase_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0755)
+
+    def set_hbase_acl_configured(self):
+        Logger.info("Setting HBase ACL Configured to True")
+        File(self.__params.indexing_hbase_acl_configured_flag_file,
+             content="",
+             owner=self.__params.metron_user,
+             mode=0755)
+
+    def create_hbase_tables(self):
+        Logger.info("Creating HBase Tables")
+        if self.__params.security_enabled:
+            kinit(self.__params.kinit_path_local,
+                  self.__params.hbase_keytab_path,
+                  self.__params.hbase_principal_name,
+                  execute_user=self.__params.hbase_user)
+        cmd = "echo \"create '{0}','{1}'\" | hbase shell -n"
+        add_update_cmd = cmd.format(self.__params.update_table, self.__params.update_cf)
+        Execute(add_update_cmd,
+                tries=3,
+                try_sleep=5,
+                logoutput=False,
+                path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+                user=self.__params.hbase_user
+                )
+
+        Logger.info("Done creating HBase Tables")
+        self.set_hbase_configured()
+
+    def set_hbase_acls(self):
+        Logger.info("Setting HBase ACLs")
+        if self.__params.security_enabled:
+            kinit(self.__params.kinit_path_local,
+                  self.__params.hbase_keytab_path,
+                  self.__params.hbase_principal_name,
+                  execute_user=self.__params.hbase_user)
+        cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n"
+        add_update_acl_cmd = cmd.format(self.__params.metron_user, self.__params.update_table)
+        Execute(add_update_acl_cmd,
+                tries=3,
+                try_sleep=5,
+                logoutput=False,
+                path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+                user=self.__params.hbase_user
+                )
+
+        Logger.info("Done setting HBase ACLs")
+        self.set_hbase_acl_configured()
 
     def set_acl_configured(self):
         File(self.__params.indexing_acl_configured_flag_file,

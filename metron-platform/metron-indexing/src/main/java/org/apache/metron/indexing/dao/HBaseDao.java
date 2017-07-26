@@ -37,6 +37,8 @@ import java.util.NavigableMap;
 import java.util.Optional;
 
 public class HBaseDao implements IndexDao {
+  public static String HBASE_TABLE = "update.hbase.table";
+  public static String HBASE_CF = "update.hbase.cf";
   private HTableInterface tableInterface;
   private byte[] cf;
   private AccessConfig config;
@@ -53,9 +55,18 @@ public class HBaseDao implements IndexDao {
   public synchronized void init(AccessConfig config) {
     if(this.tableInterface == null) {
       this.config = config;
+      Map<String, Object> globalConfig = config.getGlobalConfigSupplier().get();
+      if(globalConfig == null) {
+        throw new IllegalStateException("Cannot find the global config.");
+      }
+      String table = (String)globalConfig.get(HBASE_TABLE);
+      String cf = (String) config.getGlobalConfigSupplier().get().get(HBASE_CF);
+      if(table == null || cf == null) {
+        throw new IllegalStateException("You must configure " + HBASE_TABLE + " and " + HBASE_CF + " in the global config.");
+      }
       try {
-        tableInterface = config.getTableProvider().getTable(HBaseConfiguration.create(), config.getTable());
-        cf = config.getColumnFamily().getBytes();
+        tableInterface = config.getTableProvider().getTable(HBaseConfiguration.create(), table);
+        this.cf = cf.getBytes();
       } catch (IOException e) {
         throw new IllegalStateException("Unable to initialize HBaseDao: " + e.getMessage(), e);
       }

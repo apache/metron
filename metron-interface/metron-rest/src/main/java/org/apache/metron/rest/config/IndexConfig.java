@@ -54,14 +54,10 @@ public class IndexConfig {
   public IndexDao indexDao() {
     try {
       String hbaseProviderImpl = environment.getProperty(MetronRestConstants.INDEX_HBASE_TABLE_PROVIDER_IMPL, String.class, null);
-      String hbaseTable = environment.getProperty(MetronRestConstants.INDEX_HBASE_TABLE, String.class, null);
-      String hbaseCf = environment.getProperty(MetronRestConstants.INDEX_HBASE_CF, String.class, null);
       String indexDaoImpl = environment.getProperty(MetronRestConstants.INDEX_DAO_IMPL, String.class, null);
       int searchMaxResults = environment.getProperty(MetronRestConstants.SEARCH_MAX_RESULTS, Integer.class, -1);
       AccessConfig config = new AccessConfig();
       config.setMaxSearchResults(searchMaxResults);
-      config.setTable(hbaseTable);
-      config.setColumnFamily(hbaseCf);
       config.setGlobalConfigSupplier(() -> {
         try {
           return globalConfigService.get();

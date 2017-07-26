@@ -29,8 +29,6 @@ public class AccessConfig {
   private Supplier<Map<String, Object>> globalConfigSupplier;
   private Map<String, String> optionalSettings = new HashMap<>();
   private TableProvider tableProvider = null;
-  private String columnFamily;
-  private String table;
 
   public Supplier<Map<String, Object>> getGlobalConfigSupplier() {
     return globalConfigSupplier;
@@ -64,19 +62,4 @@ public class AccessConfig {
     this.tableProvider = tableProvider;
   }
 
-  public String getColumnFamily() {
-    return columnFamily;
-  }
-
-  public void setColumnFamily(String columnFamily) {
-    this.columnFamily = columnFamily;
-  }
-
-  public String getTable() {
-    return table;
-  }
-
-  public void setTable(String table) {
-    this.table = table;
-  }
 }

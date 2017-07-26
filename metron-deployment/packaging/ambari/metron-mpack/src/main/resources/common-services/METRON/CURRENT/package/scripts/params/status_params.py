@@ -49,6 +49,8 @@ enrichment_table = 'enrichment'
 enrichment_cf = 't'
 threatintel_table = 'threatintel'
 threatintel_cf = 't'
+update_table = 'metron_update'
+update_cf = 't'
 
 # Indexing
 metron_indexing_topology = 'indexing'

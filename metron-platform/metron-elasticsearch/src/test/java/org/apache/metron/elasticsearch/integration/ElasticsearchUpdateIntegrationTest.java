@@ -75,14 +75,14 @@ public class ElasticsearchUpdateIntegrationTest {
 
     hbaseDao = new HBaseDao();
     AccessConfig accessConfig = new AccessConfig();
-    accessConfig.setColumnFamily(CF);
-    accessConfig.setTable(TABLE_NAME);
     accessConfig.setTableProvider(tableProvider);
     Map<String, Object> globalConfig = new HashMap<String, Object>() {{
       put("es.clustername", "metron");
       put("es.port", "9300");
       put("es.ip", "localhost");
       put("es.date.format", dateFormat);
+      put(HBaseDao.HBASE_TABLE, TABLE_NAME);
+      put(HBaseDao.HBASE_CF, CF);
     }};
     accessConfig.setGlobalConfigSupplier(() -> globalConfig);
 
