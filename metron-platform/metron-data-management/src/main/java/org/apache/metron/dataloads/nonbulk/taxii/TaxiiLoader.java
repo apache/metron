@@ -168,16 +168,13 @@ public class TaxiiLoader {
 
 
   public static boolean isStixExtractor(Extractor e) {
-    if(e instanceof StixExtractor) {
+    if(e instanceof StixExtractor ||
+       ( e instanceof ExtractorDecorator && ((ExtractorDecorator) e).getUnderlyingExtractor() instanceof StixExtractor)
+      ) {
       return true;
+    } else {
+      return false;
     }
-    else if(e instanceof ExtractorDecorator) {
-      ExtractorDecorator decorator = (ExtractorDecorator)e;
-      if(decorator.getUnderlyingExtractor() != null && decorator.getUnderlyingExtractor() instanceof StixExtractor) {
-        return true;
-      }
-    }
-    return false;
   }
 
   public static void main(String... argv) throws Exception {
