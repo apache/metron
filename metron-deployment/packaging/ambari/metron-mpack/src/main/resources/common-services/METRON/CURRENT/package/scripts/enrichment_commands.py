@@ -136,26 +136,37 @@ class EnrichmentCommands:
 
         self.set_kafka_acl_configured()
 
-    def start_enrichment_topology(self):
+    def start_enrichment_topology(self, env):
         Logger.info("Starting Metron enrichment topology: {0}".format(self.__enrichment_topology))
-        start_cmd_template = """{0}/bin/start_enrichment_topology.sh \
-                                    -s {1} \
-                                    -z {2}"""
-        Logger.info('Starting ' + self.__enrichment_topology)
-        Execute(start_cmd_template.format(self.__params.metron_home, self.__enrichment_topology, self.__params.zookeeper_quorum),
-                user=self.__params.metron_user)
+
+        if not self.is_topology_active(env):
+            start_cmd_template = """{0}/bin/start_enrichment_topology.sh \
+                                        -s {1} \
+                                        -z {2}"""
+            Logger.info('Starting ' + self.__enrichment_topology)
+            Execute(start_cmd_template.format(self.__params.metron_home,
+                                              self.__enrichment_topology,
+                                              self.__params.zookeeper_quorum),
+                    user=self.__params.metron_user)
+        else:
+            Logger.info('Enrichment topology already running')
 
         Logger.info('Finished starting enrichment topology')
 
-    def stop_enrichment_topology(self):
+    def stop_enrichment_topology(self, env):
         Logger.info('Stopping ' + self.__enrichment_topology)
-        stop_cmd = 'storm kill ' + self.__enrichment_topology
-        Execute(stop_cmd, user=self.__params.metron_user)
+
+        if self.is_topology_active(env):
+            stop_cmd = 'storm kill ' + self.__enrichment_topology
+            Execute(stop_cmd, user=self.__params.metron_user)
+        else:
+            Logger.info("Enrichment topology already stopped")
+
         Logger.info('Done stopping enrichment topologies')
 
     def restart_enrichment_topology(self, env):
         Logger.info('Restarting the enrichment topologies')
-        self.stop_enrichment_topology()
+        self.stop_enrichment_topology(env)
 
         # Wait for old topology to be cleaned up by Storm, before starting again.
         retries = 0
@@ -167,7 +178,7 @@ class EnrichmentCommands:
             retries += 1
 
         if not topology_active:
-            self.start_enrichment_topology()
+            self.start_enrichment_topology(env)
             Logger.info('Done restarting the enrichment topology')
         else:
             Logger.warning('Retries exhausted. Existing topology not cleaned up.  Aborting topology start.')

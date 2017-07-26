@@ -17,7 +17,7 @@ Any field contained within a message can be used to generate a profile.  A profi
 
 Follow these instructions to install the Profiler.  This assumes that core Metron has already been installed and validated.  
 
-1. Build the Metron RPMs by [following these instructions](../../metron-deployment#rpm).  
+1. Build the Metron RPMs (see Building the [RPMs](../../metron-deployment#rpms)).  
 
     You may have already built the Metron RPMs when core Metron was installed.
 
@@ -58,7 +58,7 @@ Follow these instructions to install the Profiler.  This assumes that core Metro
     /usr/metron/0.4.1/lib/metron-profiler-0.4.0-uber.jar
     ```
 
-1. Create a table within HBase that will store the profile data. The table name and column family must match the [Profiler's configuration](#configuring-the-profiler).  By default, the table is named `profiler` with a column family `P`.
+1. Create a table within HBase that will store the profile data. By default, the table is named `profiler` with a column family `P`.  The table name and column family must match the Profiler's configuration (see [Configuring the Profiler](#configuring-the-profiler)).  
 
     ```
     $ /usr/hdp/current/hbase-client/bin/hbase shell
@@ -83,9 +83,9 @@ At this point the Profiler is running and consuming telemetry messages.  We have
 
 ## Getting Started
 
-This section will describe the steps required to get your first "Hello, World!"" profile running.  This assumes that you have successfully [installed the Profiler](#installation) and have it running.
+This section will describe the steps required to get your first "Hello, World!"" profile running.  This assumes that you have a successful Profiler [Installation](#installation) and have it running.
 
-1. Create the profile definition in a file located at `$METRON_HOME/config/zookeeper/profiler.json`.  
+1. Create the profile definition in a file located at `$METRON_HOME/config/zookeeper/profiler.json`.  This file will likely not exist, if you have never created Profiles before.
 
     The following example will create a profile that simply counts the number of messages per `ip_src_addr`.
     ```
@@ -129,7 +129,7 @@ This section will describe the steps required to get your first "Hello, World!""
     }
     ```
 
-1. Ensure that test messages are being sent to the Profiler's input topic in Kafka.  The Profiler will consume messages from the `inputTopic` defined in the [Profiler's configuration](#configuring-the-profiler).  By default this is the `indexing` topic.
+1. Ensure that test messages are being sent to the Profiler's input topic in Kafka.  The Profiler will consume messages from the input topic defined in the Profiler's configuration (see [Configuring the Profiler](#configuring-the-profiler)).  By default this is the `indexing` topic.
 
 1. Check the HBase table to validate that the Profiler is writing the profile.  Remember that the Profiler is flushing the profile every 15 minutes.  You will need to wait at least this long to start seeing profile data in HBase.
     ```
@@ -137,14 +137,18 @@ This section will describe the steps required to get your first "Hello, World!""
     hbase(main):001:0> count 'profiler'
     ```
 
-1. Use the Profiler Client to read the profile data.  The below example `PROFILE_GET` command will read data written by the sample profile given above, if 10.0.0.1 is one of the input values for `ip_src_addr`.
-More information on configuring and using the client can be found [here](../metron-profiler-client).
-It is assumed that the `PROFILE_GET` client is correctly configured before using it.
+1. Use the [Profiler Client](../metron-profiler-client) to read the profile data.  The following `PROFILE_GET` command will read the data written by the `hello-world` profile. This assumes that `10.0.0.1` is one of the values for `ip_src_addr` contained within the telemetry consumed by the Profiler.
+
     ```
     $ bin/stellar -z node1:2181
     [Stellar]>>> PROFILE_GET( "hello-world", "10.0.0.1", PROFILE_FIXED(30, "MINUTES"))
     [451, 448]
     ```
+
+    This result indicates that over the past 30 minutes, the Profiler stored two values related to the source IP address "10.0.0.1".  In the first 15 minute period, the IP `10.0.0.1` was seen in 451 telemetry messages.  In the second 15 minute period, the same IP was seen in 448 telemetry messages.
+
+    It is assumed that the `PROFILE_GET` client is correctly configured to match the Profile configuration before using it to read that Profile.  More information on configuring and using the Profiler client can be found [here](../metron-profiler-client).  
+
 
 ## Creating Profiles
 
@@ -275,27 +279,105 @@ The Profiler runs as an independent Storm topology.  The configuration for the P
 The values can be changed on disk and then the Profiler topology must be restarted.
 
 
-| Setting                               | Description
-|---                                    |---
-| profiler.workers                      | The number of worker processes to create for the topology.
-| profiler.executors                    | The number of executors to spawn per component.
-| profiler.input.topic                  | The name of the Kafka topic from which to consume data.
-| profiler.output.topic                 | The name of the Kafka topic to which profile data is written.  Only used with profiles that use the [`triage` result field](#result).
-| profiler.period.duration              | The duration of each profile period.  This value should be defined along with `profiler.period.duration.units`.
-| profiler.period.duration.units        | The units used to specify the `profiler.period.duration`.
-| profiler.ttl                          | If a message has not been applied to a Profile in this period of time, the Profile will be forgotten and its resources will be cleaned up. This value should be defined along with `profiler.ttl.units`.
-| profiler.ttl.units                    | The units used to specify the `profiler.ttl`.
-| profiler.hbase.salt.divisor           | A salt is prepended to the row key to help prevent hotspotting.  This constant is used to generate the salt.  Ideally, this constant should be roughly equal to the number of nodes in the Hbase cluster.
-| profiler.hbase.table                  | The name of the HBase table that profiles are written to.
-| profiler.hbase.column.family          | The column family used to store profiles.
-| profiler.hbase.batch                  | The number of puts that are written in a single batch.
-| profiler.hbase.flush.interval.seconds | The maximum number of seconds between batch writes to HBase.
+| Setting                                                                       | Description
+|---                                                                            |---
+| [`profiler.input.topic`](#profilerinputtopic)                                 | The name of the Kafka topic from which to consume data.
+| [`profiler.output.topic`](#profileroutputtopic)                               | The name of the Kafka topic to which profile data is written.  Only used with profiles that define the [`triage` result field](#result).
+| [`profiler.period.duration`](#profilerperiodduration)                         | The duration of each profile period.  
+| [`profiler.period.duration.units`](#profilerperioddurationunits)              | The units used to specify the [`profiler.period.duration`](#profilerperiodduration).  
+| [`profiler.workers`](#profilerworkers)                                        | The number of worker processes for the topology.
+| [`profiler.executors`](#profilerexecutors)                                    | The number of executors to spawn per component.
+| [`profiler.ttl`](#profilerttl)                                                | If a message has not been applied to a Profile in this period of time, the Profile will be forgotten and its resources will be cleaned up.
+| [`profiler.ttl.units`](#profilerttlunits)                                     | The units used to specify the `profiler.ttl`.
+| [`profiler.hbase.salt.divisor`](#profilerhbasesaltdivisor)                    | A salt is prepended to the row key to help prevent hotspotting.
+| [`profiler.hbase.table`](#profilerhbasetable)                                 | The name of the HBase table that profiles are written to.
+| [`profiler.hbase.column.family`](#profilerhbasecolumnfamily)                  | The column family used to store profiles.
+| [`profiler.hbase.batch`](#profilerhbasebatch)                                 | The number of puts that are written to HBase in a single batch.
+| [`profiler.hbase.flush.interval.seconds`](#profilerhbaseflushintervalseconds) | The maximum number of seconds between batch writes to HBase.
 
-After altering the configuration, start the Profiler.
+### `profiler.input.topic`
 
-```
-$ $METRON_HOME/start_profiler_topology.sh
-```
+*Default*: indexing
+
+The name of the Kafka topic from which to consume data.  By default, the Profiler consumes data from the `indexing` topic so that it has access to fully enriched telemetry.
+
+### `profiler.output.topic`
+
+*Default*: enrichments
+
+The name of the Kafka topic to which profile data is written.  This property is only applicable to profiles that define  the [`result` `triage` field](#result).  This allows Profile data to be selectively triaged like any other source of telemetry in Metron.
+
+### `profiler.period.duration`
+
+*Default*: 15
+
+The duration of each profile period.  This value should be defined along with [`profiler.period.duration.units`](#profilerperioddurationunits).
+
+*Important*: To read a profile using the [Profiler Client](metron-analytics/metron-profiler-client), the Profiler Client's `profiler.client.period.duration` property must match this value.  Otherwise, the Profiler Client will be unable to read the profile data.  
+
+### `profiler.period.duration.units`
+
+*Default*: MINUTES
+
+The units used to specify the `profiler.period.duration`.  This value should be defined along with [`profiler.period.duration`](#profilerperiodduration).
+
+*Important*: To read a profile using the Profiler Client, the Profiler Client's `profiler.client.period.duration.units` property must match this value.  Otherwise, the [Profiler Client](metron-analytics/metron-profiler-client) will be unable to read the profile data.
+
+### `profiler.workers`
+
+*Default*: 1
+
+The number of worker processes to create for the Profiler topology.  This property is useful for performance tuning the Profiler.
+
+### `profiler.executors`
+
+*Default*: 0
+
+The number of executors to spawn per component for the Profiler topology.  This property is useful for performance tuning the Profiler.
+
+### `profiler.ttl`
+
+*Default*: 30
+
+ If a message has not been applied to a Profile in this period of time, the Profile will be terminated and its resources will be cleaned up. This value should be defined along with [`profiler.ttl.units`](#profilerttlunits).
+
+ This time-to-live does not affect the persisted Profile data in HBase.  It only affects the state stored in memory during the execution of the latest profile period.  This state will be deleted if the time-to-live is exceeded.
+
+### `profiler.ttl.units`
+
+*Default*: MINUTES
+
+The units used to specify the [`profiler.ttl`](#profilerttl).
+
+### `profiler.hbase.salt.divisor`
+
+*Default*: 1000
+
+A salt is prepended to the row key to help prevent hotspotting.  This constant is used to generate the salt.  This constant should be roughly equal to the number of nodes in the Hbase cluster to ensure even distribution of data.
+
+### `profiler.hbase.table`
+
+*Default*: profiler
+
+The name of the HBase table that profile data is written to.  The Profiler expects that the table exists and is writable.  It will not create the table.
+
+### `profiler.hbase.column.family`
+
+*Default*: P
+
+The column family used to store profile data in HBase.
+
+### `profiler.hbase.batch`
+
+*Default*: 10
+
+The number of puts that are written to HBase in a single batch.
+
+### `profiler.hbase.flush.interval.seconds`
+
+*Default*: 30
+
+The maximum number of seconds between batch writes to HBase.
 
 ## Examples
 

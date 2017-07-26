@@ -113,13 +113,15 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
 
     // ensure there is a valid profiler configuration
     ProfilerConfig config = getProfilerConfig();
-    if(config == null) {
-      throw new IllegalArgumentException("Fatal: Unable to find valid profiler definition");
-    }
+    if(config != null) {
 
-    // apply the message to each of the profile definitions
-    for (ProfileConfig profile: config.getProfiles()) {
-      applyProfile(profile, input, message);
+      // apply the message to each of the profile definitions
+      for (ProfileConfig profile: config.getProfiles()) {
+        applyProfile(profile, input, message);
+      }
+
+    } else {
+      LOG.warn("No Profiler configuration found.  Nothing to do.");
     }
   }
 
