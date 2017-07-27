@@ -80,10 +80,10 @@ public class BundleProvidedDependenciesMojo extends AbstractMojo {
     private String mode;
 
     /**
-     * The type we are using for dependencies, should be nar, but may
+     * The type we are using for dependencies, should be bundle, but may
      * be changed in the configuration if the plugin is producing
      * other archive extensions, this is a 'shared' configuration
-     * with the NarMojo
+     * with the BundleMojo
      */
     @Parameter(property = "type", required = false, defaultValue = "bundle")
     protected String type;
@@ -102,7 +102,8 @@ public class BundleProvidedDependenciesMojo extends AbstractMojo {
     private ArtifactHandlerManager artifactHandlerManager;
 
     /**
-     * The {@link ProjectBuilder} used to generate the {@link MavenProject} for the nar artifact the dependency tree is being generated for.
+     * The {@link ProjectBuilder} used to generate the {@link MavenProject} for the bundle
+     * artifact the dependency tree is being generated for.
      */
     @Component
     private ProjectBuilder projectBuilder;
@@ -119,7 +120,7 @@ public class BundleProvidedDependenciesMojo extends AbstractMojo {
                 if (type.equals(artifact.getType())) {
                     // ensure the project doesn't have two bundle dependencies
                     if (bundleArtifact != null) {
-                        throw new MojoExecutionException("Project can only have one NAR dependency.");
+                        throw new MojoExecutionException("Project can only have one BUNDLE dependency.");
                     }
 
                     // record the bundle dependency
@@ -129,7 +130,7 @@ public class BundleProvidedDependenciesMojo extends AbstractMojo {
 
             // ensure there is a bundle dependency
             if (bundleArtifact == null) {
-                throw new MojoExecutionException("Project does not have any NAR dependencies.");
+                throw new MojoExecutionException("Project does not have any BUNDLE dependencies.");
             }
 
             // build the project for the bundle artifact
@@ -145,8 +146,8 @@ public class BundleProvidedDependenciesMojo extends AbstractMojo {
             // bundle artifacts by nature includes dependencies, however this prevents the
             // transitive dependencies from printing using tools like dependency:tree.
             // here we are overriding the artifact handler for all bundles so the
-            // dependencies can be listed. this is important because nar dependencies
-            // will be used as the parent classloader for this nar and seeing what
+            // dependencies can be listed. this is important because bundle dependencies
+            // will be used as the parent classloader for this bundle and seeing what
             // dependencies are provided is critical.
             final Map<String, ArtifactHandler> bundleHandlerMap = new HashMap<>();
             bundleHandlerMap.put(type, bundleHandler);
