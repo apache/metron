@@ -26,10 +26,10 @@
     <version>0.4.1</version>
     <packaging>maven-plugin</packaging>
     <description>Apache Metron Bundles Maven Plugin</description>
-    <url>http://metron.incubator.apache.org</url>
+    <url>http://metron.apache.org</url>
     <organization>
         <name>Apache Metron Project</name>
-        <url>http://metron.incubator.apache.org/</url>
+        <url>http://metron.apache.org/</url>
     </organization>
     <licenses>
         <license>

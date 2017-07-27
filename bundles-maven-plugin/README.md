@@ -34,7 +34,7 @@ the main 'metron' code tree.
 
 - Build with `mvn clean install`
 - Presuming you need to make use of changes to the nifi-nar-maven-plugin module, you should next
-  go to the [incubator-metron](../incubator-metron) directory and follow its instructions. 
+  go to the [metron](../metron) directory and follow its instructions. 
 
 
 ## Settings and configuration
@@ -65,7 +65,7 @@ Bundle to bundle
  
 
 ## Getting Help
-If you have questions, you can reach out to our mailing list: dev@metron.incubator.apache.org
+If you have questions, you can reach out to our mailing list: dev@metron.apache.org
 We're also often available in IRC: #nifi on
 [irc.freenode.net](http://webchat.freenode.net/?channels=#apache-metron).
 
