@@ -20,7 +20,7 @@ import {AlertsSearchResponse} from '../model/alerts-search-response';
 
 export class ElasticsearchUtils {
 
-  public static excludeIndexName = 'kibana';
+  public static excludeIndexName = ',-*kibana,-error*';
 
   private static createColumMetaData(properties: any, columnMetadata: ColumnMetadata[], seen: string[]) {
      try {

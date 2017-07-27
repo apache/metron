@@ -128,7 +128,7 @@ app.use(serveStatic(path.join(__dirname, 'dist'), {
   setHeaders: setCustomCacheControl
 }));
 
-app.post('/search/*,-*kibana/_search', searchResult);
+app.post('^/search/*', searchResult);
 app.use('/_cluster', clusterState);
 app.get('/alerts-list', indexHTML);
 app.get('', indexHTML);

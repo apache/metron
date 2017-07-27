@@ -48,7 +48,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
   ];
 
   getAlerts(searchRequest: SearchRequest): Observable<AlertsSearchResponse> {
-    let url = '/search/*,-*' + ElasticsearchUtils.excludeIndexName + '/_search';
+    let url = '/search/*' + ElasticsearchUtils.excludeIndexName + '/_search';
     let request: any  = JSON.parse(JSON.stringify(searchRequest));
     request.query = { query_string: { query: searchRequest.query } };
 
