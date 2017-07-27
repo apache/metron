@@ -1,6 +1,40 @@
 # Ambari Management Pack Development
 Typically, Ambari Management Pack development will be done in the Vagrant environments. These instructions are specific to Vagrant, but can be adapted for other environemnts (e.g. make sure to be on the correct nodes for server vs agent files)
 
+There is an `mpack.json` file which describes what services the mpack will contains, versions, etc.
+
+Alongside this are two directories, `addon-services` and `common-services`.
+
+The layout of `/common-services/METRON.CURRENT` is
+* `/configuration`
+  * This contains a set of `*-env.xml` files, relevent to particular components or the service as a whole.  These are where properties are defined.
+* `/package`
+  * `/files`
+    * Contains files that get used as provided, in particular Elasticsearch templates.
+  * `/scripts`
+    * A set of Python scripts that interface with Ambari to manage setup and install
+    * `/params`
+      * A set of Python scripts for managing parameters from the `*-env.xml` files
+    * `/templates`
+      * A set of Jinja template files which can be populated with properties
+* `/quicklinks`
+  * Contains `quicklinks.json` to define the Ambari quicklinks that should be used in the UI
+* `themes`
+  * Manages the Ambari UI themes blocks for organizing the configuration by relevant area.
+* `kerberos.json`
+  * Defines the keytabs and other Kerberos configuration to be used when Kerberizing a cluster
+* `metainfo.xml`
+  * Defines the METRON service, along with required packages, services, etc.
+* `service_advisor.py`
+  * Handles component layout and validation, along with handling some configurations for other services or that needs configs from other services.
+
+The layout of `/addon-services/METRON.CURRENT` is
+* `/repos`
+  * Contains `repoinfo.xml` that defines repositories to install packages from
+* `metainfo.xml`
+  * Limited info version of `/common-services/METRON.CURRENT/metainfo.xml`
+* `role_command_order.json`
+  * Defines the order of service startup and other actions relative to each other.
 
 ## Adding a new property
 1. Add the property to the appropriate `*-env.xml` file found in `METRON.CURRENT/configuration`.
@@ -225,8 +259,24 @@ The steps to update are:
 `service ambari-agent restart`
 1. Start Metron through Ambari.
 
+## Configuration involving dependency services
+Metron can define expectations on other services, e.g. Storm's `topology.classpath` should be `/etc/hbase/conf:/etc/hadoop/conf`.
+This happens in `METRON.CURRENT/service_advisor.py`.
+
+The value is defined in a map in `getSTORMSiteDesiredValues(self, is_secured)`.  This map is used by `validateSTORMSiteConfigurations` to ensure that the value used by the component is what we need it to be.  Generally, only the map should need to be modified.
+
+Properties from the other services can also be used and examined.  We use this to build the appropriate URL for Storm, because it differs based on Kerberos security.
+For example, to retrieve from another service, access the configurations array, retrieve the appropriate config file, retrieve the properties, and finally the desired property.
+```
+stormUIServerPort = services["configurations"]["storm-site"]["properties"]["ui.port"]
+```
+
+The security of the cluster can be checked with
+```is_secured = self.isSecurityEnabled(services)```
+Note that the configuration expectations will be properly enforced if the cluster is upgraded (e.g. the Storm URL is properly updated) and it does not need to occur manually.
+
 ## Kerberos
-Anything interacting with underlying secured tech needs to have `kinit` run as needed.  This includes anything interacting with HDFS, HBase, Kafka, Storm, etc.
+Any scripts interacting with underlying secured tech needs to have `kinit` run as needed.  This includes anything interacting with HDFS, HBase, Kafka, Storm, etc.
 This `kinit` should be run in a conditional statement, to avoid breaking non-Kerberized clusters.
 
 Ambari can run `kinit`, as a given user with the appropriate keytab like so:
