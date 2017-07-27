@@ -212,7 +212,7 @@ public class ExtensionManager {
                 break;
             }
 
-            // if the type wasn't loaded from an ancestor, and the type isn't a processor, cs, or reporting task, then
+            // if the type wasn't loaded from an ancestor, and the type isn't a parsers, cs, or reporting task, then
             // fail registration because we don't support multiple versions of any other types
             if (!multipleVersionsAllowed(type)) {
                 throw new IllegalStateException("Attempt was made to load " + className + " from "
@@ -236,7 +236,7 @@ public class ExtensionManager {
 
     /**
      * @param type a Class that we found from a service loader
-     * @return true if the given class is a processor, controller service, or reporting task
+     * @return true if the given class is a parsers, controller service, or reporting task
      */
     private static boolean multipleVersionsAllowed(Class<?> type) {
         // we don't really need to support multiple versions at this time

@@ -120,15 +120,15 @@ public class BundleUnpackerIntegrationTest {
     assertEquals(2, extensionMapping.getAllExtensionNames().size());
 
     assertTrue(extensionMapping.getAllExtensionNames().keySet().contains(
-            "org.apache.nifi.processors.dummy.one"));
+            "org.apache.metron.bar.BarParser"));
     assertTrue(extensionMapping.getAllExtensionNames().keySet().contains(
-            "org.apache.nifi.processors.dummy.two"));
+            "org.apache.metron.foo.FooParser"));
     final FileObject extensionsWorkingDir = fileSystemManager.resolveFile(properties.getExtensionsWorkingDirectory());
     FileObject[] extensionFiles = extensionsWorkingDir.getChildren();
 
     Set<String> expectedBundles = new HashSet<>();
-    expectedBundles.add("dummy-one.foo-unpacked");
-    expectedBundles.add("dummy-two.foo-unpacked");
+    expectedBundles.add("metron-parser-foo-bundle-0.4.1.bundle-unpacked");
+    expectedBundles.add("metron-parser-bar-bundle-0.4.1.bundle-unpacked");
     assertEquals(expectedBundles.size(), extensionFiles.length);
 
     for (FileObject extensionFile : extensionFiles) {

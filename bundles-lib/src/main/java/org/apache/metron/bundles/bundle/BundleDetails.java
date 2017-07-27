@@ -120,7 +120,7 @@ public class BundleDetails {
     }
 
     /**
-     * Builder for NarDetails.
+     * Builder for BundleDetails.
      */
     public static class Builder {
 

@@ -46,20 +46,20 @@ public class BundleUtilTest {
         final BundleDetails bundleDetails = BundleUtil.fromBundleDirectory(bundleDir, properties);
         assertEquals(bundleDir.getURL(), bundleDetails.getWorkingDirectory().getURL());
 
-        assertEquals("org.apache.nifi", bundleDetails.getCoordinate().getGroup());
-        assertEquals("nifi-hadoop-nar", bundleDetails.getCoordinate().getId());
+        assertEquals("org.apache.metron", bundleDetails.getCoordinate().getGroup());
+        assertEquals("metron-hadoop-bundle", bundleDetails.getCoordinate().getId());
         assertEquals("1.2.0", bundleDetails.getCoordinate().getVersion());
 
-        assertEquals("org.apache.nifi.hadoop", bundleDetails.getDependencyCoordinate().getGroup());
-        assertEquals("nifi-hadoop-libraries-nar", bundleDetails.getDependencyCoordinate().getId());
+        assertEquals("org.apache.metron.hadoop", bundleDetails.getDependencyCoordinate().getGroup());
+        assertEquals("metron-hadoop-libraries-bundle", bundleDetails.getDependencyCoordinate().getId());
         assertEquals("1.2.1", bundleDetails.getDependencyCoordinate().getVersion());
 
-        assertEquals("NIFI-3380", bundleDetails.getBuildBranch());
+        assertEquals("METRON-3380", bundleDetails.getBuildBranch());
         assertEquals("1.8.0_74", bundleDetails.getBuildJdk());
         assertEquals("a032175", bundleDetails.getBuildRevision());
         assertEquals("HEAD", bundleDetails.getBuildTag());
         assertEquals("2017-01-23T10:36:27Z", bundleDetails.getBuildTimestamp());
-        assertEquals("bbende", bundleDetails.getBuiltBy());
+        assertEquals("ottobackwards", bundleDetails.getBuiltBy());
     }
 
     @Test
@@ -73,11 +73,11 @@ public class BundleUtilTest {
         assertEquals(bundleDir.getURL(), bundleDetails.getWorkingDirectory().getURL());
 
         assertEquals(BundleCoordinate.DEFAULT_GROUP, bundleDetails.getCoordinate().getGroup());
-        assertEquals("nifi-hadoop-nar", bundleDetails.getCoordinate().getId());
+        assertEquals("metron-hadoop-bundle", bundleDetails.getCoordinate().getId());
         assertEquals(BundleCoordinate.DEFAULT_VERSION, bundleDetails.getCoordinate().getVersion());
 
         assertEquals(BundleCoordinate.DEFAULT_GROUP, bundleDetails.getDependencyCoordinate().getGroup());
-        assertEquals("nifi-hadoop-libraries-nar", bundleDetails.getDependencyCoordinate().getId());
+        assertEquals("metron-hadoop-libraries-bundle", bundleDetails.getDependencyCoordinate().getId());
         assertEquals(BundleCoordinate.DEFAULT_VERSION, bundleDetails.getDependencyCoordinate().getVersion());
 
         assertNull(bundleDetails.getBuildBranch());
@@ -85,7 +85,7 @@ public class BundleUtilTest {
         assertNull(bundleDetails.getBuildRevision());
         assertNull(bundleDetails.getBuildTag());
         assertNull(bundleDetails.getBuildTimestamp());
-        assertEquals("bbende", bundleDetails.getBuiltBy());
+        assertEquals("ottobackwards", bundleDetails.getBuiltBy());
     }
 
     @Test
@@ -98,18 +98,18 @@ public class BundleUtilTest {
         final BundleDetails bundleDetails = BundleUtil.fromBundleDirectory(bundleDir, properties);
         assertEquals(bundleDir.getURL(), bundleDetails.getWorkingDirectory().getURL());
 
-        assertEquals("org.apache.nifi", bundleDetails.getCoordinate().getGroup());
-        assertEquals("nifi-hadoop-nar", bundleDetails.getCoordinate().getId());
+        assertEquals("org.apache.metron", bundleDetails.getCoordinate().getGroup());
+        assertEquals("metron-hadoop-bundle", bundleDetails.getCoordinate().getId());
         assertEquals("1.2.0", bundleDetails.getCoordinate().getVersion());
 
         assertNull(bundleDetails.getDependencyCoordinate());
 
-        assertEquals("NIFI-3380", bundleDetails.getBuildBranch());
+        assertEquals("METRON-3380", bundleDetails.getBuildBranch());
         assertEquals("1.8.0_74", bundleDetails.getBuildJdk());
         assertEquals("a032175", bundleDetails.getBuildRevision());
         assertEquals("HEAD", bundleDetails.getBuildTag());
         assertEquals("2017-01-23T10:36:27Z", bundleDetails.getBuildTimestamp());
-        assertEquals("bbende", bundleDetails.getBuiltBy());
+        assertEquals("ottobackwards", bundleDetails.getBuiltBy());
     }
 
     @Test(expected = IOException.class)

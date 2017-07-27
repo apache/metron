@@ -150,7 +150,7 @@ public final class BundleClassLoaders {
             final List<BundleDetails> bundleDetails = new ArrayList<>();
             final Map<String,String> bundleCoordinatesToWorkingDir = new HashMap<>();
 
-            // load the bundle details which includes and nar dependencies
+            // load the bundle details which includes bundle dependencies
             for (final FileObject unpackedBundle : bundleWorkingDirContents) {
                 BundleDetails bundleDetail = null;
                 try {
@@ -215,7 +215,7 @@ public final class BundleClassLoaders {
 
                                     // if that bundle is loaded, use it
                                     if (coordinateClassLoaderLookup.containsKey(coordinate.getCoordinate())) {
-                                        logger.warn(String.format("While loading '%s' unable to locate exact NAR dependency '%s'. Only found one possible match '%s'. Continuing...",
+                                        logger.warn(String.format("While loading '%s' unable to locate exact BUNDLE dependency '%s'. Only found one possible match '%s'. Continuing...",
                                                 bundleDetail.getCoordinate().getCoordinate(), dependencyCoordinateStr, coordinate.getCoordinate()));
 
                                         final ClassLoader bundleDependencyClassLoader = coordinateClassLoaderLookup.get(coordinate.getCoordinate());

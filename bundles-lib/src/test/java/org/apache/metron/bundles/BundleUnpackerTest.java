@@ -23,7 +23,7 @@ import org.apache.metron.bundles.bundle.Bundle;
 import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.metron.bundles.util.FileUtils;
 import org.apache.metron.bundles.util.VFSClassloaderUtil;
-import org.apache.nifi.processor.Processor;
+import org.apache.metron.parsers.interfaces.MessageParser;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -105,22 +105,22 @@ public class BundleUnpackerTest {
 
         FileSystemManager fileSystemManager = VFSClassloaderUtil.generateVfs(properties.getArchiveExtension());
         ArrayList<Class> classes = new ArrayList<>();
-        classes.add(Processor.class);
+        classes.add(MessageParser.class);
         ExtensionClassInitializer.initialize(classes);
         final ExtensionMapping extensionMapping = BundleUnpacker.unpackBundles(fileSystemManager,ExtensionManager.createSystemBundle(fileSystemManager, properties),properties);
 
         assertEquals(2, extensionMapping.getAllExtensionNames().size());
 
         assertTrue(extensionMapping.getAllExtensionNames().keySet().contains(
-                "org.apache.nifi.processors.dummy.one"));
+                "org.apache.metron.foo.FooParser"));
         assertTrue(extensionMapping.getAllExtensionNames().keySet().contains(
-                "org.apache.nifi.processors.dummy.two"));
+                "org.apache.metron.bar.BarParser"));
         final FileObject extensionsWorkingDir = fileSystemManager.resolveFile(properties.getExtensionsWorkingDirectory());
         FileObject[] extensionFiles = extensionsWorkingDir.getChildren();
 
         Set<String> expectedBundles = new HashSet<>();
-        expectedBundles.add("dummy-one.foo-unpacked");
-        expectedBundles.add("dummy-two.foo-unpacked");
+        expectedBundles.add("metron-parser-foo-bundle-0.4.1.bundle-unpacked");
+        expectedBundles.add("metron-parser-bar-bundle-0.4.1.bundle-unpacked");
         assertEquals(expectedBundles.size(), extensionFiles.length);
 
         for (FileObject extensionFile : extensionFiles) {
@@ -141,7 +141,7 @@ public class BundleUnpackerTest {
         BundleProperties properties = loadSpecifiedProperties("/BundleUnpacker/conf/bundle.properties", others);
         FileSystemManager fileSystemManager = VFSClassloaderUtil.generateVfs(properties.getArchiveExtension());
         ArrayList<Class> classes = new ArrayList<>();
-        classes.add(Processor.class);
+        classes.add(MessageParser.class);
         ExtensionClassInitializer.initialize(classes);
         // create a FileSystemManager
         Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
@@ -150,13 +150,13 @@ public class BundleUnpackerTest {
 
         assertEquals(1, extensionMapping.getAllExtensionNames().size());
         assertTrue(extensionMapping.getAllExtensionNames().keySet().contains(
-                "org.apache.nifi.processors.dummy.one"));
+                "org.apache.metron.bar.BarParser"));
 
         final FileObject extensionsWorkingDir = fileSystemManager.resolveFile(properties.getExtensionsWorkingDirectory());
         FileObject[] extensionFiles = extensionsWorkingDir.getChildren();
 
         assertEquals(1, extensionFiles.length);
-        assertEquals("dummy-one.foo-unpacked", extensionFiles[0].getName().getBaseName());
+        assertEquals("metron-parser-bar-bundle-0.4.1.bundle-unpacked", extensionFiles[0].getName().getBaseName());
     }
 
     @Test
@@ -171,7 +171,7 @@ public class BundleUnpackerTest {
         BundleProperties properties = loadSpecifiedProperties("/BundleUnpacker/conf/bundle.properties", others);
         FileSystemManager fileSystemManager = VFSClassloaderUtil.generateVfs(properties.getArchiveExtension());
         ArrayList<Class> classes = new ArrayList<>();
-        classes.add(Processor.class);
+        classes.add(MessageParser.class);
         ExtensionClassInitializer.initialize(classes);
         // create a FileSystemManager
         Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
@@ -179,7 +179,7 @@ public class BundleUnpackerTest {
         final ExtensionMapping extensionMapping = BundleUnpacker.unpackBundles(fileSystemManager, ExtensionManager.createSystemBundle(fileSystemManager, properties), properties);
 
         assertTrue(extensionMapping.getAllExtensionNames().keySet().contains(
-                "org.apache.nifi.processors.dummy.one"));
+                "org.apache.metron.bar.BarParser"));
 
         assertEquals(1, extensionMapping.getAllExtensionNames().size());
 
@@ -187,7 +187,7 @@ public class BundleUnpackerTest {
         FileObject[] extensionFiles = extensionsWorkingDir.getChildren();
 
         assertEquals(1, extensionFiles.length);
-        assertEquals("dummy-one.foo-unpacked", extensionFiles[0].getName().getBaseName());
+        assertEquals("metron-parser-bar-bundle-0.4.1.bundle-unpacked", extensionFiles[0].getName().getBaseName());
     }
 
     @Test
@@ -203,7 +203,7 @@ public class BundleUnpackerTest {
         // create a FileSystemManager
         FileSystemManager fileSystemManager = VFSClassloaderUtil.generateVfs(properties.getArchiveExtension());
         ArrayList<Class> classes = new ArrayList<>();
-        classes.add(Processor.class);
+        classes.add(MessageParser.class);
         ExtensionClassInitializer.initialize(classes);
         // create a FileSystemManager
         Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);

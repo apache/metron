@@ -14,11 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.nifi.processor;
+package org.apache.metron.parsers.interfaces;
 
-import java.util.Set;
-
-  public interface Processor   {
+public interface MessageParser {
 
 
 }
