@@ -8,7 +8,7 @@ to build.
 
 ### Build Metron
 ```
-cd incubator-metron
+cd metron
 mvn clean install
 ```
 
