@@ -17,7 +17,6 @@
  */
 package org.apache.metron.stellar.common;
 
-import org.antlr.v4.runtime.ParserRuleContext;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.Token;

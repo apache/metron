@@ -161,6 +161,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `PROTOCOL_TO_NAME`](#protocol_to_name)                                                           |
 | [ `REDUCE`](#reduce)                                                                   |
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
+| [ `REGEXP_GROUP_VAL`](#regexp_group_val)                                                                   |
 | [ `SPLIT`](#split)                                                                                 |
 | [ `STARTS_WITH`](#starts_with)                                                                     |
 | [ `STATS_ADD`](../../metron-analytics/metron-statistics#stats_add)                                 |
@@ -201,6 +202,8 @@ In the core language functions, we support basic functional programming primitiv
 | [ `WEEK_OF_MONTH`](#week_of_month)                                                                 |
 | [ `WEEK_OF_YEAR`](#week_of_year)                                                                   |
 | [ `YEAR`](#year)                                                                                   |
+| [ `ZIP`](#zip)                                                                                   |
+| [ `ZIP_JAGGED`](#zip_jagged)                                                                                   |
 
 ### `APPEND_IF_MISSING`
   * Description: Appends the suffix to the end of the string if the string does not already end with any of the suffixes.
@@ -571,6 +574,14 @@ In the core language functions, we support basic functional programming primitiv
     * string - The string to test
     * pattern - The proposed regex pattern
   * Returns: True if the regex pattern matches the string and false if otherwise.
+  
+### `REGEXP_GROUP_VAL`
+  * Description: Returns the value of a group in a regex against a string
+  * Input:
+    * string - The string to test
+    * pattern - The proposed regex pattern
+    * group - The integer that selects what group to select, starting at 1
+  * Returns: The value of the group, or null if not matched or no group at index.
 
 ### `STRING_ENTROPY`
   * Description: Computes the base-2 shannon entropy of a string.
@@ -701,6 +712,22 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * dateTime - The datetime as a long representing the milliseconds since unix epoch
   * Returns: The current year
+
+### `ZIP`
+  * Description: Zips lists into a single list where the ith element is an list containing the ith items from the constituent lists.
+  See [python](https://docs.python.org/3/library/functions.html#zip)
+  and [wikipedia](https://en.wikipedia.org/wiki/Convolution_(computer_science)) for more context.
+  * Input:
+    * list* - Lists to zip.
+  * Returns: The zip of the lists.  The returned list is the min size of all the lists. e.g. `ZIP( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4] ]`
+
+### `ZIP_LONGEST`
+  * Description: Zips lists into a single list where the ith element is an list containing the ith items from the constituent lists.
+  See [python](https://docs.python.org/3/library/itertools.html#itertools.zip_longest)
+  and [wikipedia](https://en.wikipedia.org/wiki/Convolution_(computer_science)) for more context.
+  * Input:
+    * list* - Lists to zip.
+  * Returns: The zip of the lists.  The returned list is the max size of all the lists.  Empty elements are null e.g. `ZIP_LONGEST( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4], [null, 5] ]`
 
 The following is an example query (i.e. a function which returns a
 boolean) which would be seen possibly in threat triage:
@@ -834,7 +861,7 @@ usage: stellar
  -irc,--inputrc <arg>   File containing the inputrc if not the default
                         ~/.inputrc
  -v,--variables <arg>   File containing a JSON Map of variables
- -z,--zookeeper <arg>   Zookeeper URL
+ -z,--zookeeper <arg>   Zookeeper URL fragment in the form [HOSTNAME|IPADDRESS]:PORT
  -na,--no_ansi          Make the input prompt not use ANSI colors.
 ```
 
