@@ -32,6 +32,7 @@ import org.apache.metron.bundles.util.FileUtils;
 import org.apache.metron.bundles.util.HDFSFileUtilities;
 import org.apache.metron.bundles.util.VFSClassloaderUtil;
 import org.apache.metron.integration.components.MRComponent;
+import org.apache.metron.parsers.interfaces.MessageParser;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -109,7 +110,7 @@ public class BundleUnpackerIntegrationTest {
     properties.setProperty(BundleProperties.COMPONENT_DOCS_DIRECTORY, "/work/docs/components/");
     FileSystemManager fileSystemManager = VFSClassloaderUtil.generateVfs(properties.getArchiveExtension());
     ArrayList<Class> classes = new ArrayList<>();
-    classes.add(AbstractFoo.class);
+    classes.add(MessageParser.class);
     ExtensionClassInitializer.initialize(classes);
     // create a FileSystemManager
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
