@@ -239,12 +239,12 @@ public class BundleMojo extends AbstractMojo {
     protected String copyDepClassifier;
 
     /**
-     * Specify type to look for when constructing artifact based on classifier.
+     * Specify packageType to look for when constructing artifact based on classifier.
      * Example: java-source,jar,war,bundle
      *
      */
-    @Parameter(property = "type", required = false, defaultValue = "bundle")
-    protected String type;
+    @Parameter(property = "packageType", required = false, defaultValue = "bundle")
+    protected String packageType;
 
     /**
      * Comma separated list of Artifact names too exclude.
@@ -487,8 +487,8 @@ public class BundleMojo extends AbstractMojo {
         filter.addFilter(new GroupIdFilter(this.includeGroupIds, this.excludeGroupIds));
         filter.addFilter(new ArtifactIdFilter(this.includeArtifactIds, this.excludeArtifactIds));
 
-        // explicitly filter our bundle dependencies as defined by type
-        filter.addFilter(new TypeFilter("", type));
+        // explicitly filter our bundle dependencies as defined by packageType
+        filter.addFilter(new TypeFilter("", packageType));
 
         // start with all artifacts.
         Set artifacts = project.getArtifacts();
@@ -517,10 +517,10 @@ public class BundleMojo extends AbstractMojo {
         DependencyStatusSets status = new DependencyStatusSets();
 
         // possibly translate artifacts into a new set of artifacts based on the
-        // classifier and type
+        // classifier and packageType
         // if this did something, we need to resolve the new artifacts
         if (StringUtils.isNotEmpty(copyDepClassifier)) {
-            ArtifactTranslator translator = new ClassifierTypeTranslator(this.copyDepClassifier, this.type, this.factory);
+            ArtifactTranslator translator = new ClassifierTypeTranslator(this.copyDepClassifier, this.packageType, this.factory);
             artifacts = translator.translate(artifacts, getLog());
 
             status = filterMarkedDependencies(artifacts);
@@ -682,7 +682,7 @@ public class BundleMojo extends AbstractMojo {
             classifier = "-" + classifier;
         }
 
-        return new File(basedir, finalName + classifier + "." + type );
+        return new File(basedir, finalName + classifier + "." + packageType);
     }
 
     private BundleDependency getBundleDependency() throws MojoExecutionException {
@@ -690,7 +690,7 @@ public class BundleMojo extends AbstractMojo {
 
         // get bundle dependencies
         FilterArtifacts filter = new FilterArtifacts();
-        filter.addFilter(new TypeFilter(type, ""));
+        filter.addFilter(new TypeFilter(packageType, ""));
 
         // start with all artifacts.
         Set artifacts = project.getArtifacts();

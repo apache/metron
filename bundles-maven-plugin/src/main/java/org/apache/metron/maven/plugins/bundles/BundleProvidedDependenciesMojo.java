@@ -80,13 +80,13 @@ public class BundleProvidedDependenciesMojo extends AbstractMojo {
     private String mode;
 
     /**
-     * The type we are using for dependencies, should be bundle, but may
+     * The packageType we are using for dependencies, should be bundle, but may
      * be changed in the configuration if the plugin is producing
      * other archive extensions, this is a 'shared' configuration
      * with the BundleMojo
      */
-    @Parameter(property = "type", required = false, defaultValue = "bundle")
-    protected String type;
+    @Parameter(property = "packageType", required = false, defaultValue = "bundle")
+    protected String packageType;
 
     /**
      * The dependency tree builder to use for verbose output.
@@ -117,7 +117,7 @@ public class BundleProvidedDependenciesMojo extends AbstractMojo {
             // find the bundle dependency
             Artifact bundleArtifact = null;
             for (final Artifact artifact : project.getDependencyArtifacts()) {
-                if (type.equals(artifact.getType())) {
+                if (packageType.equals(artifact.getType())) {
                     // ensure the project doesn't have two bundle dependencies
                     if (bundleArtifact != null) {
                         throw new MojoExecutionException("Project can only have one BUNDLE dependency.");
@@ -150,7 +150,7 @@ public class BundleProvidedDependenciesMojo extends AbstractMojo {
             // will be used as the parent classloader for this bundle and seeing what
             // dependencies are provided is critical.
             final Map<String, ArtifactHandler> bundleHandlerMap = new HashMap<>();
-            bundleHandlerMap.put(type, bundleHandler);
+            bundleHandlerMap.put(packageType, bundleHandler);
             artifactHandlerManager.addHandlers(bundleHandlerMap);
 
             // get the dependency tree
@@ -303,7 +303,7 @@ public class BundleProvidedDependenciesMojo extends AbstractMojo {
             }
 
             final Artifact artifact = node.getArtifact();
-            if (!type.equals(artifact.getType())) {
+            if (!packageType.equals(artifact.getType())) {
                 output.append("<dependency>\n");
                 output.append("    <groupId>").append(artifact.getGroupId()).append("</groupId>\n");
                 output.append("    <artifactId>").append(artifact.getArtifactId()).append("</artifactId>\n");
