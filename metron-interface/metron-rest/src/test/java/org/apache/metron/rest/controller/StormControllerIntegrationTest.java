@@ -191,7 +191,7 @@ public class StormControllerIntegrationTest {
             .andExpect(jsonPath("$.supervisors[0]").exists())
             .andExpect(jsonPath("$.supervisors[0].id").exists())
             .andExpect(jsonPath("$.supervisors[0].host").exists())
-            .andExpect(jsonPath("$.supervisors[0].upTime").exists())
+            .andExpect(jsonPath("$.supervisors[0].uptime").exists())
             .andExpect(jsonPath("$.supervisors[0].slotsTotal").exists())
             .andExpect(jsonPath("$.supervisors[0].slotsUsed").exists());
 
