@@ -118,8 +118,8 @@ public class SupervisorStatus {
   @Override
   public int hashCode() {
     int result = id != null? id.hashCode() : 0;
-    result = 31 * result + host != null? host.hashCode() : 0;
-    result = 31 * result + upTime != null? upTime.hashCode() : 0;
+    result = 31 * result + (host != null? host.hashCode() : 0);
+    result = 31 * result + (upTime != null? upTime.hashCode() : 0);
     result = 31 * result + getSlotsTotal();
     result = 31 * result + getSlotsUsed();
     return result;
