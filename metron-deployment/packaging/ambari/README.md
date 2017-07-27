@@ -55,7 +55,7 @@ The properties are made available like any other property, and then the template
 ### Jinja template property walkthrough
 To illustrate the use of a property in a Jinja template, let's take an example of an existing property and walk through exactly how it's implemented.
 
-A straightforward example is `metron_zookeeper_config_dir` in `METRON.CURRENT/configuration/metron-env.xml`
+A straightforward example is `metron_log_dir` in `METRON.CURRENT/configuration/metron-env.xml`
 First, we need the property in the configuration file:
 ```
     <property>
