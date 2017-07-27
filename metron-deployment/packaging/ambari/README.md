@@ -237,7 +237,7 @@ if self.__params.security_enabled:
                           self.__params.metron_principal_name,
                           execute_user=self.__params.metron_user)
 ```
-The `security_enabled` param is already made available, along with appropriate keytabs for metron, storm, and hbase users.
+The `security_enabled` param is already made available, along with appropriate keytabs for metron, hdfs, kafka, and hbase users.
 
 ## Best practices
 * Write scripts to be idempotent. The pattern currently used is to write a file out when a task is finished, e.g. setting up ACLs or tables.
