@@ -1,7 +1,7 @@
 {
-  "name": "metron-management-ui-web-server",
+  "name": "metron-alerts-ui-web-server",
   "version": "0.4.0",
-  "description": "Metron management ui web server",
+  "description": "Metron alerts ui web server",
   "main": "server.js",
   "dependencies": {
     "compression": "1.6.2",

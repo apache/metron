@@ -1,5 +1,3 @@
-import {Filter} from './filter';
-import {ColumnNamesService} from '../service/column-names.service';
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,28 +15,15 @@ import {ColumnNamesService} from '../service/column-names.service';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {Filter} from '../../model/filter';
+import {ColumnNamesService} from '../../service/column-names.service';
+import {SearchRequest} from '../../model/search-request';
+
 export class QueryBuilder {
+  private _searchRequest = new SearchRequest();
   private _query = '*';
   private _displayQuery = this._query;
-  private from = 0;
-  private size = 15;
-  private sort: {}[] = [{ timestamp: {order : 'desc', ignore_unmapped: true, unmapped_type: 'date'} }];
-  private aggs: {};
   private _filters: Filter[] = [];
-
-  static fromJSON(obj: QueryBuilder): QueryBuilder {
-    let queryBuilder = new QueryBuilder();
-    queryBuilder._query = obj._query;
-    queryBuilder._displayQuery = obj._displayQuery;
-    queryBuilder.from = obj.from;
-    queryBuilder.size = obj.size;
-    queryBuilder.sort = obj.sort;
-    queryBuilder.aggs = obj.aggs;
-    queryBuilder._filters = obj._filters;
-    queryBuilder.onSearchChange();
-
-    return queryBuilder;
-  }
 
   set query(value: string) {
     value = value.replace(/\\:/g, ':');
@@ -51,18 +36,29 @@ export class QueryBuilder {
     return this._query;
   }
 
-  set displayQuery(value:string) {
+  set displayQuery(value: string) {
     this._displayQuery = value;
     this.updateFilters(this._displayQuery, true);
     this.onSearchChange();
   }
 
-  get displayQuery():string {
+  get displayQuery(): string {
     return this._displayQuery;
   }
 
   get filters(): Filter[] {
     return this._filters;
+  }
+
+
+  get searchRequest(): SearchRequest {
+    this._searchRequest.query = this.generateSelect();
+    return this._searchRequest;
+  }
+
+  set searchRequest(value: SearchRequest) {
+    this._searchRequest = value;
+    this.query = this._searchRequest.query;
   }
 
   addOrUpdateFilter(field: string, value: string) {
@@ -76,31 +72,21 @@ export class QueryBuilder {
     this.onSearchChange();
   }
 
-  asString(): string {
-    let json = JSON.stringify(this.getESSearchQuery());
-    json = json.replace(/"/g, '').replace(/^{/, '').replace(/}$/, '');
-
-    return json;
-  }
-
   generateSelect() {
-    let select = this._filters.map(filter => filter.field.replace(/:/g, '\\:') + ':' + filter.value).join(' AND ');
+    let select = this._filters.map(filter => {
+      return filter.field.replace(/:/g, '\\:') +
+              ':' +
+        String(filter.value)
+          .replace(/[\*\+\-=~><\"\?^\${}\(\)\:\!\/[\]\\\s]/g, '\\$&') // replace single  special characters
+          .replace(/\|\|/g, '\\||') // replace ||
+          .replace(/\&\&/g, '\\&&'); // replace &&
+    }).join(' AND ');
     return (select.length === 0) ? '*' : select;
   }
 
   generateSelectForDisplay() {
     let select = this._filters.map(filter => ColumnNamesService.getColumnDisplayValue(filter.field) + ':' + filter.value).join(' AND ');
     return (select.length === 0) ? '*' : select;
-  }
-
-  getESSearchQuery() {
-    return {
-      query: { query_string: { query: this.generateSelect() } },
-      from: this.from,
-      size: this.size,
-      sort: this.sort,
-      aggs: {}
-    };
   }
 
   onSearchChange() {
@@ -115,13 +101,13 @@ export class QueryBuilder {
     this.onSearchChange();
   }
 
-  setAggregations(value: any) {
-    this.aggs = value;
+  setFields(fieldNames: string[]) {
+      this.searchRequest._source = fieldNames;
   }
 
   setFromAndSize(from: number, size: number) {
-    this.from = from;
-    this.size = size;
+    this.searchRequest.from = from;
+    this.searchRequest.size = size;
   }
 
   setSort(sortBy: string, order: string, dataType: string) {
@@ -132,7 +118,7 @@ export class QueryBuilder {
       unmapped_type: dataType,
       missing: '_last'
     };
-    this.sort = [sortQuery];
+    this.searchRequest.sort = [sortQuery];
   }
 
   private updateFilters(tQuery: string, updateNameTransform = false) {

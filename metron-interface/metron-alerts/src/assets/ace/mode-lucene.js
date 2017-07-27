@@ -9,9 +9,6 @@ var LuceneHighlightRules = function() {
     this.$rules = {
         "start" : [
             {
-                token : "constant.character.negation",
-                regex : "[\\-]"
-            }, {
                 token : "constant.character.interro",
                 regex : "[\\?]"
             }, {

@@ -1,3 +1,20 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import { Component, OnInit } from '@angular/core';
 import {Router} from '@angular/router';
 import {Observable} from 'rxjs/Rx';
@@ -5,6 +22,8 @@ import {Observable} from 'rxjs/Rx';
 import {SaveSearchService} from '../../service/save-search.service';
 import {SaveSearch} from '../../model/save-search';
 import {MetronDialogBox} from '../../shared/metron-dialog-box';
+import {NUM_SAVED_SEARCH} from '../../utils/constants';
+import {CollapseComponentData, CollapseComponentDataItems} from '../../shared/collapse/collapse-component-data';
 
 @Component({
   selector: 'app-saved-searches',
@@ -15,8 +34,8 @@ export class SavedSearchesComponent implements OnInit {
 
   searches: SaveSearch[];
   recentSearcheObj: SaveSearch[];
-  savedSearches: any = {};
-  recentSearches: any = {};
+  savedSearches: CollapseComponentData = new CollapseComponentData();
+  recentSearches: CollapseComponentData = new CollapseComponentData();
   constructor(private router: Router,
               private saveSearchService: SaveSearchService,
               private metronDialog: MetronDialogBox) {
@@ -76,32 +95,20 @@ export class SavedSearchesComponent implements OnInit {
 
   preparedRecentlyAccessedSearches(recentSearches: SaveSearch[]) {
     this.recentSearcheObj = recentSearches ? recentSearches : [];
-    let recentSearchNames = this.recentSearcheObj.sort((s1, s2) => { return s2.lastAccessed - s1.lastAccessed; }).slice(0, 5)
+    let recentSearchNames = this.recentSearcheObj.sort((s1, s2) => { return s2.lastAccessed - s1.lastAccessed; }).slice(0, NUM_SAVED_SEARCH)
                           .map(search => {
-                            return {key: search.getDisplayString()};
+                            return  new CollapseComponentDataItems(search.getDisplayString());
                           });
 
-    this.recentSearches = {
-      getName: () => {
-        return 'Recent Searches';
-      },
-      getData: () => {
-        return recentSearchNames;
-      },
-    };
+    this.recentSearches.groupName =  'Recent Searches';
+    this.recentSearches.groupItems = recentSearchNames;
   }
 
   preparedSavedSearches(savedSearches: SaveSearch[]) {
-    let savedSearchNames = savedSearches.map(savedSearch => { return {key: savedSearch.name}; });
+    let savedSearchNames = savedSearches.map(savedSearch => { return new CollapseComponentDataItems(savedSearch.name); });
 
-    this.savedSearches = {
-      getName: () => {
-        return 'Saved Searches';
-      },
-      getData: () => {
-        return savedSearchNames;
-      },
-    };
+    this.savedSearches.groupName =  'Saved Searches';
+    this.savedSearches.groupItems = savedSearchNames;
   }
 
   goBack() {
