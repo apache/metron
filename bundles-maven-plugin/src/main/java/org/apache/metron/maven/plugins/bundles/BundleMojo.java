@@ -73,11 +73,11 @@ import org.codehaus.plexus.util.StringUtils;
 
 /**
  * Packages the current project as an Apache Metron Bundle Archive (BUNDLE).
- * Apache Metron Bundles are based on Apache Nifi Archives (NAR)
+ * Apache Metron Bundles are based on Apache Nifi Archives (NAR) 1.2.0
  *
  * The following code is derived from maven-dependencies-plugin and
  * maven-jar-plugin. The functionality of CopyDependenciesMojo and JarMojo was
- * simplified to the use case of NarMojo.
+ * simplified to the use case of BundleMojo.
  *
  */
 @Mojo(name = "bundle", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = false, requiresDependencyResolution = ResolutionScope.RUNTIME)
@@ -109,13 +109,13 @@ public class BundleMojo extends AbstractMojo {
     @Parameter(property = "excludes")
     protected String[] excludes;
     /**
-     * Name of the generated NAR.
+     * Name of the generated BUNDLE.
      *
      */
     @Parameter(alias = "bundleName", property = "bundle.finalName", defaultValue = "${project.build.finalName}", required = true)
     protected String finalName;
     /**
-     * Name of the prefix for package identifiers like Nar-Id, where Nar is the identifier
+     * Name of the prefix for package identifiers like Bundle-Id, where Bundle is the identifier
      */
     @Parameter(alias = "packageIDPrefix", property = "bundle.packageIDPrefix", defaultValue = "Bundle", required = true)
     protected String packageIDPrefix;
@@ -370,26 +370,26 @@ public class BundleMojo extends AbstractMojo {
     @Parameter(property = "outputAbsoluteArtifactFilename", defaultValue = "false", required = false)
     protected boolean outputAbsoluteArtifactFilename;
 
-    /* The values to use for populating the Nar-Group, Nar-Id, and Nar-Version in the MANIFEST file. By default
+    /* The values to use for populating the Bundle-Group, Bundle-Id, and Bundle-Version in the MANIFEST file. By default
      * these values will be set to the standard Maven project equivalents, but they may be overridden through properties.
      *
-     * For example if the pom.xml for the nifi-test-bundle contained the following:
+     * For example if the pom.xml for the metron-test-bundle contained the following:
      *
-     *    <groupId>org.apache.nifi</groupId>
-     *    <artifactId>nifi-test-nar</artifactId>
+     *    <groupId>org.apache.metron</groupId>
+     *    <artifactId>metron-test-bundle</artifactId>
      *    <version>1.0</version>
      *
      *    <properties>
-     *       <bundleGroup>org.apache.nifi.overridden</bundleGroup>
-     *       <bundleId>nifi-overridden-test-nar</bundleId>
+     *       <bundleGroup>org.apache.metron.overridden</bundleGroup>
+     *       <bundleId>metron-overridden-test-bundle</bundleId>
      *       <bundleVersion>2.0</bundleVersion>
      *   </properties>
      *
      * It would produce a MANIFEST with:
      *
-     *   Nar-Id: nifi-overridden-test-nar
-     *   Nar-Group: org.apache.nifi.overridden
-     *   Nar-Version: 2.0
+     *   Bundle-Id: metron-overridden-test-bundle
+     *   Bundle-Group: org.apache.metron.overridden
+     *   Bundle-Version: 2.0
      *
     */
 
@@ -436,7 +436,7 @@ public class BundleMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         copyDependencies();
-        makeNar();
+        makeBundle();
     }
 
     private void copyDependencies() throws MojoExecutionException {
@@ -584,7 +584,7 @@ public class BundleMojo extends AbstractMojo {
         return new File(getClassesDirectory(), "META-INF/bundled-dependencies");
     }
 
-    private void makeNar() throws MojoExecutionException {
+    private void makeBundle() throws MojoExecutionException {
         File bundleFile = createArchive();
 
         if (classifier != null) {
@@ -605,7 +605,7 @@ public class BundleMojo extends AbstractMojo {
         try {
             File contentDirectory = getClassesDirectory();
             if (!contentDirectory.exists()) {
-                getLog().warn("NAR will be empty - no content was marked for inclusion!");
+                getLog().warn("BUNDLE will be empty - no content was marked for inclusion!");
             } else {
                 archiver.getArchiver().addDirectory(contentDirectory, getIncludes(), getExcludes());
             }
@@ -653,7 +653,7 @@ public class BundleMojo extends AbstractMojo {
             archiver.createArchive(session, project, archive);
             return bundleFile;
         } catch (ArchiverException | MojoExecutionException | ManifestException | IOException | DependencyResolutionRequiredException e) {
-            throw new MojoExecutionException("Error assembling NAR", e);
+            throw new MojoExecutionException("Error assembling BUNDLE", e);
         }
     }
 
