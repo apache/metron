@@ -25,7 +25,7 @@ Afterwards, in `params_linux.py`, reference the new property:
   ```
 This behavior is because Ambari doesn't send all parameters to the status, so it needs to be explicitly provided.
 
-3. Ambari master services can then import the params as such
+3. Ambari master services can then import the params:
 
   ```
   from params import params
@@ -37,14 +37,90 @@ This behavior is because Ambari doesn't send all parameters to the status, so it
   self.__params.new_property
   ```
 
-  Ambari also has a custom `format` function that can access properties when producing strings as output:
-  ```
-  from resource_management.libraries.functions import format as ambari_format
-  # ...
-  Foo(ambari_format("{new_property}-adjusted")),
-  ```
 
-## Jinja Templates and properties
+### Env file property walkthrough
+To illustrate how property files are carried through to the scripts for our services, we'll run through an existing property, `metron_apps_hdfs_dir`.
+
+#### Defining the property
+First the property appears in the appropriate `*-env.xml`, in this case `METRON.CURRENT/configuration/metron-env.xml`.
+```
+<property>
+    <name>metron_apps_hdfs_dir</name>
+    <value>/apps/metron</value>
+    <description>Metron apps HDFS dir</description>
+    <display-name>Metron apps HDFS dir</display-name>
+</property>
+```
+
+This defines several things
+1. The name of the property we'll be referencing it by in our code.
+1. The default value of the property.
+1. The description of the property for the Ambari UI.
+1. The pretty name that will be shown in Ambari for the property.
+
+#### Making the property available to scripts
+Second, we set up the property to be available to the code. This happens in `METRON.CURRENT/packages/scripts/params/params_linux.py`. Just add the following line:
+```
+metron_apps_hdfs_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
+```
+
+There is one catch to this.  If we wanted this to be available to Ambari's status command, we'd need to put that line in `METRON.CURRENT/packages/scripts/params/status_params.py` and reference it in `params_linux.py` like so:
+```
+metron_apps_hdfs_dir = status_params.metron_apps_hdfs_dir
+```
+
+This behavior is because Ambari doesn't send all parameters to the status, so it needs to be explicitly provided.
+
+In our case, we don't use this parameter directly (but it could be if we wanted to use it exactly).  We actually append to it before use in `params_linux.py`:
+```
+from resource_management.libraries.functions import format
+# ...
+hdfs_grok_patterns_dir = format("{metron_apps_hdfs_dir}/patterns")
+```
+The `format` function is a special Ambari function that will let you create a string with properties in curly braces replaced by their values.
+In this case, `hdfs_grok_patterns_dir` will be `/apps/metron/patterns` and will be what we now follow in this example.
+
+#### Importing the parameters into scripts
+`hdfs_grok_patterns_dir` is used in `METRON.CURRENT/package/scripts/parser_commands.py`, but before we can reference it, we'll need the params available to `parser_commands.py`
+
+To make them available, we take them in as part of the `__init__`
+```
+def __init__(self, params):
+    if params is None:
+        raise ValueError("params argument is required for initialization")
+    self.__params = params
+    # Other initialization
+```
+
+This init is called from various Ambari service methods in `METRON.CURRENT/package/scripts/parser_master.py`, e.g.:
+```
+def stop(self, env, upgrade_type=None):
+    from params import params
+    env.set_params(params)
+    commands = ParserCommands(params)
+    commands.stop_parser_topologies()
+```
+
+Once the params are available to `parser_commands.py`, `hdfs_grok_patterns_dir` is by referencing `self.__params.hdfs_grok_patterns_dir)`
+In our case, this will create and populate `/apps/metron/patterns` on HDFS, owned by the metron user with appropriate permissions.
+It'll also log out what it's doing, which is important for being able to debug.
+```
+def init_parsers(self):
+    Logger.info(
+        "Copying grok patterns from local directory '{0}' to HDFS '{1}'".format(self.__params.local_grok_patterns_dir,
+                                                                                self.__params.hdfs_grok_patterns_dir))
+
+    self.__params.HdfsResource(self.__params.hdfs_grok_patterns_dir,
+                               type="directory",
+                               action="create_on_execute",
+                               owner=self.__params.metron_user,
+                               mode=0755,
+                               source=self.__params.local_grok_patterns_dir)
+
+    Logger.info("Done initializing parser configuration")
+```
+
+### Jinja Templates and properties
 Jinja templates allow for the ability to have most of a file defined, but allow variables to be filled in from the properties defined in our `*-env.xml` files.
 
 A variable to be replaced will take the form `{{property_name}}`
@@ -56,16 +132,19 @@ The properties are made available like any other property, and then the template
 To illustrate the use of a property in a Jinja template, let's take an example of an existing property and walk through exactly how it's implemented.
 
 A straightforward example is `metron_log_dir` in `METRON.CURRENT/configuration/metron-env.xml`
+
+#### Defining the property
 First, we need the property in the configuration file:
 ```
-    <property>
-        <name>metron_log_dir</name>
-        <value>/var/log/metron</value>
-        <description>Log directory for metron</description>
-        <display-name>Metron log dir</display-name>
-    </property>
+<property>
+    <name>metron_log_dir</name>
+    <value>/var/log/metron</value>
+    <description>Log directory for metron</description>
+    <display-name>Metron log dir</display-name>
+</property>
 ```
 
+#### Making the property available to templates
 This property isn't used in Ambari's status check, so it was directly added to `METRON.CURRENT/package/scripts/params/params_linux.py`.  All we do is add the variable, and reference Ambari's config object appropriately, making sure to reference `metron-env` as the file where the property is located.
 ```
 metron_log_dir = config['configurations']['metron-env']['metron_log_dir']
@@ -76,6 +155,7 @@ The property is referenced in `metron.j2`.
 METRON_LOG_DIR="{{metron_log_dir}}"
 ```
 
+#### Using the template in scripts
 For that property to actually be used, it is referenced in `rest_master.py`:
 ```
 from resource_management.core.resources.system import File
