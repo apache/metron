@@ -2,7 +2,7 @@
 Typically, Ambari Management Pack development will be done in the Vagrant environments. These instructions are specific to Vagrant, but can be adapted for other environemnts (e.g. make sure to be on the correct nodes for server vs agent files)
 
 
-# Adding a new property
+## Adding a new property
 1. Add the property to the appropriate `*-env.xml` file found in `METRON.CURRENT/configuration`.
   ```
     <property>
@@ -44,6 +44,61 @@ This behavior is because Ambari doesn't send all parameters to the status, so it
   Foo(ambari_format("{new_property}-adjusted")),
   ```
 
+## Jinja Templates and properties
+Jinja templates allow for the ability to have most of a file defined, but allow variables to be filled in from the properties defined in our `*-env.xml` files.
+
+A variable to be replaced will take the form `{{property_name}}`
+
+The properties are made available like any other property, and then the template itself is referenced in Python scripts in the `METRON.CURRENT/package/scripts/` directory.
+
+
+### Jinja template property walkthrough
+To illustrate the use of a property in a Jinja template, let's take an example of an existing property and walk through exactly how it's implemented.
+
+A straightforward example is `metron_zookeeper_config_dir` in `METRON.CURRENT/configuration/metron-env.xml`
+First, we need the property in the configuration file:
+```
+    <property>
+        <name>metron_log_dir</name>
+        <value>/var/log/metron</value>
+        <description>Log directory for metron</description>
+        <display-name>Metron log dir</display-name>
+    </property>
+```
+
+This property isn't used in Ambari's status check, so it was directly added to `METRON.CURRENT/package/scripts/params/params_linux.py`.  All we do is add the variable, and reference Ambari's config object appropriately, making sure to reference `metron-env` as the file where the property is located.
+```
+metron_log_dir = config['configurations']['metron-env']['metron_log_dir']
+```
+
+The property is referenced in `metron.j2`.
+```
+METRON_LOG_DIR="{{metron_log_dir}}"
+```
+
+For that property to actually be used, it is referenced in `rest_master.py`:
+```
+from resource_management.core.resources.system import File
+from resource_management.core.source import Template
+
+def configure(self, env, upgrade_type=None, config_dir=None):
+    # Do stuff
+
+    env.set_params(params)
+    File(format("/etc/sysconfig/metron"),
+         content=Template("metron.j2")
+         )
+    # Do stuff
+```
+This will create a file on the Ambari agent machine's file system, `/etc/sysconfig/metron`, with the content of `metron.j2`, after replacing `{{metron_log_dir}}` with the value of the property (`/var/log/metron`)
+```
+...
+METRON_LOG_DIR="/var/log/metron"
+...
+```
+
+
+
 ## How to identify errors in MPack changes
 Typically, any errors are thrown at one of two times:
 
@@ -56,7 +111,10 @@ The primary solution to these is to look in the logs for exceptions, see what's 
 
 ## Testing changes without cycling Vagrant build
 To avoid spinning down and spinning back up Vagrant, we'll want to instead modify the files Ambari uses directly.
-Ambari stores the Python files from the service in a couple places.
+
+This assumes the installation went through, and we're just working on getting our particular feature / adjustment to work properly.
+
+Ambari stores the Python files from the service in a couple places.  We'll want to update the files, then have Ambari pick up the updated versions and use them as the new basis.  A reinstall of Metron is unnecessary for this type of testing.
 
 Specifically, the server files live in
 ```
@@ -80,7 +138,10 @@ A `find` command can also be useful in quickly locating the exact location of a 
 
 The steps to update are:
 
+1. Stop Metron through Ambari.  If the property in question is used by the topologies, we'll want them stopped, so they can be restarted with the new property.
+  * This can sometimes be skipped if the change doesn't affect the topologies themselves, but is a case by case choice.
 1. Edit the file(s) with your changes.  The ambari-agent file must be edited, but generally better to update both for consistency.
-2. Restart the Ambari Agent to get the cache to pick up the modified file
+1. Restart the Ambari Agent to get the cache to pick up the modified file
 `service ambari-agent restart`
+1. Start Metron through Ambari.
 
