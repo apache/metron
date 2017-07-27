@@ -61,7 +61,7 @@ This will set up
 ### Prerequisites
 - A cluster managed by Ambari 2.4.2+
 - Metron RPMs available on the cluster in the /localrepo directory.  See [RPM](#rpm) for further information.
-- [Node.js](https://nodejs.org/en/download/package-manager/) repository installed on the Management UI host 
+- [Node.js](https://nodejs.org/en/download/package-manager/) repository installed on the Management UI host
 
 ### Building Management Pack
 From `metron-deployment` run
@@ -104,7 +104,7 @@ There are a set of limitations that should be addressed based to improve the cur
 - Several configuration parameters used when installing the Metron service could (and should) be grabbed from Ambari.  Install will require them to be manually entered.
 - Need to handle upgrading Metron
 
-## RPM
+## RPMs
 RPMs can be built to install the components in metron-platform. These RPMs are built in a Docker container and placed into `target`.
 
 Components in the RPMs:
@@ -178,4 +178,3 @@ Using the MPack is preferred, but instructions for Kerberizing manually can be f
 
 ## TODO
 - Support Ubuntu deployments
-

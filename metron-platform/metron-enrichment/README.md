@@ -207,6 +207,7 @@ The supported aggregation functions are:
 * `MAX` : The max of all of the associated values for matching queries
 * `MIN` : The min of all of the associated values for matching queries
 * `MEAN` : The mean of all of the associated values for matching queries
+* `SUM` : The sum of all the associated values for matching queries
 * `POSITIVE_MEAN` : The mean of the positive associated values for the matching queries.
 
 ### Example Configuration
