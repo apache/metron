@@ -14,6 +14,7 @@ Typically, Ambari Management Pack development will be done in the Vagrant enviro
   ```
 
 2.  Reference the property in `METRON.CURRENT/package/scriptes/params/params_linux.py`, unless it will be used in Ambari's status command.  It will be stored in a variable. The name doesn't have to match, but it's preferred that it does.
+Make sure to use replace `metron-env` the correct `*-env` file, as noted above.
   ```
   new_property = config['configurations']['metron-env']['new_property']
   ```
