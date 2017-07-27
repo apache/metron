@@ -225,3 +225,41 @@ The steps to update are:
 `service ambari-agent restart`
 1. Start Metron through Ambari.
 
+## Kerberos
+Anything interacting with underlying secured tech needs to have `kinit` run as needed.  This includes anything interacting with HDFS, HBase, Kafka, Storm, etc.
+This `kinit` should be run in a conditional statement, to avoid breaking non-Kerberized clusters.
+
+Ambari can run `kinit`, as a given user with the appropriate keytab like so:
+```
+if self.__params.security_enabled:
+    metron_security.kinit(self.__params.kinit_path_local,
+                          self.__params.metron_keytab_path,
+                          self.__params.metron_principal_name,
+                          execute_user=self.__params.metron_user)
+```
+The `security_enabled` param is already made available, along with appropriate keytabs for metron, storm, and hbase users.
+
+## Best practices
+* Write scripts to be idempotent. The pattern currently used is to write a file out when a task is finished, e.g. setting up ACLs or tables.
+For example, when indexing is configured, a file is written out and checked based on a property.
+
+  ```
+  def set_configured(self):
+      File(self.__params.indexing_configured_flag_file,
+           content="",
+           owner=self.__params.metron_user,
+           mode=0755)
+  ```
+This is checked in the indexing master
+
+  ```
+  if not commands.is_configured():
+      commands.init_kafka_topics()
+      commands.init_hdfs_dir()
+      commands.set_configured()
+  ```
+
+* Ensure ACLs are properly managed.  This includes Kafka and HBase. Often this involves a config file written out as above because this isn't idempotent!
+  * Make sure to `kinit` as the correct user for setting up ACLs in a secured cluster.  This is usually kafka for Kafka and hbase for HBase.
+  * See `set_hbase_acls` in `METRON.CURRENT/package/scripts/enrichment_commands.py` for an HBase example
+  * See `init_kafka_acls` in `METRON.CURRENT/package/scripts/enrichment_commands.py` and  `METRON.CURRENT/package/scripts/metron_service.py` for an Kafka example
