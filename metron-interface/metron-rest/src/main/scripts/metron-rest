@@ -21,8 +21,11 @@
 # description: rest application
 # processname: metron-rest
 #
-if [ -f /etc/rc.d/init.d/functions ]; then
-    . /etc/rc.d/init.d/functions
+
+# all LSB compliant distributions provide the following
+# http://refspecs.linuxbase.org/LSB_3.0.0/LSB-PDA/LSB-PDA/iniscrptfunc.html
+if [ -f /lib/lsb/init-functions ]; then
+    . /lib/lsb/init-functions
 fi
 
 NAME=metron-rest
@@ -35,14 +38,13 @@ METRON_USER="metron"
 METRON_GROUP="metron"
 METRON_REST_PORT=8082
 METRON_JDBC_PASSWORD="$2"
-METRON_SYSCONFIG="/etc/sysconfig/metron"
+METRON_SYSCONFIG="/etc/default/metron"
 if [ -f "$METRON_SYSCONFIG" ]; then
     set -a
     . "$METRON_SYSCONFIG"
 fi
 
 PIDFILE="$METRON_PID_DIR/$NAME.pid"
-LOCKFILE=/var/lock/subsys/$NAME
 
 METRON_REST_CLASSPATH="$METRON_HOME/lib/metron-rest-$METRON_VERSION.jar"
 
@@ -66,12 +68,12 @@ else
     METRON_REST_CLASSPATH+=":$METRON_HOME/lib/metron-elasticsearch-$METRON_VERSION-uber.jar"
 fi
 METRON_JVMFLAGS+=" -cp $METRON_REST_CLASSPATH"
-DAEMON="java $METRON_JVMFLAGS org.apache.metron.rest.MetronRestApplication $METRON_SPRING_OPTIONS"
+DAEMON="$JAVA_HOME/bin/java $METRON_JVMFLAGS org.apache.metron.rest.MetronRestApplication $METRON_SPRING_OPTIONS"
 
 #
 # start the rest application
 #
-start() {  
+start() {
 
   # if pidfile exists, do not start another
   if [ -f $PIDFILE ]; then
@@ -89,12 +91,13 @@ start() {
   fi
 
   # kick-off the daemon
-  PID=`runuser -s /bin/bash $METRON_USER -c "$DAEMON" >> $METRON_LOG_DIR/$NAME.log 2>&1 & echo $!`
+  CMD="$DAEMON >> $METRON_LOG_DIR/$NAME.log 2>&1 & echo \$!"
+  PID=`su -c "$CMD" $METRON_USER`
 
   if [ -z $PID ]; then
       printf "Fail\n"
   else
-      echo $PID > $PIDFILE && touch $LOCKFILE
+      echo $PID > $PIDFILE
       printf "Ok [$PID]\n"
   fi
 }
@@ -104,22 +107,34 @@ start() {
 #
 stop() {
   if [ -f $PIDFILE ]; then
-      PID=`cat $PIDFILE`
-      killproc -p $PIDFILE metron-rest
-      RETVAL=$?
-      echo
-      [ $RETVAL -eq 0 ] && rm -f $LOCKFILE
-      printf "Stopped [$PID]\n"
+    PID=`cat $PIDFILE`
+    while sleep 1
+      echo -n "."
+      kill -0 $PID >/dev/null 2>&1
+    do
+      kill $PID
+    done
+    rm -f $PIDFILE
+    printf "%s\n" "Ok"
   else
-      printf "Not running\n"
+      printf "%s\n" "Not running"
   fi
 }
 
 #
 # status check of the rest application
 #
-rest_status() {
-  status -p $PIDFILE metron-rest
+status() {
+  if [ -f $PIDFILE ]; then
+    PID=`cat $PIDFILE`
+    if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
+      printf "%s\n" "Process dead but pidfile exists"
+    else
+      echo "Running"
+    fi
+  else
+    printf "%s\n" "Service not running"
+  fi
 }
 
 case "$1" in
@@ -137,7 +152,7 @@ case "$1" in
   #
   status)
     printf "%-50s \n" "Checking $NAME..."
-    rest_status
+    status
   ;;
 
   ##############################################################################
