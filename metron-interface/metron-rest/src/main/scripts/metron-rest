@@ -68,7 +68,7 @@ else
     METRON_REST_CLASSPATH+=":$METRON_HOME/lib/metron-elasticsearch-$METRON_VERSION-uber.jar"
 fi
 METRON_JVMFLAGS+=" -cp $METRON_REST_CLASSPATH"
-DAEMON="java $METRON_JVMFLAGS org.apache.metron.rest.MetronRestApplication $METRON_SPRING_OPTIONS"
+DAEMON="$JAVA_HOME/bin/java $METRON_JVMFLAGS org.apache.metron.rest.MetronRestApplication $METRON_SPRING_OPTIONS"
 
 #
 # start the rest application
