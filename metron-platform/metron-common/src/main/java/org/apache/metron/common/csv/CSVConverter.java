@@ -53,7 +53,7 @@ public class CSVConverter implements Serializable {
     String[] tokens = parser.parseLine(line);
     Map<String, String> values = new HashMap<>();
     for(Map.Entry<String, Integer> kv : columnMap.entrySet()) {
-      values.put(kv.getKey(), tokens[kv.getValue()]);
+      values.put(kv.getKey().trim(), tokens[kv.getValue()].trim());
     }
     return values;
   }

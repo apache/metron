@@ -40,8 +40,8 @@ public class CSVParserTest {
    {
     "columns" : {
                 "col1" : 0
-               ,"col2" : 1
-               ,"col3" : 2
+               ," col2" : 1
+               ,"col3 " : 2
                  }
    }
    }
@@ -87,15 +87,15 @@ public class CSVParserTest {
       Assert.assertEquals("grok", o.get("col3"));
     }
     {
-      String line = "foo, bar, grok";
+      String line = " foo , bar , grok ";
       List<JSONObject> results = parser.parse(Bytes.toBytes(line));
       Assert.assertEquals(1, results.size());
       JSONObject o = results.get(0);
       Assert.assertTrue(parser.validate(o));
       Assert.assertEquals(5, o.size());
       Assert.assertEquals("foo", o.get("col1"));
-      Assert.assertEquals(" bar", o.get("col2"));
-      Assert.assertEquals(" grok", o.get("col3"));
+      Assert.assertEquals("bar", o.get("col2"));
+      Assert.assertEquals("grok", o.get("col3"));
     }
     {
       UnitTestHelper.setLog4jLevel(CSVParser.class, Level.FATAL);
