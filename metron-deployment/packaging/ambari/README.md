@@ -46,8 +46,12 @@ The layout of `/addon-services/METRON.CURRENT` is
         <display-name>New Property Pretty Name</display-name>
     </property>
   ```
+The appropriate `*-env.xml` file should be selected based on which component depends on the property.  This allows Ambari to accurately restart only the affected components when the property is changed.  If a property is in `metron-env.xml`, Ambari will prompt you to restart all Metron components.
 
-2.  Reference the property in `METRON.CURRENT/package/scriptes/params/params_linux.py`, unless it will be used in Ambari's status command.  It will be stored in a variable. The name doesn't have to match, but it's preferred that it does.
+2.  Add the property to the `metron_theme.json` file found in `METRON.CURRENT/themes` if the property was added to a component-specific `*-env.xml` file (`metron-parsers-env.xml` for example) and not `metron-env.xml`.
+This is necessary for the property to be displayed in the correct tab of the Metron Configs section in the Ambari UI. Using other properties as a guide, add the property to `/configuration/placement/configs` for proper placement and also to `/configuration/widgets` for a specific widget type.
+
+3.  Reference the property in `METRON.CURRENT/package/scriptes/params/params_linux.py`, unless it will be used in Ambari's status command.  It will be stored in a variable. The name doesn't have to match, but it's preferred that it does.
 Make sure to use replace `metron-env` the correct `*-env` file, as noted above.
   ```
   new_property = config['configurations']['metron-env']['new_property']
@@ -59,14 +63,14 @@ Afterwards, in `params_linux.py`, reference the new property:
   ```
 This behavior is because Ambari doesn't send all parameters to the status, so it needs to be explicitly provided.
 
-3. Ambari master services can then import the params:
+4. Ambari master services can then import the params:
 
   ```
   from params import params
   env.set_params(params)
   ```
 
-4. The `*_commands.py` files receive the params as an input from the master services.  Once this is done, they can be accessed via the variable we set above:
+5. The `*_commands.py` files receive the params as an input from the master services.  Once this is done, they can be accessed via the variable we set above:
   ```
   self.__params.new_property
   ```
@@ -211,7 +215,39 @@ METRON_LOG_DIR="/var/log/metron"
 ...
 ```
 
+### Defining presentation in the Ambari UI
+Where and how a property is displayed can be controlled in the `METRON.CURRENT/themes/metron_theme.json` file.  Consider the `enrichment_workers` property that is defined in a component specific `*-env.xml` file, in this case `METRON.CURRENT/configuration/metron-enrichment-env.xml`.
+The property appears in `METRON.CURRENT/themes/metron_theme.json` in two different sections:
+```
+{
+  "configuration": {
+    "layouts": [...],
+    "placement": {
+      "configs": [
+        {
+          "config": "metron-enrichment-env/enrichment_workers",
+          "subsection-name": "subsection-enrichment-storm"
+        },
+        ...
+      ]
+    },
+    "widgets": [
+      {
+        "config": "metron-enrichment-env/enrichment_workers",
+        "widget": {
+          "type": "text-field"
+        }
+      }
+    ]
+  }
+}
+```
 
+The first setting places the property in the "Storm" section of the "Enrichment" tab in Ambari.  Sections are defined in `metron_theme.json` under `/configuration/layouts`.
+
+The second setting defines a widget type of `text-field`.  See the [Ambari Wiki](https://cwiki.apache.org/confluence/display/AMBARI/Enhanced+Configs) for more detail on widget types.
+
+If a property is defined in `metron-env.xml`, it is not necessary to add it to the `metron_theme.json` file.  By default the property will be located under the "Advanced" tab in the "Advanced metron-env" section.   
 
 ## How to identify errors in MPack changes
 Typically, any errors are thrown at one of two times:
@@ -224,8 +260,9 @@ Unfortunately, because errors tend to occur at runtime, it's often necessary to 
 The primary solution to these is to look in the logs for exceptions, see what's going wrong (Property doesn't exist?  Malformed file couldn't be loaded?), and adjust appropriately.
 
 ## Testing changes without cycling Vagrant build
-To avoid spinning down and spinning back up Vagrant, we'll want to instead modify the files Ambari uses directly.
+There are techniques we can use to avoid spinning down and spinning back up Vagrant.
 
+### Directly modifying files in Ambari
 This assumes the installation went through, and we're just working on getting our particular feature / adjustment to work properly.
 
 Ambari stores the Python files from the service in a couple places.  We'll want to update the files, then have Ambari pick up the updated versions and use them as the new basis.  A reinstall of Metron is unnecessary for this type of testing.
@@ -258,6 +295,25 @@ The steps to update are:
 1. Restart the Ambari Agent to get the cache to pick up the modified file
 `service ambari-agent restart`
 1. Start Metron through Ambari.
+
+### Reinstalling the mpack
+After we've modified files in Ambari and the mpack is working, it is a good idea to reinstall it.  Fortunately this can be done without rebuilding the Vagrant environment by following these steps:
+
+1. Stop Metron through Ambari and remove the Metron service
+2. Rebuild the mpack on your local machine and deploy it to Vagrant, ensuring that all changes made directly to files in Ambari were also made in your local environment
+  ```
+  cd metron-deployment
+  mvn clean package
+  scp packaging/ambari/metron-mpack/target/metron_mpack-0.4.0.0.tar.gz root@node1:~
+  ```
+3. Log in to Vagrant, deploy the mpack and restart Ambari
+  ```
+  ssh root@node1
+  ambari-server install-mpack --mpack=metron_mpack-0.4.0.0.tar.gz --verbose --force
+  ambari-server restart
+  ```
+4. Install the mpack through Ambari as you normally would
+
 
 ## Configuration involving dependency services
 Metron can define expectations on other services, e.g. Storm's `topology.classpath` should be `/etc/hbase/conf:/etc/hadoop/conf`.
