@@ -18,33 +18,33 @@
 
 package org.apache.metron.enrichment.bolt;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.common.Constants;
+import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
+import org.apache.metron.common.configuration.ConfigurationType;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.error.MetronError;
+import org.apache.metron.common.performance.PerformanceLogger;
+import org.apache.metron.common.utils.ErrorUtils;
+import org.apache.metron.enrichment.configuration.Enrichment;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
-import org.apache.metron.common.configuration.ConfigurationType;
-import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.apache.metron.common.utils.ErrorUtils;
-import org.apache.metron.enrichment.configuration.Enrichment;
-import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Uses an adapter to enrich telemetry messages with additional metadata
@@ -66,7 +66,7 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings({"rawtypes", "serial"})
 public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
   public static class Perf {} // used for performance logging
-  private static final Logger PERF_LOG = LoggerFactory.getLogger(Perf.class);
+  private PerformanceLogger perfLog; // not static bc multiple bolts may exist in same worker
   private static final Logger LOG = LoggerFactory
           .getLogger(GenericEnrichmentBolt.class);
   public static final String STELLAR_CONTEXT_CONF = "stellarContext";
@@ -159,6 +159,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
       LOG.error("[Metron] GenericEnrichmentBolt could not initialize adapter");
       throw new IllegalStateException("Could not initialize adapter...");
     }
+    perfLog = new PerformanceLogger(() -> getConfigurations().getGlobalConfig(), GenericEnrichmentBolt.Perf.class.getName());
     initializeStellar();
   }
 
@@ -180,7 +181,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
-    long texecute1 = System.currentTimeMillis();
+    perfLog.mark("execute");
     String key = tuple.getStringByField("key");
     JSONObject rawMessage = (JSONObject) tuple.getValueByField("message");
     String subGroup = "";
@@ -222,9 +223,10 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
               prefix = adapter.getOutputPrefix(cacheKey);
               subGroup = adapter.getStreamSubGroup(enrichmentType, field);
 
-              long tenrich1 = System.currentTimeMillis();
+              perfLog.mark("enrich");
               enrichedField = cache.getUnchecked(cacheKey);
-              PERF_LOG.debug("key={}, enrich type={}, enrich time (ms): {}", key, enrichmentType, System.currentTimeMillis() - tenrich1);
+              perfLog.log("enrich", "key={}, time to run enrichment type={}", key, enrichmentType);
+
               if (enrichedField == null)
                 throw new Exception("[Metron] Could not enrich string: "
                         + value);
@@ -264,7 +266,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
     } catch (Exception e) {
       handleError(key, rawMessage, subGroup, enrichedMessage, e);
     }
-    PERF_LOG.debug("key={}, execute() time (ms): {}", key, System.currentTimeMillis() - texecute1);
+    perfLog.log("execute", "key={}, elapsed time to run execute", key);
   }
 
   // Made protected to allow for error testing in integration test. Directly flaws inputs while everything is functioning hits other

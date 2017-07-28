@@ -21,18 +21,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
+import org.apache.metron.common.performance.PerformanceLogger;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class SplitBolt<T extends Cloneable> extends ConfiguredEnrichmentBolt {
   public static class Perf {} // used for performance logging
-  private static final Logger PERF_LOG = LoggerFactory.getLogger(Perf.class);
+  private PerformanceLogger perfLog; // not static bc multiple bolts may exist in same worker
 
   protected OutputCollector collector;
 
@@ -44,6 +43,7 @@ public abstract class SplitBolt<T extends Cloneable> extends ConfiguredEnrichmen
   public final void prepare(Map map, TopologyContext topologyContext,
                        OutputCollector outputCollector) {
     super.prepare(map, topologyContext, outputCollector);
+    perfLog = new PerformanceLogger(() -> getConfigurations().getGlobalConfig(), Perf.class.getName());
     collector = outputCollector;
     prepare(map, topologyContext);
   }
@@ -64,37 +64,35 @@ public abstract class SplitBolt<T extends Cloneable> extends ConfiguredEnrichmen
   }
 
   public void emit(Tuple tuple, T message) {
-    long texecute1 = System.currentTimeMillis();
+    perfLog.mark("emit");
     if (message == null) return;
     String key = getKey(tuple, message);
 
-    long tsplit1 = System.currentTimeMillis();
+    perfLog.mark("split-message");
     Map<String, List<T>> streamMessageMap = splitMessage(message);
-    PERF_LOG.debug("key={}, execute() time (ms): {}", key, System.currentTimeMillis() - tsplit1);
+    perfLog.log("split-message", "key={}, elapsed time to split message", key);
 
     for (String streamId : streamMessageMap.keySet()) {
       List<T> streamMessages = streamMessageMap.get(streamId);
-      if(streamMessages != null) {
-        for(T streamMessage : streamMessages) {
+      if (streamMessages != null) {
+        for (T streamMessage : streamMessages) {
           if (streamMessage == null) {
             streamMessage = getDefaultMessage(streamId);
           }
           collector.emit(streamId, new Values(key, streamMessage));
         }
-      }
-      else {
+      } else {
         throw new IllegalArgumentException("Enrichment must send some list of messages, not null.");
       }
     }
     collector.emit("message", tuple, new Values(key, message, ""));
     collector.ack(tuple);
     emitOther(tuple, message);
-    PERF_LOG.debug("key={}, execute() time (ms): {}", key, System.currentTimeMillis() - texecute1);
+    perfLog.log("emit", "key={}, elapsed time to run emit", key);
   }
 
   protected T getDefaultMessage(String streamId) {
-    throw new IllegalArgumentException("Could not find a message for" +
-            " stream: " + streamId);
+    throw new IllegalArgumentException("Could not find a message for stream: " + streamId);
   }
 
   public abstract void prepare(Map map, TopologyContext topologyContext);
