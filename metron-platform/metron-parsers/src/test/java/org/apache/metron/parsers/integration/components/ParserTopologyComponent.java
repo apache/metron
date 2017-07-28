@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.Properties;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
+import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.parsers.topology.ParserTopologyBuilder;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
@@ -86,7 +87,7 @@ public class ParserTopologyComponent implements InMemoryComponent {
   @Override
   public void start() throws UnableToStartException {
     try {
-      TopologyBuilder topologyBuilder = ParserTopologyBuilder.build(topologyProperties.getProperty("kafka.zk")
+      TopologyBuilder topologyBuilder = ParserTopologyBuilder.build(topologyProperties.getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY)
                                                                    , Optional.ofNullable(brokerUrl)
                                                                    , sensorType
                                                                    , 1
