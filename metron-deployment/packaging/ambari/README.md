@@ -7,7 +7,7 @@ Alongside this are two directories, `addon-services` and `common-services`.
 
 The layout of `/common-services/METRON.CURRENT` is
 * `/configuration`
-  * This contains a set of `*-env.xml` files, relevent to particular components or the service as a whole.  These are where properties are defined.
+  * This contains a set of `*-env.xml` files, relevent to particular components or the service as a whole. These are where properties are defined.
 * `/package`
   * `/files`
     * Contains files that get used as provided, in particular Elasticsearch templates.
@@ -46,12 +46,12 @@ The layout of `/addon-services/METRON.CURRENT` is
         <display-name>New Property Pretty Name</display-name>
     </property>
   ```
-The appropriate `*-env.xml` file should be selected based on which component depends on the property.  This allows Ambari to accurately restart only the affected components when the property is changed.  If a property is in `metron-env.xml`, Ambari will prompt you to restart all Metron components.
+The appropriate `*-env.xml` file should be selected based on which component depends on the property. This allows Ambari to accurately restart only the affected components when the property is changed. If a property is in `metron-env.xml`, Ambari will prompt you to restart all Metron components.
 
-2.  Add the property to the `metron_theme.json` file found in `METRON.CURRENT/themes` if the property was added to a component-specific `*-env.xml` file (`metron-parsers-env.xml` for example) and not `metron-env.xml`.
+2. Add the property to the `metron_theme.json` file found in `METRON.CURRENT/themes` if the property was added to a component-specific `*-env.xml` file (`metron-parsers-env.xml` for example) and not `metron-env.xml`.
 This is necessary for the property to be displayed in the correct tab of the Metron Configs section in the Ambari UI. Using other properties as a guide, add the property to `/configuration/placement/configs` for proper placement and also to `/configuration/widgets` for a specific widget type.
 
-3.  Reference the property in `METRON.CURRENT/package/scriptes/params/params_linux.py`, unless it will be used in Ambari's status command.  It will be stored in a variable. The name doesn't have to match, but it's preferred that it does.
+3. Reference the property in `METRON.CURRENT/package/scriptes/params/params_linux.py`, unless it will be used in Ambari's status command. It will be stored in a variable. The name doesn't have to match, but it's preferred that it does.
 Make sure to use replace `metron-env` the correct `*-env` file, as noted above.
   ```
   new_property = config['configurations']['metron-env']['new_property']
@@ -70,7 +70,7 @@ This behavior is because Ambari doesn't send all parameters to the status, so it
   env.set_params(params)
   ```
 
-5. The `*_commands.py` files receive the params as an input from the master services.  Once this is done, they can be accessed via the variable we set above:
+5. The `*_commands.py` files receive the params as an input from the master services. Once this is done, they can be accessed via the variable we set above:
   ```
   self.__params.new_property
   ```
@@ -102,14 +102,14 @@ Second, we set up the property to be available to the code. This happens in `MET
 metron_apps_hdfs_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
 ```
 
-There is one catch to this.  If we wanted this to be available to Ambari's status command, we'd need to put that line in `METRON.CURRENT/packages/scripts/params/status_params.py` and reference it in `params_linux.py` like so:
+There is one catch to this. If we wanted this to be available to Ambari's status command, we'd need to put that line in `METRON.CURRENT/packages/scripts/params/status_params.py` and reference it in `params_linux.py` like so:
 ```
 metron_apps_hdfs_dir = status_params.metron_apps_hdfs_dir
 ```
 
 This behavior is because Ambari doesn't send all parameters to the status, so it needs to be explicitly provided.
 
-In our case, we don't use this parameter directly (but it could be if we wanted to use it exactly).  We actually append to it before use in `params_linux.py`:
+In our case, we don't use this parameter directly (but it could be if we wanted to use it exactly). We actually append to it before use in `params_linux.py`:
 ```
 from resource_management.libraries.functions import format
 # ...
@@ -183,7 +183,7 @@ First, we need the property in the configuration file:
 ```
 
 #### Making the property available to templates
-This property isn't used in Ambari's status check, so it was directly added to `METRON.CURRENT/package/scripts/params/params_linux.py`.  All we do is add the variable, and reference Ambari's config object appropriately, making sure to reference `metron-env` as the file where the property is located.
+This property isn't used in Ambari's status check, so it was directly added to `METRON.CURRENT/package/scripts/params/params_linux.py`. All we do is add the variable, and reference Ambari's config object appropriately, making sure to reference `metron-env` as the file where the property is located.
 ```
 metron_log_dir = config['configurations']['metron-env']['metron_log_dir']
 ```
@@ -216,7 +216,7 @@ METRON_LOG_DIR="/var/log/metron"
 ```
 
 ### Defining presentation in the Ambari UI
-Where and how a property is displayed can be controlled in the `METRON.CURRENT/themes/metron_theme.json` file.  Consider the `enrichment_workers` property that is defined in a component specific `*-env.xml` file, in this case `METRON.CURRENT/configuration/metron-enrichment-env.xml`.
+Where and how a property is displayed can be controlled in the `METRON.CURRENT/themes/metron_theme.json` file. Consider the `enrichment_workers` property that is defined in a component specific `*-env.xml` file, in this case `METRON.CURRENT/configuration/metron-enrichment-env.xml`.
 The property appears in `METRON.CURRENT/themes/metron_theme.json` in two different sections:
 ```
 {
@@ -243,17 +243,17 @@ The property appears in `METRON.CURRENT/themes/metron_theme.json` in two differe
 }
 ```
 
-The first setting places the property in the "Storm" section of the "Enrichment" tab in Ambari.  Sections are defined in `metron_theme.json` under `/configuration/layouts`.
+The first setting places the property in the "Storm" section of the "Enrichment" tab in Ambari. Sections are defined in `metron_theme.json` under `/configuration/layouts`.
 
-The second setting defines a widget type of `text-field`.  See the [Ambari Wiki](https://cwiki.apache.org/confluence/display/AMBARI/Enhanced+Configs) for more detail on widget types.
+The second setting defines a widget type of `text-field`. See the [Ambari Wiki](https://cwiki.apache.org/confluence/display/AMBARI/Enhanced+Configs) for more detail on widget types.
 
-If a property is defined in `metron-env.xml`, it is not necessary to add it to the `metron_theme.json` file.  By default the property will be located under the "Advanced" tab in the "Advanced metron-env" section.   
+If a property is defined in `metron-env.xml`, it is not necessary to add it to the `metron_theme.json` file. By default the property will be located under the "Advanced" tab in the "Advanced metron-env" section.
 
 ## How to identify errors in MPack changes
 Typically, any errors are thrown at one of two times:
 
-1. Attempting to install Metron as a whole.  These are typically service level definition errors, not property errors. Logs will often be found in `/var/log/ambari-server/ambari-server.log`.  Often the log will indicate it was unable to load a particular service or subservice with some more detail.
-2. Running the actual functionality.  These typically tend to cause errors in the UI at runtime.  Logs are usually found in `/var/log/ambari-agent/ambari-agent.log`.
+1. Attempting to install Metron as a whole. These are typically service level definition errors, not property errors. Logs will often be found in `/var/log/ambari-server/ambari-server.log`. Often the log will indicate it was unable to load a particular service or subservice with some more detail.
+2. Running the actual functionality. These typically tend to cause errors in the UI at runtime. Logs are usually found in `/var/log/ambari-agent/ambari-agent.log`.
 
 Unfortunately, because errors tend to occur at runtime, it's often necessary to add things like logging statements, or even just throw errors to print out in the Ambari UI.
 
@@ -263,9 +263,9 @@ The primary solution to these is to look in the logs for exceptions, see what's 
 There are techniques we can use to avoid spinning down and spinning back up Vagrant.
 
 ### Directly modifying files in Ambari
-This assumes the installation went through, and we're just working on getting our particular feature / adjustment to work properly.
+This assumes the installation went through, and we're just working on getting our particular feature / adjustment to work properly. This is specific to a single node environment like Vagrant, because of other factors (such as consistency across agents). Multinode environments should generally be used when the feature is already stable and updating is preferably a reinstall of the management pack and the Metron service in general.
 
-Ambari stores the Python files from the service in a couple places.  We'll want to update the files, then have Ambari pick up the updated versions and use them as the new basis.  A reinstall of Metron is unnecessary for this type of testing.
+Ambari stores the Python files from the service in a couple places. We'll want to update the files, then have Ambari pick up the updated versions and use them as the new basis. A reinstall of Metron is unnecessary for this type of testing.
 
 Specifically, the server files live in
 ```
@@ -287,52 +287,57 @@ A `find` command can also be useful in quickly locating the exact location of a 
 /var/lib/ambari-agent/cache/common-services/METRON/0.4.0/package/scripts/enrichment_commands.py
 ```
 
-The steps to update are:
+The steps to update, for anything affecting an Ambari agent node, e.g. setup scripts during the service install process, are:
 
-1. Stop Metron through Ambari.  If the property in question is used by the topologies, we'll want them stopped, so they can be restarted with the new property.
-  * This can sometimes be skipped if the change doesn't affect the topologies themselves, but is a case by case choice.
-1. Edit the file(s) with your changes.  The ambari-agent file must be edited, but generally better to update both for consistency.
+1. Stop Metron through Ambari. If the property in question is used by the topologies, we'll want them stopped, so they can be restarted with the new property. This can sometimes be skipped if the change doesn't affect the topologies themselves, but is a case by case choice.
+1. Edit the file(s) with your changes. The ambari-agent file must be edited, but generally better to update both for consistency.
 1. Restart the Ambari Agent to get the cache to pick up the modified file
-`service ambari-agent restart`
-1. Start Metron through Ambari.
+
+  ```
+  ambari-agent restart
+  ```
+1. Start Metron through Ambari if it was stopped.
 
 ### Reinstalling the mpack
-After we've modified files in Ambari and the mpack is working, it is a good idea to reinstall it.  Fortunately this can be done without rebuilding the Vagrant environment by following these steps:
+After we've modified files in Ambari and the mpack is working, it is a good idea to reinstall it. Fortunately this can be done without rebuilding the Vagrant environment by following these steps:
 
 1. Stop Metron through Ambari and remove the Metron service
-2. Rebuild the mpack on your local machine and deploy it to Vagrant, ensuring that all changes made directly to files in Ambari were also made in your local environment
+1. Rebuild the mpack on your local machine and deploy it to Vagrant, ensuring that all changes made directly to files in Ambari were also made in your local environment
+
   ```
   cd metron-deployment
   mvn clean package
   scp packaging/ambari/metron-mpack/target/metron_mpack-0.4.0.0.tar.gz root@node1:~
   ```
-3. Log in to Vagrant, deploy the mpack and restart Ambari
+1. Log in to Vagrant, deploy the mpack and restart Ambari
+
   ```
   ssh root@node1
   ambari-server install-mpack --mpack=metron_mpack-0.4.0.0.tar.gz --verbose --force
   ambari-server restart
   ```
-4. Install the mpack through Ambari as you normally would
-
+1. Install the mpack through Ambari as you normally would
 
 ## Configuration involving dependency services
 Metron can define expectations on other services, e.g. Storm's `topology.classpath` should be `/etc/hbase/conf:/etc/hadoop/conf`.
 This happens in `METRON.CURRENT/service_advisor.py`.
 
-The value is defined in a map in `getSTORMSiteDesiredValues(self, is_secured)`.  This map is used by `validateSTORMSiteConfigurations` to ensure that the value used by the component is what we need it to be.  Generally, only the map should need to be modified.
+The value is defined in a map in `getSTORMSiteDesiredValues(self, is_secured)`. This map is used by `validateSTORMSiteConfigurations` to ensure that the value used by the component is what we need it to be. Generally, only the map should need to be modified.
 
-Properties from the other services can also be used and examined.  We use this to build the appropriate URL for Storm, because it differs based on Kerberos security.
+Properties from the other services can also be used and examined. We use this to build the appropriate URL for Storm, because it differs based on Kerberos security.
 For example, to retrieve from another service, access the configurations array, retrieve the appropriate config file, retrieve the properties, and finally the desired property.
 ```
 stormUIServerPort = services["configurations"]["storm-site"]["properties"]["ui.port"]
 ```
 
 The security of the cluster can be checked with
-```is_secured = self.isSecurityEnabled(services)```
+```
+is_secured = self.isSecurityEnabled(services)
+```
 Note that the configuration expectations will be properly enforced if the cluster is upgraded (e.g. the Storm URL is properly updated) and it does not need to occur manually.
 
 ## Kerberos
-Any scripts interacting with underlying secured tech needs to have `kinit` run as needed.  This includes anything interacting with HDFS, HBase, Kafka, Storm, etc.
+Any scripts interacting with underlying secured tech needs to have `kinit` run as needed. This includes anything interacting with HDFS, HBase, Kafka, Storm, etc.
 This `kinit` should be run in a conditional statement, to avoid breaking non-Kerberized clusters.
 
 Ambari can run `kinit`, as a given user with the appropriate keytab like so:
@@ -365,7 +370,7 @@ This is checked in the indexing master
       commands.set_configured()
   ```
 
-* Ensure ACLs are properly managed.  This includes Kafka and HBase. Often this involves a config file written out as above because this isn't idempotent!
-  * Make sure to `kinit` as the correct user for setting up ACLs in a secured cluster.  This is usually kafka for Kafka and hbase for HBase.
+* Ensure ACLs are properly managed. This includes Kafka and HBase. Often this involves a config file written out as above because this isn't idempotent!
+  * Make sure to `kinit` as the correct user for setting up ACLs in a secured cluster. This is usually kafka for Kafka and hbase for HBase.
   * See `set_hbase_acls` in `METRON.CURRENT/package/scripts/enrichment_commands.py` for an HBase example
   * See `init_kafka_acls` in `METRON.CURRENT/package/scripts/enrichment_commands.py` and  `METRON.CURRENT/package/scripts/metron_service.py` for an Kafka example
