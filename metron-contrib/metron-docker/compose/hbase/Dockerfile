@@ -20,7 +20,7 @@ ARG METRON_VERSION
 
 ENV METRON_VERSION $METRON_VERSION
 ENV JAVA_HOME /usr
-ENV HBASE_HOME /opt/hbase-1.1.6
+ENV HBASE_HOME /opt/hbase
 ENV HBASE_MANAGES_ZK false
 ENV METRON_HOME /usr/metron/$METRON_VERSION/
 
@@ -28,8 +28,8 @@ ADD ./data /data
 ADD ./data-management /data-management
 RUN mkdir -p $METRON_HOME
 RUN tar -xzf /data-management/metron-data-management-$METRON_VERSION-archive.tar.gz -C /usr/metron/$METRON_VERSION/
-ADD http://archive.apache.org/dist/hbase/1.1.6/hbase-1.1.6-bin.tar.gz /opt/hbase-1.1.6-bin.tar.gz
-RUN tar -xzf /opt/hbase-1.1.6-bin.tar.gz -C /opt
+RUN curl -sL http://archive.apache.org/dist/hbase/1.1.6/hbase-1.1.6-bin.tar.gz | tar -xzC /tmp
+RUN mv /tmp/hbase-1.1.6 /opt/hbase
 RUN yum install -y java-1.8.0-openjdk lsof
 ADD ./conf/enrichment-extractor.json /conf/enrichment-extractor.json
 ADD ./conf/threatintel-extractor.json /conf/threatintel-extractor.json
@@ -39,5 +39,5 @@ RUN chmod 755 $HBASE_HOME/bin/wait-for-it.sh
 
 EXPOSE 8080 8085 9090 9095 16000 16010 16201 16301
 
-WORKDIR /opt/hbase-1.1.6
+WORKDIR /opt/hbase
 CMD ./bin/start.sh
