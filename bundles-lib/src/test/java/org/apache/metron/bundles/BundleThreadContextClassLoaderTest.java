@@ -51,7 +51,7 @@ public class BundleThreadContextClassLoaderTest {
     BundleProperties properties = BundleProperties
         .createBasicBundleProperties("src/test/resources/bundle.properties", null);
 
-    properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY,"src/test/resources/lib");
+    properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY,"src/test/resources/BundleMapper/lib");
 
     ArrayList<Class> classes = new ArrayList<>();
     classes.add(AbstractFoo.class);
