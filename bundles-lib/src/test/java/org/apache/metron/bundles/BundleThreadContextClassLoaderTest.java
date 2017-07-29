@@ -41,41 +41,6 @@ import org.junit.Test;
 
 public class BundleThreadContextClassLoaderTest {
 
-
-  @BeforeClass
-  public static void copyResources() throws IOException {
-
-    final Path sourcePath = Paths.get("./src/test/resources");
-    final Path targetPath = Paths.get("./target");
-
-    Files.walkFileTree(sourcePath, new SimpleFileVisitor<Path>() {
-
-      @Override
-      public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
-          throws IOException {
-
-        Path relativeSource = sourcePath.relativize(dir);
-        Path target = targetPath.resolve(relativeSource);
-
-        Files.createDirectories(target);
-
-        return FileVisitResult.CONTINUE;
-
-      }
-
-      @Override
-      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
-          throws IOException {
-
-        Path relativeSource = sourcePath.relativize(file);
-        Path target = targetPath.resolve(relativeSource);
-
-        Files.copy(file, target, REPLACE_EXISTING);
-
-        return FileVisitResult.CONTINUE;
-      }
-    });
-  }
   @AfterClass
   public static void after() {
     ExtensionClassInitializer.reset();
@@ -85,6 +50,9 @@ public class BundleThreadContextClassLoaderTest {
   public void validateWithPropertiesConstructor() throws Exception {
     BundleProperties properties = BundleProperties
         .createBasicBundleProperties("src/test/resources/bundle.properties", null);
+
+    properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY,"src/test/resources/lib");
+
     ArrayList<Class> classes = new ArrayList<>();
     classes.add(AbstractFoo.class);
     ExtensionClassInitializer.initialize(classes);
@@ -107,6 +75,7 @@ public class BundleThreadContextClassLoaderTest {
     additionalProperties.put("fail", "true");
     BundleProperties properties = BundleProperties
         .createBasicBundleProperties("src/test/resources/bundle.properties", additionalProperties);
+    properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY,"src/test/resources/lib");
     // create a FileSystemManager
     FileSystemManager fileSystemManager = VFSUtil.generateVfs(properties.getArchiveExtension());
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
@@ -121,6 +90,7 @@ public class BundleThreadContextClassLoaderTest {
   public void validateWithDefaultConstructor() throws Exception {
     BundleProperties properties = BundleProperties
         .createBasicBundleProperties("src/test/resources/bundle.properties", null);
+    properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY,"src/test/resources/lib");
     ArrayList<Class> classes = new ArrayList<>();
     classes.add(AbstractFoo.class);
     ExtensionClassInitializer.initialize(classes);
@@ -138,6 +108,7 @@ public class BundleThreadContextClassLoaderTest {
     ExtensionClassInitializer.initialize(new ArrayList<>());
     BundleProperties properties = BundleProperties
         .createBasicBundleProperties("src/test/resources/bundle.properties", null);
+    properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY,"src/test/resources/lib");
     BundleThreadContextClassLoader
         .createInstance(WrongConstructor.class.getName(), WrongConstructor.class, properties);
   }
