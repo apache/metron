@@ -16,7 +16,7 @@
  */
 package org.apache.metron.bundles.util;
 
-import org.apache.metron.bundles.integration.BundleUnpackerIntegrationTest;
+import org.apache.metron.bundles.integration.BundleMapperIntegrationTest;
 
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -25,7 +25,7 @@ public class TestUtil {
   public static BundleProperties loadSpecifiedProperties(final String propertiesFile, final Map<String, String> others) {
     String filePath;
     try {
-      filePath = BundleUnpackerIntegrationTest.class.getResource(propertiesFile).toURI().getPath();
+      filePath = BundleMapperIntegrationTest.class.getResource(propertiesFile).toURI().getPath();
     } catch (URISyntaxException ex) {
       throw new RuntimeException("Cannot load properties file due to "
               + ex.getLocalizedMessage(), ex);

@@ -31,8 +31,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Optional;
 
-public class VFSClassloaderUtil {
-  private static final Logger LOG = LoggerFactory.getLogger(VFSClassloaderUtil.class);
+public class VFSUtil {
+  private static final Logger LOG = LoggerFactory.getLogger(VFSUtil.class);
 
   /**
    * Create a FileSystem manager suitable for our purposes.
@@ -56,7 +56,7 @@ public class VFSClassloaderUtil {
   public static FileSystemManager generateVfs(String jarExtensionToRegister) throws FileSystemException {
     DefaultFileSystemManager vfs = new DefaultFileSystemManager();
 
-    if(jarExtensionToRegister == null || StringUtils.isBlank(jarExtensionToRegister) ) {
+    if(jarExtensionToRegister != null || !StringUtils.isBlank(jarExtensionToRegister) ) {
       vfs.addExtensionMap(jarExtensionToRegister, "jar");
       vfs.addProvider(jarExtensionToRegister, new org.apache.commons.vfs2.provider.jar.JarFileProvider());
     }
@@ -98,81 +98,5 @@ public class VFSClassloaderUtil {
     vfs.setCacheStrategy(CacheStrategy.ON_RESOLVE);
     vfs.init();
     return vfs;
-  }
-
-  /**
-   * Create a classloader backed by a virtual filesystem which can handle the following URI types:
-   * * res - resource files
-   * * jar
-   * * tar
-   * * bz2
-   * * tgz
-   * * zip
-   * * HDFS
-   * * FTP
-   * * HTTP/S
-   * * file
-   * @param paths A set of comma separated paths.  The paths are URIs or URIs with a regex pattern at the end.
-   * @return A classloader object if it can create it
-   * @throws FileSystemException
-   */
-  public static Optional<ClassLoader> configureClassloader(String paths) throws FileSystemException {
-    if(paths.trim().isEmpty()) {
-      return Optional.empty();
-    }
-    FileSystemManager vfs = generateVfs();
-    FileObject[] objects = resolve(vfs, paths);
-    if(objects == null || objects.length == 0) {
-      return Optional.empty();
-    }
-    return Optional.of(new VFSClassLoader(objects, vfs, vfs.getClass().getClassLoader()));
-  }
-
-  /**
-   * Resolve a set of URIs into FileObject objects.
-   * This is not recursive. The URIs can refer directly to a file or directory or an optional regex at the end.
-   * (NOTE: This is NOT a glob).
-   * @param vfs The file system manager to use to resolve URIs
-   * @param uris comma separated URIs and URI + globs
-   * @return
-   * @throws FileSystemException
-   */
-  public static FileObject[] resolve(FileSystemManager vfs, String uris) throws FileSystemException {
-    if (uris == null) {
-      return new FileObject[0];
-    }
-
-    ArrayList<FileObject> classpath = new ArrayList<>();
-    for (String path : uris.split(",")) {
-      path = path.trim();
-      if (path.equals("")) {
-        continue;
-      }
-      FileObject fo = vfs.resolveFile(path);
-      switch (fo.getType()) {
-        case FILE:
-        case FOLDER:
-          classpath.add(fo);
-          break;
-        case IMAGINARY:
-          // assume its a pattern
-          String pattern = fo.getName().getBaseName();
-          if (fo.getParent() != null && fo.getParent().getType() == FileType.FOLDER) {
-            FileObject[] children = fo.getParent().getChildren();
-            for (FileObject child : children) {
-              if (child.getType() == FileType.FILE && child.getName().getBaseName().matches(pattern)) {
-                classpath.add(child);
-              }
-            }
-          } else {
-            LOG.warn("ignoring classpath entry " + fo);
-          }
-          break;
-        default:
-          LOG.warn("ignoring classpath entry " + fo);
-          break;
-      }
-    }
-    return classpath.toArray(new FileObject[classpath.size()]);
   }
 }

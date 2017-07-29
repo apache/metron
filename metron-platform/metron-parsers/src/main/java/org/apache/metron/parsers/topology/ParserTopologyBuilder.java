@@ -17,15 +17,6 @@
  */
 package org.apache.metron.parsers.topology;
 
-import org.apache.commons.vfs2.FileSystemManager;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.metron.bundles.*;
-import org.apache.metron.bundles.bundle.Bundle;
-import org.apache.metron.bundles.bundle.BundleCoordinate;
-import org.apache.metron.bundles.util.BundleProperties;
-import org.apache.metron.bundles.util.HDFSFileUtilities;
-import org.apache.metron.bundles.util.VFSClassloaderUtil;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder;
 import org.apache.metron.storm.kafka.flux.SpoutConfiguration;
@@ -45,12 +36,10 @@ import org.apache.metron.common.utils.ReflectionUtils;
 import org.apache.metron.parsers.bolt.ParserBolt;
 import org.apache.metron.parsers.bolt.WriterBolt;
 import org.apache.metron.parsers.bolt.WriterHandler;
-import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.writer.AbstractWriter;
 import org.apache.metron.writer.kafka.KafkaWriter;
 import org.json.simple.JSONObject;
 
-import java.io.ByteArrayInputStream;
 import java.util.*;
 
 /**

@@ -16,9 +16,6 @@
  */
 package org.apache.metron.bundles;
 
-import org.apache.metron.bundles.util.FileUtilities;
-import org.apache.metron.bundles.util.FileUtils;
-
 import java.util.List;
 
 public class ExtensionClassInitializer {
@@ -30,8 +27,5 @@ public class ExtensionClassInitializer {
   public static void reset(){
     ExtensionManager.resetClassDefinitions();
     BundleThreadContextClassLoader.resetClasses();
-  }
-  public static void initializeFileUtilities(FileUtilities utilities){
-    FileUtils.init(utilities);
   }
 }

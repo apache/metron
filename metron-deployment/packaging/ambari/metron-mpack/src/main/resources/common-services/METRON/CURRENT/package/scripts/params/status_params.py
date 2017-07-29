@@ -33,7 +33,6 @@ all_parsers = "asa,bro,cef,fireeye,ise,lancope,logstash,paloalto,snort,sourcefir
 all_alt_parsers = ""
 metron_home = config['configurations']['metron-env']['metron_home']
 local_metron_extensions_lib = format(format(config['configurations']['metron-env']['local_metron_extension_lib']))
-hdfs_metron_apps_extensions_working = format(format(config['configurations']['metron-env']['metron_apps_extensions_working_hdfs_dir']))
 hdfs_metron_apps_extensions_lib = format(format(config['configurations']['metron-env']['metron_apps_extensions_lib_hdfs_dir']))
 hdfs_metron_apps_extensions_alt_lib = format(format(config['configurations']['metron-env']['metron_apps_extensions_alt_lib_hdfs_dir']))
 metron_extensions_etc = format(format(config['configurations']['metron-env']['metron_extension_etc']))

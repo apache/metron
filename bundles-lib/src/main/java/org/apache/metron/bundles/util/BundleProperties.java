@@ -25,248 +25,224 @@ import java.nio.file.Paths;
 import java.util.*;
 
 /**
- * The BundleProperties class holds all properties which are needed for various
- * values to be available at runtime. It is strongly tied to the startup
- * properties needed and is often refer to as the 'nifi.properties' file. The
- * properties contains keys and values. Great care should be taken in leveraging
- * this class or passing it along. Its use should be refactored and minimized
+ * The BundleProperties class holds all properties which are needed for various values to be
+ * available at runtime. It is strongly tied to the startup properties needed and is often refer to
+ * as the 'nifi.properties' file. The properties contains keys and values. Great care should be
+ * taken in leveraging this class or passing it along. Its use should be refactored and minimized
  * over time.
  */
 public abstract class BundleProperties {
 
-    // core properties
-    public static final String PROPERTIES_FILE_PATH = "bundle.properties.file.path";
-    public static final String HDFS_PREFIX = "bundle.hdfs.prefix";
-    public static final String BUNDLE_LIBRARY_DIRECTORY = "bundle.library.directory";
-    public static final String BUNDLE_LIBRARY_DIRECTORY_PREFIX = "bundle.library.directory.";
-    public static final String BUNDLE_WORKING_DIRECTORY = "bundle.working.directory";
-    public static final String COMPONENT_DOCS_DIRECTORY = "bundle.documentation.working.directory";
-    public static final String ARCHIVE_EXTENSION = "bundle.archive.extension";
-    public static final String META_ID_PREFIX = "bundle.meta.id.prefix";
-    public static final String BUNDLE_EXTENSION_TYPE_PREFIX = "bundle.extension.type.";
+  // core properties
+  public static final String PROPERTIES_FILE_PATH = "bundle.properties.file.path";
+  public static final String HDFS_PREFIX = "bundle.hdfs.prefix";
+  public static final String BUNDLE_LIBRARY_DIRECTORY = "bundle.library.directory";
+  public static final String BUNDLE_LIBRARY_DIRECTORY_PREFIX = "bundle.library.directory.";
+  public static final String ARCHIVE_EXTENSION = "bundle.archive.extension";
+  public static final String META_ID_PREFIX = "bundle.meta.id.prefix";
+  public static final String BUNDLE_EXTENSION_TYPE_PREFIX = "bundle.extension.type.";
 
-    // defaults
-    public static final String DEFAULT_ARCHIVE_EXTENSION = "bundle";
-    public static final String DEFAULT_BUNDLE_WORKING_DIR = "./work/bundle/";
-    public static final String DEFAULT_BUNDLE_LIBRARY_DIR = "./lib/";
-    public static final String DEFAULT_COMPONENT_DOCS_DIRECTORY = "./work/docs/components/";
-    public static final String DEFAULT_META_ID_PREFIX = "Bundle";
+  // defaults
+  public static final String DEFAULT_ARCHIVE_EXTENSION = "bundle";
+  public static final String DEFAULT_BUNDLE_LIBRARY_DIR = "./lib/";
+  public static final String DEFAULT_META_ID_PREFIX = "Bundle";
 
-    /**
-     * Retrieves the property value for the given property key.
-     *
-     * @param key the key of property value to lookup
-     * @return value of property at given key or null if not found
-     */
-    public abstract String getProperty(String key);
-    public abstract void setProperty(String key, String value);
-    public abstract void storeProperties(OutputStream outputStream, String comments) throws IOException;
+  /**
+   * Retrieves the property value for the given property key.
+   *
+   * @param key the key of property value to lookup
+   * @return value of property at given key or null if not found
+   */
+  public abstract String getProperty(String key);
 
-    /**
-     * Retrieves all known property keys.
-     *
-     * @return all known property keys
-     */
-    public abstract Set<String> getPropertyKeys();
+  public abstract void setProperty(String key, String value);
 
-    public String getProperty(final String key, final String defaultValue) {
-        final String value = getProperty(key);
-        return (value == null || value.trim().isEmpty()) ? defaultValue : value;
+  public abstract void storeProperties(OutputStream outputStream, String comments)
+      throws IOException;
+
+  /**
+   * Retrieves all known property keys.
+   *
+   * @return all known property keys
+   */
+  public abstract Set<String> getPropertyKeys();
+
+  public String getProperty(final String key, final String defaultValue) {
+    final String value = getProperty(key);
+    return (value == null || value.trim().isEmpty()) ? defaultValue : value;
+  }
+
+  // getters for core properties //
+
+  private static URI getConcatedDirURI(URI original, String dir) throws URISyntaxException {
+    String uri = original.toString();
+    StringBuilder builder = new StringBuilder(uri);
+    if (uri.endsWith("/") == false) {
+      builder.append("/");
     }
+    builder.append(dir);
+    return new URI(builder.toString());
+  }
 
-    // getters for core properties //
+  public URI getBundleLibraryDirectory() throws URISyntaxException {
+    String bundleLib = getProperty(BUNDLE_LIBRARY_DIRECTORY);
+    String hdfsPrefix = getProperty(HDFS_PREFIX);
+    if (StringUtils.isBlank(hdfsPrefix)) {
+      return getURI(bundleLib);
+    }
+    return getURI(hdfsPrefix + bundleLib);
+  }
 
-    public URI getBundleWorkingDirectory() throws URISyntaxException {
+  public List<URI> getBundleLibraryDirectories() throws URISyntaxException {
+
+    List<URI> bundleLibraryPaths = new ArrayList<>();
+
+    // go through each property
+    for (String propertyName : getPropertyKeys()) {
+      // determine if the property is a bundle library path
+      if (StringUtils.startsWith(propertyName, BUNDLE_LIBRARY_DIRECTORY_PREFIX)
+          || BUNDLE_LIBRARY_DIRECTORY.equals(propertyName)) {
+        // attempt to resolve the path specified
+        String bundleLib = getProperty(propertyName);
         String hdfsPrefix = getProperty(HDFS_PREFIX);
-        String bwDir = getProperty(BUNDLE_WORKING_DIRECTORY,DEFAULT_BUNDLE_WORKING_DIR);
-        if(StringUtils.isBlank(hdfsPrefix)) {
-            return getURI(bwDir);
+        if (!StringUtils.isBlank(bundleLib)) {
+          if (StringUtils.isBlank(hdfsPrefix)) {
+            bundleLibraryPaths.add(getURI(bundleLib));
+          } else {
+            bundleLibraryPaths.add(getURI(hdfsPrefix + bundleLib));
+          }
         }
-        return getURI(hdfsPrefix + bwDir);
+      }
     }
 
-    public URI getFrameworkWorkingDirectory() throws URISyntaxException{
-        return getConcatedDirURI(getBundleWorkingDirectory(),"framework/");
+    if (bundleLibraryPaths.isEmpty()) {
+      bundleLibraryPaths.add(getURI(DEFAULT_BUNDLE_LIBRARY_DIR));
     }
 
-    public URI getExtensionsWorkingDirectory() throws URISyntaxException{
-        return getConcatedDirURI(getBundleWorkingDirectory(),"extensions/");
-    }
+    return bundleLibraryPaths;
+  }
 
-    private static URI getConcatedDirURI(URI original, String dir) throws URISyntaxException{
-        String uri = original.toString();
-        StringBuilder builder = new StringBuilder(uri);
-        if(uri.endsWith("/") == false){
-            builder.append("/");
+  public Map<String, String> getBundleExtensionTypes() {
+    HashMap<String, String> extensionTypeMap = new HashMap<>();
+
+    // go through each property
+    for (String propertyName : getPropertyKeys()) {
+      // determine if the property is an extention type
+      if (StringUtils.startsWith(propertyName, BUNDLE_EXTENSION_TYPE_PREFIX)) {
+        // attempt to resolve class name
+        String className = getProperty(propertyName);
+        if (!StringUtils.isBlank(className)) {
+          // get the extension name
+          String extensionName = StringUtils.substringAfterLast(propertyName, ".");
+          if (!StringUtils.isBlank(extensionName)) {
+            extensionTypeMap.put(extensionName, className);
+          }
         }
-        builder.append(dir);
-        return new URI(builder.toString());
+      }
     }
+    return extensionTypeMap;
+  }
 
-    public URI getBundleLibraryDirectory() throws URISyntaxException{
-        String bundleLib = getProperty(BUNDLE_LIBRARY_DIRECTORY);
-        String hdfsPrefix = getProperty(HDFS_PREFIX);
-        if(StringUtils.isBlank(hdfsPrefix)) {
-            return getURI(bundleLib);
+  public static URI getURI(String path) throws URISyntaxException {
+    // we may have URI's or paths or relative paths
+    //
+    // if it is not a URI string then use Paths.get().getURI()
+    if (path.matches("^[A-Za-z].*//.*$")) {
+      return new URI(path);
+    }
+    return Paths.get(path).toUri();
+  }
+
+  public String getMetaIdPrefix() {
+    return getProperty(META_ID_PREFIX, DEFAULT_META_ID_PREFIX);
+  }
+
+  public String getArchiveExtension() {
+    return getProperty(ARCHIVE_EXTENSION, DEFAULT_ARCHIVE_EXTENSION);
+  }
+
+  public static BundleProperties createBasicBundleProperties(final InputStream inStream,
+      final Map<String, String> additionalProperties) {
+    final Map<String, String> addProps =
+        (additionalProperties == null) ? new HashMap<>() : additionalProperties;
+    final Properties properties = new Properties();
+    try {
+      properties.load(inStream);
+    } catch (final Exception ex) {
+      throw new RuntimeException("Cannot load properties file due to "
+          + ex.getLocalizedMessage(), ex);
+    } finally {
+      if (null != inStream) {
+        try {
+          inStream.close();
+        } catch (final Exception ex) {
+          /**
+           * do nothing *
+           */
         }
-        return getURI(hdfsPrefix + bundleLib);
+      }
     }
+    addProps.entrySet().stream().forEach((entry) -> {
+      properties.setProperty(entry.getKey(), entry.getValue());
+    });
+    return new BundleProperties() {
+      @Override
+      public String getProperty(String key) {
+        return properties.getProperty(key);
+      }
 
-    public List<URI> getBundleLibraryDirectories() throws URISyntaxException{
+      @Override
+      public Set<String> getPropertyKeys() {
+        return properties.stringPropertyNames();
+      }
 
-        List<URI> bundleLibraryPaths = new ArrayList<>();
+      @Override
+      public void setProperty(String key, String value) {
+        properties.setProperty(key, value);
+      }
 
-        // go through each property
-        for (String propertyName : getPropertyKeys()) {
-            // determine if the property is a bundle library path
-            if (StringUtils.startsWith(propertyName, BUNDLE_LIBRARY_DIRECTORY_PREFIX)
-                    || BUNDLE_LIBRARY_DIRECTORY.equals(propertyName)) {
-                // attempt to resolve the path specified
-                String bundleLib = getProperty(propertyName);
-                String hdfsPrefix = getProperty(HDFS_PREFIX);
-                if (!StringUtils.isBlank(bundleLib)) {
-                    if(StringUtils.isBlank(hdfsPrefix)) {
-                        bundleLibraryPaths.add(getURI(bundleLib));
-                    }else{
-                        bundleLibraryPaths.add(getURI(hdfsPrefix + bundleLib));
-                    }
-                }
-            }
+      @Override
+      public void storeProperties(OutputStream outputStream, String comments) throws IOException {
+        properties.store(outputStream, comments);
+      }
+    };
+
+  }
+
+  public static BundleProperties createBasicBundleProperties(final String propertiesFilePath,
+      final Map<String, String> additionalProperties) {
+    final String bundlePropertiesFilePath = (propertiesFilePath == null)
+        ? System.getProperty(BundleProperties.PROPERTIES_FILE_PATH)
+        : propertiesFilePath;
+    if (bundlePropertiesFilePath != null) {
+      final File propertiesFile = new File(bundlePropertiesFilePath.trim());
+      if (!propertiesFile.exists()) {
+        throw new RuntimeException("Properties file doesn't exist \'"
+            + propertiesFile.getAbsolutePath() + "\'");
+      }
+      if (!propertiesFile.canRead()) {
+        throw new RuntimeException("Properties file exists but cannot be read \'"
+            + propertiesFile.getAbsolutePath() + "\'");
+      }
+      InputStream inStream = null;
+      try {
+        inStream = new BufferedInputStream(new FileInputStream(propertiesFile));
+        return createBasicBundleProperties(inStream, additionalProperties);
+      } catch (final Exception ex) {
+        throw new RuntimeException("Cannot load properties file due to "
+            + ex.getLocalizedMessage(), ex);
+      } finally {
+        if (null != inStream) {
+          try {
+            inStream.close();
+          } catch (final Exception ex) {
+            /**
+             * do nothing *
+             */
+          }
         }
-
-        if (bundleLibraryPaths.isEmpty()) {
-            bundleLibraryPaths.add(getURI(DEFAULT_BUNDLE_LIBRARY_DIR));
-        }
-
-        return bundleLibraryPaths;
+      }
     }
-
-    public Map<String,String> getBundleExtensionTypes(){
-        HashMap<String,String> extensionTypeMap = new HashMap<>();
-
-        // go through each property
-        for (String propertyName : getPropertyKeys()){
-            // determine if the property is an extention type
-            if(StringUtils.startsWith(propertyName, BUNDLE_EXTENSION_TYPE_PREFIX)){
-                // attempt to resolve class name
-                String className = getProperty(propertyName);
-                if(!StringUtils.isBlank(className)){
-                    // get the extension name
-                    String extensionName = StringUtils.substringAfterLast(propertyName,".");
-                    if(!StringUtils.isBlank(extensionName)){
-                        extensionTypeMap.put(extensionName,className);
-                    }
-                }
-            }
-        }
-        return extensionTypeMap;
-    }
-
-    public static URI getURI(String path)throws URISyntaxException{
-        // we may have URI's or paths or relative paths
-        //
-        // if it is not a URI string then use Paths.get().getURI()
-        if(path.matches("^[A-Za-z].*//.*$")){
-            return new URI(path);
-        }
-        return Paths.get(path).toUri();
-    }
-
-    public String getMetaIdPrefix(){
-        return getProperty(META_ID_PREFIX,DEFAULT_META_ID_PREFIX);
-    }
-
-    public String getArchiveExtension(){
-        return getProperty(ARCHIVE_EXTENSION,DEFAULT_ARCHIVE_EXTENSION);
-    }
-
-    public URI getComponentDocumentationWorkingDirectory() throws URISyntaxException {
-        String compDocDir = getProperty(COMPONENT_DOCS_DIRECTORY,DEFAULT_COMPONENT_DOCS_DIRECTORY);
-        String hdfsPrefix = getProperty(HDFS_PREFIX);
-        if(StringUtils.isBlank(hdfsPrefix)) {
-            return getURI(compDocDir);
-        }
-        return getURI(hdfsPrefix + compDocDir);
-    }
-
-    public static BundleProperties createBasicBundleProperties(final InputStream inStream, final Map<String, String> additionalProperties) {
-        final Map<String, String> addProps = (additionalProperties == null) ? new HashMap<>() : additionalProperties;
-        final Properties properties = new Properties();
-            try {
-                properties.load(inStream);
-            } catch (final Exception ex) {
-                throw new RuntimeException("Cannot load properties file due to "
-                        + ex.getLocalizedMessage(), ex);
-            } finally {
-                if (null != inStream) {
-                    try {
-                        inStream.close();
-                    } catch (final Exception ex) {
-                        /**
-                         * do nothing *
-                         */
-                    }
-                }
-            }
-        addProps.entrySet().stream().forEach((entry) -> {
-            properties.setProperty(entry.getKey(), entry.getValue());
-        });
-        return new BundleProperties() {
-            @Override
-            public String getProperty(String key) {
-                return properties.getProperty(key);
-            }
-
-            @Override
-            public Set<String> getPropertyKeys() {
-                return properties.stringPropertyNames();
-            }
-
-            @Override
-            public void setProperty(String key, String value){
-                properties.setProperty(key,value);
-            }
-
-            @Override
-            public void storeProperties(OutputStream outputStream, String comments) throws IOException{
-                properties.store(outputStream,comments);
-            }
-        };
-
-    }
-    public static BundleProperties createBasicBundleProperties(final String propertiesFilePath, final Map<String, String> additionalProperties) {
-        final String bundlePropertiesFilePath = (propertiesFilePath == null)
-                ? System.getProperty(BundleProperties.PROPERTIES_FILE_PATH)
-                : propertiesFilePath;
-        if (bundlePropertiesFilePath != null) {
-            final File propertiesFile = new File(bundlePropertiesFilePath.trim());
-            if (!propertiesFile.exists()) {
-                throw new RuntimeException("Properties file doesn't exist \'"
-                        + propertiesFile.getAbsolutePath() + "\'");
-            }
-            if (!propertiesFile.canRead()) {
-                throw new RuntimeException("Properties file exists but cannot be read \'"
-                        + propertiesFile.getAbsolutePath() + "\'");
-            }
-            InputStream inStream = null;
-            try {
-                inStream = new BufferedInputStream(new FileInputStream(propertiesFile));
-                return createBasicBundleProperties(inStream,additionalProperties);
-            } catch (final Exception ex) {
-                throw new RuntimeException("Cannot load properties file due to "
-                        + ex.getLocalizedMessage(), ex);
-            } finally {
-                if (null != inStream) {
-                    try {
-                        inStream.close();
-                    } catch (final Exception ex) {
-                        /**
-                         * do nothing *
-                         */
-                    }
-                }
-            }
-        }
-        return null;
-    }
+    return null;
+  }
 }

@@ -27,7 +27,7 @@ import java.util.Date;
  */
 public class BundleDetails {
 
-    private final FileObject workingDirectory;
+    private final FileObject bundleFile;
 
     private final BundleCoordinate coordinate;
     private final BundleCoordinate dependencyCoordinate;
@@ -40,7 +40,7 @@ public class BundleDetails {
     private final String builtBy;
 
     private BundleDetails(final Builder builder) {
-        this.workingDirectory = builder.workingDirectory;
+        this.bundleFile = builder.bundleFile;
         this.coordinate = builder.coordinate;
         this.dependencyCoordinate = builder.dependencyCoordinate;
 
@@ -52,20 +52,20 @@ public class BundleDetails {
         this.builtBy = builder.builtBy;
 
         if (this.coordinate == null) {
-            if (this.workingDirectory == null) {
+            if (this.bundleFile == null) {
                 throw new IllegalStateException("Coordinate cannot be null");
             } else {
-                throw new IllegalStateException("Coordinate cannot be null for " + this.workingDirectory.getName());
+                throw new IllegalStateException("Coordinate cannot be null for " + this.bundleFile.getName());
             }
         }
 
-        if (this.workingDirectory == null) {
+        if (this.bundleFile == null) {
             throw new IllegalStateException("Working directory cannot be null for " + this.coordinate.getId());
         }
     }
 
-    public FileObject getWorkingDirectory() {
-        return workingDirectory;
+    public FileObject getBundleFile() {
+        return bundleFile;
     }
 
     public BundleCoordinate getCoordinate() {
@@ -124,7 +124,7 @@ public class BundleDetails {
      */
     public static class Builder {
 
-        private FileObject workingDirectory;
+        private FileObject bundleFile;
 
         private BundleCoordinate coordinate;
         private BundleCoordinate dependencyCoordinate;
@@ -136,8 +136,8 @@ public class BundleDetails {
         private String buildJdk;
         private String builtBy;
 
-        public Builder workingDir(final FileObject workingDirectory) {
-            this.workingDirectory = workingDirectory;
+        public Builder bundleFile(final FileObject bundleFile) {
+            this.bundleFile = bundleFile;
             return this;
         }
 

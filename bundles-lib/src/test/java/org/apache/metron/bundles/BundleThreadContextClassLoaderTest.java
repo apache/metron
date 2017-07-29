@@ -16,8 +16,16 @@
  */
 package org.apache.metron.bundles;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,89 +34,137 @@ import java.util.Map;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.metron.bundles.bundle.Bundle;
 import org.apache.metron.bundles.util.BundleProperties;
-import org.apache.metron.bundles.util.VFSClassloaderUtil;
+import org.apache.metron.bundles.util.VFSUtil;
 import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class BundleThreadContextClassLoaderTest {
 
 
-    @AfterClass
-    public static void after(){
-        ExtensionClassInitializer.reset();
+  @BeforeClass
+  public static void copyResources() throws IOException {
+
+    final Path sourcePath = Paths.get("./src/test/resources");
+    final Path targetPath = Paths.get("./target");
+
+    Files.walkFileTree(sourcePath, new SimpleFileVisitor<Path>() {
+
+      @Override
+      public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+          throws IOException {
+
+        Path relativeSource = sourcePath.relativize(dir);
+        Path target = targetPath.resolve(relativeSource);
+
+        Files.createDirectories(target);
+
+        return FileVisitResult.CONTINUE;
+
+      }
+
+      @Override
+      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+          throws IOException {
+
+        Path relativeSource = sourcePath.relativize(file);
+        Path target = targetPath.resolve(relativeSource);
+
+        Files.copy(file, target, REPLACE_EXISTING);
+
+        return FileVisitResult.CONTINUE;
+      }
+    });
+  }
+  @AfterClass
+  public static void after() {
+    ExtensionClassInitializer.reset();
+  }
+
+  @Test
+  public void validateWithPropertiesConstructor() throws Exception {
+    BundleProperties properties = BundleProperties
+        .createBasicBundleProperties("src/test/resources/bundle.properties", null);
+    ArrayList<Class> classes = new ArrayList<>();
+    classes.add(AbstractFoo.class);
+    ExtensionClassInitializer.initialize(classes);
+    // create a FileSystemManager
+    FileSystemManager fileSystemManager = VFSUtil.generateVfs(properties.getArchiveExtension());
+    Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
+    ExtensionManager.discoverExtensions(systemBundle, Collections.emptySet());
+
+    assertTrue(
+        BundleThreadContextClassLoader.createInstance(WithPropertiesConstructor.class.getName(),
+            WithPropertiesConstructor.class, properties) instanceof WithPropertiesConstructor);
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void validateWithPropertiesConstructorInstantiationFailure() throws Exception {
+    ArrayList<Class> classes = new ArrayList<>();
+    classes.add(AbstractFoo.class);
+    ExtensionClassInitializer.initialize(classes);
+    Map<String, String> additionalProperties = new HashMap<>();
+    additionalProperties.put("fail", "true");
+    BundleProperties properties = BundleProperties
+        .createBasicBundleProperties("src/test/resources/bundle.properties", additionalProperties);
+    // create a FileSystemManager
+    FileSystemManager fileSystemManager = VFSUtil.generateVfs(properties.getArchiveExtension());
+    Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
+    ExtensionManager.discoverExtensions(systemBundle, Collections.emptySet());
+
+    BundleThreadContextClassLoader
+        .createInstance(WithPropertiesConstructor.class.getName(), WithPropertiesConstructor.class,
+            properties);
+  }
+
+  @Test
+  public void validateWithDefaultConstructor() throws Exception {
+    BundleProperties properties = BundleProperties
+        .createBasicBundleProperties("src/test/resources/bundle.properties", null);
+    ArrayList<Class> classes = new ArrayList<>();
+    classes.add(AbstractFoo.class);
+    ExtensionClassInitializer.initialize(classes);
+    // create a FileSystemManager
+    FileSystemManager fileSystemManager = VFSUtil.generateVfs(properties.getArchiveExtension());
+    Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
+    ExtensionManager.discoverExtensions(systemBundle, Collections.emptySet());
+
+    assertTrue(BundleThreadContextClassLoader.createInstance(WithDefaultConstructor.class.getName(),
+        WithDefaultConstructor.class, properties) instanceof WithDefaultConstructor);
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void validateWithWrongConstructor() throws Exception {
+    ExtensionClassInitializer.initialize(new ArrayList<>());
+    BundleProperties properties = BundleProperties
+        .createBasicBundleProperties("src/test/resources/bundle.properties", null);
+    BundleThreadContextClassLoader
+        .createInstance(WrongConstructor.class.getName(), WrongConstructor.class, properties);
+  }
+
+  public static class WithPropertiesConstructor extends AbstractFoo {
+
+    public WithPropertiesConstructor() {
     }
 
-    @Test
-    public void validateWithPropertiesConstructor() throws Exception {
-        BundleProperties properties = BundleProperties.createBasicBundleProperties("src/test/resources/bundle.properties", null);
-        ArrayList<Class> classes = new ArrayList<>();
-        classes.add(AbstractFoo.class);
-        ExtensionClassInitializer.initialize(classes);
-        // create a FileSystemManager
-        FileSystemManager fileSystemManager = VFSClassloaderUtil.generateVfs(properties.getArchiveExtension());
-        Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
-        ExtensionManager.discoverExtensions(systemBundle, Collections.emptySet());
-
-        assertTrue(BundleThreadContextClassLoader.createInstance(WithPropertiesConstructor.class.getName(),
-                WithPropertiesConstructor.class, properties) instanceof WithPropertiesConstructor);
+    public WithPropertiesConstructor(BundleProperties properties) {
+      if (properties.getProperty("fail") != null) {
+        throw new RuntimeException("Intentional failure");
+      }
     }
+  }
 
-    @Test(expected = IllegalStateException.class)
-    public void validateWithPropertiesConstructorInstantiationFailure() throws Exception {
-        ArrayList<Class> classes = new ArrayList<>();
-        classes.add(AbstractFoo.class);
-        ExtensionClassInitializer.initialize(classes);
-        Map<String, String> additionalProperties = new HashMap<>();
-        additionalProperties.put("fail", "true");
-        BundleProperties properties = BundleProperties.createBasicBundleProperties("src/test/resources/bundle.properties", additionalProperties);
-        // create a FileSystemManager
-        FileSystemManager fileSystemManager = VFSClassloaderUtil.generateVfs(properties.getArchiveExtension());
-        Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
-        ExtensionManager.discoverExtensions(systemBundle, Collections.emptySet());
+  public static class WithDefaultConstructor extends AbstractFoo {
 
-        BundleThreadContextClassLoader.createInstance(WithPropertiesConstructor.class.getName(), WithPropertiesConstructor.class, properties);
+    public WithDefaultConstructor() {
+
     }
+  }
 
-    @Test
-    public void validateWithDefaultConstructor() throws Exception {
-        BundleProperties properties = BundleProperties.createBasicBundleProperties("src/test/resources/bundle.properties", null);
-        ArrayList<Class> classes = new ArrayList<>();
-        classes.add(AbstractFoo.class);
-        ExtensionClassInitializer.initialize(classes);
-        // create a FileSystemManager
-        FileSystemManager fileSystemManager = VFSClassloaderUtil.generateVfs(properties.getArchiveExtension());
-        Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
-        ExtensionManager.discoverExtensions(systemBundle, Collections.emptySet());
+  public static class WrongConstructor extends AbstractFoo {
 
-        assertTrue(BundleThreadContextClassLoader.createInstance(WithDefaultConstructor.class.getName(),
-                WithDefaultConstructor.class, properties) instanceof WithDefaultConstructor);
+    public WrongConstructor(String s) {
+
     }
-
-    @Test(expected = IllegalStateException.class)
-    public void validateWithWrongConstructor() throws Exception {
-        ExtensionClassInitializer.initialize(new ArrayList<>());
-        BundleProperties properties = BundleProperties.createBasicBundleProperties("src/test/resources/bundle.properties", null);
-        BundleThreadContextClassLoader.createInstance(WrongConstructor.class.getName(), WrongConstructor.class, properties);
-    }
-
-    public static class WithPropertiesConstructor  extends AbstractFoo{
-        public WithPropertiesConstructor(){}
-        public WithPropertiesConstructor(BundleProperties properties) {
-            if (properties.getProperty("fail") != null) {
-                throw new RuntimeException("Intentional failure");
-            }
-        }
-    }
-
-    public static class WithDefaultConstructor extends AbstractFoo{
-        public WithDefaultConstructor() {
-
-        }
-    }
-
-    public static class WrongConstructor extends AbstractFoo {
-        public WrongConstructor(String s) {
-
-        }
-    }
+  }
 }

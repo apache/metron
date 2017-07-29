@@ -67,4 +67,13 @@ from the component's BUNDLE ClassLoader are loaded into memory ten times. This c
 memory footprint significantly when enough instances of the component are created.
 
 
+## Apache VFS 
+
+The bundles-lib utilizes the Apache VFS library to for loading bundles.  Bundles, what are zip files of a known structure, containing 
+jars of dependencies may be loaded by VFS as File Systems *themselves*, and in tern each jar in the bundle can be loaded by VFS as a File System.
+
+The VFSBundleClassloader therefore loads the bundle as a Jar File System, and also each dependency jar as a filesystem.  This allows
+for the complete loading of the bundle without having to unpack the bundle into a working directory. 
+
+This is significantly different from the original Nifi implementation.
 

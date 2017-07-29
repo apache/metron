@@ -117,7 +117,7 @@ public class BundleThreadContextClassLoader extends URLClassLoader {
                 // OPF NEEDS CLARIFICATION
                 // {@link FlowEngine.beforeExecute(Thread, Runnable)} and
                 // {@link FlowEngine.afterExecute(Thread, Runnable)} methods.
-                if (desiredClassLoader instanceof BundleClassLoader) {
+                if (desiredClassLoader instanceof VFSBundleClassLoader) {
                     Thread.currentThread().setContextClassLoader(desiredClassLoader);
                 }
                 return desiredClassLoader;

@@ -31,9 +31,7 @@ import org.apache.metron.TestConstants;
 import org.apache.metron.bundles.BundleClassLoaders;
 import org.apache.metron.bundles.ExtensionClassInitializer;
 import org.apache.metron.bundles.util.BundleProperties;
-import org.apache.metron.bundles.util.FileUtilities;
 import org.apache.metron.bundles.util.FileUtils;
-import org.apache.metron.bundles.util.HDFSFileUtilities;
 import org.apache.metron.common.Constants;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.BaseIntegrationTest;
@@ -83,7 +81,6 @@ public class ASABundleHDFSIntegrationTest extends BaseIntegrationTest {
     mrComponent.stop();
     ExtensionClassInitializer.reset();
     BundleClassLoaders.reset();
-    FileUtils.reset();
   }
 
   static MRComponent mrComponent;
@@ -105,8 +102,6 @@ public class ASABundleHDFSIntegrationTest extends BaseIntegrationTest {
       properties.setProperty(BundleProperties.HDFS_PREFIX,configuration.get("fs.defaultFS"));
       properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY, "/extension_lib/");
       properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY_PREFIX + "alt", "/extension_contrib_lib/");
-      properties.setProperty(BundleProperties.BUNDLE_WORKING_DIRECTORY,"/work/");
-      properties.setProperty(BundleProperties.COMPONENT_DOCS_DIRECTORY,"/work/docs/components/");
       FileOutputStream fso = new FileOutputStream("./target/remote/zookeeper/bundle.properties");
       properties.storeProperties(fso,"HDFS UPDATE");
       fso.flush();

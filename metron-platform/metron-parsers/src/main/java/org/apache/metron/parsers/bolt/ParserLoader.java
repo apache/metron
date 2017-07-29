@@ -17,6 +17,8 @@
  */
 package org.apache.metron.parsers.bolt;
 
+import java.util.List;
+import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.conf.Configuration;
@@ -24,11 +26,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.metron.bundles.*;
 import org.apache.metron.bundles.bundle.Bundle;
 import org.apache.metron.bundles.util.BundleProperties;
-import org.apache.metron.bundles.util.HDFSFileUtilities;
-import org.apache.metron.bundles.util.VFSClassloaderUtil;
+import org.apache.metron.bundles.util.VFSUtil;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.metron.common.configuration.FieldValidator;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.storm.hdfs.common.security.HdfsSecurityUtil;
@@ -68,20 +68,12 @@ public class ParserLoader {
           if(!fsConf.get("fs.defaultFS").toLowerCase().startsWith("hdfs")) {
             fsConf.set("fs.defaultFS", String.format("%s://%s", uri.getScheme(), uri.getAuthority()));
           }
-          isHDFS = true;
         }else if(fsConf.get("fs.defaultFS").toLowerCase().startsWith("hdfs")){
           // we have HDFS system but the urls are not hdfs, setting the prefix
           // will get the uris correctly generated
           props.setProperty(BundleProperties.HDFS_PREFIX,fsConf.get("fs.defaultFS"));
-          isHDFS = true;
         }
-        if(isHDFS){
-          HdfsSecurityUtil.login(stormConfig, fsConf);
-          FileSystem fileSystem = FileSystem.get(fsConf);
-          // need to setup the filesystem from hdfs
-          ExtensionClassInitializer.initializeFileUtilities(new HDFSFileUtilities(fileSystem));
-        }
-        FileSystemManager fileSystemManager = VFSClassloaderUtil.generateVfs(props.getArchiveExtension());
+        FileSystemManager fileSystemManager = VFSUtil.generateVfs(props.getArchiveExtension());
 
         ArrayList<Class> classes = new ArrayList<>();
         for( Map.Entry<String,String> entry : props.getBundleExtensionTypes().entrySet()){
@@ -94,8 +86,16 @@ public class ParserLoader {
 
         // create a FileSystemManager
         Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, props);
-        ExtensionMapping mapping = BundleUnpacker.unpackBundles(fileSystemManager, systemBundle, props);
-        BundleClassLoaders.getInstance().init(fileSystemManager,fileSystemManager.resolveFile(props.getFrameworkWorkingDirectory()),fileSystemManager.resolveFile(props.getExtensionsWorkingDirectory()),props);
+        ExtensionMapping mapping = BundleMapper.mapBundles(fileSystemManager, props);
+        List<URI> libDirs = props.getBundleLibraryDirectories();
+        List<FileObject> libFileObjects = new ArrayList<>();
+        for(URI libUri : libDirs){
+          FileObject fileObject = fileSystemManager.resolveFile(libUri);
+          if(fileObject.exists()){
+            libFileObjects.add(fileObject);
+          }
+        }
+        BundleClassLoaders.getInstance().init(fileSystemManager, libFileObjects, props);
 
         ExtensionManager.discoverExtensions(systemBundle, BundleClassLoaders.getInstance().getBundles());
 

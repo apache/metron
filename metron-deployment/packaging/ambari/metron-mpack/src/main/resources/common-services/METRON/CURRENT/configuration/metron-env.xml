@@ -67,12 +67,6 @@
         <display-name>Metron apps extensions libraries HDFS dir</display-name>
     </property>
     <property>
-        <name>metron_apps_extensions_working_hdfs_dir</name>
-        <value>/apps/metron/extension_working</value>
-        <description>Home for Metron extensions working dir</description>
-        <display-name>Metron apps extensions working HDFS dir</display-name>
-    </property>
-    <property>
         <name>metron_apps_extensions_alt_lib_hdfs_dir</name>
         <value>/apps/metron/extension_alt/lib</value>
         <description>Home for Metron alternate extensions libraries</description>

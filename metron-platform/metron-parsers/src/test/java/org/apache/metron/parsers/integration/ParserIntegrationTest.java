@@ -17,34 +17,22 @@
  */
 package org.apache.metron.parsers.integration;
 
-import com.google.common.base.Function;
-import org.apache.metron.TestConstants;
-import org.apache.metron.bundles.BundleClassLoaders;
-import org.apache.metron.bundles.ExtensionClassInitializer;
-import org.apache.metron.bundles.util.FileUtils;
-import org.apache.metron.common.Constants;
-import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
-import org.apache.metron.integration.*;
-import org.apache.metron.integration.components.KafkaComponent;
-import org.apache.metron.integration.processors.KafkaMessageSet;
-import org.apache.metron.integration.components.ZKServerComponent;
-import org.apache.metron.integration.processors.KafkaProcessor;
-import org.apache.metron.integration.utils.TestUtils;
-import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
-import org.apache.metron.test.TestDataType;
-import org.apache.metron.test.utils.SampleDataUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.List;
+import org.apache.metron.TestConstants;
+import org.apache.metron.bundles.BundleClassLoaders;
+import org.apache.metron.bundles.ExtensionClassInitializer;
+import org.apache.metron.integration.BaseIntegrationTest;
+import org.apache.metron.integration.ProcessorResult;
+import org.apache.metron.integration.utils.TestUtils;
+import org.apache.metron.test.TestDataType;
+import org.apache.metron.test.utils.SampleDataUtils;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public abstract class ParserIntegrationTest extends BaseIntegrationTest {
   protected List<byte[]> inputMessages;
@@ -52,13 +40,11 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
   public static void after(){
     ExtensionClassInitializer.reset();
     BundleClassLoaders.reset();
-    FileUtils.reset();
   }
   @BeforeClass
   public static void before(){
     ExtensionClassInitializer.reset();
     BundleClassLoaders.reset();
-    FileUtils.reset();
   }
 
 

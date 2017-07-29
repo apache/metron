@@ -16,7 +16,15 @@
  */
 package org.apache.metron.bundles.integration;
 
-import org.apache.commons.vfs2.FileObject;
+import static org.apache.metron.bundles.util.TestUtil.loadSpecifiedProperties;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -25,30 +33,27 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
-import org.apache.metron.bundles.*;
+import org.apache.metron.bundles.BundleClassLoaders;
+import org.apache.metron.bundles.BundleMapper;
+import org.apache.metron.bundles.ExtensionClassInitializer;
+import org.apache.metron.bundles.ExtensionManager;
+import org.apache.metron.bundles.ExtensionMapping;
 import org.apache.metron.bundles.bundle.Bundle;
 import org.apache.metron.bundles.util.BundleProperties;
-import org.apache.metron.bundles.util.FileUtils;
-import org.apache.metron.bundles.util.HDFSFileUtilities;
-import org.apache.metron.bundles.util.VFSClassloaderUtil;
+import org.apache.metron.bundles.util.VFSUtil;
 import org.apache.metron.integration.components.MRComponent;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.util.*;
+public class BundleMapperIntegrationTest {
 
-import static org.apache.metron.bundles.util.TestUtil.loadSpecifiedProperties;
-import static org.junit.Assert.*;
-
-public class BundleUnpackerIntegrationTest {
-  static final Map<String,String> EMPTY_MAP = new HashMap<String,String>();
+  static final Map<String, String> EMPTY_MAP = new HashMap<String, String>();
   static MRComponent component;
   static Configuration configuration;
   static FileSystem fileSystem;
+
   @BeforeClass
   public static void setup() {
     component = new MRComponent().withBasePath("target/hdfs");
@@ -57,24 +62,27 @@ public class BundleUnpackerIntegrationTest {
 
     try {
       fileSystem = FileSystem.newInstance(configuration);
-      fileSystem.mkdirs(new Path("/work/"),new FsPermission(FsAction.READ_WRITE,FsAction.READ_WRITE,FsAction.READ_WRITE));
-      fileSystem.copyFromLocalFile(new Path("./src/test/resources/bundle.properties"), new Path("/work/"));
-      fileSystem.copyFromLocalFile(new Path("./src/test/resources/BundleUnpacker/lib/"), new Path("/"));
-      fileSystem.copyFromLocalFile(new Path("./src/test/resources/BundleUnpacker/lib2/"), new Path("/"));
-      RemoteIterator<LocatedFileStatus> files = fileSystem.listFiles(new Path("/"),true);
+      fileSystem.mkdirs(new Path("/work/"),
+          new FsPermission(FsAction.READ_WRITE, FsAction.READ_WRITE, FsAction.READ_WRITE));
+      fileSystem.copyFromLocalFile(new Path("./src/test/resources/bundle.properties"),
+          new Path("/work/"));
+      fileSystem
+          .copyFromLocalFile(new Path("./src/test/resources/BundleMapper/lib/"), new Path("/"));
+      fileSystem
+          .copyFromLocalFile(new Path("./src/test/resources/BundleMapper/lib2/"), new Path("/"));
+      RemoteIterator<LocatedFileStatus> files = fileSystem.listFiles(new Path("/"), true);
       System.out.println("==============(BEFORE)==============");
-      while (files.hasNext()){
+      while (files.hasNext()) {
         LocatedFileStatus fileStat = files.next();
         System.out.println(fileStat.getPath().toString());
       }
-      ExtensionClassInitializer.initializeFileUtilities(new HDFSFileUtilities(fileSystem));
     } catch (IOException e) {
       throw new RuntimeException("Unable to start cluster", e);
     }
   }
 
   @AfterClass
-  public static void teardown(){
+  public static void teardown() {
     try {
       RemoteIterator<LocatedFileStatus> files = fileSystem.listFiles(new Path("/"), true);
       System.out.println("==============(AFTER)==============");
@@ -82,11 +90,11 @@ public class BundleUnpackerIntegrationTest {
         LocatedFileStatus fileStat = files.next();
         System.out.println(fileStat.getPath().toString());
       }
-    }catch(Exception e){}
+    } catch (Exception e) {
+    }
     component.stop();
     ExtensionClassInitializer.reset();
     BundleClassLoaders.reset();
-    FileUtils.reset();
   }
 
   @Test
@@ -99,16 +107,16 @@ public class BundleUnpackerIntegrationTest {
     unpackBundles();
     unpackBundles();
   }
+
   public void unpackBundles() throws Exception {
     // setup properties
-    BundleProperties properties = loadSpecifiedProperties("/BundleUnpacker/conf/bundle.properties", EMPTY_MAP);
+    BundleProperties properties = loadSpecifiedProperties("/BundleMapper/conf/bundle.properties",
+        EMPTY_MAP);
     // get the port we ended up with and set the paths
-    properties.setProperty(BundleProperties.HDFS_PREFIX,configuration.get("fs.defaultFS"));
+    properties.setProperty(BundleProperties.HDFS_PREFIX, configuration.get("fs.defaultFS"));
     properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY, "/lib/");
-    properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY_PREFIX + "alt","/lib2/");
-    properties.setProperty(BundleProperties.BUNDLE_WORKING_DIRECTORY, "/work/");
-    properties.setProperty(BundleProperties.COMPONENT_DOCS_DIRECTORY, "/work/docs/components/");
-    FileSystemManager fileSystemManager = VFSClassloaderUtil.generateVfs(properties.getArchiveExtension());
+    properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY_PREFIX + "alt", "/lib2/");
+    FileSystemManager fileSystemManager = VFSUtil.generateVfs(properties.getArchiveExtension());
     ArrayList<Class> classes = new ArrayList<>();
     classes.add(MessageParser.class);
     ExtensionClassInitializer.initialize(classes);
@@ -116,24 +124,15 @@ public class BundleUnpackerIntegrationTest {
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
     ExtensionManager.discoverExtensions(systemBundle, Collections.emptySet());
 
-    final ExtensionMapping extensionMapping = BundleUnpacker.unpackBundles(fileSystemManager, ExtensionManager.createSystemBundle(fileSystemManager, properties), properties);
+    final ExtensionMapping extensionMapping = BundleMapper
+        .mapBundles(fileSystemManager,
+             properties);
 
     assertEquals(2, extensionMapping.getAllExtensionNames().size());
 
     assertTrue(extensionMapping.getAllExtensionNames().keySet().contains(
-            "org.apache.metron.bar.BarParser"));
+        "org.apache.metron.bar.BarParser"));
     assertTrue(extensionMapping.getAllExtensionNames().keySet().contains(
-            "org.apache.metron.foo.FooParser"));
-    final FileObject extensionsWorkingDir = fileSystemManager.resolveFile(properties.getExtensionsWorkingDirectory());
-    FileObject[] extensionFiles = extensionsWorkingDir.getChildren();
-
-    Set<String> expectedBundles = new HashSet<>();
-    expectedBundles.add("metron-parser-foo-bundle-0.4.1.bundle-unpacked");
-    expectedBundles.add("metron-parser-bar-bundle-0.4.1.bundle-unpacked");
-    assertEquals(expectedBundles.size(), extensionFiles.length);
-
-    for (FileObject extensionFile : extensionFiles) {
-      Assert.assertTrue(expectedBundles.contains(extensionFile.getName().getBaseName()));
-    }
+        "org.apache.metron.foo.FooParser"));
   }
 }

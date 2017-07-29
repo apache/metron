@@ -125,14 +125,6 @@ class ParserCommands:
                                    group=self.__params.hadoop_group,
                                    mode=0775)
 
-        Logger.info("Creating the extensions working dir in HDFS {0}".format(self.__params.hdfs_metron_apps_extensions_working))
-        self.__params.HdfsResource(self.__params.hdfs_metron_apps_extensions_working,
-                               type="directory",
-                               action="create_on_execute",
-                               owner=self.__params.metron_user,
-                               group=self.__params.hadoop_group,
-                               mode=0775)
-
         Logger.info("Done initializing parser configuration")
 
     def get_parser_list(self):

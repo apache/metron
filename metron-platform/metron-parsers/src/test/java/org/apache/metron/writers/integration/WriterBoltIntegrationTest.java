@@ -20,26 +20,36 @@ package org.apache.metron.writers.integration;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import javax.annotation.Nullable;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.TestConstants;
 import org.apache.metron.bundles.BundleClassLoaders;
 import org.apache.metron.bundles.ExtensionClassInitializer;
 import org.apache.metron.bundles.util.BundleProperties;
-import org.apache.metron.bundles.util.FileUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.common.field.validation.FieldValidation;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
-import org.apache.metron.integration.*;
+import org.apache.metron.integration.BaseIntegrationTest;
+import org.apache.metron.integration.ComponentRunner;
+import org.apache.metron.integration.ProcessorResult;
+import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaComponent;
-import org.apache.metron.integration.processors.KafkaMessageSet;
 import org.apache.metron.integration.components.ZKServerComponent;
+import org.apache.metron.integration.processors.KafkaMessageSet;
 import org.apache.metron.integration.processors.KafkaProcessor;
 import org.apache.metron.parsers.csv.CSVParser;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
+import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -47,12 +57,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.*;
 
 public class WriterBoltIntegrationTest extends BaseIntegrationTest {
   private static final String ERROR_TOPIC = "parser_error";
@@ -62,14 +66,12 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
     public static void after(){
       ExtensionClassInitializer.reset();
       BundleClassLoaders.reset();
-      FileUtils.reset();
     }
     
     @BeforeClass
     public static void before(){
       ExtensionClassInitializer.reset();
       BundleClassLoaders.reset();
-      FileUtils.reset();
     }
 
     @Override

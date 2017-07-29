@@ -36,7 +36,7 @@ public class BundleUtil {
      *
      * @return the BundleDetails constructed from the information in META-INF/MANIFEST.MF
      */
-    public static BundleDetails fromBundleDirectory(final FileObject bundleDirectory, BundleProperties props) throws FileSystemException, IllegalStateException {
+    public static BundleDetails fromBundleTestDirectory(final FileObject bundleDirectory, BundleProperties props) throws FileSystemException, IllegalStateException {
         if (bundleDirectory == null) {
             throw new IllegalArgumentException("Bundle Directory cannot be null");
         }
@@ -48,7 +48,9 @@ public class BundleUtil {
             final Attributes attributes = manifest.getMainAttributes();
             final String prefix = props.getMetaIdPrefix();
             final BundleDetails.Builder builder = new BundleDetails.Builder();
-            builder.workingDir(bundleDirectory);
+
+            // NOTE there is no File here
+            builder.bundleFile(bundleDirectory);
 
             final String group = attributes.getValue(prefix + BundleManifestEntry.PRE_GROUP.getManifestName());
             final String id = attributes.getValue(prefix + BundleManifestEntry.PRE_ID.getManifestName());
@@ -70,6 +72,71 @@ public class BundleUtil {
             builder.builtBy(attributes.getValue(BundleManifestEntry.BUILT_BY.getManifestName()));
 
             return builder.build();
+        }catch(IOException ioe){
+            throw new FileSystemException("failed reading manifest file " + manifestFile.getURL(),ioe);
+        }
+    }
+
+    /**
+     * Creates a BundleDetails from the given Bundle working directory.
+     *
+     * @param bundleFile the  Bundle which contains a META-INF/MANIFEST.MF
+     *
+     * @return the BundleDetails constructed from the information in META-INF/MANIFEST.MF
+     */
+    public static BundleDetails fromBundleFile(final FileObject bundleFile, BundleProperties props) throws FileSystemException, IllegalStateException {
+        if (bundleFile == null) {
+            throw new IllegalArgumentException("Bundle Directory cannot be null");
+        }
+
+        FileObject bundleFileSystem = bundleFile.getFileSystem().getFileSystemManager().createFileSystem(bundleFile);
+        final FileObject manifestFile = bundleFileSystem.resolveFile("META-INF/MANIFEST.MF");
+        try (final InputStream fis = manifestFile.getContent().getInputStream()) {
+            final Manifest manifest = new Manifest(fis);
+
+            final Attributes attributes = manifest.getMainAttributes();
+            final String prefix = props.getMetaIdPrefix();
+            final BundleDetails.Builder builder = new BundleDetails.Builder();
+            builder.bundleFile(bundleFile);
+
+            final String group = attributes.getValue(prefix + BundleManifestEntry.PRE_GROUP.getManifestName());
+            final String id = attributes.getValue(prefix + BundleManifestEntry.PRE_ID.getManifestName());
+            final String version = attributes.getValue(prefix + BundleManifestEntry.PRE_VERSION.getManifestName());
+            builder.coordinate(new BundleCoordinate(group, id, version));
+
+            final String dependencyGroup = attributes.getValue(prefix + BundleManifestEntry.PRE_DEPENDENCY_GROUP.getManifestName());
+            final String dependencyId = attributes.getValue(prefix + BundleManifestEntry.PRE_DEPENDENCY_ID.getManifestName());
+            final String dependencyVersion = attributes.getValue(prefix + BundleManifestEntry.PRE_DEPENDENCY_VERSION.getManifestName());
+            if (!StringUtils.isBlank(dependencyId)) {
+                builder.dependencyCoordinate(new BundleCoordinate(dependencyGroup, dependencyId, dependencyVersion));
+            }
+
+            builder.buildBranch(attributes.getValue(BundleManifestEntry.BUILD_BRANCH.getManifestName()));
+            builder.buildTag(attributes.getValue(BundleManifestEntry.BUILD_TAG.getManifestName()));
+            builder.buildRevision(attributes.getValue(BundleManifestEntry.BUILD_REVISION.getManifestName()));
+            builder.buildTimestamp(attributes.getValue(BundleManifestEntry.BUILD_TIMESTAMP.getManifestName()));
+            builder.buildJdk(attributes.getValue(BundleManifestEntry.BUILD_JDK.getManifestName()));
+            builder.builtBy(attributes.getValue(BundleManifestEntry.BUILT_BY.getManifestName()));
+
+            return builder.build();
+        }catch(IOException ioe){
+            throw new FileSystemException("failed reading manifest file " + manifestFile.getURL(),ioe);
+        }
+    }
+
+    public static BundleCoordinate coordinateFromBundleFile(final FileObject bundleFile, BundleProperties props) throws FileSystemException{
+        FileObject bundleFileSystem = bundleFile.getFileSystem().getFileSystemManager().createFileSystem(bundleFile);
+        final FileObject manifestFile = bundleFileSystem.resolveFile("META-INF/MANIFEST.MF");
+        try (final InputStream fis = manifestFile.getContent().getInputStream()) {
+            final Manifest manifest = new Manifest(fis);
+
+            final Attributes attributes = manifest.getMainAttributes();
+            final String prefix = props.getMetaIdPrefix();
+
+            final String bundleId = attributes.getValue(prefix + BundleManifestEntry.PRE_ID.getManifestName());
+            final String groupId = attributes.getValue(prefix + BundleManifestEntry.PRE_GROUP.getManifestName());
+            final String version = attributes.getValue(prefix + BundleManifestEntry.PRE_VERSION.getManifestName());
+            return new BundleCoordinate(groupId,bundleId,version);
         }catch(IOException ioe){
             throw new FileSystemException("failed reading manifest file " + manifestFile.getURL(),ioe);
         }

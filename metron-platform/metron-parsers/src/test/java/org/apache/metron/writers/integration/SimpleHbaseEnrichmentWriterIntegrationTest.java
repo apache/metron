@@ -19,13 +19,20 @@
 package org.apache.metron.writers.integration;
 
 import com.google.common.collect.ImmutableList;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.TestConstants;
 import org.apache.metron.bundles.BundleClassLoaders;
 import org.apache.metron.bundles.ExtensionClassInitializer;
-import org.apache.metron.bundles.util.FileUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
@@ -34,7 +41,12 @@ import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.enrichment.integration.mock.MockTableProvider;
 import org.apache.metron.enrichment.lookup.LookupKV;
-import org.apache.metron.integration.*;
+import org.apache.metron.integration.BaseIntegrationTest;
+import org.apache.metron.integration.ComponentRunner;
+import org.apache.metron.integration.Processor;
+import org.apache.metron.integration.ProcessorResult;
+import org.apache.metron.integration.ReadinessState;
+import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
@@ -43,9 +55,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.util.*;
 
 public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationTest {
 
@@ -76,13 +85,11 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
   public static void after(){
     ExtensionClassInitializer.reset();
     BundleClassLoaders.reset();
-    FileUtils.reset();
   }
   @BeforeClass
   public static void before(){
     ExtensionClassInitializer.reset();
     BundleClassLoaders.reset();
-    FileUtils.reset();
   }
   @Test
   public void test() throws UnableToStartException, IOException {
