@@ -42,7 +42,7 @@ class RestMaster(Script):
             params.metron_jvm_flags = format('-Djava.security.auth.login.config={client_jaas_path}')
 
         env.set_params(params)
-        File(format("/etc/sysconfig/metron"),
+        File(format("/etc/default/metron"),
              content=Template("metron.j2")
              )
 

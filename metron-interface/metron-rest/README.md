@@ -239,6 +239,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/storm/parser/start/{name}`](#get-apiv1stormparserstartname)|
 | [ `GET /api/v1/storm/parser/stop/{name}`](#get-apiv1stormparserstopname)|
 | [ `GET /api/v1/storm/{name}`](#get-apiv1stormname)|
+| [ `GET /api/v1/storm/supervisors`](#get-apiv1stormsupervisors)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
 
 ### `GET /api/v1/global/config`
@@ -601,6 +602,11 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns topology status information
     * 404 - Topology is missing
+
+### `GET /api/v1/storm/supervisors`
+  * Description: Retrieves the status of all Storm Supervisors
+  * Returns:
+    * 200 - Returns a list of the status of all Storm Supervisors 
 
 ### `GET /api/v1/user`
   * Description: Retrieves the current user
