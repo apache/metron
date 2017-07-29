@@ -34,7 +34,7 @@ services:
     ports:
       - "16010:16010"
     volumes:
-      - "/opt/hbase-1.1.6/conf"
+      - "/opt/hbase/conf"
     depends_on:
       - kafkazk
   hadoop:
@@ -43,7 +43,7 @@ services:
     ports:
       - "50070:50070"
     volumes:
-      - "/opt/hadoop-2.7.3/etc/hadoop"
+      - "/opt/hadoop/etc/hadoop"
     command: tail -f /dev/null
   storm:
     build:
@@ -56,7 +56,8 @@ services:
       - "8081:8081"
     environment:
       ZOOKEEPER_ADDR: kafkazk
-      CONFIG_TOPOLOGY_CLASSPATH: "/opt/hbase-1.1.6/conf:/opt/hadoop-2.7.3/etc/hadoop"
+      CONFIG_TOPOLOGY_CLASSPATH: "/opt/hbase/conf:/opt/hadoop/etc/hadoop"
+      CONFIG_TOPOLOGY_CLASSPATH: "/opt/hbase/conf:/opt/hadoop/etc/hadoop"
     volumes_from:
       - hbase
       - hadoop
