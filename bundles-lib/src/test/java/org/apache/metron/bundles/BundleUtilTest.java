@@ -22,7 +22,7 @@ import org.apache.metron.bundles.bundle.BundleCoordinate;
 import org.apache.metron.bundles.bundle.BundleDetails;
 import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.metron.bundles.util.BundleUtil;
-import org.apache.metron.bundles.util.VFSUtil;
+import org.apache.metron.bundles.util.FileSystemManagerFactory;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -40,7 +40,7 @@ public class BundleUtilTest {
 
         BundleProperties properties = BundleProperties.createBasicBundleProperties("src/test/resources/bundle.properties", additionalProperties);
         // create a FileSystemManager
-        FileSystemManager fileSystemManager = VFSUtil.generateVfs(properties.getArchiveExtension());
+        FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(properties.getArchiveExtension());
 
         final FileObject bundleDir = fileSystemManager.resolveFile(BundleProperties.getURI("src/test/resources/utils-bundles/bundle-with-versioning"));
         final BundleDetails bundleDetails = BundleUtil.fromBundleTestDirectory(bundleDir, properties);
@@ -66,7 +66,7 @@ public class BundleUtilTest {
     public void testManifestWithoutVersioningAndBuildInfo() throws IOException, URISyntaxException {
         BundleProperties properties = BundleProperties.createBasicBundleProperties("src/test/resources/bundle.properties",  additionalProperties);
         // create a FileSystemManager
-        FileSystemManager fileSystemManager = VFSUtil.generateVfs(properties.getArchiveExtension());
+        FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(properties.getArchiveExtension());
 
         final FileObject bundleDir = fileSystemManager.resolveFile(BundleProperties.getURI("src/test/resources/utils-bundles/bundle-without-versioning"));
         final BundleDetails bundleDetails = BundleUtil.fromBundleTestDirectory(bundleDir, properties);
@@ -92,7 +92,7 @@ public class BundleUtilTest {
     public void testManifestWithoutBundleDependency() throws IOException, URISyntaxException {
         BundleProperties properties = BundleProperties.createBasicBundleProperties("src/test/resources/bundle.properties",  additionalProperties);
         // create a FileSystemManager
-        FileSystemManager fileSystemManager = VFSUtil.generateVfs(properties.getArchiveExtension());
+        FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(properties.getArchiveExtension());
 
         final FileObject bundleDir = fileSystemManager.resolveFile(BundleProperties.getURI("src/test/resources/utils-bundles/bundle-without-dependency"));
         final BundleDetails bundleDetails = BundleUtil.fromBundleTestDirectory(bundleDir, properties);
@@ -116,7 +116,7 @@ public class BundleUtilTest {
     public void testFromManifestWhenBundleDirectoryDoesNotExist() throws IOException, URISyntaxException {
         BundleProperties properties = BundleProperties.createBasicBundleProperties("src/test/resources/bundle.properties", additionalProperties);
         // create a FileSystemManager
-        FileSystemManager fileSystemManager = VFSUtil.generateVfs(properties.getArchiveExtension());
+        FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(properties.getArchiveExtension());
 
         final FileObject manifest = fileSystemManager.resolveFile(BundleProperties.getURI("src/test/resources/utils-bundles/bundle-does-not-exist"));
         BundleUtil.fromBundleTestDirectory(manifest, properties );

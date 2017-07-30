@@ -40,7 +40,7 @@ import org.apache.metron.bundles.ExtensionManager;
 import org.apache.metron.bundles.ExtensionMapping;
 import org.apache.metron.bundles.bundle.Bundle;
 import org.apache.metron.bundles.util.BundleProperties;
-import org.apache.metron.bundles.util.VFSUtil;
+import org.apache.metron.bundles.util.FileSystemManagerFactory;
 import org.apache.metron.integration.components.MRComponent;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.junit.AfterClass;
@@ -116,7 +116,7 @@ public class BundleMapperIntegrationTest {
     properties.setProperty(BundleProperties.HDFS_PREFIX, configuration.get("fs.defaultFS"));
     properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY, "/lib/");
     properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY_PREFIX + "alt", "/lib2/");
-    FileSystemManager fileSystemManager = VFSUtil.generateVfs(properties.getArchiveExtension());
+    FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(properties.getArchiveExtension());
     ArrayList<Class> classes = new ArrayList<>();
     classes.add(MessageParser.class);
     ExtensionClassInitializer.initialize(classes);

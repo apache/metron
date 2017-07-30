@@ -20,7 +20,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.metron.bundles.bundle.Bundle;
 import org.apache.metron.bundles.util.BundleProperties;
-import org.apache.metron.bundles.util.VFSUtil;
+import org.apache.metron.bundles.util.FileSystemManagerFactory;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -101,7 +101,7 @@ public class BundleMapperTest {
     assertEquals("./target/BundleMapper/lib2/",
         properties.getProperty("bundle.library.directory.alt"));
 
-    FileSystemManager fileSystemManager = VFSUtil.generateVfs(properties.getArchiveExtension());
+    FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(properties.getArchiveExtension());
     ArrayList<Class> classes = new ArrayList<>();
     classes.add(MessageParser.class);
     ExtensionClassInitializer.initialize(classes);
@@ -130,7 +130,7 @@ public class BundleMapperTest {
     others.put("bundle.library.directory.alt", emptyDir.toString());
     BundleProperties properties = loadSpecifiedProperties("/BundleMapper/conf/bundle.properties",
         others);
-    FileSystemManager fileSystemManager = VFSUtil.generateVfs(properties.getArchiveExtension());
+    FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(properties.getArchiveExtension());
     ArrayList<Class> classes = new ArrayList<>();
     classes.add(MessageParser.class);
     ExtensionClassInitializer.initialize(classes);
@@ -158,7 +158,7 @@ public class BundleMapperTest {
     others.put("bundle.library.directory.alt", nonExistantDir.toString());
     BundleProperties properties = loadSpecifiedProperties("/BundleMapper/conf/bundle.properties",
         others);
-    FileSystemManager fileSystemManager = VFSUtil.generateVfs(properties.getArchiveExtension());
+    FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(properties.getArchiveExtension());
     ArrayList<Class> classes = new ArrayList<>();
     classes.add(MessageParser.class);
     ExtensionClassInitializer.initialize(classes);
@@ -188,7 +188,7 @@ public class BundleMapperTest {
     BundleProperties properties = loadSpecifiedProperties("/BundleMapper/conf/bundle.properties",
         others);
     // create a FileSystemManager
-    FileSystemManager fileSystemManager = VFSUtil.generateVfs(properties.getArchiveExtension());
+    FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(properties.getArchiveExtension());
     ArrayList<Class> classes = new ArrayList<>();
     classes.add(MessageParser.class);
     ExtensionClassInitializer.initialize(classes);

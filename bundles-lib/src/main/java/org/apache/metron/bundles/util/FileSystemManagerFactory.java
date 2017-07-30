@@ -22,17 +22,14 @@ import org.apache.commons.vfs2.*;
 import org.apache.commons.vfs2.cache.SoftRefFilesCache;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.impl.FileContentInfoFilenameFactory;
-import org.apache.commons.vfs2.impl.VFSClassLoader;
 import org.apache.commons.vfs2.provider.hdfs.HdfsFileProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Optional;
 
-public class VFSUtil {
-  private static final Logger LOG = LoggerFactory.getLogger(VFSUtil.class);
+public class FileSystemManagerFactory {
+  private static final Logger LOG = LoggerFactory.getLogger(FileSystemManagerFactory.class);
 
   /**
    * Create a FileSystem manager suitable for our purposes.
@@ -50,10 +47,10 @@ public class VFSUtil {
    * @return
    * @throws FileSystemException
    */
-  public static FileSystemManager generateVfs() throws FileSystemException {
-    return generateVfs(null);
+  public static FileSystemManager createFileSystemManager() throws FileSystemException {
+    return createFileSystemManager(null);
   }
-  public static FileSystemManager generateVfs(String jarExtensionToRegister) throws FileSystemException {
+  public static FileSystemManager createFileSystemManager(String jarExtensionToRegister) throws FileSystemException {
     DefaultFileSystemManager vfs = new DefaultFileSystemManager();
 
     if(jarExtensionToRegister != null || !StringUtils.isBlank(jarExtensionToRegister) ) {

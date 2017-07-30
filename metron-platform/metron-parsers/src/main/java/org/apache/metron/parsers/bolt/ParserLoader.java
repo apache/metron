@@ -22,16 +22,14 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.metron.bundles.*;
 import org.apache.metron.bundles.bundle.Bundle;
 import org.apache.metron.bundles.util.BundleProperties;
-import org.apache.metron.bundles.util.VFSUtil;
+import org.apache.metron.bundles.util.FileSystemManagerFactory;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.interfaces.MessageParser;
-import org.apache.storm.hdfs.common.security.HdfsSecurityUtil;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,7 +71,7 @@ public class ParserLoader {
           // will get the uris correctly generated
           props.setProperty(BundleProperties.HDFS_PREFIX,fsConf.get("fs.defaultFS"));
         }
-        FileSystemManager fileSystemManager = VFSUtil.generateVfs(props.getArchiveExtension());
+        FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(props.getArchiveExtension());
 
         ArrayList<Class> classes = new ArrayList<>();
         for( Map.Entry<String,String> entry : props.getBundleExtensionTypes().entrySet()){

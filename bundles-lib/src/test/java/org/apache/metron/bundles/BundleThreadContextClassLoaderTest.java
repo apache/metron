@@ -16,16 +16,8 @@
  */
 package org.apache.metron.bundles;
 
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,9 +26,8 @@ import java.util.Map;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.metron.bundles.bundle.Bundle;
 import org.apache.metron.bundles.util.BundleProperties;
-import org.apache.metron.bundles.util.VFSUtil;
+import org.apache.metron.bundles.util.FileSystemManagerFactory;
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class BundleThreadContextClassLoaderTest {
@@ -57,7 +48,7 @@ public class BundleThreadContextClassLoaderTest {
     classes.add(AbstractFoo.class);
     ExtensionClassInitializer.initialize(classes);
     // create a FileSystemManager
-    FileSystemManager fileSystemManager = VFSUtil.generateVfs(properties.getArchiveExtension());
+    FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(properties.getArchiveExtension());
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
     ExtensionManager.discoverExtensions(systemBundle, Collections.emptySet());
 
@@ -77,7 +68,7 @@ public class BundleThreadContextClassLoaderTest {
         .createBasicBundleProperties("src/test/resources/bundle.properties", additionalProperties);
     properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY,"src/test/resources/BundleMapper/lib");
     // create a FileSystemManager
-    FileSystemManager fileSystemManager = VFSUtil.generateVfs(properties.getArchiveExtension());
+    FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(properties.getArchiveExtension());
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
     ExtensionManager.discoverExtensions(systemBundle, Collections.emptySet());
 
@@ -95,7 +86,7 @@ public class BundleThreadContextClassLoaderTest {
     classes.add(AbstractFoo.class);
     ExtensionClassInitializer.initialize(classes);
     // create a FileSystemManager
-    FileSystemManager fileSystemManager = VFSUtil.generateVfs(properties.getArchiveExtension());
+    FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(properties.getArchiveExtension());
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
     ExtensionManager.discoverExtensions(systemBundle, Collections.emptySet());
 
