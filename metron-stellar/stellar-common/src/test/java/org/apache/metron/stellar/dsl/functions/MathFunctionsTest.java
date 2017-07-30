@@ -22,6 +22,7 @@ package org.apache.metron.stellar.dsl.functions;
 import com.google.common.collect.ImmutableMap;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,7 +34,7 @@ public class MathFunctionsTest {
     Context context = Context.EMPTY_CONTEXT();
     StellarProcessor processor = new StellarProcessor();
     Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
-    return processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
+    return processor.parse(rule, new DefaultVariableResolver(v -> variables.get(v),v -> variables.containsKey(v)), StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 
   @Test
