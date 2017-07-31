@@ -35,6 +35,7 @@ import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.message.MessageGetters;
+import org.apache.metron.common.performance.PerformanceLogger;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -47,6 +48,8 @@ import org.slf4j.LoggerFactory;
 
 public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
 
+  public static class Perf {} // used for performance logging
+  private PerformanceLogger perfLog; // not static bc multiple bolts may exist in same worker
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   protected OutputCollector collector;
 
@@ -75,6 +78,7 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
   @Override
   public void prepare(Map map, TopologyContext topologyContext, OutputCollector outputCollector) {
     super.prepare(map, topologyContext, outputCollector);
+    perfLog = new PerformanceLogger(() -> getConfigurations().getGlobalConfig(), Perf.class.getName());
     keyGetStrategy = MessageGetters.OBJECT_FROM_FIELD.get("key");
     subgroupGetStrategy = MessageGetters.OBJECT_FROM_FIELD.get("subgroup");
     messageGetStrategy = MessageGetters.OBJECT_FROM_FIELD.get("message");
@@ -119,6 +123,7 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
+    perfLog.mark("execute");
     String streamId = tuple.getSourceStreamId();
     String key = (String) keyGetStrategy.get(tuple);
     String subgroup = (String) subgroupGetStrategy.get(tuple);
@@ -136,12 +141,17 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
         && Sets.symmetricDifference(streamMessageKeys, streamIds)
                .isEmpty()
          ) {
-        collector.emit( "message"
-                      , tuple
-                      , new Values( key
-                                  , joinMessages(streamMessageMap, this.messageGetStrategy)
-                                  )
-                      );
+
+        perfLog.mark("join-message");
+        V joinedMessages = joinMessages(streamMessageMap, this.messageGetStrategy);
+        perfLog.log("join-message", "key={}, elapsed time to join messages", key);
+
+        perfLog.mark("emit-message");
+        collector.emit("message",
+                       tuple,
+                       new Values(key, joinedMessages));
+        perfLog.log("emit-message", "key={}, elapsed time to emit messages", key);
+
         cache.invalidate(key);
         Tuple messageTuple = streamMessageMap.get("message:");
         collector.ack(messageTuple);
@@ -164,6 +174,7 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
       ErrorUtils.handleError(collector, error);
       collector.ack(tuple);
     }
+    perfLog.log("execute", "key={}, elapsed time to run execute", key);
   }
 
   @Override

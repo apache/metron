@@ -30,6 +30,7 @@ import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.error.MetronError;
+import org.apache.metron.common.performance.PerformanceLogger;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.enrichment.configuration.Enrichment;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
@@ -64,7 +65,8 @@ import org.slf4j.LoggerFactory;
 
 @SuppressWarnings({"rawtypes", "serial"})
 public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
-
+  public static class Perf {} // used for performance logging
+  private PerformanceLogger perfLog; // not static bc multiple bolts may exist in same worker
   private static final Logger LOG = LoggerFactory
           .getLogger(GenericEnrichmentBolt.class);
   public static final String STELLAR_CONTEXT_CONF = "stellarContext";
@@ -157,6 +159,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
       LOG.error("[Metron] GenericEnrichmentBolt could not initialize adapter");
       throw new IllegalStateException("Could not initialize adapter...");
     }
+    perfLog = new PerformanceLogger(() -> getConfigurations().getGlobalConfig(), GenericEnrichmentBolt.Perf.class.getName());
     initializeStellar();
   }
 
@@ -178,6 +181,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
   @SuppressWarnings("unchecked")
   @Override
   public void execute(Tuple tuple) {
+    perfLog.mark("execute");
     String key = tuple.getStringByField("key");
     JSONObject rawMessage = (JSONObject) tuple.getValueByField("message");
     String subGroup = "";
@@ -221,7 +225,11 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
               adapter.logAccess(cacheKey);
               prefix = adapter.getOutputPrefix(cacheKey);
               subGroup = adapter.getStreamSubGroup(enrichmentType, field);
+
+              perfLog.mark("enrich");
               enrichedField = cache.getUnchecked(cacheKey);
+              perfLog.log("enrich", "key={}, time to run enrichment type={}", key, enrichmentType);
+
               if (enrichedField == null)
                 throw new Exception("[Metron] Could not enrich string: "
                         + value);
@@ -257,6 +265,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
     } catch (Exception e) {
       handleError(key, rawMessage, subGroup, enrichedMessage, e);
     }
+    perfLog.log("execute", "key={}, elapsed time to run execute", key);
   }
 
   // Made protected to allow for error testing in integration test. Directly flaws inputs while everything is functioning hits other
