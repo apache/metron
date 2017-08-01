@@ -15,20 +15,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.indexing.dao;
+package org.apache.metron.indexing.dao.search;
 
-import org.apache.metron.indexing.dao.search.InvalidSearchException;
-import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.apache.metron.indexing.dao.search.FieldType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+public enum FieldType {
+  @JsonProperty("string")
+  STRING("string"),
+  @JsonProperty("ip")
+  IP("ip"),
+  @JsonProperty("integer")
+  INTEGER("integer"),
+  @JsonProperty("long")
+  LONG("long"),
+  @JsonProperty("date")
+  DATE("date"),
+  @JsonProperty("float")
+  FLOAT("float"),
+  @JsonProperty("double")
+  DOUBLE("double"),
+  @JsonProperty("boolean")
+  BOOLEAN("boolean"),
+  @JsonProperty("other")
+  OTHER("other");
 
-public interface IndexDao {
-  SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException;
-  void init(Map<String, Object> globalConfig, AccessConfig config);
-  Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException;
-  Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException;
+
+  private String fieldType;
+
+  FieldType(String fieldType) {
+    this.fieldType = fieldType;
+  }
+
+  public String getFieldType() {
+    return fieldType;
+  }
 }
