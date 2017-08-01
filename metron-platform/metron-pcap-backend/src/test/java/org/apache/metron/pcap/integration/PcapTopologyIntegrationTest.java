@@ -29,6 +29,8 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +46,7 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.metron.common.Constants;
+import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.Processor;
 import org.apache.metron.integration.ProcessorResult;
@@ -67,7 +70,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
-public class PcapTopologyIntegrationTest {
+public class PcapTopologyIntegrationTest extends BaseIntegrationTest {
   final static String KAFKA_TOPIC = "pcap";
   private static String BASE_DIR = "pcap";
   private static String DATA_DIR = BASE_DIR + "/data_dir";
@@ -185,12 +188,10 @@ public class PcapTopologyIntegrationTest {
     }};
     updatePropertiesCallback.apply(topologyProperties);
 
-    final ZKServerComponent zkServerComponent = new ZKServerComponent().withPostStartCallback(
-            (zkComponent) -> topologyProperties.setProperty(ZKServerComponent.ZOOKEEPER_PROPERTY, zkComponent.getConnectionString())
-    );
-    final KafkaComponent kafkaComponent = new KafkaComponent().withTopics(new ArrayList<KafkaComponent.Topic>() {{
-      add(new KafkaComponent.Topic(KAFKA_TOPIC, 1));
-    }}).withTopologyProperties(topologyProperties);
+    final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
+
+    final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, Collections.singletonList(
+            new KafkaComponent.Topic(KAFKA_TOPIC, 1)));
 
 
     final MRComponent mr = new MRComponent().withBasePath(baseDir.getAbsolutePath());

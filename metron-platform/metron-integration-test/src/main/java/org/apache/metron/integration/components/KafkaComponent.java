@@ -142,7 +142,7 @@ public class KafkaComponent implements InMemoryComponent {
   @Override
   public void start() {
     // setup Zookeeper
-    zookeeperConnectString = topologyProperties.getProperty("kafka.zk");
+    zookeeperConnectString = topologyProperties.getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY);
 
     zkClient = new ZkClient(zookeeperConnectString, 30000, 30000, ZKStringSerializer$.MODULE$);
 

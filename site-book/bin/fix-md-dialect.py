@@ -59,7 +59,8 @@ import inspect
 import re
 
 # These are the characters excluded by Markdown from use in auto-generated anchor text for Headings.
-EXCLUDED_CHARS_REGEX = r'[^\w\-]'   # all non-alphanumerics except "-" and "_".  Whitespace are previously converted.
+EXCLUDED_CHARS_REGEX_GHM = r'[^\w\-]'   # all non-alphanumerics except "-" and "_".  Whitespace are previously converted.
+EXCLUDED_CHARS_REGEX_DOX = r'[^\w\.\-]'   # all non-alphanumerics except "-", "_", and ".".  Whitespace are previously converted.
 
 def report_error(s) :
     print >>sys.stderr, "ERROR: " + s 
@@ -242,12 +243,12 @@ def rewrite_relative_links() :
             trace('labeltext = "' + labeltext + '"')
             scratch = labeltext.lower()                  # Github-MD forces all anchors to lowercase
             scratch = re.sub(r'[\s]', "-", scratch)      # convert whitespace to "-"
-            scratch = re.sub(EXCLUDED_CHARS_REGEX, "", scratch)  # strip non-alphanumerics
+            scratch = re.sub(EXCLUDED_CHARS_REGEX_GHM, "", scratch)  # strip non-alphanumerics
             if (scratch == named_anchor) :
                 trace("Found a rewritable case")
                 scratch = labeltext                      # Doxia-markdown doesn't change case
                 scratch = re.sub(r'[\s]', "_", scratch)  # convert whitespace to "_"
-                scratch = re.sub(EXCLUDED_CHARS_REGEX, "", scratch)  # strip non-alphanumerics
+                scratch = re.sub(EXCLUDED_CHARS_REGEX_DOX, "", scratch)  # strip non-alphanumerics except "."
                 href = re.sub("#" + named_anchor, "#" + scratch, href)
 
         trace("After anchor rewrite, href is: " + href)
@@ -372,9 +373,9 @@ for FILENAME in sys.argv[1:] :
             active_type = "none"
             indent_stack.init_indent()
             if re.search(r'^#[^#]', inputline) :
-                # First-level headers ("H1") need explicit anchor inserted.  This fixes problem #6.
+                # First-level headers ("H1") need explicit anchor inserted (Doxia style).  This fixes problem #6.
                 anchor_name = re.sub(r' ', "_", inputline[1:].strip())
-                anchor_name = re.sub(EXCLUDED_CHARS_REGEX, "", anchor_name)
+                anchor_name = re.sub(EXCLUDED_CHARS_REGEX_DOX, "", anchor_name)
                 anchor_text = '<a name="' + anchor_name + '"></a>'
                 if H1_COUNT == 0 :
                     # Treat the first header differently - put the header after instead of before

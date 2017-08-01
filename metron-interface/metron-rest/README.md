@@ -171,7 +171,7 @@ The REST application comes with a few [Spring Profiles](http://docs.spring.io/au
 | test                     | sets variables to in-memory services, only used for integration testing |
 | dev                      | adds a test user to the database with credentials `user/password`       |
 | vagrant                  | sets configuration variables to match the Metron vagrant environment    |
-| docker                   | sets configuration variables to match the Metron dcoker environment     |
+| docker                   | sets configuration variables to match the Metron docker environment     |
 
 Setting active profiles is done with the METRON_SPRING_PROFILES_ACTIVE variable.  For example, set this variable in `/etc/sysconfig/metron` to configure the REST application for the Vagrant environment and add a test user:
 ```
@@ -239,6 +239,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/storm/parser/start/{name}`](#get-apiv1stormparserstartname)|
 | [ `GET /api/v1/storm/parser/stop/{name}`](#get-apiv1stormparserstopname)|
 | [ `GET /api/v1/storm/{name}`](#get-apiv1stormname)|
+| [ `GET /api/v1/storm/supervisors`](#get-apiv1stormsupervisors)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
 
 ### `GET /api/v1/global/config`
@@ -601,6 +602,11 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns topology status information
     * 404 - Topology is missing
+
+### `GET /api/v1/storm/supervisors`
+  * Description: Retrieves the status of all Storm Supervisors
+  * Returns:
+    * 200 - Returns a list of the status of all Storm Supervisors 
 
 ### `GET /api/v1/user`
   * Description: Retrieves the current user
