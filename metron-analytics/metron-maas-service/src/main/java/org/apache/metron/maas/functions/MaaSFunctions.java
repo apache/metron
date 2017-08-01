@@ -20,21 +20,7 @@ package org.apache.metron.maas.functions;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.ParseException;
-import org.apache.metron.stellar.dsl.Stellar;
-import org.apache.metron.stellar.dsl.StellarFunction;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.maas.config.Endpoint;
-import org.apache.metron.maas.config.MaaSConfig;
-import org.apache.metron.maas.config.ModelEndpoint;
-import org.apache.metron.maas.discovery.ServiceDiscoverer;
-import org.apache.metron.maas.util.ConfigUtil;
-import org.apache.metron.maas.util.RESTUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.lang.invoke.MethodHandles;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -42,9 +28,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.maas.config.Endpoint;
+import org.apache.metron.maas.config.MaaSConfig;
+import org.apache.metron.maas.config.ModelEndpoint;
+import org.apache.metron.maas.discovery.ServiceDiscoverer;
+import org.apache.metron.maas.util.ConfigUtil;
+import org.apache.metron.maas.util.RESTUtil;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.dsl.StellarFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MaaSFunctions {
- protected static final Logger LOG = LoggerFactory.getLogger(MaaSFunctions.class);
+ protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static class ModelCacheKey {
     String name;
     String version;
@@ -276,7 +276,7 @@ public class MaaSFunctions {
         return ep == null ? null : endpointToMap(ep.getName(), ep.getVersion(), ep.getEndpoint());
       }
       catch(Exception ex) {
-        LOG.error("Unable to discover endpoint: " + ex.getMessage(), ex);
+        LOG.error("Unable to discover endpoint: {}", ex.getMessage(), ex);
         return null;
       }
     }
