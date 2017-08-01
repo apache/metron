@@ -200,6 +200,8 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `DELETE /api/v1/kafka/topic/{name}`](#delete-apiv1kafkatopicname)|
 | [ `GET /api/v1/kafka/topic/{name}/sample`](#get-apiv1kafkatopicnamesample)|
 | [ `GET /api/v1/search/search`](#get-apiv1searchsearch)|
+| [ `GET /api/v1/search/search`](#get-apiv1searchcolumnmetadata)|
+| [ `GET /api/v1/search/search`](#get-apiv1searchcolumnmetadatacommon)|
 | [ `GET /api/v1/sensor/enrichment/config`](#get-apiv1sensorenrichmentconfig)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available/enrichments`](#get-apiv1sensorenrichmentconfiglistavailableenrichments)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available/threat/triage/aggregators`](#get-apiv1sensorenrichmentconfiglistavailablethreattriageaggregators)|
@@ -354,6 +356,20 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
       * searchRequest - Search request
   * Returns:
     * 200 - Search results
+    
+### `GET /api/v1/search/column/metadata`
+  * Description: Get column metadata for each index in the list of indicies
+  * Input:
+      * indices - Indices
+  * Returns:
+    * 200 - Column Metadata
+    
+### `GET /api/v1/search/column/metadata/common`
+  * Description: Get metadata for columns shared by the list of indices
+  * Input:
+      * indices - Indices
+  * Returns:
+    * 200 - Common Column Metadata
 
 ### `GET /api/v1/sensor/enrichment/config`
   * Description: Retrieves all SensorEnrichmentConfigs from Zookeeper
