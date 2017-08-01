@@ -56,7 +56,7 @@ public class UpdateController {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
-  @ApiOperation(value = "Update a document with a patch")
+  @ApiOperation(value = "Replace a document with a full replacement")
   @ApiResponse(message = "Nothing", code = 200)
   @RequestMapping(value = "/replace", method = RequestMethod.POST)
   ResponseEntity<Void> replace(
