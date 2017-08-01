@@ -17,7 +17,20 @@
  */
 package org.apache.metron.dataloads.bulk;
 
-import org.apache.commons.cli.*;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.net.InetAddress;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Map;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -30,16 +43,9 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Map;
-
 public class ElasticsearchDataPrunerRunner {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchDataPruner.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     public static void main(String... argv) throws IOException, java.text.ParseException, ClassNotFoundException, InterruptedException {
 
@@ -70,9 +76,7 @@ public class ElasticsearchDataPrunerRunner {
             Integer numDays = Integer.parseInt(cmd.getOptionValue("n"));
             String indexPrefix = cmd.getOptionValue("p");
 
-            if(LOG.isDebugEnabled()) {
-                LOG.debug("Running prune with args: " + startDate + " " + numDays);
-            }
+            LOG.debug("Running prune with args: {} {}", startDate, numDays);
 
             Configuration configuration = null;
 
@@ -107,9 +111,7 @@ public class ElasticsearchDataPrunerRunner {
 
             DataPruner pruner = new ElasticsearchDataPruner(startDate, numDays, configuration, client, indexPrefix);
 
-            LOG.info("Pruned " + pruner.prune() + " indices from " +  globalConfiguration.get("es.ip") + ":" + globalConfiguration.get("es.port") + "/" + indexPrefix);
-
-
+            LOG.info("Pruned {} indices from {}:{}/{}", pruner.prune(), globalConfiguration.get("es.ip"), globalConfiguration.get("es.port"), indexPrefix);
         } catch (Exception e) {
 
             e.printStackTrace();
