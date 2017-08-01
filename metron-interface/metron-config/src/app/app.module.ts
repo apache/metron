@@ -44,6 +44,7 @@ import {StormService} from './service/storm.service';
 import {SensorParserConfigHistoryService} from './service/sensor-parser-config-history.service';
 import {SensorIndexingConfigService} from './service/sensor-indexing-config.service';
 import {HdfsService} from './service/hdfs.service';
+import {BlocklyService} from "./service/blockly.service";
 
 
 @NgModule({
@@ -53,7 +54,8 @@ import {HdfsService} from './service/hdfs.service';
   providers: [  AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,
     SensorParserConfigHistoryService, SensorEnrichmentConfigService, SensorIndexingConfigService,
     StormService, KafkaService, GrokValidationService, StellarService, HdfsService,
-    GlobalConfigService, MetronAlerts, MetronDialogBox, appRoutingProviders, { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }],
+    GlobalConfigService, MetronAlerts, MetronDialogBox, BlocklyService,
+    appRoutingProviders, { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }],
   bootstrap:    [ AppComponent ]
 })
 export class AppModule { }

@@ -3,7 +3,8 @@
   "version": "0.4.1",
   "license": "Apache 2.0",
   "config": {
-    "node_ace": "node_modules/ace-builds/src-min-noconflict/"
+    "node_ace": "node_modules/ace-builds/src-min-noconflict/",
+    "node_blockly": "node_modules/blockly"
   },
   "angular-cli": {},
   "scripts": {
@@ -16,6 +17,9 @@
     "e2e-all": "./node_modules/.bin/protractor --suite=all",
     "copy-ace": "cp -f $npm_package_config_node_ace/ext-language_tools.js $npm_package_config_node_ace/mode-json.js $npm_package_config_node_ace/theme-monokai.js $npm_package_config_node_ace/worker-json.js src/assets/ace",
     "copy-ace-snippets": "cp -f $npm_package_config_node_ace/snippets/text.js $npm_package_config_node_ace/snippets/json.js  src/assets/ace/snippets",
+    "copy-blockly": "cp -f $npm_package_config_node_blockly/blockly_compressed.js $npm_package_config_node_blockly/blocks_compressed.js $npm_package_config_node_blockly/javascript_compressed.js src/assets/blockly",
+    "copy-blockly-msg": "mkdir -p src/assets/blockly/msg/js && cp -f $npm_package_config_node_blockly/msg/js/en.js src/assets/blockly/msg/js",
+    "copy-blockly-media": "mkdir -p src/assets/blockly/media && cp -f $npm_package_config_node_blockly/media/* src/assets/blockly/media",
     "postinstall": "npm run copy-ace & npm run copy-ace-snippets"
   },
   "private": true,
@@ -60,6 +64,8 @@
     "protractor": "4.0.5",
     "ts-node": "1.2.1",
     "tslint": "3.13.0",
-    "typescript": "~2.0.3"
+    "typescript": "~2.0.3",
+    "blockly": "^1.0.0"
   }
 }
+

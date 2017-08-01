@@ -20,11 +20,13 @@ export class StellarFunctionDescription {
   description: string;
   params: string[];
   returns: string;
+  category: string;
 
-  constructor(name: string,  description: string,  params: string[], returns?: string) {
+  constructor(name: string,  description: string,  params: string[], returns: string, category: string) {
     this.name = name;
     this.description = description;
     this.params = params;
     this.returns = returns;
+    this.category = category;
   }
 }

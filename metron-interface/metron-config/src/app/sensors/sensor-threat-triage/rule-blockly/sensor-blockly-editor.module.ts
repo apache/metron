@@ -15,17 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NgModule} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {routing} from './general-settings.routing';
-import {GeneralSettingsComponent} from './general-settings.component';
-import {AceEditorModule} from '../shared/ace-editor/ace-editor.module';
-import {BlocklyEditorModule} from "../shared/blockly-editor/blockly-editor.module";
 
+import {NgModule, NO_ERRORS_SCHEMA} from '@angular/core';
+import {SensorBlocklyEditorComponent} from "./sensor-blockly-editor.component";
+import {NumberSpinnerModule} from "../../../shared/number-spinner/number-spinner.module";
+import {SharedModule} from "../../../shared/shared.module";
+import {SampleDataModule} from "../../../shared/sample-data/sample-data.module";
+import {BlocklyEditorModule} from "../../../shared/blockly-editor/blockly-editor.module";
 
 @NgModule ({
-  imports: [ CommonModule, routing, FormsModule, ReactiveFormsModule, AceEditorModule, BlocklyEditorModule ],
-  declarations: [ GeneralSettingsComponent ]
+  imports: [ SharedModule, NumberSpinnerModule, SampleDataModule, BlocklyEditorModule ],
+  exports: [ SensorBlocklyEditorComponent ],
+  declarations: [ SensorBlocklyEditorComponent ],
+  schemas: [ NO_ERRORS_SCHEMA ]
 })
-export class GeneralSettingsModule { }
+export class SensorBlocklyEditorModule {}

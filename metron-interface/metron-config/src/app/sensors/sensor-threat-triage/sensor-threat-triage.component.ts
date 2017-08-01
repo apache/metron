@@ -20,6 +20,7 @@ import {Component, Input, EventEmitter, Output, OnChanges, SimpleChanges} from '
 import {SensorEnrichmentConfig } from '../../model/sensor-enrichment-config';
 import {RiskLevelRule} from '../../model/risk-level-rule';
 import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
+import {SensorParserConfig} from "../../model/sensor-parser-config";
 
 export enum SortOrderOption {
   Lowest_Score, Highest_Score, Lowest_Name, Highest_Name
@@ -38,6 +39,7 @@ export enum ThreatTriageFilter {
 export class SensorThreatTriageComponent implements OnChanges {
 
   @Input() showThreatTriage: boolean;
+  @Input() sensorParserConfig: SensorParserConfig;
   @Input() sensorEnrichmentConfig: SensorEnrichmentConfig;
 
   @Output() hideThreatTriage: EventEmitter<boolean> = new EventEmitter<boolean>();
@@ -45,6 +47,7 @@ export class SensorThreatTriageComponent implements OnChanges {
   visibleRules: RiskLevelRule[] = [];
 
   showTextEditor = false;
+  showBlocklyEditor = false;
   currentRiskLevelRule: RiskLevelRule;
 
   lowAlerts = 0;
@@ -92,6 +95,7 @@ export class SensorThreatTriageComponent implements OnChanges {
   onEditRule(riskLevelRule: RiskLevelRule) {
     this.currentRiskLevelRule = riskLevelRule;
     this.showTextEditor = true;
+    this.showBlocklyEditor = false;
   }
 
   onDeleteRule(riskLevelRule: RiskLevelRule) {
@@ -102,6 +106,23 @@ export class SensorThreatTriageComponent implements OnChanges {
   onNewRule(): void {
     this.currentRiskLevelRule = new RiskLevelRule();
     this.showTextEditor = true;
+  }
+
+  onSubmitBlocklyEditor(riskLevelRule: RiskLevelRule): void {
+    this.deleteRule(this.currentRiskLevelRule);
+    this.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules.push(riskLevelRule);
+    this.showBlocklyEditor = false;
+    this.init();
+  }
+
+  onCancelBlocklyEditor(): void {
+    this.showBlocklyEditor = false;
+  }
+
+  onEditBlockly(riskLevelRule: RiskLevelRule) {
+    this.currentRiskLevelRule = riskLevelRule;
+    this.showTextEditor = false;
+    this.showBlocklyEditor = true;
   }
 
   deleteRule(riskLevelRule: RiskLevelRule) {

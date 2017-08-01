@@ -15,44 +15,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.model;
+package org.apache.metron.rest.service.impl.blockly;
 
-public class StellarFunctionDescription {
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import java.util.ArrayList;
+import java.util.List;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+public class Value {
+
+  @XmlAttribute
   private String name;
-  private String description;
-  private String[] params;
-  private String returns;
-  private String category;
 
-  public StellarFunctionDescription(String name, String description, String[] params, String returns, String category) {
-    this.name = name;
-    this.description = description;
-    this.params = params;
-    this.returns = returns;
-    this.category = category;
-  }
+  @XmlElement(name="block")
+  private List<Block> blocks;
 
   public String getName() {
     return name;
   }
 
-  public String getDescription() {
-    return description;
+  public void setName(String name) {
+    this.name = name;
   }
 
-  public String[] getParams() {
-    if (params == null) {
-      return new String[0];
+  public Value withName(String name) {
+    this.name = name;
+    return this;
+  }
+
+  public List<Block> getBlocks() {
+    return blocks;
+  }
+
+  public void setBlocks(List<Block> blocks) {
+    this.blocks = blocks;
+  }
+
+  public Value addBlock(Block block) {
+    if (blocks == null) {
+      blocks = new ArrayList<>();
     }
-    return params;
-  }
-
-  public String getReturns() {
-    return returns;
-  }
-
-  public String getCategory() {
-    return category;
+    blocks.add(block);
+    return this;
   }
 }

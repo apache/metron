@@ -15,17 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NgModule} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {routing} from './general-settings.routing';
-import {GeneralSettingsComponent} from './general-settings.component';
-import {AceEditorModule} from '../shared/ace-editor/ace-editor.module';
-import {BlocklyEditorModule} from "../shared/blockly-editor/blockly-editor.module";
+package org.apache.metron.rest.service.impl.blockly;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 
-@NgModule ({
-  imports: [ CommonModule, routing, FormsModule, ReactiveFormsModule, AceEditorModule, BlocklyEditorModule ],
-  declarations: [ GeneralSettingsComponent ]
-})
-export class GeneralSettingsModule { }
+@XmlAccessorType(XmlAccessType.FIELD)
+public class Mutation {
+
+  @XmlAttribute
+  private int items;
+
+  public int getItems() {
+    return items;
+  }
+
+  public void setItems(int items) {
+    this.items = items;
+  }
+
+  public Mutation withItems(int items) {
+    this.items = items;
+    return this;
+  }
+}

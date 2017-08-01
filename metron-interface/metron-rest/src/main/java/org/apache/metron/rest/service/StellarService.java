@@ -36,4 +36,6 @@ public interface StellarService {
 
     List<StellarFunctionDescription> getSimpleStellarFunctions();
 
+    Map<String, List<StellarFunctionDescription>> getStellarFunctionsByCategory();
+
 }

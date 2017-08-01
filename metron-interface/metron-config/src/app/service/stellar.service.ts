@@ -65,4 +65,10 @@ export class StellarService {
       .catch(HttpUtil.handleError);
   }
 
+  public listFunctionsByCategory(): Observable<{string: StellarFunctionDescription[]}> {
+    return this.http.get(this.url + '/list/functions/by/category', new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+        .map(HttpUtil.extractData)
+        .catch(HttpUtil.handleError);
+  }
+
 }

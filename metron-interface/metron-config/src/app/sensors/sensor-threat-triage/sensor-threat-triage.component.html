@@ -17,6 +17,10 @@
                                   (onCancelTextEditor)="onCancelTextEditor()"
                                   (onSubmitTextEditor)="onSubmitTextEditor($event)"></metron-config-sensor-rule-editor>
 
+<metron-config-sensor-rule-blockly *ngIf="showBlocklyEditor" [riskLevelRule]="currentRiskLevelRule" [sensorParserConfig]="sensorParserConfig"
+                                   (onCancelBlocklyEditor)="onCancelBlocklyEditor()"
+                                   (onSubmitBlocklyEditor)="onSubmitBlocklyEditor($event)"></metron-config-sensor-rule-blockly>
+
 <div class="metron-slider-pane-edit fill load-left-to-right dialog1x">
 
     <div class="form-title">Threat Triage Rules</div>
@@ -73,6 +77,8 @@
                     </div>
                     <div class="threat-triage-rule-row" style=""><i class="fa fa-i-cursor" aria-hidden="true"
                                                                         style="cursor: pointer;" (click)="onEditRule(riskLevelRule)"></i></div>
+                    <div class="threat-triage-rule-row" style=""><i class="fa fa-puzzle-piece" aria-hidden="true"
+                                                      style="cursor: pointer;" (click)="onEditBlockly(riskLevelRule)"></i></div>
 
                     <div class="threat-triage-rule-row" style=""><i  class="fa fa-trash-o" aria-hidden="true" (click)="onDeleteRule(riskLevelRule)" style="cursor: pointer"></i></div>
                 </div>

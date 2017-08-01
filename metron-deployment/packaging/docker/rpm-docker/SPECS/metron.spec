@@ -413,6 +413,9 @@ This package installs the Metron Management UI %{metron_home}
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/ace/*.js
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/ace/LICENSE
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/ace/snippets/*.js
+%attr(0644,root,root) %{metron_home}/web/management-ui/assets/blockly/*.js
+%attr(0644,root,root) %{metron_home}/web/management-ui/assets/blockly/media/*
+%attr(0644,root,root) %{metron_home}/web/management-ui/assets/blockly/msg/js/*.js
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/fonts/Roboto/LICENSE.txt
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/fonts/Roboto/*.ttf
 %attr(0644,root,root) %{metron_home}/web/management-ui/assets/images/*

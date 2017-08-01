@@ -33,9 +33,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,6 +46,15 @@ public class StellarServiceImpl implements StellarService {
   private CuratorFramework client;
 
   @Autowired
+  public StellarServiceImpl(Optional<CuratorFramework> client) {
+    this.client = client.isPresent() ? client.get() : null;
+    try {
+      ConfigurationsUtils.setupStellarStatically(this.client);
+    } catch (Exception e) {
+      throw new IllegalStateException("Unable to setup stellar statically: " + e.getMessage(), e);
+    }
+  }
+
   public StellarServiceImpl(CuratorFramework client) {
     this.client = client;
     try {
@@ -88,13 +99,33 @@ public class StellarServiceImpl implements StellarService {
     List<StellarFunctionDescription> stellarFunctionDescriptions = new ArrayList<>();
     Iterable<StellarFunctionInfo> stellarFunctionsInfo = StellarFunctions.FUNCTION_RESOLVER().getFunctionInfo();
     stellarFunctionsInfo.forEach(stellarFunctionInfo -> {
-      stellarFunctionDescriptions.add(new StellarFunctionDescription(
-              stellarFunctionInfo.getName(),
-              stellarFunctionInfo.getDescription(),
-              stellarFunctionInfo.getParams(),
-              stellarFunctionInfo.getReturns()));
+      String category = getStellarCategory(stellarFunctionInfo);
+      if (category != null) {
+        stellarFunctionDescriptions.add(new StellarFunctionDescription(
+                stellarFunctionInfo.getName(),
+                stellarFunctionInfo.getDescription(),
+                stellarFunctionInfo.getParams(),
+                stellarFunctionInfo.getReturns(),
+                getStellarCategory(stellarFunctionInfo)));
+      }
     });
     return stellarFunctionDescriptions;
+  }
+
+  private String getStellarCategory(StellarFunctionInfo stellarFunctionInfo) {
+    String categoryName;
+    if (stellarFunctionInfo.getFunction().getClass().getEnclosingClass() != null) {
+      categoryName = stellarFunctionInfo.getFunction().getClass().getEnclosingClass().getSimpleName();
+    } else {
+      Class superClass = (Class) stellarFunctionInfo.getFunction().getClass().getGenericSuperclass();
+      categoryName = superClass.getSimpleName();
+    }
+    if (categoryName.contains("Validation")) {
+      return categoryName.replaceFirst("Validation", "");
+    } else if (categoryName.contains("Functions")){
+      return categoryName.replaceFirst("Functions", "");
+    }
+    return null;
   }
 
   @Override
@@ -102,6 +133,21 @@ public class StellarServiceImpl implements StellarService {
     List<StellarFunctionDescription> stellarFunctionDescriptions = getStellarFunctions();
     return stellarFunctionDescriptions.stream().filter(stellarFunctionDescription ->
             stellarFunctionDescription.getParams().length == 1).sorted((o1, o2) -> o1.getName().compareTo(o2.getName())).collect(Collectors.toList());
+  }
+
+  @Override
+  public Map<String, List<StellarFunctionDescription>> getStellarFunctionsByCategory() {
+      Map<String, List<StellarFunctionDescription>> stellarFunctionsByCategory = new HashMap<>();
+      List<StellarFunctionDescription> stellarFunctions = getStellarFunctions();
+      stellarFunctions.forEach(stellarFunctionDescription -> {
+        String category = stellarFunctionDescription.getCategory();
+        stellarFunctionsByCategory.putIfAbsent(category, new ArrayList<>());
+        stellarFunctionsByCategory.get(category).add(stellarFunctionDescription);
+      });
+      for(String key: stellarFunctionsByCategory.keySet()) {
+        Collections.sort(stellarFunctionsByCategory.get(key), (o1, o2) -> o1.getName().compareTo(o2.getName()));
+      }
+      return stellarFunctionsByCategory;
   }
 
 }

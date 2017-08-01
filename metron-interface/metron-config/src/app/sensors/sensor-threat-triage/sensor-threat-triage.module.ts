@@ -19,10 +19,10 @@ import { NgModule } from '@angular/core';
 import {SharedModule} from '../../shared/shared.module';
 import {SensorThreatTriageComponent} from './sensor-threat-triage.component';
 import {SensorRuleEditorModule} from './rule-editor/sensor-rule-editor.module';
-
+import {SensorBlocklyEditorModule} from './rule-blockly/sensor-blockly-editor.module';
 
 @NgModule ({
-  imports: [ SharedModule, SensorRuleEditorModule ],
+  imports: [ SharedModule, SensorRuleEditorModule, SensorBlocklyEditorModule ],
   declarations: [ SensorThreatTriageComponent ],
   exports: [ SensorThreatTriageComponent ]
 })

@@ -77,4 +77,11 @@ public class StellarController {
     ResponseEntity<List<StellarFunctionDescription>> listSimpleFunctions() throws RestException {
         return new ResponseEntity<>(stellarService.getSimpleStellarFunctions(), HttpStatus.OK);
     }
+
+  @ApiOperation(value = "Lists the Stellar functions that can be found on the classpath, grouped by category")
+  @ApiResponse(message = "Returns a list of Stellar functions grouped by category", code = 200)
+  @RequestMapping(value = "/list/functions/by/category", method = RequestMethod.GET)
+  ResponseEntity<Map<String, List<StellarFunctionDescription>>> listFunctionsByCategory() throws Exception {
+    return new ResponseEntity<>(stellarService.getStellarFunctionsByCategory(), HttpStatus.OK);
+  }
 }

@@ -15,17 +15,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NgModule} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {routing} from './general-settings.routing';
-import {GeneralSettingsComponent} from './general-settings.component';
-import {AceEditorModule} from '../shared/ace-editor/ace-editor.module';
-import {BlocklyEditorModule} from "../shared/blockly-editor/blockly-editor.module";
+package org.apache.metron.rest.service.impl.blockly;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlValue;
 
-@NgModule ({
-  imports: [ CommonModule, routing, FormsModule, ReactiveFormsModule, AceEditorModule, BlocklyEditorModule ],
-  declarations: [ GeneralSettingsComponent ]
-})
-export class GeneralSettingsModule { }
+@XmlAccessorType(XmlAccessType.FIELD)
+public class Field {
+
+  @XmlAttribute
+  private String name;
+
+  @XmlValue
+  private String value;
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public Field withName(String name) {
+    this.name = name;
+    return this;
+  }
+
+  public String getValue() {
+    return value;
+  }
+
+  public void setValue(String value) {
+    this.value = value;
+  }
+
+  public Field withValue(String value) {
+    this.value = value;
+    return this;
+  }
+}

@@ -43,7 +43,7 @@ public class StellarCompiler extends StellarBaseListener {
   private static Token<?> EXPRESSION_REFERENCE = new Token<>(null, Object.class);
   private static Token<?> LAMBDA_VARIABLES = new Token<>(null, Object.class);
 
-  private Expression expression;
+  protected Expression expression;
   private final ArithmeticEvaluator arithmeticEvaluator;
   private final NumberLiteralEvaluator numberLiteralEvaluator;
   private final ComparisonExpressionWithOperatorEvaluator comparisonExpressionWithOperatorEvaluator;
