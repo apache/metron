@@ -18,28 +18,31 @@
 
 package org.apache.metron.writer.hdfs;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.client.HdfsDataOutputStream;
-import org.apache.log4j.Logger;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 import org.apache.storm.hdfs.bolt.rotation.FileRotationPolicy;
 import org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy;
-import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.hdfs.common.rotation.RotationAction;
 import org.json.simple.JSONObject;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.*;
-import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SourceHandler {
-  private static final Logger LOG = Logger.getLogger(SourceHandler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   List<RotationAction> rotationActions = new ArrayList<>();
   FileRotationPolicy rotationPolicy;
   SyncPolicy syncPolicy;
@@ -120,14 +123,14 @@ public class SourceHandler {
       this.rotation++;
 
       Path newFile = createOutputFile();
-      LOG.info("Performing " +  this.rotationActions.size() + " file rotation actions." );
+      LOG.info("Performing {} file rotation actions.", this.rotationActions.size());
       for (RotationAction action : this.rotationActions) {
         action.execute(this.fs, this.currentFile);
       }
       this.currentFile = newFile;
     }
     long time = System.currentTimeMillis() - start;
-    LOG.info("File rotation took " + time + " ms.");
+    LOG.info("File rotation took {} ms", time);
   }
 
   private Path createOutputFile() throws IOException {

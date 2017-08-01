@@ -18,27 +18,27 @@
 package org.apache.metron.enrichment.adapters.threatintel;
 
 import com.google.common.collect.Iterables;
+import java.io.IOException;
+import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.metron.enrichment.bolt.CacheKey;
-import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
-import org.apache.metron.enrichment.utils.EnrichmentUtils;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.enrichment.lookup.EnrichmentLookup;
 import org.apache.metron.enrichment.lookup.accesstracker.BloomAccessTracker;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentAccessTracker;
+import org.apache.metron.enrichment.utils.EnrichmentUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
 public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializable {
-  protected static final Logger _LOG = LoggerFactory.getLogger(ThreatIntelAdapter.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   protected ThreatIntelConfig config;
   protected EnrichmentLookup lookup;
 
@@ -90,17 +90,17 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
           String enrichmentType = enrichmentTypes.get(i++);
           if (isThreat) {
             enriched.put(enrichmentType, "alert");
-            _LOG.trace("Theat Intel Enriched value => ", enriched);
+            LOG.trace("Theat Intel Enriched value => {}", enriched);
           }
         }
       }
       catch(IOException e) {
-        _LOG.error("Unable to retrieve value: " + e.getMessage(), e);
+        LOG.error("Unable to retrieve value: {}", e.getMessage(), e);
         initializeAdapter(null);
         throw new RuntimeException("Theat Intel Unable to retrieve value", e);
       }
     }
-    _LOG.trace("Threat Intel Enrichment Success:", enriched);
+    LOG.trace("Threat Intel Enrichment Success: {}", enriched);
     return enriched;
   }
 
@@ -129,7 +129,7 @@ public class ThreatIntelAdapter implements EnrichmentAdapter<CacheKey>,Serializa
       );
       lookup = new EnrichmentLookup(config.getProvider().getTable(hbaseConfig, hbaseTable), config.getHBaseCF(), accessTracker);
     } catch (IOException e) {
-      _LOG.error("Unable to initialize ThreatIntelAdapter", e);
+      LOG.error("Unable to initialize ThreatIntelAdapter", e);
       return false;
     }
 

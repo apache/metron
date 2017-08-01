@@ -17,30 +17,10 @@
  */
 package org.apache.metron.integration.components;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.storm.Config;
-import org.apache.storm.LocalCluster;
-import org.apache.storm.generated.KillOptions;
-import org.apache.storm.generated.StormTopology;
-import org.apache.metron.integration.InMemoryComponent;
-import org.apache.metron.integration.UnableToStartException;
-import org.apache.storm.flux.FluxBuilder;
-import org.apache.storm.flux.model.ExecutionContext;
-import org.apache.storm.flux.model.TopologyDef;
-import org.apache.storm.flux.parser.FluxParser;
-import org.apache.storm.thrift.TException;
-import org.apache.zookeeper.data.Stat;
-import org.junit.Assert;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,10 +29,30 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Pattern;
+import org.apache.commons.io.FileUtils;
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.metron.integration.InMemoryComponent;
+import org.apache.metron.integration.UnableToStartException;
+import org.apache.storm.Config;
+import org.apache.storm.LocalCluster;
+import org.apache.storm.flux.FluxBuilder;
+import org.apache.storm.flux.model.ExecutionContext;
+import org.apache.storm.flux.model.TopologyDef;
+import org.apache.storm.flux.parser.FluxParser;
+import org.apache.storm.generated.KillOptions;
+import org.apache.storm.generated.StormTopology;
+import org.apache.storm.thrift.TException;
+import org.apache.zookeeper.data.Stat;
+import org.junit.Assert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FluxTopologyComponent implements InMemoryComponent {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(FluxTopologyComponent.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   LocalCluster stormCluster;
   String topologyName;
@@ -218,13 +218,13 @@ public class FluxTopologyComponent implements InMemoryComponent {
     You might be wondering why I'm not just casting to slot here, but that's because the Slot class moved locations
     and we're supporting multiple versions of storm.
      */
-    LOG.error("During slot assassination, all candidate threads: " + Thread.getAllStackTraces().keySet());
+    LOG.error("During slot assassination, all candidate threads: {}", Thread.getAllStackTraces().keySet());
     Thread.getAllStackTraces().keySet().stream().filter(t -> t instanceof AutoCloseable && t.getName().toLowerCase().contains("slot")).forEach(t -> {
       LOG.error("Attempting to close thread: " + t + " with state: " + t.getState());
       // With extreme prejudice.  Safety doesn't matter
       try {
         t.stop();
-        LOG.error("Called thread.stop() on " + t.getName() + ". State is: " + t.getState());
+        LOG.error("Called thread.stop() on {}. State is: {}", t.getName(), t.getState());
       } catch(Exception e) {
         // Just swallow anything arising from the threads being killed.
       }

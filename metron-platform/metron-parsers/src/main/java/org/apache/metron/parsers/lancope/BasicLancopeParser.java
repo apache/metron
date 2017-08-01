@@ -18,25 +18,24 @@
 
 package org.apache.metron.parsers.lancope;
 
+import java.lang.invoke.MethodHandles;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
 @SuppressWarnings("serial")
 public class BasicLancopeParser extends BasicParser {
 	// Sample Lancope Message
 	// {"message":"<131>Jul 17 15:59:01 smc-01 StealthWatch[12365]: 2014-07-17T15:58:30Z 10.40.10.254 0.0.0.0 Minor High Concern Index The host's concern index has either exceeded the CI threshold or rapidly increased. Observed 36.55M points. Policy maximum allows up to 20M points.","@version":"1","@timestamp":"2014-07-17T15:56:05.992Z","type":"syslog","host":"10.122.196.201"}
 
-	private static final Logger _LOG = LoggerFactory.getLogger(BasicLancopeParser
-					.class);
+	private static final Logger _LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Override
 	public void configure(Map<String, Object> parserConfig) {
@@ -87,7 +86,7 @@ public class BasicLancopeParser extends BasicParser {
 			return messages;
 		} catch (Exception e) {
 
-			_LOG.error("Unable to parse message: " + payload.toJSONString());
+			_LOG.error("Unable to parse message: {}", payload.toJSONString());
 			return null;
 		}
 	}

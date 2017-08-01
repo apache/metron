@@ -18,7 +18,17 @@
 package org.apache.metron.dataloads.bulk;
 
 
-import org.apache.commons.cli.*;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileStatus;
@@ -28,16 +38,11 @@ import org.apache.hadoop.fs.PathFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 public class HDFSDataPruner extends DataPruner {
 
-
+    private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private Path globPath;
     protected FileSystem fileSystem;
-    protected static final Logger LOG = LoggerFactory.getLogger(HDFSDataPruner.class);
 
     HDFSDataPruner(Date startDate, Integer numDays, String fsUri, String globPath) throws IOException, StartDateException {
 
@@ -122,14 +127,11 @@ public class HDFSDataPruner extends DataPruner {
             Integer numDays = Integer.parseInt(cmd.getOptionValue("n"));
             String globString = cmd.getOptionValue("g");
 
-            if(LOG.isDebugEnabled()) {
-                LOG.debug("Running prune with args: " + startDate + " " + numDays + " " + fileSystemUri + " " + globString);
-            }
+            LOG.debug("Running prune with args: {} {} {} {}", startDate, numDays, fileSystemUri, globString);
 
             DataPruner pruner = new HDFSDataPruner(startDate, numDays, fileSystemUri, globString);
 
-            LOG.info("Pruned " + pruner.prune() + " files from " + fileSystemUri + globString);
-
+            LOG.info("Pruned {} files from {}{}", pruner.prune(), fileSystemUri, globString);
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(-1);
@@ -146,9 +148,7 @@ public class HDFSDataPruner extends DataPruner {
 
         for (FileStatus fileStatus : filesToDelete) {
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Deleting File: " + fileStatus.getPath());
-            }
+            LOG.debug("Deleting File: {}", fileStatus.getPath());
 
             fileSystem.delete(fileStatus.getPath(), false);
 
@@ -177,17 +177,13 @@ public class HDFSDataPruner extends DataPruner {
         @Override
         public boolean accept(Path path) {
             try {
-
-                if(LOG.isDebugEnabled()) {
-                    LOG.debug("ACCEPT - working with file: " + path);
-                }
+                LOG.debug("ACCEPT - working with file: {}", path);
 
                 if (pruner.fileSystem.isDirectory(path)) {
                     return false;
 
                 }
             } catch (IOException e) {
-
                 LOG.error("IOException", e);
 
                 if (failOnError) {
@@ -211,7 +207,6 @@ public class HDFSDataPruner extends DataPruner {
                 return accept;
 
             } catch (IOException e) {
-
                 LOG.error("IOException", e);
 
                 if (failOnError) {

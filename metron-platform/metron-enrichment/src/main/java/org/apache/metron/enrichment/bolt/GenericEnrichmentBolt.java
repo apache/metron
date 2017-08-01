@@ -211,7 +211,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
           if (value != null) {
             SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sourceType);
             if(config == null) {
-              LOG.error("Unable to find SensorEnrichmentConfig for sourceType: " + sourceType);
+              LOG.error("Unable to find SensorEnrichmentConfig for sourceType: {}", sourceType);
               MetronError metronError = new MetronError()
                       .withErrorType(Constants.ErrorType.ENRICHMENT_ERROR)
                       .withMessage("Unable to find SensorEnrichmentConfig for sourceType: " + sourceType)
@@ -271,7 +271,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
   // Made protected to allow for error testing in integration test. Directly flaws inputs while everything is functioning hits other
   // errors, so this is made available in order to ensure ERROR_STREAM is output properly.
   protected void handleError(String key, JSONObject rawMessage, String subGroup, JSONObject enrichedMessage, Exception e) {
-    LOG.error("[Metron] Unable to enrich message: " + rawMessage, e);
+    LOG.error("[Metron] Unable to enrich message: {}", rawMessage, e);
     if (key != null) {
       collector.emit(enrichmentType, new Values(key, enrichedMessage, subGroup));
     }
