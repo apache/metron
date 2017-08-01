@@ -17,21 +17,22 @@
  */
 package org.apache.metron.enrichment.lookup.accesstracker;
 
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.log4j.Logger;
-import org.apache.metron.enrichment.lookup.LookupKey;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.metron.enrichment.lookup.LookupKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PersistentAccessTracker implements AccessTracker {
-    private static final Logger LOG = Logger.getLogger(PersistentAccessTracker.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private static final long serialVersionUID = 1L;
 
     public static class AccessTrackerKey {

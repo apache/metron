@@ -23,8 +23,10 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.stellar.common.StellarProcessor;
+
 import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
@@ -125,5 +127,11 @@ public class SimpleHBaseEnrichmentFunctionsTest {
     Assert.assertTrue(result instanceof Map);
     Map<String, Object> out = (Map<String, Object>) result;
     Assert.assertTrue(out.isEmpty());
+  }
+
+  @Test(expected = ParseException.class)
+  public void testProvidedParameters() throws Exception {
+    String stellar = "ENRICHMENT_GET('et', indicator)";
+    Object result = run(stellar, ImmutableMap.of("indicator", "indicator7"));
   }
 }

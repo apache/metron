@@ -25,6 +25,7 @@ import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.Sets;
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -46,9 +47,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
+
   public static class Perf {} // used for performance logging
   private PerformanceLogger perfLog; // not static bc multiple bolts may exist in same worker
-  private static final Logger LOG = LoggerFactory.getLogger(JoinBolt.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   protected OutputCollector collector;
 
   protected transient CacheLoader<String, Map<String, Tuple>> loader;
@@ -130,7 +132,7 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
     try {
       Map<String, Tuple> streamMessageMap = cache.get(key);
       if (streamMessageMap.containsKey(streamId)) {
-        LOG.warn(String.format("Received key %s twice for stream %s", key, streamId));
+        LOG.warn("Received key {} twice for stream {}", key, streamId);
       }
       streamMessageMap.put(streamId, tuple);
       Set<String> streamIds = getStreamIds(message);
@@ -157,13 +159,13 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
       } else {
         cache.put(key, streamMessageMap);
         if(LOG.isDebugEnabled()) {
-          LOG.debug(getClass().getSimpleName() + ": Missed joining portions for "+ key + ". Expected " + Joiner.on(",").join(streamIds)
-                  + " != " + Joiner.on(",").join(streamMessageKeys)
-                   );
+          LOG.debug("{}: Missed joining portions for {}. Expected {} != {}",
+              getClass().getSimpleName(), key, Joiner.on(",").join(streamIds),
+              Joiner.on(",").join(streamMessageKeys));
         }
       }
     } catch (Exception e) {
-      LOG.error("[Metron] Unable to join messages: " + message, e);
+      LOG.error("[Metron] Unable to join messages: {}", message, e);
       MetronError error = new MetronError()
               .withErrorType(Constants.ErrorType.ENRICHMENT_ERROR)
               .withMessage("Joining problem: " + message)
