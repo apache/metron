@@ -21,7 +21,7 @@ package org.apache.metron.indexing.dao;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
@@ -65,6 +65,28 @@ public class MultiIndexDao implements IndexDao {
     if(exceptions.size() > 0) {
       throw new IOException(Joiner.on("\n").join(exceptions));
     }
+  }
+
+  @Override
+  public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> in) throws IOException {
+    for(IndexDao dao : indices) {
+      Map<String, Map<String, FieldType>> r = dao.getColumnMetadata(in);
+      if(r != null) {
+        return r;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public Map<String, FieldType> getCommonColumnMetadata(List<String> in) throws IOException {
+    for(IndexDao dao : indices) {
+      Map<String, FieldType> r = dao.getCommonColumnMetadata(in);
+      if(r != null) {
+        return r;
+      }
+    }
+    return null;
   }
 
   private static class DocumentContainer {

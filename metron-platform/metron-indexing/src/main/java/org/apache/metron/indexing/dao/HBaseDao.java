@@ -26,12 +26,14 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.Document;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
@@ -108,5 +110,15 @@ public class HBaseDao implements IndexDao {
     byte[] doc = JSONUtils.INSTANCE.toJSON(update.getDocument());
     put.addColumn(cf, columnQualifier, doc);
     getTableInterface().put(put);
+  }
+
+  @Override
+  public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException {
+    return null;
+  }
+
+  @Override
+  public Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException {
+    return null;
   }
 }

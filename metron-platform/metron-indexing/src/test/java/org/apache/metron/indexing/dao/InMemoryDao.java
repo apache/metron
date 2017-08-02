@@ -152,18 +152,19 @@ public class InMemoryDao implements IndexDao {
 
   @Override
   public void update(Document update, Optional<String> index) throws IOException {
-    for(Map.Entry<String, List<String>> kv: BACKING_STORE.entrySet()) {
+    for (Map.Entry<String, List<String>> kv : BACKING_STORE.entrySet()) {
       if (kv.getKey().startsWith(update.getSensorType())) {
-        for(Iterator<String> it = kv.getValue().iterator();it.hasNext();) {
+        for (Iterator<String> it = kv.getValue().iterator(); it.hasNext(); ) {
           String doc = it.next();
           Map<String, Object> docParsed = parse(doc);
-          if(docParsed.getOrDefault(Constants.GUID, "").equals(update.getUuid())) {
+          if (docParsed.getOrDefault(Constants.GUID, "").equals(update.getUuid())) {
             it.remove();
           }
         }
         kv.getValue().add(JSONUtils.INSTANCE.toJSON(update.getDocument(), true));
       }
     }
+  }
   
   public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException {
     Map<String, Map<String, FieldType>> columnMetadata = new HashMap<>();
