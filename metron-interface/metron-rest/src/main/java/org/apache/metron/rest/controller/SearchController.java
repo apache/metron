@@ -22,6 +22,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
@@ -36,6 +37,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/search")
@@ -69,4 +72,17 @@ public class SearchController {
     }
   }
 
+  @ApiOperation(value = "Get column metadata for each index in the list of indices")
+  @ApiResponse(message = "Column Metadata", code = 200)
+  @RequestMapping(value = "/column/metadata", method = RequestMethod.POST)
+  ResponseEntity<Map<String, Map<String, FieldType>>> getColumnMetadata(final @ApiParam(name = "indices", value = "Indices", required = true) @RequestBody List<String> indices) throws RestException {
+    return new ResponseEntity<>(searchService.getColumnMetadata(indices), HttpStatus.OK);
+  }
+
+  @ApiOperation(value = "Get metadata for columns shared by the list of indices")
+  @ApiResponse(message = "Common Column Metadata", code = 200)
+  @RequestMapping(value = "/column/metadata/common", method = RequestMethod.POST)
+  ResponseEntity<Map<String, FieldType>> getCommonColumnMetadata(final @ApiParam(name = "indices", value = "Indices", required = true) @RequestBody List<String> indices) throws RestException {
+    return new ResponseEntity<>(searchService.getCommonColumnMetadata(indices), HttpStatus.OK);
+  }
 }

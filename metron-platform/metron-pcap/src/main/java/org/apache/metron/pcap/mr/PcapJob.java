@@ -23,6 +23,7 @@ import static org.apache.metron.pcap.PcapHelper.lessThanOrEqualTo;
 
 import com.google.common.base.Joiner;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -58,7 +59,7 @@ import org.slf4j.LoggerFactory;
 
 public class PcapJob {
 
-  private static final Logger LOG = LoggerFactory.getLogger(PcapJob.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String START_TS_CONF = "start_ts";
   public static final String END_TS_CONF = "end_ts";
   public static final String WIDTH_CONF = "width";
@@ -189,7 +190,7 @@ public class PcapJob {
                                                               );
       String from = format.format(new Date(Long.divideUnsigned(beginNS, 1000000)));
       String to = format.format(new Date(Long.divideUnsigned(endNS, 1000000)));
-      LOG.debug("Executing query " + filterImpl.queryToString(fields) + " on timerange " + from + " to " + to);
+      LOG.debug("Executing query {} on timerange from {} to {}", filterImpl.queryToString(fields), from, to);
     }
     Path outputPath =  new Path(baseOutputPath, fileName);
     Job job = createJob( basePath

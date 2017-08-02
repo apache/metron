@@ -31,6 +31,12 @@ import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 
 import java.io.IOException;
+=======
+import org.apache.metron.indexing.dao.search.FieldType;
+
+import java.io.IOException;
+import java.util.List;
+>>>>>>> master
 import java.util.Map;
 import java.util.Optional;
 
@@ -89,4 +95,6 @@ public interface IndexDao {
     update(d, Optional.ofNullable(request.getIndex()));
   }
 
+  Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException;
+  Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException;
 }

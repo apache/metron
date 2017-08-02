@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.metron.hbase.mock.MockProvider;
 import org.apache.metron.indexing.dao.InMemoryDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
+import org.apache.metron.indexing.dao.IndexingDaoIntegrationTest;
+import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.service.SearchService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -46,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -83,6 +86,7 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
   public void setup() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
     loadTestData();
+    loadColumnTypes();
   }
 
   @After
@@ -182,5 +186,100 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.responseCode").value(500))
             .andExpect(jsonPath("$.message").value("Search result size must be less than 100"));
+
+    this.mockMvc.perform(post(searchUrl + "/column/metadata").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[\"bro\",\"snort\"]"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.*", hasSize(2)))
+            .andExpect(jsonPath("$.bro.common_string_field").value("string"))
+            .andExpect(jsonPath("$.bro.common_integer_field").value("integer"))
+            .andExpect(jsonPath("$.bro.bro_field").value("boolean"))
+            .andExpect(jsonPath("$.bro.duplicate_field").value("date"))
+            .andExpect(jsonPath("$.snort.common_string_field").value("string"))
+            .andExpect(jsonPath("$.snort.common_integer_field").value("integer"))
+            .andExpect(jsonPath("$.snort.snort_field").value("double"))
+            .andExpect(jsonPath("$.snort.duplicate_field").value("long"));
+
+    this.mockMvc.perform(post(searchUrl + "/column/metadata/common").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[\"bro\",\"snort\"]"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.*", hasSize(2)))
+            .andExpect(jsonPath("$.common_string_field").value("string"))
+            .andExpect(jsonPath("$.common_integer_field").value("integer"));
+
+    this.mockMvc.perform(post(searchUrl + "/column/metadata").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[\"bro\"]"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.*", hasSize(1)))
+            .andExpect(jsonPath("$.bro.common_string_field").value("string"))
+            .andExpect(jsonPath("$.bro.common_integer_field").value("integer"))
+            .andExpect(jsonPath("$.bro.bro_field").value("boolean"))
+            .andExpect(jsonPath("$.bro.duplicate_field").value("date"));
+
+    this.mockMvc.perform(post(searchUrl + "/column/metadata/common").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[\"bro\"]"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.*", hasSize(4)))
+            .andExpect(jsonPath("$.common_string_field").value("string"))
+            .andExpect(jsonPath("$.common_integer_field").value("integer"))
+            .andExpect(jsonPath("$.bro_field").value("boolean"))
+            .andExpect(jsonPath("$.duplicate_field").value("date"));
+
+    this.mockMvc.perform(post(searchUrl + "/column/metadata").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[\"snort\"]"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.*", hasSize(1)))
+            .andExpect(jsonPath("$.snort.common_string_field").value("string"))
+            .andExpect(jsonPath("$.snort.common_integer_field").value("integer"))
+            .andExpect(jsonPath("$.snort.snort_field").value("double"))
+            .andExpect(jsonPath("$.snort.duplicate_field").value("long"));
+
+    this.mockMvc.perform(post(searchUrl + "/column/metadata/common").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[\"snort\"]"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.*", hasSize(4)))
+            .andExpect(jsonPath("$.common_string_field").value("string"))
+            .andExpect(jsonPath("$.common_integer_field").value("integer"))
+            .andExpect(jsonPath("$.snort_field").value("double"))
+            .andExpect(jsonPath("$.duplicate_field").value("long"));
+  }
+
+
+
+  private void loadTestData() throws ParseException {
+    Map<String, List<String>> backingStore = new HashMap<>();
+    for(Map.Entry<String, String> indices :
+            ImmutableMap.of(
+                    "bro_index_2017.01.01.01", IndexingDaoIntegrationTest.broData,
+                    "snort_index_2017.01.01.01", IndexingDaoIntegrationTest.snortData
+            ).entrySet()
+       )
+    {
+      List<String> results = new ArrayList<>();
+      backingStore.put(indices.getKey(), results);
+      JSONArray broArray = (JSONArray) new JSONParser().parse(indices.getValue());
+      for(Object o: broArray) {
+        JSONObject jsonObject = (JSONObject) o;
+        results.add(jsonObject.toJSONString());
+      }
+    }
+    InMemoryDao.load(backingStore);
+  }
+
+  private void loadColumnTypes() throws ParseException {
+    Map<String, Map<String, FieldType>> columnTypes = new HashMap<>();
+    Map<String, FieldType> broTypes = new HashMap<>();
+    broTypes.put("common_string_field", FieldType.STRING);
+    broTypes.put("common_integer_field", FieldType.INTEGER);
+    broTypes.put("bro_field", FieldType.BOOLEAN);
+    broTypes.put("duplicate_field", FieldType.DATE);
+    Map<String, FieldType> snortTypes = new HashMap<>();
+    snortTypes.put("common_string_field", FieldType.STRING);
+    snortTypes.put("common_integer_field", FieldType.INTEGER);
+    snortTypes.put("snort_field", FieldType.DOUBLE);
+    snortTypes.put("duplicate_field", FieldType.LONG);
+    columnTypes.put("bro", broTypes);
+    columnTypes.put("snort", snortTypes);
+    InMemoryDao.setColumnMetadata(columnTypes);
   }
 }

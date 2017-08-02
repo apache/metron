@@ -23,6 +23,7 @@ import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class SearchServiceImpl implements SearchService {
@@ -57,6 +60,25 @@ public class SearchServiceImpl implements SearchService {
       return dao.getLatestResult(request);
     } catch (IOException e) {
       throw new RestException(e.getMessage(), e);
+    }
+  }
+
+  public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws RestException {
+    try {
+      return dao.getColumnMetadata(indices);
+    }
+    catch(IOException ioe) {
+      throw new RestException(ioe.getMessage(), ioe);
+    }
+  }
+
+  @Override
+  public Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws RestException {
+    try {
+      return dao.getCommonColumnMetadata(indices);
+    }
+    catch(IOException ioe) {
+      throw new RestException(ioe.getMessage(), ioe);
     }
   }
 }
