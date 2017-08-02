@@ -20,28 +20,34 @@ package org.apache.metron.management;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import java.lang.invoke.MethodHandles;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
-import org.apache.log4j.Logger;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
-import org.apache.metron.common.utils.JSONUtils;
-
-import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConfigurationFunctions {
-  private static final Logger LOG = Logger.getLogger(ConfigurationFunctions.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static EnumMap<ConfigurationType, Object> configMap = new EnumMap<ConfigurationType, Object>(ConfigurationType.class) {{
     for(ConfigurationType ct : ConfigurationType.values()) {
       put(ct, Collections.synchronizedMap(new HashMap<String, String>()));
@@ -179,7 +185,7 @@ public class ConfigurationFunctions {
             try {
               ret = JSONUtils.INSTANCE.toJSON(config, true);
             } catch (JsonProcessingException e) {
-              LOG.error("Unable to serialize default object: " + e.getMessage(), e);
+              LOG.error("Unable to serialize default object: {}", e.getMessage(), e);
               throw new ParseException("Unable to serialize default object: " + e.getMessage(), e);
             }
           }
@@ -198,7 +204,7 @@ public class ConfigurationFunctions {
               ret = JSONUtils.INSTANCE.toJSON(config, true);
               IndexingConfigurations.setIndex(config, sensor);
             } catch (JsonProcessingException e) {
-              LOG.error("Unable to serialize default object: " + e.getMessage(), e);
+              LOG.error("Unable to serialize default object: {}", e.getMessage(), e);
               throw new ParseException("Unable to serialize default object: " + e.getMessage(), e);
             }
           }
@@ -216,7 +222,7 @@ public class ConfigurationFunctions {
             try {
               ret = JSONUtils.INSTANCE.toJSON(config, true);
             } catch (JsonProcessingException e) {
-              LOG.error("Unable to serialize default object: " + e.getMessage(), e);
+              LOG.error("Unable to serialize default object: {}", e.getMessage(), e);
               throw new ParseException("Unable to serialize default object: " + e.getMessage(), e);
             }
           }
@@ -232,7 +238,7 @@ public class ConfigurationFunctions {
       try {
         setupTreeCache(context);
       } catch (Exception e) {
-        LOG.error("Unable to initialize: " + e.getMessage(), e);
+        LOG.error("Unable to initialize: {}", e.getMessage(), e);
       }
       finally {
         initialized = true;
@@ -303,7 +309,7 @@ public class ConfigurationFunctions {
         }
       }
       catch(Exception ex) {
-        LOG.error("Unable to put config: " + ex.getMessage(), ex);
+        LOG.error("Unable to put config: {}", ex.getMessage(), ex);
         throw new ParseException("Unable to put config: " + ex.getMessage(), ex);
       }
       return null;
@@ -319,7 +325,7 @@ public class ConfigurationFunctions {
       try {
         setupTreeCache(context);
       } catch (Exception e) {
-        LOG.error("Unable to initialize: " + e.getMessage(), e);
+        LOG.error("Unable to initialize: {}", e.getMessage(), e);
       }
       finally {
         initialized = true;

@@ -64,6 +64,10 @@ Metron's code:
 
 Option 3 is more likely to have the latest code.
 
+# Getting Started
+
+To start exploring the capabilities of Apache Metron [follow these instructions to launch Metron in a single-node VM](metron-deployment/vagrant/full-dev-platform) on your own hardware.  
+
 # Building Metron
 
 Build the full project and run tests:

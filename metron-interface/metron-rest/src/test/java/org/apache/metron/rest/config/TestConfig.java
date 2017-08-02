@@ -65,11 +65,12 @@ public class TestConfig {
     return new KafkaComponent().withTopologyProperties(zkProperties);
   }
 
+
   @Bean(destroyMethod = "stop")
   public ComponentRunner componentRunner(ZKServerComponent zkServerComponent, KafkaComponent kafkaWithZKComponent) {
     ComponentRunner runner = new ComponentRunner.Builder()
       .withComponent("zk", zkServerComponent)
-      .withCustomShutdownOrder(new String[]{"zk"})
+      .withCustomShutdownOrder(new String[]{"search", "zk"})
       .build();
     try {
       runner.start();
@@ -131,4 +132,5 @@ public class TestConfig {
   public AdminUtils$ adminUtils() {
     return AdminUtils$.MODULE$;
   }
+
 }

@@ -164,6 +164,7 @@ HdfsResource = functools.partial(
 )
 
 # HBase
+enrichment_hbase_provider_impl = 'org.apache.metron.hbase.HTableProvider'
 enrichment_table = status_params.enrichment_table
 enrichment_cf = status_params.enrichment_cf
 threatintel_table = status_params.threatintel_table
@@ -195,7 +196,8 @@ hbase_user = config['configurations']['hbase-env']['hbase_user']
 security_enabled = status_params.security_enabled
 client_jaas_path = metron_home + '/client_jaas.conf'
 client_jaas_arg = '-Djava.security.auth.login.config=' + metron_home + '/client_jaas.conf'
-topology_worker_childopts = client_jaas_arg if security_enabled else ''
+enrichment_topology_worker_childopts = client_jaas_arg if security_enabled else ''
+indexing_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 topology_auto_credentials = config['configurations']['storm-site'].get('nimbus.credential.renewers.classes', [])
 # Needed for storm.config, because it needs Java String
 topology_auto_credentials_double_quotes = str(topology_auto_credentials).replace("'", '"')
@@ -229,7 +231,9 @@ threatintel_error_topic = config['configurations']['metron-enrichment-env']['thr
 metron_enrichment_topology = status_params.metron_enrichment_topology
 enrichment_workers = config['configurations']['metron-enrichment-env']['enrichment_workers']
 enrichment_acker_executors = config['configurations']['metron-enrichment-env']['enrichment_acker_executors']
-enrichment_topology_worker_childopts = config['configurations']['metron-enrichment-env']['enrichment_topology_worker_childopts']
+if not len(enrichment_topology_worker_childopts) == 0:
+    enrichment_topology_worker_childopts += ' '
+enrichment_topology_worker_childopts += config['configurations']['metron-enrichment-env']['enrichment_topology_worker_childopts']
 enrichment_topology_max_spout_pending = config['configurations']['metron-enrichment-env']['enrichment_topology_max_spout_pending']
 enrichment_join_cache_size = config['configurations']['metron-enrichment-env']['enrichment_join_cache_size']
 threatintel_join_cache_size = config['configurations']['metron-enrichment-env']['threatintel_join_cache_size']
@@ -250,7 +254,9 @@ metron_indexing_topology = status_params.metron_indexing_topology
 indexing_writer_class_name = config['configurations']['metron-indexing-env']['indexing_writer_class_name']
 indexing_workers = config['configurations']['metron-indexing-env']['indexing_workers']
 indexing_acker_executors = config['configurations']['metron-indexing-env']['indexing_acker_executors']
-indexing_topology_worker_childopts = config['configurations']['metron-indexing-env']['indexing_topology_worker_childopts']
+if not len(indexing_topology_worker_childopts) == 0:
+    indexing_topology_worker_childopts += ' '
+indexing_topology_worker_childopts += config['configurations']['metron-indexing-env']['indexing_topology_worker_childopts']
 indexing_topology_max_spout_pending = config['configurations']['metron-indexing-env']['indexing_topology_max_spout_pending']
 indexing_kafka_spout_parallelism = config['configurations']['metron-indexing-env']['indexing_kafka_spout_parallelism']
 indexing_writer_parallelism = config['configurations']['metron-indexing-env']['indexing_writer_parallelism']

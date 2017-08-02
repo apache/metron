@@ -101,64 +101,72 @@ In the core language functions, we support basic functional programming primitiv
 
 ## Stellar Core Functions
 
-|                                                                                                    |
-| ----------                                                                                         |
-| [ `ABS`](../../metron-analytics/metron-statistics#abs)                                             |
-| [ `APPEND_IF_MISSING`](#append_if_missing)                                                         |
-| [ `BIN`](../../metron-analytics/metron-statistics#bin)                                             |
-| [ `BLOOM_ADD`](#bloom_add)                                                                         |
-| [ `BLOOM_EXISTS`](#bloom_exists)                                                                   |
-| [ `BLOOM_INIT`](#bloom_init)                                                                       |
-| [ `BLOOM_MERGE`](#bloom_merge)                                                                     |
-| [ `CEIL`](#ceil)                                                                                   |
-| [ `COS`](#ceil)                                                                                   |
-| [ `CHOP`](#chop)                                                                                   |
-| [ `CHOMP`](#chomp)                                                                                 |
-| [ `COUNT_MATCHES`](#count_matches)                                                                 |
-| [ `DAY_OF_MONTH`](#day_of_month)                                                                   |
-| [ `DAY_OF_WEEK`](#day_of_week)                                                                     |
-| [ `DAY_OF_YEAR`](#day_of_year)                                                                     |
-| [ `DOMAIN_REMOVE_SUBDOMAINS`](#domain_remove_subdomains)                                           |
-| [ `DOMAIN_REMOVE_TLD`](#domain_remove_tld)                                                         |
-| [ `DOMAIN_TO_TLD`](#domain_to_tld)                                                                 |
-| [ `ENDS_WITH`](#ends_with)                                                                         |
-| [ `ENRICHMENT_EXISTS`](#enrichment_exists)                                                         |
-| [ `ENRICHMENT_GET`](#enrichment_get)                                                               |
-| [ `EXP`](#exp)                                                               |
-| [ `FILL_LEFT`](#fill_left)                                                                         |
-| [ `FILL_RIGHT`](#fill_right)                                                                       |
-| [ `FILTER`](#filter)                                                                         |
-| [ `FLOOR`](#floor)                                                                         |
-| [ `FORMAT`](#format)                                                                               |
-| [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality)                   |
-| [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
-| [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)                               |
-| [ `HLLP_OFFER`](../../metron-analytics/metron-statistics#hllp_offer)                               |
-| [ `GEO_GET`](#geo_get)                                                                             |
-| [ `GET`](#get)                                                                                     |
-| [ `GET_FIRST`](#get_first)                                                                         |
-| [ `GET_LAST`](#get_last)                                                                           |
-| [ `IN_SUBNET`](#in_subnet)                                                                         |
-| [ `IS_DATE`](#is_date)                                                                             |
-| [ `IS_DOMAIN`](#is_domain)                                                                         |
-| [ `IS_EMAIL`](#is_email)                                                                           |
-| [ `IS_EMPTY`](#is_empty)                                                                           |
-| [ `IS_INTEGER`](#is_integer)                                                                       |
-| [ `IS_IP`](#is_ip)                                                                                 |
-| [ `IS_URL`](#is_url)                                                                               |
-| [ `JOIN`](#join)                                                                                   |
-| [ `KAFKA_GET`](#kafka_get)                                                                         |
-| [ `KAFKA_PROPS`](#kafka_props)                                                                     |
-| [ `KAFKA_PUT`](#kafka_put)                                                                         |
-| [ `KAFKA_TAIL`](#kafka_tail)                                                                       |
-| [ `LENGTH`](#length)                                                                               |
+|                                                                                  |
+| ----------                                                                       |
+| [ `ABS`](../../metron-analytics/metron-statistics#abs)                           |
+| [ `APPEND_IF_MISSING`](#append_if_missing)                                       |
+| [ `BIN`](../../metron-analytics/metron-statistics#bin)                           |
+| [ `BLOOM_ADD`](#bloom_add)                                                       |
+| [ `BLOOM_EXISTS`](#bloom_exists)                                                 |
+| [ `BLOOM_INIT`](#bloom_init)                                                     |
+| [ `BLOOM_MERGE`](#bloom_merge)                                                   |
+| [ `CEILING`](#ceiling)                                                           |
+| [ `COS`](#cos)                                                                   |
+| [ `CHOP`](#chop)                                                                 |
+| [ `CHOMP`](#chomp)                                                               |
+| [ `COUNT_MATCHES`](#count_matches)                                               |
+| [ `DAY_OF_MONTH`](#day_of_month)                                                 |
+| [ `DAY_OF_WEEK`](#day_of_week)                                                   |
+| [ `DAY_OF_YEAR`](#day_of_year)                                                   |
+| [ `DECODE`](#decode)                                                             |
+| [ `DOMAIN_REMOVE_SUBDOMAINS`](#domain_remove_subdomains)                         |
+| [ `DOMAIN_REMOVE_TLD`](#domain_remove_tld)                                       |
+| [ `DOMAIN_TO_TLD`](#domain_to_tld)                                               |
+| [ `ENCODE`](#encode)                                                             |
+| [ `ENDS_WITH`](#ends_with)                                                       |
+| [ `ENRICHMENT_EXISTS`](#enrichment_exists)                                       |
+| [ `ENRICHMENT_GET`](#enrichment_get)                                             |
+| [ `EXP`](#exp)                                                                   |
+| [ `FILL_LEFT`](#fill_left)                                                       |
+| [ `FILL_RIGHT`](#fill_right)                                                     |
+| [ `FILTER`](#filter)                                                             |
+| [ `FLOOR`](#floor)                                                               |
+| [ `FORMAT`](#format)                                                             |
+| [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality) |
+| [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)               |
+| [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)             |
+| [ `HLLP_OFFER`](../../metron-analytics/metron-statistics#hllp_offer)             |
+| [ `GEO_GET`](#geo_get)                                                           |
+| [ `GET`](#get)                                                                   |
+| [ `GET_FIRST`](#get_first)                                                       |
+| [ `GET_LAST`](#get_last)                                                         |
+| [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)                           |
+| [ `IN_SUBNET`](#in_subnet)                                                       |
+| [ `IS_DATE`](#is_date)                                                           |
+| [ `IS_ENCODING`](#is_encoding)                                                   |
+| [ `IS_DOMAIN`](#is_domain)                                                       |
+| [ `IS_EMAIL`](#is_email)                                                         |
+| [ `IS_EMPTY`](#is_empty)                                                         |
+| [ `IS_INTEGER`](#is_integer)                                                     |
+| [ `IS_IP`](#is_ip)                                                               |
+| [ `IS_URL`](#is_url)                                                             |
+| [ `JOIN`](#join)                                                                 |
+| [ `KAFKA_GET`](#kafka_get)                                                       |
+| [ `KAFKA_PROPS`](#kafka_props)                                                   |
+| [ `KAFKA_PUT`](#kafka_put)                                                       |
+| [ `KAFKA_TAIL`](#kafka_tail)                                                     |
+| [ `LENGTH`](#length)                                                             |
+<<<<<<< HEAD
 | [ `LIST_ADD`](#list_add)                                                                               |
 | [ `LOG2`](#log2)                                                                               |
 | [ `LOG10`](#log10)                                                                               |
 | [ `LN`](#ln)                                                                               |
+=======
+| [ `LIST_ADD`](#list_add)                                                                           |
+>>>>>>> master
 | [ `MAAS_GET_ENDPOINT`](#maas_get_endpoint)                                                         |
 | [ `MAAS_MODEL_APPLY`](#maas_model_apply)                                                           |
-| [ `MAP`](#map)                                                                       |
+| [ `MAP`](#map)                                                                                     |
 | [ `MAP_EXISTS`](#map_exists)                                                                       |
 | [ `MONTH`](#month)                                                                                 |
 | [ `PREPEND_IF_MISSING`](#prepend_if_missing)                                                       |
@@ -166,7 +174,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `PROFILE_FIXED`](#profile_fixed)                                                                 |
 | [ `PROFILE_WINDOW`](#profile_window)                                                               |
 | [ `PROTOCOL_TO_NAME`](#protocol_to_name)                                                           |
-| [ `REDUCE`](#reduce)                                                                   |
+| [ `REDUCE`](#reduce)                                                                               |
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
 | [ `REGEXP_GROUP_VAL`](#regexp_group_val)                                                                   |
 | [ `ROUND`](#round)                                                                   |
@@ -213,6 +221,8 @@ In the core language functions, we support basic functional programming primitiv
 | [ `WEEK_OF_MONTH`](#week_of_month)                                                                 |
 | [ `WEEK_OF_YEAR`](#week_of_year)                                                                   |
 | [ `YEAR`](#year)                                                                                   |
+| [ `ZIP`](#zip)                                                                                   |
+| [ `ZIP_JAGGED`](#zip_jagged)                                                                                   |
 
 ### `APPEND_IF_MISSING`
   * Description: Appends the suffix to the end of the string if the string does not already end with any of the suffixes.
@@ -249,7 +259,7 @@ In the core language functions, we support basic functional programming primitiv
     * bloomfilters - A list of bloom filters to merge
   * Returns: Bloom Filter or null if the list is empty
 
-### `CEIL`
+### `CEILING`
   * Description: Returns the ceiling of a number.
   * Input:
     * number - The number to take the ceiling of
@@ -259,7 +269,7 @@ In the core language functions, we support basic functional programming primitiv
   * Description: Returns the `cos` of a number.
   * Input:
     * number - The number to take the `cos` of
-  * Returns: The `cos` of the number passed in.
+  * Returns: The cosine of the number passed in.
 
 ### `CHOP`
   * Description: Remove the last character from a String
@@ -298,6 +308,19 @@ In the core language functions, we support basic functional programming primitiv
     * dateTime - The datetime as a long representing the milliseconds since unix epoch
   * Returns: The day number within the year.
 
+### `DECODE`
+  * Description: Decodes the passed string with the provided encoding, which
+                 must be one of the encodings returned from [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)   
+  * Input:
+    * string - the string to decode
+    * encoding - the encoding to use, must be one of encodings returned from [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings) 
+    * verify - (optional), true or false to determine if string should be verified as being
+                encoded with the passed encoding
+  * Returns:  
+    * The decoded string on success
+    * The original string the string cannot be decoded
+    * null on usage error
+  
 ### `DOMAIN_REMOVE_SUBDOMAINS`
   * Description: Removes the subdomains from a domain.
   * Input:
@@ -316,6 +339,16 @@ In the core language functions, we support basic functional programming primitiv
     * domain - Fully qualified domain name
   * Returns: The TLD of the domain.  (for example, DOMAIN_TO_TLD('mail.yahoo.co.uk') yields 'co.uk')
 
+### `ENCODE`
+  * Description: Encodes the passed string with the provided encoding, which
+                 must be one of the encodings returned from [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)   
+  * Input:
+    * string - the string to encode
+    * encoding - the encoding to use, must be one of encodings returned from [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings) 
+  * Returns:  
+    * The encoded string on success
+    * null on error
+    
 ### `ENDS_WITH`
   * Description: Determines whether a string ends with a specified suffix
   * Input:
@@ -438,8 +471,15 @@ In the core language functions, we support basic functional programming primitiv
 ### `IS_EMPTY`
   * Description: Returns true if string or collection is empty or null and false if otherwise.
   * Input:
-    * input - Object of string or collection type (for example, list)
+    * Object of string or collection type (for example, list)
   * Returns: True if the string or collection is empty or null and false if otherwise.
+
+### `IS_ENCODING`
+  * Description: Returns true if the passed string is encoded in one of the supported encodings and false if otherwise.
+  * Input:
+      * string - The string to test
+        * encoding - The name of the encoding as string.  See [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings).
+  * Returns: True if the passed string is encoded in one of the supported encodings and false if otherwise.
 
 ### `IS_INTEGER`
   * Description: Determines whether or not an object is an integer.
@@ -510,6 +550,10 @@ In the core language functions, we support basic functional programming primitiv
     * element - Element to add to list
   * Returns: Resulting list with the item added at the end.
 
+### `GET_SUPPORTED_ENCODINGS`
+  * Description: Returns a list of the encodings that are currently supported.
+  * Returns: A List of String
+ 
 ### `LOG2`
   * Description: Returns the log (base `2`) of a number.
   * Input:
@@ -635,22 +679,22 @@ In the core language functions, we support basic functional programming primitiv
   * Returns: The value of the group, or null if not matched or no group at index.
 
 ### `ROUND`
-  * Description: Rounds a number to the nearest integer
+  * Description: Rounds a number to the nearest integer.  This is half-up rounding.
   * Input:
     * number - The number to round
-  * Returns: The nearest integer.
+  * Returns: The nearest integer (based on half-up rounding).
 
 ### `SIN`
-  * Description: Returns the `sin` of a number.
+  * Description: Returns the sine of a number.
   * Input:
-    * number - The number to take the `sin` of
-  * Returns: The `sin` of the number passed in.
+    * number - The number to take the sine of
+  * Returns: The sine of the number passed in.
 
 ### `SQRT`
-  * Description: Returns the `sqrt` of a number.
+  * Description: Returns the square root of a number.
   * Input:
-    * number - The number to take the `sqrt` of
-  * Returns: The `sqrt` of the number passed in.
+    * number - The number to take the square root of
+  * Returns: The square root of the number passed in.
 
 ### `STRING_ENTROPY`
   * Description: Computes the base-2 shannon entropy of a string.
@@ -685,10 +729,10 @@ In the core language functions, we support basic functional programming primitiv
   * Returns: String
 
 ### `TAN`
-  * Description: Returns the `tan` of a number.
+  * Description: Returns the tangent of a number.
   * Input:
-    * number - The number to take the `tan` of
-  * Returns: The `tan` of the number passed in.
+    * number - The number to take the tangent of
+  * Returns: The tangent of the number passed in.
 
 ### `TO_DOUBLE`
   * Description: Transforms the first argument to a double precision number
@@ -787,6 +831,22 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * dateTime - The datetime as a long representing the milliseconds since unix epoch
   * Returns: The current year
+
+### `ZIP`
+  * Description: Zips lists into a single list where the ith element is an list containing the ith items from the constituent lists.
+  See [python](https://docs.python.org/3/library/functions.html#zip)
+  and [wikipedia](https://en.wikipedia.org/wiki/Convolution_(computer_science)) for more context.
+  * Input:
+    * list* - Lists to zip.
+  * Returns: The zip of the lists.  The returned list is the min size of all the lists. e.g. `ZIP( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4] ]`
+
+### `ZIP_LONGEST`
+  * Description: Zips lists into a single list where the ith element is an list containing the ith items from the constituent lists.
+  See [python](https://docs.python.org/3/library/itertools.html#itertools.zip_longest)
+  and [wikipedia](https://en.wikipedia.org/wiki/Convolution_(computer_science)) for more context.
+  * Input:
+    * list* - Lists to zip.
+  * Returns: The zip of the lists.  The returned list is the max size of all the lists.  Empty elements are null e.g. `ZIP_LONGEST( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4], [null, 5] ]`
 
 The following is an example query (i.e. a function which returns a
 boolean) which would be seen possibly in threat triage:
@@ -973,8 +1033,8 @@ This command lists all functions resolvable in the Stellar environment.  Stellar
 ```
 [Stellar]>>> %functions
 BLOOM_ADD, BLOOM_EXISTS, BLOOM_INIT, BLOOM_MERGE, DAY_OF_MONTH, DAY_OF_WEEK, DAY_OF_YEAR, 
-DOMAIN_REMOVE_SUBDOMAINS, DOMAIN_REMOVE_TLD, DOMAIN_TO_TLD, ENDS_WITH, GET, GET_FIRST, 
-GET_LAST, IN_SUBNET, IS_DATE, IS_DOMAIN, IS_EMAIL, IS_EMPTY, IS_INTEGER, IS_IP, IS_URL, 
+DECODE, DOMAIN_REMOVE_SUBDOMAINS, DOMAIN_REMOVE_TLD, DOMAIN_TO_TLD, ENDS_WITH, GET, GET_FIRST, 
+GET_LAST, GET_ENCODINGS_LIST, IN_SUBNET, IS_DATE, IS_DOMAIN, IS_EMAIL, IS_EMPTY, IS_ENCODING, IS_INTEGER, IS_IP, IS_URL, 
 JOIN, LENGTH, MAAS_GET_ENDPOINT, MAAS_MODEL_APPLY, MAP_EXISTS, MAP_GET, MONTH, PROTOCOL_TO_NAME, 
 REGEXP_MATCH, SPLIT, STARTS_WITH, STATS_ADD, STATS_COUNT, STATS_GEOMETRIC_MEAN, STATS_INIT, 
 STATS_KURTOSIS, STATS_MAX, STATS_MEAN, STATS_MERGE, STATS_MIN, STATS_PERCENTILE, 
