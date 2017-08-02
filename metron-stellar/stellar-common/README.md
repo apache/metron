@@ -156,14 +156,10 @@ In the core language functions, we support basic functional programming primitiv
 | [ `KAFKA_PUT`](#kafka_put)                                                       |
 | [ `KAFKA_TAIL`](#kafka_tail)                                                     |
 | [ `LENGTH`](#length)                                                             |
-<<<<<<< HEAD
 | [ `LIST_ADD`](#list_add)                                                                               |
 | [ `LOG2`](#log2)                                                                               |
 | [ `LOG10`](#log10)                                                                               |
 | [ `LN`](#ln)                                                                               |
-=======
-| [ `LIST_ADD`](#list_add)                                                                           |
->>>>>>> master
 | [ `MAAS_GET_ENDPOINT`](#maas_get_endpoint)                                                         |
 | [ `MAAS_MODEL_APPLY`](#maas_model_apply)                                                           |
 | [ `MAP`](#map)                                                                                     |
