@@ -262,9 +262,9 @@ In the core language functions, we support basic functional programming primitiv
   * Returns: The ceiling of the number passed in.
 
 ### `COS`
-  * Description: Returns the `cos` of a number.
+  * Description: Returns the cosine of a number.
   * Input:
-    * number - The number to take the `cos` of
+    * number - The number to take the cosine of
   * Returns: The cosine of the number passed in.
 
 ### `CHOP`
