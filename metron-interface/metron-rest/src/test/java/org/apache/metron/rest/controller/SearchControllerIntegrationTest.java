@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.metron.hbase.mock.MockProvider;
 import org.apache.metron.indexing.dao.InMemoryDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
-import org.apache.metron.indexing.dao.IndexingDaoIntegrationTest;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.service.SearchService;
 import org.json.simple.JSONArray;
@@ -246,25 +245,6 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
 
 
 
-  private void loadTestData() throws ParseException {
-    Map<String, List<String>> backingStore = new HashMap<>();
-    for(Map.Entry<String, String> indices :
-            ImmutableMap.of(
-                    "bro_index_2017.01.01.01", IndexingDaoIntegrationTest.broData,
-                    "snort_index_2017.01.01.01", IndexingDaoIntegrationTest.snortData
-            ).entrySet()
-       )
-    {
-      List<String> results = new ArrayList<>();
-      backingStore.put(indices.getKey(), results);
-      JSONArray broArray = (JSONArray) new JSONParser().parse(indices.getValue());
-      for(Object o: broArray) {
-        JSONObject jsonObject = (JSONObject) o;
-        results.add(jsonObject.toJSONString());
-      }
-    }
-    InMemoryDao.load(backingStore);
-  }
 
   private void loadColumnTypes() throws ParseException {
     Map<String, Map<String, FieldType>> columnTypes = new HashMap<>();
