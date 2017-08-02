@@ -23,14 +23,20 @@ import java.util.function.Function;
 
 public class MathOperation {
   private int maxArgs;
+  private int minArgs;
   private Function<Number[], Number> operation;
-  public MathOperation(Function<Number[], Number> operation, int maxArgs) {
+  public MathOperation(Function<Number[], Number> operation, int minArgs, int maxArgs) {
     this.operation = operation;
     this.maxArgs = maxArgs;
+    this.minArgs = minArgs;
   }
 
   public int getMaxArgs() {
     return maxArgs;
+  }
+
+  public int getMinArgs() {
+    return minArgs;
   }
 
   public Function<Number[], Number> getOperation() {

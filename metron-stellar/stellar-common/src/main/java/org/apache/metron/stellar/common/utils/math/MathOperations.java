@@ -19,6 +19,7 @@
  */
 package org.apache.metron.stellar.common.utils.math;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public enum MathOperations implements Function<Number[], Number> {
@@ -36,7 +37,7 @@ public enum MathOperations implements Function<Number[], Number> {
   ROUND(new MathOperation(d -> {
     Double val = d[0].doubleValue();
     return Double.isNaN(val)?Double.NaN:Math.round(d[0].doubleValue());
-  }, 1)),
+  }, 1, 1)),
   ;
 
   private static class SingleOpFunc implements Function<Number[], Number> {
@@ -50,12 +51,28 @@ public enum MathOperations implements Function<Number[], Number> {
     }
   }
 
-  MathOperation op;
-  MathOperations(Function<Double, Number> singleArg) {
-    op = new MathOperation(new SingleOpFunc(singleArg), 1);
+  private static class BinaryOpFunc implements Function<Number[], Number> {
+    BiFunction<Double, Double, Number> f;
+    public BinaryOpFunc(BiFunction<Double, Double, Number> f) {
+      this.f = f;
+    }
+    @Override
+    public Number apply(Number[] numbers) {
+      return f.apply(numbers[0].doubleValue(), numbers[1].doubleValue());
+    }
   }
 
-  MathOperations(MathOperation op) {
+  MathOperation op;
+  MathOperations(Function<Double, Number> singleArg) {
+    op = new MathOperation(new SingleOpFunc(singleArg), 1, 1);
+  }
+
+  MathOperations(BiFunction<Double, Double, Number> binaryArg) {
+    op = new MathOperation(new BinaryOpFunc(binaryArg), 2, 2);
+  }
+
+  MathOperations(MathOperation op)
+  {
     this.op = op;
   }
 

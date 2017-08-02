@@ -67,8 +67,8 @@ public class MathFunctionsTest {
   }
 
   @Test
-  public void testCeil() {
-    assertValues("CEIL",
+  public void testCeiling() {
+    assertValues("CEILING",
            new HashMap<Double, Double>(baseExpectations) {{
              put(0d, 0d);
              put(10.5d, 11d);

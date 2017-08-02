@@ -103,7 +103,7 @@ public class MathFunctions {
 
   }
 
-  @Stellar(name="CEIL"
+  @Stellar(name="CEILING"
           ,description="Returns the ceiling of a number."
           ,params = {
                 "number - The number to take the ceiling of"
@@ -131,11 +131,11 @@ public class MathFunctions {
   }
 
   @Stellar(name="SIN"
-          ,description="Returns the sin of a number."
+          ,description="Returns the sine of a number."
           ,params = {
-                "number - The number to take the sin of"
+                "number - The number to take the sine of"
                     }
-          , returns="The sin of the number passed in."
+          , returns="The sine of the number passed in."
           )
   public static class Sin extends StellarMathFunction {
    public Sin() {
@@ -144,11 +144,11 @@ public class MathFunctions {
   }
 
   @Stellar(name="COS"
-          ,description="Returns the cos of a number."
+          ,description="Returns the cosine of a number."
           ,params = {
-                "number - The number to take the cos of"
+                "number - The number to take the cosine of"
                     }
-          , returns="The cos of the number passed in."
+          , returns="The cosine of the number passed in."
           )
   public static class Cos extends StellarMathFunction {
    public Cos() {
@@ -157,11 +157,11 @@ public class MathFunctions {
   }
 
   @Stellar(name="TAN"
-          ,description="Returns the tan of a number."
+          ,description="Returns the tangent of a number."
           ,params = {
-                "number - The number to take the tan of"
+                "number - The number to take the tangent of"
                     }
-          , returns="The tan of the number passed in."
+          , returns="The tangent of the number passed in."
           )
   public static class Tan extends StellarMathFunction {
    public Tan() {
@@ -183,11 +183,11 @@ public class MathFunctions {
   }
 
   @Stellar(name="ROUND"
-          ,description="Rounds a number to the nearest integer"
+          ,description="Rounds a number to the nearest integer. This is half-up rounding."
           ,params = {
                 "number - The number to round"
                     }
-          , returns="The nearest integer."
+          , returns="The nearest integer (based on half-up rounding)."
           )
   public static class Round extends StellarMathFunction {
    public Round() {

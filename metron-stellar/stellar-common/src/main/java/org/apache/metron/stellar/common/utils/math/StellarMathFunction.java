@@ -37,7 +37,7 @@ public class StellarMathFunction implements StellarFunction {
 
   @Override
   public Object apply(List<Object> args, Context context) throws ParseException {
-    if(args.size() < _func.getMaxArgs()) {
+    if(args.size() < _func.getMinArgs()) {
       return Double.NaN;
     }
     Number[] nums = new Number[_func.getMaxArgs()];
