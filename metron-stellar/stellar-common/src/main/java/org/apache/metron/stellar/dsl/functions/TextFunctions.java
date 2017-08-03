@@ -51,8 +51,8 @@ public class TextFunctions {
       Object oterm = list.get(0);
       Object oquery = list.get(1);
       Object olang = list.get(2);
-      
-      if(!(oterm instanceof String) || !(oquery instanceof String) || !(olang instanceof String)){
+
+      if (!(oterm instanceof String) || !(oquery instanceof String) || !(olang instanceof String)) {
         return 0;
       }
       String term = (String) oterm;
