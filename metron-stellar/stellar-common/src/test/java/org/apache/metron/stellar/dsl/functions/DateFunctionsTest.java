@@ -22,6 +22,8 @@ package org.apache.metron.stellar.dsl.functions;
 
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,7 +50,7 @@ public class DateFunctionsTest {
   private Object run(String expr) {
     StellarProcessor processor = new StellarProcessor();
     assertTrue(processor.validate(expr));
-    return processor.parse(expr, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
+    return processor.parse(expr, new DefaultVariableResolver( x -> variables.get(x), x -> variables.containsKey(x)), StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
   }
 
   /**
@@ -78,12 +80,11 @@ public class DateFunctionsTest {
   }
 
   /**
-   * If refer to variable that does not exist, expect null returned.
+   * If refer to variable that does not exist, expect ParseException.
    */
-  @Test
+  @Test(expected = ParseException.class)
   public void testDayOfWeekNull() {
     Object result = run("DAY_OF_WEEK(nada)");
-    assertEquals(null, result);
   }
 
   @Test
@@ -102,12 +103,11 @@ public class DateFunctionsTest {
   }
 
   /**
-   * If refer to variable that does not exist, expect null returned.
+   * If refer to variable that does not exist, expect ParseException.
    */
-  @Test
+  @Test(expected = ParseException.class)
   public void testWeekOfMonthNull() {
     Object result = run("WEEK_OF_MONTH(nada)");
-    assertEquals(null, result);
   }
 
   @Test
@@ -126,12 +126,11 @@ public class DateFunctionsTest {
   }
 
   /**
-   * If refer to variable that does not exist, expect null returned.
+   * If refer to variable that does not exist, expect ParseException.
    */
-  @Test
+  @Test(expected = ParseException.class)
   public void testMonthNull() {
     Object result = run("MONTH(nada)");
-    assertEquals(null, result);
   }
 
   @Test
@@ -150,12 +149,11 @@ public class DateFunctionsTest {
   }
 
   /**
-   * If refer to variable that does not exist, expect null returned.
+   * If refer to variable that does not exist, expect ParseException.
    */
-  @Test
+  @Test(expected = ParseException.class)
   public void testYearNull() {
     Object result = run("YEAR(nada)");
-    assertEquals(null, result);
   }
 
   @Test
@@ -174,12 +172,11 @@ public class DateFunctionsTest {
   }
 
   /**
-   * If refer to variable that does not exist, expect null returned.
+   * If refer to variable that does not exist, expect ParseException.
    */
-  @Test
+  @Test(expected = ParseException.class)
   public void testDayOfMonthNull() {
     Object result = run("DAY_OF_MONTH(nada)");
-    assertEquals(null, result);
   }
 
   @Test
@@ -198,12 +195,11 @@ public class DateFunctionsTest {
   }
 
   /**
-   * If refer to variable that does not exist, expect null returned.
+   * If refer to variable that does not exist, expect ParseException.
    */
-  @Test
+  @Test(expected = ParseException.class)
   public void testWeekOfYearNull() {
     Object result = run("WEEK_OF_YEAR(nada)");
-    assertEquals(null, result);
   }
 
   @Test
@@ -222,11 +218,10 @@ public class DateFunctionsTest {
   }
 
   /**
-   * If refer to variable that does not exist, expect null returned.
+   * If refer to variable that does not exist, expect ParseException.
    */
-  @Test
+  @Test(expected = ParseException.class)
   public void testDayOfYearNull() {
     Object result = run("DAY_OF_YEAR(nada)");
-    assertEquals(null, result);
   }
 }
