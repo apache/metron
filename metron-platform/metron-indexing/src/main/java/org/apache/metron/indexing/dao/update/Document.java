@@ -30,23 +30,23 @@ import java.util.Optional;
 public class Document {
   Long timestamp;
   Map<String, Object> document;
-  String uuid;
+  String guid;
   String sensorType;
 
-  public Document(Map<String, Object> document, String uuid, String sensorType, Long timestamp) {
+  public Document(Map<String, Object> document, String guid, String sensorType, Long timestamp) {
     setDocument(document);
-    setUuid(uuid);
+    setGuid(guid);
     setTimestamp(timestamp);
     setSensorType(sensorType);
   }
 
 
-  public Document(String document, String uuid, String sensorType, Long timestamp) throws IOException {
-    this(convertDoc(document), uuid, sensorType, timestamp);
+  public Document(String document, String guid, String sensorType, Long timestamp) throws IOException {
+    this(convertDoc(document), guid, sensorType, timestamp);
   }
 
-  public Document(String document, String uuid, String sensorType) throws IOException {
-    this( document, uuid, sensorType, null);
+  public Document(String document, String guid, String sensorType) throws IOException {
+    this( document, guid, sensorType, null);
   }
 
   private static Map<String, Object> convertDoc(String document) throws IOException {
@@ -78,11 +78,11 @@ public class Document {
     this.document = document;
   }
 
-  public String getUuid() {
-    return uuid;
+  public String getGuid() {
+    return guid;
   }
 
-  public void setUuid(String uuid) {
-    this.uuid = uuid;
+  public void setGuid(String guid) {
+    this.guid = guid;
   }
 }

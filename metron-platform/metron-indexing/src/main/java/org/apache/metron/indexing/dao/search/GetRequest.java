@@ -18,15 +18,15 @@
 package org.apache.metron.indexing.dao.search;
 
 public class GetRequest {
-  String uuid;
+  String guid;
   String sensorType;
 
-  public String getUuid() {
-    return uuid;
+  public String getGuid() {
+    return guid;
   }
 
-  public void setUuid(String uuid) {
-    this.uuid = uuid;
+  public void setGuid(String guid) {
+    this.guid = guid;
   }
 
   public String getSensorType() {

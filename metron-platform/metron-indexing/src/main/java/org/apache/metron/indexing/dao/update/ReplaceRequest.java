@@ -23,7 +23,7 @@ import java.util.Map;
 
 public class ReplaceRequest {
   Map<String, Object> replacement;
-  String uuid;
+  String guid;
   String sensorType;
   String index;
 
@@ -51,11 +51,11 @@ public class ReplaceRequest {
     this.replacement = replacement;
   }
 
-  public String getUuid() {
-    return uuid;
+  public String getGuid() {
+    return guid;
   }
 
-  public void setUuid(String uuid) {
-    this.uuid = uuid;
+  public void setGuid(String guid) {
+    this.guid = guid;
   }
 }

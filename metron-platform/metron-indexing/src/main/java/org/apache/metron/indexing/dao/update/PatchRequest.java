@@ -24,7 +24,7 @@ import java.util.Map;
 public class PatchRequest {
   JsonNode patch;
   Map<String, Object> source;
-  String uuid;
+  String guid;
   String sensorType;
   String index;
 
@@ -52,12 +52,12 @@ public class PatchRequest {
     this.source = source;
   }
 
-  public String getUuid() {
-    return uuid;
+  public String getGuid() {
+    return guid;
   }
 
-  public void setUuid(String uuid) {
-    this.uuid = uuid;
+  public void setGuid(String guid) {
+    this.guid = guid;
   }
 
   public String getSensorType() {

@@ -127,12 +127,12 @@ public class MultiIndexDao implements IndexDao {
   }
 
   @Override
-  public Document getLatest(final String uuid, String sensorType) throws IOException {
+  public Document getLatest(final String guid, String sensorType) throws IOException {
     Document ret = null;
     List<DocumentContainer> output =
             indices.parallelStream().map(dao -> {
       try {
-        return new DocumentContainer(dao.getLatest(uuid, sensorType));
+        return new DocumentContainer(dao.getLatest(guid, sensorType));
       } catch (Throwable e) {
         return new DocumentContainer(e);
       }

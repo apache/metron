@@ -143,16 +143,16 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
-  public Document getLatest(final String uuid, final String sensorType) throws IOException {
+  public Document getLatest(final String guid, final String sensorType) throws IOException {
     Optional<Document> ret = searchByUuid(
-            uuid
+            guid
             , sensorType
             , hit -> {
               Long ts = 0L;
               String doc = hit.getSourceAsString();
               String sourceType = Iterables.getFirst(Splitter.on("_doc").split(hit.getType()), null);
               try {
-                return Optional.of(new Document(doc, uuid, sourceType, ts));
+                return Optional.of(new Document(doc, guid, sourceType, ts));
               } catch (IOException e) {
                 throw new IllegalStateException("Unable to retrieve latest: " + e.getMessage(), e);
               }
@@ -161,8 +161,14 @@ public class ElasticsearchDao implements IndexDao {
     return ret.orElse(null);
   }
 
-  <T> Optional<T> searchByUuid(String uuid, String sensorType, Function<SearchHit, Optional<T>> callback) throws IOException{
-    QueryBuilder query =  QueryBuilders.matchQuery(Constants.GUID, uuid);
+  /**
+   * Return the search hit based on the UUID and sensor type.
+   * A callback can be specified to transform the hit into a type T.
+   * If more than one hit happens, the first one will be returned.
+   * @throws IOException
+   */
+  <T> Optional<T> searchByUuid(String guid, String sensorType, Function<SearchHit, Optional<T>> callback) throws IOException{
+    QueryBuilder query =  QueryBuilders.matchQuery(Constants.GUID, guid);
     SearchRequestBuilder request = client.prepareSearch()
                                          .setTypes(sensorType + "_doc")
                                          .setQuery(query)
@@ -171,9 +177,6 @@ public class ElasticsearchDao implements IndexDao {
     MultiSearchResponse response = client.prepareMultiSearch()
                                          .add(request)
                                          .get();
-    //TODO: Fix this to
-    //      * handle multiple responses
-    //      * be more resilient to error
     for(MultiSearchResponse.Item i : response) {
       org.elasticsearch.action.search.SearchResponse resp = i.getResponse();
       SearchHits hits = resp.getHits();

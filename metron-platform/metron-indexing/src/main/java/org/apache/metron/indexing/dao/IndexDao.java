@@ -45,7 +45,7 @@ public interface IndexDao {
   Document getLatest(String uuid, String sensorType) throws IOException;
 
   default Optional<Map<String, Object>> getLatestResult(GetRequest request) throws IOException {
-    Document ret = getLatest(request.getUuid(), request.getSensorType());
+    Document ret = getLatest(request.getGuid(), request.getSensorType());
     if(ret == null) {
       return Optional.empty();
     }
@@ -62,7 +62,7 @@ public interface IndexDao {
                     ) throws OriginalNotFoundException, IOException {
     Map<String, Object> latest = request.getSource();
     if(latest == null) {
-      Document latestDoc = getLatest(request.getUuid(), request.getSensorType());
+      Document latestDoc = getLatest(request.getGuid(), request.getSensorType());
       if(latestDoc.getDocument() != null) {
         latest = latestDoc.getDocument();
       }
@@ -75,7 +75,7 @@ public interface IndexDao {
     Map<String, Object> updated = JSONUtils.INSTANCE.getMapper()
                                            .convertValue(patched, new TypeReference<Map<String, Object>>() {});
     Document d = new Document( updated
-                             , request.getUuid()
+                             , request.getGuid()
                              , request.getSensorType()
                              , timestamp.orElse(System.currentTimeMillis())
                              );
@@ -86,7 +86,7 @@ public interface IndexDao {
                       , Optional<Long> timestamp
                       ) throws IOException {
     Document d = new Document(request.getReplacement()
-                             , request.getUuid()
+                             , request.getGuid()
                              , request.getSensorType()
                              , timestamp.orElse(System.currentTimeMillis())
                              );

@@ -83,8 +83,8 @@ public class HBaseDao implements IndexDao {
   }
 
   @Override
-  public synchronized Document getLatest(String uuid, String sensorType) throws IOException {
-    Get get = new Get(uuid.getBytes());
+  public synchronized Document getLatest(String guid, String sensorType) throws IOException {
+    Get get = new Get(guid.getBytes());
     get.addFamily(cf);
     Result result = getTableInterface().get(get);
     NavigableMap<byte[], byte[]> columns = result.getFamilyMap( cf);
@@ -95,7 +95,7 @@ public class HBaseDao implements IndexDao {
     Long ts = Bytes.toLong(entry.getKey());
     if(entry.getValue()!= null) {
       String json = new String(entry.getValue());
-      return new Document(json, uuid, sensorType, ts);
+      return new Document(json, guid, sensorType, ts);
     }
     else {
       return null;
@@ -104,7 +104,7 @@ public class HBaseDao implements IndexDao {
 
   @Override
   public synchronized void update(Document update, Optional<String> index) throws IOException {
-    Put put = new Put(update.getUuid().getBytes());
+    Put put = new Put(update.getGuid().getBytes());
     long ts = update.getTimestamp() == null?System.currentTimeMillis():update.getTimestamp();
     byte[] columnQualifier = Bytes.toBytes(ts);
     byte[] doc = JSONUtils.INSTANCE.toJSON(update.getDocument());
