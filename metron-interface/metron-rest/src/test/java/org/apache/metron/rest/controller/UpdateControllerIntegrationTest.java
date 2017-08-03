@@ -72,7 +72,7 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
 
   /**
    {
-     "uuid" : "bro_index_2017.01.01.01:1",
+     "guid" : "bro_index_2017.01.01.01:1",
      "sensorType" : "bro"
    }
    */
@@ -81,7 +81,7 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
 
   /**
    {
-     "uuid" : "bro_index_2017.01.01.01:1",
+     "guid" : "bro_index_2017.01.01.01:1",
      "sensorType" : "bro",
      "patch" : [
       {
@@ -97,7 +97,7 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
 
   /**
    {
-     "uuid" : "bro_index_2017.01.01.01:1",
+     "guid" : "bro_index_2017.01.01.01:1",
      "sensorType" : "bro",
      "replacement" : {
        "source:type": "bro",
@@ -126,13 +126,13 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
 
   @Test
   public void test() throws Exception {
-    String uuid = "bro_index_2017.01.01.01:1";
+    String guid = "bro_index_2017.01.01.01:1";
     ResultActions result =   this.mockMvc.perform(post(searchUrl + "/findOne").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(findMessage0));
     try {
      result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.source:type").value("bro"))
-            .andExpect(jsonPath("$.guid").value(uuid))
+            .andExpect(jsonPath("$.guid").value(guid))
             .andExpect(jsonPath("$.project").doesNotExist())
             .andExpect(jsonPath("$.timestamp").value(2))
       ;
@@ -153,14 +153,14 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.source:type").value("bro"))
-            .andExpect(jsonPath("$.guid").value(uuid))
+            .andExpect(jsonPath("$.guid").value(guid))
             .andExpect(jsonPath("$.project").value("metron"))
             .andExpect(jsonPath("$.timestamp").value(2))
             ;
     Assert.assertEquals(1,table.size());
     {
         //ensure hbase is up to date
-        Get g = new Get(uuid.getBytes());
+        Get g = new Get(guid.getBytes());
         Result r = table.get(g);
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
         Assert.assertEquals(1, columns.size());
@@ -175,14 +175,14 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.source:type").value("bro"))
-            .andExpect(jsonPath("$.guid").value(uuid))
+            .andExpect(jsonPath("$.guid").value(guid))
             .andExpect(jsonPath("$.project").doesNotExist())
             .andExpect(jsonPath("$.timestamp").value(200))
             ;
     Assert.assertEquals(1,table.size());
     {
         //ensure hbase is up to date
-        Get g = new Get(uuid.getBytes());
+        Get g = new Get(guid.getBytes());
         Result r = table.get(g);
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
         Assert.assertEquals(2, columns.size());

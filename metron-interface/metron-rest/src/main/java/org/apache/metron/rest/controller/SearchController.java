@@ -54,7 +54,7 @@ public class SearchController {
     return new ResponseEntity<>(searchService.search(searchRequest), HttpStatus.OK);
   }
 
-  @ApiOperation(value = "Returns latest document for a uuid and sensor")
+  @ApiOperation(value = "Returns latest document for a guid and sensor")
   @ApiResponse(message = "Document representing the output", code = 200)
   @RequestMapping(value = "/findOne", method = RequestMethod.POST)
   ResponseEntity<Map<String, Object>> getLatest(

@@ -42,7 +42,7 @@ public interface IndexDao {
 
   SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException;
   void init(AccessConfig config);
-  Document getLatest(String uuid, String sensorType) throws IOException;
+  Document getLatest(String guid, String sensorType) throws IOException;
 
   default Optional<Map<String, Object>> getLatestResult(GetRequest request) throws IOException {
     Document ret = getLatest(request.getGuid(), request.getSensorType());

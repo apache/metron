@@ -138,18 +138,18 @@ public class ElasticsearchUpdateIntegrationTest {
       Map<String, Object> message0 = new HashMap<String, Object>(inputData.get(0)) {{
         put("new-field", "metron");
       }};
-      String uuid = "" + message0.get(Constants.GUID);
+      String guid = "" + message0.get(Constants.GUID);
       dao.replace(new ReplaceRequest(){{
         setReplacement(message0);
-        setUuid(uuid);
+        setGuid(guid);
         setSensorType(SENSOR_NAME);
       }}, Optional.empty());
       Assert.assertEquals(1, table.size());
-      Document doc = dao.getLatest(uuid, SENSOR_NAME);
+      Document doc = dao.getLatest(guid, SENSOR_NAME);
       Assert.assertEquals(message0, doc.getDocument());
       {
         //ensure hbase is up to date
-        Get g = new Get(uuid.getBytes());
+        Get g = new Get(guid.getBytes());
         Result r = table.get(g);
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
         Assert.assertEquals(1, columns.size());
@@ -180,18 +180,18 @@ public class ElasticsearchUpdateIntegrationTest {
       Map<String, Object> message0 = new HashMap<String, Object>(inputData.get(0)) {{
         put("new-field", "metron2");
       }};
-      String uuid = "" + message0.get(Constants.GUID);
+      String guid = "" + message0.get(Constants.GUID);
       dao.replace(new ReplaceRequest(){{
         setReplacement(message0);
-        setUuid(uuid);
+        setGuid(guid);
         setSensorType(SENSOR_NAME);
       }}, Optional.empty());
       Assert.assertEquals(1, table.size());
-      Document doc = dao.getLatest(uuid, SENSOR_NAME);
+      Document doc = dao.getLatest(guid, SENSOR_NAME);
       Assert.assertEquals(message0, doc.getDocument());
       {
         //ensure hbase is up to date
-        Get g = new Get(uuid.getBytes());
+        Get g = new Get(guid.getBytes());
         Result r = table.get(g);
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
         Assert.assertEquals(2, columns.size());
