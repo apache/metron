@@ -18,6 +18,12 @@
 
 package org.apache.metron.parsers.bro;
 
+import java.lang.invoke.MethodHandles;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.apache.metron.common.Constants;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONArray;
@@ -25,16 +31,10 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 @SuppressWarnings("serial")
 public class BasicBroParser extends BasicParser {
 
-  protected static final Logger _LOG = LoggerFactory.getLogger(BasicBroParser.class);
+  protected static final Logger _LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final ThreadLocal<NumberFormat> DECIMAL_FORMAT = new ThreadLocal<NumberFormat>() {
     @Override
     protected NumberFormat initialValue() {
@@ -63,10 +63,10 @@ public class BasicBroParser extends BasicParser {
     List<JSONObject> messages = new ArrayList<>();
     try {
       rawMessage = new String(msg, "UTF-8");
-      _LOG.trace("[Metron] Received message: " + rawMessage);
+      _LOG.trace("[Metron] Received message: {}", rawMessage);
 
       JSONObject cleanedMessage = cleaner.clean(rawMessage);
-      _LOG.debug("[Metron] Cleaned message: " + cleanedMessage);
+      _LOG.debug("[Metron] Cleaned message: {}", cleanedMessage);
 
       if (cleanedMessage == null || cleanedMessage.isEmpty()) {
         throw new Exception("Unable to clean message: " + rawMessage);
@@ -114,9 +114,9 @@ public class BasicBroParser extends BasicParser {
           timestamp = convertToMillis(broTimestamp);
           payload.put(Constants.Fields.TIMESTAMP.getName(), timestamp);
           payload.put("bro_timestamp", broTimestampFormatted);
-          _LOG.trace(String.format("[Metron] new bro record - timestamp : %s", payload.get(Constants.Fields.TIMESTAMP.getName())));
+          _LOG.trace("[Metron] new bro record - timestamp : {}", payload.get(Constants.Fields.TIMESTAMP.getName()));
         } catch (NumberFormatException nfe) {
-          _LOG.error(String.format("[Metron] timestamp is invalid: %s", payload.get("timestamp")));
+          _LOG.error("[Metron] timestamp is invalid: {}", payload.get("timestamp"));
           payload.put(Constants.Fields.TIMESTAMP.getName(), 0);
         }
       }
@@ -135,7 +135,7 @@ public class BasicBroParser extends BasicParser {
       replaceKey(payload, Constants.Fields.DST_PORT.getName(), new String[]{"dest_port", "id.resp_p"});
 
       payload.put(Constants.Fields.PROTOCOL.getName(), key);
-      _LOG.debug("[Metron] Returning parsed message: " + payload);
+      _LOG.debug("[Metron] Returning parsed message: {}", payload);
       messages.add(payload);
       return messages;
 
@@ -156,7 +156,7 @@ public class BasicBroParser extends BasicParser {
       if (payload.containsKey(fromKey)) {
         Object value = payload.remove(fromKey);
         payload.put(toKey, value);
-        _LOG.trace(String.format("[Metron] Added %s to %s", toKey, payload));
+        _LOG.trace("[Metron] Added {} to {}", toKey, payload);
         return true;
       }
     }
@@ -169,7 +169,7 @@ public class BasicBroParser extends BasicParser {
         JSONArray value = (JSONArray) payload.remove(fromKey);
         if (value != null && !value.isEmpty()) {
           payload.put(toKey, value.get(0));
-          _LOG.trace(String.format("[Metron] Added %s to %s", toKey, payload));
+          _LOG.trace("[Metron] Added {} to {}", toKey, payload);
           return true;
         }
       }

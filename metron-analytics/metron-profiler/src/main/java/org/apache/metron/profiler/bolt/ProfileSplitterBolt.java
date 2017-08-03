@@ -20,29 +20,27 @@
 
 package org.apache.metron.profiler.bolt;
 
+import java.io.UnsupportedEncodingException;
+import java.lang.invoke.MethodHandles;
+import java.util.Map;
+import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
+import org.apache.metron.common.configuration.profiler.ProfileConfig;
+import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
-import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
-import org.apache.metron.common.configuration.profiler.ProfileConfig;
-import org.apache.metron.common.configuration.profiler.ProfilerConfig;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.UnsupportedEncodingException;
-import java.util.Map;
-
-import static java.lang.String.format;
 
 /**
  * The bolt responsible for filtering incoming messages and directing
@@ -51,7 +49,7 @@ import static java.lang.String.format;
  */
 public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(ProfileSplitterBolt.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private OutputCollector collector;
 
@@ -97,7 +95,7 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
       doExecute(input);
 
     } catch (IllegalArgumentException | ParseException | UnsupportedEncodingException e) {
-      LOG.error(format("Unexpected failure: message='%s', tuple='%s'", e.getMessage(), input), e);
+      LOG.error("Unexpected failure: message='{}', tuple='{}'", e.getMessage(), input, e);
       collector.reportError(e);
 
     } finally {
