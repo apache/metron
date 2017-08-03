@@ -37,7 +37,7 @@ import {SearchRequest} from '../model/search-request';
 export class ElasticSearchLocalstorageImpl extends DataSource {
 
   private defaultColumnMetadata = [
-    new ColumnMetadata('_id', 'string'),
+    new ColumnMetadata('id', 'string'),
     new ColumnMetadata('timestamp', 'date'),
     new ColumnMetadata('source:type', 'string'),
     new ColumnMetadata('ip_src_addr', 'ip'),
@@ -64,7 +64,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
       .map(HttpUtil.extractData);
   }
 
-  updateAlertState(request: any) {
+  updateAlertState(request: any): Observable<{}> {
     return this.http.post('/search/_bulk', request, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError);

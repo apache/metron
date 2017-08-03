@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const environment = {
-  production: true,
-};
+export class SortField {
+  field: string;
+  sortOrder: string;
+}

@@ -35,9 +35,13 @@ import {MetronDialogBox} from './shared/metron-dialog-box';
 import {ConfigureRowsModule} from './alerts/configure-rows/configure-rows.module';
 import {SwitchModule} from './shared/switch/switch.module';
 import {ColumnNamesService} from './service/column-names.service';
-import {ElasticSearchLocalstorageImpl} from './service/elasticsearch-localstorage-impl';
 import {DataSource} from './service/data-source';
 import {environment} from '../environments/environment.prod';
+import {RestApiImpl} from './service/rest-api-impl';
+import {LoginModule} from './login/login.module';
+import {AuthGuard} from './shared/auth-guard';
+import {AuthenticationService} from './service/authentication.service';
+import {LoginGuard} from './shared/login-guard';
 
 
 export function initConfig(config: ColumnNamesService) {
@@ -53,6 +57,7 @@ export function initConfig(config: ColumnNamesService) {
     FormsModule,
     HttpModule,
     MetronAlertsRoutingModule,
+    LoginModule,
     AlertsListModule,
     AlertDetailsModule,
     ConfigureTableModule,
@@ -62,7 +67,10 @@ export function initConfig(config: ColumnNamesService) {
     SwitchModule
   ],
   providers: [{ provide: APP_INITIALIZER, useFactory: initConfig, deps: [ColumnNamesService], multi: true },
-              { provide: DataSource, useClass: environment.dataSource === 'elastic' ? ElasticSearchLocalstorageImpl : null},
+              { provide: DataSource, useClass: RestApiImpl },
+              AuthenticationService,
+              AuthGuard,
+              LoginGuard,
               ConfigureTableService,
               SaveSearchService,
               MetronDialogBox,

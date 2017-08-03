@@ -15,7 +15,7 @@
     <div class="container-fluid">
         <div class="row mb-3">
             <div class="col-md-10">
-                <div class="form-title" appAlertSeverity [severity]="alert['threat:triage:score']"> {{ alert['threat:triage:score'] }} {{ alert._id }}</div>
+                <div class="form-title" appAlertSeverity [severity]="alert['threat:triage:score']"> {{ alert['threat:triage:score'] }} {{ alert.id }}</div>
             </div>
             <div class="col-md-2"><i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="goBack()"></i></div>
         </div>
@@ -40,7 +40,7 @@
         </div>
         <div class="ml-1 my-4 form">
             <div *ngFor="let field of alertFields" class="row">
-              <div class="col-6 mb-1 key">{{ field }}</div>   <div class="col-6"> {{ alert._source[field] }} </div>
+              <div class="col-6 mb-1 key">{{ field }}</div>   <div class="col-6"> {{ alert.source[field] }} </div>
             </div>
         </div>
     </div>

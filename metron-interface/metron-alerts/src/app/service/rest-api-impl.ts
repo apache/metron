@@ -15,6 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const environment = {
-  production: true,
-};
+import {Observable} from 'rxjs/Rx';
+import {Headers, RequestOptions} from '@angular/http';
+
+import {HttpUtil} from '../utils/httpUtil';
+import {AlertsSearchResponse} from '../model/alerts-search-response';
+import {SearchRequest} from '../model/search-request';
+import {ElasticSearchLocalstorageImpl} from './elasticsearch-localstorage-impl';
+
+export class RestApiImpl extends ElasticSearchLocalstorageImpl {
+
+  getAlerts(searchRequest: SearchRequest): Observable<AlertsSearchResponse> {
+    let url = '/api/v1/search/search';
+    return this.http.post(url, searchRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+      .map(HttpUtil.extractData)
+      .catch(HttpUtil.handleError)
+      .onErrorResumeNext();
+  }
+}

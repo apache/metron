@@ -43,8 +43,10 @@ export class AlertService {
 
   public pollSearch(searchRequest: SearchRequest): Observable<AlertsSearchResponse> {
     return this.ngZone.runOutsideAngular(() => {
-      return Observable.interval(this.interval * 1000).switchMap(() => {
-        return this.dataSource.getAlerts(searchRequest);
+      return this.ngZone.run(() => {
+        return Observable.interval(this.interval * 1000).switchMap(() => {
+          return this.dataSource.getAlerts(searchRequest);
+        });
       });
     });
   }
@@ -56,7 +58,7 @@ export class AlertService {
   public updateAlertState(alerts: Alert[], state: string, workflowId: string) {
     let request = '';
     for (let alert of alerts) {
-      request += '{ "update" : { "_index" : "' + alert._index + '", "_type" : "' + alert._type + '", "_id" : "' + alert._id + '" } }\n' +
+      request += '{ "update" : { "id" : "' + alert.id + '" } }\n' +
                   '{ "doc": { "alert_status": "' + state + '"';
       if (workflowId) {
         request += ', "workflow_id": "' + workflowId + '"';

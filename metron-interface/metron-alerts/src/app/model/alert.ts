@@ -16,12 +16,9 @@
  * limitations under the License.
  */
 export class Alert {
-  _index: string;
-  _type: string;
-  _id: string;
-  _score: number;
-  _timestamp: number;
-  _source: {
+  id: string;
+  score: number;
+  source: {
     msg: string;
     sig_rev: number;
     ip_dst_port: number;

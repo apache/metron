@@ -15,6 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const environment = {
-  production: true,
-};
+import { LoginPage } from './login.po';
+
+describe('login to application', function() {
+    let page: LoginPage;
+
+    beforeEach(() => {
+        page = new LoginPage();
+    });
+
+    it('should display error message for invalid credentials', () => {
+        page.navigateToLogin();
+        page.setUserNameAndPassword('admin', 'admin');
+        page.submitLoginForm();
+        expect(page.getErrorMessage()).toEqual('Login failed for admin');
+    });
+
+    it('should login for valid credentials', () => {
+        page.navigateToLogin();
+        page.setUserNameAndPassword('admin', 'password');
+        page.submitLoginForm();
+    });
+
+    it('should logout', () => {
+        page.logout();
+        expect(page.getLocation()).toEqual('http://localhost:4200/login');
+    });
+});

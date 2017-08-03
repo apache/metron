@@ -53,7 +53,7 @@ export class AlertDetailsComponent implements OnInit {
   getData() {
     this.alertsService.getAlert(this.alertIndex, this.alertType, this.alertId).subscribe(alert => {
       this.alert = alert;
-      this.alertFields = Object.keys(alert._source).filter(field => !field.includes(':ts') && field !== 'original_string').sort();
+      this.alertFields = Object.keys(alert.source).filter(field => !field.includes(':ts') && field !== 'original_string').sort();
     });
   }
 

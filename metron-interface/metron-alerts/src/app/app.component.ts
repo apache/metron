@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
+import {AuthenticationService} from './service/authentication.service';
 
 @Component({
   selector: 'metron-alerts-root',
@@ -23,4 +24,11 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+  loggedIn: boolean = false;
+
+  constructor(private authService: AuthenticationService) {
+    this.authService.onLoginEvent.subscribe(result => {
+      this.loggedIn = result;
+    });
+  }
 }

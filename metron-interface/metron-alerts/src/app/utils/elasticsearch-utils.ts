@@ -50,7 +50,7 @@ export class ElasticsearchUtils {
       }
     }
 
-    columnMetadata.push(new ColumnMetadata('_id', 'string'));
+    columnMetadata.push(new ColumnMetadata('id', 'string'));
     return columnMetadata;
   }
 

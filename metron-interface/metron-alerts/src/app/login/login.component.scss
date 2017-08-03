@@ -15,6 +15,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const environment = {
-  production: true,
-};
+@import "../../_variables.scss";
+
+.login-pane {
+  position: fixed;
+  background: url(../../assets/images/login.jpg);
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.label
+{
+  font-size: 0.8em;
+  color: $login-label;
+}
+
+.login-card
+{
+  top: 25%;
+  height: 380px;
+  width: 480px;
+  opacity: 0.8;
+  margin: 0 auto;
+  border: none;
+  padding: 20px 25px 30px;
+  background-color: $black;
+  display: block;
+  position: relative;
+}
+
+.logo-img-card
+{
+  margin: 0 auto 10px;
+  display: block;
+  width: 390px;
+  height: 120px;
+}

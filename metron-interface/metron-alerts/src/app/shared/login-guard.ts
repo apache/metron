@@ -15,6 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const environment = {
-  production: true,
-};
+import { Injectable } from '@angular/core';
+import {
+  CanActivate,
+  Router,
+  ActivatedRouteSnapshot,
+  RouterStateSnapshot
+} from '@angular/router';
+import { AuthenticationService } from '../service/authentication.service';
+
+// This guard will ensure that logout is called even if you call /login manually
+@Injectable()
+export class LoginGuard implements CanActivate {
+
+  constructor(private authService: AuthenticationService, private router: Router) {}
+
+  canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+
+    this.authService.logout();
+
+    return true;
+
+  }
+}
