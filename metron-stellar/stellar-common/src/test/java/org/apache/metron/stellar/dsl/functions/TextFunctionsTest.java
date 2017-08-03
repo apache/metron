@@ -15,6 +15,7 @@
 
 package org.apache.metron.stellar.dsl.functions;
 
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -36,25 +37,25 @@ public class TextFunctionsTest {
       put("asf", "Apache Software Foundation");
     }};
     Assert
-        .assertTrue(runPredicate("0 == FUZZY_SCORE(metron,'z',english)", v -> variableMap.get(v)));
+        .assertTrue(runPredicate("0 == FUZZY_SCORE(metron,'z',english)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
     Assert
-        .assertTrue(runPredicate("0 == FUZZY_SCORE(metron,'z',klingon)", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("0 == FUZZY_SCORE(empty,'z',english)", v -> variableMap.get(v)));
+        .assertTrue(runPredicate("0 == FUZZY_SCORE(metron,'z',klingon)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("0 == FUZZY_SCORE(empty,'z',english)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
     Assert
-        .assertTrue(runPredicate("0 == FUZZY_SCORE(empty,empty,english)", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("0 == FUZZY_SCORE(empty,empty,empty)", v -> variableMap.get(v)));
+        .assertTrue(runPredicate("0 == FUZZY_SCORE(empty,empty,english)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("0 == FUZZY_SCORE(empty,empty,empty)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
     boolean caught = false;
     try {
-      runPredicate("0 == FUZZY_SCORE()", v -> variableMap.get(v));
+      runPredicate("0 == FUZZY_SCORE()", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v)));
     } catch (ParseException pe) {
       caught = true;
     }
     Assert.assertTrue(caught);
 
     Assert
-        .assertTrue(runPredicate("1 == FUZZY_SCORE(metron,'m',english)", v -> variableMap.get(v)));
+        .assertTrue(runPredicate("1 == FUZZY_SCORE(metron,'m',english)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
     Assert.assertTrue(
-        runPredicate("16 == FUZZY_SCORE(metron,'metron',english)", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("3 == FUZZY_SCORE(asf,'asf',english)", v -> variableMap.get(v)));
+        runPredicate("16 == FUZZY_SCORE(metron,'metron',english)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("3 == FUZZY_SCORE(asf,'asf',english)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
   }
 }
