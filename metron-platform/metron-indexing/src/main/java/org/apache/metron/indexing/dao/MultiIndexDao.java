@@ -37,9 +37,7 @@ public class MultiIndexDao implements IndexDao {
 
   public MultiIndexDao( IndexDao... composedDao) {
     indices = new ArrayList<>();
-    for(IndexDao dao: composedDao) {
-      indices.add(dao);
-    }
+    Collections.addAll(indices, composedDao);
   }
 
   public MultiIndexDao(Iterable<IndexDao> composedDao) {

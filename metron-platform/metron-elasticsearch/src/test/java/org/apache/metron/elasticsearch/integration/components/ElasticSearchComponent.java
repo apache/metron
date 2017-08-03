@@ -43,10 +43,7 @@ import org.elasticsearch.search.SearchHit;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ElasticSearchComponent implements InMemoryComponent {
 
@@ -98,9 +95,7 @@ public class ElasticSearchComponent implements InMemoryComponent {
 
     public BulkResponse add(String indexName, String sensorType, String... docs) throws IOException {
         List<String> d = new ArrayList<>();
-        for(String doc : docs) {
-            d.add(doc);
-        }
+        Collections.addAll(d, docs);
         return add(indexName, sensorType, d);
     }
 

@@ -165,14 +165,10 @@ public class ElasticsearchUpdateIntegrationTest {
           docs = es.getAllIndexedDocs(index, SENSOR_NAME + "_doc");
           cnt = docs
                   .stream()
-                  .filter(d -> {
-                    Object newfield = d.get("new-field");
-                    return newfield != null && newfield.equals(message0.get("new-field"));
-                  }).count();
+                  .filter(d -> message0.get("new-field").equals(d.get("new-field")))
+                  .count();
         }
-        if (cnt == 0) {
-          Assert.fail("Elasticsearch is not updated!");
-        }
+        Assert.assertNotEquals("Elasticsearch is not updated!", cnt, 0);
       }
     }
     //modify the same message and modify the new field
