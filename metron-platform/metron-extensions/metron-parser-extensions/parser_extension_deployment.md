@@ -9,14 +9,13 @@ to integrate into the Metron system.
 These Bundles are deployed to HDFS under /apps/metron/extension_lib for system parsers ( parsers that are built and deployed with Metron itself).
 Parser extensions created and managed outside the project have their bundles deployed to extension_alt_lib.
 
-The /apps/metron/extension_working directory is used at runtime by the bundle system.
+The bundles are loaded by Apache VFS as a composite file system, at which time they will be cached locally.
 
 > NOTE: Bundles may also be deployed locally on the cluster under /usr/metron/VERSION/
 
 ```bash
     drwxrwxr-x   - metron hadoop          0 2017-06-27 16:15 /apps/metron/extension_lib
     drwxrwxr-x   - metron hadoop          0 2017-06-27 16:15 /apps/metron/extension_alt_lib
-    drwxrwxr-x   - metron hadoop          0 2017-06-27 16:16 /apps/metron/extension_working
 ```
 The system parsers bundles being deployed as such:
 ```bash
@@ -33,34 +32,6 @@ Found 11 items
 -rwxr-xr-x   1 hdfs hdfs      23972 2017-06-27 16:14 /apps/metron/extension_lib/metron-parser-snort-bundle-0.4.0.bundle
 -rwxr-xr-x   1 hdfs hdfs      24230 2017-06-27 16:14 /apps/metron/extension_lib/metron-parser-sourcefire-bundle-0.4.0.bundle
 -rwxr-xr-x   1 hdfs hdfs      23790 2017-06-27 16:14 /apps/metron/extension_lib/metron-parser-websphere-bundle-0.4.0.bundle
-```
-
-Bundles, when unpacked for use are deployed into the extension_working directory:
-
-> NOTE: Parser Extensions which are configuration and pattern only will not have bundles, such as Yaf
-
-```bash
-[root@node1 0.4.0]# hadoop fs -ls /apps/metron/extension_working/extensions
-Found 11 items
-drwxr-xr-x   - storm hadoop          0 2017-06-27 16:16 /apps/metron/extension_working/extensions/metron-parser-asa-bundle-0.4.0.bundle-unpacked
-drwxr-xr-x   - storm hadoop          0 2017-06-27 16:16 /apps/metron/extension_working/extensions/metron-parser-bro-bundle-0.4.0.bundle-unpacked
-drwxr-xr-x   - storm hadoop          0 2017-06-27 16:16 /apps/metron/extension_working/extensions/metron-parser-cef-bundle-0.4.0.bundle-unpacked
-drwxr-xr-x   - storm hadoop          0 2017-06-27 16:16 /apps/metron/extension_working/extensions/metron-parser-fireeye-bundle-0.4.0.bundle-unpacked
-drwxr-xr-x   - storm hadoop          0 2017-06-27 16:16 /apps/metron/extension_working/extensions/metron-parser-ise-bundle-0.4.0.bundle-unpacked
-drwxr-xr-x   - storm hadoop          0 2017-06-27 16:16 /apps/metron/extension_working/extensions/metron-parser-lancope-bundle-0.4.0.bundle-unpacked
-drwxr-xr-x   - storm hadoop          0 2017-06-27 16:16 /apps/metron/extension_working/extensions/metron-parser-logstash-bundle-0.4.0.bundle-unpacked
-drwxr-xr-x   - storm hadoop          0 2017-06-27 16:16 /apps/metron/extension_working/extensions/metron-parser-paloalto-bundle-0.4.0.bundle-unpacked
-drwxr-xr-x   - storm hadoop          0 2017-06-27 16:16 /apps/metron/extension_working/extensions/metron-parser-snort-bundle-0.4.0.bundle-unpacked
-drwxr-xr-x   - storm hadoop          0 2017-06-27 16:16 /apps/metron/extension_working/extensions/metron-parser-sourcefire-bundle-0.4.0.bundle-unpacked
-drwxr-xr-x   - storm hadoop          0 2017-06-27 16:16 /apps/metron/extension_working/extensions/metron-parser-websphere-bundle-0.4.0.bundle-unpacked
-```
-
-And an example of an unpackaged parser library:
-
-```bash
-[root@node1 0.4.0]# hadoop fs -ls /apps/metron/extension_working/extensions/metron-parser-bro-bundle-0.4.0.bundle-unpacked/META-INF/bundled-dependencies
-Found 1 items
--rw-r--r--   1 storm hadoop      27656 2017-06-27 16:16 /apps/metron/extension_working/extensions/metron-parser-bro-bundle-0.4.0.bundle-unpacked/META-INF/bundled-dependencies/metron-parser-bro-0.4.0.jar
 ```
 
 ## Configuration Deployment
