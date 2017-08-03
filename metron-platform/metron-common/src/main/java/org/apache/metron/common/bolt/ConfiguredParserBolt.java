@@ -17,19 +17,18 @@
  */
 package org.apache.metron.common.bolt;
 
-import org.apache.log4j.Logger;
-import org.apache.metron.common.Constants;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
-
-import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class ConfiguredParserBolt extends ConfiguredBolt<ParserConfigurations> {
 
-  private static final Logger LOG = Logger.getLogger(ConfiguredParserBolt.class);
-
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   protected final ParserConfigurations configurations = new ParserConfigurations();
   private String sensorType;

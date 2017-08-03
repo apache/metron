@@ -20,10 +20,15 @@ package org.apache.metron.indexing.dao;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.search.FieldType;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 public interface IndexDao {
   SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException;
   void init(Map<String, Object> globalConfig, AccessConfig config);
+  Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException;
+  Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException;
 }

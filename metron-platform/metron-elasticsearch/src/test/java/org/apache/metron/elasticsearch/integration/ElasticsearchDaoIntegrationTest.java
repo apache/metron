@@ -18,6 +18,7 @@
 package org.apache.metron.elasticsearch.integration;
 
 
+import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -40,6 +41,50 @@ import java.util.HashMap;
 public class ElasticsearchDaoIntegrationTest extends IndexingDaoIntegrationTest {
   private static String indexDir = "target/elasticsearch_search";
   private static String dateFormat = "yyyy.MM.dd.HH";
+
+  /**
+   * {
+   * "bro_doc": {
+   *   "properties": {
+   *     "source:type": { "type": "string" },
+   *     "ip_src_addr": { "type": "ip" },
+   *     "ip_src_port": { "type": "integer" },
+   *     "long_field": { "type": "long" },
+   *     "timestamp" : { "type": "date" },
+   *     "latitude" : { "type": "float" },
+   *     "double_field": { "type": "double" },
+   *     "is_alert": { "type": "boolean" },
+   *     "location_point": { "type": "geo_point" },
+   *     "bro_field": { "type": "string" },
+   *     "duplicate_name_field": { "type": "string" }
+   *   }
+   * }
+   * }
+   */
+  @Multiline
+  private static String broTypeMappings;
+
+  /**
+   * {
+   * "snort_doc": {
+   *   "properties": {
+   *     "source:type": { "type": "string" },
+   *     "ip_src_addr": { "type": "ip" },
+   *     "ip_src_port": { "type": "integer" },
+   *     "long_field": { "type": "long" },
+   *     "timestamp" : { "type": "date" },
+   *     "latitude" : { "type": "float" },
+   *     "double_field": { "type": "double" },
+   *     "is_alert": { "type": "boolean" },
+   *     "location_point": { "type": "geo_point" },
+   *     "snort_field": { "type": "integer" },
+   *     "duplicate_name_field": { "type": "integer" }
+   *   }
+   * }
+   * }
+   */
+  @Multiline
+  private static String snortTypeMappings;
 
 
   @Override
@@ -72,6 +117,11 @@ public class ElasticsearchDaoIntegrationTest extends IndexingDaoIntegrationTest 
   @Override
   protected void loadTestData() throws ParseException {
     ElasticSearchComponent es = (ElasticSearchComponent)indexComponent;
+    es.getClient().admin().indices().prepareCreate("bro_index_2017.01.01.01")
+            .addMapping("bro_doc", broTypeMappings).get();
+    es.getClient().admin().indices().prepareCreate("snort_index_2017.01.01.02")
+            .addMapping("snort_doc", snortTypeMappings).get();
+
     BulkRequestBuilder bulkRequest = es.getClient().prepareBulk().setRefresh(true);
     JSONArray broArray = (JSONArray) new JSONParser().parse(broData);
     for(Object o: broArray) {

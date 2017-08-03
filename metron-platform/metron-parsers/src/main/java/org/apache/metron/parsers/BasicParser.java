@@ -17,32 +17,30 @@
  */
 package org.apache.metron.parsers;
 
+import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-
 public abstract class BasicParser implements
         MessageParser<JSONObject>,
         Serializable {
 
-  protected static final Logger LOG = LoggerFactory
-          .getLogger(BasicParser.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Override
   public boolean validate(JSONObject message) {
     JSONObject value = message;
     if (!(value.containsKey("original_string"))) {
-      LOG.trace("[Metron] Message does not have original_string: " + message);
+      LOG.trace("[Metron] Message does not have original_string: {}", message);
       return false;
     } else if (!(value.containsKey("timestamp"))) {
-      LOG.trace("[Metron] Message does not have timestamp: " + message);
+      LOG.trace("[Metron] Message does not have timestamp: {}", message);
       return false;
     } else {
-      LOG.trace("[Metron] Message conforms to schema: "
-              + message);
+      LOG.trace("[Metron] Message conforms to schema: {}", message);
       return true;
     }
   }

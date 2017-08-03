@@ -21,16 +21,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
-
 import org.krakenapps.pcap.packet.PcapPacket;
-import org.krakenapps.pcap.file.GlobalHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -40,9 +39,7 @@ import org.krakenapps.pcap.file.GlobalHeader;
  * @version $Revision: 1.0 $
  */
 public final class PcapMerger {
-
-  /** The Constant LOG. */
-  private static final Logger LOG = Logger.getLogger(PcapMerger.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   
   /** The comparator for PcapPackets */
   private static PcapPacketComparator PCAP_PACKET_COMPARATOR = new PcapPacketComparator();
@@ -156,7 +153,7 @@ public final class PcapMerger {
 			  if (packet == null)
 				  break;
 			  packetList.add(packet);
-			  LOG.debug("Presort packet: " + packet.getPacketHeader().toString());
+			  LOG.debug("Presort packet: {}", packet.getPacketHeader().toString());
 		  }
 	  } catch (EOFException e) {
 		  //LOG.debug("Ignoreable exception in sort", e);
@@ -165,7 +162,7 @@ public final class PcapMerger {
 	  Collections.sort(packetList, PCAP_PACKET_COMPARATOR);
 	  for (PcapPacket p : packetList) {
 		  pcapOs.write(p);
-		  LOG.debug("Postsort packet: " + p.getPacketHeader().toString());
+		  LOG.debug("Postsort packet: {}", p.getPacketHeader().toString());
 	  }
 	  pcapOs.close();  
   }
