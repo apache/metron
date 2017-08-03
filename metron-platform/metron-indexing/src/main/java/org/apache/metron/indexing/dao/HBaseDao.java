@@ -38,6 +38,17 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
 
+/**
+ * The HBaseDao is an index dao which only supports the following actions:
+ * * Update
+ * * Get document
+ *
+ * The mechanism here is that updates to documents will be added to a HBase Table as a write-ahead log.
+ * The Key for a row supporting a given document will be the GUID, which should be sufficiently distributed.
+ * Every new update will have a column added (column qualifier will be the timestamp of the update).
+ * Upon retrieval, the most recent column will be returned.
+ *
+ */
 public class HBaseDao implements IndexDao {
   public static String HBASE_TABLE = "update.hbase.table";
   public static String HBASE_CF = "update.hbase.cf";
