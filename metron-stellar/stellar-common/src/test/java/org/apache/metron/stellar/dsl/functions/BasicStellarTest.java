@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
@@ -37,6 +38,7 @@ import org.junit.rules.ExpectedException;
 import java.util.*;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
+import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.validate;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
 
 @SuppressWarnings("ALL")
@@ -144,6 +146,32 @@ public class BasicStellarTest {
       Assert.assertEquals("bar", run(query, ImmutableMap.of("bar:variable", "bar")));
       Assert.assertEquals("grok", run(query, ImmutableMap.of("bar:variable", "grok")));
     }
+  }
+
+  @Test(expected = ParseException.class)
+  public void testMissingVariablesWithParse() {
+    String query = "someVar";
+    run(query,new HashMap<>());
+  }
+
+  @Test
+  public void testValidateDoesNotThrow(){
+    String query = "someVar";
+    validate(query);
+  }
+
+  @Test
+  public void testContextActivityTypeReset(){
+    String query = "someVar";
+    Context context = Context.EMPTY_CONTEXT();
+
+    validate(query,context);
+    Assert.assertNull(context.getActivityType());
+
+    run(query,ImmutableMap.of("someVar","someValue"),context);
+    Assert.assertNull(context.getActivityType());
+
+
   }
 
   @Test
@@ -411,10 +439,10 @@ public class BasicStellarTest {
     Collection c = new ArrayList();
     Assert.assertEquals(0,run(query,ImmutableMap.of("foo",c)));
   }
-  @Test
+  @Test(expected = ParseException.class)
   public void testNoVarLength(){
     String query = "LENGTH(foo)";
-    Assert.assertEquals(0,run(query,ImmutableMap.of()));
+    run(query,ImmutableMap.of());
   }
 
   @Test
@@ -547,14 +575,14 @@ public class BasicStellarTest {
       put("empty", "");
       put("spaced", "metron is great");
     }};
-    Assert.assertFalse(runPredicate("not('casey' == foo and true)", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("not(not('casey' == foo and true))", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("('casey' == foo) && ( false != true )", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("('casey' == foo) and (FALSE == TRUE)", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("'casey' == foo and FALSE", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("'casey' == foo and true", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("true", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("TRUE", v -> variableMap.get(v)));
+    Assert.assertFalse(runPredicate("not('casey' == foo and true)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("not(not('casey' == foo and true))", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("('casey' == foo) && ( false != true )", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("('casey' == foo) and (FALSE == TRUE)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("'casey' == foo and FALSE", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("'casey' == foo and true", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("true", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("TRUE", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
   }
 
   @Test
@@ -563,16 +591,16 @@ public class BasicStellarTest {
       put("foo", "casey");
       put("empty", "");
     }};
-    Assert.assertTrue(runPredicate("foo in [ 'casey', 'david' ]", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("foo in [ ]", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo in [ foo, 'david' ]", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo in [ 'casey', 'david' ] and 'casey' == foo", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo in [ 'casey', 'david' ] and foo == 'casey'", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo in [ 'casey' ]", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("foo not in [ 'casey', 'david' ]", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("foo not in [ 'casey', 'david' ] and 'casey' == foo", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("null in [ null, 'something' ]", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("null not in [ null, 'something' ]", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("foo in [ 'casey', 'david' ]", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("foo in [ ]", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("foo in [ foo, 'david' ]", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("foo in [ 'casey', 'david' ] and 'casey' == foo", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("foo in [ 'casey', 'david' ] and foo == 'casey'", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("foo in [ 'casey' ]", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("foo not in [ 'casey', 'david' ]", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("foo not in [ 'casey', 'david' ] and 'casey' == foo", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("null in [ null, 'something' ]", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("null not in [ null, 'something' ]", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
   }
 
   @Test
@@ -581,19 +609,19 @@ public class BasicStellarTest {
       put("foo", "casey");
       put("empty", "");
     }};
-    Assert.assertTrue(runPredicate("'casey' in { foo : 5 }", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("'casey' not in { foo : 5 }", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo in { foo : 5 }", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("foo not in { foo : 5 }", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("'foo' in { 'foo' : 5 }", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("'foo' not in { 'foo' : 5 }", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo in { 'casey' : 5 }", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("foo not in { 'casey' : 5 }", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("empty in { foo : 5 }", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("empty not in { foo : 5 }", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("'foo' in { }", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("null in { 'foo' : 5 }", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("null not in { 'foo' : 5 }", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("'casey' in { foo : 5 }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("'casey' not in { foo : 5 }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("foo in { foo : 5 }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("foo not in { foo : 5 }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("'foo' in { 'foo' : 5 }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("'foo' not in { 'foo' : 5 }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("foo in { 'casey' : 5 }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("foo not in { 'casey' : 5 }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("empty in { foo : 5 }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("empty not in { foo : 5 }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("'foo' in { }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("null in { 'foo' : 5 }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("null not in { 'foo' : 5 }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
   }
 
   @Test
@@ -602,34 +630,34 @@ public class BasicStellarTest {
       put("foo", "casey");
       put("empty", "");
     }};
-    Assert.assertTrue(runPredicate("'case' in foo", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("'case' not in foo", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("'case' in empty", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("'case' not in empty", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("'case' in [ foo ]", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("'case' not in [ foo ]", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("null in foo", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("null not in foo", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("'case' in foo", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("'case' not in foo", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("'case' in empty", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("'case' not in empty", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("'case' in [ foo ]", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("'case' not in [ foo ]", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("null in foo", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("null not in foo", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
   }
 
   @Test
   public void inNestedInStatement() throws Exception {
     final Map<String, String> variableMap = new HashMap<>();
 
-    Assert.assertTrue(runPredicate("('grok' not in 'foobar') == true", variableMap::get));
-    Assert.assertTrue(runPredicate("'grok' not in ('foobar' == true)", variableMap::get));
-    Assert.assertFalse(runPredicate("'grok' in 'grokbar' == true", variableMap::get));
-    Assert.assertTrue(runPredicate("false in 'grokbar' == true", variableMap::get));
+    Assert.assertTrue(runPredicate("('grok' not in 'foobar') == true", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    Assert.assertTrue(runPredicate("'grok' not in ('foobar' == true)", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    Assert.assertFalse(runPredicate("'grok' in 'grokbar' == true", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    Assert.assertTrue(runPredicate("false in 'grokbar' == true", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
 
-    Assert.assertTrue(runPredicate("('foo' in 'foobar') == true", variableMap::get));
-    Assert.assertFalse(runPredicate("'foo' in ('foobar' == true)", variableMap::get));
-    Assert.assertTrue(runPredicate("'grok' not in 'grokbar' == true", variableMap::get));
-    Assert.assertTrue(runPredicate("false in 'grokbar' == true", variableMap::get));
-    Assert.assertTrue(runPredicate("'foo' in ['foo'] AND 'bar' in ['bar']", variableMap::get));
-    Assert.assertTrue(runPredicate("('foo' in ['foo']) AND 'bar' in ['bar']", variableMap::get));
-    Assert.assertTrue(runPredicate("'foo' in ['foo'] AND ('bar' in ['bar'])", variableMap::get));
-    Assert.assertTrue(runPredicate("('foo' in ['foo']) AND ('bar' in ['bar'])", variableMap::get));
-    Assert.assertTrue(runPredicate("('foo' in ['foo'] AND 'bar' in ['bar'])", variableMap::get));
+    Assert.assertTrue(runPredicate("('foo' in 'foobar') == true", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    Assert.assertFalse(runPredicate("'foo' in ('foobar' == true)", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    Assert.assertTrue(runPredicate("'grok' not in 'grokbar' == true", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    Assert.assertTrue(runPredicate("false in 'grokbar' == true", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    Assert.assertTrue(runPredicate("'foo' in ['foo'] AND 'bar' in ['bar']", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    Assert.assertTrue(runPredicate("('foo' in ['foo']) AND 'bar' in ['bar']", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    Assert.assertTrue(runPredicate("'foo' in ['foo'] AND ('bar' in ['bar'])", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    Assert.assertTrue(runPredicate("('foo' in ['foo']) AND ('bar' in ['bar'])", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    Assert.assertTrue(runPredicate("('foo' in ['foo'] AND 'bar' in ['bar'])", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
   }
 
   @Test
@@ -639,9 +667,9 @@ public class BasicStellarTest {
       put("empty", "");
       put("spaced", "metron is great");
     }};
-    Assert.assertTrue(runPredicate("exists(foo)", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("exists(bar)", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("exists(bar) or true", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("exists(foo)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("exists(bar)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("exists(bar) or true", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
   }
 
   @Test
@@ -654,7 +682,7 @@ public class BasicStellarTest {
       put("spaced", "metron is great");
       put("myMap", ImmutableMap.of("casey", "apple"));
     }};
-    Assert.assertTrue(runPredicate("MAP_EXISTS(foo, myMap)", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("MAP_EXISTS(foo, myMap)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
   }
 
   @Test
@@ -668,22 +696,28 @@ public class BasicStellarTest {
       put("empty", "");
       put("spaced", "metron is great");
     }};
-    Assert.assertTrue(runPredicate("IN_SUBNET(ip, '192.168.0.0/24')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("IN_SUBNET(ip, '192.168.0.0/24', '11.0.0.0/24')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("IN_SUBNET(ip, '192.168.0.0/24', '11.0.0.0/24') in [true]", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("true in IN_SUBNET(ip, '192.168.0.0/24', '11.0.0.0/24')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("IN_SUBNET(ip_dst_addr, '192.168.0.0/24', '11.0.0.0/24')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("IN_SUBNET(other_ip, '192.168.0.0/24')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("IN_SUBNET(blah, '192.168.0.0/24')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("true and STARTS_WITH(foo, 'ca')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("true and STARTS_WITH(TO_UPPER(foo), 'CA')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("(true and STARTS_WITH(TO_UPPER(foo), 'CA')) || true", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("true and ENDS_WITH(foo, 'sey')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("not(IN_SUBNET(ip_src_addr, '192.168.0.0/24') and IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))", v-> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("IN_SUBNET(ip_src_addr, '192.168.0.0/24')", v-> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("not(IN_SUBNET(ip_src_addr, '192.168.0.0/24'))", v-> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("IN_SUBNET(ip_dst_addr, '192.168.0.0/24')", v-> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("not(IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))", v-> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("IN_SUBNET(ip, '192.168.0.0/24')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("IN_SUBNET(ip, '192.168.0.0/24', '11.0.0.0/24')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("IN_SUBNET(ip, '192.168.0.0/24', '11.0.0.0/24') in [true]", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("true in IN_SUBNET(ip, '192.168.0.0/24', '11.0.0.0/24')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("IN_SUBNET(ip_dst_addr, '192.168.0.0/24', '11.0.0.0/24')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("IN_SUBNET(other_ip, '192.168.0.0/24')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    boolean thrown = false;
+    try{
+      runPredicate("IN_SUBNET(blah, '192.168.0.0/24')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v)));
+    }catch(ParseException pe){
+      thrown = true;
+    }
+    Assert.assertTrue(thrown);
+    Assert.assertTrue(runPredicate("true and STARTS_WITH(foo, 'ca')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("true and STARTS_WITH(TO_UPPER(foo), 'CA')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("(true and STARTS_WITH(TO_UPPER(foo), 'CA')) || true", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("true and ENDS_WITH(foo, 'sey')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("not(IN_SUBNET(ip_src_addr, '192.168.0.0/24') and IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("IN_SUBNET(ip_src_addr, '192.168.0.0/24')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("not(IN_SUBNET(ip_src_addr, '192.168.0.0/24'))", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("IN_SUBNET(ip_dst_addr, '192.168.0.0/24')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("not(IN_SUBNET(ip_dst_addr, '192.168.0.0/24'))", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
   }
 
   @Test
@@ -703,23 +737,40 @@ public class BasicStellarTest {
 
   @Test
   public void testShortCircuit_boolean() throws Exception {
-    Assert.assertTrue(runPredicate("'metron' in ['metron', 'metronicus', 'mortron'] or (true or THROW('exception'))", x -> null));
-    Assert.assertTrue(runPredicate("true or (true or THROW('exception'))", x -> null));
-    Assert.assertTrue(runPredicate("true or (false or THROW('exception'))", x -> null));
-    Assert.assertTrue(runPredicate("TO_UPPER('foo') == 'FOO' or (true or THROW('exception'))", x -> null));
-    Assert.assertFalse(runPredicate("false and (true or THROW('exception'))", x -> null));
-    Assert.assertTrue(runPredicate("true or false or false or true", x -> null));
-    Assert.assertFalse(runPredicate("false or (false and THROW('exception'))", x -> null));
-    Assert.assertTrue(runPredicate("'casey' == 'casey' or THROW('exception')", x -> null));
-    Assert.assertTrue(runPredicate("TO_UPPER('casey') == 'CASEY' or THROW('exception')", x -> null));
-    Assert.assertTrue(runPredicate("NOT(TO_UPPER('casey') != 'CASEY') or THROW('exception')", x -> null));
-    Assert.assertTrue(runPredicate("(TO_UPPER('casey') == 'CASEY') or THROW('exception')", x -> null));
-    Assert.assertFalse(runPredicate("NOT(NOT(TO_UPPER('casey') != 'CASEY') or THROW('exception'))", x -> null));
-    Assert.assertFalse(runPredicate("NOT(NOT(TO_UPPER('casey') != 'CASEY')) and THROW('exception')", x -> null));
-    Assert.assertTrue(runPredicate("RET_TRUE('foo') or THROW('exception')", x -> null));
-    Assert.assertFalse(runPredicate("NOT(foo == null or THROW('exception')) and THROW('and exception')", x -> null));
-    Assert.assertTrue(runPredicate("(foo == null or THROW('exception') ) or THROW('and exception')", x -> null));
-    Assert.assertTrue(runPredicate("( RET_TRUE('foo', true, false) or ( foo == null or THROW('exception') ) or THROW('and exception')) or THROW('or exception')", x -> null));
+    Assert.assertTrue(runPredicate("'metron' in ['metron', 'metronicus', 'mortron'] or (true or THROW('exception'))", new DefaultVariableResolver(x -> null,x -> false)));
+    Assert.assertTrue(runPredicate("true or (true or THROW('exception'))", new DefaultVariableResolver(x -> null,x -> false)));
+    Assert.assertTrue(runPredicate("true or (false or THROW('exception'))", new DefaultVariableResolver(x -> null,x -> false)));
+    Assert.assertTrue(runPredicate("TO_UPPER('foo') == 'FOO' or (true or THROW('exception'))", new DefaultVariableResolver(x -> null,x -> false)));
+    Assert.assertFalse(runPredicate("false and (true or THROW('exception'))", new DefaultVariableResolver(x -> null,x -> false)));
+    Assert.assertTrue(runPredicate("true or false or false or true", new DefaultVariableResolver(x -> null,x -> false)));
+    Assert.assertFalse(runPredicate("false or (false and THROW('exception'))", new DefaultVariableResolver(x -> null,x -> false)));
+    Assert.assertTrue(runPredicate("'casey' == 'casey' or THROW('exception')", new DefaultVariableResolver(x -> null,x -> false)));
+    Assert.assertTrue(runPredicate("TO_UPPER('casey') == 'CASEY' or THROW('exception')", new DefaultVariableResolver(x -> null,x -> false)));
+    Assert.assertTrue(runPredicate("NOT(TO_UPPER('casey') != 'CASEY') or THROW('exception')", new DefaultVariableResolver(x -> null,x -> false)));
+    Assert.assertTrue(runPredicate("(TO_UPPER('casey') == 'CASEY') or THROW('exception')", new DefaultVariableResolver(x -> null,x -> false)));
+    Assert.assertFalse(runPredicate("NOT(NOT(TO_UPPER('casey') != 'CASEY') or THROW('exception'))", new DefaultVariableResolver(x -> null,x -> false)));
+    Assert.assertFalse(runPredicate("NOT(NOT(TO_UPPER('casey') != 'CASEY')) and THROW('exception')", new DefaultVariableResolver(x -> null,x -> false)));
+    Assert.assertTrue(runPredicate("RET_TRUE('foo') or THROW('exception')", new DefaultVariableResolver(x -> null,x -> false)));
+    boolean thrown = false;
+    try {
+      runPredicate("NOT(foo == null or THROW('exception')) and THROW('and exception')",
+          new DefaultVariableResolver(x -> null, x -> false));
+    }catch(ParseException pe) {
+      thrown = true;
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+    try {
+      runPredicate("(foo == null or THROW('exception') ) or THROW('and exception')",
+          new DefaultVariableResolver(x -> null, x -> false));
+    }catch(ParseException pe){
+      thrown = true;
+    }
+
+    Assert.assertTrue(thrown);
+
+
+    Assert.assertTrue(runPredicate("( RET_TRUE('foo', true, false) or ( foo == null or THROW('exception') ) or THROW('and exception')) or THROW('or exception')", new DefaultVariableResolver(x -> null,x -> false)));
   }
 
   @Rule
@@ -732,6 +783,6 @@ public class BasicStellarTest {
     }};
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("The rule 'TO_UPPER(protocol)' does not return a boolean value.");
-    runPredicate("TO_UPPER(protocol)", v -> variableMap.get(v));
+    runPredicate("TO_UPPER(protocol)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v)));
   }
 }

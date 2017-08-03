@@ -18,6 +18,8 @@
 
 package org.apache.metron.stellar.dsl;
 
+
 public interface VariableResolver {
   Object resolve(String variable);
+  boolean exists(String variable);
 }
