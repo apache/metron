@@ -18,6 +18,7 @@
 
 package org.apache.metron.stellar.common;
 
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.Token;
 import org.apache.metron.stellar.dsl.VariableResolver;
 
@@ -56,9 +57,9 @@ public class LambdaExpression extends StellarCompiler.Expression {
       lambdaVariables.put(variables.get(i), null);
     }
 
-    VariableResolver variableResolver = variable -> lambdaVariables.getOrDefault(variable
+    VariableResolver variableResolver = new DefaultVariableResolver(variable -> lambdaVariables.getOrDefault(variable
                                                                                 , state.variableResolver.resolve(variable)
-                                                                                );
+                                                                                ), variable -> true);
     StellarCompiler.ExpressionState localState = new StellarCompiler.ExpressionState(
             state.context
           , state.functionResolver

@@ -173,8 +173,10 @@ public class ParserConfigFunctionsTest {
 
   @Test
   public void testPrintNull() {
-
-    String out = (String) run("PARSER_STELLAR_TRANSFORM_PRINT(config )", new HashMap<>(), context);
+    Map<String,Object> variables = new HashMap<String,Object>(){{
+      put("config",null);
+    }};
+    String out = (String) run("PARSER_STELLAR_TRANSFORM_PRINT(config )", variables, context);
     Assert.assertNull( out);
   }
 }

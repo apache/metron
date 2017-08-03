@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.junit.Assert;
 import org.junit.Test;
@@ -41,7 +42,7 @@ public class MathFunctionsTest {
     Context context = Context.EMPTY_CONTEXT();
     StellarProcessor processor = new StellarProcessor();
     Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
-    return processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
+    return processor.parse(rule, new DefaultVariableResolver(v -> variables.get(v),v -> variables.containsKey(v)), StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 
   @Test
@@ -175,7 +176,7 @@ public class MathFunctionsTest {
          )
       {
         if (Double.isNaN(test.getValue())) {
-          Assert.assertTrue(expr + " != NaN, where value == " + test.getKey(), Double.isNaN(toDouble(run(expr, ImmutableMap.of("value", test.getKey())))));
+          Assert.assertTrue(expr + " != NaN, where value == " + test.getKey(), Double.isNaN(toDouble(run(expr, ImmutableMap.of("value", test.getKey(),"NaN",Double.NaN)))));
         } else {
           Assert.assertEquals(expr + " != " + test.getValue() + " (where value == " + test.getKey() + ")", test.getValue(), toDouble(run(expr, ImmutableMap.of("value", test.getKey()))), EPSILON);
         }
