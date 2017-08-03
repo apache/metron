@@ -55,7 +55,7 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
     ,"shew.cf" : "cf"
     ,"shew.keyColumns" : "col2"
     ,"shew.enrichmentType" : "et"
-    ,"shew.hbaseProvider" : "org.apache.metron.hbase.mock.MockProvider"
+    ,"shew.hbaseProvider" : "org.apache.metron.hbase.mock.MockHBaseTableProvider"
     ,"columns" : {
                 "col1" : 0
                ,"col2" : 1
