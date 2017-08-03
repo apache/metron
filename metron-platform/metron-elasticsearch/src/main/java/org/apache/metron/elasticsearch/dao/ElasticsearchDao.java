@@ -198,10 +198,9 @@ public class ElasticsearchDao implements IndexDao {
     String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, null);
 
     String type = sensorType + "_doc";
-    byte[] source = JSONUtils.INSTANCE.toJSON(update.getDocument());
     Object ts = update.getTimestamp();
     IndexRequest indexRequest = new IndexRequest(indexName, type, update.getGuid())
-            .source(source)
+            .source(update.getDocument())
             ;
     if(ts != null) {
       indexRequest = indexRequest.timestamp(ts.toString());
@@ -213,7 +212,7 @@ public class ElasticsearchDao implements IndexDao {
                         ).orElse(indexName)
                                        );
     UpdateRequest updateRequest = new UpdateRequest(existingIndex, type, update.getGuid())
-            .doc(source)
+            .doc(update.getDocument())
             .upsert(indexRequest)
             ;
 
