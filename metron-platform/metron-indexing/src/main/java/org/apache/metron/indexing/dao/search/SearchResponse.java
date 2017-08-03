@@ -25,6 +25,10 @@ public class SearchResponse {
   private long total;
   private List<SearchResult> results = new ArrayList<>();
 
+  /**
+   * The total number of results
+   * @return
+   */
   public long getTotal() {
     return total;
   }
@@ -33,6 +37,10 @@ public class SearchResponse {
     this.total = total;
   }
 
+  /**
+   * The list of results
+   * @return
+   */
   public List<SearchResult> getResults() {
     return results;
   }

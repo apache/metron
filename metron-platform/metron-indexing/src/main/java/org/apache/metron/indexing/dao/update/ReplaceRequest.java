@@ -27,6 +27,10 @@ public class ReplaceRequest {
   String sensorType;
   String index;
 
+  /**
+   * Return the index of the request.  This is optional, but could result in better performance if specified.
+   * @return
+   */
   public String getIndex() {
     return index;
   }
@@ -35,6 +39,10 @@ public class ReplaceRequest {
     this.index = index;
   }
 
+  /**
+   * The sensor type of the request. This is mandatory.
+   * @return
+   */
   public String getSensorType() {
     return sensorType;
   }
@@ -43,6 +51,10 @@ public class ReplaceRequest {
     this.sensorType = sensorType;
   }
 
+  /**
+   * The replacement document.  This is mandatory.
+   * @return
+   */
   public Map<String, Object> getReplacement() {
     return replacement;
   }
@@ -51,6 +63,10 @@ public class ReplaceRequest {
     this.replacement = replacement;
   }
 
+  /**
+   * The GUID of the document to replace.  This is mandatory.
+   * @return
+   */
   public String getGuid() {
     return guid;
   }

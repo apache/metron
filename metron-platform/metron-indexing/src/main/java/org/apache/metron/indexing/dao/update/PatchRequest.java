@@ -28,6 +28,10 @@ public class PatchRequest {
   String sensorType;
   String index;
 
+  /**
+   * The index of the document to be updated.  This is optional, but could result in a performance gain if specified.
+   * @return
+   */
   public String getIndex() {
     return index;
   }
@@ -36,6 +40,20 @@ public class PatchRequest {
     this.index = index;
   }
 
+  /**
+   * The patch.  This is in the form of a list of RFC 6902 patches.
+   * For example:
+   * <pre>
+   * [
+   *   {
+   *             "op": "add"
+   *            , "path": "/project"
+   *            , "value": "metron"
+   *   }
+   *           ]
+   * </pre>
+   * @return
+   */
   public JsonNode getPatch() {
     return patch;
   }
@@ -44,6 +62,11 @@ public class PatchRequest {
     this.patch = patch;
   }
 
+  /**
+   * The source document.  If this is specified, then it will be used as the basis of the patch rather than the current
+   * document in the index.
+   * @return
+   */
   public Map<String, Object> getSource() {
     return source;
   }
@@ -52,6 +75,10 @@ public class PatchRequest {
     this.source = source;
   }
 
+  /**
+   * The GUID of the document to be patched.
+   * @return
+   */
   public String getGuid() {
     return guid;
   }
@@ -60,6 +87,10 @@ public class PatchRequest {
     this.guid = guid;
   }
 
+  /**
+   * The sensor type of the document.
+   * @return
+   */
   public String getSensorType() {
     return sensorType;
   }

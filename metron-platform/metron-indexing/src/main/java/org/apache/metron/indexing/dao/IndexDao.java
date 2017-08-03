@@ -40,10 +40,37 @@ import java.util.Optional;
 
 public interface IndexDao {
 
+  /**
+   * Return search response based on the search request
+   *
+   * @param searchRequest
+   * @return
+   * @throws InvalidSearchException
+   */
   SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException;
+
+  /**
+   * Initialize the DAO with the AccessConfig object.
+   * @param config
+   */
   void init(AccessConfig config);
+
+  /**
+   * Return the latest version of a document given the GUID and the sensor type.
+   *
+   * @param guid The GUID for the document
+   * @param sensorType The sensor type of the document
+   * @return The Document matching or null if not available.
+   * @throws IOException
+   */
   Document getLatest(String guid, String sensorType) throws IOException;
 
+  /**
+   * Return the latest version of a document given a GetRequest.
+   * @param request The GetRequest which indicates the GUID and sensor type.
+   * @return Optionally the document (dependent upon existence in the index).
+   * @throws IOException
+   */
   default Optional<Map<String, Object>> getLatestResult(GetRequest request) throws IOException {
     Document ret = getLatest(request.getGuid(), request.getSensorType());
     if(ret == null) {
@@ -54,9 +81,23 @@ public interface IndexDao {
     }
   }
 
+  /**
+   * Update given a Document and optionally the index where the document exists.
+   *
+   * @param update The document to replace from the index.
+   * @param index The index where the document lives.
+   * @throws IOException
+   */
   void update(Document update, Optional<String> index) throws IOException;
 
 
+  /**
+   * Update a document in an index given a JSON Patch (see RFC 6902 at https://tools.ietf.org/html/rfc6902)
+   * @param request The patch request
+   * @param timestamp Optionally a timestamp to set. If not specified then current time is used.
+   * @throws OriginalNotFoundException If the original is not found, then it cannot be patched.
+   * @throws IOException
+   */
   default void patch( PatchRequest request
                     , Optional<Long> timestamp
                     ) throws OriginalNotFoundException, IOException {
@@ -82,6 +123,12 @@ public interface IndexDao {
     update(d, Optional.ofNullable(request.getIndex()));
   }
 
+  /**
+   * Replace a document in an index.
+   * @param request The replacement request.
+   * @param timestamp The timestamp (optional) of the update.  If not specified, then current time will be used.
+   * @throws IOException
+   */
   default void replace( ReplaceRequest request
                       , Optional<Long> timestamp
                       ) throws IOException {

@@ -30,6 +30,10 @@ public class AccessConfig {
   private Map<String, String> optionalSettings = new HashMap<>();
   private TableProvider tableProvider = null;
 
+  /**
+   * A supplier which will return the current global config.
+   * @return
+   */
   public Supplier<Map<String, Object>> getGlobalConfigSupplier() {
     return globalConfigSupplier;
   }
@@ -38,6 +42,10 @@ public class AccessConfig {
     this.globalConfigSupplier = globalConfigSupplier;
   }
 
+  /**
+   * The maximum search result.
+   * @return
+   */
   public Integer getMaxSearchResults() {
     return maxSearchResults;
   }
@@ -46,6 +54,10 @@ public class AccessConfig {
     this.maxSearchResults = maxSearchResults;
   }
 
+  /**
+   * Get optional settings for initializing indices.
+   * @return
+   */
   public Map<String, String> getOptionalSettings() {
     return optionalSettings;
   }
@@ -54,6 +66,10 @@ public class AccessConfig {
     this.optionalSettings = optionalSettings;
   }
 
+  /**
+   * Return the table provider to use for NoSql DAOs
+   * @return
+   */
   public TableProvider getTableProvider() {
     return tableProvider;
   }

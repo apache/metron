@@ -36,6 +36,10 @@ public class SearchRequest {
     sort.add(defaultSortField);
   }
 
+  /**
+   * The list of indices to search.
+   * @return
+   */
   public List<String> getIndices() {
     return indices;
   }
@@ -44,6 +48,10 @@ public class SearchRequest {
     this.indices = indices;
   }
 
+  /**
+   * The query to use to search the index
+   * @return
+   */
   public String getQuery() {
     return query;
   }
@@ -52,6 +60,10 @@ public class SearchRequest {
     this.query = query;
   }
 
+  /**
+   * The size of the results returned.
+   * @return
+   */
   public int getSize() {
     return size;
   }
@@ -60,6 +72,10 @@ public class SearchRequest {
     this.size = size;
   }
 
+  /**
+   * The index to start the search from.
+   * @return
+   */
   public int getFrom() {
     return from;
   }
@@ -68,6 +84,10 @@ public class SearchRequest {
     this.from = from;
   }
 
+  /**
+   * The search order by field.
+   * @return
+   */
   public List<SortField> getSort() {
     return sort;
   }

@@ -21,6 +21,10 @@ public class GetRequest {
   String guid;
   String sensorType;
 
+  /**
+   * The GUID of the document
+   * @return
+   */
   public String getGuid() {
     return guid;
   }
@@ -29,6 +33,10 @@ public class GetRequest {
     this.guid = guid;
   }
 
+  /**
+   * The sensor type of the indices that you're searching.
+   * @return
+   */
   public String getSensorType() {
     return sensorType;
   }
