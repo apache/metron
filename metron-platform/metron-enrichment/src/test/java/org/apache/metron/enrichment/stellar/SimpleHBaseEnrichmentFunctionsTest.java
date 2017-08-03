@@ -19,10 +19,8 @@
 package org.apache.metron.enrichment.stellar;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.hbase.mock.MockHTable;
-import org.apache.metron.hbase.mock.MockProvider;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
@@ -32,12 +30,10 @@ import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
-import org.apache.metron.hbase.TableProvider;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,7 +50,7 @@ public class SimpleHBaseEnrichmentFunctionsTest {
   @Before
   public void setup() throws Exception {
 
-    final MockHTable hbaseTable = (MockHTable) MockProvider.addToCache(hbaseTableName, cf);
+    final MockHTable hbaseTable = (MockHTable) MockHBaseTableProvider.addToCache(hbaseTableName, cf);
     EnrichmentHelper.INSTANCE.load(hbaseTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
       for(int i = 0;i < 5;++i) {
         add(new LookupKV<>(new EnrichmentKey(ENRICHMENT_TYPE, "indicator" + i)
@@ -66,7 +62,7 @@ public class SimpleHBaseEnrichmentFunctionsTest {
     context = new Context.Builder()
             .with( Context.Capabilities.GLOBAL_CONFIG
                  , () -> ImmutableMap.of( SimpleHBaseEnrichmentFunctions.TABLE_PROVIDER_TYPE_CONF
-                                        , MockProvider.class.getName()
+                                        , MockHBaseTableProvider.class.getName()
                                         )
                  )
             .build();

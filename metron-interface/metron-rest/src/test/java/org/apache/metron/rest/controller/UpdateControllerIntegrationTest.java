@@ -17,15 +17,12 @@
  */
 package org.apache.metron.rest.controller;
 
-import org.I0Itec.zkclient.ZkClient;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
-import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.hbase.mock.MockHTable;
-import org.apache.metron.hbase.mock.MockProvider;
-import org.apache.metron.indexing.dao.SearchIntegrationTest;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.rest.service.UpdateService;
 import org.junit.Assert;
 import org.junit.Before;
@@ -39,7 +36,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -119,7 +115,7 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
 
   @BeforeClass
   public static void setupHbase() {
-    MockProvider.addToCache(TABLE, CF);
+    MockHBaseTableProvider.addToCache(TABLE, CF);
   }
 
   @Before
@@ -145,7 +141,7 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
       System.err.println(result.andReturn().getResponse().getContentAsString());
       throw t;
     }
-    MockHTable table = (MockHTable) MockProvider.getFromCache(TABLE);
+    MockHTable table = (MockHTable) MockHBaseTableProvider.getFromCache(TABLE);
     Assert.assertEquals(0,table.size());
     this.mockMvc.perform(patch(updateUrl+ "/patch").with(httpBasic(user, password))
                                                    .with(csrf())

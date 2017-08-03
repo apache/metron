@@ -29,7 +29,7 @@ import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.EnrichmentLookup;
 import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.hbase.mock.MockHTable;
-import org.apache.metron.hbase.mock.MockProvider;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.accesstracker.BloomAccessTracker;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentAccessTracker;
@@ -99,8 +99,8 @@ public class ThreatIntelAdapterTest {
   @Before
   public void setup() throws Exception {
 
-    final MockHTable trackerTable = (MockHTable)MockProvider.addToCache(atTableName, cf);
-    final MockHTable threatIntelTable = (MockHTable)MockProvider.addToCache(threatIntelTableName, cf);
+    final MockHTable trackerTable = (MockHTable) MockHBaseTableProvider.addToCache(atTableName, cf);
+    final MockHTable threatIntelTable = (MockHTable) MockHBaseTableProvider.addToCache(threatIntelTableName, cf);
     EnrichmentHelper.INSTANCE.load(threatIntelTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
       add(new LookupKV<>(new EnrichmentKey("10.0.2.3", "10.0.2.3"), new EnrichmentValue(new HashMap<>())));
     }});

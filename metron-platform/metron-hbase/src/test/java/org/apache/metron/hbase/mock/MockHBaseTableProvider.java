@@ -26,7 +26,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MockProvider implements Serializable, TableProvider {
+public class MockHBaseTableProvider implements Serializable, TableProvider {
   private static Map<String, HTableInterface> _cache = new HashMap<>();
   public HTableInterface getTable(Configuration config, String tableName) throws IOException {
     HTableInterface ret = _cache.get(tableName);

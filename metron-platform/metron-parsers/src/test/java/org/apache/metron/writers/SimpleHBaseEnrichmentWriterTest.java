@@ -29,7 +29,7 @@ import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.writer.SimpleHbaseEnrichmentWriter;
 import org.apache.metron.hbase.mock.MockHTable;
-import org.apache.metron.hbase.mock.MockProvider;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
@@ -50,12 +50,12 @@ public class SimpleHBaseEnrichmentWriterTest {
     put(SimpleHbaseEnrichmentWriter.Configurations.HBASE_TABLE.getKey(), TABLE_NAME);
     put(SimpleHbaseEnrichmentWriter.Configurations.HBASE_CF.getKey(), TABLE_CF);
     put(SimpleHbaseEnrichmentWriter.Configurations.ENRICHMENT_TYPE.getKey(), ENRICHMENT_TYPE);
-    put(SimpleHbaseEnrichmentWriter.Configurations.HBASE_PROVIDER.getKey(), MockProvider.class.getName());
+    put(SimpleHbaseEnrichmentWriter.Configurations.HBASE_PROVIDER.getKey(), MockHBaseTableProvider.class.getName());
   }};
 
   @Before
   public void setupMockTable() {
-    MockProvider.addToCache(TABLE_NAME, TABLE_CF);
+    MockHBaseTableProvider.addToCache(TABLE_NAME, TABLE_CF);
   }
   @Test
   public void testBatchOneNormalPath() throws Exception {
@@ -141,7 +141,7 @@ public class SimpleHBaseEnrichmentWriterTest {
     Assert.assertEquals(2, values.get(0).getValue().getMetadata().size());
   }
   public static List<LookupKV<EnrichmentKey, EnrichmentValue>> getValues() throws IOException {
-    MockHTable table = (MockHTable)MockProvider.getFromCache(TABLE_NAME);
+    MockHTable table = (MockHTable) MockHBaseTableProvider.getFromCache(TABLE_NAME);
     Assert.assertNotNull(table);
     List<LookupKV<EnrichmentKey, EnrichmentValue>> ret = new ArrayList<>();
     EnrichmentConverter converter = new EnrichmentConverter();

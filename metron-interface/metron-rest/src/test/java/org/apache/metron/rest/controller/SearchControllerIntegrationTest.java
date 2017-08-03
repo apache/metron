@@ -17,15 +17,11 @@
  */
 package org.apache.metron.rest.controller;
 
-import com.google.common.collect.ImmutableMap;
-import org.apache.metron.hbase.mock.MockProvider;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.indexing.dao.InMemoryDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.service.SearchService;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.After;
 import org.junit.Before;
@@ -41,9 +37,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
@@ -78,7 +72,7 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
 
   @BeforeClass
   public static void setupHbase() {
-    MockProvider.addToCache("updates", "t");
+    MockHBaseTableProvider.addToCache("updates", "t");
   }
 
   @Before

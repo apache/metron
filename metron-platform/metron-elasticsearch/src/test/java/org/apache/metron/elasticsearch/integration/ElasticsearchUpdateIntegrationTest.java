@@ -25,13 +25,11 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
-import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.hbase.mock.MockHTable;
-import org.apache.metron.hbase.mock.MockProvider;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.indexing.dao.*;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
@@ -63,7 +61,7 @@ public class ElasticsearchUpdateIntegrationTest {
   @BeforeClass
   public static void setup() throws Exception {
     Configuration config = HBaseConfiguration.create();
-    MockProvider tableProvider = new MockProvider();
+    MockHBaseTableProvider tableProvider = new MockHBaseTableProvider();
     tableProvider.addToCache(TABLE_NAME, CF);
     table = (MockHTable)tableProvider.getTable(config, TABLE_NAME);
     // setup the client
