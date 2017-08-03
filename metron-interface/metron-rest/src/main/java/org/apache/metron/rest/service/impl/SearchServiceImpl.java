@@ -66,6 +66,7 @@ public class SearchServiceImpl implements SearchService {
     }
   }
 
+  @Override
   public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws RestException {
     try {
       return dao.getColumnMetadata(indices);

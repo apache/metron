@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class InMemoryDao implements IndexDao {
+  // Map from index to list of documents as JSON strings
   public static Map<String, List<String>> BACKING_STORE = new HashMap<>();
   public static Map<String, Map<String, FieldType>> COLUMN_METADATA;
   private AccessConfig config;

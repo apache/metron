@@ -548,6 +548,11 @@ public class BasicStellarTest {
   }
 
   @Test
+  public void testToStringNull() {
+    Assert.assertEquals("null", run("TO_STRING(\"null\")", ImmutableMap.of("foo", "null")));
+  }
+
+  @Test
   public void testToInteger() {
     Assert.assertEquals(5, run("TO_INTEGER(foo)", ImmutableMap.of("foo", "5")));
     Assert.assertEquals(5, run("TO_INTEGER(foo)", ImmutableMap.of("foo", 5)));

@@ -156,4 +156,8 @@ public class MultiIndexDao implements IndexDao {
     }
     return ret;
   }
+
+  public List<IndexDao> getIndices() {
+    return indices;
+  }
 }

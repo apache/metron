@@ -17,12 +17,14 @@
  */
 package org.apache.metron.rest.controller;
 
+import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.rest.service.UpdateService;
 import org.junit.Assert;
 import org.junit.Before;
@@ -114,7 +116,11 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
   @Before
   public void setup() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
-    loadTestData();
+    ImmutableMap<String, String> testData = ImmutableMap.of(
+        "bro_index_2017.01.01.01", SearchIntegrationTest.broData,
+        "snort_index_2017.01.01.01", SearchIntegrationTest.snortData
+    );
+    loadTestData(testData);
   }
 
   @Test

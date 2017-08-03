@@ -33,6 +33,8 @@ import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.indexing.dao.*;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -144,6 +146,7 @@ public class ElasticsearchUpdateIntegrationTest {
         setGuid(guid);
         setSensorType(SENSOR_NAME);
       }}, Optional.empty());
+
       Assert.assertEquals(1, table.size());
       Document doc = dao.getLatest(guid, SENSOR_NAME);
       Assert.assertEquals(message0, doc.getDocument());

@@ -20,8 +20,6 @@ package org.apache.metron.elasticsearch.dao;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.update.Document;
@@ -29,14 +27,13 @@ import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.*;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.elasticsearch.action.get.GetRequestBuilder;
-import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.ActionWriteResponse.ShardInfo;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.*;
 import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
+import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
@@ -50,8 +47,6 @@ import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.*;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -60,15 +55,12 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -105,6 +97,17 @@ public class ElasticsearchDao implements IndexDao {
 
   @Override
   public SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
+    return search(searchRequest, new QueryStringQueryBuilder(searchRequest.getQuery()));
+  }
+
+  /**
+   * Defers to a provided {@link org.elasticsearch.index.query.QueryBuilder} for the query.
+   * @param searchRequest The request defining the parameters of the search
+   * @param queryBuilder The actual query to be run
+   * @return The results of the query
+   * @throws InvalidSearchException When the query is malformed or the current state doesn't allow search
+   */
+  protected SearchResponse search(SearchRequest searchRequest, QueryBuilder queryBuilder) throws InvalidSearchException {
     if(client == null) {
       throw new InvalidSearchException("Uninitialized Dao!  You must call init() prior to use.");
     }
@@ -114,10 +117,9 @@ public class ElasticsearchDao implements IndexDao {
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
             .size(searchRequest.getSize())
             .from(searchRequest.getFrom())
-            .query(new QueryStringQueryBuilder(searchRequest.getQuery()))
+            .query(queryBuilder)
 
-            .trackScores(true);
-    Optional<List<String>> fields = searchRequest.getFields();
+            .trackScores(true);Optional<List<String>> fields = searchRequest.getFields();
     if (fields.isPresent()) {
       searchSourceBuilder.fields(fields.get());
     } else {
@@ -257,8 +259,19 @@ public class ElasticsearchDao implements IndexDao {
             .upsert(indexRequest)
             ;
 
+    org.elasticsearch.action.search.SearchResponse result = client.prepareSearch("test*").setFetchSource(true).setQuery(QueryBuilders.matchAllQuery()).get();
+    result.getHits();
     try {
-      client.update(updateRequest).get();
+      UpdateResponse response = client.update(updateRequest).get();
+
+      ShardInfo shardInfo = response.getShardInfo();
+      int failed = shardInfo.getFailed();
+      if (failed > 0) {
+        throw new IOException("ElasticsearchDao upsert failed: " + Arrays.toString(shardInfo.getFailures()));
+      }
+      Thread.sleep(10000);
+      org.elasticsearch.action.search.SearchResponse resultAfter = client.prepareSearch("test*").setFetchSource(true).setQuery(QueryBuilders.matchAllQuery()).get();
+      resultAfter.getHits();
     } catch (Exception e) {
       throw new IOException(e.getMessage(), e);
     }
@@ -369,4 +382,9 @@ public class ElasticsearchDao implements IndexDao {
   private String getAggregationName(String field) {
     return String.format("%s_count", field);
   }
+
+  public TransportClient getClient() {
+    return client;
+  }
+
 }
