@@ -48,9 +48,16 @@ public class TextFunctions {
       if (list.size() < 3) {
         throw new IllegalStateException("FUZZY_SCORE expects three args: [string, string, string]");
       }
-      String term = (String) list.get(0);
-      String query = (String) list.get(1);
-      String lang = (String) list.get(2);
+      Object oterm = list.get(0);
+      Object oquery = list.get(1);
+      Object olang = list.get(2);
+      
+      if(!(oterm instanceof String) || !(oquery instanceof String) || !(olang instanceof String)){
+        return 0;
+      }
+      String term = (String) oterm;
+      String query = (String) oquery;
+      String lang = (String) olang;
       if (StringUtils.isEmpty(term) || StringUtils.isEmpty(query) || StringUtils.isEmpty(lang)) {
         return 0;
       }
