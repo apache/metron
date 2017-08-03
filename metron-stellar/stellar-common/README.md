@@ -41,9 +41,10 @@ The following keywords need to be single quote escaped in order to be used in St
 |               |               |             |             |             |
 | :-----------: | :-----------: | :---------: | :---------: | :---------: |
 | not           | else          | exists      | if          | then        |
-| and           | or            | in          | ==          | !=          |
-| \<=           | \>            | \>=         | \+          | \-          |
-| \<            | ?             | \*          | /           | ,           |
+| and           | or            | in          | NaN         | ==          |
+| !=            | \<=           | \>          | \>=         | \+          |
+| \-            | \<            | ?           | \*          | /           |
+| ,             |               |             |             |             |
 
 Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 
