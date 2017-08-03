@@ -136,13 +136,13 @@ public class InMemoryDao implements IndexDao {
   }
 
   @Override
-  public Document getLatest(String uuid, String sensorType) throws IOException {
+  public Document getLatest(String guid, String sensorType) throws IOException {
     for(Map.Entry<String, List<String>> kv: BACKING_STORE.entrySet()) {
       if(kv.getKey().startsWith(sensorType)) {
         for(String doc : kv.getValue()) {
           Map<String, Object> docParsed = parse(doc);
-          if(docParsed.getOrDefault(Constants.GUID, "").equals(uuid)) {
-            return new Document(doc, uuid, sensorType, 0L);
+          if(docParsed.getOrDefault(Constants.GUID, "").equals(guid)) {
+            return new Document(doc, guid, sensorType, 0L);
           }
         }
       }
@@ -157,7 +157,7 @@ public class InMemoryDao implements IndexDao {
         for (Iterator<String> it = kv.getValue().iterator(); it.hasNext(); ) {
           String doc = it.next();
           Map<String, Object> docParsed = parse(doc);
-          if (docParsed.getOrDefault(Constants.GUID, "").equals(update.getUuid())) {
+          if (docParsed.getOrDefault(Constants.GUID, "").equals(update.getGuid())) {
             it.remove();
           }
         }
