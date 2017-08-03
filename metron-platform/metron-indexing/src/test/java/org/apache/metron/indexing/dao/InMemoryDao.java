@@ -30,6 +30,7 @@ import java.util.*;
 
 public class InMemoryDao implements IndexDao {
   public static Map<String, List<String>> BACKING_STORE = new HashMap<>();
+  public static Map<String, Map<String, FieldType>> COLUMN_METADATA;
   private AccessConfig config;
 
   @Override
@@ -132,11 +133,42 @@ public class InMemoryDao implements IndexDao {
     this.config = config;
   }
 
+  @Override
+  public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException {
+    Map<String, Map<String, FieldType>> columnMetadata = new HashMap<>();
+    for(String index: indices) {
+      columnMetadata.put(index, new HashMap<>(COLUMN_METADATA.get(index)));
+    }
+    return columnMetadata;
+  }
+
+  @Override
+  public Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException {
+    Map<String, FieldType> commonColumnMetadata = new HashMap<>();
+    for(String index: indices) {
+      if (commonColumnMetadata.isEmpty()) {
+        commonColumnMetadata = new HashMap<>(COLUMN_METADATA.get(index));
+      } else {
+        commonColumnMetadata.entrySet().retainAll(COLUMN_METADATA.get(index).entrySet());
+      }
+    }
+    return commonColumnMetadata;
+  }
+
+  public static void setColumnMetadata(Map<String, Map<String, FieldType>> columnMetadata) {
+    Map<String, Map<String, FieldType>> columnMetadataMap = new HashMap<>();
+    for (Map.Entry<String, Map<String, FieldType>> e: columnMetadata.entrySet()) {
+      columnMetadataMap.put(e.getKey(), Collections.unmodifiableMap(e.getValue()));
+    }
+    COLUMN_METADATA = columnMetadataMap;
+  }
+
   public static void load(Map<String, List<String>> backingStore) {
     BACKING_STORE = backingStore;
   }
 
   public static void clear() {
     BACKING_STORE.clear();
+    COLUMN_METADATA.clear();
   }
 }

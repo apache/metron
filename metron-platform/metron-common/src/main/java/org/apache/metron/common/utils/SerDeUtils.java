@@ -20,13 +20,25 @@
 
 package org.apache.metron.common.utils;
 
+import static com.esotericsoftware.kryo.util.Util.className;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.util.Util;
 import com.esotericsoftware.reflectasm.ConstructorAccess;
-import de.javakaffee.kryoserializers.*;
+import de.javakaffee.kryoserializers.ArraysAsListSerializer;
+import de.javakaffee.kryoserializers.CollectionsEmptyListSerializer;
+import de.javakaffee.kryoserializers.CollectionsEmptyMapSerializer;
+import de.javakaffee.kryoserializers.CollectionsEmptySetSerializer;
+import de.javakaffee.kryoserializers.CollectionsSingletonListSerializer;
+import de.javakaffee.kryoserializers.CollectionsSingletonMapSerializer;
+import de.javakaffee.kryoserializers.CollectionsSingletonSetSerializer;
+import de.javakaffee.kryoserializers.GregorianCalendarSerializer;
+import de.javakaffee.kryoserializers.JdkProxySerializer;
+import de.javakaffee.kryoserializers.SynchronizedCollectionsSerializer;
+import de.javakaffee.kryoserializers.UnmodifiableCollectionsSerializer;
 import de.javakaffee.kryoserializers.cglib.CGLibProxySerializer;
 import de.javakaffee.kryoserializers.guava.ImmutableListSerializer;
 import de.javakaffee.kryoserializers.guava.ImmutableMapSerializer;
@@ -34,6 +46,17 @@ import de.javakaffee.kryoserializers.guava.ImmutableMultimapSerializer;
 import de.javakaffee.kryoserializers.guava.ImmutableSetSerializer;
 import de.javakaffee.kryoserializers.jodatime.JodaLocalDateSerializer;
 import de.javakaffee.kryoserializers.jodatime.JodaLocalDateTimeSerializer;
+import java.io.ByteArrayInputStream;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Modifier;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.GregorianCalendar;
+import java.util.function.Function;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.objenesis.instantiator.ObjectInstantiator;
 import org.objenesis.strategy.InstantiatorStrategy;
@@ -41,23 +64,12 @@ import org.objenesis.strategy.StdInstantiatorStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Modifier;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.function.Function;
-
-import static com.esotericsoftware.kryo.util.Util.className;
-
 /**
  * Provides basic functionality to serialize and deserialize the allowed
  * value types for a ProfileMeasurement.
  */
 public class SerDeUtils {
-  protected static final Logger LOG = LoggerFactory.getLogger(SerDeUtils.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static ThreadLocal<Kryo> kryo = new ThreadLocal<Kryo>() {
     @Override
     protected Kryo initialValue() {
@@ -229,7 +241,7 @@ public class SerDeUtils {
       return bos.toByteArray();
     }
     catch(Throwable t) {
-      LOG.error("Unable to serialize: " + value + " because " + t.getMessage(), t);
+      LOG.error("Unable to serialize: {} because {}", value, t.getMessage(), t);
       throw new IllegalStateException("Unable to serialize " + value + " because " + t.getMessage(), t);
     }
   }
@@ -249,7 +261,7 @@ public class SerDeUtils {
       return clazz.cast(kryo.get().readClassAndObject(input));
     }
     catch(Throwable t) {
-      LOG.error("Unable to deserialize  because " + t.getMessage(), t);
+      LOG.error("Unable to deserialize  because {}", t.getMessage(), t);
       throw t;
     }
   }
