@@ -144,7 +144,7 @@ public class ElasticsearchDao implements IndexDao {
 
   @Override
   public Document getLatest(final String guid, final String sensorType) throws IOException {
-    Optional<Document> ret = searchByUuid(
+    Optional<Document> ret = searchByGuid(
             guid
             , sensorType
             , hit -> {
@@ -167,7 +167,7 @@ public class ElasticsearchDao implements IndexDao {
    * If more than one hit happens, the first one will be returned.
    * @throws IOException
    */
-  <T> Optional<T> searchByUuid(String guid, String sensorType, Function<SearchHit, Optional<T>> callback) throws IOException{
+  <T> Optional<T> searchByGuid(String guid, String sensorType, Function<SearchHit, Optional<T>> callback) throws IOException{
     QueryBuilder query =  QueryBuilders.matchQuery(Constants.GUID, guid);
     SearchRequestBuilder request = client.prepareSearch()
                                          .setTypes(sensorType + "_doc")
@@ -200,19 +200,19 @@ public class ElasticsearchDao implements IndexDao {
     String type = sensorType + "_doc";
     byte[] source = JSONUtils.INSTANCE.toJSON(update.getDocument());
     Object ts = update.getTimestamp();
-    IndexRequest indexRequest = new IndexRequest(indexName, type, update.getUuid())
+    IndexRequest indexRequest = new IndexRequest(indexName, type, update.getGuid())
             .source(source)
             ;
     if(ts != null) {
       indexRequest = indexRequest.timestamp(ts.toString());
     }
     String existingIndex = index.orElse(
-            searchByUuid(update.getUuid()
+            searchByGuid(update.getGuid()
                         , sensorType
                         , hit -> Optional.ofNullable(hit.getIndex())
                         ).orElse(indexName)
                                        );
-    UpdateRequest updateRequest = new UpdateRequest(existingIndex, type, update.getUuid())
+    UpdateRequest updateRequest = new UpdateRequest(existingIndex, type, update.getGuid())
             .doc(source)
             .upsert(indexRequest)
             ;
