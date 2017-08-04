@@ -48,3 +48,5 @@ search:
 index:
   dao:
      impl: org.apache.metron.elasticsearch.dao.ElasticsearchDao
+
+spring.jpa.generate-ddl: true
