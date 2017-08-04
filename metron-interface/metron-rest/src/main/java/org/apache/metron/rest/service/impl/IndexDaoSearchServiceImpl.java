@@ -25,6 +25,7 @@ import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -34,10 +35,12 @@ import java.util.Map;
 @Service
 public class IndexDaoSearchServiceImpl implements SearchService {
   private IndexDao dao;
+  private Environment environment;
 
   @Autowired
-  public IndexDaoSearchServiceImpl(IndexDao dao) {
+  public IndexDaoSearchServiceImpl(IndexDao dao, Environment environment) {
     this.dao = dao;
+    this.environment = environment;
   }
 
   @Override
