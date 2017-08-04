@@ -7,6 +7,7 @@
 * [Validation Framework](#validation-framework)
 * [Management Utility](#management-utility)
 * [Topology Errors](topology-errors)
+* [Performance Logging](#performance-logging)
 
 # Stellar Language
 
@@ -152,3 +153,56 @@ Error topics for enrichment and threat intel errors are passed into the enrichme
 The error topic for indexing errors is passed into the indexing topology as a flux property named `index.error.topic`.  This property can be found in either `$METRON_HOME/config/elasticsearch.properties` or `$METRON_HOME/config/solr.properties` depending on the search engine selected.
 
 By default all error messages are sent to the `indexing` topic so that they are indexed and archived, just like other messages.  The indexing config for error messages can be found at `$METRON_HOME/config/zookeeper/indexing/error.json`.
+
+# Performance Logging
+
+The PerformanceLogger class provides functionality that enables developers to debug performance issues. Basic usage looks like the following:
+```
+// create a simple inner performance class to use for logger instantiation
+public static class Perf {}
+// instantiation
+PerformnanceLogger perfLog = new PerformanceLogger(() -> getConfigurations().getGlobalConfig(), Perf.class.getName());
+// marking a start time
+perfLog.mark("mark1");
+// ...do some high performance stuff...
+// log the elapsed time
+perfLog.log("mark1", "My high performance stuff is very performant");
+// log no additional message, just the basics
+perfLog.log("mark1");
+```
+
+The logger maintains a Map<String, Long> of named markers that correspond to start times. Calling mark() performs a put on the underlying timing store. Output includes the mark name, elapsed time in nanoseconds, as well as any custom messaging you provide. A sample log would look like the following:
+```
+[DEBUG] markName=execute,time(ns)=121411,message=key=7a8dbe44-4cb9-4db2-9d04-7632f543b56c, elapsed time to run execute
+```
+
+__Configuration__
+
+The first argument to the logger is a java.util.function.Supplier<Map<String, Object>>. The offers flexibility in being able to provide multiple configuration "suppliers" depending on your individual usage requirements. The example above,
+taken from org.apache.metron.enrichment.bolt.GenericEnrichmentBolt, leverages the global config to dymanically provide configuration from Zookeeper. Any updates to the global config via Zookeeper are reflected live at runtime. Currently,
+the PerformanceLogger supports the following options:
+
+|Property Name                              |Type               |Valid Values   |
+|-------------------------------------------|-------------------|---------------|
+|performance.logging.percent.records        |Integer            |0-100          |
+
+
+__Other Usage Details__
+
+You can also provide your own format String and provide arguments that will be used when formatting that String. This code avoids expensive String concatenation by only formatting when debugging is enabled. For more complex arguments, e.g. JSON serialization, we expose an isDebugEnabled() method.
+
+```
+// log with format String and single argument
+perfLog.log("join-message", "key={}, elapsed time to join messages", key);
+
+// check if debugging is enabled for the performance logger to avoid more expensive operations
+if (perfLog.isDebugEnabled()) {
+    perfLog.log("join-message", "key={}, elapsed time to join messages, message={}", key, rawMessage.toJSONString());
+}
+```
+
+__Side Effects__
+
+Calling the mark() method multiple times simply resets the start time to the current nano time. Calling log() with a non-existent mark name will log 0 ns elapsed time with a warning indicating that log has been invoked for a mark name that does not exist.
+The class is not thread-safe and makes no attempt at keeping multiple threads from modifying the same markers.
+

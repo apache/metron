@@ -20,25 +20,26 @@ package org.apache.metron.enrichment.adapters.cif;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.metron.enrichment.bolt.CacheKey;
-import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
-import org.json.simple.JSONObject;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HConnection;
 import org.apache.hadoop.hbase.client.HConnectionManager;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.KeyValue;
-import org.apache.log4j.Logger;
+import org.apache.metron.enrichment.bolt.CacheKey;
+import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("unchecked")
 public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable {
-
+	private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 	private static final long serialVersionUID = 1L;
 	private String _tableName;
 	private HTableInterface table;
@@ -51,9 +52,6 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable
 		_tableName = tableName;
 	}
 
-	/** The LOGGER. */
-	private static final Logger LOGGER = Logger
-			.getLogger(CIFHbaseAdapter.class);
 
 	@Override
 	public void logAccess(CacheKey value) {
@@ -64,7 +62,7 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable
 	public JSONObject enrich(CacheKey k) {
 		String metadata = k.coerceValue(String.class);
 		JSONObject output = new JSONObject();
-		LOGGER.debug("=======Looking Up For:" + metadata);
+		LOGGER.debug("=======Looking Up For: {}", metadata);
 		output.putAll(getCIFObject(metadata));
 
 		return output;
@@ -73,7 +71,7 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable
 	@SuppressWarnings({ "rawtypes", "deprecation" })
 	protected Map getCIFObject(String key) {
 
-		LOGGER.debug("=======Pinging HBase For:" + key);
+		LOGGER.debug("=======Pinging HBase For: {}", key);
 
 		Get get = new Get(key.getBytes());
 		Result rs;
@@ -103,13 +101,11 @@ public class CIFHbaseAdapter implements EnrichmentAdapter<CacheKey>,Serializable
 
 		try {
 			LOGGER.debug("=======Connecting to HBASE===========");
-			LOGGER.debug("=======ZOOKEEPER = "
-					+ conf.get("hbase.zookeeper.quorum"));
+			LOGGER.debug("=======ZOOKEEPER = {}", conf.get("hbase.zookeeper.quorum"));
 			HConnection connection = HConnectionManager.createConnection(conf);
 			table = connection.getTable(_tableName);
 			return true;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			LOGGER.debug("=======Unable to Connect to HBASE===========");
 			e.printStackTrace();
 		}
