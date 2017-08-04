@@ -262,12 +262,12 @@ public class SearchControllerIntegrationTest {
   private void loadColumnTypes() throws ParseException {
     Map<String, Map<String, FieldType>> columnTypes = new HashMap<>();
     Map<String, FieldType> broTypes = new HashMap<>();
-    broTypes.put("common_string_field", FieldType.STRING);
+    broTypes.put("common_string_field", FieldType.TEXT);
     broTypes.put("common_integer_field", FieldType.INTEGER);
     broTypes.put("bro_field", FieldType.BOOLEAN);
     broTypes.put("duplicate_field", FieldType.DATE);
     Map<String, FieldType> snortTypes = new HashMap<>();
-    snortTypes.put("common_string_field", FieldType.STRING);
+    snortTypes.put("common_string_field", FieldType.TEXT);
     snortTypes.put("common_integer_field", FieldType.INTEGER);
     snortTypes.put("snort_field", FieldType.DOUBLE);
     snortTypes.put("duplicate_field", FieldType.LONG);
