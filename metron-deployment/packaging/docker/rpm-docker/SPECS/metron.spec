@@ -245,7 +245,6 @@ This package installs the Metron Enrichment files
 %{metron_home}/config/zookeeper/enrichments/yaf.json
 %{metron_home}/config/zookeeper/enrichments/asa.json
 %{metron_home}/flux/enrichment/remote.yaml
-%exclude %{metron_home}/flux/enrichment/test.yaml
 %attr(0644,root,root) %{metron_home}/lib/metron-enrichment-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -428,7 +427,7 @@ chkconfig --del metron-management-ui
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
-* Thu Jun 29 2017 Apache Metron <dev@metron.apache.org> - 0.4.0+1
+* Thu Jun 29 2017 Apache Metron <dev@metron.apache.org> - 0.4.1
 - Add Metron Management jar 
 * Thu May 15 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
 - Added Management UI

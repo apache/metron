@@ -17,9 +17,15 @@
  */
 package org.apache.metron.management;
 
+import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jakewharton.fliptables.FlipTable;
-import org.apache.log4j.Logger;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.field.transformation.FieldTransformations;
@@ -28,13 +34,10 @@ import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
-
-import java.util.*;
-
-import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
+import org.slf4j.LoggerFactory;
 
 public class ParserConfigFunctions {
-  private static final Logger LOG = Logger.getLogger(ParserConfigFunctions.class);
+  private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static void pruneEmptyStellarTransformers(SensorParserConfig config) {
     List<FieldTransformer> toRemove = new ArrayList<>();
@@ -140,7 +143,7 @@ public class ParserConfigFunctions {
       try {
         return JSONUtils.INSTANCE.toJSON(configObj, true);
       } catch (JsonProcessingException e) {
-        LOG.error("Unable to convert object to JSON: " + configObj, e);
+        LOG.error("Unable to convert object to JSON: {}", configObj, e);
         return config;
       }
     }
@@ -191,7 +194,7 @@ public class ParserConfigFunctions {
       try {
         return JSONUtils.INSTANCE.toJSON(configObj, true);
       } catch (JsonProcessingException e) {
-        LOG.error("Unable to convert object to JSON: " + configObj, e);
+        LOG.error("Unable to convert object to JSON: {}", configObj, e);
         return config;
       }
     }

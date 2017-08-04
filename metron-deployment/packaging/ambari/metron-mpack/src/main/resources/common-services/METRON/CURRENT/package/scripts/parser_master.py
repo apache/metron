@@ -58,13 +58,13 @@ class ParserMaster(Script):
         env.set_params(params)
         self.configure(env)
         commands = ParserCommands(params)
-        commands.start_parser_topologies()
+        commands.start_parser_topologies(env)
 
     def stop(self, env, upgrade_type=None):
         from params import params
         env.set_params(params)
         commands = ParserCommands(params)
-        commands.stop_parser_topologies()
+        commands.stop_parser_topologies(env)
 
     def status(self, env):
         from params import status_params

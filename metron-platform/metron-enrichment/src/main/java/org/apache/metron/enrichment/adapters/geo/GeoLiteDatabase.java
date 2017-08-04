@@ -19,20 +19,15 @@ package org.apache.metron.enrichment.adapters.geo;
 
 import com.maxmind.db.CHMCache;
 import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.exception.AddressNotFoundException;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CityResponse;
 import com.maxmind.geoip2.record.City;
 import com.maxmind.geoip2.record.Country;
 import com.maxmind.geoip2.record.Location;
 import com.maxmind.geoip2.record.Postal;
-import org.apache.commons.validator.routines.InetAddressValidator;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -41,11 +36,17 @@ import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.zip.GZIPInputStream;
+import org.apache.commons.validator.routines.InetAddressValidator;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public enum GeoLiteDatabase {
   INSTANCE;
 
-  protected static final Logger LOG = LoggerFactory.getLogger(GeoLiteDatabase.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String GEO_HDFS_FILE = "geo.hdfs.file";
   public static final String GEO_HDFS_FILE_DEFAULT = "/apps/metron/geo/default/GeoLite2-City.mmdb.gz";
 
@@ -127,7 +128,8 @@ public enum GeoLiteDatabase {
       return Optional.empty();
     }
     if (isIneligibleAddress(ip, addr)) {
-      return Optional.of(new HashMap());
+      LOG.debug("[Metron] IP ineligible for GeoLite2 lookup {}", ip);
+      return Optional.empty();
     }
 
     try {
@@ -162,8 +164,8 @@ public enum GeoLiteDatabase {
       }
 
       return Optional.of(geoInfo);
-    } catch (UnknownHostException e) {
-      LOG.warn("[Metron] No result found for IP {}", ip);
+    } catch (UnknownHostException | AddressNotFoundException e) {
+      LOG.debug("[Metron] No result found for IP {}", ip);
     } catch (GeoIp2Exception | IOException e) {
       LOG.warn("[Metron] GeoLite2 DB encountered an error", e);
     } finally {

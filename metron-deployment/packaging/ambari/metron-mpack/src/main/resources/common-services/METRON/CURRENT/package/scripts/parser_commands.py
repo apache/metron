@@ -89,7 +89,7 @@ class ParserCommands:
         # All errors go to indexing topics, so create it here if it's not already
         # Getting topics this way is a bit awkward, but I don't want to append to actual list, so copy it
         topics = list(self.get_parser_list())
-        topics.append(self.__params.metron_error_topic)
+        topics.append(self.__params.enrichment_error_topic)
         metron_service.init_kafka_topics(self.__params, topics)
 
     def init_kafka_acls(self):
@@ -97,13 +97,13 @@ class ParserCommands:
 
         # Getting topics this way is a bit awkward, but I don't want to modify the actual list, so copy it
         topics = list(self.get_parser_list())
-        topics.append(self.__params.metron_error_topic)
+        topics.append(self.__params.enrichment_error_topic)
         # Parser group is the parser name + '_parser'
         metron_service.init_kafka_acls(self.__params,
                                        topics,
                                        [parser + '_parser' for parser in self.get_parser_list()])
 
-    def start_parser_topologies(self):
+    def start_parser_topologies(self, env):
         Logger.info("Starting Metron parser topologies: {0}".format(self.get_parser_list()))
         start_cmd_template = """{0}/bin/start_parser_topology.sh \
                                     -k {1} \
@@ -117,7 +117,11 @@ class ParserCommands:
                                   self.__params.metron_keytab_path,
                                   self.__params.metron_principal_name,
                                   execute_user=self.__params.metron_user)
-        for parser in self.get_parser_list():
+
+        stopped_parsers = set(self.get_parser_list()) - self.get_running_topology_names(env)
+        Logger.info('Parsers that need started: ' + str(stopped_parsers))
+
+        for parser in stopped_parsers:
             Logger.info('Starting ' + parser)
             Execute(start_cmd_template.format(self.__params.metron_home,
                                               self.__params.kafka_brokers,
@@ -128,9 +132,13 @@ class ParserCommands:
 
         Logger.info('Finished starting parser topologies')
 
-    def stop_parser_topologies(self):
+    def stop_parser_topologies(self, env):
         Logger.info('Stopping parsers')
-        for parser in self.get_parser_list():
+
+        running_parsers = set(self.get_parser_list()) & self.get_running_topology_names(env)
+        Logger.info('Parsers that need stopped: ' + str(running_parsers))
+
+        for parser in running_parsers:
             Logger.info('Stopping ' + parser)
             stop_cmd = 'storm kill ' + parser
             if self.__params.security_enabled:
@@ -143,14 +151,16 @@ class ParserCommands:
 
     def restart_parser_topologies(self, env):
         Logger.info('Restarting the parser topologies')
-        self.stop_parser_topologies()
+        self.stop_parser_topologies(env)
+
         attempt_count = 0
         while self.topologies_running(env):
             if attempt_count > 2:
                 raise Exception("Unable to kill topologies")
             attempt_count += 1
             time.sleep(10)
-        self.start_parser_topologies()
+        self.start_parser_topologies(env)
+
         Logger.info('Done restarting the parser topologies')
 
     def topologies_exist(self):
@@ -165,6 +175,18 @@ class ParserCommands:
                     if items and items[0] == parser:
                         return True
         return False
+
+    def get_running_topology_names(self, env):
+        """
+        Returns the names of all 'running' topologies.  A running topology
+        is one that is either active or rebalancing.
+        :param env: Environment
+        :return: Set containing the names of all running topologies.
+        """
+        env.set_params(self.__params)
+        topology_status = metron_service.get_running_topologies(self.__params)
+        topology_names = ([name for name in topology_status if topology_status[name] in ['ACTIVE', 'REBALANCING']])
+        return set(topology_names)
 
     def topologies_running(self, env):
         env.set_params(self.__params)

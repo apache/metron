@@ -30,6 +30,8 @@ zookeeper:
 kafka:
   broker:
     url: node1:6667
+  security:
+    protocol: PLAINTEXT
 
 hdfs:
   namenode:

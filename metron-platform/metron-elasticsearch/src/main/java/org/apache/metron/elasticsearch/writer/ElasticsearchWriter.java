@@ -17,15 +17,22 @@
  */
 package org.apache.metron.elasticsearch.writer;
 
-import org.apache.storm.task.TopologyContext;
-import org.apache.storm.tuple.Tuple;
+import java.io.Serializable;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.interfaces.FieldNameConverter;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
-import org.apache.metron.common.interfaces.FieldNameConverter;
+import org.apache.storm.task.TopologyContext;
+import org.apache.storm.tuple.Tuple;
+import org.elasticsearch.Version;
 import org.elasticsearch.action.admin.cluster.state.ClusterStateAction;
 import org.elasticsearch.action.admin.cluster.state.ClusterStateRequestBuilder;
 import org.elasticsearch.action.admin.cluster.state.ClusterStateResponse;
@@ -38,16 +45,10 @@ import org.elasticsearch.cluster.node.DiscoveryNode;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient;
-import org.elasticsearch.Version;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
@@ -91,62 +92,15 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
                 new InetSocketTransportAddress(InetAddress.getByName(hp.hostname), hp.port)
         );
       }
-
-
     } catch (UnknownHostException exception){
-
       throw new RuntimeException(exception);
     }
-    printElasticConnectionDetails(client);
+
+    logElasticConnectionDetails(client);
 
     dateFormat = new SimpleDateFormat((String) globalConfiguration.get("es.date.format"));
 
   }
-
-
-  private void printElasticConnectionDetails(TransportClient client) {
-
-    if (client != null) {
-      for (DiscoveryNode node : client.connectedNodes()) {
-        LOG.info("Successfully connected to Elastic node " + node.getHostName());
-      }
-      String value;
-      for (Map.Entry<String, String> entry : client.settings().getAsMap().entrySet()) {
-          value=entry.getKey().contains("security")?"#####":entry.getValue();
-
-          LOG.info("key : " + entry.getKey() + " = " + value);
-      }
-      String version = getVersion() == null?"UNKNOWN":getVersion().toString();
-      LOG.info("ES cluster version : "+ version);
-    }
-    else {
-      LOG.info("Elasticsearch client is NULL, check properties");
-    }
-  }
-
-  private Version getVersion() {
-    if (version == null) {
-      version = getVersionFromMaster(client);
-    }
-
-    return version;
-  }
-
-  private Version getVersionFromMaster(TransportClient client) {
-
-    try {
-      ClusterStateRequestBuilder clusterStateRequestBuilder = new ClusterStateRequestBuilder(client.admin().cluster(),ClusterStateAction.INSTANCE);
-
-      ClusterStateResponse clusterStateResponse = clusterStateRequestBuilder.execute().actionGet();
-      Version version = clusterStateResponse.getState().getNodes().getMasterNode().getVersion();
-      LOG.info("Connected to ElasticSearch master node. Version : "+version.toString());
-      return version;
-    } catch (Exception e) {
-      LOG.error("Could not get Version from ES master node. Setting Version : " + e.getMessage());
-      return null;
-    }
-  }
-
 
   public static class HostnamePort {
     String hostname;
@@ -155,58 +109,6 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
       this.hostname = hostname;
       this.port = port;
     }
-  }
-
-  List<HostnamePort> getIps(Map<String, Object> globalConfiguration) {
-    Object ipObj = globalConfiguration.get("es.ip");
-    Object portObj = globalConfiguration.get("es.port");
-    if(ipObj == null) {
-      return Collections.emptyList();
-    }
-    if(ipObj instanceof String
-            && ipObj.toString().contains(",") && ipObj.toString().contains(":")){
-      List<String> ips = Arrays.asList(((String)ipObj).split(","));
-      List<HostnamePort> ret = new ArrayList<>();
-      for(String ip : ips) {
-        Iterable<String> tokens = Splitter.on(":").split(ip);
-        String host = Iterables.getFirst(tokens, null);
-        String portStr = Iterables.getLast(tokens, null);
-        ret.add(new HostnamePort(host, Integer.parseInt(portStr)));
-      }
-      return ret;
-    }else if(ipObj instanceof String
-            && ipObj.toString().contains(",")){
-      List<String> ips = Arrays.asList(((String)ipObj).split(","));
-      List<HostnamePort> ret = new ArrayList<>();
-      for(String ip : ips) {
-        ret.add(new HostnamePort(ip, Integer.parseInt(portObj + "")));
-      }
-      return ret;
-    }else if(ipObj instanceof String
-    && !ipObj.toString().contains(":")
-      ) {
-      return ImmutableList.of(new HostnamePort(ipObj.toString(), Integer.parseInt(portObj + "")));
-    }
-    else if(ipObj instanceof String
-        && ipObj.toString().contains(":")
-           ) {
-      Iterable<String> tokens = Splitter.on(":").split(ipObj.toString());
-      String host = Iterables.getFirst(tokens, null);
-      String portStr = Iterables.getLast(tokens, null);
-      return ImmutableList.of(new HostnamePort(host, Integer.parseInt(portStr)));
-    }
-    else if(ipObj instanceof List) {
-      List<String> ips = (List)ipObj;
-      List<HostnamePort> ret = new ArrayList<>();
-      for(String ip : ips) {
-        Iterable<String> tokens = Splitter.on(":").split(ip);
-        String host = Iterables.getFirst(tokens, null);
-        String portStr = Iterables.getLast(tokens, null);
-        ret.add(new HostnamePort(host, Integer.parseInt(portStr)));
-      }
-      return ret;
-    }
-    throw new IllegalStateException("Unable to read the elasticsearch ips, expected es.ip to be either a list of strings, a string hostname or a host:port string");
   }
 
   @Override
@@ -301,20 +203,113 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
     client.close();
   }
 
+  private void logElasticConnectionDetails(TransportClient client) {
+
+    if (client != null) {
+      for (DiscoveryNode node : client.connectedNodes()) {
+        LOG.info("Successfully connected to Elastic node " + node.getHostName());
+      }
+      String value;
+      for (Map.Entry<String, String> entry : client.settings().getAsMap().entrySet()) {
+        value=entry.getKey().contains("security")?"#####":entry.getValue();
+
+        LOG.info("key : " + entry.getKey() + " = " + value);
+      }
+      String version = getVersion() == null?"UNKNOWN":getVersion().toString();
+      LOG.info("ES cluster version : "+ version);
+    }
+    else {
+      LOG.info("Elasticsearch client is NULL, check properties");
+    }
+  }
+
+
+  private Version getVersion() {
+    if (version == null) {
+      version = getVersionFromMaster(client);
+    }
+
+    return version;
+  }
+
+  private Version getVersionFromMaster(TransportClient client) {
+
+    try {
+      ClusterStateRequestBuilder clusterStateRequestBuilder = new ClusterStateRequestBuilder(client.admin().cluster(), ClusterStateAction.INSTANCE);
+
+      ClusterStateResponse clusterStateResponse = clusterStateRequestBuilder.execute().actionGet();
+      Version version = clusterStateResponse.getState().getNodes().getMasterNode().getVersion();
+      LOG.info("Connected to ElasticSearch master node. Version : "+version.toString());
+      return version;
+    } catch (Exception e) {
+      LOG.error("Could not get Version from ES master node. Setting Version : " + e.getMessage());
+      return null;
+    }
+  }
+
+  private List<HostnamePort> getIps(Map<String, Object> globalConfiguration) {
+    Object ipObj = globalConfiguration.get("es.ip");
+    Object portObj = globalConfiguration.get("es.port");
+    if(ipObj == null) {
+      return Collections.emptyList();
+    }
+    if(ipObj instanceof String
+            && ipObj.toString().contains(",") && ipObj.toString().contains(":")){
+      List<String> ips = Arrays.asList(((String)ipObj).split(","));
+      List<HostnamePort> ret = new ArrayList<>();
+      for(String ip : ips) {
+        Iterable<String> tokens = Splitter.on(":").split(ip);
+        String host = Iterables.getFirst(tokens, null);
+        String portStr = Iterables.getLast(tokens, null);
+        ret.add(new HostnamePort(host, Integer.parseInt(portStr)));
+      }
+      return ret;
+    }else if(ipObj instanceof String
+            && ipObj.toString().contains(",")){
+      List<String> ips = Arrays.asList(((String)ipObj).split(","));
+      List<HostnamePort> ret = new ArrayList<>();
+      for(String ip : ips) {
+        ret.add(new HostnamePort(ip, Integer.parseInt(portObj + "")));
+      }
+      return ret;
+    }else if(ipObj instanceof String
+            && !ipObj.toString().contains(":")
+            ) {
+      return ImmutableList.of(new HostnamePort(ipObj.toString(), Integer.parseInt(portObj + "")));
+    }
+    else if(ipObj instanceof String
+            && ipObj.toString().contains(":")
+            ) {
+      Iterable<String> tokens = Splitter.on(":").split(ipObj.toString());
+      String host = Iterables.getFirst(tokens, null);
+      String portStr = Iterables.getLast(tokens, null);
+      return ImmutableList.of(new HostnamePort(host, Integer.parseInt(portStr)));
+    }
+    else if(ipObj instanceof List) {
+      List<String> ips = (List)ipObj;
+      List<HostnamePort> ret = new ArrayList<>();
+      for(String ip : ips) {
+        Iterable<String> tokens = Splitter.on(":").split(ip);
+        String host = Iterables.getFirst(tokens, null);
+        String portStr = Iterables.getLast(tokens, null);
+        ret.add(new HostnamePort(host, Integer.parseInt(portStr)));
+      }
+      return ret;
+    }
+    throw new IllegalStateException("Unable to read the elasticsearch ips, expected es.ip to be either a list of strings, a string hostname or a host:port string");
+  }
+
   //JSONObject doesn't expose map generics
   @SuppressWarnings("unchecked")
   private void deDot(String field, JSONObject origMessage, JSONObject message){
 
     if(field.contains(".")){
 
-      if(LOG.isDebugEnabled()){
-        LOG.debug("Dotted field: " + field);
-      }
+      LOG.debug("Dotted field: {}", field);
 
     }
     String newkey = fieldNameConverter.convert(field);
     message.put(newkey,origMessage.get(field));
-
   }
 
 }

@@ -90,9 +90,10 @@ configurations:
   - kafka-broker:
       log.dirs: '{{ kafka_log_dirs }}'
       delete.topic.enable: "true"
-  - metron-env:
-      parsers: "bro,snort"
+  - metron-rest-env:
       metron_spring_profiles_active: "dev"
+  - metron-parsers-env:
+      parsers: "bro,snort"
   - elastic-site:
       index_number_of_shards: 1
       index_number_of_replicas: 0
@@ -106,6 +107,7 @@ required_configurations:
       storm_rest_addr: "http://{{ groups.ambari_slave[0] }}:8744"
       es_hosts: "{{ groups.search | join(',') }}"
       zeppelin_server_url: "{{ groups.zeppelin[0] }}:9995"
+  - metron-rest-env:
       metron_jdbc_driver: "org.h2.Driver"
       metron_jdbc_url: "jdbc:h2:file:~/metrondb"
       metron_jdbc_username: "root"
