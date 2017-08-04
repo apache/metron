@@ -20,7 +20,7 @@
     "copy-blockly": "cp -f $npm_package_config_node_blockly/blockly_compressed.js $npm_package_config_node_blockly/blocks_compressed.js $npm_package_config_node_blockly/javascript_compressed.js src/assets/blockly",
     "copy-blockly-msg": "mkdir -p src/assets/blockly/msg/js && cp -f $npm_package_config_node_blockly/msg/js/en.js src/assets/blockly/msg/js",
     "copy-blockly-media": "mkdir -p src/assets/blockly/media && cp -f $npm_package_config_node_blockly/media/* src/assets/blockly/media",
-    "postinstall": "npm run copy-ace & npm run copy-ace-snippets"
+    "postinstall": "npm run copy-ace & npm run copy-ace-snippets & npm run copy-blockly & npm run copy-blockly-msg & npm run copy-blockly-media"
   },
   "private": true,
   "dependencies": {

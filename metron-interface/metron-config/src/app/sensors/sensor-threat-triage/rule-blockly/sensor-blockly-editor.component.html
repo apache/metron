@@ -35,7 +35,7 @@
       <label attr.for="statement" style="width: 100%">SCORE ADJUSTMENT</label>
       <input class="score-slider" name="scoreSlider" type="range" min="0" max="100" [(ngModel)]="this.newRiskLevelRule.score" style="width: 72%; margin-right: 4px">
       <div style="width: 25%; display: inline-block">
-        <metron-config-number-spinner name="scoreText" [(ngModel)]="score" [min]="0" [max]="100"> </metron-config-number-spinner>
+        <metron-config-number-spinner name="scoreText" [(ngModel)]="this.newRiskLevelRule.score" [min]="0" [max]="100"> </metron-config-number-spinner>
       </div>
     </div>
   </form>
