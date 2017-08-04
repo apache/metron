@@ -20,3 +20,5 @@ export const ALERTS_RECENT_SEARCH = 'metron-alerts-recent-saved-search';
 export const ALERTS_SAVED_SEARCH = 'metron-alerts-saved-search';
 export const ALERTS_TABLE_METADATA = 'metron-alerts-table-metadata';
 export const ALERTS_COLUMN_NAMES = 'metron-alerts-column-names';
+
+export var INDEXES = ['websphere', 'snort', 'asa', 'bro', 'yaf'];

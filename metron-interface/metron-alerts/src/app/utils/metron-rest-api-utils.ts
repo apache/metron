@@ -1,5 +1,3 @@
-import {SortField} from './sort-field';
-import {INDEXES} from '../utils/constants';
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,11 +15,26 @@ import {INDEXES} from '../utils/constants';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class SearchRequest {
-  // _source: string[]; //TODO: This needs to be removed
-  from: number;
-  indices: string[] = INDEXES;
-  query: string;
-  size: number;
-  sort: SortField[];
+import {ColumnMetadata} from '../model/column-metadata';
+
+export class MetronRestApiUtils {
+
+  public static extractColumnNameDataFromRestApi(res: Response): ColumnMetadata[] {
+    let response: any = res || {};
+    let processedKeys: string[] = [];
+    let columnMetadatas: ColumnMetadata[] = [];
+
+    for (let index of Object.keys(response)) {
+      let indexMetaData = response[index];
+      for (let key of Object.keys(indexMetaData)) {
+        if (processedKeys.indexOf(key) === -1) {
+          processedKeys.push(key);
+          columnMetadatas.push(new ColumnMetadata(key, indexMetaData[key]));
+        }
+      }
+    }
+
+    return columnMetadatas;
+  }
+
 }

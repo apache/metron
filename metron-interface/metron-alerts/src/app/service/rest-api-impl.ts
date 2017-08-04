@@ -22,6 +22,9 @@ import {HttpUtil} from '../utils/httpUtil';
 import {AlertsSearchResponse} from '../model/alerts-search-response';
 import {SearchRequest} from '../model/search-request';
 import {ElasticSearchLocalstorageImpl} from './elasticsearch-localstorage-impl';
+import {INDEXES} from '../utils/constants';
+import {ColumnMetadata} from '../model/column-metadata';
+import {MetronRestApiUtils} from '../utils/metron-rest-api-utils';
 
 export class RestApiImpl extends ElasticSearchLocalstorageImpl {
 
@@ -31,5 +34,13 @@ export class RestApiImpl extends ElasticSearchLocalstorageImpl {
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError)
       .onErrorResumeNext();
+  }
+
+  getAllFieldNames(): Observable<ColumnMetadata[]> {
+    let url = '/api/v1/search/column/metadata';
+    return this.http.post(url, INDEXES, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+      .map(HttpUtil.extractData)
+      .map(MetronRestApiUtils.extractColumnNameDataFromRestApi)
+      .catch(HttpUtil.handleError);
   }
 }
