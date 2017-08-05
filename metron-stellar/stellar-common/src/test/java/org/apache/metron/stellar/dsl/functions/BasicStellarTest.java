@@ -267,7 +267,7 @@ public class BasicStellarTest {
       Assert.assertFalse(runPredicate(query,new HashMap<>()));
     }
     {
-      String query = "'omg' == NaN";
+      String query = "'metron' == NaN";
       Assert.assertFalse(runPredicate(query,new HashMap<>()));
     }
 
@@ -281,7 +281,7 @@ public class BasicStellarTest {
       Assert.assertTrue(runPredicate(query,new HashMap<>()));
     }
     {
-      String query = "'omg' != NaN";
+      String query = "'metron' != NaN";
       Assert.assertTrue(runPredicate(query,new HashMap<>()));
     }
 
