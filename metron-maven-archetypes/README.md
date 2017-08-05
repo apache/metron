@@ -32,9 +32,9 @@ Configure the project properties.  Ending up with something like this:
 Confirm properties configuration:
 * groupId: org.someorg
 * artifactId: metron-parser-nice-extension
-* version: 0.4.0
+* version: 0.4.1
 * package: org.someorg.parsers
-* metronVersion: 0.4.0
+* metronVersion: 0.4.1
 * parserClassName: Nice
 * parserName: nice
 

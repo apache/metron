@@ -27,9 +27,6 @@ Select the metron-maven-parser-extension-archtype
 
 ##### Fill out the parameters
 NOTES:
-- Currently, the version number **must** match the current version of Metron (`0.4.0`)
-  When prompted for a version you must enter this or your parser will fail to start in storm
-    
 - The parserName must be lowercase, the parserClassName must start be Capital case, the name should match
   for consistancy's sake, but do not have to.  the parserName will be the sensor name used in the system ( the ES index etc )
    whereas the parserClassName will be used for java class names in generated sources
