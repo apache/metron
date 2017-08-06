@@ -50,20 +50,26 @@ public class LambdaExpression extends StellarCompiler.Expression {
   public Object apply(List<Object> variableArgs) {
     Map<String, Object> lambdaVariables = new HashMap<>();
     int i = 0;
-    for(;i < Math.min(variables.size(),variableArgs.size()) ;++i) {
+    for (; i < Math.min(variables.size(), variableArgs.size()); ++i) {
       lambdaVariables.put(variables.get(i), variableArgs.get(i));
     }
-    for(;i < variables.size();++i) {
+    for (; i < variables.size(); ++i) {
       lambdaVariables.put(variables.get(i), null);
     }
 
-    VariableResolver variableResolver = new DefaultVariableResolver(variable -> lambdaVariables.getOrDefault(variable
-                                                                                , state.variableResolver.resolve(variable)
-                                                                                ), variable -> true);
+    VariableResolver variableResolver = new DefaultVariableResolver(
+        variable -> lambdaVariables.getOrDefault(variable
+            , state.variableResolver.resolve(variable)
+        ), variable -> true,
+        (variable, value) -> {
+          if (state.variableResolver.exists(variable)) {
+            state.variableResolver.update(variable, value);
+          }
+        });
     StellarCompiler.ExpressionState localState = new StellarCompiler.ExpressionState(
-            state.context
-          , state.functionResolver
-          , variableResolver);
+        state.context
+        , state.functionResolver
+        , variableResolver);
     return apply(localState);
   }
 }

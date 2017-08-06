@@ -53,6 +53,11 @@ NOT : 'not' | 'NOT';
 TRUE : 'true' | 'TRUE';
 FALSE : 'false' | 'FALSE';
 
+ASSIGN : '=' ;
+PLUSASSIGN : '+=' ;
+MINUSASSIGN : '-=' ;
+DIVIDEASSIGN : '/=';
+MULTASSIGN : '*=';
 EQ : '==' ;
 NEQ : '!=' ;
 LT : '<';
@@ -143,6 +148,15 @@ transformation_expr:
   | logical_expr #LogicalExpression
   | in_expr #InExpression
   | match_expr #MatchExpr
+  | assign_expr #AssignExpr
+  ;
+
+assign_expr :
+   IDENTIFIER ASSIGN transformation_expr #AssignExpression
+  |IDENTIFIER PLUSASSIGN transformation_expr #PlusAssignExpression
+  |IDENTIFIER MINUSASSIGN transformation_expr #MinusAssignExpression
+  |IDENTIFIER DIVIDEASSIGN transformation_expr #DivideAssignExpression
+  |IDENTIFIER MULTASSIGN transformation_expr #MultiAssignExpression
   ;
 
 if_expr:
@@ -300,7 +314,7 @@ match_clause :
 match_clause_action :
   transformation_expr #MatchClauseAction
   ;
-  
+
 match_clause_check :
   logical_expr #MatchClauseCheckExpr
   | conditional_expr #MatchClauseCheckExpr
