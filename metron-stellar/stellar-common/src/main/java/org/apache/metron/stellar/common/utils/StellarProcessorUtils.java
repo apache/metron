@@ -89,7 +89,7 @@ public class StellarProcessorUtils {
     StellarProcessor processor = new StellarProcessor();
     Object result = processor.parse(
             expression,
-            new DefaultVariableResolver(x -> variables.get(x), x -> variables.containsKey(x)),
+            new DefaultVariableResolver(x -> variables.get(x), x -> variables.containsKey(x)),(x,y)-> variables.put(x,y),
             StellarFunctions.FUNCTION_RESOLVER(),
             context);
 
