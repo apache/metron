@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.extensions.ParserExtensionConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.common.utils.JSONUtils;
 
@@ -67,6 +68,13 @@ public enum ConfigurationType implements Function<String, Object> {
     } catch (IOException e) {
       throw new RuntimeException("Unable to load " + s, e);
     }
+  }),
+  PARSER_EXTENSION("parser_extensions","extensions/parsers",Constants.ZOOKEEPER_EXTENSIONS_ROOT + "/parsers", s-> {
+    try{
+      return JSONUtils.INSTANCE.load(s, ParserExtensionConfig.class);
+    }catch(IOException e){
+      throw new RuntimeException("Unable to load " + s, e);
+    }
   });
 
   String name;
@@ -74,10 +82,15 @@ public enum ConfigurationType implements Function<String, Object> {
   String zookeeperRoot;
   Function<String,?> deserializer;
 
+
   ConfigurationType(String name, String directory, Function<String, ?> deserializer) {
+    this(name,directory,Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + name,deserializer);
+  }
+
+  ConfigurationType(String name, String directory, String root, Function<String, ?> deserializer){
     this.name = name;
     this.directory = directory;
-    this.zookeeperRoot = Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + name;
+    this.zookeeperRoot = root;
     this.deserializer = deserializer;
   }
 

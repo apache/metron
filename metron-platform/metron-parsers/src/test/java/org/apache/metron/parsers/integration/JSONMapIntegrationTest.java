@@ -24,12 +24,12 @@ import java.util.List;
 
 public class JSONMapIntegrationTest extends ParserIntegrationTest {
   @Override
-  String getSensorType() {
+  public String getSensorType() {
     return "jsonMap";
   }
 
   @Override
-  List<ParserValidation> getValidations() {
+  public List<ParserValidation> getValidations() {
     return new ArrayList<ParserValidation>() {{
       add(new SampleDataValidation());
     }};

@@ -88,4 +88,19 @@ public class HdfsServiceImpl implements HdfsService {
         throw new RestException(e);
       }
     }
+
+    @Override
+    public boolean ensureDirectory(Path path) throws RestException{
+      try{
+        FileSystem fs = FileSystem.get(configuration);
+        if(fs.exists(path)){
+          return true;
+        }
+        fs.mkdirs(path);
+        return true;
+      }catch (IOException e){
+        throw new RestException(e);
+      }
+    }
+
  }
