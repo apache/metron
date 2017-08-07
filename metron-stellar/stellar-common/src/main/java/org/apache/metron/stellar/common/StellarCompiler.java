@@ -301,7 +301,6 @@ public class StellarCompiler extends StellarBaseListener {
       // resolver supports updates and creation, it will create it
 
       String varName = ctx.getStart().getText();
-      //Object value = popDeque(tokenDeque).getValue();
       Token<?> token = popDeque(tokenDeque);
       Object value = token.getValue();
       state.variableResolver.update(varName, value);
@@ -342,6 +341,117 @@ public class StellarCompiler extends StellarBaseListener {
     expression.variablesUsed.add(ctx.getText());
   }
 
+  @Override
+  public void exitPreIncrementExpression(StellarParser.PreIncrementExpressionContext ctx) {
+    final FrameContext.Context context = getArgContext();
+    expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
+      String varName = ctx.getStop().getText();
+      Token<? extends Number> valueToken = new Token<Number>(0, Number.class, context);
+      Token<? extends Number> oneToken = new Token<Number>(1, Number.class, context);
+      if (state.variableResolver.exists(varName)) {
+        Object objectValue = state.variableResolver.resolve(varName);
+        if (objectValue != null) {
+          if (objectValue instanceof Number) {
+            valueToken = new Token<Number>((Number) objectValue, Number.class, context);
+          } else {
+            throw new ParseException("Invalid operation, Number type required for numeric pre-increment");
+          }
+        }
+      }
+      Pair<Token<? extends Number>, Token<? extends Number>> p = Pair
+          .of(valueToken, oneToken);
+      Token<? extends Number> resultToken = arithmeticEvaluator
+          .evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.addition(context), p);
+      state.variableResolver.update(varName, resultToken.getValue());
+      tokenDeque.push(resultToken);
+    }, DeferredFunction.class, context));
+    expression.variablesUsed.add(ctx.getText());
+  }
+
+  @Override
+  public void exitPreDecrementExpression(StellarParser.PreDecrementExpressionContext ctx) {
+    final FrameContext.Context context = getArgContext();
+    expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
+      String varName = ctx.getStop().getText();
+      Token<? extends Number> valueToken = new Token<Number>(0, Number.class, context);
+      Token<? extends Number> oneToken = new Token<Number>(1, Number.class, context);
+      if (state.variableResolver.exists(varName)) {
+        Object objectValue = state.variableResolver.resolve(varName);
+        if (objectValue != null) {
+          if (objectValue instanceof Number) {
+            valueToken = new Token<Number>((Number) objectValue, Number.class, context);
+          } else {
+            throw new ParseException("Invalid operation, Number type required for numeric pre-decrement");
+          }
+        }
+      }
+      Pair<Token<? extends Number>, Token<? extends Number>> p = Pair
+          .of(valueToken, oneToken);
+      Token<? extends Number> resultToken = arithmeticEvaluator
+          .evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.subtraction(context), p);
+      state.variableResolver.update(varName, resultToken.getValue());
+      tokenDeque.push(resultToken);
+    }, DeferredFunction.class, context));
+    expression.variablesUsed.add(ctx.getText());
+  }
+
+
+  @Override
+  public void exitPostIncrementExpression(StellarParser.PostIncrementExpressionContext ctx) {
+    final FrameContext.Context context = getArgContext();
+    expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
+      String varName = ctx.getStart().getText();
+      Token<? extends Number> valueToken = new Token<Number>(0, Number.class, context);
+      Token<? extends Number> oneToken = new Token<Number>(1, Number.class, context);
+      if (state.variableResolver.exists(varName)) {
+        Object objectValue = state.variableResolver.resolve(varName);
+        if (objectValue != null) {
+          if (objectValue instanceof Number) {
+            valueToken = new Token<Number>((Number) objectValue, Number.class, context);
+          } else {
+            throw new ParseException("Invalid operation, Number type required for numeric post-increment");
+          }
+        }
+      }
+      Pair<Token<? extends Number>, Token<? extends Number>> p = Pair
+          .of(valueToken, oneToken);
+      Token<? extends Number> resultToken = arithmeticEvaluator
+          .evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.addition(context), p);
+      state.variableResolver.update(varName, resultToken.getValue());
+      // push the value not the result
+      tokenDeque.push(valueToken);
+    }, DeferredFunction.class, context));
+    expression.variablesUsed.add(ctx.getText());
+  }
+
+
+  @Override
+  public void exitPostDecrementExpression(StellarParser.PostDecrementExpressionContext ctx) {
+    final FrameContext.Context context = getArgContext();
+    expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
+      String varName = ctx.getStart().getText();
+      Token<? extends Number> valueToken = new Token<Number>(0, Number.class, context);
+      Token<? extends Number> oneToken = new Token<Number>(1, Number.class, context);
+      if (state.variableResolver.exists(varName)) {
+        Object objectValue = state.variableResolver.resolve(varName);
+        if (objectValue != null) {
+          if (objectValue instanceof Number) {
+            valueToken = new Token<Number>((Number) objectValue, Number.class, context);
+          } else {
+            throw new ParseException("Invalid operation, Number type required for numeric post-decrement");
+          }
+        }
+      }
+      Pair<Token<? extends Number>, Token<? extends Number>> p = Pair
+          .of(valueToken, oneToken);
+      Token<? extends Number> resultToken = arithmeticEvaluator
+          .evaluate(ArithmeticEvaluator.ArithmeticEvaluatorFunctions.subtraction(context), p);
+      state.variableResolver.update(varName, resultToken.getValue());
+      // push the value not the result
+      tokenDeque.push(valueToken);
+    }, DeferredFunction.class, context));
+    expression.variablesUsed.add(ctx.getText());
+  }
 
   @Override
   public void exitArithExpr_plus(StellarParser.ArithExpr_plusContext ctx) {

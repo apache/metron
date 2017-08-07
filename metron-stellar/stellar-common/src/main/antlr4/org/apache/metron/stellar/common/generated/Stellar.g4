@@ -77,7 +77,9 @@ DEFAULT : 'default' | 'DEFAULT';
 MATCH_ACTION : '=>';
 
 MINUS : '-';
+MINUSMINUS : '--';
 PLUS : '+';
+PLUSPLUS : '++';
 DIV : '/';
 MUL : '*';
 LBRACE : '{';
@@ -149,6 +151,8 @@ transformation_expr:
   | in_expr #InExpression
   | match_expr #MatchExpr
   | assign_expr #AssignExpr
+  | pre_expr #PreExpr
+  | post_expr #PostEpr
   ;
 
 assign_expr :
@@ -158,6 +162,16 @@ assign_expr :
   |IDENTIFIER DIVIDEASSIGN transformation_expr #DivideAssignExpression
   |IDENTIFIER MULTASSIGN transformation_expr #MultiAssignExpression
   ;
+
+pre_expr :
+ PLUSPLUS IDENTIFIER #PreIncrementExpression
+|MINUSMINUS IDENTIFIER #PreDecrementExpression
+;
+
+post_expr :
+ IDENTIFIER PLUSPLUS #PostIncrementExpression
+|IDENTIFIER MINUSMINUS #PostDecrementExpression
+;
 
 if_expr:
   logical_expr
