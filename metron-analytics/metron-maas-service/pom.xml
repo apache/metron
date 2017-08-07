@@ -38,9 +38,9 @@
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.metron</groupId>
-      <artifactId>metron-common</artifactId>
-      <version>${project.parent.version}</version>
+      <groupId>de.javakaffee</groupId>
+      <artifactId>kryo-serializers</artifactId>
+      <version>${global_kryo_serializers_version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.metron</groupId>
