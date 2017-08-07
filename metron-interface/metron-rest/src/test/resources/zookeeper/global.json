@@ -23,7 +23,7 @@
   "profiler.client.salt.divisor": "1000",
   "hbase.provider.impl": "org.apache.metron.hbase.HTableProvider",
 
-  "geo.hdfs.file": "src/test/resources/GeoLite/GeoIP2-City-Test.mmdb.gz"
+  "geo.hdfs.file": "src/test/resources/GeoLite/GeoIP2-City-Test.mmdb.gz",
   "update.hbase.table" : "updates",
   "update.hbase.cf" : "t"
 }
