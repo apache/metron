@@ -65,6 +65,11 @@ class Indexing(Script):
             commands.init_kafka_acls()
             commands.set_acl_configured()
 
+        if not commands.is_hbase_configured():
+            commands.create_hbase_tables()
+        if params.security_enabled and not commands.is_hbase_acl_configured():
+            commands.set_hbase_acls()
+
         Logger.info("Calling security setup")
         storm_security_setup(params)
 

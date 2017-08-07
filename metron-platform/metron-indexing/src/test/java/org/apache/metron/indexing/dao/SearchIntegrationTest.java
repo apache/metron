@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public abstract class IndexingDaoIntegrationTest {
+public abstract class SearchIntegrationTest {
   /**
    * [
    * {"source:type": "bro", "ip_src_addr":"192.168.1.1", "ip_src_port": 8010, "long_field": 10000, "timestamp":1, "latitude": 48.5839, "double_field": 1.00001, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 1", "duplicate_name_field": "data 1"},
@@ -213,14 +213,16 @@ public abstract class IndexingDaoIntegrationTest {
   @Multiline
   public static String exceededMaxResultsQuery;
 
-  protected IndexDao dao;
-  protected InMemoryComponent indexComponent;
+  protected static IndexDao dao;
+  protected static InMemoryComponent indexComponent;
 
   @Before
-  public void setup() throws Exception {
-    indexComponent = startIndex();
-    loadTestData();
-    dao = createDao();
+  public synchronized void setup() throws Exception {
+    if(dao == null && indexComponent == null) {
+      indexComponent = startIndex();
+      loadTestData();
+      dao = createDao();
+    }
   }
 
   @Test
@@ -464,8 +466,8 @@ public abstract class IndexingDaoIntegrationTest {
     }
   }
 
-  @After
-  public void stop() throws Exception {
+  @AfterClass
+  public static void stop() throws Exception {
     indexComponent.stop();
   }
 

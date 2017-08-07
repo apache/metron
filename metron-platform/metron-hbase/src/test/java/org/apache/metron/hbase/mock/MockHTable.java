@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.test.mock;
+package org.apache.metron.hbase.mock;
 
 
 import com.google.common.collect.ImmutableList;
@@ -46,6 +46,7 @@ import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.ipc.CoprocessorRpcChannel;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.hbase.TableProvider;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -66,28 +67,6 @@ import java.util.TreeMap;
  */
 public class MockHTable implements HTableInterface {
 
-
-  public static class Provider implements Serializable {
-    private static Map<String, HTableInterface> _cache = new HashMap<>();
-    public HTableInterface getTable(Configuration config, String tableName) throws IOException {
-      HTableInterface ret = _cache.get(tableName);
-      return ret;
-    }
-
-    public static HTableInterface getFromCache(String tableName) {
-      return _cache.get(tableName);
-    }
-
-    public static HTableInterface addToCache(String tableName, String... columnFamilies) {
-      MockHTable ret =  new MockHTable(tableName, columnFamilies);
-      _cache.put(tableName, ret);
-      return ret;
-    }
-
-    public static void clear() {
-      _cache.clear();
-    }
-  }
 
   private final String tableName;
   private final List<String> columnFamilies = new ArrayList<>();

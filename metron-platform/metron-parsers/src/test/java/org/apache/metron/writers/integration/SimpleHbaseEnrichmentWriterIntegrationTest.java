@@ -41,6 +41,9 @@ import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.enrichment.integration.mock.MockTableProvider;
 import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.integration.*;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.Processor;
@@ -50,7 +53,6 @@ import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
-import org.apache.metron.test.mock.MockHTable;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -69,7 +71,7 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
     ,"shew.cf" : "cf"
     ,"shew.keyColumns" : "col2"
     ,"shew.enrichmentType" : "et"
-    ,"shew.hbaseProvider" : "org.apache.metron.enrichment.integration.mock.MockTableProvider"
+    ,"shew.hbaseProvider" : "org.apache.metron.hbase.mock.MockHBaseTableProvider"
     ,"columns" : {
                 "col1" : 0
                ,"col2" : 1
@@ -99,7 +101,7 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
       add(Bytes.toBytes("col21,col22,col23"));
       add(Bytes.toBytes("col31,col32,col33"));
     }};
-    MockTableProvider.addTable(sensorType, "cf");
+    MockHBaseTableProvider.addToCache(sensorType, "cf");
     final Properties topologyProperties = new Properties();
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
@@ -136,7 +138,7 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
 
                 @Override
                 public ReadinessState process(ComponentRunner runner) {
-                  MockHTable table = MockTableProvider.getTable(sensorType);
+                  MockHTable table = (MockHTable) MockHBaseTableProvider.getFromCache(sensorType);
                   if (table != null && table.size() == inputMessages.size()) {
                     EnrichmentConverter converter = new EnrichmentConverter();
                     messages = new ArrayList<>();

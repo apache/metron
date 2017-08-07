@@ -27,6 +27,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.*;
+import java.util.Map;
 
 public enum JSONUtils {
   INSTANCE;
@@ -36,6 +37,15 @@ public enum JSONUtils {
 
   private static ThreadLocal<ObjectMapper> _mapper = ThreadLocal.withInitial(() ->
           new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL));
+
+  public <T> T convert(Object original, Class<T> targetClass) {
+    return _mapper.get().convertValue(original, targetClass);
+  }
+
+  public ObjectMapper getMapper() {
+    return _mapper.get();
+  }
+
 
   public <T> T load(InputStream is, TypeReference<T> ref) throws IOException {
     return _mapper.get().readValue(is, ref);
