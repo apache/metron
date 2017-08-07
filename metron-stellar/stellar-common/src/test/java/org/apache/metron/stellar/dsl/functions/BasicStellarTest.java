@@ -145,6 +145,29 @@ public class BasicStellarTest {
       }
       Assert.assertEquals(new Integer(15), (Integer)map.get("count"));
     }
+
+    // can we assign one variable to another?
+    {
+      String expr = "foo = bar";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+      put("foo",null);
+      put("bar",999);
+      }};
+      Assert.assertEquals(999,run(expr,map));
+      Assert.assertEquals(999,map.get("foo"));
+    }
+
+    // can we assign one variable to another as a string?
+    {
+      String expr = "foo = bar";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",null);
+        put("bar","message");
+      }};
+      Assert.assertEquals("message",run(expr,map));
+      Assert.assertEquals("message",map.get("foo"));
+    }
+
   }
 
   @Test
@@ -181,6 +204,34 @@ public class BasicStellarTest {
       }
       Assert.assertEquals(new Integer(15), (Integer)map.get("count"));
     }
+    // can we assign one variable to another?
+    {
+      String expr = "foo += bar";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",null);
+        put("bar",999);
+      }};
+      Assert.assertEquals(999,run(expr,map));
+      Assert.assertEquals(999,map.get("foo"));
+    }
+
+    // can we assign one variable to another as a string?
+    {
+      String expr = "foo += bar";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",null);
+        put("bar","message");
+      }};
+      boolean thrown = false;
+      try {
+        run(expr, map);
+      } catch (ParseException pe) {
+        thrown = true;
+        Assert.assertTrue(pe.getMessage().endsWith("Invalid operation, Number type required for numeric assignment value"));
+      }
+      Assert.assertTrue(thrown);
+    }
+
 
   }
 
@@ -219,7 +270,33 @@ public class BasicStellarTest {
       }
       Assert.assertEquals(new Integer(0), (Integer)map.get("count"));
     }
+    // can we assign one variable to another?
+    {
+      String expr = "foo -= bar";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",null);
+        put("bar",999);
+      }};
+      Assert.assertEquals(-999,run(expr,map));
+      Assert.assertEquals(-999,map.get("foo"));
+    }
 
+    // can we assign one variable to another as a string?
+    {
+      String expr = "foo -= bar";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",null);
+        put("bar","message");
+      }};
+      boolean thrown = false;
+      try {
+        run(expr, map);
+      } catch (ParseException pe) {
+        thrown = true;
+        Assert.assertTrue(pe.getMessage().endsWith("Invalid operation, Number type required for numeric assignment value"));
+      }
+      Assert.assertTrue(thrown);
+    }
   }
 
   @Test
@@ -258,6 +335,33 @@ public class BasicStellarTest {
       Assert.assertEquals(new DecimalFormat("#").format(Math.pow(2,15)), map.get("count").toString());
     }
 
+    // can we assign one variable to another?
+    {
+      String expr = "foo *= bar";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",2);
+        put("bar",999);
+      }};
+      Assert.assertEquals((2*999),run(expr,map));
+      Assert.assertEquals((2*999),map.get("foo"));
+    }
+
+    // can we assign one variable to another as a string?
+    {
+      String expr = "foo *= bar";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo", null);
+        put("bar","message");
+      }};
+      boolean thrown = false;
+      try {
+        run(expr, map);
+      } catch (ParseException pe) {
+        thrown = true;
+        Assert.assertTrue(pe.getMessage().endsWith("Invalid operation, Number type required for numeric assignment value"));
+      }
+      Assert.assertTrue(thrown);
+    }
   }
 
   @Test
@@ -296,7 +400,33 @@ public class BasicStellarTest {
       }
       Assert.assertEquals(1.0, map.get("count"));
     }
+    // can we assign one variable to another?
+    {
+      String expr = "foo /= bar";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",(999*2));
+        put("bar",999);
+      }};
+      Assert.assertEquals(2,run(expr,map));
+      Assert.assertEquals(2,map.get("foo"));
+    }
 
+    // can we assign one variable to another as a string?
+    {
+      String expr = "foo /= bar";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",10);
+        put("bar","message");
+      }};
+      boolean thrown = false;
+      try {
+        run(expr, map);
+      } catch (ParseException pe) {
+        thrown = true;
+        Assert.assertTrue(pe.getMessage().endsWith("Invalid operation, Number type required for numeric assignment value"));
+      }
+      Assert.assertTrue(thrown);
+    }
   }
 
   @Test
