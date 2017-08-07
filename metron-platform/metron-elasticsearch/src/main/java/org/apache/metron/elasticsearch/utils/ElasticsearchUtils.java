@@ -20,6 +20,7 @@ package org.apache.metron.elasticsearch.utils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.elasticsearch.writer.ElasticsearchWriter;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
@@ -27,13 +28,31 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class ElasticsearchUtils {
+
+  private static ThreadLocal<Map<String, SimpleDateFormat>> DATE_FORMAT_CACHE
+          = ThreadLocal.withInitial(() -> new HashMap<>());
+
+  public static SimpleDateFormat getIndexFormat(WriterConfiguration configurations) {
+    return getIndexFormat(configurations.getGlobalConfig());
+  }
+
+  public static SimpleDateFormat getIndexFormat(Map<String, Object> globalConfig) {
+    String format = (String) globalConfig.get("es.date.format");
+    return DATE_FORMAT_CACHE.get().computeIfAbsent(format, SimpleDateFormat::new);
+  }
+
+  public static String getIndexName(String sensorType, String indexPostfix, WriterConfiguration configurations) {
+    String indexName = sensorType;
+    if (configurations != null) {
+      indexName = configurations.getIndex(sensorType);
+    }
+    indexName = indexName + "_index_" + indexPostfix;
+    return indexName;
+  }
 
   public static TransportClient getClient(Map<String, Object> globalConfiguration, Map<String, String> optionalSettings) {
     Settings.Builder settingsBuilder = Settings.settingsBuilder();
