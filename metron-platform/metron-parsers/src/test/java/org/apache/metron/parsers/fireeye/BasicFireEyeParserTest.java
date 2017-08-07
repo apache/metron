@@ -20,8 +20,8 @@ package org.apache.metron.parsers.fireeye;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.time.Year;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
 
 import org.apache.metron.parsers.AbstractParserConfigTest;
 import org.json.simple.JSONObject;
@@ -32,7 +32,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class BasicFireEyeParserTest extends AbstractParserConfigTest {
-  private static final ZoneId UTC = ZoneId.of("UTC");
 
   @Before
   public void setUp() throws Exception {
@@ -71,7 +70,7 @@ public class BasicFireEyeParserTest extends AbstractParserConfigTest {
     JSONObject parsed = parser.parse(fireeyeMessage.getBytes()).get(0);
     JSONParser parser = new JSONParser();
     Map json = (Map) parser.parse(parsed.toJSONString());
-    long expectedTimestamp = ZonedDateTime.of(Year.now(UTC).getValue(), 3, 19, 5, 24, 39, 0, UTC).toInstant().toEpochMilli();
+    long expectedTimestamp = ZonedDateTime.of(Year.now(ZoneOffset.UTC).getValue(), 3, 19, 5, 24, 39, 0, ZoneOffset.UTC).toInstant().toEpochMilli();
     Assert.assertEquals(expectedTimestamp, json.get("timestamp"));
   }
 }
