@@ -301,7 +301,9 @@ public class StellarCompiler extends StellarBaseListener {
       // resolver supports updates and creation, it will create it
 
       String varName = ctx.getStart().getText();
-      Object value = popDeque(tokenDeque).getValue();
+      //Object value = popDeque(tokenDeque).getValue();
+      Token<?> token = popDeque(tokenDeque);
+      Object value = token.getValue();
       state.variableResolver.update(varName, value);
 
       // return the value after assignment, like most scripting languages
@@ -329,7 +331,7 @@ public class StellarCompiler extends StellarBaseListener {
   @Override
   public void exitDivideAssignExpression(StellarParser.DivideAssignExpressionContext ctx) {
     final FrameContext.Context context = getArgContext();
-    handleAssignExpression(ctx.getStart().getText(),context,ArithmeticEvaluator.ArithmeticEvaluatorFunctions.division(context));
+    handleAssignExpression(ctx.getStart().getText(),context,ArithmeticEvaluator.ArithmeticEvaluatorFunctions.division(context),1);
     expression.variablesUsed.add(ctx.getText());
   }
 
@@ -551,7 +553,13 @@ public class StellarCompiler extends StellarBaseListener {
     return op.op(l, r);
   }
 
-  private void handleAssignExpression(String varName, FrameContext.Context context, BiFunction<Number, Number, Token<? extends Number>> function) {
+  private void handleAssignExpression(String varName, FrameContext.Context context,
+      BiFunction<Number, Number, Token<? extends Number>> function) {
+    handleAssignExpression(varName, context, function, 0);
+  }
+
+  private void handleAssignExpression(String varName, FrameContext.Context context,
+      BiFunction<Number, Number, Token<? extends Number>> function, Integer defaultValue) {
     expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
       Token<?> potentialRightToken = (Token<?>) popDeque(tokenDeque);
       Token<? extends Number> leftToken = null;
@@ -559,16 +567,18 @@ public class StellarCompiler extends StellarBaseListener {
 
       Object potentialLeftValue = state.variableResolver.resolve(varName);
       if (potentialLeftValue == null) {
-        leftToken = new Token<>(0, Integer.class, context);
+        leftToken = new Token<>(defaultValue, Integer.class, context);
       } else if (!(potentialLeftValue instanceof Number)) {
         throw new ParseException(
             "Invalid operation, Number type required for numeric assignment target");
       } else {
-        leftToken = new Token<Number>((Number)potentialLeftValue,Number.class,context);
+        leftToken = new Token<Number>((Number) potentialLeftValue, Number.class, context);
       }
 
       Object potentialRightValue = potentialRightToken.getValue();
-      if (!(potentialRightValue instanceof Number)) {
+      if (potentialRightValue == null) {
+        rightToken = new Token<>(defaultValue, Integer.class, context);
+      } else if (!(potentialRightValue instanceof Number)) {
         throw new ParseException(
             "Invalid operation, Number type required for numeric assignment value");
       } else {
