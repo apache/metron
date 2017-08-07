@@ -15,20 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.indexing.dao;
 
-import org.apache.metron.indexing.dao.search.InvalidSearchException;
-import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.apache.metron.indexing.dao.search.FieldType;
+package org.apache.metron.stellar.dsl;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import java.util.function.Function;
 
-public interface IndexDao {
-  SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException;
-  void init(Map<String, Object> globalConfig, AccessConfig config);
-  Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException;
-  Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException;
+public class DefaultVariableResolver implements VariableResolver{
+  Function<String,Object> resolveFunc;
+  Function<String,Boolean> existsFunc;
+
+  public DefaultVariableResolver(Function<String,Object> resolveFunc, Function<String,Boolean> existsFunc){
+    this.resolveFunc = resolveFunc;
+    this.existsFunc = existsFunc;
+  }
+  @Override
+  public Object resolve(String variable) {
+    return resolveFunc.apply(variable);
+  }
+
+  @Override
+  public boolean exists(String variable) {
+    return existsFunc.apply(variable);
+  }
+
+  public static DefaultVariableResolver NULL_RESOLVER() {
+    return new DefaultVariableResolver(x -> null, x -> false);
+  }
 }

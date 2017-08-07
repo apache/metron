@@ -36,6 +36,14 @@ public class Context implements Serializable {
     , STELLAR_CONFIG
   }
 
+  public enum ActivityType {
+    VALIDATION_ACTIVITY,
+    PARSE_ACTIVITY
+  }
+
+  private static ThreadLocal<ActivityType> _activityType = ThreadLocal.withInitial(() ->
+      null);
+
   public static class Builder {
 
     private Map<String, Capability> capabilityMap = new HashMap<>();
@@ -73,6 +81,7 @@ public class Context implements Serializable {
             };
   }
 
+
   private Map<String, Capability> capabilities;
 
   private Context( Map<String, Capability> capabilities) {
@@ -109,5 +118,13 @@ public class Context implements Serializable {
 
   public void addCapability(Enum<?> s, Capability capability) {
     this.capabilities.put(s.toString(), capability);
+  }
+
+  public ActivityType getActivityType() {
+    return _activityType.get();
+  }
+
+  public void setActivityType(ActivityType activityType) {
+    _activityType.set(activityType);
   }
 }

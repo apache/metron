@@ -19,6 +19,7 @@
 package org.apache.metron.management;
 
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.apache.metron.stellar.common.StellarProcessor;
@@ -198,7 +199,7 @@ public class KafkaFunctionsIntegrationTest extends BaseIntegrationTest {
             .withClass(KafkaFunctions.KafkaTail.class);
 
     StellarProcessor processor = new StellarProcessor();
-    return processor.parse(expr, x -> variables.get(x), functionResolver, context);
+    return processor.parse(expr, new DefaultVariableResolver(x -> variables.get(x),x -> variables.containsKey(x)), functionResolver, context);
   }
 
 }

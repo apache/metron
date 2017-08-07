@@ -17,40 +17,36 @@
  */
 package org.apache.metron.indexing.dao.search;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+public enum FieldType {
+  @JsonProperty("string")
+  STRING("string"),
+  @JsonProperty("ip")
+  IP("ip"),
+  @JsonProperty("integer")
+  INTEGER("integer"),
+  @JsonProperty("long")
+  LONG("long"),
+  @JsonProperty("date")
+  DATE("date"),
+  @JsonProperty("float")
+  FLOAT("float"),
+  @JsonProperty("double")
+  DOUBLE("double"),
+  @JsonProperty("boolean")
+  BOOLEAN("boolean"),
+  @JsonProperty("other")
+  OTHER("other");
 
-public class SearchResponse {
 
-  private long total;
-  private List<SearchResult> results = new ArrayList<>();
-  private Map<String, Map<String, Long>> facetCounts;
+  private String fieldType;
 
-  public long getTotal() {
-    return total;
+  FieldType(String fieldType) {
+    this.fieldType = fieldType;
   }
 
-  public void setTotal(long total) {
-    this.total = total;
-  }
-
-  public List<SearchResult> getResults() {
-    return results;
-  }
-
-  public void setResults(List<SearchResult> results) {
-    this.results = results;
-  }
-
-  @JsonInclude(JsonInclude.Include.NON_NULL)
-  public Map<String, Map<String, Long>> getFacetCounts() {
-    return facetCounts;
-  }
-
-  public void setFacetCounts(Map<String, Map<String, Long>> facetCounts) {
-    this.facetCounts = facetCounts;
+  public String getFieldType() {
+    return fieldType;
   }
 }

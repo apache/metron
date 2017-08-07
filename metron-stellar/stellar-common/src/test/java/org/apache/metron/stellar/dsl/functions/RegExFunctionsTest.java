@@ -18,6 +18,7 @@
 
 package org.apache.metron.stellar.dsl.functions;
 
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -39,8 +40,8 @@ public class RegExFunctionsTest {
       put("empty", "");
     }};
 
-    Assert.assertTrue(runPredicate("REGEXP_MATCH(numbers,numberPattern)", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("REGEXP_MATCH(letters,numberPattern)", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("REGEXP_MATCH(numbers,numberPattern)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("REGEXP_MATCH(letters,numberPattern)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
   }
 
   @Test
@@ -52,18 +53,18 @@ public class RegExFunctionsTest {
       put("letters", "abcde");
       put("empty", "");
     }};
-    Assert.assertTrue(runPredicate("REGEXP_GROUP_VAL(numbers,numberPattern,2) == '3'", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("REGEXP_GROUP_VAL(letters,numberPattern,2) == null", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("REGEXP_GROUP_VAL(empty,numberPattern,2) == null", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("REGEXP_GROUP_VAL(numbers,numberPatternNoCaptures,2) == null", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("REGEXP_GROUP_VAL(numbers,numberPattern,2) == '3'", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("REGEXP_GROUP_VAL(letters,numberPattern,2) == null", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("REGEXP_GROUP_VAL(empty,numberPattern,2) == null", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("REGEXP_GROUP_VAL(numbers,numberPatternNoCaptures,2) == null", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
 
-    boolean caught = false;
+    boolean thrown = false;
     try{
-      runPredicate("REGEXP_GROUP_VAL(2) == null", v -> variableMap.get(v));
+      runPredicate("REGEXP_GROUP_VAL(2) == null", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v)));
     }catch(ParseException | IllegalStateException ise){
-      caught = true;
+      thrown = true;
     }
-    if(!caught){
+    if(!thrown){
       Assert.assertTrue("Did not fail on wrong number of parameters",false);
     }
   }
