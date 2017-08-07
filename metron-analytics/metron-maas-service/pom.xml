@@ -59,6 +59,7 @@
       <version>${hadoop.version}</version>
       <scope>provided</scope>
     </dependency>
+
     <dependency>
       <groupId>com.sun.jersey.contribs</groupId>
       <artifactId>jersey-guice</artifactId>
@@ -92,6 +93,12 @@
       <artifactId>hadoop-yarn-common</artifactId>
       <version>${hadoop.version}</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.metron</groupId>
+      <artifactId>metron-common</artifactId>
+      <version>${project.parent.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
