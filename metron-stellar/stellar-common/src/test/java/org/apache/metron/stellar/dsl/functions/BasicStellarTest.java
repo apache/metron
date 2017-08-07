@@ -121,7 +121,7 @@ public class BasicStellarTest {
       put("foo",null);
     }};
 
-    // basics, return the assign, set the var with defautl resolver
+    // basics, return the assign, set the var with default resolver
     Assert.assertEquals(1, run(query,variables));
     Assert.assertEquals(1, variables.get("foo"));
 
@@ -177,7 +177,7 @@ public class BasicStellarTest {
       put("foo",null);
     }};
 
-    // basics, return the assign, set the var with defautl resolver
+    // basics, return the assign, set the var with default resolver
     Assert.assertEquals(1, run(query,variables));
     Assert.assertEquals(1, variables.get("foo"));
     // and if it already exists
@@ -242,7 +242,7 @@ public class BasicStellarTest {
       put("foo",null);
     }};
 
-    // basics, return the assign, set the var with defautl resolver
+    // basics, return the assign, set the var with default resolver
     Assert.assertEquals(-1, run(query,variables));
     Assert.assertEquals(-1, variables.get("foo"));
     // and if it already exists
@@ -306,7 +306,7 @@ public class BasicStellarTest {
       put("foo",null);
     }};
 
-    // basics, return the assign, set the var with defautl resolver
+    // basics, return the assign, set the var with default resolver
     Assert.assertEquals(0, run(query,variables));
     Assert.assertEquals(0, variables.get("foo"));
     variables.put("foo",2);
@@ -371,7 +371,7 @@ public class BasicStellarTest {
       put("foo",null);
     }};
 
-    // basics, return the assign, set the var with defautl resolver
+    // basics, return the assign, set the var with default resolver
     Assert.assertEquals(0, run(query,variables));
     Assert.assertEquals(0, variables.get("foo"));
     variables.put("foo",2);
