@@ -309,7 +309,7 @@ public class StellarCompiler extends StellarBaseListener {
       // do
       tokenDeque.push(new Token<>(value, Object.class, context));
     }, DeferredFunction.class, context));
-    expression.variablesUsed.add(ctx.getText());
+    expression.variablesUsed.add(ctx.getStart().getText());
   }
 
   @SuppressWarnings("unchecked")
@@ -317,28 +317,28 @@ public class StellarCompiler extends StellarBaseListener {
   public void exitPlusAssignExpression(StellarParser.PlusAssignExpressionContext ctx) {
     final FrameContext.Context context = getArgContext();
     handleAssignExpression(ctx.getStart().getText(),context,ArithmeticEvaluator.ArithmeticEvaluatorFunctions.addition(context));
-    expression.variablesUsed.add(ctx.getText());
+    expression.variablesUsed.add(ctx.getStart().getText());
   }
 
   @Override
   public void exitMinusAssignExpression(StellarParser.MinusAssignExpressionContext ctx) {
     final FrameContext.Context context = getArgContext();
     handleAssignExpression(ctx.getStart().getText(),context,ArithmeticEvaluator.ArithmeticEvaluatorFunctions.subtraction(context));
-    expression.variablesUsed.add(ctx.getText());
+    expression.variablesUsed.add(ctx.getStart().getText());
   }
 
   @Override
   public void exitDivideAssignExpression(StellarParser.DivideAssignExpressionContext ctx) {
     final FrameContext.Context context = getArgContext();
     handleAssignExpression(ctx.getStart().getText(),context,ArithmeticEvaluator.ArithmeticEvaluatorFunctions.division(context),1);
-    expression.variablesUsed.add(ctx.getText());
+    expression.variablesUsed.add(ctx.getStart().getText());
   }
 
   @Override
   public void exitMultiAssignExpression(StellarParser.MultiAssignExpressionContext ctx) {
     final FrameContext.Context context = getArgContext();
     handleAssignExpression(ctx.getStart().getText(),context,ArithmeticEvaluator.ArithmeticEvaluatorFunctions.multiplication(context));
-    expression.variablesUsed.add(ctx.getText());
+    expression.variablesUsed.add(ctx.getStart().getText());
   }
 
   @Override
@@ -365,7 +365,7 @@ public class StellarCompiler extends StellarBaseListener {
       state.variableResolver.update(varName, resultToken.getValue());
       tokenDeque.push(resultToken);
     }, DeferredFunction.class, context));
-    expression.variablesUsed.add(ctx.getText());
+    expression.variablesUsed.add(ctx.getStop().getText());
   }
 
   @Override
@@ -392,7 +392,7 @@ public class StellarCompiler extends StellarBaseListener {
       state.variableResolver.update(varName, resultToken.getValue());
       tokenDeque.push(resultToken);
     }, DeferredFunction.class, context));
-    expression.variablesUsed.add(ctx.getText());
+    expression.variablesUsed.add(ctx.getStop().getText());
   }
 
 
@@ -421,7 +421,7 @@ public class StellarCompiler extends StellarBaseListener {
       // push the value not the result
       tokenDeque.push(valueToken);
     }, DeferredFunction.class, context));
-    expression.variablesUsed.add(ctx.getText());
+    expression.variablesUsed.add(ctx.getStart().getText());
   }
 
 
@@ -450,7 +450,7 @@ public class StellarCompiler extends StellarBaseListener {
       // push the value not the result
       tokenDeque.push(valueToken);
     }, DeferredFunction.class, context));
-    expression.variablesUsed.add(ctx.getText());
+    expression.variablesUsed.add(ctx.getStart().getText());
   }
 
   @Override
