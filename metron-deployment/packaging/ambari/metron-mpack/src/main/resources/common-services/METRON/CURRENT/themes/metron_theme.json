@@ -154,6 +154,25 @@
                   ]
                 },
                 {
+                  "name": "section-indexing-update",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-indexing-update",
+                      "display-name": "Index Updates",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
                   "name": "section-indexing-storm",
                   "row-index": "1",
                   "column-index": "0",
@@ -378,8 +397,12 @@
           "subsection-name": "subsection-indexing-kafka"
         },
         {
-          "config": "metron-indexing-env/indexing_error_topic",
-          "subsection-name": "subsection-indexing-kafka"
+          "config": "metron-indexing-env/update_table",
+          "subsection-name": "subsection-indexing-update"
+        },
+        {
+          "config": "metron-indexing-env/update_cf",
+          "subsection-name": "subsection-indexing-update"
         },
         {
           "config": "metron-indexing-env/indexing_writer_class_name",

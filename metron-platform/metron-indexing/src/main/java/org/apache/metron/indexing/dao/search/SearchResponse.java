@@ -29,6 +29,10 @@ public class SearchResponse {
   private List<SearchResult> results = new ArrayList<>();
   private Map<String, Map<String, Long>> facetCounts;
 
+  /**
+   * The total number of results
+   * @return
+   */
   public long getTotal() {
     return total;
   }
@@ -37,6 +41,10 @@ public class SearchResponse {
     this.total = total;
   }
 
+  /**
+   * The list of results
+   * @return
+   */
   public List<SearchResult> getResults() {
     return results;
   }
