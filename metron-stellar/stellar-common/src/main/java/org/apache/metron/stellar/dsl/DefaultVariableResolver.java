@@ -18,44 +18,27 @@
 
 package org.apache.metron.stellar.dsl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.function.Function;
 
-public class MapVariableResolver implements VariableResolver {
+public class DefaultVariableResolver implements VariableResolver{
+  Function<String,Object> resolveFunc;
+  Function<String,Boolean> existsFunc;
 
-  List<Map> variableMappings = new ArrayList<>();
-
-  public MapVariableResolver(Map variableMappingOne, Map... variableMapping) {
-    if (variableMappingOne != null) {
-      variableMappings.add(variableMappingOne);
-    }
-    add(variableMapping);
+  public DefaultVariableResolver(Function<String,Object> resolveFunc, Function<String,Boolean> existsFunc){
+    this.resolveFunc = resolveFunc;
+    this.existsFunc = existsFunc;
   }
-
-  public void add(Map... ms) {
-    if (ms != null) {
-      for (Map m : ms) {
-        if (m != null) {
-          this.variableMappings.add(m);
-        }
-      }
-    }
-  }
-
   @Override
   public Object resolve(String variable) {
-    for (Map variableMapping : variableMappings) {
-      Object o = variableMapping.get(variable);
-      if (o != null) {
-        return o;
-      }
-    }
-    return null;
+    return resolveFunc.apply(variable);
   }
 
   @Override
   public boolean exists(String variable) {
-    return true;
+    return existsFunc.apply(variable);
+  }
+
+  public static DefaultVariableResolver NULL_RESOLVER() {
+    return new DefaultVariableResolver(x -> null, x -> false);
   }
 }

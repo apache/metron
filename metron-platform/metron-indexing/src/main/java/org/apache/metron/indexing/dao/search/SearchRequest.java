@@ -19,6 +19,7 @@ package org.apache.metron.indexing.dao.search;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class SearchRequest {
 
@@ -27,6 +28,7 @@ public class SearchRequest {
   private int size;
   private int from;
   private List<SortField> sort;
+  private List<String> facetFields;
 
   public SearchRequest() {
     SortField defaultSortField = new SortField();
@@ -34,6 +36,7 @@ public class SearchRequest {
     defaultSortField.setSortOrder(SortOrder.DESC.toString());
     sort = new ArrayList<>();
     sort.add(defaultSortField);
+    facetFields = new ArrayList<>();
   }
 
   /**
@@ -94,5 +97,13 @@ public class SearchRequest {
 
   public void setSort(List<SortField> sort) {
     this.sort = sort;
+  }
+
+  public Optional<List<String>> getFacetFields() {
+    return facetFields == null || facetFields.size() == 0 ? Optional.empty() : Optional.of(facetFields);
+  }
+
+  public void setFacetFields(List<String> facetFields) {
+    this.facetFields = facetFields;
   }
 }

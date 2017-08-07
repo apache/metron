@@ -30,7 +30,7 @@
             <includes>
                 <include>${project.artifactId}-${project.version}.jar</include>
             </includes>
-            <outputDirectory>/lib</outputDirectory>
+            <outputDirectory>lib</outputDirectory>
             <useDefaultExcludes>true</useDefaultExcludes>
         </fileSet>
     </fileSets>

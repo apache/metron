@@ -36,10 +36,18 @@ import org.elasticsearch.action.search.*;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
+import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
+import org.elasticsearch.index.mapper.ip.IpFieldMapper;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.terms.DoubleTerms;
+import org.elasticsearch.search.aggregations.bucket.terms.LongTerms;
+import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.*;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -61,8 +69,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ElasticsearchDao implements IndexDao {
@@ -118,9 +124,18 @@ public class ElasticsearchDao implements IndexDao {
       }
       searchSourceBuilder = searchSourceBuilder.sort(fieldSortBuilder);
     }
+    Optional<List<String>> facetFields = searchRequest.getFacetFields();
+    if (facetFields.isPresent()) {
+      addFacetFields(searchSourceBuilder, facetFields.get());
+    }
     String[] wildcardIndices = searchRequest.getIndices().stream().map(index -> String.format("%s*", index)).toArray(value -> new String[searchRequest.getIndices().size()]);
-    org.elasticsearch.action.search.SearchResponse elasticsearchResponse = client.search(new org.elasticsearch.action.search.SearchRequest(wildcardIndices)
-            .source(searchSourceBuilder)).actionGet();
+    org.elasticsearch.action.search.SearchResponse elasticsearchResponse;
+    try {
+      elasticsearchResponse = client.search(new org.elasticsearch.action.search.SearchRequest(wildcardIndices)
+              .source(searchSourceBuilder)).actionGet();
+    } catch (SearchPhaseExecutionException e) {
+      throw new InvalidSearchException("Could not execute search", e);
+    }
     SearchResponse searchResponse = new SearchResponse();
     searchResponse.setTotal(elasticsearchResponse.getHits().getTotalHits());
     searchResponse.setResults(Arrays.stream(elasticsearchResponse.getHits().getHits()).map(searchHit -> {
@@ -131,6 +146,15 @@ public class ElasticsearchDao implements IndexDao {
       searchResult.setIndex(searchHit.getIndex());
       return searchResult;
     }).collect(Collectors.toList()));
+    if (facetFields.isPresent()) {
+      Map<String, FieldType> commonColumnMetadata;
+      try {
+        commonColumnMetadata = getCommonColumnMetadata(searchRequest.getIndices());
+      } catch (IOException e) {
+        throw new InvalidSearchException(String.format("Could not get common column metadata for indices %s", Arrays.toString(searchRequest.getIndices().toArray())));
+      }
+      searchResponse.setFacetCounts(getFacetCounts(facetFields.get(), elasticsearchResponse.getAggregations(), commonColumnMetadata ));
+    }
     return searchResponse;
   }
 
@@ -289,4 +313,43 @@ public class ElasticsearchDao implements IndexDao {
     return latestIndices.values().toArray(new String[latestIndices.size()]);
   }
 
+  public void addFacetFields(SearchSourceBuilder searchSourceBuilder, List<String> fields) {
+    for(String field: fields) {
+      searchSourceBuilder = searchSourceBuilder.aggregation(new TermsBuilder(getAggregationName(field)).field(field));
+    }
+  }
+
+  public Map<String, Map<String, Long>> getFacetCounts(List<String> fields, Aggregations aggregations, Map<String, FieldType> commonColumnMetadata) {
+    Map<String, Map<String, Long>> fieldCounts = new HashMap<>();
+    for (String field: fields) {
+      Map<String, Long> valueCounts = new HashMap<>();
+      Aggregation aggregation = aggregations.get(getAggregationName(field));
+      if (aggregation instanceof LongTerms) {
+        LongTerms longTerms = (LongTerms) aggregation;
+        FieldType type = commonColumnMetadata.get(field);
+        if (FieldType.IP.equals(type)) {
+          longTerms.getBuckets().stream().forEach(bucket -> valueCounts.put(IpFieldMapper.longToIp((Long) bucket.getKey()), bucket.getDocCount()));
+        } else if (FieldType.BOOLEAN.equals(type)) {
+          longTerms.getBuckets().stream().forEach(bucket -> {
+            String key = (Long) bucket.getKey() == 1 ? "true" : "false";
+            valueCounts.put(key, bucket.getDocCount());
+          });
+        } else {
+          longTerms.getBuckets().stream().forEach(bucket -> valueCounts.put(bucket.getKeyAsString(), bucket.getDocCount()));
+        }
+      } else if (aggregation instanceof DoubleTerms) {
+        DoubleTerms doubleTerms = (DoubleTerms) aggregation;
+        doubleTerms.getBuckets().stream().forEach(bucket -> valueCounts.put(bucket.getKeyAsString(), bucket.getDocCount()));
+      } else if (aggregation instanceof StringTerms) {
+        StringTerms stringTerms = (StringTerms) aggregation;
+        stringTerms.getBuckets().stream().forEach(bucket -> valueCounts.put(bucket.getKeyAsString(), bucket.getDocCount()));
+      }
+      fieldCounts.put(field, valueCounts);
+    }
+    return fieldCounts;
+  }
+
+  private String getAggregationName(String field) {
+    return String.format("%s_count", field);
+  }
 }

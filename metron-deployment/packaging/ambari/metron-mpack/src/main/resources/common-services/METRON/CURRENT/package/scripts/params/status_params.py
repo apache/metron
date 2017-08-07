@@ -61,6 +61,12 @@ indexing_hdfs_perm_configured_flag_file = metron_zookeeper_config_path + '/../me
 indexing_hbase_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_hbase_configured'
 indexing_hbase_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_hbase_acl_configured'
 
+# REST
+metron_rest_port = config['configurations']['metron-rest-env']['metron_rest_port']
+
+# UI
+metron_management_ui_port = config['configurations']['metron-management-ui-env']['metron_management_ui_port']
+
 # Storm
 storm_rest_addr = config['configurations']['metron-env']['storm_rest_addr']
 
