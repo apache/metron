@@ -63,6 +63,8 @@ The following keywords need to be single quote escaped in order to be used in St
 | and           | or            | in          | =           |  +=         |
 | \-=           | \*=           | /=          | ==          | !=          |
 | \<=           | \>            | \>=         | \+          | \-          |
+| \+\+          | \-\-          | \<          | ?           | \*          |
+| /             | ,             |
 | \<            | ?             | \*          | /           | ,           |
 | and           | or            | in          | NaN         | match       |
 | default       | ==            | !=          | \<=         | \>          | 

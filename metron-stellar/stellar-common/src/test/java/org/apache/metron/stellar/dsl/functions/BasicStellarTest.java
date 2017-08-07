@@ -430,6 +430,256 @@ public class BasicStellarTest {
   }
 
   @Test
+  public void testPreIncrement(){
+    String query = "++foo";
+    Map<String,Object> variables = new HashMap<String,Object>(){{
+      put("foo",null);
+    }};
+
+    // basics, return the assign, set the var with default resolver
+    Assert.assertEquals(1, run(query,variables));
+    Assert.assertEquals(1, variables.get("foo"));
+    // and if it already exists
+    Assert.assertEquals(2, run(query,variables));
+    Assert.assertEquals(2, variables.get("foo"));
+
+    query = "if foo == 2 then ++foo else foo -= 1";
+    Assert.assertEquals(3, run(query,variables));
+    Assert.assertEquals(3, variables.get("foo"));
+
+    // does it work in a lambda if we explicitly use var name?
+    {
+      String expr  = "MAP([ foo, bar, baz ], (item) -> ++count  )";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",1);
+        put("bar",1);
+        put("baz",1);
+        put("count", 0);
+      }};
+      for(int i = 0 ; i < 5; i++){
+        run(expr, map);
+      }
+      Assert.assertEquals(new Integer(15), (Integer)map.get("count"));
+    }
+    // can we assign one variable to another?
+    {
+      String expr = "foo = ++bar";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",null);
+        put("bar",999);
+      }};
+      Assert.assertEquals(1000,run(expr,map));
+      Assert.assertEquals(1000,map.get("foo"));
+      Assert.assertEquals(1000,map.get("bar"));
+    }
+
+    // can we assign one variable to another as a string?
+    {
+      String expr = "foo = ++bar";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",null);
+        put("bar","message");
+      }};
+      boolean thrown = false;
+      try {
+        run(expr, map);
+      } catch (ParseException pe) {
+        thrown = true;
+        Assert.assertTrue(pe.getMessage().endsWith("Invalid operation, Number type required for numeric pre-increment"));
+      }
+      Assert.assertTrue(thrown);
+    }
+  }
+
+  @Test
+  public void testPreDecrement(){
+    String query = "--foo";
+    Map<String,Object> variables = new HashMap<String,Object>(){{
+      put("foo",null);
+    }};
+
+    // basics, return the assign, set the var with default resolver
+    Assert.assertEquals(-1, run(query,variables));
+    Assert.assertEquals(-1, variables.get("foo"));
+    // and if it already exists
+    Assert.assertEquals(-2, run(query,variables));
+    Assert.assertEquals(-2, variables.get("foo"));
+
+    query = "if foo == -2 then --foo else foo -= 1";
+    Assert.assertEquals(-3, run(query,variables));
+    Assert.assertEquals(-3, variables.get("foo"));
+
+    // does it work in a lambda if we explicitly use var name?
+    {
+      String expr  = "MAP([ foo, bar, baz ], (item) -> --count  )";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",1);
+        put("bar",1);
+        put("baz",1);
+        put("count", 15);
+      }};
+      for(int i = 0 ; i < 5; i++){
+        run(expr, map);
+      }
+      Assert.assertEquals(new Integer(0), (Integer)map.get("count"));
+    }
+    // can we assign one variable to another?
+    {
+      String expr = "foo = --bar";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",null);
+        put("bar",1001);
+      }};
+      Assert.assertEquals(1000,run(expr,map));
+      Assert.assertEquals(1000,map.get("foo"));
+      Assert.assertEquals(1000,map.get("bar"));
+    }
+
+    // can we assign one variable to another as a string?
+    {
+      String expr = "foo = --bar";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",null);
+        put("bar","message");
+      }};
+      boolean thrown = false;
+      try {
+        run(expr, map);
+      } catch (ParseException pe) {
+        thrown = true;
+        Assert.assertTrue(pe.getMessage().endsWith("Invalid operation, Number type required for numeric pre-decrement"));
+      }
+      Assert.assertTrue(thrown);
+    }
+  }
+
+
+
+  @Test
+  public void testPostIncrement(){
+    String query = "foo++";
+    Map<String,Object> variables = new HashMap<String,Object>(){{
+      put("foo",null);
+    }};
+
+    // basics, return the assign, set the var with default resolver
+    Assert.assertEquals(0, run(query,variables));
+    Assert.assertEquals(1, variables.get("foo"));
+    // and if it already exists
+    Assert.assertEquals(1, run(query,variables));
+    Assert.assertEquals(2, variables.get("foo"));
+
+    query = "if foo == 2 then foo++ else foo -= 1";
+    Assert.assertEquals(2, run(query,variables));
+    Assert.assertEquals(3, variables.get("foo"));
+
+    // does it work in a lambda if we explicitly use var name?
+    {
+      String expr  = "MAP([ foo, bar, baz ], (item) -> count++  )";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",1);
+        put("bar",1);
+        put("baz",1);
+        put("count", 0);
+      }};
+      for(int i = 0 ; i < 5; i++){
+        run(expr, map);
+      }
+      Assert.assertEquals(new Integer(15), (Integer)map.get("count"));
+    }
+    // can we assign one variable to another?
+    {
+      String expr = "foo = bar++";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",null);
+        put("bar",999);
+      }};
+      Assert.assertEquals(999,run(expr,map));
+      Assert.assertEquals(999,map.get("foo"));
+      Assert.assertEquals(1000,map.get("bar"));
+    }
+
+    // can we assign one variable to another as a string?
+    {
+      String expr = "foo = bar++";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",null);
+        put("bar","message");
+      }};
+      boolean thrown = false;
+      try {
+        run(expr, map);
+      } catch (ParseException pe) {
+        thrown = true;
+        Assert.assertTrue(pe.getMessage().endsWith("Invalid operation, Number type required for numeric post-increment"));
+      }
+      Assert.assertTrue(thrown);
+    }
+  }
+
+  @Test
+  public void testPostDecrement(){
+    String query = "foo--";
+    Map<String,Object> variables = new HashMap<String,Object>(){{
+      put("foo",null);
+    }};
+
+    // basics, return the assign, set the var with default resolver
+    Assert.assertEquals(0, run(query,variables));
+    Assert.assertEquals(-1, variables.get("foo"));
+    // and if it already exists
+    Assert.assertEquals(-1, run(query,variables));
+    Assert.assertEquals(-2, variables.get("foo"));
+
+    query = "if foo == -2 then foo-- else foo -= 1";
+    Assert.assertEquals(-2, run(query,variables));
+    Assert.assertEquals(-3, variables.get("foo"));
+
+    // does it work in a lambda if we explicitly use var name?
+    {
+      String expr  = "MAP([ foo, bar, baz ], (item) -> count--  )";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",1);
+        put("bar",1);
+        put("baz",1);
+        put("count", 15);
+      }};
+      for(int i = 0 ; i < 5; i++){
+        run(expr, map);
+      }
+      Assert.assertEquals(new Integer(0), (Integer)map.get("count"));
+    }
+    // can we assign one variable to another?
+    {
+      String expr = "foo = bar--";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",null);
+        put("bar",1001);
+      }};
+      Assert.assertEquals(1001,run(expr,map));
+      Assert.assertEquals(1001,map.get("foo"));
+      Assert.assertEquals(1000,map.get("bar"));
+    }
+
+    // can we assign one variable to another as a string?
+    {
+      String expr = "foo = bar--";
+      Map<String,Object> map = new HashMap<String,Object>(){{
+        put("foo",null);
+        put("bar","message");
+      }};
+      boolean thrown = false;
+      try {
+        run(expr, map);
+      } catch (ParseException pe) {
+        thrown = true;
+        Assert.assertTrue(pe.getMessage().endsWith("Invalid operation, Number type required for numeric post-decrement"));
+      }
+      Assert.assertTrue(thrown);
+    }
+  }
+
+  @Test
   public void testEscapedLiterals() {
     Assert.assertEquals("'bar'", run("\"'bar'\"", new HashMap<>()));
     Assert.assertEquals("'BAR'", run("TO_UPPER('\\'bar\\'')", new HashMap<>()));
