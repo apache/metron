@@ -32,7 +32,7 @@ import java.util.Arrays;
 public class SearchRequestMatcher extends ArgumentMatcher<SearchRequest> {
 
   private String[] expectedIndicies;
-  private BytesReference expectedSource;
+  private SearchSourceBuilder expectedSource;
 
   public SearchRequestMatcher(String[] indices, String query, int size, int from, SortField[] sortFields) {
     expectedIndicies = indices;
@@ -47,7 +47,7 @@ public class SearchRequestMatcher extends ArgumentMatcher<SearchRequest> {
       fieldSortBuilder.order(sortField.getSortOrder() == org.apache.metron.indexing.dao.search.SortOrder.DESC ? SortOrder.DESC : SortOrder.ASC);
       searchSourceBuilder = searchSourceBuilder.sort(fieldSortBuilder);
     }
-    expectedSource = searchSourceBuilder.buildAsBytes(Requests.CONTENT_TYPE);
+    expectedSource = searchSourceBuilder;
   }
 
   @Override
@@ -55,6 +55,6 @@ public class SearchRequestMatcher extends ArgumentMatcher<SearchRequest> {
     SearchRequest searchRequest = (SearchRequest) o;
     boolean indiciesMatch = Arrays.equals(expectedIndicies, searchRequest.indices());
     boolean sourcesMatch = searchRequest.source().equals(expectedSource);
-    return indiciesMatch && sourcesMatch;
+        return indiciesMatch && sourcesMatch;
   }
 }

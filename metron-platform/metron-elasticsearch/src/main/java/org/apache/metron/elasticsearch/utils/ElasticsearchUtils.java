@@ -24,6 +24,7 @@ import org.apache.metron.elasticsearch.writer.ElasticsearchWriter;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -36,16 +37,19 @@ import java.util.Map;
 public class ElasticsearchUtils {
 
   public static TransportClient getClient(Map<String, Object> globalConfiguration, Map<String, String> optionalSettings) {
-    Settings.Builder settingsBuilder = Settings.settingsBuilder();
+    Settings.Builder settingsBuilder = Settings.builder();
     settingsBuilder.put("cluster.name", globalConfiguration.get("es.clustername"));
     settingsBuilder.put("client.transport.ping_timeout","500s");
+    settingsBuilder.put("transport.type", "security4");
+    settingsBuilder.put("xpack.security.user", globalConfiguration.get("es.xpackuser"));
+
     if (optionalSettings != null) {
       settingsBuilder.put(optionalSettings);
     }
     Settings settings = settingsBuilder.build();
     TransportClient client;
     try{
-      client = TransportClient.builder().settings(settings).build();
+      client = new PreBuiltXPackTransportClient(settings);
       for(HostnamePort hp : getIps(globalConfiguration)) {
         client.addTransportAddress(
                 new InetSocketTransportAddress(InetAddress.getByName(hp.hostname), hp.port)

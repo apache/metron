@@ -392,7 +392,7 @@ public abstract class IndexingDaoIntegrationTest {
       Assert.assertEquals(2, fieldTypes.size());
       Map<String, FieldType> broTypes = fieldTypes.get("bro");
       Assert.assertEquals(11, broTypes.size());
-      Assert.assertEquals(FieldType.STRING, broTypes.get("source:type"));
+      Assert.assertEquals(FieldType.TEXT, broTypes.get("source:type"));
       Assert.assertEquals(FieldType.IP, broTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, broTypes.get("ip_src_port"));
       Assert.assertEquals(FieldType.LONG, broTypes.get("long_field"));
@@ -401,11 +401,11 @@ public abstract class IndexingDaoIntegrationTest {
       Assert.assertEquals(FieldType.DOUBLE, broTypes.get("double_field"));
       Assert.assertEquals(FieldType.BOOLEAN, broTypes.get("is_alert"));
       Assert.assertEquals(FieldType.OTHER, broTypes.get("location_point"));
-      Assert.assertEquals(FieldType.STRING, broTypes.get("bro_field"));
-      Assert.assertEquals(FieldType.STRING, broTypes.get("duplicate_name_field"));
+      Assert.assertEquals(FieldType.TEXT, broTypes.get("bro_field"));
+      Assert.assertEquals(FieldType.TEXT, broTypes.get("duplicate_name_field"));
       Map<String, FieldType> snortTypes = fieldTypes.get("snort");
       Assert.assertEquals(11, snortTypes.size());
-      Assert.assertEquals(FieldType.STRING, snortTypes.get("source:type"));
+      Assert.assertEquals(FieldType.TEXT, snortTypes.get("source:type"));
       Assert.assertEquals(FieldType.IP, snortTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, snortTypes.get("ip_src_port"));
       Assert.assertEquals(FieldType.LONG, snortTypes.get("long_field"));
@@ -423,7 +423,7 @@ public abstract class IndexingDaoIntegrationTest {
       Assert.assertEquals(1, fieldTypes.size());
       Map<String, FieldType> broTypes = fieldTypes.get("bro");
       Assert.assertEquals(11, broTypes.size());
-      Assert.assertEquals(FieldType.STRING, broTypes.get("bro_field"));
+      Assert.assertEquals(FieldType.TEXT, broTypes.get("bro_field"));
     }
     // getColumnMetadata with only snort
     {
@@ -438,7 +438,7 @@ public abstract class IndexingDaoIntegrationTest {
       Map<String, FieldType> fieldTypes = dao.getCommonColumnMetadata(Arrays.asList("bro", "snort"));
       // Should only return fields in both
       Assert.assertEquals(9, fieldTypes.size());
-      Assert.assertEquals(FieldType.STRING, fieldTypes.get("source:type"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
       Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
       Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
@@ -452,8 +452,8 @@ public abstract class IndexingDaoIntegrationTest {
     {
       Map<String, FieldType> fieldTypes = dao.getCommonColumnMetadata(Collections.singletonList("bro"));
       Assert.assertEquals(11, fieldTypes.size());
-      Assert.assertEquals(FieldType.STRING, fieldTypes.get("bro_field"));
-      Assert.assertEquals(FieldType.STRING, fieldTypes.get("duplicate_name_field"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("duplicate_name_field"));
     }
     // getCommonColumnMetadata with only snort
     {

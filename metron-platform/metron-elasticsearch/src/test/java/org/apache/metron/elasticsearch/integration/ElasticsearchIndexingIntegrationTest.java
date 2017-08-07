@@ -31,10 +31,7 @@ import org.apache.metron.integration.components.KafkaComponent;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTest {
 
@@ -50,8 +47,9 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
 
   @Override
   public InMemoryComponent getSearchComponent(final Properties topologyProperties) {
+
     return new ElasticSearchComponent.Builder()
-            .withHttpPort(9211)
+            .withHttpPort(9300)
             .withIndexDir(new File(indexDir))
             .build();
   }

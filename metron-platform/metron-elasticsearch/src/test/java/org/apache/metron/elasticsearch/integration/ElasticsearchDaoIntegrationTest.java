@@ -28,6 +28,7 @@ import org.apache.metron.integration.InMemoryComponent;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
+import org.elasticsearch.action.support.WriteRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -46,7 +47,7 @@ public class ElasticsearchDaoIntegrationTest extends IndexingDaoIntegrationTest 
    * {
    * "bro_doc": {
    *   "properties": {
-   *     "source:type": { "type": "string" },
+   *     "source:type": { "type": "text" },
    *     "ip_src_addr": { "type": "ip" },
    *     "ip_src_port": { "type": "integer" },
    *     "long_field": { "type": "long" },
@@ -55,8 +56,8 @@ public class ElasticsearchDaoIntegrationTest extends IndexingDaoIntegrationTest 
    *     "double_field": { "type": "double" },
    *     "is_alert": { "type": "boolean" },
    *     "location_point": { "type": "geo_point" },
-   *     "bro_field": { "type": "string" },
-   *     "duplicate_name_field": { "type": "string" }
+   *     "bro_field": { "type": "text" },
+   *     "duplicate_name_field": { "type": "text" }
    *   }
    * }
    * }
@@ -68,7 +69,7 @@ public class ElasticsearchDaoIntegrationTest extends IndexingDaoIntegrationTest 
    * {
    * "snort_doc": {
    *   "properties": {
-   *     "source:type": { "type": "string" },
+   *     "source:type": { "type": "text" },
    *     "ip_src_addr": { "type": "ip" },
    *     "ip_src_port": { "type": "integer" },
    *     "long_field": { "type": "long" },
@@ -96,6 +97,7 @@ public class ElasticsearchDaoIntegrationTest extends IndexingDaoIntegrationTest 
               put("es.port", "9300");
               put("es.ip", "localhost");
               put("es.date.format", dateFormat);
+              put("es.xpackuser", "transport_client_user:changeme");
             }},
             new AccessConfig() {{
               setMaxSearchResults(100);
@@ -122,7 +124,7 @@ public class ElasticsearchDaoIntegrationTest extends IndexingDaoIntegrationTest 
     es.getClient().admin().indices().prepareCreate("snort_index_2017.01.01.02")
             .addMapping("snort_doc", snortTypeMappings).get();
 
-    BulkRequestBuilder bulkRequest = es.getClient().prepareBulk().setRefresh(true);
+    BulkRequestBuilder bulkRequest = es.getClient().prepareBulk().setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
     JSONArray broArray = (JSONArray) new JSONParser().parse(broData);
     for(Object o: broArray) {
       JSONObject jsonObject = (JSONObject) o;

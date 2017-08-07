@@ -20,8 +20,8 @@ package org.apache.metron.indexing.dao.search;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public enum FieldType {
-  @JsonProperty("string")
-  STRING("string"),
+  @JsonProperty("text")
+  TEXT("text"),
   @JsonProperty("ip")
   IP("ip"),
   @JsonProperty("integer")

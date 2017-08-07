@@ -352,7 +352,11 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             .withNumRetries(10)
             .withCustomShutdownOrder(new String[] {"storm","config","kafka","zk"})
             .build();
-    runner.start();
+    try {
+      runner.start();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public void update(String path) throws Exception {
