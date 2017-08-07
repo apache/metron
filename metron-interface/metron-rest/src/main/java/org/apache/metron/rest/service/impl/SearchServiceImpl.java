@@ -42,7 +42,7 @@ public class SearchServiceImpl implements SearchService {
   private Environment environment;
 
   @Autowired
-  public IndexDaoSearchServiceImpl(IndexDao dao, Environment environment) {
+  public SearchServiceImpl(IndexDao dao, Environment environment) {
     this.dao = dao;
     this.environment = environment;
   }
