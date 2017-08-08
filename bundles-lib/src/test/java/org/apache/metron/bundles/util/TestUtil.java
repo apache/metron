@@ -16,6 +16,13 @@
  */
 package org.apache.metron.bundles.util;
 
+import com.google.common.collect.ImmutableList;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.metron.bundles.integration.BundleMapperIntegrationTest;
 
 import java.net.URISyntaxException;
@@ -31,5 +38,17 @@ public class TestUtil {
               + ex.getLocalizedMessage(), ex);
     }
     return BundleProperties.createBasicBundleProperties(filePath, others);
+  }
+
+  public static List<FileObject> getExtensionLibs(FileSystemManager fileSystemManager, BundleProperties properties) throws URISyntaxException, FileSystemException{
+    List<URI> libDirs = properties.getBundleLibraryDirectories();
+    List<FileObject> libFileObjects = new ArrayList<>();
+    for(URI libUri : libDirs){
+      FileObject fileObject = fileSystemManager.resolveFile(libUri);
+      if(fileObject.exists()){
+        libFileObjects.add(fileObject);
+      }
+    }
+    return libFileObjects;
   }
 }

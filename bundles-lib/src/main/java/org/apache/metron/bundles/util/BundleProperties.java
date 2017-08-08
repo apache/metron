@@ -26,10 +26,7 @@ import java.util.*;
 
 /**
  * The BundleProperties class holds all properties which are needed for various values to be
- * available at runtime. It is strongly tied to the startup properties needed and is often refer to
- * as the 'nifi.properties' file. The properties contains keys and values. Great care should be
- * taken in leveraging this class or passing it along. Its use should be refactored and minimized
- * over time.
+ * available at runtime. The properties contains keys and values.
  */
 public abstract class BundleProperties {
 
@@ -56,6 +53,10 @@ public abstract class BundleProperties {
   public abstract String getProperty(String key);
 
   public abstract void setProperty(String key, String value);
+
+  public abstract void unSetProperty(String key);
+
+  public abstract boolean match(BundleProperties other);
 
   public abstract void storeProperties(OutputStream outputStream, String comments)
       throws IOException;
@@ -199,6 +200,14 @@ public abstract class BundleProperties {
       @Override
       public void setProperty(String key, String value) {
         properties.setProperty(key, value);
+      }
+
+      @Override
+      public void unSetProperty(String key) { properties.remove(key);}
+
+      @Override
+      public boolean match(BundleProperties other){
+        return properties.equals(other);
       }
 
       @Override

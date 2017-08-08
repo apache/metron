@@ -3,7 +3,7 @@
 These are [Apache Maven Archetypes](http://maven.apache.org/archetype/index.html) for use in creating extension components for the Apache Metron system
 Archetypes are helpful in creating maven based projects with the correct setup and dependency configurations for the target system, including providing sample implementations.
 
-### metron-maven-parser-extension-archetype
+### metron-parser-extension-archetype
 This is an archetype for creating an Apache Metron Parser Extension
 
 #### Use
@@ -23,8 +23,8 @@ $ cd ~/src/metron-parser-nice-extension
 Use the archetype to create your project
 
 ```
-$ mvn archetype:generate -DarchetypeCatalog=local
-[Select the org.apache.metron:metron-maven-parser-extension-archetype (Apache Maven Parser Extension Archetype for Metron) entry]
+$ mvn -U archetype:generate -DarchetypeCatalog=local
+[Select the org.apache.metron:metron-parser-extension-archetype (Apache Parser Extension Archetype for Metron) entry]
 ```
 
 Configure the project properties.  Ending up with something like this:

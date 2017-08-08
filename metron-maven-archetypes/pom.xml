@@ -29,6 +29,6 @@
 
     <description>Apache Maven Archetypes for Metron</description>
     <modules>
-        <module>metron-maven-parser-extension-archetype</module>
+        <module>metron-parser-extension-archetype</module>
     </modules>
 </project>

@@ -18,7 +18,7 @@ package org.apache.metron.bundles;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
-import org.apache.metron.bundles.bundle.BundleCoordinate;
+import org.apache.metron.bundles.bundle.BundleCoordinates;
 import org.apache.metron.bundles.bundle.BundleDetails;
 import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.metron.bundles.util.BundleUtil;
@@ -40,19 +40,19 @@ public class BundleUtilTest {
 
         BundleProperties properties = BundleProperties.createBasicBundleProperties("src/test/resources/bundle.properties", additionalProperties);
         // create a FileSystemManager
-        FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(properties.getArchiveExtension());
+        FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
 
         final FileObject bundleDir = fileSystemManager.resolveFile(BundleProperties.getURI("src/test/resources/utils-bundles/bundle-with-versioning"));
         final BundleDetails bundleDetails = BundleUtil.fromBundleTestDirectory(bundleDir, properties);
         assertEquals(bundleDir.getURL(), bundleDetails.getBundleFile().getURL());
 
-        assertEquals("org.apache.metron", bundleDetails.getCoordinate().getGroup());
-        assertEquals("metron-hadoop-bundle", bundleDetails.getCoordinate().getId());
-        assertEquals("1.2.0", bundleDetails.getCoordinate().getVersion());
+        assertEquals("org.apache.metron", bundleDetails.getCoordinates().getGroup());
+        assertEquals("metron-hadoop-bundle", bundleDetails.getCoordinates().getId());
+        assertEquals("1.2.0", bundleDetails.getCoordinates().getVersion());
 
-        assertEquals("org.apache.metron.hadoop", bundleDetails.getDependencyCoordinate().getGroup());
-        assertEquals("metron-hadoop-libraries-bundle", bundleDetails.getDependencyCoordinate().getId());
-        assertEquals("1.2.1", bundleDetails.getDependencyCoordinate().getVersion());
+        assertEquals("org.apache.metron.hadoop", bundleDetails.getDependencyCoordinates().getGroup());
+        assertEquals("metron-hadoop-libraries-bundle", bundleDetails.getDependencyCoordinates().getId());
+        assertEquals("1.2.1", bundleDetails.getDependencyCoordinates().getVersion());
 
         assertEquals("METRON-3380", bundleDetails.getBuildBranch());
         assertEquals("1.8.0_74", bundleDetails.getBuildJdk());
@@ -66,19 +66,19 @@ public class BundleUtilTest {
     public void testManifestWithoutVersioningAndBuildInfo() throws IOException, URISyntaxException {
         BundleProperties properties = BundleProperties.createBasicBundleProperties("src/test/resources/bundle.properties",  additionalProperties);
         // create a FileSystemManager
-        FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(properties.getArchiveExtension());
+        FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
 
         final FileObject bundleDir = fileSystemManager.resolveFile(BundleProperties.getURI("src/test/resources/utils-bundles/bundle-without-versioning"));
         final BundleDetails bundleDetails = BundleUtil.fromBundleTestDirectory(bundleDir, properties);
         assertEquals(bundleDir.getURL(), bundleDetails.getBundleFile().getURL());
 
-        assertEquals(BundleCoordinate.DEFAULT_GROUP, bundleDetails.getCoordinate().getGroup());
-        assertEquals("metron-hadoop-bundle", bundleDetails.getCoordinate().getId());
-        assertEquals(BundleCoordinate.DEFAULT_VERSION, bundleDetails.getCoordinate().getVersion());
+        assertEquals(BundleCoordinates.DEFAULT_GROUP, bundleDetails.getCoordinates().getGroup());
+        assertEquals("metron-hadoop-bundle", bundleDetails.getCoordinates().getId());
+        assertEquals(BundleCoordinates.DEFAULT_VERSION, bundleDetails.getCoordinates().getVersion());
 
-        assertEquals(BundleCoordinate.DEFAULT_GROUP, bundleDetails.getDependencyCoordinate().getGroup());
-        assertEquals("metron-hadoop-libraries-bundle", bundleDetails.getDependencyCoordinate().getId());
-        assertEquals(BundleCoordinate.DEFAULT_VERSION, bundleDetails.getDependencyCoordinate().getVersion());
+        assertEquals(BundleCoordinates.DEFAULT_GROUP, bundleDetails.getDependencyCoordinates().getGroup());
+        assertEquals("metron-hadoop-libraries-bundle", bundleDetails.getDependencyCoordinates().getId());
+        assertEquals(BundleCoordinates.DEFAULT_VERSION, bundleDetails.getDependencyCoordinates().getVersion());
 
         assertNull(bundleDetails.getBuildBranch());
         assertEquals("1.8.0_74", bundleDetails.getBuildJdk());
@@ -92,17 +92,17 @@ public class BundleUtilTest {
     public void testManifestWithoutBundleDependency() throws IOException, URISyntaxException {
         BundleProperties properties = BundleProperties.createBasicBundleProperties("src/test/resources/bundle.properties",  additionalProperties);
         // create a FileSystemManager
-        FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(properties.getArchiveExtension());
+        FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
 
         final FileObject bundleDir = fileSystemManager.resolveFile(BundleProperties.getURI("src/test/resources/utils-bundles/bundle-without-dependency"));
         final BundleDetails bundleDetails = BundleUtil.fromBundleTestDirectory(bundleDir, properties);
         assertEquals(bundleDir.getURL(), bundleDetails.getBundleFile().getURL());
 
-        assertEquals("org.apache.metron", bundleDetails.getCoordinate().getGroup());
-        assertEquals("metron-hadoop-bundle", bundleDetails.getCoordinate().getId());
-        assertEquals("1.2.0", bundleDetails.getCoordinate().getVersion());
+        assertEquals("org.apache.metron", bundleDetails.getCoordinates().getGroup());
+        assertEquals("metron-hadoop-bundle", bundleDetails.getCoordinates().getId());
+        assertEquals("1.2.0", bundleDetails.getCoordinates().getVersion());
 
-        assertNull(bundleDetails.getDependencyCoordinate());
+        assertNull(bundleDetails.getDependencyCoordinates());
 
         assertEquals("METRON-3380", bundleDetails.getBuildBranch());
         assertEquals("1.8.0_74", bundleDetails.getBuildJdk());
@@ -116,7 +116,7 @@ public class BundleUtilTest {
     public void testFromManifestWhenBundleDirectoryDoesNotExist() throws IOException, URISyntaxException {
         BundleProperties properties = BundleProperties.createBasicBundleProperties("src/test/resources/bundle.properties", additionalProperties);
         // create a FileSystemManager
-        FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(properties.getArchiveExtension());
+        FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
 
         final FileObject manifest = fileSystemManager.resolveFile(BundleProperties.getURI("src/test/resources/utils-bundles/bundle-does-not-exist"));
         BundleUtil.fromBundleTestDirectory(manifest, properties );

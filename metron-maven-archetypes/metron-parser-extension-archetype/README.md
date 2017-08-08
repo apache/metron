@@ -21,7 +21,7 @@ Create a directory where ever you would like for your project
 `mkdir myParser && cd myParser`
 
 ### Create the project with maven
-`mvn archetype:generate -DarchetypeCatalog=local`
+`mvn -U archetype:generate -DarchetypeCatalog=local`
 
 Select the metron-maven-parser-extension-archtype
 

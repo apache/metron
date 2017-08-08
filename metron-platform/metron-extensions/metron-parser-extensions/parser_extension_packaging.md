@@ -5,7 +5,7 @@ Parser Extensions packages should contain all the executable code and configurat
 ## The Package
 
 The package itself is a tar.gz file created at build time.  The configuration for this packaging
-in the project ( as produced by the [Metron Maven Parser Extension Archetype](../../../metron-maven-archetypes/metron-maven-parser-extension-archetype)) by the
+in the project ( as produced by the [Metron Maven Parser Extension Archetype](../../../metron-maven-archetypes/metron-parser-extension-archetype)) by the
 XXXX-assembly module, specifically in the src/main/assembly/assembly.xml file.
 
 ## The Package Contents

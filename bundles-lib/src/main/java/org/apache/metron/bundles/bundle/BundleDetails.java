@@ -24,13 +24,14 @@ import java.util.Date;
 
 /**
  * Metadata about a bundle.
+ * the withCoordinates and withBundleFile properties are required
  */
 public class BundleDetails {
 
     private final FileObject bundleFile;
 
-    private final BundleCoordinate coordinate;
-    private final BundleCoordinate dependencyCoordinate;
+    private final BundleCoordinates coordinates;
+    private final BundleCoordinates dependencyCoordinates;
 
     private final String buildTag;
     private final String buildRevision;
@@ -41,8 +42,8 @@ public class BundleDetails {
 
     private BundleDetails(final Builder builder) {
         this.bundleFile = builder.bundleFile;
-        this.coordinate = builder.coordinate;
-        this.dependencyCoordinate = builder.dependencyCoordinate;
+        this.coordinates = builder.coordinates;
+        this.dependencyCoordinates = builder.dependencyCoordinates;
 
         this.buildTag = builder.buildTag;
         this.buildRevision = builder.buildRevision;
@@ -51,7 +52,7 @@ public class BundleDetails {
         this.buildJdk = builder.buildJdk;
         this.builtBy = builder.builtBy;
 
-        if (this.coordinate == null) {
+        if (this.coordinates == null) {
             if (this.bundleFile == null) {
                 throw new IllegalStateException("Coordinate cannot be null");
             } else {
@@ -60,7 +61,8 @@ public class BundleDetails {
         }
 
         if (this.bundleFile == null) {
-            throw new IllegalStateException("Working directory cannot be null for " + this.coordinate.getId());
+            throw new IllegalStateException("Working directory cannot be null for " + this.coordinates
+                .getId());
         }
     }
 
@@ -68,12 +70,12 @@ public class BundleDetails {
         return bundleFile;
     }
 
-    public BundleCoordinate getCoordinate() {
-        return coordinate;
+    public BundleCoordinates getCoordinates() {
+        return coordinates;
     }
 
-    public BundleCoordinate getDependencyCoordinate() {
-        return dependencyCoordinate;
+    public BundleCoordinates getDependencyCoordinates() {
+        return dependencyCoordinates;
     }
 
     public String getBuildTag() {
@@ -102,7 +104,7 @@ public class BundleDetails {
 
     @Override
     public String toString() {
-        return coordinate.toString();
+        return coordinates.toString();
     }
 
     public Date getBuildTimestampDate() {
@@ -126,8 +128,8 @@ public class BundleDetails {
 
         private FileObject bundleFile;
 
-        private BundleCoordinate coordinate;
-        private BundleCoordinate dependencyCoordinate;
+        private BundleCoordinates coordinates;
+        private BundleCoordinates dependencyCoordinates;
 
         private String buildTag;
         private String buildRevision;
@@ -136,47 +138,47 @@ public class BundleDetails {
         private String buildJdk;
         private String builtBy;
 
-        public Builder bundleFile(final FileObject bundleFile) {
+        public Builder withBundleFile(final FileObject bundleFile) {
             this.bundleFile = bundleFile;
             return this;
         }
 
-        public Builder coordinate(final BundleCoordinate coordinate) {
-            this.coordinate = coordinate;
+        public Builder withCoordinates(final BundleCoordinates coordinates) {
+            this.coordinates = coordinates;
             return this;
         }
 
-        public Builder dependencyCoordinate(final BundleCoordinate dependencyCoordinate) {
-            this.dependencyCoordinate = dependencyCoordinate;
+        public Builder withDependencyCoordinates(final BundleCoordinates dependencyCoordinates) {
+            this.dependencyCoordinates = dependencyCoordinates;
             return this;
         }
 
-        public Builder buildTag(final String buildTag) {
+        public Builder withBuildTag(final String buildTag) {
             this.buildTag = buildTag;
             return this;
         }
 
-        public Builder buildRevision(final String buildRevision) {
+        public Builder withBuildRevision(final String buildRevision) {
             this.buildRevision = buildRevision;
             return this;
         }
 
-        public Builder buildBranch(final String buildBranch) {
+        public Builder withBuildBranch(final String buildBranch) {
             this.buildBranch = buildBranch;
             return this;
         }
 
-        public Builder buildTimestamp(final String buildTimestamp) {
+        public Builder withBuildTimestamp(final String buildTimestamp) {
             this.buildTimestamp = buildTimestamp;
             return this;
         }
 
-        public Builder buildJdk(final String buildJdk) {
+        public Builder withBuildJdk(final String buildJdk) {
             this.buildJdk = buildJdk;
             return this;
         }
 
-        public Builder builtBy(final String builtBy) {
+        public Builder withBuiltBy(final String builtBy) {
             this.builtBy = builtBy;
             return this;
         }

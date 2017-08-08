@@ -19,7 +19,7 @@ package org.apache.metron.bundles.util;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.metron.bundles.BundleManifestEntry;
-import org.apache.metron.bundles.bundle.BundleCoordinate;
+import org.apache.metron.bundles.bundle.BundleCoordinates;
 import org.apache.metron.bundles.bundle.BundleDetails;
 
 import java.io.IOException;
@@ -50,26 +50,26 @@ public class BundleUtil {
             final BundleDetails.Builder builder = new BundleDetails.Builder();
 
             // NOTE there is no File here
-            builder.bundleFile(bundleDirectory);
+            builder.withBundleFile(bundleDirectory);
 
             final String group = attributes.getValue(prefix + BundleManifestEntry.PRE_GROUP.getManifestName());
             final String id = attributes.getValue(prefix + BundleManifestEntry.PRE_ID.getManifestName());
             final String version = attributes.getValue(prefix + BundleManifestEntry.PRE_VERSION.getManifestName());
-            builder.coordinate(new BundleCoordinate(group, id, version));
+            builder.withCoordinates(new BundleCoordinates(group, id, version));
 
             final String dependencyGroup = attributes.getValue(prefix + BundleManifestEntry.PRE_DEPENDENCY_GROUP.getManifestName());
             final String dependencyId = attributes.getValue(prefix + BundleManifestEntry.PRE_DEPENDENCY_ID.getManifestName());
             final String dependencyVersion = attributes.getValue(prefix + BundleManifestEntry.PRE_DEPENDENCY_VERSION.getManifestName());
             if (!StringUtils.isBlank(dependencyId)) {
-                builder.dependencyCoordinate(new BundleCoordinate(dependencyGroup, dependencyId, dependencyVersion));
+                builder.withDependencyCoordinates(new BundleCoordinates(dependencyGroup, dependencyId, dependencyVersion));
             }
 
-            builder.buildBranch(attributes.getValue(BundleManifestEntry.BUILD_BRANCH.getManifestName()));
-            builder.buildTag(attributes.getValue(BundleManifestEntry.BUILD_TAG.getManifestName()));
-            builder.buildRevision(attributes.getValue(BundleManifestEntry.BUILD_REVISION.getManifestName()));
-            builder.buildTimestamp(attributes.getValue(BundleManifestEntry.BUILD_TIMESTAMP.getManifestName()));
-            builder.buildJdk(attributes.getValue(BundleManifestEntry.BUILD_JDK.getManifestName()));
-            builder.builtBy(attributes.getValue(BundleManifestEntry.BUILT_BY.getManifestName()));
+            builder.withBuildBranch(attributes.getValue(BundleManifestEntry.BUILD_BRANCH.getManifestName()));
+            builder.withBuildTag(attributes.getValue(BundleManifestEntry.BUILD_TAG.getManifestName()));
+            builder.withBuildRevision(attributes.getValue(BundleManifestEntry.BUILD_REVISION.getManifestName()));
+            builder.withBuildTimestamp(attributes.getValue(BundleManifestEntry.BUILD_TIMESTAMP.getManifestName()));
+            builder.withBuildJdk(attributes.getValue(BundleManifestEntry.BUILD_JDK.getManifestName()));
+            builder.withBuiltBy(attributes.getValue(BundleManifestEntry.BUILT_BY.getManifestName()));
 
             return builder.build();
         }catch(IOException ioe){
@@ -97,26 +97,26 @@ public class BundleUtil {
             final Attributes attributes = manifest.getMainAttributes();
             final String prefix = props.getMetaIdPrefix();
             final BundleDetails.Builder builder = new BundleDetails.Builder();
-            builder.bundleFile(bundleFile);
+            builder.withBundleFile(bundleFile);
 
             final String group = attributes.getValue(prefix + BundleManifestEntry.PRE_GROUP.getManifestName());
             final String id = attributes.getValue(prefix + BundleManifestEntry.PRE_ID.getManifestName());
             final String version = attributes.getValue(prefix + BundleManifestEntry.PRE_VERSION.getManifestName());
-            builder.coordinate(new BundleCoordinate(group, id, version));
+            builder.withCoordinates(new BundleCoordinates(group, id, version));
 
             final String dependencyGroup = attributes.getValue(prefix + BundleManifestEntry.PRE_DEPENDENCY_GROUP.getManifestName());
             final String dependencyId = attributes.getValue(prefix + BundleManifestEntry.PRE_DEPENDENCY_ID.getManifestName());
             final String dependencyVersion = attributes.getValue(prefix + BundleManifestEntry.PRE_DEPENDENCY_VERSION.getManifestName());
             if (!StringUtils.isBlank(dependencyId)) {
-                builder.dependencyCoordinate(new BundleCoordinate(dependencyGroup, dependencyId, dependencyVersion));
+                builder.withDependencyCoordinates(new BundleCoordinates(dependencyGroup, dependencyId, dependencyVersion));
             }
 
-            builder.buildBranch(attributes.getValue(BundleManifestEntry.BUILD_BRANCH.getManifestName()));
-            builder.buildTag(attributes.getValue(BundleManifestEntry.BUILD_TAG.getManifestName()));
-            builder.buildRevision(attributes.getValue(BundleManifestEntry.BUILD_REVISION.getManifestName()));
-            builder.buildTimestamp(attributes.getValue(BundleManifestEntry.BUILD_TIMESTAMP.getManifestName()));
-            builder.buildJdk(attributes.getValue(BundleManifestEntry.BUILD_JDK.getManifestName()));
-            builder.builtBy(attributes.getValue(BundleManifestEntry.BUILT_BY.getManifestName()));
+            builder.withBuildBranch(attributes.getValue(BundleManifestEntry.BUILD_BRANCH.getManifestName()));
+            builder.withBuildTag(attributes.getValue(BundleManifestEntry.BUILD_TAG.getManifestName()));
+            builder.withBuildRevision(attributes.getValue(BundleManifestEntry.BUILD_REVISION.getManifestName()));
+            builder.withBuildTimestamp(attributes.getValue(BundleManifestEntry.BUILD_TIMESTAMP.getManifestName()));
+            builder.withBuildJdk(attributes.getValue(BundleManifestEntry.BUILD_JDK.getManifestName()));
+            builder.withBuiltBy(attributes.getValue(BundleManifestEntry.BUILT_BY.getManifestName()));
 
             return builder.build();
         }catch(IOException ioe){
@@ -124,7 +124,7 @@ public class BundleUtil {
         }
     }
 
-    public static BundleCoordinate coordinateFromBundleFile(final FileObject bundleFile, BundleProperties props) throws FileSystemException{
+    public static BundleCoordinates coordinateFromBundleFile(final FileObject bundleFile, BundleProperties props) throws FileSystemException{
         FileObject bundleFileSystem = bundleFile.getFileSystem().getFileSystemManager().createFileSystem(bundleFile);
         final FileObject manifestFile = bundleFileSystem.resolveFile("META-INF/MANIFEST.MF");
         try (final InputStream fis = manifestFile.getContent().getInputStream()) {
@@ -136,7 +136,7 @@ public class BundleUtil {
             final String bundleId = attributes.getValue(prefix + BundleManifestEntry.PRE_ID.getManifestName());
             final String groupId = attributes.getValue(prefix + BundleManifestEntry.PRE_GROUP.getManifestName());
             final String version = attributes.getValue(prefix + BundleManifestEntry.PRE_VERSION.getManifestName());
-            return new BundleCoordinate(groupId,bundleId,version);
+            return new BundleCoordinates(groupId,bundleId,version);
         }catch(IOException ioe){
             throw new FileSystemException("failed reading manifest file " + manifestFile.getURL(),ioe);
         }

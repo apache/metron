@@ -25,7 +25,7 @@ public class FileUtils {
     if (dir.exists() && !dir.isFolder()) {
       throw new FileSystemException(dir.getURL() + " is not a directory");
     } else if (!dir.exists()) {
-      throw new FileSystemException(dir.getURL() + " is not a directory");
+      throw new FileSystemException(dir.getURL() + " does not exist");
     }
     if (!dir.isReadable()) {
       throw new FileSystemException(

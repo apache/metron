@@ -17,18 +17,18 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.apache.metron</groupId>
-  <artifactId>metron-maven-parser-extension-archetype</artifactId>
+  <artifactId>metron-parser-extension-archetype</artifactId>
   <version>0.4.1</version>
   <packaging>maven-archetype</packaging>
 
-  <name>metron-maven-parser-extension-archetype</name>
+  <name>metron-parser-extension-archetype</name>
 
   <build>
     <extensions>
       <extension>
         <groupId>org.apache.maven.archetype</groupId>
         <artifactId>archetype-packaging</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.1</version>
       </extension>
     </extensions>
 

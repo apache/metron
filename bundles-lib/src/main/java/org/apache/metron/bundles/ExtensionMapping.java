@@ -16,26 +16,26 @@
  */
 package org.apache.metron.bundles;
 
-import org.apache.metron.bundles.bundle.BundleCoordinate;
+import org.apache.metron.bundles.bundle.BundleCoordinates;
 
 import java.util.*;
 import java.util.function.BiFunction;
 
 public class ExtensionMapping {
 
-  private final Map<String, Map<String, Set<BundleCoordinate>>> extensionNameMap = new HashMap<>();
+  private final Map<String, Map<String, Set<BundleCoordinates>>> extensionNameMap = new HashMap<>();
 
-  private final BiFunction<Set<BundleCoordinate>, Set<BundleCoordinate>, Set<BundleCoordinate>> merger = (oldValue, newValue) -> {
-    final Set<BundleCoordinate> merged = new HashSet<>();
+  private final BiFunction<Set<BundleCoordinates>, Set<BundleCoordinates>, Set<BundleCoordinates>> merger = (oldValue, newValue) -> {
+    final Set<BundleCoordinates> merged = new HashSet<>();
     merged.addAll(oldValue);
     merged.addAll(newValue);
     return merged;
   };
 
-  void addExtension(final String extensionName, final BundleCoordinate coordinate,
+  void addExtension(final String extensionName, final BundleCoordinates coordinate,
       final String type) {
     if (!extensionNameMap.containsKey(extensionName)) {
-      Map<String, Set<BundleCoordinate>> bundles = new HashMap<>();
+      Map<String, Set<BundleCoordinates>> bundles = new HashMap<>();
       bundles.put(type, new HashSet<>());
       extensionNameMap.put(extensionName, bundles);
     }
@@ -43,10 +43,10 @@ public class ExtensionMapping {
         .add(coordinate);
   }
 
-  void addAllExtensions(final String extensionName, final BundleCoordinate coordinate,
+  void addAllExtensions(final String extensionName, final BundleCoordinates coordinate,
       final Collection<String> types) {
     if (!extensionNameMap.containsKey(extensionName)) {
-      Map<String, Set<BundleCoordinate>> bundles = new HashMap<>();
+      Map<String, Set<BundleCoordinates>> bundles = new HashMap<>();
       extensionNameMap.put(extensionName, bundles);
     }
     types.forEach(name -> {
@@ -54,7 +54,7 @@ public class ExtensionMapping {
     });
   }
 
-  public Map<String, Set<BundleCoordinate>> getExtensionNames(String extensionName) {
+  public Map<String, Set<BundleCoordinates>> getExtensionNames(String extensionName) {
     if (extensionNameMap.containsKey(extensionName)) {
       return Collections.unmodifiableMap(extensionNameMap.get(extensionName));
     } else {
@@ -62,13 +62,13 @@ public class ExtensionMapping {
     }
   }
 
-  public Map<String, Map<String, Set<BundleCoordinate>>> getAllExtensions() {
+  public Map<String, Map<String, Set<BundleCoordinates>>> getAllExtensions() {
     return Collections.unmodifiableMap(extensionNameMap);
   }
 
-  public Map<String, Set<BundleCoordinate>> getAllExtensionNames() {
-    final Map<String, Set<BundleCoordinate>> extensionNames = new HashMap<>();
-    for (final Map<String, Set<BundleCoordinate>> bundleSets : extensionNameMap.values()) {
+  public Map<String, Set<BundleCoordinates>> getAllExtensionNames() {
+    final Map<String, Set<BundleCoordinates>> extensionNames = new HashMap<>();
+    for (final Map<String, Set<BundleCoordinates>> bundleSets : extensionNameMap.values()) {
       extensionNames.putAll(bundleSets);
     }
     return extensionNames;
@@ -89,8 +89,8 @@ public class ExtensionMapping {
   public int size() {
     int size = 0;
 
-    for (final Map<String, Set<BundleCoordinate>> bundleSets : extensionNameMap.values()) {
-      for (final Set<BundleCoordinate> coordinates : bundleSets.values()) {
+    for (final Map<String, Set<BundleCoordinates>> bundleSets : extensionNameMap.values()) {
+      for (final Set<BundleCoordinates> coordinates : bundleSets.values()) {
         size += coordinates.size();
       }
     }

@@ -23,16 +23,15 @@ set to `bundle`. The `dependencies` section of the POM is then created so
 that the BUNDLE has a dependency on all Extension Components that are to be included within the BUNDLE.
 
 In order to use a packaging of `bundle`, we must use the `bundles-maven-plugin` module.
-This is included by adding the following snippet to the bundle's pom.xml:
-
-
+This is included by adding the following snippet to the bundle's pom.xml:> 
+> 0.4.1 below should be the current metron version
 ```xml
 <build>
     <plugins>
         <plugin>
             <groupId>org.apache.metron</groupId>
             <artifactId>bundles-maven-plugin</artifactId>
-            <version>0.4.0</version>
+            <version>0.4.1</version>
             <extensions>true</extensions>
         </plugin>
     </plugins>
@@ -46,7 +45,7 @@ The BUNDLE is able to have one dependency that is of type `bundle`. If more
 than one dependency is specified that is of type
 `bundle`, then the bundles-maven-plugin will error. If BUNDLE A adds a
 dependency on BUNDLE B, this will *not* result in
-BUNDLE B packaging all of the components of BUNDLE A. Rather, this will add
+BUNDLE A packaging all of the components of BUNDLE B. Rather, this will add
 a `Bundle-Dependency-Id` element to the `MANIFEST.MF`
 file of BUNDLE A. This will result in setting the ClassLoader of BUNDLE B as
 the Parent ClassLoader of BUNDLE A. In this case,
@@ -69,7 +68,7 @@ memory footprint significantly when enough instances of the component are create
 
 ## Apache VFS 
 
-The bundles-lib utilizes the Apache VFS library to for loading bundles.  Bundles, what are zip files of a known structure, containing 
+The bundles-lib utilizes the Apache VFS library for loading bundles.  Bundles, which are zip files of a known structure, containing 
 jars of dependencies may be loaded by VFS as File Systems *themselves*, and in tern each jar in the bundle can be loaded by VFS as a File System.
 
 The VFSBundleClassloader therefore loads the bundle as a Jar File System, and also each dependency jar as a filesystem.  This allows

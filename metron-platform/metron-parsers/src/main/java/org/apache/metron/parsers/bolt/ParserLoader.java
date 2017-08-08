@@ -71,7 +71,7 @@ public class ParserLoader {
           // will get the uris correctly generated
           props.setProperty(BundleProperties.HDFS_PREFIX,fsConf.get("fs.defaultFS"));
         }
-        FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(props.getArchiveExtension());
+        FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {props.getArchiveExtension()});
 
         ArrayList<Class> classes = new ArrayList<>();
         for( Map.Entry<String,String> entry : props.getBundleExtensionTypes().entrySet()){

@@ -21,7 +21,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.metron.bundles.bundle.Bundle;
-import org.apache.metron.bundles.bundle.BundleCoordinate;
+import org.apache.metron.bundles.bundle.BundleCoordinates;
 import org.apache.metron.bundles.bundle.BundleDetails;
 import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.metron.bundles.util.FileUtils;
@@ -53,14 +53,14 @@ public class ExtensionManager {
 
   private static final Logger logger = LoggerFactory.getLogger(ExtensionManager.class);
 
-  public static final BundleCoordinate SYSTEM_BUNDLE_COORDINATE = new BundleCoordinate(
-      BundleCoordinate.DEFAULT_GROUP, "system", BundleCoordinate.DEFAULT_VERSION);
+  public static final BundleCoordinates SYSTEM_BUNDLE_COORDINATE = new BundleCoordinates(
+      BundleCoordinates.DEFAULT_GROUP, "system", BundleCoordinates.DEFAULT_VERSION);
 
   // Maps a service definition (interface) to those classes that implement the interface
   private static final Map<Class, Set<Class>> definitionMap = new HashMap<>();
 
   private static final Map<String, List<Bundle>> classNameBundleLookup = new HashMap<>();
-  private static final Map<BundleCoordinate, Bundle> bundleCoordinateBundleLookup = new HashMap<>();
+  private static final Map<BundleCoordinates, Bundle> bundleCoordinateBundleLookup = new HashMap<>();
   private static final Map<ClassLoader, Bundle> classLoaderBundleLookup = new HashMap<>();
 
   private static final Set<String> requiresInstanceClassLoading = new HashSet<>();
@@ -98,7 +98,7 @@ public class ExtensionManager {
     // load the system bundle first so that any extensions found in JARs directly in lib will be registered as
     // being from the system bundle and not from all the other Bundles
     loadExtensions(systemBundle);
-    bundleCoordinateBundleLookup.put(systemBundle.getBundleDetails().getCoordinate(), systemBundle);
+    bundleCoordinateBundleLookup.put(systemBundle.getBundleDetails().getCoordinates(), systemBundle);
 
     // consider each bundle class loader
     for (final Bundle bundle : bundles) {
@@ -108,8 +108,8 @@ public class ExtensionManager {
       Thread.currentThread().setContextClassLoader(ncl);
       loadExtensions(bundle);
 
-      // Create a look-up from coordinate to bundle
-      bundleCoordinateBundleLookup.put(bundle.getBundleDetails().getCoordinate(), bundle);
+      // Create a look-up from withCoordinates to bundle
+      bundleCoordinateBundleLookup.put(bundle.getBundleDetails().getCoordinates(), bundle);
     }
 
     // restore the current context class loader if appropriate
@@ -143,8 +143,8 @@ public class ExtensionManager {
     FileUtils.ensureDirectoryExistAndCanRead(bundleDir);
 
     final BundleDetails systemBundleDetails = new BundleDetails.Builder()
-        .bundleFile(bundleDir)
-        .coordinate(SYSTEM_BUNDLE_COORDINATE)
+        .withBundleFile(bundleDir)
+        .withCoordinates(SYSTEM_BUNDLE_COORDINATE)
         .build();
 
     return new Bundle(systemBundleDetails, systemClassLoader);
@@ -214,11 +214,11 @@ public class ExtensionManager {
 
     boolean alreadyRegistered = false;
     for (final Bundle registeredBundle : registeredBundles) {
-      final BundleCoordinate registeredCoordinate = registeredBundle.getBundleDetails()
-          .getCoordinate();
+      final BundleCoordinates registeredCoordinate = registeredBundle.getBundleDetails()
+          .getCoordinates();
 
-      // if the incoming bundle has the same coordinate as one of the registered bundles then consider it already registered
-      if (registeredCoordinate.equals(bundle.getBundleDetails().getCoordinate())) {
+      // if the incoming bundle has the same withCoordinates as one of the registered bundles then consider it already registered
+      if (registeredCoordinate.equals(bundle.getBundleDetails().getCoordinates())) {
         alreadyRegistered = true;
         break;
       }
@@ -227,9 +227,9 @@ public class ExtensionManager {
       // fail registration because we don't support multiple versions of any other types
       if (!multipleVersionsAllowed(type)) {
         throw new IllegalStateException("Attempt was made to load " + className + " from "
-            + bundle.getBundleDetails().getCoordinate().getCoordinate()
+            + bundle.getBundleDetails().getCoordinates().getCoordinate()
             + " but that class name is already loaded/registered from " + registeredBundle
-            .getBundleDetails().getCoordinate()
+            .getBundleDetails().getCoordinates()
             + " and multiple versions are not supported for this type"
         );
       }
@@ -367,16 +367,16 @@ public class ExtensionManager {
   }
 
   /**
-   * Retrieves the bundle with the given coordinate.
+   * Retrieves the bundle with the given withCoordinates.
    *
-   * @param bundleCoordinate a coordinate to look up
-   * @return the bundle with the given coordinate, or null if none exists
+   * @param bundleCoordinates a withCoordinates to look up
+   * @return the bundle with the given withCoordinates, or null if none exists
    */
-  public static Bundle getBundle(final BundleCoordinate bundleCoordinate) {
-    if (bundleCoordinate == null) {
-      throw new IllegalArgumentException("BundleCoordinate cannot be null");
+  public static Bundle getBundle(final BundleCoordinates bundleCoordinates) {
+    if (bundleCoordinates == null) {
+      throw new IllegalArgumentException("BundleCoordinates cannot be null");
     }
-    return bundleCoordinateBundleLookup.get(bundleCoordinate);
+    return bundleCoordinateBundleLookup.get(bundleCoordinates);
   }
 
   /**
@@ -415,7 +415,7 @@ public class ExtensionManager {
         builder.append("\n\t").append(type.getName());
 
         for (final Bundle bundle : bundles) {
-          final String coordinate = bundle.getBundleDetails().getCoordinate().getCoordinate();
+          final String coordinate = bundle.getBundleDetails().getCoordinates().getCoordinate();
           final String workingDir = bundle.getBundleDetails().getBundleFile().getName().toString();
           builder.append("\n\t\t").append(coordinate).append(" || ").append(workingDir);
         }

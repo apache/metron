@@ -6,12 +6,12 @@ codebase.
 ## Setup
 Make sure you have a good, working branch that builds and passes testing
 This includes building and installing the bundles-maven-plugin
-and the metron-maven-parser-extension-archetype.
+and the metron-parser-extension-archetype.
 
 ## Create a parser extension
 ```commandline
 cd metron-platform/metron-extensions/metron-parser-extensions
-run mvn archetype:generate -DarchetypeCatalog=local
+run mvn -U archetype:generate -DarchetypeCatalog=local
 ```
 - select Apache Maven Parser Extension Archetype for Metron
 -  fill out the archetype variables:
@@ -28,7 +28,7 @@ So you should see the following output:
 
 ``` commandline
 Choose archetype:
-1: local -> org.apache.metron:metron-maven-parser-extension-archetype (Apache Maven Parser Extension Archetype for Metron)
+1: local -> org.apache.metron:metron-parser-extension-archetype (Apache Parser Extension Archetype for Metron)
 Choose a number or apply filter (format: [groupId:]artifactId, case sensitive contains): : 1
 Define value for property 'groupId': org.apache.metron
 Define value for property 'artifactId': metron-parser-foo-extension

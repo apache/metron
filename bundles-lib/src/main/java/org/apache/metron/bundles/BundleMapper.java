@@ -30,10 +30,8 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSelectInfo;
-import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemManager;
-import org.apache.metron.bundles.bundle.BundleCoordinate;
+import org.apache.metron.bundles.bundle.BundleCoordinates;
 import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.metron.bundles.util.BundleSelector;
 import org.apache.metron.bundles.util.BundleUtil;
@@ -55,7 +53,7 @@ public final class BundleMapper {
        BundleProperties props) {
     try {
       final List<URI> bundleLibraryDirs = props.getBundleLibraryDirectories();
-      final Map<FileObject, BundleCoordinate> bundlesToCoordinates = new HashMap<>();
+      final Map<FileObject, BundleCoordinates> bundlesToCoordinates = new HashMap<>();
       archiveExtension = props.getArchiveExtension();
 
       final List<FileObject> bundleFiles = new ArrayList<>();
@@ -98,18 +96,18 @@ public final class BundleMapper {
     return null;
   }
 
-  private static void mapExtensions(final Map<FileObject, BundleCoordinate> bundlesToCoordinates,
+  private static void mapExtensions(final Map<FileObject, BundleCoordinates> bundlesToCoordinates,
       final ExtensionMapping mapping, BundleProperties props) throws IOException {
-    for (final Map.Entry<FileObject, BundleCoordinate> entry : bundlesToCoordinates.entrySet()) {
+    for (final Map.Entry<FileObject, BundleCoordinates> entry : bundlesToCoordinates.entrySet()) {
       final FileObject bundle = entry.getKey();
-      final BundleCoordinate bundleCoordinate = entry.getValue();
+      final BundleCoordinates bundleCoordinates = entry.getValue();
 
-      mapExtentionsForCoordinate(mapping, bundleCoordinate, bundle, props);
+      mapExtentionsForCoordinate(mapping, bundleCoordinates, bundle, props);
     }
   }
 
   private static void mapExtentionsForCoordinate(final ExtensionMapping mapping,
-      final BundleCoordinate bundleCoordinate, final FileObject bundle, BundleProperties props)
+      final BundleCoordinates bundleCoordinates, final FileObject bundle, BundleProperties props)
       throws IOException {
     final FileObject bundleFileSystem = bundle.getFileSystem().getFileSystemManager()
         .createFileSystem(bundle);
@@ -118,13 +116,13 @@ public final class BundleMapper {
     if (directoryContents != null) {
       for (final FileObject file : directoryContents) {
         if (file.getName().getExtension().equals("jar")) {
-          mapExtensionsForJarFileObject(bundleCoordinate, file, mapping, props);
+          mapExtensionsForJarFileObject(bundleCoordinates, file, mapping, props);
         }
       }
     }
   }
 
-  private static void mapExtensionsForJarFileObject(final BundleCoordinate coordinate, final FileObject jar,
+  private static void mapExtensionsForJarFileObject(final BundleCoordinates coordinate, final FileObject jar,
     final ExtensionMapping extensionMapping, final BundleProperties props) throws IOException {
     final ExtensionMapping jarExtensionMapping = buildExtensionMappingForJar(coordinate, jar,
         props);
@@ -139,7 +137,7 @@ public final class BundleMapper {
   }
 
 
-  private static ExtensionMapping buildExtensionMappingForJar(final BundleCoordinate coordinate,
+  private static ExtensionMapping buildExtensionMappingForJar(final BundleCoordinates coordinate,
     final FileObject jar, final BundleProperties props) throws IOException {
     final ExtensionMapping mapping = new ExtensionMapping();
 

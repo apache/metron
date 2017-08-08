@@ -19,27 +19,30 @@ package org.apache.metron.bundles.bundle;
 /**
  * The coordinates of a bundle (group, artifact, version).
  */
-public class BundleCoordinate {
+public class BundleCoordinates {
 
     public static final String DEFAULT_GROUP = "default";
     public static final String DEFAULT_VERSION = "unversioned";
 
-    public static final BundleCoordinate UNKNOWN_COORDINATE = new BundleCoordinate(DEFAULT_GROUP, "unknown", DEFAULT_VERSION);
+    public static final BundleCoordinates UNKNOWN_COORDINATE = new BundleCoordinates(DEFAULT_GROUP, "unknown", DEFAULT_VERSION);
 
     private final String group;
     private final String id;
     private final String version;
     private final String coordinate;
 
-    public BundleCoordinate(final String group, final String id, final String version) {
+    public BundleCoordinates(final String group, final String id, final String version) {
         this.group = isBlank(group) ? DEFAULT_GROUP : group;
         this.id = id;
         this.version = isBlank(version) ? DEFAULT_VERSION : version;
 
         if (isBlank(id)) {
-            throw new IllegalStateException("Id is required for BundleCoordinate");
+            throw new IllegalStateException("Id is required for BundleCoordinates");
         }
 
+        if(this.group.contains(":") || this.id.contains(":") || this.version.contains(":")) {
+            throw new IllegalStateException(String.format("Invalid coordinates: cannot contain : character group[%s] id[%s] version[%s]",this.group,this.id,this.version));
+        }
         this.coordinate = this.group + ":" + this.id + ":" + this.version;
     }
 
@@ -74,11 +77,11 @@ public class BundleCoordinate {
             return false;
         }
 
-        if (!(obj instanceof BundleCoordinate)) {
+        if (!(obj instanceof BundleCoordinates)) {
             return false;
         }
 
-        final BundleCoordinate other = (BundleCoordinate) obj;
+        final BundleCoordinates other = (BundleCoordinates) obj;
         return getCoordinate().equals(other.getCoordinate());
     }
 
