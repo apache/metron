@@ -16,7 +16,6 @@
  */
 package org.apache.metron.bundles;
 
-import com.google.common.annotations.VisibleForTesting;
 import java.net.URISyntaxException;
 import java.util.*;
 
