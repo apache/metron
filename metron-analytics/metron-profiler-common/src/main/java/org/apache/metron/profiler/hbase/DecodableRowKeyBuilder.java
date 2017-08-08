@@ -21,14 +21,13 @@
 package org.apache.metron.profiler.hbase;
 
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.util.hash.Hash;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.ProfilePeriod;
 
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +69,16 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
    * Defines some level of sane max field length to avoid any shenanigans with oddly encoded row keys.
    */
   private static final int MAX_FIELD_LENGTH = 1000;
+
+  /**
+   * The seed for the Murmur hash function that is used to generate the salt value.
+   *
+   * The seed can be any value, but whatever the value is, it must always be the same
+   * so that row key generation is deterministic.  Defining this value here avoids
+   * a potential future problem should the default seed change in the underlying
+   * implementation library.
+   */
+  private static final int MURMUR_HASH_SEED= 8658992;
 
   /**
    * A magic number embedded in each row key to help validate the row key and byte ordering when decoding.
@@ -180,10 +189,9 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
     if(period == null)
       throw new IllegalArgumentException("Cannot encode row key; invalid profile period.");
 
-    long periodId = period.getPeriod();
     long periodDurationMillis = period.getDurationMillis();
 
-    byte[] salt = encodeSalt(periodId, saltDivisor);
+    byte[] salt = encodeSalt(period, saltDivisor);
     byte[] profileB = Bytes.toBytes(profile);
     byte[] entityB = Bytes.toBytes(entity);
     byte[] groupB = encodeGroups(groups);
@@ -201,7 +209,7 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
             .putInt(entityB.length)
             .put(entityB)
             .put(groupB)
-            .putLong(periodId)
+            .putLong(period.getPeriod())
             .putLong(periodDurationMillis);
 
     return buffer.array();
@@ -330,53 +338,17 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
   }
 
   /**
-   * Builds the 'time' portion of the row key
-   * @param period The ProfilePeriod in which the ProfileMeasurement was taken.
-   */
-  private static byte[] encodePeriod(ProfilePeriod period) {
-    return encodePeriod(period.getPeriod());
-  }
-
-  /**
-   * Builds the 'time' portion of the row key
-   * @param period the period
-   */
-  private static byte[] encodePeriod(long period) {
-    return Bytes.toBytes(period);
-  }
-
-  /**
    * Calculates a salt value that is used as part of the row key.
    *
-   * The salt is calculated as 'md5(period) % N' where N is a configurable value that ideally
-   * is close to the number of nodes in the Hbase cluster.
+   * The salt is calculated as 'hash(period) % N' where N is a configurable value that ideally
+   * is close to the number of nodes in the HBase cluster.
    *
    * @param period The period in which a profile measurement is taken.
    */
   public static byte[] encodeSalt(ProfilePeriod period, int saltDivisor) {
-    return encodeSalt(period.getPeriod(), saltDivisor);
-  }
-
-  /**
-   * Calculates a salt value that is used as part of the row key.
-   *
-   * The salt is calculated as 'md5(period) % N' where N is a configurable value that ideally
-   * is close to the number of nodes in the Hbase cluster.
-   *
-   * @param period The period
-   * @param saltDivisor The salt divisor
-   */
-  public static byte[] encodeSalt(long period, int saltDivisor) {
-    try {
-      // an MD5 is 16 bytes aka 128 bits
-      MessageDigest digest = MessageDigest.getInstance("MD5");
-      byte[] hash = digest.digest(encodePeriod(period));
-      int salt = Bytes.toShort(hash) % saltDivisor;
-      return Bytes.toBytes(salt);
-
-    } catch(NoSuchAlgorithmException e) {
-      throw new RuntimeException(e);
-    }
+    byte[] encodedPeriod = Bytes.toBytes(period.getPeriod());
+    int salt = Hash.getInstance(Hash.MURMUR_HASH).hash(encodedPeriod, MURMUR_HASH_SEED) % saltDivisor;
+    return Bytes.toBytes(salt);
   }
 
   @Override
