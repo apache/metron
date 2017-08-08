@@ -20,12 +20,11 @@
 
 package org.apache.metron.profiler.client;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.profiler.hbase.DecodableRowKeyBuilder;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
-import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.client.stellar.FixedLookback;
 import org.apache.metron.profiler.client.stellar.GetProfile;
@@ -33,13 +32,10 @@ import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
-import org.apache.metron.test.mock.MockHTable;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -68,21 +64,9 @@ public class GetProfileTest {
 
   private HTableInterface table;
 
-  /**
-   * A TableProvider that allows us to mock HBase.
-   */
-  public static class MockTableProvider implements TableProvider, Serializable {
-    MockHTable.Provider provider = new MockHTable.Provider();
-
-    @Override
-    public HTableInterface getTable(Configuration config, String tableName) throws IOException {
-      return provider.getTable(config, tableName);
-    }
-  }
-
   @Before
   public void setup() {
-    table = MockHTable.Provider.addToCache(tableName, columnFamily);
+    table = MockHBaseTableProvider.addToCache(tableName, columnFamily);
   }
 
   /**
@@ -108,7 +92,7 @@ public class GetProfileTest {
     Map<String, Object> defaults = new HashMap<String, Object>() {{
       put(PROFILER_HBASE_TABLE.getKey(), tableName);
       put(PROFILER_COLUMN_FAMILY.getKey(), columnFamily);
-      put(PROFILER_HBASE_TABLE_PROVIDER.getKey(), MockTableProvider.class.getName());
+      put(PROFILER_HBASE_TABLE_PROVIDER.getKey(), MockHBaseTableProvider.class.getName());
       put(PROFILER_PERIOD.getKey(), Long.toString(periodDuration));
       put(PROFILER_PERIOD_UNITS.getKey(), periodUnits.toString());
       put(PROFILER_SALT_DIVISOR.getKey(), Integer.toString(saltDivisor));

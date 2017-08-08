@@ -22,7 +22,16 @@ import org.apache.hadoop.hbase.client.HTableInterface;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.util.function.Supplier;
 
 public interface TableProvider extends Serializable {
-    HTableInterface getTable(Configuration config, String tableName) throws IOException;
+  HTableInterface getTable(Configuration config, String tableName) throws IOException;
+  static TableProvider create(String impl, Supplier<TableProvider> defaultSupplier) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    if(impl == null) {
+      return defaultSupplier.get();
+    }
+    Class<? extends TableProvider> clazz = (Class<? extends TableProvider>) Class.forName(impl);
+    return clazz.getConstructor().newInstance();
+  }
 }
