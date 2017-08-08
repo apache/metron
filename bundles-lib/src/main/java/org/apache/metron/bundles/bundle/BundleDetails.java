@@ -61,7 +61,7 @@ public class BundleDetails {
         }
 
         if (this.bundleFile == null) {
-            throw new IllegalStateException("Working directory cannot be null for " + this.coordinates
+            throw new IllegalStateException("bundleFile cannot be null for " + this.coordinates
                 .getId());
         }
     }
