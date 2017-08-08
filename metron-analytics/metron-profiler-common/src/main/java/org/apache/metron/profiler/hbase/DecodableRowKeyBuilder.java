@@ -71,6 +71,11 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
   private static final int MAX_FIELD_LENGTH = 1000;
 
   /**
+   * Defines the maximum number of groups allowed.
+   */
+  private static final int MAX_NUMBER_OF_GROUPS = 10;
+
+  /**
    * The seed for the Murmur hash function that is used to generate the salt value.
    *
    * The seed can be any value, but whatever the value is, it must always be the same
@@ -78,7 +83,7 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
    * a potential future problem should the default seed change in the underlying
    * implementation library.
    */
-  private static final int MURMUR_HASH_SEED= 8658992;
+  private static final int MURMUR_HASH_SEED = 8658992;
 
   /**
    * A magic number embedded in each row key to help validate the row key and byte ordering when decoding.
@@ -183,18 +188,22 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
   public byte[] encode(String profile, String entity, List<Object> groups, ProfilePeriod period) {
 
     if(profile == null)
-      throw new IllegalArgumentException("Cannot encode row key; invalid profile name.");
+      throw new IllegalArgumentException("Unable to encode; missing profile name.");
     if(entity == null)
-      throw new IllegalArgumentException("Cannot encode row key; invalid entity name.");
+      throw new IllegalArgumentException("Unable to encode; missing entity name.");
     if(period == null)
-      throw new IllegalArgumentException("Cannot encode row key; invalid profile period.");
-
-    long periodDurationMillis = period.getDurationMillis();
+      throw new IllegalArgumentException("Unable to encode; missing profile period.");
 
     byte[] salt = encodeSalt(period, saltDivisor);
+
     byte[] profileB = Bytes.toBytes(profile);
+    validateField(profileB, "profile");
+
     byte[] entityB = Bytes.toBytes(entity);
+    validateField(entityB, "entity");
+
     byte[] groupB = encodeGroups(groups);
+    validateField(groupB, "group");
 
     int capacity = Short.BYTES + 1 + salt.length + profileB.length + entityB.length + groupB.length + (Integer.BYTES * 3) + (Long.BYTES * 2);
     ByteBuffer buffer = ByteBuffer
@@ -213,6 +222,26 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
             .putLong(periodDurationMillis);
 
     return buffer.array();
+  }
+
+  /**
+   * Validates a field.  A runtime exception is thrown if a field is not valid.
+   * @param field The field value.
+   * @param fieldName The name of the field.
+   */
+  private void validateField(byte[] field, String fieldName) {
+    validateLength(field.length, fieldName);
+  }
+
+  /**
+   * Validates the length of a field.  A runtime exception is thrown if a field is not valid.
+   * @param fieldLength The length of the field.
+   * @param fieldName The name of the field.
+   */
+  private void validateLength(int fieldLength, String fieldName) {
+    if(fieldLength <= 0 || fieldLength > MAX_FIELD_LENGTH) {
+      throw new IllegalArgumentException(String.format("'%s' too long; max '%d', got '%d'", fieldName, MAX_FIELD_LENGTH, fieldLength));
+    }
   }
 
   /**
@@ -243,9 +272,7 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
 
       // validate the salt length
       int saltLength = buffer.getInt();
-      if (saltLength <= 0 || saltLength > MAX_FIELD_LENGTH) {
-        throw new IllegalArgumentException(String.format("Invalid salt length; max allowed '%d', got '%d'", MAX_FIELD_LENGTH, saltLength));
-      }
+      validateLength(saltLength, "salt");
 
       // decode the salt
       byte[] salt = new byte[saltLength];
@@ -253,9 +280,7 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
 
       // validate the profile length
       int profileLength = buffer.getInt();
-      if (profileLength <= 0 || profileLength > MAX_FIELD_LENGTH) {
-        throw new IllegalArgumentException(String.format("Invalid profile length; max allowed '%d', got '%d'", MAX_FIELD_LENGTH, profileLength));
-      }
+      validateLength(profileLength, "profile");
 
       // decode the profile name
       byte[] profileBytes = new byte[profileLength];
@@ -264,25 +289,26 @@ public class DecodableRowKeyBuilder implements RowKeyBuilder {
 
       // validate the entity length
       int entityLength = buffer.getInt();
-      if (entityLength <= 0 || entityLength > MAX_FIELD_LENGTH) {
-        throw new IllegalArgumentException(String.format("Invalid entity length; max allowed '%d', got '%d'", MAX_FIELD_LENGTH, entityLength));
-      }
+      validateLength(entityLength, "entity");
 
       // decode the entity
       byte[] entityBytes = new byte[entityLength];
       buffer.get(entityBytes);
       String entity = new String(entityBytes);
 
+      // validate the number of groups
+      int numberOfGroups = buffer.getInt();
+      if(numberOfGroups > MAX_NUMBER_OF_GROUPS) {
+        throw new IllegalArgumentException(String.format("too many groups; max '%d', got '%d'", MAX_NUMBER_OF_GROUPS, numberOfGroups));
+      }
+
       // decode the groups
       List<Object> groups = new ArrayList<>();
-      int numberOfGroups = buffer.getInt();
       for (int i = 0; i < numberOfGroups; i++) {
 
         // validate the group length
         int groupLength = buffer.getInt();
-        if (groupLength <= 0 || groupLength > MAX_FIELD_LENGTH) {
-          throw new IllegalArgumentException(String.format("Invalid group length; max allowed '%d', got '%d'", MAX_FIELD_LENGTH, groupLength));
-        }
+        validateLength(groupLength, "group-" + i);
 
         // decode the group
         byte[] groupBytes = new byte[groupLength];
