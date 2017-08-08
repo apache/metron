@@ -1,0 +1,82 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+version: '2'
+services:
+  kafkazk:
+    build:
+      context: ./kafkazk
+      args:
+        DOCKER_HOST: $DOCKER_HOST
+        BROKER_IP_ADDR: $BROKER_IP_ADDR
+        METRON_VERSION: $METRON_VERSION
+    ports:
+      - "9092:9092"
+      - "2181:2181"
+  hbase:
+    build:
+      context: ./hbase
+      args:
+        METRON_VERSION: $METRON_VERSION
+    ports:
+      - "16010:16010"
+    volumes:
+      - "/opt/hbase/conf"
+    depends_on:
+      - kafkazk
+  hadoop:
+    build:
+      context: ./hadoop
+    ports:
+      - "50070:50070"
+    volumes:
+      - "/opt/hadoop/etc/hadoop"
+    command: tail -f /dev/null
+  storm:
+    build:
+      context: ./storm
+      args:
+        METRON_VERSION: $METRON_VERSION
+    ports:
+      - "8000:8000"
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      ZOOKEEPER_ADDR: kafkazk
+      CONFIG_TOPOLOGY_CLASSPATH: "/opt/hbase/conf:/opt/hadoop/etc/hadoop"
+      CONFIG_TOPOLOGY_CLASSPATH: "/opt/hbase/conf:/opt/hadoop/etc/hadoop"
+    volumes_from:
+      - hbase
+      - hadoop
+    depends_on:
+      - kafkazk
+      - hbase
+      - elasticsearch
+      - hadoop
+    command: --daemon nimbus supervisor ui logviewer
+  elasticsearch:
+    build:
+      context: ./elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    command: tail -f /dev/null
+  kibana:
+    build: ./kibana
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch

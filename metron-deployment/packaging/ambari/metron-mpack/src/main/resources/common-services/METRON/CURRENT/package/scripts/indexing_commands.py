@@ -95,37 +95,48 @@ class IndexingCommands:
                                    )
         Logger.info('Done creating HDFS indexing directory')
 
-    def start_indexing_topology(self):
-        Logger.info("Starting Metron indexing topology: {0}".format(self.__indexing_topology))
-        start_cmd_template = """{0}/bin/start_elasticsearch_topology.sh \
+    def start_indexing_topology(self, env):
+        Logger.info('Starting ' + self.__indexing_topology)
+
+        if not self.is_topology_active(env):
+            if self.__params.security_enabled:
+                metron_security.kinit(self.__params.kinit_path_local,
+                                      self.__params.metron_keytab_path,
+                                      self.__params.metron_principal_name,
+                                      execute_user=self.__params.metron_user)
+            start_cmd_template = """{0}/bin/start_elasticsearch_topology.sh \
                                     -s {1} \
                                     -z {2}"""
-        Logger.info('Starting ' + self.__indexing_topology)
-        if self.__params.security_enabled:
-            metron_security.kinit(self.__params.kinit_path_local,
-                                  self.__params.metron_keytab_path,
-                                  self.__params.metron_principal_name,
-                                  execute_user=self.__params.metron_user)
-        Execute(start_cmd_template.format(self.__params.metron_home, self.__indexing_topology, self.__params.zookeeper_quorum),
-                user=self.__params.metron_user)
+            Execute(start_cmd_template.format(self.__params.metron_home,
+                                              self.__indexing_topology,
+                                              self.__params.zookeeper_quorum),
+                    user=self.__params.metron_user)
+
+        else:
+            Logger.info('Indexing topology already running')
 
         Logger.info('Finished starting indexing topology')
 
-    def stop_indexing_topology(self):
+    def stop_indexing_topology(self, env):
         Logger.info('Stopping ' + self.__indexing_topology)
-        stop_cmd = 'storm kill ' + self.__indexing_topology
-        if self.__params.security_enabled:
-            metron_security.kinit(self.__params.kinit_path_local,
-                                  self.__params.metron_keytab_path,
-                                  self.__params.metron_principal_name,
-                                  execute_user=self.__params.metron_user)
-        Execute(stop_cmd,
-                user=self.__params.metron_user)
+
+        if self.is_topology_active(env):
+            if self.__params.security_enabled:
+                metron_security.kinit(self.__params.kinit_path_local,
+                                      self.__params.metron_keytab_path,
+                                      self.__params.metron_principal_name,
+                                      execute_user=self.__params.metron_user)
+            stop_cmd = 'storm kill ' + self.__indexing_topology
+            Execute(stop_cmd, user=self.__params.metron_user)
+
+        else:
+            Logger.info("Indexing topology already stopped")
+
         Logger.info('Done stopping indexing topologies')
 
     def restart_indexing_topology(self, env):
         Logger.info('Restarting the indexing topologies')
-        self.stop_indexing_topology()
+        self.stop_indexing_topology(env)
 
         # Wait for old topology to be cleaned up by Storm, before starting again.
         retries = 0
@@ -138,7 +149,7 @@ class IndexingCommands:
         if not topology_active:
             Logger.info('Waiting for storm kill to complete')
             time.sleep(30)
-            self.start_indexing_topology()
+            self.start_indexing_topology(env)
             Logger.info('Done restarting the indexing topologies')
         else:
             Logger.warning('Retries exhausted. Existing topology not cleaned up.  Aborting topology start.')

@@ -20,7 +20,7 @@
   <fileSets>
     <fileSet>
       <directory>${project.basedir}/src/main/config</directory>
-      <outputDirectory>/config</outputDirectory>
+      <outputDirectory>config</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <excludes>
         <exclude>**/*.formatted</exclude>
@@ -32,7 +32,7 @@
     </fileSet>
     <fileSet>
       <directory>${project.basedir}/src/main/scripts</directory>
-      <outputDirectory>/bin</outputDirectory>
+      <outputDirectory>bin</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <excludes>
         <exclude>**/*.formatted</exclude>
@@ -44,7 +44,7 @@
     </fileSet>
     <fileSet>
       <directory>${project.basedir}/src/main/flux</directory>
-      <outputDirectory>/flux</outputDirectory>
+      <outputDirectory>flux</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <excludes>
         <exclude>**/*.formatted</exclude>

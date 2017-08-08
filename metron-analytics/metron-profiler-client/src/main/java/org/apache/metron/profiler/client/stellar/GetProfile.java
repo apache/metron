@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -108,7 +109,7 @@ public class GetProfile implements StellarFunction {
    */
   private Map<String, Object> cachedConfigMap = new HashMap<String, Object>(6);
 
-  private static final Logger LOG = LoggerFactory.getLogger(GetProfile.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * Initialization.  No longer need to do anything in initialization,

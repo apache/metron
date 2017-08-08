@@ -17,24 +17,28 @@
  */
 package org.apache.metron.parsers.integration.components;
 
+import static org.apache.metron.integration.components.FluxTopologyComponent.assassinateSlots;
+import static org.apache.metron.integration.components.FluxTopologyComponent.cleanupWorkerDir;
+
+import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import org.apache.metron.integration.InMemoryComponent;
+import org.apache.metron.integration.UnableToStartException;
+import org.apache.metron.integration.components.ZKServerComponent;
+import org.apache.metron.parsers.topology.ParserTopologyBuilder;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.generated.KillOptions;
 import org.apache.storm.topology.TopologyBuilder;
-import org.apache.metron.integration.InMemoryComponent;
-import org.apache.metron.integration.UnableToStartException;
-import org.apache.metron.parsers.topology.ParserTopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-
-import static org.apache.metron.integration.components.FluxTopologyComponent.assassinateSlots;
-import static org.apache.metron.integration.components.FluxTopologyComponent.cleanupWorkerDir;
-
 public class ParserTopologyComponent implements InMemoryComponent {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(ParserTopologyComponent.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private Properties topologyProperties;
   private String brokerUrl;
   private String sensorType;
@@ -83,7 +87,7 @@ public class ParserTopologyComponent implements InMemoryComponent {
   @Override
   public void start() throws UnableToStartException {
     try {
-      TopologyBuilder topologyBuilder = ParserTopologyBuilder.build(topologyProperties.getProperty("kafka.zk")
+      TopologyBuilder topologyBuilder = ParserTopologyBuilder.build(topologyProperties.getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY)
                                                                    , Optional.ofNullable(brokerUrl)
                                                                    , sensorType
                                                                    , 1

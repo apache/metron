@@ -24,11 +24,152 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 
 public class FunctionalFunctionsTest {
+
+  @Test
+  public void testZipLongest_boundary() {
+    for (String expr : ImmutableList.of( "ZIP_LONGEST()"
+            , "ZIP_LONGEST( null, null )"
+            , "ZIP_LONGEST( [], null )"
+            , "ZIP_LONGEST( [], [] )"
+            , "ZIP_LONGEST( null, [] )"
+    )
+            )
+    {
+      List<List<Object>> o = (List<List<Object>>) run(expr, new HashMap<>());
+      Assert.assertEquals(0, o.size());
+    }
+  }
+
+  @Test
+  public void testZip_longest() {
+    Map<String, Object> variables = ImmutableMap.of(
+            "list1" , ImmutableList.of(1, 2, 3)
+            ,"list2", ImmutableList.of(4, 5, 6, 7)
+    );
+    for (String expr : ImmutableList.of( "ZIP_LONGEST(list1)"
+            , "ZIP_LONGEST( [1, 2, 3])"
+    )
+            )
+    {
+      List<List<Object>> o = (List<List<Object>>) run(expr, variables);
+      Assert.assertEquals(3, o.size());
+      for (int i = 0; i < 3; ++i) {
+        List l = o.get(i);
+        Assert.assertEquals(1, l.size());
+        Assert.assertEquals(i+1, l.get(0));
+      }
+
+    }
+
+    for (String expr : ImmutableList.of( "ZIP_LONGEST(list1, list2)"
+            , "ZIP_LONGEST( [1, 2, 3], [4, 5, 6, 7] )"
+    )
+            )
+    {
+      List<List<Object>> o = (List<List<Object>>) run(expr, variables);
+      Assert.assertEquals(4, o.size());
+      for (int i = 0; i < 3; ++i) {
+        List l = o.get(i);
+        Assert.assertEquals(2, l.size());
+        Assert.assertEquals(i+1, l.get(0));
+        Assert.assertEquals(i+4, l.get(1));
+      }
+      {
+        int i = 3;
+        List l = o.get(i);
+        Assert.assertEquals(2, l.size());
+        Assert.assertNull(l.get(0));
+        Assert.assertEquals(i+4, l.get(1));
+      }
+    }
+
+
+    for (String expr : ImmutableList.of(
+             "REDUCE(ZIP_LONGEST(list2, list1), (s, x) -> s + GET_FIRST(x) * GET_LAST(x), 0)"
+            , "REDUCE(ZIP_LONGEST( [1, 2, 3], [4, 5, 6, 7] ), (s, x) -> s + GET_FIRST(x) * GET_LAST(x), 0)"
+            , "REDUCE(ZIP_LONGEST(list1, list2), (s, x) -> s + GET_FIRST(x) * GET_LAST(x), 0)" //this works because stellar treats nulls as 0 in arithmetic operations.
+            , "REDUCE(ZIP_LONGEST(list1, list2), (s, x) -> s + (GET_FIRST(x) == null?0:GET_FIRST(x)) * (GET_LAST(x) == null?0:GET_LAST(x)), 0)" //with proper guarding NOT assuming stellar peculiarities
+    )
+            )
+    {
+      int o = (int) run(expr, variables);
+      Assert.assertEquals(1*4 + 2*5 + 3*6, o, 1e-7);
+    }
+
+  }
+
+  @Test
+  public void testZip_boundary() {
+    for (String expr : ImmutableList.of( "ZIP()"
+            , "ZIP( null, null )"
+            , "ZIP( [], null )"
+            , "ZIP( [], [] )"
+            , "ZIP( null, [] )"
+    )
+            )
+    {
+      List<List<Object>> o = (List<List<Object>>) run(expr, new HashMap<>());
+      Assert.assertEquals(0, o.size());
+    }
+  }
+
+  @Test
+  public void testZip() {
+    Map<String, Object> variables = ImmutableMap.of(
+            "list1" , ImmutableList.of(1, 2, 3)
+            ,"list2", ImmutableList.of(4, 5, 6)
+    );
+
+    for (String expr : ImmutableList.of( "ZIP(list1)"
+            , "ZIP( [1, 2, 3])"
+    )
+            )
+    {
+      List<List<Object>> o = (List<List<Object>>) run(expr, variables);
+      Assert.assertEquals(3, o.size());
+      for (int i = 0; i < 3; ++i) {
+        List l = o.get(i);
+        Assert.assertEquals(1, l.size());
+        Assert.assertEquals(i+1, l.get(0));
+      }
+
+    }
+    for (String expr : ImmutableList.of( "ZIP(list1, list2)"
+            , "ZIP( [1, 2, 3], [4, 5, 6] )"
+            , "ZIP( [1, 2, 3], [4, 5, 6, 7] )"
+    )
+            )
+    {
+      List<List<Object>> o = (List<List<Object>>) run(expr, variables);
+      Assert.assertEquals(3, o.size());
+      for (int i = 0; i < 3; ++i) {
+        List l = o.get(i);
+        Assert.assertEquals(2, l.size());
+        Assert.assertEquals(i+1, l.get(0));
+        Assert.assertEquals(i+4, l.get(1));
+      }
+    }
+
+    for (String expr : ImmutableList.of(
+            "REDUCE(ZIP(list1, list2), (s, x) -> s + GET_FIRST(x) * GET_LAST(x), 0)"
+            , "REDUCE(ZIP( [1, 2, 3], [4, 5, 6] ), (s, x) -> s + GET_FIRST(x) * GET_LAST(x), 0)"
+            , "REDUCE(ZIP( [1, 2, 3], [4, 5, 6, 7] ), (s, x) -> s + GET_FIRST(x) * GET_LAST(x), 0)"
+    )
+            )
+    {
+      int o = (int) run(expr, variables);
+      Assert.assertEquals(1*4 + 2*5 + 3*6, o, 1e-7);
+    }
+
+  }
 
   @Test
   public void testRecursive() {
@@ -54,7 +195,12 @@ public class FunctionalFunctionsTest {
     )
             )
     {
-      Object o = run(expr, ImmutableMap.of("foo", 2, "bar", 3));
+      Map<String,Object> variableMap = new HashMap<String,Object>(){{
+        put("foo",2);
+        put("bar", 3);
+        put("baz",null);
+      }};
+      Object o = run(expr,variableMap);
       Assert.assertTrue(o instanceof List);
       List<String> result = (List<String>) o;
       Assert.assertEquals(3, result.size());
@@ -146,7 +292,12 @@ public class FunctionalFunctionsTest {
                                        )
         )
     {
-      Object o = run(expr, ImmutableMap.of("foo", "foo", "bar", "bar"));
+      Map<String,Object> variableMap = new HashMap<String,Object>(){{
+        put("foo","foo");
+        put("bar","bar");
+        put("baz",null);
+      }};
+      Object o = run(expr,variableMap);
       Assert.assertTrue(o instanceof List);
       List<String> result = (List<String>) o;
       Assert.assertEquals(1, result.size());
@@ -162,7 +313,12 @@ public class FunctionalFunctionsTest {
                                        )
         )
     {
-      Object o = run(expr, ImmutableMap.of("foo", "foo", "bar", "bar"));
+      Map<String,Object> variableMap = new HashMap<String,Object>(){{
+        put("foo","foo");
+        put("bar","bar");
+        put("baz",null);
+      }};
+      Object o = run(expr,variableMap);
       Assert.assertTrue(o instanceof List);
       List<String> result = (List<String>) o;
       Assert.assertEquals(1, result.size());
@@ -214,7 +370,12 @@ public class FunctionalFunctionsTest {
                                        )
         )
     {
-      Object o = run(expr, ImmutableMap.of("foo", 1, "bar", 2));
+      Map<String,Object> variableMap = new HashMap<String,Object>(){{
+        put("foo",1);
+        put("bar", 2);
+        put("baz",null);
+      }};
+      Object o = run(expr,variableMap);
       Assert.assertTrue(o instanceof Number);
       Number result = (Number) o;
       Assert.assertEquals(6, result.intValue());
@@ -266,7 +427,7 @@ public class FunctionalFunctionsTest {
                                        )
         )
     {
-      Object o = run(expr, ImmutableMap.of("foo", 1, "bar", 2));
+      Object o = run(expr, ImmutableMap.of("foo", 1, "bar", 2,"x",0,"y",0));
       Assert.assertTrue(o instanceof List);
       List<String> result = (List<String>) o;
       Assert.assertEquals(3, result.size());
