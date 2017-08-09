@@ -60,7 +60,7 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
     }
 
     public boolean existsIn(Map<String, Object> config) {
-      return config.containsKey(key);
+      return config == null?false:config.containsKey(key);
     }
   }
 
