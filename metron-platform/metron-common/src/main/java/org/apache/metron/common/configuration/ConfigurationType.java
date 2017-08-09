@@ -69,7 +69,7 @@ public enum ConfigurationType implements Function<String, Object> {
       throw new RuntimeException("Unable to load " + s, e);
     }
   }),
-  PARSER_EXTENSION("parser_extensions","extensions/parser",Constants.ZOOKEEPER_EXTENSIONS_ROOT + "/parsers", s-> {
+  PARSER_EXTENSION("parser_extensions","extensions/parsers",Constants.ZOOKEEPER_EXTENSIONS_ROOT + "/parsers", s-> {
     try{
       return JSONUtils.INSTANCE.load(s, ParserExtensionConfig.class);
     }catch(IOException e){

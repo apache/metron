@@ -71,6 +71,7 @@ public class ConfigurationFunctions {
     }
     CuratorFramework client = (CuratorFramework) clientOpt.get();
     TreeCache cache = new TreeCache(client, Constants.ZOOKEEPER_TOPOLOGY_ROOT);
+    TreeCache exCache = new TreeCache(client, Constants.ZOOKEEPER_EXTENSIONS_ROOT);
     TreeCacheListener listener = new TreeCacheListener() {
       @Override
       public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
@@ -91,6 +92,9 @@ public class ConfigurationFunctions {
           } else if (path.startsWith(ConfigurationType.INDEXING.getZookeeperRoot())) {
             Map<String, String> sensorMap = (Map<String, String>)configMap.get(ConfigurationType.INDEXING);
             sensorMap.put(sensor, new String(data));
+          } else if (path.startsWith(ConfigurationType.PARSER_EXTENSION.getZookeeperRoot())) {
+            Map<String,String> parserExtensionMap = (Map<String,String>)configMap.get(ConfigurationType.PARSER_EXTENSION);
+            parserExtensionMap.put(sensor,new String(data));
           }
         }
         else if(event.getType().equals(TreeCacheEvent.Type.NODE_REMOVED)) {
@@ -99,6 +103,9 @@ public class ConfigurationFunctions {
           if (path.startsWith(ConfigurationType.PARSER.getZookeeperRoot())) {
             Map<String, String> sensorMap = (Map<String, String>)configMap.get(ConfigurationType.PARSER);
             sensorMap.remove(sensor);
+          }else if (path.startsWith(ConfigurationType.PARSER_EXTENSION.getZookeeperRoot())) {
+            Map<String,String> parserExtensionMap = (Map<String,String>)configMap.get(ConfigurationType.PARSER_EXTENSION);
+            parserExtensionMap.remove(sensor);
           }
           else if (path.startsWith(ConfigurationType.ENRICHMENT.getZookeeperRoot())) {
             Map<String, String> sensorMap = (Map<String, String>)configMap.get(ConfigurationType.ENRICHMENT);
@@ -117,8 +124,32 @@ public class ConfigurationFunctions {
         }
       }
     };
+    TreeCacheListener exListener = new TreeCacheListener() {
+      @Override
+      public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+        if (event.getType().equals(TreeCacheEvent.Type.NODE_ADDED) || event.getType().equals(TreeCacheEvent.Type.NODE_UPDATED)) {
+          String path = event.getData().getPath();
+          byte[] data = event.getData().getData();
+          String sensor = Iterables.getLast(Splitter.on("/").split(path), null);
+           if (path.startsWith(ConfigurationType.PARSER_EXTENSION.getZookeeperRoot())) {
+            Map<String,String> parserExtensionMap = (Map<String,String>)configMap.get(ConfigurationType.PARSER_EXTENSION);
+            parserExtensionMap.put(sensor,new String(data));
+          }
+        }
+        else if(event.getType().equals(TreeCacheEvent.Type.NODE_REMOVED)) {
+          String path = event.getData().getPath();
+          String sensor = Iterables.getLast(Splitter.on("/").split(path), null);
+          if (path.startsWith(ConfigurationType.PARSER_EXTENSION.getZookeeperRoot())) {
+            Map<String,String> parserExtensionMap = (Map<String,String>)configMap.get(ConfigurationType.PARSER_EXTENSION);
+            parserExtensionMap.remove(sensor);
+          }
+        }
+      }
+    };
     cache.getListenable().addListener(listener);
     cache.start();
+    exCache.getListenable().addListener(exListener);
+    exCache.start();
     for(ConfigurationType ct : ConfigurationType.values()) {
       switch(ct) {
         case GLOBAL:
@@ -146,17 +177,28 @@ public class ConfigurationFunctions {
             }
           }
           break;
+        case PARSER_EXTENSION:
+        {
+          List<String> extensionIds = client.getChildren().forPath(ct.getZookeeperRoot());
+          Map<String,String> parserExtensionMap = (Map<String,String>)configMap.get(ct);
+          for (String extensionId : extensionIds){
+            parserExtensionMap.put(extensionId, new String(ConfigurationsUtils.readFromZookeeper(ct.getZookeeperRoot() + "/" + extensionId,client)));
+          }
+        }
+        break;
       }
     }
     context.addCapability("treeCache", () -> cache);
+    context.addCapability("exTreeCache",() -> exCache);
   }
 
   @Stellar(
            namespace = "CONFIG"
           ,name = "GET"
           ,description = "Retrieve a Metron configuration from zookeeper."
-          ,params = {"type - One of ENRICHMENT, INDEXING, PARSER, GLOBAL, PROFILER"
+          ,params = {"type - One of ENRICHMENT, INDEXING, PARSER,PARSER_EXTENSION, GLOBAL, PROFILER"
                     , "sensor - Sensor to retrieve (required for enrichment and parser, not used for profiler and global)"
+                    , "extensionID - Parser Extension to retrieve (required for PARSER_EXTENSION, not used for profiler,global,indexing,enrichment,parser)"
                     , "emptyIfNotPresent - If true, then return an empty, minimally viable config"
                     }
           ,returns = "The String representation of the config in zookeeper"
@@ -190,6 +232,14 @@ public class ConfigurationFunctions {
             }
           }
           return ret;
+        }
+        case PARSER_EXTENSION: {
+          String extensionID = (String) args.get(1);
+          if(args.size() > 2) {
+            emptyIfNotPresent = ConversionUtils.convert(args.get(2), Boolean.class);
+          }
+          Map<String,String> parserExtensionMap = (Map<String,String>) configMap.get(type);
+          return parserExtensionMap.get(extensionID);
         }
         case INDEXING: {
           String sensor = (String) args.get(1);
