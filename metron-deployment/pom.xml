@@ -30,6 +30,9 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <rpm.docker.tag>rpm-docker</rpm.docker.tag>
     </properties>
+    <modules>
+        <module>packaging/archive/metron-stellar-shell</module>
+    </modules>
     <profiles>
         <profile>
             <id>build-rpms</id>
