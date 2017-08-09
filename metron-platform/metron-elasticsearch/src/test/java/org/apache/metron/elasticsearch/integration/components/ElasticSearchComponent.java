@@ -17,13 +17,18 @@
  */
 package org.apache.metron.elasticsearch.integration.components;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.io.FileUtils;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.elasticsearch.ElasticsearchTimeoutException;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthAction;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsRequest;
@@ -39,6 +44,7 @@ import org.elasticsearch.search.SearchHit;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -90,6 +96,36 @@ public class ElasticSearchComponent implements InMemoryComponent {
         }
         dir.mkdirs();
     }
+
+    public BulkResponse add(String indexName, String sensorType, String... docs) throws IOException {
+        List<String> d = new ArrayList<>();
+        Collections.addAll(d, docs);
+        return add(indexName, sensorType, d);
+    }
+
+    public BulkResponse add(String indexName, String sensorType, Iterable<String> docs) throws IOException {
+        BulkRequestBuilder bulkRequest = getClient().prepareBulk();
+        for(String doc : docs) {
+            IndexRequestBuilder indexRequestBuilder = getClient().prepareIndex(indexName,
+                    sensorType + "_doc");
+
+            indexRequestBuilder = indexRequestBuilder.setSource(doc);
+            Map<String, Object> esDoc = JSONUtils.INSTANCE.load(doc, new TypeReference<Map<String, Object>>() {
+            });
+            Object ts = esDoc.get("timestamp");
+            if(ts != null) {
+                indexRequestBuilder = indexRequestBuilder.setTimestamp(ts.toString());
+            }
+            bulkRequest.add(indexRequestBuilder);
+        }
+
+        BulkResponse response = bulkRequest.execute().actionGet();
+        if(response.hasFailures()) {
+            throw new IOException(response.buildFailureMessage());
+        }
+        return response;
+    }
+
     @Override
     public void start() throws UnableToStartException {
         File logDir= new File(indexDir, "/logs");

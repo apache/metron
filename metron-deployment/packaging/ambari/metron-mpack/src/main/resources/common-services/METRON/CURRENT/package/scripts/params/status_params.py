@@ -49,6 +49,8 @@ enrichment_table = 'enrichment'
 enrichment_cf = 't'
 threatintel_table = 'threatintel'
 threatintel_cf = 't'
+update_table = 'metron_update'
+update_cf = 't'
 
 # Indexing
 metron_indexing_topology = 'indexing'
@@ -56,6 +58,14 @@ indexing_input_topic = config['configurations']['metron-indexing-env']['indexing
 indexing_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_configured'
 indexing_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_acl_configured'
 indexing_hdfs_perm_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_hdfs_perm_configured'
+indexing_hbase_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_hbase_configured'
+indexing_hbase_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_hbase_acl_configured'
+
+# REST
+metron_rest_port = config['configurations']['metron-rest-env']['metron_rest_port']
+
+# UI
+metron_management_ui_port = config['configurations']['metron-management-ui-env']['metron_management_ui_port']
 
 # Storm
 storm_rest_addr = config['configurations']['metron-env']['storm_rest_addr']

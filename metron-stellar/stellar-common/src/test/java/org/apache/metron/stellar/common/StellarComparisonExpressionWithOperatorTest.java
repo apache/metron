@@ -19,6 +19,7 @@
 package org.apache.metron.stellar.common;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Test;
 
@@ -49,8 +50,21 @@ public class StellarComparisonExpressionWithOperatorTest {
     assertEquals(1L < 3.0f, run("1L < 3.0f", ImmutableMap.of()));
     assertEquals(1 < 3.0f, run("1 < 3.0f", ImmutableMap.of()));
     assertEquals(1.0 < 3.0f, run("1.0 < 3.0f", ImmutableMap.of()));
-    assertEquals(false, run("foo < 3.0f", ImmutableMap.of()));
-    assertEquals(false, run("foo < foo", ImmutableMap.of()));
+    boolean thrown = false;
+    try {
+      run("foo < 3.0f", ImmutableMap.of());
+    }catch(ParseException pe){
+      thrown = true;
+    }
+    assertTrue(thrown);
+    thrown = false;
+    try {
+      run("foo < foo", ImmutableMap.of());
+    }catch(ParseException pe){
+      thrown = true;
+    }
+    assertTrue(thrown);
+
     assertEquals(1L < 3.0f ? true : false, run("if 1L < 3.0f then true else false", ImmutableMap.of()));
   }
 
@@ -72,43 +86,47 @@ public class StellarComparisonExpressionWithOperatorTest {
       put("foo.bar", "casey");
     }};
 
-    assertTrue(runPredicate("'casey' == foo.bar", variableMap::get));
-    assertTrue(runPredicate("'casey' == foo", variableMap::get));
-    assertFalse(runPredicate("'casey' != foo", variableMap::get));
-    assertTrue(runPredicate("'stella' == 'stella'", variableMap::get));
-    assertFalse(runPredicate("'stella' == foo", variableMap::get));
-    assertTrue(runPredicate("foo== foo", variableMap::get));
-    assertTrue(runPredicate("empty== ''", variableMap::get));
-    assertTrue(runPredicate("spaced == 'metron is great'", variableMap::get));
-    assertTrue(runPredicate(null, variableMap::get));
-    assertTrue(runPredicate("", variableMap::get));
-    assertTrue(runPredicate(" ", variableMap::get));
+    assertTrue(runPredicate("'casey' == foo.bar", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("'casey' == foo", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("'casey' != foo",new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("'stella' == 'stella'", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("'stella' == foo", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("foo== foo", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("empty== ''", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("spaced == 'metron is great'", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate(null, new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate(" ",(new DefaultVariableResolver(variableMap::get,variableMap::containsKey))));
   }
 
   @Test
   public void compareNumberAndStringWithSameValueShouldBeFalse() throws Exception {
-    assertFalse(runPredicate("1 == '1'", new HashMap<>()::get));
-    assertFalse(runPredicate("'1' == 1", new HashMap<>()::get));
+    Map<String,String> variableMap = new HashMap<>();
+    assertFalse(runPredicate("1 == '1'", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("'1' == 1", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
   }
 
   @Test
   public void comparingNullShouldNotCauseNullPointer() throws Exception {
-    assertFalse(runPredicate("null == '1'", new HashMap<>()::get));
-    assertFalse(runPredicate("\"1\" == null", new HashMap<>()::get));
-    assertTrue(runPredicate("null == null", new HashMap<>()::get));
+    Map<String,String> variableMap = new HashMap<>();
+    assertFalse(runPredicate("null == '1'", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("\"1\" == null", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("null == null", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
   }
 
   @Test
   public void makeSureSingleQuotesAndDoubleQuotesAreEqual() throws Exception {
-    assertTrue(runPredicate("\"1\" == '1'", new HashMap<>()::get));
-    assertTrue(runPredicate("'1' == \"1\"", new HashMap<>()::get));
-    assertTrue(runPredicate("'1' == \"1\"", new HashMap<>()::get));
+    Map<String,String> variableMap = new HashMap<>();
+    assertTrue(runPredicate("\"1\" == '1'", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("'1' == \"1\"", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("'1' == \"1\"", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
   }
 
   @Test
   public void makeSureSingleQuoteStringsAreEvaluatedAsStrings() throws Exception {
-    assertFalse(runPredicate("55 == '7'", new HashMap<>()::get));
-    assertFalse(runPredicate("97 == 'a'", new HashMap<>()::get));
+    Map<String,String> variableMap = new HashMap<>();
+    assertFalse(runPredicate("55 == '7'", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("97 == 'a'", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
   }
 
   @Test
@@ -124,16 +142,16 @@ public class StellarComparisonExpressionWithOperatorTest {
       put("empty", "");
       put("spaced", "metron is great");
     }};
-    assertTrue(runPredicate("num == 7", variableMap::get));
-    assertTrue(runPredicate("num < num2", variableMap::get));
-    assertTrue(runPredicate("num < TO_DOUBLE(num2)", variableMap::get));
-    assertTrue(runPredicate("num < TO_DOUBLE(num4)", variableMap::get));
-    assertTrue(runPredicate("num < 100", variableMap::get));
-    assertTrue(runPredicate("num == num3", variableMap::get));
-    assertFalse(runPredicate("num == num2", variableMap::get));
-    assertTrue(runPredicate("num == num2 || true", variableMap::get));
-    assertFalse(runPredicate("num > num2", variableMap::get));
-    assertTrue(runPredicate("num == 7 && num > 2", variableMap::get));
+    assertTrue(runPredicate("num == 7", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("num < num2", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("num < TO_DOUBLE(num2)", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("num < TO_DOUBLE(num4)", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("num < 100", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("num == num3", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("num == num2", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("num == num2 || true", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("num > num2", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("num == 7 && num > 2", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
   }
 
   @Test
@@ -143,14 +161,14 @@ public class StellarComparisonExpressionWithOperatorTest {
     }};
 
     Arrays.asList("!=", "==").forEach(op -> {
-      assertEquals("==".equals(op), runPredicate("num " + op + " 0", variableMap::get));
-      assertEquals("==".equals(op), runPredicate("0 " + op + " -0", variableMap::get));
-      assertEquals("==".equals(op), runPredicate("0 " + op + " -0d", variableMap::get));
-      assertEquals("==".equals(op), runPredicate("-0 " + op + " 0", variableMap::get));
-      assertEquals("==".equals(op), runPredicate("-0F " + op + " 0D", variableMap::get));
-      assertEquals("==".equals(op), runPredicate("-0.F " + op + " 0", variableMap::get));
-      assertEquals("==".equals(op), runPredicate("-0.F " + op + " 0F", variableMap::get));
-      assertEquals("==".equals(op), runPredicate("-0.D " + op + " 0D", variableMap::get));
+      assertEquals("==".equals(op), runPredicate("num " + op + " 0", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("==".equals(op), runPredicate("0 " + op + " -0", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("==".equals(op), runPredicate("0 " + op + " -0d", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("==".equals(op), runPredicate("-0 " + op + " 0", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("==".equals(op), runPredicate("-0F " + op + " 0D", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("==".equals(op), runPredicate("-0.F " + op + " 0", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("==".equals(op), runPredicate("-0.F " + op + " 0F", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("==".equals(op), runPredicate("-0.D " + op + " 0D", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
     });
   }
 
@@ -158,20 +176,20 @@ public class StellarComparisonExpressionWithOperatorTest {
   public void naNIsNotEqualToNaN() throws Exception {
     final Map<String, Object> variableMap = new HashMap<>();
     Arrays.asList("!=", "==").forEach(op -> {
-      assertEquals("!=".equals(op), runPredicate("(0f/0f) " + op + " (0f/0f)", variableMap::get));
-      assertEquals("!=".equals(op), runPredicate("(-0f/0f) " + op + " (0f/0f)", variableMap::get));
-      assertEquals("!=".equals(op), runPredicate("(-0f/-0f) " + op + " (0f/0f)", variableMap::get));
-      assertEquals("!=".equals(op), runPredicate("(-0f/-0f) " + op + " (-0f/0f)", variableMap::get));
-      assertEquals("!=".equals(op), runPredicate("(-0f/-0f) " + op + " (-0f/-0f)", variableMap::get));
-      assertEquals("!=".equals(op), runPredicate("(0f/-0f) " + op + " (0f/0f)", variableMap::get));
-      assertEquals("!=".equals(op), runPredicate("(0f/-0f) " + op + " (-0f/0f)", variableMap::get));
-      assertEquals("!=".equals(op), runPredicate("(0f/-0f) " + op + " (-0f/-0f)", variableMap::get));
-      assertEquals("!=".equals(op), runPredicate("(0f/0f) " + op + " (-0f/0f)", variableMap::get));
-      assertEquals("!=".equals(op), runPredicate("(0f/0d) " + op + " (-0f/-0f)", variableMap::get));
-      assertEquals("!=".equals(op), runPredicate("(0d/-0f) " + op + " (0f/-0f)", variableMap::get));
-      assertEquals("!=".equals(op), runPredicate("(-0f/0f) " + op + " (0f/-0d)", variableMap::get));
-      assertEquals("!=".equals(op), runPredicate("(-0d/-0d) " + op + " (0d/-0d)", variableMap::get));
-      assertEquals("!=".equals(op), runPredicate("(0d/0d) " + op + " (0d/0d)", variableMap::get));
+      assertEquals("!=".equals(op), runPredicate("(0f/0f) " + op + " (0f/0f)", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("!=".equals(op), runPredicate("(-0f/0f) " + op + " (0f/0f)", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("!=".equals(op), runPredicate("(-0f/-0f) " + op + " (0f/0f)", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("!=".equals(op), runPredicate("(-0f/-0f) " + op + " (-0f/0f)", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("!=".equals(op), runPredicate("(-0f/-0f) " + op + " (-0f/-0f)", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("!=".equals(op), runPredicate("(0f/-0f) " + op + " (0f/0f)", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("!=".equals(op), runPredicate("(0f/-0f) " + op + " (-0f/0f)", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("!=".equals(op), runPredicate("(0f/-0f) " + op + " (-0f/-0f)", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("!=".equals(op), runPredicate("(0f/0f) " + op + " (-0f/0f)", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("!=".equals(op), runPredicate("(0f/0d) " + op + " (-0f/-0f)", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("!=".equals(op), runPredicate("(0d/-0f) " + op + " (0f/-0f)", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("!=".equals(op), runPredicate("(-0f/0f) " + op + " (0f/-0d)", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("!=".equals(op), runPredicate("(-0d/-0d) " + op + " (0d/-0d)", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals("!=".equals(op), runPredicate("(0d/0d) " + op + " (0d/0d)", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
     });
   }
 
@@ -182,70 +200,70 @@ public class StellarComparisonExpressionWithOperatorTest {
       put("f", false);
     }};
 
-    assertTrue(runPredicate("t != f", variableMap::get));
-    assertTrue(runPredicate("f != t", variableMap::get));
-    assertTrue(runPredicate("true != false", variableMap::get));
-    assertFalse(runPredicate("true != true", variableMap::get));
-    assertTrue(runPredicate("false != true", variableMap::get));
-    assertFalse(runPredicate("false != false", variableMap::get));
+    assertTrue(runPredicate("t != f", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("f != t", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("true != false", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("true != true", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("false != true", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("false != false", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
 
-    assertFalse(runPredicate("t == f", variableMap::get));
-    assertFalse(runPredicate("f == t", variableMap::get));
-    assertFalse(runPredicate("true == false", variableMap::get));
-    assertTrue(runPredicate("true == true", variableMap::get));
-    assertFalse(runPredicate("false == true", variableMap::get));
-    assertTrue(runPredicate("false == false", variableMap::get));
+    assertFalse(runPredicate("t == f", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("f == t", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("true == false", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("true == true", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("false == true", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertTrue(runPredicate("false == false", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
 
-    assertFalse(runPredicate("null == false", variableMap::get));
-    assertFalse(runPredicate("null == true", variableMap::get));
-    assertFalse(runPredicate("true == NULL", variableMap::get));
-    assertFalse(runPredicate("false == NULL", variableMap::get));
+    assertFalse(runPredicate("null == false", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("null == true", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("true == NULL", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("false == NULL", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
   }
 
   @Test
   public void nullComparisonTests() throws Exception {
     final Map<String, Object> variableMap = new HashMap<>();
 
-    assertFalse(runPredicate("null == false", variableMap::get));
-    assertFalse(runPredicate("null == true", variableMap::get));
-    assertFalse(runPredicate("true == NULL", variableMap::get));
-    assertFalse(runPredicate("false == NULL", variableMap::get));
-    assertFalse(runPredicate("1 == NULL", variableMap::get));
-    assertFalse(runPredicate("'null' == NULL", variableMap::get));
-    assertFalse(runPredicate("'' == NULL", variableMap::get));
-    assertFalse(runPredicate("null == ''", variableMap::get));
+    assertFalse(runPredicate("null == false", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("null == true", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("true == NULL", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("false == NULL", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("1 == NULL", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("'null' == NULL", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("'' == NULL", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+    assertFalse(runPredicate("null == ''", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
 
-    assertTrue(runPredicate("NULL == null", variableMap::get));
+    assertTrue(runPredicate("NULL == null", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
   }
 
   @Test
   public void precisionEqualityTests() throws Exception {
     final Map<String, Object> variableMap = new HashMap<>();
-    assertEquals(0.1 + 0.2 == 0.3, runPredicate("0.1 + 0.2 == 0.3", variableMap::get));
+    assertEquals(0.1 + 0.2 == 0.3, runPredicate("0.1 + 0.2 == 0.3", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
   }
 
   @Test(expected = ParseException.class)
   public void differentTypesShouldThrowErrorWhenUsingLT() throws Exception {
     final Map<String, Object> variableMap = new HashMap<>();
-    runPredicate("1 < '1'", variableMap::get);
+    runPredicate("1 < '1'", new DefaultVariableResolver(variableMap::get,variableMap::containsKey));
   }
 
   @Test(expected = ParseException.class)
   public void differentTypesShouldThrowErrorWhenUsingLTE() throws Exception {
     final Map<String, Object> variableMap = new HashMap<>();
-    runPredicate("'1' <= 1", variableMap::get);
+    runPredicate("'1' <= 1", new DefaultVariableResolver(variableMap::get,variableMap::containsKey));
   }
 
   @Test(expected = ParseException.class)
   public void differentTypesShouldThrowErrorWhenUsingGT() throws Exception {
     final Map<String, Object> variableMap = new HashMap<>();
-    runPredicate("1 > '1'", variableMap::get);
+    runPredicate("1 > '1'", new DefaultVariableResolver(variableMap::get,variableMap::containsKey));
   }
 
   @Test(expected = ParseException.class)
   public void differentTypesShouldThrowErrorWhenUsingGTE() throws Exception {
     final Map<String, Object> variableMap = new HashMap<>();
-    runPredicate("'1' >= 1", variableMap::get);
+    runPredicate("'1' >= 1", new DefaultVariableResolver(variableMap::get,variableMap::containsKey));
   }
 
   @Test
@@ -254,7 +272,7 @@ public class StellarComparisonExpressionWithOperatorTest {
     final Integer[] result = {0};
 
     Stream.of("<", "<=", ">", ">=").forEach(op -> {
-      assertFalse(runPredicate("'1' " + op + " null", variableMap::get));
+      assertFalse(runPredicate("'1' " + op + " null", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
     });
   }
 
@@ -262,32 +280,32 @@ public class StellarComparisonExpressionWithOperatorTest {
   public void makeSurePrecisionIsProperlyHandled() throws Exception {
     final Map<String, Object> variableMap = new HashMap<>();
     {
-      assertEquals(1 == 1.00000001, runPredicate("1 == 1.00000001", variableMap::get));
-      assertEquals(1 < 1.00000001, runPredicate("1 < 1.00000001", variableMap::get));
-      assertEquals(1 <= 1.00000001, runPredicate("1 <= 1.00000001", variableMap::get));
-      assertEquals(1 > 1.00000001, runPredicate("1 > 1.00000001", variableMap::get));
-      assertEquals(1 >= 1.00000001, runPredicate("1 >= 1.00000001", variableMap::get));
+      assertEquals(1 == 1.00000001, runPredicate("1 == 1.00000001", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals(1 < 1.00000001, runPredicate("1 < 1.00000001", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals(1 <= 1.00000001, runPredicate("1 <= 1.00000001", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals(1 > 1.00000001, runPredicate("1 > 1.00000001", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals(1 >= 1.00000001, runPredicate("1 >= 1.00000001", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
     }
     {
-      assertEquals(1 == 1.00000001F, runPredicate("1 == 1.00000001F", variableMap::get));
-      assertEquals(1 < 1.00000001F, runPredicate("1 < 1.00000001F", variableMap::get));
-      assertEquals(1 <= 1.00000001F, runPredicate("1 <= 1.00000001F", variableMap::get));
-      assertEquals(1 > 1.00000001F, runPredicate("1 > 1.00000001F", variableMap::get));
-      assertEquals(1 >= 1.00000001F, runPredicate("1 >= 1.00000001F", variableMap::get));
+      assertEquals(1 == 1.00000001F, runPredicate("1 == 1.00000001F", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals(1 < 1.00000001F, runPredicate("1 < 1.00000001F", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals(1 <= 1.00000001F, runPredicate("1 <= 1.00000001F", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals(1 > 1.00000001F, runPredicate("1 > 1.00000001F", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals(1 >= 1.00000001F, runPredicate("1 >= 1.00000001F", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
     }
     {
-      assertEquals(1.00000001F == 1.00000001, runPredicate("1.00000001F == 1.00000001", variableMap::get));
-      assertEquals(1.00000001F < 1.00000001, runPredicate("1.00000001F < 1.00000001", variableMap::get));
-      assertEquals(1.00000001F <= 1.00000001, runPredicate("1.00000001F <= 1.00000001", variableMap::get));
-      assertEquals(1.00000001F > 1.00000001, runPredicate("1.00000001F > 1.00000001", variableMap::get));
-      assertEquals(1.00000001F >= 1.00000001, runPredicate("1.00000001F >= 1.00000001", variableMap::get));
+      assertEquals(1.00000001F == 1.00000001, runPredicate("1.00000001F == 1.00000001", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals(1.00000001F < 1.00000001, runPredicate("1.00000001F < 1.00000001", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals(1.00000001F <= 1.00000001, runPredicate("1.00000001F <= 1.00000001", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals(1.00000001F > 1.00000001, runPredicate("1.00000001F > 1.00000001", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals(1.00000001F >= 1.00000001, runPredicate("1.00000001F >= 1.00000001", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
     }
     {
-      assertEquals(-1L == -1.00000001F, runPredicate("-1L == -1.00000001F", variableMap::get));
-      assertEquals(-1L < -1.00000001F, runPredicate("-1L < -1.00000001F", variableMap::get));
-      assertEquals(-1L <= -1.00000001F, runPredicate("-1L <= -1.00000001F", variableMap::get));
-      assertEquals(-1L > -1.00000001F, runPredicate("-1L > -1.00000001F", variableMap::get));
-      assertEquals(-1L >= -1.00000001F, runPredicate("-1L >= -1.00000001F", variableMap::get));
+      assertEquals(-1L == -1.00000001F, runPredicate("-1L == -1.00000001F", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals(-1L < -1.00000001F, runPredicate("-1L < -1.00000001F", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals(-1L <= -1.00000001F, runPredicate("-1L <= -1.00000001F", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals(-1L > -1.00000001F, runPredicate("-1L > -1.00000001F", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
+      assertEquals(-1L >= -1.00000001F, runPredicate("-1L >= -1.00000001F", new DefaultVariableResolver(variableMap::get,variableMap::containsKey)));
     }
   }
 }
