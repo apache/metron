@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { browser, element, by, protractor } from 'protractor/globals';
+import { browser, element, by, protractor } from 'protractor';
 import { waitForStalenessOf, waitForElementVisibility } from '../utils/e2e_util';
 let Promise = require('bluebird');
 
@@ -112,8 +112,8 @@ export class SensorListPage {
         });
     }
 
-    getDropdownActionState() {
-        return protractor.promise.all([
+    getDropdownActionState(): any {
+        return protractor.promise.all<any>([
             element.all(by.css('.dropdown.open .dropdown-menu span:not(.disabled)')).count(),
             element.all(by.css('.dropdown.open .dropdown-menu span.disabled')).count(),
             element.all(by.css('.dropdown-menu')).isDisplayed()
@@ -179,7 +179,7 @@ export class SensorListPage {
         let protactorControlFlow = protractor.promise.controlFlow();
 
         protactorControlFlow.execute(() => { waitForElementVisibility(row); })
-          .then(protactorControlFlow.execute(() => { this.getIconButton(name, '.fa-pencil').click(); }));
+          .then(() => protactorControlFlow.execute(() => { this.getIconButton(name, '.fa-pencil').click(); }));
 
         return browser.getCurrentUrl();
     }

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { browser, element, by, protractor } from 'protractor/globals';
+import { browser, element, by, protractor } from 'protractor';
 import { waitForElementVisibility } from '../utils/e2e_util';
 
 export class LoginPage {
@@ -28,15 +28,15 @@ export class LoginPage {
 
   login() {
     let flow = protractor.promise.controlFlow();
-    browser.get('/').then(flow.execute(() => waitForElementVisibility(element(this.useNameInput))))
-      .then(flow.execute(() => this.setUserNameAndPassword('admin', 'password')))
-      .then(flow.execute(() => this.submitLoginForm()));
+    browser.get('/').then(() => flow.execute(() => waitForElementVisibility(element(this.useNameInput))))
+      .then(() => flow.execute(() => this.setUserNameAndPassword('admin', 'password')))
+      .then(() =>  flow.execute(() => this.submitLoginForm()));
 
-    browser.ignoreSynchronization = true;
+    browser.waitForAngularEnabled(false);
   }
 
   logout() {
-    browser.ignoreSynchronization = true;
+    browser.waitForAngularEnabled(false);
 
     element.all(by.css('.alert .close')).click();
     element.all(by.css('.logout-link')).click();

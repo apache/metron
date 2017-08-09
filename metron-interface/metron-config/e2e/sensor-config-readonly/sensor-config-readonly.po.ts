@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { browser, element, by, protractor } from 'protractor/globals';
+import { browser, element, by, protractor } from 'protractor';
 import {waitForElementVisibility} from '../utils/e2e_util';
 
 export class SensorDetailsPage {
@@ -51,25 +51,25 @@ export class SensorDetailsPage {
 
     disableParser() {
         return waitForElementVisibility(this.disableButton).then(this.disableButton.click())
-          .then(protractor.promise.controlFlow().execute(() => { waitForElementVisibility(this.enableButton); }))
+          .then(() => protractor.promise.controlFlow().execute(() => { waitForElementVisibility(this.enableButton); }))
           .then(() => true);
     }
 
     enableParser() {
         return waitForElementVisibility(this.enableButton).then(this.enableButton.click())
-          .then(protractor.promise.controlFlow().execute(() => { waitForElementVisibility(this.disableButton); }))
+          .then(() => protractor.promise.controlFlow().execute(() => { waitForElementVisibility(this.disableButton); }))
           .then(() => true);
     }
 
     startParser() {
         return waitForElementVisibility(this.startButton).then(this.startButton.click())
-          .then(protractor.promise.controlFlow().execute(() => { waitForElementVisibility(this.stopButton); }))
+          .then(() => protractor.promise.controlFlow().execute(() => { waitForElementVisibility(this.stopButton); }))
           .then(() => true);
     }
 
     stopParser() {
         return waitForElementVisibility(this.stopButton).then(this.stopButton.click())
-          .then(protractor.promise.controlFlow().execute(() => { waitForElementVisibility(this.startButton); }))
+          .then(() => protractor.promise.controlFlow().execute(() => { waitForElementVisibility(this.startButton); }))
           .then(() => true);
     }
 
@@ -91,7 +91,7 @@ export class SensorDetailsPage {
     }
 
     getParserConfig() {
-        return element.all(by.css('metron-config-sensor-parser-readonly .row')).getText().then(data => {
+        return element.all(by.css('metron-config-sensor-parser-readonly .row')).getText().then((data: any) => {
             return data.slice(1, 19).map(val => val.replace('\n', ':'));
         });
     }
@@ -113,9 +113,9 @@ export class SensorDetailsPage {
         return protractor.promise.all([
             element.all(by.css('.collapse.in .form-label')).getText(),
             element.all(by.css('.collapse.in .form-value')).getText()
-        ]).then(args => {
-            let labels = args[0];
-            let values = args[1];
+        ]).then((args) => {
+            let labels: any = args[0];
+            let values: any = args[1];
             return labels.reduce((acc, val, ind) => { acc[val] = values[ind]; return acc; }, {});
         });
     }
@@ -137,9 +137,9 @@ export class SensorDetailsPage {
         return protractor.promise.all([
             element.all(by.css('#collapseThreatTriage .form-label')).getText(),
             element.all(by.css('#collapseThreatTriage .form-value')).getText()
-        ]).then(args => {
-            let labels = args[0];
-            let values = args[1];
+        ]).then((args: string[]) => {
+            let labels: any = args[0];
+            let values: any = args[1];
             return labels.reduce((acc, val, ind) => { acc[val] = values[ind]; return acc; }, {});
         });
     }

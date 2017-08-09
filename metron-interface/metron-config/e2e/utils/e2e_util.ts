@@ -1,4 +1,4 @@
-import { browser, protractor } from 'protractor/globals';
+import { browser, protractor } from 'protractor';
 
 export function changeURL(url: string) {
     return browser.get(url).then(() => {
