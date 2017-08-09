@@ -1,0 +1,15 @@
+@import "../../../../variables";
+
+.filter-container {
+  background: $mine-shaft;
+
+  .title {
+    font-size: 15px;
+    padding: 15px 0px 0px 15px;
+    font-family: 'Roboto-Regular';
+  }
+
+  .facets {
+    padding: 0px 20px;
+  }
+}
