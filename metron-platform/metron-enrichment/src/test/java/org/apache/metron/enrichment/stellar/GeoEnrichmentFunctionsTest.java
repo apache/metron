@@ -20,9 +20,10 @@ package org.apache.metron.enrichment.stellar;
 
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
+import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
@@ -93,7 +94,7 @@ public class GeoEnrichmentFunctionsTest {
   public Object run(String rule, Map<String, Object> variables) throws Exception {
     StellarProcessor processor = new StellarProcessor();
     Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
-    return processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
+    return processor.parse(rule, new DefaultVariableResolver(x -> variables.get(x),x -> variables.containsKey(x)), StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 
   @Test
@@ -141,7 +142,7 @@ public class GeoEnrichmentFunctionsTest {
     Assert.assertEquals("Remote IP should return country result based on DB", expectedSubsetMessage, result);
   }
 
-  @Test(expected=org.apache.metron.common.dsl.ParseException.class)
+  @Test(expected=org.apache.metron.stellar.dsl.ParseException.class)
   @SuppressWarnings("unchecked")
   public void testGetTooManyParams() throws Exception {
     String stellar = "GEO_GET('216.160.83.56', ['country', 'city', 'dmaCode', 'location_point'], 'garbage')";

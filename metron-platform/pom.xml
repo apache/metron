@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>org.apache.metron</groupId>
 		<artifactId>Metron</artifactId>
-		<version>0.4.0</version>
+		<version>0.4.1</version>
 	</parent>
 	<description>Stream analytics for Metron</description>
 	<url>https://metron.apache.org/</url>
@@ -41,6 +41,7 @@
 		</license>
 	</licenses>
 	<modules>
+		<module>metron-hbase-client</module>
 		<module>metron-common</module>
 		<module>metron-enrichment</module>
 		<module>metron-solr</module>

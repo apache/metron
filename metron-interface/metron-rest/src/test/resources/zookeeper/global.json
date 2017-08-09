@@ -1,0 +1,4 @@
+{
+  "update.hbase.table" : "updates",
+  "update.hbase.cf" : "t"
+}

@@ -20,11 +20,12 @@
   <fileSets>
     <fileSet>
       <directory>${project.basedir}/src/main/config</directory>
-      <outputDirectory>/config</outputDirectory>
+      <outputDirectory>config</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <excludes>
         <exclude>**/*.formatted</exclude>
         <exclude>**/*.filtered</exclude>
+        <exclude>**/*.j2</exclude>
       </excludes>
       <fileMode>0644</fileMode>
       <lineEnding>unix</lineEnding>
@@ -32,7 +33,7 @@
     </fileSet>
     <fileSet>
       <directory>${project.basedir}/src/main/scripts</directory>
-      <outputDirectory>/bin</outputDirectory>
+      <outputDirectory>bin</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <excludes>
         <exclude>**/*.formatted</exclude>
@@ -44,7 +45,7 @@
     </fileSet>
     <fileSet>
       <directory>${project.basedir}/src/main/resources/ddl</directory>
-      <outputDirectory>/ddl</outputDirectory>
+      <outputDirectory>ddl</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <excludes>
         <exclude>**/*.formatted</exclude>
@@ -56,7 +57,7 @@
     </fileSet>
     <fileSet>
       <directory>${project.basedir}/src/main/flux</directory>
-      <outputDirectory>/flux</outputDirectory>
+      <outputDirectory>flux</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <excludes>
         <exclude>**/*.formatted</exclude>
@@ -70,7 +71,7 @@
       <includes>
         <include>${project.artifactId}-${project.version}-uber.jar</include>
       </includes>
-      <outputDirectory>/lib</outputDirectory>
+      <outputDirectory>lib</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
     </fileSet>
   </fileSets>

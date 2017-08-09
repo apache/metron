@@ -31,4 +31,4 @@ fi
 export HBASE_CONFIGS=/etc/hbase/conf
 export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
-java $JVMFLAGS -cp "$HBASE_CONFIGS:$METRON_HOME/lib/*" org.apache.metron.common.stellar.shell.StellarShell "$@"
+java $JVMFLAGS -cp "$HBASE_CONFIGS:$METRON_HOME/lib/*" org.apache.metron.stellar.common.shell.StellarShell "$@"

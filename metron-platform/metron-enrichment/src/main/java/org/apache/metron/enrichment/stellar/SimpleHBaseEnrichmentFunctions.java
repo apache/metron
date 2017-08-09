@@ -19,14 +19,14 @@ package org.apache.metron.enrichment.stellar;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.log4j.Logger;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.dsl.StellarFunction;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.EnrichmentLookup;
@@ -35,15 +35,15 @@ import org.apache.metron.enrichment.lookup.accesstracker.AccessTracker;
 import org.apache.metron.enrichment.lookup.accesstracker.AccessTrackers;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.dsl.StellarFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SimpleHBaseEnrichmentFunctions {
-  private static final Logger LOG = Logger.getLogger(SimpleHBaseEnrichmentFunctions.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String ACCESS_TRACKER_TYPE_CONF = "accessTracker";
   public static final String TABLE_PROVIDER_TYPE_CONF = "tableProviderImpl";
   private static AccessTracker tracker;
@@ -140,8 +140,8 @@ public class SimpleHBaseEnrichmentFunctions {
       if(!initialized) {
         return false;
       }
-      if(args.size() < 2) {
-        throw new IllegalStateException("Requires at least an enrichment type and indicator");
+      if(args.size() != 4) {
+        throw new IllegalStateException("All parameters are mandatory, submit 'enrichment type', 'indicator', 'nosql_table' and 'column_family'");
       }
       int i = 0;
       String enrichmentType = (String) args.get(i++);
@@ -160,14 +160,14 @@ public class SimpleHBaseEnrichmentFunctions {
           }
         );
       } catch (ExecutionException e) {
-        LOG.error("Unable to retrieve enrichmentLookup: " + e.getMessage(), e);
+        LOG.error("Unable to retrieve enrichmentLookup: {}", e.getMessage(), e);
         return false;
       }
       EnrichmentLookup.HBaseContext hbaseContext = new EnrichmentLookup.HBaseContext(lookup.getTable(), cf);
       try {
         return lookup.exists(new EnrichmentKey(enrichmentType, indicator), hbaseContext, true);
       } catch (IOException e) {
-        LOG.error("Unable to call exists: " + e.getMessage(), e);
+        LOG.error("Unable to call exists: {}", e.getMessage(), e);
         return false;
       }
     }
@@ -179,7 +179,7 @@ public class SimpleHBaseEnrichmentFunctions {
         initializeProvider(config);
         initializeTracker(config, provider);
       } catch (IOException e) {
-        LOG.error("Unable to initialize ENRICHMENT.EXISTS: " + e.getMessage(), e);
+        LOG.error("Unable to initialize ENRICHMENT.EXISTS: {}", e.getMessage(), e);
       }
       finally{
         initialized = true;
@@ -217,8 +217,8 @@ public class SimpleHBaseEnrichmentFunctions {
       if(!initialized) {
         return false;
       }
-      if(args.size() < 2) {
-        throw new IllegalStateException("Requires at least an enrichment type and indicator");
+      if(args.size() != 4) {
+        throw new IllegalStateException("All parameters are mandatory, submit 'enrichment type', 'indicator', 'nosql_table' and 'column_family'");
       }
       int i = 0;
       String enrichmentType = (String) args.get(i++);
@@ -237,7 +237,7 @@ public class SimpleHBaseEnrichmentFunctions {
                 }
         );
       } catch (ExecutionException e) {
-        LOG.error("Unable to retrieve enrichmentLookup: " + e.getMessage(), e);
+        LOG.error("Unable to retrieve enrichmentLookup: {}", e.getMessage(), e);
         return new HashMap<String, Object>();
       }
       EnrichmentLookup.HBaseContext hbaseContext = new EnrichmentLookup.HBaseContext(lookup.getTable(), cf);
@@ -248,7 +248,7 @@ public class SimpleHBaseEnrichmentFunctions {
         }
         return new HashMap<String, Object>();
       } catch (IOException e) {
-        LOG.error("Unable to call exists: " + e.getMessage(), e);
+        LOG.error("Unable to call exists: {}", e.getMessage(), e);
         return new HashMap<String, Object>();
       }
     }
@@ -260,7 +260,7 @@ public class SimpleHBaseEnrichmentFunctions {
         initializeProvider(config);
         initializeTracker(config, provider);
       } catch (IOException e) {
-        LOG.error("Unable to initialize ENRICHMENT.GET: " + e.getMessage(), e);
+        LOG.error("Unable to initialize ENRICHMENT.GET: {}", e.getMessage(), e);
       }
       finally{
         initialized = true;

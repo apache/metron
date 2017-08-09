@@ -18,10 +18,12 @@
 package org.apache.metron.enrichment.integration.components;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.ZKServerComponent;
+import org.apache.zookeeper.KeeperException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +36,7 @@ import static org.apache.metron.common.configuration.ConfigurationsUtils.*;
 
 public class ConfigUploadComponent implements InMemoryComponent {
 
+  private String connectionString;
   private Properties topologyProperties;
   private String globalConfigPath;
   private String parserConfigsPath;
@@ -43,6 +46,12 @@ public class ConfigUploadComponent implements InMemoryComponent {
   private Optional<Consumer<ConfigUploadComponent>> postStartCallback = Optional.empty();
   private Optional<String> globalConfig = Optional.empty();
   private Map<String, SensorParserConfig> parserSensorConfigs = new HashMap<>();
+
+  public ConfigUploadComponent withConnectionString(String connectionString) {
+    this.connectionString = connectionString;
+    return this;
+  }
+
   public ConfigUploadComponent withTopologyProperties(Properties topologyProperties) {
     this.topologyProperties = topologyProperties;
     return this;
@@ -124,8 +133,12 @@ public class ConfigUploadComponent implements InMemoryComponent {
 
   @Override
   public void start() throws UnableToStartException {
+    update();
+  }
+
+  public void update() throws UnableToStartException {
     try {
-      final String zookeeperUrl = topologyProperties.getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY);
+      final String zookeeperUrl = connectionString == null?topologyProperties.getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY):connectionString;
 
       if(globalConfigPath != null
       || parserConfigsPath != null
@@ -151,6 +164,8 @@ public class ConfigUploadComponent implements InMemoryComponent {
       throw new UnableToStartException(e.getMessage(), e);
     }
   }
+
+
 
   public SensorParserConfig getSensorParserConfig(String sensorType) {
     SensorParserConfig sensorParserConfig = new SensorParserConfig();

@@ -71,7 +71,7 @@ class Enrichment(Script):
         if not commands.is_geo_configured():
             commands.init_geo()
 
-        commands.start_enrichment_topology()
+        commands.start_enrichment_topology(env)
 
     def stop(self, env, upgrade_type=None):
         from params import params
@@ -85,7 +85,7 @@ class Enrichment(Script):
                                   params.metron_principal_name,
                                   execute_user=params.metron_user)
 
-        commands.stop_enrichment_topology()
+        commands.stop_enrichment_topology(env)
 
     def status(self, env):
         from params import status_params
@@ -105,6 +105,7 @@ class Enrichment(Script):
     def restart(self, env):
         from params import params
         env.set_params(params)
+        self.configure(env)
         commands = EnrichmentCommands(params)
         commands.restart_enrichment_topology(env)
 

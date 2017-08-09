@@ -21,12 +21,12 @@ import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.common.stellar.StellarProcessor;
-import org.apache.metron.common.stellar.shell.StellarExecutor;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.stellar.common.StellarProcessor;
+import org.apache.metron.stellar.common.shell.StellarExecutor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -136,7 +136,7 @@ public class EnrichmentConfigFunctionsTest {
 
   private Object run(String rule, Map<String, Object> variables) {
     StellarProcessor processor = new StellarProcessor();
-    return processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
+    return processor.parse(rule, new DefaultVariableResolver(x -> variables.get(x),x -> variables.containsKey(x)), StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 
   @Test
@@ -153,8 +153,6 @@ public class EnrichmentConfigFunctionsTest {
     Assert.assertEquals(1, size(stellarFunctions));
     Assert.assertEquals(variables.get("upper").getExpression(), get(stellarFunctions,"upper"));
   }
-
-
 
   @Test
   public void testAddHasExisting() {

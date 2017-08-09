@@ -111,6 +111,30 @@ Storm console.  e.g.:
 * hdfs writer
   * disabled
 
+# Updates to Indexed Data
+
+There are clear usecases where we would want to incorporate the capability to update indexed data.
+Thus far, we have limited capabilities provided to support this use-case:
+* Updates to the random access index (e.g. Elasticsearch and Solr) should be supported
+* Updates to the cold storage index (e.g. HDFS) is not supported currently, however to support the batch
+use-case updated documents will be provided in a NoSQL write-ahead log (e.g. a HBase table) and an Java API
+will be provided to retrieve those updates scalably (i.e. a scan-free architecture).
+
+Put simply, the random access index will be always up-to-date, but the HDFS index will need to be
+joined to the NoSQL write-ahead log to get current updates.
+
+## The `IndexDao` Abstraction
+
+The indices mentioned above as part of Update should be pluggable by the developer so that
+new write-ahead logs or real-time indices can be supported by providing an implementation supporting
+the data access patterns.
+
+To support a new index, one would need to implement the `org.apache.metron.indexing.dao.IndexDao` abstraction
+and provide update and search capabilities.  IndexDaos may be composed and updates will be performed
+in parallel.  This enables a flexible strategy for specifying your backing store for updates at runtime.
+For instance, currently the REST API supports the update functionality and may be configured with a list of
+IndexDao implementations to use to support the updates.
+
 # Notes on Performance Tuning
 
 Default installed Metron is untuned for production deployment.  By far

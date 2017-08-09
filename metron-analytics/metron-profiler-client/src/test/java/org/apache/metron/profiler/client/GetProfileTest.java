@@ -20,13 +20,11 @@
 
 package org.apache.metron.profiler.client;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.functions.resolver.SimpleFunctionResolver;
-import org.apache.metron.common.dsl.functions.resolver.SingletonFunctionResolver;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
+import org.apache.metron.stellar.dsl.functions.resolver.SingletonFunctionResolver;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.client.stellar.FixedLookback;
 import org.apache.metron.profiler.client.stellar.GetProfile;
@@ -34,15 +32,12 @@ import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
-import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
-import org.apache.metron.profiler.stellar.StellarExecutor;
-import org.apache.metron.test.mock.MockHTable;
+import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
+import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -62,7 +57,7 @@ public class GetProfileTest {
   private static final int saltDivisor = 1000;
   private static final String tableName = "profiler";
   private static final String columnFamily = "P";
-  private StellarExecutor executor;
+  private StellarStatefulExecutor executor;
   private Map<String, Object> state;
   private ProfileWriter profileWriter;
   // different values of period and salt divisor, used to test config_overrides feature
@@ -70,18 +65,7 @@ public class GetProfileTest {
   private static final TimeUnit periodUnits2 = TimeUnit.HOURS;
   private static final int saltDivisor2 = 2050;
 
-  /**
-   * A TableProvider that allows us to mock HBase.
-   */
-  public static class MockTableProvider implements TableProvider, Serializable {
 
-    MockHTable.Provider provider = new MockHTable.Provider();
-
-    @Override
-    public HTableInterface getTable(Configuration config, String tableName) throws IOException {
-      return provider.getTable(config, tableName);
-    }
-  }
 
   private <T> T run(String expression, Class<T> clazz) {
     return executor.execute(expression, state, clazz);
@@ -101,7 +85,7 @@ public class GetProfileTest {
   @Before
   public void setup() {
     state = new HashMap<>();
-    final HTableInterface table = MockHTable.Provider.addToCache(tableName, columnFamily);
+    final HTableInterface table = MockHBaseTableProvider.addToCache(tableName, columnFamily);
 
     // used to write values to be read during testing
     RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();
@@ -112,14 +96,14 @@ public class GetProfileTest {
     Map<String, Object> global = new HashMap<String, Object>() {{
       put(PROFILER_HBASE_TABLE.getKey(), tableName);
       put(PROFILER_COLUMN_FAMILY.getKey(), columnFamily);
-      put(PROFILER_HBASE_TABLE_PROVIDER.getKey(), MockTableProvider.class.getName());
+      put(PROFILER_HBASE_TABLE_PROVIDER.getKey(), MockHBaseTableProvider.class.getName());
       put(PROFILER_PERIOD.getKey(), Long.toString(periodDuration));
       put(PROFILER_PERIOD_UNITS.getKey(), periodUnits.toString());
       put(PROFILER_SALT_DIVISOR.getKey(), Integer.toString(saltDivisor));
     }};
 
     // create the stellar execution environment
-    executor = new DefaultStellarExecutor(
+    executor = new DefaultStellarStatefulExecutor(
             new SimpleFunctionResolver()
                     .withClass(GetProfile.class)
                     .withClass(FixedLookback.class),
@@ -140,9 +124,9 @@ public class GetProfileTest {
    * original context values in the PROFILE_GET config_overrides argument gets all expected results.
    *
    * @return context2 - The profiler client configuration context created by this method.
-   *    The context2 values are also set in the configuration of the StellarExecutor
+   *    The context2 values are also set in the configuration of the StellarStatefulExecutor
    *    stored in the global variable 'executor'.  However, there is no API for querying the
-   *    context values from a StellarExecutor, so we output the context2 Context object itself,
+   *    context values from a StellarStatefulExecutor, so we output the context2 Context object itself,
    *    for validation purposes (so that its values can be validated as being significantly
    *    different from the setup() settings).
    */
@@ -153,7 +137,7 @@ public class GetProfileTest {
     Map<String, Object> global = new HashMap<String, Object>() {{
       put(PROFILER_HBASE_TABLE.getKey(), tableName);
       put(PROFILER_COLUMN_FAMILY.getKey(), columnFamily);
-      put(PROFILER_HBASE_TABLE_PROVIDER.getKey(), MockTableProvider.class.getName());
+      put(PROFILER_HBASE_TABLE_PROVIDER.getKey(), MockHBaseTableProvider.class.getName());
       put(PROFILER_PERIOD.getKey(), Long.toString(periodDuration2));
       put(PROFILER_PERIOD_UNITS.getKey(), periodUnits2.toString());
       put(PROFILER_SALT_DIVISOR.getKey(), Integer.toString(saltDivisor2));
@@ -165,7 +149,7 @@ public class GetProfileTest {
             .build();
 
     // create the stellar execution environment
-    executor = new DefaultStellarExecutor(
+    executor = new DefaultStellarStatefulExecutor(
             new SimpleFunctionResolver()
                     .withClass(GetProfile.class)
                     .withClass(FixedLookback.class),

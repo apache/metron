@@ -171,7 +171,7 @@ The REST application comes with a few [Spring Profiles](http://docs.spring.io/au
 | test                     | sets variables to in-memory services, only used for integration testing |
 | dev                      | adds a test user to the database with credentials `user/password`       |
 | vagrant                  | sets configuration variables to match the Metron vagrant environment    |
-| docker                   | sets configuration variables to match the Metron dcoker environment     |
+| docker                   | sets configuration variables to match the Metron docker environment     |
 
 Setting active profiles is done with the METRON_SPRING_PROFILES_ACTIVE variable.  For example, set this variable in `/etc/sysconfig/metron` to configure the REST application for the Vagrant environment and add a test user:
 ```
@@ -199,6 +199,10 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/kafka/topic/{name}`](#get-apiv1kafkatopicname)|
 | [ `DELETE /api/v1/kafka/topic/{name}`](#delete-apiv1kafkatopicname)|
 | [ `GET /api/v1/kafka/topic/{name}/sample`](#get-apiv1kafkatopicnamesample)|
+| [ `GET /api/v1/search/search`](#get-apiv1searchsearch)|
+| [ `GET /api/v1/search/findOne`](#get-apiv1searchfindone)|
+| [ `GET /api/v1/search/search`](#get-apiv1searchcolumnmetadata)|
+| [ `GET /api/v1/search/search`](#get-apiv1searchcolumnmetadatacommon)|
 | [ `GET /api/v1/sensor/enrichment/config`](#get-apiv1sensorenrichmentconfig)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available/enrichments`](#get-apiv1sensorenrichmentconfiglistavailableenrichments)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available/threat/triage/aggregators`](#get-apiv1sensorenrichmentconfiglistavailablethreattriageaggregators)|
@@ -238,6 +242,9 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/storm/parser/start/{name}`](#get-apiv1stormparserstartname)|
 | [ `GET /api/v1/storm/parser/stop/{name}`](#get-apiv1stormparserstopname)|
 | [ `GET /api/v1/storm/{name}`](#get-apiv1stormname)|
+| [ `GET /api/v1/storm/supervisors`](#get-apiv1stormsupervisors)|
+| [ `PATCH /api/v1/update/patch`](#patch-apiv1updatepatch)|
+| [ `PUT /api/v1/update/replace`](#patch-apiv1updatereplace)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
 
 ### `GET /api/v1/global/config`
@@ -345,6 +352,44 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns sample message
     * 404 - Either Kafka topic is missing or contains no messages
+
+### `GET /api/v1/search/findOne`
+  * Description: Returns latest document for a guid and sensor
+  * Input:
+      * getRequest - Get request
+        * guid - message UUID
+        * sensorType - Sensor Type
+      * Example: Return `bro` document with UUID of `000-000-0000`
+```
+{
+  "guid" : "000-000-0000",
+  "sensorType" : "bro"
+}
+```
+  * Returns:
+    * 200 - Document representing the output
+    * 404 - Document with UUID and sensor type not found
+
+### `GET /api/v1/search/search`
+  * Description: Searches the indexing store
+  * Input:
+      * searchRequest - Search request
+  * Returns:
+    * 200 - Search results
+    
+### `GET /api/v1/search/column/metadata`
+  * Description: Get column metadata for each index in the list of indicies
+  * Input:
+      * indices - Indices
+  * Returns:
+    * 200 - Column Metadata
+    
+### `GET /api/v1/search/column/metadata/common`
+  * Description: Get metadata for columns shared by the list of indices
+  * Input:
+      * indices - Indices
+  * Returns:
+    * 200 - Common Column Metadata
 
 ### `GET /api/v1/sensor/enrichment/config`
   * Description: Retrieves all SensorEnrichmentConfigs from Zookeeper
@@ -593,6 +638,61 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns topology status information
     * 404 - Topology is missing
+
+### `GET /api/v1/storm/supervisors`
+  * Description: Retrieves the status of all Storm Supervisors
+  * Returns:
+    * 200 - Returns a list of the status of all Storm Supervisors 
+
+### `PATCH /api/v1/update/patch`
+  * Description: Update a document with a patch
+  * Input:
+    * request - Patch Request
+      * guid - The Patch UUID
+      * sensorType - The sensor type
+      * patch - An array of [RFC 6902](https://tools.ietf.org/html/rfc6902) patches.
+    * Example adding a field called `project` with value `metron` to the `bro` message with UUID of `000-000-0000` :
+  ```
+  {
+     "guid" : "000-000-0000",
+     "sensorType" : "bro",
+     "patch" : [
+      {
+                "op": "add"
+               , "path": "/project"
+               , "value": "metron"
+      }
+              ]
+   }
+  ```
+  * Returns:
+    * 200 - nothing
+    * 404 - document not found
+
+### `PUT /api/v1/update/replace`
+  * Description: Replace a document
+  * Input:
+    * request - Replacement request
+      * guid - The Patch UUID
+      * sensorType - The sensor type
+      * replacement - A Map representing the replaced document
+    * Example replacing a `bro` message with guid of `000-000-0000`
+```
+   {
+     "guid" : "000-000-0000",
+     "sensorType" : "bro",
+     "replacement" : {
+       "source:type": "bro",
+       "guid" : "bro_index_2017.01.01.01:1",
+       "ip_src_addr":"192.168.1.2",
+       "ip_src_port": 8009,
+       "timestamp":200,
+       "rejected":false
+      }
+   }
+```
+  * Returns:
+    * 200 - Current user
 
 ### `GET /api/v1/user`
   * Description: Retrieves the current user

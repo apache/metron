@@ -19,6 +19,8 @@ from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import File
+from resource_management.core.source import Template
+from resource_management.libraries.functions.format import format
 from resource_management.core.source import StaticFile
 from resource_management.libraries.functions import format as ambari_format
 from resource_management.libraries.script import Script
@@ -40,6 +42,13 @@ class Indexing(Script):
         from params import params
         env.set_params(params)
 
+        Logger.info("Running indexing configure")
+        File(format("{metron_config_path}/elasticsearch.properties"),
+             content=Template("elasticsearch.properties.j2"),
+             owner=params.metron_user,
+             group=params.metron_group
+             )
+
         commands = IndexingCommands(params)
         metron_service.load_global_config(params)
 
@@ -56,6 +65,11 @@ class Indexing(Script):
             commands.init_kafka_acls()
             commands.set_acl_configured()
 
+        if not commands.is_hbase_configured():
+            commands.create_hbase_tables()
+        if params.security_enabled and not commands.is_hbase_acl_configured():
+            commands.set_hbase_acls()
+
         Logger.info("Calling security setup")
         storm_security_setup(params)
 
@@ -64,13 +78,13 @@ class Indexing(Script):
         env.set_params(params)
         self.configure(env)
         commands = IndexingCommands(params)
-        commands.start_indexing_topology()
+        commands.start_indexing_topology(env)
 
     def stop(self, env, upgrade_type=None):
         from params import params
         env.set_params(params)
         commands = IndexingCommands(params)
-        commands.stop_indexing_topology()
+        commands.stop_indexing_topology(env)
 
     def status(self, env):
         from params import status_params

@@ -18,19 +18,22 @@
 package org.apache.metron.enrichment.bolt;
 
 import com.google.common.base.Joiner;
+import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.common.configuration.enrichment.threatintel.RuleScore;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatScore;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.common.dsl.functions.resolver.FunctionResolver;
 import org.apache.metron.common.message.MessageGetStrategy;
-import org.apache.metron.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.threatintel.triage.ThreatTriageProcessor;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
@@ -38,12 +41,9 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(ThreatIntelJoinBolt.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * The message key under which the overall threat triage score is stored.
@@ -96,7 +96,7 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
       if (config != null) {
         return config.getThreatIntel().getEnrichmentConfigs();
       } else {
-        LOG.info("Unable to retrieve a sensor enrichment config of " + sensorType);
+        LOG.info("Unable to retrieve a sensor enrichment config of {}", sensorType);
       }
     } else {
       LOG.error("Trying to retrieve a field map with sensor type of null");
@@ -128,7 +128,7 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
       return config.getThreatIntel().getFieldMap();
     }
     else {
-      LOG.info("Unable to retrieve sensor config: " + sourceType);
+      LOG.info("Unable to retrieve sensor config: {}", sourceType);
       return null;
     }
   }
@@ -161,19 +161,19 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
       if(config != null) {
         triageConfig = config.getThreatIntel().getTriageConfig();
         if(LOG.isDebugEnabled()) {
-          LOG.debug(sourceType + ": Found sensor enrichment config.");
+          LOG.debug("{}: Found sensor enrichment config.", sourceType);
         }
       }
       else {
-        LOG.debug(sourceType + ": Unable to find threat config.");
+        LOG.debug("{}: Unable to find threat config.", sourceType );
       }
       if(triageConfig != null) {
         if(LOG.isDebugEnabled()) {
-          LOG.debug(sourceType + ": Found threat triage config: " + triageConfig);
+          LOG.debug("{}: Found threat triage config: {}", sourceType, triageConfig);
         }
 
         if(LOG.isDebugEnabled() && (triageConfig.getRiskLevelRules() == null || triageConfig.getRiskLevelRules().isEmpty())) {
-          LOG.debug(sourceType + ": Empty rules!");
+          LOG.debug("{}: Empty rules!", sourceType);
         }
 
         // triage the threat
@@ -182,7 +182,8 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
 
         if(LOG.isDebugEnabled()) {
           String rules = Joiner.on('\n').join(triageConfig.getRiskLevelRules());
-          LOG.debug("Marked " + sourceType + " as triage level " + score.getScore() + " with rules " + rules);
+          LOG.debug("Marked {} as triage level {} with rules {}", sourceType, score.getScore(),
+              rules);
         }
 
         // attach the triage threat score to the message
@@ -191,7 +192,7 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
         }
       }
       else {
-        LOG.debug(sourceType + ": Unable to find threat triage config!");
+        LOG.debug("{}: Unable to find threat triage config!", sourceType);
       }
     }
 

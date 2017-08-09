@@ -18,7 +18,8 @@
 
 package org.apache.metron.integration.components;
 
-import com.google.common.base.Function;
+import java.io.IOException;
+import org.apache.commons.io.FileUtils;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.curator.test.TestingServer;
@@ -27,7 +28,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public class ZKServerComponent implements InMemoryComponent {
-  public static final String ZOOKEEPER_PROPERTY = "kafka.zk";
+  public static final String ZOOKEEPER_PROPERTY = "zookeeper_quorum";
   private TestingServer testZkServer;
   private String zookeeperUrl = null;
   private Map<String,String> properties = null;
@@ -60,6 +61,19 @@ public class ZKServerComponent implements InMemoryComponent {
       if (testZkServer != null) {
         testZkServer.close();
       }
-    }catch(Exception e){}
+    }catch(Exception e){
+      // Do nothing
+    }
+  }
+
+  @Override
+  public void reset() {
+    if (testZkServer != null) {
+      try {
+        FileUtils.deleteDirectory(testZkServer.getTempDirectory());
+      } catch (IOException e) {
+        // Do nothing
+      }
+    }
   }
 }

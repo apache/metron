@@ -19,13 +19,12 @@ package org.apache.metron.rest.service.impl;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.StellarFunctionInfo;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.common.dsl.functions.resolver.SingletonFunctionResolver;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.StellarFunctionInfo;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.common.field.transformation.FieldTransformations;
-import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.rest.model.StellarFunctionDescription;
 import org.apache.metron.rest.model.SensorParserContext;
 import org.apache.metron.rest.service.StellarService;
@@ -73,7 +72,7 @@ public class StellarServiceImpl implements StellarService {
   public Map<String, Object> applyTransformations(SensorParserContext sensorParserContext) {
     JSONObject sampleJson = new JSONObject(sensorParserContext.getSampleData());
     sensorParserContext.getSensorParserConfig().getFieldTransformations().forEach(fieldTransformer -> {
-              fieldTransformer.transformAndUpdate(sampleJson, sensorParserContext.getSensorParserConfig().getParserConfig(), Context.EMPTY_CONTEXT());
+              fieldTransformer.transformAndUpdate(sampleJson, Context.EMPTY_CONTEXT(), sensorParserContext.getSensorParserConfig().getParserConfig());
             }
     );
     return sampleJson;

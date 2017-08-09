@@ -20,30 +20,27 @@
 
 package org.apache.metron.profiler.bolt;
 
-import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
+import java.io.UnsupportedEncodingException;
+import java.lang.invoke.MethodHandles;
+import java.util.Map;
+import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
+import org.apache.metron.common.configuration.profiler.ProfileConfig;
+import org.apache.metron.common.configuration.profiler.ProfilerConfig;
+import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
+import org.apache.metron.stellar.common.StellarStatefulExecutor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
-import org.apache.commons.lang.StringUtils;
-import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
-import org.apache.metron.common.configuration.profiler.ProfileConfig;
-import org.apache.metron.common.configuration.profiler.ProfilerConfig;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.profiler.stellar.StellarExecutor;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.UnsupportedEncodingException;
-import java.util.Map;
-
-import static java.lang.String.format;
 
 /**
  * The bolt responsible for filtering incoming messages and directing
@@ -52,7 +49,7 @@ import static java.lang.String.format;
  */
 public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(ProfileSplitterBolt.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private OutputCollector collector;
 
@@ -64,7 +61,7 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
   /**
    * Executes Stellar code.
    */
-  private StellarExecutor executor;
+  private StellarStatefulExecutor executor;
 
   /**
    * @param zookeeperUrl The Zookeeper URL that contains the configuration for this bolt.
@@ -78,7 +75,7 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
     super.prepare(stormConf, context, collector);
     this.collector = collector;
     this.parser = new JSONParser();
-    this.executor = new DefaultStellarExecutor();
+    this.executor = new DefaultStellarStatefulExecutor();
     initializeStellar();
   }
 
@@ -98,7 +95,7 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
       doExecute(input);
 
     } catch (IllegalArgumentException | ParseException | UnsupportedEncodingException e) {
-      LOG.error(format("Unexpected failure: message='%s', tuple='%s'", e.getMessage(), input), e);
+      LOG.error("Unexpected failure: message='{}', tuple='{}'", e.getMessage(), input, e);
       collector.reportError(e);
 
     } finally {
@@ -114,13 +111,15 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
 
     // ensure there is a valid profiler configuration
     ProfilerConfig config = getProfilerConfig();
-    if(config == null) {
-      throw new IllegalArgumentException("Fatal: Unable to find valid profiler definition");
-    }
+    if(config != null) {
 
-    // apply the message to each of the profile definitions
-    for (ProfileConfig profile: config.getProfiles()) {
-      applyProfile(profile, input, message);
+      // apply the message to each of the profile definitions
+      for (ProfileConfig profile: config.getProfiles()) {
+        applyProfile(profile, input, message);
+      }
+
+    } else {
+      LOG.warn("No Profiler configuration found.  Nothing to do.");
     }
   }
 
@@ -160,11 +159,11 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
     declarer.declare(new Fields("entity", "profile", "message"));
   }
 
-  public StellarExecutor getExecutor() {
+  public StellarStatefulExecutor getExecutor() {
     return executor;
   }
 
-  public void setExecutor(StellarExecutor executor) {
+  public void setExecutor(StellarStatefulExecutor executor) {
     this.executor = executor;
   }
 }

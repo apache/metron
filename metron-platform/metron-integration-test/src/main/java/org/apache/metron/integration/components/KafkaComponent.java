@@ -19,6 +19,17 @@ package org.apache.metron.integration.components;
 
 
 import com.google.common.base.Function;
+import java.lang.invoke.MethodHandles;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.logging.Level;
 import kafka.api.FetchRequest;
 import kafka.api.FetchRequestBuilder;
 import kafka.common.TopicExistsException;
@@ -29,12 +40,16 @@ import kafka.javaapi.FetchResponse;
 import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.message.MessageAndOffset;
-import kafka.server.*;
+import kafka.server.KafkaConfig;
+import kafka.server.KafkaServer;
+import kafka.utils.MockTime;
 import kafka.utils.TestUtils;
+import kafka.utils.Time;
+import kafka.utils.ZKStringSerializer$;
+import kafka.utils.ZkUtils;
+import org.I0Itec.zkclient.ZkClient;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import kafka.utils.*;
-import org.I0Itec.zkclient.ZkClient;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.wrapper.AdminUtilsWrapper;
 import org.apache.metron.integration.wrapper.TestUtilsWrapper;
@@ -42,14 +57,10 @@ import org.apache.metron.test.utils.UnitTestHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.logging.Level;
-
 
 public class KafkaComponent implements InMemoryComponent {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(KafkaComponent.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   public static class Topic {
     public int numPartitions;
@@ -142,7 +153,7 @@ public class KafkaComponent implements InMemoryComponent {
   @Override
   public void start() {
     // setup Zookeeper
-    zookeeperConnectString = topologyProperties.getProperty("kafka.zk");
+    zookeeperConnectString = topologyProperties.getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY);
 
     zkClient = new ZkClient(zookeeperConnectString, 30000, 30000, ZKStringSerializer$.MODULE$);
 
@@ -179,13 +190,46 @@ public class KafkaComponent implements InMemoryComponent {
   public void stop() {
     shutdownConsumer();
     shutdownProducers();
+
     if(kafkaServer != null) {
-      kafkaServer.shutdown();
-      kafkaServer.awaitShutdown();
+      try {
+        kafkaServer.shutdown();
+        kafkaServer.awaitShutdown();
+      }
+      catch(Throwable fnf) {
+        if(!fnf.getMessage().contains("Error writing to highwatermark file")) {
+          throw fnf;
+        }
+      }
     }
     if(zkClient != null) {
+      // Delete data in ZK to avoid startup interference.
+      for(Topic topic : topics) {
+        zkClient.deleteRecursive(ZkUtils.getTopicPath(topic.name));
+      }
+
+      zkClient.deleteRecursive(ZkUtils.BrokerIdsPath());
+      zkClient.deleteRecursive(ZkUtils.BrokerTopicsPath());
+      zkClient.deleteRecursive(ZkUtils.ConsumersPath());
+      zkClient.deleteRecursive(ZkUtils.ControllerPath());
+      zkClient.deleteRecursive(ZkUtils.ControllerEpochPath());
+      zkClient.deleteRecursive(ZkUtils.ReassignPartitionsPath());
+      zkClient.deleteRecursive(ZkUtils.DeleteTopicsPath());
+      zkClient.deleteRecursive(ZkUtils.PreferredReplicaLeaderElectionPath());
+      zkClient.deleteRecursive(ZkUtils.BrokerSequenceIdPath());
+      zkClient.deleteRecursive(ZkUtils.IsrChangeNotificationPath());
+      zkClient.deleteRecursive(ZkUtils.EntityConfigPath());
+      zkClient.deleteRecursive(ZkUtils.EntityConfigChangesPath());
       zkClient.close();
     }
+  }
+
+  @Override
+  public void reset() {
+    // Unfortunately, there's no clean way to (quickly) purge or delete a topic.
+    // At least without killing and restarting broker anyway.
+    stop();
+    start();
   }
 
   public List<byte[]> readMessages(String topic) {

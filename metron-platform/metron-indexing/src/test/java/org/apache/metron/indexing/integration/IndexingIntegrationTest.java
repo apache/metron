@@ -117,24 +117,25 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
   @Test
   public void test() throws Exception {
     cleanHdfsDir(hdfsDir);
-    final String dateFormat = "yyyy.MM.dd.HH";
     final List<byte[]> inputMessages = TestUtils.readSampleData(sampleParsedPath);
     final Properties topologyProperties = new Properties() {{
-      setProperty("kafka.start", "UNCOMMITTED_EARLIEST");
-      setProperty("kafka.security.protocol", "PLAINTEXT");
-      setProperty("storm.auto.credentials", "[]");
-      setProperty("indexing.workers", "1");
-      setProperty("indexing.executors", "0");
-      setProperty("index.input.topic", Constants.INDEXING_TOPIC);
-      setProperty("index.error.topic", ERROR_TOPIC);
-      setProperty("index.date.format", dateFormat);
-      setProperty("topology.auto-credentials", "[]");
+      setProperty("indexing_kafka_start", "UNCOMMITTED_EARLIEST");
+      setProperty("kafka_security_protocol", "PLAINTEXT");
+      setProperty("topology_auto_credentials", "[]");
+      setProperty("indexing_workers", "1");
+      setProperty("indexing_acker_executors", "0");
+      setProperty("indexing_topology_worker_childopts", "");
+      setProperty("indexing_topology_max_spout_pending", "");
+      setProperty("indexing_input_topic", Constants.INDEXING_TOPIC);
+      setProperty("indexing_error_topic", ERROR_TOPIC);
       //HDFS settings
-
-      setProperty("bolt.hdfs.rotation.policy", TimedRotationPolicy.class.getCanonicalName());
-      setProperty("bolt.hdfs.rotation.policy.count", "1");
-      setProperty("bolt.hdfs.rotation.policy.units", "DAYS");
-      setProperty("index.hdfs.output", hdfsDir);
+      setProperty("bolt_hdfs_rotation_policy", TimedRotationPolicy.class.getCanonicalName());
+      setProperty("bolt_hdfs_rotation_policy_count", "1");
+      setProperty("bolt_hdfs_rotation_policy_units", "DAYS");
+      setProperty("metron_apps_indexed_hdfs_dir", hdfsDir);
+      setProperty("indexing_kafka_spout_parallelism", "1");
+      setProperty("indexing_writer_parallelism", "1");
+      setProperty("hdfs_writer_parallelism", "1");
     }};
     setAdditionalProperties(topologyProperties);
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
@@ -167,6 +168,7 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
             .withTopologyLocation(new File(fluxPath))
             .withTopologyName("test")
+            .withTemplateLocation(new File(getTemplatePath()))
             .withTopologyProperties(topologyProperties)
             .build();
 
@@ -196,6 +198,8 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
       // on the field name converter
       assertInputDocsMatchOutputs(inputDocs, docs, getFieldNameConverter());
       assertInputDocsMatchOutputs(inputDocs, readDocsFromDisk(hdfsDir), x -> x);
+    } catch(Throwable e) {
+      e.printStackTrace();
     }
     finally {
       if(runner != null) {
@@ -302,4 +306,5 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
   public abstract InMemoryComponent getSearchComponent(final Properties topologyProperties) throws Exception;
   public abstract void setAdditionalProperties(Properties topologyProperties);
   public abstract String cleanField(String field);
+  public abstract String getTemplatePath();
 }
