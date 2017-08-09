@@ -227,7 +227,7 @@ public class ExtensionManager {
       // fail registration because we don't support multiple versions of any other types
       if (!multipleVersionsAllowed(type)) {
         throw new IllegalStateException("Attempt was made to load " + className + " from "
-            + bundle.getBundleDetails().getCoordinates().getCoordinate()
+            + bundle.getBundleDetails().getCoordinates().getCoordinates()
             + " but that class name is already loaded/registered from " + registeredBundle
             .getBundleDetails().getCoordinates()
             + " and multiple versions are not supported for this type"
@@ -415,7 +415,7 @@ public class ExtensionManager {
         builder.append("\n\t").append(type.getName());
 
         for (final Bundle bundle : bundles) {
-          final String coordinate = bundle.getBundleDetails().getCoordinates().getCoordinate();
+          final String coordinate = bundle.getBundleDetails().getCoordinates().getCoordinates();
           final String workingDir = bundle.getBundleDetails().getBundleFile().getName().toString();
           builder.append("\n\t\t").append(coordinate).append(" || ").append(workingDir);
         }

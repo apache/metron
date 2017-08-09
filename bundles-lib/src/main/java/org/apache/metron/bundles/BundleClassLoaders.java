@@ -177,7 +177,7 @@ public final class BundleClassLoaders {
           }
 
           // prevent the application from starting when there are two BUNDLEs with same group, id, and version
-          final String bundleCoordinate = bundleDetail.getCoordinates().getCoordinate();
+          final String bundleCoordinate = bundleDetail.getCoordinates().getCoordinates();
           if (bundleCoordinatesToBundleFile.containsKey(bundleCoordinate)) {
             final String existingBundleWorkingDir = bundleCoordinatesToBundleFile
                 .get(bundleCoordinate);
@@ -220,7 +220,7 @@ public final class BundleClassLoaders {
                   bundleDetail.getBundleFile(), ClassLoader.getSystemClassLoader());
             } else {
               final String dependencyCoordinateStr = bundleDependencyCoordinate
-                  .getCoordinate();
+                  .getCoordinates();
 
               // if the declared dependency has already been loaded
               if (coordinateClassLoaderLookup.containsKey(dependencyCoordinateStr)) {
@@ -245,15 +245,15 @@ public final class BundleClassLoaders {
 
                     // if that bundle is loaded, use it
                     if (coordinateClassLoaderLookup
-                        .containsKey(coordinate.getCoordinate())) {
+                        .containsKey(coordinate.getCoordinates())) {
                       logger.warn(String.format(
                           "While loading '%s' unable to locate exact BUNDLE dependency '%s'. Only found one possible match '%s'. Continuing...",
-                          bundleDetail.getCoordinates().getCoordinate(),
+                          bundleDetail.getCoordinates().getCoordinates(),
                           dependencyCoordinateStr,
-                          coordinate.getCoordinate()));
+                          coordinate.getCoordinates()));
 
                       final ClassLoader bundleDependencyClassLoader = coordinateClassLoaderLookup
-                          .get(coordinate.getCoordinate());
+                          .get(coordinate.getCoordinates());
                       potentialBundleClassLoader = createBundleClassLoader(
                           fileSystemManager, bundleDetail.getBundleFile(),
                           bundleDependencyClassLoader);
@@ -270,7 +270,7 @@ public final class BundleClassLoaders {
                   .put(bundleDetail.getBundleFile().getURL().toURI().toString(),
                       new Bundle(bundleDetail, bundleClassLoader));
               coordinateClassLoaderLookup
-                  .put(bundleDetail.getCoordinates().getCoordinate(),
+                  .put(bundleDetail.getCoordinates().getCoordinates(),
                       bundleClassLoader);
               bundleDetailsIter.remove();
             }

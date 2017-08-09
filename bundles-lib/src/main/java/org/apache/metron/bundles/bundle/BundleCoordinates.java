@@ -21,73 +21,76 @@ package org.apache.metron.bundles.bundle;
  */
 public class BundleCoordinates {
 
-    public static final String DEFAULT_GROUP = "default";
-    public static final String DEFAULT_VERSION = "unversioned";
+  public static final String DEFAULT_GROUP = "default";
+  public static final String DEFAULT_VERSION = "unversioned";
 
-    public static final BundleCoordinates UNKNOWN_COORDINATE = new BundleCoordinates(DEFAULT_GROUP, "unknown", DEFAULT_VERSION);
+  public static final BundleCoordinates UNKNOWN_COORDINATE = new BundleCoordinates(DEFAULT_GROUP,
+      "unknown", DEFAULT_VERSION);
 
-    private final String group;
-    private final String id;
-    private final String version;
-    private final String coordinate;
+  private final String group;
+  private final String id;
+  private final String version;
+  private final String coordinates;
 
-    public BundleCoordinates(final String group, final String id, final String version) {
-        this.group = isBlank(group) ? DEFAULT_GROUP : group;
-        this.id = id;
-        this.version = isBlank(version) ? DEFAULT_VERSION : version;
+  public BundleCoordinates(final String group, final String id, final String version) {
+    this.group = isBlank(group) ? DEFAULT_GROUP : group;
+    this.id = id;
+    this.version = isBlank(version) ? DEFAULT_VERSION : version;
 
-        if (isBlank(id)) {
-            throw new IllegalStateException("Id is required for BundleCoordinates");
-        }
-
-        if(this.group.contains(":") || this.id.contains(":") || this.version.contains(":")) {
-            throw new IllegalStateException(String.format("Invalid coordinates: cannot contain : character group[%s] id[%s] version[%s]",this.group,this.id,this.version));
-        }
-        this.coordinate = this.group + ":" + this.id + ":" + this.version;
+    if (isBlank(id)) {
+      throw new IllegalStateException("Id is required for BundleCoordinates");
     }
 
-    private boolean isBlank(String str) {
-        return str == null || str.trim().length() == 0;
+    if (this.group.contains(":") || this.id.contains(":") || this.version.contains(":")) {
+      throw new IllegalStateException(String
+          .format("Invalid coordinates: cannot contain : character group[%s] id[%s] version[%s]",
+              this.group, this.id, this.version));
+    }
+    this.coordinates = this.group + ":" + this.id + ":" + this.version;
+  }
+
+  private boolean isBlank(String str) {
+    return str == null || str.trim().length() == 0;
+  }
+
+  public String getGroup() {
+    return group;
+  }
+
+  public String getId() {
+    return id;
+  }
+
+  public String getVersion() {
+    return version;
+  }
+
+  public final String getCoordinates() {
+    return coordinates;
+  }
+
+  @Override
+  public String toString() {
+    return coordinates;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
     }
 
-    public String getGroup() {
-        return group;
+    if (!(obj instanceof BundleCoordinates)) {
+      return false;
     }
 
-    public String getId() {
-        return id;
-    }
+    final BundleCoordinates other = (BundleCoordinates) obj;
+    return getCoordinates().equals(other.getCoordinates());
+  }
 
-    public String getVersion() {
-        return version;
-    }
-
-    public final String getCoordinate() {
-        return coordinate;
-    }
-
-    @Override
-    public String toString() {
-        return coordinate;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-
-        if (!(obj instanceof BundleCoordinates)) {
-            return false;
-        }
-
-        final BundleCoordinates other = (BundleCoordinates) obj;
-        return getCoordinate().equals(other.getCoordinate());
-    }
-
-    @Override
-    public int hashCode() {
-        return 37 * this.coordinate.hashCode();
-    }
+  @Override
+  public int hashCode() {
+    return 37 * this.coordinates.hashCode();
+  }
 
 }

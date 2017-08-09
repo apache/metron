@@ -79,7 +79,7 @@ public class BundleClassLoadersTest {
     Assert.assertEquals(1, bundles.size());
     for (Bundle thisBundle : bundles) {
       Assert.assertEquals("org.apache.metron:metron-parser-bar-bundle:0.4.1",
-          thisBundle.getBundleDetails().getCoordinates().getCoordinate());
+          thisBundle.getBundleDetails().getCoordinates().getCoordinates());
     }
 
 
@@ -106,7 +106,7 @@ public class BundleClassLoadersTest {
     Assert.assertEquals(1, bundles.size());
     for (Bundle thisBundle : bundles) {
       Assert.assertEquals("org.apache.metron:metron-parser-foo-bundle:0.4.1",
-          thisBundle.getBundleDetails().getCoordinates().getCoordinate());
+          thisBundle.getBundleDetails().getCoordinates().getCoordinates());
     }
   }
 }
