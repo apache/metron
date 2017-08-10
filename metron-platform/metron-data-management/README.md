@@ -97,6 +97,11 @@ Consider the following config for importing STIX documents.  This is a threat in
 format, so it is particularly relevant and attractive data to import for our purposes.  Because STIX is
 a standard format, there is no need to specify the schema or how to interpret the documents.
 
+We support the versions of Stix and Cybox supported by
+[java-stix](https://github.com/STIXProject/java-stix/tree/v1.2.0.2):
+* Stix - [1.2](https://github.com/STIXProject/schemas/blob/356cc4f6b06625465f0808388eb166807313b4e0/stix_core.xsd) and earlier
+* Cybox - [2.1](https://github.com/CybOXProject/schemas/blob/97beb32c376a9223e91b52cb3e4c8d2af6baf786/cybox_core.xsd) and earlier
+
 We support a subset of STIX messages for importation:
 
 | STIX Type | Specific Type | Enrichment Type Name |
