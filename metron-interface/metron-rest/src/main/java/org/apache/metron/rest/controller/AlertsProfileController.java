@@ -20,6 +20,10 @@ package org.apache.metron.rest.controller;
 
 import static org.apache.metron.rest.MetronRestConstants.SECURITY_ROLE_ADMIN;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.AlertsProfile;
 import org.apache.metron.rest.service.AlertsProfileService;
@@ -40,6 +44,9 @@ public class AlertsProfileController {
   @Autowired
   private AlertsProfileService alertsProfileService;
 
+  @ApiOperation(value = "Retrieves the current user's alerts profile")
+  @ApiResponses(value = {@ApiResponse(message = "Alerts profile", code = 200),
+      @ApiResponse(message = "The current user does not have an alerts profile", code = 404)})
   @RequestMapping(method = RequestMethod.GET)
   ResponseEntity<AlertsProfile> get() throws RestException {
     AlertsProfile alertsProfile = alertsProfileService.get();
@@ -51,21 +58,43 @@ public class AlertsProfileController {
   }
 
   @Secured({"ROLE_" + SECURITY_ROLE_ADMIN})
+  @ApiOperation(value = "Retrieves all users' alerts profiles.  Only users that are part of "
+      + "the \"ROLE_ADMIN\" role are allowed to get all alerts profiles.")
+  @ApiResponses(value = {@ApiResponse(message = "List of all alerts profiles", code = 200),
+      @ApiResponse(message =
+          "The current user does not have permission to get all alerts profiles", code = 403)})
   @RequestMapping(value = "/all", method = RequestMethod.GET)
   ResponseEntity<Iterable<AlertsProfile>> findAll() throws RestException {
     return new ResponseEntity<>(alertsProfileService.findAll(), HttpStatus.OK);
   }
 
   @RequestMapping(method = RequestMethod.POST)
-  ResponseEntity<AlertsProfile> save(@RequestBody AlertsProfile alertsProfile)
+  @ApiOperation(value = "Creates or updates the current user's alerts profile")
+  @ApiResponses(value = {
+      @ApiResponse(message = "Alerts profile updated. Returns saved alerts profile.", code = 200),
+      @ApiResponse(message = "Alerts profile created. Returns saved alerts profile.", code = 201)})
+  ResponseEntity<AlertsProfile> save(@ApiParam(name = "alertsProfile", value =
+      "The alerts profile to be saved", required = true) @RequestBody AlertsProfile alertsProfile)
       throws RestException {
-    AlertsProfile savedAlertsProfile = alertsProfileService.save(alertsProfile);
-    return new ResponseEntity<>(savedAlertsProfile, HttpStatus.OK);
+    if (alertsProfileService.get() == null) {
+      return new ResponseEntity<>(alertsProfileService.save(alertsProfile), HttpStatus.CREATED);
+    } else {
+      return new ResponseEntity<>(alertsProfileService.save(alertsProfile), HttpStatus.OK);
+    }
   }
 
   @Secured({"ROLE_" + SECURITY_ROLE_ADMIN})
+  @ApiOperation(value = "Deletes a user's alerts profile.  Only users that are part of "
+      + "the \"ROLE_ADMIN\" role are allowed to delete user alerts profiles.")
+  @ApiResponses(value = {@ApiResponse(message = "Alerts profile was deleted", code = 200),
+      @ApiResponse(message = "The current user does not have permission to delete alerts profiles",
+          code = 403),
+      @ApiResponse(message = "Alerts profile could not be found", code = 404)})
   @RequestMapping(value = "/{user}", method = RequestMethod.DELETE)
-  ResponseEntity<Void> delete(@PathVariable String user) throws RestException {
+  ResponseEntity<Void> delete(
+      @ApiParam(name = "user", value = "The user whose prolife will be deleted", required = true)
+      @PathVariable String user)
+      throws RestException {
     if (alertsProfileService.delete(user)) {
       return new ResponseEntity<>(HttpStatus.OK);
     } else {

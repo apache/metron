@@ -52,8 +52,9 @@ public class AlertsProfileControllerIntegrationTest {
 
   /**
    * { "tableColumns": ["user1_field"], "savedSearches": [ { "name": "user1 search 1",
-   * "searchRequest": { "from": 0, "indices": ["bro"], "query": "*", "size": 5 } }, { "name": "user1
-   * search 2", "searchRequest": { "from": 10, "indices": ["snort"], "query": "*", "size": 10 } } ]
+   * "searchRequest": { "from": 0, "indices": ["bro"], "query": "*", "size": 5 } },
+   * { "name": "user1 search 2", "searchRequest": { "from": 10, "indices": ["snort"],
+   * "query": "*", "size": 10 } } ]
    * }
    */
   @Multiline
@@ -138,6 +139,12 @@ public class AlertsProfileControllerIntegrationTest {
     this.mockMvc.perform(post(url).with(httpBasic(user1, password)).with(csrf())
         .contentType(MediaType.parseMediaType("application/json;charset=UTF-8"))
         .content(user1ProfileJson))
+        .andExpect(status().isCreated())
+        .andExpect(content().json(user1ProfileJson));
+
+    this.mockMvc.perform(post(url).with(httpBasic(user1, password)).with(csrf())
+        .contentType(MediaType.parseMediaType("application/json;charset=UTF-8"))
+        .content(user1ProfileJson))
         .andExpect(status().isOk())
         .andExpect(content().json(user1ProfileJson));
 
@@ -159,7 +166,7 @@ public class AlertsProfileControllerIntegrationTest {
     this.mockMvc.perform(post(url).with(httpBasic(user2, password)).with(csrf())
         .contentType(MediaType.parseMediaType("application/json;charset=UTF-8"))
         .content(user2ProfileJson))
-        .andExpect(status().isOk())
+        .andExpect(status().isCreated())
         .andExpect(content().json(user2ProfileJson));
 
     this.mockMvc.perform(get(url).with(httpBasic(user1, password)))

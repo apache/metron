@@ -61,4 +61,29 @@ public class AlertsProfile {
   public void setSavedSearches(List<SavedSearch> savedSearches) {
     this.savedSearches = savedSearches;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    AlertsProfile that = (AlertsProfile) o;
+
+    return id != null ? id.equals(that.id)
+        : that.id == null && (tableColumns != null ? tableColumns.equals(that.tableColumns)
+            : that.tableColumns == null && (savedSearches != null ? savedSearches
+                .equals(that.savedSearches) : that.savedSearches == null));
+  }
+
+  @Override
+  public int hashCode() {
+    int result = id != null ? id.hashCode() : 0;
+    result = 31 * result + (tableColumns != null ? tableColumns.hashCode() : 0);
+    result = 31 * result + (savedSearches != null ? savedSearches.hashCode() : 0);
+    return result;
+  }
 }

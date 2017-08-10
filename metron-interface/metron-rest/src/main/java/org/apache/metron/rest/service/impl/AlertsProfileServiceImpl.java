@@ -29,8 +29,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class AlertsProfileServiceImpl implements AlertsProfileService {
 
-  @Autowired
   private AlertsProfileRepository alertsProfileRepository;
+
+  @Autowired
+  public AlertsProfileServiceImpl(AlertsProfileRepository alertsProfileRepository) {
+    this.alertsProfileRepository = alertsProfileRepository;
+  }
 
   @Override
   public AlertsProfile get() {
