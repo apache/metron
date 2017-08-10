@@ -19,7 +19,6 @@ package org.apache.metron.dataloads.extractor.stix;
 
 import com.google.common.base.Splitter;
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.stix.types.ObjectTypeHandler;
 import org.apache.metron.dataloads.extractor.stix.types.ObjectTypeHandlers;
@@ -31,15 +30,18 @@ import org.mitre.cybox.cybox_2.Observables;
 import org.mitre.stix.common_1.IndicatorBaseType;
 import org.mitre.stix.indicator_2.Indicator;
 import org.mitre.stix.stix_1.STIXPackage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class StixExtractor implements Extractor {
-    private static final Logger LOG = Logger.getLogger(StixExtractor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     Map<String, Object> config;
     @Override
     public Iterable<LookupKV> extract(String line) throws IOException {
@@ -53,9 +55,9 @@ public class StixExtractor implements Extractor {
                     ObjectTypeHandler handler = ObjectTypeHandlers.getHandlerByInstance(props);
                     if (handler != null) {
                         if(LOG.isDebugEnabled()) {
-                            LOG.debug("Found " + handler.getTypeClass().getCanonicalName()
-                                    + " for properties " + props.toXMLString()
-                            );
+                            LOG.debug("Found {} for properties {}"
+                                    , handler.getTypeClass().getCanonicalName()
+                                    , props.toXMLString());
                         }
                         Iterable<LookupKV> extractions = handler.extract(props, config);
                         for(LookupKV extraction : extractions) {
@@ -63,8 +65,9 @@ public class StixExtractor implements Extractor {
                         }
                     }
                     else if(LOG.isDebugEnabled()) {
-                        LOG.debug("Did not find a handler"
-                                + " for properties " + props.toXMLString() + " of type " + props.getClass()
+                        LOG.debug("Did not find a handler for properties {} of type {}"
+                                , props.toXMLString()
+                                , props.getClass()
                         );
                     }
                 }
