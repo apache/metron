@@ -1,0 +1,100 @@
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at
+  http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+<div class="container-fluid px-0">
+    <div class="mrow">
+        <div class="col-md-12 px-0">
+            <div class="col-padding-50">
+                <div class="input-group search">
+                    <span class="input-group-btn">
+                        <button class="btn btn-secondary btn-saved-searches" type="button" (click)="showSavedSearches()">Searches</button>
+                    </span>
+                    <div appAceEditor style="width:100%;" placeholder="Search Alerts" [text]="queryBuilder.displayQuery" (textChanged)="onSearch($event)"> </div>
+                    <span class="input-group-btn">
+                        <button class="btn btn-secondary btn-search-clear" type="button" (click)="onClear()"></button>
+                    </span>
+                    <span class="input-group-btn">
+                        <button class="btn btn-secondary btn-search" type="button" (click)="onSearch(alertSearchDirective.getSeacrhText())"></button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="col-fixed-50">
+            <span class="save-button" (click)="showSaveSearch()">
+            </span>
+        </div>
+    </div>
+    <div class="mrow">
+        <div class="col-md-9 px-0">
+            <span class="col-form-label-lg"> Alerts ({{alerts.length}} of {{pagingData.total}}) </span>
+        </div>
+        <div class="col-md-3 px-0">
+            <div class="pull-right" style="position: relative; display: block;">
+                <div class="btn settings">
+                    <i #settingsIcon class="fa fa-sliders" aria-hidden="true"></i>
+                </div>
+                <app-configure-rows [srcElement]="settingsIcon" [tableMetaData]="tableMetaData" [(interval)]="refreshInterval" [(size)]="pagingData.size" (configRowsChange)="onConfigRowsChange()" > </app-configure-rows>
+                <div class="btn pause-play" (click)="onPausePlay()">
+                    <i *ngIf="!pauseRefresh" class="fa fa-pause" aria-hidden="true"></i>
+                    <i *ngIf="pauseRefresh" class="fa fa-play" aria-hidden="true"></i>
+                </div>
+                <div class="dropdown d-inline-block">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">ACTIONS</button>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processOpen()">Open</span>
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processDismiss()">Dismiss</span>
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processEscalate()">Escalate</span>
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processResolve()">Resolve</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid nav-content">
+    <div class="row">
+        <div class="col-sm-12 pl-0">
+            <div class="table-wrapper">
+                <table class="table table-sm" metron-config-table [data]="alerts" [cellSelectable]="true" (onSort)="onSort($event)" style="white-space: nowrap;" (window:resize)="onResize()" #table>
+                    <thead>
+                    <tr>
+                        <th style="width:55px"> <metron-config-sorter [type]="'number'" [sortBy]="threatScoreFieldName"> Score </metron-config-sorter> </th>
+                        <th *ngFor="let column of alertsColumnsToDisplay" [id]="column.name"> <metron-config-sorter [type]="column.type" [sortBy]="column.name" title="{{column.name}}"> {{ column.name | columnNameTranslate | centerEllipses:15 }}</metron-config-sorter> </th>
+                        <th style="width:25px"><i class="fa fa-cog configure-table-icon" (click)="showConfigureTable()"></i></th>
+                        <th style="width:25px"><input id="select-deselect-all" class="fontawesome-checkbox" type="checkbox" (click)="selectAllRows($event)"><label for="select-deselect-all"></label></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr *ngFor="let alert of alerts" (click)="showDetails($event, alert)" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1}">
+                        <td (click)="onAddFilter(threatScoreFieldName, alert._source[threatScoreFieldName])">
+                            <div appAlertSeverity [severity]="alert._source[threatScoreFieldName]"> <a> {{ alert._source[threatScoreFieldName] ? alert._source[threatScoreFieldName] : '-' }} </a> </div>
+                        </td>
+                        <td *ngFor="let column of alertsColumnsToDisplay" #cell>
+                            <a (click)="onAddFilter(column.name, getValue(alert, column, false))" title="{{getValue(alert, column, true)}}" style="color:#689AA9">{{ getValue(alert, column, true) | centerEllipses:20:cell }}</a>
+                        </td>
+                        <td></td>
+                        <td><input id="{{ alert._id }}" class="fontawesome-checkbox" type="checkbox" name="{{alert._id}}" (click)="selectRow($event, alert)" [checked]="selectedAlerts.indexOf(alert) != -1"><label attr.for="{{ alert._id }}"></label></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+                <div clas="row">
+                    <div class="col-md-3 push-md-5">
+                        <metron-table-pagination [(pagingData)]="pagingData" (pageChange)="onPageChange()"> </metron-table-pagination>
+                    </div>
+                </div>
+        </div>
+    </div>
+</div>
+

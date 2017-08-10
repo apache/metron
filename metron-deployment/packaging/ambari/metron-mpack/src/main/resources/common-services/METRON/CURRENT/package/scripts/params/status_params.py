@@ -28,7 +28,7 @@ config = Script.get_config()
 metron_user = config['configurations']['metron-env']['metron_user']
 
 # Parsers
-parsers = config['configurations']['metron-env']['parsers']
+parsers = config['configurations']['metron-parsers-env']['parsers']
 metron_home = config['configurations']['metron-env']['metron_home']
 metron_zookeeper_config_dir = config['configurations']['metron-env']['metron_zookeeper_config_dir']
 metron_zookeeper_config_path = format('{metron_home}/{metron_zookeeper_config_dir}')
@@ -38,25 +38,34 @@ rest_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_rest_
 
 # Enrichment
 metron_enrichment_topology = 'enrichment'
-metron_enrichment_topic = 'enrichments'
-
-enrichment_table = 'enrichment'
-enrichment_cf = 't'
-threatintel_table = 'threatintel'
-threatintel_cf = 't'
-
-# Indexing
-metron_indexing_topology = config['configurations']['metron-env']['metron_indexing_topology']
-indexing_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_configured'
-indexing_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_acl_configured'
-indexing_hdfs_perm_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_hdfs_perm_configured'
-
-# Enrichment
+enrichment_input_topic = config['configurations']['metron-enrichment-env']['enrichment_input_topic']
 enrichment_kafka_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_kafka_configured'
 enrichment_kafka_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_kafka_acl_configured'
 enrichment_hbase_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_hbase_configured'
 enrichment_hbase_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_hbase_acl_configured'
 enrichment_geo_configured_flag_file = metron_zookeeper_config_path + '/../metron_enrichment_geo_configured'
+
+enrichment_table = 'enrichment'
+enrichment_cf = 't'
+threatintel_table = 'threatintel'
+threatintel_cf = 't'
+update_table = 'metron_update'
+update_cf = 't'
+
+# Indexing
+metron_indexing_topology = 'indexing'
+indexing_input_topic = config['configurations']['metron-indexing-env']['indexing_input_topic']
+indexing_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_configured'
+indexing_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_acl_configured'
+indexing_hdfs_perm_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_hdfs_perm_configured'
+indexing_hbase_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_hbase_configured'
+indexing_hbase_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_hbase_acl_configured'
+
+# REST
+metron_rest_port = config['configurations']['metron-rest-env']['metron_rest_port']
+
+# UI
+metron_management_ui_port = config['configurations']['metron-management-ui-env']['metron_management_ui_port']
 
 # Storm
 storm_rest_addr = config['configurations']['metron-env']['storm_rest_addr']

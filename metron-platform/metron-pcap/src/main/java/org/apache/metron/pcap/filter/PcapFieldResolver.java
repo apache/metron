@@ -35,4 +35,9 @@ public class PcapFieldResolver implements VariableResolver {
     return fieldsMap.get(variable);
   }
 
+  @Override
+  public boolean exists(String variable) {
+    return fieldsMap.containsKey(variable);
+  }
+
 }

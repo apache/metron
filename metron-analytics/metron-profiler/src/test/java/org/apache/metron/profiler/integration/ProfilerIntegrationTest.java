@@ -23,14 +23,13 @@ package org.apache.metron.profiler.integration;
 import com.google.common.base.Joiner;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.math.util.MathUtils;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.SerDeUtils;
-import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.UnableToStartException;
@@ -40,7 +39,6 @@ import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.metron.statistics.OnlineStatisticsProvider;
-import org.apache.metron.test.mock.MockHTable;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -49,8 +47,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -119,18 +115,6 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   private static final String inputTopic = Constants.INDEXING_TOPIC;
   private static final String outputTopic = "profiles";
 
-  /**
-   * A TableProvider that allows us to mock HBase.
-   */
-  public static class MockTableProvider implements TableProvider, Serializable {
-
-    MockHTable.Provider provider = new MockHTable.Provider();
-
-    @Override
-    public HTableInterface getTable(Configuration config, String tableName) throws IOException {
-      return provider.getTable(config, tableName);
-    }
-  }
 
   /**
    * Tests the first example contained within the README.
@@ -316,13 +300,13 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("profiler.hbase.batch", "10");
       setProperty("profiler.hbase.flush.interval.seconds", "1");
       setProperty("profiler.profile.ttl", "20");
-      setProperty("hbase.provider.impl", "" + MockTableProvider.class.getName());
+      setProperty("hbase.provider.impl", "" + MockHBaseTableProvider.class.getName());
       setProperty("storm.auto.credentials", "[]");
       setProperty("kafka.security.protocol", "PLAINTEXT");
     }};
 
     // create the mock table
-    profilerTable = (MockHTable) MockHTable.Provider.addToCache(tableName, columnFamily);
+    profilerTable = (MockHTable) MockHBaseTableProvider.addToCache(tableName, columnFamily);
 
     zkComponent = getZKServerComponent(topologyProperties);
 
@@ -363,7 +347,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
 
   @AfterClass
   public static void tearDownAfterClass() throws Exception {
-    MockHTable.Provider.clear();
+    MockHBaseTableProvider.clear();
     if (runner != null) {
       runner.stop();
     }
@@ -372,12 +356,12 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   @Before
   public void setup() {
     // create the mock table
-    profilerTable = (MockHTable) MockHTable.Provider.addToCache(tableName, columnFamily);
+    profilerTable = (MockHTable) MockHBaseTableProvider.addToCache(tableName, columnFamily);
   }
 
   @After
   public void tearDown() throws Exception {
-    MockHTable.Provider.clear();
+    MockHBaseTableProvider.clear();
     profilerTable.clear();
     if (runner != null) {
       runner.reset();

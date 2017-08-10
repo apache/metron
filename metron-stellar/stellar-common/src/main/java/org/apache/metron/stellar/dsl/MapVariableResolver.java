@@ -27,23 +27,35 @@ public class MapVariableResolver implements VariableResolver {
   List<Map> variableMappings = new ArrayList<>();
 
   public MapVariableResolver(Map variableMappingOne, Map... variableMapping) {
-    if(variableMappingOne != null) {
+    if (variableMappingOne != null) {
       variableMappings.add(variableMappingOne);
     }
-    for(Map m : variableMapping) {
-      if(m != null) {
-        this.variableMappings.add(m);
+    add(variableMapping);
+  }
+
+  public void add(Map... ms) {
+    if (ms != null) {
+      for (Map m : ms) {
+        if (m != null) {
+          this.variableMappings.add(m);
+        }
       }
     }
   }
+
   @Override
   public Object resolve(String variable) {
-    for(Map variableMapping : variableMappings) {
+    for (Map variableMapping : variableMappings) {
       Object o = variableMapping.get(variable);
-      if(o != null) {
+      if (o != null) {
         return o;
       }
     }
     return null;
+  }
+
+  @Override
+  public boolean exists(String variable) {
+    return true;
   }
 }

@@ -69,7 +69,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class BulkWriterComponent<MESSAGE_T> {
   public static final Logger LOG = LoggerFactory
-            .getLogger(BulkWriterComponent.class);
+          .getLogger(MethodHandles.lookup().lookupClass());
   private Map<String, Collection<Tuple>> sensorTupleMap = new HashMap<>();
   private Map<String, List<MESSAGE_T>> sensorMessageMap = new HashMap<>();
   private Map<String, long[]> batchTimeoutMap = new HashMap<>();
@@ -106,7 +106,7 @@ public class BulkWriterComponent<MESSAGE_T> {
   public void commit(Iterable<Tuple> tuples) {
     tuples.forEach(t -> collector.ack(t));
     if(LOG.isDebugEnabled()) {
-      LOG.debug("Acking " + Iterables.size(tuples) + " tuples");
+      LOG.debug("Acking {} tuples", Iterables.size(tuples));
     }
   }
 
@@ -121,7 +121,7 @@ public class BulkWriterComponent<MESSAGE_T> {
             .withErrorType(Constants.ErrorType.INDEXING_ERROR)
             .withThrowable(e);
     if(!Iterables.isEmpty(tuples)) {
-      LOG.error("Failing " + Iterables.size(tuples) + " tuples", e);
+      LOG.error("Failing {} tuples", Iterables.size(tuples), e);
     }
     tuples.forEach(t -> error.addRawMessage(messageGetStrategy.get(t)));
     ErrorUtils.handleError(collector, error);
@@ -160,6 +160,7 @@ public class BulkWriterComponent<MESSAGE_T> {
                    ) throws Exception
   {
     if (!configurations.isEnabled(sensorType)) {
+      collector.ack(tuple);
       return;
     }
     int batchSize = configurations.getBatchSize(sensorType);
@@ -261,7 +262,7 @@ public class BulkWriterComponent<MESSAGE_T> {
     }
     long endTime = System.currentTimeMillis();
     long elapsed = endTime - startTime;
-    LOG.debug("Bulk batch for sensor " + sensorType + " completed in ~" + elapsed + " ns");
+    LOG.debug("Bulk batch for sensor {} completed in ~{} ns", sensorType, elapsed);
   }
 
   // Flushes all queues older than their batchTimeouts.

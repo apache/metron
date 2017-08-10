@@ -17,9 +17,9 @@
  */
 package org.apache.metron.stellar.common;
 
-import org.antlr.v4.runtime.ParserRuleContext;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.Context.ActivityType;
 import org.apache.metron.stellar.dsl.Token;
 import org.apache.metron.stellar.dsl.VariableResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
@@ -353,7 +353,12 @@ public class StellarCompiler extends StellarBaseListener {
   public void exitVariable(StellarParser.VariableContext ctx) {
     final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
-      tokenDeque.push(new Token<>(state.variableResolver.resolve(ctx.getText()), Object.class, context));
+      String varName = ctx.getText();
+      if(state.context.getActivityType().equals(ActivityType.PARSE_ACTIVITY) && !state.variableResolver.exists(varName)) {
+        // when parsing, missing variables are an error!
+        throw new ParseException(String.format("variable: %s is not defined",varName));
+      }
+      tokenDeque.push(new Token<>(state.variableResolver.resolve(varName), Object.class, context));
     }, DeferredFunction.class, context));
     expression.variablesUsed.add(ctx.getText());
   }

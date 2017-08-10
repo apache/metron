@@ -21,6 +21,7 @@ package org.apache.metron.stellar.dsl.functions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections4.map.HashedMap;
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -43,10 +44,10 @@ public class StringFunctionsTest {
       put("empty", "");
       put("spaced", "metron is great");
     }};
-    Assert.assertTrue(runPredicate("true and TO_UPPER(foo) == 'CASEY'", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo in [ TO_LOWER('CASEY'), 'david' ]", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("TO_UPPER(foo) in [ TO_UPPER('casey'), 'david' ] and IN_SUBNET(ip, '192.168.0.0/24')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("TO_LOWER(foo) in [ TO_UPPER('casey'), 'david' ]", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("true and TO_UPPER(foo) == 'CASEY'", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("foo in [ TO_LOWER('CASEY'), 'david' ]", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("TO_UPPER(foo) in [ TO_UPPER('casey'), 'david' ] and IN_SUBNET(ip, '192.168.0.0/24')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("TO_LOWER(foo) in [ TO_UPPER('casey'), 'david' ]", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
   }
 
   @Test
@@ -59,10 +60,10 @@ public class StringFunctionsTest {
       put("spaced", "metron is great");
       put("myList", ImmutableList.of("casey", "apple", "orange"));
     }};
-    Assert.assertTrue(runPredicate("foo in SPLIT(bar, '.')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("foo in SPLIT(ip, '.')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("foo in myList", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("foo not in myList", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("foo in SPLIT(bar, '.')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("foo in SPLIT(ip, '.')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("foo in myList", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("foo not in myList", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
   }
 
   @Test
@@ -188,7 +189,14 @@ public class StringFunctionsTest {
     Assert.assertEquals("000234",         run("FORMAT('%06d', 234)", vars));
     Assert.assertEquals("03 2,2017",      run("FORMAT('%1$tm %1$te,%1$tY', cal)", vars));
     Assert.assertEquals("234 > 3",        run("FORMAT('%d > %d', x, y)", vars));
-    Assert.assertEquals("missing: null",  run("FORMAT('missing: %d', missing)", vars));
+
+    boolean thrown = false;
+    try {
+      run("FORMAT('missing: %d', missing)", vars);
+    } catch (ParseException pe) {
+      thrown = true;
+    }
+    Assert.assertTrue(thrown);
   }
 
   /**
@@ -219,7 +227,6 @@ public class StringFunctionsTest {
     Assert.assertEquals("abc",  run("CHOMP(msg)", ImmutableMap.of("msg", "abc\r\n")));
     Assert.assertEquals("",     run("CHOMP(msg)", ImmutableMap.of("msg", "\n")));
     Assert.assertEquals("",     run("CHOMP('')", new HashedMap()));
-    Assert.assertEquals(null,   run("CHOMP(msg)", new HashedMap()));
     Assert.assertEquals(null,   run("CHOMP(null)", new HashedMap()));
 
     // No input
@@ -231,6 +238,14 @@ public class StringFunctionsTest {
       Assert.assertTrue(pe.getMessage().contains("missing argument"));
     }
     Assert.assertTrue(thrown);
+    thrown = false;
+
+    // Variable missing
+    try{
+      run("CHOMP(msg)", new HashedMap());
+    } catch (ParseException pe) {
+      thrown = true;
+    }
     thrown = false;
 
     // Integer input
@@ -253,7 +268,6 @@ public class StringFunctionsTest {
   public void testChop() throws Exception {
     Assert.assertEquals("ab",   run("CHOP('abc')", new HashedMap()));
     Assert.assertEquals(null,   run("CHOP(null)", new HashedMap()));
-    Assert.assertEquals(null,   run("CHOP(msg)", new HashedMap()));
     Assert.assertEquals("abc",  run("CHOP(msg)", ImmutableMap.of("msg", "abc\r\n")));
     Assert.assertEquals("",     run("CHOP(msg)", ImmutableMap.of("msg", "")));
     Assert.assertEquals("",     run("CHOP(msg)", ImmutableMap.of("msg", "\n")));
@@ -268,6 +282,14 @@ public class StringFunctionsTest {
       Assert.assertTrue(pe.getMessage().contains("missing argument"));
     }
     Assert.assertTrue(thrown);
+    thrown = false;
+
+    // Variable missing
+    try{
+      run("CHOMP(msg)", new HashedMap());
+    } catch (ParseException pe) {
+      thrown = true;
+    }
     thrown = false;
 
     // Integer input

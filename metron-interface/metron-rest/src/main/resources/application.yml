@@ -40,3 +40,12 @@ curator:
     time: 1000
   max:
     retries: 3
+
+search:
+  max:
+    results: 1000
+
+index:
+  dao:
+  # By default, we use the ElasticsearchDao and HBaseDao for backing updates.
+     impl: org.apache.metron.elasticsearch.dao.ElasticsearchDao,org.apache.metron.indexing.dao.HBaseDao

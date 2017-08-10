@@ -38,6 +38,8 @@ import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.writer.AbstractWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -45,6 +47,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkMessageWriter<JSONObject>, Serializable {
+
+  private static final Logger LOG = LoggerFactory.getLogger(SimpleHbaseEnrichmentWriter.class);
+
   public enum Configurations {
     HBASE_TABLE("shew.table")
     ,HBASE_CF("shew.cf")
@@ -62,13 +67,18 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
       return key;
     }
     public Object get(Map<String, Object> config) {
-      return config.get(key);
+      Object o = config.get(key);
+      if (o == null) {
+        LOG.warn("No config object found for key: '{}'", key);
+      }
+      return o;
     }
     public <T> T getAndConvert(Map<String, Object> config, Class<T> clazz) {
       Object o = get(config);
       if(o != null) {
         return ConversionUtils.convert(o, clazz);
       }
+      LOG.warn("No object of type '{}' found in config", clazz);
       return null;
     }
   }
@@ -94,11 +104,12 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
     }
 
     public String transform(final JSONObject message) {
-      return
-      keys.stream().map( x -> {
+      String transformedMessage = keys.stream().map(x -> {
         Object o = message.get(x);
         return o == null?"":o.toString();
       }).collect(Collectors.joining(delim));
+      LOG.debug("Transformed message: '{}'", transformedMessage);
+      return transformedMessage;
     }
   }
   private transient EnrichmentConverter converter;
@@ -120,6 +131,11 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
     if(converter == null) {
       converter = new EnrichmentConverter();
     }
+    LOG.debug("Sensor: '{}': {Provider: '{}', Converter: '{}'}", sensorName, getClassName(provider), getClassName(converter));
+  }
+
+  private String getClassName(Object object) {
+    return object == null ? "" : object.getClass().getName();
   }
 
   @Override
@@ -150,6 +166,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
         if(table != null) {
           table.close();
         }
+        LOG.debug("Fetching table '{}', column family: '{}'", tableName, cf);
         table = getProvider().getTable(conf, tableName);
         this.tableName = tableName;
         this.cf = cf;
@@ -169,9 +186,11 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
   private List<String> getColumns(Object keyColumnsObj, boolean allowNull) {
     Object o = keyColumnsObj;
     if(allowNull && keyColumnsObj == null) {
+      LOG.debug("No key columns were specified");
       return Collections.emptyList();
     }
     if(o instanceof String) {
+      LOG.debug("Key column: '{}'", o);
       return ImmutableList.of(o.toString());
     }
     else if (o instanceof List) {
@@ -179,6 +198,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
       for(Object key : (List)o) {
         keyCols.add(key.toString());
       }
+      LOG.debug("Key columns: '{}'", String.join(",", keyCols));
       return keyCols;
     }
     else {
@@ -190,7 +210,9 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
     Object o = Configurations.KEY_COLUMNS.get(config);
     KeyTransformer transformer = null;
     if(keyTransformer != null && keyTransformer.getKey() == o) {
-      return keyTransformer.getValue();
+      transformer = keyTransformer.getValue();
+      LOG.debug("Transformer found for key '{}': '{}'", o, transformer);
+      return transformer;
     }
     else {
       List<String> keys = getColumns(o, false);
@@ -198,6 +220,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
       String delim = (delimObj == null || !(delimObj instanceof String))?null:delimObj.toString();
       transformer = new KeyTransformer(keys, delim);
       keyTransformer = new AbstractMap.SimpleEntry<>(o, transformer);
+      LOG.debug("Transformer found for keys '{}' and delimiter '{}': '{}'", String.join(",", keys), delim, transformer);
       return transformer;
     }
   }
@@ -213,7 +236,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
       for (Object kv : message.entrySet()) {
         Map.Entry<Object, Object> entry = (Map.Entry<Object, Object>) kv;
         if (!keyColumns.contains(entry.getKey())) {
-          metadata.put(entry.getKey().toString(), entry.getValue());
+          addMetadataEntry(metadata, entry);
         }
       }
       return new EnrichmentValue(metadata);
@@ -222,11 +245,18 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
       for (Object kv : message.entrySet()) {
         Map.Entry<Object, Object> entry = (Map.Entry<Object, Object>) kv;
         if (valueColumns.contains(entry.getKey())) {
-          metadata.put(entry.getKey().toString(), entry.getValue());
+          addMetadataEntry(metadata, entry);
         }
       }
       return new EnrichmentValue(metadata);
     }
+  }
+
+  private void addMetadataEntry(Map<String, Object> metadata, Map.Entry<Object, Object> entry) {
+    String key = entry.getKey().toString();
+    Object value = entry.getValue();
+    LOG.debug("Adding metadata: {Key: '{}', Value: '{}'}", key, value);
+    metadata.put(key, value);
   }
 
   private EnrichmentKey getKey(JSONObject message, KeyTransformer transformer, String enrichmentType) {
@@ -260,6 +290,7 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
       }
       Put put = converter.toPut(this.cf, key, value);
       if(put != null) {
+        LOG.debug("Put: {Column Family: '{}', Key: '{}', Value: '{}'}", this.cf, key, value);
         puts.add(put);
       }
     }

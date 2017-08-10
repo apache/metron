@@ -18,15 +18,16 @@
 
 package org.apache.metron.writer.hdfs;
 
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.log4j.Logger;
 import org.apache.storm.hdfs.common.rotation.RotationAction;
-
-import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SourceAwareMoveAction implements RotationAction{
-  private static final Logger LOG = Logger.getLogger(SourceAwareMoveAction.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private String destination;
 
   public SourceAwareMoveAction toDestination(String destDir){
@@ -41,7 +42,7 @@ public class SourceAwareMoveAction implements RotationAction{
   @Override
   public void execute(FileSystem fileSystem, Path filePath) throws IOException {
     Path destPath = new Path(new Path(destination, getSource(filePath)), filePath.getName());
-    LOG.info("Moving file " + filePath + " to " + destPath);
+    LOG.info("Moving file {} to {}", filePath, destPath);
     boolean success = fileSystem.rename(filePath, destPath);
   }
 }

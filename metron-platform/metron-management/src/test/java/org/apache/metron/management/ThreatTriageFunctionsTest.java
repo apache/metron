@@ -22,6 +22,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.RiskLevelRule;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.common.shell.StellarExecutor;
@@ -62,7 +63,7 @@ public class ThreatTriageFunctionsTest {
 
   private Object run(String rule, Map<String, Object> variables) {
     StellarProcessor processor = new StellarProcessor();
-    return processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
+    return processor.parse(rule, new DefaultVariableResolver(x -> variables.get(x),x -> variables.containsKey(x)), StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 
   @Test
@@ -268,9 +269,12 @@ Aggregation: MAX*/
 
   @Test
   public void testPrintNull() {
+    Map<String,Object> variables = new HashMap<String,Object>(){{
+      put("config",null);
+    }};
     String out = (String) run(
             "THREAT_TRIAGE_PRINT(config)"
-            , new HashMap<>()
+            , variables
     );
     Assert.assertEquals(out, testPrintEmptyExpected);
   }
