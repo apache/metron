@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static org.apache.metron.profiler.client.stellar.ProfilerConfig.*;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.*;
 
 /**
  * Tests the GetProfile class.

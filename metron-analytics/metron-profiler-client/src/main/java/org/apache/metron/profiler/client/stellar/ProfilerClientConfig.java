@@ -25,7 +25,7 @@ import org.apache.metron.hbase.HTableProvider;
 
 import java.util.Map;
 
-public enum ProfilerConfig {
+public enum ProfilerClientConfig {
   /**
    * A global property that defines the name of the HBase table used to store profile data.
    */
@@ -61,7 +61,7 @@ public enum ProfilerConfig {
   String key;
   Object defaultValue;
   Class<?> valueType;
-  ProfilerConfig(String key, Object defaultValue, Class<?> valueType) {
+  ProfilerClientConfig(String key, Object defaultValue, Class<?> valueType) {
     this.key = key;
     this.defaultValue = defaultValue;
     this.valueType = valueType;
