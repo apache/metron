@@ -1,0 +1,58 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import 'bootstrap';
+import {CollapseComponentData} from './collapse-component-data';
+
+@Component({
+  selector: 'metron-collapse',
+  templateUrl: './collapse.component.html',
+  styleUrls: ['./collapse.component.scss']
+})
+export class CollapseComponent implements OnInit {
+
+  static counter = 0;
+  uniqueId = '';
+
+  @Input() data = new CollapseComponentData();
+  @Input() fontSize = 14;
+  @Input() titleSeperator = false;
+  @Input() deleteOption = false;
+  @Input() show = false;
+  @Input() strLength = 30;
+
+  @Output() onSelect = new EventEmitter<{name: string, key: string}>();
+  @Output() onDelete = new EventEmitter<{name: string, key: string}>();
+
+  constructor() {
+    this.uniqueId = 'CollapseComponent' + '_' + ++CollapseComponent.counter;
+  }
+
+  ngOnInit() {
+  }
+
+  onDeleteClick($event, key: string) {
+    this.onDelete.emit({name: this.data.groupName, key: key});
+    $event.stopPropagation();
+    return false;
+  }
+
+  onSelectClick(key: string) {
+    this.onSelect.emit({name: this.data.groupName, key: key});
+  }
+}
