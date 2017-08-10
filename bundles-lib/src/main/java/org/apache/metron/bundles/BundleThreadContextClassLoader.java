@@ -178,7 +178,7 @@ public class BundleThreadContextClassLoader extends URLClassLoader {
         try {
             final List<Bundle> bundles = ExtensionManager.getBundles(implementationClassName);
             if (bundles.size() == 0) {
-                throw new IllegalStateException(String.format("The specified implementation class '%s' is not known to this nifi.", implementationClassName));
+                throw new IllegalStateException(String.format("The specified implementation class '%s' is not known.", implementationClassName));
             }
             if (bundles.size() > 1) {
                 throw new IllegalStateException(String.format("More than one bundle was found for the specified implementation class '%s', only one is allowed.", implementationClassName));
