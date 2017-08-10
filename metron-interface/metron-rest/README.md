@@ -81,11 +81,12 @@ These are set in the `/etc/sysconfig/metron` file.
 
 ## Database setup
 
-The REST application persists data in a relational database and requires a dedicated database user and database (see https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html for more detail).
+The REST application persists data in a relational database and requires a dedicated database user and database (see https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html for more detail).  
+Spring uses Hibernate as the default ORM framework but another framework is needed becaused Hibernate is not compatible with the Apache 2 license.  For this reason Metron uses [EclipseLink](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html#boot-features-embedded-database-support).  See the [Spring Data JPA - EclipseLink](https://github.com/spring-projects/spring-data-examples/tree/master/jpa/eclipselink) project for an example on how to configure EclipseLink in Spring.
 
 ### Development
 
-The REST application comes with embedded database support for development purposes (https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html#boot-features-embedded-database-support).
+The REST application comes with [embedded database support](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html#boot-features-embedded-database-support) for development purposes.
 
 For example, edit these variables in `/etc/sysconfig/metron` before starting the application to configure H2:
 ```
@@ -184,6 +185,10 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 
 |            |
 | ---------- |
+| [ `GET /api/v1/alerts/profile`](#get-apiv1alertsprofile)|
+| [ `GET /api/v1/alerts/profile/all`](#get-apiv1alertsprofileall)|
+| [ `DELETE /api/v1/alerts/profile`](#delete-apiv1alertsprofile)|
+| [ `POST /api/v1/alerts/profile`](#post-apiv1alertsprofile)|
 | [ `GET /api/v1/global/config`](#get-apiv1globalconfig)|
 | [ `DELETE /api/v1/global/config`](#delete-apiv1globalconfig)|
 | [ `POST /api/v1/global/config`](#post-apiv1globalconfig)|
@@ -243,6 +248,36 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/storm/{name}`](#get-apiv1stormname)|
 | [ `GET /api/v1/storm/supervisors`](#get-apiv1stormsupervisors)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
+
+### `GET /api/v1/alerts/profile`
+  * Description: Retrieves the current user's alerts profile
+  * Returns:
+    * 200 - Alerts profile
+    * 404 - The current user does not have an alerts profile
+    
+### `GET /api/v1/alerts/profile/all`
+  * Description: Retrieves all users' alerts profiles.  Only users that are part of the "ROLE_ADMIN" role are allowed to get all alerts profiles.
+  * Returns:
+    * 200 - List of all alerts profiles
+    * 403 - The current user does not have permission to get all alerts profiles
+
+### `DELETE /api/v1/alerts/profile`
+  * Description: Deletes a user's alerts profile.  Only users that are part of the "ROLE_ADMIN" role are allowed to delete user alerts profiles.
+  * Input:
+    * user - The user whose prolife will be deleted
+  * Returns:
+    * 200 - Alerts profile was deleted
+    * 403 - The current user does not have permission to delete alerts profiles
+    * 404 - Alerts profile could not be found
+
+### `POST /api/v1/alerts/profile`
+  * Description: Creates or updates the current user's alerts profile
+  * Input:
+    * alertsProfile - The alerts profile to be saved
+  * Returns:
+    * 200 - Alerts profile updated. Returns saved alerts profile.
+    * 201 - Alerts profile created. Returns saved alerts profile.
+
 
 ### `GET /api/v1/global/config`
   * Description: Retrieves the current Global Config from Zookeeper
