@@ -19,6 +19,7 @@ package org.apache.metron.dataloads.extractor.stix;
 
 import com.google.common.base.Splitter;
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 import org.apache.metron.dataloads.extractor.Extractor;
 import org.apache.metron.dataloads.extractor.stix.types.ObjectTypeHandler;
 import org.apache.metron.dataloads.extractor.stix.types.ObjectTypeHandlers;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 
 public class StixExtractor implements Extractor {
+    private static final Logger LOG = Logger.getLogger(StixExtractor.class);
     Map<String, Object> config;
     @Override
     public Iterable<LookupKV> extract(String line) throws IOException {
@@ -50,10 +52,20 @@ public class StixExtractor implements Extractor {
                 if(props != null) {
                     ObjectTypeHandler handler = ObjectTypeHandlers.getHandlerByInstance(props);
                     if (handler != null) {
+                        if(LOG.isDebugEnabled()) {
+                            LOG.debug("Found " + handler.getTypeClass().getCanonicalName()
+                                    + " for properties " + props.toXMLString()
+                            );
+                        }
                         Iterable<LookupKV> extractions = handler.extract(props, config);
                         for(LookupKV extraction : extractions) {
                             ret.add(extraction);
                         }
+                    }
+                    else if(LOG.isDebugEnabled()) {
+                        LOG.debug("Did not find a handler"
+                                + " for properties " + props.toXMLString() + " of type " + props.getClass()
+                        );
                     }
                 }
             }
