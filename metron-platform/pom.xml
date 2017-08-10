@@ -41,6 +41,7 @@
 		</license>
 	</licenses>
 	<modules>
+		<module>metron-hbase-client</module>
 		<module>metron-common</module>
 		<module>metron-enrichment</module>
 		<module>metron-solr</module>
