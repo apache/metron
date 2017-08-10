@@ -107,6 +107,7 @@ We support a subset of STIX messages for importation:
 | Address   | MAC           | address:MAC          |
 | Domain    | FQDN          | domain:FQDN          |
 | Hostname  |               | hostname             |
+| URI       |               | uriobjecttype        |
 
 
 NOTE: The enrichment type will be used as the type above.
