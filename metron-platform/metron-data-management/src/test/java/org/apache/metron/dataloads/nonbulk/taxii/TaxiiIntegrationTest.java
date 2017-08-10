@@ -27,6 +27,8 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.util.GenericOptionsParser;
+import org.apache.metron.dataloads.extractor.Extractor;
+import org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator;
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
@@ -94,7 +96,8 @@ public class TaxiiIntegrationTest {
 
         final MockHBaseTableProvider provider = new MockHBaseTableProvider();
         final Configuration config = HBaseConfiguration.create();
-        TaxiiHandler handler = new TaxiiHandler(TaxiiConnectionConfig.load(taxiiConnectionConfig), new StixExtractor(), config ) {
+        Extractor extractor = new TransformFilterExtractorDecorator(new StixExtractor());
+        TaxiiHandler handler = new TaxiiHandler(TaxiiConnectionConfig.load(taxiiConnectionConfig), extractor, config ) {
             @Override
             protected synchronized HTableInterface createHTable(String tableInfo) throws IOException {
                 return provider.addToCache("threat_intel", "cf");
