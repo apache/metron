@@ -23,6 +23,7 @@ public enum ObjectTypeHandlers {
       ADDRESS(new AddressHandler())
     ,HOSTNAME(new HostnameHandler())
     ,DOMAINNAME(new DomainHandler())
+    ,URI(new URIHandler())
     ,;
    ObjectTypeHandler _handler;
    ObjectTypeHandlers(ObjectTypeHandler handler) {
