@@ -69,7 +69,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class BulkWriterComponent<MESSAGE_T> {
   public static final Logger LOG = LoggerFactory
-          .getLogger(MethodHandles.lookup().lookupClass());
+            .getLogger(BulkWriterComponent.class);
   private Map<String, Collection<Tuple>> sensorTupleMap = new HashMap<>();
   private Map<String, List<MESSAGE_T>> sensorMessageMap = new HashMap<>();
   private Map<String, long[]> batchTimeoutMap = new HashMap<>();
