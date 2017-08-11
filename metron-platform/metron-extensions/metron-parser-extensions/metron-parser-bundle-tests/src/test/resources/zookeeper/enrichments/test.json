@@ -1,0 +1,75 @@
+{
+  "enrichment": {
+    "fieldMap": {
+      "geo": [
+        "ip_src_addr",
+        "ip_dst_addr"
+      ],
+      "host": [
+        "ip_src_addr",
+        "ip_dst_addr"
+      ],
+      "hbaseEnrichment": [
+        "ip_src_addr",
+        "ip_dst_addr"
+      ],
+      "stellar" : {
+        "config" : {
+          "numeric" : {
+                      "foo": "1 + 1"
+                      }
+          ,"ALL_CAPS" : "TO_UPPER(source.type)"
+          ,"src_enrichment" : {
+            "src_classification" : "ENRICHMENT_GET('playful_classification', ip_src_addr, 'enrichments', 'cf')"
+          }
+          ,"dst_enrichment" : {
+            "dst_classification" : "ENRICHMENT_GET('playful_classification', ip_dst_addr, 'enrichments', 'cf')"
+          }
+        }
+      }
+    }
+  ,"fieldToTypeMap": {
+      "ip_src_addr": [
+        "playful_classification"
+      ],
+      "ip_dst_addr": [
+        "playful_classification"
+      ]
+    }
+  },
+  "threatIntel": {
+    "fieldMap": {
+      "hbaseThreatIntel": [
+        "ip_src_addr",
+        "ip_dst_addr"
+      ],
+      "stellar" : {
+        "config" : {
+          "bar" : "TO_UPPER(source.type)"
+         ,"is_src_malicious" : "ENRICHMENT_EXISTS('malicious_ip', ip_src_addr, 'threat_intel', 'cf')"
+        }
+      }
+    },
+    "fieldToTypeMap": {
+      "ip_src_addr": [
+        "malicious_ip"
+      ],
+      "ip_dst_addr": [
+        "malicious_ip"
+      ]
+    },
+    "triageConfig" : {
+      "riskLevelRules" : [
+        {
+          "name" : "The name of the triage rule",
+          "comment" : "A description of the triage rule",
+          "rule" : "ip_src_addr == '10.0.2.3' or ip_dst_addr == '10.0.2.3'",
+          "score": 10,
+          "reason": "'Reason field'"
+        }
+      ],
+      "aggregator" : "MAX"
+    }
+  }
+}
+

@@ -70,8 +70,17 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
   private transient MessageGetStrategy messageGetStrategy;
   public ParserBolt( String zookeeperUrl
                    , String sensorType
-                   , MessageParser<JSONObject> parser
                    , WriterHandler writer
+  )
+  {
+    super(zookeeperUrl, sensorType);
+    this.writer = writer;
+  }
+
+  public ParserBolt( String zookeeperUrl
+          , String sensorType
+          , MessageParser<JSONObject> parser
+          , WriterHandler writer
   )
   {
     super(zookeeperUrl, sensorType);
@@ -95,6 +104,16 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
     super.prepare(stormConf, context, collector);
     messageGetStrategy = MessageGetters.DEFAULT_BYTES_FROM_POSITION.get();
     this.collector = collector;
+
+    if(this.parser == null) {
+      Optional<MessageParser<JSONObject>> optParser = ParserLoader.loadParser(stormConf, client, getSensorParserConfig());
+      if (optParser.isPresent()) {
+        this.parser = optParser.get();
+        this.parser.configure(getSensorParserConfig().getParserConfig());
+      } else {
+        throw new IllegalStateException("Failed to load parser " + getSensorParserConfig().getParserClassName());
+      }
+    }
     initializeStellar();
     if(getSensorParserConfig() != null && filter == null) {
       getSensorParserConfig().getParserConfig().putIfAbsent("stellarContext", stellarContext);

@@ -94,8 +94,7 @@ public class SensorIndexingConfigControllerIntegrationTest {
 
     this.mockMvc.perform(get(sensorIndexingConfigUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(content().bytes("{}".getBytes()));
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")));
 
     this.mockMvc.perform(post(sensorIndexingConfigUrl + "/broTest").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
             .andExpect(status().isCreated())

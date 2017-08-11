@@ -25,6 +25,7 @@ import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.zookeeper.KeeperException;
 
+import javax.swing.text.html.Option;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -45,6 +46,7 @@ public class ConfigUploadComponent implements InMemoryComponent {
   private String profilerConfigPath;
   private Optional<Consumer<ConfigUploadComponent>> postStartCallback = Optional.empty();
   private Optional<String> globalConfig = Optional.empty();
+  private Optional<byte[]> bundleProperties = Optional.empty();
   private Map<String, SensorParserConfig> parserSensorConfigs = new HashMap<>();
 
   public ConfigUploadComponent withConnectionString(String connectionString) {
@@ -87,6 +89,11 @@ public class ConfigUploadComponent implements InMemoryComponent {
 
   public ConfigUploadComponent withGlobalConfig(String globalConfig) {
     this.globalConfig = Optional.ofNullable(globalConfig);
+    return this;
+  }
+
+  public ConfigUploadComponent withBundleProperties(byte[] propBytes){
+    this.bundleProperties = Optional.ofNullable(propBytes);
     return this;
   }
 
@@ -156,6 +163,10 @@ public class ConfigUploadComponent implements InMemoryComponent {
       if(globalConfig.isPresent()) {
         writeGlobalConfigToZookeeper(globalConfig.get().getBytes(), zookeeperUrl);
       }
+      if(bundleProperties.isPresent()){
+        writeGlobalBundlePropertiesToZookeeper(bundleProperties.get(),zookeeperUrl);
+      }
+
       if(postStartCallback.isPresent()) {
         postStartCallback.get().accept(this);
       }

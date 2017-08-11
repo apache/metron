@@ -235,8 +235,8 @@ public class GrokServiceImplTest {
 
   @Test
   public void getStatementFromClasspathShouldReturnStatement() throws Exception {
-    String expected = FileUtils.readFileToString(new File("../../metron-platform/metron-parsers/src/main/resources/patterns/squid"));
-    assertEquals(expected, grokService.getStatementFromClasspath("/patterns/squid"));
+    String expected = FileUtils.readFileToString(new File("../../metron-platform/metron-parsers/src/main/resources/patterns/common"));
+    assertEquals(expected, grokService.getStatementFromClasspath("/patterns/common"));
   }
 
   @Test

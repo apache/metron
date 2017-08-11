@@ -24,6 +24,7 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.configuration.extensions.ParserExtensionConfig;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.common.utils.JSONUtils;
@@ -70,6 +71,17 @@ public class ConfigurationsUtils {
     writeToZookeeper(GLOBAL.getZookeeperRoot(), globalConfig, client);
   }
 
+  public static void writeGlobalBundlePropertiesToZookeeper(byte[] bundleProperties, String zookeeperUrl) throws Exception{
+    try(CuratorFramework client = getClient(zookeeperUrl)){
+      client.start();
+      writeGlobalBundlePropertiesToZookeeper(bundleProperties,client);
+    }
+  }
+
+  public static void writeGlobalBundlePropertiesToZookeeper(byte[] bundleProperties, CuratorFramework client) throws Exception{
+    writeToZookeeper(Constants.ZOOKEEPER_ROOT + "/bundle.properties", bundleProperties, client);
+  }
+
   public static void writeProfilerConfigToZookeeper(byte[] config, CuratorFramework client) throws Exception {
     PROFILER.deserialize(new String(config));
     writeToZookeeper(PROFILER.getZookeeperRoot(), config, client);
@@ -92,9 +104,30 @@ public class ConfigurationsUtils {
     writeToZookeeper(PARSER.getZookeeperRoot() + "/" + sensorType, configData, client);
   }
 
+  public static void writeParserExtensionConfigToZookeeper(String extensionID, byte[] configData, CuratorFramework client) throws Exception {
+    ParserExtensionConfig c = (ParserExtensionConfig) PARSER_EXTENSION.deserialize(new String(configData));
+    writeToZookeeper(PARSER_EXTENSION.getZookeeperRoot() + "/" + extensionID, configData, client);
+  }
+
+  public static void writeParserExtensionConfigToZookeeper(String extensionID, ParserExtensionConfig parserExtensionConfig, String zookeeperUrl) throws Exception {
+    writeParserExtensionConfigToZookeeper(extensionID, JSONUtils.INSTANCE.toJSON(parserExtensionConfig), zookeeperUrl);
+  }
+
+  public static void writeParserExtensionConfigToZookeeper(String extensionID, byte[] configData, String zookeeperUrl) throws Exception {
+    try(CuratorFramework client = getClient(zookeeperUrl)) {
+      client.start();
+      writeParserExtensionConfigToZookeeper(extensionID, configData, client);
+    }
+  }
+
+  public static void deleteParsesrExtensionConfig(String extensionID, CuratorFramework client)throws Exception{
+    deleteFromZookeeper(PARSER_EXTENSION.getZookeeperRoot() + "/" + extensionID, client);
+  }
+
   public static void writeSensorIndexingConfigToZookeeper(String sensorType, Map<String, Object> sensorIndexingConfig, String zookeeperUrl) throws Exception {
     writeSensorIndexingConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSON(sensorIndexingConfig), zookeeperUrl);
   }
+
 
   public static void writeSensorIndexingConfigToZookeeper(String sensorType, byte[] configData, String zookeeperUrl) throws Exception {
     try(CuratorFramework client = getClient(zookeeperUrl)) {
@@ -143,6 +176,10 @@ public class ConfigurationsUtils {
     }
   }
 
+  public static void deleteFromZookeeper(String path, CuratorFramework client) throws Exception{
+    client.delete().forPath(path);
+  }
+
   public static void updateConfigsFromZookeeper(Configurations configurations, CuratorFramework client) throws Exception {
     configurations.updateGlobalConfig(readGlobalConfigBytesFromZookeeper(client));
   }
@@ -178,6 +215,11 @@ public class ConfigurationsUtils {
   public static SensorParserConfig readSensorParserConfigFromZookeeper(String sensorType, CuratorFramework client) throws Exception {
     return JSONUtils.INSTANCE.load(new ByteArrayInputStream(readFromZookeeper(PARSER.getZookeeperRoot() + "/" + sensorType, client)), SensorParserConfig.class);
   }
+
+  public static ParserExtensionConfig readParserExtensionConfigFromZookeeper(String extensionID, CuratorFramework client) throws Exception {
+    return JSONUtils.INSTANCE.load(new ByteArrayInputStream(readFromZookeeper(PARSER_EXTENSION.getZookeeperRoot() + "/" + extensionID, client)), ParserExtensionConfig.class);
+  }
+
 
   public static byte[] readGlobalConfigBytesFromZookeeper(CuratorFramework client) throws Exception {
     return readFromZookeeper(GLOBAL.getZookeeperRoot(), client);
@@ -223,7 +265,7 @@ public class ConfigurationsUtils {
   }
 
   public static void uploadConfigsToZookeeper(String rootFilePath, CuratorFramework client) throws Exception {
-    uploadConfigsToZookeeper(rootFilePath, rootFilePath, rootFilePath, rootFilePath, rootFilePath, client);
+    uploadConfigsToZookeeper(rootFilePath, rootFilePath, rootFilePath, rootFilePath, rootFilePath,rootFilePath, client);
   }
 
   public static void uploadConfigsToZookeeper(String globalConfigPath,
@@ -232,6 +274,16 @@ public class ConfigurationsUtils {
                                               String indexingConfigPath,
                                               String profilerConfigPath,
                                               CuratorFramework client) throws Exception {
+    uploadConfigsToZookeeper(globalConfigPath,parsersConfigPath,enrichmentsConfigPath,indexingConfigPath,profilerConfigPath,null,client);
+  }
+
+  public static void uploadConfigsToZookeeper(String globalConfigPath,
+                                              String parsersConfigPath,
+                                              String enrichmentsConfigPath,
+                                              String indexingConfigPath,
+                                              String profilerConfigPath,
+                                              String parserExtensionPath,
+                                              CuratorFramework client) throws Exception {
 
     // global
     if (globalConfigPath != null) {
@@ -239,6 +291,18 @@ public class ConfigurationsUtils {
       if (globalConfig.length > 0) {
         setupStellarStatically(client, Optional.of(new String(globalConfig)));
         ConfigurationsUtils.writeGlobalConfigToZookeeper(readGlobalConfigFromFile(globalConfigPath), client);
+      }
+      final byte[] globalBundleProperties = readBundlePropertiesFromFile(globalConfigPath);
+      if (globalBundleProperties.length > 0){
+        ConfigurationsUtils.writeGlobalBundlePropertiesToZookeeper(globalBundleProperties, client);
+      }
+    }
+
+    // parser configs
+    if(parserExtensionPath != null) {
+      Map<String, byte[]> parserExtensionConfigs = readParserExtensionConfigsFromFile(parserExtensionPath);
+      for (String parserExtension : parserExtensionConfigs.keySet()) {
+        ConfigurationsUtils.writeParserExtensionConfigToZookeeper(parserExtension, parserExtensionConfigs.get(parserExtension), client);
       }
     }
 
@@ -318,6 +382,15 @@ public class ConfigurationsUtils {
     return globalConfig;
   }
 
+  public static byte[] readBundlePropertiesFromFile(String rootPath) throws IOException {
+    byte[] bundleProperties = new byte[0];
+    File configPath = new File(rootPath,"bundle.properties");
+    if(configPath.exists()){
+      bundleProperties = Files.readAllBytes(configPath.toPath());
+    }
+    return bundleProperties;
+  }
+
   public static Map<String, byte[]> readSensorParserConfigsFromFile(String rootPath) throws IOException {
     return readSensorConfigsFromFile(rootPath, PARSER);
   }
@@ -343,6 +416,20 @@ public class ConfigurationsUtils {
     }
 
     return config;
+  }
+
+  public static Map<String, byte[]> readParserExtensionConfigsFromFile(String rootPath) throws IOException {
+    Map<String, byte[]> parserExtensionConfigs = new HashMap<>();
+    File configPath = new File(rootPath, PARSER_EXTENSION.getDirectory());
+    if (configPath.exists()) {
+      File[] children = configPath.listFiles();
+      if (children != null) {
+        for (File file : children) {
+          parserExtensionConfigs.put(FilenameUtils.removeExtension(file.getName()), Files.readAllBytes(file.toPath()));
+        }
+      }
+    }
+    return parserExtensionConfigs;
   }
 
   public static Map<String, byte[]> readSensorConfigsFromFile(String rootPath, ConfigurationType configType) throws IOException {
