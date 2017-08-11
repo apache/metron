@@ -11,9 +11,9 @@ from the enrichment topology that have been enriched and storing the data in one
 By default, this topology writes out to both HDFS and one of
 Elasticsearch and Solr.
 
-Indices are written in batch and the batch size is specified in the
-[Sensor Indexing Configuration](#sensor-indexing-configuration) via the `batchSize` parameter.
-This config is variable by sensor type.
+Indices are written in batch and the batch size and batch timeout are specified in the
+[Sensor Indexing Configuration](#sensor-indexing-configuration) via the `batchSize` and `batchTimeout` parameters.
+These configs are variable by sensor type.
 
 ## Indexing Architecture
 
@@ -40,7 +40,10 @@ elasticsearch or solr and hdfs writers running.
 
 The configuration for an individual writer-specific configuration is a JSON map with the following fields:
 * `index` : The name of the index to write to (defaulted to the name of the sensor).
-* `batchSize` : The size of the batch that is written to the indices at once (defaulted to `1`).
+* `batchSize` : The size of the batch that is written to the indices at once. Defaults to `1` (no batching).
+* `batchTimeout` : The timeout after which a batch will be flushed even if batchSize has not been met.  Optional.
+If unspecified, or set to `0`, it defaults to a system-determined duration which is a fraction of the Storm 
+parameter `topology.message.timeout.secs`.  Ignored if batchSize is `1`, since this disables batching.
 * `enabled` : Whether the writer is enabled (default `true`).
 
 ### Indexing Configuration Examples
@@ -56,10 +59,12 @@ or no file at all.
 * elasticsearch writer
   * enabled
   * batch size of 1
+  * batch timeout system default
   * index name the same as the sensor
 * hdfs writer
   * enabled
   * batch size of 1
+  * batch timeout system default
   * index name the same as the sensor
 
 If a writer config is unspecified, then a warning is indicated in the
@@ -72,11 +77,13 @@ Storm console.  e.g.:
    "elasticsearch": {
       "index": "foo",
       "batchSize" : 100,
+      "batchTimeout" : 0,
       "enabled" : true 
     },
    "hdfs": {
       "index": "foo",
       "batchSize": 1,
+      "batchTimeout" : 0,
       "enabled" : true
     }
 }
@@ -84,10 +91,12 @@ Storm console.  e.g.:
 * elasticsearch writer
   * enabled
   * batch size of 100
+  * batch timeout system default
   * index name of "foo"
 * hdfs writer
   * enabled
   * batch size of 1
+  * batch timeout system default
   * index name of "foo"
 
 #### HDFS Writer turned off
@@ -100,6 +109,7 @@ Storm console.  e.g.:
    "hdfs": {
       "index": "foo",
       "batchSize": 100,
+      "batchTimeout" : 0,
       "enabled" : false
     }
 }
@@ -107,6 +117,7 @@ Storm console.  e.g.:
 * elasticsearch writer
   * enabled
   * batch size of 1
+  * batch timeout system default
   * index name of "foo"
 * hdfs writer
   * disabled
