@@ -18,13 +18,13 @@
 
 package org.apache.metron.storm.kafka.flux;
 
-import java.util.Arrays;
-import java.util.Date;
+import java.lang.invoke.MethodHandles;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.kafka.common.errors.WakeupException;
-import org.apache.log4j.Logger;
 import org.apache.storm.kafka.spout.KafkaSpout;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A thin wrapper atop the KafkaSpout to allow us to pass in the Builder rather than the SpoutConfig.
@@ -33,7 +33,7 @@ import org.apache.storm.kafka.spout.KafkaSpoutConfig;
  * @param <V>
  */
 public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
-  private static final Logger LOG = Logger.getLogger(StormKafkaSpout.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   protected KafkaSpoutConfig<K,V> _spoutConfig;
   protected AtomicBoolean isShutdown = new AtomicBoolean(false);
 
@@ -49,7 +49,7 @@ public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
     }
     catch(WakeupException we) {
       //see https://issues.apache.org/jira/browse/STORM-2184
-      LOG.warn("You can generally ignore these, as per https://issues.apache.org/jira/browse/STORM-2184 -- " + we.getMessage(), we);
+      LOG.warn("You can generally ignore these, as per https://issues.apache.org/jira/browse/STORM-2184 -- {}", we.getMessage(), we);
     }
     finally {
       isShutdown.set(true);
@@ -66,7 +66,7 @@ public class StormKafkaSpout<K, V> extends KafkaSpout<K, V> {
     }
     catch(WakeupException we) {
       //see https://issues.apache.org/jira/browse/STORM-2184
-      LOG.warn("You can generally ignore these, as per https://issues.apache.org/jira/browse/STORM-2184 -- " + we.getMessage(), we);
+      LOG.warn("You can generally ignore these, as per https://issues.apache.org/jira/browse/STORM-2184 -- {}", we.getMessage(), we);
     }
     catch(IllegalStateException ise) {
       if(ise.getMessage().contains("This consumer has already been closed")) {

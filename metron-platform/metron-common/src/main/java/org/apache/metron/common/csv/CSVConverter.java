@@ -32,6 +32,13 @@ import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
+/**
+ * Based on the parser config field `COLUMNS_KEY` the log line is
+ * transformed into a intermediate result using the CSV parser.
+ *
+ * All keys in `COLUMNS_KEY` and values extracted from the log line
+ * will be trimmed before adding to `values`.
+ */
 public class CSVConverter implements Serializable {
   public static final String COLUMNS_KEY="columns";
   public static final String SEPARATOR_KEY="separator";
@@ -53,7 +60,7 @@ public class CSVConverter implements Serializable {
     String[] tokens = parser.parseLine(line);
     Map<String, String> values = new HashMap<>();
     for(Map.Entry<String, Integer> kv : columnMap.entrySet()) {
-      values.put(kv.getKey(), tokens[kv.getValue()]);
+      values.put(kv.getKey().trim(), tokens[kv.getValue()].trim());
     }
     return values;
   }

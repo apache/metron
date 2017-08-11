@@ -18,14 +18,18 @@
 package org.apache.metron.api;
 
 
-
 import java.io.File;
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.commons.configuration.*;
+import org.apache.commons.configuration.CombinedConfiguration;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.ConfigurationRuntimeException;
+import org.apache.commons.configuration.DefaultConfigurationBuilder;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Configuration manager class which loads all 'config-definition.xml' files and
@@ -33,6 +37,7 @@ import org.apache.log4j.Logger;
  * configuration resource
  */
 public class ConfigurationManager {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /** configuration definition file name. */
   private static String DEFAULT_CONFIG_DEFINITION_FILE_NAME = "config-definition.xml";
@@ -40,9 +45,6 @@ public class ConfigurationManager {
   /** Stores a map with the configuration for each path specified. */
   private static Map<String, Configuration> configurationsCache = new HashMap<String, Configuration>();
 
-  /** The Constant LOGGER. */
-  private static final Logger LOGGER = Logger
-      .getLogger(ConfigurationManager.class);
 
   /**
    * Common method to load content of all configuration resources defined in
@@ -62,12 +64,12 @@ public class ConfigurationManager {
         return configurationsCache.get(configDefFilePath);
       }
       DefaultConfigurationBuilder builder = new DefaultConfigurationBuilder();
-      String fielPath = getConfigDefFilePath(configDefFilePath);
-      LOGGER.info("loading from 'configDefFilePath' :" + fielPath);
-      builder.setFile(new File(fielPath));
+      String filePath = getConfigDefFilePath(configDefFilePath);
+      LOGGER.info("loading from 'configDefFilePath' : {}", filePath);
+      builder.setFile(new File(filePath));
       try {
         configuration = builder.getConfiguration(true);
-        configurationsCache.put(fielPath, configuration);
+        configurationsCache.put(filePath, configuration);
       } catch (ConfigurationException|ConfigurationRuntimeException e) {
         LOGGER.info("Exception in loading property files.", e);
       }

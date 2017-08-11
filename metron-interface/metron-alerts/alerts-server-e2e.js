@@ -73,13 +73,14 @@ var searchResult = function(req, res){
       res.json({status: 'error', reason: err.toString()});
       return;
     }
-    
+
     var responseMap = {
       total: 0,
       results: obj.hits.hits
     };
     
     var filter = req.body.query;
+
     if (filter !== '*') {
       filter = filter.replace(/\\/g, '');
       var lastIndex = filter.lastIndexOf(':');

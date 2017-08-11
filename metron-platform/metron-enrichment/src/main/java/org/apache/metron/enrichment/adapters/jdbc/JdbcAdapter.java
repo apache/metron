@@ -44,7 +44,7 @@ public abstract class JdbcAdapter implements EnrichmentAdapter<CacheKey>, Serial
       try {
         isClosed = statement.isClosed() || connection.isClosed();
       } catch (SQLException e) {
-        _LOG.error("Unable to maintain open JDBC connection: " + e.getMessage(), e);
+        _LOG.error("Unable to maintain open JDBC connection: {}", e.getMessage(), e);
         isClosed = true;
       }
     }

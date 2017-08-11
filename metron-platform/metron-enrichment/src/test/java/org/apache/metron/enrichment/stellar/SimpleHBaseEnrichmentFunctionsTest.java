@@ -19,22 +19,22 @@
 package org.apache.metron.enrichment.stellar;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.stellar.common.StellarProcessor;
+
 import org.apache.metron.enrichment.converter.EnrichmentHelper;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
 import org.apache.metron.enrichment.lookup.LookupKV;
-import org.apache.metron.hbase.TableProvider;
-import org.apache.metron.test.mock.MockHTable;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,18 +46,12 @@ public class SimpleHBaseEnrichmentFunctionsTest {
   private String cf = "cf";
   private static Context context;
 
-  public static class TP implements TableProvider {
 
-    @Override
-    public HTableInterface getTable(Configuration config, String tableName) throws IOException {
-      return MockHTable.Provider.getFromCache(tableName);
-    }
-  }
 
   @Before
   public void setup() throws Exception {
 
-    final MockHTable hbaseTable = (MockHTable) MockHTable.Provider.addToCache(hbaseTableName, cf);
+    final MockHTable hbaseTable = (MockHTable) MockHBaseTableProvider.addToCache(hbaseTableName, cf);
     EnrichmentHelper.INSTANCE.load(hbaseTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
       for(int i = 0;i < 5;++i) {
         add(new LookupKV<>(new EnrichmentKey(ENRICHMENT_TYPE, "indicator" + i)
@@ -69,7 +63,7 @@ public class SimpleHBaseEnrichmentFunctionsTest {
     context = new Context.Builder()
             .with( Context.Capabilities.GLOBAL_CONFIG
                  , () -> ImmutableMap.of( SimpleHBaseEnrichmentFunctions.TABLE_PROVIDER_TYPE_CONF
-                                        , TP.class.getName()
+                                        , MockHBaseTableProvider.class.getName()
                                         )
                  )
             .build();
@@ -77,7 +71,7 @@ public class SimpleHBaseEnrichmentFunctionsTest {
   public Object run(String rule, Map<String, Object> variables) throws Exception {
     StellarProcessor processor = new StellarProcessor();
     Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
-    return processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
+    return processor.parse(rule, new DefaultVariableResolver(x -> variables.get(x),x -> variables.containsKey(x)), StellarFunctions.FUNCTION_RESOLVER(), context);
   }
 
   @Test
@@ -124,5 +118,11 @@ public class SimpleHBaseEnrichmentFunctionsTest {
     Assert.assertTrue(result instanceof Map);
     Map<String, Object> out = (Map<String, Object>) result;
     Assert.assertTrue(out.isEmpty());
+  }
+
+  @Test(expected = ParseException.class)
+  public void testProvidedParameters() throws Exception {
+    String stellar = "ENRICHMENT_GET('et', indicator)";
+    Object result = run(stellar, ImmutableMap.of("indicator", "indicator7"));
   }
 }

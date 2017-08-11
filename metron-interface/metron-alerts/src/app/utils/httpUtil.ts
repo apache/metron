@@ -18,7 +18,7 @@
 import {Response} from '@angular/http';
 import {Observable}     from 'rxjs/Observable';
 import {RestError} from '../model/rest-error';
-import {AuthenticationService} from '../service/authentication.service';
+
 export class HttpUtil {
 
   public static extractString(res: Response): string {
@@ -44,7 +44,6 @@ export class HttpUtil {
       restError = new RestError();
       restError.responseCode = 404;
     }
-
     return Observable.throw(restError);
   }
 }
