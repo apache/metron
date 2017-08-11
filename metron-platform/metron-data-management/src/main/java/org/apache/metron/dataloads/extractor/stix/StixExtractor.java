@@ -30,14 +30,18 @@ import org.mitre.cybox.cybox_2.Observables;
 import org.mitre.stix.common_1.IndicatorBaseType;
 import org.mitre.stix.indicator_2.Indicator;
 import org.mitre.stix.stix_1.STIXPackage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class StixExtractor implements Extractor {
+    private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     Map<String, Object> config;
     @Override
     public Iterable<LookupKV> extract(String line) throws IOException {
@@ -50,10 +54,21 @@ public class StixExtractor implements Extractor {
                 if(props != null) {
                     ObjectTypeHandler handler = ObjectTypeHandlers.getHandlerByInstance(props);
                     if (handler != null) {
+                        if(LOG.isDebugEnabled()) {
+                            LOG.debug("Found {} for properties {}"
+                                    , handler.getTypeClass().getCanonicalName()
+                                    , props.toXMLString());
+                        }
                         Iterable<LookupKV> extractions = handler.extract(props, config);
                         for(LookupKV extraction : extractions) {
                             ret.add(extraction);
                         }
+                    }
+                    else if(LOG.isDebugEnabled()) {
+                        LOG.debug("Did not find a handler for properties {} of type {}"
+                                , props.toXMLString()
+                                , props.getClass()
+                        );
                     }
                 }
             }
