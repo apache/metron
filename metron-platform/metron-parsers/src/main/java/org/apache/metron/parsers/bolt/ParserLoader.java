@@ -41,8 +41,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Loads a Parser from the Metron Bundle Extension System.
+ * This Bundle by be resident on the local filesystem or it may located in HDFS.
+ *
+ */
 public class ParserLoader {
   private static final Logger LOG = LoggerFactory.getLogger(ParserBolt.class);
+
   public static Optional<MessageParser<JSONObject>> loadParser(Map stormConfig, CuratorFramework client, SensorParserConfig parserConfig){
     MessageParser<JSONObject> parser = null;
     try {
@@ -73,18 +79,16 @@ public class ParserLoader {
         }
         FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {props.getArchiveExtension()});
 
+        // ADD in the classes we are going to support for plugins
+        //
         ArrayList<Class> classes = new ArrayList<>();
         for( Map.Entry<String,String> entry : props.getBundleExtensionTypes().entrySet()){
           classes.add(Class.forName(entry.getValue()));
         }
-        // future
-        //classes.add(StellarFunction.class);
 
         ExtensionClassInitializer.initialize(classes);
 
-        // create a FileSystemManager
         Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, props);
-        ExtensionMapping mapping = BundleMapper.mapBundles(fileSystemManager, props);
         List<URI> libDirs = props.getBundleLibraryDirectories();
         List<FileObject> libFileObjects = new ArrayList<>();
         for(URI libUri : libDirs){
@@ -93,8 +97,9 @@ public class ParserLoader {
             libFileObjects.add(fileObject);
           }
         }
-        BundleClassLoaders.getInstance().init(fileSystemManager, libFileObjects, props);
 
+        // initialize the Bundle System
+        BundleClassLoaders.getInstance().init(fileSystemManager, libFileObjects, props);
         ExtensionManager.getInstance().init(classes, systemBundle, BundleClassLoaders.getInstance().getBundles());
 
 
