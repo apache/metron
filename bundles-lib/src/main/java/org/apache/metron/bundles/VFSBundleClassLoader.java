@@ -240,7 +240,12 @@ public class VFSBundleClassLoader extends SecureClassLoader {
 
   /**
    * Appends the specified FileObjects to the list of FileObjects to search for classes and
-   * resources.
+   * resources.  If the FileObjects represent Bundles, then the Bundle dependencies will also
+   * be added as resources to the classloader.
+   *
+   * This is the equivelent of unzipping the Bundle and adding each jar in the dependency directory
+   * by uri.  The ability of VFS to create filesystems from jar files, allows the VFSBundleClassLoader
+   * to create a composite filesystem out of the Bundle zip.
    *
    * @param manager The FileSystemManager.
    * @param files the FileObjects to append to the search path.
@@ -254,7 +259,6 @@ public class VFSBundleClassLoader extends SecureClassLoader {
         continue;
       }
 
-      // TODO - use federation instead
       if (manager.canCreateFileSystem(file)) {
         // create a Jar filesystem from the bundle
         FileObject bundleFile = manager.createFileSystem(file);
