@@ -20,12 +20,11 @@ import java.util.List;
 
 public class ExtensionClassInitializer {
   public static void initialize(List<Class> extentionsClassList){
-    ExtensionManager.initClassDefinitions(extentionsClassList);
     BundleThreadContextClassLoader.initClasses(extentionsClassList);
   }
 
   public static void reset(){
-    ExtensionManager.resetClassDefinitions();
+    ExtensionManager.reset();
     BundleThreadContextClassLoader.resetClasses();
   }
 }

@@ -28,6 +28,6 @@ public class ExtensionClassInitializerTest {
   }
   @Test(expected = NotInitializedException.class)
   public void testNotInitializedExtensionManager() throws Exception{
-    ExtensionManager.getInstanceClassLoader("org.junit.Test");
+    ExtensionManager.getInstance().getInstanceClassLoader("org.junit.Test");
   }
 }

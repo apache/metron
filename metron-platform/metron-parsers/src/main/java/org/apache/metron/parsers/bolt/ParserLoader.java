@@ -95,7 +95,7 @@ public class ParserLoader {
         }
         BundleClassLoaders.getInstance().init(fileSystemManager, libFileObjects, props);
 
-        ExtensionManager.discoverExtensions(systemBundle, BundleClassLoaders.getInstance().getBundles());
+        ExtensionManager.getInstance().init(classes, systemBundle, BundleClassLoaders.getInstance().getBundles());
 
 
         parser = BundleThreadContextClassLoader.createInstance(parserConfig.getParserClassName(),MessageParser.class,props);

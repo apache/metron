@@ -50,7 +50,7 @@ public class BundleThreadContextClassLoaderTest {
     // create a FileSystemManager
     FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
-    ExtensionManager.discoverExtensions(systemBundle, Collections.emptySet());
+    ExtensionManager.getInstance().init(classes, systemBundle, Collections.emptySet());
 
     assertTrue(
         BundleThreadContextClassLoader.createInstance(WithPropertiesConstructor.class.getName(),
@@ -70,7 +70,7 @@ public class BundleThreadContextClassLoaderTest {
     // create a FileSystemManager
     FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
-    ExtensionManager.discoverExtensions(systemBundle, Collections.emptySet());
+    ExtensionManager.getInstance().init(classes, systemBundle, Collections.emptySet());
 
     BundleThreadContextClassLoader
         .createInstance(WithPropertiesConstructor.class.getName(), WithPropertiesConstructor.class,
@@ -88,7 +88,7 @@ public class BundleThreadContextClassLoaderTest {
     // create a FileSystemManager
     FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
-    ExtensionManager.discoverExtensions(systemBundle, Collections.emptySet());
+    ExtensionManager.getInstance().init(classes, systemBundle, Collections.emptySet());
 
     assertTrue(BundleThreadContextClassLoader.createInstance(WithDefaultConstructor.class.getName(),
         WithDefaultConstructor.class, properties) instanceof WithDefaultConstructor);

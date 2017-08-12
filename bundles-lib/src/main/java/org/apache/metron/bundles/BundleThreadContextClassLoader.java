@@ -181,7 +181,7 @@ public class BundleThreadContextClassLoader extends URLClassLoader {
         final ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(BundleThreadContextClassLoader.getInstance());
         try {
-            final List<Bundle> bundles = ExtensionManager.getBundles(implementationClassName);
+            final List<Bundle> bundles = ExtensionManager.getInstance().getBundles(implementationClassName);
             if (bundles.size() == 0) {
                 throw new IllegalStateException(String.format("The specified implementation class '%s' is not known.", implementationClassName));
             }

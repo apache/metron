@@ -18,6 +18,7 @@ package org.apache.metron.bundles.integration;
 
 import static org.apache.metron.bundles.util.TestUtil.loadSpecifiedProperties;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -122,12 +123,13 @@ public class BundleMapperIntegrationTest {
     ExtensionClassInitializer.initialize(classes);
     // create a FileSystemManager
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
-    ExtensionManager.discoverExtensions(systemBundle, Collections.emptySet());
+    ExtensionManager.getInstance().init(classes, systemBundle, Collections.emptySet());
 
     final ExtensionMapping extensionMapping = BundleMapper
         .mapBundles(fileSystemManager,
              properties);
 
+    assertNotNull(extensionMapping);
     assertEquals(2, extensionMapping.getAllExtensionNames().size());
 
     assertTrue(extensionMapping.getAllExtensionNames().keySet().contains(

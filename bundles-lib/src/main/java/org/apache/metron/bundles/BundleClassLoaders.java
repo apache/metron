@@ -56,6 +56,15 @@ public final class BundleClassLoaders {
       this.bundles = bundles;
       this.properties = properties;
     }
+
+    /**
+     * TESTING ONLY.
+     */
+    private void clear() {
+      extensionDirs.clear();
+      bundles.clear();
+    }
+
   }
 
   private BundleClassLoaders() {
@@ -83,14 +92,19 @@ public final class BundleClassLoaders {
    * before the rest of the methods are called afterwards.
    * This is for TESTING ONLY at this time.  Reset does not unload or clear any loaded classloaders.
    */
-
   public static void reset() {
-    getInstance().unInit();
+    synchronized (BundleClassLoaders.class) {
+      getInstance().unInit();
+      bundleClassLoaders = null;
+    }
   }
 
   private void unInit() {
     synchronized (this) {
-      initContext = null;
+      if(initContext != null) {
+        initContext.clear();
+        initContext = null;
+      }
     }
   }
 

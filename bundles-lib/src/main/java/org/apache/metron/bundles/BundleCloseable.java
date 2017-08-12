@@ -48,7 +48,7 @@ public class BundleCloseable implements Closeable {
     public static BundleCloseable withComponentBundleLoader(final Class componentClass, final String componentIdentifier) throws NotInitializedException{
         final ClassLoader current = Thread.currentThread().getContextClassLoader();
 
-        ClassLoader componentClassLoader = ExtensionManager.getInstanceClassLoader(componentIdentifier);
+        ClassLoader componentClassLoader = ExtensionManager.getInstance().getInstanceClassLoader(componentIdentifier);
         if (componentClassLoader == null) {
             componentClassLoader = componentClass.getClassLoader();
         }
