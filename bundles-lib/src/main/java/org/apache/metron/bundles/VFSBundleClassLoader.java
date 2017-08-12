@@ -171,7 +171,7 @@ public class VFSBundleClassLoader extends SecureClassLoader {
   private FileObject nativeDir;
   public static final String DEPENDENCY_PATH = "META-INF/bundled-dependencies";
   /**
-   * Constructors a new VFSClassLoader for the given Bundle file.
+   * Constructs a new VFSClassLoader for the given Bundle file.
    *
    * @param file the file to load the classes and resources from.
    * @param manager the FileManager to use when trying create a layered Jar file system.
@@ -184,7 +184,7 @@ public class VFSBundleClassLoader extends SecureClassLoader {
   }
 
   /**
-   * Constructors a new VFSClassLoader for the given file.
+   * Constructs a new VFSClassLoader for the given file.
    *
    * @param file the Bundle FileObject to load the classes and resources from.
    * @param manager the FileManager to use when trying create a layered Jar file system.
@@ -199,7 +199,7 @@ public class VFSBundleClassLoader extends SecureClassLoader {
   }
 
   /**
-   * Constructors a new VFSClassLoader for the given files.  The files will be searched in the order
+   * Constructs a new VFSClassLoader for the given files.  The files will be searched in the order
    * specified.
    *
    * @param files the Bundle FileObjects to load the classes and resources from.
@@ -213,7 +213,7 @@ public class VFSBundleClassLoader extends SecureClassLoader {
   }
 
   /**
-   * Constructors a new VFSClassLoader for the given FileObjects. The FileObjects will be searched
+   * Constructs a new VFSClassLoader for the given FileObjects. The FileObjects will be searched
    * in the order specified.
    *
    * @param files the Bundle FileObjects to load the classes and resources from.
