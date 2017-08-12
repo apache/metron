@@ -16,6 +16,8 @@
  */
 package org.apache.metron.bundles;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import java.net.URISyntaxException;
 import java.util.*;
 
@@ -42,6 +44,14 @@ public final class BundleClassLoaders {
   private volatile InitContext initContext;
   private static final Logger logger = LoggerFactory.getLogger(BundleClassLoaders.class);
 
+  /**
+   * Holds the context from {@code BundleClassLoaders} initialization,
+   * being the coordinate to bundle mapping.
+   *
+   * After initialization these are not changed, and as such they
+   * are immutable.
+   *
+   */
   private final static class InitContext {
 
     private final List<FileObject> extensionDirs;
@@ -52,19 +62,10 @@ public final class BundleClassLoaders {
         final List<FileObject> extensionDirs,
         final Map<String, Bundle> bundles,
         final BundleProperties properties) {
-      this.extensionDirs = extensionDirs;
-      this.bundles = bundles;
+      this.extensionDirs = ImmutableList.copyOf(extensionDirs);
+      this.bundles = ImmutableMap.copyOf(bundles);
       this.properties = properties;
     }
-
-    /**
-     * TESTING ONLY.
-     */
-    private void clear() {
-      extensionDirs.clear();
-      bundles.clear();
-    }
-
   }
 
   private BundleClassLoaders() {
@@ -102,7 +103,6 @@ public final class BundleClassLoaders {
   private void unInit() {
     synchronized (this) {
       if(initContext != null) {
-        initContext.clear();
         initContext = null;
       }
     }
