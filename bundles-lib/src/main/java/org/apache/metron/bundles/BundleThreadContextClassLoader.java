@@ -110,11 +110,16 @@ public class BundleThreadContextClassLoader extends URLClassLoader {
                 // When new Threads are created, the new Thread inherits the ClassLoaderContext of
                 // the caller. However, the call stack of that new Thread may not trace back to any app-specific
                 // code. Therefore, the BundleThreadContextClassLoader will be unable to find the appropriate Bundle
-                // ClassLoader. As a result, we want to set the ContextClassLoader to the Bundel ClassLoader that
+                // ClassLoader. As a result, we want to set the ContextClassLoader to the Bundle ClassLoader that
                 // contains the class or resource that we are looking for.
                 // This locks the current Thread into the appropriate Bundle ClassLoader Context. The framework will change
                 // the ContextClassLoader back to the BundleThreadContextClassLoader as appropriate via the
-                // OPF NEEDS CLARIFICATION
+                //
+                // TL;DR
+                // We need to make sure the classloader for the thread is setup correctly to use the bundle classloader
+                // before we return the class.
+                // Just looking the class up is not enough.
+                // 
                 // {@link FlowEngine.beforeExecute(Thread, Runnable)} and
                 // {@link FlowEngine.afterExecute(Thread, Runnable)} methods.
                 if (desiredClassLoader instanceof VFSBundleClassLoader) {
