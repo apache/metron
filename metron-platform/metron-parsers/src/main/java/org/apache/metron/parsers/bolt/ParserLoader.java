@@ -17,6 +17,7 @@
  */
 package org.apache.metron.parsers.bolt;
 
+import java.net.URISyntaxException;
 import java.util.List;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
@@ -47,81 +48,72 @@ import java.util.Optional;
  *
  */
 public class ParserLoader {
+
   private static final Logger LOG = LoggerFactory.getLogger(ParserBolt.class);
 
-  public static Optional<MessageParser<JSONObject>> loadParser(Map stormConfig, CuratorFramework client, SensorParserConfig parserConfig){
+  /**
+   * Loads a parser from a configuration
+   * @param stormConfig the storm config
+   * @param client the CuratorFramework
+   * @param parserConfig the configuration
+   * @return Optional of MessageParser<JSONObject>
+   */
+  @SuppressWarnings("unchecked")
+  public static Optional<MessageParser<JSONObject>> loadParser(Map stormConfig,
+      CuratorFramework client, SensorParserConfig parserConfig) {
     MessageParser<JSONObject> parser = null;
     try {
       // fetch the BundleProperties from zookeeper
       Optional<BundleProperties> bundleProperties = getBundleProperties(client);
       if (bundleProperties.isPresent()) {
-        // if we have the properties
-        // setup the bundles
-        BundleProperties props = bundleProperties.get();
-        Configuration fsConf = new Configuration();
-        URI uri = props.getBundleLibraryDirectory();
-        boolean isHDFS = false;
-
-        // We may have a situation, from testing or other configuration where
-        // we will have a miss-match between the properties configuration and the hdfs
-        // configuration
-        // We will try to handle that here
-        if (uri.getScheme().toLowerCase().startsWith("hdfs")) {
-          // we have hdfs URIs, we need to make sure the file system
-          // is setup to match
-          if(!fsConf.get("fs.defaultFS").toLowerCase().startsWith("hdfs")) {
-            fsConf.set("fs.defaultFS", String.format("%s://%s", uri.getScheme(), uri.getAuthority()));
-          }
-        }else if(fsConf.get("fs.defaultFS").toLowerCase().startsWith("hdfs")){
-          // we have HDFS system but the urls are not hdfs, setting the prefix
-          // will get the uris correctly generated
-          props.setProperty(BundleProperties.HDFS_PREFIX,fsConf.get("fs.defaultFS"));
-        }
-        FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {props.getArchiveExtension()});
-
-        // ADD in the classes we are going to support for plugins
-        //
-        ArrayList<Class> classes = new ArrayList<>();
-        for( Map.Entry<String,String> entry : props.getBundleExtensionTypes().entrySet()){
-          classes.add(Class.forName(entry.getValue()));
-        }
-
-        ExtensionClassInitializer.initialize(classes);
-
-        Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, props);
-        List<URI> libDirs = props.getBundleLibraryDirectories();
-        List<FileObject> libFileObjects = new ArrayList<>();
-        for(URI libUri : libDirs){
-          FileObject fileObject = fileSystemManager.resolveFile(libUri);
-          if(fileObject.exists()){
-            libFileObjects.add(fileObject);
-          }
-        }
-
-        // initialize the Bundle System
-        BundleClassLoaders.getInstance().init(fileSystemManager, libFileObjects, props);
-        ExtensionManager.getInstance().init(classes, systemBundle, BundleClassLoaders.getInstance().getBundles());
-
-
-        parser = BundleThreadContextClassLoader.createInstance(parserConfig.getParserClassName(),MessageParser.class,props);
-
-      }else{
+        BundleProperties props = fixUpBundleProperties(bundleProperties.get());
+        BundleSystem bundleSystem = new BundleSystem.Builder().withBundleProperties(props).Build();
+        parser = bundleSystem
+            .createInstance(parserConfig.getParserClassName(), MessageParser.class);
+      } else {
         LOG.error("BundleProperties are missing!");
       }
-    }catch(Exception e){
-      LOG.error("Failed to load parser " + parserConfig.getParserClassName(),e);
+    } catch (Exception e) {
+      LOG.error("Failed to load parser " + parserConfig.getParserClassName(), e);
       return Optional.empty();
     }
     return Optional.of(parser);
   }
 
-  private static Optional<BundleProperties> getBundleProperties(CuratorFramework client) throws Exception{
+  private static Optional<BundleProperties> getBundleProperties(CuratorFramework client)
+      throws Exception {
     BundleProperties properties = null;
-    byte[] propBytes = ConfigurationsUtils.readFromZookeeper(Constants.ZOOKEEPER_ROOT + "/bundle.properties",client);
-    if(propBytes.length > 0 ) {
+    byte[] propBytes = ConfigurationsUtils
+        .readFromZookeeper(Constants.ZOOKEEPER_ROOT + "/bundle.properties", client);
+    if (propBytes.length > 0) {
       // read in the properties
-      properties = BundleProperties.createBasicBundleProperties(new ByteArrayInputStream(propBytes),new HashMap<>());
+      properties = BundleProperties
+          .createBasicBundleProperties(new ByteArrayInputStream(propBytes), new HashMap<>());
     }
     return Optional.of(properties);
+  }
+
+  private static BundleProperties fixUpBundleProperties(BundleProperties properties) throws URISyntaxException {
+    Configuration fsConf = new Configuration();
+    URI uri = properties.getBundleLibraryDirectory();
+    boolean isHDFS = false;
+
+    // We may have a situation, from testing or other configuration where
+    // we will have a miss-match between the properties configuration and the hdfs
+    // configuration
+    // We will try to handle that here
+    if (uri.getScheme().toLowerCase().startsWith("hdfs")) {
+      // we have hdfs URIs, we need to make sure the file system
+      // is setup to match
+      if (!fsConf.get("fs.defaultFS").toLowerCase().startsWith("hdfs")) {
+        fsConf
+            .set("fs.defaultFS", String.format("%s://%s", uri.getScheme(), uri.getAuthority()));
+      }
+    } else if (fsConf.get("fs.defaultFS").toLowerCase().startsWith("hdfs")) {
+      // we have HDFS system but the urls are not hdfs, setting the prefix
+      // will get the uris correctly generated
+      properties.setProperty(BundleProperties.HDFS_PREFIX, fsConf.get("fs.defaultFS"));
+    }
+    return properties;
   }
 }
