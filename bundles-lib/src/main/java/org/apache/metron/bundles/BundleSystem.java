@@ -106,11 +106,10 @@ public class BundleSystem {
         // initialize the Bundle System
         BundleClassLoaders.getInstance().init(fileSystemManager, libFileObjects, properties);
         ExtensionManager.getInstance().init(extensionClasses, systemBundle, BundleClassLoaders.getInstance().getBundles());
-
+        return new BundleSystem(fileSystemManager, extensionClasses, systemBundle, properties);
       }catch(Exception e) {
         throw new NotInitializedException(e);
       }
-      return null;
     }
 
 
