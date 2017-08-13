@@ -18,27 +18,33 @@
 
 package org.apache.metron.stellar.common.utils;
 
-/**
- * Utility functions for working with numbers that represent different
- * formats of EPOCH time.
- */
-public class EpochUtils {
+import static org.junit.Assert.*;
 
-  /**
-   * Ensures returns the passed value as milliseconds from EPOCH if the value is in seconds.
-   * This is done by looking at the number of digits.
-   * If there are 10, then the value is concidered to be in seconds and will by
-   * muliplited by 1000.
-   * If there not 10, then the original value will be returned.
-   *
-   *
-   * </p>
-   * @param canidate The Long value to concider
-   * @return A Long value
-   */
-  public static Long ensureEpochMillis(Long canidate) {
-    int length = (int)Math.floor(Math.log10(canidate) + 1);
-    return length == 10 ? canidate * 1000 : canidate;
+import org.junit.Assert;
+import org.junit.Test;
+
+public class EpochUtilsTest {
+
+  @Test
+  public void testSecondsToMillis() throws Exception {
+    Long seconds = 1472131630L;
+    Long value = EpochUtils.ensureEpochMillis(seconds);
+    Assert.assertTrue(seconds.longValue() * 1000 == EpochUtils.ensureEpochMillis(seconds).longValue());
   }
+
+  @Test
+  public void testMillisStaysMillis() throws Exception {
+    Long millis = 1472131630748L;
+    Long value = EpochUtils.ensureEpochMillis(millis);
+    Assert.assertTrue(millis.longValue() == EpochUtils.ensureEpochMillis(millis).longValue());
+  }
+
+  @Test
+  public void testOtherLengthToMillis() throws Exception {
+    Long meh = 1L;
+    Assert.assertTrue(meh.longValue() == EpochUtils.ensureEpochMillis(meh).longValue());
+  }
+
+
 
 }
