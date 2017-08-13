@@ -22,11 +22,18 @@ import static org.junit.Assert.*;
 import java.util.Arrays;
 import org.apache.metron.bundles.BundleThreadContextClassLoaderTest.WithPropertiesConstructor;
 import org.apache.metron.bundles.util.BundleProperties;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class BundleSystemTest {
 
+  @AfterClass
+  public static void after() {
+    ExtensionClassInitializer.reset();
+    BundleClassLoaders.reset();
+  }
+  
   @Test
   public void createInstance() throws Exception {
     BundleProperties properties = BundleProperties
