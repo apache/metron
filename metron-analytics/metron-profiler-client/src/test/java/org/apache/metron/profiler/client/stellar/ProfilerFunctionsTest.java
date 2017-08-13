@@ -25,6 +25,7 @@ import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.StandAloneProfiler;
 import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
+import org.apache.metron.stellar.common.shell.StellarExecutor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.junit.Before;
@@ -125,6 +126,24 @@ public class ProfilerFunctionsTest {
   @Test(expected = IllegalArgumentException.class)
   public void testProfilerInitInvalidArg() {
     run("PROFILER_INIT({ \"invalid\": 2 })", StandAloneProfiler.class);
+  }
+
+  @Test
+  public void testProfilerInitWithNoGlobalConfig() {
+    state.put("config", helloWorldProfilerDef);
+    String expression = "PROFILER_INIT(config)";
+
+    // use an executor with no GLOBAL_CONFIG defined in the context
+    StellarStatefulExecutor executor = new DefaultStellarStatefulExecutor(
+            new SimpleFunctionResolver()
+                    .withClass(ProfilerFunctions.ProfilerInit.class)
+                    .withClass(ProfilerFunctions.ProfilerApply.class)
+                    .withClass(ProfilerFunctions.ProfilerFlush.class),
+            Context.EMPTY_CONTEXT());
+    StandAloneProfiler profiler = executor.execute(expression, state, StandAloneProfiler.class);
+
+    assertNotNull(profiler);
+    assertEquals(1, profiler.getConfig().getProfiles().size());
   }
 
   @Test

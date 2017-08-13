@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -77,11 +78,12 @@ public class ProfilerFunctions {
     @Override
     public Object apply(List<Object> args, Context context) {
       @SuppressWarnings("unchecked")
-      Map<String, Object> global = (Map<String, Object>) context.getCapability(GLOBAL_CONFIG).orElseGet(null);
+      Map<String, Object> global = (Map<String, Object>) context.getCapability(GLOBAL_CONFIG, false)
+              .orElse(Collections.emptyMap());
 
       // how long is the profile period?
-      long duration = PROFILER_PERIOD.get(global, Long.class);
-      String configuredUnits = PROFILER_PERIOD_UNITS.get(global, String.class);
+      long duration = PROFILER_PERIOD.getOrDefault(global, Long.class);
+      String configuredUnits = PROFILER_PERIOD_UNITS.getOrDefault(global, String.class);
       long periodDurationMillis = TimeUnit.valueOf(configuredUnits).toMillis(duration);
 
       // user must provide the configuration for the profiler

@@ -23,12 +23,12 @@ package org.apache.metron.profiler;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 
 /**
- * Represents a single route that a telemetry message will need to take.  A route defines
- * the profile a telemetry message needs applied to.  A single telemetry message may need
- * to be applied to multiple profiles.
+ * A MessageRoute defines the profile and entity that a telemetry message needs applied to.  This
+ * allows a message to be routed to the profile and entity that needs it.
  *
- * A single telemetry message may need to take multiple routes.  This is the case
- * when a message is needed by more than one profile.
+ * One telemetry message may need multiple routes.  This is the case when a message is needed by
+ * more than one profile.  In this case, there will be multiple MessageRoute objects for a single
+ * message.
  */
 public class MessageRoute {
 
