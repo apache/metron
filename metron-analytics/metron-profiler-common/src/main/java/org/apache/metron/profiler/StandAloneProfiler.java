@@ -54,13 +54,11 @@ public class StandAloneProfiler {
   private MessageDistributor distributor;
 
   public StandAloneProfiler(ProfilerConfig config, long periodDurationMillis, Context context) {
-    // TODO does this even need to be configurable?
-    long profileTimeToLiveMillis = periodDurationMillis * 3;
-
     this.context = context;
     this.config = config;
     this.router = new DefaultMessageRouter(context);
-    this.distributor = new DefaultMessageDistributor(periodDurationMillis, profileTimeToLiveMillis);
+    // the period TTL does not matter in this context
+    this.distributor = new DefaultMessageDistributor(periodDurationMillis, Long.MAX_VALUE);
   }
 
   /**

@@ -31,6 +31,7 @@ import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -183,12 +184,17 @@ public class ProfilerFunctionsTest {
     run("PROFILER_APPLY(message, profiler)", StandAloneProfiler.class);
 
     // flush the profiles
-    List<ProfileMeasurement> measurements = run("PROFILER_FLUSH(profiler)", List.class);
+    List<Map<String, Object>> measurements = run("PROFILER_FLUSH(profiler)", List.class);
 
     // validate
     assertNotNull(measurements);
     assertEquals(1, measurements.size());
-    assertEquals(1, measurements.get(0));
+
+    Map<String, Object> measurement = measurements.get(0);
+    assertEquals("hello-world", measurement.get("profile"));
+    assertEquals("10.0.0.1", measurement.get("entity"));
+    assertEquals(1, measurement.get("value"));
+    assertEquals(Collections.emptyList(), measurement.get("groups"));
   }
 
   @Test(expected = IllegalArgumentException.class)

@@ -389,3 +389,64 @@ Returns: The selected profile measurements.
 ```
 
 The client API call above has retrieved the past hour of the 'test' profile for the entity '192.168.138.158'.
+
+## Developing Profiles
+
+Troubleshooting issues when programming against a live stream of data can be difficult.  The Stellar REPL is a powerful tool to help work out the kinds of enrichments and transformations that are needed.  The Stellar REPL can also be used when developing profiles for the Profiler.
+
+1.  Define your profiles.  In the editor, copy/paste in the basic "Hello, World" profile.
+    ```
+    [Stellar]>>> conf := SHELL_EDIT()
+    {
+      "profiles": [
+        {
+          "profile": "hello-world",
+          "onlyif":  "exists(ip_src_addr)",
+          "foreach": "ip_src_addr",
+          "init":    { "count": "0" },
+          "update":  { "count": "count + 1" },
+          "result":  "count"
+        }
+      ]
+    }
+    ```
+
+1.  Initialize the Profiler.
+    ```
+    [Stellar]>>> profiler := PROFILER_INIT(conf)
+    [Stellar]>>> profiler
+    org.apache.metron.profiler.StandAloneProfiler@4f8ef473
+    ```
+
+1. Create some telemetry.   In the editor, copy/paste in the message JSON.
+    ```
+    [Stellar]>>> message := SHELL_EDIT()
+    [Stellar]>>> message
+    {
+      "ip_src_addr": "10.0.0.1",
+      "protocol": "HTTPS",
+      "length": "10",
+      "bytes_in": "234"
+    }
+    ```
+
+1. See what happens when the telemetry is applied to your profiles.
+    ```
+    [Stellar]>>> PROFILER_APPLY(message, profiler)
+    org.apache.metron.profiler.StandAloneProfiler@4f8ef473
+
+    [Stellar]>>> PROFILER_APPLY(message, profiler)
+    org.apache.metron.profiler.StandAloneProfiler@4f8ef473
+
+    [Stellar]>>> PROFILER_APPLY(message, profiler)
+    org.apache.metron.profiler.StandAloneProfiler@4f8ef473
+    ```
+
+1. Flush the Profiler to see what it has calculated.  The result is a list of profile measurements.  Each value is a map containing detailed information about the profile measurements that were taken.
+    ```
+    [Stellar]>>> values := PROFILER_FLUSH(profiler)
+    [Stellar]>>> values := PROFILER_FLUSH(profiler)
+    [Stellar]>>> values
+    [{period={duration=900000, period=1669628, start=1502665200000, end=1502666100000}, 
+       profile=hello-world, groups=[], value=3, entity=10.0.0.1}]
+    ```

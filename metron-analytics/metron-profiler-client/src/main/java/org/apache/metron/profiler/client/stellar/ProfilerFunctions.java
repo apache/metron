@@ -34,7 +34,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -184,9 +186,29 @@ public class ProfilerFunctions {
         throw new IllegalArgumentException(format("expected the profiler returned by PROFILER_INIT, found null"));
       }
 
-      // return the 'value' from each profile measurement
-      List<ProfileMeasurement> measurements = profiler.flush();
-      return measurements.stream().map(m -> m.getProfileValue()).collect(Collectors.toList());
+      // transform the profile measurements into maps to simplify manipulation in stellar
+      List<Map<String, Object>> measurements = new ArrayList<>();
+      for(ProfileMeasurement m : profiler.flush()) {
+
+        // create a map for the profile period
+        Map<String, Object> period = new HashMap<>();
+        period.put("period", m.getPeriod().getPeriod());
+        period.put("start", m.getPeriod().getStartTimeMillis());
+        period.put("duration", m.getPeriod().getDurationMillis());
+        period.put("end", m.getPeriod().getEndTimeMillis());
+
+        // create a map for the measurement
+        Map<String, Object> measurement = new HashMap<>();
+        measurement.put("profile", m.getProfileName());
+        measurement.put("entity", m.getEntity());
+        measurement.put("value", m.getProfileValue());
+        measurement.put("groups", m.getGroups());
+        measurement.put("period", period);
+
+        measurements.add(measurement);
+      }
+
+      return measurements;
     }
   }
 }
