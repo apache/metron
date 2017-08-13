@@ -430,7 +430,7 @@ Troubleshooting issues when programming against a live stream of data can be dif
     }
     ```
 
-1. See what happens when the telemetry is applied to your profiles.
+1. Apply some telemetry messages to your profiles.
     ```
     [Stellar]>>> PROFILER_APPLY(message, profiler)
     org.apache.metron.profiler.StandAloneProfiler@4f8ef473
