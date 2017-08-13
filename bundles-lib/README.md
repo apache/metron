@@ -76,3 +76,96 @@ for the complete loading of the bundle without having to unpack the bundle into 
 
 This is significantly different from the original Nifi implementation.
 
+## BundleSystem
+
+The BundleSystem class provides a useful and simple interface for using Bundles and instantiated class instances.
+While the raw classes may be used, in many cases the BundleSystem will be sufficient and reduce complexity.
+
+Without BundleSystem, the minimum required to instantiate a class (simplified):
+
+```java
+public static Optional<MessageParser<JSONObject>> loadParser(Map stormConfig, CuratorFramework client, SensorParserConfig parserConfig){
+    MessageParser<JSONObject> parser = null;
+    try {
+      // fetch the BundleProperties from zookeeper
+      Optional<BundleProperties> bundleProperties = getBundleProperties(client);
+      
+      // create the FileSystemManager
+      FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {props.getArchiveExtension()});
+      
+      // ADD in the classes we are going to support for plugins
+      ArrayList<Class> classes = new ArrayList<>();
+      for( Map.Entry<String,String> entry : props.getBundleExtensionTypes().entrySet()){
+        classes.add(Class.forName(entry.getValue()));
+      }
+
+      // create the SystemBundle ( the bundle for the types that may be in the system classloader already )
+      Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, props);
+     
+      // get the correct bundle library directories from properties 
+      List<URI> libDirs = props.getBundleLibraryDirectories();
+      List<FileObject> libFileObjects = new ArrayList<>();
+      for(URI libUri : libDirs){
+        FileObject fileObject = fileSystemManager.resolveFile(libUri);
+        if(fileObject.exists()){
+          libFileObjects.add(fileObject);
+        }
+      }
+      
+      // Initialize everything
+      BundleClassLoaders.getInstance().init(fileSystemManager, libFileObjects, props);
+      ExtensionManager.getInstance().init(classes, systemBundle, BundleClassLoaders.getInstance().getBundles());
+
+      // everything is ready, create our instance
+      parser = BundleThreadContextClassLoader.createInstance(parserConfig.getParserClassName(),MessageParser.class,props);
+
+    }catch(Exception e){
+      LOG.error("Failed to load parser " + parserConfig.getParserClassName(),e);
+      return Optional.empty();
+    }
+    return Optional.of(parser);
+  }
+
+```
+
+This is a lot to do, and a lot of unnecessary boilerplate code
+
+Using the BundleSystem class however:
+
+```java
+public static Optional<MessageParser<JSONObject>> loadParser(Map stormConfig,
+    CuratorFramework client, SensorParserConfig parserConfig) {
+  MessageParser<JSONObject> parser = null;
+  try {
+    // fetch the BundleProperties from zookeeper
+    Optional<BundleProperties> bundleProperties = getBundleProperties(client);
+    BundleProperties props = bundleProperties.get();
+
+    // create the BundleSystem
+    // we only need to pass in the properties
+    BundleSystem bundleSystem = new BundleSystem.Builder().withBundleProperties(props).build();
+
+    // create our instance
+    parser = bundleSystem
+          .createInstance(parserConfig.getParserClassName(), MessageParser.class);
+    } else {
+      LOG.error("BundleProperties are missing!");
+    }
+  } catch (Exception e) {
+    LOG.error("Failed to load parser " + parserConfig.getParserClassName(), e);
+    return Optional.empty();
+  }
+  return Optional.of(parser);
+}
+
+```
+
+As we can see, this is much easier.
+
+With the BundleSystem, you may the defaults by calling the builder with :
+
+- withSystemBundle
+- withFileSystemManager
+- withExtensionClasses
+ 
+
