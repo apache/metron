@@ -1,0 +1,165 @@
+package org.apache.metron.profiler.client.stellar;
+
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.configuration.profiler.ProfilerConfig;
+import org.apache.metron.profiler.ProfileMeasurement;
+import org.apache.metron.profiler.StandAloneProfiler;
+import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
+import org.apache.metron.stellar.common.StellarStatefulExecutor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
+
+import static org.junit.Assert.*;
+
+/**
+ * Tests the ProfilerFunctions class.
+ */
+public class ProfilerFunctionsTest {
+
+  /**
+   * {
+   *    "ip_src_addr": "10.0.0.1",
+   *    "ip_dst_addr": "10.0.0.2",
+   *    "source.type": "test",
+   * }
+   */
+  @Multiline
+  private String message;
+
+  /**
+   * {
+   *   "profiles": [
+   *        {
+   *          "profile":  "hello-world",
+   *          "foreach":  "ip_src_addr",
+   *          "init":     { "count": 0 },
+   *          "update":   { "count": "count + 1" },
+   *          "result":   "count"
+   *        }
+   *   ]
+   * }
+   */
+  @Multiline
+  private String helloWorldProfilerDef;
+
+  private static final long periodDuration = 15;
+  private static final String periodUnits = "MINUTES";
+  private StellarStatefulExecutor executor;
+  private Map<String, Object> state;
+
+  private <T> T run(String expression, Class<T> clazz) {
+    return executor.execute(expression, state, clazz);
+  }
+
+  @Before
+  public void setup() {
+    state = new HashMap<>();
+
+    // global properties
+    Map<String, Object> global = new HashMap<String, Object>() {{
+      put(PROFILER_PERIOD.getKey(), Long.toString(periodDuration));
+      put(PROFILER_PERIOD_UNITS.getKey(), periodUnits.toString());
+    }};
+
+    // create the stellar execution environment
+    executor = new DefaultStellarStatefulExecutor(
+            new SimpleFunctionResolver()
+                    .withClass(ProfilerFunctions.ProfilerInit.class)
+                    .withClass(ProfilerFunctions.ProfilerApply.class)
+                    .withClass(ProfilerFunctions.ProfilerFlush.class),
+            new Context.Builder()
+                    .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
+                    .build());
+  }
+
+  @Test
+  public void testProfilerInitNoProfiles() {
+    state.put("config", "{ \"profiles\" : [] }");
+    StandAloneProfiler profiler = run("PROFILER_INIT(config)", StandAloneProfiler.class);
+    assertNotNull(profiler);
+    assertEquals(0, profiler.getConfig().getProfiles().size());
+  }
+
+  @Test
+  public void testProfilerInitWithProfiles() {
+    state.put("config", helloWorldProfilerDef);
+    StandAloneProfiler profiler = run("PROFILER_INIT(config)", StandAloneProfiler.class);
+    assertNotNull(profiler);
+    assertEquals(1, profiler.getConfig().getProfiles().size());
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testProfilerInitNoArgs() {
+    run("PROFILER_INIT()", StandAloneProfiler.class);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testProfilerInitInvalidArg() {
+    run("PROFILER_INIT({ \"invalid\": 2 })", StandAloneProfiler.class);
+  }
+
+  @Test
+  public void testProfilerApply() {
+
+    // initialize the profiler
+    state.put("config", helloWorldProfilerDef);
+    StandAloneProfiler profiler = run("PROFILER_INIT(config)", StandAloneProfiler.class);
+    state.put("profiler", profiler);
+
+    // apply a message to the profiler
+    state.put("message", message);
+    StandAloneProfiler result = run("PROFILER_APPLY(message, profiler)", StandAloneProfiler.class);
+    assertSame(profiler, result);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testProfilerApplyNoArgs() {
+    run("PROFILER_APPLY()", StandAloneProfiler.class);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testProfilerApplyInvalidArg() {
+    run("PROFILER_APPLY(undefined)", StandAloneProfiler.class);
+  }
+
+  @Test
+  public void testProfilerFlush() {
+
+    // initialize the profiler
+    state.put("config", helloWorldProfilerDef);
+    StandAloneProfiler profiler = run("PROFILER_INIT(config)", StandAloneProfiler.class);
+    state.put("profiler", profiler);
+
+    // apply a message to the profiler
+    state.put("message", message);
+    run("PROFILER_APPLY(message, profiler)", StandAloneProfiler.class);
+
+    // flush the profiles
+    List<ProfileMeasurement> measurements = run("PROFILER_FLUSH(profiler)", List.class);
+
+    // validate
+    assertNotNull(measurements);
+    assertEquals(1, measurements.size());
+    assertEquals(1, measurements.get(0));
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testProfilerFlushNoArgs() {
+    run("PROFILER_FLUSH()", StandAloneProfiler.class);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testProfilerFlushInvalidArg() {
+    run("PROFILER_FLUSH(undefined)", StandAloneProfiler.class);
+  }
+}

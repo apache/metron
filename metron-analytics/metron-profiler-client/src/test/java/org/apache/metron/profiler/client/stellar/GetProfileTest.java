@@ -18,10 +18,11 @@
  *
  */
 
-package org.apache.metron.profiler.client;
+package org.apache.metron.profiler.client.stellar;
 
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.profiler.client.ProfileWriter;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.SingletonFunctionResolver;
@@ -64,8 +65,6 @@ public class GetProfileTest {
   private static final long periodDuration2 = 1;
   private static final TimeUnit periodUnits2 = TimeUnit.HOURS;
   private static final int saltDivisor2 = 2050;
-
-
 
   private <T> T run(String expression, Class<T> clazz) {
     return executor.execute(expression, state, clazz);

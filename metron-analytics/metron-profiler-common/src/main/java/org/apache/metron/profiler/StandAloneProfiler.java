@@ -83,4 +83,8 @@ public class StandAloneProfiler {
   public List<ProfileMeasurement> flush() {
     return distributor.flush();
   }
+
+  public ProfilerConfig getConfig() {
+    return config;
+  }
 }
