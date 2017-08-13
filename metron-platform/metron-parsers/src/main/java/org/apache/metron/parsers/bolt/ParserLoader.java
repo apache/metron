@@ -67,7 +67,7 @@ public class ParserLoader {
       Optional<BundleProperties> bundleProperties = getBundleProperties(client);
       if (bundleProperties.isPresent()) {
         BundleProperties props = fixUpBundleProperties(bundleProperties.get());
-        BundleSystem bundleSystem = new BundleSystem.Builder().withBundleProperties(props).Build();
+        BundleSystem bundleSystem = new BundleSystem.Builder().withBundleProperties(props).build();
         parser = bundleSystem
             .createInstance(parserConfig.getParserClassName(), MessageParser.class);
       } else {

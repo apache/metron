@@ -22,7 +22,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.metron.bundles.bundle.Bundle;
@@ -68,7 +67,7 @@ public class BundleSystem {
       return this;
     }
 
-    public BundleSystem Build() throws NotInitializedException {
+    public BundleSystem build() throws NotInitializedException {
       if(this.properties == null) {
         throw new IllegalArgumentException("BundleProperties are required");
       }
