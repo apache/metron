@@ -31,17 +31,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * High level interface to the Bundle System.  While you may want to use the lower level classes
- * it is not required, as BundleSystem provides the base required interface.
+ * High level interface to the Bundle System.  While you may want to use the lower level classes it
+ * is not required, as BundleSystem provides the base required interface.
  */
 public class BundleSystem {
+
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
-   * Builder for a BundleSystem.
-   * only {@link BundleProperties} are required
+   * Builder for a BundleSystem. only {@link BundleProperties} are required
    */
   public static class Builder {
+
     private BundleProperties properties;
     private FileSystemManager fileSystemManager;
     private List<Class> extensionClasses = new LinkedList<>();
@@ -67,8 +68,14 @@ public class BundleSystem {
       return this;
     }
 
+    /**
+     * Builds a new BundleSystem.
+     *
+     * @return BundleSystem
+     * @throws NotInitializedException if any errors happen during build
+     */
     public BundleSystem build() throws NotInitializedException {
-      if(this.properties == null) {
+      if (this.properties == null) {
         throw new IllegalArgumentException("BundleProperties are required");
       }
       try {
@@ -77,16 +84,17 @@ public class BundleSystem {
               .createFileSystemManager(new String[]{properties.getArchiveExtension()});
         }
         if (this.extensionClasses.isEmpty()) {
-          properties.getBundleExtensionTypes().forEach((x,y) -> {
+          properties.getBundleExtensionTypes().forEach((x, y) -> {
             try {
               this.extensionClasses.add(Class.forName(y));
-            }catch(ClassNotFoundException e) {
+            } catch (ClassNotFoundException e) {
               throw new IllegalStateException(e);
             }
           });
         }
         if (this.systemBundle == null) {
-          this.systemBundle = ExtensionManager.createSystemBundle(this.fileSystemManager, this.properties);
+          this.systemBundle = ExtensionManager
+              .createSystemBundle(this.fileSystemManager, this.properties);
         }
         ExtensionClassInitializer.initialize(extensionClasses);
         List<URI> libDirs = properties.getBundleLibraryDirectories();
@@ -94,23 +102,23 @@ public class BundleSystem {
         libDirs.forEach((x) -> {
           try {
             FileObject fileObject = fileSystemManager.resolveFile(x);
-            if(fileObject.exists()) {
+            if (fileObject.exists()) {
               libFileObjects.add(fileObject);
             }
-          } catch(Exception e){
+          } catch (Exception e) {
             throw new IllegalStateException(e);
           }
         });
 
         // initialize the Bundle System
         BundleClassLoaders.getInstance().init(fileSystemManager, libFileObjects, properties);
-        ExtensionManager.getInstance().init(extensionClasses, systemBundle, BundleClassLoaders.getInstance().getBundles());
+        ExtensionManager.getInstance()
+            .init(extensionClasses, systemBundle, BundleClassLoaders.getInstance().getBundles());
         return new BundleSystem(fileSystemManager, extensionClasses, systemBundle, properties);
-      }catch(Exception e) {
+      } catch (Exception e) {
         throw new NotInitializedException(e);
       }
     }
-
 
 
   }
@@ -120,15 +128,17 @@ public class BundleSystem {
   private final List<Class> extensionClasses;
   private final Bundle systemBundle;
 
-  private BundleSystem(FileSystemManager fileSystemManager, List<Class> extensionClasses, Bundle systemBundle, BundleProperties properties) {
+  private BundleSystem(FileSystemManager fileSystemManager, List<Class> extensionClasses,
+      Bundle systemBundle, BundleProperties properties) {
     this.properties = properties;
     this.fileSystemManager = fileSystemManager;
     this.extensionClasses = extensionClasses;
     this.systemBundle = systemBundle;
   }
 
-  public <T> T createInstance(final String specificClassName, final Class<T>  clazz)
-      throws ClassNotFoundException, NotInitializedException, InstantiationException, IllegalAccessException {
+  public <T> T createInstance(final String specificClassName, final Class<T> clazz)
+      throws ClassNotFoundException, InstantiationException,
+      NotInitializedException, IllegalAccessException {
     return BundleThreadContextClassLoader.createInstance(specificClassName, clazz, this.properties);
   }
 
