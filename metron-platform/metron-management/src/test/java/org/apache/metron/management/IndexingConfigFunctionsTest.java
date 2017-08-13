@@ -62,7 +62,17 @@ public class IndexingConfigFunctionsTest {
                              , toMap("config", "{}")
     );
     Map<String, Object> config = (Map<String, Object>)INDEXING.deserialize(out);
-    Assert.assertEquals(IndexingConfigurations.getBatchSize((Map<String, Object>) config.get("hdfs")), 10);
+    Assert.assertEquals(10, IndexingConfigurations.getBatchSize((Map<String, Object>) config.get("hdfs")));
+  }
+
+  @Test
+  public void testSetBatchWithTimeout() {
+    String out = (String) run("INDEXING_SET_BATCH(config, 'hdfs', 10, 2)"
+                             , toMap("config", "{}")
+    );
+    Map<String, Object> config = (Map<String, Object>)INDEXING.deserialize(out);
+    Assert.assertEquals(10, IndexingConfigurations.getBatchSize((Map<String, Object>) config.get("hdfs")));
+    Assert.assertEquals(2,  IndexingConfigurations.getBatchTimeout((Map<String, Object>) config.get("hdfs")));
   }
 
   @Test(expected=IllegalStateException.class)
