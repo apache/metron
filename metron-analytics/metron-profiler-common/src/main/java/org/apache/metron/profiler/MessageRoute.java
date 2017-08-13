@@ -23,8 +23,9 @@ package org.apache.metron.profiler;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 
 /**
- * Represents a single route that a telemetry message will need to take.  For messages,
- * a route defines the profile a message needs applied to.
+ * Represents a single route that a telemetry message will need to take.  A route defines
+ * the profile a telemetry message needs applied to.  A single telemetry message may need
+ * to be applied to multiple profiles.
  *
  * A single telemetry message may need to take multiple routes.  This is the case
  * when a message is needed by more than one profile.
