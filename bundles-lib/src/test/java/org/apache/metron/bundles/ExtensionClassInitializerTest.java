@@ -17,15 +17,15 @@
 package org.apache.metron.bundles;
 
 import org.apache.metron.bundles.util.BundleProperties;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class ExtensionClassInitializerTest {
-  @Test(expected = NotInitializedException.class)
-  public void testNotInitializedClassloader() throws Exception{
-    BundleProperties properties = BundleProperties.createBasicBundleProperties("src/test/resources/bundle.properties", null);
-    BundleThreadContextClassLoader.createInstance(BundleThreadContextClassLoaderTest.WithPropertiesConstructor.class.getName(),
-            BundleThreadContextClassLoaderTest.WithPropertiesConstructor.class, properties);
+  @BeforeClass
+  public static void before(){
+    ExtensionManager.reset();
   }
+
   @Test(expected = NotInitializedException.class)
   public void testNotInitializedExtensionManager() throws Exception{
     ExtensionManager.getInstance().getInstanceClassLoader("org.junit.Test");

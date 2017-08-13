@@ -32,7 +32,6 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.TestConstants;
 import org.apache.metron.bundles.BundleClassLoaders;
-import org.apache.metron.bundles.ExtensionClassInitializer;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
@@ -83,12 +82,10 @@ public class SimpleHbaseEnrichmentWriterIntegrationTest extends BaseIntegrationT
 
   @AfterClass
   public static void after(){
-    ExtensionClassInitializer.reset();
     BundleClassLoaders.reset();
   }
   @BeforeClass
   public static void before(){
-    ExtensionClassInitializer.reset();
     BundleClassLoaders.reset();
   }
   @Test

@@ -23,7 +23,6 @@ import java.nio.file.Files;
 import java.util.List;
 import org.apache.metron.TestConstants;
 import org.apache.metron.bundles.BundleClassLoaders;
-import org.apache.metron.bundles.ExtensionClassInitializer;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ProcessorResult;
 import org.apache.metron.integration.utils.TestUtils;
@@ -38,12 +37,10 @@ public abstract class ParserIntegrationTest extends BaseIntegrationTest {
   protected List<byte[]> inputMessages;
   @AfterClass
   public static void after(){
-    ExtensionClassInitializer.reset();
     BundleClassLoaders.reset();
   }
   @BeforeClass
   public static void before(){
-    ExtensionClassInitializer.reset();
     BundleClassLoaders.reset();
   }
 

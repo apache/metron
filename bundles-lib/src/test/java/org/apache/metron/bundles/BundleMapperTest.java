@@ -52,7 +52,7 @@ public class BundleMapperTest {
 
   @AfterClass
   public static void after() {
-    ExtensionClassInitializer.reset();
+    ExtensionManager.reset();
     BundleClassLoaders.reset();
   }
 
@@ -76,7 +76,6 @@ public class BundleMapperTest {
     FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
     ArrayList<Class> classes = new ArrayList<>();
     classes.add(MessageParser.class);
-    ExtensionClassInitializer.initialize(classes);
     final ExtensionMapping extensionMapping = BundleMapper
         .mapBundles(fileSystemManager,
             properties);
@@ -105,7 +104,6 @@ public class BundleMapperTest {
     FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
     ArrayList<Class> classes = new ArrayList<>();
     classes.add(MessageParser.class);
-    ExtensionClassInitializer.initialize(classes);
     // create a FileSystemManager
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
     ExtensionManager.getInstance().init(classes, systemBundle, Collections.emptySet());
@@ -134,7 +132,6 @@ public class BundleMapperTest {
     FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
     ArrayList<Class> classes = new ArrayList<>();
     classes.add(MessageParser.class);
-    ExtensionClassInitializer.initialize(classes);
     // create a FileSystemManager
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
     ExtensionManager.getInstance().init(classes, systemBundle, Collections.emptySet());
@@ -164,7 +161,6 @@ public class BundleMapperTest {
     FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
     ArrayList<Class> classes = new ArrayList<>();
     classes.add(MessageParser.class);
-    ExtensionClassInitializer.initialize(classes);
     // create a FileSystemManager
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
     ExtensionManager.getInstance().init(classes, systemBundle, Collections.emptySet());

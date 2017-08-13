@@ -96,7 +96,6 @@ public class BundleSystem {
           this.systemBundle = ExtensionManager
               .createSystemBundle(this.fileSystemManager, this.properties);
         }
-        ExtensionClassInitializer.initialize(extensionClasses);
         List<URI> libDirs = properties.getBundleLibraryDirectories();
         List<FileObject> libFileObjects = new ArrayList<>();
         libDirs.forEach((x) -> {

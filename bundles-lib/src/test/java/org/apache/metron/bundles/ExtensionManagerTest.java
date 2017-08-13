@@ -47,7 +47,6 @@ public class ExtensionManagerTest {
 
   @AfterClass
   public static void after() {
-    ExtensionClassInitializer.reset();
     BundleClassLoaders.reset();
   }
 
@@ -64,7 +63,6 @@ public class ExtensionManagerTest {
     FileSystemManager fileSystemManager = FileSystemManagerFactory
         .createFileSystemManager(new String[] {properties.getArchiveExtension()});
     List<Class> classes = Arrays.asList(AbstractFoo.class);
-    ExtensionClassInitializer.initialize(classes);
 
     BundleClassLoaders.getInstance()
         .init(fileSystemManager, TestUtil.getExtensionLibs(fileSystemManager, properties),

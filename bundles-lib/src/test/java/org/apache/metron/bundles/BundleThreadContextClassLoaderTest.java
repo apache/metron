@@ -32,10 +32,6 @@ import org.junit.Test;
 
 public class BundleThreadContextClassLoaderTest {
 
-  @AfterClass
-  public static void after() {
-    ExtensionClassInitializer.reset();
-  }
 
   @Test
   public void validateWithPropertiesConstructor() throws Exception {
@@ -46,7 +42,6 @@ public class BundleThreadContextClassLoaderTest {
 
     ArrayList<Class> classes = new ArrayList<>();
     classes.add(AbstractFoo.class);
-    ExtensionClassInitializer.initialize(classes);
     // create a FileSystemManager
     FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
@@ -61,7 +56,6 @@ public class BundleThreadContextClassLoaderTest {
   public void validateWithPropertiesConstructorInstantiationFailure() throws Exception {
     ArrayList<Class> classes = new ArrayList<>();
     classes.add(AbstractFoo.class);
-    ExtensionClassInitializer.initialize(classes);
     Map<String, String> additionalProperties = new HashMap<>();
     additionalProperties.put("fail", "true");
     BundleProperties properties = BundleProperties
@@ -84,7 +78,6 @@ public class BundleThreadContextClassLoaderTest {
     properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY,"src/test/resources/BundleMapper/lib");
     ArrayList<Class> classes = new ArrayList<>();
     classes.add(AbstractFoo.class);
-    ExtensionClassInitializer.initialize(classes);
     // create a FileSystemManager
     FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
@@ -96,10 +89,16 @@ public class BundleThreadContextClassLoaderTest {
 
   @Test(expected = IllegalStateException.class)
   public void validateWithWrongConstructor() throws Exception {
-    ExtensionClassInitializer.initialize(new ArrayList<>());
     BundleProperties properties = BundleProperties
         .createBasicBundleProperties("src/test/resources/bundle.properties", null);
     properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY,"src/test/resources/BundleMapper/lib");
+    ArrayList<Class> classes = new ArrayList<>();
+    classes.add(AbstractFoo.class);
+    // create a FileSystemManager
+    FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
+    Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
+    ExtensionManager.getInstance().init(classes, systemBundle, Collections.emptySet());
+
     BundleThreadContextClassLoader
         .createInstance(WrongConstructor.class.getName(), WrongConstructor.class, properties);
   }

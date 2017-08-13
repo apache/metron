@@ -29,9 +29,7 @@ import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.metron.TestConstants;
 import org.apache.metron.bundles.BundleClassLoaders;
-import org.apache.metron.bundles.ExtensionClassInitializer;
 import org.apache.metron.bundles.util.BundleProperties;
-import org.apache.metron.bundles.util.FileUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
 import org.apache.metron.integration.BaseIntegrationTest;
@@ -51,7 +49,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -79,7 +76,6 @@ public class ASABundleHDFSIntegrationTest extends BaseIntegrationTest {
       }
     }catch(Exception e){}
     mrComponent.stop();
-    ExtensionClassInitializer.reset();
     BundleClassLoaders.reset();
   }
 

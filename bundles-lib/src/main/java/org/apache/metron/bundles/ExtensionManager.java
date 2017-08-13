@@ -18,6 +18,7 @@
 package org.apache.metron.bundles;
 
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
@@ -396,6 +397,16 @@ public class ExtensionManager {
       throws NotInitializedException {
     checkInitialized();
     return initContext.instanceClassloaderLookup.get(instanceIdentifier);
+  }
+
+  /**
+   * Retrieves the Set of Classes registered with the ExtensionManager
+   * @return Set of Class
+   * @throws NotInitializedException
+   */
+  public Set<Class> getExtensionClasses() throws NotInitializedException {
+    checkInitialized();
+    return ImmutableSet.copyOf(initContext.definitionMap.keySet());
   }
 
   /**

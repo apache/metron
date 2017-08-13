@@ -36,7 +36,6 @@ import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.metron.bundles.BundleClassLoaders;
 import org.apache.metron.bundles.BundleMapper;
-import org.apache.metron.bundles.ExtensionClassInitializer;
 import org.apache.metron.bundles.ExtensionManager;
 import org.apache.metron.bundles.ExtensionMapping;
 import org.apache.metron.bundles.bundle.Bundle;
@@ -94,7 +93,6 @@ public class BundleMapperIntegrationTest {
     } catch (Exception e) {
     }
     component.stop();
-    ExtensionClassInitializer.reset();
     BundleClassLoaders.reset();
   }
 
@@ -120,7 +118,6 @@ public class BundleMapperIntegrationTest {
     FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
     ArrayList<Class> classes = new ArrayList<>();
     classes.add(MessageParser.class);
-    ExtensionClassInitializer.initialize(classes);
     // create a FileSystemManager
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
     ExtensionManager.getInstance().init(classes, systemBundle, Collections.emptySet());

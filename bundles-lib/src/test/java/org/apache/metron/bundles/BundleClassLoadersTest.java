@@ -42,7 +42,6 @@ public class BundleClassLoadersTest {
 
   @AfterClass
   public static void after() {
-    ExtensionClassInitializer.reset();
     BundleClassLoaders.reset();
   }
 

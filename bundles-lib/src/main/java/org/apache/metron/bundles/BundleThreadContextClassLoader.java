@@ -29,31 +29,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.metron.bundles.bundle.Bundle;
 import org.apache.metron.bundles.util.BundleProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * THREAD SAFE
  */
 public class BundleThreadContextClassLoader extends URLClassLoader {
-
+    static final Logger LOG = LoggerFactory.getLogger(BundleThreadContextClassLoader.class);
     static final ContextSecurityManager contextSecurityManager = new ContextSecurityManager();
     private final ClassLoader forward = ClassLoader.getSystemClassLoader();
-    private static final List<Class<?>> bundleSpecificClasses = new ArrayList<>();
-    private static AtomicBoolean inited = new AtomicBoolean(false);
-    // should initialize class definitions
-    public static void initClasses(final List<Class> classes){
-        bundleSpecificClasses.clear();
-        if(classes != null){
-            for( Class clazz : classes){
-                bundleSpecificClasses.add(clazz);
-            }
-        }
-        inited.set(true);
-    }
-
-    public static void resetClasses(){
-        bundleSpecificClasses.clear();
-        inited.set(false);
-    }
 
     private BundleThreadContextClassLoader() {
         super(new URL[0]);
@@ -132,12 +117,17 @@ public class BundleThreadContextClassLoader extends URLClassLoader {
     }
 
     private Class<?> findBundleClass(final Class<?> cls) {
-        for (final Class<?> bundleClass : bundleSpecificClasses) {
-            if (bundleClass.isAssignableFrom(cls)) {
-                return cls;
-            } else if (cls.getEnclosingClass() != null) {
-                return findBundleClass(cls.getEnclosingClass());
+        try {
+            for (final Class<?> bundleClass : ExtensionManager.getInstance()
+                .getExtensionClasses()) {
+                if (bundleClass.isAssignableFrom(cls)) {
+                    return cls;
+                } else if (cls.getEnclosingClass() != null) {
+                    return findBundleClass(cls.getEnclosingClass());
+                }
             }
+        }catch(NotInitializedException e){
+            LOG.error("ExtensionManager not initialized",e);
         }
 
         return null;
@@ -149,9 +139,6 @@ public class BundleThreadContextClassLoader extends URLClassLoader {
     }
 
     public static BundleThreadContextClassLoader getInstance() throws NotInitializedException {
-        if(!inited.get()){
-            throw new NotInitializedException();
-        }
         return SingletonHolder.instance;
     }
 
