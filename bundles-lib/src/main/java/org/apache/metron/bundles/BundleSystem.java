@@ -32,14 +32,17 @@ import org.slf4j.LoggerFactory;
 
 /**
  * High level interface to the Bundle System.  While you may want to use the lower level classes it
- * is not required, as BundleSystem provides the base required interface.
+ * is not required, as BundleSystem provides the base required interface for initializing the system
+ * and instantiating classes
  */
 public class BundleSystem {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
-   * Builder for a BundleSystem. only {@link BundleProperties} are required
+   * Builder for a BundleSystem. only {@link BundleProperties} are required. Beyond that, the
+   * BundleProperties, if they are the only parameter must have archive extension and bundle
+   * extension types properties present.
    */
   public static class Builder {
 
@@ -48,21 +51,46 @@ public class BundleSystem {
     private List<Class> extensionClasses = new LinkedList<>();
     private Bundle systemBundle;
 
+    /**
+     * The BundleProperties to use.  Unless other builder parameters override options
+     * (withExtensionClasses ), they must have archive extension and bundle extensions types
+     * specified
+     *
+     * @param properties The BundleProperties
+     * @return Builder
+     */
     public Builder withBundleProperties(BundleProperties properties) {
       this.properties = properties;
       return this;
     }
 
+    /**
+     * Provide a {@link FileSystemManager} to overide the default
+     *
+     * @param fileSystemManager override
+     * @return Builder
+     */
     public Builder withFileSystemManager(FileSystemManager fileSystemManager) {
       this.fileSystemManager = fileSystemManager;
       return this;
     }
 
+    /**
+     * Provide Extension Classes.  If not provided with this override then the classes will be
+     * configured from the BundleProperties. If provided, the properties file will not be used.
+     *
+     * @param extensionClasses override
+     * @return Builder
+     */
     public Builder withExtensionClasses(List<Class> extensionClasses) {
       this.extensionClasses.addAll(extensionClasses);
       return this;
     }
 
+    /**
+     * Provide a SystemBundle.  If not provided with this override then the default SystemBundle
+     * will be created.
+     */
     public Builder withSystemBundle(Bundle systemBundle) {
       this.systemBundle = systemBundle;
       return this;
@@ -135,6 +163,16 @@ public class BundleSystem {
     this.systemBundle = systemBundle;
   }
 
+  /**
+   * Constructs an instance of the given type using either default no args constructor or a
+   * constructor which takes a BundleProperties object.
+   *
+   * @param specificClassName the implementation class name
+   * @param clazz the type (T) to create an instance for
+   * @return an instance of specificClassName which extends T
+   * @throws ClassNotFoundException if the class cannot be found
+   * @throws InstantiationException if the class cannot be instantiated
+   */
   public <T> T createInstance(final String specificClassName, final Class<T> clazz)
       throws ClassNotFoundException, InstantiationException,
       NotInitializedException, IllegalAccessException {
