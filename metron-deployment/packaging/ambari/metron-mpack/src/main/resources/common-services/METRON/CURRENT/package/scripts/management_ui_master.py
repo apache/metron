@@ -43,8 +43,10 @@ class ManagementUIMaster(Script):
     def configure(self, env, upgrade_type=None, config_dir=None):
         print 'configure managment_ui'
         from params import params
-        env.set_params(params)
+        if params.security_enabled:
+          params.metron_jvm_flags += format(' -Djava.security.auth.login.config={client_jaas_path}')
 
+        env.set_params(params)
         File(format("/etc/default/metron"),
              content=Template("metron.j2")
              )
