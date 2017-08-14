@@ -32,6 +32,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.TestConstants;
 import org.apache.metron.bundles.BundleClassLoaders;
+import org.apache.metron.bundles.ExtensionManager;
 import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.SensorParserConfig;
@@ -64,11 +65,13 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
     @AfterClass
     public static void after(){
       BundleClassLoaders.reset();
+      ExtensionManager.reset();
     }
     
     @BeforeClass
     public static void before(){
       BundleClassLoaders.reset();
+      ExtensionManager.reset();
     }
 
     @Override
