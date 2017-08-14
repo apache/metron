@@ -35,6 +35,7 @@ import org.apache.metron.bundles.bundle.Bundle;
 import org.apache.metron.bundles.bundle.BundleCoordinates;
 import org.apache.metron.bundles.bundle.BundleDetails;
 import org.apache.metron.bundles.util.BundleProperties;
+import org.apache.metron.bundles.util.DummyFileObject;
 import org.apache.metron.bundles.util.FileUtils;
 import org.apache.metron.bundles.util.ImmutableCollectionUtils;
 import org.apache.metron.bundles.util.StringUtils;
@@ -224,8 +225,9 @@ public class ExtensionManager {
     // Test if the source Bundles can be read
     FileUtils.ensureDirectoryExistAndCanRead(bundleDir);
 
+    // the system bundle file object is never accessed, we use a dummy to stand in
     final BundleDetails systemBundleDetails = new BundleDetails.Builder()
-        .withBundleFile(bundleDir)
+        .withBundleFile(new DummyFileObject())
         .withCoordinates(SYSTEM_BUNDLE_COORDINATE)
         .build();
 
