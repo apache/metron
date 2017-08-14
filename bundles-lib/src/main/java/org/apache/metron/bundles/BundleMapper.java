@@ -62,7 +62,7 @@ public final class BundleMapper {
 
         FileObject bundleDir = fileSystemManager.resolveFile(bundleLibraryDir);
 
-        if(bundleDir.exists() == false){
+        if(bundleDir.exists() == false) {
           continue;
         }
         // Test if the source BUNDLEs can be read

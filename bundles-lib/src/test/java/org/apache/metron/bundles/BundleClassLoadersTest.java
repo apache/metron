@@ -69,8 +69,7 @@ public class BundleClassLoadersTest {
     FileSystemManager fileSystemManager = FileSystemManagerFactory
         .createFileSystemManager(new String[] {properties.getArchiveExtension()});
 
-    BundleClassLoaders.getInstance()
-        .init(fileSystemManager, TestUtil.getExtensionLibs(fileSystemManager, properties),
+    BundleClassLoaders.init(fileSystemManager, TestUtil.getExtensionLibs(fileSystemManager, properties),
             properties);
 
     Set<Bundle> bundles = BundleClassLoaders.getInstance().getBundles();
@@ -96,7 +95,7 @@ public class BundleClassLoadersTest {
 
     BundleClassLoaders.reset();
 
-    BundleClassLoaders.getInstance()
+    BundleClassLoaders
         .init(fileSystemManager, TestUtil.getExtensionLibs(fileSystemManager, properties),
             properties);
 

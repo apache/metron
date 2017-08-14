@@ -18,6 +18,7 @@
 package org.apache.metron.bundles;
 
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -58,13 +59,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * the ClassIndex and running through all classloaders (root, BUNDLEs).
  *
  *
- * @ThreadSafe - is immutable
+ *
  */
 @SuppressWarnings("rawtypes")
 public class ExtensionManager {
 
   private static volatile ExtensionManager extensionManager;
-  private volatile InitContext initContext;
+  private static volatile InitContext initContext;
 
   private static final Logger logger = LoggerFactory.getLogger(ExtensionManager.class);
 
@@ -103,35 +104,26 @@ public class ExtensionManager {
   /**
    * @return The singleton instance of the ExtensionManager
    */
-  public static ExtensionManager getInstance() {
-    ExtensionManager result = extensionManager;
-    if (result == null) {
-      synchronized (ExtensionManager.class) {
-        result = extensionManager;
-        if (result == null) {
-          extensionManager = new ExtensionManager();
-          result = extensionManager;
-        }
+  public static ExtensionManager getInstance() throws NotInitializedException {
+    synchronized (ExtensionManager.class) {
+      if (extensionManager == null) {
+        throw new NotInitializedException("ExtensionManager not initialized");
       }
+      return extensionManager;
     }
-    return result;
   }
 
   /**
    * Uninitializes the ExtensionManager.
    * TESTING ONLY
    */
+  @VisibleForTesting
   public static void reset() {
     synchronized (ExtensionManager.class) {
-      getInstance().forgetExtensions();
+      initContext = null;
       extensionManager = null;
     }
   }
-
-  private void forgetExtensions() {
-      initContext = null;
-  }
-
 
   /**
    * Loads all extension class types that can be found on the bootstrap classloader and by creating
@@ -139,25 +131,25 @@ public class ExtensionManager {
    *
    * @param bundles the bundles to scan through in search of extensions
    */
-  public void init(final List<Class> classes, final Bundle systemBundle, final Set<Bundle> bundles)
+  public static void init(final List<Class> classes, final Bundle systemBundle, final Set<Bundle> bundles)
       throws NotInitializedException {
 
-    InitContext ic = initContext;
-    if (ic == null) {
-      synchronized (this) {
-        ic = initContext;
-        if (ic == null) {
-          initContext = discoverExtensions(classes, systemBundle, bundles);
-          ic = initContext;
-        }
+    if (systemBundle == null) {
+      throw new IllegalArgumentException("systemBundle is required");
+    }
+
+    synchronized (ExtensionManager.class) {
+      if (extensionManager != null) {
+        throw new IllegalStateException("ExtensionManager already exists");
       }
+      extensionManager = new ExtensionManager();
+      initContext = extensionManager.discoverExtensions(classes, systemBundle, bundles);
     }
   }
 
-  private InitContext discoverExtensions(final List<Class> classes, final Bundle systemBundle, final Set<Bundle> bundles)
-      throws NotInitializedException {
+  private InitContext discoverExtensions(final List<Class> classes, final Bundle systemBundle, final Set<Bundle> bundles) {
 
-    if(classes == null || classes.size() == 0) {
+    if (classes == null || classes.size() == 0) {
       throw new IllegalArgumentException("classes must be defined");
     }
     // get the current context class loader

@@ -138,8 +138,8 @@ public class BundleSystem {
         });
 
         // initialize the Bundle System
-        BundleClassLoaders.getInstance().init(fileSystemManager, libFileObjects, properties);
-        ExtensionManager.getInstance()
+        BundleClassLoaders.init(fileSystemManager, libFileObjects, properties);
+        ExtensionManager
             .init(extensionClasses, systemBundle, BundleClassLoaders.getInstance().getBundles());
         return new BundleSystem(fileSystemManager, extensionClasses, systemBundle, properties);
       } catch (Exception e) {

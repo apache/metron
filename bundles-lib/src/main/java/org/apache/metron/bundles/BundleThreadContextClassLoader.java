@@ -32,9 +32,6 @@ import org.apache.metron.bundles.util.BundleProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * THREAD SAFE
- */
 public class BundleThreadContextClassLoader extends URLClassLoader {
     static final Logger LOG = LoggerFactory.getLogger(BundleThreadContextClassLoader.class);
     static final ContextSecurityManager contextSecurityManager = new ContextSecurityManager();
@@ -138,7 +135,7 @@ public class BundleThreadContextClassLoader extends URLClassLoader {
         public static final BundleThreadContextClassLoader instance = new BundleThreadContextClassLoader();
     }
 
-    public static BundleThreadContextClassLoader getInstance() throws NotInitializedException {
+    public static BundleThreadContextClassLoader getInstance() {
         return SingletonHolder.instance;
     }
 

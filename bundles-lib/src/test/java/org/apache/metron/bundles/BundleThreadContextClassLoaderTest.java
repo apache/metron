@@ -27,11 +27,21 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.metron.bundles.bundle.Bundle;
 import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.metron.bundles.util.FileSystemManagerFactory;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Test;
 
 public class BundleThreadContextClassLoaderTest {
+  @AfterClass
+  public static void after() {
+    BundleClassLoaders.reset();
+  }
 
+  @After
+  public void afterTest() {
+    BundleClassLoaders.reset();
+    ExtensionManager.reset();
+  }
 
   @Test
   public void validateWithPropertiesConstructor() throws Exception {
@@ -45,7 +55,7 @@ public class BundleThreadContextClassLoaderTest {
     // create a FileSystemManager
     FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
-    ExtensionManager.getInstance().init(classes, systemBundle, Collections.emptySet());
+    ExtensionManager.init(classes, systemBundle, Collections.emptySet());
 
     assertTrue(
         BundleThreadContextClassLoader.createInstance(WithPropertiesConstructor.class.getName(),
@@ -64,7 +74,7 @@ public class BundleThreadContextClassLoaderTest {
     // create a FileSystemManager
     FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
-    ExtensionManager.getInstance().init(classes, systemBundle, Collections.emptySet());
+    ExtensionManager.init(classes, systemBundle, Collections.emptySet());
 
     BundleThreadContextClassLoader
         .createInstance(WithPropertiesConstructor.class.getName(), WithPropertiesConstructor.class,
@@ -81,7 +91,7 @@ public class BundleThreadContextClassLoaderTest {
     // create a FileSystemManager
     FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
-    ExtensionManager.getInstance().init(classes, systemBundle, Collections.emptySet());
+    ExtensionManager.init(classes, systemBundle, Collections.emptySet());
 
     assertTrue(BundleThreadContextClassLoader.createInstance(WithDefaultConstructor.class.getName(),
         WithDefaultConstructor.class, properties) instanceof WithDefaultConstructor);
@@ -97,7 +107,7 @@ public class BundleThreadContextClassLoaderTest {
     // create a FileSystemManager
     FileSystemManager fileSystemManager = FileSystemManagerFactory.createFileSystemManager(new String[] {properties.getArchiveExtension()});
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
-    ExtensionManager.getInstance().init(classes, systemBundle, Collections.emptySet());
+    ExtensionManager.init(classes, systemBundle, Collections.emptySet());
 
     BundleThreadContextClassLoader
         .createInstance(WrongConstructor.class.getName(), WrongConstructor.class, properties);

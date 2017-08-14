@@ -31,6 +31,7 @@ public class BundleSystemTest {
   @AfterClass
   public static void after() {
     BundleClassLoaders.reset();
+    ExtensionManager.reset();;
   }
   
   @Test

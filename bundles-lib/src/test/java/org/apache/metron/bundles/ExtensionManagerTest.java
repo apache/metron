@@ -64,12 +64,12 @@ public class ExtensionManagerTest {
         .createFileSystemManager(new String[] {properties.getArchiveExtension()});
     List<Class> classes = Arrays.asList(AbstractFoo.class);
 
-    BundleClassLoaders.getInstance()
+    BundleClassLoaders
         .init(fileSystemManager, TestUtil.getExtensionLibs(fileSystemManager, properties),
             properties);
 
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
-    ExtensionManager.getInstance().init(classes, systemBundle, BundleClassLoaders.getInstance().getBundles());
+    ExtensionManager.init(classes, systemBundle, BundleClassLoaders.getInstance().getBundles());
 
     List<Bundle> bundles = ExtensionManager.getInstance().getBundles(BundleThreadContextClassLoaderTest.WithPropertiesConstructor.class.getName());
     Assert.assertTrue(bundles.size() == 1);

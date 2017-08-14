@@ -23,6 +23,7 @@ import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.metron.bundles.util.FileSystemManagerFactory;
 import org.apache.metron.bundles.util.ResourceCopier;
 import org.apache.metron.parsers.interfaces.MessageParser;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -52,6 +53,12 @@ public class BundleMapperTest {
 
   @AfterClass
   public static void after() {
+    ExtensionManager.reset();
+    BundleClassLoaders.reset();
+  }
+
+  @After
+  public void afterTest() {
     ExtensionManager.reset();
     BundleClassLoaders.reset();
   }
@@ -106,7 +113,7 @@ public class BundleMapperTest {
     classes.add(MessageParser.class);
     // create a FileSystemManager
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
-    ExtensionManager.getInstance().init(classes, systemBundle, Collections.emptySet());
+    ExtensionManager.init(classes, systemBundle, Collections.emptySet());
     final ExtensionMapping extensionMapping = BundleMapper
         .mapBundles(fileSystemManager,
              properties);
@@ -134,7 +141,7 @@ public class BundleMapperTest {
     classes.add(MessageParser.class);
     // create a FileSystemManager
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
-    ExtensionManager.getInstance().init(classes, systemBundle, Collections.emptySet());
+    ExtensionManager.init(classes, systemBundle, Collections.emptySet());
     final ExtensionMapping extensionMapping = BundleMapper
         .mapBundles(fileSystemManager,
              properties);
@@ -163,7 +170,7 @@ public class BundleMapperTest {
     classes.add(MessageParser.class);
     // create a FileSystemManager
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
-    ExtensionManager.getInstance().init(classes, systemBundle, Collections.emptySet());
+    ExtensionManager.init(classes, systemBundle, Collections.emptySet());
     final ExtensionMapping extensionMapping = BundleMapper
         .mapBundles(fileSystemManager,
             properties);

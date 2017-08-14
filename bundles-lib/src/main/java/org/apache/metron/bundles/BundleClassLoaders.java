@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
 public final class BundleClassLoaders {
 
   private static volatile BundleClassLoaders bundleClassLoaders;
-  private volatile InitContext initContext;
+  private static volatile InitContext initContext;
   private static final Logger logger = LoggerFactory.getLogger(BundleClassLoaders.class);
 
   /**
@@ -73,19 +73,15 @@ public final class BundleClassLoaders {
 
   /**
    * @return The singleton instance of the BundleClassLoaders
+   * @throws NotInitializedException if BundleClassLoaders has not been init'd
    */
-  public static BundleClassLoaders getInstance() {
-    BundleClassLoaders result = bundleClassLoaders;
-    if (result == null) {
-      synchronized (BundleClassLoaders.class) {
-        result = bundleClassLoaders;
-        if (result == null) {
-          bundleClassLoaders = new BundleClassLoaders();
-          result = bundleClassLoaders;
-        }
+  public static BundleClassLoaders getInstance() throws NotInitializedException {
+    synchronized (BundleClassLoaders.class) {
+      if (bundleClassLoaders == null) {
+        throw new NotInitializedException("BundleClassLoaders not initialized");
       }
+      return bundleClassLoaders;
     }
-    return result;
   }
 
   /**
@@ -95,16 +91,8 @@ public final class BundleClassLoaders {
    */
   public static void reset() {
     synchronized (BundleClassLoaders.class) {
-      getInstance().unInit();
+      initContext = null;
       bundleClassLoaders = null;
-    }
-  }
-
-  private void unInit() {
-    synchronized (this) {
-      if(initContext != null) {
-        initContext = null;
-      }
     }
   }
 
@@ -121,33 +109,18 @@ public final class BundleClassLoaders {
    * @throws IllegalStateException when already initialized with a given set of extension directories
    * and extensionDirs does not match
    */
-  public void init(final FileSystemManager fileSystemManager, final List<FileObject> extensionsDirs,
+  public static void init(final FileSystemManager fileSystemManager, final List<FileObject> extensionsDirs,
       BundleProperties props)
       throws FileSystemException, ClassNotFoundException, URISyntaxException {
     if (extensionsDirs == null || fileSystemManager == null) {
       throw new NullPointerException("cannot have empty arguments");
     }
-    InitContext ic = initContext;
-    if (ic == null) {
-      synchronized (this) {
-        ic = initContext;
-        if (ic == null) {
-          initContext = load(fileSystemManager, extensionsDirs, props);
-          ic = initContext;
-        }
+    synchronized (BundleClassLoaders.class) {
+      if (bundleClassLoaders != null) {
+        throw new IllegalStateException("BundleClassloader already exists");
       }
-    } else {
-      boolean matching = CollectionUtils
-          .isEqualCollection(initContext.extensionDirs, extensionsDirs);
-      if (!matching) {
-        throw new IllegalStateException(
-            "Cannot reinitialize and extension directories cannot change");
-      }
-      matching = initContext.properties.match(props);
-      if (!matching) {
-        throw new IllegalStateException(
-            "Cannot re-initialize and properties cannot change");
-      }
+      bundleClassLoaders = new BundleClassLoaders();
+      initContext = bundleClassLoaders.load(fileSystemManager, extensionsDirs, props);
     }
   }
 

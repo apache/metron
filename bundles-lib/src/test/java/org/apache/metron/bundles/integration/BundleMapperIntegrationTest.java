@@ -43,6 +43,7 @@ import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.metron.bundles.util.FileSystemManagerFactory;
 import org.apache.metron.integration.components.MRComponent;
 import org.apache.metron.parsers.interfaces.MessageParser;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -54,8 +55,22 @@ public class BundleMapperIntegrationTest {
   static Configuration configuration;
   static FileSystem fileSystem;
 
+
+  @AfterClass
+  public static void after() {
+    ExtensionManager.reset();
+    BundleClassLoaders.reset();
+  }
+
+  @After
+  public void afterTest() {
+    ExtensionManager.reset();
+    BundleClassLoaders.reset();
+  }
   @BeforeClass
   public static void setup() {
+    ExtensionManager.reset();
+    BundleClassLoaders.reset();
     component = new MRComponent().withBasePath("target/hdfs");
     component.start();
     configuration = component.getConfiguration();
@@ -98,12 +113,6 @@ public class BundleMapperIntegrationTest {
 
   @Test
   public void testUnpackBundles() throws Exception {
-    // we unpack TWICE, because the code is different
-    // if the files are there already
-    // this still doesn't test what happens
-    // if the HASH is different
-
-    unpackBundles();
     unpackBundles();
   }
 
@@ -120,7 +129,7 @@ public class BundleMapperIntegrationTest {
     classes.add(MessageParser.class);
     // create a FileSystemManager
     Bundle systemBundle = ExtensionManager.createSystemBundle(fileSystemManager, properties);
-    ExtensionManager.getInstance().init(classes, systemBundle, Collections.emptySet());
+    ExtensionManager.init(classes, systemBundle, Collections.emptySet());
 
     final ExtensionMapping extensionMapping = BundleMapper
         .mapBundles(fileSystemManager,

@@ -16,6 +16,7 @@
  */
 package org.apache.metron.bundles;
 
+import org.apache.metron.bundles.bundle.Bundle;
 import org.apache.metron.bundles.bundle.BundleCoordinates;
 
 import java.util.*;
@@ -27,6 +28,9 @@ import java.util.function.BiFunction;
  *
  * It is NOT used at runtime for loading extensions, rather it may be used by a system to
  * have details about the Extensions that exist in a system
+ *
+ * Runtime extension loading happens in the {@link ExtensionManager#init}
+ *
  */
 public class ExtensionMapping {
 
