@@ -23,6 +23,22 @@ import java.util.function.BiFunction;
 
 public class ExtensionMapping {
 
+  /*
+    The extensionNameMap is a map of the following
+    Extension Type -> Map of Extension Class Types to a set of BundleCoordinates
+
+    For example :
+    Parser -> MessageParser -> [ bundles with parsers]
+
+    BundleProperties files define with Property names the type and class types, such as:
+
+    bundle.extension.type.parser=org.apache.metron.parsers.interfaces.MessageParser
+
+    This is done to give a namespace to extensions, while supporting future extension types
+    and classes.  This is different from the inspirational Nar system, which defined an explicit set
+    of supported classes, and a separate map for each.
+
+   */
   private final Map<String, Map<String, Set<BundleCoordinates>>> extensionNameMap = new HashMap<>();
 
   private final BiFunction<Set<BundleCoordinates>, Set<BundleCoordinates>, Set<BundleCoordinates>> merger = (oldValue, newValue) -> {
