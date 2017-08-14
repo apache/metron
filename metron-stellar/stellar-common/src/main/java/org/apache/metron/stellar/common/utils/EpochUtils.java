@@ -27,18 +27,18 @@ public class EpochUtils {
   /**
    * Ensures returns the passed value as milliseconds from EPOCH if the value is in seconds.
    * This is done by looking at the number of digits.
-   * If there are 10, then the value is concidered to be in seconds and will by
-   * muliplited by 1000.
+   * If there are 10, then the value is considered to be in seconds and will by
+   * multiplied by 1000.
    * If there not 10, then the original value will be returned.
    *
    *
    * </p>
-   * @param canidate The Long value to concider
+   * @param candidate The Long value to consider
    * @return A Long value
    */
-  public static Long ensureEpochMillis(Long canidate) {
-    int length = (int)Math.floor(Math.log10(canidate) + 1);
-    return length == 10 ? canidate * 1000 : canidate;
+  public static Long ensureEpochMillis(Long candidate) {
+    int length = (int)Math.floor(Math.log10(candidate) + 1);
+    return length == 10 ? candidate * 1000 : candidate;
   }
 
 }
