@@ -21,6 +21,7 @@ package org.apache.metron.stellar.dsl.functions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.apache.metron.stellar.common.utils.EpochUtils;
 import org.apache.metron.stellar.dsl.BaseStellarFunction;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
@@ -174,7 +175,7 @@ public class DateFunctions {
    */
   @Stellar( name="DAY_OF_WEEK"
           , description="The numbered day within the week.  The first day of the week, Sunday, has a value of 1."
-          , params = { "dateTime - The datetime as a long representing the milliseconds since unix epoch"
+          , params = { "dateTime - The datetime as a long representing the milliseconds or seconds since unix epoch"
                      }
           , returns = "The numbered day within the week.")
   public static class DayOfWeek extends BaseStellarFunction {
@@ -186,6 +187,8 @@ public class DateFunctions {
       if(epochMillis == null) {
         return null;  // invalid argument
       }
+
+      epochMillis = EpochUtils.ensureEpochMillis(epochMillis);
 
       // create a calendar
       Calendar calendar = Calendar.getInstance();
@@ -202,7 +205,7 @@ public class DateFunctions {
    */
   @Stellar( name="DAY_OF_MONTH"
           , description="The numbered day within the month.  The first day within the month has a value of 1."
-          , params = { "dateTime - The datetime as a long representing the milliseconds since unix epoch"
+          , params = { "dateTime - The datetime as a long representing the milliseconds or seconds since unix epoch"
                      }
           , returns = "The numbered day within the month.")
   public static class DayOfMonth extends BaseStellarFunction {
@@ -214,6 +217,8 @@ public class DateFunctions {
       if(epochMillis == null) {
         return null;  // invalid argument
       }
+
+      epochMillis = EpochUtils.ensureEpochMillis(epochMillis);
 
       // create a calendar
       Calendar calendar = Calendar.getInstance();
@@ -230,7 +235,7 @@ public class DateFunctions {
    */
   @Stellar( name="WEEK_OF_MONTH"
           , description="The numbered week within the month.  The first week within the month has a value of 1."
-          , params = { "dateTime - The datetime as a long representing the milliseconds since unix epoch"
+          , params = { "dateTime - The datetime as a long representing the milliseconds or seconds since unix epoch"
                      }
           , returns = "The numbered week within the month.")
   public static class WeekOfMonth extends BaseStellarFunction {
@@ -242,6 +247,8 @@ public class DateFunctions {
       if(epochMillis == null) {
         return null;  // invalid argument
       }
+
+      epochMillis = EpochUtils.ensureEpochMillis(epochMillis);
 
       // create a calendar
       Calendar calendar = Calendar.getInstance();
@@ -258,7 +265,7 @@ public class DateFunctions {
    */
   @Stellar( name="WEEK_OF_YEAR"
           , description="The numbered week within the year.  The first week in the year has a value of 1."
-          , params = { "dateTime - The datetime as a long representing the milliseconds since unix epoch"
+          , params = { "dateTime - The datetime as a long representing the milliseconds or seconds since unix epoch"
                      }
           , returns = "The numbered week within the year.")
   public static class WeekOfYear extends BaseStellarFunction {
@@ -270,6 +277,8 @@ public class DateFunctions {
       if(epochMillis == null) {
         return null;  // invalid argument
       }
+
+      epochMillis = EpochUtils.ensureEpochMillis(epochMillis);
 
       // create a calendar
       Calendar calendar = Calendar.getInstance();
@@ -286,7 +295,7 @@ public class DateFunctions {
    */
   @Stellar( name="MONTH"
           , description="The number representing the month.  The first month, January, has a value of 0."
-          , params = { "dateTime - The datetime as a long representing the milliseconds since unix epoch"
+          , params = { "dateTime - The datetime as a long representing the milliseconds or seconds since unix epoch"
                      }
           , returns = "The current month (0-based).")
   public static class MonthOfYear extends BaseStellarFunction {
@@ -298,6 +307,8 @@ public class DateFunctions {
       if(epochMillis == null) {
         return null;  // invalid argument
       }
+
+      epochMillis = EpochUtils.ensureEpochMillis(epochMillis);
 
       // create a calendar
       Calendar calendar = Calendar.getInstance();
@@ -314,7 +325,7 @@ public class DateFunctions {
    */
   @Stellar( name="YEAR"
           , description="The number representing the year. "
-          , params = { "dateTime - The datetime as a long representing the milliseconds since unix epoch"
+          , params = { "dateTime - The datetime as a long representing the milliseconds or seconds since unix epoch"
                      }
           , returns = "The current year"
           )
@@ -327,6 +338,8 @@ public class DateFunctions {
       if(epochMillis == null) {
         return null;  // invalid argument
       }
+
+      epochMillis = EpochUtils.ensureEpochMillis(epochMillis);
 
       // create a calendar
       Calendar calendar = Calendar.getInstance();
@@ -343,7 +356,7 @@ public class DateFunctions {
    */
   @Stellar( name="DAY_OF_YEAR"
           , description="The day number within the year.  The first day of the year has value of 1."
-          , params = { "dateTime - The datetime as a long representing the milliseconds since unix epoch"
+          , params = { "dateTime - The datetime as a long representing the milliseconds or seconds since unix epoch"
                      }
           , returns = "The day number within the year."
           )
@@ -356,7 +369,7 @@ public class DateFunctions {
       if(epochMillis == null) {
         return null;  // invalid argument
       }
-
+      epochMillis = EpochUtils.ensureEpochMillis(epochMillis);
       // create a calendar
       Calendar calendar = Calendar.getInstance();
       calendar.setTimeInMillis(epochMillis);

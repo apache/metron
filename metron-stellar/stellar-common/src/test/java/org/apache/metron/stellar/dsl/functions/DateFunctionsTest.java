@@ -57,16 +57,24 @@ public class DateFunctionsTest {
    * Thu Aug 25 2016 09:27:10 EST
    */
   private long AUG2016 = 1472131630748L;
+  private long AUG2016_SECONDS = 1472131630L;
 
   @Before
   public void setup() {
     variables.put("epoch", AUG2016);
+    variables.put("epoch_seconds", AUG2016_SECONDS);
     calendar = Calendar.getInstance();
   }
 
   @Test
   public void testDayOfWeek() {
     Object result = run("DAY_OF_WEEK(epoch)");
+    assertEquals(Calendar.THURSDAY, result);
+  }
+
+  @Test
+  public void testDayOfWeekSeconds() {
+    Object result = run("DAY_OF_WEEK(epoch_seconds)");
     assertEquals(Calendar.THURSDAY, result);
   }
 
@@ -116,6 +124,12 @@ public class DateFunctionsTest {
     assertEquals(Calendar.AUGUST, result);
   }
 
+  @Test
+  public void testMonthSeconds() {
+    Object result = run("MONTH(epoch_seconds)");
+    assertEquals(Calendar.AUGUST, result);
+  }
+
   /**
    * If no argument, then return the current month.
    */
@@ -136,6 +150,12 @@ public class DateFunctionsTest {
   @Test
   public void testYear() {
     Object result = run("YEAR(epoch)");
+    assertEquals(2016, result);
+  }
+
+  @Test
+  public void testYearSeconds() {
+    Object result = run("YEAR(epoch_seconds)");
     assertEquals(2016, result);
   }
 
@@ -162,6 +182,12 @@ public class DateFunctionsTest {
     assertEquals(25, result);
   }
 
+  @Test
+  public void testDayOfMonthSeconds() {
+    Object result = run("DAY_OF_MONTH(epoch_seconds)");
+    assertEquals(25, result);
+  }
+
   /**
    * If no argument, then return the current day of month.
    */
@@ -185,6 +211,12 @@ public class DateFunctionsTest {
     assertEquals(35, result);
   }
 
+  @Test
+  public void testWeekOfYearSeconds() {
+    Object result = run("WEEK_OF_YEAR(epoch_seconds)");
+    assertEquals(35, result);
+  }
+
   /**
    * If no argument, then return the current week of year.
    */
@@ -205,6 +237,12 @@ public class DateFunctionsTest {
   @Test
   public void testDayOfYear() {
     Object result = run("DAY_OF_YEAR(epoch)");
+    assertEquals(238, result);
+  }
+
+  @Test
+  public void testDayOfYearSeconds() {
+    Object result = run("DAY_OF_YEAR(epoch_seconds)");
     assertEquals(238, result);
   }
 

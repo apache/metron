@@ -289,19 +289,19 @@ In the core language functions, we support basic functional programming primitiv
 ### `DAY_OF_MONTH`
   * Description: The numbered day within the month.  The first day within the month has a value of 1.
   * Input:
-    * dateTime - The datetime as a long representing the milliseconds since unix epoch
+    * dateTime - The datetime as a long representing the milliseconds or seconds since unix epoch
   * Returns: The numbered day within the month.
 
 ### `DAY_OF_WEEK`
   * Description: The numbered day within the week.  The first day of the week, Sunday, has a value of 1.
   * Input:
-    * dateTime - The datetime as a long representing the milliseconds since unix epoch
+    * dateTime - The datetime as a long representing the milliseconds or seconds since unix epoch
   * Returns: The numbered day within the week.
 
 ### `DAY_OF_YEAR`
   * Description: The day number within the year.  The first day of the year has value of 1.
   * Input:
-    * dateTime - The datetime as a long representing the milliseconds since unix epoch
+    * dateTime - The datetime as a long representing the milliseconds or seconds since unix epoch
   * Returns: The day number within the year.
 
 ### `DECODE`
@@ -608,7 +608,7 @@ In the core language functions, we support basic functional programming primitiv
 ### `MONTH`
   * Description: The number representing the month.  The first month, January, has a value of 0.
   * Input:
-    * dateTime - The datetime as a long representing the milliseconds since unix epoch
+    * dateTime - The datetime as a long representing the milliseconds or seconds since unix epoch
   * Returns: The current month (0-based).
 
 ### `PREPEND_IF_MISSING`
@@ -813,19 +813,19 @@ In the core language functions, we support basic functional programming primitiv
 ### `WEEK_OF_MONTH`
   * Description: The numbered week within the month.  The first week within the month has a value of 1.
   * Input:
-    * dateTime - The datetime as a long representing the milliseconds since unix epoch
+    * dateTime - The datetime as a long representing the milliseconds or seconds since unix epoch
   * Returns: The numbered week within the month.
 
 ### `WEEK_OF_YEAR`
   * Description: The numbered week within the year.  The first week in the year has a value of 1.
   * Input:
-    * dateTime - The datetime as a long representing the milliseconds since unix epoch
+    * dateTime - The datetime as a long representing the milliseconds or seconds since unix epoch
   * Returns: The numbered week within the year.
 
 ### `YEAR`
   * Description: The number representing the year. 
   * Input:
-    * dateTime - The datetime as a long representing the milliseconds since unix epoch
+    * dateTime - The datetime as a long representing the milliseconds or seconds since unix epoch
   * Returns: The current year
 
 ### `ZIP`
