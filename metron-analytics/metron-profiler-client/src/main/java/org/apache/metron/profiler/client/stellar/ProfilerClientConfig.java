@@ -92,10 +92,6 @@ public enum ProfilerClientConfig {
     return getOrDefault(profilerConfig, defaultValue, clazz);
   }
 
-  public <T> T getOrDefault(Map<String, Object> profilerConfig, Class<T> clazz) {
-    return getOrDefault(profilerConfig, getDefault(clazz), clazz);
-  }
-
   public <T> T getOrDefault(Map<String, Object> profilerConfig, Object defaultValue, Class<T> clazz) {
     Object o = profilerConfig.getOrDefault(key, defaultValue);
     return o == null?null:ConversionUtils.convert(o, clazz);

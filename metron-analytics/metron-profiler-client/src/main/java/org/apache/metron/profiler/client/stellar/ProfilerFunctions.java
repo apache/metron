@@ -84,8 +84,8 @@ public class ProfilerFunctions {
               .orElse(Collections.emptyMap());
 
       // how long is the profile period?
-      long duration = PROFILER_PERIOD.getOrDefault(global, Long.class);
-      String configuredUnits = PROFILER_PERIOD_UNITS.getOrDefault(global, String.class);
+      long duration = PROFILER_PERIOD.getOrDefault(global, PROFILER_PERIOD.getDefault(), Long.class);
+      String configuredUnits = PROFILER_PERIOD_UNITS.getOrDefault(global, PROFILER_PERIOD_UNITS.getDefault(), String.class);
       long periodDurationMillis = TimeUnit.valueOf(configuredUnits).toMillis(duration);
 
       // user must provide the configuration for the profiler
