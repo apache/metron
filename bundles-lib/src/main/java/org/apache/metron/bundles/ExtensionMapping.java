@@ -21,6 +21,13 @@ import org.apache.metron.bundles.bundle.BundleCoordinates;
 import java.util.*;
 import java.util.function.BiFunction;
 
+/**
+ * The ExtensionMapping represents a mapping of the extensions available to the system.
+ * It is the product of the BundleMapper.
+ *
+ * It is NOT used at runtime for loading extensions, rather it may be used by a system to
+ * have details about the Extensions that exist in a system
+ */
 public class ExtensionMapping {
 
   /*
@@ -70,18 +77,33 @@ public class ExtensionMapping {
     });
   }
 
-  public Map<String, Set<BundleCoordinates>> getExtensionNames(String extensionName) {
-    if (extensionNameMap.containsKey(extensionName)) {
-      return Collections.unmodifiableMap(extensionNameMap.get(extensionName));
+  /**
+   * Returns a Map of the extension class types to a Set of BundleCoordinates for a given
+   * extension type.
+   * @param extensionTypeName the extension type name, such as parser, stellar, indexing
+   * @return Map of extension class name to a Set of BundleCoordinates
+   */
+  public Map<String, Set<BundleCoordinates>> getExtensionNames(String extensionTypeName) {
+    if (extensionNameMap.containsKey(extensionTypeName)) {
+      return Collections.unmodifiableMap(extensionNameMap.get(extensionTypeName));
     } else {
       return new HashMap<>();
     }
   }
 
+  /**
+   * Returns all the extensions in the system, mapped by extention type
+   * @return Map of extension types to a map of extension class to BundleCoordinates
+   */
   public Map<String, Map<String, Set<BundleCoordinates>>> getAllExtensions() {
     return Collections.unmodifiableMap(extensionNameMap);
   }
 
+  /**
+   * Returns a Map of extension class types to a Set of BundleCoordinates for the system.
+   * This merges all the extension types into one map
+   * @return Map of extension class name to a Set of BundleCoordinates
+   */
   public Map<String, Set<BundleCoordinates>> getAllExtensionNames() {
     final Map<String, Set<BundleCoordinates>> extensionNames = new HashMap<>();
     for (final Map<String, Set<BundleCoordinates>> bundleSets : extensionNameMap.values()) {
@@ -102,6 +124,13 @@ public class ExtensionMapping {
   }
 
 
+  /**
+   * Returns the number of all the bundles mapped to types.
+   * Bundles that map multiple types will be counted multiple times, once
+   * for each extension class exposed.
+   *
+   * @return raw count of the number of bundles
+   */
   public int size() {
     int size = 0;
 
@@ -114,6 +143,9 @@ public class ExtensionMapping {
   }
 
 
+  /**
+   * @return true if there are no extension types in the system
+   */
   public boolean isEmpty() {
     return extensionNameMap.isEmpty();
   }
