@@ -77,7 +77,8 @@ public class BundleSystem {
 
     /**
      * Provide Extension Classes.  If not provided with this override then the classes will be
-     * configured from the BundleProperties. If provided, the properties file will not be used.
+     * configured from the BundleProperties. If provided, the properties file will not be used for
+     * classes.
      *
      * @param extensionClasses override
      * @return Builder
