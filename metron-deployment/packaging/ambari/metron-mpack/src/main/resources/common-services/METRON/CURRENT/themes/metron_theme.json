@@ -691,6 +691,18 @@
         }
       },
       {
+        "config": "metron-indexing-env/update_table",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/update_cf",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
         "config": "metron-indexing-env/indexing_error_topic",
         "widget": {
           "type": "text-field"
