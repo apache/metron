@@ -24,6 +24,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.profiler.clock.FixedClock;
+import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Before;
@@ -37,7 +38,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Tests the ProfileBuilder class.
  */
-public class ProfileBuilderTest {
+public class DefaultProfileBuilderTest {
 
   /**
    * {
@@ -78,10 +79,11 @@ public class ProfileBuilderTest {
   public void testInit() throws Exception {
     // setup
     definition = JSONUtils.INSTANCE.load(testInitProfile, ProfileConfig.class);
-    builder = new ProfileBuilder.Builder()
+    builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withContext(Context.EMPTY_CONTEXT())
             .build();
 
     // execute
@@ -100,10 +102,11 @@ public class ProfileBuilderTest {
   public void testInitWithNoMessage() throws Exception {
     // setup
     definition = JSONUtils.INSTANCE.load(testInitProfile, ProfileConfig.class);
-    builder = new ProfileBuilder.Builder()
+    builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withContext(Context.EMPTY_CONTEXT())
             .build();
 
     // execute
@@ -138,10 +141,11 @@ public class ProfileBuilderTest {
   public void testUpdate() throws Exception {
     // setup
     definition = JSONUtils.INSTANCE.load(testUpdateProfile, ProfileConfig.class);
-    builder = new ProfileBuilder.Builder()
+    builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withContext(Context.EMPTY_CONTEXT())
             .build();
 
     // execute
@@ -173,10 +177,11 @@ public class ProfileBuilderTest {
   public void testResult() throws Exception {
     // setup
     definition = JSONUtils.INSTANCE.load(testResultProfile, ProfileConfig.class);
-    builder = new ProfileBuilder.Builder()
+    builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withContext(Context.EMPTY_CONTEXT())
             .build();
 
     // execute
@@ -197,10 +202,11 @@ public class ProfileBuilderTest {
     clock.setTime(100);
 
     definition = JSONUtils.INSTANCE.load(testResultProfile, ProfileConfig.class);
-    builder = new ProfileBuilder.Builder()
+    builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withContext(Context.EMPTY_CONTEXT())
             .withClock(clock)
             .build();
 
@@ -247,10 +253,11 @@ public class ProfileBuilderTest {
   public void testGroupBy() throws Exception {
     // setup
     definition = JSONUtils.INSTANCE.load(testGroupByProfile, ProfileConfig.class);
-    builder = new ProfileBuilder.Builder()
+    builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withContext(Context.EMPTY_CONTEXT())
             .build();
 
     // execute
@@ -285,10 +292,11 @@ public class ProfileBuilderTest {
   public void testFlushDoesNotClearsState() throws Exception {
     // setup
     definition = JSONUtils.INSTANCE.load(testFlushProfile, ProfileConfig.class);
-    builder = new ProfileBuilder.Builder()
+    builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withContext(Context.EMPTY_CONTEXT())
             .build();
 
     // execute - accumulate some state then flush it
@@ -328,10 +336,11 @@ public class ProfileBuilderTest {
   public void testFlushDoesNotClearsStateButInitDoes() throws Exception {
     // setup
     definition = JSONUtils.INSTANCE.load(testFlushProfileWithNaiveInit, ProfileConfig.class);
-    builder = new ProfileBuilder.Builder()
+    builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withContext(Context.EMPTY_CONTEXT())
             .build();
 
     // execute - accumulate some state then flush it
@@ -366,10 +375,11 @@ public class ProfileBuilderTest {
     // setup
     final String entity = "10.0.0.1";
     definition = JSONUtils.INSTANCE.load(testFlushProfile, ProfileConfig.class);
-    builder = new ProfileBuilder.Builder()
+    builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity(entity)
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withContext(Context.EMPTY_CONTEXT())
             .build();
 
     // execute
@@ -402,10 +412,11 @@ public class ProfileBuilderTest {
   public void testResultWithProfileExpression() throws Exception {
     // setup
     definition = JSONUtils.INSTANCE.load(testResultWithProfileExpression, ProfileConfig.class);
-    builder = new ProfileBuilder.Builder()
+    builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withContext(Context.EMPTY_CONTEXT())
             .build();
 
     // execute
@@ -442,10 +453,11 @@ public class ProfileBuilderTest {
   public void testResultWithTriageExpression() throws Exception {
     // setup
     definition = JSONUtils.INSTANCE.load(testResultWithTriageExpression, ProfileConfig.class);
-    builder = new ProfileBuilder.Builder()
+    builder = new DefaultProfileBuilder.Builder()
             .withDefinition(definition)
             .withEntity("10.0.0.1")
             .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withContext(Context.EMPTY_CONTEXT())
             .build();
 
     // execute

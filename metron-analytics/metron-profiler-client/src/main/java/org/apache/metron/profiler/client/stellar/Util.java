@@ -82,7 +82,7 @@ public class Util {
     Map<String, Object> result = new HashMap<>(6);
 
     // extract the relevant parameters from global, the overrides and the defaults
-    for (ProfilerConfig k : ProfilerConfig.values()) {
+    for (ProfilerClientConfig k : ProfilerClientConfig.values()) {
       Object globalValue = global.containsKey(k.key)?ConversionUtils.convert(global.get(k.key), k.valueType):null;
       Object overrideValue = configOverridesMap == null?null:k.getOrDefault(configOverridesMap, null);
       Object defaultValue = k.defaultValue;

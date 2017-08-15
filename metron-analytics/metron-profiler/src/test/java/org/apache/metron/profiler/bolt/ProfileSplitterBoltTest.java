@@ -142,9 +142,8 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
     bolt.setCuratorFramework(client);
     bolt.setTreeCache(cache);
     bolt.getConfigurations().updateProfilerConfig(profilerConfig.getBytes("UTF-8"));
-    bolt.setExecutor(new DefaultStellarStatefulExecutor());
-
     bolt.prepare(new HashMap<>(), topologyContext, outputCollector);
+
     return bolt;
   }
 
