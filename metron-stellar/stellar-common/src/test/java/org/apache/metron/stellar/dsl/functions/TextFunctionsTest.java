@@ -15,6 +15,9 @@
 
 package org.apache.metron.stellar.dsl.functions;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Assert;
@@ -22,9 +25,21 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
 
 public class TextFunctionsTest {
+
+  @Test
+  public void testGetAvailableLanguageTags() {
+    Object ret = run("GET_AVAILABLE_LANGUAGE_TAGS()", new HashMap<>());
+    Assert.assertNotNull(ret);
+    Assert.assertTrue(ret instanceof List);
+    List<String> tags = (List<String>)ret;
+    Assert.assertTrue(tags.size() > 0);
+    Assert.assertTrue(tags.contains("en"));
+    Assert.assertTrue(tags.contains("fr"));
+  }
 
   @Test
   public void testStringFunctions() throws Exception {

@@ -139,6 +139,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `HLLP_OFFER`](../../metron-analytics/metron-statistics#hllp_offer)             |
 | [ `GEO_GET`](#geo_get)                                                           |
 | [ `GET`](#get)                                                                   |
+| [ `GET_AVAILABLE_LANGUAGE_TAGS`](#get_available_lanaguage_tags)                  |
 | [ `GET_FIRST`](#get_first)                                                       |
 | [ `GET_LAST`](#get_last)                                                         |
 | [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)                           |
@@ -434,6 +435,10 @@ In the core language functions, we support basic functional programming primitiv
     * input - List
     * i - The index (0-based)
   * Returns: First element of the list
+
+### `GET_AVAILABLE_LANGUAGE_TAGS`
+  * Description: Returns a list of IETF BCP 47 available to the system, such as en, fr, de.
+  * Returns: A list of IEF BGP 47 language tag strings
 
 ### `GET_FIRST`
   * Description: Returns the first element of the list

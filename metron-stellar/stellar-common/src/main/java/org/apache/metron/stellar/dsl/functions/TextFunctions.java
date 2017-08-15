@@ -15,6 +15,9 @@
 
 package org.apache.metron.stellar.dsl.functions;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import org.apache.commons.lang.StringUtils;
@@ -23,6 +26,26 @@ import org.apache.metron.stellar.dsl.BaseStellarFunction;
 import org.apache.metron.stellar.dsl.Stellar;
 
 public class TextFunctions {
+
+  @Stellar(name = "GET_AVAILABLE_LANGUAGE_TAGS",
+      description = "Returns a list of IETF BCP 47 available to the system, such as en, fr, de. "
+      + "These values may be passed to FUZZY_SCORE",
+      params = {},
+      returns = "A list of IEF BCP 47 language tag strings")
+  /**
+   * GetAvailableLanaguageTags exposes IEF BCP 47 lanaguage tags available to the system
+   */
+  public static class GetAvailableLanaguageTags extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> list) {
+      List<String> tags = new ArrayList<>();
+      for (Locale locale : Locale.getAvailableLocales()) {
+        tags.add(locale.toLanguageTag());
+      }
+      return tags;
+    }
+  }
 
   @Stellar(name = "FUZZY_SCORE",
       description =
@@ -34,7 +57,9 @@ public class TextFunctions {
       params = {
           "string - The full term that should be matched against",
           "string - The query that will be matched against a term",
-          "string - The IETF BCP 47 language code to use"
+          "string - The IETF BCP 47 language code to use such as en, fr, de "
+              +
+              "( SEE  GET_AVAILABLE_LANGUAGE_TAGS  and https://tools.ietf.org/html/bcp47)"
       },
       returns = "integer representing the score")
   /**
