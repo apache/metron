@@ -75,8 +75,8 @@ public class WindowLookback implements StellarFunction {
 
     }
     Map<String, Object> effectiveConfigs = Util.getEffectiveConfig(context, configOverridesMap.orElse(null));
-    Long tickDuration = ProfilerConfig.PROFILER_PERIOD.get(effectiveConfigs, Long.class);
-    TimeUnit tickUnit = TimeUnit.valueOf(ProfilerConfig.PROFILER_PERIOD_UNITS.get(effectiveConfigs, String.class));
+    Long tickDuration = ProfilerClientConfig.PROFILER_PERIOD.get(effectiveConfigs, Long.class);
+    TimeUnit tickUnit = TimeUnit.valueOf(ProfilerClientConfig.PROFILER_PERIOD_UNITS.get(effectiveConfigs, String.class));
     Window w = null;
     try {
       w = windowCache.get(windowSelector, () -> WindowProcessor.process(windowSelector));

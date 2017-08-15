@@ -20,22 +20,13 @@
 
 package org.apache.metron.profiler.bolt;
 
-import static java.lang.String.format;
-
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
-import org.apache.metron.profiler.ProfileBuilder;
+import org.apache.metron.profiler.DefaultMessageDistributor;
+import org.apache.metron.profiler.MessageRoute;
 import org.apache.metron.profiler.ProfileMeasurement;
-import org.apache.metron.profiler.clock.WallClock;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.metron.stellar.dsl.Context;
 import org.apache.storm.Config;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -46,6 +37,15 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+
+import static java.lang.String.format;
 
 /**
  * A bolt that is responsible for building a Profile.
@@ -75,9 +75,9 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   private long profileTimeToLiveMillis;
 
   /**
-   * Maintains the state of a profile which is unique to a profile/entity pair.
+   * Distributes messages to the profile builders.
    */
-  private transient Cache<String, ProfileBuilder> profileCache;
+  private DefaultMessageDistributor messageDistributor;
 
   /**
    * Parses JSON messages.
@@ -122,10 +122,7 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     }
     this.collector = collector;
     this.parser = new JSONParser();
-    this.profileCache = CacheBuilder
-            .newBuilder()
-            .expireAfterAccess(profileTimeToLiveMillis, TimeUnit.MILLISECONDS)
-            .build();
+    this.messageDistributor = new DefaultMessageDistributor(periodDurationMillis, profileTimeToLiveMillis);
   }
 
   @Override
@@ -138,6 +135,15 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     destinationHandlers.forEach(dest -> dest.declareOutputFields(declarer));
   }
 
+  private Context getStellarContext() {
+    Map<String, Object> global = getConfigurations().getGlobalConfig();
+    return new Context.Builder()
+            .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
+            .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
+            .with(Context.Capabilities.STELLAR_CONFIG, () -> global)
+            .build();
+  }
+
   /**
    * Expect to receive either a tick tuple or a telemetry message that needs applied
    * to a profile.
@@ -148,7 +154,6 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
     try {
       if(TupleUtils.isTick(input)) {
         handleTick();
-        profileCache.cleanUp();
 
       } else {
         handleMessage(input);
@@ -169,51 +174,23 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
    */
   private void handleMessage(Tuple input) throws ExecutionException {
     JSONObject message = getField("message", input, JSONObject.class);
-    getBuilder(input).apply(message);
+    ProfileConfig definition = getField("profile", input, ProfileConfig.class);
+    String entity = getField("entity", input, String.class);
+    MessageRoute route = new MessageRoute(definition, entity);
+
+    messageDistributor.distribute(message, route, getStellarContext());
   }
 
   /**
    * Handles a tick tuple.
    */
   private void handleTick() {
-    profileCache.asMap().forEach((key, profileBuilder) -> {
-      if(profileBuilder.isInitialized()) {
+    List<ProfileMeasurement> measurements = messageDistributor.flush();
 
-        // flush the profile
-        ProfileMeasurement measurement = profileBuilder.flush();
-
-        // forward the measurement to each destination handler
-        destinationHandlers.forEach(handler -> handler.emit(measurement, collector));
-      }
-    });
-  }
-
-  /**
-   * Builds the key that is used to lookup the ProfileState within the cache.
-   * @param tuple A tuple.
-   */
-  private String cacheKey(Tuple tuple) {
-    return format("%s:%s",
-            getField("profile", tuple, ProfileConfig.class),
-            getField("entity", tuple, String.class));
-  }
-
-  /**
-   * Retrieves the cached ProfileBuilder that is used to build and maintain the Profile.  If none exists,
-   * one will be created and returned.
-   * @param tuple The tuple.
-   */
-  protected ProfileBuilder getBuilder(Tuple tuple) throws ExecutionException {
-    return profileCache.get(
-            cacheKey(tuple),
-            () -> new ProfileBuilder.Builder()
-                    .withDefinition(getField("profile", tuple, ProfileConfig.class))
-                    .withEntity(getField("entity", tuple, String.class))
-                    .withPeriodDurationMillis(periodDurationMillis)
-                    .withGlobalConfiguration(getConfigurations().getGlobalConfig())
-                    .withZookeeperClient(client)
-                    .withClock(new WallClock())
-                    .build());
+    // forward the measurements to each destination handler
+    for(ProfileMeasurement m : measurements ) {
+      destinationHandlers.forEach(handler -> handler.emit(m, collector));
+    }
   }
 
   /**
@@ -254,5 +231,9 @@ public class ProfileBuilderBolt extends ConfiguredProfilerBolt {
   public ProfileBuilderBolt withDestinationHandler(DestinationHandler handler) {
     this.destinationHandlers.add(handler);
     return this;
+  }
+
+  public DefaultMessageDistributor getMessageDistributor() {
+    return messageDistributor;
   }
 }
