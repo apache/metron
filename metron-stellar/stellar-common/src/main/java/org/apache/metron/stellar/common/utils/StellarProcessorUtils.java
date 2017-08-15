@@ -19,6 +19,7 @@
 package org.apache.metron.stellar.common.utils;
 
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.MapVariableResolver;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.stellar.dsl.VariableResolver;
@@ -57,7 +58,7 @@ public class StellarProcessorUtils {
     public static Object run(String rule, Map<String, Object> variables, Context context) {
         StellarProcessor processor = new StellarProcessor();
         Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
-        Object ret = processor.parse(rule, x -> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), context);
+        Object ret = processor.parse(rule, new DefaultVariableResolver(x -> variables.get(x),x-> variables.containsKey(x)), StellarFunctions.FUNCTION_RESOLVER(), context);
         byte[] raw = SerDeUtils.toBytes(ret);
         Object actual = SerDeUtils.fromBytes(raw, Object.class);
         Assert.assertEquals(ret, actual);
@@ -66,6 +67,15 @@ public class StellarProcessorUtils {
 
   public static Object run(String rule, Map<String, Object> variables) {
     return run(rule, variables, Context.EMPTY_CONTEXT());
+  }
+
+  public static void validate(String rule, Context context) {
+    StellarProcessor processor = new StellarProcessor();
+    Assert.assertTrue(rule + " not valid.", processor.validate(rule, context));
+  }
+
+  public static void validate(String rule) {
+    validate(rule, Context.EMPTY_CONTEXT());
   }
 
   public static boolean runPredicate(String rule, Map resolver) {

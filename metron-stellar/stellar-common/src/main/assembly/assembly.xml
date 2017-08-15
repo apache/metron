@@ -20,7 +20,7 @@
   <fileSets>
     <fileSet>
       <directory>${project.basedir}/src/main/scripts</directory>
-      <outputDirectory>/bin</outputDirectory>
+      <outputDirectory>bin</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <excludes>
         <exclude>**/*.formatted</exclude>
@@ -35,7 +35,7 @@
       <includes>
         <include>${project.artifactId}-${project.version}-uber.jar</include>
       </includes>
-      <outputDirectory>/lib</outputDirectory>
+      <outputDirectory>lib</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
     </fileSet>
   </fileSets>

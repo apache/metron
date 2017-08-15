@@ -17,17 +17,17 @@
  */
 package org.apache.metron.pcap;
 
+import java.lang.invoke.MethodHandles;
 import java.text.MessageFormat;
-import org.apache.log4j.Logger;
-
+import org.apache.metron.pcap.utils.PcapUtils;
 import org.krakenapps.pcap.decoder.ip.Ipv4Packet;
 import org.krakenapps.pcap.decoder.tcp.TcpPacket;
 import org.krakenapps.pcap.decoder.udp.UdpPacket;
 import org.krakenapps.pcap.file.GlobalHeader;
 import org.krakenapps.pcap.packet.PacketHeader;
 import org.krakenapps.pcap.packet.PcapPacket;
-
-import org.apache.metron.pcap.utils.PcapUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The Class PacketInfo.
@@ -36,6 +36,7 @@ import org.apache.metron.pcap.utils.PcapUtils;
  * @version $Revision: 1.0 $
  */
 public class PacketInfo {
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /** The packet data */
   private byte[] packetBytes = null;
@@ -70,9 +71,6 @@ public class PacketInfo {
   /** The Constant udpHeaderJsonTemplateSB. */
   private static final StringBuffer udpHeaderJsonTemplateSB = new StringBuffer();
 
-  /** The Constant LOG. */
-  private static final Logger LOG = Logger.getLogger(PacketInfo.class);
-  
   static {
     globalHeaderJsonTemplateSB.append("<\"global_header\":<\"pcap_id\":\"").append("{0}").append('"');
     globalHeaderJsonTemplateSB.append(",\"inc_len\":").append("{1}");

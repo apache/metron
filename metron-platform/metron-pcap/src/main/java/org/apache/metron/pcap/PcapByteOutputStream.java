@@ -20,16 +20,17 @@ package org.apache.metron.pcap;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.nio.BufferUnderflowException;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.log4j.Logger;
 import org.krakenapps.pcap.PcapOutputStream;
 import org.krakenapps.pcap.file.GlobalHeader;
 import org.krakenapps.pcap.packet.PacketHeader;
 import org.krakenapps.pcap.packet.PcapPacket;
 import org.krakenapps.pcap.util.Buffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -39,10 +40,7 @@ import org.krakenapps.pcap.util.Buffer;
  * @version $Revision: 1.0 $
  */
 public class PcapByteOutputStream implements PcapOutputStream {
-
-  /** The Constant LOG. */
-  private static final Logger LOG = Logger
-      .getLogger(PcapByteOutputStream.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /** The Constant MAX_CACHED_PACKET_NUMBER. */
   private static final int MAX_CACHED_PACKET_NUMBER = 1000;

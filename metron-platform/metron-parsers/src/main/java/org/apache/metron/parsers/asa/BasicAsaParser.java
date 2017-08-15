@@ -18,6 +18,17 @@
 package org.apache.metron.parsers.asa;
 
 import com.google.common.collect.ImmutableMap;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.lang.invoke.MethodHandles;
+import java.time.Clock;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import oi.thekraken.grok.api.exception.GrokException;
@@ -29,15 +40,9 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.time.Clock;
-import java.time.ZoneId;
-import java.util.*;
-import java.util.Map.Entry;
-
 public class BasicAsaParser extends BasicParser {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(BasicAsaParser.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   protected Clock deviceClock;
   private String syslogPattern = "%{CISCO_TAGGED_SYSLOG}";
@@ -122,9 +127,9 @@ public class BasicAsaParser extends BasicParser {
 
     for (Entry<String, String> pattern : patternMap.entrySet()) {
       try {
-	addGrok(pattern.getKey(), pattern.getValue());
+        addGrok(pattern.getKey(), pattern.getValue());
       } catch (GrokException e) {
-	LOG.error("[Metron] Failed to load grok pattern %s for ASA tag %s", pattern.getValue(), pattern.getKey());
+        LOG.error("[Metron] Failed to load grok pattern {} for ASA tag {}", pattern.getValue(), pattern.getKey());
       }
     }
 
