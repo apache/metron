@@ -20,14 +20,23 @@
 
 package org.apache.metron.profiler.client.stellar;
 
-import static org.apache.metron.profiler.client.stellar.ProfilerConfig.PROFILER_COLUMN_FAMILY;
-import static org.apache.metron.profiler.client.stellar.ProfilerConfig.PROFILER_HBASE_TABLE;
-import static org.apache.metron.profiler.client.stellar.ProfilerConfig.PROFILER_HBASE_TABLE_PROVIDER;
-import static org.apache.metron.profiler.client.stellar.ProfilerConfig.PROFILER_PERIOD;
-import static org.apache.metron.profiler.client.stellar.ProfilerConfig.PROFILER_PERIOD_UNITS;
-import static org.apache.metron.profiler.client.stellar.ProfilerConfig.PROFILER_SALT_DIVISOR;
-import static org.apache.metron.profiler.client.stellar.Util.getArg;
-import static org.apache.metron.profiler.client.stellar.Util.getEffectiveConfig;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.metron.common.utils.ReflectionUtils;
+import org.apache.metron.hbase.HTableProvider;
+import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.profiler.ProfilePeriod;
+import org.apache.metron.profiler.client.HBaseProfilerClient;
+import org.apache.metron.profiler.client.ProfilerClient;
+import org.apache.metron.profiler.hbase.ColumnBuilder;
+import org.apache.metron.profiler.hbase.RowKeyBuilder;
+import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.dsl.StellarFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -36,24 +45,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.ParseException;
-import org.apache.metron.stellar.dsl.Stellar;
-import org.apache.metron.stellar.dsl.StellarFunction;
-import org.apache.metron.hbase.HTableProvider;
-import org.apache.metron.hbase.TableProvider;
-import org.apache.metron.profiler.ProfilePeriod;
-import org.apache.metron.profiler.client.HBaseProfilerClient;
-import org.apache.metron.profiler.client.ProfilerClient;
-import org.apache.metron.profiler.hbase.ColumnBuilder;
-import org.apache.metron.profiler.hbase.RowKeyBuilder;
-import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
-import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.apache.metron.profiler.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
+import static org.apache.metron.profiler.ProfilerClientConfig.PROFILER_HBASE_TABLE;
+import static org.apache.metron.profiler.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
+import static org.apache.metron.profiler.ProfilerClientConfig.PROFILER_ROW_KEY_BUILDER;
+import static org.apache.metron.profiler.client.stellar.Util.getArg;
+import static org.apache.metron.profiler.client.stellar.Util.getEffectiveConfig;
 
 /**
  * A Stellar function that can retrieve data contained within a Profile.
@@ -100,8 +98,6 @@ import org.slf4j.LoggerFactory;
         returns="The selected profile measurements."
 )
 public class GetProfile implements StellarFunction {
-
-
 
   /**
    * Cached client that can retrieve profile values.
@@ -178,8 +174,6 @@ public class GetProfile implements StellarFunction {
     return client.fetch(Object.class, profile, entity, groups, periods.orElse(new ArrayList<>(0)));
   }
 
-
-
   /**
    * Get the groups defined by the user.
    *
@@ -202,10 +196,6 @@ public class GetProfile implements StellarFunction {
     return groups;
   }
 
-
-
-
-
   /**
    * Creates the ColumnBuilder to use in accessing the profile data.
    * @param global The global configuration.
@@ -224,21 +214,14 @@ public class GetProfile implements StellarFunction {
    * @param global The global configuration.
    */
   private RowKeyBuilder getRowKeyBuilder(Map<String, Object> global) {
+    String rowKeyBuilderClass = PROFILER_ROW_KEY_BUILDER.get(global, String.class);
+    LOG.debug("profiler client: {}={}", PROFILER_ROW_KEY_BUILDER, rowKeyBuilderClass);
 
-    // how long is the profile period?
-    long duration = PROFILER_PERIOD.get(global, Long.class);
-    LOG.debug("profiler client: {}={}", PROFILER_PERIOD, duration);
+    // instantiate the RowKeyBuilder
+    RowKeyBuilder builder = ReflectionUtils.createInstance(rowKeyBuilderClass);
+    builder.configure(global);
 
-    // which units are used to define the profile period?
-    String configuredUnits = PROFILER_PERIOD_UNITS.get(global, String.class);
-    TimeUnit units = TimeUnit.valueOf(configuredUnits);
-    LOG.debug("profiler client: {}={}", PROFILER_PERIOD_UNITS, units);
-
-    // what is the salt divisor?
-    Integer saltDivisor = PROFILER_SALT_DIVISOR.get(global, Integer.class);
-    LOG.debug("profiler client: {}={}", PROFILER_SALT_DIVISOR, saltDivisor);
-
-    return new SaltyRowKeyBuilder(saltDivisor, duration, units);
+    return builder;
   }
 
   /**

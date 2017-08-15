@@ -43,7 +43,7 @@ public class ProfilePeriodTest {
     long duration = 1;
     TimeUnit units = TimeUnit.HOURS;
 
-    ProfilePeriod period = new ProfilePeriod(0, duration, units);
+    ProfilePeriod period = ProfilePeriod.buildFromPeriod(0, duration, units);
     assertEquals(0, period.getPeriod());
     assertEquals(0, period.getStartTimeMillis());
     assertEquals(units.toMillis(duration), period.getDurationMillis());
@@ -54,7 +54,7 @@ public class ProfilePeriodTest {
     long duration = 1;
     TimeUnit units = TimeUnit.MINUTES;
 
-    ProfilePeriod period = new ProfilePeriod(AUG2016, duration, units);
+    ProfilePeriod period = ProfilePeriod.buildFromTimestamp(AUG2016, duration, units);
     assertEquals(24535527, period.getPeriod());
     assertEquals(1472131620000L, period.getStartTimeMillis());  // Thu, 25 Aug 2016 13:27:00 GMT
     assertEquals(units.toMillis(duration), period.getDurationMillis());
@@ -65,7 +65,7 @@ public class ProfilePeriodTest {
     long duration = 15;
     TimeUnit units = TimeUnit.MINUTES;
 
-    ProfilePeriod period = new ProfilePeriod(AUG2016, duration, units);
+    ProfilePeriod period = ProfilePeriod.buildFromTimestamp(AUG2016, duration, units);
     assertEquals(1635701, period.getPeriod());
     assertEquals(1472130900000L, period.getStartTimeMillis());  // Thu, 25 Aug 2016 13:15:00 GMT
     assertEquals(units.toMillis(duration), period.getDurationMillis());
@@ -76,7 +76,7 @@ public class ProfilePeriodTest {
     long duration = 1;
     TimeUnit units = TimeUnit.HOURS;
 
-    ProfilePeriod period = new ProfilePeriod(AUG2016, duration, units);
+    ProfilePeriod period = ProfilePeriod.buildFromTimestamp(AUG2016, duration, units);
     assertEquals(408925, period.getPeriod());
     assertEquals(1472130000000L, period.getStartTimeMillis());  // Thu, 25 Aug 2016 13:00:00 GMT
     assertEquals(units.toMillis(duration), period.getDurationMillis());
@@ -87,7 +87,7 @@ public class ProfilePeriodTest {
     long duration = 2;
     TimeUnit units = TimeUnit.HOURS;
 
-    ProfilePeriod period = new ProfilePeriod(AUG2016, duration, units);
+    ProfilePeriod period = ProfilePeriod.buildFromTimestamp(AUG2016, duration, units);
     assertEquals(204462, period.getPeriod());
     assertEquals(1472126400000L, period.getStartTimeMillis());  //  Thu, 25 Aug 2016 12:00:00 GMT
     assertEquals(units.toMillis(duration), period.getDurationMillis());
@@ -98,7 +98,7 @@ public class ProfilePeriodTest {
     long duration = 8;
     TimeUnit units = TimeUnit.HOURS;
 
-    ProfilePeriod period = new ProfilePeriod(AUG2016, duration, units);
+    ProfilePeriod period = ProfilePeriod.buildFromTimestamp(AUG2016, duration, units);
     assertEquals(51115, period.getPeriod());
     assertEquals(1472112000000L, period.getStartTimeMillis());  // Thu, 25 Aug 2016 08:00:00 GMT
     assertEquals(units.toMillis(duration), period.getDurationMillis());
@@ -109,7 +109,7 @@ public class ProfilePeriodTest {
     long duration = 15;
     TimeUnit units = TimeUnit.MINUTES;
 
-    ProfilePeriod previous = new ProfilePeriod(AUG2016, duration, units);
+    ProfilePeriod previous = ProfilePeriod.buildFromTimestamp(AUG2016, duration, units);
     IntStream.range(0, 100).forEach(i -> {
 
       ProfilePeriod next = previous.next();
@@ -123,6 +123,6 @@ public class ProfilePeriodTest {
   public void testPeriodDurationOfZero() {
     long duration = 0;
     TimeUnit units = TimeUnit.HOURS;
-    new ProfilePeriod(0, duration, units);
+    ProfilePeriod.buildFromTimestamp(0, duration, units);
   }
 }

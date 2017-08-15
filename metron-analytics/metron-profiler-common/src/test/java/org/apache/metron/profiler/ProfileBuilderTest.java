@@ -210,7 +210,7 @@ public class ProfileBuilderTest {
       ProfileMeasurement m = builder.flush();
 
       // validate the profile period
-      ProfilePeriod expected = new ProfilePeriod(clock.currentTimeMillis(), 10, TimeUnit.MINUTES);
+      ProfilePeriod expected = ProfilePeriod.buildFromTimestamp(clock.currentTimeMillis(), 10, TimeUnit.MINUTES);
       assertEquals(expected, m.getPeriod());
     }
     {
@@ -222,7 +222,7 @@ public class ProfileBuilderTest {
       ProfileMeasurement m = builder.flush();
 
       // validate the profile period
-      ProfilePeriod expected = new ProfilePeriod(clock.currentTimeMillis(), 10, TimeUnit.MINUTES);
+      ProfilePeriod expected = ProfilePeriod.buildFromTimestamp(clock.currentTimeMillis(), 10, TimeUnit.MINUTES);
       assertEquals(expected, m.getPeriod());
     }
   }

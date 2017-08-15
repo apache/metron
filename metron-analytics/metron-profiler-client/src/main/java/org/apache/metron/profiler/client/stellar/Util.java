@@ -19,8 +19,13 @@
  */
 package org.apache.metron.profiler.client.stellar;
 
-import static java.lang.String.format;
-import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
+import org.apache.commons.lang.StringUtils;
+import org.apache.metron.profiler.ProfilerClientConfig;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
@@ -28,12 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.lang.StringUtils;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.ParseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static java.lang.String.format;
+import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
 
 public class Util {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -82,18 +84,18 @@ public class Util {
     Map<String, Object> result = new HashMap<>(6);
 
     // extract the relevant parameters from global, the overrides and the defaults
-    for (ProfilerConfig k : ProfilerConfig.values()) {
-      Object globalValue = global.containsKey(k.key)?ConversionUtils.convert(global.get(k.key), k.valueType):null;
+    for (ProfilerClientConfig k : ProfilerClientConfig.values()) {
+      Object globalValue = global.containsKey(k.getKey())?ConversionUtils.convert(global.get(k.getKey()), k.getValueType()):null;
       Object overrideValue = configOverridesMap == null?null:k.getOrDefault(configOverridesMap, null);
-      Object defaultValue = k.defaultValue;
+      Object defaultValue = k.getDefault();
       if(overrideValue != null) {
-        result.put(k.key, overrideValue);
+        result.put(k.getKey(), overrideValue);
       }
       else if(globalValue != null) {
-        result.put(k.key, globalValue);
+        result.put(k.getKey(), globalValue);
       }
       else if(defaultValue != null) {
-        result.put(k.key, defaultValue);
+        result.put(k.getKey(), defaultValue);
       }
     }
     return result;

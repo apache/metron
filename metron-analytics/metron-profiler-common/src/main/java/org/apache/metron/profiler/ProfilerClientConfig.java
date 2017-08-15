@@ -18,14 +18,15 @@
  *
  */
 
-package org.apache.metron.profiler.client.stellar;
+package org.apache.metron.profiler;
 
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.hbase.HTableProvider;
 
 import java.util.Map;
 
-public enum ProfilerConfig {
+public enum ProfilerClientConfig {
+
   /**
    * A global property that defines the name of the HBase table used to store profile data.
    */
@@ -56,12 +57,18 @@ public enum ProfilerConfig {
   /**
    * A global property that defines the salt divisor used to store profile data.
    */
-  PROFILER_SALT_DIVISOR("profiler.client.salt.divisor", 1000L, Long.class);
+  PROFILER_SALT_DIVISOR("profiler.client.salt.divisor", 1000L, Long.class),
+
+  /**
+   * A global property that defines which RowKeyBuilder should be used.
+   */
+  PROFILER_ROW_KEY_BUILDER("profiler.client.row.key.builder", "org.apache.metron.profiler.hbase.SaltyRowKeyBuilder", String.class);
 
   String key;
   Object defaultValue;
   Class<?> valueType;
-  ProfilerConfig(String key, Object defaultValue, Class<?> valueType) {
+
+  ProfilerClientConfig(String key, Object defaultValue, Class<?> valueType) {
     this.key = key;
     this.defaultValue = defaultValue;
     this.valueType = valueType;
@@ -94,6 +101,10 @@ public enum ProfilerConfig {
   public <T> T getOrDefault(Map<String, Object> profilerConfig, Object defaultValue, Class<T> clazz) {
     Object o = profilerConfig.getOrDefault(key, defaultValue);
     return o == null?null:ConversionUtils.convert(o, clazz);
+  }
+
+  public Class<?> getValueType() {
+    return valueType;
   }
 
   @Override

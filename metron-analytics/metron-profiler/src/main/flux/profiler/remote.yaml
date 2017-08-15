@@ -29,7 +29,7 @@ components:
             - name: "saltDivisor"
               value: ${profiler.hbase.salt.divisor}
         configMethods:
-            - name: "withPeriodDuration"
+            - name: "setPeriodDuration"
               args: [${profiler.period.duration}, "${profiler.period.duration.units}"]
 
     -   id: "columnBuilder"

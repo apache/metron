@@ -21,6 +21,7 @@ package org.apache.metron.profiler.client.stellar;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.Range;
+import org.apache.metron.profiler.ProfilerClientConfig;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
@@ -60,7 +61,7 @@ public class WindowLookbackTest {
     long durationMs = 60000;
     State state = test("1 hour", new Date()
                       , Optional.of(
-                              ImmutableMap.of( ProfilerConfig.PROFILER_PERIOD.getKey(), 1 )
+                              ImmutableMap.of( ProfilerClientConfig.PROFILER_PERIOD.getKey(), 1 )
                                    )
                       ,Assertions.NOT_EMPTY,Assertions.CONTIGUOUS);
     Assert.assertEquals(TimeUnit.HOURS.toMillis(1) / durationMs, state.periods.size());
@@ -114,8 +115,8 @@ public class WindowLookbackTest {
   }
 
   long getDurationMs() {
-    int duration = ProfilerConfig.PROFILER_PERIOD.getDefault(Integer.class);
-    TimeUnit unit = TimeUnit.valueOf(ProfilerConfig.PROFILER_PERIOD_UNITS.getDefault(String.class));
+    int duration = ProfilerClientConfig.PROFILER_PERIOD.getDefault(Integer.class);
+    TimeUnit unit = TimeUnit.valueOf(ProfilerClientConfig.PROFILER_PERIOD_UNITS.getDefault(String.class));
     return unit.toMillis(duration);
   }
 
