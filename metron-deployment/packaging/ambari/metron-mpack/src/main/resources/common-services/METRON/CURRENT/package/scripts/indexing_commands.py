@@ -85,7 +85,7 @@ class IndexingCommands:
     def create_hbase_tables(self):
         Logger.info("Creating HBase Tables")
         if self.__params.security_enabled:
-            kinit(self.__params.kinit_path_local,
+            metron_security.kinit(self.__params.kinit_path_local,
                   self.__params.hbase_keytab_path,
                   self.__params.hbase_principal_name,
                   execute_user=self.__params.hbase_user)
@@ -105,7 +105,7 @@ class IndexingCommands:
     def set_hbase_acls(self):
         Logger.info("Setting HBase ACLs")
         if self.__params.security_enabled:
-            kinit(self.__params.kinit_path_local,
+            metron_security.kinit(self.__params.kinit_path_local,
                   self.__params.hbase_keytab_path,
                   self.__params.hbase_principal_name,
                   execute_user=self.__params.hbase_user)
