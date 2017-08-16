@@ -59,7 +59,7 @@
         <description>Indexing Writer Class Name</description>
         <value>org.apache.metron.elasticsearch.writer.ElasticsearchWriter</value>
         <display-name>Indexing Writer Class Name</display-name>
-    </property>    
+    </property>
     <property>
         <name>update_table</name>
         <description>The HBase table which will hold edits to indexed data</description>

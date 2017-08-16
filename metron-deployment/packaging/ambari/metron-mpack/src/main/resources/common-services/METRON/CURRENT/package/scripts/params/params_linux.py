@@ -74,6 +74,9 @@ indexing_acl_configured_flag_file = status_params.indexing_acl_configured_flag_f
 indexing_hbase_configured_flag_file = status_params.indexing_hbase_configured_flag_file
 indexing_hbase_acl_configured_flag_file = status_params.indexing_hbase_acl_configured_flag_file
 indexing_hdfs_perm_configured_flag_file = status_params.indexing_hdfs_perm_configured_flag_file
+profiler_configured_flag_file = status_params.profiler_configured_flag_file
+profiler_hbase_configured_flag_file = status_params.profiler_hbase_configured_flag_file
+profiler_hbase_acl_configured_flag_file = status_params.profiler_hbase_acl_configured_flag_file
 global_json_template = config['configurations']['metron-env']['global-json']
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 
@@ -171,6 +174,9 @@ enrichment_table = status_params.enrichment_table
 enrichment_cf = status_params.enrichment_cf
 update_table = status_params.update_table
 update_cf = status_params.update_cf
+profiler_table = status_params.profiler_table
+profiler_cf = status_params.profiler_cf
+profiler_input_topic = status_params.profiler_input_topic
 
 threatintel_table = status_params.threatintel_table
 threatintel_cf = status_params.threatintel_cf
