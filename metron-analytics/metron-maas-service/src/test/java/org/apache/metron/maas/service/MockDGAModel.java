@@ -21,7 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.stellar.common.utils.JSONUtils;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Application;
