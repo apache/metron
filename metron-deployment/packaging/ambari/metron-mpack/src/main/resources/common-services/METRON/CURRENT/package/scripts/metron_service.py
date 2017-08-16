@@ -123,7 +123,7 @@ def load_global_config(params):
        group=params.metron_group
        )
 
-    init_config(params)
+  init_config(params)
 
 
 def init_kafka_topics(params, topics):
