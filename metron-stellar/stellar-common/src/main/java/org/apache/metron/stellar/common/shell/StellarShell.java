@@ -264,12 +264,21 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
         stellarExpression = stellarExpression.trim();
       }
     }
-    Object result = executeStellar(stellarExpression);
-    if(result != null && variable == null) {
-      writeLine(result.toString());
-    }
-    if(variable != null) {
-      executor.assign(variable, stellarExpression, result);
+
+    try {
+      Object result = executor.execute(stellarExpression);
+      if (result != null && variable == null) {
+        writeLine(result.toString());
+      }
+      if (variable != null) {
+        executor.assign(variable, stellarExpression, result);
+      }
+    } catch (Throwable t) {
+      if(variable != null) {
+        writeLine(String.format("%s ERROR: Variable %s not assigned", ERROR_PROMPT, variable));
+      }
+      writeLine(ERROR_PROMPT + t.getMessage());
+      t.printStackTrace();
     }
   }
 
@@ -350,25 +359,6 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
    */
   private boolean isDoc(String expression) {
     return StringUtils.startsWith(expression, DOC_PREFIX);
-  }
-
-  /**
-   * Executes a Stellar expression.
-   * @param expression The expression to execute.
-   * @return The result of the expression.
-   */
-  private Object executeStellar(String expression) {
-    Object result = null;
-
-    try {
-      result = executor.execute(expression);
-
-    } catch(Throwable t) {
-      writeLine(ERROR_PROMPT + t.getMessage());
-      t.printStackTrace();
-    }
-
-    return result;
   }
 
   private void write(String out) {
