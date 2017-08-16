@@ -25,7 +25,8 @@ const routes: Routes = [
   { path: 'login', loadChildren: 'app/login/login.module#LoginModule', canActivate: [LoginGuard]},
   { path: 'alerts-list', loadChildren: 'app/alerts/alerts-list/alerts-list.module#AlertsListModule', canActivate: [AuthGuard]},
   { path: 'save-search', loadChildren: 'app/alerts/save-search/save-search.module#SaveSearchModule', canActivate: [AuthGuard]},
-  { path: 'saved-searches', loadChildren: 'app/alerts/saved-searches/saved-searches.module.ts#SavedSearchesModule', canActivate: [AuthGuard]}
+  { path: 'saved-searches', loadChildren: 'app/alerts/saved-searches/saved-searches.module.ts#SavedSearchesModule',
+      canActivate: [AuthGuard]}
 ];
 
 @NgModule({
