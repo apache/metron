@@ -19,11 +19,14 @@
  */
 package org.apache.metron.stellar.dsl.functions;
 
+import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.junit.Assert;
 import org.junit.Test;
@@ -166,6 +169,22 @@ public class MathFunctionsTest {
   @Test
   public void testLog10() {
     testLog("LOG10", 10);
+  }
+
+  @Test
+  public void testIsNaN() {
+    Assert.assertTrue(runPredicate("IS_NAN(NaN)", new HashMap<>()));
+    Assert.assertFalse(runPredicate("IS_NAN(1.0)", new HashMap<>()));
+  }
+
+  @Test(expected = ParseException.class)
+  public void testIsNanWithNotNumberType() {
+    runPredicate("IS_NAN('casey')", new HashMap<>());
+  }
+
+  @Test(expected= ParseException.class)
+  public void testIsNanWithNoArgs() {
+    runPredicate("IS_NAN()", new HashMap<>());
   }
 
   public void assertValues(String func, Map<Double, Double> expected) {
