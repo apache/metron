@@ -283,11 +283,12 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
   }
 
   /**
-   * Handles user interaction when executing a Magic command.
+   * Executes a magic expression.
    * @param rawExpression The expression to execute.
    */
   private void handleMagic( String rawExpression) {
     String expression = rawExpression.trim();
+
     if(MAGIC_FUNCTIONS.equals(expression)) {
 
       // list all functions
@@ -301,7 +302,6 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     } else if(MAGIC_VARS.equals(expression)) {
 
       // list all variables
-
       executor.getVariables()
               .forEach((k,v) -> writeLine(String.format("%s = %s", k, v)));
 
@@ -311,8 +311,8 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
   }
 
   /**
-   * Handles user interaction when executing a doc command.
-   * @param expression The expression to execute.
+   * Executes a doc expression.
+   * @param expression The doc expression to execute.
    */
   private void handleDoc(String expression) {
 
@@ -322,6 +322,17 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
             .filter(info -> StringUtils.equals(functionName, info.getName()))
             .map(info -> format(info))
             .forEach(doc -> write(doc));
+  }
+
+  /**
+   * Executes a quit.
+   */
+  private void handleQuit() {
+    try {
+      console.stop();
+    } catch (Throwable e) {
+      e.printStackTrace();
+    }
   }
 
   /**
@@ -380,16 +391,12 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
         handleDoc(expression);
 
       } else if (expression.equals("quit")) {
-        try {
-          console.stop();
-        } catch (Throwable e) {
-          e.printStackTrace();
-        }
-      }
-      else if(expression.charAt(0) == '#') {
-        return 0;
-      }
-      else {
+        handleQuit();
+
+      } else if(expression.charAt(0) == '#') {
+        return 0; // comment, do nothing
+
+      } else {
         handleStellar(expression);
       }
     }
