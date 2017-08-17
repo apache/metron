@@ -20,19 +20,23 @@ package org.apache.metron.rest.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 import org.apache.metron.common.utils.JSONUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Converter
 public class JsonConverter implements AttributeConverter<Object, String> {
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Override
   public String convertToDatabaseColumn(Object savedSearches) {
     try {
       return JSONUtils.INSTANCE.toJSON(savedSearches, false);
     } catch (JsonProcessingException e) {
-      e.printStackTrace();
+      LOG.error("Error converting value to JSON", e);
     }
     return null;
   }
@@ -42,7 +46,7 @@ public class JsonConverter implements AttributeConverter<Object, String> {
     try {
       return JSONUtils.INSTANCE.load(savedSearches, Object.class);
     } catch (IOException e) {
-      e.printStackTrace();
+      LOG.error("Error converting JSON to value", e);
     }
     return null;
   }
