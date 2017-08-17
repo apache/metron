@@ -17,12 +17,23 @@
  */
 @import "../../../variables.scss";
 
-.font-size-14 {
-  font-size: 14px;
+.font-size-12 {
+  font-size: 12px;
+  font-family: 'Roboto-Regular';
+
+  +.collapse .list-group{
+    padding-top: 0px;
+    padding-bottom: 0px;
+  }
+
+  +.collapse .list-group, +.collapse .list-group-item {
+    font-size: 11px;
+  }
 }
 
 .font-size-15 {
   font-size: 15px;
+  font-family: 'Roboto-Regular';
 }
 
 .border-bottom {
@@ -57,6 +68,12 @@ a.collapsed::after {
   color: $dove-grey;
 }
 
+.group-items-count {
+  color: $dusty-grey;
+  font-size: 13px;
+  padding-left: 10px;
+}
+
 .list-group {
   padding: 10px 0px;
 }
@@ -77,6 +94,11 @@ a.collapsed::after {
     content: '\f014';
     color: $dove-grey;
   }
+}
+
+.count {
+  font-size: 12px;
+  color: $dusty-grey;
 }
 
 .list-group-item:hover {

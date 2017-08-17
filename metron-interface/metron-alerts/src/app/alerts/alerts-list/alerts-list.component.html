@@ -62,9 +62,12 @@
     </div>
 </div>
 
-<div class="container-fluid nav-content">
+<div class="container-fluid no-gutters">
     <div class="row">
-        <div class="col-sm-12 pl-0">
+        <div class="px-0" style="width: 200px;max-width: 200px;">
+            <app-alert-filters [facets]="alertsSearchResponse.facetCounts" (facetFilterChange)="onAddFacetFilter($event)"> </app-alert-filters>
+        </div>
+        <div class="col">
             <div class="table-wrapper">
                 <table class="table table-sm" metron-config-table [data]="alerts" [cellSelectable]="true" (onSort)="onSort($event)" style="white-space: nowrap;" (window:resize)="onResize()" #table>
                     <thead>

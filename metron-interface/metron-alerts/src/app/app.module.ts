@@ -36,7 +36,6 @@ import {ConfigureRowsModule} from './alerts/configure-rows/configure-rows.module
 import {SwitchModule} from './shared/switch/switch.module';
 import {ColumnNamesService} from './service/column-names.service';
 import {DataSource} from './service/data-source';
-import {environment} from '../environments/environment.prod';
 import {RestApiImpl} from './service/rest-api-impl';
 import {LoginModule} from './login/login.module';
 import {AuthGuard} from './shared/auth-guard';

@@ -16,8 +16,10 @@
  * limitations under the License.
  */
 import {Alert} from './alert';
+import {Facets} from './facets';
 
 export class AlertsSearchResponse {
   total = 0;
   results: Alert[] = [];
+  facetCounts: Facets;
 }
