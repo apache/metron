@@ -17,23 +17,35 @@
  */
 package org.apache.metron.management;
 
+import static org.apache.metron.stellar.common.shell.StellarExecutor.CONSOLE;
+
 import com.jakewharton.fliptables.FlipTable;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.text.WordUtils;
-import org.apache.log4j.Logger;
 import org.apache.metron.stellar.common.shell.PausableInput;
 import org.apache.metron.stellar.common.shell.StellarExecutor;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
-import org.apache.metron.stellar.dsl.*;
+import org.apache.metron.stellar.dsl.BaseStellarFunction;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.dsl.StellarFunction;
 import org.jboss.aesh.console.Console;
-
-import java.io.*;
-import java.util.*;
-
-import static org.apache.metron.stellar.common.shell.StellarExecutor.CONSOLE;
+import org.slf4j.LoggerFactory;
 
 public class ShellFunctions {
-  private static final Logger LOG = Logger.getLogger(ShellFunctions.class);
+  private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Stellar(
            namespace = "SHELL"
@@ -264,7 +276,7 @@ public class ShellFunctions {
             ((Console)console.get()).pushToInputStream("\b\n");
           }
         } catch (IOException e) {
-          LOG.error("Unable to unpause: " + e.getMessage(), e);
+          LOG.error("Unable to unpause: {}", e.getMessage(), e);
         }
         if(outFile.exists()) {
           outFile.delete();

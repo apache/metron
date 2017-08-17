@@ -17,26 +17,32 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import org.apache.storm.task.TopologyContext;
-import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.apache.storm.tuple.Tuple;
+import java.io.UnsupportedEncodingException;
+import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
+import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.enrichment.configuration.Enrichment;
 import org.apache.metron.enrichment.utils.EnrichmentUtils;
-import org.apache.metron.common.utils.MessageUtils;
+import org.apache.storm.task.TopologyContext;
+import org.apache.storm.topology.OutputFieldsDeclarer;
+import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
-import java.util.*;
-
 public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
-  protected static final Logger LOG = LoggerFactory.getLogger(EnrichmentSplitterBolt.class);
+
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private List<Enrichment> enrichments;
   protected String messageFieldName;
   private transient JSONParser parser;
@@ -141,7 +147,7 @@ public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
       if (config != null) {
         return config.getEnrichment().getEnrichmentConfigs();
       } else {
-        LOG.info("Unable to retrieve a sensor enrichment config of " + sensorType);
+        LOG.info("Unable to retrieve a sensor enrichment config of {}", sensorType);
       }
     } else {
       LOG.error("Trying to retrieve a field map with sensor type of null");
@@ -154,7 +160,7 @@ public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
       if (config != null) {
         return config.getEnrichment().getFieldMap();
       } else {
-        LOG.info("Unable to retrieve a sensor enrichment config of " + sensorType);
+        LOG.info("Unable to retrieve a sensor enrichment config of {}", sensorType);
       }
     } else {
       LOG.error("Trying to retrieve a field map with sensor type of null");

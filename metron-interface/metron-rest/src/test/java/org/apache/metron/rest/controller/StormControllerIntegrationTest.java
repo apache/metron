@@ -83,6 +83,9 @@ public class StormControllerIntegrationTest {
     this.mockMvc.perform(get(stormUrl))
             .andExpect(status().isUnauthorized());
 
+    this.mockMvc.perform(get(stormUrl + "/supervisors"))
+            .andExpect(status().isUnauthorized());
+
     this.mockMvc.perform(get(stormUrl + "/broTest"))
             .andExpect(status().isUnauthorized());
 
@@ -181,6 +184,16 @@ public class StormControllerIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("SUCCESS"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STARTED.name()));
+
+    this.mockMvc.perform(get(stormUrl + "/supervisors").with(httpBasic(user,password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.supervisors[0]").exists())
+            .andExpect(jsonPath("$.supervisors[0].id").exists())
+            .andExpect(jsonPath("$.supervisors[0].host").exists())
+            .andExpect(jsonPath("$.supervisors[0].uptime").exists())
+            .andExpect(jsonPath("$.supervisors[0].slotsTotal").exists())
+            .andExpect(jsonPath("$.supervisors[0].slotsUsed").exists());
 
     this.mockMvc.perform(get(stormUrl + "/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())

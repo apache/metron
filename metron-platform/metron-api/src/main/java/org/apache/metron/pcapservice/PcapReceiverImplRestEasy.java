@@ -20,10 +20,25 @@ package org.apache.metron.pcapservice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.log4j.Logger;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.hadoop.SequenceFileIterable;
 import org.apache.metron.common.utils.timestamp.TimestampConverters;
@@ -31,21 +46,12 @@ import org.apache.metron.pcap.PcapHelper;
 import org.apache.metron.pcap.filter.fixed.FixedPcapFilter;
 import org.apache.metron.pcap.filter.query.QueryPcapFilter;
 import org.apache.metron.pcap.mr.PcapJob;
-
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Path("/")
 public class PcapReceiverImplRestEasy {
-
-  /** The Constant LOGGER. */
-  private static final Logger LOGGER = Logger
-          .getLogger(PcapReceiverImplRestEasy.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /** The Constant HEADER_CONTENT_DISPOSITION_NAME. */
   private static final String HEADER_CONTENT_DISPOSITION_NAME = "Content-Disposition";
@@ -135,9 +141,7 @@ public class PcapReceiverImplRestEasy {
       //convert to nanoseconds since the epoch
       startTime = TimestampConverters.MILLISECONDS.toNanoseconds(startTime);
       endTime = TimestampConverters.MILLISECONDS.toNanoseconds(endTime);
-      if(LOGGER.isDebugEnabled()) {
-        LOGGER.debug("Query received: " + query);
-      }
+      LOGGER.debug("Query received: {}", query);
       results = getQueryUtil().query(new org.apache.hadoop.fs.Path(ConfigurationUtil.getPcapOutputPath())
               , new org.apache.hadoop.fs.Path(ConfigurationUtil.getTempQueryOutputPath())
               , startTime
@@ -151,8 +155,7 @@ public class PcapReceiverImplRestEasy {
 
       response.setPcaps(results != null ? Lists.newArrayList(results) : null);
     } catch (Exception e) {
-      LOGGER.error("Exception occurred while fetching Pcaps by identifiers :",
-              e);
+      LOGGER.error("Exception occurred while fetching Pcaps by identifiers :", e);
       throw new WebApplicationException("Unable to fetch Pcaps via MR job", e);
     } finally {
       if (null != results) {
@@ -246,7 +249,7 @@ public class PcapReceiverImplRestEasy {
                                       }
                                     }};
       if(LOGGER.isDebugEnabled()) {
-        LOGGER.debug("Query received: " + Joiner.on(",").join(query.entrySet()));
+        LOGGER.debug("Query received: {}", Joiner.on(",").join(query.entrySet()));
       }
       results = getQueryUtil().query(new org.apache.hadoop.fs.Path(ConfigurationUtil.getPcapOutputPath())
               , new org.apache.hadoop.fs.Path(ConfigurationUtil.getTempQueryOutputPath())
@@ -261,8 +264,7 @@ public class PcapReceiverImplRestEasy {
       response.setPcaps(results != null ? Lists.newArrayList(results) : null);
 
     } catch (Exception e) {
-      LOGGER.error("Exception occurred while fetching Pcaps by identifiers :",
-              e);
+      LOGGER.error("Exception occurred while fetching Pcaps by identifiers :", e);
       throw new WebApplicationException("Unable to fetch Pcaps via MR job", e);
     } finally {
       if (null != results) {
