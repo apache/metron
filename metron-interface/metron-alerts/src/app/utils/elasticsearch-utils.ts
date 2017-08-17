@@ -53,7 +53,7 @@ export class ElasticsearchUtils {
     columnMetadata.push(new ColumnMetadata('id', 'string'));
     return columnMetadata;
   }
-  
+
   public static extractAlertsData(res: Response): AlertsSearchResponse {
     let response: any = res || {};
     let alertsSearchResponse: AlertsSearchResponse = new AlertsSearchResponse();
