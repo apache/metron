@@ -15,26 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.metron.indexing.dao.search;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-public class SearchResponse {
+public class SearchResultGroup {
 
+  private String key;
   private long total;
   private List<SearchResult> results;
   private String groupedBy;
   private List<SearchResultGroup> groups;
-  private Map<String, Map<String, Long>> facetCounts;
 
-  /**
-   * The total number of results
-   * @return
-   */
+  public String getKey() {
+    return key;
+  }
+
+  public void setKey(String key) {
+    this.key = key;
+  }
+
   public long getTotal() {
     return total;
   }
@@ -43,10 +46,6 @@ public class SearchResponse {
     this.total = total;
   }
 
-  /**
-   * The list of results
-   * @return
-   */
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public List<SearchResult> getResults() {
     return results;
@@ -70,17 +69,7 @@ public class SearchResponse {
     return groups;
   }
 
-  public void setGroups(
-      List<SearchResultGroup> groups) {
+  public void setGroups(List<SearchResultGroup> groups) {
     this.groups = groups;
-  }
-
-  @JsonInclude(JsonInclude.Include.NON_NULL)
-  public Map<String, Map<String, Long>> getFacetCounts() {
-    return facetCounts;
-  }
-
-  public void setFacetCounts(Map<String, Map<String, Long>> facetCounts) {
-    this.facetCounts = facetCounts;
   }
 }

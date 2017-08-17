@@ -19,51 +19,11 @@ package org.apache.metron.elasticsearch.dao;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
-import org.apache.metron.indexing.dao.AccessConfig;
-import org.apache.metron.indexing.dao.update.Document;
-import org.apache.metron.indexing.dao.IndexDao;
-import org.apache.metron.indexing.dao.search.*;
-import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.elasticsearch.action.get.GetRequestBuilder;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.search.*;
-import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.action.update.UpdateResponse;
-import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
-import org.elasticsearch.action.search.SearchPhaseExecutionException;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.cluster.metadata.MappingMetaData;
-import org.elasticsearch.common.collect.ImmutableOpenMap;
-import org.elasticsearch.index.mapper.ip.IpFieldMapper;
-import org.elasticsearch.index.query.QueryStringQueryBuilder;
-import org.elasticsearch.search.aggregations.Aggregation;
-import org.elasticsearch.search.aggregations.Aggregations;
-import org.elasticsearch.search.aggregations.bucket.terms.DoubleTerms;
-import org.elasticsearch.search.aggregations.bucket.terms.LongTerms;
-import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
-import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.*;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.index.IndexRequestBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Date;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -71,6 +31,40 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.apache.metron.common.Constants;
+import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
+import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.InvalidSearchException;
+import org.apache.metron.indexing.dao.search.SearchRequest;
+import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.search.SearchResult;
+import org.apache.metron.indexing.dao.search.SearchResultGroup;
+import org.apache.metron.indexing.dao.update.Document;
+import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.search.MultiSearchResponse;
+import org.elasticsearch.action.search.SearchPhaseExecutionException;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.common.collect.ImmutableOpenMap;
+import org.elasticsearch.index.mapper.ip.IpFieldMapper;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.QueryStringQueryBuilder;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
+import org.elasticsearch.search.aggregations.metrics.tophits.TopHits;
+import org.elasticsearch.search.aggregations.metrics.tophits.TopHitsBuilder;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 public class ElasticsearchDao implements IndexDao {
   private transient TransportClient client;
@@ -110,24 +104,21 @@ public class ElasticsearchDao implements IndexDao {
     if (searchRequest.getSize() > accessConfig.getMaxSearchResults()) {
       throw new InvalidSearchException("Search result size must be less than " + accessConfig.getMaxSearchResults());
     }
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
-            .size(searchRequest.getSize())
-            .from(searchRequest.getFrom())
-            .query(new QueryStringQueryBuilder(searchRequest.getQuery()))
-            .fetchSource(true)
-            .trackScores(true);
-    for (SortField sortField : searchRequest.getSort()) {
-      FieldSortBuilder fieldSortBuilder = new FieldSortBuilder(sortField.getField());
-      if (sortField.getSortOrder() == org.apache.metron.indexing.dao.search.SortOrder.DESC) {
-        fieldSortBuilder.order(org.elasticsearch.search.sort.SortOrder.DESC);
-      } else {
-        fieldSortBuilder.order(org.elasticsearch.search.sort.SortOrder.ASC);
-      }
-      searchSourceBuilder = searchSourceBuilder.sort(fieldSortBuilder);
+    final SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    searchSourceBuilder.query(new QueryStringQueryBuilder(searchRequest.getQuery()));
+    Optional<List<String>> groupByFields = searchRequest.getGroupByFields();
+    if (groupByFields.isPresent()) {
+      searchSourceBuilder.aggregation(getGroupsTermBuilder(searchRequest, 0));
+    } else {
+      searchSourceBuilder.size(searchRequest.getSize())
+          .from(searchRequest.getFrom())
+          .fetchSource(true)
+          .trackScores(true);
+      searchRequest.getSort().forEach(sortField -> searchSourceBuilder.sort(sortField.getField(), getElasticsearchSortOrder(sortField.getSortOrder())));
     }
     Optional<List<String>> facetFields = searchRequest.getFacetFields();
     if (facetFields.isPresent()) {
-      addFacetFields(searchSourceBuilder, facetFields.get());
+      facetFields.get().forEach(field -> searchSourceBuilder.aggregation(new TermsBuilder(getFacentAggregationName(field)).field(field)));
     }
     String[] wildcardIndices = searchRequest.getIndices().stream().map(index -> String.format("%s*", index)).toArray(value -> new String[searchRequest.getIndices().size()]);
     org.elasticsearch.action.search.SearchResponse elasticsearchResponse;
@@ -139,23 +130,25 @@ public class ElasticsearchDao implements IndexDao {
     }
     SearchResponse searchResponse = new SearchResponse();
     searchResponse.setTotal(elasticsearchResponse.getHits().getTotalHits());
-    searchResponse.setResults(Arrays.stream(elasticsearchResponse.getHits().getHits()).map(searchHit -> {
-      SearchResult searchResult = new SearchResult();
-      searchResult.setId(searchHit.getId());
-      searchResult.setSource(searchHit.getSource());
-      searchResult.setScore(searchHit.getScore());
-      searchResult.setIndex(searchHit.getIndex());
-      return searchResult;
-    }).collect(Collectors.toList()));
-    if (facetFields.isPresent()) {
+    if (!groupByFields.isPresent()) {
+      searchResponse.setResults(Arrays.stream(elasticsearchResponse.getHits().getHits()).map(this::getSearchResult).collect(Collectors.toList()));
+    }
+    if (groupByFields.isPresent() || facetFields.isPresent()) {
       Map<String, FieldType> commonColumnMetadata;
       try {
         commonColumnMetadata = getCommonColumnMetadata(searchRequest.getIndices());
       } catch (IOException e) {
         throw new InvalidSearchException(String.format("Could not get common column metadata for indices %s", Arrays.toString(searchRequest.getIndices().toArray())));
       }
-      searchResponse.setFacetCounts(getFacetCounts(facetFields.get(), elasticsearchResponse.getAggregations(), commonColumnMetadata ));
+      if (groupByFields.isPresent()) {
+        searchResponse.setGroupedBy(groupByFields.get().get(0));
+        searchResponse.setGroups(getGroups(groupByFields.get(), 0, elasticsearchResponse.getAggregations(), commonColumnMetadata));
+      }
+      if (facetFields.isPresent()) {
+        searchResponse.setFacetCounts(getFacetCounts(facetFields.get(), elasticsearchResponse.getAggregations(), commonColumnMetadata ));
+      }
     }
+
     return searchResponse;
   }
 
@@ -314,43 +307,93 @@ public class ElasticsearchDao implements IndexDao {
     return latestIndices.values().toArray(new String[latestIndices.size()]);
   }
 
-  public void addFacetFields(SearchSourceBuilder searchSourceBuilder, List<String> fields) {
-    for(String field: fields) {
-      searchSourceBuilder = searchSourceBuilder.aggregation(new TermsBuilder(getAggregationName(field)).field(field));
-    }
+  private org.elasticsearch.search.sort.SortOrder getElasticsearchSortOrder(
+      org.apache.metron.indexing.dao.search.SortOrder sortOrder) {
+    return sortOrder == org.apache.metron.indexing.dao.search.SortOrder.DESC ?
+        org.elasticsearch.search.sort.SortOrder.DESC : org.elasticsearch.search.sort.SortOrder.ASC;
   }
 
   public Map<String, Map<String, Long>> getFacetCounts(List<String> fields, Aggregations aggregations, Map<String, FieldType> commonColumnMetadata) {
     Map<String, Map<String, Long>> fieldCounts = new HashMap<>();
     for (String field: fields) {
       Map<String, Long> valueCounts = new HashMap<>();
-      Aggregation aggregation = aggregations.get(getAggregationName(field));
-      if (aggregation instanceof LongTerms) {
-        LongTerms longTerms = (LongTerms) aggregation;
-        FieldType type = commonColumnMetadata.get(field);
-        if (FieldType.IP.equals(type)) {
-          longTerms.getBuckets().stream().forEach(bucket -> valueCounts.put(IpFieldMapper.longToIp((Long) bucket.getKey()), bucket.getDocCount()));
-        } else if (FieldType.BOOLEAN.equals(type)) {
-          longTerms.getBuckets().stream().forEach(bucket -> {
-            String key = (Long) bucket.getKey() == 1 ? "true" : "false";
-            valueCounts.put(key, bucket.getDocCount());
-          });
-        } else {
-          longTerms.getBuckets().stream().forEach(bucket -> valueCounts.put(bucket.getKeyAsString(), bucket.getDocCount()));
-        }
-      } else if (aggregation instanceof DoubleTerms) {
-        DoubleTerms doubleTerms = (DoubleTerms) aggregation;
-        doubleTerms.getBuckets().stream().forEach(bucket -> valueCounts.put(bucket.getKeyAsString(), bucket.getDocCount()));
-      } else if (aggregation instanceof StringTerms) {
-        StringTerms stringTerms = (StringTerms) aggregation;
-        stringTerms.getBuckets().stream().forEach(bucket -> valueCounts.put(bucket.getKeyAsString(), bucket.getDocCount()));
+      Aggregation aggregation = aggregations.get(getFacentAggregationName(field));
+      if (aggregation instanceof Terms) {
+        Terms terms = (Terms) aggregation;
+        terms.getBuckets().stream().forEach(bucket -> valueCounts.put(formatKey(bucket.getKey(), commonColumnMetadata.get(field)), bucket.getDocCount()));
       }
       fieldCounts.put(field, valueCounts);
     }
     return fieldCounts;
   }
 
-  private String getAggregationName(String field) {
+  private String formatKey(Object key, FieldType type) {
+    if (FieldType.IP.equals(type)) {
+      return IpFieldMapper.longToIp((Long) key);
+    } else if (FieldType.BOOLEAN.equals(type)) {
+      return (Long) key == 1 ? "true" : "false";
+    } else {
+      return key.toString();
+    }
+  }
+
+  private TermsBuilder getGroupsTermBuilder(SearchRequest searchRequest, int index) {
+    List<String> fields = searchRequest.getGroupByFields().get();
+    String field = fields.get(index);
+    String aggregationName = getGroupByAggregationName(field);
+    if (index < fields.size() - 1) {
+      return new TermsBuilder(aggregationName).field(field)
+          .subAggregation(getGroupsTermBuilder(searchRequest, index + 1));
+    } else {
+      TopHitsBuilder topHitsBuilder = new TopHitsBuilder("top_hits").setSize(searchRequest.getSize())
+          .setFetchSource(true);
+      searchRequest.getSort().forEach(sortField ->
+          topHitsBuilder.addSort(sortField.getField(), getElasticsearchSortOrder(sortField.getSortOrder())));
+      return new TermsBuilder(aggregationName).field(field).subAggregation(topHitsBuilder);
+    }
+  }
+
+  private List<SearchResultGroup> getGroups(List<String> fields, int index, Aggregations aggregations, Map<String, FieldType> commonColumnMetadata) {
+    String field = fields.get(index);
+    Terms terms = aggregations.get(getGroupByAggregationName(field));
+    List<SearchResultGroup> searchResultGroups = new ArrayList<>();
+    if (index < fields.size() - 1) {
+      String childField = fields.get(index + 1);
+      for(Bucket bucket: terms.getBuckets()) {
+        SearchResultGroup searchResultGroup = new SearchResultGroup();
+        searchResultGroup.setKey(formatKey(bucket.getKey(), commonColumnMetadata.get(field)));
+        searchResultGroup.setTotal(bucket.getDocCount());
+        searchResultGroup.setGroupedBy(childField);
+        searchResultGroup.setGroups(getGroups(fields, index + 1, bucket.getAggregations(), commonColumnMetadata));
+        searchResultGroups.add(searchResultGroup);
+      }
+    } else {
+      for(Bucket bucket: terms.getBuckets()) {
+        SearchResultGroup searchResultGroup = new SearchResultGroup();
+        searchResultGroup.setKey(formatKey(bucket.getKey(), commonColumnMetadata.get(field)));
+        searchResultGroup.setTotal(bucket.getDocCount());
+        TopHits topHits = bucket.getAggregations().get("top_hits");
+        searchResultGroup.setResults(Arrays.stream(topHits.getHits().getHits()).map(this::getSearchResult).collect(Collectors.toList()));
+        searchResultGroups.add(searchResultGroup);
+      }
+    }
+    return searchResultGroups;
+  }
+
+  private SearchResult getSearchResult(SearchHit searchHit) {
+    SearchResult searchResult = new SearchResult();
+    searchResult.setId(searchHit.getId());
+    searchResult.setSource(searchHit.getSource());
+    searchResult.setScore(searchHit.getScore());
+    searchResult.setIndex(searchHit.getIndex());
+    return searchResult;
+  }
+
+  private String getFacentAggregationName(String field) {
     return String.format("%s_count", field);
+  }
+
+  private String getGroupByAggregationName(String field) {
+    return String.format("%s_group", field);
   }
 }

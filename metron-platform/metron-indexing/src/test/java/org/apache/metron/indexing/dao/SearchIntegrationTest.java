@@ -24,6 +24,7 @@ import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
+import org.apache.metron.indexing.dao.search.SearchResultGroup;
 import org.apache.metron.integration.InMemoryComponent;
 import org.junit.*;
 
@@ -213,6 +214,42 @@ public abstract class SearchIntegrationTest {
   @Multiline
   public static String exceededMaxResultsQuery;
 
+  /**
+   * {
+   * "groupByFields":["is_alert","latitude"],
+   * "indices": ["bro", "snort"],
+   * "query": "*",
+   * "from": 0,
+   * "size": 10,
+   * "sort": [
+   *   {
+   *     "field": "timestamp",
+   *     "sortOrder": "desc"
+   *   }
+   * ]
+   * }
+   */
+  @Multiline
+  public static String groupByQuery;
+
+  /**
+   * {
+   * "groupByFields":["is_alert"],
+   * "indices": ["bro", "snort"],
+   * "query": "*",
+   * "from": 0,
+   * "size": 3,
+   * "sort": [
+   *   {
+   *     "field": "ip_src_port",
+   *     "sortOrder": "asc"
+   *   }
+   * ]
+   * }
+   */
+  @Multiline
+  public static String sortedSizeGroupByQuery;
+
   protected static IndexDao dao;
   protected static InMemoryComponent indexComponent;
 
@@ -227,6 +264,106 @@ public abstract class SearchIntegrationTest {
 
   @Test
   public void test() throws Exception {
+    {
+      SearchRequest request = JSONUtils.INSTANCE.load(sortedSizeGroupByQuery, SearchRequest.class);
+      SearchResponse response = dao.search(request);
+      Assert.assertEquals(10, response.getTotal());
+      Assert.assertNull(response.getResults());
+      Assert.assertEquals("is_alert", response.getGroupedBy());
+      List<SearchResultGroup> isAlertGroups = response.getGroups();
+      Assert.assertEquals(2, isAlertGroups.size());
+      Collections.sort(isAlertGroups, this::compareGroups);
+
+      // isAlert == false group
+      SearchResultGroup falseGroup = isAlertGroups.get(0);
+      Assert.assertNull(falseGroup.getGroupedBy());
+      Assert.assertNull(falseGroup.getGroups());
+      Assert.assertEquals(4, falseGroup.getTotal());
+      List<SearchResult> falseGroupResults = falseGroup.getResults();
+      Assert.assertEquals(3, falseGroupResults.size());
+      Assert.assertEquals(8001, falseGroupResults.get(0).getSource().get("ip_src_port"));
+      Assert.assertEquals(8003, falseGroupResults.get(1).getSource().get("ip_src_port"));
+      Assert.assertEquals(8005, falseGroupResults.get(2).getSource().get("ip_src_port"));
+
+      // isAlert == true group
+      SearchResultGroup trueGroup = isAlertGroups.get(1);
+      Assert.assertNull(trueGroup.getGroupedBy());
+      Assert.assertNull(trueGroup.getGroups());
+      Assert.assertEquals(6, trueGroup.getTotal());
+      List<SearchResult> trueGroupResults = trueGroup.getResults();
+      Assert.assertEquals(3, trueGroupResults.size());
+      Assert.assertEquals(8002, trueGroupResults.get(0).getSource().get("ip_src_port"));
+      Assert.assertEquals(8004, trueGroupResults.get(1).getSource().get("ip_src_port"));
+      Assert.assertEquals(8006, trueGroupResults.get(2).getSource().get("ip_src_port"));
+    }
+
+    {
+      SearchRequest request = JSONUtils.INSTANCE.load(groupByQuery, SearchRequest.class);
+      SearchResponse response = dao.search(request);
+      Assert.assertEquals(10, response.getTotal());
+      Assert.assertNull(response.getResults());
+      Assert.assertEquals("is_alert", response.getGroupedBy());
+      List<SearchResultGroup> isAlertGroups = response.getGroups();
+      Assert.assertEquals(2, isAlertGroups.size());
+      Collections.sort(isAlertGroups, this::compareGroups);
+
+      // isAlert == false group
+      SearchResultGroup falseGroup = isAlertGroups.get(0);
+      Assert.assertEquals("false", falseGroup.getKey());
+      Assert.assertEquals("latitude", falseGroup.getGroupedBy());
+      Assert.assertNull(falseGroup.getResults());
+      List<SearchResultGroup> falseLatitudeGroups = falseGroup.getGroups();
+      Assert.assertEquals(2, falseLatitudeGroups.size());
+      Collections.sort(falseLatitudeGroups, this::compareGroups);
+
+      // isAlert == false && latitude == 48.0001 group
+      SearchResultGroup falseLatitudeGroup1 = falseLatitudeGroups.get(0);
+      Assert.assertEquals(48.0001, Double.parseDouble(falseLatitudeGroup1.getKey()), 0.00001);
+      Assert.assertEquals(1, falseLatitudeGroup1.getTotal());
+      List<SearchResult> falseLatitudeGroup1Results = falseLatitudeGroup1.getResults();
+      Assert.assertEquals(1, falseLatitudeGroup1Results.size());
+      Assert.assertEquals("192.168.1.2", falseLatitudeGroup1Results.get(0).getSource().get("ip_src_addr"));
+
+      // isAlert == false && latitude == 48.5839 group
+      SearchResultGroup falseLatitudeGroup2 = falseLatitudeGroups.get(1);
+      Assert.assertEquals(48.5839, Double.parseDouble(falseLatitudeGroup2.getKey()), 0.00001);
+      Assert.assertEquals(3, falseLatitudeGroup2.getTotal());
+      List<SearchResult> falseLatitudeGroup2Results = falseLatitudeGroup2.getResults();
+      Assert.assertEquals(3, falseLatitudeGroup2Results.size());
+      Assert.assertEquals("192.168.1.8", falseLatitudeGroup2Results.get(0).getSource().get("ip_src_addr"));
+      Assert.assertEquals("192.168.1.7", falseLatitudeGroup2Results.get(1).getSource().get("ip_src_addr"));
+      Assert.assertEquals("192.168.1.6", falseLatitudeGroup2Results.get(2).getSource().get("ip_src_addr"));
+
+      // isAlert == true group
+      SearchResultGroup trueGroup = isAlertGroups.get(1);
+      Assert.assertEquals("true", trueGroup.getKey());
+      Assert.assertEquals("latitude", trueGroup.getGroupedBy());
+      Assert.assertNull(falseGroup.getResults());
+      List<SearchResultGroup> trueLatitudeGroups = trueGroup.getGroups();
+      Assert.assertEquals(2, trueLatitudeGroups.size());
+      Collections.sort(trueLatitudeGroups, this::compareGroups);
+
+      // isAlert == true && latitude == 48.0001 group
+      SearchResultGroup trueLatitudeGroup1 = trueLatitudeGroups.get(0);
+      Assert.assertEquals(48.0001, Double.parseDouble(trueLatitudeGroup1.getKey()), 0.00001);
+      Assert.assertEquals(1, trueLatitudeGroup1.getTotal());
+      List<SearchResult> trueLatitudeGroup1Results = trueLatitudeGroup1.getResults();
+      Assert.assertEquals(1, trueLatitudeGroup1Results.size());
+      Assert.assertEquals("192.168.1.1", trueLatitudeGroup1Results.get(0).getSource().get("ip_src_addr"));
+
+      // isAlert == true && latitude == 48.5839 group
+      SearchResultGroup trueLatitudeGroup2 = trueLatitudeGroups.get(1);
+      Assert.assertEquals(48.5839, Double.parseDouble(trueLatitudeGroup2.getKey()), 0.00001);
+      Assert.assertEquals(5, trueLatitudeGroup2.getTotal());
+      List<SearchResult> trueLatitudeGroup2Results = trueLatitudeGroup2.getResults();
+      Assert.assertEquals(5, trueLatitudeGroup2Results.size());
+      Assert.assertEquals("192.168.1.1", trueLatitudeGroup2Results.get(0).getSource().get("ip_src_addr"));
+      Assert.assertEquals("192.168.1.5", trueLatitudeGroup2Results.get(1).getSource().get("ip_src_addr"));
+      Assert.assertEquals("192.168.1.4", trueLatitudeGroup2Results.get(2).getSource().get("ip_src_addr"));
+      Assert.assertEquals("192.168.1.3", trueLatitudeGroup2Results.get(3).getSource().get("ip_src_addr"));
+      Assert.assertEquals("192.168.1.1", trueLatitudeGroup2Results.get(4).getSource().get("ip_src_addr"));
+    }
+
     //All Query Testcase
     {
       SearchRequest request = JSONUtils.INSTANCE.load(allQuery, SearchRequest.class);
@@ -464,6 +601,10 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
     }
+  }
+
+  private int compareGroups(SearchResultGroup o1, SearchResultGroup o2) {
+    return o1.getKey().compareTo(o2.getKey());
   }
 
   @AfterClass

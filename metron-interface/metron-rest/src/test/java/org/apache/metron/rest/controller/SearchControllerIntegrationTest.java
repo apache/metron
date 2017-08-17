@@ -24,7 +24,6 @@ import org.apache.metron.rest.service.SearchService;
 import org.json.simple.parser.ParseException;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +43,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -173,6 +171,17 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.responseCode").value(500))
             .andExpect(jsonPath("$.message").value("Search result size must be less than 100"));
+
+    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(SearchIntegrationTest.groupByQuery))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+        .andExpect(jsonPath("$.*", hasSize(3)))
+        .andExpect(jsonPath("$.total").value(10))
+        .andExpect(jsonPath("$.groupedBy").value("groupByField"))
+        .andExpect(jsonPath("$.groups.*", hasSize(1)))
+        .andExpect(jsonPath("$.groups[0].key").value("groupByValue"))
+        .andExpect(jsonPath("$.groups[0].total").value(10))
+        .andExpect(jsonPath("$.groups[0].results.*", hasSize(10)));
 
     this.mockMvc.perform(post(searchUrl + "/column/metadata").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[\"bro\",\"snort\"]"))
             .andExpect(status().isOk())

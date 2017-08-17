@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Iterables;
+import java.util.stream.Collectors;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.JSONUtils;
@@ -73,7 +74,18 @@ public class InMemoryDao implements IndexDao {
       finalResp.add(response.get(i));
     }
     ret.setTotal(response.size());
-    ret.setResults(finalResp);
+    Optional<List<String>> groupByFields = searchRequest.getGroupByFields();
+    if (groupByFields.isPresent()) {
+      ret.setGroupedBy("groupByField");
+      SearchResultGroup searchResultGroup = new SearchResultGroup();
+      searchResultGroup.setTotal(response.size());
+      searchResultGroup.setKey("groupByValue");
+      searchResultGroup.setResults(finalResp);
+      ret.setGroups(Arrays.asList(searchResultGroup));
+    } else {
+      ret.setResults(finalResp);
+    }
+
     return ret;
   }
 
