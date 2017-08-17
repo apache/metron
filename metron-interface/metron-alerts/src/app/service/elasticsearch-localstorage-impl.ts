@@ -20,7 +20,6 @@ import {Headers, RequestOptions} from '@angular/http';
 
 import {HttpUtil} from '../utils/httpUtil';
 import {DataSource} from './data-source';
-import {Alert} from '../model/alert';
 import {ColumnMetadata} from '../model/column-metadata';
 import {ElasticsearchUtils} from '../utils/elasticsearch-utils';
 import {
@@ -33,6 +32,7 @@ import {TableMetadata} from '../model/table-metadata';
 import {SaveSearch} from '../model/save-search';
 import {AlertsSearchResponse} from '../model/alerts-search-response';
 import {SearchRequest} from '../model/search-request';
+import {AlertSource} from '../model/alert-source';
 
 export class ElasticSearchLocalstorageImpl extends DataSource {
 
@@ -59,9 +59,8 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
       .onErrorResumeNext();
   }
 
-  getAlert(index: string, type: string, alertId: string): Observable<Alert> {
-    return this.http.get('/search/' + index + '/' + type + '/' + alertId, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData);
+  getAlert(sourceType: string, alertId: string): Observable<AlertSource> {
+    return Observable.throw('Method not implemented in ElasticSearchLocalstorageImpl');
   }
 
   updateAlertState(request: any): Observable<{}> {

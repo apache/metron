@@ -31,6 +31,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.Context.ActivityType;
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ErrorListener;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
@@ -137,12 +139,21 @@ public class BaseStellarProcessor<T> {
     if (rule == null || isEmpty(rule.trim())) {
       return null;
     }
+    if(context.getActivityType() == null) {
+      context.setActivityType(ActivityType.PARSE_ACTIVITY);
+    }
     try {
       expression = expressionCache.get(rule, () -> compile(rule));
     } catch (ExecutionException|UncheckedExecutionException e) {
       throw new ParseException("Unable to parse: " + rule + " due to: " + e.getMessage(), e);
     }
-    return clazz.cast(expression.apply(new StellarCompiler.ExpressionState(context, functionResolver, variableResolver)));
+    try {
+      return clazz.cast(expression
+          .apply(new StellarCompiler.ExpressionState(context, functionResolver, variableResolver)));
+    }finally {
+        // always reset the activity type
+        context.setActivityType(null);
+    }
   }
 
   /**
@@ -219,8 +230,11 @@ public class BaseStellarProcessor<T> {
       return true;
     }
 
+    // set the context to validation
+    // it will be reset in parse()
+    context.setActivityType(ActivityType.VALIDATION_ACTIVITY);
     try {
-      parse(rule, x -> null, StellarFunctions.FUNCTION_RESOLVER(), context);
+      parse(rule, DefaultVariableResolver.NULL_RESOLVER(), StellarFunctions.FUNCTION_RESOLVER(), context);
     } catch (Throwable t) {
       if (throwException) {
         throw new ParseException("Unable to parse " + rule + ": " + t.getMessage(), t);
@@ -228,7 +242,6 @@ public class BaseStellarProcessor<T> {
         return false;
       }
     }
-
     return true;
   }
 

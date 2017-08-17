@@ -341,12 +341,12 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.router.navigateByUrl('/alerts-list(dialog:configure-table)');
   }
 
-  showDetails($event, alert: any) {
+  showDetails($event, alert: Alert) {
     if ($event.target.type !== 'checkbox' && $event.target.parentElement.firstChild.type !== 'checkbox' && $event.target.nodeName !== 'A') {
       this.selectedAlerts = [];
       this.selectedAlerts = [alert];
       this.saveRefreshState();
-      this.router.navigateByUrl('/alerts-list(dialog:details/' + alert._index + '/' + alert._type + '/' + alert.id + ')');
+      this.router.navigateByUrl('/alerts-list(dialog:details/' + alert.source['source:type'] + '/' + alert.source.guid + ')');
     }
   }
 

@@ -25,6 +25,7 @@ import {ElasticSearchLocalstorageImpl} from './elasticsearch-localstorage-impl';
 import {INDEXES} from '../utils/constants';
 import {ColumnMetadata} from '../model/column-metadata';
 import {MetronRestApiUtils} from '../utils/metron-rest-api-utils';
+import {AlertSource} from '../model/alert-source';
 
 export class RestApiImpl extends ElasticSearchLocalstorageImpl {
 
@@ -36,11 +37,21 @@ export class RestApiImpl extends ElasticSearchLocalstorageImpl {
       .onErrorResumeNext();
   }
 
+  getAlert(sourceType: string, alertId: string): Observable<AlertSource> {
+    let url = '/api/v1/search/findOne';
+    let requestSchema = { guid: alertId, sensorType: sourceType};
+
+    return this.http.post(url, requestSchema, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    .map(HttpUtil.extractData)
+    .catch(HttpUtil.handleError)
+    .onErrorResumeNext();
+  }
+
   getAllFieldNames(): Observable<ColumnMetadata[]> {
     let url = '/api/v1/search/column/metadata';
     return this.http.post(url, INDEXES, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData)
-      .map(MetronRestApiUtils.extractColumnNameDataFromRestApi)
-      .catch(HttpUtil.handleError);
+    .map(HttpUtil.extractData)
+    .map(MetronRestApiUtils.extractColumnNameDataFromRestApi)
+    .catch(HttpUtil.handleError);
   }
 }

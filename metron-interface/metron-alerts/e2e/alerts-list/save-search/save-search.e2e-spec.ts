@@ -32,7 +32,7 @@ describe('metron-alerts Search', function() {
   afterAll(() => {
     loginPage.logout();
   });
-  
+
   beforeEach(() => {
     page = new MetronAlertsPage();
     jasmine.addMatchers(customMatchers);

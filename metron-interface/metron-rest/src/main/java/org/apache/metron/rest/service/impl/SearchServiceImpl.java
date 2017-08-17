@@ -18,26 +18,33 @@
 package org.apache.metron.rest.service.impl;
 
 import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.Optional;
 import java.util.List;
 import java.util.Map;
 
 @Service
-public class IndexDaoSearchServiceImpl implements SearchService {
+public class SearchServiceImpl implements SearchService {
   private IndexDao dao;
+  private Environment environment;
 
   @Autowired
-  public IndexDaoSearchServiceImpl(IndexDao dao) {
+  public SearchServiceImpl(IndexDao dao, Environment environment) {
     this.dao = dao;
+    this.environment = environment;
   }
 
   @Override
@@ -51,6 +58,14 @@ public class IndexDaoSearchServiceImpl implements SearchService {
   }
 
   @Override
+  public Optional<Map<String, Object>> getLatest(GetRequest request) throws RestException {
+    try {
+      return dao.getLatestResult(request);
+    } catch (IOException e) {
+      throw new RestException(e.getMessage(), e);
+    }
+  }
+
   public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws RestException {
     try {
       return dao.getColumnMetadata(indices);

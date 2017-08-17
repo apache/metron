@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, EventEmitter, Inject}     from '@angular/core';
+import {Injectable, EventEmitter}     from '@angular/core';
 import {Http, Headers, RequestOptions, Response} from '@angular/http';
 import {Router} from '@angular/router';
 import {Observable}     from 'rxjs/Observable';
@@ -23,10 +23,10 @@ import {Observable}     from 'rxjs/Observable';
 @Injectable()
 export class AuthenticationService {
 
-  private static USER_NOT_VERIFIED: string = 'USER-NOT-VERIFIED';
+  private static USER_NOT_VERIFIED = 'USER-NOT-VERIFIED';
   private currentUser: string = AuthenticationService.USER_NOT_VERIFIED;
-  loginUrl: string = '/api/v1/user';
-  logoutUrl: string = '/logout';
+  loginUrl = '/api/v1/user';
+  logoutUrl = '/logout';
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
   onLoginEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
 

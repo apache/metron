@@ -24,11 +24,11 @@ export class LoginPage {
     }
 
     login() {
-        browser.wait(function() {return element(by.css('input.form-control')).isPresent();});
+        browser.wait(function() {return element(by.css('input.form-control')).isPresent(); });
         this.setUserNameAndPassword('admin', 'password');
         this.submitLoginForm();
         browser.waitForAngularEnabled(false);
-        browser.wait(function() {return element(by.css('.logout')).isPresent();});
+        browser.wait(function() {return element(by.css('.logout')).isPresent(); });
     }
 
     logout() {
@@ -52,7 +52,7 @@ export class LoginPage {
         let errElement = element(by.css('div[style="color:#a94442"]'));
         return waitForElementVisibility(errElement).then(() => {
             return errElement.getText().then((message) => {
-                return message.replace(/\n/,'').replace(/LOG\ IN$/,'');
+                return message.replace(/\n/, '').replace(/LOG\ IN$/, '');
             });
         });
     }
