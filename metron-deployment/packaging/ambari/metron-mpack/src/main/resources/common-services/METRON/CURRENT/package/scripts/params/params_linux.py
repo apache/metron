@@ -208,6 +208,7 @@ security_enabled = status_params.security_enabled
 client_jaas_path = metron_home + '/client_jaas.conf'
 client_jaas_arg = '-Djava.security.auth.login.config=' + metron_home + '/client_jaas.conf'
 enrichment_topology_worker_childopts = client_jaas_arg if security_enabled else ''
+profiler_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 indexing_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 topology_auto_credentials = config['configurations']['storm-site'].get('nimbus.credential.renewers.classes', [])
 # Needed for storm.config, because it needs Java String

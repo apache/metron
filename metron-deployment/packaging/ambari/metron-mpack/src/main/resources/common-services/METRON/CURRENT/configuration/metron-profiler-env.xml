@@ -76,9 +76,12 @@
   </property>
   <property>
     <name>profiler_topology_worker_childopts</name>
-    <value></value>
+    <value/>
     <description>Extra topology child opts for the storm topology.</description>
     <display-name>topology.worker.childopts</display-name>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
   <property>
     <name>profiler_topology_workers</name>
