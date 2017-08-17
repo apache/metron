@@ -449,8 +449,4 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     }
     return baseString.substring(0, index);
   }
-
-  protected Console getConsole() {
-    return console;
-  }
 }
