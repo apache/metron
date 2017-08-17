@@ -77,7 +77,6 @@ var rewriteSearchProxy = proxy({
 
 app.use(compression());
 
-app.use('/search', rewriteSearchProxy);
 app.use('/api', proxy(conf.rest));
 app.use('/_cluster', proxy(conf.elastic));
 
