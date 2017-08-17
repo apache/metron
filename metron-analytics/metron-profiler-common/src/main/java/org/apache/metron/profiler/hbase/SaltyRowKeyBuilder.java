@@ -83,8 +83,9 @@ public class SaltyRowKeyBuilder implements RowKeyBuilder {
   @Override
   public List<byte[]> rowKeys(String profile, String entity, List<Object> groups, long start, long end) {
     // be forgiving of out-of-order start and end times; order is critical to this algorithm
-    end = Math.max(start, end);
+    long max = Math.max(start, end);
     start = Math.min(start, end);
+    end = max;
 
     // find the starting period and advance until the end time is reached
     return ProfilePeriod.visitPeriods( start
