@@ -32,7 +32,7 @@ public class TextFunctionsTest {
 
   @Test
   public void testGetAvailableLanguageTags() {
-    Object ret = run("GET_AVAILABLE_LANGUAGE_TAGS()", new HashMap<>());
+    Object ret = run("FUZZY_LANGS()", new HashMap<>());
     Assert.assertNotNull(ret);
     Assert.assertTrue(ret instanceof List);
     List<String> tags = (List<String>)ret;

@@ -132,14 +132,14 @@ In the core language functions, we support basic functional programming primitiv
 | [ `FILTER`](#filter)                                                             |
 | [ `FLOOR`](#floor)                                                               |
 | [ `FORMAT`](#format)                                                             |
-| [ `FUZZY_SCORE`](#fuzzy_score)                                                                     |
+| [ `FUZZY_LANGS`](#fuzzy_langs)                                                   |
+| [ `FUZZY_SCORE`](#fuzzy_score)                                                   |
 | [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality) |
 | [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)               |
 | [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)             |
 | [ `HLLP_OFFER`](../../metron-analytics/metron-statistics#hllp_offer)             |
 | [ `GEO_GET`](#geo_get)                                                           |
 | [ `GET`](#get)                                                                   |
-| [ `GET_AVAILABLE_LANGUAGE_TAGS`](#get_available_lanaguage_tags)                  |
 | [ `GET_FIRST`](#get_first)                                                       |
 | [ `GET_LAST`](#get_last)                                                         |
 | [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)                           |
@@ -414,6 +414,10 @@ In the core language functions, we support basic functional programming primitiv
     * arguments... - object(s)
   * Returns: A formatted string.
   
+### `FUZZY_LANGS`
+  * Description: Returns a list of IETF BCP 47 available to the system, such as en, fr, de.
+  * Returns: A list of IEF BGP 47 language tag strings
+
 ### `FUZZY_SCORE`
   * Description: Returns the Fuzzy Score which indicates the similarity score between two strings. One point is given for every matched character. Subsequent matches yield two bonus points. A higher score indicates a higher similarity.
   * Input:
@@ -435,10 +439,6 @@ In the core language functions, we support basic functional programming primitiv
     * input - List
     * i - The index (0-based)
   * Returns: First element of the list
-
-### `GET_AVAILABLE_LANGUAGE_TAGS`
-  * Description: Returns a list of IETF BCP 47 available to the system, such as en, fr, de.
-  * Returns: A list of IEF BGP 47 language tag strings
 
 ### `GET_FIRST`
   * Description: Returns the first element of the list

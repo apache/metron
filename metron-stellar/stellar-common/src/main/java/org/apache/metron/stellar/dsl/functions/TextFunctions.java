@@ -27,7 +27,8 @@ import org.apache.metron.stellar.dsl.Stellar;
 
 public class TextFunctions {
 
-  @Stellar(name = "GET_AVAILABLE_LANGUAGE_TAGS",
+  @Stellar(name = "LANGS",
+      namespace = "FUZZY",
       description = "Returns a list of IETF BCP 47 available to the system, such as en, fr, de. "
       + "These values may be passed to FUZZY_SCORE",
       params = {},
@@ -47,7 +48,8 @@ public class TextFunctions {
     }
   }
 
-  @Stellar(name = "FUZZY_SCORE",
+  @Stellar(name = "SCORE",
+      namespace = "FUZZY",
       description =
           "Returns the Fuzzy Score which indicates the similarity score between two Strings "
               +
