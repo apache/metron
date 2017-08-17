@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -287,26 +288,34 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
    * @param rawExpression The expression to execute.
    */
   private void handleMagic( String rawExpression) {
-    String expression = rawExpression.trim();
+    String[] expression = rawExpression.trim().split(" ");
 
-    if(MAGIC_FUNCTIONS.equals(expression)) {
+    String command = expression[0];
+    if(MAGIC_FUNCTIONS.equals(command)) {
 
-      // list all functions
+      // if '%functions FOO' then show only functions that contain 'FOO'
+      Predicate<String> nameFilter = (name -> true);
+      if(expression.length > 1) {
+        nameFilter = (name -> name.contains(expression[1]));
+      }
+
+      // list available functions
       String functions = StreamSupport
               .stream(executor.getFunctionResolver().getFunctionInfo().spliterator(), false)
               .map(info -> String.format("%s", info.getName()))
+              .filter(nameFilter)
               .sorted()
               .collect(Collectors.joining(", "));
       writeLine(functions);
 
-    } else if(MAGIC_VARS.equals(expression)) {
+    } else if(MAGIC_VARS.equals(command)) {
 
       // list all variables
       executor.getVariables()
               .forEach((k,v) -> writeLine(String.format("%s = %s", k, v)));
 
     } else {
-      writeLine(ERROR_PROMPT + "undefined magic command: " + expression);
+      writeLine(ERROR_PROMPT + "undefined magic command: " + rawExpression);
     }
   }
 
@@ -431,7 +440,6 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
         }
       }
     }
-
   }
 
   private static String stripOff(String baseString, String lastBit) {
@@ -440,5 +448,9 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
       return baseString;
     }
     return baseString.substring(0, index);
+  }
+
+  protected Console getConsole() {
+    return console;
   }
 }
