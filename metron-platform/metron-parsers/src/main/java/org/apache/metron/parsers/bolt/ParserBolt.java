@@ -172,17 +172,17 @@ public class ParserBolt extends ConfiguredParserBolt implements Serializable {
       boolean ackTuple = !writer.handleAck();
       int numWritten = 0;
       if(sensorParserConfig != null) {
-        Map<String, Object> metadata = getMetadata(tuple, sensorParserConfig.readMetadata());
+        Map<String, Object> metadata = getMetadata(tuple, sensorParserConfig.getReadMetadata());
         List<FieldValidator> fieldValidations = getConfigurations().getFieldValidations();
         Optional<List<JSONObject>> messages = parser.parseOptional(originalMessage);
         for (JSONObject message : messages.orElse(Collections.emptyList())) {
           message.put(Constants.SENSOR_TYPE, getSensorType());
-          if(sensorParserConfig.mergeMetadata()) {
+          if(sensorParserConfig.getMergeMetadata()) {
             message.putAll(metadata);
           }
           for (FieldTransformer handler : sensorParserConfig.getFieldTransformations()) {
             if (handler != null) {
-              if(!sensorParserConfig.mergeMetadata()) {
+              if(!sensorParserConfig.getMergeMetadata()) {
                 //if we haven't merged metadata, then we need to pass them along as configuration params.
                 handler.transformAndUpdate(message, stellarContext, sensorParserConfig.getParserConfig(), metadata);
               }
