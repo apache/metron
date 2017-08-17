@@ -16,6 +16,7 @@
  */
 package org.apache.metron.bundles;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.net.URISyntaxException;
@@ -76,12 +77,11 @@ public final class BundleClassLoaders {
    * @throws NotInitializedException if BundleClassLoaders has not been init'd
    */
   public static BundleClassLoaders getInstance() throws NotInitializedException {
-    synchronized (BundleClassLoaders.class) {
-      if (bundleClassLoaders == null) {
-        throw new NotInitializedException("BundleClassLoaders not initialized");
-      }
-      return bundleClassLoaders;
+    BundleClassLoaders result = bundleClassLoaders;
+    if (result == null) {
+      throw new NotInitializedException("BundleClassLoaders not initialized");
     }
+    return result;
   }
 
   /**
@@ -89,6 +89,7 @@ public final class BundleClassLoaders {
    * before the rest of the methods are called afterwards.
    * This is for TESTING ONLY at this time.  Reset does not unload or clear any loaded classloaders.
    */
+  @VisibleForTesting
   public static void reset() {
     synchronized (BundleClassLoaders.class) {
       initContext = null;
@@ -119,8 +120,10 @@ public final class BundleClassLoaders {
       if (bundleClassLoaders != null) {
         throw new IllegalStateException("BundleClassloader already exists");
       }
-      bundleClassLoaders = new BundleClassLoaders();
-      initContext = bundleClassLoaders.load(fileSystemManager, extensionsDirs, props);
+      BundleClassLoaders b = new BundleClassLoaders();
+      InitContext ic = b.load(fileSystemManager, extensionsDirs, props);
+      initContext = ic;
+      bundleClassLoaders = b;
     }
   }
 

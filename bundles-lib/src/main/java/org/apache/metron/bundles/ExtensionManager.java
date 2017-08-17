@@ -105,12 +105,11 @@ public class ExtensionManager {
    * @return The singleton instance of the ExtensionManager
    */
   public static ExtensionManager getInstance() throws NotInitializedException {
-    synchronized (ExtensionManager.class) {
-      if (extensionManager == null) {
-        throw new NotInitializedException("ExtensionManager not initialized");
-      }
-      return extensionManager;
+    ExtensionManager result = extensionManager;
+    if (result == null) {
+      throw new NotInitializedException("ExtensionManager not initialized");
     }
+    return result;
   }
 
   /**
@@ -142,8 +141,10 @@ public class ExtensionManager {
       if (extensionManager != null) {
         throw new IllegalStateException("ExtensionManager already exists");
       }
-      extensionManager = new ExtensionManager();
-      initContext = extensionManager.discoverExtensions(classes, systemBundle, bundles);
+      ExtensionManager em = new ExtensionManager();
+      InitContext ic = em.discoverExtensions(classes, systemBundle, bundles);
+      initContext = ic;
+      extensionManager = em;
     }
   }
 

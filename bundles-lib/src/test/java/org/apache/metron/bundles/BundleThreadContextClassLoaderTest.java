@@ -35,6 +35,7 @@ public class BundleThreadContextClassLoaderTest {
   @AfterClass
   public static void after() {
     BundleClassLoaders.reset();
+    ExtensionManager.reset();
   }
 
   @After
