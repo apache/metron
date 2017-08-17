@@ -111,11 +111,11 @@ public class ElasticsearchDao implements IndexDao {
       throw new InvalidSearchException("Search result size must be less than " + accessConfig.getMaxSearchResults());
     }
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
-        .size(searchRequest.getSize())
-        .from(searchRequest.getFrom())
-        .query(new QueryStringQueryBuilder(searchRequest.getQuery()))
-        .fetchSource(true)
-        .trackScores(true);
+            .size(searchRequest.getSize())
+            .from(searchRequest.getFrom())
+            .query(new QueryStringQueryBuilder(searchRequest.getQuery()))
+            .fetchSource(true)
+            .trackScores(true);
     for (SortField sortField : searchRequest.getSort()) {
       FieldSortBuilder fieldSortBuilder = new FieldSortBuilder(sortField.getField());
       if (sortField.getSortOrder() == org.apache.metron.indexing.dao.search.SortOrder.DESC) {
@@ -133,7 +133,7 @@ public class ElasticsearchDao implements IndexDao {
     org.elasticsearch.action.search.SearchResponse elasticsearchResponse;
     try {
       elasticsearchResponse = client.search(new org.elasticsearch.action.search.SearchRequest(wildcardIndices)
-          .source(searchSourceBuilder)).actionGet();
+              .source(searchSourceBuilder)).actionGet();
     } catch (SearchPhaseExecutionException e) {
       throw new InvalidSearchException("Could not execute search", e);
     }
@@ -170,19 +170,19 @@ public class ElasticsearchDao implements IndexDao {
   @Override
   public Document getLatest(final String guid, final String sensorType) throws IOException {
     Optional<Document> ret = searchByGuid(
-        guid
-        , sensorType
-        , hit -> {
-          Long ts = 0L;
-          String doc = hit.getSourceAsString();
-          String sourceType = Iterables.getFirst(Splitter.on("_doc").split(hit.getType()), null);
-          try {
-            return Optional.of(new Document(doc, guid, sourceType, ts));
-          } catch (IOException e) {
-            throw new IllegalStateException("Unable to retrieve latest: " + e.getMessage(), e);
-          }
-        }
-    );
+            guid
+            , sensorType
+            , hit -> {
+              Long ts = 0L;
+              String doc = hit.getSourceAsString();
+              String sourceType = Iterables.getFirst(Splitter.on("_doc").split(hit.getType()), null);
+              try {
+                return Optional.of(new Document(doc, guid, sourceType, ts));
+              } catch (IOException e) {
+                throw new IllegalStateException("Unable to retrieve latest: " + e.getMessage(), e);
+              }
+            }
+            );
     return ret.orElse(null);
   }
 
@@ -195,13 +195,13 @@ public class ElasticsearchDao implements IndexDao {
   <T> Optional<T> searchByGuid(String guid, String sensorType, Function<SearchHit, Optional<T>> callback) throws IOException{
     QueryBuilder query =  QueryBuilders.matchQuery(Constants.GUID, guid);
     SearchRequestBuilder request = client.prepareSearch()
-        .setTypes(sensorType + "_doc")
-        .setQuery(query)
-        .setSource("message")
-        ;
+                                         .setTypes(sensorType + "_doc")
+                                         .setQuery(query)
+                                         .setSource("message")
+                                         ;
     MultiSearchResponse response = client.prepareMultiSearch()
-        .add(request)
-        .get();
+                                         .add(request)
+                                         .get();
     for(MultiSearchResponse.Item i : response) {
       org.elasticsearch.action.search.SearchResponse resp = i.getResponse();
       SearchHits hits = resp.getHits();
@@ -225,21 +225,21 @@ public class ElasticsearchDao implements IndexDao {
     String type = sensorType + "_doc";
     Object ts = update.getTimestamp();
     IndexRequest indexRequest = new IndexRequest(indexName, type, update.getGuid())
-        .source(update.getDocument())
-        ;
+            .source(update.getDocument())
+            ;
     if(ts != null) {
       indexRequest = indexRequest.timestamp(ts.toString());
     }
     String existingIndex = index.orElse(
-        searchByGuid(update.getGuid()
-            , sensorType
-            , hit -> Optional.ofNullable(hit.getIndex())
-        ).orElse(indexName)
-    );
+            searchByGuid(update.getGuid()
+                        , sensorType
+                        , hit -> Optional.ofNullable(hit.getIndex())
+                        ).orElse(indexName)
+                                       );
     UpdateRequest updateRequest = new UpdateRequest(existingIndex, type, update.getGuid())
-        .doc(update.getDocument())
-        .upsert(indexRequest)
-        ;
+            .doc(update.getDocument())
+            .upsert(indexRequest)
+            ;
 
     try {
       client.update(updateRequest).get();
@@ -253,7 +253,7 @@ public class ElasticsearchDao implements IndexDao {
   public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException {
     Map<String, Map<String, FieldType>> allColumnMetadata = new HashMap<>();
     ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings =
-        client.admin().indices().getMappings(new GetMappingsRequest().indices(getLatestIndices(indices))).actionGet().getMappings();
+            client.admin().indices().getMappings(new GetMappingsRequest().indices(getLatestIndices(indices))).actionGet().getMappings();
     for(Object index: mappings.keys().toArray()) {
       Map<String, FieldType> indexColumnMetadata = new HashMap<>();
       ImmutableOpenMap<String, MappingMetaData> mapping = mappings.get(index.toString());
@@ -275,7 +275,7 @@ public class ElasticsearchDao implements IndexDao {
   public Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException {
     Map<String, FieldType> commonColumnMetadata = null;
     ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings =
-        client.admin().indices().getMappings(new GetMappingsRequest().indices(getLatestIndices(indices))).actionGet().getMappings();
+            client.admin().indices().getMappings(new GetMappingsRequest().indices(getLatestIndices(indices))).actionGet().getMappings();
     for(Object index: mappings.keys().toArray()) {
       ImmutableOpenMap<String, MappingMetaData> mapping = mappings.get(index.toString());
       Iterator<String> mappingIterator = mapping.keysIt();
@@ -283,7 +283,7 @@ public class ElasticsearchDao implements IndexDao {
         MappingMetaData mappingMetaData = mapping.get(mappingIterator.next());
         Map<String, Map<String, String>> map = (Map<String, Map<String, String>>) mappingMetaData.getSourceAsMap().get("properties");
         Map<String, FieldType> mappingsWithTypes = map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-            e-> elasticsearchSearchTypeMap.getOrDefault(e.getValue().get("type"), FieldType.OTHER)));
+                e-> elasticsearchSearchTypeMap.getOrDefault(e.getValue().get("type"), FieldType.OTHER)));
         if (commonColumnMetadata == null) {
           commonColumnMetadata = mappingsWithTypes;
         } else {
