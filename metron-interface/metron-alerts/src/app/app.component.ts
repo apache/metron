@@ -24,7 +24,7 @@ import {AuthenticationService} from './service/authentication.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  loggedIn: boolean = false;
+  loggedIn = false;
 
   constructor(private authService: AuthenticationService) {
     this.authService.onLoginEvent.subscribe(result => {

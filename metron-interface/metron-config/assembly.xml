@@ -20,7 +20,7 @@
   <fileSets>
     <fileSet>
       <directory>${project.basedir}/dist</directory>
-      <outputDirectory>/web/management-ui</outputDirectory>
+      <outputDirectory>web/management-ui</outputDirectory>
       <excludes>
         <exclude>**/.npmignore</exclude>
       </excludes>
@@ -28,7 +28,7 @@
     </fileSet>
     <fileSet>
       <directory>${project.basedir}/scripts</directory>
-      <outputDirectory>/web/expressjs</outputDirectory>
+      <outputDirectory>web/expressjs</outputDirectory>
       <includes>
         <include>package.json</include>
         <include>server.js</include>
@@ -37,7 +37,7 @@
     </fileSet>
     <fileSet>
       <directory>${project.basedir}/scripts</directory>
-      <outputDirectory>/bin</outputDirectory>
+      <outputDirectory>bin</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <includes>
         <include>metron-management-ui</include>
@@ -48,7 +48,7 @@
     </fileSet>
     <fileSet>
       <directory>${project.basedir}</directory>
-      <outputDirectory>/web/management-ui/license</outputDirectory>
+      <outputDirectory>web/management-ui/license</outputDirectory>
       <includes>
         <include>LICENSE</include>
         <include>NOTICE</include>
@@ -59,7 +59,7 @@
   <files>
     <file>
       <source>src/favicon.ico</source>
-      <outputDirectory>/web/management-ui</outputDirectory>
+      <outputDirectory>web/management-ui</outputDirectory>
     </file>
   </files>
 </assembly>

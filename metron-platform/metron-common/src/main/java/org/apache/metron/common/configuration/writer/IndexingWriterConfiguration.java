@@ -20,6 +20,7 @@ package org.apache.metron.common.configuration.writer;
 
 import org.apache.metron.common.configuration.IndexingConfigurations;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -35,6 +36,16 @@ public class IndexingWriterConfiguration implements WriterConfiguration{
   @Override
   public int getBatchSize(String sensorName) {
     return config.orElse(new IndexingConfigurations()).getBatchSize(sensorName, writerName);
+  }
+
+  @Override
+  public int getBatchTimeout(String sensorName) {
+    return config.orElse(new IndexingConfigurations()).getBatchTimeout(sensorName, writerName);
+  }
+
+  @Override
+  public List<Integer> getAllConfiguredTimeouts() {
+      return config.orElse(new IndexingConfigurations()).getAllConfiguredTimeouts(writerName);
   }
 
   @Override

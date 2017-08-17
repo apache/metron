@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.metron.stellar.common.encoding.Encodings;
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -62,16 +63,16 @@ public class EncodingFunctionsTest {
 
   @Test
   public void testEncodingIs() throws Exception{
-    Assert.assertTrue(runPredicate("IS_ENCODING(BASE32_FIXTURE,'BASE32')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("IS_ENCODING(STRING_FIXTURE,'BASE32')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("IS_ENCODING(BASE32HEX_FIXTURE,'BASE32HEX')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("IS_ENCODING(STRING_FIXTURE,'BASE32HEX')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("IS_ENCODING(BASE64_FIXTURE,'BASE64')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("IS_ENCODING(STRING_FIXTURE_PLUS_NULL,'BASE64')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("IS_ENCODING(BINARY_FIXTURE,'BINARY')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("IS_ENCODING(STRING_FIXTURE,'BINARY')", v -> variableMap.get(v)));
-    Assert.assertTrue(runPredicate("IS_ENCODING(HEX_FIXTURE,'HEX')", v -> variableMap.get(v)));
-    Assert.assertFalse(runPredicate("IS_ENCODING(STRING_FIXTURE,'HEX')", v -> variableMap.get(v)));
+    Assert.assertTrue(runPredicate("IS_ENCODING(BASE32_FIXTURE,'BASE32')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("IS_ENCODING(STRING_FIXTURE,'BASE32')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("IS_ENCODING(BASE32HEX_FIXTURE,'BASE32HEX')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("IS_ENCODING(STRING_FIXTURE,'BASE32HEX')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("IS_ENCODING(BASE64_FIXTURE,'BASE64')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("IS_ENCODING(STRING_FIXTURE_PLUS_NULL,'BASE64')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("IS_ENCODING(BINARY_FIXTURE,'BINARY')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("IS_ENCODING(STRING_FIXTURE,'BINARY')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("IS_ENCODING(HEX_FIXTURE,'HEX')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("IS_ENCODING(STRING_FIXTURE,'HEX')", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
   }
 
   @Test

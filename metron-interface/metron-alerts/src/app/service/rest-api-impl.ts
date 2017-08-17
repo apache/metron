@@ -22,6 +22,7 @@ import {HttpUtil} from '../utils/httpUtil';
 import {AlertsSearchResponse} from '../model/alerts-search-response';
 import {SearchRequest} from '../model/search-request';
 import {ElasticSearchLocalstorageImpl} from './elasticsearch-localstorage-impl';
+import {AlertSource} from '../model/alert-source';
 
 export class RestApiImpl extends ElasticSearchLocalstorageImpl {
 
@@ -31,5 +32,15 @@ export class RestApiImpl extends ElasticSearchLocalstorageImpl {
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError)
       .onErrorResumeNext();
+  }
+
+  getAlert(sourceType: string, alertId: string): Observable<AlertSource> {
+    let url = '/api/v1/search/findOne';
+    let requestSchema = { guid: alertId, sensorType: sourceType};
+
+    return this.http.post(url, requestSchema, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    .map(HttpUtil.extractData)
+    .catch(HttpUtil.handleError)
+    .onErrorResumeNext();
   }
 }

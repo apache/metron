@@ -27,7 +27,7 @@ export class LoginComponent {
 
   user: string;
   password: string;
-  loginFailure: string = '';
+  loginFailure = '';
 
   constructor(private authenticationService: AuthenticationService) {
   }
