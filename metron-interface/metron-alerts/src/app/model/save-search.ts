@@ -1,5 +1,3 @@
-import {QueryBuilder} from './query-builder';
-import {ColumnMetadata} from './column-metadata';
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,23 +15,34 @@ import {ColumnMetadata} from './column-metadata';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import {QueryBuilder} from '../alerts/alerts-list/query-builder';
+import {ColumnMetadata} from './column-metadata';
+import {SearchRequest} from './search-request';
+
 export class SaveSearch {
   name  = '';
   lastAccessed = 0;
-  queryBuilder: QueryBuilder;
+  searchRequest: SearchRequest;
   tableColumns: ColumnMetadata[];
 
   public static fromJSON(obj: SaveSearch): SaveSearch {
     let saveSearch = new SaveSearch();
     saveSearch.name = obj.name;
     saveSearch.lastAccessed = obj.lastAccessed;
-    saveSearch.queryBuilder = QueryBuilder.fromJSON(obj.queryBuilder);
+    saveSearch.searchRequest = obj.searchRequest;
     saveSearch.tableColumns = ColumnMetadata.fromJSON(obj.tableColumns);
 
     return saveSearch;
   }
 
   getDisplayString() {
-    return (this.name && this.name.length > 0) ? this.name : this.queryBuilder.generateSelect();
+    if (this.name && this.name.length > 0) {
+      return this.name;
+    }
+
+    let queryBuilder = new QueryBuilder();
+    queryBuilder.searchRequest = this.searchRequest;
+    return queryBuilder.generateSelectForDisplay();
   }
 }
