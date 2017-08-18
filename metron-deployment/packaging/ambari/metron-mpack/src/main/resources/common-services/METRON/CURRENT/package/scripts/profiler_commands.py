@@ -86,7 +86,7 @@ class ProfilerCommands:
                   self.__params.hbase_principal_name,
                   execute_user=self.__params.hbase_user)
         cmd = "echo \"create '{0}','{1}'\" | hbase shell -n"
-        add_table_cmd = cmd.format(self.__params.profiler_table, self.__params.profiler_cf)
+        add_table_cmd = cmd.format(self.__params.profiler_hbase_table, self.__params.profiler_hbase_cf)
         Execute(add_table_cmd,
                 tries=3,
                 try_sleep=5,
@@ -106,7 +106,7 @@ class ProfilerCommands:
                   self.__params.hbase_principal_name,
                   execute_user=self.__params.hbase_user)
         cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n"
-        add_table_acl_cmd = cmd.format(self.__params.metron_user, self.__params.profiler_table)
+        add_table_acl_cmd = cmd.format(self.__params.metron_user, self.__params.profiler_hbase_table)
         Execute(add_table_acl_cmd,
                 tries=3,
                 try_sleep=5,

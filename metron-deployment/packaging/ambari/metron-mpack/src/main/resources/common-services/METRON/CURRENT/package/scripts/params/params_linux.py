@@ -74,9 +74,6 @@ indexing_acl_configured_flag_file = status_params.indexing_acl_configured_flag_f
 indexing_hbase_configured_flag_file = status_params.indexing_hbase_configured_flag_file
 indexing_hbase_acl_configured_flag_file = status_params.indexing_hbase_acl_configured_flag_file
 indexing_hdfs_perm_configured_flag_file = status_params.indexing_hdfs_perm_configured_flag_file
-profiler_configured_flag_file = status_params.profiler_configured_flag_file
-profiler_hbase_configured_flag_file = status_params.profiler_hbase_configured_flag_file
-profiler_hbase_acl_configured_flag_file = status_params.profiler_hbase_acl_configured_flag_file
 global_json_template = config['configurations']['metron-env']['global-json']
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 
@@ -174,9 +171,7 @@ enrichment_table = status_params.enrichment_table
 enrichment_cf = status_params.enrichment_cf
 update_table = status_params.update_table
 update_cf = status_params.update_cf
-profiler_table = status_params.profiler_table
-profiler_cf = status_params.profiler_cf
-profiler_input_topic = status_params.profiler_input_topic
+
 
 threatintel_table = status_params.threatintel_table
 threatintel_cf = status_params.threatintel_cf
@@ -257,6 +252,26 @@ threat_intel_split_parallelism = config['configurations']['metron-enrichment-env
 threat_intel_stellar_parallelism = config['configurations']['metron-enrichment-env']['threat_intel_stellar_parallelism']
 threat_intel_join_parallelism = config['configurations']['metron-enrichment-env']['threat_intel_join_parallelism']
 kafka_writer_parallelism = config['configurations']['metron-enrichment-env']['kafka_writer_parallelism']
+
+# Profiler
+
+metron_profiler_topology = 'profiler'
+profiler_input_topic = config['configurations']['metron-enrichment-env']['enrichment_output_topic']
+profiler_kafka_start = config['configurations']['metron-profiler-env']['profiler_kafka_start']
+profiler_period_duration = config['configurations']['metron-profiler-env']['profiler_period_duration']
+profiler_period_units = config['configurations']['metron-profiler-env']['profiler_period_units']
+profiler_ttl = config['configurations']['metron-profiler-env']['profiler_ttl']
+profiler_ttl_units = config['configurations']['metron-profiler-env']['profiler_ttl_units']
+profiler_hbase_batch = config['configurations']['metron-profiler-env']['profiler_hbase_batch']
+profiler_hbase_flush_interval = config['configurations']['metron-profiler-env']['profiler_hbase_flush_interval']
+profiler_topology_workers = config['configurations']['metron-profiler-env']['profiler_topology_workers']
+profiler_topology_executors = config['configurations']['metron-profiler-env']['profiler_topology_executors']
+profiler_hbase_table = config['configurations']['metron-profiler-env']['profiler_hbase_table']
+profiler_hbase_cf = config['configurations']['metron-profiler-env']['profiler_hbase_cf']
+profiler_configured_flag_file = status_params.profiler_configured_flag_file
+profiler_acl_configured_flag_file = status_params.indexing_acl_configured_flag_file
+profiler_hbase_configured_flag_file = status_params.profiler_hbase_configured_flag_file
+profiler_hbase_acl_configured_flag_file = status_params.profiler_hbase_acl_configured_flag_file
 
 # Indexing
 indexing_kafka_start = config['configurations']['metron-indexing-env']['indexing_kafka_start']
