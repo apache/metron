@@ -131,7 +131,6 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
       assign(definition.getUpdate(), message, "update");
 
     } catch(Exception e) {
-      // mark the profile in error
       LOG.error(format("Unable to apply message to profile: %s", e.getMessage()));
     }
   }
