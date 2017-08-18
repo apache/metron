@@ -23,6 +23,8 @@ package org.apache.metron.profiler;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.json.simple.JSONObject;
 
+import java.util.Optional;
+
 /**
  * Responsible for building and maintaining a Profile.
  *
@@ -49,7 +51,7 @@ public interface ProfileBuilder {
    *
    * @return Returns the completed profile measurement.
    */
-  ProfileMeasurement flush();
+  Optional<ProfileMeasurement> flush();
 
   /**
    * Has the ProfileBuilder been initialized?
