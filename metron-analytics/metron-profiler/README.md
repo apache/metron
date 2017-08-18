@@ -196,8 +196,16 @@ One or more Stellar expressions used to group the profile measurements when pers
 The 'groupBy' expressions can refer to any field within a `org.apache.metron.profiler.ProfileMeasurement`.  A common use case would be grouping by day of week.  This allows a contiguous scan to access all profile data for Mondays only.  Using the following definition would achieve this.
 
 ```
-"groupBy": [ "DAY_OF_WEEK()" ]
+"groupBy": [ "DAY_OF_WEEK(start)" ]
 ```
+
+The expression can reference any of these variables.
+* `profile` The name of the profile.
+* `entity` The name of the entity being profiled.
+* `start` The start time of the profile period in epoch milliseconds.
+* `end` The end time of the profile period in epoch milliseconds.
+* `duration` The duration of the profile period in milliseconds.
+* `result` The result of executing the `result` expression.
 
 ### `init`
 
