@@ -23,6 +23,7 @@ package org.apache.metron.profiler;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.profiler.clock.Clock;
 import org.apache.metron.profiler.clock.FixedClock;
 import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
@@ -47,7 +48,8 @@ public class DefaultProfileBuilderTest {
    * {
    *   "ip_src_addr": "10.0.0.1",
    *   "ip_dst_addr": "10.0.0.20",
-   *   "value": 100
+   *   "value": 100,
+   *   "timestamp": "2017-08-18 09:00:00"
    * }
    */
   @Multiline
@@ -278,6 +280,54 @@ public class DefaultProfileBuilderTest {
     assertEquals(2, m.get().getGroups().size());
     assertEquals(100, m.get().getGroups().get(0));
     assertEquals(200, m.get().getGroups().get(1));
+  }
+
+  /**
+   * {
+   *   "profile": "test-profile",
+   *   "foreach": "ip_src_addr",
+   *   "init": { "x": "100" },
+   *   "groupBy": ["profile","entity","start","end","duration","result"],
+   *   "result": "100"
+   * }
+   */
+  @Multiline
+  private String testStateAvailableToGroupBy;
+
+  /**
+   * The 'groupBy' expression should be able to reference information about the profile including
+   * the profile name, entity name, start of period, end of period, duration, and result.
+   */
+  @Test
+  public void testStateAvailableToGroupBy() throws Exception {
+    FixedClock clock = new FixedClock();
+    clock.setTime(1503081070340L);
+    long periodDurationMillis = TimeUnit.MINUTES.toMillis(10);
+    ProfilePeriod period = new ProfilePeriod(clock.currentTimeMillis(), 10, TimeUnit.MINUTES);
+
+    // setup
+    definition = JSONUtils.INSTANCE.load(testStateAvailableToGroupBy, ProfileConfig.class);
+    builder = new DefaultProfileBuilder.Builder()
+            .withDefinition(definition)
+            .withEntity("10.0.0.1")
+            .withPeriodDuration(10, TimeUnit.MINUTES)
+            .withContext(Context.EMPTY_CONTEXT())
+            .withClock(clock)
+            .build();
+
+    // execute
+    builder.apply(message);
+    Optional<ProfileMeasurement> m = builder.flush();
+    assertTrue(m.isPresent());
+
+    // validate all values that should be accessible by the groupBy expression(s)
+    assertEquals(6, m.get().getGroups().size());
+    assertEquals("invalid profile", "test-profile", m.get().getGroups().get(0));
+    assertEquals("invalid entity", "10.0.0.1", m.get().getGroups().get(1));
+    assertEquals("invalid start", period.getStartTimeMillis(), m.get().getGroups().get(2));
+    assertEquals("invalid end", period.getEndTimeMillis(), m.get().getGroups().get(3));
+    assertEquals("invalid duration", period.getDurationMillis(), m.get().getGroups().get(4));
+    assertEquals("invalid result", 100, m.get().getGroups().get(5));
   }
 
   /**
