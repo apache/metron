@@ -66,6 +66,63 @@ var indexHTML = function(req, res){
   res.sendFile(path.resolve('dist/index.html'));
 };
 
+var searchResultFilter = function (filters, responseMap, obj) {
+  filters = filters.replace(/\\/g, '');
+  var filtersArray = filters.split('AND');
+
+  responseMap.results = obj.hits.hits.filter(function (hits) {
+    var filtersFound = 0;
+    filtersArray.forEach(function (filter) {
+      filter = filter.trim();
+      var lastIndex = filter.lastIndexOf(':');
+      var key = filter.substr(0, lastIndex);
+      var value = filter.substr(lastIndex + 1);
+      if (hits._source[key] === value) {
+        filtersFound++;
+      }
+    });
+    return filtersFound === filtersArray.length;
+  });
+};
+
+var searchResultSort = function (sortField, responseMap, obj) {
+  var key = Object.keys(sortField)[0];
+  var order = sortField[key].order;
+  responseMap.results = obj.hits.hits.sort(function (o1, o2) {
+    if (!o1._source[key] || !o2._source[key]) {
+      return -1;
+    }
+
+    if (typeof(o1._source[key]) === 'number' && typeof(o2._source[key]) === 'number') {
+      return order === 'desc' ? o2._source[key] - (o1._source[key]) : o1._source[key] - (o2._source[key]);
+    } else {
+      return order === 'desc' ? o2._source[key].localeCompare(o1._source[key]) : o1._source[key].localeCompare(o2._source[key]);
+    }
+
+  });
+};
+
+var searchResultFacet = function (facetFields, facetFieldsResponse,
+    responseMap) {
+  facetFields.forEach(function (field) {
+    if (!facetFieldsResponse[field]) {
+      facetFieldsResponse[field] = {};
+    }
+
+    responseMap.results.forEach(function (obj) {
+      var fieldValue = obj._source[field];
+
+      if (fieldValue) {
+        if (!facetFieldsResponse[field][fieldValue]) {
+          facetFieldsResponse[field][fieldValue] = 0;
+        }
+        facetFieldsResponse[field][fieldValue]++;
+      }
+    });
+
+  });
+};
+
 var searchResult = function(req, res){
   console.log('Serving ', req.originalUrl ,'from alert-list.json');
   jsonfile.readFile('e2e/mock-data/alert-list.json', function(err, obj) {
@@ -76,41 +133,29 @@ var searchResult = function(req, res){
 
     var responseMap = {
       total: 0,
-      results: obj.hits.hits
+      results: obj.hits.hits,
+      facetCounts: {}
     };
     
-    var filter = req.body.query;
-
-    if (filter !== '*') {
-      filter = filter.replace(/\\/g, '');
-      var lastIndex = filter.lastIndexOf(':');
-      var key = filter.substr(0, lastIndex);
-      var value = filter.substr(lastIndex+1);
-      responseMap.results =  obj.hits.hits.filter(function (hits) {
-        return hits._source[key] === value;
-      });
+    var filters = req.body.query;
+    if (filters !== '*') {
+      searchResultFilter(filters, responseMap, obj);
     }
 
     var sortField = req.body.sort && req.body.sort.length === 1 && req.body.sort[0];
     if (sortField) {
-      var key = Object.keys(sortField)[0];
-      var order = sortField[key].order;
-      responseMap.results = obj.hits.hits.sort(function(o1, o2) {
-        if (!o1._source[key] || !o2._source[key]) {
-          return -1;
-        } 
+      searchResultSort(sortField, responseMap, obj);
+    }
 
-        if (typeof(o1._source[key]) === 'number' && typeof(o2._source[key]) === 'number') {
-          return order === 'desc' ? o2._source[key]- (o1._source[key]) : o1._source[key] - (o2._source[key]);
-        } else {
-          return order === 'desc' ? o2._source[key].localeCompare(o1._source[key]) : o1._source[key].localeCompare(o2._source[key]);
-        }
-
-      });
+    var facetFieldsResponse = {};
+    var facetFields = (req.body.facetFields && req.body.facetFields.length > 1) ? req.body.facetFields : [];
+    if(facetFields.length > 0) {
+      searchResultFacet(facetFields, facetFieldsResponse, responseMap);
     }
 
     responseMap.total = responseMap.results.length;
     responseMap.results = responseMap.results.splice(req.body.from, req.body.size);
+    responseMap.facetCounts = facetFieldsResponse;
 
     responseMap.results.map(function (obj) {
       obj.id = obj._id;

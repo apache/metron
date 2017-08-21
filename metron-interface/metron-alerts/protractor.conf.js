@@ -28,7 +28,8 @@ exports.config = {
     './e2e/login/login.e2e-spec.ts',
     '/e2e/alerts-list/alerts-list.e2e-spec.ts',
     './e2e/alerts-list/configure-table/configure-table.e2e-spec.ts',
-    './e2e/alerts-list/save-search/save-search.e2e-spec.ts'
+    './e2e/alerts-list/save-search/save-search.e2e-spec.ts',
+    './e2e/alerts-list/alert-filters/alert-filters.e2e-spec.ts'
   ],
   capabilities: {
     'browserName': 'chrome',

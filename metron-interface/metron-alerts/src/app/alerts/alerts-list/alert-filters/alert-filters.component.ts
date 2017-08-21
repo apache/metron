@@ -40,6 +40,7 @@ export class AlertFiltersComponent implements OnChanges {
         collapseComponentData.groupName = key;
         collapseComponentData.collapsed = true;
         this.data.push(collapseComponentData);
+        this.data = this.data.sort((obj1, obj2) => obj1.groupName.localeCompare(obj2.groupName));
       }
 
       collapseComponentData.groupItems = facetItems;
