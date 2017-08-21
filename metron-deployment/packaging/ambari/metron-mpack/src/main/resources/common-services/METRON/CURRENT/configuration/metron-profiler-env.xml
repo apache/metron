@@ -23,6 +23,24 @@
     <value>UNCOMMITTED_EARLIEST</value>
     <description>One of EARLIEST, LATEST, UNCOMMITTED_EARLIEST, UNCOMMITTED_LATEST</description>
     <display-name>Input Topic Start</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>EARLIEST</value>
+        </entry>
+        <entry>
+          <value>LATEST</value>
+        </entry>
+        <entry>
+          <value>UNCOMMITTED_EARLIEST</value>
+        </entry>
+        <entry>
+          <value>UNCOMMITTED_LATEST</value>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
   <property>
     <name>profiler_period_duration</name>
@@ -35,6 +53,25 @@
     <value>MINUTES</value>
     <description>The units used to specify the profiler.period.duration. This value should be defined along with profiler.period.duration.</description>
     <display-name>Period Units</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>DAYS</value>
+        </entry>
+        <entry>
+          <value>HOURS</value>
+        </entry>
+        <entry>
+          <value>MINUTES</value>
+        </entry>
+        <entry>
+          <value>SECONDS</value>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+
   </property>
   <property>
     <name>profiler_ttl</name>
@@ -49,6 +86,26 @@
     <value>MINUTES</value>
     <description>The units used to specify the profiler.ttl.</description>
     <display-name>Time To Live Units</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>DAYS</value>
+        </entry>
+        <entry>
+          <value>HOURS</value>
+        </entry>
+        <entry>
+          <value>MINUTES</value>
+        </entry>
+        <entry>
+          <value>SECONDS</value>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+
+
   </property>
   <property>
     <name>profiler_hbase_table</name>
