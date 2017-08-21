@@ -895,7 +895,78 @@
           "type": "text-field"
         }
       },
-
+      {
+        "config": "metron-profiler-env/profiler_kafka_start",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_period_duration",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_period_units",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_ttl",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_ttl_units",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_hbase_table",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_hbase_cf",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_hbase_batch",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_hbase_flush_interval",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_topology_worker_childopts",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_topology_workers",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_topology_executors",
+        "widget": {
+          "type": "text-field"
+        }
+      },
 
       {
         "config": "metron-rest-env/metron_rest_port",
