@@ -28,15 +28,19 @@
       <entries>
         <entry>
           <value>EARLIEST</value>
+          <label>Earliest</label>
         </entry>
         <entry>
           <value>LATEST</value>
+          <label>Latest</label>
         </entry>
         <entry>
           <value>UNCOMMITTED_EARLIEST</value>
+          <label>Uncommitted Earliest</label>
         </entry>
         <entry>
           <value>UNCOMMITTED_LATEST</value>
+          <label>Uncommitted Latest</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
@@ -58,15 +62,19 @@
       <entries>
         <entry>
           <value>DAYS</value>
+          <label>Days</label>
         </entry>
         <entry>
           <value>HOURS</value>
+          <label>Hours</label>
         </entry>
         <entry>
           <value>MINUTES</value>
+          <label>Minutes</label>
         </entry>
         <entry>
           <value>SECONDS</value>
+          <label>Seconds</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
@@ -91,15 +99,19 @@
       <entries>
         <entry>
           <value>DAYS</value>
+          <label>Days</label>
         </entry>
         <entry>
           <value>HOURS</value>
+          <label>Hours</label>
         </entry>
         <entry>
           <value>MINUTES</value>
+          <label>Minutes</label>
         </entry>
         <entry>
           <value>SECONDS</value>
+          <label>Seconds</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
