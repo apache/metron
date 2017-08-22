@@ -44,6 +44,8 @@ An expressjs server is available for mocking the elastic search api.
     npm run e2e
     ```
 
+1. E2E tests uses data from full-dev wherever applicable. The tests assume rest-api's are available @http://node1:8082
+
 **NOTE**: *e2e tests covers all the general workflows and we will extend them as we need*
 
 ## Mpack Integration
