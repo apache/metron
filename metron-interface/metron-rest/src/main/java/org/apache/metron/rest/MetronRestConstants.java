@@ -52,6 +52,7 @@ public class MetronRestConstants {
   public static final String CURATOR_MAX_RETRIES = "curator.max.retries";
 
   public static final String KAFKA_BROKER_URL_SPRING_PROPERTY = "kafka.broker.url";
+  public static final String KAFKA_TOPICS_ESCALATION_PROPERTY = "kafka.topics.escalation";
 
   public static final String HDFS_URL_SPRING_PROPERTY = "hdfs.namenode.url";
   public static final String DEFAULT_HDFS_URL = "file:///";

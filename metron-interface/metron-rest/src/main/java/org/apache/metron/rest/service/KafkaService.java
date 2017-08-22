@@ -17,10 +17,9 @@
  */
 package org.apache.metron.rest.service;
 
+import java.util.Set;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.KafkaTopic;
-
-import java.util.Set;
 
 /**
  * This is a set of operations created to interact with Kafka.
@@ -67,4 +66,6 @@ public interface KafkaService {
    * @return A string representation of the sample message retrieved. If topic doesn't exist null will be returned.
    */
   String getSampleMessage(String topic);
+
+  void produceMessage(String topic, String message) throws RestException;
 }

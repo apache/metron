@@ -35,6 +35,10 @@ zookeeper:
       session: 10000
       connection: 10000
 
+kafka:
+  topics:
+    escalation: escalation
+
 curator:
   sleep:
     time: 1000
@@ -49,3 +53,4 @@ index:
   dao:
   # By default, we use the ElasticsearchDao and HBaseDao for backing updates.
      impl: org.apache.metron.elasticsearch.dao.ElasticsearchDao,org.apache.metron.indexing.dao.HBaseDao
+

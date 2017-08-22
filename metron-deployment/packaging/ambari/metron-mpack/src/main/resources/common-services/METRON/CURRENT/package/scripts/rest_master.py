@@ -44,6 +44,7 @@ class RestMaster(Script):
              )
 
         commands = RestCommands(params)
+        commands.init_kafka_topics()
         if params.security_enabled and not commands.is_acl_configured():
             commands.init_kafka_acls()
             commands.set_acl_configured()

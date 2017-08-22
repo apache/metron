@@ -109,4 +109,10 @@
             <empty-value-valid>true</empty-value-valid>
         </value-attributes>
     </property>
+    <property>
+        <name>metron_escalation_topic</name>
+        <description>Escalated alerts will be produced to this topic</description>
+        <value>escalation</value>
+        <display-name>Metron escalation topic</display-name>
+    </property>
 </configuration>

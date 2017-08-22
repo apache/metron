@@ -30,6 +30,8 @@ kafka:
     url: ${BROKERLIST}
   security:
     protocol: ${KAFKA_SECURITY_PROTOCOL}
+  topics:
+    escalation: ${METRON_ESCALATION_TOPIC}
 
 hdfs:
   namenode:
