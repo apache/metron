@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -82,6 +83,8 @@ public class SensorParserConfigControllerIntegrationTest {
    "parserClassName":"org.apache.metron.parsers.json.JSONMapParser",
    "sensorTopic":"jsonTest",
    "parserConfig": {}
+   "readMetadata": true,
+   "mergeMetadata": true
    }
    */
   @Multiline
@@ -196,6 +199,7 @@ public class SensorParserConfigControllerIntegrationTest {
     this.mockMvc.perform(post(sensorParserConfigUrl).with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(squidJson))
             .andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.*", hasSize(10)))
             .andExpect(jsonPath("$.parserClassName").value("org.apache.metron.parsers.grok.GrokParser"))
             .andExpect(jsonPath("$.sensorTopic").value("squidTest"))
             .andExpect(jsonPath("$.parserConfig.grokPath").value("target/patterns/squidTest"))
@@ -210,6 +214,7 @@ public class SensorParserConfigControllerIntegrationTest {
     this.mockMvc.perform(get(sensorParserConfigUrl + "/squidTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.*", hasSize(10)))
             .andExpect(jsonPath("$.parserClassName").value("org.apache.metron.parsers.grok.GrokParser"))
             .andExpect(jsonPath("$.sensorTopic").value("squidTest"))
             .andExpect(jsonPath("$.parserConfig.grokPath").value("target/patterns/squidTest"))
@@ -238,15 +243,21 @@ public class SensorParserConfigControllerIntegrationTest {
     this.mockMvc.perform(post(sensorParserConfigUrl).with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(jsonMapJson))
             .andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.*", hasSize(10)))
             .andExpect(jsonPath("$.parserClassName").value("org.apache.metron.parsers.json.JSONMapParser"))
             .andExpect(jsonPath("$.sensorTopic").value("jsonTest"))
+            .andExpect(jsonPath("$.readMetadata").value("true"))
+            .andExpect(jsonPath("$.mergeMetadata").value("true"))
             .andExpect(jsonPath("$.parserConfig").isEmpty());
 
     this.mockMvc.perform(post(sensorParserConfigUrl).with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(jsonMapJson))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.*", hasSize(10)))
             .andExpect(jsonPath("$.parserClassName").value("org.apache.metron.parsers.json.JSONMapParser"))
             .andExpect(jsonPath("$.sensorTopic").value("jsonTest"))
+            .andExpect(jsonPath("$.readMetadata").value("true"))
+            .andExpect(jsonPath("$.mergeMetadata").value("true"))
             .andExpect(jsonPath("$.parserConfig").isEmpty());
 
     this.mockMvc.perform(get(sensorParserConfigUrl).with(httpBasic(user,password)))

@@ -80,7 +80,9 @@ public class ConfigurationFunctionsTest {
     {
       "sensorTopic" : "brop",
       "parserConfig" : { },
-      "fieldTransformations" : [ ]
+      "fieldTransformations" : [ ],
+      "readMetadata":false,
+      "mergeMetadata":false
     }
    */
   @Multiline

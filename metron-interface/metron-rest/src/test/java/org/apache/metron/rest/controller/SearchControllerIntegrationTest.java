@@ -17,7 +17,6 @@
  */
 package org.apache.metron.rest.controller;
 
-import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.indexing.dao.InMemoryDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.indexing.dao.search.FieldType;
@@ -69,11 +68,6 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
   private String searchUrl = "/api/v1/search";
   private String user = "user";
   private String password = "password";
-
-  @BeforeClass
-  public static void setupHbase() {
-    MockHBaseTableProvider.addToCache("updates", "t");
-  }
 
   @Before
   public void setup() throws Exception {
