@@ -304,9 +304,10 @@ This most often indicates that Ansible cannot connect to the host with the SSH k
 
 Experimenting with Linux as Host
 ---------------
+The current ansible.cfg configuration works with macOS. The following changes will allow you to experiment with deploying using Linux.
 Update the “ansible.cfg” files below by commenting out the last two lines.<br />
 <br />
-Files to Update:<br />
+Files to update:<br />
 metron/metron-deployment/amazon-ec2/ansible.cfg<br />
 metron/metron-deployment/ansible.cfg<br />
 <br />
