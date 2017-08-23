@@ -8,19 +8,20 @@ Warning: Amazon will charge for the use of their resources when running Apache M
 Getting Started
 ---------------
 ### Downloading Code
-Clone or wget the latest Apache Metron release onto a host machine. The host machine will be used to deploy Apache Metron to Amazon EC2. 
+
+Use git or wget to download the latest Apache Metron release onto a host machine. The host machine will be used to deploy Apache Metron to Amazon EC2. 
 
 **Example A** (Cloning a branch using git):
 ```
-git clone -b Metron_<release version> git://git.apache.org/metron.git
+git clone -b Metron_<branch name> git://git.apache.org/metron.git
 ```
 *Branch names can be found [here](https://github.com/apache/metron/branches)*
 
 
 **Example B** (wget):
 ```
-wget https://github.com/apache/metron/archive/apache-metron-0.4.0-release.tar.gz
-tar -xf apache-metron-<release version>-release.tar.gz
+wget https://github.com/apache/metron/archive/apache-metron-<release version>.tar.gz
+tar -xf apache-metron-<release version>.tar.gz
 ```
 *List of releases can be found [here](https://github.com/apache/metron/releases)*
 
@@ -303,12 +304,19 @@ This most often indicates that Ansible cannot connect to the host with the SSH k
 
 Experimenting with Linux as Host
 ---------------
-Update the “ansible.cfg” files below by commenting out the last two lines.
-./metron/metron-deployment/amazon-ec2/ansible.cfg
-./metron/metron-deployment/ansible.cfg
+Update the “ansible.cfg” files below by commenting out the last two lines.<br />
+<br />
+Files to Update:<br />
+metron/metron-deployment/amazon-ec2/ansible.cfg<br />
+metron/metron-deployment/ansible.cfg<br />
+<br />
+ansible.cfg<br />
 ```
-#[ssh_connection] #commented out
-#control_path = %(directory)s/%%h-%%p-%%r  #commented out
+.
+.
+.
+#[ssh_connection] #comment
+#control_path = %(directory)s/%%h-%%p-%%r  #commented
 ```
 
 Run the deployment script that is in the "/metron-deployment/amazon-ec2" folder.
