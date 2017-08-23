@@ -235,8 +235,24 @@ public abstract class SearchIntegrationTest {
   @Multiline
   public static String fieldsQuery;
 
-  protected IndexDao dao;
-  protected InMemoryComponent indexComponent;
+  /**
+   * {
+   * "fields": ["ip_src_addr"],
+   * "indices": ["bro", "snort"],
+   * "query": "ip_src_addr:192.168.1.9",
+   * "from": 0,
+   * "size": 10,
+   * "sort": [
+   *   {
+   *     "field": "timestamp",
+   *     "sortOrder": "desc"
+   *   }
+   * ]
+   * }
+   */
+  @Multiline
+  public static String noResultsFieldsQuery;
+
   protected static IndexDao dao;
   protected static InMemoryComponent indexComponent;
 
@@ -504,6 +520,12 @@ public abstract class SearchIntegrationTest {
         Assert.assertEquals(1, source.size());
         Assert.assertNotNull(source.get("ip_src_addr"));
       }
+    }
+    //No results fields query
+    {
+      SearchRequest request = JSONUtils.INSTANCE.load(noResultsFieldsQuery, SearchRequest.class);
+      SearchResponse response = dao.search(request);
+      Assert.assertEquals(0, response.getTotal());
     }
   }
 
