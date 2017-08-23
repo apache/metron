@@ -17,18 +17,14 @@
  */
 package org.apache.metron.rest.controller;
 
-import com.google.common.collect.ImmutableMap;
-import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.indexing.dao.InMemoryDao;
-import org.apache.metron.indexing.dao.IndexingDaoIntegrationTest;
+import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.service.SearchService;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +36,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
@@ -59,7 +53,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(TEST_PROFILE)
-public class SearchControllerIntegrationTest {
+public class SearchControllerIntegrationTest extends DaoControllerTest {
 
 
 
@@ -89,14 +83,14 @@ public class SearchControllerIntegrationTest {
 
   @Test
   public void testSecurity() throws Exception {
-    this.mockMvc.perform(post(searchUrl + "/search").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(IndexingDaoIntegrationTest.allQuery))
+    this.mockMvc.perform(post(searchUrl + "/search").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(SearchIntegrationTest.allQuery))
             .andExpect(status().isUnauthorized());
   }
 
   @Test
   public void test() throws Exception {
 
-    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(IndexingDaoIntegrationTest.allQuery))
+    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(SearchIntegrationTest.allQuery))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.total").value(10))
@@ -121,7 +115,7 @@ public class SearchControllerIntegrationTest {
             .andExpect(jsonPath("$.results[9].source.source:type").value("bro"))
             .andExpect(jsonPath("$.results[9].source.timestamp").value(1));
 
-    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(IndexingDaoIntegrationTest.filterQuery))
+    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(SearchIntegrationTest.filterQuery))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.total").value(3))
@@ -133,7 +127,7 @@ public class SearchControllerIntegrationTest {
             .andExpect(jsonPath("$.results[2].source.timestamp").value(1));
 
 
-    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(IndexingDaoIntegrationTest.sortQuery))
+    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(SearchIntegrationTest.sortQuery))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.total").value(10))
@@ -148,7 +142,7 @@ public class SearchControllerIntegrationTest {
             .andExpect(jsonPath("$.results[8].source.ip_src_port").value(8009))
             .andExpect(jsonPath("$.results[9].source.ip_src_port").value(8010));
 
-    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(IndexingDaoIntegrationTest.paginationQuery))
+    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(SearchIntegrationTest.paginationQuery))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.total").value(10))
@@ -159,7 +153,7 @@ public class SearchControllerIntegrationTest {
             .andExpect(jsonPath("$.results[2].source.source:type").value("bro"))
             .andExpect(jsonPath("$.results[2].source.timestamp").value(4));
 
-    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(IndexingDaoIntegrationTest.indexQuery))
+    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(SearchIntegrationTest.indexQuery))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.total").value(5))
@@ -174,7 +168,7 @@ public class SearchControllerIntegrationTest {
             .andExpect(jsonPath("$.results[4].source.source:type").value("bro"))
             .andExpect(jsonPath("$.results[4].source.timestamp").value(1));
 
-    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(IndexingDaoIntegrationTest.exceededMaxResultsQuery))
+    this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(SearchIntegrationTest.exceededMaxResultsQuery))
             .andExpect(status().isInternalServerError())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.responseCode").value(500))
@@ -239,25 +233,6 @@ public class SearchControllerIntegrationTest {
 
 
 
-  private void loadTestData() throws ParseException {
-    Map<String, List<String>> backingStore = new HashMap<>();
-    for(Map.Entry<String, String> indices :
-            ImmutableMap.of(
-                    "bro_index_2017.01.01.01", IndexingDaoIntegrationTest.broData,
-                    "snort_index_2017.01.01.01", IndexingDaoIntegrationTest.snortData
-            ).entrySet()
-       )
-    {
-      List<String> results = new ArrayList<>();
-      backingStore.put(indices.getKey(), results);
-      JSONArray broArray = (JSONArray) new JSONParser().parse(indices.getValue());
-      for(Object o: broArray) {
-        JSONObject jsonObject = (JSONObject) o;
-        results.add(jsonObject.toJSONString());
-      }
-    }
-    InMemoryDao.load(backingStore);
-  }
 
   private void loadColumnTypes() throws ParseException {
     Map<String, Map<String, FieldType>> columnTypes = new HashMap<>();

@@ -23,6 +23,7 @@ from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import File
 from resource_management.core.source import Template
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Execute
 
@@ -43,7 +44,6 @@ class ManagementUIMaster(Script):
         print 'configure managment_ui'
         from params import params
         env.set_params(params)
-
         File(format("/etc/default/metron"),
              content=Template("metron.j2")
              )
@@ -76,9 +76,11 @@ class ManagementUIMaster(Script):
         commands.stop_management_ui()
 
     def status(self, env):
-        status_cmd = format('service metron-management-ui status')
+        from params import status_params
+        env.set_params(status_params)
+        cmd = format('curl --max-time 3 {hostname}:{metron_management_ui_port}')
         try:
-            Execute(status_cmd)
+            get_user_call_output(cmd, user=status_params.metron_user)
         except ExecutionFailed:
             raise ComponentIsNotRunning()
 

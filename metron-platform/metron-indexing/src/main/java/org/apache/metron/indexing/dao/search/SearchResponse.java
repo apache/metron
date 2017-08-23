@@ -17,14 +17,22 @@
  */
 package org.apache.metron.indexing.dao.search;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class SearchResponse {
 
   private long total;
   private List<SearchResult> results = new ArrayList<>();
+  private Map<String, Map<String, Long>> facetCounts;
 
+  /**
+   * The total number of results
+   * @return
+   */
   public long getTotal() {
     return total;
   }
@@ -33,11 +41,24 @@ public class SearchResponse {
     this.total = total;
   }
 
+  /**
+   * The list of results
+   * @return
+   */
   public List<SearchResult> getResults() {
     return results;
   }
 
   public void setResults(List<SearchResult> results) {
     this.results = results;
+  }
+
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Map<String, Map<String, Long>> getFacetCounts() {
+    return facetCounts;
+  }
+
+  public void setFacetCounts(Map<String, Map<String, Long>> facetCounts) {
+    this.facetCounts = facetCounts;
   }
 }

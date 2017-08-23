@@ -195,7 +195,12 @@ public class FunctionalFunctionsTest {
     )
             )
     {
-      Object o = run(expr, ImmutableMap.of("foo", 2, "bar", 3));
+      Map<String,Object> variableMap = new HashMap<String,Object>(){{
+        put("foo",2);
+        put("bar", 3);
+        put("baz",null);
+      }};
+      Object o = run(expr,variableMap);
       Assert.assertTrue(o instanceof List);
       List<String> result = (List<String>) o;
       Assert.assertEquals(3, result.size());
@@ -287,7 +292,12 @@ public class FunctionalFunctionsTest {
                                        )
         )
     {
-      Object o = run(expr, ImmutableMap.of("foo", "foo", "bar", "bar"));
+      Map<String,Object> variableMap = new HashMap<String,Object>(){{
+        put("foo","foo");
+        put("bar","bar");
+        put("baz",null);
+      }};
+      Object o = run(expr,variableMap);
       Assert.assertTrue(o instanceof List);
       List<String> result = (List<String>) o;
       Assert.assertEquals(1, result.size());
@@ -303,7 +313,12 @@ public class FunctionalFunctionsTest {
                                        )
         )
     {
-      Object o = run(expr, ImmutableMap.of("foo", "foo", "bar", "bar"));
+      Map<String,Object> variableMap = new HashMap<String,Object>(){{
+        put("foo","foo");
+        put("bar","bar");
+        put("baz",null);
+      }};
+      Object o = run(expr,variableMap);
       Assert.assertTrue(o instanceof List);
       List<String> result = (List<String>) o;
       Assert.assertEquals(1, result.size());
@@ -355,7 +370,12 @@ public class FunctionalFunctionsTest {
                                        )
         )
     {
-      Object o = run(expr, ImmutableMap.of("foo", 1, "bar", 2));
+      Map<String,Object> variableMap = new HashMap<String,Object>(){{
+        put("foo",1);
+        put("bar", 2);
+        put("baz",null);
+      }};
+      Object o = run(expr,variableMap);
       Assert.assertTrue(o instanceof Number);
       Number result = (Number) o;
       Assert.assertEquals(6, result.intValue());
@@ -407,7 +427,7 @@ public class FunctionalFunctionsTest {
                                        )
         )
     {
-      Object o = run(expr, ImmutableMap.of("foo", 1, "bar", 2));
+      Object o = run(expr, ImmutableMap.of("foo", 1, "bar", 2,"x",0,"y",0));
       Assert.assertTrue(o instanceof List);
       List<String> result = (List<String>) o;
       Assert.assertEquals(3, result.size());

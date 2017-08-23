@@ -31,10 +31,6 @@ kafka:
   security:
     protocol: ${KAFKA_SECURITY_PROTOCOL}
 
-hdfs:
-  namenode:
-    url: ${HDFS_URL}
-
 grok:
   path:
     temp: ${METRON_TEMP_GROK_PATH}

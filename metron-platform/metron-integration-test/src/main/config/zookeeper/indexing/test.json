@@ -6,7 +6,8 @@
   },
   "elasticsearch" : {
     "index": "yaf",
-    "batchSize": 5,
+    "batchSize": 25,
+    "batchTimeout": 7,
     "enabled" : true
   },
   "solr" : {

@@ -111,7 +111,9 @@ public class ShellFunctionsTest {
 
   @Test
   public void testMap2TableNullInput() {
-    Map<String, Object> variables = new HashMap<>();
+    Map<String,Object> variables = new HashMap<String,Object>(){{
+      put("map_field",null);
+    }};
     Context context = Context.EMPTY_CONTEXT();
     Object out = run("SHELL_MAP2TABLE(map_field)", variables, context);
     Assert.assertEquals(expectedMap2TableNullInput, out);

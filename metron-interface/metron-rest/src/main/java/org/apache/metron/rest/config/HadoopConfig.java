@@ -39,9 +39,7 @@ public class HadoopConfig {
     @Bean
     public org.apache.hadoop.conf.Configuration configuration() throws IOException {
         org.apache.hadoop.conf.Configuration configuration = new org.apache.hadoop.conf.Configuration();
-        configuration.set("fs.defaultFS", environment.getProperty(MetronRestConstants.HDFS_URL_SPRING_PROPERTY, MetronRestConstants.DEFAULT_HDFS_URL));
         if (environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)) {
-            configuration.set("hadoop.security.authentication", "KERBEROS");
             UserGroupInformation.setConfiguration(configuration);
             String keyTabLocation = environment.getProperty(MetronRestConstants.KERBEROS_KEYTAB_SPRING_PROPERTY);
             String userPrincipal = environment.getProperty(MetronRestConstants.KERBEROS_PRINCIPLE_SPRING_PROPERTY);

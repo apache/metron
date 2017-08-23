@@ -29,6 +29,7 @@ public class SearchRequest {
   private int from;
   private List<SortField> sort;
   private List<String> fields;
+  private List<String> facetFields;
 
   public SearchRequest() {
     SortField defaultSortField = new SortField();
@@ -36,8 +37,13 @@ public class SearchRequest {
     defaultSortField.setSortOrder(SortOrder.DESC.toString());
     sort = new ArrayList<>();
     sort.add(defaultSortField);
+    facetFields = new ArrayList<>();
   }
 
+  /**
+   * The list of indices to search.
+   * @return
+   */
   public List<String> getIndices() {
     return indices;
   }
@@ -46,6 +52,10 @@ public class SearchRequest {
     this.indices = indices;
   }
 
+  /**
+   * The query to use to search the index
+   * @return
+   */
   public String getQuery() {
     return query;
   }
@@ -54,6 +64,10 @@ public class SearchRequest {
     this.query = query;
   }
 
+  /**
+   * The size of the results returned.
+   * @return
+   */
   public int getSize() {
     return size;
   }
@@ -62,6 +76,10 @@ public class SearchRequest {
     this.size = size;
   }
 
+  /**
+   * The index to start the search from.
+   * @return
+   */
   public int getFrom() {
     return from;
   }
@@ -70,6 +88,10 @@ public class SearchRequest {
     this.from = from;
   }
 
+  /**
+   * The search order by field.
+   * @return
+   */
   public List<SortField> getSort() {
     return sort;
   }
@@ -84,5 +106,13 @@ public class SearchRequest {
 
   public void setFields(List<String> fields) {
     this.fields = fields;
+  }
+
+  public Optional<List<String>> getFacetFields() {
+    return facetFields == null || facetFields.size() == 0 ? Optional.empty() : Optional.of(facetFields);
+  }
+
+  public void setFacetFields(List<String> facetFields) {
+    this.facetFields = facetFields;
   }
 }
