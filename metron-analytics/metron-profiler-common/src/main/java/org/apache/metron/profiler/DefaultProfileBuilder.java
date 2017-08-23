@@ -130,8 +130,8 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
 
       assign(definition.getUpdate(), message, "update");
 
-    } catch(Exception e) {
-      LOG.error(format("Unable to apply message to profile: %s", e.getMessage()));
+    } catch(Throwable e) {
+      LOG.error(format("Unable to apply message to profile: %s", e.getMessage()), e);
     }
   }
 
@@ -172,9 +172,9 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
               .withTriageValues(triageValues)
               .withDefinition(definition));
 
-    } catch(Exception e) {
+    } catch(Throwable e) {
       // if any of the Stellar expressions fail, a measurement should NOT be returned
-      LOG.error(format("Unable to flush profile: %s", e.getMessage()));
+      LOG.error(format("Unable to flush profile: %s", e.getMessage()), e);
     }
 
     isInitialized = false;
@@ -266,7 +266,7 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
 
     } catch (Throwable e) {
       String msg = format("Bad '%s' expression: error=%s, profile=%s, entity=%s", expressionType, e.getMessage(), profileName, entity);
-      LOG.error(msg);
+      LOG.error(msg, e);
       throw new ParseException(msg, e);
     }
 
