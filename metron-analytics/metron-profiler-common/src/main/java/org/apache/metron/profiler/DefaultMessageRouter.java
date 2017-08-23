@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static java.lang.String.format;
+
 /**
  * Routes incoming telemetry messages.
  *
@@ -100,13 +102,12 @@ public class DefaultMessageRouter implements MessageRouter {
         route = Optional.of(new MessageRoute(profile, entity));
       }
 
-    } catch(Exception e) {
+    } catch(Throwable e) {
       // log an error and move on. ignore bad profiles.
-      LOG.error(String.format("error encountered while executing profile; profile='%s', error='%s'", profile.getProfile(), e.getMessage()));
+      String msg = format("error while executing profile; profile='%s', error='%s'", profile.getProfile(), e.getMessage());
+      LOG.error(msg, e);
     }
 
     return route;
   }
-
-
 }
