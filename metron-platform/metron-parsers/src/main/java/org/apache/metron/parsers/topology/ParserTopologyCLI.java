@@ -18,6 +18,7 @@
 package org.apache.metron.parsers.topology;
 
 import org.apache.metron.common.Constants;
+import org.apache.metron.parsers.topology.config.ValueSupplier;
 import org.apache.metron.storm.kafka.flux.SpoutConfiguration;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
@@ -235,12 +236,12 @@ public class ParserTopologyCLI {
       return has(cli)?cli.getOptionValue(shortCode):def;
     }
 
-    public static Config getConfig(CommandLine cli) {
+    public static Optional<Config> getConfig(CommandLine cli) {
       Config config = new Config();
       for(ParserOptions option : ParserOptions.values()) {
         config = option.configHandler.apply(new Arg(config, option.get(cli)));
       }
-      return config;
+      return config.isEmpty()?Optional.empty():Optional.of(config);
     }
 
     public static CommandLine parse(CommandLineParser parser, String[] args) throws ParseException {
@@ -273,20 +274,24 @@ public class ParserTopologyCLI {
     }
   }
 
+  private static CommandLine parse(Options options, String[] args) {
+    CommandLineParser parser = new PosixParser();
+    try {
+      return ParserOptions.parse(parser, args);
+    } catch (ParseException pe) {
+      pe.printStackTrace();
+      final HelpFormatter usageFormatter = new HelpFormatter();
+      usageFormatter.printHelp("ParserTopologyCLI", null, options, null, true);
+      System.exit(-1);
+      return null;
+    }
+  }
+
   public static void main(String[] args) {
-    Options options = new Options();
 
     try {
-      CommandLineParser parser = new PosixParser();
-      CommandLine cmd = null;
-      try {
-        cmd = ParserOptions.parse(parser, args);
-      } catch (ParseException pe) {
-        pe.printStackTrace();
-        final HelpFormatter usageFormatter = new HelpFormatter();
-        usageFormatter.printHelp("ParserTopologyCLI", null, options, null, true);
-        System.exit(-1);
-      }
+      Options options = new Options();
+      final CommandLine cmd = parse(options, args);
       if (cmd.hasOption("h")) {
         final HelpFormatter usageFormatter = new HelpFormatter();
         usageFormatter.printHelp("ParserTopologyCLI", null, options, null, true);
@@ -295,22 +300,82 @@ public class ParserTopologyCLI {
       String zookeeperUrl = ParserOptions.ZK_QUORUM.get(cmd);;
       Optional<String> brokerUrl = ParserOptions.BROKER_URL.has(cmd)?Optional.of(ParserOptions.BROKER_URL.get(cmd)):Optional.empty();
       String sensorType= ParserOptions.SENSOR_TYPE.get(cmd);
-      int spoutParallelism = Integer.parseInt(ParserOptions.SPOUT_PARALLELISM.get(cmd, "1"));
-      int spoutNumTasks = Integer.parseInt(ParserOptions.SPOUT_NUM_TASKS.get(cmd, "1"));
-      int parserParallelism = Integer.parseInt(ParserOptions.PARSER_PARALLELISM.get(cmd, "1"));
-      int parserNumTasks= Integer.parseInt(ParserOptions.PARSER_NUM_TASKS.get(cmd, "1"));
-      int errorParallelism = Integer.parseInt(ParserOptions.ERROR_WRITER_PARALLELISM.get(cmd, "1"));
-      int errorNumTasks= Integer.parseInt(ParserOptions.ERROR_WRITER_NUM_TASKS.get(cmd, "1"));
-      int invalidParallelism = Integer.parseInt(ParserOptions.INVALID_WRITER_PARALLELISM.get(cmd, "1"));
-      int invalidNumTasks= Integer.parseInt(ParserOptions.INVALID_WRITER_NUM_TASKS.get(cmd, "1"));
-      Map<String, Object> spoutConfig = new HashMap<>();
-      if(ParserOptions.SPOUT_CONFIG.has(cmd)) {
-        spoutConfig = readSpoutConfig(new File(ParserOptions.SPOUT_CONFIG.get(cmd)));
-      }
+      ValueSupplier<Integer> spoutParallelism = (parserConfig, clazz) -> {
+        if(ParserOptions.SPOUT_PARALLELISM.has(cmd)) {
+          return Integer.parseInt(ParserOptions.SPOUT_PARALLELISM.get(cmd, "1"));
+        }
+        return Optional.ofNullable(parserConfig.getSpoutParallelism()).orElse(1);
+      };
+      ValueSupplier<Integer> spoutNumTasks = (parserConfig, clazz) -> {
+        if(ParserOptions.SPOUT_NUM_TASKS.has(cmd)) {
+          return Integer.parseInt(ParserOptions.SPOUT_NUM_TASKS.get(cmd, "1"));
+        }
+        return Optional.ofNullable(parserConfig.getSpoutNumTasks()).orElse(1);
+      };
+      ValueSupplier<Integer> parserParallelism = (parserConfig, clazz) -> {
+        if(ParserOptions.PARSER_PARALLELISM.has(cmd)) {
+          return Integer.parseInt(ParserOptions.PARSER_PARALLELISM.get(cmd, "1"));
+        }
+        return Optional.ofNullable(parserConfig.getParserParallelism()).orElse(1);
+      };
+
+      ValueSupplier<Integer> parserNumTasks = (parserConfig, clazz) -> {
+        if(ParserOptions.PARSER_NUM_TASKS.has(cmd)) {
+          return Integer.parseInt(ParserOptions.PARSER_NUM_TASKS.get(cmd, "1"));
+        }
+        return Optional.ofNullable(parserConfig.getParserNumTasks()).orElse(1);
+      };
+
+      ValueSupplier<Integer> errorParallelism = (parserConfig, clazz) -> {
+        if(ParserOptions.ERROR_WRITER_PARALLELISM.has(cmd)) {
+          return Integer.parseInt(ParserOptions.ERROR_WRITER_PARALLELISM.get(cmd, "1"));
+        }
+        return Optional.ofNullable(parserConfig.getErrorWriterParallelism()).orElse(1);
+      };
+
+      ValueSupplier<Integer> errorNumTasks = (parserConfig, clazz) -> {
+        if(ParserOptions.ERROR_WRITER_NUM_TASKS.has(cmd)) {
+          return Integer.parseInt(ParserOptions.ERROR_WRITER_NUM_TASKS.get(cmd, "1"));
+        }
+        return Optional.ofNullable(parserConfig.getErrorWriterNumTasks()).orElse(1);
+      };
+
+      ValueSupplier<Map> spoutConfig = (parserConfig, clazz) -> {
+        if(ParserOptions.SPOUT_CONFIG.has(cmd)) {
+          return readSpoutConfig(new File(ParserOptions.SPOUT_CONFIG.get(cmd)));
+        }
+        return Optional.ofNullable(parserConfig.getSpoutConfig()).orElse(new HashMap<>());
+      };
+
+      ValueSupplier<String> securityProtocol = (parserConfig, clazz) -> {
+        Optional<String> sp = Optional.empty();
+        if (ParserOptions.SECURITY_PROTOCOL.has(cmd)) {
+          sp = Optional.of(ParserOptions.SECURITY_PROTOCOL.get(cmd));
+        }
+        if (!sp.isPresent()) {
+          sp = getSecurityProtocol(sp, spoutConfig.get(parserConfig, Map.class));
+        }
+        return sp.orElse(Optional.ofNullable(parserConfig.getSecurityProtocol()).orElse(null));
+      };
+
+      ValueSupplier<Config> stormConf = (parserConfig, clazz) -> {
+        Optional<Config> ret = ParserOptions.getConfig(cmd);
+        if(ret.isPresent()) {
+          return ret.get();
+        }
+        Map<String, Object> c = parserConfig.getStormConfig();
+        if(c.isEmpty()) {
+          return new Config();
+        }
+        else {
+          Config finalConfig = new Config();
+          finalConfig.putAll(c);
+          return finalConfig;
+        }
+      };
+
       Optional<String> outputTopic = ParserOptions.OUTPUT_TOPIC.has(cmd)?Optional.of(ParserOptions.OUTPUT_TOPIC.get(cmd)):Optional.empty();
-      Optional<String> securityProtocol = ParserOptions.SECURITY_PROTOCOL.has(cmd)?Optional.of(ParserOptions.SECURITY_PROTOCOL.get(cmd)):Optional.empty();
-      securityProtocol = getSecurityProtocol(securityProtocol, spoutConfig);
-      TopologyBuilder builder = ParserTopologyBuilder.build(zookeeperUrl,
+      ParserTopologyBuilder.ParserTopology topology = ParserTopologyBuilder.build(zookeeperUrl,
               brokerUrl,
               sensorType,
               spoutParallelism,
@@ -321,17 +386,17 @@ public class ParserTopologyCLI {
               errorNumTasks,
               spoutConfig,
               securityProtocol,
-              outputTopic
+              outputTopic,
+              stormConf
       );
-      Config stormConf = ParserOptions.getConfig(cmd);
       if (ParserOptions.TEST.has(cmd)) {
-        stormConf.put(Config.TOPOLOGY_DEBUG, true);
+        topology.getTopologyConfig().put(Config.TOPOLOGY_DEBUG, true);
         LocalCluster cluster = new LocalCluster();
-        cluster.submitTopology(sensorType, stormConf, builder.createTopology());
+        cluster.submitTopology(sensorType, topology.getTopologyConfig(), topology.getBuilder().createTopology());
         Utils.sleep(300000);
         cluster.shutdown();
       } else {
-        StormSubmitter.submitTopology(sensorType, stormConf, builder.createTopology());
+        StormSubmitter.submitTopology(sensorType, topology.getTopologyConfig(), topology.getBuilder().createTopology());
       }
     } catch (Exception e) {
       e.printStackTrace();

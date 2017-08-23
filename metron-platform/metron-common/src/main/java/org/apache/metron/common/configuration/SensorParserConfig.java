@@ -37,6 +37,87 @@ public class SensorParserConfig implements Serializable {
   private String invalidWriterClassName;
   private Boolean readMetadata = false;
   private Boolean mergeMetadata = false;
+  private Integer spoutParallelism = 1;
+  private Integer spoutNumTasks = 1;
+  private Integer parserParallelism = 1;
+  private Integer parserNumTasks = 1;
+  private Integer errorWriterParallelism = 1;
+  private Integer errorWriterNumTasks = 1;
+  private Map<String, Object> spoutConfig = new HashMap<>();
+  private String securityProtocol = null;
+  private Map<String, Object> stormConfig = new HashMap<>();
+
+  public Integer getSpoutParallelism() {
+    return spoutParallelism;
+  }
+
+  public void setSpoutParallelism(Integer spoutParallelism) {
+    this.spoutParallelism = spoutParallelism;
+  }
+
+  public Integer getSpoutNumTasks() {
+    return spoutNumTasks;
+  }
+
+  public void setSpoutNumTasks(Integer spoutNumTasks) {
+    this.spoutNumTasks = spoutNumTasks;
+  }
+
+  public Integer getParserParallelism() {
+    return parserParallelism;
+  }
+
+  public void setParserParallelism(Integer parserParallelism) {
+    this.parserParallelism = parserParallelism;
+  }
+
+  public Integer getParserNumTasks() {
+    return parserNumTasks;
+  }
+
+  public void setParserNumTasks(Integer parserNumTasks) {
+    this.parserNumTasks = parserNumTasks;
+  }
+
+  public Integer getErrorWriterParallelism() {
+    return errorWriterParallelism;
+  }
+
+  public void setErrorWriterParallelism(Integer errorWriterParallelism) {
+    this.errorWriterParallelism = errorWriterParallelism;
+  }
+
+  public Integer getErrorWriterNumTasks() {
+    return errorWriterNumTasks;
+  }
+
+  public void setErrorWriterNumTasks(Integer errorWriterNumTasks) {
+    this.errorWriterNumTasks = errorWriterNumTasks;
+  }
+
+  public Map<String, Object> getSpoutConfig() {
+    return spoutConfig;
+  }
+
+  public void setSpoutConfig(Map<String, Object> spoutConfig) {
+    this.spoutConfig = spoutConfig;
+  }
+
+  public String getSecurityProtocol() {
+    return securityProtocol;
+  }
+
+  public void setSecurityProtocol(String securityProtocol) {
+    this.securityProtocol = securityProtocol;
+  }
+
+  public Map<String, Object> getStormConfig() {
+    return stormConfig;
+  }
+
+  public void setStormConfig(Map<String, Object> stormConfig) {
+    this.stormConfig = stormConfig;
+  }
 
   public Boolean getMergeMetadata() {
     return mergeMetadata;
@@ -145,10 +226,19 @@ public class SensorParserConfig implements Serializable {
             ", writerClassName='" + writerClassName + '\'' +
             ", errorWriterClassName='" + errorWriterClassName + '\'' +
             ", invalidWriterClassName='" + invalidWriterClassName + '\'' +
-            ", parserConfig=" + parserConfig +
-            ", fieldTransformations=" + fieldTransformations +
             ", readMetadata=" + readMetadata +
             ", mergeMetadata=" + mergeMetadata +
+            ", spoutParallelism=" + spoutParallelism +
+            ", spoutNumTasks=" + spoutNumTasks +
+            ", parserParallelism=" + parserParallelism +
+            ", parserNumTasks=" + parserNumTasks +
+            ", errorWriterParallelism=" + errorWriterParallelism +
+            ", errorWriterNumTasks=" + errorWriterNumTasks +
+            ", spoutConfig=" + spoutConfig +
+            ", securityProtocol='" + securityProtocol + '\'' +
+            ", stormConfig=" + stormConfig +
+            ", parserConfig=" + parserConfig +
+            ", fieldTransformations=" + fieldTransformations +
             '}';
   }
 
@@ -171,11 +261,29 @@ public class SensorParserConfig implements Serializable {
       return false;
     if (getInvalidWriterClassName() != null ? !getInvalidWriterClassName().equals(that.getInvalidWriterClassName()) : that.getInvalidWriterClassName() != null)
       return false;
-    if (getParserConfig() != null ? !getParserConfig().equals(that.getParserConfig()) : that.getParserConfig() != null)
-      return false;
     if (getReadMetadata() != null ? !getReadMetadata().equals(that.getReadMetadata()) : that.getReadMetadata() != null)
       return false;
     if (getMergeMetadata() != null ? !getMergeMetadata().equals(that.getMergeMetadata()) : that.getMergeMetadata() != null)
+      return false;
+    if (getSpoutParallelism() != null ? !getSpoutParallelism().equals(that.getSpoutParallelism()) : that.getSpoutParallelism() != null)
+      return false;
+    if (getSpoutNumTasks() != null ? !getSpoutNumTasks().equals(that.getSpoutNumTasks()) : that.getSpoutNumTasks() != null)
+      return false;
+    if (getParserParallelism() != null ? !getParserParallelism().equals(that.getParserParallelism()) : that.getParserParallelism() != null)
+      return false;
+    if (getParserNumTasks() != null ? !getParserNumTasks().equals(that.getParserNumTasks()) : that.getParserNumTasks() != null)
+      return false;
+    if (getErrorWriterParallelism() != null ? !getErrorWriterParallelism().equals(that.getErrorWriterParallelism()) : that.getErrorWriterParallelism() != null)
+      return false;
+    if (getErrorWriterNumTasks() != null ? !getErrorWriterNumTasks().equals(that.getErrorWriterNumTasks()) : that.getErrorWriterNumTasks() != null)
+      return false;
+    if (getSpoutConfig() != null ? !getSpoutConfig().equals(that.getSpoutConfig()) : that.getSpoutConfig() != null)
+      return false;
+    if (getSecurityProtocol() != null ? !getSecurityProtocol().equals(that.getSecurityProtocol()) : that.getSecurityProtocol() != null)
+      return false;
+    if (getStormConfig() != null ? !getStormConfig().equals(that.getStormConfig()) : that.getStormConfig() != null)
+      return false;
+    if (getParserConfig() != null ? !getParserConfig().equals(that.getParserConfig()) : that.getParserConfig() != null)
       return false;
     return getFieldTransformations() != null ? getFieldTransformations().equals(that.getFieldTransformations()) : that.getFieldTransformations() == null;
 
@@ -189,10 +297,19 @@ public class SensorParserConfig implements Serializable {
     result = 31 * result + (getWriterClassName() != null ? getWriterClassName().hashCode() : 0);
     result = 31 * result + (getErrorWriterClassName() != null ? getErrorWriterClassName().hashCode() : 0);
     result = 31 * result + (getInvalidWriterClassName() != null ? getInvalidWriterClassName().hashCode() : 0);
-    result = 31 * result + (getParserConfig() != null ? getParserConfig().hashCode() : 0);
-    result = 31 * result + (getFieldTransformations() != null ? getFieldTransformations().hashCode() : 0);
     result = 31 * result + (getReadMetadata() != null ? getReadMetadata().hashCode() : 0);
     result = 31 * result + (getMergeMetadata() != null ? getMergeMetadata().hashCode() : 0);
+    result = 31 * result + (getSpoutParallelism() != null ? getSpoutParallelism().hashCode() : 0);
+    result = 31 * result + (getSpoutNumTasks() != null ? getSpoutNumTasks().hashCode() : 0);
+    result = 31 * result + (getParserParallelism() != null ? getParserParallelism().hashCode() : 0);
+    result = 31 * result + (getParserNumTasks() != null ? getParserNumTasks().hashCode() : 0);
+    result = 31 * result + (getErrorWriterParallelism() != null ? getErrorWriterParallelism().hashCode() : 0);
+    result = 31 * result + (getErrorWriterNumTasks() != null ? getErrorWriterNumTasks().hashCode() : 0);
+    result = 31 * result + (getSpoutConfig() != null ? getSpoutConfig().hashCode() : 0);
+    result = 31 * result + (getSecurityProtocol() != null ? getSecurityProtocol().hashCode() : 0);
+    result = 31 * result + (getStormConfig() != null ? getStormConfig().hashCode() : 0);
+    result = 31 * result + (getParserConfig() != null ? getParserConfig().hashCode() : 0);
+    result = 31 * result + (getFieldTransformations() != null ? getFieldTransformations().hashCode() : 0);
     return result;
   }
 }
