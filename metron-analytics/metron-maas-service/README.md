@@ -170,8 +170,6 @@ Now that we have a deployed model, let's adjust the configurations for the Squid
 * Edit the squid enrichment configuration at `$METRON_HOME/config/zookeeper/enrichments/squid.json` (this file will not exist, so create a new one) to make the threat triage adjust the level of risk based on the model output:
 ```
 {
-  "index": "squid",
-  "batchSize": 1,
   "enrichment" : {
     "fieldMap": {}
   },
