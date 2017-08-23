@@ -82,7 +82,7 @@ public class SensorParserConfigControllerIntegrationTest {
    {
    "parserClassName":"org.apache.metron.parsers.json.JSONMapParser",
    "sensorTopic":"jsonTest",
-   "parserConfig": {}
+   "parserConfig": {},
    "readMetadata": true,
    "mergeMetadata": true
    }
