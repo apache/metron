@@ -311,7 +311,7 @@ Update the “ansible.cfg” files below by commenting out the last two lines.
 #control_path = %(directory)s/%%h-%%p-%%r
 ```
 
-Run the deployment script in the "./metron-deployment/amazon-ec2" folder.
+Run the deployment script that is in the "/metron-deployment/amazon-ec2" folder.
 ```
 $ ./run.sh
 ```
