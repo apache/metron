@@ -1,20 +1,42 @@
 Apache Metron on Amazon EC2
 ===========================
 
-This project fully automates the provisioning of Apache Metron on Amazon EC2 infrastructure.  Starting with only your Amazon EC2 credentials, this project will create a fully-functioning, end-to-end, multi-node cluster running Apache Metron.
+This project fully automates the provisioning of Apache Metron on Amazon EC2 infrastructure.  Starting with only your Amazon EC2 credentials, this project will create a fully-functioning, end-to-end, multi-node cluster running Apache Metron. 
 
 Warning: Amazon will charge for the use of their resources when running Apache Metron.  The amount will vary based on the number and size of hosts, along with current Amazon pricing structure.  Be sure to stop or terminate all of the hosts instantiated by Apache Metron when not in use to avoid unnecessary charges.
 
 Getting Started
 ---------------
+### Downloading Code
+Clone or wget the latest Apache Metron release onto a host machine. The host machine will be used to deploy Apache Metron to Amazon EC2. In the instructions below the host machine MacOS. 
+
+**Example A** (Cloning a branch using git):
+```
+git clone -b Metron_<release version> git://git.apache.org/metron.git
+```
+*Branch names can be found [here](https://github.com/apache/metron/branches)*
+
+
+**Example B** (wget):
+```
+wget https://github.com/apache/metron/archive/apache-metron-0.4.0-release.tar.gz
+tar -xf apache-metron-<release version>-release.tar.gz
+```
+*List of releases can be found [here](https://github.com/apache/metron/releases)*
+
 
 ### Prerequisites
 
-The host used to deploy Apache Metron will need the following software tools installed.  The following versions are known to work as of the time of this writing, but by no means are these the only working versions.
-
-  - Ansible 2.0.0.2 or 2.2.2.0
+The host used to deploy Apache Metron will need the following software tools installed. The host will also need atleast 6GB of available hard disk space. The following versions are known to work as of the time of this writing.
+  - Ansible 2.2.2.0
   - Python 2.7.11
-  - Maven 3.3.9  
+  - Maven 3.3.9
+
+The following componets are also needed. However, the versions listed below are by no means the only working versions.
+  - Docker 1.12.6
+  - nodejs 6.11.1
+  - npm 3.10.10
+  - bzip2 1.0.6
 
 Any platform that supports these tools is suitable, but the following instructions cover only macOS.  The easiest means of installing these tools on a Mac is to use the excellent [Homebrew](http://brew.sh/) project.
 
@@ -278,3 +300,18 @@ fatal: [ec2-52-26-113-221.us-west-2.compute.amazonaws.com]: UNREACHABLE! => {
 #### Solution
 
 This most often indicates that Ansible cannot connect to the host with the SSH key that it has access to.  This could occur if hosts are provisioned with one SSH key, but the playbook is executed subsequently with a different SSH key.  The issue can be addressed by either altering the `key_file` variable to point to the key that was used to provision the hosts or by simply terminating all hosts and re-running the playbook.
+
+Exprimenting with Linux as a Host
+---------------
+Update the “ansible.cfg” files below by commenting out the last two lines.
+./metron/metron-deployment/amazon-ec2/ansible.cfg
+./metron/metron-deployment/ansible.cfg
+```
+#[ssh_connection]
+#control_path = %(directory)s/%%h-%%p-%%r
+```
+
+Run the deployment script in the "./metron-deployment/amazon-ec2" folder.
+```
+$ ./run.sh
+```
