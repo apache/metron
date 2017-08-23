@@ -8,7 +8,7 @@ Warning: Amazon will charge for the use of their resources when running Apache M
 Getting Started
 ---------------
 ### Downloading Code
-Clone or wget the latest Apache Metron release onto a host machine. The host machine will be used to deploy Apache Metron to Amazon EC2. In the instructions below the host machine MacOS. 
+Clone or wget the latest Apache Metron release onto a host machine. The host machine will be used to deploy Apache Metron to Amazon EC2. 
 
 **Example A** (Cloning a branch using git):
 ```
