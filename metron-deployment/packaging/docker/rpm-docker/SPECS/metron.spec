@@ -93,6 +93,7 @@ tar -xzf %{SOURCE11} -C %{buildroot}%{metron_home}
 install %{buildroot}%{metron_home}/bin/metron-rest %{buildroot}/etc/init.d/
 install %{buildroot}%{metron_home}/bin/metron-management-ui %{buildroot}/etc/init.d/
 
+# allows node dependencies to be packaged in the RPMs
 npm install --prefix="%{buildroot}%{metron_home}/web/expressjs" --only=production
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
