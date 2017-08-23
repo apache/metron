@@ -202,7 +202,11 @@ public class Runner {
       serviceDiscovery.start();
 
       File cwd = new File(script).getParentFile();
-      final String cmd = new File(cwd, script).getAbsolutePath();
+      File scriptFile = new File(cwd, script);
+      if(scriptFile.exists() && !scriptFile.canExecute()) {
+        scriptFile.setExecutable(true);
+      }
+      final String cmd = scriptFile.getAbsolutePath();
         try {
           p = new ProcessBuilder(cmd).directory(cwd).start();
 
