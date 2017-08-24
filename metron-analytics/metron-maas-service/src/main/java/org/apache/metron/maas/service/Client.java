@@ -797,6 +797,7 @@ public class Client {
                                  )
        ) {
       if(!fs.exists(p)) {
+        fs.mkdirs(p);
         fs.setPermission(p, new FsPermission((short)0755));
       }
     }
