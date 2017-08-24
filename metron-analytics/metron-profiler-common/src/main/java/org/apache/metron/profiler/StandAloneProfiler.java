@@ -74,6 +74,7 @@ public class StandAloneProfiler {
     // the period TTL does not matter in this context
     this.distributor = new DefaultMessageDistributor(periodDurationMillis, Long.MAX_VALUE);
     this.messageCount = 0;
+    this.routeCount = 0;
   }
 
   /**
