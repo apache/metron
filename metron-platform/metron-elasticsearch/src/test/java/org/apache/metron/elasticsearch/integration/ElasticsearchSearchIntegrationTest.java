@@ -91,6 +91,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     ret.init(
             new AccessConfig() {{
               setMaxSearchResults(100);
+              setMaxSearchGroups(100);
               setGlobalConfigSupplier( () ->
                 new HashMap<String, Object>() {{
                   put("es.clustername", "metron");

@@ -36,11 +36,17 @@ import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.Group;
+import org.apache.metron.indexing.dao.search.GroupOrder;
+import org.apache.metron.indexing.dao.search.GroupOrderType;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
-import org.apache.metron.indexing.dao.search.SearchResultGroup;
+import org.apache.metron.indexing.dao.search.GroupResult;
+import org.apache.metron.indexing.dao.search.SortOrder;
 import org.apache.metron.indexing.dao.update.Document;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
 import org.elasticsearch.action.index.IndexRequest;
@@ -61,9 +67,8 @@ import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms.Order;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
-import org.elasticsearch.search.aggregations.metrics.tophits.TopHits;
-import org.elasticsearch.search.aggregations.metrics.tophits.TopHitsBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 public class ElasticsearchDao implements IndexDao {
@@ -106,16 +111,11 @@ public class ElasticsearchDao implements IndexDao {
     }
     final SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
     searchSourceBuilder.query(new QueryStringQueryBuilder(searchRequest.getQuery()));
-    Optional<List<String>> groupByFields = searchRequest.getGroupByFields();
-    if (groupByFields.isPresent()) {
-      searchSourceBuilder.aggregation(getGroupsTermBuilder(searchRequest, 0));
-    } else {
-      searchSourceBuilder.size(searchRequest.getSize())
-          .from(searchRequest.getFrom())
-          .fetchSource(true)
-          .trackScores(true);
-      searchRequest.getSort().forEach(sortField -> searchSourceBuilder.sort(sortField.getField(), getElasticsearchSortOrder(sortField.getSortOrder())));
-    }
+    searchSourceBuilder.size(searchRequest.getSize())
+        .from(searchRequest.getFrom())
+        .fetchSource(true)
+        .trackScores(true);
+    searchRequest.getSort().forEach(sortField -> searchSourceBuilder.sort(sortField.getField(), getElasticsearchSortOrder(sortField.getSortOrder())));
     Optional<List<String>> facetFields = searchRequest.getFacetFields();
     if (facetFields.isPresent()) {
       facetFields.get().forEach(field -> searchSourceBuilder.aggregation(new TermsBuilder(getFacentAggregationName(field)).field(field)));
@@ -130,26 +130,45 @@ public class ElasticsearchDao implements IndexDao {
     }
     SearchResponse searchResponse = new SearchResponse();
     searchResponse.setTotal(elasticsearchResponse.getHits().getTotalHits());
-    if (!groupByFields.isPresent()) {
-      searchResponse.setResults(Arrays.stream(elasticsearchResponse.getHits().getHits()).map(this::getSearchResult).collect(Collectors.toList()));
-    }
-    if (groupByFields.isPresent() || facetFields.isPresent()) {
+    searchResponse.setResults(Arrays.stream(elasticsearchResponse.getHits().getHits()).map(this::getSearchResult).collect(Collectors.toList()));
+    if (facetFields.isPresent()) {
       Map<String, FieldType> commonColumnMetadata;
       try {
         commonColumnMetadata = getCommonColumnMetadata(searchRequest.getIndices());
       } catch (IOException e) {
         throw new InvalidSearchException(String.format("Could not get common column metadata for indices %s", Arrays.toString(searchRequest.getIndices().toArray())));
       }
-      if (groupByFields.isPresent()) {
-        searchResponse.setGroupedBy(groupByFields.get().get(0));
-        searchResponse.setGroups(getGroups(groupByFields.get(), 0, elasticsearchResponse.getAggregations(), commonColumnMetadata));
-      }
-      if (facetFields.isPresent()) {
-        searchResponse.setFacetCounts(getFacetCounts(facetFields.get(), elasticsearchResponse.getAggregations(), commonColumnMetadata ));
-      }
+      searchResponse.setFacetCounts(getFacetCounts(facetFields.get(), elasticsearchResponse.getAggregations(), commonColumnMetadata ));
     }
-
     return searchResponse;
+  }
+
+  @Override
+  public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
+    if(client == null) {
+      throw new InvalidSearchException("Uninitialized Dao!  You must call init() prior to use.");
+    }
+    final SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    searchSourceBuilder.query(new QueryStringQueryBuilder(groupRequest.getQuery()));
+    searchSourceBuilder.aggregation(getGroupsTermBuilder(groupRequest.getGroups(), 0));
+    String[] wildcardIndices = groupRequest.getIndices().stream().map(index -> String.format("%s*", index)).toArray(value -> new String[groupRequest.getIndices().size()]);
+    org.elasticsearch.action.search.SearchResponse elasticsearchResponse;
+    try {
+      elasticsearchResponse = client.search(new org.elasticsearch.action.search.SearchRequest(wildcardIndices)
+          .source(searchSourceBuilder)).actionGet();
+    } catch (SearchPhaseExecutionException e) {
+      throw new InvalidSearchException("Could not execute search", e);
+    }
+    Map<String, FieldType> commonColumnMetadata;
+    try {
+      commonColumnMetadata = getCommonColumnMetadata(groupRequest.getIndices());
+    } catch (IOException e) {
+      throw new InvalidSearchException(String.format("Could not get common column metadata for indices %s", Arrays.toString(groupRequest.getIndices().toArray())));
+    }
+    GroupResponse groupResponse = new GroupResponse();
+    groupResponse.setGroupedBy(groupRequest.getGroups().get(0).getField());
+    groupResponse.setGroupResults(getGroupResults(groupRequest.getGroups(), 0, elasticsearchResponse.getAggregations(), commonColumnMetadata));
+    return groupResponse;
   }
 
   @Override
@@ -313,6 +332,14 @@ public class ElasticsearchDao implements IndexDao {
         org.elasticsearch.search.sort.SortOrder.DESC : org.elasticsearch.search.sort.SortOrder.ASC;
   }
 
+  private Order getElasticsearchGroupOrder(GroupOrder groupOrder) {
+    if (groupOrder.getGroupOrderType() == GroupOrderType.TERM) {
+      return groupOrder.getSortOrder() == SortOrder.ASC ? Order.term(true) : Order.term(false);
+    } else {
+      return groupOrder.getSortOrder() == SortOrder.ASC ? Order.count(true) : Order.count(false);
+    }
+  }
+
   public Map<String, Map<String, Long>> getFacetCounts(List<String> fields, Aggregations aggregations, Map<String, FieldType> commonColumnMetadata) {
     Map<String, Map<String, Long>> fieldCounts = new HashMap<>();
     for (String field: fields) {
@@ -337,43 +364,38 @@ public class ElasticsearchDao implements IndexDao {
     }
   }
 
-  private TermsBuilder getGroupsTermBuilder(SearchRequest searchRequest, int index) {
-    List<String> fields = searchRequest.getGroupByFields().get();
-    String field = fields.get(index);
-    String aggregationName = getGroupByAggregationName(field);
-    if (index < fields.size() - 1) {
-      return new TermsBuilder(aggregationName).field(field)
-          .subAggregation(getGroupsTermBuilder(searchRequest, index + 1));
-    } else {
-      TopHitsBuilder topHitsBuilder = new TopHitsBuilder("top_hits").setSize(searchRequest.getSize())
-          .setFetchSource(true);
-      searchRequest.getSort().forEach(sortField ->
-          topHitsBuilder.addSort(sortField.getField(), getElasticsearchSortOrder(sortField.getSortOrder())));
-      return new TermsBuilder(aggregationName).field(field).subAggregation(topHitsBuilder);
+  private TermsBuilder getGroupsTermBuilder(List<Group> groups, int index) {
+    Group group = groups.get(index);
+    String aggregationName = getGroupByAggregationName(group.getField());
+    TermsBuilder termsBuilder = new TermsBuilder(aggregationName)
+        .field(group.getField())
+        .size(accessConfig.getMaxSearchGroups())
+        .order(getElasticsearchGroupOrder(group.getOrder()));
+    if (index < groups.size() - 1) {
+      termsBuilder.subAggregation(getGroupsTermBuilder(groups, index + 1));
     }
+    return termsBuilder;
   }
 
-  private List<SearchResultGroup> getGroups(List<String> fields, int index, Aggregations aggregations, Map<String, FieldType> commonColumnMetadata) {
-    String field = fields.get(index);
+  private List<GroupResult> getGroupResults(List<Group> groups, int index, Aggregations aggregations, Map<String, FieldType> commonColumnMetadata) {
+    String field = groups.get(index).getField();
     Terms terms = aggregations.get(getGroupByAggregationName(field));
-    List<SearchResultGroup> searchResultGroups = new ArrayList<>();
-    if (index < fields.size() - 1) {
-      String childField = fields.get(index + 1);
+    List<GroupResult> searchResultGroups = new ArrayList<>();
+    if (index < groups.size() - 1) {
+      String childField = groups.get(index + 1).getField();
       for(Bucket bucket: terms.getBuckets()) {
-        SearchResultGroup searchResultGroup = new SearchResultGroup();
-        searchResultGroup.setKey(formatKey(bucket.getKey(), commonColumnMetadata.get(field)));
-        searchResultGroup.setTotal(bucket.getDocCount());
-        searchResultGroup.setGroupedBy(childField);
-        searchResultGroup.setGroups(getGroups(fields, index + 1, bucket.getAggregations(), commonColumnMetadata));
-        searchResultGroups.add(searchResultGroup);
+        GroupResult groupResult = new GroupResult();
+        groupResult.setKey(formatKey(bucket.getKey(), commonColumnMetadata.get(field)));
+        groupResult.setTotal(bucket.getDocCount());
+        groupResult.setGroupedBy(childField);
+        groupResult.setGroupResults(getGroupResults(groups, index + 1, bucket.getAggregations(), commonColumnMetadata));
+        searchResultGroups.add(groupResult);
       }
     } else {
       for(Bucket bucket: terms.getBuckets()) {
-        SearchResultGroup searchResultGroup = new SearchResultGroup();
+        GroupResult searchResultGroup = new GroupResult();
         searchResultGroup.setKey(formatKey(bucket.getKey(), commonColumnMetadata.get(field)));
         searchResultGroup.setTotal(bucket.getDocCount());
-        TopHits topHits = bucket.getAggregations().get("top_hits");
-        searchResultGroup.setResults(Arrays.stream(topHits.getHits().getHits()).map(this::getSearchResult).collect(Collectors.toList()));
         searchResultGroups.add(searchResultGroup);
       }
     }

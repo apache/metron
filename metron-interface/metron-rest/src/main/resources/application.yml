@@ -44,6 +44,7 @@ curator:
 search:
   max:
     results: 1000
+    groups: 1000
 
 index:
   dao:

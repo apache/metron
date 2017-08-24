@@ -19,16 +19,14 @@
 package org.apache.metron.indexing.dao.search;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import java.util.ArrayList;
 import java.util.List;
 
-public class SearchResultGroup {
+public class GroupResult {
 
   private String key;
   private long total;
-  private List<SearchResult> results;
   private String groupedBy;
-  private List<SearchResultGroup> groups;
+  private List<GroupResult> groupResults;
 
   public String getKey() {
     return key;
@@ -47,15 +45,6 @@ public class SearchResultGroup {
   }
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
-  public List<SearchResult> getResults() {
-    return results;
-  }
-
-  public void setResults(List<SearchResult> results) {
-    this.results = results;
-  }
-
-  @JsonInclude(JsonInclude.Include.NON_NULL)
   public String getGroupedBy() {
     return groupedBy;
   }
@@ -65,11 +54,11 @@ public class SearchResultGroup {
   }
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
-  public List<SearchResultGroup> getGroups() {
-    return groups;
+  public List<GroupResult> getGroupResults() {
+    return groupResults;
   }
 
-  public void setGroups(List<SearchResultGroup> groups) {
-    this.groups = groups;
+  public void setGroupResults(List<GroupResult> groups) {
+    this.groupResults = groups;
   }
 }
