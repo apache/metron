@@ -31,5 +31,8 @@ public class Constants {
    * Environment key name denoting the timeline domain ID.
    */
   public static final String TIMELINEDOMAIN = "TIMELINEDOMAIN";
-
+  /*
+  The filename which communicates the endpoint information for a deployed model
+   */
+  public static final String ENDPOINT_DAT = "endpoint.dat";
 }

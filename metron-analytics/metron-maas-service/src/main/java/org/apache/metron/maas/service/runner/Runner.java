@@ -33,6 +33,7 @@ import org.apache.curator.utils.CloseableUtils;
 import org.apache.curator.x.discovery.*;
 import org.apache.curator.x.discovery.details.JsonInstanceSerializer;
 import org.apache.metron.maas.config.Endpoint;
+import org.apache.metron.maas.service.Constants;
 import org.apache.metron.maas.util.ConfigUtil;
 import org.apache.metron.maas.config.MaaSConfig;
 import org.apache.metron.maas.config.ModelEndpoint;
@@ -303,7 +304,7 @@ public class Runner {
 
   private static Endpoint readEndpoint(File cwd) throws Exception {
     String content = "";
-    File f = new File(cwd, "endpoint.dat");
+    File f = new File(cwd, Constants.ENDPOINT_DAT);
     for(int i = 0;i < NUM_ATTEMPTS;i++) {
       if(f.exists()) {
         try {
