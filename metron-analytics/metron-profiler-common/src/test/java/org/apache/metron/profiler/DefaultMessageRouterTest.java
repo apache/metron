@@ -119,6 +119,62 @@ public class DefaultMessageRouterTest {
   @Multiline
   private String exclusiveProfile;
 
+  /**
+   * {
+   *   "profiles": [
+   *      {
+   *        "profile": "bad-profile",
+   *        "foreach": "2 / 0",
+   *        "init":   { "x": "0" },
+   *        "update": { "x": "x + 1" },
+   *        "result": "x"
+   *      }
+   *   ]
+   * }
+   */
+  @Multiline
+  private String badForeach;
+
+  /**
+   * {
+   *   "profiles": [
+   *      {
+   *        "profile": "bad-profile",
+   *        "onlyif": "2 / 0",
+   *        "foreach": "ip_src_addr",
+   *        "init":   { "x": "0" },
+   *        "update": { "x": "x + 1" },
+   *        "result": "x"
+   *      }
+   *   ]
+   * }
+   */
+  @Multiline
+  private String badOnlyif;
+
+  /**
+   * {
+   *   "profiles": [
+   *      {
+   *        "profile": "bad-profile",
+   *        "foreach": "2 / 0",
+   *        "init":   { "x": "0" },
+   *        "update": { "x": "x + 1" },
+   *        "result": "x"
+   *      },
+   *      {
+   *        "profile": "good-profile",
+   *        "foreach": "ip_src_addr",
+   *        "init":   { "x": "0" },
+   *        "update": { "x": "x + 1" },
+   *        "result": "x"
+   *      }
+   *   ]
+   * }
+   */
+  @Multiline
+  private String goodAndBad;
+
   private DefaultMessageRouter router;
   private Context context;
 
@@ -179,5 +235,37 @@ public class DefaultMessageRouterTest {
   public void testExclusiveProfile() throws Exception {
     List<MessageRoute> routes = router.route(messageOne, createConfig(exclusiveProfile), context);
     assertEquals(0, routes.size());
+  }
+
+  /**
+   * If a profile has a bad foreach expression, any exceptions need caught and the profile needs to be ignored.
+   */
+  @Test
+  public void testWithBadForeachExpression() throws Exception {
+    List<MessageRoute> routes = router.route(messageOne, createConfig(badForeach), context);
+    assertEquals(0, routes.size());
+  }
+
+  /**
+   * If a profile has a bad foreach expression, any exceptions need caught and the profile needs to be ignored.
+   */
+  @Test
+  public void testWithBadOnlyifExpression() throws Exception {
+    List<MessageRoute> routes = router.route(messageOne, createConfig(badForeach), context);
+    assertEquals(0, routes.size());
+  }
+
+  /**
+   * What happens if there are good and bad profiles?  The good profiles need routes, the bad profiles need
+   * to be ignored.
+   */
+  @Test
+  public void testWithGoodAndBad() throws Exception {
+    List<MessageRoute> routes = router.route(messageOne, createConfig(goodAndBad), context);
+
+    assertEquals(1, routes.size());
+    MessageRoute route1 = routes.get(0);
+    assertEquals("good-profile", route1.getProfileDefinition().getProfile());
+    assertEquals(messageOne.get("ip_src_addr"), route1.getEntity());
   }
 }
