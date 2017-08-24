@@ -73,10 +73,9 @@ public class AlertsProfile {
 
     AlertsProfile that = (AlertsProfile) o;
 
-    return id != null ? id.equals(that.id)
-        : that.id == null && (tableColumns != null ? tableColumns.equals(that.tableColumns)
-            : that.tableColumns == null && (savedSearches != null ? savedSearches
-                .equals(that.savedSearches) : that.savedSearches == null));
+    return id != null ? id.equals(that.id) : that.id == null &&
+        (tableColumns != null ? tableColumns.equals(that.tableColumns) : that.tableColumns == null &&
+        (savedSearches != null ? savedSearches.equals(that.savedSearches) : that.savedSearches == null));
   }
 
   @Override

@@ -119,11 +119,11 @@ public class SearchRequest {
 
     SearchRequest that = (SearchRequest) o;
 
-    return indices != null ? indices.equals(that.indices) : that.indices == null
-        && (query != null ? query.equals(that.query)
-        : that.query == null) && size == that.size && from == that.from && (sort != null ? sort.equals(that.sort)
-        : that.sort == null) && (facetFields != null ? facetFields.equals(that.facetFields)
-        : that.facetFields == null);
+    return indices != null ? indices.equals(that.indices) : that.indices == null &&
+        (query != null ? query.equals(that.query) : that.query == null) && size == that.size &&
+        from == that.from &&
+        (sort != null ? sort.equals(that.sort) : that.sort == null) &&
+        (facetFields != null ? facetFields.equals(that.facetFields) : that.facetFields == null);
   }
 
   @Override

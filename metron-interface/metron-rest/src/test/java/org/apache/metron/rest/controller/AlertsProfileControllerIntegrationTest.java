@@ -1,19 +1,16 @@
 /**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more contributor license
+ * agreements.  See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership.  The ASF licenses this file to you under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with the License.  You may obtain
+ * a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 
 package org.apache.metron.rest.controller;
@@ -51,10 +48,28 @@ import org.springframework.web.context.WebApplicationContext;
 public class AlertsProfileControllerIntegrationTest {
 
   /**
-   * { "tableColumns": ["user1_field"], "savedSearches": [ { "name": "user1 search 1",
-   * "searchRequest": { "from": 0, "indices": ["bro"], "query": "*", "size": 5 } },
-   * { "name": "user1 search 2", "searchRequest": { "from": 10, "indices": ["snort"],
-   * "query": "*", "size": 10 } } ]
+   * {
+   *   "tableColumns": ["user1_field"],
+   *   "savedSearches": [
+   *     {
+   *       "name": "user1 search 1",
+   *       "searchRequest": {
+   *         "from": 0,
+   *         "indices": ["bro"],
+   *         "query": "*",
+   *         "size": 5
+   *       }
+   *     },
+   *     {
+   *       "name": "user1 search 2",
+   *       "searchRequest": {
+   *         "from": 10,
+   *         "indices": ["snort"],
+   *         "query": "*",
+   *         "size": 10
+   *       }
+   *     }
+   *   ]
    * }
    */
   @Multiline
@@ -62,26 +77,23 @@ public class AlertsProfileControllerIntegrationTest {
 
 
   /**
-   * { "tableColumns": ["user2_field"], "savedSearches": [ { "name": "user2 search 1",
-   * "searchRequest": { "from": 0, "indices": ["bro", "snort"], "query": "ip_src_addr:192.168.1.1",
-   * "size": 100 } } ] }
+   * {
+   *   "tableColumns": ["user2_field"],
+   *   "savedSearches": [
+   *     {
+   *       "name": "user2 search 1",
+   *       "searchRequest": {
+   *         "from": 0,
+   *         "indices": ["bro", "snort"],
+   *         "query": "ip_src_addr:192.168.1.1",
+   *         "size": 100
+   *       }
+   *     }
+   *   ]
+   * }
    */
   @Multiline
   public static String user2ProfileJson;
-
-  /**
-   * { "tableColumns": ["user2_field"], "savedSearches": [] }
-   */
-  @Multiline
-  public static String testJson;
-
-  /**
-   * { "sampleData":"1467011157.401 415 127.0.0.1 TCP_MISS/200 337891 GET
-   * http://www.aliexpress.com/af/shoes.html? - DIRECT/207.109.73.154 text/html",
-   * "patternLabel":"SQUID" }
-   */
-  @Multiline
-  public static String missingStatementGrokValidationJson;
 
   @Autowired
   private WebApplicationContext wac;
