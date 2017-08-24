@@ -227,15 +227,16 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
   }
 
   /**
-   * What happens when invalid Stella code is used for 'onlyif'?
+   * What happens when invalid Stella code is used for 'onlyif'?  The invalid profile should be ignored.
    */
-  @Test(expected = org.apache.metron.stellar.dsl.ParseException.class)
+  @Test
   public void testOnlyIfInvalid() throws Exception {
 
     // setup
     ProfileSplitterBolt bolt = createBolt(onlyIfInvalid);
-
-    // execute
     bolt.execute(tuple);
+
+    // a tuple should NOT be emitted for the downstream profile builder
+    verify(outputCollector, times(0)).emit(any(Values.class));
   }
 }
