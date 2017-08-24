@@ -22,11 +22,11 @@ package org.apache.metron.profiler;
 
 import static java.lang.String.format;
 
-import com.google.common.collect.ImmutableMap;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -147,6 +147,7 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
   public Optional<ProfileMeasurement> flush() {
     LOG.debug("Flushing profile: profile={}, entity={}", profileName, entity);
     Optional<ProfileMeasurement> result = Optional.empty();
+    ProfilePeriod period = new ProfilePeriod(clock.currentTimeMillis(), periodDurationMillis, TimeUnit.MILLISECONDS);
 
     try {
       // execute the 'profile' expression(s)
@@ -160,21 +161,30 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
                       e -> e.getKey(),
                       e -> execute(e.getValue(), "result/triage")));
 
+      // the state that will be made available to the `groupBy` expression
+      Map<String, Object> state = new HashMap<>();
+      state.put("profile", profileName);
+      state.put("entity", entity);
+      state.put("start", period.getStartTimeMillis());
+      state.put("end", period.getEndTimeMillis());
+      state.put("duration", period.getDurationMillis());
+      state.put("result", profileValue);
+
       // execute the 'groupBy' expression(s) - can refer to value of 'result' expression
-      List<Object> groups = execute(definition.getGroupBy(), ImmutableMap.of("result", profileValue), "groupBy");
+      List<Object> groups = execute(definition.getGroupBy(), state, "groupBy");
 
       result = Optional.of(new ProfileMeasurement()
               .withProfileName(profileName)
               .withEntity(entity)
               .withGroups(groups)
-              .withPeriod(clock.currentTimeMillis(), periodDurationMillis, TimeUnit.MILLISECONDS)
+              .withPeriod(period)
               .withProfileValue(profileValue)
               .withTriageValues(triageValues)
               .withDefinition(definition));
 
     } catch(Throwable e) {
       // if any of the Stellar expressions fail, a measurement should NOT be returned
-      LOG.error(format("Unable to flush profile: %s", e.getMessage()), e);
+      LOG.error(format("Unable to flush profile: error=%s", e.getMessage()), e);
     }
 
     isInitialized = false;
@@ -227,7 +237,6 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
   private Object execute(String expression, String expressionType) {
     return execute(expression, Collections.emptyMap(), expressionType);
   }
-
 
   /**
    * Executes a set of expressions whose results need to be assigned to a variable.
