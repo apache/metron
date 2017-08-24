@@ -29,6 +29,7 @@ import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -98,8 +99,8 @@ public class DefaultMessageDistributor implements MessageDistributor {
 
     profileCache.asMap().forEach((key, profileBuilder) -> {
       if(profileBuilder.isInitialized()) {
-        ProfileMeasurement measurement = profileBuilder.flush();
-        measurements.add(measurement);
+        Optional<ProfileMeasurement> measurement = profileBuilder.flush();
+        measurement.ifPresent(measurements::add);
       }
     });
 
