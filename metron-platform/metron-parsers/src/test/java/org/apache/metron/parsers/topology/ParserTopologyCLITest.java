@@ -142,7 +142,8 @@ public class ParserTopologyCLITest {
                                      .with(ParserTopologyCLI.ParserOptions.NUM_MAX_TASK_PARALLELISM, "3")
                                      .with(ParserTopologyCLI.ParserOptions.MESSAGE_TIMEOUT, "4")
                                      .build(longOpt);
-    Config config = ParserTopologyCLI.ParserOptions.getConfig(cli);
+    Optional<Config> configOptional = ParserTopologyCLI.ParserOptions.getConfig(cli);
+    Config config = configOptional.get();
     Assert.assertEquals(1, config.get(Config.TOPOLOGY_WORKERS));
     Assert.assertEquals(2, config.get(Config.TOPOLOGY_ACKER_EXECUTORS));
     Assert.assertEquals(3, config.get(Config.TOPOLOGY_MAX_TASK_PARALLELISM));
@@ -189,7 +190,8 @@ public class ParserTopologyCLITest {
               .with(ParserTopologyCLI.ParserOptions.MESSAGE_TIMEOUT, "4")
               .with(ParserTopologyCLI.ParserOptions.EXTRA_OPTIONS, extraFile.getAbsolutePath())
               .build(longOpt);
-      Config config = ParserTopologyCLI.ParserOptions.getConfig(cli);
+      Optional<Config> configOptional = ParserTopologyCLI.ParserOptions.getConfig(cli);
+      Config config = configOptional.get();
       Assert.assertEquals(4, config.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS));
       Assert.assertEquals("foo", config.get("string"));
       Assert.assertEquals(1, config.get("integer"));
