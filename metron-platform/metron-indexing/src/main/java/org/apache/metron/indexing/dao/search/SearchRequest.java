@@ -28,6 +28,7 @@ public class SearchRequest {
   private int size;
   private int from;
   private List<SortField> sort;
+  private List<String> fields;
   private List<String> facetFields;
 
   public SearchRequest() {
@@ -97,6 +98,14 @@ public class SearchRequest {
 
   public void setSort(List<SortField> sort) {
     this.sort = sort;
+  }
+
+  public Optional<List<String>> getFields() {
+    return fields == null || fields.size() == 0 ? Optional.empty() : Optional.of(fields);
+  }
+
+  public void setFields(List<String> fields) {
+    this.fields = fields;
   }
 
   public Optional<List<String>> getFacetFields() {
