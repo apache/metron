@@ -28,6 +28,8 @@ import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
+import org.apache.storm.shade.org.apache.commons.lang.ClassUtils;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.slf4j.LoggerFactory;
@@ -107,7 +109,7 @@ public class ProfilerFunctions {
           name="APPLY",
           description="Apply a message to a local profile runner.",
           params={
-                  "message", "The message to apply.",
+                  "message(s)", "The message to apply.  A JSON list can be used to apply multiple messages.",
                   "profiler", "A local profile runner returned by PROFILER_INIT."
           },
           returns="The local profile runner."
@@ -129,16 +131,33 @@ public class ProfilerFunctions {
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
 
-      // user must provide the json telemetry message
+      // user must provide the message as a string
       String arg0 = Util.getArg(0, String.class, args);
       if(arg0 == null) {
         throw new IllegalArgumentException(format("expected string, found null"));
       }
 
-      // parse the message
-      JSONObject message;
+      // there could be one or more messages
+      List<JSONObject> messages = new ArrayList<>();
       try {
-        message = (JSONObject) parser.parse(arg0);
+        Object parsedArg0 = parser.parse(arg0);
+        if(parsedArg0 instanceof JSONObject) {
+          // if there is only one message
+          messages.add((JSONObject) parsedArg0);
+
+        } else if(parsedArg0 instanceof JSONArray) {
+          // there are multiple messages
+          JSONArray jsonArray = (JSONArray) parsedArg0;
+          for(Object json: jsonArray) {
+            if(json instanceof JSONObject) {
+              messages.add((JSONObject) json);
+
+            } else {
+              throw new IllegalArgumentException(format("invalid message: found '%s', expected JSONObject",
+                              ClassUtils.getShortClassName(json, "null")));
+            }
+          }
+        }
 
       } catch(org.json.simple.parser.ParseException e) {
         throw new IllegalArgumentException("invalid message", e);
@@ -147,10 +166,12 @@ public class ProfilerFunctions {
       // user must provide the stand alone profiler
       StandAloneProfiler profiler = Util.getArg(1, StandAloneProfiler.class, args);
       try {
-        profiler.apply(message);
+        for(JSONObject message : messages) {
+          profiler.apply(message);
+        }
 
       } catch(ExecutionException e) {
-        throw new IllegalArgumentException(e);
+        throw new IllegalArgumentException(format("Failed to apply message; error=%s", e.getMessage()), e);
       }
 
       return profiler;
