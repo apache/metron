@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.ListUtils;
@@ -120,15 +121,18 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
    * @param message The message to apply.
    */
   @Override
-  @SuppressWarnings("unchecked")
   public void apply(JSONObject message) {
+    try {
+      if (!isInitialized()) {
+        assign(definition.getInit(), message, "init");
+        isInitialized = true;
+      }
 
-    if(!isInitialized()) {
-      assign(definition.getInit(), message, "init");
-      isInitialized = true;
+      assign(definition.getUpdate(), message, "update");
+
+    } catch(Throwable e) {
+      LOG.error(format("Unable to apply message to profile: %s", e.getMessage()), e);
     }
-
-    assign(definition.getUpdate(), message, "update");
   }
 
   /**
@@ -140,33 +144,41 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
    * @return Returns the completed profile measurement.
    */
   @Override
-  public ProfileMeasurement flush() {
+  public Optional<ProfileMeasurement> flush() {
     LOG.debug("Flushing profile: profile={}, entity={}", profileName, entity);
+    Optional<ProfileMeasurement> result = Optional.empty();
 
-    // execute the 'profile' expression(s)
-    @SuppressWarnings("unchecked")
-    Object profileValue = execute(definition.getResult().getProfileExpressions().getExpression(), "result/profile");
+    try {
+      // execute the 'profile' expression(s)
+      Object profileValue = execute(definition.getResult().getProfileExpressions().getExpression(), "result/profile");
 
-    // execute the 'triage' expression(s)
-    Map<String, Object> triageValues = definition.getResult().getTriageExpressions().getExpressions()
-            .entrySet()
-            .stream()
-            .collect(Collectors.toMap(
-                    e -> e.getKey(),
-                    e -> execute(e.getValue(), "result/triage")));
+      // execute the 'triage' expression(s)
+      Map<String, Object> triageValues = definition.getResult().getTriageExpressions().getExpressions()
+              .entrySet()
+              .stream()
+              .collect(Collectors.toMap(
+                      e -> e.getKey(),
+                      e -> execute(e.getValue(), "result/triage")));
 
-    // execute the 'groupBy' expression(s) - can refer to value of 'result' expression
-    List<Object> groups = execute(definition.getGroupBy(), ImmutableMap.of("result", profileValue), "groupBy");
+      // execute the 'groupBy' expression(s) - can refer to value of 'result' expression
+      List<Object> groups = execute(definition.getGroupBy(), ImmutableMap.of("result", profileValue), "groupBy");
+
+      result = Optional.of(new ProfileMeasurement()
+              .withProfileName(profileName)
+              .withEntity(entity)
+              .withGroups(groups)
+              .withPeriod(clock.currentTimeMillis(), periodDurationMillis, TimeUnit.MILLISECONDS)
+              .withProfileValue(profileValue)
+              .withTriageValues(triageValues)
+              .withDefinition(definition));
+
+    } catch(Throwable e) {
+      // if any of the Stellar expressions fail, a measurement should NOT be returned
+      LOG.error(format("Unable to flush profile: %s", e.getMessage()), e);
+    }
 
     isInitialized = false;
-    return new ProfileMeasurement()
-            .withProfileName(profileName)
-            .withEntity(entity)
-            .withGroups(groups)
-            .withPeriod(clock.currentTimeMillis(), periodDurationMillis, TimeUnit.MILLISECONDS)
-            .withProfileValue(profileValue)
-            .withTriageValues(triageValues)
-            .withDefinition(definition);
+    return result;
   }
 
   /**
@@ -233,7 +245,7 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
     } catch(ParseException e) {
 
       // make it brilliantly clear that one of the 'update' expressions is bad
-      String msg = format("Bad '%s' expression: %s, profile=%s, entity=%s", expressionType, e.getMessage(), profileName, entity);
+      String msg = format("Bad '%s' expression: error=%s, profile=%s, entity=%s", expressionType, e.getMessage(), profileName, entity);
       throw new ParseException(msg, e);
     }
   }
@@ -253,7 +265,8 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
               .forEach((expr) -> results.add(executor.execute(expr, transientState, Object.class)));
 
     } catch (Throwable e) {
-      String msg = format("Bad '%s' expression: %s, profile=%s, entity=%s", expressionType, e.getMessage(), profileName, entity);
+      String msg = format("Bad '%s' expression: error=%s, profile=%s, entity=%s", expressionType, e.getMessage(), profileName, entity);
+      LOG.error(msg, e);
       throw new ParseException(msg, e);
     }
 
