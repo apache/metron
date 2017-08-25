@@ -55,15 +55,6 @@ update_cf = 't'
 # Profiler
 metron_profiler_topology = 'profiler'
 profiler_input_topic = config['configurations']['metron-enrichment-env']['enrichment_output_topic']
-profiler_kafka_start = config['configurations']['metron-profiler-env']['profiler_kafka_start']
-profiler_period_duration = config['configurations']['metron-profiler-env']['profiler_period_duration']
-profiler_period_units = config['configurations']['metron-profiler-env']['profiler_period_units']
-profiler_ttl = config['configurations']['metron-profiler-env']['profiler_ttl']
-profiler_ttl_units = config['configurations']['metron-profiler-env']['profiler_ttl_units']
-profiler_hbase_batch = config['configurations']['metron-profiler-env']['profiler_hbase_batch']
-profiler_hbase_flush_interval = config['configurations']['metron-profiler-env']['profiler_hbase_flush_interval']
-profiler_topology_workers = config['configurations']['metron-profiler-env']['profiler_topology_workers']
-profiler_topology_executors = config['configurations']['metron-profiler-env']['profiler_topology_executors']
 profiler_hbase_table = config['configurations']['metron-profiler-env']['profiler_hbase_table']
 profiler_hbase_cf = config['configurations']['metron-profiler-env']['profiler_hbase_cf']
 profiler_configured_flag_file = metron_zookeeper_config_path + '/../metron_profiler_configured'

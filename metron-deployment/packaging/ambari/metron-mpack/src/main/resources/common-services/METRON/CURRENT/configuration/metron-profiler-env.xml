@@ -159,9 +159,9 @@
     <display-name>Number of Workers</display-name>
   </property>
   <property>
-    <name>profiler_topology_executors</name>
+    <name>profiler_acker_executors</name>
     <value>0</value>
-    <description>The profiler storm topology executors</description>
-    <display-name>Number of Executors</display-name>
+    <description>The profiler storm topology acker executors</description>
+    <display-name>Number of Acker Executors</display-name>
   </property>
 </configuration>

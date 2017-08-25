@@ -265,13 +265,16 @@ profiler_ttl_units = config['configurations']['metron-profiler-env']['profiler_t
 profiler_hbase_batch = config['configurations']['metron-profiler-env']['profiler_hbase_batch']
 profiler_hbase_flush_interval = config['configurations']['metron-profiler-env']['profiler_hbase_flush_interval']
 profiler_topology_workers = config['configurations']['metron-profiler-env']['profiler_topology_workers']
-profiler_topology_executors = config['configurations']['metron-profiler-env']['profiler_topology_executors']
+profiler_acker_executors = config['configurations']['metron-profiler-env']['profiler_acker_executors']
 profiler_hbase_table = config['configurations']['metron-profiler-env']['profiler_hbase_table']
 profiler_hbase_cf = config['configurations']['metron-profiler-env']['profiler_hbase_cf']
 profiler_configured_flag_file = status_params.profiler_configured_flag_file
 profiler_acl_configured_flag_file = status_params.indexing_acl_configured_flag_file
 profiler_hbase_configured_flag_file = status_params.profiler_hbase_configured_flag_file
 profiler_hbase_acl_configured_flag_file = status_params.profiler_hbase_acl_configured_flag_file
+if not len(profiler_topology_worker_childopts) == 0:
+    profiler_topology_worker_childopts += ' '
+profiler_topology_worker_childopts += config['configurations']['metron-profiler-env']['profiler_topology_worker_childopts']
 
 # Indexing
 indexing_kafka_start = config['configurations']['metron-indexing-env']['indexing_kafka_start']

@@ -65,7 +65,7 @@
             "display-name": "Enrichment",
             "layout": {
               "tab-columns": "1",
-              "tab-rows": "4",
+              "tab-rows": "3",
               "sections": [
                 {
                   "name": "section-enrichment-adapters",
@@ -132,7 +132,7 @@
             "display-name": "Indexing",
             "layout": {
               "tab-columns": "1",
-              "tab-rows": "3",
+              "tab-rows": "4",
               "sections": [
                 {
                   "name": "section-indexing-kafka",
@@ -155,7 +155,7 @@
                 },
                 {
                   "name": "section-indexing-update",
-                  "row-index": "0",
+                  "row-index": "1",
                   "column-index": "0",
                   "row-span": "1",
                   "column-span": "1",
@@ -174,7 +174,7 @@
                 },
                 {
                   "name": "section-indexing-storm",
-                  "row-index": "1",
+                  "row-index": "2",
                   "column-index": "0",
                   "row-span": "1",
                   "column-span": "1",
@@ -193,7 +193,7 @@
                 },
                 {
                   "name": "section-indexing-hdfs",
-                  "row-index": "2",
+                  "row-index": "3",
                   "column-index": "0",
                   "row-span": "1",
                   "column-span": "1",
@@ -241,7 +241,7 @@
               },
               {
                 "name": "section-profiler-setup",
-                "row-index": "0",
+                "row-index": "1",
                 "column-index": "0",
                 "row-span": "1",
                 "column-span": "1",
@@ -260,7 +260,7 @@
               },
               {
                 "name": "section-profiler-storm",
-                "row-index": "1",
+                "row-index": "2",
                 "column-index": "0",
                 "row-span": "1",
                 "column-span": "1",
@@ -565,7 +565,7 @@
           "subsection-name": "subsection-profiler-storm"
         },
         {
-          "config": "metron-profiler-env/profiler_topology_executors",
+          "config": "metron-profiler-env/profiler_acker_executors",
           "subsection-name": "subsection-profiler-storm"
         },
         {
@@ -962,7 +962,7 @@
         }
       },
       {
-        "config": "metron-profiler-env/profiler_topology_executors",
+        "config": "metron-profiler-env/profiler_acker_executors",
         "widget": {
           "type": "text-field"
         }
