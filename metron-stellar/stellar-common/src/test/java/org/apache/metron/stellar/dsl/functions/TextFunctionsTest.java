@@ -15,18 +15,16 @@
 
 package org.apache.metron.stellar.dsl.functions;
 
-import java.util.Arrays;
+import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
+import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
+
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
-import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
 
 public class TextFunctionsTest {
 
@@ -52,9 +50,9 @@ public class TextFunctionsTest {
 
   @Test()
   public void testNoMatchStrings() throws Exception {
-    runPredicate("0 == FUZZY_SCORE(metron,'z',english)",
+    Assert.assertTrue(runPredicate("0 == FUZZY_SCORE(metron,'z',english)",
         new DefaultVariableResolver(v -> variableMap.get(v),
-            v -> variableMap.containsKey(v)));
+            v -> variableMap.containsKey(v))));
   }
 
   @Test(expected = ParseException.class)
@@ -66,15 +64,15 @@ public class TextFunctionsTest {
 
   @Test()
   public void testEmptyFirstArg() throws Exception {
-    runPredicate("0 == FUZZY_SCORE(empty,'z',english)",
-        new DefaultVariableResolver(v -> variableMap.get(v), v -> variableMap.containsKey(v)));
+    Assert.assertTrue(runPredicate("0 == FUZZY_SCORE(empty,'z',english)",
+        new DefaultVariableResolver(v -> variableMap.get(v), v -> variableMap.containsKey(v))));
   }
 
   @Test()
   public void testEmptyFirstTwoArgs() throws Exception {
-    runPredicate("0 == FUZZY_SCORE(empty,empty,english)",
+    Assert.assertTrue(runPredicate("0 == FUZZY_SCORE(empty,empty,english)",
         new DefaultVariableResolver(v -> variableMap.get(v),
-            v -> variableMap.containsKey(v)));
+            v -> variableMap.containsKey(v))));
   }
 
   @Test(expected = ParseException.class)
