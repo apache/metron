@@ -51,6 +51,53 @@ public class StellarTransformationTest {
 
   /** { "fieldTransformations" : [
         { "transformation" : "STELLAR"
+        ,"output" : [ "new_field", "new_field2", "old_field", "old_field2"]
+        ,"config" : {
+          "new_field" : "old_field"
+         ,"new_field2" : "old_field2"
+         ,"old_field" : "null"
+         ,"old_field2" : "null"
+                    }
+        }
+                                ]
+      }
+   */
+  @Multiline
+  public static String configRename;
+
+ @Test
+ public void testStellarRename() throws Exception {
+
+   SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(configRename));
+   {
+     JSONObject input = new JSONObject();
+     input.put("old_field", "val");
+     input.put("old_field2", "val2");
+     for (FieldTransformer handler : c.getFieldTransformations()) {
+       handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
+     }
+     Assert.assertEquals(2, input.size());
+     Assert.assertTrue(input.containsKey("new_field"));
+     Assert.assertEquals("val", input.get("new_field"));
+     Assert.assertEquals("val2", input.get("new_field2"));
+     Assert.assertTrue(!input.containsKey("old_field"));
+     Assert.assertTrue(!input.containsKey("old_field2"));
+   }
+   {
+     JSONObject input = new JSONObject();
+     input.put("old_field", "val");
+     for (FieldTransformer handler : c.getFieldTransformations()) {
+       handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
+     }
+
+     Assert.assertEquals(1, input.size());
+     Assert.assertTrue(input.containsKey("new_field"));
+     Assert.assertEquals("val", input.get("new_field"));
+   }
+ }
+
+  /** { "fieldTransformations" : [
+        { "transformation" : "STELLAR"
         ,"output" : [ "full_hostname", "domain_without_subdomains" ]
         ,"config" : {
           "full_hostname" : "URL_TO_HOST('http://1234567890123456789012345678901234567890123456789012345678901234567890/index.html')"
