@@ -21,6 +21,10 @@ package org.apache.metron.parsers.topology.config;
 import org.apache.metron.common.configuration.SensorParserConfig;
 
 
+/**
+ * Supplies a value given a sensor config.
+ * @param <T>
+ */
 public interface ValueSupplier<T> {
   T get(SensorParserConfig config, Class<T> clazz);
 }

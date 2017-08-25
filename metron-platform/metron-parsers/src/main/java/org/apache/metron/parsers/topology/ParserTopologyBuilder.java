@@ -75,13 +75,16 @@ public class ParserTopologyBuilder {
    * @param zookeeperUrl             Zookeeper URL
    * @param brokerUrl                Kafka Broker URL
    * @param sensorType               Type of sensor
-   * @param spoutParallelismSupplier         Parallelism hint for the spout
-   * @param spoutNumTasksSupplier            Number of tasks for the spout
-   * @param parserParallelismSupplier        Parallelism hint for the parser bolt
-   * @param parserNumTasksSupplier           Number of tasks for the parser bolt
-   * @param errorWriterParallelismSupplier   Parallelism hint for the bolt that handles errors
-   * @param errorWriterNumTasksSupplier      Number of tasks for the bolt that handles errors
-   * @param kafkaSpoutConfigSupplier         Configuration options for the kafka spout
+   * @param spoutParallelismSupplier         Supplier for the parallelism hint for the spout
+   * @param spoutNumTasksSupplier            Supplier for the number of tasks for the spout
+   * @param parserParallelismSupplier        Supplier for the parallelism hint for the parser bolt
+   * @param parserNumTasksSupplier           Supplier for the number of tasks for the parser bolt
+   * @param errorWriterParallelismSupplier   Supplier for the parallelism hint for the bolt that handles errors
+   * @param errorWriterNumTasksSupplier      Supplier for the number of tasks for the bolt that handles errors
+   * @param kafkaSpoutConfigSupplier         Supplier for the configuration options for the kafka spout
+   * @param securityProtocolSupplier         Supplier for the security protocol
+   * @param outputTopic                      The output kafka topic
+   * @param stormConfigSupplier              Supplier for the storm config
    * @return A Storm topology that parses telemetry data received from an external sensor
    * @throws Exception
    */
