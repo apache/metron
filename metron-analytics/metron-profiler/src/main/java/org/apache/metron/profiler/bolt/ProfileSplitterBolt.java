@@ -20,16 +20,12 @@
 
 package org.apache.metron.profiler.bolt;
 
-import java.io.UnsupportedEncodingException;
-import java.lang.invoke.MethodHandles;
-import java.util.Map;
 import org.apache.metron.common.bolt.ConfiguredProfilerBolt;
-import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
-import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
-import org.apache.metron.stellar.common.StellarStatefulExecutor;
+import org.apache.metron.profiler.MessageRouter;
+import org.apache.metron.profiler.MessageRoute;
+import org.apache.metron.profiler.DefaultMessageRouter;
 import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -41,6 +37,11 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.UnsupportedEncodingException;
+import java.lang.invoke.MethodHandles;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The bolt responsible for filtering incoming messages and directing
@@ -59,9 +60,9 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
   private transient JSONParser parser;
 
   /**
-   * Executes Stellar code.
+   * The router responsible for routing incoming messages.
    */
-  private StellarStatefulExecutor executor;
+  private MessageRouter router;
 
   /**
    * @param zookeeperUrl The Zookeeper URL that contains the configuration for this bolt.
@@ -75,18 +76,16 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
     super.prepare(stormConf, context, collector);
     this.collector = collector;
     this.parser = new JSONParser();
-    this.executor = new DefaultStellarStatefulExecutor();
-    initializeStellar();
+    this.router = new DefaultMessageRouter(getStellarContext());
   }
 
-  protected void initializeStellar() {
-    Context context = new Context.Builder()
+  private Context getStellarContext() {
+    Map<String, Object> global = getConfigurations().getGlobalConfig();
+    return new Context.Builder()
             .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
-            .with(Context.Capabilities.GLOBAL_CONFIG, () -> getConfigurations().getGlobalConfig())
-            .with(Context.Capabilities.STELLAR_CONFIG, () -> getConfigurations().getGlobalConfig())
+            .with(Context.Capabilities.GLOBAL_CONFIG, () -> global)
+            .with(Context.Capabilities.STELLAR_CONFIG, () -> global)
             .build();
-    StellarFunctions.initialize(context);
-    executor.setContext(context);
   }
 
   @Override
@@ -104,7 +103,6 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
   }
 
   private void doExecute(Tuple input) throws ParseException, UnsupportedEncodingException {
-
     // retrieve the input message
     byte[] data = input.getBinary(0);
     JSONObject message = (JSONObject) parser.parse(new String(data, "UTF8"));
@@ -113,34 +111,14 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
     ProfilerConfig config = getProfilerConfig();
     if(config != null) {
 
-      // apply the message to each of the profile definitions
-      for (ProfileConfig profile: config.getProfiles()) {
-        applyProfile(profile, input, message);
+      // emit a message for each 'route'
+      List<MessageRoute> routes = router.route(message, config, getStellarContext());
+      for(MessageRoute route : routes) {
+        collector.emit(input, new Values(route.getEntity(), route.getProfileDefinition(), message));
       }
 
     } else {
       LOG.warn("No Profiler configuration found.  Nothing to do.");
-    }
-  }
-
-  /**
-   * Applies a message to a Profile definition.
-   * @param profile The profile definition.
-   * @param input The input tuple that delivered the message.
-   * @param message The message that may be needed by the profile.
-   */
-  private void applyProfile(ProfileConfig profile, Tuple input, JSONObject message) throws ParseException, UnsupportedEncodingException {
-    @SuppressWarnings("unchecked")
-    Map<String, Object> state = (Map<String, Object>)message;
-
-    // is this message needed by this profile?
-    if (executor.execute(profile.getOnlyif(), state, Boolean.class)) {
-
-      // what is the name of the entity in this message?
-      String entity = executor.execute(profile.getForeach(), state, String.class);
-
-      // emit a message for the bolt responsible for building this profile
-      collector.emit(input, new Values(entity, profile, message));
     }
   }
 
@@ -159,11 +137,7 @@ public class ProfileSplitterBolt extends ConfiguredProfilerBolt {
     declarer.declare(new Fields("entity", "profile", "message"));
   }
 
-  public StellarStatefulExecutor getExecutor() {
-    return executor;
-  }
-
-  public void setExecutor(StellarStatefulExecutor executor) {
-    this.executor = executor;
+  protected MessageRouter getMessageRouter() {
+    return router;
   }
 }

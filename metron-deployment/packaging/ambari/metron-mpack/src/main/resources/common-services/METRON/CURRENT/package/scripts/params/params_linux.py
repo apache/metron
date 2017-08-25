@@ -45,8 +45,8 @@ metron_user = status_params.metron_user
 metron_group = config['configurations']['metron-env']['metron_group']
 metron_log_dir = config['configurations']['metron-env']['metron_log_dir']
 metron_pid_dir = config['configurations']['metron-env']['metron_pid_dir']
-metron_rest_port = config['configurations']['metron-rest-env']['metron_rest_port']
-metron_management_ui_port = config['configurations']['metron-management-ui-env']['metron_management_ui_port']
+metron_rest_port = status_params.metron_rest_port
+metron_management_ui_port = status_params.metron_management_ui_port
 metron_jvm_flags = config['configurations']['metron-rest-env']['metron_jvm_flags']
 metron_spring_profiles_active = config['configurations']['metron-rest-env']['metron_spring_profiles_active']
 metron_jdbc_driver = config['configurations']['metron-rest-env']['metron_jdbc_driver']
@@ -71,6 +71,8 @@ enrichment_hbase_acl_configured_flag_file = status_params.enrichment_hbase_acl_c
 enrichment_geo_configured_flag_file = status_params.enrichment_geo_configured_flag_file
 indexing_configured_flag_file = status_params.indexing_configured_flag_file
 indexing_acl_configured_flag_file = status_params.indexing_acl_configured_flag_file
+indexing_hbase_configured_flag_file = status_params.indexing_hbase_configured_flag_file
+indexing_hbase_acl_configured_flag_file = status_params.indexing_hbase_acl_configured_flag_file
 indexing_hdfs_perm_configured_flag_file = status_params.indexing_hdfs_perm_configured_flag_file
 global_json_template = config['configurations']['metron-env']['global-json']
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
@@ -167,6 +169,9 @@ HdfsResource = functools.partial(
 enrichment_hbase_provider_impl = 'org.apache.metron.hbase.HTableProvider'
 enrichment_table = status_params.enrichment_table
 enrichment_cf = status_params.enrichment_cf
+update_table = status_params.update_table
+update_cf = status_params.update_cf
+
 threatintel_table = status_params.threatintel_table
 threatintel_cf = status_params.threatintel_cf
 
@@ -198,6 +203,7 @@ client_jaas_path = metron_home + '/client_jaas.conf'
 client_jaas_arg = '-Djava.security.auth.login.config=' + metron_home + '/client_jaas.conf'
 enrichment_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 indexing_topology_worker_childopts = client_jaas_arg if security_enabled else ''
+metron_jvm_flags += (' ' + client_jaas_arg) if security_enabled else ''
 topology_auto_credentials = config['configurations']['storm-site'].get('nimbus.credential.renewers.classes', [])
 # Needed for storm.config, because it needs Java String
 topology_auto_credentials_double_quotes = str(topology_auto_credentials).replace("'", '"')

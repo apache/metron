@@ -21,10 +21,13 @@ import kafka.admin.AdminUtils$;
 import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.commons.io.IOUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaComponent;
@@ -39,6 +42,9 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -48,6 +54,10 @@ import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 @Configuration
 @Profile(TEST_PROFILE)
 public class TestConfig {
+
+  static {
+    MockHBaseTableProvider.addToCache("updates", "t");
+  }
 
   @Bean
   public Properties zkProperties() {
@@ -65,7 +75,6 @@ public class TestConfig {
     return new KafkaComponent().withTopologyProperties(zkProperties);
   }
 
-
   @Bean(destroyMethod = "stop")
   public ComponentRunner componentRunner(ZKServerComponent zkServerComponent, KafkaComponent kafkaWithZKComponent) {
     ComponentRunner runner = new ComponentRunner.Builder()
@@ -74,6 +83,13 @@ public class TestConfig {
       .build();
     try {
       runner.start();
+      File globalConfigFile = new File("src/test/resources/zookeeper/global.json");
+      try(BufferedReader r = new BufferedReader(new FileReader(globalConfigFile))){
+        String globalConfig = IOUtils.toString(r);
+        ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.getBytes(), zkServerComponent.getConnectionString());
+      } catch (Exception e) {
+        throw new IllegalStateException("Unable to upload global config", e);
+      }
     } catch (UnableToStartException e) {
       e.printStackTrace();
     }

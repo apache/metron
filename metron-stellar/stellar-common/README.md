@@ -101,64 +101,65 @@ In the core language functions, we support basic functional programming primitiv
 
 ## Stellar Core Functions
 
-|                                                                                  |
-| ----------                                                                       |
-| [ `ABS`](../../metron-analytics/metron-statistics#abs)                           |
-| [ `APPEND_IF_MISSING`](#append_if_missing)                                       |
-| [ `BIN`](../../metron-analytics/metron-statistics#bin)                           |
-| [ `BLOOM_ADD`](#bloom_add)                                                       |
-| [ `BLOOM_EXISTS`](#bloom_exists)                                                 |
-| [ `BLOOM_INIT`](#bloom_init)                                                     |
-| [ `BLOOM_MERGE`](#bloom_merge)                                                   |
+|                                                                                                    |
+| ----------                                                                                         |
+| [ `ABS`](../../metron-analytics/metron-statistics#abs)                                             |
+| [ `APPEND_IF_MISSING`](#append_if_missing)                                                         |
+| [ `BIN`](../../metron-analytics/metron-statistics#bin)                                             |
+| [ `BLOOM_ADD`](#bloom_add)                                                                         |
+| [ `BLOOM_EXISTS`](#bloom_exists)                                                                   |
+| [ `BLOOM_INIT`](#bloom_init)                                                                       |
+| [ `BLOOM_MERGE`](#bloom_merge)                                                                     |
 | [ `CEILING`](#ceiling)                                                           |
 | [ `COS`](#cos)                                                                   |
-| [ `CHOP`](#chop)                                                                 |
-| [ `CHOMP`](#chomp)                                                               |
-| [ `COUNT_MATCHES`](#count_matches)                                               |
-| [ `DAY_OF_MONTH`](#day_of_month)                                                 |
-| [ `DAY_OF_WEEK`](#day_of_week)                                                   |
-| [ `DAY_OF_YEAR`](#day_of_year)                                                   |
-| [ `DECODE`](#decode)                                                             |
-| [ `DOMAIN_REMOVE_SUBDOMAINS`](#domain_remove_subdomains)                         |
-| [ `DOMAIN_REMOVE_TLD`](#domain_remove_tld)                                       |
-| [ `DOMAIN_TO_TLD`](#domain_to_tld)                                               |
-| [ `ENCODE`](#encode)                                                             |
-| [ `ENDS_WITH`](#ends_with)                                                       |
-| [ `ENRICHMENT_EXISTS`](#enrichment_exists)                                       |
-| [ `ENRICHMENT_GET`](#enrichment_get)                                             |
+| [ `CHOP`](#chop)                                                                                   |
+| [ `CHOMP`](#chomp)                                                                                 |
+| [ `COUNT_MATCHES`](#count_matches)                                                                 |
+| [ `DAY_OF_MONTH`](#day_of_month)                                                                   |
+| [ `DAY_OF_WEEK`](#day_of_week)                                                                     |
+| [ `DAY_OF_YEAR`](#day_of_year)                                                                     |
+| [ `DECODE`](#decode)                                                                               |
+| [ `DOMAIN_REMOVE_SUBDOMAINS`](#domain_remove_subdomains)                                           |
+| [ `DOMAIN_REMOVE_TLD`](#domain_remove_tld)                                                         |
+| [ `DOMAIN_TO_TLD`](#domain_to_tld)                                                                 |
+| [ `ENCODE`](#encode)                                                                               |
+| [ `ENDS_WITH`](#ends_with)                                                                         |
+| [ `ENRICHMENT_EXISTS`](#enrichment_exists)                                                         |
+| [ `ENRICHMENT_GET`](#enrichment_get)                                                               |
 | [ `EXP`](#exp)                                                                   |
-| [ `FILL_LEFT`](#fill_left)                                                       |
-| [ `FILL_RIGHT`](#fill_right)                                                     |
-| [ `FILTER`](#filter)                                                             |
+| [ `FILL_LEFT`](#fill_left)                                                                         |
+| [ `FILL_RIGHT`](#fill_right)                                                                       |
+| [ `FILTER`](#filter)                                                                               |
 | [ `FLOOR`](#floor)                                                               |
-| [ `FORMAT`](#format)                                                             |
 | [ `FUZZY_LANGS`](#fuzzy_langs)                                                   |
 | [ `FUZZY_SCORE`](#fuzzy_score)                                                   |
-| [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality) |
-| [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)               |
-| [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)             |
-| [ `HLLP_OFFER`](../../metron-analytics/metron-statistics#hllp_offer)             |
-| [ `GEO_GET`](#geo_get)                                                           |
-| [ `GET`](#get)                                                                   |
-| [ `GET_FIRST`](#get_first)                                                       |
-| [ `GET_LAST`](#get_last)                                                         |
-| [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)                           |
-| [ `IN_SUBNET`](#in_subnet)                                                       |
-| [ `IS_DATE`](#is_date)                                                           |
-| [ `IS_ENCODING`](#is_encoding)                                                   |
-| [ `IS_DOMAIN`](#is_domain)                                                       |
-| [ `IS_EMAIL`](#is_email)                                                         |
-| [ `IS_EMPTY`](#is_empty)                                                         |
-| [ `IS_INTEGER`](#is_integer)                                                     |
-| [ `IS_IP`](#is_ip)                                                               |
-| [ `IS_URL`](#is_url)                                                             |
-| [ `JOIN`](#join)                                                                 |
-| [ `KAFKA_GET`](#kafka_get)                                                       |
-| [ `KAFKA_PROPS`](#kafka_props)                                                   |
-| [ `KAFKA_PUT`](#kafka_put)                                                       |
-| [ `KAFKA_TAIL`](#kafka_tail)                                                     |
-| [ `LENGTH`](#length)                                                             |
-| [ `LIST_ADD`](#list_add)                                                                               |
+| [ `FORMAT`](#format)                                                                               |
+| [ `GEO_GET`](#geo_get)                                                                             |
+| [ `GET`](#get)                                                                                     |
+| [ `GET_FIRST`](#get_first)                                                                         |
+| [ `GET_LAST`](#get_last)                                                                           |
+| [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)                                           |
+| [ `HASH`](#hash)                                                                           |
+| [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality)                   |
+| [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
+| [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)                               |
+| [ `HLLP_OFFER`](../../metron-analytics/metron-statistics#hllp_offer)                               |
+| [ `IN_SUBNET`](#in_subnet)                                                                         |
+| [ `IS_DATE`](#is_date)                                                                             |
+| [ `IS_ENCODING`](#is_encoding)                                                                     |
+| [ `IS_DOMAIN`](#is_domain)                                                                         |
+| [ `IS_EMAIL`](#is_email)                                                                           |
+| [ `IS_EMPTY`](#is_empty)                                                                           |
+| [ `IS_INTEGER`](#is_integer)                                                                       |
+| [ `IS_IP`](#is_ip)                                                                                 |
+| [ `IS_URL`](#is_url)                                                                               |
+| [ `JOIN`](#join)                                                                                   |
+| [ `KAFKA_GET`](#kafka_get)                                                                         |
+| [ `KAFKA_PROPS`](#kafka_props)                                                                     |
+| [ `KAFKA_PUT`](#kafka_put)                                                                         |
+| [ `KAFKA_TAIL`](#kafka_tail)                                                                       |
+| [ `LENGTH`](#length)                                                                               |
+| [ `LIST_ADD`](#list_add)                                                                           |
 | [ `LOG2`](#log2)                                                                               |
 | [ `LOG10`](#log10)                                                                               |
 | [ `LN`](#ln)                                                                               |
@@ -445,12 +446,25 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * input - List
   * Returns: First element of the list
+  
+### `GET_HASHES_AVAILABLE`
+  * Description: Will return all available hashing algorithms available to 'HASH'.
+  * Returns: A list containing all supported hashing algorithms.
 
 ### `GET_LAST`
   * Description: Returns the last element of the list
   * Input:
     * input - List
   * Returns: Last element of the list
+
+### `HASH`
+  * Description: Hashes a given value using the given hashing algorithm and returns a hex encoded string.
+  * Input: 
+    * toHash - value to hash.
+    * hashType - A valid string representation of a hashing algorithm. See 'GET_HASHES_AVAILABLE'.
+  * Returns: A hex encoded string of a hashed value using the given algorithm. If 'hashType' is null 
+  then '00', padded to the necessary length, will be returned. If 'toHash' is not able to be hashed or 
+  'hashType' is null then null is returned.
 
 ### `IN_SUBNET`
   * Description: Returns true if an IP is within a subnet range.
