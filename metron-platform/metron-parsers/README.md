@@ -109,9 +109,9 @@ then it is assumed to be a regex and will match any topic matching the pattern (
 * `parserNumTasks` : The number of tasks for the parser bolt (default to `1`). This can be overridden on the command line.
 * `errorWriterParallelism` : The error writer bolt parallelism (default to `1`). This can be overridden on the command line.
 * `errorWriterNumTasks` : The number of tasks for the error writer bolt (default to `1`). This can be overridden on the command line.
-* `spoutConfig` : A map representing a custom spout config. This can be overridden on the command line.
-* `securityProtocol` : The security protocol to use for reading from kafka.  This can be overridden on the command line and also specified in the spout config via the `security.protocol` key.  If both are specified, then they are merged and the CLI will take precedence.
-* `stormConfig` : The storm config to use.  This can be overridden on the command line.  If both are specified, they are merged with CLI properties taking precedence.
+* `spoutConfig` : A map representing a custom spout config (this is a map). This can be overridden on the command line.
+* `securityProtocol` : The security protocol to use for reading from kafka (this is a string).  This can be overridden on the command line and also specified in the spout config via the `security.protocol` key.  If both are specified, then they are merged and the CLI will take precedence.
+* `stormConfig` : The storm config to use (this is a map).  This can be overridden on the command line.  If both are specified, they are merged with CLI properties taking precedence.
 
 The `fieldTransformations` is a complex object which defines a
 transformation which can be done to a message.  This transformation can 
