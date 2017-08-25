@@ -47,6 +47,10 @@ public class SensorParserConfig implements Serializable {
   private String securityProtocol = null;
   private Map<String, Object> stormConfig = new HashMap<>();
 
+  /**
+   * Return the spout parallelism.  This property will be used for the parser unless overridden on the CLI.
+   * @return
+   */
   public Integer getSpoutParallelism() {
     return spoutParallelism;
   }
@@ -55,6 +59,10 @@ public class SensorParserConfig implements Serializable {
     this.spoutParallelism = spoutParallelism;
   }
 
+  /**
+   * Return the spout num tasks.  This property will be used for the parser unless overridden on the CLI.
+   * @return
+   */
   public Integer getSpoutNumTasks() {
     return spoutNumTasks;
   }
@@ -63,6 +71,10 @@ public class SensorParserConfig implements Serializable {
     this.spoutNumTasks = spoutNumTasks;
   }
 
+  /**
+   * Return the parser parallelism.  This property will be used for the parser unless overridden on the CLI.
+   * @return
+   */
   public Integer getParserParallelism() {
     return parserParallelism;
   }
@@ -71,6 +83,10 @@ public class SensorParserConfig implements Serializable {
     this.parserParallelism = parserParallelism;
   }
 
+  /**
+   * Return the parser number of tasks.  This property will be used for the parser unless overridden on the CLI.
+   * @return
+   */
   public Integer getParserNumTasks() {
     return parserNumTasks;
   }
@@ -79,6 +95,10 @@ public class SensorParserConfig implements Serializable {
     this.parserNumTasks = parserNumTasks;
   }
 
+  /**
+   * Return the error writer bolt parallelism.  This property will be used for the parser unless overridden on the CLI.
+   * @return
+   */
   public Integer getErrorWriterParallelism() {
     return errorWriterParallelism;
   }
@@ -87,6 +107,10 @@ public class SensorParserConfig implements Serializable {
     this.errorWriterParallelism = errorWriterParallelism;
   }
 
+  /**
+   * Return the error writer bolt number of tasks.  This property will be used for the parser unless overridden on the CLI.
+   * @return
+   */
   public Integer getErrorWriterNumTasks() {
     return errorWriterNumTasks;
   }
@@ -95,6 +119,10 @@ public class SensorParserConfig implements Serializable {
     this.errorWriterNumTasks = errorWriterNumTasks;
   }
 
+  /**
+   * Return the spout config.  This includes kafka properties.  This property will be used for the parser unless overridden on the CLI.
+   * @return
+   */
   public Map<String, Object> getSpoutConfig() {
     return spoutConfig;
   }
@@ -103,6 +131,11 @@ public class SensorParserConfig implements Serializable {
     this.spoutConfig = spoutConfig;
   }
 
+  /**
+   * Return security protocol to use.  This property will be used for the parser unless overridden on the CLI.
+   * The order of precedence is CLI > spout config > config in the sensor parser config.
+   * @return
+   */
   public String getSecurityProtocol() {
     return securityProtocol;
   }
@@ -111,6 +144,10 @@ public class SensorParserConfig implements Serializable {
     this.securityProtocol = securityProtocol;
   }
 
+  /**
+   * Return Storm topologyconfig.  This property will be used for the parser unless overridden on the CLI.
+   * @return
+   */
   public Map<String, Object> getStormConfig() {
     return stormConfig;
   }
@@ -119,6 +156,10 @@ public class SensorParserConfig implements Serializable {
     this.stormConfig = stormConfig;
   }
 
+  /**
+   * Return whether or not to merge metadata sent into the message.  If true, then metadata become proper fields.
+   * @return
+   */
   public Boolean getMergeMetadata() {
     return mergeMetadata;
   }
@@ -127,6 +168,10 @@ public class SensorParserConfig implements Serializable {
     this.mergeMetadata = mergeMetadata;
   }
 
+  /**
+   * Return whether or not to read metadata at all.
+   * @return
+   */
   public Boolean getReadMetadata() {
     return readMetadata;
   }
