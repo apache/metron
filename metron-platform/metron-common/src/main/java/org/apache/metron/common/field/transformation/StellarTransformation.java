@@ -57,7 +57,13 @@ public class StellarTransformation implements FieldTransformation {
           }
           else {
             if(outputs.contains(oField)) {
-              ret.put(oField, null);
+              ret.put(oField, o);
+            }
+            if( o != null ) {
+              intermediateVariables.put(oField, o);
+            } else {
+              // remove here, in case there are other statements
+              intermediateVariables.remove(oField);
             }
           }
         }
