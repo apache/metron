@@ -240,7 +240,14 @@ public class ParserTopologyCLI {
     }
 
     public static Optional<Config> getConfig(CommandLine cli) {
-      Config config = new Config();
+      return getConfig(cli, new Config());
+    }
+
+    public static Optional<Config> getConfig(CommandLine cli, Config config) {
+      if(EXTRA_OPTIONS.has(cli)) {
+        Map<String, Object> extraOptions = readJSONMapFromFile(new File(EXTRA_OPTIONS.get(cli)));
+        config.putAll(extraOptions);
+      }
       for(ParserOptions option : ParserOptions.values()) {
         config = option.configHandler.apply(new Arg(config, option.get(cli)));
       }
@@ -290,7 +297,7 @@ public class ParserTopologyCLI {
     }
   }
 
-  public void startParser(final CommandLine cmd) throws Exception {
+  public ParserTopologyBuilder.ParserTopology createParserTopology(final CommandLine cmd) throws Exception {
     String zookeeperUrl = ParserOptions.ZK_QUORUM.get(cmd);
     Optional<String> brokerUrl = ParserOptions.BROKER_URL.has(cmd)?Optional.of(ParserOptions.BROKER_URL.get(cmd)):Optional.empty();
     String sensorType= ParserOptions.SENSOR_TYPE.get(cmd);
@@ -336,7 +343,7 @@ public class ParserTopologyCLI {
 
     ValueSupplier<Map> spoutConfig = (parserConfig, clazz) -> {
       if(ParserOptions.SPOUT_CONFIG.has(cmd)) {
-        return readSpoutConfig(new File(ParserOptions.SPOUT_CONFIG.get(cmd)));
+        return readJSONMapFromFile(new File(ParserOptions.SPOUT_CONFIG.get(cmd)));
       }
       return Optional.ofNullable(parserConfig.getSpoutConfig()).orElse(new HashMap<>());
     };
@@ -353,33 +360,17 @@ public class ParserTopologyCLI {
     };
 
     ValueSupplier<Config> stormConf = (parserConfig, clazz) -> {
-      Optional<Config> ret = ParserOptions.getConfig(cmd);
-      if(ret.isPresent()) {
-        return ret.get();
-      }
       Map<String, Object> c = parserConfig.getStormConfig();
-      if(c.isEmpty()) {
-        return new Config();
-      }
-      else {
-        Config finalConfig = new Config();
+      Config finalConfig = new Config();
+      if(c != null && !c.isEmpty()) {
         finalConfig.putAll(c);
-        return finalConfig;
       }
+      return ParserOptions.getConfig(cmd, finalConfig).orElse(new Config());
     };
 
     Optional<String> outputTopic = ParserOptions.OUTPUT_TOPIC.has(cmd)?Optional.of(ParserOptions.OUTPUT_TOPIC.get(cmd)):Optional.empty();
 
-    ParserTopologyBuilder.ParserTopology topology = getParserTopology(zookeeperUrl, brokerUrl, sensorType, spoutParallelism, spoutNumTasks, parserParallelism, parserNumTasks, errorParallelism, errorNumTasks, spoutConfig, securityProtocol, stormConf, outputTopic);
-    if (ParserOptions.TEST.has(cmd)) {
-      topology.getTopologyConfig().put(Config.TOPOLOGY_DEBUG, true);
-      LocalCluster cluster = new LocalCluster();
-      cluster.submitTopology(sensorType, topology.getTopologyConfig(), topology.getBuilder().createTopology());
-      Utils.sleep(300000);
-      cluster.shutdown();
-    } else {
-      StormSubmitter.submitTopology(sensorType, topology.getTopologyConfig(), topology.getBuilder().createTopology());
-    }
+    return getParserTopology(zookeeperUrl, brokerUrl, sensorType, spoutParallelism, spoutNumTasks, parserParallelism, parserNumTasks, errorParallelism, errorNumTasks, spoutConfig, securityProtocol, stormConf, outputTopic);
   }
 
   protected ParserTopologyBuilder.ParserTopology getParserTopology( String zookeeperUrl
@@ -425,7 +416,17 @@ public class ParserTopologyCLI {
         System.exit(0);
       }
       ParserTopologyCLI cli = new ParserTopologyCLI();
-      cli.startParser(cmd);
+      ParserTopologyBuilder.ParserTopology topology = cli.createParserTopology(cmd);
+      String sensorType= ParserOptions.SENSOR_TYPE.get(cmd);
+      if (ParserOptions.TEST.has(cmd)) {
+        topology.getTopologyConfig().put(Config.TOPOLOGY_DEBUG, true);
+        LocalCluster cluster = new LocalCluster();
+        cluster.submitTopology(sensorType, topology.getTopologyConfig(), topology.getBuilder().createTopology());
+        Utils.sleep(300000);
+        cluster.shutdown();
+      } else {
+        StormSubmitter.submitTopology(sensorType, topology.getTopologyConfig(), topology.getBuilder().createTopology());
+      }
     } catch (Exception e) {
       e.printStackTrace();
       System.exit(-1);
@@ -440,13 +441,13 @@ public class ParserTopologyCLI {
     if(!ret.isPresent()) {
       ret = Optional.ofNullable((String) spoutConfig.get("security.protocol"));
     }
-    if(ret.isPresent() && protocol.get().equalsIgnoreCase("PLAINTEXT")) {
+    if(ret.isPresent() && ret.get().equalsIgnoreCase("PLAINTEXT")) {
       ret = Optional.empty();
     }
     return ret;
   }
 
-  private static Map<String, Object> readSpoutConfig(File inputFile) {
+  private static Map<String, Object> readJSONMapFromFile(File inputFile) {
     String json = null;
     if (inputFile.exists()) {
       try {
