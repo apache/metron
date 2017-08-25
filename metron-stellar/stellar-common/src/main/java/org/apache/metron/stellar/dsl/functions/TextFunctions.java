@@ -15,6 +15,7 @@
 
 package org.apache.metron.stellar.dsl.functions;
 
+import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -23,14 +24,25 @@ import java.util.Locale;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.text.similarity.FuzzyScore;
 import org.apache.metron.stellar.dsl.BaseStellarFunction;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
 
 public class TextFunctions {
 
+  private static final List<String> tagsList;
+
+  static {
+    List<String> tags = new ArrayList<>();
+    for (Locale locale : Locale.getAvailableLocales()) {
+      tags.add(locale.toLanguageTag());
+    }
+    tagsList = ImmutableList.copyOf(tags);
+  }
+
   @Stellar(name = "LANGS",
       namespace = "FUZZY",
       description = "Returns a list of IETF BCP 47 available to the system, such as en, fr, de. "
-      + "These values may be passed to FUZZY_SCORE",
+          + "These values may be passed to FUZZY_SCORE",
       params = {},
       returns = "A list of IEF BCP 47 language tag strings")
   /**
@@ -40,11 +52,7 @@ public class TextFunctions {
 
     @Override
     public Object apply(List<Object> list) {
-      List<String> tags = new ArrayList<>();
-      for (Locale locale : Locale.getAvailableLocales()) {
-        tags.add(locale.toLanguageTag());
-      }
-      return tags;
+      return tagsList;
     }
   }
 
@@ -61,7 +69,7 @@ public class TextFunctions {
           "string - The query that will be matched against a term",
           "string - The IETF BCP 47 language code to use such as en, fr, de "
               +
-              "( SEE  GET_AVAILABLE_LANGUAGE_TAGS  and https://tools.ietf.org/html/bcp47)"
+              "( SEE  FUZZY_LANGS  and https://tools.ietf.org/html/bcp47)"
       },
       returns = "integer representing the score")
   /**
@@ -79,13 +87,22 @@ public class TextFunctions {
       Object oquery = list.get(1);
       Object olang = list.get(2);
 
+      // return 0 here, validate will pass 3 nulls
+      // if we change validate to pass default of expected type, we can differentiate
       if (!(oterm instanceof String) || !(oquery instanceof String) || !(olang instanceof String)) {
         return 0;
       }
+
       String term = (String) oterm;
       String query = (String) oquery;
       String lang = (String) olang;
-      if (StringUtils.isEmpty(term) || StringUtils.isEmpty(query) || StringUtils.isEmpty(lang)) {
+
+      if (!tagsList.contains(lang)) {
+        throw new ParseException(
+            "FUZZY_SCORE requires a valid IETF BCP47 language code see FUZZY_LANGS and https://tools.ietf.org/html/bcp47");
+      }
+      
+      if (StringUtils.isEmpty(term) || StringUtils.isEmpty(query)) {
         return 0;
       }
 

@@ -30,47 +30,74 @@ import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPr
 
 public class TextFunctionsTest {
 
+  static final Map<String, String> variableMap = new HashMap<String, String>() {{
+    put("metron", "metron");
+    put("sentence", "metron is great");
+    put("empty", "");
+    put("english", "en");
+    put("klingon", "Kling");
+    put("asf", "Apache Software Foundation");
+  }};
+
   @Test
   public void testGetAvailableLanguageTags() {
     Object ret = run("FUZZY_LANGS()", new HashMap<>());
     Assert.assertNotNull(ret);
     Assert.assertTrue(ret instanceof List);
-    List<String> tags = (List<String>)ret;
+    List<String> tags = (List<String>) ret;
     Assert.assertTrue(tags.size() > 0);
     Assert.assertTrue(tags.contains("en"));
     Assert.assertTrue(tags.contains("fr"));
   }
 
-  @Test
-  public void testStringFunctions() throws Exception {
-    final Map<String, String> variableMap = new HashMap<String, String>() {{
-      put("metron", "metron");
-      put("sentence", "metron is great");
-      put("empty", "");
-      put("english", "en");
-      put("klingon", "Kling");
-      put("asf", "Apache Software Foundation");
-    }};
-    Assert
-        .assertTrue(runPredicate("0 == FUZZY_SCORE(metron,'z',english)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
-    Assert
-        .assertTrue(runPredicate("0 == FUZZY_SCORE(metron,'z',klingon)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
-    Assert.assertTrue(runPredicate("0 == FUZZY_SCORE(empty,'z',english)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
-    Assert
-        .assertTrue(runPredicate("0 == FUZZY_SCORE(empty,empty,english)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
-    Assert.assertTrue(runPredicate("0 == FUZZY_SCORE(empty,empty,empty)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
-    boolean caught = false;
-    try {
-      runPredicate("0 == FUZZY_SCORE()", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v)));
-    } catch (ParseException pe) {
-      caught = true;
-    }
-    Assert.assertTrue(caught);
+  @Test()
+  public void testNoMatchStrings() throws Exception {
+    runPredicate("0 == FUZZY_SCORE(metron,'z',english)",
+        new DefaultVariableResolver(v -> variableMap.get(v),
+            v -> variableMap.containsKey(v)));
+  }
 
+  @Test(expected = ParseException.class)
+  public void testMissingLanguage() throws Exception {
+    runPredicate("0 == FUZZY_SCORE(metron,'z',klingon)",
+        new DefaultVariableResolver(v -> variableMap.get(v),
+            v -> variableMap.containsKey(v)));
+  }
+
+  @Test()
+  public void testEmptyFirstArg() throws Exception {
+    runPredicate("0 == FUZZY_SCORE(empty,'z',english)",
+        new DefaultVariableResolver(v -> variableMap.get(v), v -> variableMap.containsKey(v)));
+  }
+
+  @Test()
+  public void testEmptyFirstTwoArgs() throws Exception {
+    runPredicate("0 == FUZZY_SCORE(empty,empty,english)",
+        new DefaultVariableResolver(v -> variableMap.get(v),
+            v -> variableMap.containsKey(v)));
+  }
+
+  @Test(expected = ParseException.class)
+  public void testEmptyArgs() throws Exception {
+    runPredicate("0 == FUZZY_SCORE(empty,empty,empty)",
+        new DefaultVariableResolver(v -> variableMap.get(v), v -> variableMap.containsKey(v)));
+  }
+
+  @Test(expected = ParseException.class)
+  public void testNoArgs() throws Exception {
+    runPredicate("0 == FUZZY_SCORE()",
+        new DefaultVariableResolver(v -> variableMap.get(v), v -> variableMap.containsKey(v)));
+  }
+
+  @Test
+  public void testHappyStringFunctions() throws Exception {
     Assert
-        .assertTrue(runPredicate("1 == FUZZY_SCORE(metron,'m',english)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+        .assertTrue(runPredicate("1 == FUZZY_SCORE(metron,'m',english)",
+            new DefaultVariableResolver(v -> variableMap.get(v), v -> variableMap.containsKey(v))));
     Assert.assertTrue(
-        runPredicate("16 == FUZZY_SCORE(metron,'metron',english)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
-    Assert.assertTrue(runPredicate("3 == FUZZY_SCORE(asf,'asf',english)", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+        runPredicate("16 == FUZZY_SCORE(metron,'metron',english)",
+            new DefaultVariableResolver(v -> variableMap.get(v), v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("3 == FUZZY_SCORE(asf,'asf',english)",
+        new DefaultVariableResolver(v -> variableMap.get(v), v -> variableMap.containsKey(v))));
   }
 }
