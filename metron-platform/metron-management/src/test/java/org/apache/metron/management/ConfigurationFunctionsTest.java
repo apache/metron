@@ -37,7 +37,7 @@ import org.junit.Test;
 
 import java.util.HashMap;
 
-import static org.apache.metron.TestConstants.PARSER_CONFIGS_PATH;
+import static org.apache.metron.TestConstants.A_PARSER_CONFIGS_PATH_FMT;
 import static org.apache.metron.TestConstants.SAMPLE_CONFIG_PATH;
 import static org.apache.metron.management.utils.FileUtils.slurp;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
@@ -46,6 +46,7 @@ public class ConfigurationFunctionsTest {
   private static TestingServer testZkServer;
   private static CuratorFramework client;
   private static String zookeeperUrl;
+  private static final String sensorType = "bro";
   private Context context = new Context.Builder()
             .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
             .build();
@@ -57,7 +58,7 @@ public class ConfigurationFunctionsTest {
     client.start();
 
     pushConfigs(SAMPLE_CONFIG_PATH);
-    pushConfigs(PARSER_CONFIGS_PATH);
+    pushConfigs(String.format(A_PARSER_CONFIGS_PATH_FMT,sensorType,sensorType));
 
 
   }
@@ -73,7 +74,7 @@ public class ConfigurationFunctionsTest {
   }
 
 
-  static String goodBroParserConfig = slurp(PARSER_CONFIGS_PATH + "/parsers/bro.json");
+  static String goodBroParserConfig = slurp(String.format(A_PARSER_CONFIGS_PATH_FMT,sensorType,sensorType) + "/parsers/bro.json");
 
   /**
     {

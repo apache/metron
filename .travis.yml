@@ -34,6 +34,7 @@ before_install:
   - time build_utils/verify_licenses.sh
 
 install:
+  - cd bundles-maven-plugin && mvn -q install && cd ..
   - time mvn -q -T 2C -DskipTests clean install
 
 script:

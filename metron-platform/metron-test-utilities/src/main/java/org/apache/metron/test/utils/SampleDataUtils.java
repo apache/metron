@@ -24,9 +24,22 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 public class SampleDataUtils {
-
+  public static final String UP_LEVEL = "../";
   public static String getSampleDataPath(String sensorType, TestDataType testDataType) throws FileNotFoundException {
-    File sensorSampleDataPath = new File(TestConstants.SAMPLE_DATA_PATH, sensorType);
+    return getSampleDataPath(0,sensorType,testDataType);
+  }
+
+  public static String getSampleDataPath(int level, String sensorType, TestDataType testDataType) throws FileNotFoundException {
+    String path = TestConstants.SAMPLE_DATA_PATH;
+
+    if(level > 0){
+      StringBuilder sb = new StringBuilder();
+      for(int i = 0; i < level; i++){
+        sb.append(UP_LEVEL);
+      }
+      path = sb.append(path).toString();
+    }
+    File sensorSampleDataPath = new File(path, sensorType);
     if (sensorSampleDataPath.exists() && sensorSampleDataPath.isDirectory()) {
       File sampleDataPath = new File(sensorSampleDataPath, testDataType.getDirectoryName());
       if (sampleDataPath.exists() && sampleDataPath.isDirectory()) {
