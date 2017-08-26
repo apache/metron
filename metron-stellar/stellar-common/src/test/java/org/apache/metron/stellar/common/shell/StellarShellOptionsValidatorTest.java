@@ -28,6 +28,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.*;
 
@@ -35,15 +36,15 @@ public class StellarShellOptionsValidatorTest {
 
   @Test
   public void validateOptions() throws Exception {
-    String[] validZHostArg = new String[]{"-z", "host1:8888"};
+    String[] validZHostArg = new String[]{"-z", "localhost:8888"};
     String[] validZIPArg = new String[]{"-z", "10.10.10.3:9999"};
-    String[] invalidZNoPortArg = new String[]{"-z", "host1"};
+    String[] invalidZNoPortArg = new String[]{"-z", "youtube.com"};
     String[] invalidZIPNoPortArg = new String[]{"-z", "10.10.10.3"};
     String[] invalidZNameArg = new String[]{"-z", "!!!@!!@!:8882"};
     String[] invalidZIPArg = new String[]{"-z", "11111.22222.10.3:3332"};
     String[] invalidZMissingNameArg = new String[]{"-z", ":8882"};
-    String[] invalidZZeroPortArg = new String[]{"-z", "host1:0"};
-    String[] invalidZHugePortArg = new String[]{"-z", "host1:75565"};
+    String[] invalidZZeroPortArg = new String[]{"-z", "youtube.com:0"};
+    String[] invalidZHugePortArg = new String[]{"-z", "youtube.com:75565"};
 
 
     String existingFileName = "./target/existsFile";
