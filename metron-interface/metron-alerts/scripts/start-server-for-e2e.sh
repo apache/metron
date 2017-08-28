@@ -17,4 +17,5 @@
 #
 SCRIPTS_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $SCRIPTS_ROOT/.. && npm run build
-node $SCRIPTS_ROOT/../alerts-server-e2e.js -p 4200
+node $SCRIPTS_ROOT/../alerts-server-e2e.js -p 4200 -r http://node1:8082
+

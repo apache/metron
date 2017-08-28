@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit, ViewChild, ElementRef} from '@angular/core';
+import {Component, OnInit, ViewChild, ElementRef, OnDestroy} from '@angular/core';
 import {Router, NavigationStart} from '@angular/router';
 import {Observable, Subscription} from 'rxjs/Rx';
 
@@ -44,7 +44,7 @@ import {ElasticsearchUtils} from '../../utils/elasticsearch-utils';
   styleUrls: ['./alerts-list.component.scss']
 })
 
-export class AlertsListComponent implements OnInit {
+export class AlertsListComponent implements OnInit, OnDestroy {
 
   alertsColumns: ColumnMetadata[] = [];
   alertsColumnsToDisplay: ColumnMetadata[] = [];
@@ -148,31 +148,23 @@ export class AlertsListComponent implements OnInit {
 
   getColumnNamesForQuery() {
     let fieldNames = this.alertsColumns.map(columnMetadata => columnMetadata.name);
-    fieldNames = fieldNames.filter(name => !(name === '_id' || name === 'alert_status'));
+    fieldNames = fieldNames.filter(name => !(name === 'id' || name === 'alert_status'));
     fieldNames.push(this.threatScoreFieldName);
     return fieldNames;
   }
 
-  getDataType(name: string): string {
-    if (name === this.threatScoreFieldName || name === '_id') {
-      return 'number';
-    }
-
-    return this.alertsColumns.filter(colMetaData => colMetaData.name === name)[0].type;
-  }
-
-  getValue(alert: any, column: ColumnMetadata, formatData: boolean) {
+  getValue(alert: Alert, column: ColumnMetadata, formatData: boolean) {
     let returnValue = '';
     try {
       switch (column.name) {
-        case '_id':
+        case 'id':
           returnValue = alert[column.name];
           break;
         case 'alert_status':
           returnValue = 'NEW';
           break;
         default:
-          returnValue = alert['_source'][column.name];
+          returnValue = alert.source[column.name];
           break;
       }
     } catch (e) {}
@@ -182,6 +174,10 @@ export class AlertsListComponent implements OnInit {
     }
 
     return returnValue;
+  }
+
+  ngOnDestroy() {
+    this.tryStopPolling();
   }
 
   ngOnInit() {
@@ -233,8 +229,8 @@ export class AlertsListComponent implements OnInit {
 
   onSort(sortEvent: SortEvent) {
     let sortOrder = (sortEvent.sortOrder === Sort.ASC ? 'asc' : 'desc');
-    let sortBy = sortEvent.sortBy === '_id' ? '_uid' : sortEvent.sortBy;
-    this.queryBuilder.setSort(sortBy, sortOrder, this.getDataType(sortEvent.sortBy));
+    let sortBy = sortEvent.sortBy === 'id' ? '_uid' : sortEvent.sortBy;
+    this.queryBuilder.setSort(sortBy, sortOrder);
     this.search();
   }
 
@@ -345,12 +341,12 @@ export class AlertsListComponent implements OnInit {
     this.router.navigateByUrl('/alerts-list(dialog:configure-table)');
   }
 
-  showDetails($event, alert: any) {
+  showDetails($event, alert: Alert) {
     if ($event.target.type !== 'checkbox' && $event.target.parentElement.firstChild.type !== 'checkbox' && $event.target.nodeName !== 'A') {
       this.selectedAlerts = [];
       this.selectedAlerts = [alert];
       this.saveRefreshState();
-      this.router.navigateByUrl('/alerts-list(dialog:details/' + alert._index + '/' + alert._type + '/' + alert._id + ')');
+      this.router.navigateByUrl('/alerts-list(dialog:details/' + alert.source['source:type'] + '/' + alert.source.guid + ')');
     }
   }
 

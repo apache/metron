@@ -15,6 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const environment = {
-  production: true
-};
+import { Component } from '@angular/core';
+import { AuthenticationService } from '../service/authentication.service';
+
+@Component({
+  selector: 'metron-alerts-login',
+  templateUrl: 'login.component.html',
+  styleUrls: ['login.component.scss'],
+})
+export class LoginComponent {
+
+  user: string;
+  password: string;
+  loginFailure = '';
+
+  constructor(private authenticationService: AuthenticationService) {
+  }
+
+  login(): void {
+    this.authenticationService.login(this.user, this.password, error => {
+      if (error.status === 401) {
+        this.loginFailure = 'Login failed for ' + this.user;
+      }
+    });
+  }
+
+}

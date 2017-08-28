@@ -18,13 +18,24 @@
  */
 import { MetronAlertsPage } from './alerts-list.po';
 import { customMatchers } from  '../matchers/custom-matchers';
+import { LoginPage } from '../login/login.po';
 
 describe('metron-alerts App', function() {
   let page: MetronAlertsPage;
-  let columnNames = [ 'Score', '_id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichm...:country',
+  let loginPage: LoginPage;
+  let columnNames = [ 'Score', 'id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichm...:country',
                       'ip_dst_addr', 'host', 'alert_status', '', '' ];
-  let colNamesColumnConfig = [ 'score', '_id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
+  let colNamesColumnConfig = [ 'score', 'id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
                                 'ip_dst_addr', 'host', 'alert_status' ];
+
+  beforeAll(() => {
+    loginPage = new LoginPage();
+    loginPage.login();
+  });
+
+  afterAll(() => {
+    loginPage.logout();
+  });
 
   beforeEach(() => {
     page = new MetronAlertsPage();
@@ -126,7 +137,7 @@ describe('metron-alerts App', function() {
 
     page.clickConfigureTable();
     expect(page.getSelectedColumnNames()).toEqual(colNamesColumnConfig, 'for default selected column names');
-    page.toggleSelectCol('_id');
+    page.toggleSelectCol('id');
     page.toggleSelectCol('guid', 'method');
     expect(page.getSelectedColumnNames()).toEqual(newColNamesColumnConfig, 'for guid added to selected column names');
     page.saveConfigureColumns();

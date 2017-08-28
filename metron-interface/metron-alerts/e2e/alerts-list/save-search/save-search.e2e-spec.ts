@@ -18,9 +18,20 @@
  */
 import { customMatchers } from  '../../matchers/custom-matchers';
 import {MetronAlertsPage} from '../alerts-list.po';
+import {LoginPage} from '../../login/login.po';
 
 describe('metron-alerts Search', function() {
   let page: MetronAlertsPage;
+  let loginPage: LoginPage;
+
+  beforeAll(() => {
+    loginPage = new LoginPage();
+    loginPage.login();
+  });
+
+  afterAll(() => {
+    loginPage.logout();
+  });
 
   beforeEach(() => {
     page = new MetronAlertsPage();

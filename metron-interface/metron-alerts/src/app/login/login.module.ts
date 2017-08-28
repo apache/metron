@@ -15,6 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const environment = {
-  production: true
-};
+import { NgModule } from '@angular/core';
+import {routing} from './login.routing';
+import {LoginComponent} from './login.component';
+import {SharedModule} from '../shared/shared.module';
+
+@NgModule ({
+  imports: [ SharedModule, routing ],
+  declarations: [LoginComponent],
+  exports: [LoginComponent]
+})
+export class LoginModule { }

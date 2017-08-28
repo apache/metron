@@ -18,11 +18,22 @@
  */
 import { MetronAlertsPage } from '../alerts-list.po';
 import {customMatchers} from '../../matchers/custom-matchers';
+import {LoginPage} from '../../login/login.po';
 
 describe('metron-alerts configure table', function() {
   let page: MetronAlertsPage;
-  let colNamesColumnConfig = [ 'score', '_id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
+  let loginPage: LoginPage;
+  let colNamesColumnConfig = [ 'score', 'id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
     'ip_dst_addr', 'host', 'alert_status' ];
+
+  beforeAll(() => {
+    loginPage = new LoginPage();
+    loginPage.login();
+  });
+
+  afterAll(() => {
+    loginPage.logout();
+  });
 
   beforeEach(() => {
     page = new MetronAlertsPage();
@@ -38,7 +49,7 @@ describe('metron-alerts configure table', function() {
 
     page.clickConfigureTable();
     expect(page.getSelectedColumnNames()).toEqual(colNamesColumnConfig, 'for default selected column names');
-    page.toggleSelectCol('_id');
+    page.toggleSelectCol('id');
     page.toggleSelectCol('guid', 'method');
     expect(page.getSelectedColumnNames()).toEqual(newColNamesColumnConfig, 'for guid added to selected column names');
     page.saveConfigureColumns();
