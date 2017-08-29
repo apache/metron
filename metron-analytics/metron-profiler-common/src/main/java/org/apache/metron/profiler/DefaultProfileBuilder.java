@@ -27,9 +27,11 @@ import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.ListUtils;
@@ -245,17 +247,28 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
    * @param expressionType The type of expression; init, update, result.  Provides additional context if expression execution fails.
    */
   private void assign(Map<String, String> expressions, Map<String, Object> transientState, String expressionType) {
-    try {
 
-      // execute each of the 'update' expressions
-      MapUtils.emptyIfNull(expressions)
-              .forEach((var, expr) -> executor.assign(var, expr, transientState));
+    // for each expression...
+    for(Map.Entry<String, String> entry : MapUtils.emptyIfNull(expressions).entrySet()) {
+      String var = entry.getKey();
+      String expr = entry.getValue();
 
-    } catch(ParseException e) {
+      try {
+        // assign the result of the expression to the variable
+        executor.assign(var, expr, transientState);
 
-      // make it brilliantly clear that one of the 'update' expressions is bad
-      String msg = format("Bad '%s' expression: error=%s, profile=%s, entity=%s", expressionType, e.getMessage(), profileName, entity);
-      throw new ParseException(msg, e);
+      } catch (Throwable e) {
+
+        // in-scope variables = persistent state maintained by the profiler + the transient state
+        Set<String> variablesInScope = new HashSet<>();
+        variablesInScope.addAll(transientState.keySet());
+        variablesInScope.addAll(executor.getState().keySet());
+
+        String msg = format("Bad '%s' expression: error='%s', expr='%s', profile='%s', entity='%s', variables-available='%s'",
+                expressionType, e.getMessage(), expr, profileName, entity, variablesInScope);
+        LOG.error(msg, e);
+        throw new ParseException(msg, e);
+      }
     }
   }
 
@@ -269,14 +282,24 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
   private List<Object> execute(List<String> expressions, Map<String, Object> transientState, String expressionType) {
     List<Object> results = new ArrayList<>();
 
-    try {
-      ListUtils.emptyIfNull(expressions)
-              .forEach((expr) -> results.add(executor.execute(expr, transientState, Object.class)));
+    for(String expr: ListUtils.emptyIfNull(expressions)) {
+      try {
+        // execute an expression
+        Object result = executor.execute(expr, transientState, Object.class);
+        results.add(result);
 
-    } catch (Throwable e) {
-      String msg = format("Bad '%s' expression: error=%s, profile=%s, entity=%s", expressionType, e.getMessage(), profileName, entity);
-      LOG.error(msg, e);
-      throw new ParseException(msg, e);
+      } catch (Throwable e) {
+
+        // in-scope variables = persistent state maintained by the profiler + the transient state
+        Set<String> variablesInScope = new HashSet<>();
+        variablesInScope.addAll(transientState.keySet());
+        variablesInScope.addAll(executor.getState().keySet());
+
+        String msg = format("Bad '%s' expression: error='%s', expr='%s', profile='%s', entity='%s', variables-available='%s'",
+                expressionType, e.getMessage(), expr, profileName, entity, variablesInScope);
+        LOG.error(msg, e);
+        throw new ParseException(msg, e);
+      }
     }
 
     return results;
