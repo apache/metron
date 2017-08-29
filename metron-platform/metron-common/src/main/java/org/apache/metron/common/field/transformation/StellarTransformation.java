@@ -55,6 +55,17 @@ public class StellarTransformation implements FieldTransformation {
               intermediateVariables.put(oField, o);
             }
           }
+          else {
+            if(outputs.contains(oField)) {
+              ret.put(oField, o);
+            }
+            if( o != null ) {
+              intermediateVariables.put(oField, o);
+            } else {
+              // remove here, in case there are other statements
+              intermediateVariables.remove(oField);
+            }
+          }
         }
         catch(Exception ex) {
           throw new IllegalStateException( "Unable to process transformation: " + transformObj.toString()
