@@ -135,7 +135,16 @@ This service will treat `yahoo.com` and `amazon.com` as legit and everything els
 
 The following presumes that you are a logged in as a user who has a
 home directory in HDFS under `/user/$USER`.  If you do not, please create one
-and ensure the permissions are set appropriate.
+and ensure the permissions are set appropriate:
+```
+su - hdfs -c "hadoop fs -mkdir /user/$USER"
+su - hdfs -c "hadoop fs -chown $USER:$USER /user/$USER"
+```
+Or, in the common case for the `metron` user:
+```
+su - hdfs -c "hadoop fs -mkdir /user/metron"
+su - hdfs -c "hadoop fs -chown metron:metron /user/metron"
+```
 
 Now let's start MaaS and deploy the Mock DGA Service:
 * Start MaaS via `$METRON_HOME/bin/maas_service.sh -zq node1:2181`
