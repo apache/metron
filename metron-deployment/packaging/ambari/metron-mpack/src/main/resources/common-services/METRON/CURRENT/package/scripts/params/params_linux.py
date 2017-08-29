@@ -172,6 +172,7 @@ enrichment_cf = status_params.enrichment_cf
 update_table = status_params.update_table
 update_cf = status_params.update_cf
 
+
 threatintel_table = status_params.threatintel_table
 threatintel_cf = status_params.threatintel_cf
 
@@ -202,6 +203,7 @@ security_enabled = status_params.security_enabled
 client_jaas_path = metron_home + '/client_jaas.conf'
 client_jaas_arg = '-Djava.security.auth.login.config=' + metron_home + '/client_jaas.conf'
 enrichment_topology_worker_childopts = client_jaas_arg if security_enabled else ''
+profiler_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 indexing_topology_worker_childopts = client_jaas_arg if security_enabled else ''
 metron_jvm_flags += (' ' + client_jaas_arg) if security_enabled else ''
 topology_auto_credentials = config['configurations']['storm-site'].get('nimbus.credential.renewers.classes', [])
@@ -251,6 +253,29 @@ threat_intel_split_parallelism = config['configurations']['metron-enrichment-env
 threat_intel_stellar_parallelism = config['configurations']['metron-enrichment-env']['threat_intel_stellar_parallelism']
 threat_intel_join_parallelism = config['configurations']['metron-enrichment-env']['threat_intel_join_parallelism']
 kafka_writer_parallelism = config['configurations']['metron-enrichment-env']['kafka_writer_parallelism']
+
+# Profiler
+
+metron_profiler_topology = 'profiler'
+profiler_input_topic = config['configurations']['metron-enrichment-env']['enrichment_output_topic']
+profiler_kafka_start = config['configurations']['metron-profiler-env']['profiler_kafka_start']
+profiler_period_duration = config['configurations']['metron-profiler-env']['profiler_period_duration']
+profiler_period_units = config['configurations']['metron-profiler-env']['profiler_period_units']
+profiler_ttl = config['configurations']['metron-profiler-env']['profiler_ttl']
+profiler_ttl_units = config['configurations']['metron-profiler-env']['profiler_ttl_units']
+profiler_hbase_batch = config['configurations']['metron-profiler-env']['profiler_hbase_batch']
+profiler_hbase_flush_interval = config['configurations']['metron-profiler-env']['profiler_hbase_flush_interval']
+profiler_topology_workers = config['configurations']['metron-profiler-env']['profiler_topology_workers']
+profiler_acker_executors = config['configurations']['metron-profiler-env']['profiler_acker_executors']
+profiler_hbase_table = config['configurations']['metron-profiler-env']['profiler_hbase_table']
+profiler_hbase_cf = config['configurations']['metron-profiler-env']['profiler_hbase_cf']
+profiler_configured_flag_file = status_params.profiler_configured_flag_file
+profiler_acl_configured_flag_file = status_params.indexing_acl_configured_flag_file
+profiler_hbase_configured_flag_file = status_params.profiler_hbase_configured_flag_file
+profiler_hbase_acl_configured_flag_file = status_params.profiler_hbase_acl_configured_flag_file
+if not len(profiler_topology_worker_childopts) == 0:
+    profiler_topology_worker_childopts += ' '
+profiler_topology_worker_childopts += config['configurations']['metron-profiler-env']['profiler_topology_worker_childopts']
 
 # Indexing
 indexing_kafka_start = config['configurations']['metron-indexing-env']['indexing_kafka_start']

@@ -31,6 +31,7 @@ hbase_slave: [HBASE_REGIONSERVER]
 es_master: [ES_MASTER]
 kibana_master: [KIBANA_MASTER]
 metron_indexing: [METRON_INDEXING]
+metron_profiler: [METRON_PROFILER]
 metron_enrichment_master : [METRON_ENRICHMENT_MASTER]
 metron_parsers : [METRON_PARSERS]
 metron_rest: [METRON_REST]
@@ -38,8 +39,8 @@ metron_management_ui: [METRON_MANAGEMENT_UI]
 
 metron_components: >
   {{ hadoop_master | union(zookeeper_master) | union(storm_master) | union(hbase_master) | union(hadoop_slave) | union(zookeeper_slave) |
-  union(storm_slave) | union(kafka_broker) | union(hbase_slave) | union(kibana_master) | union(metron_indexing) |
-  union(metron_enrichment_master) | union(metron_parsers) | union(metron_rest) | union(metron_management_ui) | union(es_master) }}
+  union(storm_slave) | union(kafka_broker) | union(hbase_slave) | union(kibana_master) | union(metron_indexing) | union(metron_profiler) |
+  union(metron_enrichment_master) | union(metron_parsers) | union(metron_rest) | union(metron_management_ui) | union(es_master)  }}
 
 cluster_name: "metron_cluster"
 blueprint_name: "metron_blueprint"
@@ -82,7 +83,7 @@ configurations:
       yarn.nodemanager.log-dirs: '{{ nodemanager_log_dirs }}'
       yarn.nodemanager.resource.memory-mb : '{{ nodemanager_mem_mb }}'
   - storm-site:
-      supervisor.slots.ports: "[6700, 6701, 6702, 6703]"
+      supervisor.slots.ports: "[6700, 6701, 6702, 6703, 6704]"
       storm.local.dir: '{{ storm_local_dir }}'
       topology.classpath: '{{ topology_classpath }}'
   - kafka-env:
