@@ -153,6 +153,7 @@
             <timeout>600</timeout>
           </commandScript>
           <configuration-dependencies>
+            <config-type>metron-enrichment-env</config-type>
             <config-type>metron-profiler-env</config-type>
           </configuration-dependencies>
         </component>
