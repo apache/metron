@@ -1,0 +1,7 @@
+{
+  "parserClassName": "org.apache.metron.parsers.cef.CEFParser",
+  "sensorTopic": "cef",
+  "parserConfig": {
+    "deviceTimeZone": "UTC"
+  }
+}

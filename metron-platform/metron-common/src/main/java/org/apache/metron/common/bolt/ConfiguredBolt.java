@@ -17,9 +17,12 @@
  */
 package org.apache.metron.common.bolt;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.Map;
+import org.apache.commons.configuration.ConfigurationUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -31,9 +34,11 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.base.BaseRichBolt;
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +51,8 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
   protected CuratorFramework client;
   protected TreeCache cache;
   private final CONFIG_T configurations = defaultConfigurations();
+  protected Map<String, Object> globalConfig;
+
   public ConfiguredBolt(String zookeeperUrl) {
     this.zookeeperUrl = zookeeperUrl;
   }
@@ -67,6 +74,7 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
 
 
 
+
   @Override
   public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
     prepCache();
@@ -80,7 +88,22 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
       }
       client.start();
 
-      //this is temporary to ensure that any validation passes.
+      // attempt to load the global configuration
+      try {
+        byte[] bytes = ConfigurationsUtils.readGlobalConfigBytesFromZookeeper(client);
+        if (bytes != null && bytes.length != 0) {
+          globalConfig = JSONUtils.INSTANCE.load(
+              new ByteArrayInputStream(
+                  ConfigurationsUtils.readGlobalConfigBytesFromZookeeper(client)),
+              new TypeReference<Map<String, Object>>() {
+              });
+        }
+      }catch(KeeperException ke) {
+        // it is ok if there is no configuration
+      }
+
+      //this is temporary to ensure that
+      // any validation passes.
       //The individual bolt will reinitialize stellar to dynamically pull from
       //zookeeper.
       ConfigurationsUtils.setupStellarStatically(client);
@@ -104,6 +127,10 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
       LOG.error(e.getMessage(), e);
       throw new RuntimeException(e);
     }
+  }
+
+  protected Map<String,Object> getGlobalConfig() {
+    return this.globalConfig;
   }
 
   abstract public void loadConfig();

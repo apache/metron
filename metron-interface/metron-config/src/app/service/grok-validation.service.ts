@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {Injectable, Inject} from '@angular/core';
-import {Http, Headers, RequestOptions, URLSearchParams} from '@angular/http';
+import {Http, Headers, RequestOptions, Response, URLSearchParams} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
 import {GrokValidation} from '../model/grok-validation';
 import {HttpUtil} from '../util/httpUtil';
@@ -30,6 +30,13 @@ export class GrokValidationService {
 
   constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
 
+  }
+
+  public save(path: string, contents: string): Observable<Response> {
+    let params: URLSearchParams = new URLSearchParams();
+    params.set('path', path);
+    return this.http.post(this.url + '/save', contents, new RequestOptions({headers: new Headers(this.defaultHeaders), search: params}))
+    .catch(HttpUtil.handleError);
   }
 
   public validate(grokValidation: GrokValidation): Observable<GrokValidation> {

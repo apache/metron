@@ -40,6 +40,7 @@ public class ConfigurationsUtilsTest {
   private byte[] expectedGlobalConfig;
   private Map<String, byte[]> expectedSensorParserConfigMap;
   private Map<String, byte[]> expectedSensorEnrichmentConfigMap;
+  private static final String TEST_SENSOR_TYPE = "asa";
 
   @Before
   public void setup() throws Exception {
@@ -48,8 +49,8 @@ public class ConfigurationsUtilsTest {
     client = ConfigurationsUtils.getClient(zookeeperUrl);
     client.start();
     expectedGlobalConfig = ConfigurationsUtils.readGlobalConfigFromFile(TestConstants.SAMPLE_CONFIG_PATH);
-    expectedSensorParserConfigMap = ConfigurationsUtils.readSensorParserConfigsFromFile(TestConstants.PARSER_CONFIGS_PATH);
-    expectedSensorEnrichmentConfigMap = ConfigurationsUtils.readSensorEnrichmentConfigsFromFile(TestConstants.ENRICHMENTS_CONFIGS_PATH);
+    expectedSensorParserConfigMap = ConfigurationsUtils.readSensorParserConfigsFromFile(String.format(TestConstants.A_PARSER_CONFIGS_PATH_FMT, TEST_SENSOR_TYPE,TEST_SENSOR_TYPE));
+    expectedSensorEnrichmentConfigMap = ConfigurationsUtils.readSensorEnrichmentConfigsFromFile(String.format(TestConstants.A_PARSER_CONFIGS_PATH_FMT,TEST_SENSOR_TYPE,TEST_SENSOR_TYPE));
   }
 
   @Test
@@ -60,16 +61,15 @@ public class ConfigurationsUtilsTest {
     Assert.assertTrue(Arrays.equals(expectedGlobalConfig, actualGlobalConfigBytes));
 
     Assert.assertTrue(expectedSensorParserConfigMap.size() > 0);
-    String testSensorType = "yaf";
-    byte[] expectedSensorParserConfigBytes = expectedSensorParserConfigMap.get(testSensorType);
-    ConfigurationsUtils.writeSensorParserConfigToZookeeper(testSensorType, expectedSensorParserConfigBytes, zookeeperUrl);
-    byte[] actualSensorParserConfigBytes = ConfigurationsUtils.readSensorParserConfigBytesFromZookeeper(testSensorType, client);
+    byte[] expectedSensorParserConfigBytes = expectedSensorParserConfigMap.get(TEST_SENSOR_TYPE);
+    ConfigurationsUtils.writeSensorParserConfigToZookeeper(TEST_SENSOR_TYPE, expectedSensorParserConfigBytes, zookeeperUrl);
+    byte[] actualSensorParserConfigBytes = ConfigurationsUtils.readSensorParserConfigBytesFromZookeeper(TEST_SENSOR_TYPE, client);
     Assert.assertTrue(Arrays.equals(expectedSensorParserConfigBytes, actualSensorParserConfigBytes));
 
     Assert.assertTrue(expectedSensorEnrichmentConfigMap.size() > 0);
-    byte[] expectedSensorEnrichmentConfigBytes = expectedSensorEnrichmentConfigMap.get(testSensorType);
-    ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(testSensorType, expectedSensorEnrichmentConfigBytes, zookeeperUrl);
-    byte[] actualSensorEnrichmentConfigBytes = ConfigurationsUtils.readSensorEnrichmentConfigBytesFromZookeeper(testSensorType, client);
+    byte[] expectedSensorEnrichmentConfigBytes = expectedSensorEnrichmentConfigMap.get(TEST_SENSOR_TYPE);
+    ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(TEST_SENSOR_TYPE, expectedSensorEnrichmentConfigBytes, zookeeperUrl);
+    byte[] actualSensorEnrichmentConfigBytes = ConfigurationsUtils.readSensorEnrichmentConfigBytesFromZookeeper(TEST_SENSOR_TYPE, client);
     Assert.assertTrue(Arrays.equals(expectedSensorEnrichmentConfigBytes, actualSensorEnrichmentConfigBytes));
 
     String name = "testConfig";
