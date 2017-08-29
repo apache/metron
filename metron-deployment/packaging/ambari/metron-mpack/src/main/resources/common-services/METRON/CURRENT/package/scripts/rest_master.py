@@ -38,9 +38,6 @@ class RestMaster(Script):
 
     def configure(self, env, upgrade_type=None, config_dir=None):
         from params import params
-        if params.security_enabled:
-            params.metron_jvm_flags = format('-Djava.security.auth.login.config={client_jaas_path}')
-
         env.set_params(params)
         File(format("/etc/default/metron"),
              content=Template("metron.j2")

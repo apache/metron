@@ -83,19 +83,19 @@
   </property>
   <property>
     <name>enrichment_workers</name>
-    <description>Number of Enrichment Topology Workers</description>
+    <description>Number of Workers for the Enrichment Topology</description>
     <value>1</value>
     <display-name>Enrichment Workers</display-name>
   </property>
   <property>
     <name>enrichment_acker_executors</name>
-    <description>Number of Enrichment Topology Ackers</description>
+    <description>Number of Ackers for the Enrichment Topology</description>
     <value>1</value>
     <display-name>Enrichment Ackers</display-name>
   </property>
   <property>
     <name>enrichment_topology_worker_childopts</name>
-    <description>Enrichment Topology JVM Options</description>
+    <description>JVM Options for the Enrichment Topology</description>
     <value/>
     <display-name>Enrichment childopts</display-name>
     <value-attributes>
@@ -104,7 +104,7 @@
   </property>
   <property>
     <name>enrichment_topology_max_spout_pending</name>
-    <description>Enrichment Topology Spout Max Pending Tuples</description>
+    <description>Spout Max Pending Tuples for the Enrichment Topology</description>
     <value/>
     <display-name>Enrichment Max Pending</display-name>
     <value-attributes>
@@ -125,49 +125,49 @@
   </property>
   <property>
     <name>enrichment_kafka_spout_parallelism</name>
-    <description>Enrichment Topology Kafka Spout Parallelism</description>
+    <description>Kafka Spout Parallelism for the Enrichment Topology</description>
     <value>1</value>
     <display-name>Enrichment Spout Parallelism</display-name>
   </property>
   <property>
     <name>enrichment_split_parallelism</name>
-    <description>Enrichment Topology Enrichment Split Bolt Parallelism</description>
+    <description>Enrichment Split Bolt Parallelism for the Enrichment Topology</description>
     <value>1</value>
     <display-name>Enrichment Split Parallelism</display-name>
   </property>
   <property>
     <name>enrichment_stellar_parallelism</name>
-    <description>Enrichment Topology Enrichment Stellar Bolt Parallelism</description>
+    <description>Stellar Enrichment Bolt Parallelism for the Enrichment Topology</description>
     <value>1</value>
-    <display-name>Enrichment Stellar Parallelism</display-name>
+    <display-name>Stellar Enrichment Parallelism</display-name>
   </property>
   <property>
     <name>enrichment_join_parallelism</name>
-    <description>Enrichment Topology Enrichment Join Bolt Parallelism</description>
+    <description>Enrichment Join Bolt Parallelism for the Enrichment Topology</description>
     <value>1</value>
     <display-name>Enrichment Join Parallelism</display-name>
   </property>
   <property>
     <name>threat_intel_split_parallelism</name>
-    <description>Enrichment Topology Threat Intel Split Bolt Parallelism</description>
+    <description>Threat Intel Split Bolt Parallelism for the Enrichment Topology</description>
     <value>1</value>
-    <display-name>Threat Intel Spout Parallelism</display-name>
+    <display-name>Threat Intel Split Parallelism</display-name>
   </property>
   <property>
     <name>threat_intel_stellar_parallelism</name>
-    <description>Enrichment Topology Threat Intel Stellar Bolt Parallelism</description>
+    <description>Threat Intel Stellar Bolt Parallelism for the Enrichment Topology</description>
     <value>1</value>
-    <display-name>Threat Intel Spout Parallelism</display-name>
+    <display-name>Threat Intel Stellar Parallelism</display-name>
   </property>
   <property>
     <name>threat_intel_join_parallelism</name>
-    <description>Enrichment Topology Threat Intel Join Bolt Parallelism</description>
+    <description>Threat Intel Join Bolt Parallelism for the Enrichment Topology</description>
     <value>1</value>
     <display-name>Threat Intel Join Parallelism</display-name>
   </property>
   <property>
     <name>kafka_writer_parallelism</name>
-    <description>Enrichment Topology Kafka Writer Parallelism</description>
+    <description>Kafka Writer Parallelism for the Enrichment Topology</description>
     <value>1</value>
     <display-name>Enrichment Kafka Writer Parallelism</display-name>
   </property>

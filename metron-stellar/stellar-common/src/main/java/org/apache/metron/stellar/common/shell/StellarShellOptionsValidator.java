@@ -21,21 +21,31 @@
 package org.apache.metron.stellar.common.shell;
 
 import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
 
 public class StellarShellOptionsValidator {
 
   private static final Pattern validPortPattern = Pattern.compile("(^.*)[:](\\d+)$");
-  private static final Pattern validHostNamePattern;
+  private static final Predicate<String> hostnameValidator = hostname -> {
+    if(StringUtils.isEmpty(hostname)) {
+      return false;
+    }
+    try {
+      InetAddress add = InetAddress.getByName(hostname);
+      return true;
+    } catch (UnknownHostException e) {
+      return false;
+    }
+  };
 
-  static {
-    validHostNamePattern = Pattern.compile(
-        "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\\\-]*[a-zA-Z0-9])\\\\.)"
-            + "*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\\\-]*[A-Za-z0-9])$");
-  }
+
 
   private static final InetAddressValidator inetAddressValidator = InetAddressValidator
       .getInstance();
@@ -79,7 +89,7 @@ public class StellarShellOptionsValidator {
     String name = matcher.group(1);
     Integer port = Integer.parseInt(matcher.group(2));
 
-    if (!validHostNamePattern.matcher(name).matches() && !inetAddressValidator.isValid(name)) {
+    if (!hostnameValidator.test(name) && !inetAddressValidator.isValid(name)) {
       throw new IllegalArgumentException(
           String.format("Zookeeper Option %s is not a valid host name or ip address  %s", name, z));
     }

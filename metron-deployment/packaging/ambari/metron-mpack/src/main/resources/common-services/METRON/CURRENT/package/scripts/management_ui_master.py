@@ -44,7 +44,6 @@ class ManagementUIMaster(Script):
         print 'configure managment_ui'
         from params import params
         env.set_params(params)
-
         File(format("/etc/default/metron"),
              content=Template("metron.j2")
              )
