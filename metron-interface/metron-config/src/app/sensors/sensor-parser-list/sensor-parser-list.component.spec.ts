@@ -250,7 +250,7 @@ describe('Component: SensorParserList', () => {
 
     let sensorParserConfig1 = new SensorParserConfig();
     sensorParserConfig1.sensorTopic = 'squid';
-    sensorParserConfig1.parserClassName = 'org.apache.metron.parsers.GrokParser';
+    sensorParserConfig1.parserClassName = 'org.apache.metron.parsers.grok.GrokParser';
     let sensorParserConfig2 = new SensorParserConfig();
     sensorParserConfig2.sensorTopic = 'bro';
     sensorParserConfig2.parserClassName = 'org.apache.metron.parsers.bro.BasicBroParser';
@@ -628,7 +628,7 @@ describe('Component: SensorParserList', () => {
     component.sensors = [
       Object.assign(new SensorParserConfigHistory(), {
         'config': {
-          'parserClassName': 'org.apache.metron.parsers.GrokParser',
+          'parserClassName': 'org.apache.metron.parsers.grok.GrokParser',
           'sensorTopic': 'abc',
         },
         'createdBy': 'raghu',
@@ -648,7 +648,7 @@ describe('Component: SensorParserList', () => {
       }),
       Object.assign(new SensorParserConfigHistory(), {
         'config': {
-          'parserClassName': 'org.apache.metron.parsers.GrokParser',
+          'parserClassName': 'org.apache.metron.parsers.grok.GrokParser',
           'sensorTopic': 'xyz',
         },
         'createdBy': 'raghu',
@@ -670,12 +670,12 @@ describe('Component: SensorParserList', () => {
 
     component.onSort({sortBy: 'parserClassName', sortOrder: Sort.ASC});
     expect(component.sensors[0].config.parserClassName).toEqual('org.apache.metron.parsers.Bro');
-    expect(component.sensors[1].config.parserClassName).toEqual('org.apache.metron.parsers.GrokParser');
-    expect(component.sensors[2].config.parserClassName).toEqual('org.apache.metron.parsers.GrokParser');
+    expect(component.sensors[1].config.parserClassName).toEqual('org.apache.metron.parsers.grok.GrokParser');
+    expect(component.sensors[2].config.parserClassName).toEqual('org.apache.metron.parsers.grok.GrokParser');
 
     component.onSort({sortBy: 'parserClassName', sortOrder: Sort.DSC});
-    expect(component.sensors[0].config.parserClassName).toEqual('org.apache.metron.parsers.GrokParser');
-    expect(component.sensors[1].config.parserClassName).toEqual('org.apache.metron.parsers.GrokParser');
+    expect(component.sensors[0].config.parserClassName).toEqual('org.apache.metron.parsers.grok.GrokParser');
+    expect(component.sensors[1].config.parserClassName).toEqual('org.apache.metron.parsers.grok.GrokParser');
     expect(component.sensors[2].config.parserClassName).toEqual('org.apache.metron.parsers.Bro');
 
     component.onSort({sortBy: 'modifiedBy', sortOrder: Sort.ASC});
@@ -696,7 +696,7 @@ describe('Component: SensorParserList', () => {
     component.sensors = [
       Object.assign(new SensorParserConfigHistory(), {
         'config': {
-          'parserClassName': 'org.apache.metron.parsers.GrokParser',
+          'parserClassName': 'org.apache.metron.parsers.grok.GrokParser',
           'sensorTopic': 'abc',
         },
         'createdBy': 'raghu',

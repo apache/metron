@@ -31,6 +31,10 @@ kafka:
   security:
     protocol: ${KAFKA_SECURITY_PROTOCOL}
 
+hdfs:
+  metron:
+    apps.root: ${METRON_HDFS_APPS_ROOT}
+
 grok:
   path:
     temp: ${METRON_TEMP_GROK_PATH}

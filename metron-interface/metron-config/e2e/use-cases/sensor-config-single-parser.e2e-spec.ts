@@ -93,7 +93,7 @@ describe('Sensor Config for parser e2e1', function() {
     let expectedFormData = {
       title: 'e2e1',
       parserName: 'e2e1',
-      parserType: 'org.apache.metron.parsers.GrokParser',
+      parserType: 'org.apache.metron.parsers.grok.GrokParser',
       grokStatement: grokStatement,
       fieldSchemaSummary: [ 'TRANSFORMATIONS 1', 'ENRICHMENTS 3', 'THREAT INTEL 2' ],
       threatTriageSummary: [ 'RULES 1' ],

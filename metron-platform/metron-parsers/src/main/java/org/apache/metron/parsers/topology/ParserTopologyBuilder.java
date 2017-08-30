@@ -36,7 +36,6 @@ import org.apache.metron.common.utils.ReflectionUtils;
 import org.apache.metron.parsers.bolt.ParserBolt;
 import org.apache.metron.parsers.bolt.WriterBolt;
 import org.apache.metron.parsers.bolt.WriterHandler;
-import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.writer.AbstractWriter;
 import org.apache.metron.writer.kafka.KafkaWriter;
 import org.json.simple.JSONObject;
@@ -77,6 +76,8 @@ public class ParserTopologyBuilder {
                                       Optional<String> securityProtocol,
                                       Optional<String> outputTopic
   ) throws Exception {
+
+
 
     // fetch configuration from zookeeper
     ParserConfigurations configs = new ParserConfigurations();
@@ -181,11 +182,6 @@ public class ParserTopologyBuilder {
                                             , Optional<String> outputTopic
                                             )
   {
-
-    // create message parser
-    MessageParser<JSONObject> parser = ReflectionUtils.createInstance(parserConfig.getParserClassName());
-    parser.configure(parserConfig.getParserConfig());
-
     // create writer - if not configured uses a sensible default
     AbstractWriter writer = parserConfig.getWriterClassName() == null ?
             createKafkaWriter( brokerUrl
@@ -198,7 +194,7 @@ public class ParserTopologyBuilder {
     // create a writer handler
     WriterHandler writerHandler = createWriterHandler(writer);
 
-    return new ParserBolt(zookeeperUrl, sensorType, parser, writerHandler);
+    return new ParserBolt(zookeeperUrl, sensorType, writerHandler);
   }
 
   /**

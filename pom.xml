@@ -29,13 +29,16 @@
         <url>https://www.apache.org</url>
     </organization>
     <modules>
-        <module>metron-analytics</module>
-        <module>metron-platform</module>
-        <module>metron-deployment</module>
-        <module>metron-contrib</module>
-        <module>metron-interface</module>
-        <module>site-book</module>
-        <module>metron-stellar</module>
+            <module>bundles-lib</module>
+            <module>metron-analytics</module>
+            <module>metron-platform</module>
+            <module>metron-maven-archetypes</module>
+            <module>metron-deployment</module>
+            <module>metron-contrib</module>
+            <module>metron-interface</module>
+            <module>site-book</module>
+            <module>metron-stellar</module>
+
     </modules>
 
     <repositories>

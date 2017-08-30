@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Archiver-Version: Plexus Archiver
+Build-Tag: HEAD
+Build-Revision: a032175
+Build-Branch: METRON-3380
+Build-Timestamp: 2017-01-23T10:36:27Z
+Build-Jdk: 1.8.0_74
+Built-By: ottobackwards
+Bundle-Group: org.apache.metron
+Bundle-Id: metron-hadoop-bundle
+Bundle-Version: 1.2.0
+Bundle-Dependency-Group: org.apache.metron.hadoop
+Bundle-Dependency-Id: metron-hadoop-libraries-bundle
+Bundle-Dependency-Version: 1.2.1
+Created-By: Apache Maven 3.3.3

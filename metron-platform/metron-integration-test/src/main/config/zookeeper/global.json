@@ -25,5 +25,6 @@
 
   "geo.hdfs.file": "src/test/resources/GeoLite/GeoIP2-City-Test.mmdb.gz",
   "update.hbase.table" : "updates",
-  "update.hbase.cf" : "t"
+  "update.hbase.cf" : "t",
+  "metron.apps.hdfs.dir": "./target/"
 }

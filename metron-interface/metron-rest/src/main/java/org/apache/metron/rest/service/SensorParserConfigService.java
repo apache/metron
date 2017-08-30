@@ -37,9 +37,9 @@ public interface SensorParserConfigService {
 
   boolean delete(String name) throws RestException;
 
-  Map<String, String> getAvailableParsers();
+  Map<String, String> getAvailableParsers() throws RestException;
 
-  Map<String, String> reloadAvailableParsers();
+  Map<String, String> reloadAvailableParsers() throws RestException;
 
   JSONObject parseMessage(ParseMessageRequest parseMessageRequest) throws RestException;
 }

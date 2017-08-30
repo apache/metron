@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archetype-descriptor xsi:schemaLocation="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0 http://maven.apache.org/xsd/archetype-descriptor-1.0.0.xsd" name="metron-parser-asa-extension"
+    xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <requiredProperties>
+    <requiredProperty key="metronVersion">
+    </requiredProperty>
+    <requiredProperty key="parserName">
+      <validationRegex> ^[a-z]+[A-Z,a-z]+$</validationRegex>
+    </requiredProperty>
+    <requiredProperty key="parserClassName">
+      <validationRegex>^[A-Z].*$</validationRegex>
+    </requiredProperty>
+  </requiredProperties>
+  <modules>
+    <module id="metron-parser-__parserName__" dir="metron-parser-__parserName__" name="metron-parser-__parserName__">
+      <fileSets>
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+          <directory>src/main/java</directory>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" encoding="UTF-8">
+          <directory>src/main/config</directory>
+          <includes>
+            <include>**/*.json</include>
+            <include>**/*.template</include>
+          </includes>
+        </fileSet>
+        <fileSet encoding="UTF-8">
+          <directory>src/main/resources</directory>
+          <includes>
+            <include>**/*</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" packaged="true" encoding="UTF-8">
+          <directory>src/test/java</directory>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" encoding="UTF-8">
+          <directory>src/test/resources</directory>
+          <includes>
+            <include>**/*.properties</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" encoding="UTF-8">
+          <directory>src/test/resources</directory>
+          <includes>
+            <include>**/*.</include>
+            <include>**/*.config</include>
+            <include>**/*.gz</include>
+            <include>**/*.json</include>
+            <include>**/*.raw</include>
+            <include>**/*.parsed</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" encoding="UTF-8">
+          <directory></directory>
+          <includes>
+            <include>README.md</include>
+          </includes>
+        </fileSet>
+      </fileSets>
+    </module>
+    <module id="metron-parser-__parserName__-bundle" dir="metron-parser-__parserName__-bundle" name="metron-parser-__parserName__-bundle">
+    </module>
+    <module id="metron-parser-__parserName__-assembly" dir="metron-parser-__parserName__-assembly" name="metron-parser-parserName__-assembly">
+      <fileSets>
+        <fileSet filtered="true" encoding="UTF-8">
+          <directory>src/main/assembly</directory>
+          <includes>
+            <include>**/*.xml</include>
+          </includes>
+        </fileSet>
+      </fileSets>
+    </module>
+  </modules>
+</archetype-descriptor>

@@ -37,7 +37,7 @@ import org.junit.Test;
 
 import java.util.HashMap;
 
-import static org.apache.metron.TestConstants.PARSER_CONFIGS_PATH;
+import static org.apache.metron.TestConstants.A_PARSER_CONFIGS_PATH_FMT;
 import static org.apache.metron.TestConstants.SAMPLE_CONFIG_PATH;
 import static org.apache.metron.management.utils.FileUtils.slurp;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
@@ -46,6 +46,7 @@ public class ConfigurationFunctionsTest {
   private static TestingServer testZkServer;
   private static CuratorFramework client;
   private static String zookeeperUrl;
+  private static final String sensorType = "bro";
   private Context context = new Context.Builder()
             .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
             .build();
@@ -57,7 +58,7 @@ public class ConfigurationFunctionsTest {
     client.start();
 
     pushConfigs(SAMPLE_CONFIG_PATH);
-    pushConfigs(PARSER_CONFIGS_PATH);
+    pushConfigs(String.format(A_PARSER_CONFIGS_PATH_FMT,sensorType,sensorType));
 
 
   }
@@ -73,7 +74,7 @@ public class ConfigurationFunctionsTest {
   }
 
 
-  static String goodBroParserConfig = slurp(PARSER_CONFIGS_PATH + "/parsers/bro.json");
+  static String goodBroParserConfig = slurp(String.format(A_PARSER_CONFIGS_PATH_FMT,sensorType,sensorType) + "/parsers/bro.json");
 
   /**
     {
@@ -117,6 +118,52 @@ public class ConfigurationFunctionsTest {
       Object out = run("CONFIG_GET('PARSER', 'brop', true)", new HashMap<>(), context);
       JSONObject actual = (JSONObject) new JSONParser().parse(out.toString().trim());
       Assert.assertEquals(expected, actual);
+    }
+  }
+
+  static String goodParserEXConfig = slurp(SAMPLE_CONFIG_PATH + "extensions/parsers/metron-test-parsers.json");
+
+  /**
+    {
+   "extensionAssemblyName" : "test.fool-1.0.tar.gz",
+   "extensionBundleName" : "metron-test-parsers-1.0.bundle",
+   "extensionsBundleID" : "metron-test-parsers",
+   "extensionsBundleVersion" : "1.0.0",
+   "parserExtensionParserName" : [ "test2", "test" ]
+   }
+   */
+  @Multiline
+  static String defaultTestParserExtensionConfig;
+
+  @Test
+  public void testParserExtensionGetHappyPath() {
+
+    Object out = run("CONFIG_GET('PARSER_EXTENSION', 'metron-test-parsers')", new HashMap<>(), context);
+    Assert.assertEquals(goodParserEXConfig, out);
+  }
+
+  @Test
+  public void testParserExtensionGetMissWithoutDefault() {
+
+    {
+      Object out = run("CONFIG_GET('PARSER_EXTENSION', 'brop', false)", new HashMap<>(), context);
+      Assert.assertNull(out);
+    }
+  }
+
+  @Test
+  public void testParserExtensionGetMissWithNoDefaultSupport() throws Exception {
+    JSONObject expected = (JSONObject) new JSONParser().parse(defaultTestParserExtensionConfig);
+
+    {
+      Object out = run("CONFIG_GET('PARSER_EXTENSION', 'metron-test-parsers')", new HashMap<>(), context);
+      JSONObject actual = (JSONObject) new JSONParser().parse(out.toString().trim());
+      Assert.assertEquals(expected, actual);
+    }
+    {
+      // does not support default
+      Object out = run("CONFIG_GET('PARSER_EXTENSION', 'brop', true)", new HashMap<>(), context);
+      Assert.assertNull(out);
     }
   }
 

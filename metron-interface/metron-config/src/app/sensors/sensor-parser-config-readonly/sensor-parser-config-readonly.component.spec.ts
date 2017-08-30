@@ -311,7 +311,7 @@ describe('Component: SensorParserConfigReadonly', () => {
     let topologyStatus = new TopologyStatus();
 
     sensorParserConfig.sensorTopic = 'bro';
-    sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
+    sensorParserConfig.parserClassName = 'org.apache.metron.parsers.grok.GrokParser';
     sensorParserConfig.parserConfig = {grokPattern: 'SQUID_DELIMITED squid grok statement'};
     sensorParserInfo.config = sensorParserConfig;
 
@@ -496,7 +496,7 @@ describe('Component: SensorParserConfigReadonly', () => {
     let topologyStatus = new TopologyStatus();
 
     sensorParserConfig.sensorTopic = 'bro';
-    sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
+    sensorParserConfig.parserClassName = 'org.apache.metron.parsers.grok.GrokParser';
     sensorParserConfig.parserConfig = {grokPattern: 'SQUID_DELIMITED squid grok statement'};
     sensorParserInfo.config = sensorParserConfig;
 

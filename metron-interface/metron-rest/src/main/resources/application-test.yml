@@ -31,6 +31,10 @@ grok:
     temp: target/patterns/temp
     default: target/patterns
 
+hdfs:
+  metron:
+    apps.root: target
+
 storm:
   ui:
     url: stormUITestUrl

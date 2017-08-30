@@ -20,7 +20,11 @@ package org.apache.metron;
 public class TestConstants {
 
   public final static String SAMPLE_CONFIG_PATH = "../metron-integration-test/src/main/config/zookeeper/";
+  public final static String SAMPLE_EXTENSIONS_CONFIG_PATH = "../metron-integration-test/src/main/config/zookeeper/extensions";
+  public final static String SAMPLE_EXTENSIONS_PARSER_CONFIG_PATH = "../metron-integration-test/src/main/config/zookeeper/extensions/parsers";
   public final static String PARSER_CONFIGS_PATH = "../metron-parsers/src/main/config/zookeeper/";
+  public final static String A_PARSER_CONFIGS_PATH_FMT = "../metron-extensions/metron-parser-extensions/metron-parser-%s-extension/metron-parser-%s/src/main/config/zookeeper/";
+  public final static String THIS_PARSER_CONFIGS_PATH = "src/main/config/zookeeper/";
   public final static String ENRICHMENTS_CONFIGS_PATH = "../metron-enrichment/src/main/config/zookeeper/";
   public final static String SAMPLE_DATA_PATH = "../metron-integration-test/src/main/sample/data/";
   public final static String SAMPLE_DATA_INPUT_PATH = "../metron-integration-test/src/main/sample/data/yaf/raw/";

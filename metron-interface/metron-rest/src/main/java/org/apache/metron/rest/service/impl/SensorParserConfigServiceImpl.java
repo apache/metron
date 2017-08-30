@@ -18,20 +18,33 @@
 package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
+import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
+import org.apache.commons.io.IOUtils;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.metron.bundles.BundleSystem;
+import org.apache.metron.bundles.NotInitializedException;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.parsers.grok.GrokParser;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.config.BundleSystemConfig;
 import org.apache.metron.rest.model.ParseMessageRequest;
 import org.apache.metron.rest.service.GrokService;
 import org.apache.metron.rest.service.SensorParserConfigService;
 import org.apache.zookeeper.KeeperException;
 import org.json.simple.JSONObject;
 import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -45,6 +58,7 @@ import static org.apache.metron.rest.MetronRestConstants.GROK_CLASS_NAME;
 
 @Service
 public class SensorParserConfigServiceImpl implements SensorParserConfigService {
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private ObjectMapper objectMapper;
 
@@ -52,15 +66,38 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
 
   private GrokService grokService;
 
+  private BundleSystem bundleSystem;
+
+  private Environment environment;
+
+  private Map<String,Object> configurationMap;
+
   @Autowired
-  public SensorParserConfigServiceImpl(ObjectMapper objectMapper, CuratorFramework client, GrokService grokService) {
+  public SensorParserConfigServiceImpl(Environment environment,ObjectMapper objectMapper, CuratorFramework client, GrokService grokService) {
     this.objectMapper = objectMapper;
     this.client = client;
     this.grokService = grokService;
+    this.environment = environment;
+    configurationMap = new HashMap<>();
+    configurationMap.put("metron.apps.hdfs.dir",environment.getProperty(MetronRestConstants.HDFS_METRON_APPS_ROOT));
   }
 
   private Map<String, String> availableParsers;
 
+  public void setBundleSystem(BundleSystem bundleSystem) {
+    this.bundleSystem = bundleSystem;
+  }
+
+  private BundleSystem getBundleSystem() {
+    if (bundleSystem == null){
+      try {
+        bundleSystem = BundleSystemConfig.bundleSystem(client);
+      } catch (Exception e) {
+        LOG.error("Failed to create BundleSystem",e);
+      }
+    }
+    return bundleSystem;
+  }
   @Override
   public SensorParserConfig save(SensorParserConfig sensorParserConfig) throws RestException {
     try {
@@ -120,31 +157,37 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
   }
 
   @Override
-  public Map<String, String> getAvailableParsers() {
-    if (availableParsers == null) {
-      availableParsers = new HashMap<>();
-      Set<Class<? extends MessageParser>> parserClasses = getParserClasses();
-      parserClasses.forEach(parserClass -> {
-        if (!"BasicParser".equals(parserClass.getSimpleName())) {
-          availableParsers.put(parserClass.getSimpleName().replaceAll("Basic|Parser", ""), parserClass.getName());
-        }
-      });
+  public Map<String, String> getAvailableParsers() throws RestException {
+    try {
+      if (availableParsers == null) {
+        availableParsers = new HashMap<>();
+        Set<Class<? extends MessageParser>> parserClasses = getParserClasses();
+        parserClasses.forEach(parserClass -> {
+          if (!"BasicParser".equals(parserClass.getSimpleName())) {
+            availableParsers.put(parserClass.getSimpleName().replaceAll("Basic|Parser", ""),
+                parserClass.getName());
+          }
+        });
+      }
+      return availableParsers;
+    } catch (Exception e) {
+      throw new RestException(e);
     }
-    return availableParsers;
   }
 
   @Override
-  public Map<String, String> reloadAvailableParsers() {
+  public Map<String, String> reloadAvailableParsers() throws RestException {
     availableParsers = null;
     return getAvailableParsers();
   }
 
-  private Set<Class<? extends MessageParser>> getParserClasses() {
-    Reflections reflections = new Reflections("org.apache.metron.parsers");
-    return reflections.getSubTypesOf(MessageParser.class);
+  @SuppressWarnings("unchecked")
+  private Set<Class<? extends MessageParser>> getParserClasses() throws NotInitializedException {
+    return (Set<Class<? extends MessageParser>>) getBundleSystem().getExtensionsClassesForExtensionType(MessageParser.class);
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public JSONObject parseMessage(ParseMessageRequest parseMessageRequest) throws RestException {
     SensorParserConfig sensorParserConfig = parseMessageRequest.getSensorParserConfig();
     if (sensorParserConfig == null) {
@@ -154,22 +197,33 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
     } else {
       MessageParser<JSONObject> parser;
       try {
-        parser = (MessageParser<JSONObject>) Class.forName(sensorParserConfig.getParserClassName()).newInstance();
+        parser = (MessageParser<JSONObject>) getBundleSystem()
+            .createInstance(sensorParserConfig.getParserClassName(), MessageParser.class);
+
+        File temporaryGrokFile = null;
+        if (isGrokConfig(sensorParserConfig)) {
+          // NOTE: this parse will happen with the common grok file from the metron-parsers
+          // classloader, it would be better to load all the groks correctly as the parser does
+          // /patterns/common
+          // /sensorName/commmon
+          // /sensorName/sensorName
+          ArrayList<Reader> readers = new ArrayList<Reader>();
+          readers.add(new InputStreamReader(GrokParser.class.getResourceAsStream("/patterns/common")));
+          readers.add(new StringReader(parseMessageRequest.getGrokStatement()));
+          sensorParserConfig.getParserConfig().put("readers",readers);
+          sensorParserConfig.getParserConfig().put("loadCommon",false);
+        } else {
+          // only inject the hdfs path for non - grok parsers, since as above they are loading
+          // from the local filesystem for this operation and using the readers
+          sensorParserConfig.getParserConfig().put("globalConfig", configurationMap);
+        }
+        parser.configure(sensorParserConfig.getParserConfig());
+        parser.init();
+        JSONObject results = parser.parse(parseMessageRequest.getSampleData().getBytes()).get(0);
+        return results;
       } catch (Exception e) {
         throw new RestException(e.toString(), e.getCause());
       }
-      File temporaryGrokFile = null;
-      if (isGrokConfig(sensorParserConfig)) {
-        temporaryGrokFile = grokService.saveTemporary(parseMessageRequest.getGrokStatement(), parseMessageRequest.getSensorParserConfig().getSensorTopic());
-        sensorParserConfig.getParserConfig().put(MetronRestConstants.GROK_PATH_KEY, temporaryGrokFile.toString());
-      }
-      parser.configure(sensorParserConfig.getParserConfig());
-      parser.init();
-      JSONObject results = parser.parse(parseMessageRequest.getSampleData().getBytes()).get(0);
-      if (isGrokConfig(sensorParserConfig) && temporaryGrokFile != null) {
-        temporaryGrokFile.delete();
-      }
-      return results;
     }
   }
 

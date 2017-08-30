@@ -1,0 +1,18 @@
+{
+  "hdfs" : {
+    "index": "squid",
+    "batchSize": 5,
+    "enabled" : true
+  },
+  "elasticsearch" : {
+    "index": "squid",
+    "batchSize": 5,
+    "enabled" : true
+  },
+  "solr" : {
+    "index": "squid",
+    "batchSize": 5,
+    "enabled" : true
+  }
+}
+
