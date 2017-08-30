@@ -447,6 +447,33 @@ public class ParserTopologyCLITest {
   }
 
   @Test
+  public void testTopologyConfig_fromConfigExplicitly() throws Exception {
+    testConfigOption(new EnumMap<ParserTopologyCLI.ParserOptions, String>(ParserTopologyCLI.ParserOptions.class)
+                    {{
+                      put(ParserTopologyCLI.ParserOptions.NUM_WORKERS, "10");
+                      put(ParserTopologyCLI.ParserOptions.NUM_ACKERS, "20");
+                    }}
+                    , input -> {
+                        Config c = input.getStormConf();
+                        return (int)c.get(Config.TOPOLOGY_WORKERS) == 10
+                            && (int)c.get(Config.TOPOLOGY_ACKER_EXECUTORS) == 20;
+                      }
+                      , () -> {
+                        SensorParserConfig config = getBaseConfig();
+                        config.setNumWorkers(100);
+                        config.setNumAckers(200);
+                        return config;
+                              }
+                      , input -> {
+                          Config c = input.getStormConf();
+                          return (int)c.get(Config.TOPOLOGY_WORKERS) == 100
+                              && (int)c.get(Config.TOPOLOGY_ACKER_EXECUTORS) == 200
+                                  ;
+                                 }
+                    );
+  }
+
+  @Test
   public void testTopologyConfig() throws Exception {
     File extraConfig = File.createTempFile("topologyConfig", "json");
     extraConfig.deleteOnExit();
@@ -491,21 +518,32 @@ public class ParserTopologyCLITest {
     writeMap(extraConfig, new HashMap<String, Object>() {{
       put("extra_config", "from_file");
     }});
-    testConfigOption(new EnumMap<ParserTopologyCLI.ParserOptions, String>(ParserTopologyCLI.ParserOptions.class)
+    EnumMap<ParserTopologyCLI.ParserOptions, String> cliOptions = new EnumMap<ParserTopologyCLI.ParserOptions, String>(ParserTopologyCLI.ParserOptions.class)
                     {{
                       put(ParserTopologyCLI.ParserOptions.SPOUT_CONFIG, extraConfig.getAbsolutePath());
-                    }}
-                    , input -> input.getSpoutConfig().get("extra_config").equals("from_file")
-                      , () -> {
-                        SensorParserConfig config = getBaseConfig();
-                        config.setSpoutConfig(
-                          new HashMap<String, Object>() {{
-                            put("extra_config", "from_zk");
-                          }}
-                                             );
-                        return config;
-                              }
-                      , input -> input.getSpoutConfig().get("extra_config").equals("from_zk")
+                    }};
+    Predicate<ParserInput> cliOverrideExpected = input -> {
+      return input.getSpoutConfig().get("extra_config").equals("from_file");
+    };
+
+    Predicate<ParserInput> configOverrideExpected = input -> {
+      return input.getSpoutConfig().get("extra_config").equals("from_zk")
+                                  ;
+    };
+
+    Supplier<SensorParserConfig> configSupplier = () -> {
+      SensorParserConfig config = getBaseConfig();
+      config.setSpoutConfig(
+              new HashMap<String, Object>() {{
+                put("extra_config", "from_zk");
+              }}
+      );
+      return config;
+    };
+    testConfigOption( cliOptions
+                    , cliOverrideExpected
+                    , configSupplier
+                    , configOverrideExpected
                     );
   }
 

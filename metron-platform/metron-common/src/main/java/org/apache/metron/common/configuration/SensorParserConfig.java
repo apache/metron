@@ -37,6 +37,8 @@ public class SensorParserConfig implements Serializable {
   private String invalidWriterClassName;
   private Boolean readMetadata = false;
   private Boolean mergeMetadata = false;
+  private Integer numWorkers = null;
+  private Integer numAckers= null;
   private Integer spoutParallelism = 1;
   private Integer spoutNumTasks = 1;
   private Integer parserParallelism = 1;
@@ -46,6 +48,30 @@ public class SensorParserConfig implements Serializable {
   private Map<String, Object> spoutConfig = new HashMap<>();
   private String securityProtocol = null;
   private Map<String, Object> stormConfig = new HashMap<>();
+
+  /**
+   * Return the number of workers for the topology.  This property will be used for the parser unless overridden on the CLI.
+   * @return
+   */
+  public Integer getNumWorkers() {
+    return numWorkers;
+  }
+
+  public void setNumWorkers(Integer numWorkers) {
+    this.numWorkers = numWorkers;
+  }
+
+  /**
+   * Return the number of ackers for the topology.  This property will be used for the parser unless overridden on the CLI.
+   * @return
+   */
+  public Integer getNumAckers() {
+    return numAckers;
+  }
+
+  public void setNumAckers(Integer numAckers) {
+    this.numAckers = numAckers;
+  }
 
   /**
    * Return the spout parallelism.  This property will be used for the parser unless overridden on the CLI.
@@ -273,6 +299,8 @@ public class SensorParserConfig implements Serializable {
             ", invalidWriterClassName='" + invalidWriterClassName + '\'' +
             ", readMetadata=" + readMetadata +
             ", mergeMetadata=" + mergeMetadata +
+            ", numWorkers=" + numWorkers +
+            ", numAckers=" + numAckers +
             ", spoutParallelism=" + spoutParallelism +
             ", spoutNumTasks=" + spoutNumTasks +
             ", parserParallelism=" + parserParallelism +
@@ -310,6 +338,10 @@ public class SensorParserConfig implements Serializable {
       return false;
     if (getMergeMetadata() != null ? !getMergeMetadata().equals(that.getMergeMetadata()) : that.getMergeMetadata() != null)
       return false;
+    if (getNumWorkers() != null ? !getNumWorkers().equals(that.getNumWorkers()) : that.getNumWorkers() != null)
+      return false;
+    if (getNumAckers() != null ? !getNumAckers().equals(that.getNumAckers()) : that.getNumAckers() != null)
+      return false;
     if (getSpoutParallelism() != null ? !getSpoutParallelism().equals(that.getSpoutParallelism()) : that.getSpoutParallelism() != null)
       return false;
     if (getSpoutNumTasks() != null ? !getSpoutNumTasks().equals(that.getSpoutNumTasks()) : that.getSpoutNumTasks() != null)
@@ -344,6 +376,8 @@ public class SensorParserConfig implements Serializable {
     result = 31 * result + (getInvalidWriterClassName() != null ? getInvalidWriterClassName().hashCode() : 0);
     result = 31 * result + (getReadMetadata() != null ? getReadMetadata().hashCode() : 0);
     result = 31 * result + (getMergeMetadata() != null ? getMergeMetadata().hashCode() : 0);
+    result = 31 * result + (getNumWorkers() != null ? getNumWorkers().hashCode() : 0);
+    result = 31 * result + (getNumAckers() != null ? getNumAckers().hashCode() : 0);
     result = 31 * result + (getSpoutParallelism() != null ? getSpoutParallelism().hashCode() : 0);
     result = 31 * result + (getSpoutNumTasks() != null ? getSpoutNumTasks().hashCode() : 0);
     result = 31 * result + (getParserParallelism() != null ? getParserParallelism().hashCode() : 0);

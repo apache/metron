@@ -365,7 +365,13 @@ public class ParserTopologyCLI {
       if(c != null && !c.isEmpty()) {
         finalConfig.putAll(c);
       }
-      return ParserOptions.getConfig(cmd, finalConfig).orElse(new Config());
+      if(parserConfig.getNumAckers() != null) {
+        Config.setNumAckers(finalConfig, parserConfig.getNumAckers());
+      }
+      if(parserConfig.getNumWorkers() != null) {
+        Config.setNumWorkers(finalConfig, parserConfig.getNumWorkers());
+      }
+      return ParserOptions.getConfig(cmd, finalConfig).orElse(finalConfig);
     };
 
     Optional<String> outputTopic = ParserOptions.OUTPUT_TOPIC.has(cmd)?Optional.of(ParserOptions.OUTPUT_TOPIC.get(cmd)):Optional.empty();
