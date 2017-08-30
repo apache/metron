@@ -59,6 +59,9 @@ class Profiler(Script):
             commands.create_hbase_tables()
         if params.security_enabled and not commands.is_hbase_acl_configured():
             commands.set_hbase_acls()
+        if params.security_enabled and not commands.is_acl_configured():
+            commands.init_kafka_acls()
+            commands.set_acl_configured()
 
         Logger.info("Calling security setup")
         storm_security_setup(params)
@@ -68,6 +71,18 @@ class Profiler(Script):
         env.set_params(params)
         self.configure(env)
         commands = ProfilerCommands(params)
+        if params.security_enabled:
+            metron_security.kinit(params.kinit_path_local,
+                                  params.metron_keytab_path,
+                                  params.metron_principal_name,
+                                  execute_user=params.metron_user)
+
+        if params.security_enabled and not commands.is_hbase_acl_configured():
+            commands.set_hbase_acls()
+        if params.security_enabled and not commands.is_acl_configured():
+            commands.init_kafka_acls()
+            commands.set_acl_configured()
+
         commands.start_profiler_topology(env)
 
     def stop(self, env, upgrade_type=None):
