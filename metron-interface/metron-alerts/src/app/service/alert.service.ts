@@ -16,11 +16,13 @@
  * limitations under the License.
  */
 import {Injectable, NgZone} from '@angular/core';
+import {Headers, RequestOptions} from '@angular/http';
 import {Observable} from 'rxjs/Rx';
 import 'rxjs/add/observable/interval';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/onErrorResumeNext';
 
+import {HttpUtil} from '../utils/httpUtil';
 import {Alert} from '../model/alert';
 import {Http} from '@angular/http';
 import {DataSource} from './data-source';
@@ -39,21 +41,31 @@ export class AlertService {
               private ngZone: NgZone) { }
 
   public search(searchRequest: SearchRequest): Observable<AlertsSearchResponse> {
-    return this.dataSource.getAlerts(searchRequest);
+    let url = '/api/v1/search/search';
+    return this.http.post(url, searchRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    .map(HttpUtil.extractData)
+    .catch(HttpUtil.handleError)
+    .onErrorResumeNext();
   }
 
   public pollSearch(searchRequest: SearchRequest): Observable<AlertsSearchResponse> {
     return this.ngZone.runOutsideAngular(() => {
       return this.ngZone.run(() => {
         return Observable.interval(this.interval * 1000).switchMap(() => {
-          return this.dataSource.getAlerts(searchRequest);
+          return this.search(searchRequest);
         });
       });
     });
   }
 
   public getAlert(sourceType: string, alertId: string): Observable<AlertSource> {
-    return this.dataSource.getAlert(sourceType, alertId);
+    let url = '/api/v1/search/findOne';
+    let requestSchema = { guid: alertId, sensorType: sourceType};
+
+    return this.http.post(url, requestSchema, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    .map(HttpUtil.extractData)
+    .catch(HttpUtil.handleError)
+    .onErrorResumeNext();
   }
 
   public updateAlertState(alerts: Alert[], state: string, workflowId: string) {
