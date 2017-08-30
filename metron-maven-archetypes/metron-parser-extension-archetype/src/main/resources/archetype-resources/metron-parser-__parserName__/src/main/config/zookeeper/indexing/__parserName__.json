@@ -1,0 +1,18 @@
+{
+  "hdfs" : {
+    "index": "${parserName}",
+    "batchSize": 5,
+    "enabled" : true
+  },
+  "elasticsearch" : {
+    "index": "${parserName}",
+    "batchSize": 5,
+    "enabled" : true
+  },
+  "solr" : {
+    "index": "${parserName}",
+    "batchSize": 5,
+    "enabled" : true
+  }
+}
+

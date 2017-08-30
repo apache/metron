@@ -1,0 +1,6 @@
+{
+  "parserClassName": "org.apache.metron.parsers.snort.BasicSnortParser",
+  "sensorTopic": "snort",
+  "parserConfig": {
+  }
+}

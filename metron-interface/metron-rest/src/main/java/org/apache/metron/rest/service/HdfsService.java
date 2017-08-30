@@ -17,6 +17,8 @@
  */
 package org.apache.metron.rest.service;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.rest.RestException;
 
@@ -31,4 +33,6 @@ public interface HdfsService {
     List<String> list(Path path) throws RestException;
 
     boolean delete(Path path, boolean recursive) throws RestException;
+
+    boolean ensureDirectory(Path path) throws RestException;
  }

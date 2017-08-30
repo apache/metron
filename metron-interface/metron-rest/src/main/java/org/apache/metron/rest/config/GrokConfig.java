@@ -19,6 +19,7 @@ package org.apache.metron.rest.config;
 
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.exception.GrokException;
+import org.apache.metron.parsers.grok.GrokBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,9 +29,10 @@ import java.io.InputStreamReader;
 public class GrokConfig {
 
     @Bean
-    public Grok commonGrok() throws GrokException {
-        Grok grok = new Grok();
-        grok.addPatternFromReader(new InputStreamReader(getClass().getResourceAsStream("/patterns/common")));
+    public Grok commonGrok() throws Exception {
+        Grok grok = new GrokBuilder()
+            .withReader(new InputStreamReader(getClass().getResourceAsStream("/patterns/common")))
+            .withLoadCommon(false).build();
         return grok;
     }
 }

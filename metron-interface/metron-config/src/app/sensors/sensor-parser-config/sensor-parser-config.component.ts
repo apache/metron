@@ -109,15 +109,11 @@ export class SensorParserConfigComponent implements OnInit {
         if (this.isGrokParser(this.sensorParserConfig)) {
           let path = this.sensorParserConfig.parserConfig['grokPath'];
           if (path) {
-            this.hdfsService.read(path).subscribe(contents => {
-              this.grokStatement = contents;
-            }, (hdfsError: RestError) => {
               this.grokValidationService.getStatement(path).subscribe(contents => {
                 this.grokStatement = contents;
               }, (grokError: RestError) => {
                 this.metronAlerts.showErrorMessage('Could not find grok statement in HDFS or classpath at ' + path);
               });
-            });
           }
           let patternLabel = this.sensorParserConfig.parserConfig['patternLabel'];
           if (patternLabel) {
@@ -142,7 +138,7 @@ export class SensorParserConfigComponent implements OnInit {
       });
     } else {
       this.sensorParserConfig = new SensorParserConfig();
-      this.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
+      this.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.grok.GrokParser';
     }
   }
 
@@ -281,7 +277,7 @@ export class SensorParserConfigComponent implements OnInit {
     this.grokStatement = grokStatement;
     let grokPath = this.sensorParserConfig.parserConfig['grokPath'];
     if (!grokPath || grokPath.indexOf('/patterns') === 0) {
-      this.sensorParserConfig.parserConfig['grokPath'] = '/apps/metron/patterns/' + this.sensorParserConfig.sensorTopic;
+      this.sensorParserConfig.parserConfig['grokPath'] = '/patterns/' + this.sensorParserConfig.sensorTopic + "/" + this.sensorParserConfig.sensorTopic;
     }
   }
 
@@ -310,7 +306,7 @@ export class SensorParserConfigComponent implements OnInit {
     this.sensorParserConfigService.post(sensorParserConfigSave).subscribe(
       sensorParserConfig => {
         if (this.isGrokParser(sensorParserConfig)) {
-            this.hdfsService.post(this.sensorParserConfig.parserConfig['grokPath'], this.grokStatement).subscribe(
+            this.grokValidationService.save(this.sensorParserConfig.parserConfig['grokPath'], this.grokStatement).subscribe(
                 response => {}, (error: RestError) => this.metronAlerts.showErrorMessage(error.message));
         }
         this.sensorEnrichmentConfigService.post(sensorParserConfig.sensorTopic, this.sensorEnrichmentConfig).subscribe(
@@ -335,7 +331,7 @@ export class SensorParserConfigComponent implements OnInit {
 
   isGrokParser(sensorParserConfig: SensorParserConfig): boolean {
     if (sensorParserConfig && sensorParserConfig.parserClassName) {
-      return sensorParserConfig.parserClassName === 'org.apache.metron.parsers.GrokParser';
+      return sensorParserConfig.parserClassName === 'org.apache.metron.parsers.grok.GrokParser';
     }
     return false;
   }

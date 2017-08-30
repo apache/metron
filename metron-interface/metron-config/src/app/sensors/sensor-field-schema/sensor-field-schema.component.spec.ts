@@ -93,7 +93,7 @@ describe('Component: SensorFieldSchema', () => {
     let transformationValidationService: StellarService;
 
     let squidSensorConfigJson = {
-        'parserClassName': 'org.apache.metron.parsers.GrokParser',
+        'parserClassName': 'org.apache.metron.parsers.grok.GrokParser',
         'sensorTopic': 'squid',
         'parserConfig': {
             'grokPath': 'target/patterns/squid',
@@ -468,7 +468,7 @@ describe('Component: SensorFieldSchema', () => {
         component.savedFieldSchemaRows = [methodFieldSchemaRow, elapsedFieldSchemaRow, ipDstAddrFieldSchemaRow, codeFieldSchemaRow];
 
         component.sensorParserConfig = new SensorParserConfig();
-        component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
+        component.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.grok.GrokParser';
         component.sensorParserConfig.sensorTopic = 'squid';
 
       component.sensorParserConfig.fieldTransformations = [new FieldTransformer()];

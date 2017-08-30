@@ -17,7 +17,7 @@
  */
 package org.apache.metron.rest;
 
-import org.apache.metron.parsers.GrokParser;
+import org.apache.metron.parsers.grok.GrokParser;
 
 public class MetronRestConstants {
 
@@ -50,6 +50,8 @@ public class MetronRestConstants {
   public static final String CURATOR_MAX_RETRIES = "curator.max.retries";
 
   public static final String KAFKA_BROKER_URL_SPRING_PROPERTY = "kafka.broker.url";
+
+  public static final String HDFS_METRON_APPS_ROOT = "hdfs.metron.apps.root";
 
   public static final String KERBEROS_ENABLED_SPRING_PROPERTY = "kerberos.enabled";
   public static final String KERBEROS_PRINCIPLE_SPRING_PROPERTY = "kerberos.principal";

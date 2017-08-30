@@ -17,6 +17,16 @@
  */
 package org.apache.metron.rest.config;
 
+
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import kafka.admin.AdminUtils$;
 import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
@@ -42,14 +52,6 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 
 @Configuration
 @Profile(TEST_PROFILE)
@@ -76,7 +78,7 @@ public class TestConfig {
   }
 
   @Bean(destroyMethod = "stop")
-  public ComponentRunner componentRunner(ZKServerComponent zkServerComponent, KafkaComponent kafkaWithZKComponent) {
+  public ComponentRunner componentRunner(ZKServerComponent zkServerComponent, KafkaComponent kafkaWithZKComponent) throws IOException {
     ComponentRunner runner = new ComponentRunner.Builder()
       .withComponent("zk", zkServerComponent)
       .withCustomShutdownOrder(new String[]{"search", "zk"})
@@ -84,11 +86,18 @@ public class TestConfig {
     try {
       runner.start();
       File globalConfigFile = new File("src/test/resources/zookeeper/global.json");
+      File bundlePropertiesFile = new File("src/test/resources/zookeeper/bundle.properties");
       try(BufferedReader r = new BufferedReader(new FileReader(globalConfigFile))){
         String globalConfig = IOUtils.toString(r);
         ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.getBytes(), zkServerComponent.getConnectionString());
       } catch (Exception e) {
         throw new IllegalStateException("Unable to upload global config", e);
+      }
+      try(BufferedReader r = new BufferedReader(new FileReader(bundlePropertiesFile))){
+        String bundleProperties = IOUtils.toString(r);
+        ConfigurationsUtils.writeGlobalBundlePropertiesToZookeeper(bundleProperties.getBytes(), zkServerComponent.getConnectionString());
+      }catch(Exception e) {
+        throw new IllegalStateException("Unable to upload bundle properties");
       }
     } catch (UnableToStartException e) {
       e.printStackTrace();

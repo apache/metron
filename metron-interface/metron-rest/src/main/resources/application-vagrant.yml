@@ -36,7 +36,8 @@ kafka:
 hdfs:
   namenode:
     url: hdfs://node1:8020
-
+  metron:
+    apps.root: /apps/metron
 grok:
   path:
     temp: ./patterns/temp

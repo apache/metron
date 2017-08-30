@@ -43,7 +43,7 @@
             <div *ngIf="item.model == 'kafkaTopic'" class="col-xs-6  px-0 pull-left form-value">{{ kafkaTopic[item.value] ? kafkaTopic[item.value] : "-" }}</div>
             <div *ngIf="item.model == 'topologyStatus'" class="col-xs-6  px-0  pull-left form-value">{{ getTopologyStatus(item.value) }}</div>
 
-            <div *ngIf="item.model == 'grokStatement' && sensorParserConfigHistory.config.parserClassName === 'org.apache.metron.parsers.GrokParser'" style="border: none">
+            <div *ngIf="item.model == 'grokStatement' && sensorParserConfigHistory.config.parserClassName === 'org.apache.metron.parsers.grok.GrokParser'" style="border: none">
               <div class="col-xs-12 form-sub-title">Grok Statement</div>
               <div id="collapseGrok" class="col-xs-12  pull-left form-value panel-collapse collapse"></div>
               <div class="col-xs-12  pull-left form-value grok" [innerHtml]="grokStatement"></div>

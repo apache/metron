@@ -27,6 +27,7 @@ public class Constants {
   public static final String METADATA_PREFIX = "metron.metadata.";
   public static final String ZOOKEEPER_ROOT = "/metron";
   public static final String ZOOKEEPER_TOPOLOGY_ROOT = ZOOKEEPER_ROOT + "/topology";
+  public static final String ZOOKEEPER_EXTENSIONS_ROOT = ZOOKEEPER_ROOT + "/extensions";
   public static final long DEFAULT_CONFIGURED_BOLT_TIMEOUT = 5000;
   public static final String SENSOR_TYPE = "source.type";
   public static final String ENRICHMENT_TOPIC = "enrichments";
