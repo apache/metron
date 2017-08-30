@@ -27,10 +27,16 @@ import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import static java.lang.String.format;
 
 /**
  * Routes incoming telemetry messages.
@@ -39,6 +45,8 @@ import java.util.Map;
  * when a message is needed by more than one profile.
  */
 public class DefaultMessageRouter implements MessageRouter {
+
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * Executes Stellar code.
@@ -62,21 +70,44 @@ public class DefaultMessageRouter implements MessageRouter {
   @Override
   public List<MessageRoute> route(JSONObject message, ProfilerConfig config, Context context) {
     List<MessageRoute> routes = new ArrayList<>();
-    @SuppressWarnings("unchecked")
-    final Map<String, Object> state = (Map<String, Object>) message;
 
     // attempt to route the message to each of the profiles
     for (ProfileConfig profile: config.getProfiles()) {
+      Optional<MessageRoute> route = routeToProfile(message, profile);
+      route.ifPresent(routes::add);
+    }
 
+    return routes;
+  }
+
+  /**
+   * Creates a route if a message is needed by a profile.
+   * @param message The message that needs routed.
+   * @param profile The profile that may need the message.
+   * @return A MessageRoute if the message is needed by the profile.
+   */
+  private Optional<MessageRoute> routeToProfile(JSONObject message, ProfileConfig profile) {
+    Optional<MessageRoute> route = Optional.empty();
+
+    // allow the profile to access the fields defined within the message
+    @SuppressWarnings("unchecked")
+    final Map<String, Object> state = (Map<String, Object>) message;
+
+    try {
       // is this message needed by this profile?
       if (executor.execute(profile.getOnlyif(), state, Boolean.class)) {
 
         // what is the name of the entity in this message?
         String entity = executor.execute(profile.getForeach(), state, String.class);
-        routes.add(new MessageRoute(profile, entity));
+        route = Optional.of(new MessageRoute(profile, entity));
       }
+
+    } catch(Throwable e) {
+      // log an error and move on. ignore bad profiles.
+      String msg = format("error while executing profile; profile='%s', error='%s'", profile.getProfile(), e.getMessage());
+      LOG.error(msg, e);
     }
 
-    return routes;
+    return route;
   }
 }

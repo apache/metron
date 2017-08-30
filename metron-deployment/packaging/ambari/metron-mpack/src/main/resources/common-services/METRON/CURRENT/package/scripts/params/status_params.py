@@ -52,6 +52,17 @@ threatintel_cf = 't'
 update_table = 'metron_update'
 update_cf = 't'
 
+# Profiler
+metron_profiler_topology = 'profiler'
+profiler_input_topic = config['configurations']['metron-enrichment-env']['enrichment_output_topic']
+profiler_hbase_table = config['configurations']['metron-profiler-env']['profiler_hbase_table']
+profiler_hbase_cf = config['configurations']['metron-profiler-env']['profiler_hbase_cf']
+profiler_configured_flag_file = metron_zookeeper_config_path + '/../metron_profiler_configured'
+profiler_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_profiler_acl_configured'
+profiler_hbase_configured_flag_file = metron_zookeeper_config_path + '/../metron_profiler_hbase_configured'
+profiler_hbase_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_profiler_hbase_acl_configured'
+
+
 # Indexing
 metron_indexing_topology = 'indexing'
 indexing_input_topic = config['configurations']['metron-indexing-env']['indexing_input_topic']

@@ -38,7 +38,7 @@ public class SensorParserConfig implements Serializable {
   private Boolean readMetadata = false;
   private Boolean mergeMetadata = false;
 
-  public Boolean mergeMetadata() {
+  public Boolean getMergeMetadata() {
     return mergeMetadata;
   }
 
@@ -46,7 +46,7 @@ public class SensorParserConfig implements Serializable {
     this.mergeMetadata = mergeMetadata;
   }
 
-  public Boolean readMetadata() {
+  public Boolean getReadMetadata() {
     return readMetadata;
   }
 
@@ -173,9 +173,9 @@ public class SensorParserConfig implements Serializable {
       return false;
     if (getParserConfig() != null ? !getParserConfig().equals(that.getParserConfig()) : that.getParserConfig() != null)
       return false;
-    if (readMetadata() != null ? !readMetadata().equals(that.readMetadata()) : that.readMetadata() != null)
+    if (getReadMetadata() != null ? !getReadMetadata().equals(that.getReadMetadata()) : that.getReadMetadata() != null)
       return false;
-    if (mergeMetadata() != null ? !mergeMetadata().equals(that.mergeMetadata()) : that.mergeMetadata() != null)
+    if (getMergeMetadata() != null ? !getMergeMetadata().equals(that.getMergeMetadata()) : that.getMergeMetadata() != null)
       return false;
     return getFieldTransformations() != null ? getFieldTransformations().equals(that.getFieldTransformations()) : that.getFieldTransformations() == null;
 
@@ -191,8 +191,8 @@ public class SensorParserConfig implements Serializable {
     result = 31 * result + (getInvalidWriterClassName() != null ? getInvalidWriterClassName().hashCode() : 0);
     result = 31 * result + (getParserConfig() != null ? getParserConfig().hashCode() : 0);
     result = 31 * result + (getFieldTransformations() != null ? getFieldTransformations().hashCode() : 0);
-    result = 31 * result + (readMetadata() != null ? readMetadata().hashCode() : 0);
-    result = 31 * result + (mergeMetadata() != null ? mergeMetadata().hashCode() : 0);
+    result = 31 * result + (getReadMetadata() != null ? getReadMetadata().hashCode() : 0);
+    result = 31 * result + (getMergeMetadata() != null ? getMergeMetadata().hashCode() : 0);
     return result;
   }
 }

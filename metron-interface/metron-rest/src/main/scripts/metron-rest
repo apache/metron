@@ -46,8 +46,9 @@ fi
 
 HBASE_HOME=${HBASE_HOME:-/usr/hdp/current/hbase-client}
 PIDFILE="$METRON_PID_DIR/$NAME.pid"
+LOCKFILE=/var/lock/subsys/$NAME
 
-METRON_REST_CLASSPATH="${HBASE_HOME}/conf:$METRON_HOME/lib/metron-rest-$METRON_VERSION.jar"
+METRON_REST_CLASSPATH="$HADOOP_CONF_DIR:${HBASE_HOME}/conf:$METRON_HOME/lib/metron-rest-$METRON_VERSION.jar"
 
 # the vagrant Spring profile provides configuration values, otherwise configuration is provided by rest_application.yml
 if [[ !($METRON_SPRING_PROFILES_ACTIVE == *"vagrant"*) ]]; then

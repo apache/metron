@@ -33,6 +33,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.metron.maas.config.*;
 import org.apache.metron.maas.discovery.ServiceDiscoverer;
+import org.apache.metron.maas.service.Constants;
 import org.apache.metron.maas.service.Log4jPropertyHelper;
 import org.apache.metron.maas.util.ConfigUtil;
 import org.apache.metron.maas.queue.Queue;
@@ -247,6 +248,10 @@ public class ModelSubmission {
         fs.mkdirs(hdfsPath);
       }
       for(File f : localDir.listFiles()) {
+        if(f.getName().equals(Constants.ENDPOINT_DAT)) {
+          //skip the endpoint if it exists accidentally, we don't want to localize that.
+          continue;
+        }
         Path p = new Path(hdfsPath, f.getName());
         FSDataOutputStream out = fs.create(p);
         BufferedInputStream in = new BufferedInputStream(new FileInputStream(f));

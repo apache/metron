@@ -69,6 +69,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -114,8 +115,14 @@ public class ElasticsearchDao implements IndexDao {
             .size(searchRequest.getSize())
             .from(searchRequest.getFrom())
             .query(new QueryStringQueryBuilder(searchRequest.getQuery()))
-            .fetchSource(true)
+
             .trackScores(true);
+    Optional<List<String>> fields = searchRequest.getFields();
+    if (fields.isPresent()) {
+      searchSourceBuilder.fields(fields.get());
+    } else {
+      searchSourceBuilder.fetchSource(true);
+    }
     for (SortField sortField : searchRequest.getSort()) {
       FieldSortBuilder fieldSortBuilder = new FieldSortBuilder(sortField.getField());
       if (sortField.getSortOrder() == org.apache.metron.indexing.dao.search.SortOrder.DESC) {
@@ -142,7 +149,16 @@ public class ElasticsearchDao implements IndexDao {
     searchResponse.setResults(Arrays.stream(elasticsearchResponse.getHits().getHits()).map(searchHit -> {
       SearchResult searchResult = new SearchResult();
       searchResult.setId(searchHit.getId());
-      searchResult.setSource(searchHit.getSource());
+      Map<String, Object> source;
+      if (fields.isPresent()) {
+        source = new HashMap<>();
+        searchHit.getFields().forEach((key, value) -> {
+          source.put(key, value.getValues().size() == 1 ? value.getValue() : value.getValues());
+        });
+      } else {
+        source = searchHit.getSource();
+      }
+      searchResult.setSource(source);
       searchResult.setScore(searchHit.getScore());
       searchResult.setIndex(searchHit.getIndex());
       return searchResult;

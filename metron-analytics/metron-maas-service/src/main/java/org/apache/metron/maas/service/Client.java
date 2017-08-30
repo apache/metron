@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.function.Function;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.apache.commons.cli.*;
 import org.apache.commons.cli.CommandLine;
@@ -558,6 +559,7 @@ public class Client {
     // Copy the application master jar to the filesystem
     // Create a local resource to point to the destination jar path
     FileSystem fs = FileSystem.get(conf);
+    createMaaSDirectory(fs, appId.toString());
     Path ajPath = addToLocalResources(fs, appMasterJar, appMasterJarPath, appId.toString(), localResources, null);
 
     // Set the log4j properties if needed
@@ -789,6 +791,18 @@ public class Client {
     yarnClient.killApplication(appId);
   }
 
+  private void createMaaSDirectory(FileSystem fs, String appId) throws IOException {
+    for(Path p : ImmutableList.of(new Path(fs.getHomeDirectory(), appName)
+                                 , new Path(fs.getHomeDirectory(), appName + "/" + appId)
+                                 )
+       ) {
+      if(!fs.exists(p)) {
+        fs.mkdirs(p);
+        fs.setPermission(p, new FsPermission((short)0755));
+      }
+    }
+  }
+
   private Path addToLocalResources(FileSystem fs, String fileSrcPath,
                                    String fileDstPath, String appId, Map<String, LocalResource> localResources,
                                    String resources) throws IOException {
@@ -808,6 +822,7 @@ public class Client {
     } else {
       fs.copyFromLocalFile(new Path(fileSrcPath), dst);
     }
+    fs.setPermission(dst, new FsPermission((short)0755));
     FileStatus scFileStatus = fs.getFileStatus(dst);
     LocalResource scRsrc =
             LocalResource.newInstance(

@@ -1,6 +1,4 @@
-import {SortField} from './sort-field';
-import {DEFAULT_FACETS} from '../utils/constants';
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,12 +15,21 @@ import {DEFAULT_FACETS} from '../utils/constants';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class SearchRequest {
-  // _source: string[]; //TODO: This needs to be removed
-  from: number;
-  indices: string[] = ['websphere', 'snort', 'asa', 'bro', 'yaf'];
-  query: string;
-  size: number;
-  sort: SortField[];
-  facetFields: string[] = DEFAULT_FACETS;
+package org.apache.metron.stellar.common.utils.hashing;
+
+import org.apache.commons.codec.EncoderException;
+
+import java.security.NoSuchAlgorithmException;
+
+public interface Hasher {
+
+  /**
+   * Returns an encoded string representation of the hash value of the input. It is expected that
+   * this implementation does throw exceptions when the input is null.
+   * @param toHash The value to hash.
+   * @return A hash of {@code toHash} that has been encoded.
+   * @throws EncoderException If unable to encode the hash then this exception occurs.
+   * @throws NoSuchAlgorithmException If the supplied algorithm is not known.
+   */
+  String getHash(final Object toHash) throws EncoderException, NoSuchAlgorithmException;
 }
