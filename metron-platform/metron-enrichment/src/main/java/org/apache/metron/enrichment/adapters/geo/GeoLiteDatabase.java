@@ -74,17 +74,20 @@ public enum GeoLiteDatabase {
     LOCATION_POINT("location_point"),
     ;
     Function<Map<String, String>, String> getter;
-    String name;
+    String simpleName;
 
-    GeoProps(String name) {
-      this(name, m -> m.get(name));
+    GeoProps(String simpleName) {
+      this(simpleName, m -> m.get(simpleName));
     }
 
-    GeoProps(String name,
+    GeoProps(String simpleName,
              Function<Map<String, String>, String> getter
     ) {
-      this.name = name;
+      this.simpleName = simpleName;
       this.getter = getter;
+    }
+    public String getSimpleName() {
+      return simpleName;
     }
 
     public String get(Map<String, String> map) {
@@ -92,7 +95,7 @@ public enum GeoLiteDatabase {
     }
 
     public void set(Map<String, String> map, String val) {
-      map.put(name, val);
+      map.put(simpleName, val);
     }
   }
 

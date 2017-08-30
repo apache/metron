@@ -1,6 +1,24 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.metron.enrichment.stellar;
 
 import ch.hsr.geohash.WGS84Point;
+import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.enrichment.adapters.geo.hash.DistanceStrategies;
 import org.apache.metron.enrichment.adapters.geo.hash.DistanceStrategy;
 import org.apache.metron.enrichment.adapters.geo.hash.GeoHashUtil;
@@ -13,12 +31,55 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public class GeoHashFunctions {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  @Stellar(name="TO_LATLONG"
+          ,namespace="GEOHASH"
+          ,description="Compute the lat/long of a given geohash"
+          ,params = {
+                      "hash - The geohash",
+                    }
+          ,returns = "A map containing the latitude and longitude of the hash (keys \"latitude\" and \"longitude\")"
+  )
+  public static class ToLatLong implements StellarFunction {
+
+    @Override
+    public Object apply(List<Object> args, Context context) throws ParseException {
+      if(args.size() < 1) {
+        return null;
+      }
+      String hash = (String)args.get(0);
+      if(hash == null) {
+        return null;
+      }
+
+      Optional<WGS84Point> point = GeoHashUtil.INSTANCE.toPoint(hash);
+      if(point.isPresent()) {
+        Map<String, Object> ret = new HashMap<>();
+        ret.put(GeoLiteDatabase.GeoProps.LONGITUDE.getSimpleName(), point.get().getLongitude());
+        ret.put(GeoLiteDatabase.GeoProps.LATITUDE.getSimpleName(), point.get().getLatitude());
+        return ret;
+      }
+      return null;
+    }
+
+    @Override
+    public void initialize(Context context) {
+
+    }
+
+    @Override
+    public boolean isInitialized() {
+      return true;
+    }
+  }
+
   @Stellar(name="FROM_LATLONG"
           ,namespace="GEOHASH"
           ,description="Compute geohash given a lat/long"

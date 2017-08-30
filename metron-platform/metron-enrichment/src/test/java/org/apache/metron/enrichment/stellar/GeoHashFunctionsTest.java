@@ -14,6 +14,7 @@ public class GeoHashFunctionsTest {
   public static WGS84Point empireStatePoint = new WGS84Point(40.748570, -73.985752);
   public static WGS84Point mosconeCenterPoint = new WGS84Point(37.782891, -122.404166);
   public static WGS84Point jutlandPoint = new WGS84Point(57.64911, 10.40740);
+  public static String explicitJutlandHash = "u4pruydqmvpb";
   String empireStateHash = (String)StellarProcessorUtils.run("GEOHASH_FROM_LATLONG(lat, long)"
                              , ImmutableMap.of("lat", empireStatePoint.getLatitude()
                                               ,"long",empireStatePoint.getLongitude()
@@ -29,6 +30,35 @@ public class GeoHashFunctionsTest {
                                               ,"long",jutlandPoint.getLongitude()
                                               )
   );
+
+  @Test
+  public void testToLatLong_happypath() throws Exception {
+    Map<String, Object> latLong = (Map<String, Object>)StellarProcessorUtils.run("GEOHASH_TO_LATLONG(hash)"
+            , ImmutableMap.of("hash", "u4pruydqmvpb" ) );
+    Assert.assertEquals(jutlandPoint.getLatitude(), (double)latLong.get("latitude"), 1e-3);
+    Assert.assertEquals(jutlandPoint.getLongitude(), (double)latLong.get("longitude"), 1e-3);
+  }
+
+  @Test
+  public void testToLatLong_degenerate() throws Exception {
+    {
+      Map<String, Object> latLong = (Map<String, Object>) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(hash)"
+              , ImmutableMap.of("hash", "u"));
+      Assert.assertFalse(Double.isNaN((double) latLong.get("latitude")));
+      Assert.assertFalse(Double.isNaN((double) latLong.get("longitude")));
+    }
+    {
+      Map<String, Object> latLong = (Map<String, Object>) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(hash)"
+              , ImmutableMap.of("hash", ""));
+      Assert.assertEquals(0d, (double)latLong.get("latitude"), 1e-3);
+      Assert.assertEquals(0d, (double)latLong.get("longitude"), 1e-3);
+    }
+    {
+      Map<String, Object> latLong = (Map<String, Object>) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(null)"
+              , new HashMap<>());
+      Assert.assertNull(latLong);
+    }
+  }
 
   @Test
   public void testHash_fromlatlong() throws Exception {
