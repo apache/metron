@@ -41,9 +41,9 @@ public class GeoHashFunctions {
 
   @Stellar(name="TO_LATLONG"
           ,namespace="GEOHASH"
-          ,description="Compute the lat/long of a given geohash"
+          ,description="Compute the lat/long of a given [geohash](https://en.wikipedia.org/wiki/Geohash)"
           ,params = {
-                      "hash - The geohash",
+                      "hash - The [geohash](https://en.wikipedia.org/wiki/Geohash)"
                     }
           ,returns = "A map containing the latitude and longitude of the hash (keys \"latitude\" and \"longitude\")"
   )
@@ -82,13 +82,13 @@ public class GeoHashFunctions {
 
   @Stellar(name="FROM_LATLONG"
           ,namespace="GEOHASH"
-          ,description="Compute geohash given a lat/long"
+          ,description="Compute [geohash](https://en.wikipedia.org/wiki/Geohash) given a lat/long"
           ,params = {
                       "latitude - The latitude",
                       "longitude - The longitude",
                       "character_precision? - The number of characters to use in the hash. Default is 12"
                     }
-          ,returns = "A geo hash of the lat/long"
+          ,returns = "A [geohash](https://en.wikipedia.org/wiki/Geohash) of the lat/long"
   )
   public static class FromLatLong implements StellarFunction {
 
@@ -125,12 +125,12 @@ public class GeoHashFunctions {
 
   @Stellar(name="FROM_LOC"
           ,namespace="GEOHASH"
-          ,description="Compute geohash given a geo enrichment location"
+          ,description="Compute [geohash](https://en.wikipedia.org/wiki/Geohash) given a geo enrichment location"
           ,params = {
-                      "map - the latitude and logitude in a map (the output of the Geo Enrichment)",
+                      "map - the latitude and logitude in a map (the output of GEO_GET)",
                       "character_precision? - The number of characters to use in the hash. Default is 12"
                     }
-          ,returns = "A geo hash of the lat/long"
+          ,returns = "A [geohash](https://en.wikipedia.org/wiki/Geohash) of the location"
   )
   public static class FromLoc implements StellarFunction {
 
@@ -165,11 +165,11 @@ public class GeoHashFunctions {
 
   @Stellar(name="DIST"
           ,namespace="GEOHASH"
-          ,description="Compute the distance between geo hashes"
+          ,description="Compute the distance between [geohashes](https://en.wikipedia.org/wiki/Geohash)"
           ,params = {
-                      "hash1 - The first point as a geo hash",
-                      "hash2 - The second point as a geo hash",
-                      "strategy? - The distance to use.  One of HAVERSINE, LAW_OF_COSINES, or VICENTY.  Haversine is default."
+                      "hash1 - The first location as a geohash",
+                      "hash2 - The second location as a geohash",
+                      "strategy? - The great circle distance strategy to use. One of [HAVERSINE](https://en.wikipedia.org/wiki/Haversine_formula), [LAW_OF_COSINES](https://en.wikipedia.org/wiki/Law_of_cosines#Using_the_distance_formula), or [VICENTY](https://en.wikipedia.org/wiki/Vincenty%27s_formulae).  Haversine is default."
                     }
           ,returns = "The distance in kilometers between the hashes"
   )
@@ -213,12 +213,12 @@ public class GeoHashFunctions {
 
   @Stellar(name="MAX_DIST"
           ,namespace="GEOHASH"
-          ,description="Compute the maximum distance among a list of hashes"
+          ,description="Compute the maximum distance among a list of [geohashes](https://en.wikipedia.org/wiki/Geohash)"
           ,params = {
-                      "hashes - A set of hashes",
-                      "strategy? - The distance strategy to use.  One of HAVERSINE, LAW_OF_COSINES, or VICENTY.  Haversine is default."
+                      "hashes - A set of [geohashes](https://en.wikipedia.org/wiki/Geohash)",
+                      "strategy? - The great circle distance strategy to use. One of [HAVERSINE](https://en.wikipedia.org/wiki/Haversine_formula), [LAW_OF_COSINES](https://en.wikipedia.org/wiki/Law_of_cosines#Using_the_distance_formula), or [VICENTY](https://en.wikipedia.org/wiki/Vincenty%27s_formulae).  Haversine is default."
                     }
-          ,returns = "The maximum distance in kilometers"
+          ,returns = "The maximum distance in kilometers between any two locations"
   )
   public static class MaxDist implements StellarFunction {
 

@@ -135,6 +135,11 @@ In the core language functions, we support basic functional programming primitiv
 | [ `FUZZY_SCORE`](#fuzzy_score)                                                   |
 | [ `FORMAT`](#format)                                                                               |
 | [ `GEO_GET`](#geo_get)                                                                             |
+| [ `GEOHASH_DIST`](#geohash_dist)                                                                   |
+| [ `GEOHASH_FROM_LATLONG`](#geohash_from_latlong)                                                   |
+| [ `GEOHASH_FROM_LOC`](#geohash_from_loc)                                                           |
+| [ `GEOHASH_MAX_DIST`](#geohash_max_dist)                                                           |
+| [ `GEOHASH_TO_LATLONG`](#geohash_to_latlong)                                                       |
 | [ `GET`](#get)                                                                                     |
 | [ `GET_FIRST`](#get_first)                                                                         |
 | [ `GET_LAST`](#get_last)                                                                           |
@@ -433,6 +438,43 @@ In the core language functions, we support basic functional programming primitiv
     * ip - The IPV4 address to lookup
     * fields - Optional list of GeoIP fields to grab. Options are locID, country, city postalCode, dmaCode, latitude, longitude, location_point
   * Returns: If a Single field is requested a string of the field, If multiple fields a map of string of the fields, and null otherwise
+
+### `GEOHASH_DIST`
+  * Description: Compute the distance between [geohashes](https://en.wikipedia.org/wiki/Geohash)
+  * Input:
+    * hash1 - The first point as a geohash
+    * hash2 - The second point as a geohash
+    * strategy? - The great circle distance strategy to use.  One of [HAVERSINE](https://en.wikipedia.org/wiki/Haversine_formula), [LAW_OF_COSINES](https://en.wikipedia.org/wiki/Law_of_cosines#Using_the_distance_formula), or [VICENTY](https://en.wikipedia.org/wiki/Vincenty%27s_formulae).  Haversine is default.
+  * Returns: The distance in kilometers between the hashes.
+
+### `GEOHASH_FROM_LATLONG`
+  * Description: Compute [geohash](https://en.wikipedia.org/wiki/Geohash) given a lat/long
+  * Input:
+    * latitude - The latitude
+    * longitude - The longitude
+    * character_precision? - The number of characters to use in the hash. Default is 12
+  * Returns: A [geohash](https://en.wikipedia.org/wiki/Geohash) of the lat/long
+
+### `GEOHASH_FROM_LOC`
+  * Description: Compute [geohash](https://en.wikipedia.org/wiki/Geohash) given a geo enrichment location
+  * Input:
+    * map - the latitude and logitude in a map (the output of [GEO_GET](#geo_get) )
+    * longitude - The longitude
+    * character_precision? - The number of characters to use in the hash. Default is `12`
+  * Returns: A [geohash](https://en.wikipedia.org/wiki/Geohash) of the location
+
+### `GEOHASH_MAX_DIST`
+  * Description: Compute the maximum distance among a list of [geohashes](https://en.wikipedia.org/wiki/Geohash)
+  * Input:
+    * hashes - A set of [geohashes](https://en.wikipedia.org/wiki/Geohash)
+    * strategy? - The great circle distance strategy to use. One of [HAVERSINE](https://en.wikipedia.org/wiki/Haversine_formula), [LAW_OF_COSINES](https://en.wikipedia.org/wiki/Law_of_cosines#Using_the_distance_formula), or [VICENTY](https://en.wikipedia.org/wiki/Vincenty%27s_formulae).  Haversine is default.
+  * Returns: The maximum distance in kilometers between any two locations
+
+### `GEOHASH_TO_LATLONG`
+  * Description: Compute the lat/long of a given [geohash](https://en.wikipedia.org/wiki/Geohash)
+  * Input:
+    * hash - The [geohash](https://en.wikipedia.org/wiki/Geohash)
+  * Returns: A map containing the latitude and longitude of the hash (keys "latitude" and "longitude")
 
 ### `GET`
   * Description: Returns the i'th element of the list 
