@@ -42,7 +42,10 @@ public class DaoControllerTest {
       int i = 0;
       for(Object o: docArray) {
         JSONObject jsonObject = (JSONObject) o;
-        jsonObject.put(Constants.GUID, indices.getKey() + ":" + i++);
+        // Don't replace the GUID if we've already provided one
+        if (!jsonObject.containsKey(Constants.GUID)) {
+          jsonObject.put(Constants.GUID, indices.getKey() + ":" + i++);
+        }
         results.add(jsonObject.toJSONString());
       }
     }

@@ -103,7 +103,7 @@ public class ElasticsearchDao implements IndexDao {
   /**
    * Defers to a provided {@link org.elasticsearch.index.query.QueryBuilder} for the query.
    * @param searchRequest The request defining the parameters of the search
-   * @param queryBuilder The actual query to be run
+   * @param queryBuilder The actual query to be run. Intended for if the SearchRequest requires wrapping
    * @return The results of the query
    * @throws InvalidSearchException When the query is malformed or the current state doesn't allow search
    */

@@ -24,6 +24,7 @@ import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.rest.service.UpdateService;
 import org.junit.Assert;
@@ -73,7 +74,7 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
 
   /**
    {
-     "guid" : "bro_index_2017.01.01.01:1",
+     "guid" : "bro_2",
      "sensorType" : "bro"
    }
    */
@@ -82,7 +83,7 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
 
   /**
    {
-     "guid" : "bro_index_2017.01.01.01:1",
+     "guid" : "bro_2",
      "sensorType" : "bro",
      "patch" : [
       {
@@ -98,11 +99,11 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
 
   /**
    {
-     "guid" : "bro_index_2017.01.01.01:1",
+     "guid" : "bro_2",
      "sensorType" : "bro",
      "replacement" : {
        "source:type": "bro",
-       "guid" : "bro_index_2017.01.01.01:1",
+       "guid" : "bro_2",
        "ip_src_addr":"192.168.1.2",
        "ip_src_port": 8009,
        "timestamp":200,
@@ -118,14 +119,15 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
     ImmutableMap<String, String> testData = ImmutableMap.of(
         "bro_index_2017.01.01.01", SearchIntegrationTest.broData,
-        "snort_index_2017.01.01.01", SearchIntegrationTest.snortData
+        "snort_index_2017.01.01.01", SearchIntegrationTest.snortData,
+        MetaAlertDao.METAALERTS_INDEX, SearchIntegrationTest.metaAlertData
     );
     loadTestData(testData);
   }
 
   @Test
   public void test() throws Exception {
-    String guid = "bro_index_2017.01.01.01:1";
+    String guid = "bro_2";
     ResultActions result =   this.mockMvc.perform(post(searchUrl + "/findOne").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(findMessage0));
     try {
      result.andExpect(status().isOk())

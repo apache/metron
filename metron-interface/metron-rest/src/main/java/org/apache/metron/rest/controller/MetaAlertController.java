@@ -21,8 +21,6 @@ package org.apache.metron.rest.controller;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
-import java.util.List;
-import java.util.Map;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.search.SearchResponse;
@@ -40,15 +38,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/metaalert")
 public class MetaAlertController {
 
-  //  @Autowired
-//  private SearchService searchService;
   @Autowired
   private MetaAlertService metaAlertService;
 
   @ApiOperation(value = "Get all meta alerts for alert")
   @ApiResponse(message = "Search results", code = 200)
   @RequestMapping(value = "/searchByAlert", method = RequestMethod.POST)
-  ResponseEntity<SearchResponse> search(
+  ResponseEntity<SearchResponse> searchByAlert(
       @ApiParam(name = "guid", value = "GUID", required = true)
       @RequestBody final String guid
   ) throws RestException {
@@ -59,14 +55,9 @@ public class MetaAlertController {
   @ApiResponse(message = "Created meta alert", code = 200)
   @RequestMapping(value = "/create", method = RequestMethod.POST)
   ResponseEntity<MetaAlertCreateResponse> create(
-      @ApiParam(name = "guids", value = "GUIDs", required = true)
-      @RequestBody final Map<String, String> guids,
-      @ApiParam(name = "groups", value = "groups", required = true)
-      @RequestBody final List<String> groups
+      @ApiParam(name = "request", value = "Replacement request", required = true)
+      @RequestBody  final MetaAlertCreateRequest createRequest
   ) throws RestException {
-    MetaAlertCreateRequest createRequest = new MetaAlertCreateRequest();
-    createRequest.setGuidToIndices(guids);
-    createRequest.setGroups(groups);
     return new ResponseEntity<>(metaAlertService.create(createRequest), HttpStatus.OK);
   }
 }

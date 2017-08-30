@@ -104,6 +104,9 @@ public class InMemoryDao implements IndexDao {
   }
 
   private static boolean isMatch(String query, Map<String, Object> doc) {
+    if (query == null) {
+      return false;
+    }
     if(query.equals("*")) {
       return true;
     }
@@ -111,12 +114,36 @@ public class InMemoryDao implements IndexDao {
       Iterable<String> splits = Splitter.on(":").split(query.trim());
       String field = Iterables.getFirst(splits, "");
       String val = Iterables.getLast(splits, "");
-      Object o = doc.get(field);
-      if(o == null) {
+
+      // Immediately quit if there's no value ot find
+      if (val == null) {
         return false;
       }
-      else {
-        return o.equals(val);
+
+      // Check if we're looking into a nested field.  The '|' is arbitrarily chosen.
+      String nestingField = null;
+      if (field.contains("|")) {
+        Iterable<String> fieldSplits = Splitter.on('|').split(field);
+        nestingField = Iterables.getFirst(fieldSplits, null);
+        field = Iterables.getLast(fieldSplits, null);
+      }
+      if (nestingField == null) {
+        // Just grab directly
+        Object o = doc.get(field);
+        return val.equals(o);
+      } else {
+        // We need to look into a nested field for the value
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> nestedList = (List<Map<String, Object>>) doc.get(nestingField);
+        if (nestedList == null) {
+          return false;
+        } else {
+          for (Map<String, Object> nestedEntry : nestedList) {
+            if (val.equals(nestedEntry.get(field))) {
+              return true;
+            }
+          }
+        }
       }
     }
     return false;
@@ -166,7 +193,7 @@ public class InMemoryDao implements IndexDao {
       }
     }
   }
-  
+
   public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException {
     Map<String, Map<String, FieldType>> columnMetadata = new HashMap<>();
     for(String index: indices) {

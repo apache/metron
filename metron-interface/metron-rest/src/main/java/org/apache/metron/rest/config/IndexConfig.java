@@ -81,30 +81,6 @@ public class IndexConfig {
       // Create the meta alert dao and wrap it around the index dao.
       MetaAlertDao ret = (MetaAlertDao) IndexDaoFactory.create(metaDaoImpl, config).get(0);
       ret.init(indexDao);
-//      IndexDao ret = IndexDaoFactory
-//          .combine(IndexDaoFactory.create(indexDaoImpl, config), dao -> {
-//            Class indexDaoClazz = null;
-//            try {
-//              System.out.println("DAO IMPL: " + indexDaoImpl);
-//              indexDaoClazz = Class.forName(indexDaoImpl);
-//              System.out.println("CLAZZ: " + indexDaoClazz);
-//              System.out.println("DAO: " + dao);
-//            } catch (ClassNotFoundException e) {
-//              e.printStackTrace();
-//            }
-//            if (indexDaoClazz.isInstance(dao)) {
-//              try {
-//                // Only one dao is being created here, so it must be the MetaAlertDao.
-//                MetaAlertDao metaDao = (MetaAlertDao) IndexDaoFactory.create(metaDaoImpl, config).get(0);
-//                metaDao.init(dao);
-//              } catch (Exception e) {
-//                throw new IllegalStateException("Unable to create daos", e);
-//              }
-////              return new ElasticsearchMetaAlertDao(dao);
-//            }
-//
-//            return dao;
-//          });
       if (ret == null) {
         throw new IllegalStateException("Meta Alert Dao is unable to be created.");
       }

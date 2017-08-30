@@ -54,3 +54,7 @@ index:
   # By default, we use the ElasticsearchDao and HBaseDao for backing updates.
      impl: org.apache.metron.elasticsearch.dao.ElasticsearchDao,org.apache.metron.indexing.dao.HBaseDao
 
+meta:
+  dao:
+  # By default, we use the ElasticsearchMetaAlertDao
+    impl: org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao

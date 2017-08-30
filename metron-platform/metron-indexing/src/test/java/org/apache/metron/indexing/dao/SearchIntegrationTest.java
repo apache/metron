@@ -64,8 +64,8 @@ public abstract class SearchIntegrationTest {
 
   /**
    * [
-   * {"guid": "meta_1", "alert": "[bro_1]", "average": "5.0", "min": "5.0", "median": "5.0", "max": "5.0", "count": "1.0", "sum": "5.0"},
-   * {"guid": "meta_2", "alert": "[bro_1, bro_2, snort_1]", "average": "5.0", "min": "0.0", "median": "5.0", "max": "10.0", "count": "3.0", "sum": "15.0"},
+   *{"guid":"meta_1","alert":[{"guid":"bro_1"}],"average":"5.0","min":"5.0","median":"5.0","max":"5.0","count":"1.0","sum":"5.0"},
+   *{"guid":"meta_2","alert":[{"guid":"bro_1"},{"guid":"bro_2"},{"guid":"snort_1"}],"average":"5.0","min":"0.0","median":"5.0","max":"10.0","count":"3.0","sum":"15.0"}
    * ]
    */
   @Multiline
@@ -265,7 +265,7 @@ public abstract class SearchIntegrationTest {
   /**
    * {
    * "fields": ["guid"],
-   * "indices": ["metaalert"],
+   * "indices": ["metaalerts"],
    * "query": "*",
    * "from": 0,
    * "size": 10,

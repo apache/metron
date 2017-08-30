@@ -55,4 +55,5 @@ index:
 
 meta:
   dao:
+  # By default, we use the InMemoryMetaAlertDao for our tests
     impl: org.apache.metron.indexing.dao.InMemoryMetaAlertDao

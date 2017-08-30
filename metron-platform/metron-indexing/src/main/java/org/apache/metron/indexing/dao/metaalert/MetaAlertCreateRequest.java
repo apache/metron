@@ -18,14 +18,20 @@
 
 package org.apache.metron.indexing.dao.metaalert;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class MetaAlertCreateRequest {
-
   // A map from the alert GUID to the Document index
   private Map<String, String> guidToIndices;
   private List<String> groups;
+
+  public MetaAlertCreateRequest() {
+    this.guidToIndices = new HashMap<>();
+    this.groups = new ArrayList<>();
+  }
 
   public Map<String, String> getGuidToIndices() {
     return guidToIndices;
