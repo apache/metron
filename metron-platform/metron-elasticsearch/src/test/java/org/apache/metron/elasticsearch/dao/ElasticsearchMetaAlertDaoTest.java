@@ -57,7 +57,7 @@ public class ElasticsearchMetaAlertDaoTest {
     when(innerAlertHit.getId()).thenReturn("a1");
     SearchHitField field = mock(SearchHitField.class);
     when(field.getValue()).thenReturn(10);
-    when(innerAlertHit.field("threat.triage.level")).thenReturn(field);
+    when(innerAlertHit.field("threat:triage:level")).thenReturn(field);
     SearchHit[] innerHitArray = new SearchHit[1];
     innerHitArray[0] = innerAlertHit;
 
@@ -70,7 +70,7 @@ public class ElasticsearchMetaAlertDaoTest {
 
     // Construct  the updated Document
     Map<String, Object> updateMap = new HashMap<>();
-    updateMap.put("threat.triage.level", 5);
+    updateMap.put("threat:triage:level", 5);
     updateMap.put("fakekey", "fakevalue");
     Document update = new Document(updateMap, "a1", "bro_doc", 0L);
 
@@ -92,7 +92,7 @@ public class ElasticsearchMetaAlertDaoTest {
     expected.put("sum", 5.0);
     JSONArray expectedAlerts = new JSONArray();
     JSONObject expectedAlert = new JSONObject();
-    expectedAlert.put("threat.triage.level", 5L);
+    expectedAlert.put("threat:triage:level", 5L);
     expectedAlert.put("fakekey", "fakevalue");
     expectedAlerts.add(expectedAlert);
     expected.put("alert", expectedAlerts);
@@ -118,17 +118,17 @@ public class ElasticsearchMetaAlertDaoTest {
     when(innerAlertHitOne.getId()).thenReturn("a1");
     SearchHitField triageOne = mock(SearchHitField.class);
     when(triageOne.getValue()).thenReturn(10);
-    when(innerAlertHitOne.field("threat.triage.level")).thenReturn(triageOne);
+    when(innerAlertHitOne.field("threat:triage:level")).thenReturn(triageOne);
 
     SearchHit innerAlertHitTwo = mock(SearchHit.class);
     when(innerAlertHitTwo.getId()).thenReturn("a2");
     SearchHitField triageTwo = mock(SearchHitField.class);
     when(triageTwo.getValue()).thenReturn(10);
     Map<String, Object> innerAlertHitTwoSource = new HashMap<>();
-    innerAlertHitTwoSource.put("threat.triage.level", 10);
+    innerAlertHitTwoSource.put("threat:triage:level", 10);
     innerAlertHitTwoSource.put("guid", "a2");
     when(innerAlertHitTwo.getSource()).thenReturn(innerAlertHitTwoSource);
-    when(innerAlertHitTwo.field("threat.triage.level")).thenReturn(triageTwo);
+    when(innerAlertHitTwo.field("threat:triage:level")).thenReturn(triageTwo);
 
     SearchHit[] innerHitArray = new SearchHit[2];
     innerHitArray[0] = innerAlertHitOne;
@@ -143,7 +143,7 @@ public class ElasticsearchMetaAlertDaoTest {
 
     // Construct  the updated Document
     Map<String, Object> updateMap = new HashMap<>();
-    updateMap.put("threat.triage.level", 5);
+    updateMap.put("threat:triage:level", 5);
     updateMap.put("fakekey", "fakevalue");
     Document update = new Document(updateMap, "a1", "bro_doc", 0L);
 
@@ -165,11 +165,11 @@ public class ElasticsearchMetaAlertDaoTest {
     expected.put("sum", 15.0);
     JSONArray expectedAlerts = new JSONArray();
     JSONObject expectedAlertOne = new JSONObject();
-    expectedAlertOne.put("threat.triage.level", 5L);
+    expectedAlertOne.put("threat:triage:level", 5L);
     expectedAlertOne.put("fakekey", "fakevalue");
     expectedAlerts.add(expectedAlertOne);
     JSONObject expectedAlertTwo = new JSONObject();
-    expectedAlertTwo.put("threat.triage.level", 10L);
+    expectedAlertTwo.put("threat:triage:level", 10L);
     expectedAlertTwo.put("guid", "a2");
     expectedAlerts.add(expectedAlertTwo);
     expected.put("alert", expectedAlerts);
