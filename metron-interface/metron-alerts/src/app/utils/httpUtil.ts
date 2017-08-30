@@ -18,6 +18,7 @@
 import {Response} from '@angular/http';
 import {Observable}     from 'rxjs/Observable';
 import {RestError} from '../model/rest-error';
+
 export class HttpUtil {
 
   public static extractString(res: Response): string {
@@ -34,7 +35,10 @@ export class HttpUtil {
     // In a real world app, we might use a remote logging infrastructure
     // We'd also dig deeper into the error to get a better message
     let restError: RestError;
-    if (res.status !== 404) {
+    if (res.status === 401) {
+      restError = res.json();
+      window.location.pathname = '/login';
+    } else if (res.status !== 404) {
       restError = res.json();
     } else {
       restError = new RestError();

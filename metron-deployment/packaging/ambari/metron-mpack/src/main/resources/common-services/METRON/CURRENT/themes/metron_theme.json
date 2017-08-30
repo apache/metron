@@ -65,7 +65,7 @@
             "display-name": "Enrichment",
             "layout": {
               "tab-columns": "1",
-              "tab-rows": "4",
+              "tab-rows": "3",
               "sections": [
                 {
                   "name": "section-enrichment-adapters",
@@ -132,7 +132,7 @@
             "display-name": "Indexing",
             "layout": {
               "tab-columns": "1",
-              "tab-rows": "3",
+              "tab-rows": "4",
               "sections": [
                 {
                   "name": "section-indexing-kafka",
@@ -155,7 +155,7 @@
                 },
                 {
                   "name": "section-indexing-update",
-                  "row-index": "0",
+                  "row-index": "1",
                   "column-index": "0",
                   "row-span": "1",
                   "column-span": "1",
@@ -174,7 +174,7 @@
                 },
                 {
                   "name": "section-indexing-storm",
-                  "row-index": "1",
+                  "row-index": "2",
                   "column-index": "0",
                   "row-span": "1",
                   "column-span": "1",
@@ -193,7 +193,7 @@
                 },
                 {
                   "name": "section-indexing-hdfs",
-                  "row-index": "2",
+                  "row-index": "3",
                   "column-index": "0",
                   "row-span": "1",
                   "column-span": "1",
@@ -210,6 +210,73 @@
                     }
                   ]
                 }
+              ]
+            }
+          },
+          {
+            "name": "profiler",
+            "display-name": "Profiler",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "3",
+              "sections": [
+                {
+                "name": "section-profiler-kafka",
+                "row-index": "0",
+                "column-index": "0",
+                "row-span": "1",
+                "column-span": "1",
+                "section-columns": "1",
+                "section-rows": "1",
+                "subsections": [
+                  {
+                  "name": "subsection-profiler-kafka",
+                  "display-name": "Kafka",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1"
+                }
+                ]
+              },
+              {
+                "name": "section-profiler-setup",
+                "row-index": "1",
+                "column-index": "0",
+                "row-span": "1",
+                "column-span": "1",
+                "section-columns": "1",
+                "section-rows": "1",
+                "subsections": [
+                  {
+                  "name": "subsection-profiler-setup",
+                  "display-name": "Profiler Setup",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1"
+                }
+                ]
+              },
+              {
+                "name": "section-profiler-storm",
+                "row-index": "2",
+                "column-index": "0",
+                "row-span": "1",
+                "column-span": "1",
+                "section-columns": "1",
+                "section-rows": "1",
+                "subsections": [
+                  {
+                  "name": "subsection-profiler-storm",
+                  "display-name": "Storm",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1"
+                }
+                ]
+              }
               ]
             }
           },
@@ -453,6 +520,54 @@
           "subsection-name": "subsection-indexing-hdfs"
         },
 
+        {
+          "config": "metron-profiler-env/profiler_kafka_start",
+          "subsection-name": "subsection-profiler-kafka"
+        },
+        {
+          "config": "metron-profiler-env/profiler_period_duration",
+          "subsection-name": "subsection-profiler-setup"
+        },
+        {
+          "config": "metron-profiler-env/profiler_period_units",
+          "subsection-name": "subsection-profiler-setup"
+        },
+        {
+          "config": "metron-profiler-env/profiler_ttl",
+          "subsection-name": "subsection-profiler-setup"
+        },
+        {
+          "config": "metron-profiler-env/profiler_ttl_units",
+          "subsection-name": "subsection-profiler-setup"
+        },
+        {
+          "config": "metron-profiler-env/profiler_hbase_table",
+          "subsection-name": "subsection-profiler-setup"
+        },
+        {
+          "config": "metron-profiler-env/profiler_hbase_cf",
+          "subsection-name": "subsection-profiler-setup"
+        },
+        {
+          "config": "metron-profiler-env/profiler_hbase_batch",
+          "subsection-name": "subsection-profiler-setup"
+        },
+        {
+          "config": "metron-profiler-env/profiler_hbase_flush_interval",
+          "subsection-name": "subsection-profiler-setup"
+        },
+        {
+          "config": "metron-profiler-env/profiler_topology_worker_childopts",
+          "subsection-name": "subsection-profiler-storm"
+        },
+        {
+          "config": "metron-profiler-env/profiler_topology_workers",
+          "subsection-name": "subsection-profiler-storm"
+        },
+        {
+          "config": "metron-profiler-env/profiler_acker_executors",
+          "subsection-name": "subsection-profiler-storm"
+        },
         {
           "config": "metron-rest-env/metron_rest_port",
           "subsection-name": "subsection-rest"
@@ -780,7 +895,78 @@
           "type": "text-field"
         }
       },
-
+      {
+        "config": "metron-profiler-env/profiler_kafka_start",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_period_duration",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_period_units",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_ttl",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_ttl_units",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_hbase_table",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_hbase_cf",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_hbase_batch",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_hbase_flush_interval",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_topology_worker_childopts",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_topology_workers",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-profiler-env/profiler_acker_executors",
+        "widget": {
+          "type": "text-field"
+        }
+      },
 
       {
         "config": "metron-rest-env/metron_rest_port",

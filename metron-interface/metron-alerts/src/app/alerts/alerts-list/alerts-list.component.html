@@ -77,14 +77,14 @@
                     </thead>
                     <tbody>
                     <tr *ngFor="let alert of alerts" (click)="showDetails($event, alert)" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1}">
-                        <td (click)="onAddFilter(threatScoreFieldName, alert._source[threatScoreFieldName])">
-                            <div appAlertSeverity [severity]="alert._source[threatScoreFieldName]"> <a> {{ alert._source[threatScoreFieldName] ? alert._source[threatScoreFieldName] : '-' }} </a> </div>
+                        <td (click)="onAddFilter(threatScoreFieldName, alert.source[threatScoreFieldName])">
+                            <div appAlertSeverity [severity]="alert.source[threatScoreFieldName]"> <a> {{ alert.source[threatScoreFieldName] ? alert.source[threatScoreFieldName] : '-' }} </a> </div>
                         </td>
                         <td *ngFor="let column of alertsColumnsToDisplay" #cell>
                             <a (click)="onAddFilter(column.name, getValue(alert, column, false))" title="{{getValue(alert, column, true)}}" style="color:#689AA9">{{ getValue(alert, column, true) | centerEllipses:20:cell }}</a>
                         </td>
                         <td></td>
-                        <td><input id="{{ alert._id }}" class="fontawesome-checkbox" type="checkbox" name="{{alert._id}}" (click)="selectRow($event, alert)" [checked]="selectedAlerts.indexOf(alert) != -1"><label attr.for="{{ alert._id }}"></label></td>
+                        <td><input id="{{ alert.id }}" class="fontawesome-checkbox" type="checkbox" name="{{alert.id}}" (click)="selectRow($event, alert)" [checked]="selectedAlerts.indexOf(alert) != -1"><label attr.for="{{ alert.id }}"></label></td>
                     </tr>
                     </tbody>
                 </table>
