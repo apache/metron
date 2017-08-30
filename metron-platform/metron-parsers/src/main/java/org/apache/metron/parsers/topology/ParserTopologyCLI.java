@@ -301,6 +301,24 @@ public class ParserTopologyCLI {
     String zookeeperUrl = ParserOptions.ZK_QUORUM.get(cmd);
     Optional<String> brokerUrl = ParserOptions.BROKER_URL.has(cmd)?Optional.of(ParserOptions.BROKER_URL.get(cmd)):Optional.empty();
     String sensorType= ParserOptions.SENSOR_TYPE.get(cmd);
+
+    /*
+    It bears mentioning why we're creating this ValueSupplier indirection here.
+    As a separation of responsibilities, the CLI class defines the order of precedence
+    for the various topological and structural properties for creating a parser.  This is
+    desirable because there are now (i.e. integration tests)
+    and may be in the future (i.e. a REST service to start parsers without using the CLI)
+    other mechanisms to construct parser topologies.  It's sensible to split those concerns..
+
+    Unfortunately, determining the structural parameters for a parser requires interacting with
+    external services (e.g. zookeeper) that are set up well within the ParserTopology class.
+    Rather than pulling the infrastructure to interact with those services out and moving it into the
+    CLI class and breaking that separation of concerns, we've created a supplier
+    indirection where are providing the logic as to how to create precedence in the CLI class
+    without owning the responsibility of constructing the infrastructure where the values are
+    necessarily supplied.
+
+     */
     ValueSupplier<Integer> spoutParallelism = (parserConfig, clazz) -> {
       if(ParserOptions.SPOUT_PARALLELISM.has(cmd)) {
         return Integer.parseInt(ParserOptions.SPOUT_PARALLELISM.get(cmd, "1"));
