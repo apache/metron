@@ -71,8 +71,7 @@ public class MetaAlertControllerIntegrationTest extends DaoControllerTest {
 
   /**
    {
-     "guid" : "bro_index_2017.01.01.01:1",
-     "sensorType" : "bro"
+     "guid" : "bro_index_2017.01.01.01:1"
    }
    */
   @Multiline
