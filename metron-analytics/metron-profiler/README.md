@@ -281,6 +281,8 @@ In the following example, three values, the minimum, the maximum and the mean ar
 
 A numeric value that defines how many days the profile data is retained.  After this time, the data expires and is no longer accessible.  If no value is defined, the data does not expire.
 
+The REPL can be a powerful for developing profiles. Read all about [Developing Profiles](../metron-profiler-client/#developing_profiles).
+
 ## Configuring the Profiler
 
 The Profiler runs as an independent Storm topology.  The configuration for the Profiler topology is stored in local filesystem at `$METRON_HOME/config/profiler.properties`.
