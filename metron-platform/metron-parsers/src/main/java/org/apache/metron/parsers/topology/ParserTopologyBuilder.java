@@ -18,9 +18,11 @@
 package org.apache.metron.parsers.topology;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.metron.parsers.topology.config.ValueSupplier;
 import org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder;
 import org.apache.metron.storm.kafka.flux.SpoutConfiguration;
 import org.apache.metron.storm.kafka.flux.StormKafkaSpout;
+import org.apache.storm.Config;
 import org.apache.storm.kafka.spout.KafkaSpout;
 import org.apache.storm.kafka.spout.KafkaSpoutConfig;
 import org.apache.storm.topology.TopologyBuilder;
@@ -48,39 +50,70 @@ import java.util.*;
  */
 public class ParserTopologyBuilder {
 
+  public static class ParserTopology {
+    private TopologyBuilder builder;
+    private Config topologyConfig;
+
+    private ParserTopology(TopologyBuilder builder, Config topologyConfig) {
+      this.builder = builder;
+      this.topologyConfig = topologyConfig;
+    }
+
+
+    public TopologyBuilder getBuilder() {
+      return builder;
+    }
+
+    public Config getTopologyConfig() {
+      return topologyConfig;
+    }
+  }
+
   /**
    * Builds a Storm topology that parses telemetry data received from an external sensor.
    *
    * @param zookeeperUrl             Zookeeper URL
    * @param brokerUrl                Kafka Broker URL
    * @param sensorType               Type of sensor
-   * @param spoutParallelism         Parallelism hint for the spout
-   * @param spoutNumTasks            Number of tasks for the spout
-   * @param parserParallelism        Parallelism hint for the parser bolt
-   * @param parserNumTasks           Number of tasks for the parser bolt
-   * @param errorWriterParallelism   Parallelism hint for the bolt that handles errors
-   * @param errorWriterNumTasks      Number of tasks for the bolt that handles errors
-   * @param kafkaSpoutConfig         Configuration options for the kafka spout
+   * @param spoutParallelismSupplier         Supplier for the parallelism hint for the spout
+   * @param spoutNumTasksSupplier            Supplier for the number of tasks for the spout
+   * @param parserParallelismSupplier        Supplier for the parallelism hint for the parser bolt
+   * @param parserNumTasksSupplier           Supplier for the number of tasks for the parser bolt
+   * @param errorWriterParallelismSupplier   Supplier for the parallelism hint for the bolt that handles errors
+   * @param errorWriterNumTasksSupplier      Supplier for the number of tasks for the bolt that handles errors
+   * @param kafkaSpoutConfigSupplier         Supplier for the configuration options for the kafka spout
+   * @param securityProtocolSupplier         Supplier for the security protocol
+   * @param outputTopic                      The output kafka topic
+   * @param stormConfigSupplier              Supplier for the storm config
    * @return A Storm topology that parses telemetry data received from an external sensor
    * @throws Exception
    */
-  public static TopologyBuilder build(String zookeeperUrl,
+  public static ParserTopology build(String zookeeperUrl,
                                       Optional<String> brokerUrl,
                                       String sensorType,
-                                      int spoutParallelism,
-                                      int spoutNumTasks,
-                                      int parserParallelism,
-                                      int parserNumTasks,
-                                      int errorWriterParallelism,
-                                      int errorWriterNumTasks,
-                                      Map<String, Object> kafkaSpoutConfig,
-                                      Optional<String> securityProtocol,
-                                      Optional<String> outputTopic
+                                      ValueSupplier<Integer> spoutParallelismSupplier,
+                                      ValueSupplier<Integer> spoutNumTasksSupplier,
+                                      ValueSupplier<Integer> parserParallelismSupplier,
+                                      ValueSupplier<Integer> parserNumTasksSupplier,
+                                      ValueSupplier<Integer> errorWriterParallelismSupplier,
+                                      ValueSupplier<Integer> errorWriterNumTasksSupplier,
+                                      ValueSupplier<Map> kafkaSpoutConfigSupplier,
+                                      ValueSupplier<String> securityProtocolSupplier,
+                                      Optional<String> outputTopic,
+                                      ValueSupplier<Config> stormConfigSupplier
   ) throws Exception {
 
     // fetch configuration from zookeeper
     ParserConfigurations configs = new ParserConfigurations();
     SensorParserConfig parserConfig = getSensorParserConfig(zookeeperUrl, sensorType, configs);
+    int spoutParallelism = spoutParallelismSupplier.get(parserConfig, Integer.class);
+    int spoutNumTasks = spoutNumTasksSupplier.get(parserConfig, Integer.class);
+    int parserParallelism = parserParallelismSupplier.get(parserConfig, Integer.class);
+    int parserNumTasks = parserNumTasksSupplier.get(parserConfig, Integer.class);
+    int errorWriterParallelism = errorWriterParallelismSupplier.get(parserConfig, Integer.class);
+    int errorWriterNumTasks = errorWriterNumTasksSupplier.get(parserConfig, Integer.class);
+    Map<String, Object> kafkaSpoutConfig = kafkaSpoutConfigSupplier.get(parserConfig, Map.class);
+    Optional<String> securityProtocol = Optional.ofNullable(securityProtocolSupplier.get(parserConfig, String.class));
 
     // create the spout
     TopologyBuilder builder = new TopologyBuilder();
@@ -102,7 +135,7 @@ public class ParserTopologyBuilder {
               .shuffleGrouping("parserBolt", Constants.ERROR_STREAM);
     }
 
-    return builder;
+    return new ParserTopology(builder, stormConfigSupplier.get(parserConfig, Config.class));
   }
 
   /**
@@ -247,16 +280,16 @@ public class ParserTopologyBuilder {
    * @throws Exception
    */
   private static SensorParserConfig getSensorParserConfig(String zookeeperUrl, String sensorType, ParserConfigurations configs) throws Exception {
-    CuratorFramework client = ConfigurationsUtils.getClient(zookeeperUrl);
-    client.start();
-    ConfigurationsUtils.updateParserConfigsFromZookeeper(configs, client);
-    SensorParserConfig parserConfig = configs.getSensorParserConfig(sensorType);
-    if (parserConfig == null) {
-      throw new IllegalStateException("Cannot find the parser configuration in zookeeper for " + sensorType + "." +
-              "  Please check that it exists in zookeeper by using the 'zk_load_configs.sh -m DUMP' command.");
+    try(CuratorFramework client = ConfigurationsUtils.getClient(zookeeperUrl)) {
+      client.start();
+      ConfigurationsUtils.updateParserConfigsFromZookeeper(configs, client);
+      SensorParserConfig parserConfig = configs.getSensorParserConfig(sensorType);
+      if (parserConfig == null) {
+        throw new IllegalStateException("Cannot find the parser configuration in zookeeper for " + sensorType + "." +
+                "  Please check that it exists in zookeeper by using the 'zk_load_configs.sh -m DUMP' command.");
+      }
+      return parserConfig;
     }
-    client.close();
-    return parserConfig;
   }
 
   /**
