@@ -303,7 +303,7 @@ public class GeoHashFunctionsTest {
          , expectedLat = 41.86921
          ;
       for(int weight = 1;weight < 10;++weight) {
-        Map<String, Number> weightedPoints = ImmutableMap.of(empireStateHash, weight, mosconeCenterHash, weight);
+        Map<Object, Integer> weightedPoints = ImmutableMap.of(empireStateHash, weight, mosconeCenterHash, weight);
         Map<String, Double> centroid = (Map) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(GEOHASH_CENTROID(weightedPoints))"
                 , ImmutableMap.of("weightedPoints", weightedPoints)
         );
@@ -317,7 +317,7 @@ public class GeoHashFunctionsTest {
          , expectedLat = empireStatePoint.getLatitude()
          ;
       for(int weight = 1;weight < 10;++weight) {
-        Map<String, Number> weightedPoints = ImmutableMap.of(empireStateHash, weight);
+        Map<Object, Integer> weightedPoints = ImmutableMap.of(empireStateHash, weight);
         Map<String, Double> centroid = (Map) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(GEOHASH_CENTROID(weightedPoints))"
                 , ImmutableMap.of("weightedPoints", weightedPoints)
         );
@@ -327,7 +327,7 @@ public class GeoHashFunctionsTest {
     }
     //no points
     {
-      Map<String, Number> weightedPoints = new HashMap<>();
+      Map<Object, Integer> weightedPoints = new HashMap<>();
       Map<String, Double> centroid = (Map) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(GEOHASH_CENTROID(weightedPoints))"
                 , ImmutableMap.of("weightedPoints", weightedPoints)
         );
