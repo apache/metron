@@ -12,14 +12,14 @@
   -->
 
 <assembly>
-  <id>archive</id>
+  <id>stand-alone</id>
   <formats>
     <format>tar.gz</format>
   </formats>
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
     <fileSet>
-      <directory>${project.basedir}/src/main/scripts</directory>
+      <directory>${project.basedir}/src/main/scripts/stand-alone</directory>
       <outputDirectory>bin</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <excludes>
@@ -31,9 +31,9 @@
       <filtered>true</filtered>
     </fileSet>
     <fileSet>
-      <directory>${project.basedir}/SOURCES</directory>
+      <directory>${project.basedir}/target</directory>
       <includes>
-        <include>*.jar</include>
+        <include>${project.artifactId}-${project.version}-uber.jar</include>
       </includes>
       <outputDirectory>lib</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
