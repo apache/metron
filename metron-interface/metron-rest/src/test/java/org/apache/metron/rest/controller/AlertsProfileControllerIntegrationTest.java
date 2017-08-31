@@ -111,6 +111,9 @@ public class AlertsProfileControllerIntegrationTest {
 
   @Before
   public void setup() throws Exception {
+    for (AlertsProfile alertsProfile : alertsProfileService.findAll()) {
+      alertsProfileService.delete(alertsProfile.getId());
+    }
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
   }
 
@@ -132,103 +135,153 @@ public class AlertsProfileControllerIntegrationTest {
 
   @Test
   public void test() throws Exception {
-    for (AlertsProfile alertsProfile : alertsProfileService.findAll()) {
-      alertsProfileService.delete(alertsProfile.getId());
-    }
+    emptyProfileShouldReturnNotFound();
+    alertsProfilesShouldBeCreatedOrUpdated();
+    alertsProfilesShouldBeProperlyDeleted();
+  }
 
+  /** Ensures a 404 is returned when an alerts profile cannot be found.  In the case of an admin getting
+   * all profiles, an empty list should be returned.  This tests depends on the alertsProfileRepository
+   * being empty.
+   *
+   * @throws Exception
+   */
+  private void emptyProfileShouldReturnNotFound() throws Exception {
+
+    // user1 should get a 404 because an alerts profile has not been created
     this.mockMvc.perform(get(url).with(httpBasic(user1, password)))
         .andExpect(status().isNotFound());
 
+    // user2 should get a 404 because an alerts profile has not been created
     this.mockMvc.perform(get(url).with(httpBasic(user2, password)))
         .andExpect(status().isNotFound());
 
+    // getting all alerts profiles should return an empty list
     this.mockMvc.perform(get(url + "/all").with(httpBasic(admin, password)))
         .andExpect(status().isOk())
         .andExpect(
             content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
         .andExpect(jsonPath("$.*", hasSize(0)));
+  }
 
+  /** Ensures users can update their profiles independently of other users.  When user1 updates an
+   * alerts profile, alerts profile for user2 should not be affected.  Tests that an initial update
+   * returns a 201 status and subsequent updates return 200 statuses.  A call to get all alerts profiles
+   * by an admin user should also work properly.  This tests depends on the alertsProfileRepository
+   * being empty initially.
+   *
+   * @throws Exception
+   */
+  private void alertsProfilesShouldBeCreatedOrUpdated() throws Exception {
+
+    // user1 creates their alerts profile
     this.mockMvc.perform(post(url).with(httpBasic(user1, password)).with(csrf())
         .contentType(MediaType.parseMediaType("application/json;charset=UTF-8"))
         .content(user1ProfileJson))
         .andExpect(status().isCreated())
         .andExpect(content().json(user1ProfileJson));
 
+    // user1 updates their alerts profile
     this.mockMvc.perform(post(url).with(httpBasic(user1, password)).with(csrf())
         .contentType(MediaType.parseMediaType("application/json;charset=UTF-8"))
         .content(user1ProfileJson))
         .andExpect(status().isOk())
         .andExpect(content().json(user1ProfileJson));
 
+    // user1 gets their alerts profile
     this.mockMvc.perform(get(url).with(httpBasic(user1, password)))
         .andExpect(status().isOk())
         .andExpect(
             content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
         .andExpect(content().json(user1ProfileJson));
 
+    // user2 alerts profile should still be empty
     this.mockMvc.perform(get(url).with(httpBasic(user2, password)))
         .andExpect(status().isNotFound());
 
+    // getting all alerts profiles should only return user1's
     this.mockMvc.perform(get(url + "/all").with(httpBasic(admin, password)))
         .andExpect(status().isOk())
         .andExpect(
             content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
         .andExpect(content().json("[" + user1ProfileJson + "]"));
 
+    // user2 creates their alerts profile
     this.mockMvc.perform(post(url).with(httpBasic(user2, password)).with(csrf())
         .contentType(MediaType.parseMediaType("application/json;charset=UTF-8"))
         .content(user2ProfileJson))
         .andExpect(status().isCreated())
         .andExpect(content().json(user2ProfileJson));
 
+    // user2 updates their alerts profile
     this.mockMvc.perform(get(url).with(httpBasic(user1, password)))
         .andExpect(status().isOk())
         .andExpect(
             content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
         .andExpect(content().json(user1ProfileJson));
 
+    // user2 gets their alerts profile
     this.mockMvc.perform(get(url).with(httpBasic(user2, password)))
         .andExpect(status().isOk())
         .andExpect(
             content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
         .andExpect(content().json(user2ProfileJson));
 
+    // getting all alerts profiles should return both
     this.mockMvc.perform(get(url + "/all").with(httpBasic(admin, password)))
         .andExpect(status().isOk())
         .andExpect(
             content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
         .andExpect(content().json("[" + user1ProfileJson + "," + user2ProfileJson + "]"));
+  }
 
+  /** Ensures users can delete their profiles independently of other users.  When user1 deletes an
+   * alerts profile, alerts profile for user2 should not be deleted.  This tests depends on alerts
+   * profiles existing for user1 and user2.
+   *
+   * @throws Exception
+   */
+  private void alertsProfilesShouldBeProperlyDeleted() throws Exception {
+
+    // user1 deletes their profile
     this.mockMvc.perform(delete(url + "/user1").with(httpBasic(admin, password)))
         .andExpect(status().isOk());
 
+    // user1 should get a 404 when trying to delete an alerts profile that doesn't exist
     this.mockMvc.perform(delete(url + "/user1").with(httpBasic(admin, password)))
         .andExpect(status().isNotFound());
 
+    // user1 should get a 404 when trying to retrieve their alerts profile
     this.mockMvc.perform(get(url).with(httpBasic(user1, password)))
         .andExpect(status().isNotFound());
 
+    // user2's alerts profile should still exist
     this.mockMvc.perform(get(url).with(httpBasic(user2, password)))
         .andExpect(status().isOk())
         .andExpect(
             content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
         .andExpect(content().json(user2ProfileJson));
 
+    // getting all alerts profiles should only return user2's
     this.mockMvc.perform(get(url + "/all").with(httpBasic(admin, password)))
         .andExpect(status().isOk())
         .andExpect(
             content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
         .andExpect(content().json("[" + user2ProfileJson + "]"));
 
+    // user2 deletes their profile
     this.mockMvc.perform(delete(url + "/user2").with(httpBasic(admin, password)))
         .andExpect(status().isOk());
 
+    // user2 should get a 404 when trying to delete an alerts profile that doesn't exist
     this.mockMvc.perform(get(url).with(httpBasic(user1, password)))
         .andExpect(status().isNotFound());
 
+    // user2 should get a 404 when trying to retrieve their alerts profile
     this.mockMvc.perform(get(url).with(httpBasic(user2, password)))
         .andExpect(status().isNotFound());
 
+    // getting all alerts profiles should return an empty list
     this.mockMvc.perform(get(url + "/all").with(httpBasic(admin, password)))
         .andExpect(status().isOk())
         .andExpect(
