@@ -72,6 +72,29 @@ import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
 import org.elasticsearch.search.aggregations.metrics.sum.Sum;
 import org.elasticsearch.search.aggregations.metrics.sum.SumBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.*;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.index.IndexRequestBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Date;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class ElasticsearchDao implements IndexDao {
   private transient TransportClient client;
@@ -118,6 +141,27 @@ public class ElasticsearchDao implements IndexDao {
         .fetchSource(true)
         .trackScores(true);
     searchRequest.getSort().forEach(sortField -> searchSourceBuilder.sort(sortField.getField(), getElasticsearchSortOrder(sortField.getSortOrder())));
+    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
+            .size(searchRequest.getSize())
+            .from(searchRequest.getFrom())
+            .query(new QueryStringQueryBuilder(searchRequest.getQuery()))
+
+            .trackScores(true);
+    Optional<List<String>> fields = searchRequest.getFields();
+    if (fields.isPresent()) {
+      searchSourceBuilder.fields(fields.get());
+    } else {
+      searchSourceBuilder.fetchSource(true);
+    }
+    for (SortField sortField : searchRequest.getSort()) {
+      FieldSortBuilder fieldSortBuilder = new FieldSortBuilder(sortField.getField());
+      if (sortField.getSortOrder() == org.apache.metron.indexing.dao.search.SortOrder.DESC) {
+        fieldSortBuilder.order(org.elasticsearch.search.sort.SortOrder.DESC);
+      } else {
+        fieldSortBuilder.order(org.elasticsearch.search.sort.SortOrder.ASC);
+      }
+      searchSourceBuilder = searchSourceBuilder.sort(fieldSortBuilder);
+    }
     Optional<List<String>> facetFields = searchRequest.getFacetFields();
     if (facetFields.isPresent()) {
       facetFields.get().forEach(field -> searchSourceBuilder.aggregation(new TermsBuilder(getFacentAggregationName(field)).field(field)));
@@ -133,6 +177,23 @@ public class ElasticsearchDao implements IndexDao {
     SearchResponse searchResponse = new SearchResponse();
     searchResponse.setTotal(elasticsearchResponse.getHits().getTotalHits());
     searchResponse.setResults(Arrays.stream(elasticsearchResponse.getHits().getHits()).map(this::getSearchResult).collect(Collectors.toList()));
+    searchResponse.setResults(Arrays.stream(elasticsearchResponse.getHits().getHits()).map(searchHit -> {
+      SearchResult searchResult = new SearchResult();
+      searchResult.setId(searchHit.getId());
+      Map<String, Object> source;
+      if (fields.isPresent()) {
+        source = new HashMap<>();
+        searchHit.getFields().forEach((key, value) -> {
+          source.put(key, value.getValues().size() == 1 ? value.getValue() : value.getValues());
+        });
+      } else {
+        source = searchHit.getSource();
+      }
+      searchResult.setSource(source);
+      searchResult.setScore(searchHit.getScore());
+      searchResult.setIndex(searchHit.getIndex());
+      return searchResult;
+    }).collect(Collectors.toList()));
     if (facetFields.isPresent()) {
       Map<String, FieldType> commonColumnMetadata;
       try {

@@ -28,6 +28,10 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.search.GroupResult;
 import org.apache.metron.integration.InMemoryComponent;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.*;
 
 import java.util.ArrayList;
@@ -215,6 +219,42 @@ public abstract class SearchIntegrationTest {
    */
   @Multiline
   public static String exceededMaxResultsQuery;
+
+  /**
+   * {
+   * "fields": ["ip_src_addr"],
+   * "indices": ["bro", "snort"],
+   * "query": "*",
+   * "from": 0,
+   * "size": 10,
+   * "sort": [
+   *   {
+   *     "field": "timestamp",
+   *     "sortOrder": "desc"
+   *   }
+   * ]
+   * }
+   */
+  @Multiline
+  public static String fieldsQuery;
+
+  /**
+   * {
+   * "fields": ["ip_src_addr"],
+   * "indices": ["bro", "snort"],
+   * "query": "ip_src_addr:192.168.1.9",
+   * "from": 0,
+   * "size": 10,
+   * "sort": [
+   *   {
+   *     "field": "timestamp",
+   *     "sortOrder": "desc"
+   *   }
+   * ]
+   * }
+   */
+  @Multiline
+  public static String noResultsFieldsQuery;
 
   /**
    * {
@@ -527,6 +567,29 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(11, fieldTypes.size());
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
+    }
+    //Fields query
+    {
+      SearchRequest request = JSONUtils.INSTANCE.load(fieldsQuery, SearchRequest.class);
+      SearchResponse response = dao.search(request);
+      Assert.assertEquals(10, response.getTotal());
+      List<SearchResult> results = response.getResults();
+      for(int i = 0;i < 5;++i) {
+        Map<String, Object> source = results.get(i).getSource();
+        Assert.assertEquals(1, source.size());
+        Assert.assertNotNull(source.get("ip_src_addr"));
+      }
+      for(int i = 5;i < 10;++i) {
+        Map<String, Object> source = results.get(i).getSource();
+        Assert.assertEquals(1, source.size());
+        Assert.assertNotNull(source.get("ip_src_addr"));
+      }
+    }
+    //No results fields query
+    {
+      SearchRequest request = JSONUtils.INSTANCE.load(noResultsFieldsQuery, SearchRequest.class);
+      SearchResponse response = dao.search(request);
+      Assert.assertEquals(0, response.getTotal());
     }
     // Group by test case, default order is count descending
     {

@@ -22,13 +22,16 @@ package org.apache.metron.profiler;
 
 import static java.lang.String.format;
 
-import com.google.common.collect.ImmutableMap;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.ListUtils;
@@ -120,15 +123,18 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
    * @param message The message to apply.
    */
   @Override
-  @SuppressWarnings("unchecked")
   public void apply(JSONObject message) {
+    try {
+      if (!isInitialized()) {
+        assign(definition.getInit(), message, "init");
+        isInitialized = true;
+      }
 
-    if(!isInitialized()) {
-      assign(definition.getInit(), message, "init");
-      isInitialized = true;
+      assign(definition.getUpdate(), message, "update");
+
+    } catch(Throwable e) {
+      LOG.error(format("Unable to apply message to profile: %s", e.getMessage()), e);
     }
-
-    assign(definition.getUpdate(), message, "update");
   }
 
   /**
@@ -140,33 +146,51 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
    * @return Returns the completed profile measurement.
    */
   @Override
-  public ProfileMeasurement flush() {
+  public Optional<ProfileMeasurement> flush() {
     LOG.debug("Flushing profile: profile={}, entity={}", profileName, entity);
+    Optional<ProfileMeasurement> result = Optional.empty();
+    ProfilePeriod period = new ProfilePeriod(clock.currentTimeMillis(), periodDurationMillis, TimeUnit.MILLISECONDS);
 
-    // execute the 'profile' expression(s)
-    @SuppressWarnings("unchecked")
-    Object profileValue = execute(definition.getResult().getProfileExpressions().getExpression(), "result/profile");
+    try {
+      // execute the 'profile' expression(s)
+      Object profileValue = execute(definition.getResult().getProfileExpressions().getExpression(), "result/profile");
 
-    // execute the 'triage' expression(s)
-    Map<String, Object> triageValues = definition.getResult().getTriageExpressions().getExpressions()
-            .entrySet()
-            .stream()
-            .collect(Collectors.toMap(
-                    e -> e.getKey(),
-                    e -> execute(e.getValue(), "result/triage")));
+      // execute the 'triage' expression(s)
+      Map<String, Object> triageValues = definition.getResult().getTriageExpressions().getExpressions()
+              .entrySet()
+              .stream()
+              .collect(Collectors.toMap(
+                      e -> e.getKey(),
+                      e -> execute(e.getValue(), "result/triage")));
 
-    // execute the 'groupBy' expression(s) - can refer to value of 'result' expression
-    List<Object> groups = execute(definition.getGroupBy(), ImmutableMap.of("result", profileValue), "groupBy");
+      // the state that will be made available to the `groupBy` expression
+      Map<String, Object> state = new HashMap<>();
+      state.put("profile", profileName);
+      state.put("entity", entity);
+      state.put("start", period.getStartTimeMillis());
+      state.put("end", period.getEndTimeMillis());
+      state.put("duration", period.getDurationMillis());
+      state.put("result", profileValue);
+
+      // execute the 'groupBy' expression(s) - can refer to value of 'result' expression
+      List<Object> groups = execute(definition.getGroupBy(), state, "groupBy");
+
+      result = Optional.of(new ProfileMeasurement()
+              .withProfileName(profileName)
+              .withEntity(entity)
+              .withGroups(groups)
+              .withPeriod(period)
+              .withProfileValue(profileValue)
+              .withTriageValues(triageValues)
+              .withDefinition(definition));
+
+    } catch(Throwable e) {
+      // if any of the Stellar expressions fail, a measurement should NOT be returned
+      LOG.error(format("Unable to flush profile: error=%s", e.getMessage()), e);
+    }
 
     isInitialized = false;
-    return new ProfileMeasurement()
-            .withProfileName(profileName)
-            .withEntity(entity)
-            .withGroups(groups)
-            .withPeriod(clock.currentTimeMillis(), periodDurationMillis, TimeUnit.MILLISECONDS)
-            .withProfileValue(profileValue)
-            .withTriageValues(triageValues)
-            .withDefinition(definition);
+    return result;
   }
 
   /**
@@ -216,7 +240,6 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
     return execute(expression, Collections.emptyMap(), expressionType);
   }
 
-
   /**
    * Executes a set of expressions whose results need to be assigned to a variable.
    * @param expressions Maps the name of a variable to the expression whose result should be assigned to it.
@@ -224,17 +247,28 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
    * @param expressionType The type of expression; init, update, result.  Provides additional context if expression execution fails.
    */
   private void assign(Map<String, String> expressions, Map<String, Object> transientState, String expressionType) {
-    try {
 
-      // execute each of the 'update' expressions
-      MapUtils.emptyIfNull(expressions)
-              .forEach((var, expr) -> executor.assign(var, expr, transientState));
+    // for each expression...
+    for(Map.Entry<String, String> entry : MapUtils.emptyIfNull(expressions).entrySet()) {
+      String var = entry.getKey();
+      String expr = entry.getValue();
 
-    } catch(ParseException e) {
+      try {
+        // assign the result of the expression to the variable
+        executor.assign(var, expr, transientState);
 
-      // make it brilliantly clear that one of the 'update' expressions is bad
-      String msg = format("Bad '%s' expression: %s, profile=%s, entity=%s", expressionType, e.getMessage(), profileName, entity);
-      throw new ParseException(msg, e);
+      } catch (Throwable e) {
+
+        // in-scope variables = persistent state maintained by the profiler + the transient state
+        Set<String> variablesInScope = new HashSet<>();
+        variablesInScope.addAll(transientState.keySet());
+        variablesInScope.addAll(executor.getState().keySet());
+
+        String msg = format("Bad '%s' expression: error='%s', expr='%s', profile='%s', entity='%s', variables-available='%s'",
+                expressionType, e.getMessage(), expr, profileName, entity, variablesInScope);
+        LOG.error(msg, e);
+        throw new ParseException(msg, e);
+      }
     }
   }
 
@@ -248,13 +282,24 @@ public class DefaultProfileBuilder implements ProfileBuilder, Serializable {
   private List<Object> execute(List<String> expressions, Map<String, Object> transientState, String expressionType) {
     List<Object> results = new ArrayList<>();
 
-    try {
-      ListUtils.emptyIfNull(expressions)
-              .forEach((expr) -> results.add(executor.execute(expr, transientState, Object.class)));
+    for(String expr: ListUtils.emptyIfNull(expressions)) {
+      try {
+        // execute an expression
+        Object result = executor.execute(expr, transientState, Object.class);
+        results.add(result);
 
-    } catch (Throwable e) {
-      String msg = format("Bad '%s' expression: %s, profile=%s, entity=%s", expressionType, e.getMessage(), profileName, entity);
-      throw new ParseException(msg, e);
+      } catch (Throwable e) {
+
+        // in-scope variables = persistent state maintained by the profiler + the transient state
+        Set<String> variablesInScope = new HashSet<>();
+        variablesInScope.addAll(transientState.keySet());
+        variablesInScope.addAll(executor.getState().keySet());
+
+        String msg = format("Bad '%s' expression: error='%s', expr='%s', profile='%s', entity='%s', variables-available='%s'",
+                expressionType, e.getMessage(), expr, profileName, entity, variablesInScope);
+        LOG.error(msg, e);
+        throw new ParseException(msg, e);
+      }
     }
 
     return results;

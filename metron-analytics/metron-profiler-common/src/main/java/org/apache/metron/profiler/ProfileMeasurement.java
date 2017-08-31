@@ -94,7 +94,12 @@ public class ProfileMeasurement {
   }
 
   public ProfileMeasurement withPeriod(long whenMillis, long periodDuration, TimeUnit periodUnits) {
-    this.period = new ProfilePeriod(whenMillis, periodDuration, periodUnits);
+    this.withPeriod(new ProfilePeriod(whenMillis, periodDuration, periodUnits));
+    return this;
+  }
+
+  public ProfileMeasurement withPeriod(ProfilePeriod period) {
+    this.period = period;
     return this;
   }
 

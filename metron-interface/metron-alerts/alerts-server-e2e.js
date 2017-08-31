@@ -29,9 +29,10 @@ var serveStatic = require('serve-static');
 var favicon     = require('serve-favicon');
 var proxy       = require('http-proxy-middleware');
 var argv        = require('optimist')
-                  .demand(['p'])
+                  .demand(['p', 'r'])
                   .usage('Usage: server.js -p [port]')
                   .describe('p', 'Port to run metron alerts ui')
+                  .describe('r', 'Url where metron rest application is available')
                   .argv;
 
 var port = argv.p;
@@ -73,13 +74,19 @@ var searchResult = function(req, res){
       return;
     }
 
-    var filter = req.body.query.query_string.query;
+    var responseMap = {
+      total: 0,
+      results: obj.hits.hits
+    };
+    
+    var filter = req.body.query;
+
     if (filter !== '*') {
       filter = filter.replace(/\\/g, '');
       var lastIndex = filter.lastIndexOf(':');
       var key = filter.substr(0, lastIndex);
       var value = filter.substr(lastIndex+1);
-      obj.hits.hits =  obj.hits.hits.filter(function (hits) {
+      responseMap.results =  obj.hits.hits.filter(function (hits) {
         return hits._source[key] === value;
       });
     }
@@ -88,7 +95,7 @@ var searchResult = function(req, res){
     if (sortField) {
       var key = Object.keys(sortField)[0];
       var order = sortField[key].order;
-      obj.hits.hits = obj.hits.hits.sort(function(o1, o2) {
+      responseMap.results = obj.hits.hits.sort(function(o1, o2) {
         if (!o1._source[key] || !o2._source[key]) {
           return -1;
         } 
@@ -102,9 +109,15 @@ var searchResult = function(req, res){
       });
     }
 
-    obj.hits.total = obj.hits.hits.length;
-    obj.hits.hits = obj.hits.hits.splice(req.body.from, req.body.size);
-    res.json(obj);
+    responseMap.total = responseMap.results.length;
+    responseMap.results = responseMap.results.splice(req.body.from, req.body.size);
+
+    responseMap.results.map(function (obj) {
+      obj.id = obj._id;
+      obj.source = obj._source;
+    });
+
+    res.json(responseMap);
   });
 };
 
@@ -128,7 +141,9 @@ app.use(serveStatic(path.join(__dirname, 'dist'), {
   setHeaders: setCustomCacheControl
 }));
 
-app.post('^/search/*', searchResult);
+app.use('/api/v1/user', proxy(conf.elastic));
+app.use('/logout', proxy(conf.elastic));
+app.post('/api/v1/search/search', searchResult);
 app.use('/_cluster', clusterState);
 app.get('/alerts-list', indexHTML);
 app.get('', indexHTML);

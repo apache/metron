@@ -16,6 +16,5 @@
  * limitations under the License.
  */
 export const environment = {
-  production: true,
-  dataSource: 'elastic'
+  production: true
 };
