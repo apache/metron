@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -283,36 +284,44 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
   }
 
   /**
-   * Handles user interaction when executing a Magic command.
+   * Executes a magic expression.
    * @param rawExpression The expression to execute.
    */
   private void handleMagic( String rawExpression) {
-    String expression = rawExpression.trim();
-    if(MAGIC_FUNCTIONS.equals(expression)) {
+    String[] expression = rawExpression.trim().split(" ");
 
-      // list all functions
+    String command = expression[0];
+    if(MAGIC_FUNCTIONS.equals(command)) {
+
+      // if '%functions FOO' then show only functions that contain 'FOO'
+      Predicate<String> nameFilter = (name -> true);
+      if(expression.length > 1) {
+        nameFilter = (name -> name.contains(expression[1]));
+      }
+
+      // list available functions
       String functions = StreamSupport
               .stream(executor.getFunctionResolver().getFunctionInfo().spliterator(), false)
               .map(info -> String.format("%s", info.getName()))
+              .filter(nameFilter)
               .sorted()
               .collect(Collectors.joining(", "));
       writeLine(functions);
 
-    } else if(MAGIC_VARS.equals(expression)) {
+    } else if(MAGIC_VARS.equals(command)) {
 
       // list all variables
-
       executor.getVariables()
               .forEach((k,v) -> writeLine(String.format("%s = %s", k, v)));
 
     } else {
-      writeLine(ERROR_PROMPT + "undefined magic command: " + expression);
+      writeLine(ERROR_PROMPT + "undefined magic command: " + rawExpression);
     }
   }
 
   /**
-   * Handles user interaction when executing a doc command.
-   * @param expression The expression to execute.
+   * Executes a doc expression.
+   * @param expression The doc expression to execute.
    */
   private void handleDoc(String expression) {
 
@@ -322,6 +331,17 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
             .filter(info -> StringUtils.equals(functionName, info.getName()))
             .map(info -> format(info))
             .forEach(doc -> write(doc));
+  }
+
+  /**
+   * Executes a quit.
+   */
+  private void handleQuit() {
+    try {
+      console.stop();
+    } catch (Throwable e) {
+      e.printStackTrace();
+    }
   }
 
   /**
@@ -380,16 +400,12 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
         handleDoc(expression);
 
       } else if (expression.equals("quit")) {
-        try {
-          console.stop();
-        } catch (Throwable e) {
-          e.printStackTrace();
-        }
-      }
-      else if(expression.charAt(0) == '#') {
-        return 0;
-      }
-      else {
+        handleQuit();
+
+      } else if(expression.charAt(0) == '#') {
+        return 0; // comment, do nothing
+
+      } else {
         handleStellar(expression);
       }
     }
@@ -424,7 +440,6 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
         }
       }
     }
-
   }
 
   private static String stripOff(String baseString, String lastBit) {

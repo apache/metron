@@ -1052,7 +1052,7 @@ The REPL has a set of magic commands that provide the REPL user with information
 
 #### `%functions`
 
-This command lists all functions resolvable in the Stellar environment.  Stellar searches the classpath for Stellar functions.  This can make it difficult in some cases to understand which functions are resolvable.  
+This command lists all functions resolvable in the Stellar environment.   
 
 ```
 [Stellar]>>> %functions
@@ -1066,7 +1066,13 @@ STATS_POPULATION_VARIANCE, STATS_QUADRATIC_MEAN, STATS_SD, STATS_SKEWNESS, STATS
 STATS_SUM_LOGS, STATS_SUM_SQUARES, STATS_VARIANCE, TO_DOUBLE, TO_EPOCH_TIMESTAMP, TO_FLOAT, 
 TO_INTEGER, TO_LOWER, TO_STRING, TO_UPPER, TRIM, URL_TO_HOST, URL_TO_PATH, URL_TO_PORT, 
 URL_TO_PROTOCOL, WEEK_OF_MONTH, WEEK_OF_YEAR, YEAR
-[Stellar]>>> 
+```
+
+The list of functions returned can also be filtered by passing an argument.  Only the functions containing the argument as a substring will be returned.
+
+```
+[Stellar]>>> %functions NET
+IN_SUBNET
 ```
 
 #### `%vars` 
