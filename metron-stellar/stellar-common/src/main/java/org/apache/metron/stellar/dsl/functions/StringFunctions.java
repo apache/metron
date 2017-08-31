@@ -18,15 +18,19 @@
 
 package org.apache.metron.stellar.dsl.functions;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.stellar.common.utils.JSONUtils;
 import org.apache.metron.stellar.dsl.BaseStellarFunction;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -450,4 +454,40 @@ public class StringFunctions {
     }
   }
 
+  @Stellar( name = "PARSE_JSON_STRING"
+          , description = "Returns a JSON object for the specified JSON string"
+          , params = {
+            "str - the JSON String to convert, may be null"
+          }
+          , returns = "an Object containing the parsed JSON string"
+  )
+  public static class ParseJsonString extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> strings) {
+
+      if (strings == null || strings.size() == 0) {
+        throw new IllegalArgumentException("[PARSE_JSON_STRING] incorrect arguments. Usage: PARSE_JSON_STRING <String>");
+      }
+
+      ObjectMapper objectMapper = new ObjectMapper();
+
+      // First parse and check if input is valid JSON string
+      try {
+        objectMapper.readTree((String) strings.get(0));
+      } catch (JsonProcessingException ex) {
+        throw new ParseException("Valid JSON string not supplied", ex);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      // Return JSON Object
+      try {
+        return JSONUtils.INSTANCE.load((String) strings.get(0), Object.class);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      return new ParseException("Unable to parse JSON string");
+    }
+  }
 }

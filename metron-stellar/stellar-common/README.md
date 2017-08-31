@@ -168,6 +168,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `MAP`](#map)                                                                                     |
 | [ `MAP_EXISTS`](#map_exists)                                                                       |
 | [ `MONTH`](#month)                                                                                 |
+| [ `PARSE_JSON_STRING`](#parse_json_string)                                                         |
 | [ `PREPEND_IF_MISSING`](#prepend_if_missing)                                                       |
 | [ `PROFILE_GET`](#profile_get)                                                                     |
 | [ `PROFILE_FIXED`](#profile_fixed)                                                                 |
@@ -638,6 +639,12 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * dateTime - The datetime as a long representing the milliseconds since unix epoch
   * Returns: The current month (0-based).
+  
+### `PARSE_JSON_STRING`
+  * Description: Accepts JSON string as an input and returns a JSON Object parsed by Jackson. e.g. `MAP_GET( 'bar', PARSE_JSON_STRING(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed JSON object 
 
 ### `PREPEND_IF_MISSING`
   * Description: Prepends the prefix to the start of the string if the string does not already start with any of the prefixes.

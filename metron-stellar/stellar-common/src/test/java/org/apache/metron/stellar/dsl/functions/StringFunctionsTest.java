@@ -26,6 +26,7 @@ import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
@@ -448,5 +449,69 @@ public class StringFunctionsTest {
     }
     Assert.assertTrue(thrown);
 
+  }
+
+  /**
+   * PARSE_JSON_STRING StringFunction
+   */
+  @Test
+  public void testParseJsonString() throws Exception {
+    //JSON Object
+    Object return1 = run("PARSE_JSON_STRING('{\"foo\" : 2 }')", new HashedMap<>());
+    Assert.assertNotNull(return1);
+    Assert.assertTrue (return1 instanceof HashMap);
+    Assert.assertEquals((int) 2, run("MAP_GET( 'foo',  " +
+            "PARSE_JSON_STRING( '{ \"foo\" : 2 }'))", new HashedMap<>()));
+    Assert.assertEquals("def", run("MAP_GET( 'bar',  " +
+            "PARSE_JSON_STRING( '{ \"foo\":\"abc\", \"bar\":\"def\"}'))", new HashedMap<>()));
+
+    //Simple Array
+    Object return2 = run("PARSE_JSON_STRING('[\"foo\" , 2 ]')", new HashedMap<>());
+    Assert.assertNotNull(return2);
+    Assert.assertTrue (return2 instanceof ArrayList);
+    Assert.assertEquals("foo", run("GET_FIRST( PARSE_JSON_STRING('[\"foo\", 2]'))", new HashedMap<>()));
+    Assert.assertEquals("car", run("GET( PARSE_JSON_STRING('[\"foo\", \"bar\", \"car\"]'), 2)",
+            new HashedMap<>()));
+
+    //JSON Array
+    Object return3 = run( "PARSE_JSON_STRING" +
+            "('[{ \"foo1\":\"abc\", \"bar1\":\"def\"}, { \"foo2\":\"ghi\", \"bar2\":\"jkl\"}]')", new HashedMap<>());
+    Assert.assertNotNull(return3);
+    Assert.assertTrue (return3 instanceof ArrayList);
+    Assert.assertEquals("abc", run("MAP_GET('foo1', GET_FIRST( PARSE_JSON_STRING" +
+            "('[{ \"foo1\":\"abc\", \"bar1\":\"def\"}, { \"foo2\":\"ghi\", \"bar2\":\"jkl\"}]')))", new HashedMap<>()));
+    Assert.assertEquals("jkl", run("MAP_GET('bar2', GET_LAST( PARSE_JSON_STRING" +
+            "('[{ \"foo1\":\"abc\", \"bar1\":\"def\"}, { \"foo2\":\"ghi\", \"bar2\":\"jkl\"}]')))", new HashedMap<>()));
+
+    // No input
+    boolean thrown = false;
+    try {
+      run("PARSE_JSON_STRING()", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("incorrect arguments"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+
+    // Invalid input
+    try {
+      run("PARSE_JSON_STRING('123, 456')", new HashedMap<>());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("Valid JSON string not supplied"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+
+    // Malformed JSON String
+    try {
+      run("PARSE_JSON_STRING('{\"foo\" : 2')", new HashedMap<>());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("Valid JSON string not supplied"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
   }
 }
