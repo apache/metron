@@ -367,6 +367,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
       * groupRequest - Group request
         * indices - list of indices to search
         * query - lucene query
+        * scoreField - field used to compute a total score for each group
         * groups - List of groups (field name and sort order) 
   * Returns:
     * 200 - Group response

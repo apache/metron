@@ -39,11 +39,11 @@ import java.util.Map;
 public abstract class SearchIntegrationTest {
   /**
    * [
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.1", "ip_src_port": 8010, "long_field": 10000, "timestamp":1, "latitude": 48.5839, "double_field": 1.00001, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 1", "duplicate_name_field": "data 1"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.2", "ip_src_port": 8009, "long_field": 20000, "timestamp":2, "latitude": 48.0001, "double_field": 1.00002, "is_alert":false, "location_point": "48.5839,7.7455", "bro_field": "bro data 2", "duplicate_name_field": "data 2"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.3", "ip_src_port": 8008, "long_field": 10000, "timestamp":3, "latitude": 48.5839, "double_field": 1.00002, "is_alert":true, "location_point": "50.0,7.7455", "bro_field": "bro data 3", "duplicate_name_field": "data 3"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.4", "ip_src_port": 8007, "long_field": 10000, "timestamp":4, "latitude": 48.5839, "double_field": 1.00002, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 4", "duplicate_name_field": "data 4"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.5", "ip_src_port": 8006, "long_field": 10000, "timestamp":5, "latitude": 48.5839, "double_field": 1.00001, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 5", "duplicate_name_field": "data 5"}
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.1", "ip_src_port": 8010, "long_field": 10000, "timestamp":1, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 1", "duplicate_name_field": "data 1"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.2", "ip_src_port": 8009, "long_field": 20000, "timestamp":2, "latitude": 48.0001, "score": 50.0, "is_alert":false, "location_point": "48.5839,7.7455", "bro_field": "bro data 2", "duplicate_name_field": "data 2"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.3", "ip_src_port": 8008, "long_field": 10000, "timestamp":3, "latitude": 48.5839, "score": 20.0, "is_alert":true, "location_point": "50.0,7.7455", "bro_field": "bro data 3", "duplicate_name_field": "data 3"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.4", "ip_src_port": 8007, "long_field": 10000, "timestamp":4, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 4", "duplicate_name_field": "data 4"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.5", "ip_src_port": 8006, "long_field": 10000, "timestamp":5, "latitude": 48.5839, "score": 98.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 5", "duplicate_name_field": "data 5"}
    * ]
    */
   @Multiline
@@ -51,11 +51,11 @@ public abstract class SearchIntegrationTest {
 
   /**
    * [
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.6", "ip_src_port": 8005, "long_field": 10000, "timestamp":6, "latitude": 48.5839, "double_field": 1.00001, "is_alert":false, "location_point": "50.0,7.7455", "snort_field": 10, "duplicate_name_field": 1},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8004, "long_field": 10000, "timestamp":7, "latitude": 48.5839, "double_field": 1.00002, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 20, "duplicate_name_field": 2},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.7", "ip_src_port": 8003, "long_field": 10000, "timestamp":8, "latitude": 48.5839, "double_field": 1.00001, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 30, "duplicate_name_field": 3},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8002, "long_field": 20000, "timestamp":9, "latitude": 48.0001, "double_field": 1.00002, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 40, "duplicate_name_field": 4},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.8", "ip_src_port": 8001, "long_field": 10000, "timestamp":10, "latitude": 48.5839, "double_field": 1.00001, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 50, "duplicate_name_field": 5}
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.6", "ip_src_port": 8005, "long_field": 10000, "timestamp":6, "latitude": 48.5839, "score": 50.0, "is_alert":false, "location_point": "50.0,7.7455", "snort_field": 10, "duplicate_name_field": 1},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8004, "long_field": 10000, "timestamp":7, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 20, "duplicate_name_field": 2},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.7", "ip_src_port": 8003, "long_field": 10000, "timestamp":8, "latitude": 48.5839, "score": 20.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 30, "duplicate_name_field": 3},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8002, "long_field": 20000, "timestamp":9, "latitude": 48.0001, "score": 50.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 40, "duplicate_name_field": 4},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.8", "ip_src_port": 8001, "long_field": 10000, "timestamp":10, "latitude": 48.5839, "score": 10.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 50, "duplicate_name_field": 5}
    * ]
    */
   @Multiline
@@ -148,7 +148,7 @@ public abstract class SearchIntegrationTest {
 
   /**
    * {
-   * "facetFields": ["source:type", "ip_src_addr", "ip_src_port", "long_field", "timestamp", "latitude", "double_field", "is_alert"],
+   * "facetFields": ["source:type", "ip_src_addr", "ip_src_port", "long_field", "timestamp", "latitude", "score", "is_alert"],
    * "indices": ["bro", "snort"],
    * "query": "*",
    * "from": 0,
@@ -226,6 +226,7 @@ public abstract class SearchIntegrationTest {
    *     "field":"latitude"
    *   }
    * ],
+   * "scoreField":"score",
    * "indices": ["bro", "snort"],
    * "query": "*"
    * }
@@ -406,14 +407,18 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(48.5839, Double.parseDouble(latitudeKeys.get(1)), 0.00001);
       Assert.assertEquals(new Long(2), latitudeCounts.get(latitudeKeys.get(0)));
       Assert.assertEquals(new Long(8), latitudeCounts.get(latitudeKeys.get(1)));
-      Map<String, Long> doubleFieldCounts = facetCounts.get("double_field");
-      Assert.assertEquals(2, doubleFieldCounts.size());
-      List<String> doubleFieldKeys = new ArrayList<>(doubleFieldCounts.keySet());
-      Collections.sort(doubleFieldKeys);
-      Assert.assertEquals(1.00001, Double.parseDouble(doubleFieldKeys.get(0)), 0.00001);
-      Assert.assertEquals(1.00002, Double.parseDouble(doubleFieldKeys.get(1)), 0.00001);
-      Assert.assertEquals(new Long(5), doubleFieldCounts.get(doubleFieldKeys.get(0)));
-      Assert.assertEquals(new Long(5), doubleFieldCounts.get(doubleFieldKeys.get(1)));
+      Map<String, Long> scoreFieldCounts = facetCounts.get("score");
+      Assert.assertEquals(4, scoreFieldCounts.size());
+      List<String> scoreFieldKeys = new ArrayList<>(scoreFieldCounts.keySet());
+      Collections.sort(scoreFieldKeys);
+      Assert.assertEquals(10.0, Double.parseDouble(scoreFieldKeys.get(0)), 0.00001);
+      Assert.assertEquals(20.0, Double.parseDouble(scoreFieldKeys.get(1)), 0.00001);
+      Assert.assertEquals(50.0, Double.parseDouble(scoreFieldKeys.get(2)), 0.00001);
+      Assert.assertEquals(98.0, Double.parseDouble(scoreFieldKeys.get(3)), 0.00001);
+      Assert.assertEquals(new Long(4), scoreFieldCounts.get(scoreFieldKeys.get(0)));
+      Assert.assertEquals(new Long(2), scoreFieldCounts.get(scoreFieldKeys.get(1)));
+      Assert.assertEquals(new Long(3), scoreFieldCounts.get(scoreFieldKeys.get(2)));
+      Assert.assertEquals(new Long(1), scoreFieldCounts.get(scoreFieldKeys.get(3)));
       Map<String, Long> isAlertCounts = facetCounts.get("is_alert");
       Assert.assertEquals(2, isAlertCounts.size());
       Assert.assertEquals(new Long(6), isAlertCounts.get("true"));
@@ -459,7 +464,7 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(FieldType.LONG, broTypes.get("long_field"));
       Assert.assertEquals(FieldType.DATE, broTypes.get("timestamp"));
       Assert.assertEquals(FieldType.FLOAT, broTypes.get("latitude"));
-      Assert.assertEquals(FieldType.DOUBLE, broTypes.get("double_field"));
+      Assert.assertEquals(FieldType.DOUBLE, broTypes.get("score"));
       Assert.assertEquals(FieldType.BOOLEAN, broTypes.get("is_alert"));
       Assert.assertEquals(FieldType.OTHER, broTypes.get("location_point"));
       Assert.assertEquals(FieldType.STRING, broTypes.get("bro_field"));
@@ -472,7 +477,7 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(FieldType.LONG, snortTypes.get("long_field"));
       Assert.assertEquals(FieldType.DATE, snortTypes.get("timestamp"));
       Assert.assertEquals(FieldType.FLOAT, snortTypes.get("latitude"));
-      Assert.assertEquals(FieldType.DOUBLE, snortTypes.get("double_field"));
+      Assert.assertEquals(FieldType.DOUBLE, snortTypes.get("score"));
       Assert.assertEquals(FieldType.BOOLEAN, snortTypes.get("is_alert"));
       Assert.assertEquals(FieldType.OTHER, snortTypes.get("location_point"));
       Assert.assertEquals(FieldType.INTEGER, snortTypes.get("snort_field"));
@@ -505,7 +510,7 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
       Assert.assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
       Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
-      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("double_field"));
+      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
       Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
       Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
     }
@@ -536,23 +541,28 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals("true", trueGroup.getKey());
       Assert.assertEquals(6, trueGroup.getTotal());
       Assert.assertEquals("latitude", trueGroup.getGroupedBy());
+      Assert.assertNull(trueGroup.getScore());
       List<GroupResult> trueLatitudeGroups = trueGroup.getGroupResults();
       Assert.assertEquals(2, trueLatitudeGroups.size());
+
 
       // isAlert == true && latitude == 48.5839 group
       GroupResult trueLatitudeGroup2 = trueLatitudeGroups.get(0);
       Assert.assertEquals(48.5839, Double.parseDouble(trueLatitudeGroup2.getKey()), 0.00001);
       Assert.assertEquals(5, trueLatitudeGroup2.getTotal());
+      Assert.assertEquals(148.0, trueLatitudeGroup2.getScore(), 0.00001);
 
       // isAlert == true && latitude == 48.0001 group
       GroupResult trueLatitudeGroup1 = trueLatitudeGroups.get(1);
       Assert.assertEquals(48.0001, Double.parseDouble(trueLatitudeGroup1.getKey()), 0.00001);
       Assert.assertEquals(1, trueLatitudeGroup1.getTotal());
+      Assert.assertEquals(50.0, trueLatitudeGroup1.getScore(), 0.00001);
 
       // isAlert == false group
       GroupResult falseGroup = isAlertGroups.get(1);
       Assert.assertEquals("false", falseGroup.getKey());
       Assert.assertEquals("latitude", falseGroup.getGroupedBy());
+      Assert.assertNull(falseGroup.getScore());
       List<GroupResult> falseLatitudeGroups = falseGroup.getGroupResults();
       Assert.assertEquals(2, falseLatitudeGroups.size());
 
@@ -560,11 +570,13 @@ public abstract class SearchIntegrationTest {
       GroupResult falseLatitudeGroup2 = falseLatitudeGroups.get(0);
       Assert.assertEquals(48.5839, Double.parseDouble(falseLatitudeGroup2.getKey()), 0.00001);
       Assert.assertEquals(3, falseLatitudeGroup2.getTotal());
+      Assert.assertEquals(80.0, falseLatitudeGroup2.getScore(), 0.00001);
 
       // isAlert == false && latitude == 48.0001 group
       GroupResult falseLatitudeGroup1 = falseLatitudeGroups.get(1);
       Assert.assertEquals(48.0001, Double.parseDouble(falseLatitudeGroup1.getKey()), 0.00001);
       Assert.assertEquals(1, falseLatitudeGroup1.getTotal());
+      Assert.assertEquals(50.0, falseLatitudeGroup1.getScore(), 0.00001);
     }
     // Group by with sorting test case where is_alert is sorted by count ascending and ip_src_addr is sorted by term descending
     {

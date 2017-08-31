@@ -69,6 +69,8 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Order;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
+import org.elasticsearch.search.aggregations.metrics.sum.Sum;
+import org.elasticsearch.search.aggregations.metrics.sum.SumBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 public class ElasticsearchDao implements IndexDao {
@@ -150,7 +152,7 @@ public class ElasticsearchDao implements IndexDao {
     }
     final SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
     searchSourceBuilder.query(new QueryStringQueryBuilder(groupRequest.getQuery()));
-    searchSourceBuilder.aggregation(getGroupsTermBuilder(groupRequest.getGroups(), 0));
+    searchSourceBuilder.aggregation(getGroupsTermBuilder(groupRequest, 0));
     String[] wildcardIndices = groupRequest.getIndices().stream().map(index -> String.format("%s*", index)).toArray(value -> new String[groupRequest.getIndices().size()]);
     org.elasticsearch.action.search.SearchResponse elasticsearchResponse;
     try {
@@ -167,7 +169,7 @@ public class ElasticsearchDao implements IndexDao {
     }
     GroupResponse groupResponse = new GroupResponse();
     groupResponse.setGroupedBy(groupRequest.getGroups().get(0).getField());
-    groupResponse.setGroupResults(getGroupResults(groupRequest.getGroups(), 0, elasticsearchResponse.getAggregations(), commonColumnMetadata));
+    groupResponse.setGroupResults(getGroupResults(groupRequest, 0, elasticsearchResponse.getAggregations(), commonColumnMetadata));
     return groupResponse;
   }
 
@@ -364,7 +366,8 @@ public class ElasticsearchDao implements IndexDao {
     }
   }
 
-  private TermsBuilder getGroupsTermBuilder(List<Group> groups, int index) {
+  private TermsBuilder getGroupsTermBuilder(GroupRequest groupRequest, int index) {
+    List<Group> groups = groupRequest.getGroups();
     Group group = groups.get(index);
     String aggregationName = getGroupByAggregationName(group.getField());
     TermsBuilder termsBuilder = new TermsBuilder(aggregationName)
@@ -372,12 +375,18 @@ public class ElasticsearchDao implements IndexDao {
         .size(accessConfig.getMaxSearchGroups())
         .order(getElasticsearchGroupOrder(group.getOrder()));
     if (index < groups.size() - 1) {
-      termsBuilder.subAggregation(getGroupsTermBuilder(groups, index + 1));
+      termsBuilder.subAggregation(getGroupsTermBuilder(groupRequest, index + 1));
+    } else {
+      Optional<String> scoreField = groupRequest.getScoreField();
+      if (scoreField.isPresent()) {
+        termsBuilder.subAggregation(new SumBuilder(getSumAggregationName(scoreField.get())).field(scoreField.get()).missing(0));
+      }
     }
     return termsBuilder;
   }
 
-  private List<GroupResult> getGroupResults(List<Group> groups, int index, Aggregations aggregations, Map<String, FieldType> commonColumnMetadata) {
+  private List<GroupResult> getGroupResults(GroupRequest groupRequest, int index, Aggregations aggregations, Map<String, FieldType> commonColumnMetadata) {
+    List<Group> groups = groupRequest.getGroups();
     String field = groups.get(index).getField();
     Terms terms = aggregations.get(getGroupByAggregationName(field));
     List<GroupResult> searchResultGroups = new ArrayList<>();
@@ -388,7 +397,7 @@ public class ElasticsearchDao implements IndexDao {
         groupResult.setKey(formatKey(bucket.getKey(), commonColumnMetadata.get(field)));
         groupResult.setTotal(bucket.getDocCount());
         groupResult.setGroupedBy(childField);
-        groupResult.setGroupResults(getGroupResults(groups, index + 1, bucket.getAggregations(), commonColumnMetadata));
+        groupResult.setGroupResults(getGroupResults(groupRequest, index + 1, bucket.getAggregations(), commonColumnMetadata));
         searchResultGroups.add(groupResult);
       }
     } else {
@@ -396,6 +405,11 @@ public class ElasticsearchDao implements IndexDao {
         GroupResult searchResultGroup = new GroupResult();
         searchResultGroup.setKey(formatKey(bucket.getKey(), commonColumnMetadata.get(field)));
         searchResultGroup.setTotal(bucket.getDocCount());
+        Optional<String> scoreField = groupRequest.getScoreField();
+        if (scoreField.isPresent()) {
+          Sum score = bucket.getAggregations().get(getSumAggregationName(scoreField.get()));
+          searchResultGroup.setScore(score.getValue());
+        }
         searchResultGroups.add(searchResultGroup);
       }
     }
@@ -417,5 +431,9 @@ public class ElasticsearchDao implements IndexDao {
 
   private String getGroupByAggregationName(String field) {
     return String.format("%s_group", field);
+  }
+
+  private String getSumAggregationName(String field) {
+    return String.format("%s_score", field);
   }
 }

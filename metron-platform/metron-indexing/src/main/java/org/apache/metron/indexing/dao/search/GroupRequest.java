@@ -15,11 +15,13 @@
 package org.apache.metron.indexing.dao.search;
 
 import java.util.List;
+import java.util.Optional;
 
 public class GroupRequest {
 
   private List<String> indices;
   private String query;
+  private String scoreField;
   private List<Group> groups;
 
   public List<String> getIndices() {
@@ -36,6 +38,14 @@ public class GroupRequest {
 
   public void setQuery(String query) {
     this.query = query;
+  }
+
+  public Optional<String> getScoreField() {
+    return scoreField == null ? Optional.empty() : Optional.of(scoreField);
+  }
+
+  public void setScoreField(String scoreField) {
+    this.scoreField = scoreField;
   }
 
   public List<Group> getGroups() {

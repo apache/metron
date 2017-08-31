@@ -91,6 +91,8 @@ public class InMemoryDao implements IndexDao {
     if (index < groups.size() - 1) {
       groupResult.setGroupedBy(groups.get(index + 1).getField());
       groupResult.setGroupResults(getGroupResults(groups, index + 1));
+    } else {
+      groupResult.setScore(50.0);
     }
     groupResult.setTotal(10);
     return Collections.singletonList(groupResult);

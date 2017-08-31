@@ -178,14 +178,15 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
             .andExpect(jsonPath("$.*", hasSize(2)))
             .andExpect(jsonPath("$.groupedBy").value("is_alert"))
             .andExpect(jsonPath("$.groupResults.*", hasSize(1)))
-            .andExpect(jsonPath("$.groupResults[0].*", hasSize(4)))
+            .andExpect(jsonPath("$.groupResults[0].*", hasSize(5)))
             .andExpect(jsonPath("$.groupResults[0].key").value("is_alert_value"))
             .andExpect(jsonPath("$.groupResults[0].total").value(10))
             .andExpect(jsonPath("$.groupResults[0].groupedBy").value("latitude"))
             .andExpect(jsonPath("$.groupResults[0].groupResults.*", hasSize(1)))
-            .andExpect(jsonPath("$.groupResults[0].groupResults[0].*", hasSize(2)))
+            .andExpect(jsonPath("$.groupResults[0].groupResults[0].*", hasSize(3)))
             .andExpect(jsonPath("$.groupResults[0].groupResults[0].key").value("latitude_value"))
-            .andExpect(jsonPath("$.groupResults[0].groupResults[0].total").value(10));
+            .andExpect(jsonPath("$.groupResults[0].groupResults[0].total").value(10))
+            .andExpect(jsonPath("$.groupResults[0].groupResults[0].score").value(50));
 
     this.mockMvc.perform(post(searchUrl + "/column/metadata").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[\"bro\",\"snort\"]"))
             .andExpect(status().isOk())

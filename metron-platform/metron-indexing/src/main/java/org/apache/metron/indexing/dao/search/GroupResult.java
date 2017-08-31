@@ -25,6 +25,7 @@ public class GroupResult {
 
   private String key;
   private long total;
+  private Double score;
   private String groupedBy;
   private List<GroupResult> groupResults;
 
@@ -42,6 +43,14 @@ public class GroupResult {
 
   public void setTotal(long total) {
     this.total = total;
+  }
+
+  public Double getScore() {
+    return score;
+  }
+
+  public void setScore(Double score) {
+    this.score = score;
   }
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
