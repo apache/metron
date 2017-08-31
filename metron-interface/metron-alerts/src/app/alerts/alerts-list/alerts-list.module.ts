@@ -30,7 +30,7 @@ import {ConfigureRowsModule} from '../configure-rows/configure-rows.module';
 @NgModule({
     imports: [routing, SharedModule, ConfigureRowsModule, MetronSorterModule, MetronTablePaginationModule,
                 ListGroupModule, CollapseModule],
-    exports: [],
+    exports: [AlertsListComponent],
     declarations: [AlertsListComponent],
     providers: [AlertService],
 })

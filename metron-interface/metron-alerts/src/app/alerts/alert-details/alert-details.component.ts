@@ -20,6 +20,7 @@ import {Router, ActivatedRoute} from '@angular/router';
 import {AlertService} from '../../service/alert.service';
 import {Alert} from '../../model/alert';
 import {WorkflowService} from '../../service/workflow.service';
+import {AlertSource} from '../../model/alert-source';
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
@@ -33,11 +34,10 @@ export enum AlertState {
 export class AlertDetailsComponent implements OnInit {
 
   alertId = '';
-  alertIndex = '';
-  alertType = '';
+  alertSourceType = '';
   alertState = AlertState;
   selectedAlertState: AlertState = AlertState.NEW;
-  alert: Alert = new Alert();
+  alertSource: AlertSource = new AlertSource();
   alertFields: string[] = [];
 
   constructor(private router: Router,
@@ -51,54 +51,68 @@ export class AlertDetailsComponent implements OnInit {
   }
 
   getData() {
-    this.alertsService.getAlert(this.alertIndex, this.alertType, this.alertId).subscribe(alert => {
-      this.alert = alert;
-      this.alertFields = Object.keys(alert._source).filter(field => !field.includes(':ts') && field !== 'original_string').sort();
+    this.alertsService.getAlert(this.alertSourceType, this.alertId).subscribe(alert => {
+      this.alertSource = alert;
+      this.alertFields = Object.keys(alert).filter(field => !field.includes(':ts') && field !== 'original_string').sort();
     });
   }
 
   ngOnInit() {
     this.activatedRoute.params.subscribe(params => {
-      this.alertId = params['id'];
-      this.alertIndex = params['index'];
-      this.alertType = params['type'];
+      this.alertId = params['guid'];
+      this.alertSourceType = params['sourceType'];
       this.getData();
     });
   }
 
   processOpen() {
+    let tAlert = new Alert();
+    tAlert.source = this.alertSource;
+
     this.selectedAlertState = AlertState.OPEN;
-    this.alertsService.updateAlertState([this.alert], 'OPEN', '').subscribe(results => {
+    this.alertsService.updateAlertState([tAlert], 'OPEN', '').subscribe(results => {
       this.getData();
     });
   }
 
   processNew() {
+    let tAlert = new Alert();
+    tAlert.source = this.alertSource;
+
     this.selectedAlertState = AlertState.NEW;
-    this.alertsService.updateAlertState([this.alert], 'NEW', '').subscribe(results => {
+    this.alertsService.updateAlertState([tAlert], 'NEW', '').subscribe(results => {
       this.getData();
     });
   }
 
   processEscalate() {
+    let tAlert = new Alert();
+    tAlert.source = this.alertSource;
+
     this.selectedAlertState = AlertState.ESCALATE;
-    this.workflowService.start([this.alert]).subscribe(workflowId => {
-      this.alertsService.updateAlertState([this.alert], 'ESCALATE', workflowId).subscribe(results => {
+    this.workflowService.start([tAlert]).subscribe(workflowId => {
+      this.alertsService.updateAlertState([tAlert], 'ESCALATE', workflowId).subscribe(results => {
         this.getData();
       });
     });
   }
 
   processDismiss() {
+    let tAlert = new Alert();
+    tAlert.source = this.alertSource;
+
     this.selectedAlertState = AlertState.DISMISS;
-    this.alertsService.updateAlertState([this.alert], 'DISMISS', '').subscribe(results => {
+    this.alertsService.updateAlertState([tAlert], 'DISMISS', '').subscribe(results => {
       this.getData();
     });
   }
 
   processResolve() {
+    let tAlert = new Alert();
+    tAlert.source = this.alertSource;
+
     this.selectedAlertState = AlertState.RESOLVE;
-    this.alertsService.updateAlertState([this.alert], 'RESOLVE', '').subscribe(results => {
+    this.alertsService.updateAlertState([tAlert], 'RESOLVE', '').subscribe(results => {
       this.getData();
     });
   }

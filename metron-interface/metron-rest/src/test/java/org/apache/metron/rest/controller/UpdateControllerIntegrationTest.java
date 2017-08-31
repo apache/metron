@@ -26,7 +26,6 @@ import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.rest.service.UpdateService;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,12 +110,6 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
    */
   @Multiline
   public static String replace;
-
-
-  @BeforeClass
-  public static void setupHbase() {
-    MockHBaseTableProvider.addToCache(TABLE, CF);
-  }
 
   @Before
   public void setup() throws Exception {

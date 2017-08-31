@@ -17,15 +17,17 @@
 
 ## Development Setup
 
-Install all the dependent node_modules using the following command
-```
-cd metron/metron-interface/metron-alerts
-npm install
-```
-UI can be run by using the following command
-```
-./scripts/start-dev.sh
-```
+1. Install all the dependent node_modules using the following command
+    ```
+    cd metron/metron-interface/metron-alerts
+    npm install
+    ```
+1. UI can be run by using the following command
+    ```
+    ./scripts/start-dev.sh
+    ```
+1. You can view the GUI @http://localhost:4200 . The default credentials for login are admin/password
+
 **NOTE**: *In the development mode ui by default connects to ES at http://node1:9200 for fetching data. If you wish to change it you can change the ES url at metron/metron-interface/metron-alerts/proxy.conf.json*
 
 ## E2E Tests
@@ -43,6 +45,8 @@ An expressjs server is available for mocking the elastic search api.
     cd metron/metron-interface/metron-alerts
     npm run e2e
     ```
+
+1. E2E tests uses data from full-dev wherever applicable. The tests assume rest-api's are available @http://node1:8082
 
 **NOTE**: *e2e tests covers all the general workflows and we will extend them as we need*
 

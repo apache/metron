@@ -389,3 +389,77 @@ Returns: The selected profile measurements.
 ```
 
 The client API call above has retrieved the past hour of the 'test' profile for the entity '192.168.138.158'.
+
+## Developing Profiles
+
+Troubleshooting issues when programming against a live stream of data can be difficult.  The Stellar REPL is a powerful tool to help work out the kinds of enrichments and transformations that are needed.  The Stellar REPL can also be used to help when developing profiles for the Profiler.
+
+Follow these steps in the Stellar REPL to see how it can be used to help create profiles.
+
+1.  Take a first pass at defining your profile.  As an example, in the editor copy/paste the basic "Hello, World" profile below.
+    ```
+    [Stellar]>>> conf := SHELL_EDIT()
+    [Stellar]>>> conf
+    {
+      "profiles": [
+        {
+          "profile": "hello-world",
+          "onlyif":  "exists(ip_src_addr)",
+          "foreach": "ip_src_addr",
+          "init":    { "count": "0" },
+          "update":  { "count": "count + 1" },
+          "result":  "count"
+        }
+      ]
+    }
+    ```
+
+1.  Initialize the Profiler.
+    ```
+    [Stellar]>>> profiler := PROFILER_INIT(conf)
+    [Stellar]>>> profiler
+    Profiler{1 profile(s), 0 messages(s), 0 route(s)}
+    ```
+    The profiler itself will show the number of profiles defined, the number of messages applied, and the number of routes taken.  
+    
+    A route is defined when a message is applied to a specific profile.  If a message is applied and not needed by any profile, then there are no routes.  If a message is needed by one profile, then one route has been defined.  If a message is needed by two profiles, then two routes have been defined.  
+
+1. Create a message to simulate the type of telemetry that you expect to be profiled.   As an example, in the editor copy/paste the JSON below.
+    ```
+    [Stellar]>>> message := SHELL_EDIT()
+    [Stellar]>>> message
+    {
+      "ip_src_addr": "10.0.0.1",
+      "protocol": "HTTPS",
+      "length": "10",
+      "bytes_in": "234"
+    }
+    ```
+
+1. Apply some telemetry messages to your profiles.  The following applies the same message 3 times.
+    ```
+    [Stellar]>>> PROFILER_APPLY(message, profiler)
+    Profiler{1 profile(s), 1 messages(s), 1 route(s)}
+    ```
+    ```
+    [Stellar]>>> PROFILER_APPLY(message, profiler)
+    Profiler{1 profile(s), 2 messages(s), 2 route(s)}
+    ```
+    ```
+    [Stellar]>>> PROFILER_APPLY(message, profiler)
+    Profiler{1 profile(s), 3 messages(s), 3 route(s)}
+    ```
+    
+    It is also possible to apply multiple messages at once.  This is useful when testing against a larger set of data.  To do this, create a string that contains a JSON array of messages and pass that to the `PROFILER_APPLY` function.
+
+1. Flush the Profiler to see what has been calculated.  A flush is what occurs at the end of each 15 minute period in the Profiler.  The result is a list of profile measurements.  Each measurement is a map containing detailed information about the profile data that has been generated.
+    ```
+    [Stellar]>>> values := PROFILER_FLUSH(profiler)
+    [Stellar]>>> values
+    [{period={duration=900000, period=1669628, start=1502665200000, end=1502666100000}, 
+       profile=hello-world, groups=[], value=3, entity=10.0.0.1}]
+    ```
+    
+    This profile simply counts the number of messages by IP source address.  Notice that the value is '3' for the entity '10.0.0.1' as we applied 3 messages with an 'ip_src_addr' of '10.0.0.1'.  There will always be one measurement for each [profile, entity] pair.
+    
+1. If you are unhappy with the data that has been generated, then 'wash, rinse and repeat' this process.  Once you are happy with the profile that was created, follow the [Getting Started](../metron-profiler#getting-started) guide to use the profile against your live, streaming data in a Metron cluster.

@@ -18,6 +18,7 @@
 import {Filter} from '../../model/filter';
 import {ColumnNamesService} from '../../service/column-names.service';
 import {SearchRequest} from '../../model/search-request';
+import {SortField} from '../../model/sort-field';
 
 export class QueryBuilder {
   private _searchRequest = new SearchRequest();
@@ -102,7 +103,7 @@ export class QueryBuilder {
   }
 
   setFields(fieldNames: string[]) {
-      this.searchRequest._source = fieldNames;
+      // this.searchRequest._source = fieldNames;
   }
 
   setFromAndSize(from: number, size: number) {
@@ -110,15 +111,12 @@ export class QueryBuilder {
     this.searchRequest.size = size;
   }
 
-  setSort(sortBy: string, order: string, dataType: string) {
-    let sortQuery = {};
-    sortQuery[sortBy] = {
-      order: order,
-      ignore_unmapped: true,
-      unmapped_type: dataType,
-      missing: '_last'
-    };
-    this.searchRequest.sort = [sortQuery];
+  setSort(sortBy: string, order: string) {
+    let sortField = new SortField();
+    sortField.field = sortBy;
+    sortField.sortOrder = order;
+
+    this.searchRequest.sort = [sortField];
   }
 
   private updateFilters(tQuery: string, updateNameTransform = false) {

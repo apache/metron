@@ -25,10 +25,19 @@ var SpecReporter = require('jasmine-spec-reporter').SpecReporter;
 exports.config = {
   allScriptsTimeout: 25000,
   specs: [
-    './e2e/**/*.e2e-spec.ts'
+    './e2e/login/login.e2e-spec.ts',
+    '/e2e/alerts-list/alerts-list.e2e-spec.ts',
+    './e2e/alerts-list/configure-table/configure-table.e2e-spec.ts',
+    './e2e/alerts-list/save-search/save-search.e2e-spec.ts'
   ],
   capabilities: {
-    'browserName': 'chrome'
+    'browserName': 'chrome',
+    'chromeOptions': {
+      'prefs': {
+        'credentials_enable_service': false,
+        'profile': { 'password_manager_enabled': false}
+      }
+    }
   },
   directConnect: true,
   baseUrl: 'http://localhost:4200/',

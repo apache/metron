@@ -26,6 +26,7 @@ import {Http} from '@angular/http';
 import {DataSource} from './data-source';
 import {AlertsSearchResponse} from '../model/alerts-search-response';
 import {SearchRequest} from '../model/search-request';
+import {AlertSource} from '../model/alert-source';
 
 @Injectable()
 export class AlertService {
@@ -43,20 +44,22 @@ export class AlertService {
 
   public pollSearch(searchRequest: SearchRequest): Observable<AlertsSearchResponse> {
     return this.ngZone.runOutsideAngular(() => {
-      return Observable.interval(this.interval * 1000).switchMap(() => {
-        return this.dataSource.getAlerts(searchRequest);
+      return this.ngZone.run(() => {
+        return Observable.interval(this.interval * 1000).switchMap(() => {
+          return this.dataSource.getAlerts(searchRequest);
+        });
       });
     });
   }
 
-  public getAlert(index: string, type: string, alertId: string): Observable<Alert> {
-    return this.dataSource.getAlert(index, type, alertId);
+  public getAlert(sourceType: string, alertId: string): Observable<AlertSource> {
+    return this.dataSource.getAlert(sourceType, alertId);
   }
 
   public updateAlertState(alerts: Alert[], state: string, workflowId: string) {
     let request = '';
     for (let alert of alerts) {
-      request += '{ "update" : { "_index" : "' + alert._index + '", "_type" : "' + alert._type + '", "_id" : "' + alert._id + '" } }\n' +
+      request += '{ "update" : { "sensorType" : "' + alert.source['source:type'] + '", "guid" : "' + alert.source.guid + '" } }\n' +
                   '{ "doc": { "alert_status": "' + state + '"';
       if (workflowId) {
         request += ', "workflow_id": "' + workflowId + '"';

@@ -1,0 +1,155 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration supports_final="true">
+  <property>
+    <name>profiler_kafka_start</name>
+    <value>UNCOMMITTED_EARLIEST</value>
+    <description>One of EARLIEST, LATEST, UNCOMMITTED_EARLIEST, UNCOMMITTED_LATEST</description>
+    <display-name>Input Topic Start</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>EARLIEST</value>
+        </entry>
+        <entry>
+          <value>LATEST</value>
+        </entry>
+        <entry>
+          <value>UNCOMMITTED_EARLIEST</value>
+        </entry>
+        <entry>
+          <value>UNCOMMITTED_LATEST</value>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+  <property>
+    <name>profiler_period_duration</name>
+    <value>15</value>
+    <description>The duration of each profile period. This value should be defined along with profiler.period.duration.units</description>
+    <display-name>Period Duration</display-name>
+  </property>
+  <property>
+    <name>profiler_period_units</name>
+    <value>MINUTES</value>
+    <description>The units used to specify the profiler.period.duration. This value should be defined along with profiler.period.duration.</description>
+    <display-name>Period Units</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>DAYS</value>
+        </entry>
+        <entry>
+          <value>HOURS</value>
+        </entry>
+        <entry>
+          <value>MINUTES</value>
+        </entry>
+        <entry>
+          <value>SECONDS</value>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+
+  </property>
+  <property>
+    <name>profiler_ttl</name>
+    <value>30</value>
+    <description>If a message has not been applied to a Profile in this period of time, the Profile will be terminated and its resources will be cleaned up. This value should be defined along with profiler.ttl.units.
+      This time-to-live does not affect the persisted Profile data in HBase. It only affects the state stored in memory during the execution of the latest profile period. This state will be deleted if the time-to-live is exceeded.
+    </description>
+    <display-name>Time to Live</display-name>
+  </property>
+  <property>
+    <name>profiler_ttl_units</name>
+    <value>MINUTES</value>
+    <description>The units used to specify the profiler.ttl.</description>
+    <display-name>Time To Live Units</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>DAYS</value>
+        </entry>
+        <entry>
+          <value>HOURS</value>
+        </entry>
+        <entry>
+          <value>MINUTES</value>
+        </entry>
+        <entry>
+          <value>SECONDS</value>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+
+
+  </property>
+  <property>
+    <name>profiler_hbase_table</name>
+    <value>profiler</value>
+    <description>The name of the HBase table that profile data is written to. The Profiler expects that the table exists and is writable.</description>
+    <display-name>HBase Table</display-name>
+  </property>
+  <property>
+    <name>profiler_hbase_cf</name>
+    <value>P</value>
+    <description>The column family used to store profile data in HBase.</description>
+    <display-name>HBase Table Column Family</display-name>
+  </property>
+  <property>
+    <name>profiler_hbase_batch</name>
+    <value>10</value>
+    <description>The number of puts that are written to HBase in a single batch.</description>
+    <display-name>HBase Batch Size</display-name>
+  </property>
+  <property>
+    <name>profiler_hbase_flush_interval</name>
+    <value>30</value>
+    <description>The maximum number of seconds between batch writes to HBase.</description>
+    <display-name>HBase Flush Interval</display-name>
+  </property>
+  <property>
+    <name>profiler_topology_worker_childopts</name>
+    <value/>
+    <description>Extra topology child opts for the storm topology.</description>
+    <display-name>topology.worker.childopts</display-name>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+  <property>
+    <name>profiler_topology_workers</name>
+    <value>1</value>
+    <description>The profiler storm topology workers</description>
+    <display-name>Number of Workers</display-name>
+  </property>
+  <property>
+    <name>profiler_acker_executors</name>
+    <value>1</value>
+    <description>The profiler storm topology acker executors</description>
+    <display-name>Number of Acker Executors</display-name>
+  </property>
+</configuration>
