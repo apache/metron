@@ -22,6 +22,7 @@ import ch.hsr.geohash.WGS84Point;
 import com.google.common.collect.Iterables;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 
+import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -60,6 +61,69 @@ public enum GeoHashUtil {
 
   public double distance(WGS84Point point1, WGS84Point point2, DistanceStrategy strategy) {
     return strategy.distance(point1, point2);
+  }
+
+  public WGS84Point centroidOfHashes(Iterable<String> hashes) {
+    Iterable<WGS84Point> points = Iterables.transform(hashes, h -> toPoint(h).orElse(null));
+    return centroidOfPoints(points);
+  }
+
+  public WGS84Point centroidOfPoints(Iterable<WGS84Point> points) {
+    Iterable<WGS84Point> nonNullPoints = Iterables.filter(points, p -> p != null);
+    return centroid(Iterables.transform(nonNullPoints
+                                       , p -> new AbstractMap.SimpleImmutableEntry<>(p, 1)
+                                       )
+                   );
+  }
+
+  public WGS84Point centroidOfWeightedPoints(Map<String, Number> points) {
+
+    Iterable<Map.Entry<WGS84Point, Number>> weightedPoints = Iterables.transform(points.entrySet()
+            , kv -> {
+              WGS84Point pt = toPoint(kv.getKey()).orElse(null);
+              return new AbstractMap.SimpleImmutableEntry<>(pt, kv.getValue());
+            });
+    return centroid(Iterables.filter(weightedPoints, kv -> kv.getKey() != null));
+  }
+
+  private WGS84Point centroid(Iterable<Map.Entry<WGS84Point, Number>> points) {
+    double x = 0d
+         , y = 0d
+         , z = 0d
+         , totalWeight = 0d
+         ;
+    int n = 0;
+    for(Map.Entry<WGS84Point, Number> weightedPoint : points) {
+      WGS84Point pt = weightedPoint.getKey();
+      if(pt == null) {
+        continue;
+      }
+      double latRad = Math.toRadians(pt.getLatitude());
+      double longRad = Math.toRadians(pt.getLongitude());
+      double cosLat = Math.cos(latRad);
+      //convert from lat/long coordinates to cartesian coordinates
+      double ptX = cosLat * Math.cos(longRad);
+      double ptY = cosLat * Math.sin(longRad);
+      double ptZ = Math.sin(latRad);
+      double weight = weightedPoint.getValue().doubleValue();
+      x += ptX*weight;
+      y += ptY*weight;
+      z += ptZ*weight;
+      n++;
+      totalWeight += weight;
+    }
+    if(n == 0) {
+      return null;
+    }
+    //average the 3d cartesian vector representation
+    x /= totalWeight;
+    y /= totalWeight;
+    z /= totalWeight;
+    //convert the vector representation back
+    double longitude = Math.atan2(y, x);
+    double hypotenuse = Math.sqrt(x*x + y*y);
+    double latitude = Math.atan2(z, hypotenuse);
+    return new WGS84Point(Math.toDegrees(latitude), Math.toDegrees(longitude));
   }
 
   public double maxDistanceHashes(Iterable<String> hashes, DistanceStrategy strategy) {

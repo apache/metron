@@ -215,7 +215,7 @@ public class GeoHashFunctions {
           ,namespace="GEOHASH"
           ,description="Compute the maximum distance among a list of [geohashes](https://en.wikipedia.org/wiki/Geohash)"
           ,params = {
-                      "hashes - A set of [geohashes](https://en.wikipedia.org/wiki/Geohash)",
+                      "hashes - A collection of [geohashes](https://en.wikipedia.org/wiki/Geohash)",
                       "strategy? - The great circle distance strategy to use. One of [HAVERSINE](https://en.wikipedia.org/wiki/Haversine_formula), [LAW_OF_COSINES](https://en.wikipedia.org/wiki/Law_of_cosines#Using_the_distance_formula), or [VICENTY](https://en.wikipedia.org/wiki/Vincenty%27s_formulae).  Haversine is default."
                     }
           ,returns = "The maximum distance in kilometers between any two locations"
@@ -227,7 +227,7 @@ public class GeoHashFunctions {
       if(args.size() < 1) {
         return null;
       }
-      List<String> hashes = (List<String>)args.get(0);
+      Iterable<String> hashes = (Iterable<String>)args.get(0);
       if(hashes == null) {
         return null;
       }
@@ -236,6 +236,54 @@ public class GeoHashFunctions {
         strat = DistanceStrategies.valueOf((String) args.get(1));
       }
       return GeoHashUtil.INSTANCE.maxDistanceHashes(hashes, strat);
+    }
+
+    @Override
+    public void initialize(Context context) {
+
+    }
+
+    @Override
+    public boolean isInitialized() {
+      return true;
+    }
+  }
+
+  @Stellar(name="CENTROID"
+          ,namespace="GEOHASH"
+          ,description="Compute the centroid (geographic midpoint or center of gravity) of a set of [geohashes](https://en.wikipedia.org/wiki/Geohash)"
+          ,params = {
+                      "hashes - A collection of [geohashes](https://en.wikipedia.org/wiki/Geohash) or a map associating geohashes to numeric weights"
+                     ,"character_precision? - The number of characters to use in the hash. Default is 12"
+                    }
+          ,returns = "The geohash of the centroid"
+  )
+  public static class Centroid implements StellarFunction {
+
+    @Override
+    public Object apply(List<Object> args, Context context) throws ParseException {
+      if(args.size() < 1) {
+        return null;
+      }
+      Object o1 = args.get(0);
+      if(o1 == null) {
+        return null;
+      }
+      WGS84Point centroid = null;
+      if(o1 instanceof Map) {
+         centroid = GeoHashUtil.INSTANCE.centroidOfWeightedPoints((Map<String, Number>)o1);
+      }
+      else if(o1 instanceof Iterable) {
+        centroid = GeoHashUtil.INSTANCE.centroidOfHashes((Iterable<String>)o1);
+      }
+      if(centroid == null) {
+        return null;
+      }
+      Integer precision = 12;
+      if(args.size() > 1) {
+        precision = (Integer)args.get(1);
+      }
+      return GeoHashUtil.INSTANCE.computeHash(centroid, precision).orElse(null);
     }
 
     @Override

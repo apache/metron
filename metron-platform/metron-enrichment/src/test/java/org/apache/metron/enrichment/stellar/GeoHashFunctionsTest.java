@@ -52,7 +52,7 @@ public class GeoHashFunctionsTest {
   @Test
   public void testToLatLong_happypath() throws Exception {
     Map<String, Object> latLong = (Map<String, Object>)StellarProcessorUtils.run("GEOHASH_TO_LATLONG(hash)"
-            , ImmutableMap.of("hash", "u4pruydqmvpb" ) );
+            , ImmutableMap.of("hash", explicitJutlandHash ) );
     Assert.assertEquals(jutlandPoint.getLatitude(), (double)latLong.get("latitude"), 1e-3);
     Assert.assertEquals(jutlandPoint.getLongitude(), (double)latLong.get("longitude"), 1e-3);
   }
@@ -248,6 +248,90 @@ public class GeoHashFunctionsTest {
     }
     else {
       return "GEOHASH_DIST(" + Joiner.on(",").skipNulls().join(hashVariables) + ")";
+    }
+  }
+
+  @Test
+  public void testCentroid_List() throws Exception {
+    //happy path
+    {
+      double expectedLong = -98.740087 //calculated via http://www.geomidpoint.com/ using the center of gravity or geographic midpoint.
+         , expectedLat = 41.86921
+         ;
+      Map<String, Double> centroid = (Map) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(GEOHASH_CENTROID([empireState, mosconeCenter]))"
+              , ImmutableMap.of("empireState", empireStateHash, "mosconeCenter", mosconeCenterHash)
+      );
+      Assert.assertEquals(expectedLong, centroid.get("longitude"), 1e-3);
+      Assert.assertEquals(expectedLat, centroid.get("latitude"), 1e-3);
+    }
+    //same point
+    {
+      double expectedLong = empireStatePoint.getLongitude()
+         , expectedLat = empireStatePoint.getLatitude()
+         ;
+      Map<String, Double> centroid = (Map) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(GEOHASH_CENTROID([empireState, empireState]))"
+              , ImmutableMap.of("empireState", empireStateHash)
+      );
+      Assert.assertEquals(expectedLong, centroid.get("longitude"), 1e-3);
+      Assert.assertEquals(expectedLat, centroid.get("latitude"), 1e-3);
+    }
+    //one point
+    {
+      double expectedLong = empireStatePoint.getLongitude()
+         , expectedLat = empireStatePoint.getLatitude()
+         ;
+      Map<String, Double> centroid = (Map) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(GEOHASH_CENTROID([empireState]))"
+              , ImmutableMap.of("empireState", empireStateHash)
+      );
+      Assert.assertEquals(expectedLong, centroid.get("longitude"), 1e-3);
+      Assert.assertEquals(expectedLat, centroid.get("latitude"), 1e-3);
+    }
+    //no points
+    {
+      Map<String, Double> centroid = (Map) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(GEOHASH_CENTROID([]))"
+              , new HashMap<>()
+      );
+      Assert.assertNull(centroid);
+    }
+  }
+
+  @Test
+  public void testCentroid_weighted() throws Exception {
+    //happy path
+    {
+      double expectedLong = -98.740087 //calculated via http://www.geomidpoint.com/ using the center of gravity or geographic midpoint.
+         , expectedLat = 41.86921
+         ;
+      for(int weight = 1;weight < 10;++weight) {
+        Map<String, Number> weightedPoints = ImmutableMap.of(empireStateHash, weight, mosconeCenterHash, weight);
+        Map<String, Double> centroid = (Map) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(GEOHASH_CENTROID(weightedPoints))"
+                , ImmutableMap.of("weightedPoints", weightedPoints)
+        );
+        Assert.assertEquals(expectedLong, centroid.get("longitude"), 1e-3);
+        Assert.assertEquals(expectedLat, centroid.get("latitude"), 1e-3);
+      }
+    }
+    //same point
+    {
+      double expectedLong = empireStatePoint.getLongitude()
+         , expectedLat = empireStatePoint.getLatitude()
+         ;
+      for(int weight = 1;weight < 10;++weight) {
+        Map<String, Number> weightedPoints = ImmutableMap.of(empireStateHash, weight);
+        Map<String, Double> centroid = (Map) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(GEOHASH_CENTROID(weightedPoints))"
+                , ImmutableMap.of("weightedPoints", weightedPoints)
+        );
+        Assert.assertEquals(expectedLong, centroid.get("longitude"), 1e-3);
+        Assert.assertEquals(expectedLat, centroid.get("latitude"), 1e-3);
+      }
+    }
+    //no points
+    {
+      Map<String, Number> weightedPoints = new HashMap<>();
+      Map<String, Double> centroid = (Map) StellarProcessorUtils.run("GEOHASH_TO_LATLONG(GEOHASH_CENTROID(weightedPoints))"
+                , ImmutableMap.of("weightedPoints", weightedPoints)
+        );
+      Assert.assertNull(centroid);
     }
   }
 }

@@ -135,6 +135,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `FUZZY_SCORE`](#fuzzy_score)                                                   |
 | [ `FORMAT`](#format)                                                                               |
 | [ `GEO_GET`](#geo_get)                                                                             |
+| [ `GEOHASH_CENTROID`](#geohash_centroid)                                                           |
 | [ `GEOHASH_DIST`](#geohash_dist)                                                                   |
 | [ `GEOHASH_FROM_LATLONG`](#geohash_from_latlong)                                                   |
 | [ `GEOHASH_FROM_LOC`](#geohash_from_loc)                                                           |
@@ -438,6 +439,13 @@ In the core language functions, we support basic functional programming primitiv
     * ip - The IPV4 address to lookup
     * fields - Optional list of GeoIP fields to grab. Options are locID, country, city postalCode, dmaCode, latitude, longitude, location_point
   * Returns: If a Single field is requested a string of the field, If multiple fields a map of string of the fields, and null otherwise
+
+### `GEOHASH_CENTROID`
+  * Description: Compute the centroid (geographic midpoint or center of gravity) of a set of [geohashes](https://en.wikipedia.org/wiki/Geohash)
+  * Input:
+    * hashes - A collection of [geohashes](https://en.wikipedia.org/wiki/Geohash) or a map associating geohashes to numeric weights
+    * character_precision? - The number of characters to use in the hash. Default is 12
+  * Returns: The geohash of the centroid
 
 ### `GEOHASH_DIST`
   * Description: Compute the distance between [geohashes](https://en.wikipedia.org/wiki/Geohash)
