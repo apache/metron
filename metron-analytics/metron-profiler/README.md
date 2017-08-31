@@ -200,6 +200,7 @@ A common use case would be grouping by day of week.  This allows a contiguous sc
 ```
 
 The expression can reference any of these variables.
+* Any variable defined by the profile in its `init` or `update` expressions.
 * `profile` The name of the profile.
 * `entity` The name of the entity being profiled.
 * `start` The start time of the profile period in epoch milliseconds.
@@ -280,6 +281,8 @@ In the following example, three values, the minimum, the maximum and the mean ar
 *Optional*
 
 A numeric value that defines how many days the profile data is retained.  After this time, the data expires and is no longer accessible.  If no value is defined, the data does not expire.
+
+The REPL can be a powerful for developing profiles. Read all about [Developing Profiles](../metron-profiler-client/#developing_profiles).
 
 ## Configuring the Profiler
 

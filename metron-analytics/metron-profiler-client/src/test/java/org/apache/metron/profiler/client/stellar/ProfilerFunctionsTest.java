@@ -58,6 +58,28 @@ public class ProfilerFunctionsTest {
   private String message;
 
   /**
+   * [
+   * {
+   *    "ip_src_addr": "10.0.0.1",
+   *    "ip_dst_addr": "10.0.0.2",
+   *    "source.type": "test",
+   * },
+   * {
+   *    "ip_src_addr": "10.0.0.1",
+   *    "ip_dst_addr": "10.0.0.2",
+   *    "source.type": "test",
+   * },
+   * {
+   *    "ip_src_addr": "10.0.0.1",
+   *    "ip_dst_addr": "10.0.0.2",
+   *    "source.type": "test",
+   * }
+   * ]
+   */
+  @Multiline
+  private String messages;
+
+  /**
    * {
    *   "profiles": [
    *        {
@@ -108,7 +130,9 @@ public class ProfilerFunctionsTest {
     state.put("config", "{ \"profiles\" : [] }");
     StandAloneProfiler profiler = run("PROFILER_INIT(config)", StandAloneProfiler.class);
     assertNotNull(profiler);
-    assertEquals(0, profiler.getConfig().getProfiles().size());
+    assertEquals(0, profiler.getProfileCount());
+    assertEquals(0, profiler.getMessageCount());
+    assertEquals(0, profiler.getRouteCount());
   }
 
   @Test
@@ -116,7 +140,9 @@ public class ProfilerFunctionsTest {
     state.put("config", helloWorldProfilerDef);
     StandAloneProfiler profiler = run("PROFILER_INIT(config)", StandAloneProfiler.class);
     assertNotNull(profiler);
-    assertEquals(1, profiler.getConfig().getProfiles().size());
+    assertEquals(1, profiler.getProfileCount());
+    assertEquals(0, profiler.getMessageCount());
+    assertEquals(0, profiler.getRouteCount());
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -144,7 +170,9 @@ public class ProfilerFunctionsTest {
     StandAloneProfiler profiler = executor.execute(expression, state, StandAloneProfiler.class);
 
     assertNotNull(profiler);
-    assertEquals(1, profiler.getConfig().getProfiles().size());
+    assertEquals(1, profiler.getProfileCount());
+    assertEquals(0, profiler.getMessageCount());
+    assertEquals(0, profiler.getRouteCount());
   }
 
   @Test
@@ -158,17 +186,72 @@ public class ProfilerFunctionsTest {
     // apply a message to the profiler
     state.put("message", message);
     StandAloneProfiler result = run("PROFILER_APPLY(message, profiler)", StandAloneProfiler.class);
+
+    // validate
     assertSame(profiler, result);
+    assertEquals(1, profiler.getProfileCount());
+    assertEquals(1, profiler.getMessageCount());
+    assertEquals(1, profiler.getRouteCount());
+  }
+
+  @Test
+  public void testProfilerApplyWithMultipleMessages() {
+
+    // initialize the profiler
+    state.put("config", helloWorldProfilerDef);
+    StandAloneProfiler profiler = run("PROFILER_INIT(config)", StandAloneProfiler.class);
+    state.put("profiler", profiler);
+
+    // apply a message to the profiler
+    state.put("messages", messages);
+    StandAloneProfiler result = run("PROFILER_APPLY(messages, profiler)", StandAloneProfiler.class);
+
+    // validate
+    assertSame(profiler, result);
+    assertEquals(1, profiler.getProfileCount());
+    assertEquals(3, profiler.getMessageCount());
+    assertEquals(3, profiler.getRouteCount());
+  }
+
+  @Test
+  public void testProfilerApplyWithEmptyList() {
+
+    // initialize the profiler
+    state.put("config", helloWorldProfilerDef);
+    StandAloneProfiler profiler = run("PROFILER_INIT(config)", StandAloneProfiler.class);
+    state.put("profiler", profiler);
+
+    // apply a message to the profiler
+    state.put("messages", "[ ]");
+    StandAloneProfiler result = run("PROFILER_APPLY(messages, profiler)", StandAloneProfiler.class);
+
+    // validate
+    assertSame(profiler, result);
+    assertEquals(1, profiler.getProfileCount());
+    assertEquals(0, profiler.getMessageCount());
+    assertEquals(0, profiler.getRouteCount());
   }
 
   @Test(expected = IllegalArgumentException.class)
-  public void testProfilerApplyNoArgs() {
+  public void testProfilerApplyWithNoArgs() {
     run("PROFILER_APPLY()", StandAloneProfiler.class);
   }
 
   @Test(expected = IllegalArgumentException.class)
-  public void testProfilerApplyInvalidArg() {
+  public void testProfilerApplyWithInvalidArg() {
     run("PROFILER_APPLY(undefined)", StandAloneProfiler.class);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testProfilerApplyWithNullMessage() {
+
+    // initialize the profiler
+    state.put("config", helloWorldProfilerDef);
+    StandAloneProfiler profiler = run("PROFILER_INIT(config)", StandAloneProfiler.class);
+    state.put("profiler", profiler);
+
+    // there is no 'messages' variable
+    StandAloneProfiler result = run("PROFILER_APPLY(messages, profiler)", StandAloneProfiler.class);
   }
 
   @Test
