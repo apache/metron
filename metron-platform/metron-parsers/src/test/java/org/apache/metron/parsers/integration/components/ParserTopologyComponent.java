@@ -87,23 +87,29 @@ public class ParserTopologyComponent implements InMemoryComponent {
   @Override
   public void start() throws UnableToStartException {
     try {
-      TopologyBuilder topologyBuilder = ParserTopologyBuilder.build(topologyProperties.getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY)
+      final Map<String, Object> stormConf = new HashMap<>();
+      stormConf.put(Config.TOPOLOGY_DEBUG, true);
+      ParserTopologyBuilder.ParserTopology topologyBuilder = ParserTopologyBuilder.build(topologyProperties.getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY)
                                                                    , Optional.ofNullable(brokerUrl)
                                                                    , sensorType
-                                                                   , 1
-                                                                   , 1
-                                                                   , 1
-                                                                   , 1
-                                                                   , 1
-                                                                   , 1
-                                                                   , null
-                                                                   , Optional.empty()
+                                                                   , (x,y) -> 1
+                                                                   , (x,y) -> 1
+                                                                   , (x,y) -> 1
+                                                                   , (x,y) -> 1
+                                                                   , (x,y) -> 1
+                                                                   , (x,y) -> 1
+                                                                   , (x,y) -> new HashMap<>()
+                                                                   , (x,y) -> null
                                                                    , Optional.ofNullable(outputTopic)
+                                                                   , (x,y) -> {
+                                                                      Config c = new Config();
+                                                                      c.putAll(stormConf);
+                                                                      return c;
+                                                                      }
                                                                    );
-      Map<String, Object> stormConf = new HashMap<>();
-      stormConf.put(Config.TOPOLOGY_DEBUG, true);
+
       stormCluster = new LocalCluster();
-      stormCluster.submitTopology(sensorType, stormConf, topologyBuilder.createTopology());
+      stormCluster.submitTopology(sensorType, stormConf, topologyBuilder.getBuilder().createTopology());
     } catch (Exception e) {
       throw new UnableToStartException("Unable to start parser topology for sensorType: " + sensorType, e);
     }
