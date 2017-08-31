@@ -173,6 +173,12 @@
                                         <include>*.tar.gz</include>
                                     </includes>
                                 </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-analytics/metron-maas-service/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
                                 <!-- extensions -->
                                 <resource>
                                     <directory>${metron_dir}/metron-platform/metron-extensions/metron-parser-extensions/metron-parser-asa-extension/metron-parser-asa-assembly/target/</directory>

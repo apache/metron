@@ -73,6 +73,7 @@ Source21:       metron-parser-squid-assembly-%{full_version}-archive.tar.gz
 Source22:       metron-parser-websphere-assembly-%{full_version}-archive.tar.gz
 Source23:       metron-parser-yaf-assembly-%{full_version}-archive.tar.gz
 Source24:       metron-management-%{full_version}-archive.tar.gz
+Source25:       metron-maas-service-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -139,6 +140,7 @@ tar -xzf %{SOURCE21} -C %{buildroot}%{metron_extensions_etc_parsers}/squid
 tar -xzf %{SOURCE22} -C %{buildroot}%{metron_extensions_etc_parsers}/websphere
 tar -xzf %{SOURCE23} -C %{buildroot}%{metron_extensions_etc_parsers}/yaf
 tar -xzf %{SOURCE24} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE25} -C %{buildroot}%{metron_home}
 
 # move the bundles from config to extensions lib
 mv %{buildroot}%{metron_extensions_etc_parsers}/asa/lib/*.bundle %{buildroot}%{metron_extensions_lib}/
@@ -868,7 +870,28 @@ chkconfig --del metron-management-ui
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+%package        maas-service
+Summary:        Metron MaaS service
+Group:          Application/Internet
+Provides:       maas-service = %{version}
+
+%description    maas-service
+This package install the Metron MaaS Service files %{metron_home}
+
+%files          maas-service
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/bin
+%{metron_home}/bin/maas_service.sh
+%{metron_home}/bin/maas_deploy.sh
+%attr(0644,root,root) %{metron_home}/lib/metron-maas-service-%{full_version}-uber.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 %changelog
+* Tue Aug 29 2017 Apache Metron <dev@metron.apache.org> - 0.4.1
+- Add Metron MaaS service
 * Thu Jun 29 2017 Apache Metron <dev@metron.apache.org> - 0.4.1
 - Add Metron Management jar
 * Thu May 15 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
