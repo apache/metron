@@ -600,7 +600,7 @@ public class DefaultProfileBuilderTest {
    *   "init":   { "x": "0" },
    *   "update": { "x": "x + 1" },
    *   "result": "x",
-   *   "groupBy": ["2 / 0"]
+   *   "groupBy": ["nonexistant"]
    * }
    */
   @Multiline

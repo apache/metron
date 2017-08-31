@@ -200,6 +200,7 @@ A common use case would be grouping by day of week.  This allows a contiguous sc
 ```
 
 The expression can reference any of these variables.
+* Any variable defined by the profile in its `init` or `update` expressions.
 * `profile` The name of the profile.
 * `entity` The name of the entity being profiled.
 * `start` The start time of the profile period in epoch milliseconds.
