@@ -19,6 +19,7 @@
 package org.apache.metron.stellar.dsl.functions;
 
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -27,6 +28,11 @@ import java.util.Map;
 import java.util.Set;
 
 public class SetFunctionsTest {
+
+  @Test(expected=ParseException.class)
+  public void multisetInitTest_wrongType() throws Exception {
+    Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_INIT({ 'foo' : 'bar'})", new HashMap<>());
+  }
 
   @Test
   public void multisetInitTest() throws Exception {
@@ -134,6 +140,12 @@ public class SetFunctionsTest {
     }
   }
 
+  @Test(expected=ParseException.class)
+  public void multisetMergeTest_wrongType() throws Exception {
+
+    Map<Object, Integer> s = (Map<Object, Integer>) StellarProcessorUtils.run("MULTISET_MERGE({ 'bar' : 'foo' } )", new HashMap<>());
+  }
+
   @Test
   public void multisetMergeTest() throws Exception {
     {
@@ -162,6 +174,11 @@ public class SetFunctionsTest {
       Assert.assertTrue(s.containsKey("three"));
       Assert.assertEquals(1, (int)s.get("three"));
     }
+  }
+
+  @Test(expected=ParseException.class)
+  public void setInitTest_wrongType() throws Exception {
+      Set s = (Set) StellarProcessorUtils.run("SET_INIT({ 'foo' : 2})", new HashMap<>());
   }
 
   @Test
@@ -276,6 +293,11 @@ public class SetFunctionsTest {
       Assert.assertTrue(s.contains("one"));
       Assert.assertTrue(s.contains("two"));
     }
+  }
+
+  @Test(expected=ParseException.class)
+  public void setMergeTest_wrongType() throws Exception {
+    Set s = (Set) StellarProcessorUtils.run("SET_MERGE({ 'foo' : 'bar'} )", new HashMap<>());
   }
 
   @Test

@@ -36,9 +36,15 @@ public class SetFunctions {
       LinkedHashSet<Object> ret = new LinkedHashSet<>();
       if(list.size() == 1) {
         Object o = list.get(0);
-        if(o != null && o instanceof Iterable) {
-          Iterables.addAll(ret, (Iterable)o);
+        if(o != null) {
+          if (o instanceof Iterable) {
+            Iterables.addAll(ret, (Iterable) o);
+          }
+          else {
+            throw new IllegalArgumentException("Expected an Iterable, but " + o + " is of type " + o.getClass());
+          }
         }
+
       }
       return ret;
     }
@@ -115,10 +121,20 @@ public class SetFunctions {
       }
       LinkedHashSet<Object> ret = new LinkedHashSet<>();
       if(list.size() > 0) {
-        Iterable<Set> sets = (Iterable<Set>)list.get(0);
-        for(Set s : sets) {
-          if(s != null) {
-            ret.addAll(s);
+        Object o = list.get(0);
+        if(o != null) {
+          if(!(o instanceof Iterable)) {
+            throw new IllegalArgumentException("Expected an Iterable, but " + o + " is of type " + o.getClass());
+          }
+          Iterable<? extends Iterable> sets = (Iterable<? extends Iterable>) o;
+
+          for (Iterable s : sets) {
+            if (s != null) {
+              if(!(s instanceof Iterable)) {
+                throw new IllegalArgumentException("Expected an Iterable, but " + s + " is of type " + s.getClass());
+              }
+              Iterables.addAll(ret, s);
+            }
           }
         }
       }
@@ -136,10 +152,13 @@ public class SetFunctions {
     @Override
     public Object apply(List<Object> list) {
       LinkedHashMap<Object, Integer> ret = new LinkedHashMap<>();
-      if(list.size() >= 1) {
+      if (list.size() >= 1) {
         Object o = list.get(0);
-        if(o != null && o instanceof Iterable) {
-          for(Object obj : (Iterable)o) {
+        if (o != null) {
+          if (!(o instanceof Iterable)) {
+            throw new IllegalArgumentException("Expected an Iterable, but " + o + " is of type " + o.getClass());
+          }
+          for (Object obj : (Iterable) o) {
             ret.merge(obj, 1, (k, one) -> k + one);
           }
         }
