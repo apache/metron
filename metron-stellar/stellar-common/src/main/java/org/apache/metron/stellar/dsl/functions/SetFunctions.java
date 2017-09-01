@@ -59,6 +59,9 @@ public class SetFunctions {
         return null;
       }
       LinkedHashSet<Object> ret = (LinkedHashSet<Object>)list.get(0);
+      if(ret == null) {
+        ret = new LinkedHashSet<>();
+      }
       for(int i = 1;i < list.size();++i) {
         Object o = list.get(i);
         if (o != null) {
@@ -71,7 +74,7 @@ public class SetFunctions {
 
   @Stellar(name="REMOVE"
           , namespace="SET"
-          , description="Adds to a set"
+          , description="Removes from a set"
           , params = {"set - The set to add to"
                      ,"o - object to add to set"
                      }
@@ -84,6 +87,9 @@ public class SetFunctions {
         return null;
       }
       LinkedHashSet<Object> ret = (LinkedHashSet<Object>)list.get(0);
+      if(ret == null) {
+        ret = new LinkedHashSet<>();
+      }
       for(int i = 1;i < list.size();++i) {
         Object o = list.get(i);
         if (o != null) {
@@ -130,7 +136,7 @@ public class SetFunctions {
     @Override
     public Object apply(List<Object> list) {
       LinkedHashMap<Object, Integer> ret = new LinkedHashMap<>();
-      if(list.size() == 1) {
+      if(list.size() >= 1) {
         Object o = list.get(0);
         if(o != null && o instanceof Iterable) {
           for(Object obj : (Iterable)o) {
@@ -157,6 +163,9 @@ public class SetFunctions {
         return null;
       }
       LinkedHashMap<Object, Integer> ret = (LinkedHashMap<Object, Integer>)list.get(0);
+      if(ret == null) {
+        ret = new LinkedHashMap<>();
+      }
       for(int i = 1;i < list.size();++i) {
         Object o = list.get(i);
         if (o != null) {
@@ -182,10 +191,16 @@ public class SetFunctions {
         return null;
       }
       LinkedHashMap<Object, Integer> ret = (LinkedHashMap<Object, Integer>)list.get(0);
+      if(ret == null) {
+        ret = new LinkedHashMap<>();
+      }
       for(int i = 1;i < list.size();++i) {
         Object o = list.get(i);
         if (o != null) {
           Integer cnt = ret.get(o);
+          if(cnt == null) {
+            continue;
+          }
           if(cnt == 1) {
             ret.remove(o);
           }
