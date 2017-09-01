@@ -98,6 +98,10 @@ class ProfilerCommands:
         Logger.info("Done creating HBase Tables")
         self.set_hbase_configured()
 
+    def init_kafka_acls(self):
+        Logger.info('Creating Kafka ACls for profiler')
+        metron_service.init_kafka_acls(self.__params, [self.__profiler_topic], ['profiler'])
+
     def set_hbase_acls(self):
         Logger.info("Setting HBase ACLs")
         if self.__params.security_enabled:

@@ -53,12 +53,28 @@ public class StandAloneProfiler {
    */
   private MessageDistributor distributor;
 
+  /**
+   * Counts the number of messages that have been applied.
+   */
+  private int messageCount;
+
+  /**
+   * Counts the number of routes.
+   *
+   * If a message is not needed by any profiles, then there are 0 routes.
+   * If a message is needed by 1 profile then there is 1 route.
+   * If a message is needed by 2 profiles then there are 2 routes.
+   */
+  private int routeCount;
+
   public StandAloneProfiler(ProfilerConfig config, long periodDurationMillis, Context context) {
     this.context = context;
     this.config = config;
     this.router = new DefaultMessageRouter(context);
     // the period TTL does not matter in this context
     this.distributor = new DefaultMessageDistributor(periodDurationMillis, Long.MAX_VALUE);
+    this.messageCount = 0;
+    this.routeCount = 0;
   }
 
   /**
@@ -72,6 +88,18 @@ public class StandAloneProfiler {
     for(MessageRoute route : routes) {
       distributor.distribute(message, route, context);
     }
+
+    routeCount += routes.size();
+    messageCount += 1;
+  }
+
+  @Override
+  public String toString() {
+    return "Profiler{" +
+            getProfileCount() + " profile(s), " +
+            getMessageCount() + " messages(s), " +
+            getRouteCount() + " route(s)" +
+            '}';
   }
 
   /**
@@ -84,5 +112,17 @@ public class StandAloneProfiler {
 
   public ProfilerConfig getConfig() {
     return config;
+  }
+
+  public int getProfileCount() {
+    return (config == null) ? 0: config.getProfiles().size();
+  }
+
+  public int getMessageCount() {
+    return messageCount;
+  }
+
+  public int getRouteCount() {
+    return routeCount;
   }
 }
