@@ -86,6 +86,11 @@ public enum GeoHashUtil {
     return centroid(Iterables.filter(weightedPoints, kv -> kv.getKey() != null));
   }
 
+  /**
+   * Find the equilibrium point of a weighted set of lat/long geo points.
+   * @param points  The points and their weights (e.g. multiplicity)
+   * @return
+   */
   private WGS84Point centroid(Iterable<Map.Entry<WGS84Point, Number>> points) {
     double x = 0d
          , y = 0d
@@ -93,6 +98,21 @@ public enum GeoHashUtil {
          , totalWeight = 0d
          ;
     int n = 0;
+    /**
+     * So, it's first important to realize that long/lat are not cartesian, so simple weighted averaging
+     * is insufficient here as it denies the fact that we're not living on a flat square, but rather the surface of
+     * an ellipsoid.  A crow, for instance, does not fly a straight line to an observer outside of Earth, but
+     * rather flies across the arc tracing the surface of earth, or a "great-earth arc".  When computing the centroid
+     * you want to find the entroid of the points with distance defined as the great-earth arc.
+     *
+     * The general strategy is to:
+     * 1. Change coordinate systems from degrees on a WGS84 projection (e.g. lat/long)
+     *    to a 3 dimensional cartesian surface atop a sphere approximating the earth.
+     * 2. Compute a weighted average of the cartesian coordinates
+     * 3. Change coordinate systems of the resulting centroid in cartesian space back to lat/long
+     *
+     * This is generally detailed at http://www.geomidpoint.com/example.html
+     */
     for(Map.Entry<WGS84Point, Number> weightedPoint : points) {
       WGS84Point pt = weightedPoint.getKey();
       if(pt == null) {
@@ -101,7 +121,17 @@ public enum GeoHashUtil {
       double latRad = Math.toRadians(pt.getLatitude());
       double longRad = Math.toRadians(pt.getLongitude());
       double cosLat = Math.cos(latRad);
-      //convert from lat/long coordinates to cartesian coordinates
+      /*
+       Convert from lat/long coordinates to cartesian coordinates.  The cartesian coordinate system is a right-hand,
+       rectangular, three-dimensional, earth-fixed coordinate system
+       with an origin at (0, 0, 0). The Z-axis, is parrallel to the axis of rotation of the earth. The Z-coordinate
+       is positive toward the North pole. The X-Y plane lies in the equatorial plane. The X-axis lies along the
+       intersection of the plane containing the prime meridian and the equatorial plane. The X-coordinate is positive
+       toward the intersection of the prime meridian and equator.
+
+       Please see https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_geodetic_to_ECEF_coordinates
+       for more information about this coordinate transformation.
+       */
       double ptX = cosLat * Math.cos(longRad);
       double ptY = cosLat * Math.sin(longRad);
       double ptZ = Math.sin(latRad);
@@ -115,14 +145,17 @@ public enum GeoHashUtil {
     if(n == 0) {
       return null;
     }
-    //average the 3d cartesian vector representation
+    //average the vector representation in cartesian space, forming the center of gravity in cartesian space
     x /= totalWeight;
     y /= totalWeight;
     z /= totalWeight;
-    //convert the vector representation back
+
+    //convert the cartesian representation back to radians
     double longitude = Math.atan2(y, x);
     double hypotenuse = Math.sqrt(x*x + y*y);
     double latitude = Math.atan2(z, hypotenuse);
+
+    //convert the radians back to degrees latitude and longitude.
     return new WGS84Point(Math.toDegrees(latitude), Math.toDegrees(longitude));
   }
 
