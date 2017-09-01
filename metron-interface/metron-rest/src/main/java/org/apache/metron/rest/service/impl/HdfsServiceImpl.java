@@ -88,4 +88,13 @@ public class HdfsServiceImpl implements HdfsService {
         throw new RestException(e);
       }
     }
+
+    @Override
+    public boolean mkdirs(Path path) throws RestException {
+      try {
+        return FileSystem.get(configuration).mkdirs(path);
+      } catch (IOException e) {
+        throw new RestException(e);
+      }
+    }
  }

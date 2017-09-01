@@ -34,7 +34,6 @@ kafka:
 grok:
   path:
     temp: ${METRON_TEMP_GROK_PATH}
-    default: ${METRON_DEFAULT_GROK_PATH}
 
 storm:
   ui:

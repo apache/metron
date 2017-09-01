@@ -56,7 +56,6 @@ metron_jdbc_password = config['configurations']['metron-rest-env']['metron_jdbc_
 metron_jdbc_platform = config['configurations']['metron-rest-env']['metron_jdbc_platform']
 metron_jdbc_client_path = config['configurations']['metron-rest-env']['metron_jdbc_client_path']
 metron_temp_grok_path = config['configurations']['metron-rest-env']['metron_temp_grok_path']
-metron_default_grok_path = config['configurations']['metron-rest-env']['metron_default_grok_path']
 metron_spring_options = config['configurations']['metron-rest-env']['metron_spring_options']
 metron_config_path = metron_home + '/config'
 metron_zookeeper_config_dir = status_params.metron_zookeeper_config_dir
