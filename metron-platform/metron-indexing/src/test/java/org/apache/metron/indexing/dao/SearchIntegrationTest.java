@@ -604,7 +604,7 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals("true", trueGroup.getKey());
       Assert.assertEquals(6, trueGroup.getTotal());
       Assert.assertEquals("latitude", trueGroup.getGroupedBy());
-      Assert.assertNull(trueGroup.getScore());
+      Assert.assertEquals(198.0, trueGroup.getScore(), 0.00001);
       List<GroupResult> trueLatitudeGroups = trueGroup.getGroupResults();
       Assert.assertEquals(2, trueLatitudeGroups.size());
 
@@ -625,7 +625,7 @@ public abstract class SearchIntegrationTest {
       GroupResult falseGroup = isAlertGroups.get(1);
       Assert.assertEquals("false", falseGroup.getKey());
       Assert.assertEquals("latitude", falseGroup.getGroupedBy());
-      Assert.assertNull(falseGroup.getScore());
+      Assert.assertEquals(130.0, falseGroup.getScore(), 0.00001);
       List<GroupResult> falseLatitudeGroups = falseGroup.getGroupResults();
       Assert.assertEquals(2, falseLatitudeGroups.size());
 

@@ -382,11 +382,10 @@ public class ElasticsearchDao implements IndexDao {
         .order(getElasticsearchGroupOrder(group.getOrder()));
     if (index < groups.size() - 1) {
       termsBuilder.subAggregation(getGroupsTermBuilder(groupRequest, index + 1));
-    } else {
-      Optional<String> scoreField = groupRequest.getScoreField();
-      if (scoreField.isPresent()) {
-        termsBuilder.subAggregation(new SumBuilder(getSumAggregationName(scoreField.get())).field(scoreField.get()).missing(0));
-      }
+    }
+    Optional<String> scoreField = groupRequest.getScoreField();
+    if (scoreField.isPresent()) {
+      termsBuilder.subAggregation(new SumBuilder(getSumAggregationName(scoreField.get())).field(scoreField.get()).missing(0));
     }
     return termsBuilder;
   }
@@ -396,28 +395,20 @@ public class ElasticsearchDao implements IndexDao {
     String field = groups.get(index).getField();
     Terms terms = aggregations.get(getGroupByAggregationName(field));
     List<GroupResult> searchResultGroups = new ArrayList<>();
-    if (index < groups.size() - 1) {
-      String childField = groups.get(index + 1).getField();
-      for(Bucket bucket: terms.getBuckets()) {
-        GroupResult groupResult = new GroupResult();
-        groupResult.setKey(formatKey(bucket.getKey(), commonColumnMetadata.get(field)));
-        groupResult.setTotal(bucket.getDocCount());
-        groupResult.setGroupedBy(childField);
+    for(Bucket bucket: terms.getBuckets()) {
+      GroupResult groupResult = new GroupResult();
+      groupResult.setKey(formatKey(bucket.getKey(), commonColumnMetadata.get(field)));
+      groupResult.setTotal(bucket.getDocCount());
+      Optional<String> scoreField = groupRequest.getScoreField();
+      if (scoreField.isPresent()) {
+        Sum score = bucket.getAggregations().get(getSumAggregationName(scoreField.get()));
+        groupResult.setScore(score.getValue());
+      }
+      if (index < groups.size() - 1) {
+        groupResult.setGroupedBy(groups.get(index + 1).getField());
         groupResult.setGroupResults(getGroupResults(groupRequest, index + 1, bucket.getAggregations(), commonColumnMetadata));
-        searchResultGroups.add(groupResult);
       }
-    } else {
-      for(Bucket bucket: terms.getBuckets()) {
-        GroupResult searchResultGroup = new GroupResult();
-        searchResultGroup.setKey(formatKey(bucket.getKey(), commonColumnMetadata.get(field)));
-        searchResultGroup.setTotal(bucket.getDocCount());
-        Optional<String> scoreField = groupRequest.getScoreField();
-        if (scoreField.isPresent()) {
-          Sum score = bucket.getAggregations().get(getSumAggregationName(scoreField.get()));
-          searchResultGroup.setScore(score.getValue());
-        }
-        searchResultGroups.add(searchResultGroup);
-      }
+      searchResultGroups.add(groupResult);
     }
     return searchResultGroups;
   }
