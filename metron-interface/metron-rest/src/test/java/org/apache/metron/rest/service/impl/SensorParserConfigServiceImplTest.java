@@ -281,7 +281,9 @@ public class SensorParserConfigServiceImplTest {
     parseMessageRequest.setGrokStatement(grokStatement);
     parseMessageRequest.setSampleData(sampleData);
 
-    File patternFile = new File(new File("./target", user), "squid");
+    File grokRoot = new File("./target", user);
+    grokRoot.mkdir();
+    File patternFile = new File(grokRoot, "squid");
     FileWriter writer = new FileWriter(patternFile);
     writer.write(grokStatement);
     writer.close();
