@@ -103,7 +103,7 @@ public enum GeoHashUtil {
      * is insufficient here as it denies the fact that we're not living on a flat square, but rather the surface of
      * an ellipsoid.  A crow, for instance, does not fly a straight line to an observer outside of Earth, but
      * rather flies across the arc tracing the surface of earth, or a "great-earth arc".  When computing the centroid
-     * you want to find the entroid of the points with distance defined as the great-earth arc.
+     * you want to find the centroid of the points with distance defined as the great-earth arc.
      *
      * The general strategy is to:
      * 1. Change coordinate systems from degrees on a WGS84 projection (e.g. lat/long)
