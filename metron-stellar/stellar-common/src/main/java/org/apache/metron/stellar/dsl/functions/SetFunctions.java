@@ -26,7 +26,7 @@ import java.util.*;
 public class SetFunctions {
   @Stellar(name="INIT"
           , namespace="SET"
-          , description="Creates an empty set"
+          , description="Creates a new set"
           , params = { "input? - An initialization of the set"}
           , returns = "A Set"
   )
@@ -128,9 +128,9 @@ public class SetFunctions {
 
   @Stellar(name="INIT"
           , namespace="MULTISET"
-          , description="Creates an empty set"
-          , params = { "input? - An initialization of the set"}
-          , returns = "A Set"
+          , description="Creates an empty multiset, which is a map associating objects to their instance counts."
+          , params = { "input? - An initialization of the multiset"}
+          , returns = "A multiset"
   )
   public static class MultiSetInit extends BaseStellarFunction {
     @Override
@@ -150,11 +150,11 @@ public class SetFunctions {
 
   @Stellar(name="ADD"
           , namespace="MULTISET"
-          , description="Adds to a set"
-          , params = {"set - The set to add to"
-                     ,"o - object to add to set"
+          , description="Adds to a multiset, which is a map associating objects to their instance counts."
+          , params = {"set - The multiset to add to"
+                     ,"o - object to add to multiset"
                      }
-          , returns = "A Set"
+          , returns = "A multiset"
   )
   public static class MultiSetAdd extends BaseStellarFunction {
     @Override
@@ -178,11 +178,11 @@ public class SetFunctions {
 
   @Stellar(name="REMOVE"
           , namespace="MULTISET"
-          , description="Adds to a set"
-          , params = {"set - The set to add to"
-                     ,"o - object to remove from set"
+          , description="Removes from a multiset, which is a map associating objects to their instance counts."
+          , params = {"set - The multiset to add to"
+                     ,"o - object to remove from multiset"
                      }
-          , returns = "A Set"
+          , returns = "A multiset"
   )
   public static class MultiSetRemove extends BaseStellarFunction {
     @Override
@@ -215,10 +215,10 @@ public class SetFunctions {
 
   @Stellar(name="MERGE"
           , namespace="MULTISET"
-          , description="Merges a list of sets"
-          , params = {"sets - A collection of sets to merge"
+          , description="Merges a list of multisets, which is a map associating objects to their instance counts."
+          , params = {"sets - A collection of multisets to merge"
                      }
-          , returns = "A Set"
+          , returns = "A multiset"
   )
   public static class MultiSetMerge extends BaseStellarFunction {
     @Override
@@ -241,4 +241,28 @@ public class SetFunctions {
     }
   }
 
+
+  @Stellar(name="TO_SET"
+          , namespace="MULTISET"
+          , description="Create a set out of a multiset, which is a map associating objects to their instance counts."
+          , params = {"multiset - The multiset to convert."
+                     }
+          , returns = "The set of objects in the multiset ignoring multiplicity"
+  )
+  public static class MultiSetToSet extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> list) {
+      if(list.size() < 1) {
+        return null;
+      }
+      LinkedHashSet<Object> ret = new LinkedHashSet<>();
+      if(list.size() == 1) {
+        Map<Object, Integer> multiset = (Map<Object, Integer>)list.get(0);
+        if(multiset != null) {
+          ret.addAll(multiset.keySet());
+        }
+      }
+      return ret;
+    }
+  }
 }

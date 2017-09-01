@@ -189,6 +189,38 @@ public class SetFunctionsTest {
   }
 
   @Test
+  public void multisetToSetTest() throws Exception {
+    {
+      Set s = (Set) StellarProcessorUtils.run("MULTISET_TO_SET(MULTISET_ADD(MULTISET_INIT(), 1))", new HashMap<>());
+      Assert.assertEquals(1, s.size());
+      Assert.assertTrue(s.contains(1));
+    }
+    {
+      Set s = (Set) StellarProcessorUtils.run("MULTISET_TO_SET(MULTISET_ADD(null, 1))", new HashMap<>());
+      Assert.assertEquals(1, s.size());
+      Assert.assertTrue(s.contains(1));
+    }
+    //int
+    {
+      Set s = (Set) StellarProcessorUtils.run("MULTISET_TO_SET(MULTISET_ADD(MULTISET_INIT([1,2,3]), 4))", new HashMap<>());
+      Assert.assertEquals(4, s.size());
+      Assert.assertTrue(s.contains(1));
+      Assert.assertTrue(s.contains(2));
+      Assert.assertTrue(s.contains(3));
+      Assert.assertTrue(s.contains(4));
+    }
+    //string
+    {
+      Set s = (Set) StellarProcessorUtils.run("MULTISET_TO_SET(MULTISET_ADD(MULTISET_INIT(['one','two','three']), 'four'))", new HashMap<>());
+      Assert.assertEquals(4, s.size());
+      Assert.assertTrue(s.contains("one"));
+      Assert.assertTrue(s.contains("two"));
+      Assert.assertTrue(s.contains("three"));
+      Assert.assertTrue(s.contains("four"));
+    }
+  }
+
+  @Test
   public void setAddTest() throws Exception {
     {
       Set s = (Set) StellarProcessorUtils.run("SET_ADD(SET_INIT(), 1)", new HashMap<>());
