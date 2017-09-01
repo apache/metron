@@ -17,18 +17,13 @@
  */
 package org.apache.metron.common.configuration;
 
-import org.apache.commons.io.FilenameUtils;
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.zookeeper.KeeperException;
+import static org.apache.metron.common.configuration.ConfigurationType.ENRICHMENT;
+import static org.apache.metron.common.configuration.ConfigurationType.GLOBAL;
+import static org.apache.metron.common.configuration.ConfigurationType.INDEXING;
+import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
+import static org.apache.metron.common.configuration.ConfigurationType.PROFILER;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -38,8 +33,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import static org.apache.metron.common.configuration.ConfigurationType.*;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.zookeeper.KeeperException;
 
 public class ConfigurationsUtils {
 
@@ -125,13 +130,31 @@ public class ConfigurationsUtils {
   }
 
   public static void writeConfigToZookeeper(String name, Map<String, Object> config, String zookeeperUrl) throws Exception {
-    writeConfigToZookeeper(name, JSONUtils.INSTANCE.toJSON(config), zookeeperUrl);
+    writeConfigToZookeeper(Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + name, JSONUtils.INSTANCE.toJSON(config), zookeeperUrl);
   }
 
-  public static void writeConfigToZookeeper(String name, byte[] config, String zookeeperUrl) throws Exception {
-    try(CuratorFramework client = getClient(zookeeperUrl)) {
+  public static void writeConfigToZookeeper(ConfigurationType configType, byte[] configData, String zookeeperUrl) throws Exception {
+    writeConfigToZookeeper(configType, "", configData, zookeeperUrl);
+  }
+
+  public static void writeConfigToZookeeper(ConfigurationType configType, String configName,
+      byte[] configData, String zookeeperUrl) throws Exception {
+    writeConfigToZookeeper(getConfigZKPath(configType, configName), configData, zookeeperUrl);
+  }
+
+  private static String getConfigZKPath(ConfigurationType configType, String configName) {
+    String pathSuffix = StringUtils.isEmpty(configName) ? "" : "/" + configName;
+    return configType.getZookeeperRoot() + pathSuffix;
+  }
+
+  /**
+   * Writes config to path in Zookeeper, /metron/topology/$CONFIG_TYPE/$CONFIG_NAME
+   */
+  public static void writeConfigToZookeeper(String configPath, byte[] config, String zookeeperUrl)
+      throws Exception {
+    try (CuratorFramework client = getClient(zookeeperUrl)) {
       client.start();
-      writeToZookeeper(Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + name, config, client);
+      writeToZookeeper(configPath, config, client);
     }
   }
 
@@ -203,8 +226,25 @@ public class ConfigurationsUtils {
     return readFromZookeeper(Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + name, client);
   }
 
+  public static byte[] readConfigBytesFromZookeeper(ConfigurationType configType,
+      String zookeeperUrl) throws Exception {
+    return readConfigBytesFromZookeeper(configType, "", zookeeperUrl);
+  }
+
+  public static byte[] readConfigBytesFromZookeeper(ConfigurationType configType, String configName,
+      String zookeeperUrl) throws Exception {
+    return readFromZookeeper(getConfigZKPath(configType, configName), zookeeperUrl);
+  }
+
+  public static byte[] readFromZookeeper(String path, String zookeeperUrl) throws Exception {
+    try (CuratorFramework client = getClient(zookeeperUrl)) {
+      client.start();
+      return readFromZookeeper(path, client);
+    }
+  }
+
   public static byte[] readFromZookeeper(String path, CuratorFramework client) throws Exception {
-    if(client != null && client.getData() != null && path != null) {
+    if (client != null && client.getData() != null && path != null) {
       return client.getData().forPath(path);
     }
     return new byte[]{};
@@ -216,7 +256,7 @@ public class ConfigurationsUtils {
                                               String indexingConfigPath,
                                               String profilerConfigPath,
                                               String zookeeperUrl) throws Exception {
-    try(CuratorFramework client = getClient(zookeeperUrl)) {
+    try (CuratorFramework client = getClient(zookeeperUrl)) {
       client.start();
       uploadConfigsToZookeeper(globalConfigPath, parsersConfigPath, enrichmentsConfigPath, indexingConfigPath, profilerConfigPath, client);
     }
@@ -311,7 +351,7 @@ public class ConfigurationsUtils {
 
   public static byte[] readGlobalConfigFromFile(String rootPath) throws IOException {
     byte[] globalConfig = new byte[0];
-    File configPath = new File(rootPath, GLOBAL.getName() + ".json");
+    File configPath = new File(rootPath, GLOBAL.getTypeName() + ".json");
     if (configPath.exists()) {
       globalConfig = Files.readAllBytes(configPath.toPath());
     }
@@ -337,7 +377,7 @@ public class ConfigurationsUtils {
   public static byte[] readProfilerConfigFromFile(String rootPath) throws IOException {
 
     byte[] config = new byte[0];
-    File configPath = new File(rootPath, PROFILER.getName() + ".json");
+    File configPath = new File(rootPath, PROFILER.getTypeName() + ".json");
     if (configPath.exists()) {
       config = Files.readAllBytes(configPath.toPath());
     }
@@ -359,6 +399,20 @@ public class ConfigurationsUtils {
     return sensorConfigs;
   }
 
+  public static void applyConfigPatchToZookeeper(ConfigurationType configurationType, byte[] patchData, String zookeeperUrl) throws Exception {
+    applyConfigPatchToZookeeper(configurationType, "", patchData, zookeeperUrl);
+  }
+
+  public static void applyConfigPatchToZookeeper(ConfigurationType configurationType,
+      String configName,
+      byte[] patchData, String zookeeperUrl) throws Exception {
+    byte[] configData = readConfigBytesFromZookeeper(configurationType, configName, zookeeperUrl);
+    JsonNode source = JSONUtils.INSTANCE.readTree(configData);
+    JsonNode patch = JSONUtils.INSTANCE.readTree(patchData);
+    JsonNode patchedConfig = JSONUtils.INSTANCE.applyPatch(patch, source);
+    writeConfigToZookeeper(configurationType, configName, JSONUtils.INSTANCE.toJSON(patchedConfig),
+        zookeeperUrl);
+  }
 
   public interface ConfigurationVisitor{
     void visit(ConfigurationType configurationType, String name, String data);

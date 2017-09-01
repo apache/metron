@@ -74,25 +74,6 @@
             </exclusions>
             <scope>provided</scope>
         </dependency>        
-        <dependency>
-            <groupId>com.flipkart.zjsonpatch</groupId>
-            <artifactId>zjsonpatch</artifactId>
-            <version>0.3.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-annotations</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
 
         <dependency>
             <groupId>org.apache.storm</groupId>
