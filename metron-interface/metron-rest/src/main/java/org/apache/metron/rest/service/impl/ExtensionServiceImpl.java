@@ -100,12 +100,10 @@ public class ExtensionServiceImpl implements ExtensionService{
   }
 
   @Override
-  public Map<String, ParserExtensionConfig> getAllParserExtensions() throws RestException{
-    Map<String, ParserExtensionConfig> parserExtensionConfigs = new HashMap<>();
-    List<String> sensorNames = getAllParserExtensionTypes();
-    for (String name : sensorNames) {
-      parserExtensionConfigs.put(name, findOneParserExtension(name));
-    }
+  public List<ParserExtensionConfig> getAllParserExtensions() throws RestException{
+    List<ParserExtensionConfig> parserExtensionConfigs = new ArrayList<>();
+    for( String name : getAllParserExtensionTypes())
+      parserExtensionConfigs.add(findOneParserExtension(name));
     return parserExtensionConfigs;
   }
 
@@ -151,9 +149,10 @@ public class ExtensionServiceImpl implements ExtensionService{
     return true;
   }
 
-  private void installParserExtension(Path extensionPath, String extentionPackageName) throws Exception{
+  private void installParserExtension(Path extensionPath, String extentionFileName) throws Exception{
     final InstallContext context = new InstallContext();
-    context.extensionPackageName = Optional.of(formatPackageName(extentionPackageName));
+    context.extensionIdentifier = Optional.of(formatExtensionIdentifier(extentionFileName));
+    context.extensionPackageName = Optional.of(formatPackageName(extentionFileName));
     context.bundleProperties = loadBundleProperties();
 
     // verify the structure
@@ -528,20 +527,26 @@ public class ExtensionServiceImpl implements ExtensionService{
   private void writeExtensionConfiguration(InstallContext context) throws Exception {
     ParserExtensionConfig config = new ParserExtensionConfig();
     config.setParserExtensionParserName(context.extensionParserNames);
-    config.setExtensionsBundleID(context.bundleID.get());
-    config.setExtensionsBundleVersion(context.bundleVersion.get());
+    config.setExtensionIdentifier(context.extensionIdentifier.get());
+    config.setExtensionBundleID(context.bundleID.get());
+    config.setExtensionBundleVersion(context.bundleVersion.get());
     config.setExtensionBundleName(context.bundleName.get());
     config.setExtensionAssemblyName(context.extensionPackageName.get());
     config.setDefaultParserConfigs(context.defaultParserConfigs.get());
-    config.setDefaultEnrichementConfigs(context.defaultEnrichmentConfigs.get());
+    config.setDefaultEnrichmentConfigs(context.defaultEnrichmentConfigs.get());
     config.setDefaultIndexingConfigs(context.defaultIndexingConfigs.get());
     if(context.defaultElasticSearchTemplates.isPresent()) {
       config.setDefaultElasticSearchTemplates(context.defaultElasticSearchTemplates.get());
     }
-    ConfigurationsUtils.writeParserExtensionConfigToZookeeper(context.extensionPackageName.get(),config.toJSON().getBytes(), client);
+    ConfigurationsUtils.writeParserExtensionConfigToZookeeper(context.extensionIdentifier.get(),config.toJSON().getBytes(), client);
   }
   @Override
   public String formatPackageName(String name){
+    return name.substring(0,name.lastIndexOf(".tar.gz")).replace('.','_');
+  }
+
+  @Override
+  public String formatExtensionIdentifier(String name){
     return name.substring(0,name.lastIndexOf("-archive.tar.gz")).replace('.','_');
   }
 
@@ -554,6 +559,7 @@ public class ExtensionServiceImpl implements ExtensionService{
     public Optional<String> bundleName = Optional.empty();
     public Optional<BundleProperties> bundleProperties = Optional.empty();
     public Optional<String> extensionPackageName = Optional.empty();
+    public Optional<String> extensionIdentifier = Optional.empty();
     public Optional<Map<String,SensorParserConfig>> defaultParserConfigs = Optional.empty();
     public Optional<Map<String,SensorEnrichmentConfig>> defaultEnrichmentConfigs = Optional.empty();
     public Optional<Map<String,Map<String,Object>>> defaultIndexingConfigs = Optional.empty();

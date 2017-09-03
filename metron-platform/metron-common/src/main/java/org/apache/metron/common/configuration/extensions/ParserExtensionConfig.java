@@ -1,19 +1,16 @@
 /**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more contributor license
+ * agreements.  See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership.  The ASF licenses this file to you under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with the License.  You may obtain
+ * a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 package org.apache.metron.common.configuration.extensions;
 
@@ -28,16 +25,35 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
-public class ParserExtensionConfig implements Serializable{
+/**
+ * Configuration class for Parser Extensions.
+ *
+ * The ParserExtensionConfig contains information about the extension itself,
+ * along with default configurations for each of the parser types exposed by the
+ * extension.
+ *
+ *
+ */
+public class ParserExtensionConfig implements Serializable {
+
+  private String extensionIdentifier;
   private String extensionAssemblyName;
   private String extensionBundleName;
-  private String extensionsBundleID;
-  private String extensionsBundleVersion;
+  private String extensionBundleID;
+  private String extensionBundleVersion;
   private Set<String> parserExtensionParserNames;
-  private Map<String,SensorParserConfig> defaultParserConfigs;
-  private Map<String,SensorEnrichmentConfig> defaultEnrichementConfigs;
-  private Map<String,Map<String,Object>> defaultIndexingConfigs;
-  private Map<String,Map<String,Object>> defaultElasticSearchTemplates;
+  private Map<String, SensorParserConfig> defaultParserConfigs;
+  private Map<String, SensorEnrichmentConfig> defaultEnrichmentConfigs;
+  private Map<String, Map<String, Object>> defaultIndexingConfigs;
+  private Map<String, Map<String, Object>> defaultElasticSearchTemplates;
+
+  public String getExtensionIdentifier() {
+    return extensionIdentifier;
+  }
+
+  public void setExtensionIdentifier(String extensionIdentifier) {
+    this.extensionIdentifier = extensionIdentifier;
+  }
 
   public String getExtensionAssemblyName() {
     return extensionAssemblyName;
@@ -55,24 +71,24 @@ public class ParserExtensionConfig implements Serializable{
     this.extensionBundleName = extensionBundleName;
   }
 
-  public String getExtensionsBundleID() {
-    return extensionsBundleID;
+  public String getExtensionBundleID() {
+    return extensionBundleID;
   }
 
-  public void setExtensionsBundleID(String extensionsBundleID) {
-    this.extensionsBundleID = extensionsBundleID;
+  public void setExtensionBundleID(String extensionBundleID) {
+    this.extensionBundleID = extensionBundleID;
   }
 
-  public String getExtensionsBundleVersion() {
-    return extensionsBundleVersion;
+  public String getExtensionBundleVersion() {
+    return extensionBundleVersion;
   }
 
-  public void setExtensionsBundleVersion(String extensionsBundleVersion) {
-    this.extensionsBundleVersion = extensionsBundleVersion;
+  public void setExtensionBundleVersion(String extensionBundleVersion) {
+    this.extensionBundleVersion = extensionBundleVersion;
   }
 
-  public Set<String>  getParserExtensionParserNames() {
-    if(this.parserExtensionParserNames != null) {
+  public Set<String> getParserExtensionParserNames() {
+    if (this.parserExtensionParserNames != null) {
       return ImmutableSet.copyOf(this.parserExtensionParserNames);
     }
     return ImmutableSet.of();
@@ -82,36 +98,37 @@ public class ParserExtensionConfig implements Serializable{
     this.parserExtensionParserNames = new HashSet(parserExtensionParserNames);
   }
 
-  public Map<String,SensorParserConfig> getDefaultParserConfigs() {
-    if(this.defaultParserConfigs != null){
+  public Map<String, SensorParserConfig> getDefaultParserConfigs() {
+    if (this.defaultParserConfigs != null) {
       return ImmutableMap.copyOf(this.defaultParserConfigs);
     }
     return ImmutableMap.of();
   }
 
-  public void setDefaultParserConfigs(Map<String,SensorParserConfig> defaultParserConfigs) {
+  public void setDefaultParserConfigs(Map<String, SensorParserConfig> defaultParserConfigs) {
     this.defaultParserConfigs = new HashMap<>(defaultParserConfigs);
   }
 
-  public Map<String,SensorEnrichmentConfig> getDefaultEnrichementConfigs() {
-    if(this.defaultEnrichementConfigs != null){
-      return ImmutableMap.copyOf(this.defaultEnrichementConfigs);
+  public Map<String, SensorEnrichmentConfig> getDefaultEnrichmentConfigs() {
+    if (this.defaultEnrichmentConfigs != null) {
+      return ImmutableMap.copyOf(this.defaultEnrichmentConfigs);
     }
     return ImmutableMap.of();
   }
 
-  public void setDefaultEnrichementConfigs(Map<String,SensorEnrichmentConfig> defaultEnrichementConfigs) {
-    this.defaultEnrichementConfigs = new HashMap<>(defaultEnrichementConfigs);
+  public void setDefaultEnrichmentConfigs(
+      Map<String, SensorEnrichmentConfig> defaultEnrichmentConfigs) {
+    this.defaultEnrichmentConfigs = new HashMap<>(defaultEnrichmentConfigs);
   }
 
-  public Map<String,Map<String, Object>> getDefaultIndexingConfigs() {
-    if(this.defaultIndexingConfigs != null){
+  public Map<String, Map<String, Object>> getDefaultIndexingConfigs() {
+    if (this.defaultIndexingConfigs != null) {
       return ImmutableMap.copyOf(this.defaultIndexingConfigs);
     }
     return ImmutableMap.of();
   }
 
-  public void setDefaultIndexingConfigs(Map<String,Map<String, Object>> defaultIndexingConfigs) {
+  public void setDefaultIndexingConfigs(Map<String, Map<String, Object>> defaultIndexingConfigs) {
     this.defaultIndexingConfigs = new HashMap<>(defaultIndexingConfigs);
   }
 
@@ -121,18 +138,20 @@ public class ParserExtensionConfig implements Serializable{
   }
 
   public Map<String, Map<String, Object>> getDefaultElasticSearchTemplates() {
-    if(this.defaultElasticSearchTemplates != null){
+    if (this.defaultElasticSearchTemplates != null) {
       return ImmutableMap.copyOf(this.defaultElasticSearchTemplates);
     }
     return ImmutableMap.of();
   }
 
-  public void setDefaultElasticSearchTemplates(Map<String, Map<String, Object>> defaultElasticSearchTemplates) {
+  public void setDefaultElasticSearchTemplates(
+      Map<String, Map<String, Object>> defaultElasticSearchTemplates) {
     this.defaultElasticSearchTemplates = new HashMap<>(defaultElasticSearchTemplates);
   }
 
   public static ParserExtensionConfig fromBytes(byte[] config) throws IOException {
-    ParserExtensionConfig ret = JSONUtils.INSTANCE.load(new String(config), ParserExtensionConfig.class);
+    ParserExtensionConfig ret = JSONUtils.INSTANCE
+        .load(new String(config), ParserExtensionConfig.class);
     return ret;
   }
 
@@ -143,50 +162,91 @@ public class ParserExtensionConfig implements Serializable{
   @Override
   public String toString() {
     return "SensorParserConfig{" +
-            "extensionAssemblyName='" + extensionAssemblyName + '\'' +
-            ", extensionBundleName='" + extensionBundleName + '\'' +
-            ", extensionsBundleID='" + extensionsBundleID + '\'' +
-            ", parserExtensionParserNames='" + String.join(",",this.parserExtensionParserNames) + '\'' +
-            '}';
+        "extensionIdentifier='" + extensionIdentifier + '\'' +
+        "extensionAssemblyName='" + extensionAssemblyName + '\'' +
+        ", extensionBundleName='" + extensionBundleName + '\'' +
+        ", extensionBundleID='" + extensionBundleID + '\'' +
+        ", parserExtensionParserNames='" + String.join(",", this.parserExtensionParserNames) + '\''
+        +
+        '}';
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ParserExtensionConfig that = (ParserExtensionConfig) o;
 
-    if (getExtensionAssemblyName() != null ? !getExtensionAssemblyName().equals(that.getExtensionAssemblyName()) : that.getExtensionAssemblyName() != null)
+    if (getExtensionIdentifier() != null ? !getExtensionIdentifier()
+        .equals(that.getExtensionIdentifier()) : that.getExtensionIdentifier() != null) {
       return false;
-    if (getExtensionBundleName() != null ? !getExtensionBundleName().equals(that.getExtensionBundleName()) : that.getExtensionBundleName() != null)
+    }
+    if (getExtensionAssemblyName() != null ? !getExtensionAssemblyName()
+        .equals(that.getExtensionAssemblyName()) : that.getExtensionAssemblyName() != null) {
       return false;
-    if (getExtensionsBundleID() != null ? !getExtensionsBundleID().equals(that.getExtensionsBundleID()) : that.getExtensionsBundleID() != null)
+    }
+    if (getExtensionBundleName() != null ? !getExtensionBundleName()
+        .equals(that.getExtensionBundleName()) : that.getExtensionBundleName() != null) {
       return false;
-    if (getExtensionsBundleVersion() != null ? !getExtensionsBundleVersion().equals(that.getExtensionsBundleVersion()) : that.getExtensionsBundleVersion() != null)
+    }
+    if (getExtensionBundleID() != null ? !getExtensionBundleID().equals(that.getExtensionBundleID())
+        : that.getExtensionBundleID() != null) {
       return false;
-    if (getDefaultParserConfigs() != null ? !getDefaultParserConfigs().equals(that.getDefaultParserConfigs()) : that.getDefaultParserConfigs() != null)
+    }
+    if (getExtensionBundleVersion() != null ? !getExtensionBundleVersion()
+        .equals(that.getExtensionBundleVersion()) : that.getExtensionBundleVersion() != null) {
       return false;
-    if (getDefaultEnrichementConfigs() != null ? !getDefaultEnrichementConfigs().equals(that.getDefaultEnrichementConfigs()) : that.getDefaultEnrichementConfigs() != null)
+    }
+    if (getDefaultParserConfigs() != null ? !getDefaultParserConfigs()
+        .equals(that.getDefaultParserConfigs()) : that.getDefaultParserConfigs() != null) {
       return false;
-    if (getDefaultIndexingConfigs() != null ? !getDefaultIndexingConfigs().equals(that.getDefaultIndexingConfigs()) : that.getDefaultIndexingConfigs() != null)
+    }
+    if (getDefaultEnrichmentConfigs() != null ? !getDefaultEnrichmentConfigs()
+        .equals(that.getDefaultEnrichmentConfigs()) : that.getDefaultEnrichmentConfigs() != null) {
       return false;
-    if (getDefaultElasticSearchTemplates() != null ? !getDefaultElasticSearchTemplates().equals(that.getDefaultElasticSearchTemplates()) : that.getDefaultElasticSearchTemplates() != null)
+    }
+    if (getDefaultIndexingConfigs() != null ? !getDefaultIndexingConfigs()
+        .equals(that.getDefaultIndexingConfigs()) : that.getDefaultIndexingConfigs() != null) {
       return false;
-    return getParserExtensionParserNames() != null ? getParserExtensionParserNames().equals(that.getParserExtensionParserNames()) : that.getParserExtensionParserNames() == null;
+    }
+    if (getDefaultElasticSearchTemplates() != null ? !getDefaultElasticSearchTemplates()
+        .equals(that.getDefaultElasticSearchTemplates())
+        : that.getDefaultElasticSearchTemplates() != null) {
+      return false;
+    }
+    return getParserExtensionParserNames() != null ? getParserExtensionParserNames()
+        .equals(that.getParserExtensionParserNames())
+        : that.getParserExtensionParserNames() == null;
   }
 
   @Override
   public int hashCode() {
     int result = getExtensionAssemblyName() != null ? getExtensionAssemblyName().hashCode() : 0;
-    result = 31 * result + (getExtensionBundleName() != null ? getExtensionBundleName().hashCode() : 0);
-    result = 31 * result + (getExtensionsBundleID() != null ? getExtensionsBundleID().hashCode() : 0);
-    result = 31 * result + (getExtensionsBundleVersion() != null ? getExtensionsBundleVersion().hashCode() : 0);
-    result = 31 * result + (getDefaultParserConfigs() != null ? getDefaultParserConfigs().hashCode() : 0);
-    result = 31 * result + (getDefaultEnrichementConfigs() != null ? getDefaultEnrichementConfigs().hashCode() : 0);
-    result = 31 * result + (getDefaultIndexingConfigs() != null ? getDefaultIndexingConfigs().hashCode() : 0);
-    result = 31 * result + (getDefaultElasticSearchTemplates() != null ? getDefaultElasticSearchTemplates().hashCode() : 0);
-    result = 31 * result + (getParserExtensionParserNames() != null ? getParserExtensionParserNames().hashCode() : 0);
+    result =
+        31 * result + (getExtensionIdentifier() != null ? getExtensionIdentifier().hashCode() : 0);
+    result =
+        31 * result + (getExtensionBundleName() != null ? getExtensionBundleName().hashCode() : 0);
+    result = 31 * result + (getExtensionBundleID() != null ? getExtensionBundleID().hashCode() : 0);
+    result =
+        31 * result + (getExtensionBundleVersion() != null ? getExtensionBundleVersion().hashCode()
+            : 0);
+    result = 31 * result + (getDefaultParserConfigs() != null ? getDefaultParserConfigs().hashCode()
+        : 0);
+    result = 31 * result + (getDefaultEnrichmentConfigs() != null ? getDefaultEnrichmentConfigs()
+        .hashCode() : 0);
+    result =
+        31 * result + (getDefaultIndexingConfigs() != null ? getDefaultIndexingConfigs().hashCode()
+            : 0);
+    result = 31 * result + (getDefaultElasticSearchTemplates() != null
+        ? getDefaultElasticSearchTemplates().hashCode() : 0);
+    result =
+        31 * result + (getParserExtensionParserNames() != null ? getParserExtensionParserNames()
+            .hashCode() : 0);
     return result;
   }
 }
