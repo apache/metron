@@ -184,6 +184,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 
 |            |
 | ---------- |
+| [ `POST /api/v1/alert/escalate`](#get-apiv1alertescalate)|
 | [ `GET /api/v1/global/config`](#get-apiv1globalconfig)|
 | [ `DELETE /api/v1/global/config`](#delete-apiv1globalconfig)|
 | [ `POST /api/v1/global/config`](#post-apiv1globalconfig)|
@@ -246,6 +247,13 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `PATCH /api/v1/update/patch`](#patch-apiv1updatepatch)|
 | [ `PUT /api/v1/update/replace`](#patch-apiv1updatereplace)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
+
+### `POST /api/v1/alert/escalate`
+  * Description: Escalates a list of alerts by producing it to the Kafka escalate topic
+  * Input:
+    * alerts - The alerts to be escalated
+  * Returns:
+    * 200 - Alerts were escalated
 
 ### `GET /api/v1/global/config`
   * Description: Retrieves the current Global Config from Zookeeper
