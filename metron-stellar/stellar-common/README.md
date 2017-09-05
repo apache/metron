@@ -174,6 +174,11 @@ In the core language functions, we support basic functional programming primitiv
 | [ `MAP`](#map)                                                                                     |
 | [ `MAP_EXISTS`](#map_exists)                                                                       |
 | [ `MONTH`](#month)                                                                                 |
+| [ `MULTISET_ADD`](#multiset_add)                                                                   |
+| [ `MULTISET_INIT`](#multiset_init)                                                                 |
+| [ `MULTISET_MERGE`](#multiset_merge)                                                               |
+| [ `MULTISET_REMOVE`](#multiset_remove)                                                             |
+| [ `MULTISET_TO_SET`](#multiset_to_set)                                                             |
 | [ `PREPEND_IF_MISSING`](#prepend_if_missing)                                                       |
 | [ `PROFILE_GET`](#profile_get)                                                                     |
 | [ `PROFILE_FIXED`](#profile_fixed)                                                                 |
@@ -183,6 +188,10 @@ In the core language functions, we support basic functional programming primitiv
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
 | [ `REGEXP_GROUP_VAL`](#regexp_group_val)                                                                   |
 | [ `ROUND`](#round)                                                                   |
+| [ `SET_ADD`](#set_add)                                                                            |
+| [ `SET_INIT`](#set_init)                                                                           |
+| [ `SET_MERGE`](#set_merge)                                                                         |
+| [ `SET_REMOVE`](#set_remove)                                                                       |
 | [ `SPLIT`](#split)                                                                                 |
 | [ `SIN`](#sin)                                                                                 |
 | [ `SQRT`](#sqrt)                                                                                 |
@@ -552,7 +561,7 @@ In the core language functions, we support basic functional programming primitiv
   * Description: Returns true if the passed string is encoded in one of the supported encodings and false if otherwise.
   * Input:
       * string - The string to test
-        * encoding - The name of the encoding as string.  See [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings).
+      * encoding - The name of the encoding as string.  See [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings).
   * Returns: True if the passed string is encoded in one of the supported encodings and false if otherwise.
 
 ### `IS_INTEGER`
@@ -689,6 +698,38 @@ In the core language functions, we support basic functional programming primitiv
     * dateTime - The datetime as a long representing the milliseconds since unix epoch
   * Returns: The current month (0-based).
 
+### `MULTISET_ADD`
+  * Description: Adds to a multiset, which is a map associating objects to their instance counts.
+  * Input:
+    * set - The multiset to add to
+    * o - object to add to multiset
+  * Returns: A multiset
+
+### `MULTISET_INIT`
+  * Description: Creates an empty multiset, which is a map associating objects to their instance counts.
+  * Input:
+    * input? - An initialization of the multiset
+  * Returns: A multiset
+
+### `MULTISET_MERGE`
+  * Description: Merges a list of multisets, which is a map associating objects to their instance counts.
+  * Input:
+    * sets - A collection of multisets to merge
+  * Returns: A multiset
+
+### `MULTISET_REMOVE`
+  * Description: Removes from a multiset, which is a map associating objects to their instance counts.
+  * Input:
+    * set - The multiset to add to
+    * o - object to remove from multiset
+  * Returns: A multiset
+
+### `MULTISET_TO_SET`
+  * Description: Create a set out of a multiset, which is a map associating objects to their instance counts.
+  * Input:
+    * multiset - The multiset to convert.
+  * Returns: The set of objects in the multiset ignoring multiplicity
+
 ### `PREPEND_IF_MISSING`
   * Description: Prepends the prefix to the start of the string if the string does not already start with any of the prefixes.
   * Input:
@@ -757,6 +798,32 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * number - The number to round
   * Returns: The nearest integer (based on half-up rounding).
+
+### `SET_ADD`
+  * Description: Adds to a set
+  * Input:
+    * set - The set to add to
+    * o - object to add to set
+  * Returns: A Set
+
+### `SET_INIT`
+  * Description: Creates an new set
+  * Input:
+    * input? - An initialization of the set
+  * Returns: A Set
+
+### `SET_MERGE`
+  * Description: Merges a list of sets
+  * Input:
+    * sets - A collection of sets to merge
+  * Returns: A Set
+
+### `SET_REMOVE`
+  * Description: Removes from a set
+  * Input:
+    * set - The set to add to
+    * o - object to add to set
+  * Returns: A Set
 
 ### `SIN`
   * Description: Returns the sine of a number.
