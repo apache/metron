@@ -469,23 +469,31 @@ public class StringFunctions {
       if (strings == null || strings.size() == 0) {
         throw new IllegalArgumentException("[PARSE_JSON_STRING] incorrect arguments. Usage: PARSE_JSON_STRING <String>");
       }
-
-      ObjectMapper objectMapper = new ObjectMapper();
-
-      // First parse and check if input is valid JSON string
-      try {
-        objectMapper.readTree((String) strings.get(0));
-      } catch (JsonProcessingException ex) {
-        throw new ParseException("Valid JSON string not supplied", ex);
-      } catch (IOException e) {
-        e.printStackTrace();
+      String var = strings.get(0) == null?null: (String) strings.get(0);
+      if(var == null) {
+        return null;
       }
+      else if(var.length() == 0) {
+        return var;
+      }
+      else {
+        ObjectMapper objectMapper = new ObjectMapper();
 
-      // Return JSON Object
-      try {
-        return JSONUtils.INSTANCE.load((String) strings.get(0), Object.class);
-      } catch (IOException e) {
-        e.printStackTrace();
+        // First parse and check if input is valid JSON string
+        try {
+          objectMapper.readTree((String) strings.get(0));
+        } catch (JsonProcessingException ex) {
+          throw new ParseException("Valid JSON string not supplied", ex);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+
+        // Return JSON Object
+        try {
+          return JSONUtils.INSTANCE.load((String) strings.get(0), Object.class);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
       }
       return new ParseException("Unable to parse JSON string");
     }

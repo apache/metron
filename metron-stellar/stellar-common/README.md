@@ -641,7 +641,8 @@ In the core language functions, we support basic functional programming primitiv
   * Returns: The current month (0-based).
   
 ### `PARSE_JSON_STRING`
-  * Description: Accepts JSON string as an input and returns a JSON Object parsed by Jackson. e.g. `MAP_GET( 'bar', PARSE_JSON_STRING(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
+  * Description: Accepts JSON string as an input and returns a JSON Object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.   
+  For e.g. `MAP_GET( 'bar', PARSE_JSON_STRING(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
   * Input:
     * string - The JSON string to be parsed
   * Returns: A parsed JSON object 
