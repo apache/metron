@@ -19,7 +19,6 @@
 package org.apache.metron.threatintel.triage;
 
 import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.aggregator.Aggregators;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.RiskLevelRule;
@@ -27,13 +26,13 @@ import org.apache.metron.common.configuration.enrichment.threatintel.RuleScore;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatIntelConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatScore;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
+import org.apache.metron.stellar.common.StellarPredicateProcessor;
+import org.apache.metron.stellar.common.StellarProcessor;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.MapVariableResolver;
 import org.apache.metron.stellar.dsl.VariableResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
-import org.apache.metron.stellar.common.StellarPredicateProcessor;
-import org.apache.metron.stellar.common.StellarProcessor;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
 
 import javax.annotation.Nullable;
 import java.util.List;
