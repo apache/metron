@@ -21,6 +21,7 @@ import kafka.admin.AdminUtils$;
 import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.metron.rest.MetronRestConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -98,6 +99,21 @@ public class KafkaConfig {
   @Bean
   public ConsumerFactory<String, String> createConsumerFactory() {
     return new DefaultKafkaConsumerFactory<>(consumerProperties());
+  }
+
+  @Bean
+  public Map<String, Object> producerProperties() {
+    Map<String, Object> producerConfig = new HashMap<>();
+    producerConfig.put("bootstrap.servers", environment.getProperty(MetronRestConstants.KAFKA_BROKER_URL_SPRING_PROPERTY));
+    producerConfig.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+    producerConfig.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+    producerConfig.put("request.required.acks", 1);
+    return producerConfig;
+  }
+
+  @Bean
+  public KafkaProducer kafkaProducer() {
+    return new KafkaProducer<>(producerProperties());
   }
 
   /**

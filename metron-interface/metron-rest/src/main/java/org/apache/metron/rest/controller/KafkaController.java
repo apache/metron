@@ -21,6 +21,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import java.util.Set;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.KafkaTopic;
 import org.apache.metron.rest.service.KafkaService;
@@ -32,8 +33,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Set;
 
 /**
  * The API resource that is use to interact with Kafka.
@@ -108,5 +107,16 @@ public class KafkaController {
     } else {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
+  }
+
+  @ApiOperation(value = "Produces a message to a Kafka topic")
+  @ApiResponses(value = {
+      @ApiResponse(message = "Message produced successfully", code = 200)
+  })
+  @RequestMapping(value = "/topic/{name}/produce", method = RequestMethod.POST)
+  ResponseEntity<String> produce(final @ApiParam(name = "name", value = "Kafka topic name", required = true) @PathVariable String name,
+      final @ApiParam(name = "message", value = "Message", required = true) @RequestBody String message) throws RestException {
+    kafkaService.produceMessage(name, message);
+    return new ResponseEntity<>(HttpStatus.OK);
   }
 }

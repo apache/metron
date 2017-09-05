@@ -50,6 +50,7 @@ public class MetronRestConstants {
   public static final String CURATOR_MAX_RETRIES = "curator.max.retries";
 
   public static final String KAFKA_BROKER_URL_SPRING_PROPERTY = "kafka.broker.url";
+  public static final String KAFKA_TOPICS_ESCALATION_PROPERTY = "kafka.topics.escalation";
 
   public static final String KERBEROS_ENABLED_SPRING_PROPERTY = "kerberos.enabled";
   public static final String KERBEROS_PRINCIPLE_SPRING_PROPERTY = "kerberos.principal";
