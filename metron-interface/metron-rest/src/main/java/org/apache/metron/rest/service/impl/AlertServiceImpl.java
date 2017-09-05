@@ -18,6 +18,7 @@
 package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.util.List;
 import java.util.Map;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.rest.MetronRestConstants;
@@ -47,9 +48,13 @@ public class AlertServiceImpl implements AlertService {
   }
 
   @Override
-  public void escalateAlert(Map<String, Object> alert) throws RestException {
+  public void escalateAlerts(List<Map<String, Object>> alerts) throws RestException {
     try {
-      kafkaService.produceMessage(environment.getProperty(MetronRestConstants.KAFKA_TOPICS_ESCALATION_PROPERTY), JSONUtils.INSTANCE.toJSON(alert, false));
+      for (Map<String, Object> alert : alerts) {
+        kafkaService.produceMessage(
+            environment.getProperty(MetronRestConstants.KAFKA_TOPICS_ESCALATION_PROPERTY),
+            JSONUtils.INSTANCE.toJSON(alert, false));
+      }
     } catch (JsonProcessingException e) {
       throw new RestException(e);
     }

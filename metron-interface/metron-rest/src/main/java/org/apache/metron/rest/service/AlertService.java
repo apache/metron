@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.service;
 
+import java.util.List;
 import java.util.Map;
 import org.apache.metron.rest.RestException;
 
@@ -25,5 +26,5 @@ import org.apache.metron.rest.RestException;
  */
 public interface AlertService {
 
-  void escalateAlert(Map<String, Object> alert) throws RestException;
+  void escalateAlerts(List<Map<String, Object>> alerts) throws RestException;
 }

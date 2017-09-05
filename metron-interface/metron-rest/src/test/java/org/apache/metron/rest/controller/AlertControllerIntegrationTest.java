@@ -43,13 +43,19 @@ import org.springframework.web.context.WebApplicationContext;
 public class AlertControllerIntegrationTest {
 
     /**
+     [
      {
      "is_alert": true,
-     "field": "value"
+     "field": "value1"
+     },
+     {
+     "is_alert": true,
+     "field": "value2"
      }
+     ]
      */
     @Multiline
-    public static String alert;
+    public static String alerts;
 
     @Autowired
     private WebApplicationContext wac;
@@ -67,14 +73,13 @@ public class AlertControllerIntegrationTest {
 
     @Test
     public void testSecurity() throws Exception {
-        this.mockMvc.perform(post(alertUrl + "/escalate").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(alert))
+        this.mockMvc.perform(post(alertUrl + "/escalate").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(alerts))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void test() throws Exception {
-
-        this.mockMvc.perform(post(alertUrl + "/escalate").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(alert))
+        this.mockMvc.perform(post(alertUrl + "/escalate").with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(alerts))
                 .andExpect(status().isOk());
 
     }

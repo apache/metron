@@ -20,6 +20,7 @@ package org.apache.metron.rest.controller;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
+import java.util.List;
 import java.util.Map;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.AlertService;
@@ -44,11 +45,11 @@ public class AlertsController {
   @Autowired
   private AlertService alertService;
 
-  @ApiOperation(value = "Escalates an alert by producing it to the Kafka escalate topic")
-  @ApiResponse(message = "Alert was escalated", code = 200)
+  @ApiOperation(value = "Escalates a list of alerts by producing it to the Kafka escalate topic")
+  @ApiResponse(message = "Alerts were escalated", code = 200)
   @RequestMapping(value = "/escalate", method = RequestMethod.POST)
-  ResponseEntity<Void> escalate(final @ApiParam(name = "alert", value = "The alert to be escalated", required = true) @RequestBody Map<String, Object> alert) throws RestException {
-    alertService.escalateAlert(alert);
+  ResponseEntity<Void> escalate(final @ApiParam(name = "alerts", value = "The alerts to be escalated", required = true) @RequestBody List<Map<String, Object>> alerts) throws RestException {
+    alertService.escalateAlerts(alerts);
     return new ResponseEntity<>(HttpStatus.OK);
   }
 }

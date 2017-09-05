@@ -22,7 +22,9 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.service.AlertService;
@@ -49,15 +51,19 @@ public class AlertServiceImplTest {
   @Test
   public void produceMessageShouldProperlyProduceMessage() throws Exception {
     String escalationTopic = "escalation";
-    final Map<String, Object> message = new HashMap<>();
-    message.put("field", "value");
-
+    final Map<String, Object> message1 = new HashMap<>();
+    message1.put("field", "value1");
+    final Map<String, Object> message2 = new HashMap<>();
+    message2.put("field", "value2");
+    List<Map<String, Object>> messages = Arrays.asList(message1, message2);
     when(environment.getProperty(MetronRestConstants.KAFKA_TOPICS_ESCALATION_PROPERTY)).thenReturn(escalationTopic);
 
-    alertService.escalateAlert(message);
+    alertService.escalateAlerts(messages);
 
-    String expectedMessage = "{\"field\":\"value\"}";
-    verify(kafkaService).produceMessage("escalation", expectedMessage);
+    String expectedMessage1 = "{\"field\":\"value1\"}";
+    String expectedMessage2 = "{\"field\":\"value2\"}";
+    verify(kafkaService).produceMessage("escalation", expectedMessage1);
+    verify(kafkaService).produceMessage("escalation", expectedMessage2);
     verifyZeroInteractions(kafkaService);
   }
 }
