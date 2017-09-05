@@ -36,7 +36,7 @@ if [ $? -ne 0 ] && [ $OWNER_UID -ne 0 ]; then
 fi
 
 rm -rf SRPMS/ RPMS/ && \
-rpmbuild -v -ba --define "_topdir $(pwd)" --define "_version ${VERSION}" --define "_prerelease ${PRERELEASE}" SPECS/metron.spec && \
+QA_SKIP_BUILD_ROOT=1 rpmbuild -v -ba --define "_topdir $(pwd)" --define "_version ${VERSION}" --define "_prerelease ${PRERELEASE}" SPECS/metron.spec && \
 rpmlint -i SPECS/metron.spec RPMS/*/metron* SRPMS/metron
 
 # Ensure original user permissions are maintained after build
