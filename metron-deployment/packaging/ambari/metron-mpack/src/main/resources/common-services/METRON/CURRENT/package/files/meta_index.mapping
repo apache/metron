@@ -2,8 +2,20 @@
   "mappings": {
     "metaalert_doc": {
       "_timestamp": {
-        "enabled": false
+        "enabled": true
       },
+      "dynamic_templates": [
+        {
+          "alert_template": {
+          "path_match": "alert.*",
+          "match_mapping_type": "string",
+          "mapping": {
+            "type": "string",
+            "index": "not_analyzed"
+          }
+        }
+        }
+      ],
       "properties": {
         "guid": {
           "type": "string",
@@ -17,14 +29,12 @@
           "type": "string",
           "index": "not_analyzed"
         },
+        "timestamp": {
+          "type": "date",
+          "format": "epoch_millis"
+        },
         "alert": {
-          "type": "nested",
-          "properties": {
-            "guid": {
-              "type": "string",
-              "index": "not_analyzed"
-            }
-          }
+          "type": "nested"
         }
       }
     }

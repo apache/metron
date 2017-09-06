@@ -56,7 +56,7 @@ public class IndexConfig {
       String indexDaoImpl = environment.getProperty(MetronRestConstants.INDEX_DAO_IMPL, String.class, null);
       int searchMaxResults = environment.getProperty(MetronRestConstants.SEARCH_MAX_RESULTS, Integer.class, -1);
       String metaDaoImpl = environment.getProperty(MetronRestConstants.META_DAO_IMPL, String.class, null);
-      String metaDaoSort = environment.getProperty(MetronRestConstants.META_DAO_IMPL, String.class, null);
+      String metaDaoSort = environment.getProperty(MetronRestConstants.META_DAO_SORT, String.class, null);
       AccessConfig config = new AccessConfig();
       config.setMaxSearchResults(searchMaxResults);
       config.setGlobalConfigSupplier(() -> {
@@ -75,8 +75,8 @@ public class IndexConfig {
         throw new IllegalStateException("IndexDao is unable to be created.");
       }
       if (metaDaoImpl == null) {
-        throw new IllegalStateException(
-            "You must provide an meta alert DAO implementation via the " + META_DAO_IMPL + " config");
+        // We're not using meta alerts.
+        return indexDao;
       }
 
       // Create the meta alert dao and wrap it around the index dao.

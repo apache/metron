@@ -116,7 +116,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       );
     }
 
-    if(threatSort != null) {
+    if (threatSort != null) {
       this.threatSort = threatSort;
     }
   }
