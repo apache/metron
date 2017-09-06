@@ -300,6 +300,10 @@ public class ElasticsearchMetaAlertDaoTest {
     assertEquals(10.0d, actualDocument.get("max"));
     assertEquals(10.0d, actualDocument.get("sum"));
     assertEquals(1L, actualDocument.get("count"));
+    assertEquals(
+        MetaAlertStatus.ACTIVE.getStatusString(),
+        actualDocument.get(MetaAlertDao.STATUS_FIELD)
+    );
     assertArrayEquals(
         alertList.toArray(),
         (Object[]) actualDocument.get(MetaAlertDao.ALERT_FIELD)

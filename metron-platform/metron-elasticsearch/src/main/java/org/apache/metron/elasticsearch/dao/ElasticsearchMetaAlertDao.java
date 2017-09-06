@@ -133,7 +133,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
               return searchResult;
             }
         ).collect(Collectors.toList()));
-    return null;
+    return searchResponse;
   }
 
   @Override
@@ -286,6 +286,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     String guid = UUID.randomUUID().toString();
     metaFields.put(Constants.GUID, guid);
     metaFields.put(GROUPS_FIELD, groups.toArray());
+    metaFields.put(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
     metaFields.putAll(new MetaScores(scores).getMetaScores());
     for (Entry<String, Object> entry : metaFields.entrySet()) {
       metaSource.put(entry.getKey(), entry.getValue());
@@ -363,14 +364,15 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
    */
   @SuppressWarnings("unchecked")
   protected MetaScores calculateMetaScores(Document document) {
-    Map<String, Object>[] alerts = (Map<String, Object>[]) document.getDocument().get(ALERT_FIELD);
-    if (alerts == null) {
+    Object[] alertsRaw = ((Object[]) document.getDocument().get(ALERT_FIELD));
+    if (alertsRaw == null) {
       throw new IllegalArgumentException("No alerts to use in calculation for doc GUID: "
           + document.getDocument().get(Constants.GUID));
     }
 
     ArrayList<Double> scores = new ArrayList<>();
-    for (Map<String, Object> alert : alerts) {
+    for (Object alertRaw : alertsRaw) {
+      Map<String, Object> alert = (Map<String, Object>) alertRaw;
       Double scoreNum = parseThreatField(alert.get(threatTriageField));
       if (scoreNum != null) {
         scores.add(scoreNum);
