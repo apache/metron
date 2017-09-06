@@ -117,10 +117,10 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
   @Override
   public SearchResponse getAllMetaAlertsForAlert(String guid) throws InvalidSearchException {
-    if (guid == null || guid.isEmpty()) {
+    if (guid == null || guid.trim().isEmpty()) {
       throw new InvalidSearchException("Guid cannot be empty");
     }
-    org.elasticsearch.action.search.SearchResponse esResponse = getMetaAlertsForAlert(guid);
+    org.elasticsearch.action.search.SearchResponse esResponse = getMetaAlertsForAlert(guid.trim());
     SearchResponse searchResponse = new SearchResponse();
     searchResponse.setTotal(esResponse.getHits().getTotalHits());
     searchResponse.setResults(
@@ -184,10 +184,6 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
   @Override
   public Document getLatest(String guid, String sensorType) throws IOException {
-    if (METAALERT_TYPE.equals(sensorType)) {
-      throw new UnsupportedOperationException("MetaAlerts don't support getting latest");
-    }
-
     return indexDao.getLatest(guid, sensorType);
   }
 
