@@ -68,6 +68,16 @@ export class SensorRawJsonComponent implements OnChanges {
     this.sensorParserConfig.parserConfig = newParsedSensorParserConfig.parserConfig;
     this.sensorParserConfig.parserClassName = newParsedSensorParserConfig.parserClassName;
     this.sensorParserConfig.fieldTransformations = newParsedSensorParserConfig.fieldTransformations;
+    this.sensorParserConfig.numWorkers = newParsedSensorParserConfig.numWorkers;
+    this.sensorParserConfig.numAckers = newParsedSensorParserConfig.numAckers;
+    this.sensorParserConfig.spoutParallelism = newParsedSensorParserConfig.spoutParallelism;
+    this.sensorParserConfig.spoutNumTasks = newParsedSensorParserConfig.spoutNumTasks;
+    this.sensorParserConfig.parserParallelism = newParsedSensorParserConfig.parserParallelism;
+    this.sensorParserConfig.parserNumTasks = newParsedSensorParserConfig.parserNumTasks;
+    this.sensorParserConfig.errorWriterParallelism = newParsedSensorParserConfig.errorWriterParallelism;
+    this.sensorParserConfig.errorWriterNumTasks = newParsedSensorParserConfig.errorWriterNumTasks;
+    this.sensorParserConfig.spoutConfig = newParsedSensorParserConfig.spoutConfig;
+    this.sensorParserConfig.stormConfig = newParsedSensorParserConfig.stormConfig;
 
     if (newParsedSensorParserConfig.writerClassName != null) {
       this.sensorParserConfig.writerClassName = newParsedSensorParserConfig.writerClassName;

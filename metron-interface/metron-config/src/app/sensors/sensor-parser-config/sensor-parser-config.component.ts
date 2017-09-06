@@ -34,7 +34,7 @@ import {HdfsService} from '../../service/hdfs.service';
 import {GrokValidationService} from '../../service/grok-validation.service';
 
 export enum Pane {
-  GROK, RAWJSON, FIELDSCHEMA, THREATTRIAGE
+  GROK, RAWJSON, FIELDSCHEMA, THREATTRIAGE, STORMSETTINGS
 }
 
 export enum KafkaStatus {
@@ -62,6 +62,7 @@ export class SensorParserConfigComponent implements OnInit {
   showRawJson: boolean = false;
   showFieldSchema: boolean = false;
   showThreatTriage: boolean = false;
+  showStormSettings: boolean = false;
 
   configValid = false;
   sensorNameValid = false;
@@ -297,6 +298,16 @@ export class SensorParserConfigComponent implements OnInit {
     sensorParserConfigSave.parserClassName = this.sensorParserConfig.parserClassName;
     sensorParserConfigSave.parserConfig = this.sensorParserConfig.parserConfig;
     sensorParserConfigSave.fieldTransformations = this.sensorParserConfig.fieldTransformations;
+    sensorParserConfigSave.numWorkers = this.sensorParserConfig.numWorkers;
+    sensorParserConfigSave.numAckers = this.sensorParserConfig.numAckers;
+    sensorParserConfigSave.spoutParallelism = this.sensorParserConfig.spoutParallelism;
+    sensorParserConfigSave.spoutNumTasks = this.sensorParserConfig.spoutNumTasks;
+    sensorParserConfigSave.parserParallelism = this.sensorParserConfig.parserParallelism;
+    sensorParserConfigSave.parserNumTasks = this.sensorParserConfig.parserNumTasks;
+    sensorParserConfigSave.errorWriterParallelism = this.sensorParserConfig.errorWriterParallelism;
+    sensorParserConfigSave.errorWriterNumTasks = this.sensorParserConfig.errorWriterNumTasks;
+    sensorParserConfigSave.spoutConfig = this.sensorParserConfig.spoutConfig;
+    sensorParserConfigSave.stormConfig = this.sensorParserConfig.stormConfig;
 
     if (!this.indexingConfigurations.hdfs.index) {
       this.indexingConfigurations.hdfs.index = this.sensorParserConfig.sensorTopic;
@@ -409,10 +420,15 @@ export class SensorParserConfigComponent implements OnInit {
     this.showFieldSchema = (pane === Pane.FIELDSCHEMA) ? visibilty : false;
     this.showRawJson = (pane ===  Pane.RAWJSON) ? visibilty : false;
     this.showThreatTriage = (pane ===  Pane.THREATTRIAGE) ? visibilty : false;
+    this.showStormSettings = (pane === Pane.STORMSETTINGS) ? visibilty : false;
   }
 
   onRawJsonChanged(): void {
     this.sensorFieldSchema.createFieldSchemaRows();
+  }
+
+  onStormSettingsChanged(): void {
+    console.log(this.sensorParserConfig);
   }
 
   onAdvancedConfigFormClose(): void {
