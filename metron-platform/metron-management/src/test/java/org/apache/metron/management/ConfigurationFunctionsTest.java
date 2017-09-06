@@ -125,10 +125,11 @@ public class ConfigurationFunctionsTest {
 
   /**
     {
-   "extensionAssemblyName" : "test.fool-1.0.tar.gz",
+   "extensionIdentifier" : "test.fool-1.0",
+   "extensionAssemblyName" : "test.fool-1.0-assembly",
    "extensionBundleName" : "metron-test-parsers-1.0.bundle",
-   "extensionsBundleID" : "metron-test-parsers",
-   "extensionsBundleVersion" : "1.0.0",
+   "extensionBundleID" : "metron-test-parsers",
+   "extensionBundleVersion" : "1.0.0",
    "parserExtensionParserName" : [ "test2", "test" ]
    }
    */

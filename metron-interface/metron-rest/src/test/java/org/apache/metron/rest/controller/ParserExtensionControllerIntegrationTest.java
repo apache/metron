@@ -35,6 +35,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultHandler;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -135,21 +136,24 @@ public class ParserExtensionControllerIntegrationTest {
     this.mockMvc.perform(get(parserExtUrl + "/metron-parser-test-assembly-0_4_0").with(httpBasic(user, password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.extensionAssemblyName").value("metron-parser-test-assembly-0_4_0"))
+            .andExpect(jsonPath("$.extensionAssemblyName").value("metron-parser-test-assembly-0_4_0-archive"))
+            .andExpect(jsonPath("$.extensionIdentifier").value("metron-parser-test-assembly-0_4_0"))
             .andExpect(jsonPath("$.extensionBundleName").value("metron-parser-test-bundle-0.4.0.bundle"))
-            .andExpect(jsonPath("$.extensionsBundleID").value("metron-parser-test-bundle"))
-            .andExpect(jsonPath("$.extensionsBundleVersion").value("0.4.0"))
+            .andExpect(jsonPath("$.extensionBundleID").value("metron-parser-test-bundle"))
+            .andExpect(jsonPath("$.extensionBundleVersion").value("0.4.0"))
             .andExpect(jsonPath("$.parserExtensionParserNames[0]").value("test"));
 
     // GET ALL
     this.mockMvc.perform(get(parserExtUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
+            .andDo((r) -> System.out.println(r.getResponse().getContentAsString()))
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$[?(@.metron-parser-test-assembly-0_4_0.extensionAssemblyName == 'metron-parser-test-assembly-0_4_0' && " +
-                    "@.metron-parser-test-assembly-0_4_0.extensionBundleName == 'metron-parser-test-bundle-0.4.0.bundle' && " +
-                    "@.metron-parser-test-assembly-0_4_0.extensionsBundleID == 'metron-parser-test-bundle' && " +
-                    "@.metron-parser-test-assembly-0_4_0.extensionsBundleVersion == '0.4.0' && " +
-                    "@.metron-parser-test-assembly-0_4_0.parserExtensionParserNames[0] == 'test')]").exists());
+            .andExpect(jsonPath("$[?(@.extensionAssemblyName == 'metron-parser-test-assembly-0_4_0-archive' && " +
+                    "@.extensionIdentifier == 'metron-parser-test-assembly-0_4_0' && " +
+                    "@.extensionBundleName == 'metron-parser-test-bundle-0.4.0.bundle' && " +
+                    "@.extensionBundleID == 'metron-parser-test-bundle' && " +
+                    "@.extensionBundleVersion == '0.4.0' && " +
+                    "@.parserExtensionParserNames[0] == 'test')]").exists());
 
     // DELETE ASYNC
     result = this.mockMvc.perform(delete(parserExtUrl + "/metron-parser-test-assembly-0_4_0").with(httpBasic(user, password))).andReturn();

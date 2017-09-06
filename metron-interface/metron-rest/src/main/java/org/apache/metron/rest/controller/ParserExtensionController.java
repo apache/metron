@@ -22,6 +22,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import java.util.List;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.metron.common.configuration.extensions.ParserExtensionConfig;
@@ -51,7 +52,7 @@ public class ParserExtensionController {
   DeferredResult<ResponseEntity<Void>> install(@ApiParam(name = "extensionTgz", value = "Metron Parser Extension tar.gz", required = true) @RequestParam("extensionTgz") MultipartFile extensionTgz) throws RestException {
     DeferredResult<ResponseEntity<Void>> result = new DeferredResult<>();
 
-    String extensionName = extensionService.formatPackageName(extensionTgz.getOriginalFilename());
+    String extensionName = extensionService.formatExtensionIdentifier(extensionTgz.getOriginalFilename());
     try {
       if (extensionService.findOneParserExtension(extensionName) != null) {
         result.setResult(new ResponseEntity<Void>(HttpStatus.FORBIDDEN));
@@ -90,8 +91,8 @@ public class ParserExtensionController {
   @ApiOperation(value = "Retrieves all ParserExtensionConfigs from Zookeeper")
   @ApiResponse(message = "Returns all ParserExtensionConfigs", code = 200)
   @RequestMapping(method = RequestMethod.GET)
-  ResponseEntity<Map<String, ParserExtensionConfig>> findAll() throws RestException {
-    return new ResponseEntity<Map<String, ParserExtensionConfig>>(extensionService.getAllParserExtensions(), HttpStatus.OK);
+  ResponseEntity<List<ParserExtensionConfig>> findAll() throws RestException {
+    return new ResponseEntity<List<ParserExtensionConfig>>(extensionService.getAllParserExtensions(), HttpStatus.OK);
   }
 
   @ApiOperation(value = "Deletes or uninstalls a Parser Extension and all parsers from system")
