@@ -91,7 +91,7 @@ public class MetaAlertControllerIntegrationTest extends DaoControllerTest {
   @Test
   public void test() throws Exception {
     // Testing searching by alert
-    // Test single result
+    // Test no meta alert
     String guid = "missing_1";
     ResultActions result = this.mockMvc.perform(
         post(metaalertUrl + "/searchByAlert")
@@ -103,7 +103,7 @@ public class MetaAlertControllerIntegrationTest extends DaoControllerTest {
             content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
         .andExpect(jsonPath("$.total").value(0));
 
-    // Test single result
+    // Test single meta alert
     guid = "snort_1";
     result = this.mockMvc.perform(
         post(metaalertUrl + "/searchByAlert")
@@ -117,7 +117,7 @@ public class MetaAlertControllerIntegrationTest extends DaoControllerTest {
         .andExpect(jsonPath("$.results[0].source.guid").value("meta_2"))
         .andExpect(jsonPath("$.results[0].source.count").value(3.0));
 
-    // Test multiple results
+    // Test multiple meta alerts
     guid = "bro_1";
     result = this.mockMvc.perform(
         post(metaalertUrl + "/searchByAlert")

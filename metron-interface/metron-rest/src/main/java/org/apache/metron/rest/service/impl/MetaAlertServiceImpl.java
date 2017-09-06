@@ -35,13 +35,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class MetaAlertServiceImpl implements MetaAlertService {
-//  private MetaAlertDao metaDao;
   private MetaAlertDao dao;
   private Environment environment;
 
   @Autowired
   public MetaAlertServiceImpl(IndexDao indexDao, Environment environment) {
-//    this.metaDao = metaDao;
     // By construction this is always a meta alert dao
     this.dao = (MetaAlertDao) indexDao;
     this.environment = environment;

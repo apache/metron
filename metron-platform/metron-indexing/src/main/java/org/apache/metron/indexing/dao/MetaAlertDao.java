@@ -34,8 +34,21 @@ public interface MetaAlertDao extends IndexDao {
   String STATUS_FIELD = "status";
   String GROUPS_FIELD = "groups";
 
+  /**
+   * Given an alert GUID, retrieve all associated meta alerts
+   * @param guid The alert GUID to be searched for
+   * @return All meta alerts with a child alert having the GUID
+   * @throws InvalidSearchException If a problem occurs with the search
+   */
   SearchResponse getAllMetaAlertsForAlert(String guid) throws InvalidSearchException;
 
+  /**
+   * Create a meta alert
+   * @param request The parameters for creating the new meta alert
+   * @return A response indicating success or failure
+   * @throws InvalidCreateException If a malformed create request is provided
+   * @throws IOException If a problem occurs during communication
+   */
   MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request)
       throws InvalidCreateException, IOException;
 

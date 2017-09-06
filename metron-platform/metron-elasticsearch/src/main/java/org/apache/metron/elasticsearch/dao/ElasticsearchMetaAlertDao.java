@@ -136,7 +136,6 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     return null;
   }
 
-
   @Override
   public MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request)
       throws InvalidCreateException, IOException {
@@ -214,6 +213,11 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     }
   }
 
+  /**
+   * Given an alert GUID, retrieve all associated meta alerts
+   * @param guid The GUID of the child alert
+   * @return The Elasticsearch response containing the meta alerts
+   */
   protected org.elasticsearch.action.search.SearchResponse getMetaAlertsForAlert(String guid) {
     QueryBuilder qb = boolQuery()
         .must(
@@ -238,6 +242,11 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
         .actionGet();
   }
 
+  /**
+   * Return child documents after retrieving them from Elasticsearch
+   * @param request The request detailing which child alerts we need
+   * @return The Elasticsearch response to our request for alerts
+   */
   protected MultiGetResponse getDocumentsByGuid(MetaAlertCreateRequest request) {
     MultiGetRequestBuilder multiGet = elasticsearchDao.getClient().prepareMultiGet();
     for (Entry<String, String> entry : request.getGuidToIndices().entrySet()) {
@@ -246,6 +255,12 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     return multiGet.get();
   }
 
+  /**
+   * Build the Document representing a meta alert to be created
+   * @param multiGetResponse The Elasticsearch results for the meta alerts child documents
+   * @param groups The groups used to create this meta alert
+   * @return A Document representing the new meta alert
+   */
   protected Document buildCreateDocument(MultiGetResponse multiGetResponse, List<String> groups) {
     // Need to create a Document from the multiget and
     // Make sure to track the scores as we go through.
@@ -279,7 +294,12 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     return new Document(metaSource, guid, METAALERT_TYPE, System.currentTimeMillis());
   }
 
-
+  /**
+   * Process an update to a meta alert itself
+   * @param update The update Document to be applied
+   * @param index The optional index to update to
+   * @throws IOException If there's a problem running the update
+   */
   protected void handleMetaUpdate(Document update, Optional<String> index) throws IOException {
     // We have an update to a meta alert itself (e.g. adding a document, etc.)  Recalculate scores
     // and defer the final result to the Elasticsearch DAO.
@@ -288,6 +308,12 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     indexDao.update(update, index);
   }
 
+  /**
+   * Takes care of upserting a child alert to a meta alert
+   * @param update The update Document to be applied
+   * @param hit The meta alert to be updated
+   * @throws IOException If there's an issue running the upsert
+   */
   protected void handleAlertUpdate(Document update, SearchHit hit) throws IOException {
     XContentBuilder builder = buildUpdatedMetaAlert(update, hit);
 
@@ -305,7 +331,6 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     try {
       UpdateResponse updateResponse = elasticsearchDao.getClient().update(updateRequest).get();
 
-      // If we have no successes or
       ShardInfo shardInfo = updateResponse.getShardInfo();
       int failed = shardInfo.getFailed();
       if (failed > 0) {
@@ -331,12 +356,17 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     return indexDao.getCommonColumnMetadata(indices);
   }
 
+  /**
+   * Calculate the meta alert scores for a Document
+   * @param document The Document containing scores
+   * @return Set of score statistics
+   */
   @SuppressWarnings("unchecked")
-  protected MetaScores calculateMetaScores(Document update) {
-    Map<String, Object>[] alerts = (Map<String, Object>[]) update.getDocument().get(ALERT_FIELD);
+  protected MetaScores calculateMetaScores(Document document) {
+    Map<String, Object>[] alerts = (Map<String, Object>[]) document.getDocument().get(ALERT_FIELD);
     if (alerts == null) {
       throw new IllegalArgumentException("No alerts to use in calculation for doc GUID: "
-          + update.getDocument().get(Constants.GUID));
+          + document.getDocument().get(Constants.GUID));
     }
 
     ArrayList<Double> scores = new ArrayList<>();
@@ -350,6 +380,13 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     return new MetaScores(scores);
   }
 
+  /**
+   * Builds the updated meta alert based on the update
+   * @param update The update Document for the meta alert
+   * @param hit The meta alert to be updated
+   * @return A builder for Elasticsearch to use
+   * @throws IOException If we have an issue building the result
+   */
   protected XContentBuilder buildUpdatedMetaAlert(Document update, SearchHit hit)
       throws IOException {
     // Make sure to get all the threat scores while we're going through the docs
