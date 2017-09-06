@@ -90,7 +90,7 @@
     </property>
     <property>
         <name>metron_temp_grok_path</name>
-        <description>Temporary local file path where grok patterns are written during testing</description>
+        <description>Temporary HDFS file path where grok patterns are written during testing</description>
         <value>/apps/metron/patterns/tmp</value>
         <display-name>Metron temp grok path</display-name>
     </property>
