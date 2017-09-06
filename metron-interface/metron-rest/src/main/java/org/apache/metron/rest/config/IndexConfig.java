@@ -33,7 +33,7 @@ import org.springframework.core.env.Environment;
 
 
 import static org.apache.metron.rest.MetronRestConstants.INDEX_DAO_IMPL;
-import static org.apache.metron.rest.MetronRestConstants.META_ALERT_IMPL;
+import static org.apache.metron.rest.MetronRestConstants.META_DAO_IMPL;
 
 @Configuration
 public class IndexConfig {
@@ -55,7 +55,8 @@ public class IndexConfig {
       String hbaseProviderImpl = environment.getProperty(MetronRestConstants.INDEX_HBASE_TABLE_PROVIDER_IMPL, String.class, null);
       String indexDaoImpl = environment.getProperty(MetronRestConstants.INDEX_DAO_IMPL, String.class, null);
       int searchMaxResults = environment.getProperty(MetronRestConstants.SEARCH_MAX_RESULTS, Integer.class, -1);
-      String metaDaoImpl = environment.getProperty(MetronRestConstants.META_ALERT_IMPL, String.class, null);
+      String metaDaoImpl = environment.getProperty(MetronRestConstants.META_DAO_IMPL, String.class, null);
+      String metaDaoSort = environment.getProperty(MetronRestConstants.META_DAO_IMPL, String.class, null);
       AccessConfig config = new AccessConfig();
       config.setMaxSearchResults(searchMaxResults);
       config.setGlobalConfigSupplier(() -> {
@@ -75,15 +76,12 @@ public class IndexConfig {
       }
       if (metaDaoImpl == null) {
         throw new IllegalStateException(
-            "You must provide an meta alert DAO implementation via the " + META_ALERT_IMPL + " config");
+            "You must provide an meta alert DAO implementation via the " + META_DAO_IMPL + " config");
       }
 
       // Create the meta alert dao and wrap it around the index dao.
       MetaAlertDao ret = (MetaAlertDao) IndexDaoFactory.create(metaDaoImpl, config).get(0);
-      ret.init(indexDao);
-      if (ret == null) {
-        throw new IllegalStateException("Meta Alert Dao is unable to be created.");
-      }
+      ret.init(indexDao, metaDaoSort);
       return ret;
     }
     catch(RuntimeException re) {

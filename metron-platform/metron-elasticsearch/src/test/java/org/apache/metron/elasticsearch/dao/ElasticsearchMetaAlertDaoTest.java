@@ -371,6 +371,7 @@ public class ElasticsearchMetaAlertDaoTest {
     assertEquals(10.0d, actualDocument.get("max"));
     assertEquals(15.0d, actualDocument.get("sum"));
     assertEquals(2L, actualDocument.get("count"));
+    assertEquals(15.0d, actualDocument.get(MetaAlertDao.THREAT_FIELD_DEFAULT));
     assertArrayEquals(
         alertList.toArray(),
         (Object[]) actualDocument.get(MetaAlertDao.ALERT_FIELD)
@@ -381,7 +382,6 @@ public class ElasticsearchMetaAlertDaoTest {
     );
 
     // Don't care about the result, just that it's a UUID. Exception will be thrown if not.
-
     UUID.fromString((String) actualDocument.get(Constants.GUID));
   }
 

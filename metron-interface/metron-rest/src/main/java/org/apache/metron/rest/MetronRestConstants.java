@@ -60,5 +60,6 @@ public class MetronRestConstants {
   public static final String INDEX_DAO_IMPL = "index.dao.impl";
   public static final String INDEX_HBASE_TABLE_PROVIDER_IMPL = "index.hbase.provider";
 
-  public static final String META_ALERT_IMPL = "meta.dao.impl";
+  public static final String META_DAO_IMPL = "meta.dao.impl";
+  public static final String META_DAO_SORT = "meta.dao.sort";
 }

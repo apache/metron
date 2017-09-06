@@ -71,13 +71,14 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   private ElasticsearchDao elasticsearchDao;
   private String index = METAALERTS_INDEX;
   private String threatTriageField = THREAT_FIELD_DEFAULT;
+  private String threatSort = THREAT_SORT_DEFAULT;
 
   /**
    * Wraps an {@link org.apache.metron.indexing.dao.IndexDao} to handle meta alerts.
    * @param indexDao The Dao to wrap
    */
   public ElasticsearchMetaAlertDao(IndexDao indexDao) {
-    this(indexDao, METAALERTS_INDEX, THREAT_FIELD_DEFAULT);
+    this(indexDao, METAALERTS_INDEX, THREAT_FIELD_DEFAULT, THREAT_SORT_DEFAULT);
   }
 
   /**
@@ -85,8 +86,9 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
    * @param indexDao The Dao to wrap
    * @param triageLevelField The field name to use as the threat scoring field
    */
-  public ElasticsearchMetaAlertDao(IndexDao indexDao, String index, String triageLevelField) {
-    init(indexDao);
+  public ElasticsearchMetaAlertDao(IndexDao indexDao, String index, String triageLevelField,
+      String threatSort) {
+    init(indexDao, threatSort);
     this.index = index;
     this.threatTriageField = triageLevelField;
   }
@@ -96,7 +98,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public void init(IndexDao indexDao) {
+  public void init(IndexDao indexDao, String threatSort) {
     if (indexDao instanceof MultiIndexDao) {
       this.indexDao = indexDao;
       MultiIndexDao multiIndexDao = (MultiIndexDao) indexDao;
@@ -112,6 +114,10 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       throw new IllegalArgumentException(
           "Need an ElasticsearchDao when using ElasticsearchMetaAlertDao"
       );
+    }
+
+    if(threatSort != null) {
+      this.threatSort = threatSort;
     }
   }
 
@@ -283,7 +289,9 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     metaFields.put(Constants.GUID, guid);
     metaFields.put(GROUPS_FIELD, groups.toArray());
     metaFields.put(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
-    metaFields.putAll(new MetaScores(scores).getMetaScores());
+    MetaScores metaScores = new MetaScores(scores);
+    metaFields.putAll(metaScores.getMetaScores());
+    metaFields.put(threatTriageField, metaScores.getMetaScores().get(threatSort));
     for (Entry<String, Object> entry : metaFields.entrySet()) {
       metaSource.put(entry.getKey(), entry.getValue());
     }
@@ -302,6 +310,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     // and defer the final result to the Elasticsearch DAO.
     MetaScores metaScores = calculateMetaScores(update);
     update.getDocument().putAll(metaScores.getMetaScores());
+    update.getDocument().put(threatTriageField, metaScores.getMetaScores().get(threatSort));
     indexDao.update(update, index);
   }
 

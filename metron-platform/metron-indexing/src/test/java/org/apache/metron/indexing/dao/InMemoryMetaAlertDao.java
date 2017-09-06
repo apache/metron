@@ -76,8 +76,9 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public void init(IndexDao indexDao) {
+  public void init(IndexDao indexDao, String threatSort) {
     this.indexDao = indexDao;
+    // Ignore threatSort for test.
   }
 
   @Override
