@@ -35,9 +35,8 @@ export class SensorStormSettingsComponent implements OnChanges {
   @Output() onStormSettingsChanged: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   newSensorParserConfig: SensorParserConfig = new SensorParserConfig();
-  newSpoutConfig: string = "";
-  newStormConfig: string = "";
-  
+  newSpoutConfig: string = '';
+  newStormConfig: string = '';
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['showStormSettings'] && changes['showStormSettings'].currentValue) {
@@ -47,7 +46,7 @@ export class SensorStormSettingsComponent implements OnChanges {
 
   init(): void {
     if (this.sensorParserConfig) {
-      this.newSensorParserConfig = Object.assign({}, this.sensorParserConfig);
+      this.newSensorParserConfig = Object.assign(new SensorParserConfig(), this.sensorParserConfig);
       this.newSpoutConfig = JSON.stringify(this.sensorParserConfig.spoutConfig, null, '\t');
       this.newStormConfig = JSON.stringify(this.sensorParserConfig.stormConfig, null, '\t');
     }

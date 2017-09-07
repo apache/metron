@@ -17,98 +17,38 @@
  */
 
 import {async, TestBed, ComponentFixture} from '@angular/core/testing';
-import {SensorRawJsonComponent} from './sensor-raw-json.component';
+import {SensorStormSettingsComponent} from './sensor-storm-settings.component';
 import {SharedModule} from '../../shared/shared.module';
 import {SimpleChanges, SimpleChange} from '@angular/core';
 import {SensorParserConfig} from '../../model/sensor-parser-config';
-import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
-import {SensorRawJsonModule} from './sensor-raw-json.module';
-import {IndexingConfigurations} from '../../model/sensor-indexing-config';
+import {SensorStormSettingsModule} from './sensor-storm-settings.module';
 import '../../rxjs-operators';
 
-describe('Component: SensorRawJsonComponent', () => {
+describe('Component: SensorStormSettingsComponent', () => {
 
-    let fixture: ComponentFixture<SensorRawJsonComponent>;
-    let component: SensorRawJsonComponent;
-    let sensorParserConfigString = '{"parserClassName":"org.apache.metron.parsers.bro.BasicBroParser","sensorTopic":"bro",' +
-        '"parserConfig": {},"fieldTransformations":[]}';
+    let fixture: ComponentFixture<SensorStormSettingsComponent>;
+    let component: SensorStormSettingsComponent;
     let sensorParserConfig: SensorParserConfig = new SensorParserConfig();
     sensorParserConfig.sensorTopic = 'bro';
     sensorParserConfig.parserClassName = 'org.apache.metron.parsers.bro.BasicBroParser';
     sensorParserConfig.parserConfig = {};
-
-    let sensorParserConfigWithClassNameString = `{"parserClassName":"org.apache.metron.parsers.bro.BasicBroParser","sensorTopic":"bro", 
-        "parserConfig": {},"fieldTransformations":[], "writerClassName": "org.example.writerClassName", 
-        "errorWriterClassName": "org.example.errorWriterClassName", 
-        "filterClassName": "org.example.filterClassName", "invalidWriterClassName": "org.example.invalidWriterClassName"}`;
-    let sensorParserConfigWithClassName = Object.assign(new SensorParserConfig(), sensorParserConfig);
-    sensorParserConfigWithClassName.writerClassName = 'org.example.writerClassName';
-    sensorParserConfigWithClassName.errorWriterClassName = 'org.example.errorWriterClassName';
-    sensorParserConfigWithClassName.filterClassName = 'org.example.filterClassName';
-    sensorParserConfigWithClassName.invalidWriterClassName = 'org.example.invalidWriterClassName';
-
-    let sensorEnrichmentConfigString = '{"enrichment" : {"fieldMap": ' +
-        '{"geo": ["ip_dst_addr", "ip_src_addr"],"host": ["host"]}},"threatIntel": {"fieldMap": {"hbaseThreatIntel":' +
-        ' ["ip_src_addr", "ip_dst_addr"]},"fieldToTypeMap": {"ip_src_addr" : ["malicious_ip"],"ip_dst_addr" : ["malicious_ip"]}}}';
-    let sensorEnrichmentConfig = new SensorEnrichmentConfig();
-    sensorEnrichmentConfig.enrichment = Object.assign(new EnrichmentConfig(), {
-      'fieldMap': {
-        'geo': ['ip_dst_addr', 'ip_src_addr'],
-        'host': ['host']
-      }
-    });
-    sensorEnrichmentConfig.threatIntel = Object.assign(new ThreatIntelConfig(), {
-          'fieldMap': {
-            'hbaseThreatIntel': ['ip_src_addr', 'ip_dst_addr']
-          },
-          'fieldToTypeMap': {
-            'ip_src_addr' : ['malicious_ip'],
-            'ip_dst_addr' : ['malicious_ip']
-          }
-        });
-
-    let sensorEnrichmentConfigWithConfigString = `{"configuration": "some-configuration", 
-         "enrichment" : {"fieldMap": {"geo": ["ip_dst_addr", "ip_src_addr"],"host": ["host"]}},
-         "threatIntel": {"fieldMap": {"hbaseThreatIntel":["ip_src_addr", "ip_dst_addr"]},
-         "fieldToTypeMap": {"ip_src_addr" : ["malicious_ip"],"ip_dst_addr" : ["malicious_ip"]}}}`;
-    let sensorEnrichmentConfigWithConfig = Object.assign(new SensorEnrichmentConfig(), sensorEnrichmentConfig);
-    sensorEnrichmentConfigWithConfig.configuration = 'some-configuration';
-
-    let sensorIndexingConfigString = `{"hdfs": {"index": "bro","batchSize": 5,"enabled":true},
-    "elasticsearch": {"index": "bro","batchSize": 5,"enabled":true},
-    "solr": {"index": "bro","batchSize": 5,"enabled":true}}`;
-    let sensorIndexingConfig = new IndexingConfigurations();
-    sensorIndexingConfig.hdfs.index = 'bro';
-    sensorIndexingConfig.hdfs.batchSize = 5;
-    sensorIndexingConfig.hdfs.enabled = true;
-    sensorIndexingConfig.elasticsearch.index = 'bro';
-    sensorIndexingConfig.elasticsearch.batchSize = 5;
-    sensorIndexingConfig.elasticsearch.enabled = true;
-    sensorIndexingConfig.solr.index = 'bro';
-    sensorIndexingConfig.solr.batchSize = 5;
-    sensorIndexingConfig.solr.enabled = true;
-
-    let sensorIndexingConfigChangedString = `{"hdfs": {"index": "squid","batchSize": 1,"enabled":true},
-    "elasticsearch": {"index": "squid","batchSize": 1,"enabled":true},
-    "solr": {"index": "squid","batchSize": 1,"enabled":true}}`;
-    let sensorIndexingConfigChanged = new IndexingConfigurations();
-    sensorIndexingConfigChanged.hdfs.index = 'squid';
-    sensorIndexingConfigChanged.hdfs.batchSize = 1;
-    sensorIndexingConfigChanged.hdfs.enabled = true;
-    sensorIndexingConfigChanged.elasticsearch.index = 'squid';
-    sensorIndexingConfigChanged.elasticsearch.batchSize = 1;
-    sensorIndexingConfigChanged.elasticsearch.enabled = true;
-    sensorIndexingConfigChanged.solr.index = 'squid';
-    sensorIndexingConfigChanged.solr.batchSize = 1;
-    sensorIndexingConfigChanged.solr.enabled = true;
-
+    sensorParserConfig.numWorkers = 2;
+    sensorParserConfig.numAckers = 2;
+    sensorParserConfig.spoutParallelism = 2;
+    sensorParserConfig.spoutNumTasks = 2;
+    sensorParserConfig.parserParallelism = 2;
+    sensorParserConfig.parserNumTasks = 2;
+    sensorParserConfig.errorWriterParallelism = 2;
+    sensorParserConfig.errorWriterNumTasks = 2;
+    sensorParserConfig.spoutConfig = {'spoutConfigProp': 'spoutConfigValue1'};
+    sensorParserConfig.stormConfig = {'stormConfigProp': 'stormConfigValue1'};
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
-            imports: [SharedModule, SensorRawJsonModule],
+            imports: [SharedModule, SensorStormSettingsModule],
         });
 
-        fixture = TestBed.createComponent(SensorRawJsonComponent);
+        fixture = TestBed.createComponent(SensorStormSettingsComponent);
         component = fixture.componentInstance;
     }));
 
@@ -118,12 +58,12 @@ describe('Component: SensorRawJsonComponent', () => {
 
     it('should create an instance', () => {
         spyOn(component, 'init');
-        let changes: SimpleChanges = {'showRawJson': new SimpleChange(false, true)};
+        let changes: SimpleChanges = {'showStormSettings': new SimpleChange(false, true)};
 
         component.ngOnChanges(changes);
         expect(component.init).toHaveBeenCalled();
 
-        changes = {'showRawJson': new SimpleChange(true, false)};
+        changes = {'showStormSettings': new SimpleChange(true, false)};
         component.ngOnChanges(changes);
         expect(component.init['calls'].count()).toEqual(1);
 
@@ -133,58 +73,53 @@ describe('Component: SensorRawJsonComponent', () => {
     it('should initialise the fields', () => {
 
         component.init();
-        expect(component.newSensorParserConfig).toEqual(undefined);
-        expect(component.newSensorEnrichmentConfig).toEqual(undefined);
-        expect(component.newIndexingConfigurations).toEqual(undefined);
+        expect(component.newSensorParserConfig).toEqual(new SensorParserConfig());
 
         component.sensorParserConfig = sensorParserConfig;
-        component.sensorEnrichmentConfig = sensorEnrichmentConfig;
-        component.indexingConfigurations = sensorIndexingConfig;
         component.init();
-        expect(component.newSensorParserConfig).toEqual(JSON.stringify(sensorParserConfig, null, '\t'));
-        expect(component.newSensorEnrichmentConfig).toEqual(JSON.stringify(sensorEnrichmentConfig, null, '\t'));
-        expect(component.newIndexingConfigurations).toEqual(JSON.stringify(sensorIndexingConfig, null, '\t'));
+        expect(component.newSensorParserConfig).toEqual(sensorParserConfig);
+        expect(component.newSpoutConfig).toEqual('{\n\t"spoutConfigProp": "spoutConfigValue1"\n}');
+        expect(component.newStormConfig).toEqual('{\n\t"stormConfigProp": "stormConfigValue1"\n}');
 
         fixture.destroy();
     });
 
     it('should save the fields', () => {
-        spyOn(component.hideRawJson, 'emit');
-        spyOn(component.onRawJsonChanged, 'emit');
-        component.sensorParserConfig = new SensorParserConfig();
-        component.sensorEnrichmentConfig = new SensorEnrichmentConfig();
-        component.indexingConfigurations = new IndexingConfigurations();
-
-        component.newSensorParserConfig = sensorParserConfigString;
-        component.newSensorEnrichmentConfig = sensorEnrichmentConfigString;
-        component.newIndexingConfigurations = sensorIndexingConfigString;
+        spyOn(component.hideStormSettings, 'emit');
+        spyOn(component.onStormSettingsChanged, 'emit');
+        component.sensorParserConfig = sensorParserConfig;
+        component.init();
+        component.newSensorParserConfig.numWorkers = 3;
+        component.newSensorParserConfig.numAckers = 3;
+        component.newSensorParserConfig.spoutParallelism = 3;
+        component.newSensorParserConfig.spoutNumTasks = 3;
+        component.newSensorParserConfig.parserParallelism = 3;
+        component.newSensorParserConfig.parserNumTasks = 3;
+        component.newSensorParserConfig.errorWriterParallelism = 3;
+        component.newSensorParserConfig.errorWriterNumTasks = 3;
+        component.newSpoutConfig = '{"spoutConfigProp": "spoutConfigValue2"}';
+        component.newStormConfig = '{"stormConfigProp": "stormConfigValue2"}';
         component.onSave();
-        expect(component.sensorParserConfig).toEqual(sensorParserConfig);
-        expect(component.sensorEnrichmentConfig).toEqual(sensorEnrichmentConfig);
-        expect(component.indexingConfigurations).toEqual(sensorIndexingConfig);
-        expect(component.hideRawJson.emit).toHaveBeenCalled();
-        expect(component.onRawJsonChanged.emit).toHaveBeenCalled();
-
-
-        component.newSensorParserConfig = sensorParserConfigWithClassNameString;
-        component.newSensorEnrichmentConfig = sensorEnrichmentConfigWithConfigString;
-        component.newIndexingConfigurations = sensorIndexingConfigChangedString;
-        component.onSave();
-        expect(component.sensorParserConfig).toEqual(sensorParserConfigWithClassName);
-        expect(component.sensorEnrichmentConfig).toEqual(sensorEnrichmentConfigWithConfig);
-        expect(component.indexingConfigurations).toEqual(sensorIndexingConfigChanged);
-        expect(component.hideRawJson.emit['calls'].count()).toEqual(2);
-        expect(component.onRawJsonChanged.emit['calls'].count()).toEqual(2);
-
-        fixture.destroy();
+        expect(component.sensorParserConfig.numWorkers).toEqual(3);
+        expect(component.sensorParserConfig.numAckers).toEqual(3);
+        expect(component.sensorParserConfig.spoutParallelism).toEqual(3);
+        expect(component.sensorParserConfig.spoutNumTasks).toEqual(3);
+        expect(component.sensorParserConfig.parserParallelism).toEqual(3);
+        expect(component.sensorParserConfig.parserNumTasks).toEqual(3);
+        expect(component.sensorParserConfig.errorWriterParallelism).toEqual(3);
+        expect(component.sensorParserConfig.errorWriterNumTasks).toEqual(3);
+        expect(component.sensorParserConfig.spoutConfig).toEqual({'spoutConfigProp': 'spoutConfigValue2'});
+        expect(component.sensorParserConfig.stormConfig).toEqual({'stormConfigProp': 'stormConfigValue2'});
+        expect(component.hideStormSettings.emit).toHaveBeenCalled();
+        expect(component.onStormSettingsChanged.emit).toHaveBeenCalled();
     });
 
     it('should hide panel', () => {
-        spyOn(component.hideRawJson, 'emit');
+        spyOn(component.hideStormSettings, 'emit');
 
         component.onCancel();
 
-        expect(component.hideRawJson.emit).toHaveBeenCalled();
+        expect(component.hideStormSettings.emit).toHaveBeenCalled();
 
         fixture.destroy();
     });

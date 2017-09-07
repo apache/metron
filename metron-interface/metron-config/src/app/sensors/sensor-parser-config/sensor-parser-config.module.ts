@@ -26,7 +26,7 @@ import {SensorGrokModule} from '../sensor-grok/sensor-grok.module';
 import {SensorFieldSchemaModule} from '../sensor-field-schema/sensor-field-schema.module';
 import {SensorRawJsonModule} from '../sensor-raw-json/sensor-raw-json.module';
 import {SensorThreatTriageModule} from '../sensor-threat-triage/sensor-threat-triage.module';
-import {SensorStormSettingsModule} from "../sensor-storm-settings/sensor-storm-settings.module";
+import {SensorStormSettingsModule} from '../sensor-storm-settings/sensor-storm-settings.module';
 
 @NgModule ({
   imports: [ routing, ReactiveFormsModule, SharedModule, NumberSpinnerModule, AdvancedConfigFormModule,

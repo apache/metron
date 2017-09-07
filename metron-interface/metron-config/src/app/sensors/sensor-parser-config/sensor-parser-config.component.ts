@@ -292,23 +292,6 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   onSave() {
-    let sensorParserConfigSave: SensorParserConfig = new SensorParserConfig();
-    sensorParserConfigSave.parserConfig = {};
-    sensorParserConfigSave.sensorTopic = this.sensorParserConfig.sensorTopic;
-    sensorParserConfigSave.parserClassName = this.sensorParserConfig.parserClassName;
-    sensorParserConfigSave.parserConfig = this.sensorParserConfig.parserConfig;
-    sensorParserConfigSave.fieldTransformations = this.sensorParserConfig.fieldTransformations;
-    sensorParserConfigSave.numWorkers = this.sensorParserConfig.numWorkers;
-    sensorParserConfigSave.numAckers = this.sensorParserConfig.numAckers;
-    sensorParserConfigSave.spoutParallelism = this.sensorParserConfig.spoutParallelism;
-    sensorParserConfigSave.spoutNumTasks = this.sensorParserConfig.spoutNumTasks;
-    sensorParserConfigSave.parserParallelism = this.sensorParserConfig.parserParallelism;
-    sensorParserConfigSave.parserNumTasks = this.sensorParserConfig.parserNumTasks;
-    sensorParserConfigSave.errorWriterParallelism = this.sensorParserConfig.errorWriterParallelism;
-    sensorParserConfigSave.errorWriterNumTasks = this.sensorParserConfig.errorWriterNumTasks;
-    sensorParserConfigSave.spoutConfig = this.sensorParserConfig.spoutConfig;
-    sensorParserConfigSave.stormConfig = this.sensorParserConfig.stormConfig;
-
     if (!this.indexingConfigurations.hdfs.index) {
       this.indexingConfigurations.hdfs.index = this.sensorParserConfig.sensorTopic;
     }
@@ -318,7 +301,7 @@ export class SensorParserConfigComponent implements OnInit {
     if (!this.indexingConfigurations.solr.index) {
       this.indexingConfigurations.solr.index = this.sensorParserConfig.sensorTopic;
     }
-    this.sensorParserConfigService.post(sensorParserConfigSave).subscribe(
+    this.sensorParserConfigService.post(this.sensorParserConfig).subscribe(
       sensorParserConfig => {
         if (this.isGrokParser(sensorParserConfig)) {
             this.hdfsService.post(this.sensorParserConfig.parserConfig['grokPath'], this.grokStatement).subscribe(
@@ -337,7 +320,7 @@ export class SensorParserConfigComponent implements OnInit {
               this.metronAlerts.showErrorMessage(this.getMessagePrefix() + msg + error.message);
         });
         this.metronAlerts.showSuccessMessage(this.getMessagePrefix() + ' Sensor ' + sensorParserConfig.sensorTopic);
-        this.sensorParserConfigService.dataChangedSource.next([sensorParserConfigSave]);
+        this.sensorParserConfigService.dataChangedSource.next([this.sensorParserConfig]);
         this.goBack();
       }, (error: RestError) => {
         this.metronAlerts.showErrorMessage('Unable to save sensor config: ' + error.message);
