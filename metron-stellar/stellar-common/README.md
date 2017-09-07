@@ -1147,13 +1147,42 @@ IN_SUBNET
 Lists all variables in the Stellar environment.
 
 ```
-Stellar, Go!
-{es.clustername=metron, es.ip=node1, es.port=9300, es.date.format=yyyy.MM.dd.HH}
 [Stellar]>>> %vars
 [Stellar]>>> foo := 2 + 2
 4.0
 [Stellar]>>> %vars
 foo = 4.0
+```
+
+#### `%globals`
+
+Lists all values that are defined in the global configuration.
+
+Most of Metron's functional components have access to what is called the global configuration.  This is a key/value configuration store that can be used to customize Metron.  Many Stellar functions accept configuration values from the global configuration.  The Stellar Shell also leverages the global configuration for customizing the behavior of many Stellar functions.  
+
+```
+[Stellar]>>> %globals
+{es.clustername=metron, es.ip=node1:9300, es.date.format=yyyy.MM.dd.HH, parser.error.topic=indexing, update.hbase.table=metron_update, update.hbase.cf=t}
+```
+
+#### `%define`
+
+Defines a global configuration value in the current shell session.  This value will be forgotten once the session is ended.
+
+```
+[Stellar]>>> %define bootstrap.servers=localhost:6667
+[Stellar]>>> %globals
+{bootstrap.servers=localhost:6667}
+``` 
+
+#### `%undefine`
+
+Undefine a global configuration value in the current shell session.  This will not modify the persisted global configuration.
+
+```
+[Stellar]>>> %undefine bootstrap.servers
+[Stellar]>>> %globals
+{}
 ```
 
 #### `?<function>`
