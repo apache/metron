@@ -15,23 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
+import { NgModule } from '@angular/core';
+import {routing} from './extensions-parser-list.routing';
+import {ExtensionsParserListComponent} from './extensions-parser-list.component';
+import {SharedModule} from '../../shared/shared.module';
+import {APP_CONFIG, METRON_REST_CONFIG} from '../../app.config';
+import {MetronTableModule} from '../../shared/metron-table/metron-table.module';
 
-import org.apache.hadoop.fs.Path;
-import org.apache.metron.rest.RestException;
-
-import java.util.List;
-
-public interface HdfsService {
-
-    String read(Path path) throws RestException;
-
-    void write(Path path, byte[] contents,String userMode, String groupMode, String otherMode) throws RestException;
-
-    List<String> list(Path path) throws RestException;
-
-    boolean delete(Path path, boolean recursive) throws RestException;
-
-    boolean mkdirs(Path path) throws RestException;
-
- }
+@NgModule ({
+  imports: [ routing, SharedModule, MetronTableModule ],
+  declarations: [ ExtensionsParserListComponent ],
+  providers: [{ provide: APP_CONFIG, useValue: METRON_REST_CONFIG }]
+})
+export class ExtensionsParserListModule { }

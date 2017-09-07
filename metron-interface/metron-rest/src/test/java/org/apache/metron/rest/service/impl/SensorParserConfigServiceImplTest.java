@@ -19,6 +19,7 @@ package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.FileInputStream;
+import java.nio.file.Paths;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.DeleteBuilder;
@@ -27,6 +28,7 @@ import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.curator.framework.api.SetDataBuilder;
 import org.apache.metron.bundles.BundleSystem;
 import org.apache.metron.bundles.BundleSystemBuilder;
+import org.apache.metron.bundles.bundle.Bundle;
 import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.SensorParserConfig;
@@ -35,11 +37,13 @@ import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.ParseMessageRequest;
 import org.apache.metron.rest.service.GrokService;
 import org.apache.metron.rest.service.SensorParserConfigService;
+import org.apache.metron.test.utils.ResourceCopier;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -117,8 +121,7 @@ public class SensorParserConfigServiceImplTest {
       properties.unSetProperty("bundle.library.directory.alt");
       bundleSystem = new BundleSystemBuilder().withBundleProperties(properties).build();
       sensorParserConfigService = new SensorParserConfigServiceImpl(environment, objectMapper, curatorFramework,
-          grokService);
-      ((SensorParserConfigServiceImpl)sensorParserConfigService).setBundleSystem(bundleSystem);
+          grokService, bundleSystem);
     }
   }
 

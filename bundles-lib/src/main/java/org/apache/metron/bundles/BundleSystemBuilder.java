@@ -162,7 +162,9 @@ public class BundleSystemBuilder {
         try {
           FileObject fileObject = fileSystemManager.resolveFile(x);
           if (fileObject.exists()) {
-            libFileObjects.add(fileObject);
+            if(libFileObjects.contains(fileObject) == false) {
+              libFileObjects.add(fileObject);
+            }
           }
         } catch (Exception e) {
           throw new IllegalStateException(e);

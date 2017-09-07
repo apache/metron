@@ -18,6 +18,7 @@
 package org.apache.metron.rest.controller;
 
 import java.io.FileInputStream;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
@@ -28,13 +29,19 @@ import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.service.SensorParserConfigService;
 import org.apache.metron.rest.service.impl.SensorParserConfigServiceImpl;
+import org.apache.metron.test.utils.ResourceCopier;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -48,6 +55,7 @@ import java.lang.reflect.Method;
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -173,8 +181,6 @@ public class SensorParserConfigControllerIntegrationTest {
   @Autowired
   private WebApplicationContext wac;
 
-  BundleSystem bundleSystem;
-
   private MockMvc mockMvc;
 
   private String sensorParserConfigUrl = "/api/v1/sensor/parser/config";
@@ -184,14 +190,16 @@ public class SensorParserConfigControllerIntegrationTest {
   @Before
   public void setup() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
+  }
+
+  @After
+  public void tearDown() {
     BundleSystem.reset();
-    try(FileInputStream fis = new FileInputStream(new File("src/test/resources/zookeeper/bundle.properties"))) {
-      BundleProperties properties = BundleProperties.createBasicBundleProperties(fis, new HashMap<>());
-      properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY,"./target");
-      properties.unSetProperty("bundle.library.directory.alt");
-      bundleSystem = new BundleSystemBuilder().withBundleProperties(properties).build();
-      ((SensorParserConfigServiceImpl)sensorParserConfigService).setBundleSystem(bundleSystem);
-    }
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    BundleSystem.reset();
   }
 
   @Test

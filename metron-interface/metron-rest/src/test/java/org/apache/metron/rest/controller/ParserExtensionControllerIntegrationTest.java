@@ -17,11 +17,16 @@
  */
 package org.apache.metron.rest.controller;
 
+import java.util.Map;
 import org.apache.hadoop.fs.Path;
+import org.apache.metron.bundles.BundleSystem;
 import org.apache.metron.rest.service.HdfsService;
+import org.apache.metron.rest.service.SensorParserConfigService;
 import org.apache.metron.test.utils.ResourceCopier;
 import org.hamcrest.Matchers;
 import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -31,6 +36,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -70,6 +77,8 @@ public class ParserExtensionControllerIntegrationTest {
   private TestRestTemplate restTemplate;
   @Autowired
   private HdfsService hdfsService;
+  @Autowired
+  SensorParserConfigService sensorParserConfigService;
 
   @Autowired
   private WebApplicationContext wac;
@@ -77,15 +86,10 @@ public class ParserExtensionControllerIntegrationTest {
   private MockMvc mockMvc;
 
   private String parserExtUrl = "/api/v1/ext/parsers";
+  private String parserConfUrl = "/api/v1/sensor/parser/config";
   private String user = "user";
   private String password = "password";
-  private String extPath = "./target/remote/extension_contrib_lib/";
   private String fileContents = "file contents";
-
-  @BeforeClass
-  public static void beforeClass() throws Exception{
-    ResourceCopier.copyResources(Paths.get("./src/test/resources"), Paths.get( "./target/remote"), false);
-  }
 
   @Before
   public void setup() throws Exception {
@@ -93,8 +97,13 @@ public class ParserExtensionControllerIntegrationTest {
   }
 
   @After
-  public void takeDown() throws Exception {
+  public void tearDown() {
+    BundleSystem.reset();
+  }
 
+  @AfterClass
+  public static void afterClass() {
+    BundleSystem.reset();
   }
 
   @Test
@@ -110,8 +119,9 @@ public class ParserExtensionControllerIntegrationTest {
   }
 
   @Test
+  @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
   public void test() throws Exception {
-    final File bundle = new File("./target/remote/metron-parser-test-assembly-0.4.0-archive.tar.gz");
+    final File bundle = new File("./src/test/resources/metron-parser-test-assembly-0.4.0-archive.tar.gz");
     final MockMultipartFile multipartFile = new MockMultipartFile("extensionTgz","metron-parser-test-assembly-0.4.0-archive.tar.gz","", new FileInputStream(bundle));
 
     HashMap<String, String> contentTypeParams = new HashMap<String, String>();
@@ -146,7 +156,6 @@ public class ParserExtensionControllerIntegrationTest {
     // GET ALL
     this.mockMvc.perform(get(parserExtUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
-            .andDo((r) -> System.out.println(r.getResponse().getContentAsString()))
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$[?(@.extensionAssemblyName == 'metron-parser-test-assembly-0_4_0-archive' && " +
                     "@.extensionIdentifier == 'metron-parser-test-assembly-0_4_0' && " +

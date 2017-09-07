@@ -20,18 +20,16 @@ package org.apache.metron.rest.service.impl;
 import static org.apache.metron.rest.MetronRestConstants.GROK_CLASS_NAME;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.lang.invoke.MethodHandles;
-import java.nio.charset.StandardCharsets;
-import org.apache.commons.io.IOUtils;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.bundles.BundleSystem;
 import org.apache.metron.bundles.NotInitializedException;
@@ -42,13 +40,11 @@ import org.apache.metron.parsers.grok.GrokParser;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.config.BundleSystemConfig;
 import org.apache.metron.rest.model.ParseMessageRequest;
 import org.apache.metron.rest.service.GrokService;
 import org.apache.metron.rest.service.SensorParserConfigService;
 import org.apache.zookeeper.KeeperException;
 import org.json.simple.JSONObject;
-import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,31 +68,18 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
   private Map<String,Object> configurationMap;
 
   @Autowired
-  public SensorParserConfigServiceImpl(Environment environment,ObjectMapper objectMapper, CuratorFramework client, GrokService grokService) {
+  public SensorParserConfigServiceImpl(Environment environment,ObjectMapper objectMapper, CuratorFramework client, GrokService grokService, BundleSystem bundleSystem) {
     this.objectMapper = objectMapper;
     this.client = client;
     this.grokService = grokService;
     this.environment = environment;
+    this.bundleSystem = bundleSystem;
     configurationMap = new HashMap<>();
     configurationMap.put("metron.apps.hdfs.dir",environment.getProperty(MetronRestConstants.HDFS_METRON_APPS_ROOT));
   }
 
   private Map<String, String> availableParsers;
 
-  public void setBundleSystem(BundleSystem bundleSystem) {
-    this.bundleSystem = bundleSystem;
-  }
-
-  private BundleSystem getBundleSystem() {
-    if (bundleSystem == null){
-      try {
-        bundleSystem = BundleSystemConfig.bundleSystem(client);
-      } catch (Exception e) {
-        LOG.error("Failed to create BundleSystem",e);
-      }
-    }
-    return bundleSystem;
-  }
   @Override
   public SensorParserConfig save(SensorParserConfig sensorParserConfig) throws RestException {
     try {
@@ -160,6 +143,7 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
   public Map<String, String> getAvailableParsers() throws RestException {
     try {
       if (availableParsers == null) {
+        LOG.debug("getting available parsers");
         availableParsers = new HashMap<>();
         Set<Class<? extends MessageParser>> parserClasses = getParserClasses();
         parserClasses.forEach(parserClass -> {
@@ -177,13 +161,15 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
 
   @Override
   public Map<String, String> reloadAvailableParsers() throws RestException {
+    LOG.debug("reloading parsers");
     availableParsers = null;
     return getAvailableParsers();
   }
 
   @SuppressWarnings("unchecked")
   private Set<Class<? extends MessageParser>> getParserClasses() throws NotInitializedException {
-    return (Set<Class<? extends MessageParser>>) getBundleSystem().getExtensionsClassesForExtensionType(MessageParser.class);
+    LOG.debug("getParserClasses from bundleSystem");
+    return (Set<Class<? extends MessageParser>>) bundleSystem.getExtensionsClassesForExtensionType(MessageParser.class);
   }
 
   @Override
@@ -197,7 +183,7 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
     } else {
       MessageParser<JSONObject> parser;
       try {
-        parser = (MessageParser<JSONObject>) getBundleSystem()
+        parser = (MessageParser<JSONObject>) bundleSystem
             .createInstance(sensorParserConfig.getParserClassName(), MessageParser.class);
 
         File temporaryGrokFile = null;

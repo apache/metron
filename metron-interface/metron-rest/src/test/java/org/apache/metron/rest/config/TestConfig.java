@@ -22,8 +22,11 @@ import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -36,6 +39,10 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.metron.bundles.BundleSystem;
+import org.apache.metron.bundles.BundleSystemBuilder;
+import org.apache.metron.bundles.BundleSystemType;
+import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
@@ -46,6 +53,9 @@ import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.rest.mock.MockStormCLIClientWrapper;
 import org.apache.metron.rest.mock.MockStormRestTemplate;
 import org.apache.metron.rest.service.impl.StormCLIWrapper;
+import org.apache.metron.test.utils.ResourceCopier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -57,7 +67,7 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 @Profile(TEST_PROFILE)
 public class TestConfig {
-
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   static {
     MockHBaseTableProvider.addToCache("updates", "t");
   }
@@ -174,4 +184,17 @@ public class TestConfig {
     return AdminUtils$.MODULE$;
   }
 
+  @Bean
+  public BundleSystem bundleSystem() throws IOException {
+    ResourceCopier.copyResources(Paths.get("./src/test/resources"), Paths.get( "./target/remote"), false);
+    try(FileInputStream fis = new FileInputStream(new File("src/test/resources/zookeeper/bundle.properties"))) {
+      BundleSystem.reset();
+      BundleProperties properties = BundleProperties.createBasicBundleProperties(fis, new HashMap<>());
+      return new BundleSystemBuilder().withBundleProperties(properties).withBundleSystemType(
+          BundleSystemType.ON_DEMAND).build();
+    } catch( Exception e) {
+      LOG.error("failed to create bundleSystem with " + e.getMessage(), e);
+      return null;
+    }
+  }
 }

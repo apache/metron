@@ -44,13 +44,16 @@ import {StormService} from './service/storm.service';
 import {SensorParserConfigHistoryService} from './service/sensor-parser-config-history.service';
 import {SensorIndexingConfigService} from './service/sensor-indexing-config.service';
 import {HdfsService} from './service/hdfs.service';
+import {ExtensionsParserListModule} from "./extensions/extensions-parser-list/extensions-parser-list.module";
+import {ParserExtensionService} from './service/parser-extension.service'
+import {ExtensionsParserInstallModule} from './extensions/extensions-parser-install/extensions-parser-install.module';
 
 
 @NgModule({
   imports: [ BrowserModule, routing, FormsModule, ReactiveFormsModule, HttpModule, SensorParserListModule,
-    SensorParserConfigModule, SensorParserConfigReadonlyModule, GeneralSettingsModule ],
+    SensorParserConfigModule, SensorParserConfigReadonlyModule, ExtensionsParserListModule,ExtensionsParserInstallModule, GeneralSettingsModule ],
   declarations: [ AppComponent, LoginComponent, NavbarComponent, VerticalNavbarComponent ],
-  providers: [  AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,
+  providers: [  AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,ParserExtensionService,
     SensorParserConfigHistoryService, SensorEnrichmentConfigService, SensorIndexingConfigService,
     StormService, KafkaService, GrokValidationService, StellarService, HdfsService,
     GlobalConfigService, MetronAlerts, MetronDialogBox, appRoutingProviders, { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }],

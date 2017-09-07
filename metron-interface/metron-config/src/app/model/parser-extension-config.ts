@@ -15,23 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
+export class ParserExtensionConfig {
+  extensionIdentifier: string;
+  extensionAssemblyName: string;
+  extensionBundleName: string;
+  extensionBundleID: string;
+  extensionBundleVersion: string;
+  parserExtensionParserNames: string[];
+  // map -> string,sensorparserconfig
+  defaultParserConfigs: {};
+  // map -> string,sensorenrichmentconfig
+  defaultEnrichementConfigs: {};
+  // map -> string map<s,o>
+  defaultIndexingConfigs: {};
+  // map -> string map<s,o>
+  defaultElasticSearchTemplates: {};
 
-import org.apache.hadoop.fs.Path;
-import org.apache.metron.rest.RestException;
-
-import java.util.List;
-
-public interface HdfsService {
-
-    String read(Path path) throws RestException;
-
-    void write(Path path, byte[] contents,String userMode, String groupMode, String otherMode) throws RestException;
-
-    List<String> list(Path path) throws RestException;
-
-    boolean delete(Path path, boolean recursive) throws RestException;
-
-    boolean mkdirs(Path path) throws RestException;
-
- }
+  constructor() {
+    this.parserExtensionParserNames = [];
+    this.defaultParserConfigs = {};
+    this.defaultEnrichementConfigs = {};
+    this.defaultIndexingConfigs = {};
+    this.defaultElasticSearchTemplates = {};
+  }
+}
