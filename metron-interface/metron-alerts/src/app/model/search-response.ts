@@ -17,7 +17,7 @@
  */
 import {Alert} from './alert';
 
-export class AlertsSearchResponse {
+export class SearchResponse {
   total = 0;
   results: Alert[] = [];
 }

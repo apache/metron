@@ -16,33 +16,22 @@
  * limitations under the License.
  */
 import {Injectable} from '@angular/core';
-import {Headers, RequestOptions} from '@angular/http';
 import {Observable} from 'rxjs/Rx';
 import {Http} from '@angular/http';
 
-import {INDEXES} from '../utils/constants';
-import {MetronRestApiUtils} from '../utils/metron-rest-api-utils';
+
 import {ColumnMetadata} from '../model/column-metadata';
 import {DataSource} from './data-source';
-import {HttpUtil} from '../utils/httpUtil';
 
 @Injectable()
 export class ClusterMetaDataService {
   defaultHeaders: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
-  
+
   constructor(private http: Http,
               private dataSource: DataSource) {
   }
 
   getDefaultColumns(): Observable<ColumnMetadata[]> {
     return this.dataSource.getDefaultAlertTableColumnNames();
-  }
-
-  getColumnMetaData(): Observable<ColumnMetadata[]> {
-    let url = '/api/v1/search/column/metadata';
-    return this.http.post(url, INDEXES, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-    .map(HttpUtil.extractData)
-    .map(MetronRestApiUtils.extractColumnNameDataFromRestApi)
-    .catch(HttpUtil.handleError);
   }
 }
