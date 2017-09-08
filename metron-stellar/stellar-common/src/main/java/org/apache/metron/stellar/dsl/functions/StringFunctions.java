@@ -321,6 +321,46 @@ public class StringFunctions {
     }
   }
 
+  @Stellar( name="SUBSTRING"
+          , description = "Returns a substring of a string"
+          , params = {
+                "input - The string to take the substring of",
+                "start - The starting position (0-based and inclusive)",
+                "end? - The ending position (0-based and exclusive)"
+                     }
+          , returns = "The substring of the input"
+  )
+  public static class Substring extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> strings) {
+
+      if(strings == null || strings.size() < 2 ) {
+        throw new IllegalArgumentException("[SUBSTRING] required 2 arguments: the input and the start position (inclusive)");
+      }
+      String var = strings.get(0) == null?null: (String) strings.get(0);
+      Integer start = strings.get(1) == null?null:(Integer)strings.get(1);
+      Integer end = null;
+      if(strings.size() > 2) {
+         end = strings.get(2) == null ? null : (Integer) strings.get(2);
+      }
+      if(var == null || start == null) {
+        return null;
+      }
+      else if(var.length() == 0) {
+        return var;
+      }
+      else {
+        if(end == null) {
+          return var.substring(start);
+        }
+        else {
+          return var.substring(start, end);
+        }
+      }
+    }
+  }
+
   @Stellar( name="CHOMP"
           , description = "Removes one newline from end of a String if it's there, otherwise leave it alone. A newline is \"\\n\", \"\\r\", or \"\\r\\n\""
           , params = { "the String to chomp a newline from, may be null"}

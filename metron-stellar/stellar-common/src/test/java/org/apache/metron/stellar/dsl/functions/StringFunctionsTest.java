@@ -408,6 +408,19 @@ public class StringFunctionsTest {
 
   }
 
+  @Test
+  public void testSubstring() throws Exception {
+    Map<String, Object> variables = ImmutableMap.of("s", "apache metron");
+    Assert.assertEquals("metron", run("SUBSTRING(s, 7)", variables));
+    Assert.assertEquals("me", run("SUBSTRING(s, 7, 9)", variables));
+    Assert.assertNull(run("SUBSTRING(null, 6, 9)", new HashMap<>()));
+  }
+
+  @Test(expected=ParseException.class)
+  public void testSubstring_invalidEmpty() throws Exception {
+    Assert.assertEquals("metron", (String) run("SUBSTRING()", new HashMap<>()));
+  }
+
   /**
    * COUNT_MATCHES StringFunction
    */
