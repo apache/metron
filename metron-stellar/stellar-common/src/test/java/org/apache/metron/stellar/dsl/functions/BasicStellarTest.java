@@ -630,6 +630,8 @@ public class BasicStellarTest {
     final Map<String, String> variableMap = new HashMap<String, String>();
     Assert.assertTrue(runPredicate("(false && true) || true"
             , new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("(false && false) || true"
+            , new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
     Assert.assertFalse(runPredicate("(true || true) && false"
             , new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
   }
