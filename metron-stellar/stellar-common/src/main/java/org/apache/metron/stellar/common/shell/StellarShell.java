@@ -324,18 +324,12 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     } else if (MAGIC_GLOBALS.equals(command)) {
 
       // '%globals' -> list all globals in scope
-      Map<String, Object> globals = Collections.emptyMap();
-      Optional<Object> capability = executor
-              .getContext()
-              .getCapability(GLOBAL_CONFIG, false);
-      if (capability.isPresent()) {
-        globals = (Map<String, Object>) capability.get();
-      }
+      Map<String, Object> globals = getOrCreateGlobalConfig(executor);
       writeLine(globals.toString());
 
     } else if (MAGIC_DEFINE.equals(command)) {
 
-      //' %define key=value' -> defines a value in the GLOBAL_CONFIG only within the current session
+      // '%define key=value' -> defines a value in the GLOBAL_CONFIG only within the current session
       if (expression.length > 1) {
 
         // extract the key and value
@@ -362,6 +356,12 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     }
   }
 
+  /**
+   * Retrieves the GLOBAL_CONFIG, if it exists.  If it does not, it creates the GLOBAL_CONFIG
+   * and adds it to the Stellar execution context.
+   * @param executor The Stellar executor.
+   * @return The global configuration.
+   */
   private Map<String, Object> getOrCreateGlobalConfig(StellarExecutor executor) {
 
     Map<String, Object> globals;
