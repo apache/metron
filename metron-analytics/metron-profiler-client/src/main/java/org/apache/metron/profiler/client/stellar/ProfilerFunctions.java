@@ -163,8 +163,8 @@ public class ProfilerFunctions {
       if (arg instanceof String) {
         messages = getMessagesFromString((String) arg);
 
-      } else if (arg instanceof List) {
-        messages = getMessagesFromList((List<String>) arg);
+      } else if (arg instanceof Iterable) {
+        messages = getMessagesFromIterable((Iterable<String>) arg);
 
       } else if (arg instanceof JSONObject) {
         messages = Collections.singletonList((JSONObject) arg);
@@ -180,14 +180,14 @@ public class ProfilerFunctions {
     /**
      * Gets a message or messages from a List
      *
-     * @param listOfStrings The function argument is a List of Strings.
+     * @param strings The function argument that is a bunch of strings.
      * @return A list of messages.
      */
-    private List<JSONObject> getMessagesFromList(List<String> listOfStrings) {
+    private List<JSONObject> getMessagesFromIterable(Iterable<String> strings) {
       List<JSONObject> messages = new ArrayList<>();
 
       // the user pass in a list of strings
-      for (String str : listOfStrings) {
+      for (String str : strings) {
         messages.addAll(getMessagesFromString(str));
       }
 
