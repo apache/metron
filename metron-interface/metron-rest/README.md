@@ -200,6 +200,8 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/kafka/topic/{name}`](#get-apiv1kafkatopicname)|
 | [ `DELETE /api/v1/kafka/topic/{name}`](#delete-apiv1kafkatopicname)|
 | [ `GET /api/v1/kafka/topic/{name}/sample`](#get-apiv1kafkatopicnamesample)|
+| [ `GET /api/v1/metaalert/searchByAlert`](#get-apiv1metaalertsearchbyalert)|
+| [ `GET /api/v1/metaalert/create`](#get-apiv1metaalertcreate)|
 | [ `GET /api/v1/search/search`](#get-apiv1searchsearch)|
 | [ `GET /api/v1/search/findOne`](#get-apiv1searchfindone)|
 | [ `GET /api/v1/search/search`](#get-apiv1searchcolumnmetadata)|
@@ -360,6 +362,21 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns sample message
     * 404 - Either Kafka topic is missing or contains no messages
+
+### `POST /api/v1/metaalert/searchByAlert`
+  * Description: Searches meta alerts to find any containing an alert for the provided GUID
+  * Input:
+    * guid - GUID of the alert
+  * Returns:
+    * 200 - Returns the meta alerts associated with this alert
+    * 404 - Either Kafka topic is missing or contains no messages
+
+### `POST /api/v1/metaalert/create`
+  * Description: Creates a meta alert containing the provide alerts
+  * Input:
+    * request - Meta Alert Create Request
+  * Returns:
+    * 200 - The meta alert was created
 
 ### `GET /api/v1/search/findOne`
   * Description: Returns latest document for a guid and sensor

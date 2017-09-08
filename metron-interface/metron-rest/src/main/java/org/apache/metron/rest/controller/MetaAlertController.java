@@ -55,7 +55,7 @@ public class MetaAlertController {
   @ApiResponse(message = "Created meta alert", code = 200)
   @RequestMapping(value = "/create", method = RequestMethod.POST)
   ResponseEntity<MetaAlertCreateResponse> create(
-      @ApiParam(name = "request", value = "Replacement request", required = true)
+      @ApiParam(name = "request", value = "Meta Alert Create Request", required = true)
       @RequestBody  final MetaAlertCreateRequest createRequest
   ) throws RestException {
     return new ResponseEntity<>(metaAlertService.create(createRequest), HttpStatus.OK);
