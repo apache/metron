@@ -156,6 +156,9 @@ public class ElasticsearchDao implements IndexDao {
     if(client == null) {
       throw new InvalidSearchException("Uninitialized Dao!  You must call init() prior to use.");
     }
+    if (groupRequest.getGroups() == null || groupRequest.getGroups().size() == 0) {
+      throw new InvalidSearchException("At least 1 group must be provided.");
+    }
     final SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
     searchSourceBuilder.query(new QueryStringQueryBuilder(groupRequest.getQuery()));
     searchSourceBuilder.aggregation(getGroupsTermBuilder(groupRequest, 0));

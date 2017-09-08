@@ -362,7 +362,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - Search response
     
 ### `POST /api/v1/search/group`
-  * Description: Searches the indexing store and returns field groups. Groups are hierarchical and nested in the order the fields appear in the 'groups' request parameter. The default sorting within groups is by count descending.
+  * Description: Searches the indexing store and returns field groups. Groups are hierarchical and nested in the order the fields appear in the 'groups' request parameter. The default sorting within groups is by count descending.  A groupOrder type of count will sort based on then number of documents in a group while a groupType of term will sort by the groupBy term.
   * Input:
       * groupRequest - Group request
         * indices - list of indices to search
