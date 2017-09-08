@@ -19,13 +19,15 @@ package org.apache.metron.bundles;
 
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,21 +41,9 @@ import org.apache.metron.bundles.bundle.BundleDetails;
 import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.metron.bundles.util.DummyFileObject;
 import org.apache.metron.bundles.util.FileUtils;
-import org.apache.metron.bundles.util.ImmutableCollectionUtils;
 import org.apache.metron.bundles.util.StringUtils;
-import org.apache.metron.bundles.annotation.behavior.RequiresInstanceClassLoading;
-
-import org.atteo.classindex.ClassIndex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.lang.reflect.Modifier;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A Singleton class for scanning through the classpath to load all extension components using
@@ -66,39 +56,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ExtensionManager {
 
   private static volatile ExtensionManager extensionManager;
-  private static volatile InitContext initContext;
+  private static volatile ExtensionManagerContext initContext;
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   public static final BundleCoordinates SYSTEM_BUNDLE_COORDINATE = new BundleCoordinates(
       BundleCoordinates.DEFAULT_GROUP, "system", BundleCoordinates.DEFAULT_VERSION);
-
-  private static final class InitContext {
-
-    // Maps a service definition (interface) to those classes that implement the interface
-    private final Map<Class, Set<Class>> definitionMap;
-    private final Map<String, List<Bundle>> classNameBundleLookup;
-    private final Map<BundleCoordinates, Bundle> bundleCoordinateBundleLookup;
-    private final Map<ClassLoader, Bundle> classLoaderBundleLookup;
-    private final Set<String> requiresInstanceClassLoading;
-    private final Map<String, ClassLoader> instanceClassloaderLookup;
-
-    private InitContext(Map<Class, Set<Class>> definitionMap,
-        Map<String, List<Bundle>> classNameBundleLookup,
-        Map<BundleCoordinates, Bundle> bundleCoordinateBundleLookup,
-        Map<ClassLoader, Bundle> classLoaderBundleLookup,
-        Set<String> requiresInstanceClassLoading,
-        Map<String, ClassLoader> instanceClassloaderLookup) {
-
-      this.definitionMap = ImmutableCollectionUtils.immutableMapOfSets(definitionMap);
-      this.classNameBundleLookup = ImmutableCollectionUtils
-          .immutableMapOfLists(classNameBundleLookup);
-      this.bundleCoordinateBundleLookup = ImmutableMap.copyOf(bundleCoordinateBundleLookup);
-      this.classLoaderBundleLookup = ImmutableMap.copyOf(classLoaderBundleLookup);
-      this.requiresInstanceClassLoading = ImmutableSet.copyOf(requiresInstanceClassLoading);
-      this.instanceClassloaderLookup = new ConcurrentHashMap<>(instanceClassloaderLookup);
-    }
-  }
 
   private ExtensionManager(){}
 
@@ -143,57 +106,15 @@ public class ExtensionManager {
         throw new IllegalStateException("ExtensionManager already exists");
       }
       ExtensionManager em = new ExtensionManager();
-      InitContext ic = em.discoverExtensions(classes, systemBundle, bundles);
+      ExtensionManagerContext ic = new ExtensionManagerContext.Builder()
+          .withClasses(classes)
+          .withSystemBundle(systemBundle)
+          .withBundles(bundles).build();
       initContext = ic;
       extensionManager = em;
     }
   }
 
-  private InitContext discoverExtensions(final List<Class> classes, final Bundle systemBundle, final Set<Bundle> bundles) {
-
-    if (classes == null || classes.size() == 0) {
-      throw new IllegalArgumentException("classes must be defined");
-    }
-    // get the current context class loader
-    ClassLoader currentContextClassLoader = Thread.currentThread().getContextClassLoader();
-
-    final Map<Class, Set<Class>> definitionMap = new HashMap<>();
-    final Map<String, List<Bundle>> classNameBundleLookup = new HashMap<>();
-    final Map<BundleCoordinates, Bundle> bundleCoordinateBundleLookup = new HashMap<>();
-    final Map<ClassLoader, Bundle> classLoaderBundleLookup = new HashMap<>();
-    final Set<String> requiresInstanceClassLoading = new HashSet<>();
-    final Map<String, ClassLoader> instanceClassloaderLookup = new HashMap<>();
-
-    for(Class c : classes) {
-      definitionMap.put(c,new HashSet<>());
-    }
-    // load the system bundle first so that any extensions found in JARs directly in lib will be registered as
-    // being from the system bundle and not from all the other Bundles
-    loadExtensions(systemBundle, definitionMap, classNameBundleLookup, requiresInstanceClassLoading);
-    bundleCoordinateBundleLookup.put(systemBundle.getBundleDetails().getCoordinates(), systemBundle);
-    classLoaderBundleLookup.put(systemBundle.getClassLoader(),systemBundle);
-    // consider each bundle class loader
-    for (final Bundle bundle : bundles) {
-      // Must set the context class loader to the bundle classloader itself
-      // so that static initialization techniques that depend on the context class loader will work properly
-      final ClassLoader bcl = bundle.getClassLoader();
-      // store in the lookup
-      classLoaderBundleLookup.put(bcl,bundle);
-
-      Thread.currentThread().setContextClassLoader(bcl);
-      loadExtensions(bundle, definitionMap, classNameBundleLookup, requiresInstanceClassLoading);
-
-      // Create a look-up from withCoordinates to bundle
-      bundleCoordinateBundleLookup.put(bundle.getBundleDetails().getCoordinates(), bundle);
-    }
-
-    // restore the current context class loader if appropriate
-    if (currentContextClassLoader != null) {
-      Thread.currentThread().setContextClassLoader(currentContextClassLoader);
-    }
-    return new InitContext(definitionMap, classNameBundleLookup, bundleCoordinateBundleLookup,
-        classLoaderBundleLookup, requiresInstanceClassLoading, instanceClassloaderLookup);
-  }
 
   /**
    * Returns a bundle representing the system class loader.
@@ -229,115 +150,6 @@ public class ExtensionManager {
   }
 
   /**
-   * Loads extensions from the specified bundle.
-   *
-   * @param bundle from which to load extensions
-   */
-  @SuppressWarnings("unchecked")
-  private static void loadExtensions(final Bundle bundle,
-      Map<Class, Set<Class>> definitionMap,
-      Map<String, List<Bundle>> classNameBundleLookup,
-      Set<String> requiresInstanceClassLoading) {
-
-    for (final Map.Entry<Class, Set<Class>> entry : definitionMap.entrySet()) {
-      // this is another extention point
-      // what we care about here is getting the right classes from the classloader for the bundle
-      // this *could* be as a 'service' itself with different implementations
-      // The NAR system uses the ServiceLoader, but this chokes on abstract classes, because for some
-      // reason it feels compelled to instantiate the class,
-      // which there may be in the system.
-      // Changed to ClassIndex
-      Class clazz = entry.getKey();
-      ClassLoader cl = bundle.getClassLoader();
-      Iterable<Class<?>> it = ClassIndex.getSubclasses(clazz, cl);
-      for (Class<?> c : it) {
-        if (cl.equals(c.getClassLoader())) {
-          // check for abstract
-          if (!Modifier.isAbstract(c.getModifiers())) {
-            registerServiceClass(c, classNameBundleLookup, requiresInstanceClassLoading, bundle,
-                entry.getValue());
-          }
-        }
-      }
-      it = ClassIndex.getAnnotated(clazz, cl);
-      for (Class<?> c : it) {
-        if (cl.equals(clazz.getClassLoader())) {
-          // check for abstract
-          if (!Modifier.isAbstract(c.getModifiers())) {
-            registerServiceClass(c, classNameBundleLookup, requiresInstanceClassLoading, bundle,
-                entry.getValue());
-          }
-        }
-      }
-
-    }
-  }
-
-
-  /**
-   * Registers extension for the specified type from the specified Bundle.
-   *
-   * @param type the extension type
-   * @param classNameBundleMap mapping of classname to Bundle
-   * @param bundle the Bundle being mapped to
-   * @param classes to map to this classloader but which come from its ancestors
-   */
-  private static void registerServiceClass(final Class<?> type,
-      final Map<String, List<Bundle>> classNameBundleMap,
-      final Set<String> requiresInstanceClassLoading,
-      final Bundle bundle,
-      final Set<Class> classes) {
-    final String className = type.getName();
-
-    // get the bundles that have already been registered for the class name
-    List<Bundle> registeredBundles = classNameBundleMap
-        .computeIfAbsent(className, (x) -> new ArrayList<>());
-
-    boolean alreadyRegistered = false;
-    for (final Bundle registeredBundle : registeredBundles) {
-      final BundleCoordinates registeredCoordinate = registeredBundle.getBundleDetails()
-          .getCoordinates();
-
-      // if the incoming bundle has the same withCoordinates as one of the registered bundles
-      // then consider it already registered
-      if (registeredCoordinate.equals(bundle.getBundleDetails().getCoordinates())) {
-        alreadyRegistered = true;
-        break;
-      }
-
-      // if the type wasn't loaded from an ancestor, and the type isn't a parsers, cs, or reporting task, then
-      // fail registration because we don't support multiple versions of any other types
-      if (!multipleVersionsAllowed(type)) {
-        throw new IllegalStateException("Attempt was made to load " + className + " from "
-            + bundle.getBundleDetails().getCoordinates().getCoordinates()
-            + " but that class name is already loaded/registered from " + registeredBundle
-            .getBundleDetails().getCoordinates()
-            + " and multiple versions are not supported for this type"
-        );
-      }
-    }
-
-    // if none of the above was true then register the new bundle
-    if (!alreadyRegistered) {
-      registeredBundles.add(bundle);
-      classes.add(type);
-
-      if (type.isAnnotationPresent(RequiresInstanceClassLoading.class)) {
-        requiresInstanceClassLoading.add(className);
-      }
-    }
-  }
-
-  /**
-   * @param type a Class that we found from a service loader
-   * @return true if the given class is a parsers, controller service, or reporting task
-   */
-  private static boolean multipleVersionsAllowed(Class<?> type) {
-    // we don't really need to support multiple versions at this time
-    return false;
-  }
-
-  /**
    * Determines the effective ClassLoader for the instance of the given type.
    *
    * @param classType the type of class to lookup the ClassLoader for
@@ -369,7 +181,7 @@ public class ExtensionManager {
     // then make a new InstanceClassLoader that is a full copy of the BUNDLE Class Loader, otherwise create an empty
     // InstanceClassLoader that has the Bundle ClassLoader as a parent
     ClassLoader instanceClassLoader;
-    if (initContext.requiresInstanceClassLoading.contains(classType)
+    if (initContext.getRequiresInstanceClassLoading().contains(classType)
         && (bundleClassLoader instanceof URLClassLoader)) {
       final URLClassLoader registeredUrlClassLoader = (URLClassLoader) bundleClassLoader;
       instanceClassLoader = new InstanceClassLoader(instanceIdentifier, classType,
@@ -379,7 +191,7 @@ public class ExtensionManager {
           bundleClassLoader);
     }
 
-    initContext.instanceClassloaderLookup.put(instanceIdentifier, instanceClassLoader);
+    initContext.getInstanceClassloaderLookup().put(instanceIdentifier, instanceClassLoader);
     return instanceClassLoader;
   }
 
@@ -392,7 +204,7 @@ public class ExtensionManager {
   public ClassLoader getInstanceClassLoader(final String instanceIdentifier)
       throws NotInitializedException {
     checkInitialized();
-    return initContext.instanceClassloaderLookup.get(instanceIdentifier);
+    return initContext.getInstanceClassloaderLookup().get(instanceIdentifier);
   }
 
   /**
@@ -402,7 +214,7 @@ public class ExtensionManager {
    */
   public Set<Class> getExtensionClasses() throws NotInitializedException {
     checkInitialized();
-    return ImmutableSet.copyOf(initContext.definitionMap.keySet());
+    return ImmutableSet.copyOf(initContext.getDefinitionMap().keySet());
   }
 
   /**
@@ -417,7 +229,7 @@ public class ExtensionManager {
       return null;
     }
     checkInitialized();
-    final ClassLoader classLoader = initContext.instanceClassloaderLookup.remove(instanceIdentifier);
+    final ClassLoader classLoader = initContext.getInstanceClassloaderLookup().remove(instanceIdentifier);
     if (classLoader != null && (classLoader instanceof URLClassLoader)) {
       final URLClassLoader urlClassLoader = (URLClassLoader) classLoader;
       try {
@@ -442,7 +254,7 @@ public class ExtensionManager {
       throw new IllegalArgumentException("Class type cannot be null");
     }
     checkInitialized();
-    return initContext.requiresInstanceClassLoading.contains(classType);
+    return initContext.getRequiresInstanceClassLoading().contains(classType);
   }
 
   /**
@@ -456,7 +268,7 @@ public class ExtensionManager {
       throw new IllegalArgumentException("Class type cannot be null");
     }
     checkInitialized();
-    final List<Bundle> bundles = initContext.classNameBundleLookup.get(classType);
+    final List<Bundle> bundles = initContext.getClassNameBundleLookup().get(classType);
     return bundles == null ? Collections.emptyList() : new ArrayList<>(bundles);
   }
 
@@ -471,7 +283,7 @@ public class ExtensionManager {
       throw new IllegalArgumentException("BundleCoordinates cannot be null");
     }
     checkInitialized();
-    return initContext.bundleCoordinateBundleLookup.get(bundleCoordinates);
+    return initContext.getBundleCoordinateBundleLookup().get(bundleCoordinates);
   }
 
   /**
@@ -485,7 +297,7 @@ public class ExtensionManager {
       throw new IllegalArgumentException("ClassLoader cannot be null");
     }
     checkInitialized();
-    return initContext.classLoaderBundleLookup.get(classLoader);
+    return initContext.getClassLoaderBundleLookup().get(classLoader);
   }
 
   public Set<Class> getExtensions(final Class<?> definition) throws NotInitializedException {
@@ -493,7 +305,7 @@ public class ExtensionManager {
       throw new IllegalArgumentException("Class cannot be null");
     }
     checkInitialized();
-    final Set<Class> extensions = initContext.definitionMap.get(definition);
+    final Set<Class> extensions = initContext.getDefinitionMap().get(definition);
     return (extensions == null) ? Collections.<Class>emptySet() : extensions;
   }
 
@@ -502,12 +314,12 @@ public class ExtensionManager {
     final StringBuilder builder = new StringBuilder();
 
     builder.append("Extension Type Mapping to Bundle:");
-    for (final Map.Entry<Class, Set<Class>> entry : initContext.definitionMap.entrySet()) {
+    for (final Map.Entry<Class, Set<Class>> entry : initContext.getDefinitionMap().entrySet()) {
       builder.append("\n\t=== ").append(entry.getKey().getSimpleName()).append(" Type ===");
 
       for (final Class type : entry.getValue()) {
-        final List<Bundle> bundles = initContext.classNameBundleLookup.containsKey(type.getName())
-            ? initContext.classNameBundleLookup.get(type.getName()) : Collections.emptyList();
+        final List<Bundle> bundles = initContext.getClassNameBundleLookup().containsKey(type.getName())
+            ? initContext.getClassNameBundleLookup().get(type.getName()) : Collections.emptyList();
 
         builder.append("\n\t").append(type.getName());
 
@@ -524,8 +336,31 @@ public class ExtensionManager {
     logger.info(builder.toString());
   }
 
+  /**
+   * Add a new {@link Bundle} and it's extensions to the system
+   * This is an operation that would happen after initialization.
+    * This method has limited access, only package classes that
+   * can ensure thread saftey and control should call.
+   *
+   *
+   * @param bundle the {@link Bundle} to load
+   * @throws NotInitializedException If we are not initialized yet
+   */
+  protected void addBundle(Bundle bundle) throws NotInitializedException {
+    checkInitialized();
+
+    Set<Bundle> bundles = new HashSet<>();
+    bundles.add(bundle);
+    ExtensionManagerContext newContext = new ExtensionManagerContext.Builder().withBundles(bundles)
+        .withClasses(new ArrayList<Class>(initContext.getDefinitionMap().keySet()))
+        .withSystemBundle(initContext.getSystemBundle())
+        .build();
+
+      initContext.merge(newContext);
+  }
+
   public void checkInitialized() throws NotInitializedException {
-    InitContext ic = initContext;
+    ExtensionManagerContext ic = initContext;
     if (ic == null) {
       throw new NotInitializedException();
     }

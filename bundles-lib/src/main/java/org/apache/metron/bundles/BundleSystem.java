@@ -20,12 +20,15 @@ package org.apache.metron.bundles;
 import com.google.common.annotations.VisibleForTesting;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.metron.bundles.bundle.Bundle;
 import org.apache.metron.bundles.util.BundleProperties;
@@ -145,26 +148,26 @@ public class BundleSystem {
         BundleClassLoaders.init(fileSystemManager, libFileObjects, properties);
         ExtensionManager
             .init(extensionClasses, systemBundle, BundleClassLoaders.getInstance().getBundles());
-        return new BundleSystem(fileSystemManager, extensionClasses, systemBundle, properties);
+        return new BundleSystem(fileSystemManager, extensionClasses, libFileObjects, systemBundle, properties);
       } catch (Exception e) {
         throw new NotInitializedException(e);
       }
     }
-
-
   }
 
   private final BundleProperties properties;
   private final FileSystemManager fileSystemManager;
   private final List<Class> extensionClasses;
+  private final List<FileObject> extensionDirectories;
   private final Bundle systemBundle;
 
-  private BundleSystem(FileSystemManager fileSystemManager, List<Class> extensionClasses,
-      Bundle systemBundle, BundleProperties properties) {
+  private BundleSystem(FileSystemManager fileSystemManager, List<Class> extensionClasses,List<FileObject>
+      extensionDirectories, Bundle systemBundle, BundleProperties properties) {
     this.properties = properties;
     this.fileSystemManager = fileSystemManager;
     this.extensionClasses = extensionClasses;
     this.systemBundle = systemBundle;
+    this.extensionDirectories = extensionDirectories;
   }
 
   /**
@@ -180,23 +183,47 @@ public class BundleSystem {
   public <T> T createInstance(final String specificClassName, final Class<T> clazz)
       throws ClassNotFoundException, InstantiationException,
       NotInitializedException, IllegalAccessException {
-    return BundleThreadContextClassLoader.createInstance(specificClassName, clazz, this.properties);
+    synchronized (BundleSystem.class) {
+      return BundleThreadContextClassLoader
+          .createInstance(specificClassName, clazz, this.properties);
+    }
   }
 
   @SuppressWarnings("unchecked")
   public <T> Set<Class<? extends T>> getExtensionsClassesForExtensionType(final Class<T> extensionType)
       throws NotInitializedException {
     Set<Class<? extends T>> set = new HashSet<Class<? extends T>>();
-    ExtensionManager.getInstance().getExtensions(extensionType).forEach((x) -> {
-      set.add((Class<T>)x);
-    });
+    synchronized (BundleSystem.class) {
+      ExtensionManager.getInstance().getExtensions(extensionType).forEach((x) -> {
+        set.add((Class<T>) x);
+      });
+    }
     return set;
+  }
+
+  /**
+   * Loads a Bundle into the system.
+   *
+   * @param bundleFileName the name of a Bundle file to load into the system. This file must exist
+   * in one of the library directories
+   */
+  public void addBundle(String bundleFileName)
+      throws NotInitializedException, ClassNotFoundException, FileSystemException, URISyntaxException {
+    if (StringUtils.isEmpty(bundleFileName)) {
+      throw new IllegalArgumentException("bundleFileName cannot be null or empty");
+    }
+    synchronized (BundleSystem.class) {
+      Bundle bundle = BundleClassLoaders.getInstance().addBundle(bundleFileName);
+      ExtensionManager.getInstance().addBundle(bundle);
+    }
   }
 
   @VisibleForTesting()
   public static void reset() {
-    BundleClassLoaders.reset();
-    ExtensionManager.reset();
+    synchronized (BundleSystem.class) {
+      BundleClassLoaders.reset();
+      ExtensionManager.reset();
+    }
   }
 
 }
