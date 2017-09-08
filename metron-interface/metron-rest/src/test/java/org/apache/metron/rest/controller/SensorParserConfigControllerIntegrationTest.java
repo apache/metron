@@ -21,7 +21,6 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.rest.MetronRestConstants;
-import org.apache.metron.rest.service.GrokService;
 import org.apache.metron.rest.service.SensorParserConfigService;
 import org.junit.Before;
 import org.junit.Test;
@@ -364,11 +363,6 @@ public class SensorParserConfigControllerIntegrationTest {
     if (grokTempPath.exists()) {
       FileUtils.cleanDirectory(grokTempPath);
       FileUtils.deleteDirectory(grokTempPath);
-    }
-    File grokPath = new File(environment.getProperty(MetronRestConstants.GROK_DEFAULT_PATH_SPRING_PROPERTY));
-    if (grokPath.exists()) {
-      FileUtils.cleanDirectory(grokPath);
-      FileUtils.deleteDirectory(grokPath);
     }
   }
 }

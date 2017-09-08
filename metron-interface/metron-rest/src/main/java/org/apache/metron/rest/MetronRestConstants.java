@@ -26,7 +26,6 @@ public class MetronRestConstants {
   public static final String DOCKER_PROFILE = "docker";
   public static final String CSRF_ENABLE_PROFILE = "csrf-enable";
 
-  public static final String GROK_DEFAULT_PATH_SPRING_PROPERTY = "grok.path.default";
   public static final String GROK_TEMP_PATH_SPRING_PROPERTY = "grok.path.temp";
   public static final String GROK_CLASS_NAME = GrokParser.class.getName();
   public static final String GROK_PATH_KEY = "grokPath";
