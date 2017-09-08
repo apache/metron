@@ -50,13 +50,16 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * Context object used by the BundleClassLoaders
+ * Context object for the {@link BundleClassLoaders}.
  */
 public class BundleClassLoadersContext {
 
   private static final Logger logger = LoggerFactory
       .getLogger(MethodHandles.lookup().lookupClass());
 
+  /**
+   * Builder class for BundleClassLoadersContext
+   */
   public static class Builder {
 
     FileSystemManager fileSystemManager;
@@ -67,26 +70,71 @@ public class BundleClassLoadersContext {
     public Builder() {
     }
 
+    /**
+     * Provides a {@link FileSystemManager}.
+     * @param fileSystemManager
+     * @return
+     */
     public Builder withFileSystemManager(FileSystemManager fileSystemManager) {
       this.fileSystemManager = fileSystemManager;
       return this;
     }
 
+    /**
+     * Provides the extension library directories.
+     * @param extensionDirs
+     * @return
+     */
     public Builder withExtensionDirs(List<FileObject> extensionDirs) {
       this.extensionsDirs = extensionDirs;
       return this;
     }
 
+    /**
+     * Provides the BundleProperties.
+     * @param properties
+     * @return
+     */
     public Builder withBundleProperties(BundleProperties properties) {
       this.properties = properties;
       return this;
     }
 
+    /**
+     * Builds a BundleClassLoaderContext.
+     * When built the context will be loaded from the provided
+     * library directories, using the {@link FileSystemManager} and {@BundleProperties}.
+     *
+     * An IllegalArgumentException will be thrown if any of the FileSystemManager,
+     * BundleProperties, or Extension Directories are missing or invalid.
+     *
+     * @return A loaded BundleClassLoaderContext
+     * @throws FileSystemException if there is a problem reading the bundles
+     * @throws ClassNotFoundException if there is a problem creating the classloaders
+     * @throws URISyntaxException if there is an invalid configuration
+     */
     public BundleClassLoadersContext build()
         throws FileSystemException, ClassNotFoundException, URISyntaxException {
       return build(null);
     }
 
+    /**
+     * Builds a BundleClassLoaderContext.
+     * When built the context will be loaded from the provided
+     * explicitBundleToLoad, using the {@link FileSystemManager} and {@BundleProperties}.
+     *
+     * If the explicteBundleToLoad is null or empty, then the extensionDirs will be used.
+     *
+     * This method can be used as a means to build a context for a single bundle.
+     *
+     * An IllegalArgumentException will be thrown if any of the FileSystemManager,
+     * BundleProperties, or Extension Directories are missing or invalid.
+     *
+     * @return A loaded BundleClassLoaderContext
+     * @throws FileSystemException if there is a problem reading the bundles
+     * @throws ClassNotFoundException if there is a problem creating the classloaders
+     * @throws URISyntaxException if there is an invalid configuration
+     */
     public BundleClassLoadersContext build(String explicitBundleToLoad)
         throws FileSystemException, ClassNotFoundException, URISyntaxException {
 

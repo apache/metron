@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.metron.bundles.annotation.behavior.RequiresInstanceClassLoading;
 import org.apache.metron.bundles.bundle.Bundle;
 import org.apache.metron.bundles.bundle.BundleCoordinates;
@@ -40,27 +41,49 @@ import org.atteo.classindex.ClassIndex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Context object for the {@link ExtensionManager}.
+ */
 public class ExtensionManagerContext {
 
   private static final Logger logger = LoggerFactory
       .getLogger(MethodHandles.lookup().lookupClass());
-
+  /**
+   * Builder class for ExtensionManagerContext
+   */
   public static class Builder {
 
     List<Class> classes;
     Bundle systemBundle;
     Set<Bundle> bundles;
 
+    /**
+     * Provides the {@link Class} definitions that will specify what extensions
+     * are to be loaded
+     * @param classes
+     * @return
+     */
     public Builder withClasses(List<Class> classes) {
       this.classes = classes;
       return this;
     }
 
+    /**
+     * Provides the SystemBundle.
+     * This bundle represents the system or main classloader
+     * @param systemBundle
+     * @return
+     */
     public Builder withSystemBundle(Bundle systemBundle) {
       this.systemBundle = systemBundle;
       return this;
     }
 
+    /**
+     * Provides the Bundles used to load the extensions
+     * @param bundles
+     * @return
+     */
     public Builder withBundles(Set<Bundle> bundles) {
       this.bundles = bundles;
       return this;
@@ -69,6 +92,19 @@ public class ExtensionManagerContext {
     public Builder() {
     }
 
+    /**
+     *  * Builds a BundleClassLoaderContext.
+     * When built the context will be loaded from the provided
+     * explicitBundleToLoad, using the {@link FileSystemManager} and {@BundleProperties}.
+     *
+     * If the explicteBundleToLoad is null or empty, then the extensionDirs will be used.
+     *
+     * This method can be used as a means to build a context for a single bundle.
+     *
+     * An IllegalArgumentException will be thrown if any of the SystemBundle,
+     * Classes, or Bundles parameters are missing or invalid
+     * @return
+     */
     public ExtensionManagerContext build() {
       if (systemBundle == null) {
         throw new IllegalArgumentException("systemBundle must be defined");
