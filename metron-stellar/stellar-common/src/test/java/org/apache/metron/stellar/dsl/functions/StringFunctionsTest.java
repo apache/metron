@@ -413,7 +413,11 @@ public class StringFunctionsTest {
     Map<String, Object> variables = ImmutableMap.of("s", "apache metron");
     Assert.assertEquals("metron", run("SUBSTRING(s, 7)", variables));
     Assert.assertEquals("me", run("SUBSTRING(s, 7, 9)", variables));
-    Assert.assertNull(run("SUBSTRING(null, 6, 9)", new HashMap<>()));
+    Assert.assertNull(run("SUBSTRING(null, 7, 9)", new HashMap<>()));
+    Assert.assertNull(run("SUBSTRING(null, null, 9)", new HashMap<>()));
+    Assert.assertNull(run("SUBSTRING(s, null, 9)", variables));
+    Assert.assertNull(run("SUBSTRING(null, null, null)", new HashMap<>()));
+    Assert.assertEquals("metron", run("SUBSTRING(s, 7, null)", variables));
   }
 
   @Test(expected=ParseException.class)
