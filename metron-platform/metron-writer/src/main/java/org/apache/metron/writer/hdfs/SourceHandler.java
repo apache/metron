@@ -64,6 +64,7 @@ public class SourceHandler {
     this.rotationPolicy = rotationPolicy;
     this.syncPolicy = syncPolicy;
     this.fileNameFormat = fileNameFormat;
+    this.cleanupCallback = cleanupCallback;
     initialize();
   }
 
@@ -71,12 +72,21 @@ public class SourceHandler {
   protected void handle(JSONObject message, String sensor, WriterConfiguration config, SyncPolicyCreator syncPolicyCreator) throws IOException {
     byte[] bytes = (message.toJSONString() + "\n").getBytes();
     synchronized (this.writeLock) {
-      out.write(bytes);
+      try {
+        out.write(bytes);
+      } catch (IOException writeException) {
+        // Hope it's a transient issue, rotate our output file, and carry on.
+        LOG.warn("IOException while writing output. Attempting to rotate file and continue",
+            writeException);
+        rotateOutputFile();
+        out.write(bytes);
+      }
       this.offset += bytes.length;
 
       if (this.syncPolicy.mark(null, this.offset)) {
         if (this.out instanceof HdfsDataOutputStream) {
-          ((HdfsDataOutputStream) this.out).hsync(EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH));
+          ((HdfsDataOutputStream) this.out)
+              .hsync(EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH));
         } else {
           this.out.hsync();
         }
@@ -146,7 +156,7 @@ public class SourceHandler {
     return path;
   }
 
-  private void closeOutputFile() throws IOException {
+  protected void closeOutputFile() throws IOException {
     this.out.close();
   }
 
