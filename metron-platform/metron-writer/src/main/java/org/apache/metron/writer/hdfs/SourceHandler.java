@@ -75,12 +75,16 @@ public class SourceHandler {
       try {
         out.write(bytes);
       } catch (IOException writeException) {
-        // Hope it's a transient issue, rotate our output file, and try again.
-        // If it's not transient, the second attempt's exception will bubble up.
-        LOG.warn("IOException while writing output. Attempting to rotate file and continue",
-            writeException);
-        rotateOutputFile();
-        out.write(bytes);
+        LOG.warn("IOException while writing output", writeException);
+        // If the stream is closed, attempt to rotate the file and try again, hoping it's transient
+        if (writeException.getMessage().contains("Stream Closed")) {
+          LOG.warn("Output Stream was closed. Attempting to rotate file and continue");
+          rotateOutputFile();
+          // If this write fails, the exception will be allowed to bubble up.
+          out.write(bytes);
+        } else {
+          throw writeException;
+        }
       }
       this.offset += bytes.length;
 
