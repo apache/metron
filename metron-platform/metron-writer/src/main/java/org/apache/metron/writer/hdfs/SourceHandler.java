@@ -75,7 +75,8 @@ public class SourceHandler {
       try {
         out.write(bytes);
       } catch (IOException writeException) {
-        // Hope it's a transient issue, rotate our output file, and carry on.
+        // Hope it's a transient issue, rotate our output file, and try again.
+        // If it's not transient, the second attempt's exception will bubble up.
         LOG.warn("IOException while writing output. Attempting to rotate file and continue",
             writeException);
         rotateOutputFile();
