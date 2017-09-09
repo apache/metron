@@ -110,8 +110,8 @@ In the core language functions, we support basic functional programming primitiv
 | [ `BLOOM_EXISTS`](#bloom_exists)                                                                   |
 | [ `BLOOM_INIT`](#bloom_init)                                                                       |
 | [ `BLOOM_MERGE`](#bloom_merge)                                                                     |
-| [ `CEILING`](#ceiling)                                                           |
-| [ `COS`](#cos)                                                                   |
+| [ `CEILING`](#ceiling)                                                                             |
+| [ `COS`](#cos)                                                                                     |
 | [ `CHOP`](#chop)                                                                                   |
 | [ `CHOMP`](#chomp)                                                                                 |
 | [ `COUNT_MATCHES`](#count_matches)                                                                 |
@@ -126,13 +126,13 @@ In the core language functions, we support basic functional programming primitiv
 | [ `ENDS_WITH`](#ends_with)                                                                         |
 | [ `ENRICHMENT_EXISTS`](#enrichment_exists)                                                         |
 | [ `ENRICHMENT_GET`](#enrichment_get)                                                               |
-| [ `EXP`](#exp)                                                                   |
+| [ `EXP`](#exp)                                                                                     |
 | [ `FILL_LEFT`](#fill_left)                                                                         |
 | [ `FILL_RIGHT`](#fill_right)                                                                       |
 | [ `FILTER`](#filter)                                                                               |
-| [ `FLOOR`](#floor)                                                               |
-| [ `FUZZY_LANGS`](#fuzzy_langs)                                                   |
-| [ `FUZZY_SCORE`](#fuzzy_score)                                                   |
+| [ `FLOOR`](#floor)                                                                                 |
+| [ `FUZZY_LANGS`](#fuzzy_langs)                                                                     |
+| [ `FUZZY_SCORE`](#fuzzy_score)                                                                     |
 | [ `FORMAT`](#format)                                                                               |
 | [ `GEO_GET`](#geo_get)                                                                             |
 | [ `GEOHASH_CENTROID`](#geohash_centroid)                                                           |
@@ -144,8 +144,8 @@ In the core language functions, we support basic functional programming primitiv
 | [ `GET`](#get)                                                                                     |
 | [ `GET_FIRST`](#get_first)                                                                         |
 | [ `GET_LAST`](#get_last)                                                                           |
-| [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)                                           |
-| [ `HASH`](#hash)                                                                           |
+| [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)                                             |
+| [ `HASH`](#hash)                                                                                   |
 | [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality)                   |
 | [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
 | [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)                               |
@@ -166,9 +166,9 @@ In the core language functions, we support basic functional programming primitiv
 | [ `KAFKA_TAIL`](#kafka_tail)                                                                       |
 | [ `LENGTH`](#length)                                                                               |
 | [ `LIST_ADD`](#list_add)                                                                           |
-| [ `LOG2`](#log2)                                                                               |
-| [ `LOG10`](#log10)                                                                               |
-| [ `LN`](#ln)                                                                               |
+| [ `LOG2`](#log2)                                                                                   |
+| [ `LOG10`](#log10)                                                                                 |
+| [ `LN`](#ln)                                                                                       |
 | [ `MAAS_GET_ENDPOINT`](#maas_get_endpoint)                                                         |
 | [ `MAAS_MODEL_APPLY`](#maas_model_apply)                                                           |
 | [ `MAP`](#map)                                                                                     |
@@ -186,15 +186,15 @@ In the core language functions, we support basic functional programming primitiv
 | [ `PROTOCOL_TO_NAME`](#protocol_to_name)                                                           |
 | [ `REDUCE`](#reduce)                                                                               |
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
-| [ `REGEXP_GROUP_VAL`](#regexp_group_val)                                                                   |
-| [ `ROUND`](#round)                                                                   |
-| [ `SET_ADD`](#set_add)                                                                            |
+| [ `REGEXP_GROUP_VAL`](#regexp_group_val)                                                           |
+| [ `ROUND`](#round)                                                                                 |
+| [ `SET_ADD`](#set_add)                                                                             |
 | [ `SET_INIT`](#set_init)                                                                           |
 | [ `SET_MERGE`](#set_merge)                                                                         |
 | [ `SET_REMOVE`](#set_remove)                                                                       |
 | [ `SPLIT`](#split)                                                                                 |
-| [ `SIN`](#sin)                                                                                 |
-| [ `SQRT`](#sqrt)                                                                                 |
+| [ `SIN`](#sin)                                                                                     |
+| [ `SQRT`](#sqrt)                                                                                   |
 | [ `STARTS_WITH`](#starts_with)                                                                     |
 | [ `STATS_ADD`](../../metron-analytics/metron-statistics#stats_add)                                 |
 | [ `STATS_BIN`](../../metron-analytics/metron-statistics#stats_bin)                                 |
@@ -216,9 +216,10 @@ In the core language functions, we support basic functional programming primitiv
 | [ `STATS_SUM_SQUARES`](../../metron-analytics/metron-statistics#stats_sum_squares)                 |
 | [ `STATS_VARIANCE`](../../metron-analytics/metron-statistics#stats_variance)                       |
 | [ `STRING_ENTROPY`](#string_entropy)                                                               |
+| [ `SUBSTRING`](#substring)                                                                         |
 | [ `SYSTEM_ENV_GET`](#system_env_get)                                                               |
 | [ `SYSTEM_PROPERTY_GET`](#system_property_get)                                                     |
-| [ `TAN`](#tan)                                                                         |
+| [ `TAN`](#tan)                                                                                     |
 | [ `TO_DOUBLE`](#to_double)                                                                         |
 | [ `TO_EPOCH_TIMESTAMP`](#to_epoch_timestamp)                                                       |
 | [ `TO_FLOAT`](#to_float)                                                                           |
@@ -235,8 +236,8 @@ In the core language functions, we support basic functional programming primitiv
 | [ `WEEK_OF_MONTH`](#week_of_month)                                                                 |
 | [ `WEEK_OF_YEAR`](#week_of_year)                                                                   |
 | [ `YEAR`](#year)                                                                                   |
-| [ `ZIP`](#zip)                                                                                   |
-| [ `ZIP_JAGGED`](#zip_jagged)                                                                                   |
+| [ `ZIP`](#zip)                                                                                     |
+| [ `ZIP_JAGGED`](#zip_jagged)                                                                       |
 
 ### `APPEND_IF_MISSING`
   * Description: Appends the suffix to the end of the string if the string does not already end with any of the suffixes.
@@ -868,6 +869,14 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * key - Property to get the value for
   * Returns: String
+
+### `SUBSTRING`
+  * Description: Returns the substring of a string
+  * Input:
+    * input - The string to take the substring of
+    * start - The starting position (`0`-based and inclusive)
+    * end? - The ending position (`0`-based and exclusive)
+  * Returns: The substring of the input
 
 ### `TAN`
   * Description: Returns the tangent of a number.
