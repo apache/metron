@@ -341,8 +341,12 @@
                         <!-- ACE editor assets are covered in the metron-config NOTICE file -->
                         <exclude>**/src/assets/ace/**</exclude>
                         <exclude>dist/assets/ace/**</exclude>
-                        <!-- Generated svg containing Font Awesome fonts are covered in the metron-config README and NOTICE file -->
+                        <!-- Generated svg and bundle.css containing Font Awesome fonts are covered in the
+                             metron-interface/metron-config README and NOTICE files -->
                         <exclude>dist/*.svg</exclude>
+                        <exclude>dist/styles.a0b6b99c10d9a13dc67e.bundle.css</exclude>
+                        <!-- 3rdpartylicenses.txt is an empty file carried along by imported libraries -->
+                        <exclude>dist/3rdpartylicenses.txt</exclude>
 
                         <exclude>e2e/*.js.map</exclude>
                         <!-- Checkstyle is LGPL.  We derive ours from their base, but don't ship it, so it's fine use.
