@@ -92,9 +92,10 @@ public class StellarExecutor {
   }
 
   /**
-   * prefix tree index of autocompletes
+   * Prefix tree index of auto-completes.
    */
   private PatriciaTrie<AutoCompleteType> autocompleteIndex;
+
   /**
    * The variables known by Stellar.
    */
@@ -118,7 +119,9 @@ public class StellarExecutor {
   private Console console;
 
   public enum OperationType {
-    DOC,MAGIC,NORMAL;
+    DOC
+    , MAGIC
+    , NORMAL
   }
 
   public interface AutoCompleteTransformation {
@@ -138,6 +141,7 @@ public class StellarExecutor {
     , VARIABLE((type, key) -> key )
     , TOKEN((type, key) -> key)
     ;
+
     AutoCompleteTransformation transform;
     AutoCompleteType(AutoCompleteTransformation transform) {
       this.transform = transform;
@@ -147,7 +151,6 @@ public class StellarExecutor {
     public String transform(OperationType type, String key) {
       return transform.transform(type, key);
     }
-
   }
 
   /**
@@ -178,18 +181,17 @@ public class StellarExecutor {
 
     // asynchronously update the index with function names found from a classpath scan.
     new Thread( () -> {
-        Iterable<StellarFunctionInfo> functions = functionResolver.getFunctionInfo();
-        indexLock.writeLock().lock();
-        try {
-          for(StellarFunctionInfo info: functions) {
-            String functionName = info.getName();
-            autocompleteIndex.put(functionName, AutoCompleteType.FUNCTION);
-          }
+      Iterable<StellarFunctionInfo> functions = functionResolver.getFunctionInfo();
+      indexLock.writeLock().lock();
+      try {
+        for(StellarFunctionInfo info: functions) {
+          String functionName = info.getName();
+          autocompleteIndex.put(functionName, AutoCompleteType.FUNCTION);
         }
-          finally {
-            System.out.println("Functions loaded, you may refer to functions now...");
-            indexLock.writeLock().unlock();
-          }
+      } finally {
+        System.out.println("Functions loaded, you may refer to functions now...");
+        indexLock.writeLock().unlock();
+      }
     }).start();
   }
 
@@ -203,6 +205,9 @@ public class StellarExecutor {
     index.put("quit", AutoCompleteType.TOKEN);
     index.put(StellarShell.MAGIC_FUNCTIONS, AutoCompleteType.FUNCTION);
     index.put(StellarShell.MAGIC_VARS, AutoCompleteType.FUNCTION);
+    index.put(StellarShell.MAGIC_GLOBALS, AutoCompleteType.FUNCTION);
+    index.put(StellarShell.MAGIC_DEFINE, AutoCompleteType.FUNCTION);
+    index.put(StellarShell.MAGIC_UNDEFINE, AutoCompleteType.FUNCTION);
     return new PatriciaTrie<>(index);
   }
 

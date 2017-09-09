@@ -1170,9 +1170,10 @@ Most of Metron's functional components have access to what is called the global 
 Defines a global configuration value in the current shell session.  This value will be forgotten once the session is ended.
 
 ```
-[Stellar]>>> %define bootstrap.servers=localhost:6667
+[Stellar]>>> %define bootstrap.servers := "node1:6667"
+node1:6667
 [Stellar]>>> %globals
-{bootstrap.servers=localhost:6667}
+{bootstrap.servers=node1:6667}
 ``` 
 
 #### `%undefine`

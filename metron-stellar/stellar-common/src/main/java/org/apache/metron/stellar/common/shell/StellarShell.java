@@ -295,64 +295,106 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
    * @param rawExpression The expression to execute.
    */
   private void handleMagic(String rawExpression) {
+
     String[] expression = rawExpression.trim().split("\\s+");
-
     String command = expression[0];
+
     if (MAGIC_FUNCTIONS.equals(command)) {
-
-      // if '%functions FOO' then show only functions that contain 'FOO'
-      Predicate<String> nameFilter = (name -> true);
-      if (expression.length > 1) {
-        nameFilter = (name -> name.contains(expression[1]));
-      }
-
-      // '%functions' -> list all functions in scope
-      String functions = StreamSupport
-              .stream(executor.getFunctionResolver().getFunctionInfo().spliterator(), false)
-              .map(info -> String.format("%s", info.getName()))
-              .filter(nameFilter)
-              .sorted()
-              .collect(Collectors.joining(", "));
-      writeLine(functions);
+      handleMagicFunctions(expression);
 
     } else if (MAGIC_VARS.equals(command)) {
-
-      // '%vars' -> list all variables in scope
-      executor.getVariables()
-              .forEach((k, v) -> writeLine(String.format("%s = %s", k, v)));
+      handleMagicVars();
 
     } else if (MAGIC_GLOBALS.equals(command)) {
-
-      // '%globals' -> list all globals in scope
-      Map<String, Object> globals = getOrCreateGlobalConfig(executor);
-      writeLine(globals.toString());
+      handleMagicGlobals();
 
     } else if (MAGIC_DEFINE.equals(command)) {
-
-      // '%define key=value' -> defines a value in the GLOBAL_CONFIG only within the current session
-      if (expression.length > 1) {
-
-        // extract the key and value
-        String arg = rawExpression.replaceFirst(expression[0], "");
-        String[] keyVal = arg.split("=", 2);
-        String key = StringUtils.trimToEmpty(keyVal[0]);
-        String value = StringUtils.trimToEmpty(keyVal[1]);
-
-        // define key=val in the GLOBAL_CONFIG
-        Map<String, Object> globals = getOrCreateGlobalConfig(executor);
-        globals.put(key, value);
-      }
+      handleMagicDefine(rawExpression);
 
     } else if(MAGIC_UNDEFINE.equals(command)) {
-
-      // '%undefine key' will remove 'key' from the GLOBAL_CONFIG
-      if(expression.length > 1) {
-        Map<String, Object> globals = getOrCreateGlobalConfig(executor);
-        globals.remove(expression[1]);
-      }
+      handleMagicUndefine(expression);
 
     } else {
       writeLine(ERROR_PROMPT + "undefined magic command: " + rawExpression);
+    }
+  }
+
+  /**
+   * Handle a magic '%functions'.  Lists all of the variables in-scope.
+   * @param expression
+   */
+  private void handleMagicFunctions(String[] expression) {
+
+    // if '%functions FOO' then show only functions that contain 'FOO'
+    Predicate<String> nameFilter = (name -> true);
+    if (expression.length > 1) {
+      nameFilter = (name -> name.contains(expression[1]));
+    }
+
+    // '%functions' -> list all functions in scope
+    String functions = StreamSupport
+            .stream(executor.getFunctionResolver().getFunctionInfo().spliterator(), false)
+            .map(info -> String.format("%s", info.getName()))
+            .filter(nameFilter)
+            .sorted()
+            .collect(Collectors.joining(", "));
+    writeLine(functions);
+  }
+
+  /**
+   * Handle a magic '%vars'.  Lists all of the variables in-scope.
+   */
+  private void handleMagicVars() {
+    executor.getVariables()
+            .forEach((k, v) -> writeLine(String.format("%s = %s", k, v)));
+  }
+
+  /**
+   * Handle a magic '%globals'.  List all of the global configuration values.
+   */
+  private void handleMagicGlobals() {
+    Map<String, Object> globals = getOrCreateGlobalConfig(executor);
+    writeLine(globals.toString());
+  }
+
+  /**
+   * Handle a magic '%define var=value'.  Alter the global configuration.
+   * @param expression The expression passed to %define
+   */
+  public void handleMagicDefine(String expression) {
+
+    // grab the expression in '%define <assign-expression>'
+    String assignExpr = StringUtils.trimToEmpty(expression.substring(MAGIC_DEFINE.length()));
+    if (assignExpr.length() > 0) {
+
+      // the expression must be an assignment
+      if(StellarAssignment.isAssignment(assignExpr)) {
+        StellarAssignment expr = StellarAssignment.from(assignExpr);
+
+        // execute the expression
+        Object result = executor.execute(expr.getStatement());
+        if (result != null) {
+          writeLine(result.toString());
+
+          // alter the global configuration
+          getOrCreateGlobalConfig(executor).put(expr.getVariable(), result);
+        }
+
+      } else {
+        // the expression is not an assignment.  boo!
+        writeLine(ERROR_PROMPT + MAGIC_DEFINE + " expected assignment expression");
+      }
+    }
+  }
+
+  /**
+   * Handle a magic '%undefine var'.  Removes a variable from the global configuration.
+   * @param expression
+   */
+  private void handleMagicUndefine(String[] expression) {
+    if(expression.length > 1) {
+      Map<String, Object> globals = getOrCreateGlobalConfig(executor);
+      globals.remove(expression[1]);
     }
   }
 
@@ -363,14 +405,13 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
    * @return The global configuration.
    */
   private Map<String, Object> getOrCreateGlobalConfig(StellarExecutor executor) {
-
     Map<String, Object> globals;
     Optional<Object> capability = executor.getContext().getCapability(GLOBAL_CONFIG, false);
     if (capability.isPresent()) {
       globals = (Map<String, Object>) capability.get();
 
     } else {
-      // if GLOBAL_CONFIG does not exist, create it
+      // if it does not exist, create it
       globals = new HashMap<>();
       executor.getContext().addCapability(GLOBAL_CONFIG, () -> globals);
     }
