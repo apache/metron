@@ -336,13 +336,25 @@ public class StringFunctions {
     public Object apply(List<Object> strings) {
 
       if(strings == null || strings.size() < 2 ) {
-        throw new IllegalArgumentException("[SUBSTRING] required 2 arguments: the input and the start position (inclusive)");
+        throw new IllegalArgumentException("SUBSTRING requires (at least) 2 arguments: the input and the start position (inclusive)");
       }
-      String var = strings.get(0) == null?null: (String) strings.get(0);
-      Integer start = strings.get(1) == null?null:(Integer)strings.get(1);
+      Object varObj = strings.get(0);
+      if(varObj != null && !(varObj instanceof String)) {
+        throw new IllegalArgumentException("SUBSTRING input must be a String");
+      }
+      String var = varObj == null?null: (String) varObj;
+      Object startObj = strings.get(1);
+      if(startObj != null && !(startObj instanceof Number)) {
+        throw new IllegalArgumentException("SUBSTRING start must be an Number");
+      }
+      Integer start = startObj == null?null:((Number)startObj).intValue();
       Integer end = null;
       if(strings.size() > 2) {
-         end = strings.get(2) == null ? null : (Integer) strings.get(2);
+        Object endObj = strings.get(2);
+        if(endObj != null && !(endObj instanceof Number)) {
+          throw new IllegalArgumentException("SUBSTRING end must be an Number");
+        }
+        end = endObj == null ? null : ((Number) endObj).intValue();
       }
       if(var == null || start == null) {
         return null;

@@ -422,7 +422,25 @@ public class StringFunctionsTest {
 
   @Test(expected=ParseException.class)
   public void testSubstring_invalidEmpty() throws Exception {
-    Assert.assertEquals("metron", (String) run("SUBSTRING()", new HashMap<>()));
+    Assert.assertEquals("metron", run("SUBSTRING()", new HashMap<>()));
+  }
+
+  @Test(expected=ParseException.class)
+  public void testSubstring_invalidWrongTypeStart() throws Exception {
+    Map<String, Object> variables = ImmutableMap.of("s", "apache metron");
+    Assert.assertEquals("metron", (String) run("SUBSTRING(s, '7')", variables));
+  }
+
+  @Test(expected=ParseException.class)
+  public void testSubstring_invalidWrongTypeEnd() throws Exception {
+    Map<String, Object> variables = ImmutableMap.of("s", "apache metron");
+    Assert.assertEquals("metron", (String) run("SUBSTRING(s, 7, '9')", variables));
+  }
+
+  @Test(expected=ParseException.class)
+  public void testSubstring_invalidWrongTypeInput() throws Exception {
+    Map<String, Object> variables = ImmutableMap.of("s", 7);
+    Assert.assertEquals("metron", (String) run("SUBSTRING(s, 7, '9')", variables));
   }
 
   /**
