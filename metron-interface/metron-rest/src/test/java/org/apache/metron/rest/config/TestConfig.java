@@ -17,6 +17,14 @@
  */
 package org.apache.metron.rest.config;
 
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import kafka.admin.AdminUtils$;
 import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
@@ -26,6 +34,7 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.integration.ComponentRunner;
@@ -41,15 +50,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.web.client.RestTemplate;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 
 @Configuration
 @Profile(TEST_PROFILE)
@@ -130,6 +130,21 @@ public class TestConfig {
   @Bean
   public ConsumerFactory<String, String> createConsumerFactory() {
     return new DefaultKafkaConsumerFactory<>(kafkaConsumer(kafkaWithZKComponent(zkProperties())));
+  }
+
+  @Bean
+  public Map<String, Object> producerProperties(KafkaComponent kafkaWithZKComponent) {
+    Map<String, Object> producerConfig = new HashMap<>();
+    producerConfig.put("bootstrap.servers", kafkaWithZKComponent.getBrokerList());
+    producerConfig.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+    producerConfig.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+    producerConfig.put("request.required.acks", 1);
+    return producerConfig;
+  }
+
+  @Bean
+  public KafkaProducer kafkaProducer(KafkaComponent kafkaWithZKComponent) {
+    return new KafkaProducer<>(producerProperties(kafkaWithZKComponent));
   }
 
   @Bean

@@ -39,8 +39,7 @@ hdfs:
 
 grok:
   path:
-    temp: ./patterns/temp
-    default: /apps/metron/patterns
+    temp: /apps/metron/patterns/tmp
 
 storm:
   ui:

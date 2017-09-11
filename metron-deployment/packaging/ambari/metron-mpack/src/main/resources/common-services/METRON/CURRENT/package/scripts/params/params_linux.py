@@ -55,9 +55,8 @@ metron_jdbc_username = config['configurations']['metron-rest-env']['metron_jdbc_
 metron_jdbc_password = config['configurations']['metron-rest-env']['metron_jdbc_password']
 metron_jdbc_platform = config['configurations']['metron-rest-env']['metron_jdbc_platform']
 metron_jdbc_client_path = config['configurations']['metron-rest-env']['metron_jdbc_client_path']
-metron_temp_grok_path = config['configurations']['metron-rest-env']['metron_temp_grok_path']
-metron_default_grok_path = config['configurations']['metron-rest-env']['metron_default_grok_path']
 metron_spring_options = config['configurations']['metron-rest-env']['metron_spring_options']
+metron_escalation_topic = config['configurations']['metron-rest-env']['metron_escalation_topic']
 metron_config_path = metron_home + '/config'
 metron_zookeeper_config_dir = status_params.metron_zookeeper_config_dir
 metron_zookeeper_config_path = status_params.metron_zookeeper_config_path
@@ -130,6 +129,10 @@ if has_kafka_host:
     kafka_brokers += ':' + kafka_broker_port
 
 metron_apps_hdfs_dir = config['configurations']['metron-env']['metron_apps_hdfs_dir']
+
+# the double "format" is not an error - we are pulling in a jinja-templated param. This is a bit of a hack, but works
+# well enough until we find a better way via Ambari
+metron_temp_grok_path = format(format(config['configurations']['metron-rest-env']['metron_temp_grok_path']))
 
 metron_topic_retention = config['configurations']['metron-env']['metron_topic_retention']
 

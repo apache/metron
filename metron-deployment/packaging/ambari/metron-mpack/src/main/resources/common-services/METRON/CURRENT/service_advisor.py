@@ -43,7 +43,7 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
 
         metronParsersHost = self.getHosts(componentsList, "METRON_PARSERS")[0]
         metronEnrichmentMaster = self.getHosts(componentsList, "METRON_ENRICHMENT_MASTER")[0]
-        metronProfilerMaster = self.getHosts(componentsList, "METRON_PROFILER")[0]
+        metronProfilerHost = self.getHosts(componentsList, "METRON_PROFILER")[0]
         metronIndexingHost = self.getHosts(componentsList, "METRON_INDEXING")[0]
         metronRESTHost = self.getHosts(componentsList, "METRON_REST")[0]
 

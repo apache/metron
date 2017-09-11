@@ -30,11 +30,12 @@ kafka:
     url: ${BROKERLIST}
   security:
     protocol: ${KAFKA_SECURITY_PROTOCOL}
+  topics:
+    escalation: ${METRON_ESCALATION_TOPIC}
 
 grok:
   path:
     temp: ${METRON_TEMP_GROK_PATH}
-    default: ${METRON_DEFAULT_GROK_PATH}
 
 storm:
   ui:
