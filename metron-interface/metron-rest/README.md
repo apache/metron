@@ -369,7 +369,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * guid - GUID of the alert
   * Returns:
     * 200 - Returns the meta alerts associated with this alert
-    * 404 - Either Kafka topic is missing or contains no messages
+    * 404 - The child alert isn't found
 
 ### `POST /api/v1/metaalert/create`
   * Description: Creates a meta alert containing the provide alerts

@@ -287,6 +287,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     Map<String, Object> metaFields = new HashMap<>();
     String guid = UUID.randomUUID().toString();
     metaFields.put(Constants.GUID, guid);
+    metaFields.put(Constants.Fields.TIMESTAMP.getName(), System.currentTimeMillis());
     metaFields.put(GROUPS_FIELD, groups.toArray());
     metaFields.put(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
     MetaScores metaScores = new MetaScores(scores);

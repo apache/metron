@@ -20,6 +20,7 @@ package org.apache.metron.elasticsearch.dao;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.Constants.Fields;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MetaAlertDao;
@@ -372,6 +374,7 @@ public class ElasticsearchMetaAlertDaoTest {
     assertEquals(15.0d, actualDocument.get("sum"));
     assertEquals(2L, actualDocument.get("count"));
     assertEquals(15.0d, actualDocument.get(MetaAlertDao.THREAT_FIELD_DEFAULT));
+    assertNotNull(actualDocument.get(Fields.TIMESTAMP.getName()));
     assertArrayEquals(
         alertList.toArray(),
         (Object[]) actualDocument.get(MetaAlertDao.ALERT_FIELD)
