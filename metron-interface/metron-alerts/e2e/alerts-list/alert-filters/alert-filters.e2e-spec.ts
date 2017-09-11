@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MetronAlertsPage } from '../alerts-list.po';
+
 import {customMatchers} from '../../matchers/custom-matchers';
 import {LoginPage} from '../../login/login.po';
 import {AlertFacetsPage} from './alert-filters.po';
@@ -40,8 +40,10 @@ describe('metron-alerts facets', function() {
   });
 
   it('should display facets data', () => {
+    let facetValues = [ 'enrichm...:country 3', 'host 9', 'ip_dst_addr 8', 'ip_src_addr 2', 'source:type 1' ];
+
     expect(page.getFacetsTitle()).toEqualBcoz(['Filters'], 'for Title as Filters');
-    expect(page.getFacetsValues()).toEqual([ 'enrichm...:country 3', 'host 9', 'ip_dst_addr 8', 'ip_src_addr 2', 'source:type 1' ], 'for Facet values');
+    expect(page.getFacetsValues()).toEqual(facetValues, 'for Facet values');
   });
 
   it('should expand all facets', () => {
@@ -114,3 +116,4 @@ describe('metron-alerts facets', function() {
     expect(page.getFacetState(4)).toEqualBcoz('collapse', 'for fifth facet');
   });
 });
+

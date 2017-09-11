@@ -50,7 +50,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   alertsColumnsToDisplay: ColumnMetadata[] = [];
   selectedAlerts: Alert[] = [];
   alerts: any[] = [];
-  alertsSearchResponse: AlertsSearchResponse = new AlertsSearchResponse();
+  alertsSearchResponse: SearchResponse = new SearchResponse();
   colNumberTimerId: number;
   refreshInterval = RefreshInterval.ONE_MIN;
   refreshTimer: Subscription;
@@ -336,9 +336,10 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     }
   }
 
-  setData(results: SearchResponse) {
-    this.alerts = results.results;
-    this.pagingData.total = results.total;
+  setData(searchResponse: SearchResponse) {
+    this.alerts = searchResponse.results;
+    this.alertsSearchResponse = searchResponse;
+    this.pagingData.total = searchResponse.total;
   }
 
   showConfigureTable() {

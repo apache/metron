@@ -13,11 +13,11 @@ import {
 export class AlertFiltersComponent implements OnChanges {
 
   facetMap = new Map<string, CollapseComponentData>();
-  data:CollapseComponentData[] = [];
-  @Input() facets:Facets = new Facets();
+  data: CollapseComponentData[] = [];
+  @Input() facets: Facets = new Facets();
   @Output() facetFilterChange = new EventEmitter<any>();
 
-  ngOnChanges(changes:SimpleChanges) {
+  ngOnChanges(changes: SimpleChanges) {
     if (changes && changes['facets'] && this.facets) {
       this.prepareData();
     }
@@ -28,7 +28,7 @@ export class AlertFiltersComponent implements OnChanges {
 
     for (let key of Object.keys(this.facets)) {
       let facet = this.facets[key];
-      let facetItems:CollapseComponentDataItems[] = [];
+      let facetItems: CollapseComponentDataItems[] = [];
 
       for (let facetVal of Object.keys(facet)) {
         facetItems.push(new CollapseComponentDataItems(facetVal, facet[facetVal]));

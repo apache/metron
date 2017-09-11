@@ -33,7 +33,7 @@ import {AlertFiltersComponent} from './alert-filters/alert-filters.component';
                 ListGroupModule, CollapseModule],
     exports: [AlertsListComponent],
     declarations: [AlertFiltersComponent, AlertsListComponent],
-    providers: [AlertService],
+    providers: [SearchService],
 })
 export class AlertsListModule {
 }

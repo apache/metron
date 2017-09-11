@@ -16,7 +16,8 @@
  * limitations under the License.
  */
 export class Facets {
-  [key:string]: {
-    [key:string]:number
+  [key: string]: {
+    [key: string]: number
   }
 }
+

@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+
 import 'bootstrap';
 import {CollapseComponentData} from './collapse-component-data';
 

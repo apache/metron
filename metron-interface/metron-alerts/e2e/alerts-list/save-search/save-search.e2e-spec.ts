@@ -44,8 +44,8 @@ describe('metron-alerts Search', function() {
 
     page.clickSavedSearch();
     expect(page.getSavedSearchTitle()).toEqualBcoz('Searches', 'for saved searches title');
-    expect(page.getRecentSearchOptions()).toEqualBcoz({ 'Recent Searches': [ 'No Recent Searches yet' ] }, 'for recent search options');
-    expect(page.getSavedSearchOptions()).toEqualBcoz({ 'Saved Searches': [ 'No Saved Searches yet' ] }, 'for saved search options');
+    expect(page.getRecentSearchOptions()).toEqualBcoz({ 'Recent Searches': [ 'No Recent Searches' ] }, 'for recent search options');
+    expect(page.getSavedSearchOptions()).toEqualBcoz({ 'Saved Searches': [ 'No Saved Searches' ] }, 'for saved search options');
     page.clickCloseSavedSearch();
 
   });

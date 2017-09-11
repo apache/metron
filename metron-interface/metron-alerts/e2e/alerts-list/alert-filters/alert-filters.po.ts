@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {browser, element, by, protractor} from 'protractor';
+import {browser, element, by} from 'protractor';
 
 export class AlertFacetsPage {
 
@@ -25,7 +25,7 @@ export class AlertFacetsPage {
   getFacetsTitle() {
     return element.all(by.css('app-alert-filters .title')).getText();
   }
-  
+
   getFacetsValues() {
     return element.all(by.css('app-alert-filters metron-collapse')).getText();
   }
@@ -49,11 +49,12 @@ export class AlertFacetsPage {
     return collapsableElement.element(by.css('.list-group')).getText().then(text => {
       let facetMap = {};
       let facetValues = text.split('\n');
-      for (let i = 0; i < facetValues.length; i = i+2) {
-        facetMap[facetValues[i]] = facetValues[i+1];
+      for (let i = 0; i < facetValues.length; i = i + 2) {
+        facetMap[facetValues[i]] = facetValues[i + 1];
       }
       return facetMap;
     });
   }
-  
+
 }
+

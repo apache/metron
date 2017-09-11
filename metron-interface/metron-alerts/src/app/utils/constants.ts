@@ -21,5 +21,5 @@ export const ALERTS_SAVED_SEARCH = 'metron-alerts-saved-search';
 export const ALERTS_TABLE_METADATA = 'metron-alerts-table-metadata';
 export const ALERTS_COLUMN_NAMES = 'metron-alerts-column-names';
 
-export var DEFAULT_FACETS = ['source:type', 'ip_src_addr', 'ip_dst_addr', 'host', 'enrichments:geo:ip_dst_addr:country'];
+export let DEFAULT_FACETS = ['source:type', 'ip_src_addr', 'ip_dst_addr', 'host', 'enrichments:geo:ip_dst_addr:country'];
 export let INDEXES = ['websphere', 'snort', 'asa', 'bro', 'yaf'];
