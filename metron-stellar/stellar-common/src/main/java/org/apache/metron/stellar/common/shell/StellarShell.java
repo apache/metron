@@ -411,7 +411,8 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
       globals = (Map<String, Object>) capability.get();
 
     } else {
-      // if it does not exist, create it
+      // if it does not exist, create it.  this creates the global config for the current stellar executor
+      // session only.  this does not change the global config maintained externally in zookeeper
       globals = new HashMap<>();
       executor.getContext().addCapability(GLOBAL_CONFIG, () -> globals);
     }
