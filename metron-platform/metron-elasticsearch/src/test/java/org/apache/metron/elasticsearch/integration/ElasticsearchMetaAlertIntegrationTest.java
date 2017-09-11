@@ -58,14 +58,12 @@ public class ElasticsearchMetaAlertIntegrationTest {
       SENSOR_NAME + "_index_" + new SimpleDateFormat(DATE_FORMAT).format(new Date());
   private static final String NEW_FIELD = "new-field";
 
-  private static String metaMappingSource;
   private static IndexDao esDao;
   private static IndexDao metaDao;
   private static ElasticSearchComponent es;
 
   @BeforeClass
   public static void setup() throws Exception {
-    buildMetaMappingSource();
     // setup the client
     es = new ElasticSearchComponent.Builder()
         .withHttpPort(9211)
@@ -74,7 +72,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
     es.start();
 
     es.createIndexWithMapping(MetaAlertDao.METAALERTS_INDEX, MetaAlertDao.METAALERT_DOC,
-        metaMappingSource);
+        buildMetaMappingSource());
 
     AccessConfig accessConfig = new AccessConfig();
     Map<String, Object> globalConfig = new HashMap<String, Object>() {
@@ -99,8 +97,8 @@ public class ElasticsearchMetaAlertIntegrationTest {
     }
   }
 
-  protected static void buildMetaMappingSource() throws IOException {
-    metaMappingSource = jsonBuilder().prettyPrint()
+  protected static String buildMetaMappingSource() throws IOException {
+    return jsonBuilder().prettyPrint()
         .startObject()
         .startObject(MetaAlertDao.METAALERT_DOC)
         .startObject("properties")
@@ -117,7 +115,8 @@ public class ElasticsearchMetaAlertIntegrationTest {
         .endObject()
         .endObject()
         .endObject()
-        .endObject().string();
+        .endObject()
+        .string();
   }
 
 
