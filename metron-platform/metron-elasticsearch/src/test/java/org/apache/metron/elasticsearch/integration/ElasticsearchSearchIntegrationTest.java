@@ -50,7 +50,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    *     "long_field": { "type": "long" },
    *     "timestamp" : { "type": "date" },
    *     "latitude" : { "type": "float" },
-   *     "double_field": { "type": "double" },
+   *     "score": { "type": "double" },
    *     "is_alert": { "type": "boolean" },
    *     "location_point": { "type": "geo_point" },
    *     "bro_field": { "type": "string" },
@@ -72,7 +72,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    *     "long_field": { "type": "long" },
    *     "timestamp" : { "type": "date" },
    *     "latitude" : { "type": "float" },
-   *     "double_field": { "type": "double" },
+   *     "score": { "type": "double" },
    *     "is_alert": { "type": "boolean" },
    *     "location_point": { "type": "geo_point" },
    *     "snort_field": { "type": "integer" },
@@ -91,6 +91,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     ret.init(
             new AccessConfig() {{
               setMaxSearchResults(100);
+              setMaxSearchGroups(100);
               setGlobalConfigSupplier( () ->
                 new HashMap<String, Object>() {{
                   put("es.clustername", "metron");

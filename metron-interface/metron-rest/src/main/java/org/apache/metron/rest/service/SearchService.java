@@ -18,7 +18,8 @@
 package org.apache.metron.rest.service;
 
 import org.apache.metron.indexing.dao.search.GetRequest;
-import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
@@ -27,11 +28,11 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
 import java.util.Map;
 import java.util.Optional;
 import java.util.List;
-import java.util.Map;
 
 public interface SearchService {
 
   SearchResponse search(SearchRequest searchRequest) throws RestException;
+  GroupResponse group(GroupRequest groupRequest) throws RestException;
   Optional<Map<String, Object>> getLatest(GetRequest request) throws RestException;
   Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws RestException;
   Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws RestException;
