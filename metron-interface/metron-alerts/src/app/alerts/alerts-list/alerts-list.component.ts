@@ -20,7 +20,7 @@ import {Router, NavigationStart} from '@angular/router';
 import {Observable, Subscription} from 'rxjs/Rx';
 
 import {Alert} from '../../model/alert';
-import {AlertService} from '../../service/alert.service';
+import {SearchService} from '../../service/search.service';
 import {QueryBuilder} from './query-builder';
 import {ConfigureTableService} from '../../service/configure-table.service';
 import {WorkflowService} from '../../service/workflow.service';
@@ -35,7 +35,7 @@ import {SaveSearch} from '../../model/save-search';
 import {TableMetadata} from '../../model/table-metadata';
 import {MetronDialogBox, DialogType} from '../../shared/metron-dialog-box';
 import {AlertSearchDirective} from '../../shared/directives/alert-search.directive';
-import {AlertsSearchResponse} from '../../model/alerts-search-response';
+import {SearchResponse} from '../../model/search-response';
 import {ElasticsearchUtils} from '../../utils/elasticsearch-utils';
 
 @Component({
@@ -65,7 +65,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   queryBuilder: QueryBuilder = new QueryBuilder();
 
   constructor(private router: Router,
-              private alertsService: AlertService,
+              private searchService: SearchService,
               private configureTableService: ConfigureTableService,
               private workflowService: WorkflowService,
               private clusterMetaDataService: ClusterMetaDataService,
@@ -204,7 +204,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   onConfigRowsChange() {
-    this.alertsService.interval = this.refreshInterval;
+    this.searchService.interval = this.refreshInterval;
     this.search();
   }
 
@@ -253,26 +253,26 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   processEscalate() {
     this.workflowService.start(this.selectedAlerts).subscribe(workflowId => {
-      this.alertsService.updateAlertState(this.selectedAlerts, 'ESCALATE', workflowId).subscribe(results => {
+      this.searchService.updateAlertState(this.selectedAlerts, 'ESCALATE', workflowId).subscribe(results => {
         this.updateSelectedAlertStatus('ESCALATE');
       });
     });
   }
 
   processDismiss() {
-    this.alertsService.updateAlertState(this.selectedAlerts, 'DISMISS', '').subscribe(results => {
+    this.searchService.updateAlertState(this.selectedAlerts, 'DISMISS', '').subscribe(results => {
       this.updateSelectedAlertStatus('DISMISS');
     });
   }
 
   processOpen() {
-    this.alertsService.updateAlertState(this.selectedAlerts, 'OPEN', '').subscribe(results => {
+    this.searchService.updateAlertState(this.selectedAlerts, 'OPEN', '').subscribe(results => {
       this.updateSelectedAlertStatus('OPEN');
     });
   }
 
   processResolve() {
-    this.alertsService.updateAlertState(this.selectedAlerts, 'RESOLVE', '').subscribe(results => {
+    this.searchService.updateAlertState(this.selectedAlerts, 'RESOLVE', '').subscribe(results => {
       this.updateSelectedAlertStatus('RESOLVE');
     });
   }
@@ -313,10 +313,10 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       this.saveSearchService.saveAsRecentSearches(savedSearch).subscribe(() => {});
     }
 
-    this.alertsService.search(this.queryBuilder.searchRequest).subscribe(results => {
+    this.searchService.search(this.queryBuilder.searchRequest).subscribe(results => {
       this.setData(results);
     }, error => {
-      this.setData(new AlertsSearchResponse());
+      this.setData(new SearchResponse());
       this.metronDialogBox.showConfirmationMessage(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
     });
 
@@ -331,7 +331,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     }
   }
 
-  setData(results: AlertsSearchResponse) {
+  setData(results: SearchResponse) {
     this.alerts = results.results;
     this.pagingData.total = results.total;
   }
@@ -370,7 +370,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   tryStartPolling() {
     if (!this.pauseRefresh) {
       this.tryStopPolling();
-      this.refreshTimer = this.alertsService.pollSearch(this.queryBuilder.searchRequest).subscribe(results => {
+      this.refreshTimer = this.searchService.pollSearch(this.queryBuilder.searchRequest).subscribe(results => {
         this.setData(results);
       });
     }
@@ -383,7 +383,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   updateConfigRowsSettings() {
-    this.alertsService.interval = this.refreshInterval;
+    this.searchService.interval = this.refreshInterval;
     this.queryBuilder.setFromAndSize(this.pagingData.from, this.pagingData.size);
   }
 

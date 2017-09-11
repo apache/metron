@@ -26,14 +26,17 @@ spring:
 
 grok:
   path:
-    temp: ./
-    default: /apps/metron/patterns
+    temp: /apps/metron/patterns/tmp
 
 zookeeper:
   client:
     timeout:
       session: 10000
       connection: 10000
+
+kafka:
+  topics:
+    escalation: escalation
 
 curator:
   sleep:
@@ -49,3 +52,4 @@ index:
   dao:
   # By default, we use the ElasticsearchDao and HBaseDao for backing updates.
      impl: org.apache.metron.elasticsearch.dao.ElasticsearchDao,org.apache.metron.indexing.dao.HBaseDao
+

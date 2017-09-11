@@ -17,51 +17,46 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import static org.apache.metron.rest.MetronRestConstants.GROK_TEMP_PATH_SPRING_PROPERTY;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.when;
+
+import java.io.File;
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 import oi.thekraken.grok.api.Grok;
 import org.apache.commons.io.FileUtils;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.GrokValidation;
 import org.apache.metron.rest.service.GrokService;
+import org.apache.metron.rest.service.HdfsService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.apache.metron.rest.MetronRestConstants.GROK_TEMP_PATH_SPRING_PROPERTY;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.when;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
-
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({GrokServiceImpl.class, FileWriter.class})
 public class GrokServiceImplTest {
   @Rule
   public final ExpectedException exception = ExpectedException.none();
 
   private Environment environment;
   private Grok grok;
+  private HdfsService hdfsService;
   private GrokService grokService;
 
   @Before
   public void setUp() throws Exception {
     environment = mock(Environment.class);
     grok = mock(Grok.class);
-    grokService = new GrokServiceImpl(environment, grok);
+    hdfsService = new HdfsServiceImpl(new Configuration());
+    grokService = new GrokServiceImpl(environment, grok, hdfsService);
   }
 
   @Test
@@ -205,24 +200,9 @@ public class GrokServiceImplTest {
 
     grokService.saveTemporary(statement, "squid");
 
-    File testFile = new File("./target/user1/squid");
-    assertEquals(statement, FileUtils.readFileToString(testFile));
-    testFile.delete();
-  }
-
-  @Test
-  public void saveTemporaryShouldWrapExceptionInRestException() throws Exception {
-    exception.expect(RestException.class);
-
-    String statement = "grok statement";
-
-    Authentication authentication = mock(Authentication.class);
-    when(authentication.getName()).thenReturn("user1");
-    SecurityContextHolder.getContext().setAuthentication(authentication);
-    when(environment.getProperty(GROK_TEMP_PATH_SPRING_PROPERTY)).thenReturn("./target");
-    whenNew(FileWriter.class).withParameterTypes(File.class).withArguments(any()).thenThrow(new IOException());
-
-    grokService.saveTemporary(statement, "squid");
+    File testRoot = new File("./target/user1");
+    assertEquals(statement, FileUtils.readFileToString(new File(testRoot, "squid"), Charset.forName("utf-8")));
+    testRoot.delete();
   }
 
   @Test

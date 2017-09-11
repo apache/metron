@@ -77,7 +77,8 @@ class ParserCommands:
                                    action="create_on_execute",
                                    owner=self.__params.metron_user,
                                    mode=0755,
-                                   source=self.__params.local_grok_patterns_dir)
+                                   source=self.__params.local_grok_patterns_dir,
+                                   recursive_chown = True)
 
         Logger.info("Done initializing parser configuration")
 

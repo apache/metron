@@ -17,8 +17,16 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import static org.apache.metron.rest.MetronRestConstants.GROK_CLASS_NAME;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
@@ -34,15 +42,6 @@ import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.apache.metron.rest.MetronRestConstants.GROK_CLASS_NAME;
-
 @Service
 public class SensorParserConfigServiceImpl implements SensorParserConfigService {
 
@@ -53,7 +52,8 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
   private GrokService grokService;
 
   @Autowired
-  public SensorParserConfigServiceImpl(ObjectMapper objectMapper, CuratorFramework client, GrokService grokService) {
+  public SensorParserConfigServiceImpl(ObjectMapper objectMapper, CuratorFramework client,
+      GrokService grokService) {
     this.objectMapper = objectMapper;
     this.client = client;
     this.grokService = grokService;
@@ -64,7 +64,8 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
   @Override
   public SensorParserConfig save(SensorParserConfig sensorParserConfig) throws RestException {
     try {
-      ConfigurationsUtils.writeSensorParserConfigToZookeeper(sensorParserConfig.getSensorTopic(), objectMapper.writeValueAsString(sensorParserConfig).getBytes(), client);
+      ConfigurationsUtils.writeSensorParserConfigToZookeeper(sensorParserConfig.getSensorTopic(),
+          objectMapper.writeValueAsString(sensorParserConfig).getBytes(), client);
     } catch (Exception e) {
       throw new RestException(e);
     }
@@ -126,7 +127,8 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
       Set<Class<? extends MessageParser>> parserClasses = getParserClasses();
       parserClasses.forEach(parserClass -> {
         if (!"BasicParser".equals(parserClass.getSimpleName())) {
-          availableParsers.put(parserClass.getSimpleName().replaceAll("Basic|Parser", ""), parserClass.getName());
+          availableParsers.put(parserClass.getSimpleName().replaceAll("Basic|Parser", ""),
+              parserClass.getName());
         }
       });
     }
@@ -154,20 +156,23 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
     } else {
       MessageParser<JSONObject> parser;
       try {
-        parser = (MessageParser<JSONObject>) Class.forName(sensorParserConfig.getParserClassName()).newInstance();
+        parser = (MessageParser<JSONObject>) Class.forName(sensorParserConfig.getParserClassName())
+            .newInstance();
       } catch (Exception e) {
         throw new RestException(e.toString(), e.getCause());
       }
-      File temporaryGrokFile = null;
+      Path temporaryGrokPath = null;
       if (isGrokConfig(sensorParserConfig)) {
-        temporaryGrokFile = grokService.saveTemporary(parseMessageRequest.getGrokStatement(), parseMessageRequest.getSensorParserConfig().getSensorTopic());
-        sensorParserConfig.getParserConfig().put(MetronRestConstants.GROK_PATH_KEY, temporaryGrokFile.toString());
+        String name = parseMessageRequest.getSensorParserConfig().getSensorTopic();
+        temporaryGrokPath = grokService.saveTemporary(parseMessageRequest.getGrokStatement(), name);
+        sensorParserConfig.getParserConfig()
+            .put(MetronRestConstants.GROK_PATH_KEY, new Path(temporaryGrokPath, name).toString());
       }
       parser.configure(sensorParserConfig.getParserConfig());
       parser.init();
       JSONObject results = parser.parse(parseMessageRequest.getSampleData().getBytes()).get(0);
-      if (isGrokConfig(sensorParserConfig) && temporaryGrokFile != null) {
-        temporaryGrokFile.delete();
+      if (isGrokConfig(sensorParserConfig) && temporaryGrokPath != null) {
+        grokService.deleteTemporary();
       }
       return results;
     }

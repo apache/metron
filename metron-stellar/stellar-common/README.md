@@ -110,8 +110,8 @@ In the core language functions, we support basic functional programming primitiv
 | [ `BLOOM_EXISTS`](#bloom_exists)                                                                   |
 | [ `BLOOM_INIT`](#bloom_init)                                                                       |
 | [ `BLOOM_MERGE`](#bloom_merge)                                                                     |
-| [ `CEILING`](#ceiling)                                                           |
-| [ `COS`](#cos)                                                                   |
+| [ `CEILING`](#ceiling)                                                                             |
+| [ `COS`](#cos)                                                                                     |
 | [ `CHOP`](#chop)                                                                                   |
 | [ `CHOMP`](#chomp)                                                                                 |
 | [ `COUNT_MATCHES`](#count_matches)                                                                 |
@@ -126,20 +126,26 @@ In the core language functions, we support basic functional programming primitiv
 | [ `ENDS_WITH`](#ends_with)                                                                         |
 | [ `ENRICHMENT_EXISTS`](#enrichment_exists)                                                         |
 | [ `ENRICHMENT_GET`](#enrichment_get)                                                               |
-| [ `EXP`](#exp)                                                                   |
+| [ `EXP`](#exp)                                                                                     |
 | [ `FILL_LEFT`](#fill_left)                                                                         |
 | [ `FILL_RIGHT`](#fill_right)                                                                       |
 | [ `FILTER`](#filter)                                                                               |
-| [ `FLOOR`](#floor)                                                               |
-| [ `FUZZY_LANGS`](#fuzzy_langs)                                                   |
-| [ `FUZZY_SCORE`](#fuzzy_score)                                                   |
+| [ `FLOOR`](#floor)                                                                                 |
+| [ `FUZZY_LANGS`](#fuzzy_langs)                                                                     |
+| [ `FUZZY_SCORE`](#fuzzy_score)                                                                     |
 | [ `FORMAT`](#format)                                                                               |
 | [ `GEO_GET`](#geo_get)                                                                             |
+| [ `GEOHASH_CENTROID`](#geohash_centroid)                                                           |
+| [ `GEOHASH_DIST`](#geohash_dist)                                                                   |
+| [ `GEOHASH_FROM_LATLONG`](#geohash_from_latlong)                                                   |
+| [ `GEOHASH_FROM_LOC`](#geohash_from_loc)                                                           |
+| [ `GEOHASH_MAX_DIST`](#geohash_max_dist)                                                           |
+| [ `GEOHASH_TO_LATLONG`](#geohash_to_latlong)                                                       |
 | [ `GET`](#get)                                                                                     |
 | [ `GET_FIRST`](#get_first)                                                                         |
 | [ `GET_LAST`](#get_last)                                                                           |
-| [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)                                           |
-| [ `HASH`](#hash)                                                                           |
+| [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)                                             |
+| [ `HASH`](#hash)                                                                                   |
 | [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality)                   |
 | [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
 | [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)                               |
@@ -160,15 +166,20 @@ In the core language functions, we support basic functional programming primitiv
 | [ `KAFKA_TAIL`](#kafka_tail)                                                                       |
 | [ `LENGTH`](#length)                                                                               |
 | [ `LIST_ADD`](#list_add)                                                                           |
-| [ `LOG2`](#log2)                                                                               |
-| [ `LOG10`](#log10)                                                                               |
-| [ `LN`](#ln)                                                                               |
+| [ `LOG2`](#log2)                                                                                   |
+| [ `LOG10`](#log10)                                                                                 |
+| [ `LN`](#ln)                                                                                       |
 | [ `MAAS_GET_ENDPOINT`](#maas_get_endpoint)                                                         |
 | [ `MAAS_MODEL_APPLY`](#maas_model_apply)                                                           |
 | [ `MAP`](#map)                                                                                     |
 | [ `MAP_EXISTS`](#map_exists)                                                                       |
 | [ `MONTH`](#month)                                                                                 |
 | [ `PARSE_JSON_STRING`](#parse_json_string)                                                         |
+| [ `MULTISET_ADD`](#multiset_add)                                                                   |
+| [ `MULTISET_INIT`](#multiset_init)                                                                 |
+| [ `MULTISET_MERGE`](#multiset_merge)                                                               |
+| [ `MULTISET_REMOVE`](#multiset_remove)                                                             |
+| [ `MULTISET_TO_SET`](#multiset_to_set)                                                             |
 | [ `PREPEND_IF_MISSING`](#prepend_if_missing)                                                       |
 | [ `PROFILE_GET`](#profile_get)                                                                     |
 | [ `PROFILE_FIXED`](#profile_fixed)                                                                 |
@@ -176,11 +187,15 @@ In the core language functions, we support basic functional programming primitiv
 | [ `PROTOCOL_TO_NAME`](#protocol_to_name)                                                           |
 | [ `REDUCE`](#reduce)                                                                               |
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
-| [ `REGEXP_GROUP_VAL`](#regexp_group_val)                                                                   |
-| [ `ROUND`](#round)                                                                   |
+| [ `REGEXP_GROUP_VAL`](#regexp_group_val)                                                           |
+| [ `ROUND`](#round)                                                                                 |
+| [ `SET_ADD`](#set_add)                                                                             |
+| [ `SET_INIT`](#set_init)                                                                           |
+| [ `SET_MERGE`](#set_merge)                                                                         |
+| [ `SET_REMOVE`](#set_remove)                                                                       |
 | [ `SPLIT`](#split)                                                                                 |
-| [ `SIN`](#sin)                                                                                 |
-| [ `SQRT`](#sqrt)                                                                                 |
+| [ `SIN`](#sin)                                                                                     |
+| [ `SQRT`](#sqrt)                                                                                   |
 | [ `STARTS_WITH`](#starts_with)                                                                     |
 | [ `STATS_ADD`](../../metron-analytics/metron-statistics#stats_add)                                 |
 | [ `STATS_BIN`](../../metron-analytics/metron-statistics#stats_bin)                                 |
@@ -202,9 +217,10 @@ In the core language functions, we support basic functional programming primitiv
 | [ `STATS_SUM_SQUARES`](../../metron-analytics/metron-statistics#stats_sum_squares)                 |
 | [ `STATS_VARIANCE`](../../metron-analytics/metron-statistics#stats_variance)                       |
 | [ `STRING_ENTROPY`](#string_entropy)                                                               |
+| [ `SUBSTRING`](#substring)                                                                         |
 | [ `SYSTEM_ENV_GET`](#system_env_get)                                                               |
 | [ `SYSTEM_PROPERTY_GET`](#system_property_get)                                                     |
-| [ `TAN`](#tan)                                                                         |
+| [ `TAN`](#tan)                                                                                     |
 | [ `TO_DOUBLE`](#to_double)                                                                         |
 | [ `TO_EPOCH_TIMESTAMP`](#to_epoch_timestamp)                                                       |
 | [ `TO_FLOAT`](#to_float)                                                                           |
@@ -221,8 +237,8 @@ In the core language functions, we support basic functional programming primitiv
 | [ `WEEK_OF_MONTH`](#week_of_month)                                                                 |
 | [ `WEEK_OF_YEAR`](#week_of_year)                                                                   |
 | [ `YEAR`](#year)                                                                                   |
-| [ `ZIP`](#zip)                                                                                   |
-| [ `ZIP_JAGGED`](#zip_jagged)                                                                                   |
+| [ `ZIP`](#zip)                                                                                     |
+| [ `ZIP_JAGGED`](#zip_jagged)                                                                       |
 
 ### `APPEND_IF_MISSING`
   * Description: Appends the suffix to the end of the string if the string does not already end with any of the suffixes.
@@ -435,6 +451,50 @@ In the core language functions, we support basic functional programming primitiv
     * fields - Optional list of GeoIP fields to grab. Options are locID, country, city postalCode, dmaCode, latitude, longitude, location_point
   * Returns: If a Single field is requested a string of the field, If multiple fields a map of string of the fields, and null otherwise
 
+### `GEOHASH_CENTROID`
+  * Description: Compute the centroid (geographic midpoint or center of gravity) of a set of [geohashes](https://en.wikipedia.org/wiki/Geohash)
+  * Input:
+    * hashes - A collection of [geohashes](https://en.wikipedia.org/wiki/Geohash) or a map associating geohashes to numeric weights
+    * character_precision? - The number of characters to use in the hash. Default is 12
+  * Returns: The geohash of the centroid
+
+### `GEOHASH_DIST`
+  * Description: Compute the distance between [geohashes](https://en.wikipedia.org/wiki/Geohash)
+  * Input:
+    * hash1 - The first point as a geohash
+    * hash2 - The second point as a geohash
+    * strategy? - The great circle distance strategy to use.  One of [HAVERSINE](https://en.wikipedia.org/wiki/Haversine_formula), [LAW_OF_COSINES](https://en.wikipedia.org/wiki/Law_of_cosines#Using_the_distance_formula), or [VICENTY](https://en.wikipedia.org/wiki/Vincenty%27s_formulae).  Haversine is default.
+  * Returns: The distance in kilometers between the hashes.
+
+### `GEOHASH_FROM_LATLONG`
+  * Description: Compute [geohash](https://en.wikipedia.org/wiki/Geohash) given a lat/long
+  * Input:
+    * latitude - The latitude
+    * longitude - The longitude
+    * character_precision? - The number of characters to use in the hash. Default is 12
+  * Returns: A [geohash](https://en.wikipedia.org/wiki/Geohash) of the lat/long
+
+### `GEOHASH_FROM_LOC`
+  * Description: Compute [geohash](https://en.wikipedia.org/wiki/Geohash) given a geo enrichment location
+  * Input:
+    * map - the latitude and logitude in a map (the output of [GEO_GET](#geo_get) )
+    * longitude - The longitude
+    * character_precision? - The number of characters to use in the hash. Default is `12`
+  * Returns: A [geohash](https://en.wikipedia.org/wiki/Geohash) of the location
+
+### `GEOHASH_MAX_DIST`
+  * Description: Compute the maximum distance among a list of [geohashes](https://en.wikipedia.org/wiki/Geohash)
+  * Input:
+    * hashes - A set of [geohashes](https://en.wikipedia.org/wiki/Geohash)
+    * strategy? - The great circle distance strategy to use. One of [HAVERSINE](https://en.wikipedia.org/wiki/Haversine_formula), [LAW_OF_COSINES](https://en.wikipedia.org/wiki/Law_of_cosines#Using_the_distance_formula), or [VICENTY](https://en.wikipedia.org/wiki/Vincenty%27s_formulae).  Haversine is default.
+  * Returns: The maximum distance in kilometers between any two locations
+
+### `GEOHASH_TO_LATLONG`
+  * Description: Compute the lat/long of a given [geohash](https://en.wikipedia.org/wiki/Geohash)
+  * Input:
+    * hash - The [geohash](https://en.wikipedia.org/wiki/Geohash)
+  * Returns: A map containing the latitude and longitude of the hash (keys "latitude" and "longitude")
+
 ### `GET`
   * Description: Returns the i'th element of the list 
   * Input:
@@ -503,7 +563,7 @@ In the core language functions, we support basic functional programming primitiv
   * Description: Returns true if the passed string is encoded in one of the supported encodings and false if otherwise.
   * Input:
       * string - The string to test
-        * encoding - The name of the encoding as string.  See [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings).
+      * encoding - The name of the encoding as string.  See [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings).
   * Returns: True if the passed string is encoded in one of the supported encodings and false if otherwise.
 
 ### `IS_INTEGER`
@@ -647,6 +707,38 @@ In the core language functions, we support basic functional programming primitiv
     * string - The JSON string to be parsed
   * Returns: A parsed JSON object 
 
+### `MULTISET_ADD`
+  * Description: Adds to a multiset, which is a map associating objects to their instance counts.
+  * Input:
+    * set - The multiset to add to
+    * o - object to add to multiset
+  * Returns: A multiset
+
+### `MULTISET_INIT`
+  * Description: Creates an empty multiset, which is a map associating objects to their instance counts.
+  * Input:
+    * input? - An initialization of the multiset
+  * Returns: A multiset
+
+### `MULTISET_MERGE`
+  * Description: Merges a list of multisets, which is a map associating objects to their instance counts.
+  * Input:
+    * sets - A collection of multisets to merge
+  * Returns: A multiset
+
+### `MULTISET_REMOVE`
+  * Description: Removes from a multiset, which is a map associating objects to their instance counts.
+  * Input:
+    * set - The multiset to add to
+    * o - object to remove from multiset
+  * Returns: A multiset
+
+### `MULTISET_TO_SET`
+  * Description: Create a set out of a multiset, which is a map associating objects to their instance counts.
+  * Input:
+    * multiset - The multiset to convert.
+  * Returns: The set of objects in the multiset ignoring multiplicity
+
 ### `PREPEND_IF_MISSING`
   * Description: Prepends the prefix to the start of the string if the string does not already start with any of the prefixes.
   * Input:
@@ -716,6 +808,32 @@ In the core language functions, we support basic functional programming primitiv
     * number - The number to round
   * Returns: The nearest integer (based on half-up rounding).
 
+### `SET_ADD`
+  * Description: Adds to a set
+  * Input:
+    * set - The set to add to
+    * o - object to add to set
+  * Returns: A Set
+
+### `SET_INIT`
+  * Description: Creates an new set
+  * Input:
+    * input? - An initialization of the set
+  * Returns: A Set
+
+### `SET_MERGE`
+  * Description: Merges a list of sets
+  * Input:
+    * sets - A collection of sets to merge
+  * Returns: A Set
+
+### `SET_REMOVE`
+  * Description: Removes from a set
+  * Input:
+    * set - The set to add to
+    * o - object to add to set
+  * Returns: A Set
+
 ### `SIN`
   * Description: Returns the sine of a number.
   * Input:
@@ -759,6 +877,14 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * key - Property to get the value for
   * Returns: String
+
+### `SUBSTRING`
+  * Description: Returns the substring of a string
+  * Input:
+    * input - The string to take the substring of
+    * start - The starting position (`0`-based and inclusive)
+    * end? - The ending position (`0`-based and exclusive)
+  * Returns: The substring of the input
 
 ### `TAN`
   * Description: Returns the tangent of a number.

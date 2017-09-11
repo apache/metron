@@ -30,7 +30,7 @@ var favicon     = require('serve-favicon');
 var proxy       = require('http-proxy-middleware');
 var argv        = require('optimist')
                   .demand(['p', 'r'])
-                  .usage('Usage: server.js -p [port]')
+                  .usage('Usage: alerts-server-e2e.js -p [port]')
                   .describe('p', 'Port to run metron alerts ui')
                   .describe('r', 'Url where metron rest application is available')
                   .argv;
@@ -40,7 +40,7 @@ var metronUIAddress = '';
 var ifaces = os.networkInterfaces();
 var restUrl =  argv.r || argv.resturl;
 var conf = {
-  "elastic": {
+  "restapi": {
     "target": restUrl,
     "secure": false
   }
@@ -134,23 +134,27 @@ var clusterState = function(req, res){
 
 
 app.use(compression());
-app.use(bodyParser.json());
+
 app.use(favicon(path.join(__dirname, 'dist/favicon.ico')));
 app.use(serveStatic(path.join(__dirname, 'dist'), {
   maxAge: '1d',
   setHeaders: setCustomCacheControl
 }));
 
-app.use('/api/v1/user', proxy(conf.elastic));
-app.use('/logout', proxy(conf.elastic));
-app.post('/api/v1/search/search', searchResult);
-app.use('/_cluster', clusterState);
+app.use('/logout', proxy(conf.restapi));
+app.use('/api/v1/user', proxy(conf.restapi));
+app.use('/api/v1/search/findOne', proxy(conf.restapi));
+app.use('/api/v1/search/column/metadata', proxy(conf.restapi));
+
 app.get('/alerts-list', indexHTML);
 app.get('', indexHTML);
+
+app.use(bodyParser.json());
+app.post('/api/v1/search/search', searchResult);
+
 app.use(function(req, res, next){
   res.status(404).sendStatus(304);
 });
-
 
 app.listen(port, function(){
   console.log("Metron alerts ui is listening on " + metronUIAddress);

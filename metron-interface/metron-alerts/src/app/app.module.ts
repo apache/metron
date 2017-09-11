@@ -36,7 +36,7 @@ import {ConfigureRowsModule} from './alerts/configure-rows/configure-rows.module
 import {SwitchModule} from './shared/switch/switch.module';
 import {ColumnNamesService} from './service/column-names.service';
 import {DataSource} from './service/data-source';
-import {RestApiImpl} from './service/rest-api-impl';
+import {ElasticSearchLocalstorageImpl} from './service/elasticsearch-localstorage-impl';
 import {LoginModule} from './login/login.module';
 import {AuthGuard} from './shared/auth-guard';
 import {AuthenticationService} from './service/authentication.service';
@@ -67,7 +67,7 @@ export function initConfig(config: ColumnNamesService) {
     SwitchModule
   ],
   providers: [{ provide: APP_INITIALIZER, useFactory: initConfig, deps: [ColumnNamesService], multi: true },
-              { provide: DataSource, useClass: RestApiImpl },
+              { provide: DataSource, useClass: ElasticSearchLocalstorageImpl },
               AuthenticationService,
               AuthGuard,
               LoginGuard,

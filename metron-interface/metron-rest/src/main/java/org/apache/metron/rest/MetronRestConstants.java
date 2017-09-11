@@ -26,7 +26,6 @@ public class MetronRestConstants {
   public static final String DOCKER_PROFILE = "docker";
   public static final String CSRF_ENABLE_PROFILE = "csrf-enable";
 
-  public static final String GROK_DEFAULT_PATH_SPRING_PROPERTY = "grok.path.default";
   public static final String GROK_TEMP_PATH_SPRING_PROPERTY = "grok.path.temp";
   public static final String GROK_CLASS_NAME = GrokParser.class.getName();
   public static final String GROK_PATH_KEY = "grokPath";
@@ -50,6 +49,7 @@ public class MetronRestConstants {
   public static final String CURATOR_MAX_RETRIES = "curator.max.retries";
 
   public static final String KAFKA_BROKER_URL_SPRING_PROPERTY = "kafka.broker.url";
+  public static final String KAFKA_TOPICS_ESCALATION_PROPERTY = "kafka.topics.escalation";
 
   public static final String KERBEROS_ENABLED_SPRING_PROPERTY = "kerberos.enabled";
   public static final String KERBEROS_PRINCIPLE_SPRING_PROPERTY = "kerberos.principal";

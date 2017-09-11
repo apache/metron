@@ -81,7 +81,15 @@ public class ConfigurationFunctionsTest {
       "parserConfig" : { },
       "fieldTransformations" : [ ],
       "readMetadata":false,
-      "mergeMetadata":false
+      "mergeMetadata":false,
+      "parserParallelism" : 1,
+      "errorWriterParallelism" : 1,
+      "spoutNumTasks" : 1,
+      "stormConfig" : {},
+      "errorWriterNumTasks":1,
+      "spoutConfig":{},
+      "parserNumTasks":1,
+      "spoutParallelism":1
     }
    */
   @Multiline
