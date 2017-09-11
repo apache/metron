@@ -410,4 +410,24 @@ public class ElasticsearchMetaAlertDaoTest {
     createRequest.setGuidToIndices(guidsToGroups);
     emaDao.createMetaAlert(createRequest);
   }
+
+  @Test
+  public void testCalculateMetaScores() {
+    List<Map<String, Object>> alertList = new ArrayList<>();
+    Map<String, Object> alertMap = new HashMap<>();
+    alertMap.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
+    alertList.add(alertMap);
+    Map<String, Object> docMap = new HashMap<>();
+    docMap.put(MetaAlertDao.ALERT_FIELD, alertList);
+
+    Document doc = new Document(docMap, "guid", "metaalert", 0L);
+
+    List<Double> scores = new ArrayList<>();
+    scores.add(10.0d);
+    MetaScores expected = new MetaScores(scores);
+
+    ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();
+    MetaScores actual = metaAlertDao.calculateMetaScores(doc);
+    assertEquals(expected.getMetaScores(), actual.getMetaScores());
+  }
 }
