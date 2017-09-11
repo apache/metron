@@ -1,4 +1,5 @@
 import {SortField} from './sort-field';
+import {INDEXES} from '../utils/constants';
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,7 +20,7 @@ import {SortField} from './sort-field';
 export class SearchRequest {
   // _source: string[]; //TODO: This needs to be removed
   from: number;
-  indices: string[] = ['websphere', 'snort', 'asa', 'bro', 'yaf'];
+  indices: string[] = INDEXES;
   query: string;
   size: number;
   sort: SortField[];

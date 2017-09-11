@@ -43,6 +43,8 @@ import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.metaalert.MetaScores;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
@@ -361,6 +363,11 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   public Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws
       IOException {
     return indexDao.getCommonColumnMetadata(indices);
+  }
+
+  @Override
+  public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
+    return indexDao.group(groupRequest);
   }
 
   /**

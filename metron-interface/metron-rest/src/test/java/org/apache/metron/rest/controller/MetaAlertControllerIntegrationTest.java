@@ -67,11 +67,11 @@ public class MetaAlertControllerIntegrationTest extends DaoControllerTest {
 
   /**
    {
-     "guidToIndices" : {
-       "bro_1":"bro_index_2017.01.01.01",
-       "snort_2":"snort_index_2017.01.01.01"
-     },
-     "groups" : ["group_one", "group_two"]
+   "guidToIndices" : {
+   "bro_1":"bro_index_2017.01.01.01",
+   "snort_2":"snort_index_2017.01.01.01"
+   },
+   "groups" : ["group_one", "group_two"]
    }
    */
   @Multiline

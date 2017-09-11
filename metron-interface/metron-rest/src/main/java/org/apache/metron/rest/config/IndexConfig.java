@@ -17,6 +17,8 @@
  */
 package org.apache.metron.rest.config;
 
+import static org.apache.metron.rest.MetronRestConstants.INDEX_DAO_IMPL;
+
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -30,10 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-
-
-import static org.apache.metron.rest.MetronRestConstants.INDEX_DAO_IMPL;
-import static org.apache.metron.rest.MetronRestConstants.META_DAO_IMPL;
 
 @Configuration
 public class IndexConfig {
@@ -54,11 +52,13 @@ public class IndexConfig {
     try {
       String hbaseProviderImpl = environment.getProperty(MetronRestConstants.INDEX_HBASE_TABLE_PROVIDER_IMPL, String.class, null);
       String indexDaoImpl = environment.getProperty(MetronRestConstants.INDEX_DAO_IMPL, String.class, null);
-      int searchMaxResults = environment.getProperty(MetronRestConstants.SEARCH_MAX_RESULTS, Integer.class, -1);
+      int searchMaxResults = environment.getProperty(MetronRestConstants.SEARCH_MAX_RESULTS, Integer.class, 1000);
+      int searchMaxGroups = environment.getProperty(MetronRestConstants.SEARCH_MAX_GROUPS, Integer.class, 1000);
       String metaDaoImpl = environment.getProperty(MetronRestConstants.META_DAO_IMPL, String.class, null);
       String metaDaoSort = environment.getProperty(MetronRestConstants.META_DAO_SORT, String.class, null);
       AccessConfig config = new AccessConfig();
       config.setMaxSearchResults(searchMaxResults);
+      config.setMaxSearchGroups(searchMaxGroups);
       config.setGlobalConfigSupplier(() -> {
         try {
           return globalConfigService.get();

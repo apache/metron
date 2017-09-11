@@ -31,4 +31,6 @@ public interface HdfsService {
     List<String> list(Path path) throws RestException;
 
     boolean delete(Path path, boolean recursive) throws RestException;
+
+    boolean mkdirs(Path path) throws RestException;
  }

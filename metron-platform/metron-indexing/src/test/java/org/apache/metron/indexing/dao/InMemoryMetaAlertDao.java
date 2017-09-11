@@ -32,6 +32,8 @@ import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.metaalert.MetaScores;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
@@ -68,6 +70,11 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   @Override
   public SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
     return indexDao.search(searchRequest);
+  }
+
+  @Override
+  public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
+    return indexDao.group(groupRequest);
   }
 
   @Override

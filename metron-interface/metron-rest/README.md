@@ -203,9 +203,11 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/metaalert/searchByAlert`](#get-apiv1metaalertsearchbyalert)|
 | [ `GET /api/v1/metaalert/create`](#get-apiv1metaalertcreate)|
 | [ `GET /api/v1/search/search`](#get-apiv1searchsearch)|
+| [ `POST /api/v1/search/search`](#get-apiv1searchsearch)|
+| [ `POST /api/v1/search/group`](#get-apiv1searchgroup)|
 | [ `GET /api/v1/search/findOne`](#get-apiv1searchfindone)|
-| [ `GET /api/v1/search/search`](#get-apiv1searchcolumnmetadata)|
-| [ `GET /api/v1/search/search`](#get-apiv1searchcolumnmetadatacommon)|
+| [ `GET /api/v1/search/column/metadata`](#get-apiv1searchcolumnmetadata)|
+| [ `GET /api/v1/search/column/metadata/common`](#get-apiv1searchcolumnmetadatacommon)|
 | [ `GET /api/v1/sensor/enrichment/config`](#get-apiv1sensorenrichmentconfig)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available/enrichments`](#get-apiv1sensorenrichmentconfiglistavailableenrichments)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available/threat/triage/aggregators`](#get-apiv1sensorenrichmentconfiglistavailablethreattriageaggregators)|
@@ -378,6 +380,24 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - The meta alert was created
 
+### `POST /api/v1/search/search`
+  * Description: Searches the indexing store
+  * Input:
+      * searchRequest - Search request
+  * Returns:
+    * 200 - Search response
+    
+### `POST /api/v1/search/group`
+  * Description: Searches the indexing store and returns field groups. Groups are hierarchical and nested in the order the fields appear in the 'groups' request parameter. The default sorting within groups is by count descending.  A groupOrder type of count will sort based on then number of documents in a group while a groupType of term will sort by the groupBy term.
+  * Input:
+      * groupRequest - Group request
+        * indices - list of indices to search
+        * query - lucene query
+        * scoreField - field used to compute a total score for each group
+        * groups - List of groups (field name and sort order) 
+  * Returns:
+    * 200 - Group response
+    
 ### `GET /api/v1/search/findOne`
   * Description: Returns latest document for a guid and sensor
   * Input:
@@ -394,13 +414,6 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Document representing the output
     * 404 - Document with UUID and sensor type not found
-
-### `GET /api/v1/search/search`
-  * Description: Searches the indexing store
-  * Input:
-      * searchRequest - Search request
-  * Returns:
-    * 200 - Search results
     
 ### `GET /api/v1/search/column/metadata`
   * Description: Get column metadata for each index in the list of indicies

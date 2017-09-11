@@ -64,6 +64,7 @@ public class SourceHandler {
     this.rotationPolicy = rotationPolicy;
     this.syncPolicy = syncPolicy;
     this.fileNameFormat = fileNameFormat;
+    this.cleanupCallback = cleanupCallback;
     initialize();
   }
 
@@ -71,12 +72,26 @@ public class SourceHandler {
   protected void handle(JSONObject message, String sensor, WriterConfiguration config, SyncPolicyCreator syncPolicyCreator) throws IOException {
     byte[] bytes = (message.toJSONString() + "\n").getBytes();
     synchronized (this.writeLock) {
-      out.write(bytes);
+      try {
+        out.write(bytes);
+      } catch (IOException writeException) {
+        LOG.warn("IOException while writing output", writeException);
+        // If the stream is closed, attempt to rotate the file and try again, hoping it's transient
+        if (writeException.getMessage().contains("Stream Closed")) {
+          LOG.warn("Output Stream was closed. Attempting to rotate file and continue");
+          rotateOutputFile();
+          // If this write fails, the exception will be allowed to bubble up.
+          out.write(bytes);
+        } else {
+          throw writeException;
+        }
+      }
       this.offset += bytes.length;
 
       if (this.syncPolicy.mark(null, this.offset)) {
         if (this.out instanceof HdfsDataOutputStream) {
-          ((HdfsDataOutputStream) this.out).hsync(EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH));
+          ((HdfsDataOutputStream) this.out)
+              .hsync(EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH));
         } else {
           this.out.hsync();
         }
@@ -146,7 +161,7 @@ public class SourceHandler {
     return path;
   }
 
-  private void closeOutputFile() throws IOException {
+  protected void closeOutputFile() throws IOException {
     this.out.close();
   }
 

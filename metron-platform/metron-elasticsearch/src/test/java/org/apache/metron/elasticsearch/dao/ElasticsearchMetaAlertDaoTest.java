@@ -41,6 +41,8 @@ import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaScores;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
@@ -227,6 +229,11 @@ public class ElasticsearchMetaAlertDaoTest {
     IndexDao dao = new IndexDao() {
       @Override
       public SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
+        return null;
+      }
+
+      @Override
+      public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
         return null;
       }
 

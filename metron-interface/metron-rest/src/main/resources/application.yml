@@ -26,8 +26,7 @@ spring:
 
 grok:
   path:
-    temp: ./
-    default: /apps/metron/patterns
+    temp: /apps/metron/patterns/tmp
 
 zookeeper:
   client:
@@ -48,6 +47,7 @@ curator:
 search:
   max:
     results: 1000
+    groups: 1000
 
 index:
   dao:

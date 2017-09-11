@@ -100,6 +100,7 @@ required_configurations:
       storm_rest_addr: "http://{{ groups.ambari_slave[1] }}:8744"
       es_hosts: "{{ groups.web[0] }},{{ groups.search | join(',') }}"
       zeppelin_server_url: "{{ groups.zeppelin[0] }}"
+  - metron-rest-env:
       metron_jdbc_driver: "org.h2.Driver"
       metron_jdbc_url: "jdbc:h2:file:~/metrondb"
       metron_jdbc_username: "root"

@@ -17,7 +17,6 @@
  */
 package org.apache.metron.indexing.dao;
 
-import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 
 import java.util.HashMap;
@@ -26,6 +25,7 @@ import java.util.function.Supplier;
 
 public class AccessConfig {
   private Integer maxSearchResults;
+  private Integer maxSearchGroups;
   private Supplier<Map<String, Object>> globalConfigSupplier;
   private Map<String, String> optionalSettings = new HashMap<>();
   private TableProvider tableProvider = null;
@@ -52,6 +52,18 @@ public class AccessConfig {
 
   public void setMaxSearchResults(Integer maxSearchResults) {
     this.maxSearchResults = maxSearchResults;
+  }
+
+  /**
+   * The maximum search groups.
+   * @return
+   */
+  public Integer getMaxSearchGroups() {
+    return maxSearchGroups;
+  }
+
+  public void setMaxSearchGroups(Integer maxSearchGroups) {
+    this.maxSearchGroups = maxSearchGroups;
   }
 
   /**
