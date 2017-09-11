@@ -30,10 +30,9 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.StellarFunctionInfo;
 import org.apache.metron.stellar.common.StellarAssignment;
 import org.apache.metron.stellar.common.utils.JSONUtils;
+import org.apache.metron.stellar.dsl.StellarFunctionInfo;
 import org.jboss.aesh.complete.CompleteOperation;
 import org.jboss.aesh.complete.Completion;
 import org.jboss.aesh.console.AeshConsoleCallback;
@@ -51,12 +50,17 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
+import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
 
 /**
  * A REPL environment for Stellar.
@@ -90,6 +94,9 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
   public static final String MAGIC_VARS = MAGIC_PREFIX + "vars";
   public static final String DOC_PREFIX = "?";
   public static final String STELLAR_PROPERTIES_FILENAME = "stellar.properties";
+  public static final String MAGIC_GLOBALS = MAGIC_PREFIX + "globals";
+  public static final String MAGIC_DEFINE = MAGIC_PREFIX + "define";
+  public static final String MAGIC_UNDEFINE = MAGIC_PREFIX + "undefine";
 
   private StellarExecutor executor;
 
@@ -241,7 +248,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     // welcome message and print globals
     writeLine(WELCOME);
     executor.getContext()
-            .getCapability(Context.Capabilities.GLOBAL_CONFIG, false)
+            .getCapability(GLOBAL_CONFIG, false)
             .ifPresent(conf -> writeLine(conf.toString()));
 
     console.start();
@@ -287,36 +294,129 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
    * Executes a magic expression.
    * @param rawExpression The expression to execute.
    */
-  private void handleMagic( String rawExpression) {
-    String[] expression = rawExpression.trim().split(" ");
+  private void handleMagic(String rawExpression) {
 
+    String[] expression = rawExpression.trim().split("\\s+");
     String command = expression[0];
-    if(MAGIC_FUNCTIONS.equals(command)) {
 
-      // if '%functions FOO' then show only functions that contain 'FOO'
-      Predicate<String> nameFilter = (name -> true);
-      if(expression.length > 1) {
-        nameFilter = (name -> name.contains(expression[1]));
-      }
+    if (MAGIC_FUNCTIONS.equals(command)) {
+      handleMagicFunctions(expression);
 
-      // list available functions
-      String functions = StreamSupport
-              .stream(executor.getFunctionResolver().getFunctionInfo().spliterator(), false)
-              .map(info -> String.format("%s", info.getName()))
-              .filter(nameFilter)
-              .sorted()
-              .collect(Collectors.joining(", "));
-      writeLine(functions);
+    } else if (MAGIC_VARS.equals(command)) {
+      handleMagicVars();
 
-    } else if(MAGIC_VARS.equals(command)) {
+    } else if (MAGIC_GLOBALS.equals(command)) {
+      handleMagicGlobals();
 
-      // list all variables
-      executor.getVariables()
-              .forEach((k,v) -> writeLine(String.format("%s = %s", k, v)));
+    } else if (MAGIC_DEFINE.equals(command)) {
+      handleMagicDefine(rawExpression);
+
+    } else if(MAGIC_UNDEFINE.equals(command)) {
+      handleMagicUndefine(expression);
 
     } else {
       writeLine(ERROR_PROMPT + "undefined magic command: " + rawExpression);
     }
+  }
+
+  /**
+   * Handle a magic '%functions'.  Lists all of the variables in-scope.
+   * @param expression
+   */
+  private void handleMagicFunctions(String[] expression) {
+
+    // if '%functions FOO' then show only functions that contain 'FOO'
+    Predicate<String> nameFilter = (name -> true);
+    if (expression.length > 1) {
+      nameFilter = (name -> name.contains(expression[1]));
+    }
+
+    // '%functions' -> list all functions in scope
+    String functions = StreamSupport
+            .stream(executor.getFunctionResolver().getFunctionInfo().spliterator(), false)
+            .map(info -> String.format("%s", info.getName()))
+            .filter(nameFilter)
+            .sorted()
+            .collect(Collectors.joining(", "));
+    writeLine(functions);
+  }
+
+  /**
+   * Handle a magic '%vars'.  Lists all of the variables in-scope.
+   */
+  private void handleMagicVars() {
+    executor.getVariables()
+            .forEach((k, v) -> writeLine(String.format("%s = %s", k, v)));
+  }
+
+  /**
+   * Handle a magic '%globals'.  List all of the global configuration values.
+   */
+  private void handleMagicGlobals() {
+    Map<String, Object> globals = getOrCreateGlobalConfig(executor);
+    writeLine(globals.toString());
+  }
+
+  /**
+   * Handle a magic '%define var=value'.  Alter the global configuration.
+   * @param expression The expression passed to %define
+   */
+  public void handleMagicDefine(String expression) {
+
+    // grab the expression in '%define <assign-expression>'
+    String assignExpr = StringUtils.trimToEmpty(expression.substring(MAGIC_DEFINE.length()));
+    if (assignExpr.length() > 0) {
+
+      // the expression must be an assignment
+      if(StellarAssignment.isAssignment(assignExpr)) {
+        StellarAssignment expr = StellarAssignment.from(assignExpr);
+
+        // execute the expression
+        Object result = executor.execute(expr.getStatement());
+        if (result != null) {
+          writeLine(result.toString());
+
+          // alter the global configuration
+          getOrCreateGlobalConfig(executor).put(expr.getVariable(), result);
+        }
+
+      } else {
+        // the expression is not an assignment.  boo!
+        writeLine(ERROR_PROMPT + MAGIC_DEFINE + " expected assignment expression");
+      }
+    }
+  }
+
+  /**
+   * Handle a magic '%undefine var'.  Removes a variable from the global configuration.
+   * @param expression
+   */
+  private void handleMagicUndefine(String[] expression) {
+    if(expression.length > 1) {
+      Map<String, Object> globals = getOrCreateGlobalConfig(executor);
+      globals.remove(expression[1]);
+    }
+  }
+
+  /**
+   * Retrieves the GLOBAL_CONFIG, if it exists.  If it does not, it creates the GLOBAL_CONFIG
+   * and adds it to the Stellar execution context.
+   * @param executor The Stellar executor.
+   * @return The global configuration.
+   */
+  private Map<String, Object> getOrCreateGlobalConfig(StellarExecutor executor) {
+    Map<String, Object> globals;
+    Optional<Object> capability = executor.getContext().getCapability(GLOBAL_CONFIG, false);
+    if (capability.isPresent()) {
+      globals = (Map<String, Object>) capability.get();
+
+    } else {
+      // if it does not exist, create it.  this creates the global config for the current stellar executor
+      // session only.  this does not change the global config maintained externally in zookeeper
+      globals = new HashMap<>();
+      executor.getContext().addCapability(GLOBAL_CONFIG, () -> globals);
+    }
+    return globals;
   }
 
   /**
