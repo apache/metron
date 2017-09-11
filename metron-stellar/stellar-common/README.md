@@ -1,24 +1,24 @@
 
+# Stellar Language
 
-# Contents
+For a variety of components (threat intelligence triage and field transformations) we have the need to do simple computation and transformation using the data from messages as variables.  For those purposes, there exists a simple, scaled down DSL created to do simple computation and transformation.
 
-* [Stellar Language](#stellar-language)
-    * [Stellar Language Keywords](#stellar-language-keywords)
-    * [Stellar Core Functions](#stellar-core-functions)
-    * [Stellar Benchmarks](#stellar-benchmarks)
-    * [Stellar Shell](#stellar-shell)
+
+* [Introduction](#introduction)
+* [Stellar Core Functions](#stellar-core-functions)
+* [Stellar Benchmarks](#stellar-benchmarks)
+* [Stellar Shell](#stellar-shell)
+    * [Getting Started](#getting-started)
+    * [Command Line Options](#command-line-options)
+    * [Variable Assignment](#variable-assignment)
+    * [Magic Commands](#magic-commands)
+    * [Advanced Usage](#advanced-usage)
 * [Stellar Configuration](#stellar-configuration)
 
 
-# Stellar Language
+## Introduction
 
-For a variety of components (threat intelligence triage and field
-transformations) we have the need to do simple computation and
-transformation using the data from messages as variables.  
-For those purposes, there exists a simple, scaled down DSL 
-created to do simple computation and transformation.
-
-The query language supports the following:
+The Stellar language supports the following:
 * Referencing fields in the enriched JSON
 * String literals are quoted with either `'` or `"`
 * String literals support escaping for `'`, `"`, `\t`, `\r`, `\n`, and backslash 
@@ -35,7 +35,7 @@ The query language supports the following:
 * The ability to have parenthesis to make order of operations explicit
 * User defined functions, including Lambda expressions 
 
-## Stellar Language Keywords
+### Stellar Language Keywords
 The following keywords need to be single quote escaped in order to be used in Stellar expressions:
 
 |               |               |             |             |             |
@@ -47,13 +47,13 @@ The following keywords need to be single quote escaped in order to be used in St
 
 Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 
-## Stellar Language Inclusion Checks (`in` and `not in`)
+### Stellar Language Inclusion Checks (`in` and `not in`)
 1. `in` supports string contains. e.g. `'foo' in 'foobar' == true`
 2. `in` supports collection contains. e.g. `'foo' in [ 'foo', 'bar' ] == true`
 3. `in` supports map key contains. e.g. `'foo' in { 'foo' : 5} == true`
 4. `not in` is the negation of the in expression. e.g. `'grok' not in 'foobar' == true`
 
-## Stellar Language Comparisons (`<`, `<=`, `>`, `>=`)
+### Stellar Language Comparisons (`<`, `<=`, `>`, `>=`)
 
 1. If either side of the comparison is null then return false.
 2. If both values being compared implement number then the following:
@@ -64,7 +64,7 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 3. If both sides are of the same type and are comparable then use the compareTo method to compare values.
 4. If none of the above are met then an exception is thrown.
 
-## Stellar Language Equality Check (`==`, `!=`)
+### Stellar Language Equality Check (`==`, `!=`)
 
 Below is how the `==` operator is expected to work:
 
@@ -78,7 +78,7 @@ Below is how the `==` operator is expected to work:
 
 The `!=` operator is the negation of the above.
 
-## Stellar Language Lambda Expressions
+### Stellar Language Lambda Expressions
 
 Stellar provides the capability to pass lambda expressions to functions
 which wish to support that layer of indirection.  The syntax is:
@@ -1206,13 +1206,43 @@ IN_SUBNET
 Lists all variables in the Stellar environment.
 
 ```
-Stellar, Go!
-{es.clustername=metron, es.ip=node1, es.port=9300, es.date.format=yyyy.MM.dd.HH}
 [Stellar]>>> %vars
 [Stellar]>>> foo := 2 + 2
 4.0
 [Stellar]>>> %vars
 foo = 4.0
+```
+
+#### `%globals`
+
+Lists all values that are defined in the global configuration.
+
+Most of Metron's functional components have access to what is called the global configuration.  This is a key/value configuration store that can be used to customize Metron.  Many Stellar functions accept configuration values from the global configuration.  The Stellar Shell also leverages the global configuration for customizing the behavior of many Stellar functions.  
+
+```
+[Stellar]>>> %globals
+{es.clustername=metron, es.ip=node1:9300, es.date.format=yyyy.MM.dd.HH, parser.error.topic=indexing, update.hbase.table=metron_update, update.hbase.cf=t}
+```
+
+#### `%define`
+
+Defines a global configuration value in the current shell session.  This value will be forgotten once the session is ended.
+
+```
+[Stellar]>>> %define bootstrap.servers := "node1:6667"
+node1:6667
+[Stellar]>>> %globals
+{bootstrap.servers=node1:6667}
+``` 
+
+#### `%undefine`
+
+Undefine a global configuration value in the current shell session.  This will not modify the persisted global configuration.
+
+```
+[Stellar]>>> %undefine bootstrap.servers
+[Stellar]>>> %globals
+{}
 ```
 
 #### `?<function>`
@@ -1264,7 +1294,7 @@ Please note that functions are loading lazily in the background and will be unav
 ABS, APPEND_IF_MISSING, BIN, BLOOM_ADD, BLOOM_EXISTS, BLOOM_INIT, BLOOM_MERGE, CHOMP, CHOP, COUNT_MATCHES, DAY_OF_MONTH, DAY_OF_WEEK, DAY_OF_YEAR, DOMAIN_REMOVE_SUBDOMAINS, DOMAIN_REMOVE_TLD, DOMAIN_TO_TLD, ENDS_WITH, FILL_LEFT, FILL_RIGHT, FILTER, FORMAT, GET, GET_FIRST, GET_LAST, HLLP_ADD, HLLP_CARDINALITY, HLLP_INIT, HLLP_MERGE, IN_SUBNET, IS_DATE, IS_DOMAIN, IS_EMAIL, IS_EMPTY, IS_INTEGER, IS_IP, IS_URL, JOIN, LENGTH, LIST_ADD, MAAS_GET_ENDPOINT, MAAS_MODEL_APPLY, MAP, MAP_EXISTS, MAP_GET, MONTH, OUTLIER_MAD_ADD, OUTLIER_MAD_SCORE, OUTLIER_MAD_STATE_MERGE, PREPEND_IF_MISSING, PROFILE_FIXED, PROFILE_GET, PROFILE_WINDOW, PROTOCOL_TO_NAME, REDUCE, REGEXP_MATCH, SPLIT, STARTS_WITH, STATS_ADD, STATS_BIN, STATS_COUNT, STATS_GEOMETRIC_MEAN, STATS_INIT, STATS_KURTOSIS, STATS_MAX, STATS_MEAN, STATS_MERGE, STATS_MIN, STATS_PERCENTILE, STATS_POPULATION_VARIANCE, STATS_QUADRATIC_MEAN, STATS_SD, STATS_SKEWNESS, STATS_SUM, STATS_SUM_LOGS, STATS_SUM_SQUARES, STATS_VARIANCE, STRING_ENTROPY, SYSTEM_ENV_GET, SYSTEM_PROPERTY_GET, TO_DOUBLE, TO_EPOCH_TIMESTAMP, TO_FLOAT, TO_INTEGER, TO_LONG, TO_LOWER, TO_STRING, TO_UPPER, TRIM, URL_TO_HOST, URL_TO_PATH, URL_TO_PORT, URL_TO_PROTOCOL, WEEK_OF_MONTH, WEEK_OF_YEAR, YEAR 
 ```
 
-# Stellar Configuration
+## Stellar Configuration
 
 Stellar can be configured in a variety of ways from the [Global Configuration](../../metron-platform/metron-common/README.md#global-configuration).
 In particular, there are three main configuration parameters around configuring Stellar:
