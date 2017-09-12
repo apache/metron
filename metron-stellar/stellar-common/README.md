@@ -174,9 +174,6 @@ In the core language functions, we support basic functional programming primitiv
 | [ `MAP`](#map)                                                                                     |
 | [ `MAP_EXISTS`](#map_exists)                                                                       |
 | [ `MONTH`](#month)                                                                                 |
-| [ `JSON_PARSE`](#json_parse)                                                                       |
-| [ `JSON_TO_LIST`](#json_to_List)                                                                   |
-| [ `JSON_TO_MAP`](#json_to_map)                                                                     |
 | [ `MULTISET_ADD`](#multiset_add)                                                                   |
 | [ `MULTISET_INIT`](#multiset_init)                                                                 |
 | [ `MULTISET_MERGE`](#multiset_merge)                                                               |
@@ -227,6 +224,9 @@ In the core language functions, we support basic functional programming primitiv
 | [ `TO_EPOCH_TIMESTAMP`](#to_epoch_timestamp)                                                       |
 | [ `TO_FLOAT`](#to_float)                                                                           |
 | [ `TO_INTEGER`](#to_integer)                                                                       |
+| [ `TO_JSON_LIST`](#to_json_List)                                                                   |
+| [ `TO_JSON_MAP`](#to_json_map)                                                                     |
+| [ `TO_JSON_OBJECT`](#to_json_object)                                                               |
 | [ `TO_LONG`](#to_long)                                                                             |
 | [ `TO_LOWER`](#to_lower)                                                                           |
 | [ `TO_STRING`](#to_string)                                                                         |
@@ -641,26 +641,26 @@ In the core language functions, we support basic functional programming primitiv
   * Description: Returns a list of the encodings that are currently supported.
   * Returns: A List of String
  
-### `JSON_PARSE`
-  * Description: Accepts JSON string as an input and returns a JSON Object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
-  For e.g. `MAP_GET( 'bar', JSON_PARSE(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
-  * Input:
-    * string - The JSON string to be parsed
-  * Returns: A parsed JSON object
-
-### `JSON_TO_LIST`
+### `TO_JSON_LIST`
   * Description: Accepts JSON string as an input and returns a List object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
-  For e.g. `GET_FIRST( JSON_TO_LIST(  '[ "foo", 2]')` would yield `foo`
+  For e.g. `GET_FIRST( TO_JSON_LIST(  '[ "foo", 2]')` would yield `foo`
   * Input:
     * string - The JSON string to be parsed
   * Returns: A parsed List object
 
-### `JSON_TO_MAP`
+### `TO_JSON_MAP`
   * Description: Accepts JSON string as an input and returns a Map object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
-  For e.g. `MAP_GET( 'bar', JSON_TO_MAP(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
+  For e.g. `MAP_GET( 'bar', TO_JSON_MAP(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
   * Input:
     * string - The JSON string to be parsed
   * Returns: A parsed Map object
+
+### `TO_JSON_OBJECT`
+  * Description: Accepts JSON string as an input and returns a JSON Object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `MAP_GET( 'bar', TO_JSON_OBJECT(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed JSON object
 
 ### `LOG2`
   * Description: Returns the log (base `2`) of a number.

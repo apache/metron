@@ -507,20 +507,20 @@ public class StringFunctions {
     }
   }
 
-  @Stellar(name = "JSON_PARSE"
+  @Stellar(name = "TO_JSON_OBJECT"
           , description = "Returns a JSON object for the specified JSON string"
           , params = {
             "str - the JSON String to convert, may be null"
           }
           , returns = "an Object containing the parsed JSON string"
   )
-  public static class JsonParse extends BaseStellarFunction {
+  public static class ToJsonObject extends BaseStellarFunction {
 
     @Override
     public Object apply(List<Object> strings) {
 
       if (strings == null || strings.size() == 0) {
-        throw new IllegalArgumentException("[JSON_PARSE] incorrect arguments. Usage: JSON_PARSE <String>");
+        throw new IllegalArgumentException("[TO_JSON_OBJECT] incorrect arguments. Usage: TO_JSON_OBJECT <String>");
       }
       String var = (strings.get(0) == null) ? null : (String) strings.get(0);
       if (var == null) {
@@ -544,20 +544,20 @@ public class StringFunctions {
     }
   }
 
-  @Stellar(name = "JSON_TO_MAP"
+  @Stellar(name = "TO_JSON_MAP"
           , description = "Returns a MAP object for the specified JSON string"
           , params = {
           "str - the JSON String to convert, may be null"
   }
           , returns = "a MAP object containing the parsed JSON string"
   )
-  public static class JsonToMap extends BaseStellarFunction {
+  public static class ToJsonMap extends BaseStellarFunction {
 
     @Override
     public Object apply(List<Object> strings) {
 
       if (strings == null || strings.size() == 0) {
-        throw new IllegalArgumentException("[JSON_TO_MAP] incorrect arguments. Usage: JSON_TO_MAP <JSON String>");
+        throw new IllegalArgumentException("[TO_JSON_MAP] incorrect arguments. Usage: TO_JSON_MAP <JSON String>");
       }
       String var = (strings.get(0) == null) ? null : (String) strings.get(0);
       if (var == null) {
@@ -581,20 +581,20 @@ public class StringFunctions {
     }
   }
 
-  @Stellar(name = "JSON_TO_LIST"
+  @Stellar(name = "TO_JSON_LIST"
           , description = "Returns a List object for the specified JSON string"
           , params = {
           "str - the JSON String to convert, may be null"
   }
           , returns = "a List object containing the parsed JSON string"
   )
-  public static class JsonToList extends BaseStellarFunction {
+  public static class ToJsonList extends BaseStellarFunction {
 
     @Override
     public Object apply(List<Object> strings) {
 
       if (strings == null || strings.size() == 0) {
-        throw new IllegalArgumentException("[JSON_TO_LIST] incorrect arguments. Usage: JSON_TO_LIST <JSON String>");
+        throw new IllegalArgumentException("[TO_JSON_LIST] incorrect arguments. Usage: TO_JSON_LIST <JSON String>");
       }
       String var = (strings.get(0) == null) ? null : (String) strings.get(0);
       if (var == null) {
