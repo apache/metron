@@ -141,53 +141,23 @@ public class StellarStatisticsFunctions {
 
       // add each of the numeric values
       for(int i=1; i<args.size(); i++) {
-        double value = convert(args.get(i), Double.class);
-        stats.addValue(value);
-      }
-
-      return stats;
-    }
-  }
-
-  /**
-   * Add an input value to those that are used to calculate the summary statistics.
-   *
-   *  STATS_ADD (stats, value [, value2, value3, ...])
-   */
-  @Stellar(namespace="STATS"
-          , name="ADD_ALL"
-          , description = "Adds one or more input values to those that are used to calculate the summary statistics."
-          , params = {
-                      "stats - The Stellar statistics object.  If null, then a new one is initialized."
-                     , "values - A collection of numbers"
-                     }
-          , returns = "A Stellar statistics object"
-          )
-  public static class AddAll extends BaseStellarFunction {
-    @Override
-    public Object apply(List<Object> args) {
-
-      // initialize a stats object, if one does not already exist
-      StatisticsProvider stats = convert(args.get(0), StatisticsProvider.class);
-      if(stats == null) {
-        stats = statsInit(Collections.emptyList());
-      }
-      Object numsObj = args.get(1);
-      if(numsObj == null) {
-        return stats;
-      }
-      else if(!(numsObj instanceof Iterable)) {
-        throw new IllegalStateException("STATS_ADD_ALL requires a collection of numeric values");
-      }
-      else {
-        Iterable<Object> nums = (Iterable<Object>)numsObj;
-        for(Object n : nums) {
-          if(n != null) {
-            double d = convert(n, Double.class);
-            stats.addValue(d);
+        Object n = args.get(i);
+        if( n != null) {
+          if(n instanceof Iterable) {
+            for(Object num : (Iterable<Object>)n) {
+              if(num != null) {
+                double value = convert(num, Double.class);
+                stats.addValue(value);
+              }
+            }
+          }
+          else {
+            double value = convert(args.get(i), Double.class);
+            stats.addValue(value);
           }
         }
       }
+
       return stats;
     }
   }
