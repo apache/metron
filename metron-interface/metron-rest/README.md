@@ -300,6 +300,9 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Input:
     * path - Path to HDFS file
     * contents - File contents
+    * userMode - [optional] symbolic permission string for user portion of the permissions to be set on the file written. For example 'rwx' or read, write, execute. The symbol '-' is used to exclude that permission such as 'rw-' for read, write, no execute
+    * groupMode - [optional] symbolic permission string for group portion of the permissions to be set on the file written. For example 'rwx' or read, write, execute. The symbol '-' is used to exclude that permission such as 'rw-' for read, write, no execute
+    * otherMode - [optional] symbolic permission string for other portion of the permissions to be set on the file written. For example 'rwx' or read, write, execute. The symbol '-' is used to exclude that permission such as 'rw-' for read, write, no execute
   * Returns:
     * 200 - Contents were written
 
