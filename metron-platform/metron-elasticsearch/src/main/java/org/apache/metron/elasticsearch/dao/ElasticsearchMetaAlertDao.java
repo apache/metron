@@ -377,8 +377,8 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
    */
   @SuppressWarnings("unchecked")
   protected MetaScores calculateMetaScores(Document document) {
-    ArrayList<Object> alertsRaw = ((ArrayList<Object>) document.getDocument().get(ALERT_FIELD));
-    if (alertsRaw == null) {
+    List<Object> alertsRaw = ((List<Object>) document.getDocument().get(ALERT_FIELD));
+    if (alertsRaw == null || alertsRaw.isEmpty()) {
       throw new IllegalArgumentException("No alerts to use in calculation for doc GUID: "
           + document.getDocument().get(Constants.GUID));
     }
