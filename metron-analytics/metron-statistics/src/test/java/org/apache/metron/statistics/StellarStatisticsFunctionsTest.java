@@ -224,12 +224,36 @@ public class StellarStatisticsFunctionsTest {
   }
 
   @Test
+  public void testAddAllManyIntegers() throws Exception {
+    statsInit(windowSize);
+    Object result = run("STATS_COUNT(stats)", variables);
+    double countAtStart = (double) result;
+
+    run("STATS_ADD_ALL(stats, [10, 20, 30, 40, 50])", variables);
+
+    Object actual = run("STATS_COUNT(stats)", variables);
+    assertEquals(countAtStart + 5.0, (double) actual, 0.1);
+  }
+
+  @Test
   public void testAddManyIntegers() throws Exception {
     statsInit(windowSize);
     Object result = run("STATS_COUNT(stats)", variables);
     double countAtStart = (double) result;
 
     run("STATS_ADD(stats, 10, 20, 30, 40, 50)", variables);
+
+    Object actual = run("STATS_COUNT(stats)", variables);
+    assertEquals(countAtStart + 5.0, (double) actual, 0.1);
+  }
+
+  @Test
+  public void testAllManyFloat() throws Exception {
+    statsInit(windowSize);
+    Object result = run("STATS_COUNT(stats)", variables);
+    double countAtStart = (double) result;
+
+    run("STATS_ADD_ALL(stats, [10.0, 20.0, 30.0, 40.0, 50.0])", variables);
 
     Object actual = run("STATS_COUNT(stats)", variables);
     assertEquals(countAtStart + 5.0, (double) actual, 0.1);
