@@ -31,13 +31,12 @@ before_install:
   - export PATH=$M2_HOME/bin:$PATH
   - npm config set cache $HOME/.npm-cache --global
   - npm config set prefix $HOME/.npm-prefix --global
-  - time build_utils/verify_licenses.sh
 
 install:
   - time mvn -q -T 2C -DskipTests clean install
 
 script:
-  - time mvn -q -T 2C surefire:test@unit-tests && time mvn -q surefire:test@integration-tests && time mvn -q test --projects metron-interface/metron-config
+  - time mvn -q -T 2C surefire:test@unit-tests && time mvn -q surefire:test@integration-tests && time mvn -q test --projects metron-interface/metron-config && time build_utils/verify_licenses.sh
 
 before_cache:
   - rm -rf $HOME/.m2/repository/org/apache/metron

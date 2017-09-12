@@ -26,9 +26,11 @@ public interface HdfsService {
 
     String read(Path path) throws RestException;
 
-    void write(Path path, byte[] contents) throws RestException;
+    void write(Path path, byte[] contents,String userMode, String groupMode, String otherMode) throws RestException;
 
     List<String> list(Path path) throws RestException;
 
     boolean delete(Path path, boolean recursive) throws RestException;
+
+    boolean mkdirs(Path path) throws RestException;
  }

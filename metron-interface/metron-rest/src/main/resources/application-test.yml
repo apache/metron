@@ -29,7 +29,6 @@ spring:
 grok:
   path:
     temp: target/patterns/temp
-    default: target/patterns
 
 storm:
   ui:

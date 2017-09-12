@@ -26,6 +26,8 @@ import java.util.Optional;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
@@ -44,6 +46,8 @@ public interface IndexDao {
    * @throws InvalidSearchException
    */
   SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException;
+
+  GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException;
 
   /**
    * Initialize the DAO with the AccessConfig object.

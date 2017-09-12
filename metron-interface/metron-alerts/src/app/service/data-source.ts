@@ -22,7 +22,7 @@ import {ColumnMetadata} from '../model/column-metadata';
 import {ColumnNames} from '../model/column-names';
 import {TableMetadata} from '../model/table-metadata';
 import {SaveSearch} from '../model/save-search';
-import {AlertsSearchResponse} from '../model/alerts-search-response';
+import {SearchResponse} from '../model/search-response';
 import {SearchRequest} from '../model/search-request';
 import {AlertSource} from '../model/alert-source';
 
@@ -33,7 +33,7 @@ export abstract class DataSource {
   constructor(protected http: Http) {}
 
   // Calls to fetch alerts
-  abstract getAlerts(searchRequest: SearchRequest): Observable<AlertsSearchResponse>
+  abstract getAlerts(searchRequest: SearchRequest): Observable<SearchResponse>
   abstract getAlert(sourceType: string, alertId: string): Observable<AlertSource>
   abstract updateAlertState(request: any): Observable<{}>
 

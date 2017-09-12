@@ -18,11 +18,21 @@
 
 package org.apache.metron.writer.hdfs;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.configuration.writer.IndexingWriterConfiguration;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
 import org.apache.storm.hdfs.bolt.format.FileNameFormat;
+import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
+import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
@@ -31,11 +41,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.*;
 
 // Suppress ConstantConditions to avoid NPE warnings that only would occur on test failure anyway
 @SuppressWarnings("ConstantConditions")
@@ -406,6 +411,82 @@ public class HdfsWriterTest {
     for(File file : outputFolder.listFiles()) {
       List<String> lines = Files.readAllLines(file.toPath());
       Collections.sort(lines);
+      Assert.assertEquals(expected, lines);
+    }
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testSingleFileIfNoStreamClosed() throws Exception {
+    String function = "FORMAT('test-%s/%s', test.key, test.key)";
+    WriterConfiguration config = buildWriterConfiguration(function);
+    HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
+    writer.init(new HashMap<String, String>(), createTopologyContext(), config);
+
+    JSONObject message = new JSONObject();
+    message.put("test.key", "test.value");
+    ArrayList<JSONObject> messages = new ArrayList<>();
+    messages.add(message);
+    ArrayList<Tuple> tuples = new ArrayList<>();
+
+    CountSyncPolicy basePolicy = new CountSyncPolicy(5);
+    ClonedSyncPolicyCreator creator = new ClonedSyncPolicyCreator(basePolicy);
+
+    writer.write(SENSOR_NAME, config, tuples, messages);
+    writer.write(SENSOR_NAME, config, tuples, messages);
+    writer.close();
+
+    File outputFolder = new File(folder.getAbsolutePath() + "/test-test.value/test.value/");
+
+    // The message should show up twice, once in each file
+    ArrayList<String> expected = new ArrayList<>();
+    expected.add(message.toJSONString());
+    expected.add(message.toJSONString());
+
+    // Assert both messages are in the same file, because the stream stayed open
+    Assert.assertEquals(1, outputFolder.listFiles().length);
+    for (File file : outputFolder.listFiles()) {
+      List<String> lines = Files.readAllLines(file.toPath());
+      // One line per file
+      Assert.assertEquals(2, lines.size());
+      Assert.assertEquals(expected, lines);
+    }
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testHandleAttemptsRotateIfStreamClosed() throws Exception {
+    String function = "FORMAT('test-%s/%s', test.key, test.key)";
+    WriterConfiguration config = buildWriterConfiguration(function);
+    HdfsWriter writer = new HdfsWriter().withFileNameFormat(testFormat);
+    writer.init(new HashMap<String, String>(), createTopologyContext(), config);
+
+    JSONObject message = new JSONObject();
+    message.put("test.key", "test.value");
+    ArrayList<JSONObject> messages = new ArrayList<>();
+    messages.add(message);
+    ArrayList<Tuple> tuples = new ArrayList<>();
+
+    CountSyncPolicy basePolicy = new CountSyncPolicy(5);
+    ClonedSyncPolicyCreator creator = new ClonedSyncPolicyCreator(basePolicy);
+
+    writer.write(SENSOR_NAME, config, tuples, messages);
+    writer.getSourceHandler(SENSOR_NAME, "test-test.value/test.value", config).closeOutputFile();
+    writer.getSourceHandler(SENSOR_NAME, "test-test.value/test.value", config).handle(message, SENSOR_NAME, config, creator);
+    writer.close();
+
+    File outputFolder = new File(folder.getAbsolutePath() + "/test-test.value/test.value/");
+
+    // The message should show up twice, once in each file
+    ArrayList<String> expected = new ArrayList<>();
+    expected.add(message.toJSONString());
+
+    // Assert this went into a new file because it actually rotated
+    Assert.assertEquals(2, outputFolder.listFiles().length);
+    for (File file : outputFolder.listFiles()) {
+      List<String> lines = Files.readAllLines(file.toPath());
+      // One line per file
+      Assert.assertEquals(1, lines.size());
       Assert.assertEquals(expected, lines);
     }
   }

@@ -27,3 +27,7 @@ RUN mv apache-maven-3.2.5 /opt/maven
 RUN ln -s /opt/maven/bin/mvn /usr/bin/mvn
 RUN yum -y install asciidoc rpm-build rpm2cpio tar unzip xmlto zip rpmlint && yum clean all
 WORKDIR /root
+
+# install node so that the node dependencies can be packaged into the RPMs
+RUN curl --silent --location https://rpm.nodesource.com/setup_6.x | bash -
+RUN yum -y install gcc-c++ make nodejs

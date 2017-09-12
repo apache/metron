@@ -121,15 +121,15 @@ public class StellarCompiler extends StellarBaseListener {
             //if we have a boolean as the current value and the next non-contextual token is a short circuit op
             //then we need to short circuit possibly
             if(token.getUnderlyingType() == BooleanArg.class) {
-              if (curr.getMultiArgContext() != null
-                      && curr.getMultiArgContext().getVariety() == FrameContext.BOOLEAN_OR
+              if (token.getMultiArgContext() != null
+                      && token.getMultiArgContext().getVariety() == FrameContext.BOOLEAN_OR
                       && (Boolean) (curr.getValue())
                       ) {
                 //short circuit the or
                 FrameContext.Context context = curr.getMultiArgContext();
                 shortCircuit(it, context);
-              } else if (curr.getMultiArgContext() != null
-                      && curr.getMultiArgContext().getVariety() == FrameContext.BOOLEAN_AND
+              } else if (token.getMultiArgContext() != null
+                      && token.getMultiArgContext().getVariety() == FrameContext.BOOLEAN_AND
                       && !(Boolean) (curr.getValue())
                       ) {
                 //short circuit the and

@@ -17,6 +17,11 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import kafka.admin.AdminOperationException;
 import kafka.admin.AdminUtils$;
 import kafka.admin.RackAwareMode;
@@ -24,20 +29,17 @@ import kafka.utils.ZkUtils;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.KafkaTopic;
 import org.apache.metron.rest.service.KafkaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.stereotype.Service;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * The default service layer implementation of {@link KafkaService}.
@@ -53,19 +55,26 @@ public class KafkaServiceImpl implements KafkaService {
 
   private final ZkUtils zkUtils;
   private final ConsumerFactory<String, String> kafkaConsumerFactory;
+  private final KafkaProducer<String, String> kafkaProducer;
   private final AdminUtils$ adminUtils;
+
+  @Autowired
+  private Environment environment;
 
   /**
    * @param zkUtils              A utility class used to interact with ZooKeeper.
    * @param kafkaConsumerFactory A class used to create {@link KafkaConsumer} in order to interact with Kafka.
+   * @param kafkaProducer        A class used to produce messages to Kafka.
    * @param adminUtils           A utility class used to do administration operations on Kafka.
    */
   @Autowired
   public KafkaServiceImpl(final ZkUtils zkUtils,
                           final ConsumerFactory<String, String> kafkaConsumerFactory,
+                          final KafkaProducer<String, String> kafkaProducer,
                           final AdminUtils$ adminUtils) {
     this.zkUtils = zkUtils;
     this.kafkaConsumerFactory = kafkaConsumerFactory;
+    this.kafkaProducer = kafkaProducer;
     this.adminUtils = adminUtils;
   }
 
@@ -141,4 +150,8 @@ public class KafkaServiceImpl implements KafkaService {
     return message;
   }
 
+  @Override
+  public void produceMessage(String topic, String message) throws RestException {
+    kafkaProducer.send(new ProducerRecord<>(topic, message));
+  }
 }

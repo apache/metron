@@ -49,12 +49,6 @@ This module provides a user interface for management functions in Metron.
     rpm -ih metron-config-$METRON_VERSION-*.noarch.rpm
     ```
 
-1. Install the [Express](https://expressjs.com/) web framework from the `package.json` file in `$METRON_HOME/web/expressjs`:
-
-    ```
-    npm --prefix $METRON_HOME/web/expressjs/ install
-    ```
-
 ## Configuration
 
 The Managment UI is configured in the `$METRON_HOME/config/management_ui.yml` file.  Create this file and set the values to match your environment:
@@ -87,7 +81,7 @@ The Management UI can also be started in development mode.  This allows changes 
     cd metron-interface/metron-config
     npm install
     ```
-  
+
 1. Start the application:
 
     ```

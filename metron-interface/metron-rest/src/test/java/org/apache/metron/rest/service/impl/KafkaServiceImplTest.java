@@ -17,9 +17,27 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import kafka.admin.AdminOperationException;
 import kafka.admin.AdminUtils$;
 import kafka.admin.RackAwareMode;
@@ -27,6 +45,8 @@ import kafka.utils.ZkUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
@@ -43,25 +63,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.kafka.core.ConsumerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mock;
-
 @SuppressWarnings("unchecked")
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.management.*") // resolve classloader conflict
@@ -72,6 +73,7 @@ public class KafkaServiceImplTest {
 
   private ZkUtils zkUtils;
   private KafkaConsumer<String, String> kafkaConsumer;
+  private KafkaProducer<String, String> kafkaProducer;
   private ConsumerFactory<String, String> kafkaConsumerFactory;
   private AdminUtils$ adminUtils;
 
@@ -90,11 +92,12 @@ public class KafkaServiceImplTest {
     zkUtils = mock(ZkUtils.class);
     kafkaConsumerFactory = mock(ConsumerFactory.class);
     kafkaConsumer = mock(KafkaConsumer.class);
+    kafkaProducer = mock(KafkaProducer.class);
     adminUtils = mock(AdminUtils$.class);
 
     when(kafkaConsumerFactory.createConsumer()).thenReturn(kafkaConsumer);
 
-    kafkaService = new KafkaServiceImpl(zkUtils, kafkaConsumerFactory, adminUtils);
+    kafkaService = new KafkaServiceImpl(zkUtils, kafkaConsumerFactory, kafkaProducer, adminUtils);
   }
 
   @Test
@@ -303,5 +306,17 @@ public class KafkaServiceImplTest {
     verify(kafkaConsumer).seek(topicPartition, 0);
 
     verifyZeroInteractions(zkUtils, adminUtils);
+  }
+
+  @Test
+  public void produceMessageShouldProperlyProduceMessage() throws Exception {
+    final String topicName = "t";
+    final String message = "{\"field\":\"value\"}";
+
+    kafkaService.produceMessage(topicName, message);
+
+    String expectedMessage = "{\"field\":\"value\"}";
+    verify(kafkaProducer).send(new ProducerRecord<>(topicName, expectedMessage));
+    verifyZeroInteractions(kafkaProducer);
   }
 }
