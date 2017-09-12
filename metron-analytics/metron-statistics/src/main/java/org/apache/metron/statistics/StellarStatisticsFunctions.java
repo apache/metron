@@ -125,7 +125,7 @@ public class StellarStatisticsFunctions {
           , description = "Adds one or more input values to those that are used to calculate the summary statistics."
           , params = {
                       "stats - The Stellar statistics object.  If null, then a new one is initialized."
-                     , "value+ - One or more numbers to add"
+                     , "value+ - One or more numbers to add.  If one of objects is a list, it will iterate over the list and add each number."
                      }
           , returns = "A Stellar statistics object"
           )
