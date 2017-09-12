@@ -296,7 +296,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - JSON results
 
 ### `POST /api/v1/hdfs`
-  * Description: Writes contents to an HDFS file.  Warning: this will overwrite the contents of a file if it already exists.
+  * Description: Writes contents to an HDFS file.  Warning: this will overwrite the contents of a file if it already exists. Permissions must be set for all three groups if they are to be set. If any are missing, the default permissions will be used, and if any are invalid an exception will be thrown.
   * Input:
     * path - Path to HDFS file
     * contents - File contents
