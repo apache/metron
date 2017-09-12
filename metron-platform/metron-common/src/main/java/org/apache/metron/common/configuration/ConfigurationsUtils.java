@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -60,7 +59,7 @@ public class ConfigurationsUtils {
     }
   }
   public static void writeGlobalConfigToZookeeper(Map<String, Object> globalConfig, CuratorFramework client) throws Exception {
-    writeGlobalConfigToZookeeper(JSONUtils.INSTANCE.toJSON(globalConfig), client);
+    writeGlobalConfigToZookeeper(JSONUtils.INSTANCE.toJSONPretty(globalConfig), client);
   }
 
   public static void writeGlobalConfigToZookeeper(byte[] globalConfig, String zookeeperUrl) throws Exception {
@@ -81,7 +80,7 @@ public class ConfigurationsUtils {
   }
 
   public static void writeSensorParserConfigToZookeeper(String sensorType, SensorParserConfig sensorParserConfig, String zookeeperUrl) throws Exception {
-    writeSensorParserConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSON(sensorParserConfig), zookeeperUrl);
+    writeSensorParserConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSONPretty(sensorParserConfig), zookeeperUrl);
   }
 
   public static void writeSensorParserConfigToZookeeper(String sensorType, byte[] configData, String zookeeperUrl) throws Exception {
@@ -98,7 +97,7 @@ public class ConfigurationsUtils {
   }
 
   public static void writeSensorIndexingConfigToZookeeper(String sensorType, Map<String, Object> sensorIndexingConfig, String zookeeperUrl) throws Exception {
-    writeSensorIndexingConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSON(sensorIndexingConfig), zookeeperUrl);
+    writeSensorIndexingConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSONPretty(sensorIndexingConfig), zookeeperUrl);
   }
 
   public static void writeSensorIndexingConfigToZookeeper(String sensorType, byte[] configData, String zookeeperUrl) throws Exception {
@@ -114,7 +113,7 @@ public class ConfigurationsUtils {
   }
 
   public static void writeSensorEnrichmentConfigToZookeeper(String sensorType, SensorEnrichmentConfig sensorEnrichmentConfig, String zookeeperUrl) throws Exception {
-    writeSensorEnrichmentConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSON(sensorEnrichmentConfig), zookeeperUrl);
+    writeSensorEnrichmentConfigToZookeeper(sensorType, JSONUtils.INSTANCE.toJSONPretty(sensorEnrichmentConfig), zookeeperUrl);
   }
 
   public static void writeSensorEnrichmentConfigToZookeeper(String sensorType, byte[] configData, String zookeeperUrl) throws Exception {
@@ -130,20 +129,26 @@ public class ConfigurationsUtils {
   }
 
   public static void writeConfigToZookeeper(String name, Map<String, Object> config, String zookeeperUrl) throws Exception {
-    writeConfigToZookeeper(Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + name, JSONUtils.INSTANCE.toJSON(config), zookeeperUrl);
+    writeConfigToZookeeper(Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + name, JSONUtils.INSTANCE.toJSONPretty(config), zookeeperUrl);
   }
 
-  public static void writeConfigToZookeeper(ConfigurationType configType, byte[] configData, String zookeeperUrl) throws Exception {
-    writeConfigToZookeeper(configType, "", configData, zookeeperUrl);
+  public static void writeConfigToZookeeper(ConfigurationType configType, byte[] configData,
+      String zookeeperUrl) throws Exception {
+    writeConfigToZookeeper(configType, Optional.empty(), configData, zookeeperUrl);
   }
 
-  public static void writeConfigToZookeeper(ConfigurationType configType, String configName,
-      byte[] configData, String zookeeperUrl) throws Exception {
+  public static void writeConfigToZookeeper(ConfigurationType configType,
+      Optional<String> configName, byte[] configData, String zookeeperUrl) throws Exception {
     writeConfigToZookeeper(getConfigZKPath(configType, configName), configData, zookeeperUrl);
   }
 
-  private static String getConfigZKPath(ConfigurationType configType, String configName) {
-    String pathSuffix = StringUtils.isEmpty(configName) ? "" : "/" + configName;
+  public static void writeConfigToZookeeper(ConfigurationType configType,Optional<String> configName,
+      byte[] configData, CuratorFramework client) throws Exception {
+    writeToZookeeper(getConfigZKPath(configType, configName), configData, client);
+  }
+
+  private static String getConfigZKPath(ConfigurationType configType, Optional<String> configName) {
+    String pathSuffix = configName.isPresent() && configType != GLOBAL ? "/" + configName : "";
     return configType.getZookeeperRoot() + pathSuffix;
   }
 
@@ -228,10 +233,15 @@ public class ConfigurationsUtils {
 
   public static byte[] readConfigBytesFromZookeeper(ConfigurationType configType,
       String zookeeperUrl) throws Exception {
-    return readConfigBytesFromZookeeper(configType, "", zookeeperUrl);
+    return readConfigBytesFromZookeeper(configType, Optional.empty(), zookeeperUrl);
   }
 
-  public static byte[] readConfigBytesFromZookeeper(ConfigurationType configType, String configName,
+  public static byte[] readConfigBytesFromZookeeper(ConfigurationType configType, Optional<String> configName,
+      CuratorFramework client) throws Exception {
+    return readFromZookeeper(getConfigZKPath(configType, configName), client);
+  }
+
+  public static byte[] readConfigBytesFromZookeeper(ConfigurationType configType, Optional<String> configName,
       String zookeeperUrl) throws Exception {
     return readFromZookeeper(getConfigZKPath(configType, configName), zookeeperUrl);
   }
@@ -264,6 +274,44 @@ public class ConfigurationsUtils {
 
   public static void uploadConfigsToZookeeper(String rootFilePath, CuratorFramework client) throws Exception {
     uploadConfigsToZookeeper(rootFilePath, rootFilePath, rootFilePath, rootFilePath, rootFilePath, client);
+  }
+
+  public static void uploadConfigsToZookeeper(String rootFilePath, CuratorFramework client,
+      ConfigurationType type) throws Exception {
+    uploadConfigsToZookeeper(rootFilePath, client, type, Optional.empty());
+  }
+
+  public static void uploadConfigsToZookeeper(String rootFilePath, CuratorFramework client,
+      ConfigurationType type, Optional<String> configName) throws Exception {
+    switch (type) {
+      case GLOBAL:
+        final byte[] globalConfig = readGlobalConfigFromFile(rootFilePath);
+        if (globalConfig.length > 0) {
+          setupStellarStatically(client, Optional.of(new String(globalConfig)));
+          writeGlobalConfigToZookeeper(readGlobalConfigFromFile(rootFilePath), client);
+        }
+        break;
+      case PARSER:
+        Map<String, byte[]> sensorParserConfigs = readSensorConfigsFromFile(rootFilePath, PARSER, configName);
+        for (String sensorType : sensorParserConfigs.keySet()) {
+          writeConfigToZookeeper(type, configName, sensorParserConfigs.get(sensorType), client);
+        }
+        break;
+      case ENRICHMENT:
+        Map<String, byte[]> sensorEnrichmentConfigs = readSensorConfigsFromFile(rootFilePath, ENRICHMENT, configName);
+        for (String sensorType : sensorEnrichmentConfigs.keySet()) {
+          writeConfigToZookeeper(type, configName, sensorEnrichmentConfigs.get(sensorType), client);
+        }
+        break;
+      case INDEXING:
+        Map<String, byte[]> sensorIndexingConfigs = readSensorConfigsFromFile(rootFilePath, INDEXING, configName);
+        for (String sensorType : sensorIndexingConfigs.keySet()) {
+          writeConfigToZookeeper(type, configName, sensorIndexingConfigs.get(sensorType), client);
+        }
+        break;
+      default:
+        throw new IllegalArgumentException("Configuration type not found: " + type);
+    }
   }
 
   public static void uploadConfigsToZookeeper(String globalConfigPath,
@@ -359,15 +407,15 @@ public class ConfigurationsUtils {
   }
 
   public static Map<String, byte[]> readSensorParserConfigsFromFile(String rootPath) throws IOException {
-    return readSensorConfigsFromFile(rootPath, PARSER);
+    return readSensorConfigsFromFile(rootPath, PARSER, Optional.empty());
   }
 
   public static Map<String, byte[]> readSensorEnrichmentConfigsFromFile(String rootPath) throws IOException {
-    return readSensorConfigsFromFile(rootPath, ENRICHMENT);
+    return readSensorConfigsFromFile(rootPath, ENRICHMENT, Optional.empty());
   }
 
   public static Map<String, byte[]> readSensorIndexingConfigsFromFile(String rootPath) throws IOException {
-    return readSensorConfigsFromFile(rootPath, INDEXING);
+    return readSensorConfigsFromFile(rootPath, INDEXING, Optional.empty());
   }
 
   /**
@@ -386,13 +434,29 @@ public class ConfigurationsUtils {
   }
 
   public static Map<String, byte[]> readSensorConfigsFromFile(String rootPath, ConfigurationType configType) throws IOException {
+    return readSensorConfigsFromFile(rootPath, configType, Optional.empty());
+  }
+
+  public static Map<String, byte[]> readSensorConfigsFromFile(String rootPath,
+      ConfigurationType configType, Optional<String> configName) throws IOException {
     Map<String, byte[]> sensorConfigs = new HashMap<>();
     File configPath = new File(rootPath, configType.getDirectory());
-    if (configPath.exists()) {
+    if (configPath.exists() && configPath.isDirectory()) {
       File[] children = configPath.listFiles();
-      if (children != null) {
+      if (!configName.isPresent()) {
         for (File file : children) {
-          sensorConfigs.put(FilenameUtils.removeExtension(file.getName()), Files.readAllBytes(file.toPath()));
+          sensorConfigs.put(FilenameUtils.removeExtension(file.getName()),
+              Files.readAllBytes(file.toPath()));
+        }
+      } else {
+        for (File file : children) {
+          if (FilenameUtils.removeExtension(file.getName()).equals(configName.get())) {
+            sensorConfigs.put(FilenameUtils.removeExtension(file.getName()),
+                Files.readAllBytes(file.toPath()));
+          }
+        }
+        if (sensorConfigs.isEmpty()) {
+          throw new RuntimeException("Unable to find configuration for " + configName.get());
         }
       }
     }
@@ -400,18 +464,25 @@ public class ConfigurationsUtils {
   }
 
   public static void applyConfigPatchToZookeeper(ConfigurationType configurationType, byte[] patchData, String zookeeperUrl) throws Exception {
-    applyConfigPatchToZookeeper(configurationType, "", patchData, zookeeperUrl);
+    applyConfigPatchToZookeeper(configurationType, Optional.empty(), patchData, zookeeperUrl);
   }
 
   public static void applyConfigPatchToZookeeper(ConfigurationType configurationType,
-      String configName,
-      byte[] patchData, String zookeeperUrl) throws Exception {
-    byte[] configData = readConfigBytesFromZookeeper(configurationType, configName, zookeeperUrl);
+      Optional<String> configName, byte[] patchData, String zookeeperUrl) throws Exception {
+    try (CuratorFramework client = getClient(zookeeperUrl)) {
+      client.start();
+      applyConfigPatchToZookeeper(configurationType, configName, patchData, client);
+    }
+  }
+
+  public static void applyConfigPatchToZookeeper(ConfigurationType configurationType,
+      Optional<String> configName,
+      byte[] patchData, CuratorFramework client) throws Exception {
+    byte[] configData = readConfigBytesFromZookeeper(configurationType, configName, client);
     JsonNode source = JSONUtils.INSTANCE.readTree(configData);
     JsonNode patch = JSONUtils.INSTANCE.readTree(patchData);
     JsonNode patchedConfig = JSONUtils.INSTANCE.applyPatch(patch, source);
-    writeConfigToZookeeper(configurationType, configName, JSONUtils.INSTANCE.toJSON(patchedConfig),
-        zookeeperUrl);
+    writeConfigToZookeeper(configurationType, configName, JSONUtils.INSTANCE.toJSONPretty(patchedConfig), client);
   }
 
   public interface ConfigurationVisitor{
@@ -422,14 +493,14 @@ public class ConfigurationsUtils {
     visitConfigs(client, (type, name, data) -> {
       setupStellarStatically(client, Optional.ofNullable(data));
       callback.visit(type, name, data);
-    }, GLOBAL);
-    visitConfigs(client, callback, PARSER);
-    visitConfigs(client, callback, INDEXING);
-    visitConfigs(client, callback, ENRICHMENT);
-    visitConfigs(client, callback, PROFILER);
+    }, GLOBAL, Optional.empty());
+    visitConfigs(client, callback, PARSER, Optional.empty());
+    visitConfigs(client, callback, INDEXING, Optional.empty());
+    visitConfigs(client, callback, ENRICHMENT, Optional.empty());
+    visitConfigs(client, callback, PROFILER, Optional.empty());
   }
 
-  public static void visitConfigs(CuratorFramework client, ConfigurationVisitor callback, ConfigurationType configType) throws Exception {
+  public static void visitConfigs(CuratorFramework client, ConfigurationVisitor callback, ConfigurationType configType, Optional<String> configName) throws Exception {
 
     if (client.checkExists().forPath(configType.getZookeeperRoot()) != null) {
 
@@ -442,11 +513,15 @@ public class ConfigurationsUtils {
         callback.visit(configType, "profiler", new String(profilerConfigData));
       }
       else if (configType.equals(PARSER) || configType.equals(ENRICHMENT) || configType.equals(INDEXING)) {
-        List<String> children = client.getChildren().forPath(configType.getZookeeperRoot());
-        for (String child : children) {
-
-          byte[] data = client.getData().forPath(configType.getZookeeperRoot() + "/" + child);
-          callback.visit(configType, child, new String(data));
+        if (configName.isPresent()) {
+          byte[] data = readConfigBytesFromZookeeper(configType, configName,  client);
+          callback.visit(configType, configName.get(), new String(data));
+        } else {
+          List<String> children = client.getChildren().forPath(configType.getZookeeperRoot());
+          for (String child : children) {
+            byte[] data = client.getData().forPath(configType.getZookeeperRoot() + "/" + child);
+            callback.visit(configType, child, new String(data));
+          }
         }
       }
     }
@@ -455,7 +530,16 @@ public class ConfigurationsUtils {
   public static void dumpConfigs(PrintStream out, CuratorFramework client) throws Exception {
     ConfigurationsUtils.visitConfigs(client, (type, name, data) -> {
       type.deserialize(data);
-      out.println(type + " Config: " + name + "\n" + data);
+      out.println(type + " Config: " + name + System.lineSeparator() + data);
     });
+  }
+
+  public static void dumpConfigs(PrintStream out, CuratorFramework client,
+      ConfigurationType configType, Optional<String> configName) throws Exception {
+    ConfigurationsUtils.visitConfigs(client, (type, name, data) -> {
+      setupStellarStatically(client, Optional.ofNullable(data));
+      type.deserialize(data);
+      out.println(type + " Config: " + name + System.lineSeparator() + data);
+    }, configType, configName);
   }
 }

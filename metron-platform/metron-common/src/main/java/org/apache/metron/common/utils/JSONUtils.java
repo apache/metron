@@ -87,12 +87,12 @@ public enum JSONUtils {
     }
   }
 
-  public byte[] toJSON(String config) throws IOException {
-    return toJSON(readTree(config));
+  public byte[] toJSONPretty(String config) throws IOException {
+    return toJSONPretty(readTree(config));
   }
 
-  public byte[] toJSON(Object config) throws JsonProcessingException {
-    return _mapper.get().writeValueAsBytes(config);
+  public byte[] toJSONPretty(Object config) throws JsonProcessingException {
+    return _mapper.get().writerWithDefaultPrettyPrinter().writeValueAsBytes(config);
   }
 
   /**
