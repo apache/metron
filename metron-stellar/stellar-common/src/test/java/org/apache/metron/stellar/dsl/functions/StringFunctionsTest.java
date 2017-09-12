@@ -618,7 +618,7 @@ public class StringFunctionsTest {
     boolean thrown = false;
     try {
       run("JSON_TO_MAP(msg)", ImmutableMap.of("msg", string3));
-    } catch (ClassCastException cce) {
+    } catch (ParseException pe) {
       thrown = true;
     }
     Assert.assertTrue(thrown);
@@ -626,7 +626,7 @@ public class StringFunctionsTest {
     thrown = false;
     try {
       run("JSON_TO_MAP(msg)", ImmutableMap.of("msg", string4));
-    } catch (ClassCastException cce) {
+    } catch (ParseException pe) {
       thrown = true;
     }
     Assert.assertTrue (thrown);
@@ -635,7 +635,7 @@ public class StringFunctionsTest {
     thrown = false;
     try {
       run("JSON_TO_MAP(msg)", ImmutableMap.of("msg", string5));
-    } catch (ClassCastException cce) {
+    } catch (ParseException pe) {
       thrown = true;
     }
     Assert.assertTrue(thrown);
@@ -701,7 +701,7 @@ public class StringFunctionsTest {
     boolean thrown = false;
     try {
       run("JSON_TO_LIST(msg)", ImmutableMap.of("msg", string1));
-    } catch (ClassCastException cce) {
+    } catch (ParseException pe) {
       thrown = true;
     }
     Assert.assertTrue(thrown);
@@ -709,7 +709,7 @@ public class StringFunctionsTest {
     thrown = false;
     try {
       run("JSON_TO_LIST(msg)", ImmutableMap.of("msg", string2));
-    } catch (ClassCastException cce) {
+    } catch (ParseException pe) {
       thrown = true;
     }
     Assert.assertTrue (thrown);

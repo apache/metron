@@ -20,6 +20,7 @@ package org.apache.metron.stellar.dsl.functions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
@@ -527,20 +528,14 @@ public class StringFunctions {
       } else if (var.length() == 0) {
         return var;
       } else {
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        // First parse and check if input is valid JSON string
-        try {
-          objectMapper.readTree((String) strings.get(0));
-        } catch (JsonProcessingException ex) {
-          throw new ParseException("Valid JSON string not supplied", ex);
-        } catch (IOException e) {
-          e.printStackTrace();
+        if (!(strings.get(0) instanceof String)) {
+          throw new ParseException("Valid JSON string not supplied");
         }
-
         // Return JSON Object
         try {
           return JSONUtils.INSTANCE.load((String) strings.get(0), Object.class);
+        } catch (JsonProcessingException ex) {
+          throw new ParseException("Valid JSON string not supplied", ex);
         } catch (IOException e) {
           e.printStackTrace();
         }
@@ -570,20 +565,14 @@ public class StringFunctions {
       } else if (var.length() == 0) {
         return var;
       } else {
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        // First parse and check if input is valid JSON string
-        try {
-          objectMapper.readTree((String) strings.get(0));
-        } catch (JsonProcessingException ex) {
-          throw new ParseException("Valid JSON string not supplied", ex);
-        } catch (IOException e) {
-          e.printStackTrace();
+        if (!(strings.get(0) instanceof String)) {
+          throw new ParseException("Valid JSON string not supplied");
         }
-
         // Return parsed JSON Object as a HashMap
         try {
-            return (HashMap) JSONUtils.INSTANCE.load((String) strings.get(0), Object.class);
+          return JSONUtils.INSTANCE.load((String) strings.get(0), new TypeReference<Map<String, Object>>(){});
+        } catch (JsonProcessingException ex) {
+          throw new ParseException("Valid JSON string not supplied", ex);
         } catch (IOException e) {
           e.printStackTrace();
         }
@@ -613,20 +602,14 @@ public class StringFunctions {
       } else if (var.length() == 0) {
         return var;
       } else {
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        // First parse and check if input is valid JSON string
-        try {
-          objectMapper.readTree((String) strings.get(0));
-        } catch (JsonProcessingException ex) {
-          throw new ParseException("Valid JSON string not supplied", ex);
-        } catch (IOException e) {
-          e.printStackTrace();
+        if (!(strings.get(0) instanceof String)) {
+          throw new ParseException("Valid JSON string not supplied");
         }
-
         // Return parsed JSON Object as a List
         try {
-          return (List) JSONUtils.INSTANCE.load((String) strings.get(0), Object.class);
+          return (List) JSONUtils.INSTANCE.load((String) strings.get(0), new TypeReference<List<Object>>(){});
+        } catch (JsonProcessingException ex) {
+          throw new ParseException("Valid JSON string not supplied", ex);
         } catch (IOException e) {
           e.printStackTrace();
           throw new ParseException("Valid JSON string not supplied", e);
