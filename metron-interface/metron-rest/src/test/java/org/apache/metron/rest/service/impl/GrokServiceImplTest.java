@@ -17,12 +17,11 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import javax.security.auth.Subject;
+import java.nio.charset.Charset;
 import oi.thekraken.grok.api.Grok;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.GrokValidation;
 import org.apache.metron.rest.service.GrokService;
@@ -32,7 +31,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
@@ -211,10 +209,11 @@ public class GrokServiceImplTest {
     SecurityContextHolder.getContext().setAuthentication(authentication);
     when(environment.getProperty(GROK_TEMP_PATH_SPRING_PROPERTY)).thenReturn("./target");
 
-    File testFile = grokService.saveTemporary(statement, "squid");
+    grokService.saveTemporary(statement, "squid");
 
-    assertEquals(statement, FileUtils.readFileToString(testFile));
-    testFile.delete();
+    File testRoot = new File("./target/user1");
+    assertEquals(statement, FileUtils.readFileToString(new File(testRoot, "squid"), Charset.forName("utf-8")));
+    testRoot.delete();
   }
 
   @Test

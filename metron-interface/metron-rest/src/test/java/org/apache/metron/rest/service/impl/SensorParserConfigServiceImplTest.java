@@ -53,6 +53,8 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -99,6 +101,8 @@ public class SensorParserConfigServiceImplTest {
   @Multiline
   public static String jsonMapJson;
 
+  private String user = "user1";
+
   @Before
   public void setUp() throws Exception {
     BundleSystem.reset();
@@ -106,7 +110,10 @@ public class SensorParserConfigServiceImplTest {
     curatorFramework = mock(CuratorFramework.class);
     grokService = mock(GrokService.class);
     environment = mock(Environment.class);
+    Authentication authentication = mock(Authentication.class);
+    when(authentication.getName()).thenReturn(user);
     when(environment.getProperty(MetronRestConstants.HDFS_METRON_APPS_ROOT)).thenReturn("./target");
+    SecurityContextHolder.getContext().setAuthentication(authentication);
     try(FileInputStream fis = new FileInputStream(new File("src/test/resources/zookeeper/bundle.properties"))) {
       BundleProperties properties = BundleProperties.createBasicBundleProperties(fis, new HashMap<>());
       properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY,"./target");
@@ -306,8 +313,6 @@ public class SensorParserConfigServiceImplTest {
     FileWriter writer = new FileWriter(patternFile);
     writer.write(grokStatement);
     writer.close();
-
-    when(grokService.saveTemporary(grokStatement, "squid")).thenReturn(patternFile);
 
     assertEquals(new HashMap() {{
       put("elapsed", 161);

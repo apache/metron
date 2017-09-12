@@ -22,7 +22,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.Constants;
-import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.*;
 import org.apache.metron.indexing.dao.update.Document;
@@ -77,6 +76,27 @@ public class InMemoryDao implements IndexDao {
     return ret;
   }
 
+  @Override
+  public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
+    GroupResponse groupResponse = new GroupResponse();
+    groupResponse.setGroupedBy(groupRequest.getGroups().get(0).getField());
+    groupResponse.setGroupResults(getGroupResults(groupRequest.getGroups(), 0));
+    return groupResponse;
+  }
+
+  private List<GroupResult> getGroupResults(List<Group> groups, int index) {
+    Group group = groups.get(index);
+    GroupResult groupResult = new GroupResult();
+    groupResult.setKey(group.getField() + "_value");
+    if (index < groups.size() - 1) {
+      groupResult.setGroupedBy(groups.get(index + 1).getField());
+      groupResult.setGroupResults(getGroupResults(groups, index + 1));
+    } else {
+      groupResult.setScore(50.0);
+    }
+    groupResult.setTotal(10);
+    return Collections.singletonList(groupResult);
+  }
 
   private static class ComparableComparator implements Comparator<Comparable>  {
     SortOrder order = null;
