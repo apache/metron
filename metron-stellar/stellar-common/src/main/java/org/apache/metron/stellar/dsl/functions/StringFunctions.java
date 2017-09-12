@@ -506,29 +506,27 @@ public class StringFunctions {
     }
   }
 
-  @Stellar( name = "PARSE_JSON_STRING"
+  @Stellar(name = "JSON_PARSE"
           , description = "Returns a JSON object for the specified JSON string"
           , params = {
             "str - the JSON String to convert, may be null"
           }
           , returns = "an Object containing the parsed JSON string"
   )
-  public static class ParseJsonString extends BaseStellarFunction {
+  public static class JsonParse extends BaseStellarFunction {
 
     @Override
     public Object apply(List<Object> strings) {
 
       if (strings == null || strings.size() == 0) {
-        throw new IllegalArgumentException("[PARSE_JSON_STRING] incorrect arguments. Usage: PARSE_JSON_STRING <String>");
+        throw new IllegalArgumentException("[JSON_PARSE] incorrect arguments. Usage: JSON_PARSE <String>");
       }
-      String var = strings.get(0) == null?null: (String) strings.get(0);
-      if(var == null) {
+      String var = (strings.get(0) == null) ? null : (String) strings.get(0);
+      if (var == null) {
         return null;
-      }
-      else if(var.length() == 0) {
+      } else if (var.length() == 0) {
         return var;
-      }
-      else {
+      } else {
         ObjectMapper objectMapper = new ObjectMapper();
 
         // First parse and check if input is valid JSON string
@@ -548,6 +546,92 @@ public class StringFunctions {
         }
       }
       return new ParseException("Unable to parse JSON string");
+    }
+  }
+
+  @Stellar(name = "JSON_TO_MAP"
+          , description = "Returns a MAP object for the specified JSON string"
+          , params = {
+          "str - the JSON String to convert, may be null"
+  }
+          , returns = "a MAP object containing the parsed JSON string"
+  )
+  public static class JsonToMap extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> strings) {
+
+      if (strings == null || strings.size() == 0) {
+        throw new IllegalArgumentException("[JSON_TO_MAP] incorrect arguments. Usage: JSON_TO_MAP <JSON String>");
+      }
+      String var = (strings.get(0) == null) ? null : (String) strings.get(0);
+      if (var == null) {
+        return null;
+      } else if (var.length() == 0) {
+        return var;
+      } else {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // First parse and check if input is valid JSON string
+        try {
+          objectMapper.readTree((String) strings.get(0));
+        } catch (JsonProcessingException ex) {
+          throw new ParseException("Valid JSON string not supplied", ex);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+
+        // Return parsed JSON Object as a HashMap
+        try {
+            return (HashMap) JSONUtils.INSTANCE.load((String) strings.get(0), Object.class);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+      return new ParseException("Unable to parse JSON string");
+    }
+  }
+
+  @Stellar(name = "JSON_TO_LIST"
+          , description = "Returns a List object for the specified JSON string"
+          , params = {
+          "str - the JSON String to convert, may be null"
+  }
+          , returns = "a List object containing the parsed JSON string"
+  )
+  public static class JsonToList extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> strings) {
+
+      if (strings == null || strings.size() == 0) {
+        throw new IllegalArgumentException("[JSON_TO_LIST] incorrect arguments. Usage: JSON_TO_LIST <JSON String>");
+      }
+      String var = (strings.get(0) == null) ? null : (String) strings.get(0);
+      if (var == null) {
+        return null;
+      } else if (var.length() == 0) {
+        return var;
+      } else {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // First parse and check if input is valid JSON string
+        try {
+          objectMapper.readTree((String) strings.get(0));
+        } catch (JsonProcessingException ex) {
+          throw new ParseException("Valid JSON string not supplied", ex);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+
+        // Return parsed JSON Object as a List
+        try {
+          return (List) JSONUtils.INSTANCE.load((String) strings.get(0), Object.class);
+        } catch (IOException e) {
+          e.printStackTrace();
+          throw new ParseException("Valid JSON string not supplied", e);
+        }
+      }
     }
   }
 }

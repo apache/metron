@@ -174,7 +174,9 @@ In the core language functions, we support basic functional programming primitiv
 | [ `MAP`](#map)                                                                                     |
 | [ `MAP_EXISTS`](#map_exists)                                                                       |
 | [ `MONTH`](#month)                                                                                 |
-| [ `PARSE_JSON_STRING`](#parse_json_string)                                                         |
+| [ `JSON_PARSE`](#json_parse)                                                                       |
+| [ `JSON_TO_LIST`](#json_to_List)                                                                   |
+| [ `JSON_TO_MAP`](#json_to_map)                                                                     |
 | [ `MULTISET_ADD`](#multiset_add)                                                                   |
 | [ `MULTISET_INIT`](#multiset_init)                                                                 |
 | [ `MULTISET_MERGE`](#multiset_merge)                                                               |
@@ -639,6 +641,27 @@ In the core language functions, we support basic functional programming primitiv
   * Description: Returns a list of the encodings that are currently supported.
   * Returns: A List of String
  
+### `JSON_PARSE`
+  * Description: Accepts JSON string as an input and returns a JSON Object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `MAP_GET( 'bar', JSON_PARSE(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed JSON object
+
+### `JSON_TO_LIST`
+  * Description: Accepts JSON string as an input and returns a List object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `GET_FIRST( JSON_TO_LIST(  '[ "foo", 2]')` would yield `foo`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed List object
+
+### `JSON_TO_MAP`
+  * Description: Accepts JSON string as an input and returns a Map object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `MAP_GET( 'bar', JSON_TO_MAP(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed Map object
+
 ### `LOG2`
   * Description: Returns the log (base `2`) of a number.
   * Input:
@@ -700,13 +723,6 @@ In the core language functions, we support basic functional programming primitiv
     * dateTime - The datetime as a long representing the milliseconds since unix epoch
   * Returns: The current month (0-based).
   
-### `PARSE_JSON_STRING`
-  * Description: Accepts JSON string as an input and returns a JSON Object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.   
-  For e.g. `MAP_GET( 'bar', PARSE_JSON_STRING(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
-  * Input:
-    * string - The JSON string to be parsed
-  * Returns: A parsed JSON object 
-
 ### `MULTISET_ADD`
   * Description: Adds to a multiset, which is a map associating objects to their instance counts.
   * Input:
