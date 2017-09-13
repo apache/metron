@@ -164,7 +164,7 @@ class RestCommands:
         File(pid_file, action = "delete")
         Logger.info('Done stopping REST application')
 
-    def restart_rest_application(self):
+    def restart_rest_application(self, env):
         Logger.info('Restarting the REST application')
         self.stop_rest_application()
         self.start_rest_application()

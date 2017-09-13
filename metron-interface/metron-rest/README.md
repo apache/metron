@@ -59,9 +59,6 @@ No optional parameter has a default.
 ### Optional - With Defaults
 | Environment Variable                  | Description                                                       | Required | Default
 | ------------------------------------- | ----------------------------------------------------------------- | -------- | -------
-| METRON_USER                           | Run the application as this user                                  | Optional | metron
-| METRON_LOG_DIR                        | Directory where the log file is written                           | Optional | /var/log/metron/
-| METRON_PID_DIR                        | Directory where the pid file is written                           | Optional | /var/run/metron/
 | METRON_REST_PORT                      | REST application port                                             | Optional | 8082
 | METRON_JDBC_CLIENT_PATH               | Path to JDBC client jar                                           | Optional | H2 is bundled
 | METRON_TEMP_GROK_PATH                 | Temporary directory used to test grok statements                  | Optional | ./patterns/temp
@@ -100,7 +97,15 @@ METRON_JDBC_PLATFORM="h2"
 
 The REST application should be configured with a production-grade database outside of development.
 
-For example, the following configures the application for MySQL:
+#### Ambari Install
+
+Installing with Ambari is recommended for production deployments.
+Ambari handles setup, configuration, and management of the REST component.
+This includes managing the PID file, directing logging, etc.
+
+#### Manual Install
+
+The following configures the application for MySQL:
 
 1. Install MySQL if not already available (this example uses version 5.7, installation instructions can be found [here](https://dev.mysql.com/doc/refman/5.7/en/linux-installation-yum-repo.html))
 
@@ -127,17 +132,20 @@ METRON_JDBC_PLATFORM="mysql"
 METRON_JDBC_CLIENT_PATH=$METRON_HOME/lib/mysql-connector-java-5.1.41/mysql-connector-java-5.1.41-bin.jar
   ```
 
+1. Start the REST API. Replace the elasticsearch jar as needed for indexing.
+  ```
+set -o allexport; source {metron_sysconfig}; set +o allexport;
+export METRON_JDBC_PASSWORD='Myp@ssw0rd';
+$JAVA_HOME/bin/java \
+-cp /usr/hdp/current/hadoop-client/conf:/usr/hdp/current/hbase-client/conf:/usr/metron/0.4.1/lib/metron-rest-0.4.1.jar:/usr/metron/0.4 .1/lib/metron-elasticsearch-0.4.1-uber.jar \
+org.apache.metron.rest.MetronRestApplication \
+--server.port=8082 \
+--spring.config.location=/usr/metron/0.4.1/config/rest_application.yml \
+--spring.profiles.active=dev >>  /var/log/metron/metron-rest.log 2>&1 & echo $! > /var/run/metron/metron-rest.pid;
+unset METRON_JDBC_PASSWORD;
+  ```
+
 ## Usage
-
-After configuration is complete, the REST application can be managed as a service:
-```
-service metron-rest start
-```
-
-If a production database is configured, the JDBC password should be passed in as the first argument on startup:
-```
-service metron-rest start Myp@ssw0rd
-```
 
 The REST application can be accessed with the Swagger UI at http://host:port/swagger-ui.html#/.  The default port is 8082.
 
