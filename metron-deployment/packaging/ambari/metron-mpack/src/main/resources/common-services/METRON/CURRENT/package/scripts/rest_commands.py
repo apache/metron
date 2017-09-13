@@ -83,8 +83,8 @@ class RestCommands:
         if self.__params.metron_spring_profiles_active:
             metron_spring_options += format(" --spring.profiles.active={metron_spring_profiles_active}")
 
-        if self.__params.metron_jdbc_password:
-            metron_spring_options += format(" --spring.datasource.password={metron_jdbc_password!p}")
+        # if self.__params.metron_jdbc_password:
+        #     metron_spring_options += format(" --spring.datasource.password={metron_jdbc_password!p}")
 
         metron_rest_classpath = format("{hadoop_conf_dir}:{hbase_conf_dir}:{metron_home}/lib/metron-rest-{metron_version}.jar")
         if self.__params.metron_jdbc_client_path:
@@ -107,7 +107,11 @@ class RestCommands:
         pid = get_user_call_output.get_user_call_output(format("cat {pid_file}"), user=self.__params.metron_user, is_checked_call=False)[1]
         process_id_exists_command = format("ls {pid_file} >/dev/null 2>&1 && ps -p {pid} >/dev/null 2>&1")
 
-        cmd = format("set -o allexport; source {metron_sysconfig}; set +o allexport; {java64_home}/bin/java -cp {metron_rest_classpath} org.apache.metron.rest.MetronRestApplication {metron_spring_options} >> {metron_log_dir}/metron-rest.log 2>&1 & echo $! > {pid_file}")
+        # Set the password with env variable instead of param to avoid it showing in ps
+        cmd = format(("set -o allexport; source {metron_sysconfig}; set +o allexport;"
+                     "export METRON_JDBC_PASSWORD={metron_jdbc_password!p};"
+                     "{java64_home}/bin/java -cp {metron_rest_classpath} org.apache.metron.rest.MetronRestApplication {metron_spring_options} >> {metron_log_dir}/metron-rest.log 2>&1 & echo $! > {pid_file};"
+                     "unset METRON_JDBC_PASSWORD;"))
         daemon_cmd = cmd
 
         Execute(daemon_cmd,
