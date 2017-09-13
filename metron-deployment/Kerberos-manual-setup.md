@@ -65,33 +65,51 @@ Setup a KDC
     yum -y install krb5-server krb5-libs krb5-workstation
     ```
 
-1. Define the host, `node1`, as the KDC.
+1. Define the current host as the KDC.
 
     ```
-    sed -i 's/kerberos.example.com/node1/g' /etc/krb5.conf
+    KDC=`hostname`
+    sed -i.orig 's/kerberos.example.com/'"$KDC"'/g' /etc/krb5.conf
     cp -f /etc/krb5.conf /var/lib/ambari-server/resources/scripts
     ```
 
-1. Ensure the KDC can issue renewable tickets. This can be necessary on a real cluster, but should not be on full-dev. In /var/kerberos/krb5kdc/kdc.conf ensure the following is in the realm section
+1. Ensure that the KDC can issue renewable tickets. This may be necessary on a real cluster, but should not be on [Full Dev](vagrant/full-dev-platform/README.md). 
+
+    Edit `/var/kerberos/krb5kdc/kdc.conf` and ensure the following is added to the `realm` section
 
     ```
     max_renewable_life = 7d
     ```
 
-1. Do not copy/paste this full set of commands as the `kdb5_util` command will not run as expected. Run the commands individually to ensure they all execute.  This step takes a moment. It creates the kerberos database.
+1. Create the KDC principal database.  You will be prompted for a password.  This step takes a moment.
 
     ```
     kdb5_util create -s
+    ```
+
+1. Start the KDC and ensure that it starts on boot.
+
+    ```
     /etc/rc.d/init.d/krb5kdc start
-    chkconfig krb5kdc on
+    chkconfig krb5kdc on    
+    ```
+    
+1. Start the Kerberos Admin service and ensure that it starts on boot.    
+    
+    ```
     /etc/rc.d/init.d/kadmin start
     chkconfig kadmin on
     ```
 
-1. Setup the `admin` and `metron` principals. You'll `kinit` as the `metron` principal when running topologies. Make sure to remember the passwords.
+1. Setup the `admin` principal. You will be prompted for a password; do not forget it.
 
     ```
     kadmin.local -q "addprinc admin/admin"
+    ```
+   
+1. Setup the `metron` principal. You will `kinit` as the `metron` principal when running topologies. You will be prompted for a password; do not forget it.
+    
+    ```
     kadmin.local -q "addprinc metron"
     ```
 
@@ -99,30 +117,30 @@ Verify KDC
 ----------
 
 
-Ticket renewal is by default disallowed in many linux distributions. If the KDC cannot issue renewable tickets, an error will be thrown when starting Metron's Storm topologies:
+1. Ticket renewal is disallowed by default in many Linux distributions. If the KDC cannot issue renewable tickets, an error will be thrown when starting Metron's Storm topologies:
 
-```
-Exception in thread "main" java.lang.RuntimeException: java.lang.RuntimeException: The TGT found is not renewable
-```
+    ```
+    Exception in thread "main" java.lang.RuntimeException: 
+    java.lang.RuntimeException: The TGT found is not renewable
+    ```
 
+1. Ensure the Metron keytab is renewable.  Look for the 'R' flag in the output of the following command.
 
-Ensure the Metron keytab is renewable.  Look for the 'R' flag from the following command
+    ```
+    klist -f
+    ```
 
-```
-klist -f
-```
+    * If the 'R' flags are present, you may skip to next section.
+    * If the 'R' flags are absent, you will need to follow the below steps:
+    
+1. If the KDC is already setup, then editing `max_life` and `max_renewable_life` in `/var/kerberos/krb5kdc/kdc.conf`, then restarting `kadmin` and `krb5kdc` services will not change the policies for existing users. 
 
-If the 'R' flags are present, you may skip to next section.
+    You need to set the renew lifetime for existing users and the `krbtgt` realm. Modify the appropriate principals to allow renewable tickets using the following commands. Adjust the parameters to match your desired KDC parameters:
 
-If the 'R' flags are absent, you will need to follow the below steps:
-If the KDC is already setup, then editing max_life and max_renewable_life in `/var/kerberos/krb5kdc/kdc.conf`, and restarting kadmin and krb5kdc services will not change the policies for existing users. 
-
-You need to set the renew lifetime for existing users and krbtgt realm. Modify the appropriate principals to allow renewable tickets using the following commands. Adjust the parameters to match your desired KDC parameters:
-
-```
-kadmin.local -q "modprinc -maxlife 1days -maxrenewlife 7days +allow_renewable krbtgt/EXAMPLE.COM@EXAMPLE.COM"
-kadmin.local -q "modprinc -maxlife 1days -maxrenewlife 7days +allow_renewable metron@EXAMPLE.COM"
-```
+    ```
+    kadmin.local -q "modprinc -maxlife 1days -maxrenewlife 7days +allow_renewable krbtgt/EXAMPLE.COM@EXAMPLE.COM"
+    kadmin.local -q "modprinc -maxlife 1days -maxrenewlife 7days +allow_renewable metron@EXAMPLE.COM"
+    ```
 
 
 Enable Kerberos
