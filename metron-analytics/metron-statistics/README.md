@@ -60,7 +60,7 @@ functions can be used from everywhere where Stellar is used.
   * Description: Adds one or more input values to those that are used to calculate the summary statistics.
   * Input:
     * stats - The Stellar statistics object.  If null, then a new one is initialized.
-    * value+ - One or more numbers to add. If one of objects is a list, it will iterate over the list and add each number.
+    * value+ - One or more items to add. Each item may be a number or a list of numbers. If an item is a list, each number in the list will be added.
   * Returns: A Stellar statistics object
 
 #### `STATS_BIN`
