@@ -109,4 +109,15 @@
         <value>escalation</value>
         <display-name>Metron escalation topic</display-name>
     </property>
+    <property>
+        <name>metron_rest_pid_dir</name>
+        <value>/var/run/metron</value>
+        <display-name>Metron REST PID Dir</display-name>
+        <description>Metron REST PID Dir.</description>
+        <value-attributes>
+            <type>directory</type>
+            <overridable>false</overridable>
+            <editable-only-at-install>true</editable-only-at-install>
+        </value-attributes>
+    </property>
 </configuration>

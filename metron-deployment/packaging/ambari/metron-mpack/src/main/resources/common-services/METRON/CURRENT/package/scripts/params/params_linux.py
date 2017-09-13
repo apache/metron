@@ -231,6 +231,10 @@ if security_enabled:
 # Management UI
 metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", ['localhost'])[0]
 
+# REST
+metron_rest_pid_dir = config['configurations']['metron-rest-env']['metron_rest_pid_dir']
+metron_rest_pid = 'metron-rest.pid'
+
 # Enrichment
 geoip_url = config['configurations']['metron-enrichment-env']['geoip_url']
 enrichment_host_known_hosts = config['configurations']['metron-enrichment-env']['enrichment_host_known_hosts']

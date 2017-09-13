@@ -21,9 +21,12 @@ import os
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
+from resource_management.libraries.functions import get_user_call_output
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.show_logs import show_logs
 
 import metron_service
+from metron_security import kinit
 
 # Wrap major operations and functionality in this class
 class RestCommands:
@@ -58,17 +61,82 @@ class RestCommands:
 
     def start_rest_application(self):
         Logger.info('Starting REST application')
-        command = format("service metron-rest start {metron_jdbc_password!p}")
-        Execute(command)
+
+        pid_file = format("{metron_rest_pid_dir}/{metron_rest_pid}")
+        cmd = format("{start_hiveserver2_path} {hive_log_dir}/hive-server2.out {hive_log_dir}/hive-server2.err {pid_file} {hive_server_conf_dir} {hive_log_dir}")
+
+        if self.__params.security_enabled:
+            kinit(self.__params.kinit_path_local,
+            self.__params.metron_keytab_path,
+            self.__params.metron_principal_name,
+            execute_user=self.__params.metron_user)
+
+        pid = get_user_call_output.get_user_call_output(format("cat {pid_file}"), user=self.__params.metron_user, is_checked_call=False)[1]
+        process_id_exists_command = format("ls {pid_file} >/dev/null 2>&1 && ps -p {pid} >/dev/null 2>&1")
+
+        daemon_cmd = cmd
+        hadoop_home = self.__params.hadoop_home
+        hive_bin = "hive"
+
+        Execute(daemon_cmd,
+                user = self.__params.metron_user,
+                environment = { 'HADOOP_HOME': hadoop_home, 'JAVA_HOME': self.__params.java64_home, 'HIVE_BIN': hive_bin },
+                path = self.__params.execute_path,
+                not_if = process_id_exists_command)
         Logger.info('Done starting REST application')
 
     def stop_rest_application(self):
         Logger.info('Stopping REST application')
-        Execute("service metron-rest stop")
+        # Execute("service metron-rest stop")
+
+        pid_file = format("{metron_rest_pid_dir}/{metron_rest_pid}")
+        cmd = format("{start_hiveserver2_path} {hive_log_dir}/hive-server2.out {hive_log_dir}/hive-server2.err {pid_file} {hive_server_conf_dir} {hive_log_dir}")
+
+        pid = get_user_call_output.get_user_call_output(format("cat {pid_file}"), user=self.__params.metron_user, is_checked_call=False)[1]
+        process_id_exists_command = format("ls {pid_file} >/dev/null 2>&1 && ps -p {pid} >/dev/null 2>&1")
+
+        daemon_kill_cmd = format("{sudo} kill {pid}")
+        daemon_hard_kill_cmd = format("{sudo} kill -9 {pid}")
+
+        if self.__params.security_enabled:
+            kinit(self.__params.kinit_path_local,
+            self.__params.metron_keytab_path,
+            self.__params.metron_principal_name,
+            execute_user=self.__params.metron_user)
+
+        Execute(daemon_kill_cmd,
+                not_if = format("! ({process_id_exists_command})")
+                )
+
+        wait_time = 5
+        Execute(daemon_hard_kill_cmd,
+                not_if = format("! ({process_id_exists_command}) || ( sleep {wait_time} && ! ({process_id_exists_command}) )"),
+                ignore_failures = True
+                )
+
+        try:
+            # check if stopped the process, else fail the task
+            Execute(format("! ({process_id_exists_command})"),
+                tries=20,
+                try_sleep=3,
+                  )
+        except:
+            show_logs(self.__params.hive_log_dir, self.__params.metron_user)
+            raise
+
+        File(pid_file, action = "delete")
         Logger.info('Done stopping REST application')
 
-    def restart_rest_application(self, env):
+    def restart_rest_application(self):
         Logger.info('Restarting the REST application')
-        command = format("service metron-rest restart {metron_jdbc_password!p}")
-        Execute(command)
+        # command = format("service metron-rest restart {metron_jdbc_password!p}")
+        # Execute(command)
+        self.stop_rest_application()
+        self.start_rest_application()
         Logger.info('Done restarting the REST application')
+
+
+
+
+
+
