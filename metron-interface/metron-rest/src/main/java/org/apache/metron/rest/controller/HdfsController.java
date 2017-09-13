@@ -67,9 +67,14 @@ public class HdfsController {
   @ApiOperation(value = "Writes contents to an HDFS file.  Warning: this will overwrite the contents of a file if it already exists.")
   @ApiResponse(message = "Contents were written", code = 200)
   @RequestMapping(method = RequestMethod.POST)
-  ResponseEntity<Void> write(@ApiParam(name="path", value="Path to HDFS file", required=true) @RequestParam String path,
-                                              @ApiParam(name="contents", value="File contents", required=true) @RequestBody String contents) throws RestException {
-    hdfsService.write(new Path(path), contents.getBytes(UTF_8));
+  ResponseEntity<Void> write(
+      @ApiParam(name = "path", value = "Path to HDFS file", required = true) @RequestParam String path,
+      @ApiParam(name = "contents", value = "File contents", required = true) @RequestBody String contents,
+      @ApiParam(name = "userMode", value = "requested user permissions") @RequestParam(required = false, defaultValue = "") String userMode,
+      @ApiParam(name = "groupMode", value = "requested group permissions") @RequestParam(required = false, defaultValue = "") String groupMode,
+      @ApiParam(name = "otherMode", value = "requested other permissions") @RequestParam(required = false, defaultValue = "") String otherMode
+      ) throws RestException {
+    hdfsService.write(new Path(path), contents.getBytes(UTF_8), userMode, groupMode, otherMode);
     return new ResponseEntity<>(HttpStatus.OK);
 
   }

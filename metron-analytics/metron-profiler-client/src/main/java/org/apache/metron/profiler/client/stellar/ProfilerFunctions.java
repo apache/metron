@@ -20,6 +20,7 @@
 
 package org.apache.metron.profiler.client.stellar;
 
+import org.apache.commons.collections4.ListUtils;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.profiler.ProfileMeasurement;
@@ -41,6 +42,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -109,7 +111,7 @@ public class ProfilerFunctions {
           name="APPLY",
           description="Apply a message to a local profile runner.",
           params={
-                  "message(s)", "The message to apply.  A JSON list can be used to apply multiple messages.",
+                  "message(s)", "The message to apply; a JSON string or list of JSON strings.",
                   "profiler", "A local profile runner returned by PROFILER_INIT."
           },
           returns="The local profile runner."
@@ -131,50 +133,99 @@ public class ProfilerFunctions {
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
 
-      // user must provide the message as a string
-      String arg0 = Util.getArg(0, String.class, args);
-      if(arg0 == null) {
-        throw new IllegalArgumentException(format("expected string, found null"));
-      }
-
-      // there could be one or more messages
-      List<JSONObject> messages = new ArrayList<>();
-      try {
-        Object parsedArg0 = parser.parse(arg0);
-        if(parsedArg0 instanceof JSONObject) {
-          // if there is only one message
-          messages.add((JSONObject) parsedArg0);
-
-        } else if(parsedArg0 instanceof JSONArray) {
-          // there are multiple messages
-          JSONArray jsonArray = (JSONArray) parsedArg0;
-          for(Object json: jsonArray) {
-            if(json instanceof JSONObject) {
-              messages.add((JSONObject) json);
-
-            } else {
-              throw new IllegalArgumentException(format("invalid message: found '%s', expected JSONObject",
-                              ClassUtils.getShortClassName(json, "null")));
-            }
-          }
-        }
-
-      } catch(org.json.simple.parser.ParseException e) {
-        throw new IllegalArgumentException("invalid message", e);
-      }
+      // the use can pass in one or more messages in a few different forms
+      Object arg0 = Util.getArg(0, Object.class, args);
+      List<JSONObject> messages = getMessages(arg0);
 
       // user must provide the stand alone profiler
       StandAloneProfiler profiler = Util.getArg(1, StandAloneProfiler.class, args);
       try {
-        for(JSONObject message : messages) {
+        for (JSONObject message : messages) {
           profiler.apply(message);
         }
 
-      } catch(ExecutionException e) {
+      } catch (ExecutionException e) {
         throw new IllegalArgumentException(format("Failed to apply message; error=%s", e.getMessage()), e);
       }
 
       return profiler;
+    }
+
+    /**
+     * Gets a message or messages from the function arguments.
+     *
+     * @param arg The function argument containing the message(s).
+     * @return A list of messages
+     */
+    private List<JSONObject> getMessages(Object arg) {
+      List<JSONObject> messages;
+
+      if (arg instanceof String) {
+        messages = getMessagesFromString((String) arg);
+
+      } else if (arg instanceof Iterable) {
+        messages = getMessagesFromIterable((Iterable<String>) arg);
+
+      } else if (arg instanceof JSONObject) {
+        messages = Collections.singletonList((JSONObject) arg);
+
+      } else {
+        throw new IllegalArgumentException(format("invalid message: found '%s', expected String, List, or JSONObject",
+                ClassUtils.getShortClassName(arg, "null")));
+      }
+
+      return messages;
+    }
+
+    /**
+     * Gets a message or messages from a List
+     *
+     * @param strings The function argument that is a bunch of strings.
+     * @return A list of messages.
+     */
+    private List<JSONObject> getMessagesFromIterable(Iterable<String> strings) {
+      List<JSONObject> messages = new ArrayList<>();
+
+      // the user pass in a list of strings
+      for (String str : strings) {
+        messages.addAll(getMessagesFromString(str));
+      }
+
+      return messages;
+    }
+
+    /**
+     * Gets a message or messages from a String argument.
+     *
+     * @param arg0 The function argument is just a List.
+     * @return A list of messages.
+     */
+    private List<JSONObject> getMessagesFromString(String arg0) {
+      List<JSONObject> messages = new ArrayList<>();
+
+      try {
+        Object parsedArg0 = parser.parse(arg0);
+        if (parsedArg0 instanceof JSONObject) {
+          // if the string only contains one message
+          messages.add((JSONObject) parsedArg0);
+
+        } else if (parsedArg0 instanceof JSONArray) {
+          // if the string contains multiple messages
+          JSONArray jsonArray = (JSONArray) parsedArg0;
+          for (Object item : jsonArray) {
+            messages.addAll(getMessages(item));
+          }
+
+        } else {
+          throw new IllegalArgumentException(format("invalid message: found '%s', expected JSONObject or JSONArray",
+                  ClassUtils.getShortClassName(parsedArg0, "null")));
+        }
+
+      } catch (org.json.simple.parser.ParseException e) {
+        throw new IllegalArgumentException(format("invalid message: '%s'", e.getMessage()), e);
+      }
+
+      return messages;
     }
   }
 

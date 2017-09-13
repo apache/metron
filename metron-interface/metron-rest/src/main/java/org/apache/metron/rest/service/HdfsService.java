@@ -17,8 +17,6 @@
  */
 package org.apache.metron.rest.service;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.rest.RestException;
 
@@ -28,11 +26,13 @@ public interface HdfsService {
 
     String read(Path path) throws RestException;
 
-    void write(Path path, byte[] contents) throws RestException;
+    void write(Path path, byte[] contents,String userMode, String groupMode, String otherMode) throws RestException;
 
     List<String> list(Path path) throws RestException;
 
     boolean delete(Path path, boolean recursive) throws RestException;
+
+    boolean mkdirs(Path path) throws RestException;
 
     boolean ensureDirectory(Path path) throws RestException;
  }

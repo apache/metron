@@ -21,13 +21,13 @@
 package org.apache.metron.profiler.client.stellar;
 
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.StandAloneProfiler;
 import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
 import org.apache.metron.stellar.common.StellarStatefulExecutor;
-import org.apache.metron.stellar.common.shell.StellarExecutor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -176,7 +176,7 @@ public class ProfilerFunctionsTest {
   }
 
   @Test
-  public void testProfilerApply() {
+  public void testProfilerApplyWithString() {
 
     // initialize the profiler
     state.put("config", helloWorldProfilerDef);
@@ -195,7 +195,28 @@ public class ProfilerFunctionsTest {
   }
 
   @Test
-  public void testProfilerApplyWithMultipleMessages() {
+  public void testProfilerApplyWithJSONObject() throws Exception {
+
+    // initialize the profiler
+    state.put("config", helloWorldProfilerDef);
+    StandAloneProfiler profiler = run("PROFILER_INIT(config)", StandAloneProfiler.class);
+    state.put("profiler", profiler);
+
+    // apply a message to the profiler
+    JSONParser parser = new JSONParser();
+    JSONObject jsonObject = (JSONObject) parser.parse(message);
+    state.put("jsonObj", jsonObject);
+    StandAloneProfiler result = run("PROFILER_APPLY(jsonObj, profiler)", StandAloneProfiler.class);
+
+    // validate
+    assertSame(profiler, result);
+    assertEquals(1, profiler.getProfileCount());
+    assertEquals(1, profiler.getMessageCount());
+    assertEquals(1, profiler.getRouteCount());
+  }
+
+  @Test
+  public void testProfilerApplyWithMultipleMessagesInJSONString() {
 
     // initialize the profiler
     state.put("config", helloWorldProfilerDef);
@@ -212,6 +233,26 @@ public class ProfilerFunctionsTest {
     assertEquals(3, profiler.getMessageCount());
     assertEquals(3, profiler.getRouteCount());
   }
+
+  @Test
+  public void testProfilerApplyWithListOfMessages() {
+
+    // initialize the profiler
+    state.put("config", helloWorldProfilerDef);
+    StandAloneProfiler profiler = run("PROFILER_INIT(config)", StandAloneProfiler.class);
+    state.put("profiler", profiler);
+
+    // apply a message to the profiler
+    state.put("msg", message);
+    StandAloneProfiler result = run("PROFILER_APPLY([msg, msg, msg], profiler)", StandAloneProfiler.class);
+
+    // validate
+    assertSame(profiler, result);
+    assertEquals(1, profiler.getProfileCount());
+    assertEquals(3, profiler.getMessageCount());
+    assertEquals(3, profiler.getRouteCount());
+  }
+
 
   @Test
   public void testProfilerApplyWithEmptyList() {
@@ -250,8 +291,8 @@ public class ProfilerFunctionsTest {
     StandAloneProfiler profiler = run("PROFILER_INIT(config)", StandAloneProfiler.class);
     state.put("profiler", profiler);
 
-    // there is no 'messages' variable
-    StandAloneProfiler result = run("PROFILER_APPLY(messages, profiler)", StandAloneProfiler.class);
+    // there is no 'messages' variable - should throw exception
+    run("PROFILER_APPLY(messages, profiler)", StandAloneProfiler.class);
   }
 
   @Test

@@ -445,7 +445,7 @@ public class ExtensionServiceImpl implements ExtensionService{
     BundleProperties props = context.bundleProperties.get();
     org.apache.hadoop.fs.Path altPath = new org.apache.hadoop.fs.Path(props.getProperty("bundle.library.directory.alt"));
     org.apache.hadoop.fs.Path targetPath = new org.apache.hadoop.fs.Path(altPath, bundlePath.toFile().getName());
-    hdfsService.write(targetPath,FileUtils.readFileToByteArray(bundlePath.toFile()));
+    hdfsService.write(targetPath,FileUtils.readFileToByteArray(bundlePath.toFile()),"rwx","r-x","r-x");
   }
 
   private void deleteBundleFromHdfs(String bundleName) throws Exception{
@@ -480,7 +480,7 @@ public class ExtensionServiceImpl implements ExtensionService{
       paths.add(parserRulePath);
       for(Path thisRule : grokRulePaths){
         org.apache.hadoop.fs.Path targetPath = new org.apache.hadoop.fs.Path(parserRulePath,thisRule.toFile().getName());
-        hdfsService.write(targetPath,FileUtils.readFileToByteArray(thisRule.toFile()));
+        hdfsService.write(targetPath,FileUtils.readFileToByteArray(thisRule.toFile()),"rwx","r-x","r-x");
       }
     }
     context.hdfsPathContext.put(Paths.GROK_HDFS_DIRS,paths);

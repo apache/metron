@@ -24,6 +24,7 @@ import {ClusterMetaDataService} from '../../service/cluster-metadata.service';
 import {ColumnMetadata} from '../../model/column-metadata';
 import {ColumnNamesService} from '../../service/column-names.service';
 import {ColumnNames} from '../../model/column-names';
+import {SearchService} from '../../service/search.service';
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
@@ -51,8 +52,11 @@ export class ConfigureTableComponent implements OnInit {
 
   allColumns: ColumnMetadataWrapper[] = [];
 
-  constructor(private router: Router, private activatedRoute: ActivatedRoute, private configureTableService: ConfigureTableService,
-              private clusterMetaDataService: ClusterMetaDataService, private columnNamesService: ColumnNamesService) { }
+  constructor(private router: Router, private activatedRoute: ActivatedRoute,
+              private configureTableService: ConfigureTableService,
+              private clusterMetaDataService: ClusterMetaDataService,
+              private columnNamesService: ColumnNamesService,
+              private searchService: SearchService) { }
 
   goBack() {
     this.router.navigateByUrl('/alerts-list');
@@ -80,7 +84,7 @@ export class ConfigureTableComponent implements OnInit {
   ngOnInit() {
     Observable.forkJoin(
       this.clusterMetaDataService.getDefaultColumns(),
-      this.clusterMetaDataService.getColumnMetaData(),
+      this.searchService.getColumnMetaData(),
       this.configureTableService.getTableMetadata()
     ).subscribe((response: any) => {
       this.prepareData(response[0], response[1], response[2].tableColumns);

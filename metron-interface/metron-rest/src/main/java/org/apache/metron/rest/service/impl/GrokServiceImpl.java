@@ -20,6 +20,7 @@ package org.apache.metron.rest.service.impl;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.nio.charset.Charset;
 import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import org.apache.commons.io.IOUtils;
@@ -40,9 +41,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.Map;
@@ -104,42 +102,13 @@ public class GrokServiceImpl implements GrokService {
     }
 
     @Override
-    public File saveTemporary(String statement, String name) throws RestException {
-        if (statement != null) {
-            try {
-                File grokDirectory = new File(getTemporaryGrokRootPath());
-                if (!grokDirectory.exists()) {
-                  grokDirectory.mkdirs();
-                }
-                File path = new File(grokDirectory, name);
-                FileWriter fileWriter = new FileWriter(new File(grokDirectory, name));
-                fileWriter.write(statement);
-                fileWriter.close();
-                return path;
-            } catch (IOException e) {
-                throw new RestException(e);
-            }
-        } else {
-            throw new RestException("A grokStatement must be provided");
-        }
-    }
-
-    @Override
     public void saveStatement(String path, byte[] contents) throws RestException {
         String root = (String)configurationMap.get("metron.apps.hdfs.dir");
         if(!root.endsWith("/") && !path.startsWith("/")) {
             root = root + "/";
         }
         Path rootedPath = new Path(root + path);
-        hdfsService.write(rootedPath, contents);
-    }
-
-    private String getTemporaryGrokRootPath() {
-        String javaTmp = System.getProperty("java.io.tmpdir");
-        String grokTempPath = Paths
-            .get(javaTmp, environment.getProperty(GROK_TEMP_PATH_SPRING_PROPERTY)).toString();
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return new Path(grokTempPath, authentication.getName()).toString();
+        hdfsService.write(rootedPath, contents, null, null, null);
     }
 
     public String getStatement(String path) throws RestException {

@@ -17,7 +17,15 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import static org.apache.metron.rest.MetronRestConstants.GROK_CLASS_NAME;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
@@ -46,15 +54,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.apache.metron.rest.MetronRestConstants.GROK_CLASS_NAME;
 
 @Service
 public class SensorParserConfigServiceImpl implements SensorParserConfigService {
@@ -101,7 +100,8 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
   @Override
   public SensorParserConfig save(SensorParserConfig sensorParserConfig) throws RestException {
     try {
-      ConfigurationsUtils.writeSensorParserConfigToZookeeper(sensorParserConfig.getSensorTopic(), objectMapper.writeValueAsString(sensorParserConfig).getBytes(), client);
+      ConfigurationsUtils.writeSensorParserConfigToZookeeper(sensorParserConfig.getSensorTopic(),
+          objectMapper.writeValueAsString(sensorParserConfig).getBytes(), client);
     } catch (Exception e) {
       throw new RestException(e);
     }

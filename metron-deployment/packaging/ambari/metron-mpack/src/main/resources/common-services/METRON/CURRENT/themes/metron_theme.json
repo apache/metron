@@ -617,6 +617,10 @@
           "subsection-name": "subsection-rest"
         },
         {
+          "config": "metron-rest-env/metron_escalation_topic",
+          "subsection-name": "subsection-rest"
+        },
+        {
           "config": "metron-management-ui-env/metron_management_ui_port",
           "subsection-name": "subsection-management-ui"
         }
@@ -1036,6 +1040,12 @@
       },
       {
         "config": "metron-rest-env/metron_spring_options",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-rest-env/metron_escalation_topic",
         "widget": {
           "type": "text-field"
         }

@@ -103,6 +103,17 @@ then it is assumed to be a regex and will match any topic matching the pattern (
 * `mergeMetadata` : Boolean indicating whether to merge metadata with the message or not (`false` by default).  See below for a discussion about metadata.
 * `parserConfig` : A JSON Map representing the parser implementation specific configuration.
 * `fieldTransformations` : An array of complex objects representing the transformations to be done on the message generated from the parser before writing out to the kafka topic.
+* `spoutParallelism` : The kafka spout parallelism (default to `1`).  This can be overridden on the command line.
+* `spoutNumTasks` : The number of tasks for the spout (default to `1`). This can be overridden on the command line.
+* `parserParallelism` : The parser bolt parallelism (default to `1`). This can be overridden on the command line.
+* `parserNumTasks` : The number of tasks for the parser bolt (default to `1`). This can be overridden on the command line.
+* `errorWriterParallelism` : The error writer bolt parallelism (default to `1`). This can be overridden on the command line.
+* `errorWriterNumTasks` : The number of tasks for the error writer bolt (default to `1`). This can be overridden on the command line.
+* `numWorkers` : The number of workers to use in the topology (default is the storm default of `1`).
+* `numAckers` : The number of acker executors to use in the topology (default is the storm default of `1`).
+* `spoutConfig` : A map representing a custom spout config (this is a map). This can be overridden on the command line.
+* `securityProtocol` : The security protocol to use for reading from kafka (this is a string).  This can be overridden on the command line and also specified in the spout config via the `security.protocol` key.  If both are specified, then they are merged and the CLI will take precedence.
+* `stormConfig` : The storm config to use (this is a map).  This can be overridden on the command line.  If both are specified, they are merged with CLI properties taking precedence.
 
 The `fieldTransformations` is a complex object which defines a
 transformation which can be done to a message.  This transformation can 

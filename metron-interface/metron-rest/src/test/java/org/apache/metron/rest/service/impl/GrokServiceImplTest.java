@@ -17,12 +17,11 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import javax.security.auth.Subject;
+import java.nio.charset.Charset;
 import oi.thekraken.grok.api.Grok;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.GrokValidation;
 import org.apache.metron.rest.service.GrokService;
@@ -32,7 +31,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
@@ -199,44 +197,5 @@ public class GrokServiceImplTest {
     grokValidation.setStatement("LABEL %{WORD:word1} %{WORD:word2");
 
     grokService.validateGrokStatement(grokValidation);
-  }
-
-  @Test
-  public void saveTemporaryShouldProperlySaveFile() throws Exception {
-    new File("./target/user1").delete();
-    String statement = "grok statement";
-
-    Authentication authentication = mock(Authentication.class);
-    when(authentication.getName()).thenReturn("user1");
-    SecurityContextHolder.getContext().setAuthentication(authentication);
-    when(environment.getProperty(GROK_TEMP_PATH_SPRING_PROPERTY)).thenReturn("./target");
-
-    File testFile = grokService.saveTemporary(statement, "squid");
-
-    assertEquals(statement, FileUtils.readFileToString(testFile));
-    testFile.delete();
-  }
-
-  @Test
-  public void saveTemporaryShouldWrapExceptionInRestException() throws Exception {
-    exception.expect(RestException.class);
-
-    String statement = "grok statement";
-
-    Authentication authentication = mock(Authentication.class);
-    when(authentication.getName()).thenReturn("user1");
-    SecurityContextHolder.getContext().setAuthentication(authentication);
-    when(environment.getProperty(GROK_TEMP_PATH_SPRING_PROPERTY)).thenReturn("./target");
-    whenNew(FileWriter.class).withParameterTypes(File.class).withArguments(any()).thenThrow(new IOException());
-
-    grokService.saveTemporary(statement, "squid");
-  }
-
-  @Test
-  public void missingGrokStatementShouldThrowRestException() throws Exception {
-    exception.expect(RestException.class);
-    exception.expectMessage("A grokStatement must be provided");
-
-    grokService.saveTemporary(null, "squid");
   }
 }

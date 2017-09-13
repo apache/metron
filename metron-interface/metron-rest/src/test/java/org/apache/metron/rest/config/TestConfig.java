@@ -36,6 +36,7 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.integration.ComponentRunner;
@@ -139,6 +140,21 @@ public class TestConfig {
   @Bean
   public ConsumerFactory<String, String> createConsumerFactory() {
     return new DefaultKafkaConsumerFactory<>(kafkaConsumer(kafkaWithZKComponent(zkProperties())));
+  }
+
+  @Bean
+  public Map<String, Object> producerProperties(KafkaComponent kafkaWithZKComponent) {
+    Map<String, Object> producerConfig = new HashMap<>();
+    producerConfig.put("bootstrap.servers", kafkaWithZKComponent.getBrokerList());
+    producerConfig.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+    producerConfig.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+    producerConfig.put("request.required.acks", 1);
+    return producerConfig;
+  }
+
+  @Bean
+  public KafkaProducer kafkaProducer(KafkaComponent kafkaWithZKComponent) {
+    return new KafkaProducer<>(producerProperties(kafkaWithZKComponent));
   }
 
   @Bean

@@ -18,15 +18,20 @@
 
 package org.apache.metron.stellar.dsl.functions;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.stellar.common.utils.JSONUtils;
 import org.apache.metron.stellar.dsl.BaseStellarFunction;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -321,6 +326,58 @@ public class StringFunctions {
     }
   }
 
+  @Stellar( name="SUBSTRING"
+          , description = "Returns a substring of a string"
+          , params = {
+                "input - The string to take the substring of",
+                "start - The starting position (0-based and inclusive)",
+                "end? - The ending position (0-based and exclusive)"
+                     }
+          , returns = "The substring of the input"
+  )
+  public static class Substring extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> strings) {
+
+      if(strings == null || strings.size() < 2 ) {
+        throw new IllegalArgumentException("SUBSTRING requires (at least) 2 arguments: the input and the start position (inclusive)");
+      }
+      Object varObj = strings.get(0);
+      if(varObj != null && !(varObj instanceof String)) {
+        throw new IllegalArgumentException("SUBSTRING input must be a String");
+      }
+      String var = varObj == null?null: (String) varObj;
+      Object startObj = strings.get(1);
+      if(startObj != null && !(startObj instanceof Number)) {
+        throw new IllegalArgumentException("SUBSTRING start must be an Number");
+      }
+      Integer start = startObj == null?null:((Number)startObj).intValue();
+      Integer end = null;
+      if(strings.size() > 2) {
+        Object endObj = strings.get(2);
+        if(endObj != null && !(endObj instanceof Number)) {
+          throw new IllegalArgumentException("SUBSTRING end must be an Number");
+        }
+        end = endObj == null ? null : ((Number) endObj).intValue();
+      }
+      if(var == null || start == null) {
+        return null;
+      }
+      else if(var.length() == 0) {
+        return var;
+      }
+      else {
+        if(end == null) {
+          return var.substring(start);
+        }
+        else {
+          return var.substring(start, end);
+        }
+      }
+    }
+  }
+
   @Stellar( name="CHOMP"
           , description = "Removes one newline from end of a String if it's there, otherwise leave it alone. A newline is \"\\n\", \"\\r\", or \"\\r\\n\""
           , params = { "the String to chomp a newline from, may be null"}
@@ -450,4 +507,114 @@ public class StringFunctions {
     }
   }
 
+  @Stellar(name = "TO_JSON_OBJECT"
+          , description = "Returns a JSON object for the specified JSON string"
+          , params = {
+            "str - the JSON String to convert, may be null"
+          }
+          , returns = "an Object containing the parsed JSON string"
+  )
+  public static class ToJsonObject extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> strings) {
+
+      if (strings == null || strings.size() == 0) {
+        throw new IllegalArgumentException("[TO_JSON_OBJECT] incorrect arguments. Usage: TO_JSON_OBJECT <String>");
+      }
+      String var = (strings.get(0) == null) ? null : (String) strings.get(0);
+      if (var == null) {
+        return null;
+      } else if (var.length() == 0) {
+        return var;
+      } else {
+        if (!(strings.get(0) instanceof String)) {
+          throw new ParseException("Valid JSON string not supplied");
+        }
+        // Return JSON Object
+        try {
+          return JSONUtils.INSTANCE.load((String) strings.get(0), Object.class);
+        } catch (JsonProcessingException ex) {
+          throw new ParseException("Valid JSON string not supplied", ex);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+      return new ParseException("Unable to parse JSON string");
+    }
+  }
+
+  @Stellar(name = "TO_JSON_MAP"
+          , description = "Returns a MAP object for the specified JSON string"
+          , params = {
+          "str - the JSON String to convert, may be null"
+  }
+          , returns = "a MAP object containing the parsed JSON string"
+  )
+  public static class ToJsonMap extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> strings) {
+
+      if (strings == null || strings.size() == 0) {
+        throw new IllegalArgumentException("[TO_JSON_MAP] incorrect arguments. Usage: TO_JSON_MAP <JSON String>");
+      }
+      String var = (strings.get(0) == null) ? null : (String) strings.get(0);
+      if (var == null) {
+        return null;
+      } else if (var.length() == 0) {
+        return var;
+      } else {
+        if (!(strings.get(0) instanceof String)) {
+          throw new ParseException("Valid JSON string not supplied");
+        }
+        // Return parsed JSON Object as a HashMap
+        try {
+          return JSONUtils.INSTANCE.load((String) strings.get(0), new TypeReference<Map<String, Object>>(){});
+        } catch (JsonProcessingException ex) {
+          throw new ParseException("Valid JSON string not supplied", ex);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+      return new ParseException("Unable to parse JSON string");
+    }
+  }
+
+  @Stellar(name = "TO_JSON_LIST"
+          , description = "Returns a List object for the specified JSON string"
+          , params = {
+          "str - the JSON String to convert, may be null"
+  }
+          , returns = "a List object containing the parsed JSON string"
+  )
+  public static class ToJsonList extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> strings) {
+
+      if (strings == null || strings.size() == 0) {
+        throw new IllegalArgumentException("[TO_JSON_LIST] incorrect arguments. Usage: TO_JSON_LIST <JSON String>");
+      }
+      String var = (strings.get(0) == null) ? null : (String) strings.get(0);
+      if (var == null) {
+        return null;
+      } else if (var.length() == 0) {
+        return var;
+      } else {
+        if (!(strings.get(0) instanceof String)) {
+          throw new ParseException("Valid JSON string not supplied");
+        }
+        // Return parsed JSON Object as a List
+        try {
+          return (List) JSONUtils.INSTANCE.load((String) strings.get(0), new TypeReference<List<Object>>(){});
+        } catch (JsonProcessingException ex) {
+          throw new ParseException("Valid JSON string not supplied", ex);
+        } catch (IOException e) {
+          e.printStackTrace();
+          throw new ParseException("Valid JSON string not supplied", e);
+        }
+      }
+    }
+  }
 }
