@@ -124,6 +124,11 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
+  public void init(AccessConfig config) {
+    // Do nothing. We're just wrapping a child dao
+  }
+
+  @Override
   public SearchResponse getAllMetaAlertsForAlert(String guid) throws InvalidSearchException {
     if (guid == null || guid.trim().isEmpty()) {
       throw new InvalidSearchException("Guid cannot be empty");
@@ -186,11 +191,6 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public void init(AccessConfig config) {
-    // Do nothing. We're just wrapping a child dao
-  }
-
-  @Override
   public Document getLatest(String guid, String sensorType) throws IOException {
     return indexDao.getLatest(guid, sensorType);
   }
@@ -218,7 +218,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   /**
-   * Given an alert GUID, retrieve all associated meta alerts
+   * Given an alert GUID, retrieve all associated meta alerts.
    * @param guid The GUID of the child alert
    * @return The Elasticsearch response containing the meta alerts
    */
@@ -247,7 +247,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   /**
-   * Return child documents after retrieving them from Elasticsearch
+   * Return child documents after retrieving them from Elasticsearch.
    * @param request The request detailing which child alerts we need
    * @return The Elasticsearch response to our request for alerts
    */
@@ -260,56 +260,41 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   /**
-   * Build the Document representing a meta alert to be created
+   * Build the Document representing a meta alert to be created.
    * @param multiGetResponse The Elasticsearch results for the meta alerts child documents
    * @param groups The groups used to create this meta alert
    * @return A Document representing the new meta alert
    */
   protected Document buildCreateDocument(MultiGetResponse multiGetResponse, List<String> groups) {
-    // Need to create a Document from the multiget and
-    // Make sure to track the scores as we go through.
-    List<Double> scores = new ArrayList<>();
+    // Need to create a Document from the multiget. Scores will be calculated later
     Map<String, Object> metaSource = new HashMap<>();
-    // Run through the alerts and add them and their scores
     List<Map<String, Object>> alertList = new ArrayList<>();
     for (MultiGetItemResponse itemResponse : multiGetResponse) {
       GetResponse response = itemResponse.getResponse();
       if (response.isExists()) {
-        Map<String, Object> source = response.getSource();
-        alertList.add(source);
-        Double value = parseThreatField(source.get(threatTriageField));
-        if (value != null) {
-          scores.add(value);
-        }
+        alertList.add(response.getSource());
       }
     }
     metaSource.put(ALERT_FIELD, alertList.toArray());
 
     // Add any meta fields and score calculation.
-    Map<String, Object> metaFields = new HashMap<>();
     String guid = UUID.randomUUID().toString();
-    metaFields.put(Constants.GUID, guid);
-    metaFields.put(Constants.Fields.TIMESTAMP.getName(), System.currentTimeMillis());
-    metaFields.put(GROUPS_FIELD, groups.toArray());
-    metaFields.put(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
-    MetaScores metaScores = new MetaScores(scores);
-    metaFields.putAll(metaScores.getMetaScores());
-    metaFields.put(threatTriageField, metaScores.getMetaScores().get(threatSort));
-    for (Entry<String, Object> entry : metaFields.entrySet()) {
-      metaSource.put(entry.getKey(), entry.getValue());
-    }
+    metaSource.put(Constants.GUID, guid);
+    metaSource.put(Constants.Fields.TIMESTAMP.getName(), System.currentTimeMillis());
+    metaSource.put(GROUPS_FIELD, groups.toArray());
+    metaSource.put(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
 
     return new Document(metaSource, guid, METAALERT_TYPE, System.currentTimeMillis());
   }
 
   /**
-   * Process an update to a meta alert itself
+   * Process an update to a meta alert itself.
    * @param update The update Document to be applied
    * @param index The optional index to update to
    * @throws IOException If there's a problem running the update
    */
   protected void handleMetaUpdate(Document update, Optional<String> index) throws IOException {
-    // We have an update to a meta alert itself (e.g. adding a document, etc.)  Recalculate scores
+    // We have an update to a meta alert itself (e.g. adding a document, etc.)  Calculate scores
     // and defer the final result to the Elasticsearch DAO.
     MetaScores metaScores = calculateMetaScores(update);
     update.getDocument().putAll(metaScores.getMetaScores());
@@ -318,7 +303,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   /**
-   * Takes care of upserting a child alert to a meta alert
+   * Takes care of upserting a child alert to a meta alert.
    * @param update The update Document to be applied
    * @param hit The meta alert to be updated
    * @throws IOException If there's an issue running the upsert
@@ -371,7 +356,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   /**
-   * Calculate the meta alert scores for a Document
+   * Calculate the meta alert scores for a Document.
    * @param document The Document containing scores
    * @return Set of score statistics
    */
@@ -396,7 +381,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   /**
-   * Builds the updated meta alert based on the update
+   * Builds the updated meta alert based on the update.
    * @param update The update Document for the meta alert
    * @param hit The meta alert to be updated
    * @return A builder for Elasticsearch to use

@@ -29,7 +29,6 @@ public class MetaScores {
   protected Map<String, Object> metaScores = new HashMap<>();
 
   public MetaScores(List<Double> scores) {
-    // TODO validate that the defaults are acceptable.
     // A meta alert could be entirely alerts with no values.
     DoubleSummaryStatistics stats = scores
         .stream()

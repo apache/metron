@@ -26,6 +26,7 @@ import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 
 public interface MetaAlertDao extends IndexDao {
+
   String METAALERTS_INDEX = "metaalerts";
   String METAALERT_TYPE = "metaalert";
   String METAALERT_DOC = METAALERT_TYPE + "_doc";
@@ -64,7 +65,8 @@ public interface MetaAlertDao extends IndexDao {
   /**
    * Initializes a Meta Alert DAO.
    * @param indexDao The DAO to wrap for our queries
-   * @param threatSort The aggregation to use as the threat field. E.g. "sum", "median", etc. null is "sum"
+   * @param threatSort The aggregation to use as the threat field. E.g. "sum", "median", etc.
+   *     null is "sum"
    */
   void init(IndexDao indexDao, String threatSort);
 }

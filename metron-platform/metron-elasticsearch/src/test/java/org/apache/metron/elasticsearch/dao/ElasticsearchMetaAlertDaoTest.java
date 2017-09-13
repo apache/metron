@@ -303,12 +303,6 @@ public class ElasticsearchMetaAlertDaoTest {
     alertList.add(alertOne);
 
     Map<String, Object> actualDocument = actual.getDocument();
-    assertEquals(10.0d, actualDocument.get("average"));
-    assertEquals(10.0d, actualDocument.get("min"));
-    assertEquals(10.0d, actualDocument.get("median"));
-    assertEquals(10.0d, actualDocument.get("max"));
-    assertEquals(10.0d, actualDocument.get("sum"));
-    assertEquals(1L, actualDocument.get("count"));
     assertEquals(
         MetaAlertStatus.ACTIVE.getStatusString(),
         actualDocument.get(MetaAlertDao.STATUS_FIELD)
@@ -374,13 +368,6 @@ public class ElasticsearchMetaAlertDaoTest {
     alertList.add(alertTwo);
 
     Map<String, Object> actualDocument = actual.getDocument();
-    assertEquals(7.5d, actualDocument.get("average"));
-    assertEquals(5.0d, actualDocument.get("min"));
-    assertEquals(7.5d, actualDocument.get("median"));
-    assertEquals(10.0d, actualDocument.get("max"));
-    assertEquals(15.0d, actualDocument.get("sum"));
-    assertEquals(2L, actualDocument.get("count"));
-    assertEquals(15.0d, actualDocument.get(MetaAlertDao.THREAT_FIELD_DEFAULT));
     assertNotNull(actualDocument.get(Fields.TIMESTAMP.getName()));
     assertArrayEquals(
         alertList.toArray(),
@@ -427,7 +414,7 @@ public class ElasticsearchMetaAlertDaoTest {
     Map<String, Object> docMap = new HashMap<>();
     docMap.put(MetaAlertDao.ALERT_FIELD, alertList);
 
-    Document doc = new Document(docMap, "guid", "metaalert", 0L);
+    Document doc = new Document(docMap, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
 
     List<Double> scores = new ArrayList<>();
     scores.add(10.0d);
