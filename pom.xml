@@ -307,6 +307,7 @@
                         <exclude>**/*.tokens</exclude>
                         <exclude>**/*.log</exclude>
                         <exclude>**/*.template</exclude>
+                        <exclude>**/*.mapping</exclude>
                         <exclude>**/.*</exclude>
                         <exclude>**/.*/**</exclude>
                         <exclude>**/*.seed</exclude>

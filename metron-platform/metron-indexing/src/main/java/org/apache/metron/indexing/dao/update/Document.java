@@ -18,14 +18,11 @@
 
 package org.apache.metron.indexing.dao.update;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Optional;
 
 public class Document {
   Long timestamp;
@@ -84,5 +81,15 @@ public class Document {
 
   public void setGuid(String guid) {
     this.guid = guid;
+  }
+
+  @Override
+  public String toString() {
+    return "Document{" +
+        "timestamp=" + timestamp +
+        ", document=" + document +
+        ", guid='" + guid + '\'' +
+        ", sensorType='" + sensorType + '\'' +
+        '}';
   }
 }

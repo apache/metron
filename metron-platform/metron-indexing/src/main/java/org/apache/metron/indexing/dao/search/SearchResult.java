@@ -73,4 +73,14 @@ public class SearchResult {
   public void setScore(float score) {
     this.score = score;
   }
+
+  @Override
+  public String toString() {
+    return "SearchResult{" +
+        "id='" + id + '\'' +
+        ", source=" + source +
+        ", score=" + score +
+        ", index='" + index + '\'' +
+        '}';
+  }
 }
