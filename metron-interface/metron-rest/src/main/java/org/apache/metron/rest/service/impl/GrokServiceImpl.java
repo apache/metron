@@ -102,28 +102,6 @@ public class GrokServiceImpl implements GrokService {
     }
 
     @Override
-    public Path saveTemporary(String statement, String name) throws RestException {
-        if (statement != null) {
-            Path path = getTemporaryGrokRootPath();
-            hdfsService.mkdirs(path);
-            hdfsService.write(new Path(path, name), statement.getBytes(Charset.forName("utf-8")),null,null,null);
-            return path;
-        } else {
-            throw new RestException("A grokStatement must be provided");
-        }
-    }
-
-    public void deleteTemporary() throws RestException {
-        hdfsService.delete(getTemporaryGrokRootPath(), true);
-    }
-
-    private Path getTemporaryGrokRootPath() {
-      String grokTempPath = environment.getProperty(GROK_TEMP_PATH_SPRING_PROPERTY);
-      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-      return new Path(grokTempPath, authentication.getName());
-    }
-
-    @Override
     public void saveStatement(String path, byte[] contents) throws RestException {
         String root = (String)configurationMap.get("metron.apps.hdfs.dir");
         if(!root.endsWith("/") && !path.startsWith("/")) {

@@ -63,6 +63,7 @@ metron_jdbc_username = config['configurations']['metron-rest-env']['metron_jdbc_
 metron_jdbc_password = config['configurations']['metron-rest-env']['metron_jdbc_password']
 metron_jdbc_platform = config['configurations']['metron-rest-env']['metron_jdbc_platform']
 metron_jdbc_client_path = config['configurations']['metron-rest-env']['metron_jdbc_client_path']
+metron_default_grok_path = config['configurations']['metron-rest-env']['metron_default_grok_path']
 metron_spring_options = config['configurations']['metron-rest-env']['metron_spring_options']
 metron_escalation_topic = config['configurations']['metron-rest-env']['metron_escalation_topic']
 metron_config_path = metron_home + '/config'

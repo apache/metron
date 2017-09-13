@@ -95,6 +95,12 @@
         <display-name>Metron temp grok path</display-name>
     </property>
     <property>
+        <name>metron_default_grok_path</name>
+        <description>Default HDFS directory path used when storing Grok patterns</description>
+        <value>/apps/metron/patterns</value>
+        <display-name>Metron default grok path</display-name>
+    </property>
+    <property>
         <name>metron_spring_options</name>
         <description>Additional Spring options not included in the rest_application.yml file</description>
         <display-name>Metron Spring options</display-name>

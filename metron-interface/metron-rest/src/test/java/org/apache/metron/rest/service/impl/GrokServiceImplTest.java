@@ -198,44 +198,4 @@ public class GrokServiceImplTest {
 
     grokService.validateGrokStatement(grokValidation);
   }
-
-  @Test
-  public void saveTemporaryShouldProperlySaveFile() throws Exception {
-    new File("./target/user1").delete();
-    String statement = "grok statement";
-
-    Authentication authentication = mock(Authentication.class);
-    when(authentication.getName()).thenReturn("user1");
-    SecurityContextHolder.getContext().setAuthentication(authentication);
-    when(environment.getProperty(GROK_TEMP_PATH_SPRING_PROPERTY)).thenReturn("./target");
-
-    grokService.saveTemporary(statement, "squid");
-
-    File testRoot = new File("./target/user1");
-    assertEquals(statement, FileUtils.readFileToString(new File(testRoot, "squid"), Charset.forName("utf-8")));
-    testRoot.delete();
-  }
-
-  @Test
-  public void saveTemporaryShouldWrapExceptionInRestException() throws Exception {
-    exception.expect(RestException.class);
-
-    String statement = "grok statement";
-
-    Authentication authentication = mock(Authentication.class);
-    when(authentication.getName()).thenReturn("user1");
-    SecurityContextHolder.getContext().setAuthentication(authentication);
-    when(environment.getProperty(GROK_TEMP_PATH_SPRING_PROPERTY)).thenReturn("./target");
-    whenNew(FileWriter.class).withParameterTypes(File.class).withArguments(any()).thenThrow(new IOException());
-
-    grokService.saveTemporary(statement, "squid");
-  }
-
-  @Test
-  public void missingGrokStatementShouldThrowRestException() throws Exception {
-    exception.expect(RestException.class);
-    exception.expectMessage("A grokStatement must be provided");
-
-    grokService.saveTemporary(null, "squid");
-  }
 }

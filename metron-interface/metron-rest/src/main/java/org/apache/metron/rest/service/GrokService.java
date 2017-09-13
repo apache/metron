@@ -29,10 +29,6 @@ public interface GrokService {
 
     GrokValidation validateGrokStatement(GrokValidation grokValidation) throws RestException;
 
-    Path saveTemporary(String statement, String name) throws RestException;
-
-    void deleteTemporary() throws RestException;
-
     String getStatement(String path) throws RestException;
 
     void saveStatement(String path, byte[] contents) throws RestException;

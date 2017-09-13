@@ -33,4 +33,6 @@ public interface HdfsService {
     boolean delete(Path path, boolean recursive) throws RestException;
 
     boolean mkdirs(Path path) throws RestException;
+
+    boolean ensureDirectory(Path path) throws RestException;
  }
