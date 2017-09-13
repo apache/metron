@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,40 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.indexing.dao.search;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+package org.apache.metron.elasticsearch.dao;
 
-public enum FieldType {
-  @JsonProperty("string")
-  STRING("string"),
-  @JsonProperty("ip")
-  IP("ip"),
-  @JsonProperty("integer")
-  INTEGER("integer"),
-  @JsonProperty("long")
-  LONG("long"),
-  @JsonProperty("date")
-  DATE("date"),
-  @JsonProperty("float")
-  FLOAT("float"),
-  @JsonProperty("double")
-  DOUBLE("double"),
-  @JsonProperty("boolean")
-  BOOLEAN("boolean"),
-  @JsonProperty("nested")
-  NESTED("nested"),
-  @JsonProperty("other")
-  OTHER("other");
+public enum MetaAlertStatus {
+  ACTIVE("active"),
+  INACTIVE("inactive");
 
+  private String statusString;
 
-  private String fieldType;
-
-  FieldType(String fieldType) {
-    this.fieldType = fieldType;
+  MetaAlertStatus(String statusString) {
+    this.statusString = statusString;
   }
 
-  public String getFieldType() {
-    return fieldType;
+  public String getStatusString() {
+    return statusString;
   }
 }

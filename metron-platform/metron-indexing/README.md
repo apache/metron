@@ -146,6 +146,23 @@ in parallel.  This enables a flexible strategy for specifying your backing store
 For instance, currently the REST API supports the update functionality and may be configured with a list of
 IndexDao implementations to use to support the updates.
 
+### The `MetaAlertDao`
+
+The goal of meta alerts is to be able to group together a set of alerts while being able to transparently perform actions
+like searches, as if meta alerts were normal alerts.  `org.apache.metron.indexing.dao.MetaAlertDao` extends `IndexDao` and
+enables a couple extra features: creation of a meta alert and the ability to get all meta alerts associated with an alert.
+
+The implementation of this is to denormalize the relationship between alerts and meta alerts, and store alerts as a nested field within a meta alert.
+The use of nested fields is to avoid the limitations of parent-child relationships (one-to-many) and merely linking by IDs
+(which causes issues with pagination as a result of being unable to join indices).
+
+The search functionality of `IndexDao` is wrapped by the `MetaAlertDao` in order to provide both regular and meta alerts side-by-side with sorting.
+The updating capabilities are similarly wrapped, in order to ensure updates are carried through both the alerts and associated meta alerts.
+Both of these functions are handled under the hood.
+
+In addition, an API endpoint is added for the meta alert specific features of creation and going from meta alert to alert.
+The denormalization handles the case of going from meta alert to alert automatically.
+
 # Notes on Performance Tuning
 
 Default installed Metron is untuned for production deployment.  By far
