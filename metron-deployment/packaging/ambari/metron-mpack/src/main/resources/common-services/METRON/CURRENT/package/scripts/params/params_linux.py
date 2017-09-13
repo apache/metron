@@ -29,6 +29,9 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script import Script
+from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 import status_params
 
@@ -38,6 +41,8 @@ tmp_dir = Script.get_tmp_dir()
 
 hostname = config['hostname']
 metron_home = status_params.metron_home
+metron_version = config['configurations']['metron-env']['metron_version']
+
 parsers = status_params.parsers
 parser_error_topic = config['configurations']['metron-parsers-env']['parser_error_topic']
 geoip_hdfs_dir = "/apps/metron/geo/default/"
@@ -75,6 +80,9 @@ indexing_hbase_acl_configured_flag_file = status_params.indexing_hbase_acl_confi
 indexing_hdfs_perm_configured_flag_file = status_params.indexing_hdfs_perm_configured_flag_file
 global_json_template = config['configurations']['metron-env']['global-json']
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
+
+# Java
+java64_home = config['hostLevelParams']['java_home']
 
 # Elasticsearch hosts and port management
 es_cluster_name = config['configurations']['metron-env']['es_cluster_name']
@@ -169,6 +177,16 @@ HdfsResource = functools.partial(
 )
 
 # HBase
+# Getting the conf dir of HBase is non trivial.  Pulled from Ambari's HBase params file.
+stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+stack_version_formatted = format_stack_version(stack_version_unformatted)
+stack_root = Script.get_stack_root()
+hbase_conf_dir = "/etc/hbase/conf"
+if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
+    # Required to be colocated, so just use hbase-client component directly
+    hbase_conf_dir = format("{stack_root}/current/hbase-client/conf")
+
+# Metron HBase configuration
 enrichment_hbase_provider_impl = 'org.apache.metron.hbase.HTableProvider'
 enrichment_table = status_params.enrichment_table
 enrichment_cf = status_params.enrichment_cf
@@ -234,6 +252,8 @@ metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", ['localhost'])[
 # REST
 metron_rest_pid_dir = config['configurations']['metron-rest-env']['metron_rest_pid_dir']
 metron_rest_pid = 'metron-rest.pid'
+metron_indexing_classpath = config['configurations']['metron-rest-env']['metron_indexing_classpath']
+metron_sysconfig = config['configurations']['metron-rest-env']['metron_sysconfig']
 
 # Enrichment
 geoip_url = config['configurations']['metron-enrichment-env']['geoip_url']

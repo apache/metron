@@ -25,6 +25,18 @@
         <display-name>Metron home</display-name>
     </property>
     <property>
+        <!-- This is for internal use in jar names, since Ambari doesn't appear to expose it -->
+        <name>metron_version</name>
+        <value>${metron.version}</value>
+        <description>Metron version</description>
+        <display-name>Metron home</display-name>
+        <value-attributes>
+            <read-only>true</read-only>
+            <overridable>false</overridable>
+            <visible>false</visible>
+        </value-attributes>
+    </property>
+    <property>
         <name>metron_apps_hdfs_dir</name>
         <value>/apps/metron</value>
         <description>Metron apps HDFS dir</description>
