@@ -17,16 +17,9 @@
  */
 package org.apache.metron.parsers.bolt;
 
-import java.net.URISyntaxException;
-import java.util.List;
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.metron.bundles.*;
-import org.apache.metron.bundles.bundle.Bundle;
 import org.apache.metron.bundles.util.BundleProperties;
-import org.apache.metron.bundles.util.FileSystemManagerFactory;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
@@ -36,8 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -67,7 +58,7 @@ public class ParserLoader {
       Optional<BundleProperties> bundleProperties = getBundleProperties(client);
       if (bundleProperties.isPresent()) {
         BundleProperties props = bundleProperties.get();
-        BundleSystem bundleSystem = new BundleSystem.Builder().withBundleProperties(props).build();
+        BundleSystem bundleSystem = new BundleSystemBuilder().withBundleProperties(props).build();
         parser = bundleSystem
             .createInstance(parserConfig.getParserClassName(), MessageParser.class);
       } else {

@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
@@ -101,6 +102,11 @@ public class ExtensionManager {
       throw new IllegalArgumentException("systemBundle is required");
     }
 
+    logger.debug("withBundles: ");
+    bundles.forEach((bundle -> {
+      logger.debug(bundle.getBundleDetails().getCoordinates().getCoordinates());
+    }));
+
     synchronized (ExtensionManager.class) {
       if (extensionManager != null) {
         throw new IllegalStateException("ExtensionManager already exists");
@@ -112,6 +118,7 @@ public class ExtensionManager {
           .withBundles(bundles).build();
       initContext = ic;
       extensionManager = em;
+      extensionManager.logClassLoaderMapping();
     }
   }
 
@@ -306,6 +313,9 @@ public class ExtensionManager {
     }
     checkInitialized();
     final Set<Class> extensions = initContext.getDefinitionMap().get(definition);
+    if(extensions != null) {
+      extensions.forEach((x) -> logger.debug("returning extension " + x.getSimpleName()));
+    }
     return (extensions == null) ? Collections.<Class>emptySet() : extensions;
   }
 
@@ -325,8 +335,14 @@ public class ExtensionManager {
 
         for (final Bundle bundle : bundles) {
           final String coordinate = bundle.getBundleDetails().getCoordinates().getCoordinates();
-          final String workingDir = bundle.getBundleDetails().getBundleFile().getName().toString();
-          builder.append("\n\t\t").append(coordinate).append(" || ").append(workingDir);
+          String bundleFile = null;
+          FileName bundleFileObjectName = bundle.getBundleDetails().getBundleFile().getName();
+          if (bundleFileObjectName != null ) {
+            bundleFile = bundleFileObjectName.toString();
+          } else {
+            bundleFile = "System";
+          }
+          builder.append("\n\t\t").append(coordinate).append(" || ").append(bundleFile);
         }
       }
 
@@ -355,7 +371,6 @@ public class ExtensionManager {
         .withClasses(new ArrayList<Class>(initContext.getDefinitionMap().keySet()))
         .withSystemBundle(initContext.getSystemBundle())
         .build();
-
       initContext.merge(newContext);
   }
 

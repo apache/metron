@@ -23,6 +23,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.bundles.BundleSystem;
+import org.apache.metron.bundles.BundleSystemBuilder;
 import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.service.SensorParserConfigService;
@@ -47,7 +48,6 @@ import java.lang.reflect.Method;
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -189,7 +189,7 @@ public class SensorParserConfigControllerIntegrationTest {
       BundleProperties properties = BundleProperties.createBasicBundleProperties(fis, new HashMap<>());
       properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY,"./target");
       properties.unSetProperty("bundle.library.directory.alt");
-      bundleSystem = new BundleSystem.Builder().withBundleProperties(properties).build();
+      bundleSystem = new BundleSystemBuilder().withBundleProperties(properties).build();
       ((SensorParserConfigServiceImpl)sensorParserConfigService).setBundleSystem(bundleSystem);
     }
   }
