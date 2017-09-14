@@ -1121,6 +1121,12 @@ Shell-like operations are supported such as
 
 Note: Stellar classpath configuration from the global config is honored here if the REPL knows about zookeeper.
 
+### Environment Variables
+When starting the REPL via `$METRON_HOME/bin/stellar` you can specify
+certain environment variables to customize the experience:
+* `JVMFLAGS` - Arbitrary JVM flags to pass to the `java` command when starting the REPL.
+* `CONTRIB` - Directory where jars with Stellar functions can be placed.  The default is `$METRON_HOME/contrib`.
+
 ### Getting Started
 
 To run the Stellar Shell from within a deployed Metron cluster, run the following command on the host where Metron is installed.
