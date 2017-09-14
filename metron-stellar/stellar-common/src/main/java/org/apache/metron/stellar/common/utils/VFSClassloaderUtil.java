@@ -18,6 +18,7 @@
 package org.apache.metron.stellar.common.utils;
 
 import java.io.File;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Optional;
 import org.apache.accumulo.start.classloader.vfs.UniqueFileReplicator;

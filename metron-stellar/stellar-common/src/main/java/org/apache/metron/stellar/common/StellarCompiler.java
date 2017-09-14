@@ -47,6 +47,7 @@ import org.apache.metron.stellar.dsl.VariableResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 
 import static java.lang.String.format;
+import org.apache.metron.stellar.dsl.Context.ActivityType;
 
 public class StellarCompiler extends StellarBaseListener {
   private static Token<?> EXPRESSION_REFERENCE = new Token<>(null, Object.class);
