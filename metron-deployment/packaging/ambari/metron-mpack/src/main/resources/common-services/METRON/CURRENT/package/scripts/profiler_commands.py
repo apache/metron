@@ -134,9 +134,9 @@ class ProfilerCommands:
         if not self.is_topology_active(env):
             if self.__params.security_enabled:
                 metron_security.kinit(self.__params.kinit_path_local,
-                      self.__params.hbase_keytab_path,
-                      self.__params.hbase_principal_name,
-                      execute_user=self.__params.metron_user)
+                                      self.__params.metron_keytab_path,
+                                      self.__params.metron_principal_name,
+                                      execute_user=self.__params.metron_user)
             start_cmd_template = """{0}/bin/start_profiler_topology.sh \
                                     -s {1} \
                                     -z {2}"""
