@@ -47,7 +47,7 @@ public class ElasticsearchDaoIntegrationTest extends IndexingDaoIntegrationTest 
    * {
    * "bro_doc": {
    *   "properties": {
-   *     "source:type": { "type": "text" },
+   *     "source:type": { "type": "text", "fielddata": true },
    *     "ip_src_addr": { "type": "ip" },
    *     "ip_src_port": { "type": "integer" },
    *     "long_field": { "type": "long" },
@@ -56,8 +56,8 @@ public class ElasticsearchDaoIntegrationTest extends IndexingDaoIntegrationTest 
    *     "double_field": { "type": "double" },
    *     "is_alert": { "type": "boolean" },
    *     "location_point": { "type": "geo_point" },
-   *     "bro_field": { "type": "text" },
-   *     "duplicate_name_field": { "type": "text" }
+   *     "bro_field": { "type": "text", "fielddata": true },
+   *     "duplicate_name_field": { "type": "text", "fielddata": true }
    *   }
    * }
    * }
@@ -69,7 +69,7 @@ public class ElasticsearchDaoIntegrationTest extends IndexingDaoIntegrationTest 
    * {
    * "snort_doc": {
    *   "properties": {
-   *     "source:type": { "type": "text" },
+   *     "source:type": { "type": "text","fielddata": true  },
    *     "ip_src_addr": { "type": "ip" },
    *     "ip_src_port": { "type": "integer" },
    *     "long_field": { "type": "long" },

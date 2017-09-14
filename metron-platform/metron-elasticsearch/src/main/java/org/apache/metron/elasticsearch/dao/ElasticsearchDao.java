@@ -26,14 +26,15 @@ import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
-import org.elasticsearch.index.mapper.ip.IpFieldMapper;
+import org.elasticsearch.index.mapper.IpFieldMapper;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.DoubleTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.LongTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
-import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.*;
 
@@ -47,6 +48,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static org.elasticsearch.index.mapper.LegacyIpFieldMapper.longToIp;
 
 public class ElasticsearchDao implements IndexDao {
   private transient TransportClient client;
@@ -208,7 +211,7 @@ public class ElasticsearchDao implements IndexDao {
 
   public void addFacetFields(SearchSourceBuilder searchSourceBuilder, List<String> fields) {
     for(String field: fields) {
-      searchSourceBuilder = searchSourceBuilder.aggregation(new TermsBuilder(getAggregationName(field)).field(field));
+      searchSourceBuilder = searchSourceBuilder.aggregation(AggregationBuilders.terms(getAggregationName(field)).field(field));
     }
   }
 
@@ -221,7 +224,7 @@ public class ElasticsearchDao implements IndexDao {
         LongTerms longTerms = (LongTerms) aggregation;
         FieldType type = commonColumnMetadata.get(field);
         if (FieldType.IP.equals(type)) {
-          longTerms.getBuckets().stream().forEach(bucket -> valueCounts.put(IpFieldMapper.longToIp((Long) bucket.getKey()), bucket.getDocCount()));
+          longTerms.getBuckets().stream().forEach(bucket -> valueCounts.put(longToIp((Long) bucket.getKey()), bucket.getDocCount()));
         } else if (FieldType.BOOLEAN.equals(type)) {
           longTerms.getBuckets().stream().forEach(bucket -> {
             String key = (Long) bucket.getKey() == 1 ? "true" : "false";

@@ -36,11 +36,11 @@ import java.util.Map;
 public abstract class IndexingDaoIntegrationTest {
   /**
    * [
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.1", "ip_src_port": 8010, "long_field": 10000, "timestamp":1, "latitude": 48.5839, "double_field": 1.00001, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 1", "duplicate_name_field": "data 1"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.2", "ip_src_port": 8009, "long_field": 20000, "timestamp":2, "latitude": 48.0001, "double_field": 1.00002, "is_alert":false, "location_point": "48.5839,7.7455", "bro_field": "bro data 2", "duplicate_name_field": "data 2"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.3", "ip_src_port": 8008, "long_field": 10000, "timestamp":3, "latitude": 48.5839, "double_field": 1.00002, "is_alert":true, "location_point": "50.0,7.7455", "bro_field": "bro data 3", "duplicate_name_field": "data 3"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.4", "ip_src_port": 8007, "long_field": 10000, "timestamp":4, "latitude": 48.5839, "double_field": 1.00002, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 4", "duplicate_name_field": "data 4"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.5", "ip_src_port": 8006, "long_field": 10000, "timestamp":5, "latitude": 48.5839, "double_field": 1.00001, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 5", "duplicate_name_field": "data 5"}
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.1", "ip_src_port": 8010, "long_field": 10000, "timestamp":"1970-01-01T00:00:00.001Z", "latitude": 48.5839, "double_field": 1.00001, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 1", "duplicate_name_field": "data 1"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.2", "ip_src_port": 8009, "long_field": 20000, "timestamp":"1970-01-01T00:00:00.002Z", "latitude": 48.0001, "double_field": 1.00002, "is_alert":false, "location_point": "48.5839,7.7455", "bro_field": "bro data 2", "duplicate_name_field": "data 2"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.3", "ip_src_port": 8008, "long_field": 10000, "timestamp":"1970-01-01T00:00:00.003Z", "latitude": 48.5839, "double_field": 1.00002, "is_alert":true, "location_point": "50.0,7.7455", "bro_field": "bro data 3", "duplicate_name_field": "data 3"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.4", "ip_src_port": 8007, "long_field": 10000, "timestamp":"1970-01-01T00:00:00.004Z", "latitude": 48.5839, "double_field": 1.00002, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 4", "duplicate_name_field": "data 4"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.5", "ip_src_port": 8006, "long_field": 10000, "timestamp":"1970-01-01T00:00:00.005Z", "latitude": 48.5839, "double_field": 1.00001, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 5", "duplicate_name_field": "data 5"}
    * ]
    */
   @Multiline
@@ -48,11 +48,11 @@ public abstract class IndexingDaoIntegrationTest {
 
   /**
    * [
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.6", "ip_src_port": 8005, "long_field": 10000, "timestamp":6, "latitude": 48.5839, "double_field": 1.00001, "is_alert":false, "location_point": "50.0,7.7455", "snort_field": 10, "duplicate_name_field": 1},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8004, "long_field": 10000, "timestamp":7, "latitude": 48.5839, "double_field": 1.00002, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 20, "duplicate_name_field": 2},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.7", "ip_src_port": 8003, "long_field": 10000, "timestamp":8, "latitude": 48.5839, "double_field": 1.00001, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 30, "duplicate_name_field": 3},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8002, "long_field": 20000, "timestamp":9, "latitude": 48.0001, "double_field": 1.00002, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 40, "duplicate_name_field": 4},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.8", "ip_src_port": 8001, "long_field": 10000, "timestamp":10, "latitude": 48.5839, "double_field": 1.00001, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 50, "duplicate_name_field": 5}
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.6", "ip_src_port": 8005, "long_field": 10000, "timestamp":"1970-01-01T00:00:00.006Z", "latitude": 48.5839, "double_field": 1.00001, "is_alert":false, "location_point": "50.0,7.7455", "snort_field": 10, "duplicate_name_field": 1},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8004, "long_field": 10000, "timestamp":"1970-01-01T00:00:00.007Z", "latitude": 48.5839, "double_field": 1.00002, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 20, "duplicate_name_field": 2},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.7", "ip_src_port": 8003, "long_field": 10000, "timestamp":"1970-01-01T00:00:00.008Z", "latitude": 48.5839, "double_field": 1.00001, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 30, "duplicate_name_field": 3},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8002, "long_field": 20000, "timestamp":"1970-01-01T00:00:00.009Z", "latitude": 48.0001, "double_field": 1.00002, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 40, "duplicate_name_field": 4},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.8", "ip_src_port": 8001, "long_field": 10000, "timestamp":"1970-01-01T00:00:00.010Z", "latitude": 48.5839, "double_field": 1.00001, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 50, "duplicate_name_field": 5}
    * ]
    */
   @Multiline
@@ -247,11 +247,11 @@ public abstract class IndexingDaoIntegrationTest {
       Assert.assertEquals(3, response.getTotal());
       List<SearchResult> results = response.getResults();
       Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
-      Assert.assertEquals(9, results.get(0).getSource().get("timestamp"));
+      Assert.assertEquals("1970-01-01T00:00:00.009Z", results.get(0).getSource().get("timestamp"));
       Assert.assertEquals("snort", results.get(1).getSource().get("source:type"));
-      Assert.assertEquals(7, results.get(1).getSource().get("timestamp"));
+      Assert.assertEquals("1970-01-01T00:00:00.007Z", results.get(1).getSource().get("timestamp"));
       Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
-      Assert.assertEquals(1, results.get(2).getSource().get("timestamp"));
+      Assert.assertEquals("1970-01-01T00:00:00.001Z", results.get(2).getSource().get("timestamp"));
     }
     //Sort test case
     {
@@ -271,11 +271,11 @@ public abstract class IndexingDaoIntegrationTest {
       List<SearchResult> results = response.getResults();
       Assert.assertEquals(3, results.size());
       Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
-      Assert.assertEquals(6, results.get(0).getSource().get("timestamp"));
+      Assert.assertEquals("1970-01-01T00:00:00.006Z", results.get(0).getSource().get("timestamp"));
       Assert.assertEquals("bro", results.get(1).getSource().get("source:type"));
-      Assert.assertEquals(5, results.get(1).getSource().get("timestamp"));
+      Assert.assertEquals("1970-01-01T00:00:00.005Z", results.get(1).getSource().get("timestamp"));
       Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
-      Assert.assertEquals(4, results.get(2).getSource().get("timestamp"));
+      Assert.assertEquals("1970-01-01T00:00:00.003Z", results.get(2).getSource().get("timestamp"));
     }
     //Index query
     {
@@ -327,16 +327,16 @@ public abstract class IndexingDaoIntegrationTest {
       Assert.assertEquals(new Long(2), longFieldCounts.get("20000"));
       Map<String, Long> timestampCounts = facetCounts.get("timestamp");
       Assert.assertEquals(10, timestampCounts.size());
-      Assert.assertEquals(new Long(1), timestampCounts.get("1"));
-      Assert.assertEquals(new Long(1), timestampCounts.get("2"));
-      Assert.assertEquals(new Long(1), timestampCounts.get("3"));
-      Assert.assertEquals(new Long(1), timestampCounts.get("4"));
-      Assert.assertEquals(new Long(1), timestampCounts.get("5"));
-      Assert.assertEquals(new Long(1), timestampCounts.get("6"));
-      Assert.assertEquals(new Long(1), timestampCounts.get("7"));
-      Assert.assertEquals(new Long(1), timestampCounts.get("8"));
-      Assert.assertEquals(new Long(1), timestampCounts.get("9"));
-      Assert.assertEquals(new Long(1), timestampCounts.get("10"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("1970-01-01T00:00:00.001Z"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("1970-01-01T00:00:00.002Z"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("1970-01-01T00:00:00.003Z"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("1970-01-01T00:00:00.004Z"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("1970-01-01T00:00:00.005Z"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("1970-01-01T00:00:00.006Z"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("1970-01-01T00:00:00.007Z"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("1970-01-01T00:00:00.008Z"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("1970-01-01T00:00:00.009Z"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("1970-01-01T00:00:00.010Z"));
       Map<String, Long> latitudeCounts = facetCounts.get("latitude");
       Assert.assertEquals(2, latitudeCounts.size());
       List<String> latitudeKeys = new ArrayList<>(latitudeCounts.keySet());
