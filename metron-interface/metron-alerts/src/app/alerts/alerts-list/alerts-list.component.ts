@@ -21,9 +21,10 @@ import {Observable, Subscription} from 'rxjs/Rx';
 
 import {Alert} from '../../model/alert';
 import {SearchService} from '../../service/search.service';
+import {UpdateService} from '../../service/update.service';
 import {QueryBuilder} from './query-builder';
 import {ConfigureTableService} from '../../service/configure-table.service';
-import {WorkflowService} from '../../service/workflow.service';
+import {AlertsService} from '../../service/alerts.service';
 import {ClusterMetaDataService} from '../../service/cluster-metadata.service';
 import {ColumnMetadata} from '../../model/column-metadata';
 import {SortEvent} from '../../shared/metron-table/metron-table.directive';
@@ -37,6 +38,7 @@ import {MetronDialogBox, DialogType} from '../../shared/metron-dialog-box';
 import {AlertSearchDirective} from '../../shared/directives/alert-search.directive';
 import {SearchResponse} from '../../model/search-response';
 import {ElasticsearchUtils} from '../../utils/elasticsearch-utils';
+import {environment} from '../../../environments/environment';
 
 @Component({
   selector: 'app-alerts-list',
@@ -56,6 +58,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   pauseRefresh = false;
   lastPauseRefreshValue = false;
   threatScoreFieldName = 'threat:triage:score';
+  indices: string[];
 
   @ViewChild('table') table: ElementRef;
   @ViewChild(AlertSearchDirective) alertSearchDirective: AlertSearchDirective;
@@ -66,8 +69,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   constructor(private router: Router,
               private searchService: SearchService,
+              private updateService: UpdateService,
               private configureTableService: ConfigureTableService,
-              private workflowService: WorkflowService,
+              private alertsService: AlertsService,
               private clusterMetaDataService: ClusterMetaDataService,
               private saveSearchService: SaveSearchService,
               private metronDialogBox: MetronDialogBox) {
@@ -77,6 +81,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
         this.restoreRefreshState();
       }
     });
+    if (environment.indices) {
+      this.indices = environment.indices.split(',');
+    }
   }
 
   addAlertColChangedListner() {
@@ -161,7 +168,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
           returnValue = alert[column.name];
           break;
         case 'alert_status':
-          returnValue = 'NEW';
+          let alertStatus = alert.source['alert_status'];
+          returnValue = alertStatus ? alertStatus : 'NEW';
           break;
         default:
           returnValue = alert.source[column.name];
@@ -252,27 +260,27 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   processEscalate() {
-    this.workflowService.start(this.selectedAlerts).subscribe(workflowId => {
-      this.searchService.updateAlertState(this.selectedAlerts, 'ESCALATE', workflowId).subscribe(results => {
-        this.updateSelectedAlertStatus('ESCALATE');
-      });
+    this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE').subscribe(results => {
+      this.updateSelectedAlertStatus('ESCALATE');
     });
+    this.alertsService.escalate(this.selectedAlerts).subscribe();
+   
   }
 
   processDismiss() {
-    this.searchService.updateAlertState(this.selectedAlerts, 'DISMISS', '').subscribe(results => {
+    this.updateService.updateAlertState(this.selectedAlerts, 'DISMISS').subscribe(results => {
       this.updateSelectedAlertStatus('DISMISS');
     });
   }
 
   processOpen() {
-    this.searchService.updateAlertState(this.selectedAlerts, 'OPEN', '').subscribe(results => {
+    this.updateService.updateAlertState(this.selectedAlerts, 'OPEN').subscribe(results => {
       this.updateSelectedAlertStatus('OPEN');
     });
   }
 
   processResolve() {
-    this.searchService.updateAlertState(this.selectedAlerts, 'RESOLVE', '').subscribe(results => {
+    this.updateService.updateAlertState(this.selectedAlerts, 'RESOLVE').subscribe(results => {
       this.updateSelectedAlertStatus('RESOLVE');
     });
   }
@@ -312,8 +320,11 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
       this.saveSearchService.saveAsRecentSearches(savedSearch).subscribe(() => {});
     }
-
-    this.searchService.search(this.queryBuilder.searchRequest).subscribe(results => {
+    let searchRequest = this.queryBuilder.searchRequest;
+    if (this.indices) {
+      searchRequest.indices = this.indices;
+    }
+    this.searchService.search(searchRequest).subscribe(results => {
       this.setData(results);
     }, error => {
       this.setData(new SearchResponse());
@@ -388,8 +399,10 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   updateSelectedAlertStatus(status: string) {
-    for (let alert of this.selectedAlerts) {
-      alert.status = status;
+    for (let selectedAlert of this.selectedAlerts) {
+      selectedAlert.status = status;
+      this.alerts.filter(alert => alert.source.guid == selectedAlert.source.guid)
+      .map(alert => alert.source['alert_status'] = status);
     }
   }
 }

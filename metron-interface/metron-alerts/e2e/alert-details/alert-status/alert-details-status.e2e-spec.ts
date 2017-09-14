@@ -16,16 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MetronAlertsPage } from '../alerts-list.po';
+import { MetronAlertDetailsPage } from '../alert-details.po';
 import {customMatchers} from '../../matchers/custom-matchers';
 import {LoginPage} from '../../login/login.po';
 import {loadTestData, deleteTestData} from '../../utils/e2e_util';
 
-describe('metron-alerts configure table', function() {
-  let page: MetronAlertsPage;
+describe('metron-alerts alert status', function() {
+  let page: MetronAlertDetailsPage;
   let loginPage: LoginPage;
-  let colNamesColumnConfig = [ 'score', 'id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
-    'ip_dst_addr', 'host', 'alert_status' ];
 
   beforeAll(() => {
     loadTestData();
@@ -39,24 +37,22 @@ describe('metron-alerts configure table', function() {
   });
 
   beforeEach(() => {
-    page = new MetronAlertsPage();
+    page = new MetronAlertDetailsPage();
     jasmine.addMatchers(customMatchers);
   });
 
-  it('should select columns from table configuration', () => {
-    let newColNamesColumnConfig = [ 'score', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
-      'ip_dst_addr', 'host', 'alert_status', 'guid' ];
-
-    page.clearLocalStorage();
+  it('should change alert statuses', () => {
     page.navigateTo();
-
-    page.clickConfigureTable();
-    expect(page.getSelectedColumnNames()).toEqual(colNamesColumnConfig, 'for default selected column names');
-    page.toggleSelectCol('id');
-    page.toggleSelectCol('guid', 'method');
-    expect(page.getSelectedColumnNames()).toEqual(newColNamesColumnConfig, 'for guid added to selected column names');
-    page.saveConfigureColumns();
-
+    page.clickNew();
+    page.clickOpen();
+    expect(page.getAlertStatus('NEW')).toEqual('OPEN');
+    page.clickDismiss();
+    expect(page.getAlertStatus('OPEN')).toEqual('DISMISS');
+    page.clickEscalate();
+    expect(page.getAlertStatus('DISMISS')).toEqual('ESCALATE');
+    page.clickResolve();
+    expect(page.getAlertStatus('ESCALATE')).toEqual('RESOLVE');
+    page.clickNew();
   });
 
 });

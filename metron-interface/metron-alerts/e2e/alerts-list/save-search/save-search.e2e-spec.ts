@@ -19,18 +19,21 @@
 import { customMatchers } from  '../../matchers/custom-matchers';
 import {MetronAlertsPage} from '../alerts-list.po';
 import {LoginPage} from '../../login/login.po';
+import {loadTestData, deleteTestData} from '../../utils/e2e_util';
 
 describe('metron-alerts Search', function() {
   let page: MetronAlertsPage;
   let loginPage: LoginPage;
 
   beforeAll(() => {
+    loadTestData();
     loginPage = new LoginPage();
     loginPage.login();
   });
 
   afterAll(() => {
     loginPage.logout();
+    deleteTestData();
   });
 
   beforeEach(() => {
@@ -73,10 +76,10 @@ describe('metron-alerts Search', function() {
 
   it('should delete first search items from search box having multiple search fields', () => {
     page.clickTableText('US');
-    page.clickTableText('bro');
-    expect(page.getSearchText()).toEqual('enrichments:geo:ip_dst_addr:country:US AND source:type:bro', 'for search text US and bro');
+    page.clickTableText('alerts_ui_e2e');
+    expect(page.getSearchText()).toEqual('enrichments:geo:ip_dst_addr:country:US AND source:type:alerts_ui_e2e', 'for search text US and alerts_ui_e2e');
     page.clickRemoveSearchChip();
-    expect(page.getSearchText()).toEqual('source:type:bro', 'for search text bro after US is removed');
+    expect(page.getSearchText()).toEqual('source:type:alerts_ui_e2e', 'for search text alerts_ui_e2e after US is removed');
     page.clickRemoveSearchChip();
     expect(page.getSearchText()).toEqual('*', 'for search chip remove for two search texts');
   });

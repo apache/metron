@@ -19,6 +19,7 @@
 import { MetronAlertsPage } from './alerts-list.po';
 import { customMatchers } from  '../matchers/custom-matchers';
 import { LoginPage } from '../login/login.po';
+import { loadTestData, deleteTestData } from "../utils/e2e_util";
 
 describe('metron-alerts App', function() {
   let page: MetronAlertsPage;
@@ -29,12 +30,14 @@ describe('metron-alerts App', function() {
                                 'ip_dst_addr', 'host', 'alert_status' ];
 
   beforeAll(() => {
+    loadTestData();
     loginPage = new LoginPage();
     loginPage.login();
   });
 
   afterAll(() => {
     loginPage.logout();
+    deleteTestData();
   });
 
   beforeEach(() => {

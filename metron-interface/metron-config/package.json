@@ -60,6 +60,7 @@
     "protractor": "4.0.5",
     "ts-node": "1.2.1",
     "tslint": "3.13.0",
-    "typescript": "~2.0.3"
+    "typescript": "~2.0.3",
+    "@types/request": "2.0.3"
   }
 }
