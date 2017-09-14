@@ -98,7 +98,6 @@ class Enrichment(Script):
                                   status_params.metron_principal_name,
                                   execute_user=status_params.metron_user)
 
-
         if not commands.is_topology_active(env):
             raise ComponentIsNotRunning()
 
