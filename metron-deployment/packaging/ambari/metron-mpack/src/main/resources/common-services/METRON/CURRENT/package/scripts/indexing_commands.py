@@ -169,12 +169,13 @@ class IndexingCommands:
                                       self.__params.metron_keytab_path,
                                       self.__params.metron_principal_name,
                                       execute_user=self.__params.metron_user)
+
             start_cmd_template = """{0}/bin/start_elasticsearch_topology.sh \
-                                    -s {1} \
-                                    -z {2}"""
+                                        -s {1} \
+                                        -z {2}"""
             start_cmd = start_cmd_template.format(self.__params.metron_home,
                                                   self.__indexing_topology,
-                                                  self.__params.zookeeper_quorum),
+                                                  self.__params.zookeeper_quorum)
             Execute(start_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
 
         else:
