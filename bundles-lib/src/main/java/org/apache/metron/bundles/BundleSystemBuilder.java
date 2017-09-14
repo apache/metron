@@ -17,6 +17,7 @@
 
 package org.apache.metron.bundles;
 
+import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -26,6 +27,8 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.metron.bundles.bundle.Bundle;
 import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.metron.bundles.util.FileSystemManagerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Builder for a BundleSystem. only {@link BundleProperties} are required. Beyond that, the
@@ -36,6 +39,7 @@ import org.apache.metron.bundles.util.FileSystemManagerFactory;
  *
  */
 public class BundleSystemBuilder {
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private BundleProperties properties;
   private FileSystemManager fileSystemManager;
@@ -152,6 +156,7 @@ public class BundleSystemBuilder {
             .createSystemBundle(this.fileSystemManager, this.properties);
       }
       List<URI> libDirs = properties.getBundleLibraryDirectories();
+      libDirs.forEach((uri) -> LOG.debug(uri.toString()));
       List<FileObject> libFileObjects = new ArrayList<>();
       libDirs.forEach((x) -> {
         try {

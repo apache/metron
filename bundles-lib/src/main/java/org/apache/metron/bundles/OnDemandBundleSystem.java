@@ -17,11 +17,15 @@
 
 package org.apache.metron.bundles;
 
+import java.lang.invoke.MethodHandles;
 import java.net.URISyntaxException;
 import java.util.Set;
 import org.apache.commons.vfs2.FileSystemException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OnDemandBundleSystem implements BundleSystem {
+ private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
  private BundleSystemBuilder builder;
  private volatile BundleSystem bundleSystem;
 
@@ -44,13 +48,21 @@ public class OnDemandBundleSystem implements BundleSystem {
  @Override
  public void addBundle(String bundleFileName)
      throws NotInitializedException, ClassNotFoundException, FileSystemException, URISyntaxException {
-    getBundleSystem().addBundle(bundleFileName);
+    // if we don't have a BundleSystem, then we don't need to add, since
+    // it will be pulled in from the initial load
+    BundleSystem bs = bundleSystem;
+    if(bs == null) {
+     getBundleSystem();
+    } else {
+     getBundleSystem().addBundle(bundleFileName);
+    }
  }
 
  private BundleSystem getBundleSystem() throws NotInitializedException {
   BundleSystem bs = bundleSystem;
   if (bs == null) {
    synchronized (OnDemandBundleSystem.class) {
+    LOG.debug("OnDemand Building BundleSystem");
     bs = builder.build();
     bundleSystem = bs;
    }

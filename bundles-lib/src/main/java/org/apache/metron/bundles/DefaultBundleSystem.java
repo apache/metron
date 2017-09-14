@@ -106,7 +106,9 @@ public class DefaultBundleSystem implements BundleSystem {
       throw new IllegalArgumentException("bundleFileName cannot be null or empty");
     }
     synchronized (DefaultBundleSystem.class) {
+      LOG.debug("Adding bundle " + bundleFileName + " to BundleClassLoaders");
       Bundle bundle = BundleClassLoaders.getInstance().addBundle(bundleFileName);
+      LOG.debug("Adding bundle " + bundle.getBundleDetails().getBundleFile().getName().toString() + " to ExtensionManager");
       ExtensionManager.getInstance().addBundle(bundle);
     }
   }

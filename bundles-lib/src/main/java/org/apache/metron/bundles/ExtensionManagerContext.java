@@ -138,6 +138,7 @@ public class ExtensionManagerContext {
       classLoaderBundleLookup.put(systemBundle.getClassLoader(), systemBundle);
       // consider each bundle class loader
       for (final Bundle bundle : bundles) {
+        logger.debug("Concidering " + bundle.getBundleDetails().getCoordinates().getCoordinates());
         // Must set the context class loader to the bundle classloader itself
         // so that static initialization techniques that depend on the context class loader will work properly
         final ClassLoader bcl = bundle.getClassLoader();
@@ -171,6 +172,7 @@ public class ExtensionManagerContext {
         Map<String, List<Bundle>> classNameBundleLookup,
         Set<String> requiresInstanceClassLoading) {
 
+      logger.debug("Loading extensions for  " + bundle.getBundleDetails().getCoordinates().getCoordinates());
       for (final Entry<Class, Set<Class>> entry : definitionMap.entrySet()) {
         // this is another extention point
         // what we care about here is getting the right classes from the classloader for the bundle
@@ -183,6 +185,7 @@ public class ExtensionManagerContext {
         ClassLoader cl = bundle.getClassLoader();
         Iterable<Class<?>> it = ClassIndex.getSubclasses(clazz, cl);
         for (Class<?> c : it) {
+          logger.debug("Concidering " + c.getSimpleName());
           if (cl.equals(c.getClassLoader())) {
             // check for abstract
             if (!Modifier.isAbstract(c.getModifiers())) {
@@ -219,6 +222,7 @@ public class ExtensionManagerContext {
         final Set<Class> classes) {
       final String className = type.getName();
 
+      logger.debug("registering " + className);
       // get the bundles that have already been registered for the class name
       List<Bundle> registeredBundles = classNameBundleMap
           .computeIfAbsent(className, (x) -> new ArrayList<>());
@@ -232,6 +236,7 @@ public class ExtensionManagerContext {
         // then consider it already registered
         if (registeredCoordinate.equals(bundle.getBundleDetails().getCoordinates())) {
           alreadyRegistered = true;
+          logger.debug(className + " is already registered");
           break;
         }
 
@@ -249,6 +254,7 @@ public class ExtensionManagerContext {
 
       // if none of the above was true then register the new bundle
       if (!alreadyRegistered) {
+        logger.debug("adding " + className + " to classes");
         registeredBundles.add(bundle);
         classes.add(type);
 
@@ -310,15 +316,16 @@ public class ExtensionManagerContext {
             .map(Map::entrySet)
             .flatMap(Collection::stream)
             .collect(Collectors.toMap(Entry::getKey, Entry::getValue, (entry1, entry2) -> {
-              return Stream.concat(((List<Bundle>)entry1).stream(),((List<Bundle>)entry2).stream()).filter((x) ->!((List<Bundle>)entry1).contains(x))
+              return Stream.concat(((List<Bundle>)entry1).stream(),((List<Bundle>)entry2).stream().filter((x) ->!((List<Bundle>)entry1).contains(x)))
               .collect(Collectors.toList());
             })));
+
     this.definitionMap = ImmutableCollectionUtils.immutableMapOfSets(
         Stream.of(this.definitionMap, other.definitionMap)
             .map(Map::entrySet)
             .flatMap(Collection::stream)
             .collect(Collectors.toMap(Entry::getKey, Entry::getValue, (entry1, entry2) -> {
-              return Stream.concat(((Set<Class>)entry1).stream(),((Set<Class>)entry2).stream()).filter((x) -> !((Set<Class>)entry2).contains(x))
+              return Stream.concat(((Set<Class>)entry1).stream(),((Set<Class>)entry2).stream())
                   .collect(Collectors.toSet());
             })));
 
