@@ -83,13 +83,9 @@ class RestCommands:
         if self.__params.metron_spring_profiles_active:
             metron_spring_options += format(" --spring.profiles.active={metron_spring_profiles_active}")
 
-        # if self.__params.metron_jdbc_password:
-        #     metron_spring_options += format(" --spring.datasource.password={metron_jdbc_password!p}")
-
         metron_rest_classpath = format("{hadoop_conf_dir}:{hbase_conf_dir}:{metron_home}/lib/metron-rest-{metron_version}.jar")
         if self.__params.metron_jdbc_client_path:
             metron_rest_classpath += format(":{metron_jdbc_client_path}")
-
 
         if self.__params.metron_indexing_classpath:
             metron_rest_classpath += format(":{metron_indexing_classpath}")
