@@ -352,6 +352,8 @@
                         <!-- Checkstyle is LGPL.  We derive ours from their base, but don't ship it, so it's fine use.
                              Since it is derived, we shouldn't get an Apache header -->
                         <exclude>checkstyle.xml</exclude>
+                        <!-- Alerts UI e2e test data -->
+                        <exclude>e2e/mock-data/alerts_ui_e2e_index.data</exclude>
                     </excludes>
                 </configuration>
             </plugin>
