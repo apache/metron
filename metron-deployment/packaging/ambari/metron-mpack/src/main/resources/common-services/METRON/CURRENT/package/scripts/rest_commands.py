@@ -19,6 +19,7 @@ limitations under the License.
 """
 import os
 
+from datetime import datetime
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 from resource_management.libraries.functions.format import format
@@ -41,7 +42,7 @@ class RestCommands:
 
     def set_acl_configured(self):
         File(self.__params.rest_acl_configured_flag_file,
-             content="",
+             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
              owner=self.__params.metron_user,
              mode=0755)
 

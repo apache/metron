@@ -17,6 +17,7 @@ limitations under the License.
 
 import os
 import time
+from datetime import datetime
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 
@@ -55,14 +56,14 @@ class EnrichmentCommands:
     def set_kafka_configured(self):
         Logger.info("Setting Kafka Configured to True")
         File(self.__params.enrichment_kafka_configured_flag_file,
-             content="",
+             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
              owner=self.__params.metron_user,
              mode=0755)
 
     def set_kafka_acl_configured(self):
         Logger.info("Setting Kafka ACL Configured to True")
         File(self.__params.enrichment_kafka_acl_configured_flag_file,
-             content="",
+             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
              owner=self.__params.metron_user,
              mode=0755)
 
@@ -75,14 +76,14 @@ class EnrichmentCommands:
     def set_hbase_configured(self):
         Logger.info("Setting HBase Configured to True")
         File(self.__params.enrichment_hbase_configured_flag_file,
-             content="",
+             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
              owner=self.__params.metron_user,
              mode=0755)
 
     def set_hbase_acl_configured(self):
         Logger.info("Setting HBase ACL Configured to True")
         File(self.__params.enrichment_hbase_acl_configured_flag_file,
-             content="",
+             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
              owner=self.__params.metron_user,
              mode=0755)
 
@@ -92,7 +93,7 @@ class EnrichmentCommands:
     def set_geo_configured(self):
         Logger.info("Setting GEO Configured to True")
         File(self.__params.enrichment_geo_configured_flag_file,
-             content="",
+             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
              owner=self.__params.metron_user,
              mode=0755)
 
@@ -202,7 +203,7 @@ class EnrichmentCommands:
                   self.__params.hbase_principal_name,
                   execute_user=self.__params.hbase_user)
         cmd = "echo \"create '{0}','{1}'\" | hbase shell -n"
-        add_enrichment_cmd = cmd.format(self.__params.enrichment_table, self.__params.enrichment_cf)
+        add_enrichment_cmd = cmd.format(self.__params.enrichment_hbase_table, self.__params.enrichment_hbase_cf)
         Execute(add_enrichment_cmd,
                 tries=3,
                 try_sleep=5,
@@ -211,7 +212,7 @@ class EnrichmentCommands:
                 user=self.__params.hbase_user
                 )
 
-        add_threatintel_cmd = cmd.format(self.__params.threatintel_table, self.__params.threatintel_cf)
+        add_threatintel_cmd = cmd.format(self.__params.threatintel_hbase_table, self.__params.threatintel_hbase_cf)
         Execute(add_threatintel_cmd,
                 tries=3,
                 try_sleep=5,
@@ -231,7 +232,7 @@ class EnrichmentCommands:
                   self.__params.hbase_principal_name,
                   execute_user=self.__params.hbase_user)
         cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n"
-        add_enrichment_acl_cmd = cmd.format(self.__params.metron_user, self.__params.enrichment_table)
+        add_enrichment_acl_cmd = cmd.format(self.__params.metron_user, self.__params.enrichment_hbase_table)
         Execute(add_enrichment_acl_cmd,
                 tries=3,
                 try_sleep=5,
@@ -240,7 +241,7 @@ class EnrichmentCommands:
                 user=self.__params.hbase_user
                 )
 
-        add_threatintel_acl_cmd = cmd.format(self.__params.metron_user, self.__params.threatintel_table)
+        add_threatintel_acl_cmd = cmd.format(self.__params.metron_user, self.__params.threatintel_hbase_table)
         Execute(add_threatintel_acl_cmd,
                 tries=3,
                 try_sleep=5,

@@ -18,6 +18,7 @@ limitations under the License.
 import os
 import time
 
+from datetime import datetime
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 
@@ -54,7 +55,7 @@ class ProfilerCommands:
 
     def set_configured(self):
         File(self.__params.profiler_configured_flag_file,
-             content="",
+             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
              owner=self.__params.metron_user,
              mode=0755)
 
@@ -67,14 +68,14 @@ class ProfilerCommands:
     def set_hbase_configured(self):
         Logger.info("Setting HBase Configured to True")
         File(self.__params.profiler_hbase_configured_flag_file,
-             content="",
+             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
              owner=self.__params.metron_user,
              mode=0755)
 
     def set_hbase_acl_configured(self):
         Logger.info("Setting HBase ACL Configured to True")
         File(self.__params.profiler_hbase_acl_configured_flag_file,
-             content="",
+             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
              owner=self.__params.metron_user,
              mode=0755)
 
@@ -124,7 +125,7 @@ class ProfilerCommands:
 
     def set_acl_configured(self):
         File(self.__params.profiler_acl_configured_flag_file,
-             content="",
+             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
              owner=self.__params.metron_user,
              mode=0755)
 

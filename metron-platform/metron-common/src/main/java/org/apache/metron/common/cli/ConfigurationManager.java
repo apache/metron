@@ -89,7 +89,7 @@ public class ConfigurationManager {
         .withDescription("The configuration name: bro, yaf, snort, squid, etc.")
         .create(s)
         ),
-    PATCH_PATH("p", s -> OptionBuilder.isRequired(false)
+    PATCH_PATH("pp", s -> OptionBuilder.isRequired(false)
         .hasArg()
         .withLongOpt("patch_path")
         .withArgName("PATCH_PATH")

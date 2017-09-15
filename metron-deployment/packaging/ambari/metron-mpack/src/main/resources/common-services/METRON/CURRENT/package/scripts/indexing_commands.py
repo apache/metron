@@ -18,6 +18,7 @@ limitations under the License.
 import os
 import time
 
+from datetime import datetime
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 
@@ -58,7 +59,7 @@ class IndexingCommands:
 
     def set_configured(self):
         File(self.__params.indexing_configured_flag_file,
-             content="",
+             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
              owner=self.__params.metron_user,
              mode=0755)
 
@@ -71,14 +72,14 @@ class IndexingCommands:
     def set_hbase_configured(self):
         Logger.info("Setting HBase Configured to True")
         File(self.__params.indexing_hbase_configured_flag_file,
-             content="",
+             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
              owner=self.__params.metron_user,
              mode=0755)
 
     def set_hbase_acl_configured(self):
         Logger.info("Setting HBase ACL Configured to True")
         File(self.__params.indexing_hbase_acl_configured_flag_file,
-             content="",
+             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
              owner=self.__params.metron_user,
              mode=0755)
 
@@ -90,7 +91,7 @@ class IndexingCommands:
                   self.__params.hbase_principal_name,
                   execute_user=self.__params.hbase_user)
         cmd = "echo \"create '{0}','{1}'\" | hbase shell -n"
-        add_update_cmd = cmd.format(self.__params.update_table, self.__params.update_cf)
+        add_update_cmd = cmd.format(self.__params.update_hbase_table, self.__params.update_hbase_cf)
         Execute(add_update_cmd,
                 tries=3,
                 try_sleep=5,
@@ -110,7 +111,7 @@ class IndexingCommands:
                   self.__params.hbase_principal_name,
                   execute_user=self.__params.hbase_user)
         cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n"
-        add_update_acl_cmd = cmd.format(self.__params.metron_user, self.__params.update_table)
+        add_update_acl_cmd = cmd.format(self.__params.metron_user, self.__params.update_hbase_table)
         Execute(add_update_acl_cmd,
                 tries=3,
                 try_sleep=5,
@@ -124,13 +125,13 @@ class IndexingCommands:
 
     def set_acl_configured(self):
         File(self.__params.indexing_acl_configured_flag_file,
-             content="",
+             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
              owner=self.__params.metron_user,
              mode=0755)
 
     def set_hdfs_perm_configured(self):
         File(self.__params.indexing_hdfs_perm_configured_flag_file,
-             content="",
+             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
              owner=self.__params.metron_user,
              mode=0755)
 

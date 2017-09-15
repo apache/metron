@@ -98,16 +98,29 @@ utility program to assist in this called `$METRON_HOME/bin/zk_load_config.sh`
 This has the following options:
 
 ```
+ -c,--config_type <CONFIG_TYPE>            The configuration type: GLOBAL,
+                                           PARSER, ENRICHMENT, INDEXING,
+                                           PROFILER
  -f,--force                                Force operation
  -h,--help                                 Generate Help screen
  -i,--input_dir <DIR>                      The input directory containing
                                            the configuration files named
                                            like "$source.json"
  -m,--mode <MODE>                          The mode of operation: DUMP,
-                                           PULL, PUSH
+                                           PULL, PUSH, PATCH
+ -n,--config_name <CONFIG_NAME>            The configuration name: bro,
+                                           yaf, snort, squid, etc.
  -o,--output_dir <DIR>                     The output directory which will
                                            store the JSON configuration
                                            from Zookeeper
+ -pk,--patch_key <PATCH_KEY>               The key to modify
+ -pm,--patch_mode <PATCH_MODE>             One of: ADD, REMOVE, REPLACE,
+                                           MOVE, COPY, TEST - relevant
+                                           only for key/value patches,
+                                           i.e. when a patch file is not
+                                           used.
+ -pp,--patch_path <PATCH_PATH>             Path to the patch file.
+ -pv,--patch_value <PATCH_VALUE>           Value to use in the patch.
  -z,--zk_quorum <host:port,[host:port]*>   Zookeeper Quorum URL
                                            (zk1:port,zk2:port,...)
 ```
@@ -115,8 +128,12 @@ This has the following options:
 Usage examples:
 
 * To dump the existing configs from zookeeper on the singlenode vagrant machine: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m DUMP`
+* To dump the existing GLOBAL configs from zookeeper on the singlenode vagrant machine: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m DUMP -c GLOBAL`
 * To push the configs into zookeeper on the singlenode vagrant machine: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m PUSH -i $METRON_HOME/config/zookeeper`
-* To pull the configs from zookeeper to the singlenode vagrant machine disk: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m PULL -o $METRON_HOME/config/zookeeper -f`
+* To push only the GLOBAL configs into zookeeper on the singlenode vagrant machine: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m PUSH -i $METRON_HOME/config/zookeeper -c GLOBAL`
+* To push only the PARSER configs into zookeeper on the singlenode vagrant machine: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m PUSH -i $METRON_HOME/config/zookeeper -c PARSER`
+* To push only the PARSER 'bro' configs into zookeeper on the singlenode vagrant machine: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m PUSH -i $METRON_HOME/config/zookeeper -c PARSER -n bro`
+* To pull all configs from zookeeper to the singlenode vagrant machine disk: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m PULL -o $METRON_HOME/config/zookeeper -f`
 
 # Topology Errors
 
