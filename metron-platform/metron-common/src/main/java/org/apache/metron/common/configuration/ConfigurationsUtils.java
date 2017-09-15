@@ -291,20 +291,10 @@ public class ConfigurationsUtils {
           writeGlobalConfigToZookeeper(readGlobalConfigFromFile(rootFilePath), client);
         }
         break;
-      case PARSER:
-        Map<String, byte[]> sensorParserConfigs = readSensorConfigsFromFile(rootFilePath, PARSER, configName);
-        for (String sensorType : sensorParserConfigs.keySet()) {
-          writeConfigToZookeeper(type, configName, sensorParserConfigs.get(sensorType), client);
-        }
-        break;
-      case ENRICHMENT:
-        Map<String, byte[]> sensorEnrichmentConfigs = readSensorConfigsFromFile(rootFilePath, ENRICHMENT, configName);
-        for (String sensorType : sensorEnrichmentConfigs.keySet()) {
-          writeConfigToZookeeper(type, configName, sensorEnrichmentConfigs.get(sensorType), client);
-        }
-        break;
+      case PARSER: // intentional pass-through
+      case ENRICHMENT: // intentional pass-through
       case INDEXING:
-        Map<String, byte[]> sensorIndexingConfigs = readSensorConfigsFromFile(rootFilePath, INDEXING, configName);
+        Map<String, byte[]> sensorIndexingConfigs = readSensorConfigsFromFile(rootFilePath, type, configName);
         for (String sensorType : sensorIndexingConfigs.keySet()) {
           writeConfigToZookeeper(type, configName, sensorIndexingConfigs.get(sensorType), client);
         }
