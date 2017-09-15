@@ -275,13 +275,13 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
         alertList.add(response.getSource());
       }
     }
-    metaSource.put(ALERT_FIELD, alertList.toArray());
+    metaSource.put(ALERT_FIELD, alertList);
 
-    // Add any meta fields and score calculation.
+    // Add any meta fields
     String guid = UUID.randomUUID().toString();
     metaSource.put(Constants.GUID, guid);
     metaSource.put(Constants.Fields.TIMESTAMP.getName(), System.currentTimeMillis());
-    metaSource.put(GROUPS_FIELD, groups.toArray());
+    metaSource.put(GROUPS_FIELD, groups);
     metaSource.put(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
 
     return new Document(metaSource, guid, METAALERT_TYPE, System.currentTimeMillis());

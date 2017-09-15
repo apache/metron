@@ -18,7 +18,6 @@
 
 package org.apache.metron.elasticsearch.dao;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -307,13 +306,13 @@ public class ElasticsearchMetaAlertDaoTest {
         MetaAlertStatus.ACTIVE.getStatusString(),
         actualDocument.get(MetaAlertDao.STATUS_FIELD)
     );
-    assertArrayEquals(
-        alertList.toArray(),
-        (Object[]) actualDocument.get(MetaAlertDao.ALERT_FIELD)
+    assertEquals(
+        alertList,
+        actualDocument.get(MetaAlertDao.ALERT_FIELD)
     );
-    assertArrayEquals(
-        groups.toArray(),
-        (Object[]) actualDocument.get(MetaAlertDao.GROUPS_FIELD)
+    assertEquals(
+        groups,
+        actualDocument.get(MetaAlertDao.GROUPS_FIELD)
     );
 
     // Don't care about the result, just that it's a UUID. Exception will be thrown if not.
@@ -369,13 +368,13 @@ public class ElasticsearchMetaAlertDaoTest {
 
     Map<String, Object> actualDocument = actual.getDocument();
     assertNotNull(actualDocument.get(Fields.TIMESTAMP.getName()));
-    assertArrayEquals(
-        alertList.toArray(),
-        (Object[]) actualDocument.get(MetaAlertDao.ALERT_FIELD)
+    assertEquals(
+        alertList,
+        actualDocument.get(MetaAlertDao.ALERT_FIELD)
     );
-    assertArrayEquals(
-        groups.toArray(),
-        (Object[]) actualDocument.get(MetaAlertDao.GROUPS_FIELD)
+    assertEquals(
+        groups,
+        actualDocument.get(MetaAlertDao.GROUPS_FIELD)
     );
 
     // Don't care about the result, just that it's a UUID. Exception will be thrown if not.
@@ -406,7 +405,7 @@ public class ElasticsearchMetaAlertDaoTest {
   }
 
   @Test
-  public void testCalculateMetaScores() {
+  public void testCalculateMetaScoresList() {
     List<Map<String, Object>> alertList = new ArrayList<>();
     Map<String, Object> alertMap = new HashMap<>();
     alertMap.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
