@@ -18,7 +18,6 @@
 
 package org.apache.metron.elasticsearch.dao;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -307,13 +306,13 @@ public class ElasticsearchMetaAlertDaoTest {
         MetaAlertStatus.ACTIVE.getStatusString(),
         actualDocument.get(MetaAlertDao.STATUS_FIELD)
     );
-    assertArrayEquals(
-        alertList.toArray(),
-        (Object[]) actualDocument.get(MetaAlertDao.ALERT_FIELD)
+    assertEquals(
+        alertList,
+        actualDocument.get(MetaAlertDao.ALERT_FIELD)
     );
-    assertArrayEquals(
-        groups.toArray(),
-        (Object[]) actualDocument.get(MetaAlertDao.GROUPS_FIELD)
+    assertEquals(
+        groups,
+        actualDocument.get(MetaAlertDao.GROUPS_FIELD)
     );
 
     // Don't care about the result, just that it's a UUID. Exception will be thrown if not.
@@ -369,13 +368,13 @@ public class ElasticsearchMetaAlertDaoTest {
 
     Map<String, Object> actualDocument = actual.getDocument();
     assertNotNull(actualDocument.get(Fields.TIMESTAMP.getName()));
-    assertArrayEquals(
-        alertList.toArray(),
-        (Object[]) actualDocument.get(MetaAlertDao.ALERT_FIELD)
+    assertEquals(
+        alertList,
+        actualDocument.get(MetaAlertDao.ALERT_FIELD)
     );
-    assertArrayEquals(
-        groups.toArray(),
-        (Object[]) actualDocument.get(MetaAlertDao.GROUPS_FIELD)
+    assertEquals(
+        groups,
+        actualDocument.get(MetaAlertDao.GROUPS_FIELD)
     );
 
     // Don't care about the result, just that it's a UUID. Exception will be thrown if not.
@@ -423,36 +422,5 @@ public class ElasticsearchMetaAlertDaoTest {
     ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();
     MetaScores actual = metaAlertDao.calculateMetaScores(doc);
     assertEquals(expected.getMetaScores(), actual.getMetaScores());
-  }
-
-  @Test
-  public void testCalculateMetaScoresArray() {
-    Object[] alertList = new Object[1];
-    Map<String, Object> alertMap = new HashMap<>();
-    alertMap.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
-    alertList[0] = alertMap;
-    Map<String, Object> docMap = new HashMap<>();
-    docMap.put(MetaAlertDao.ALERT_FIELD, alertList);
-
-    Document doc = new Document(docMap, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
-
-    List<Double> scores = new ArrayList<>();
-    scores.add(10.0d);
-    MetaScores expected = new MetaScores(scores);
-
-    ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();
-    MetaScores actual = metaAlertDao.calculateMetaScores(doc);
-    assertEquals(expected.getMetaScores(), actual.getMetaScores());
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void testCalculateMetaScoresInvalid() {
-    Map<String, Object> docMap = new HashMap<>();
-    docMap.put(MetaAlertDao.ALERT_FIELD, 1.0D);
-
-    Document doc = new Document(docMap, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
-
-    ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();
-    metaAlertDao.calculateMetaScores(doc);
   }
 }

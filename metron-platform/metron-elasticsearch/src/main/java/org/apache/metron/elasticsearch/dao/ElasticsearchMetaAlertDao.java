@@ -275,13 +275,13 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
         alertList.add(response.getSource());
       }
     }
-    metaSource.put(ALERT_FIELD, alertList.toArray());
+    metaSource.put(ALERT_FIELD, alertList);
 
     // Add any meta fields
     String guid = UUID.randomUUID().toString();
     metaSource.put(Constants.GUID, guid);
     metaSource.put(Constants.Fields.TIMESTAMP.getName(), System.currentTimeMillis());
-    metaSource.put(GROUPS_FIELD, groups.toArray());
+    metaSource.put(GROUPS_FIELD, groups);
     metaSource.put(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
 
     return new Document(metaSource, guid, METAALERT_TYPE, System.currentTimeMillis());
@@ -362,18 +362,8 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
    */
   @SuppressWarnings("unchecked")
   protected MetaScores calculateMetaScores(Document document) {
-    Object rawField = document.getDocument().get(ALERT_FIELD);
-    List<Object> alertsRaw;
-    // Can come in as Object[] from create or List<Object> from update.
-    if (rawField instanceof List) {
-      alertsRaw = (List<Object>) rawField;
-    } else if (rawField instanceof Object[]) {
-      alertsRaw = Arrays.asList((Object[]) rawField);
-    } else {
-      throw new IllegalArgumentException("No suitable alerts in field for doc GUID: "
-          + document.getDocument().get(Constants.GUID));
-    }
-    if (alertsRaw.isEmpty()) {
+    List<Object> alertsRaw = ((List<Object>) document.getDocument().get(ALERT_FIELD));
+    if (alertsRaw == null || alertsRaw.isEmpty()) {
       throw new IllegalArgumentException("No alerts to use in calculation for doc GUID: "
           + document.getDocument().get(Constants.GUID));
     }
