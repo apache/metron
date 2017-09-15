@@ -106,7 +106,7 @@ class RestCommands:
         # Set the password with env variable instead of param to avoid it showing in ps
         cmd = format(("set -o allexport; source {metron_sysconfig}; set +o allexport;"
                      "export METRON_JDBC_PASSWORD={metron_jdbc_password!p};"
-                     "{java64_home}/bin/java -cp {metron_rest_classpath} org.apache.metron.rest.MetronRestApplication {metron_spring_options} >> {metron_log_dir}/metron-rest.log 2>&1 & echo $! > {pid_file};"
+                     "{java_home}/bin/java -cp {metron_rest_classpath} org.apache.metron.rest.MetronRestApplication {metron_spring_options} >> {metron_log_dir}/metron-rest.log 2>&1 & echo $! > {pid_file};"
                      "unset METRON_JDBC_PASSWORD;"))
         daemon_cmd = cmd
 

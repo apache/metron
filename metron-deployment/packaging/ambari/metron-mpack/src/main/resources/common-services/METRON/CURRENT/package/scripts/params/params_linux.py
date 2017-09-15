@@ -81,9 +81,6 @@ indexing_hdfs_perm_configured_flag_file = status_params.indexing_hdfs_perm_confi
 global_json_template = config['configurations']['metron-env']['global-json']
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 
-# Java
-java64_home = config['hostLevelParams']['java_home']
-
 # Elasticsearch hosts and port management
 es_cluster_name = config['configurations']['metron-env']['es_cluster_name']
 es_hosts = config['configurations']['metron-env']['es_hosts']
