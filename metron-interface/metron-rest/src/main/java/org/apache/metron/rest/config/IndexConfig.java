@@ -24,6 +24,7 @@ import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.IndexDaoFactory;
+import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.GlobalConfigService;
@@ -53,6 +54,8 @@ public class IndexConfig {
       String indexDaoImpl = environment.getProperty(MetronRestConstants.INDEX_DAO_IMPL, String.class, null);
       int searchMaxResults = environment.getProperty(MetronRestConstants.SEARCH_MAX_RESULTS, Integer.class, 1000);
       int searchMaxGroups = environment.getProperty(MetronRestConstants.SEARCH_MAX_GROUPS, Integer.class, 1000);
+      String metaDaoImpl = environment.getProperty(MetronRestConstants.META_DAO_IMPL, String.class, null);
+      String metaDaoSort = environment.getProperty(MetronRestConstants.META_DAO_SORT, String.class, null);
       AccessConfig config = new AccessConfig();
       config.setMaxSearchResults(searchMaxResults);
       config.setMaxSearchGroups(searchMaxGroups);
@@ -67,10 +70,18 @@ public class IndexConfig {
       if (indexDaoImpl == null) {
         throw new IllegalStateException("You must provide an index DAO implementation via the " + INDEX_DAO_IMPL + " config");
       }
-      IndexDao ret = IndexDaoFactory.combine(IndexDaoFactory.create(indexDaoImpl, config));
-      if (ret == null) {
+      IndexDao indexDao = IndexDaoFactory.combine(IndexDaoFactory.create(indexDaoImpl, config));
+      if (indexDao == null) {
         throw new IllegalStateException("IndexDao is unable to be created.");
       }
+      if (metaDaoImpl == null) {
+        // We're not using meta alerts.
+        return indexDao;
+      }
+
+      // Create the meta alert dao and wrap it around the index dao.
+      MetaAlertDao ret = (MetaAlertDao) IndexDaoFactory.create(metaDaoImpl, config).get(0);
+      ret.init(indexDao, metaDaoSort);
       return ret;
     }
     catch(RuntimeException re) {
@@ -80,5 +91,4 @@ public class IndexConfig {
       throw new IllegalStateException("Unable to create index DAO: " + e.getMessage(), e);
     }
   }
-
 }

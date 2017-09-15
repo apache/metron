@@ -43,11 +43,11 @@ import java.util.Map;
 public abstract class SearchIntegrationTest {
   /**
    * [
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.1", "ip_src_port": 8010, "long_field": 10000, "timestamp":1, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 1", "duplicate_name_field": "data 1"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.2", "ip_src_port": 8009, "long_field": 20000, "timestamp":2, "latitude": 48.0001, "score": 50.0, "is_alert":false, "location_point": "48.5839,7.7455", "bro_field": "bro data 2", "duplicate_name_field": "data 2"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.3", "ip_src_port": 8008, "long_field": 10000, "timestamp":3, "latitude": 48.5839, "score": 20.0, "is_alert":true, "location_point": "50.0,7.7455", "bro_field": "bro data 3", "duplicate_name_field": "data 3"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.4", "ip_src_port": 8007, "long_field": 10000, "timestamp":4, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 4", "duplicate_name_field": "data 4"},
-   * {"source:type": "bro", "ip_src_addr":"192.168.1.5", "ip_src_port": 8006, "long_field": 10000, "timestamp":5, "latitude": 48.5839, "score": 98.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 5", "duplicate_name_field": "data 5"}
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.1", "ip_src_port": 8010, "long_field": 10000, "timestamp":1, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 1", "duplicate_name_field": "data 1", "guid":"bro_1"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.2", "ip_src_port": 8009, "long_field": 20000, "timestamp":2, "latitude": 48.0001, "score": 50.0, "is_alert":false, "location_point": "48.5839,7.7455", "bro_field": "bro data 2", "duplicate_name_field": "data 2", "guid":"bro_2"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.3", "ip_src_port": 8008, "long_field": 10000, "timestamp":3, "latitude": 48.5839, "score": 20.0, "is_alert":true, "location_point": "50.0,7.7455", "bro_field": "bro data 3", "duplicate_name_field": "data 3", "guid":"bro_3"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.4", "ip_src_port": 8007, "long_field": 10000, "timestamp":4, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 4", "duplicate_name_field": "data 4", "guid":"bro_4"},
+   * {"source:type": "bro", "ip_src_addr":"192.168.1.5", "ip_src_port": 8006, "long_field": 10000, "timestamp":5, "latitude": 48.5839, "score": 98.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 5", "duplicate_name_field": "data 5", "guid":"bro_5"}
    * ]
    */
   @Multiline
@@ -55,15 +55,24 @@ public abstract class SearchIntegrationTest {
 
   /**
    * [
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.6", "ip_src_port": 8005, "long_field": 10000, "timestamp":6, "latitude": 48.5839, "score": 50.0, "is_alert":false, "location_point": "50.0,7.7455", "snort_field": 10, "duplicate_name_field": 1},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8004, "long_field": 10000, "timestamp":7, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 20, "duplicate_name_field": 2},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.7", "ip_src_port": 8003, "long_field": 10000, "timestamp":8, "latitude": 48.5839, "score": 20.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 30, "duplicate_name_field": 3},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8002, "long_field": 20000, "timestamp":9, "latitude": 48.0001, "score": 50.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 40, "duplicate_name_field": 4},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.8", "ip_src_port": 8001, "long_field": 10000, "timestamp":10, "latitude": 48.5839, "score": 10.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 50, "duplicate_name_field": 5}
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.6", "ip_src_port": 8005, "long_field": 10000, "timestamp":6, "latitude": 48.5839, "score": 50.0, "is_alert":false, "location_point": "50.0,7.7455", "snort_field": 10, "duplicate_name_field": 1, "guid":"snort_1"},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8004, "long_field": 10000, "timestamp":7, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 20, "duplicate_name_field": 2, "guid":"snort_2"},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.7", "ip_src_port": 8003, "long_field": 10000, "timestamp":8, "latitude": 48.5839, "score": 20.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 30, "duplicate_name_field": 3, "guid":"snort_3"},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8002, "long_field": 20000, "timestamp":9, "latitude": 48.0001, "score": 50.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 40, "duplicate_name_field": 4, "guid":"snort_4"},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.8", "ip_src_port": 8001, "long_field": 10000, "timestamp":10, "latitude": 48.5839, "score": 10.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 50, "duplicate_name_field": 5, "guid":"snort_5"}
    * ]
    */
   @Multiline
   public static String snortData;
+
+  /**
+   * [
+   *{"guid":"meta_1","alert":[{"guid":"bro_1"}],"average":"5.0","min":"5.0","median":"5.0","max":"5.0","count":"1.0","sum":"5.0"},
+   *{"guid":"meta_2","alert":[{"guid":"bro_1"},{"guid":"bro_2"},{"guid":"snort_1"}],"average":"5.0","min":"0.0","median":"5.0","max":"10.0","count":"3.0","sum":"15.0"}
+   * ]
+   */
+  @Multiline
+  public static String metaAlertData;
 
   /**
    * {
@@ -255,6 +264,25 @@ public abstract class SearchIntegrationTest {
    */
   @Multiline
   public static String noResultsFieldsQuery;
+
+  /**
+   * {
+   * "fields": ["guid"],
+   * "indices": ["metaalerts"],
+   * "query": "*",
+   * "from": 0,
+   * "size": 10,
+   * "sort": [
+   *   {
+   *     "field": "guid",
+   *     "sortOrder": "asc"
+   *   }
+   * ]
+   * }
+   * }
+   */
+  @Multiline
+  public static String metaAlertsFieldQuery;
 
   /**
    * {
@@ -497,7 +525,7 @@ public abstract class SearchIntegrationTest {
       Map<String, Map<String, FieldType>> fieldTypes = dao.getColumnMetadata(Arrays.asList("bro", "snort"));
       Assert.assertEquals(2, fieldTypes.size());
       Map<String, FieldType> broTypes = fieldTypes.get("bro");
-      Assert.assertEquals(11, broTypes.size());
+      Assert.assertEquals(12, broTypes.size());
       Assert.assertEquals(FieldType.STRING, broTypes.get("source:type"));
       Assert.assertEquals(FieldType.IP, broTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, broTypes.get("ip_src_port"));
@@ -509,8 +537,9 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(FieldType.OTHER, broTypes.get("location_point"));
       Assert.assertEquals(FieldType.STRING, broTypes.get("bro_field"));
       Assert.assertEquals(FieldType.STRING, broTypes.get("duplicate_name_field"));
+      Assert.assertEquals(FieldType.STRING, broTypes.get("guid"));
       Map<String, FieldType> snortTypes = fieldTypes.get("snort");
-      Assert.assertEquals(11, snortTypes.size());
+      Assert.assertEquals(12, snortTypes.size());
       Assert.assertEquals(FieldType.STRING, snortTypes.get("source:type"));
       Assert.assertEquals(FieldType.IP, snortTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, snortTypes.get("ip_src_port"));
@@ -522,13 +551,14 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(FieldType.OTHER, snortTypes.get("location_point"));
       Assert.assertEquals(FieldType.INTEGER, snortTypes.get("snort_field"));
       Assert.assertEquals(FieldType.INTEGER, snortTypes.get("duplicate_name_field"));
+      Assert.assertEquals(FieldType.STRING, broTypes.get("guid"));
     }
     // getColumnMetadata with only bro
     {
       Map<String, Map<String, FieldType>> fieldTypes = dao.getColumnMetadata(Collections.singletonList("bro"));
       Assert.assertEquals(1, fieldTypes.size());
       Map<String, FieldType> broTypes = fieldTypes.get("bro");
-      Assert.assertEquals(11, broTypes.size());
+      Assert.assertEquals(12, broTypes.size());
       Assert.assertEquals(FieldType.STRING, broTypes.get("bro_field"));
     }
     // getColumnMetadata with only snort
@@ -536,14 +566,14 @@ public abstract class SearchIntegrationTest {
       Map<String, Map<String, FieldType>> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
       Assert.assertEquals(1, fieldTypes.size());
       Map<String, FieldType> snortTypes = fieldTypes.get("snort");
-      Assert.assertEquals(11, snortTypes.size());
+      Assert.assertEquals(12, snortTypes.size());
       Assert.assertEquals(FieldType.INTEGER, snortTypes.get("snort_field"));
     }
     // getCommonColumnMetadata with multiple Indices
     {
       Map<String, FieldType> fieldTypes = dao.getCommonColumnMetadata(Arrays.asList("bro", "snort"));
       // Should only return fields in both
-      Assert.assertEquals(9, fieldTypes.size());
+      Assert.assertEquals(10, fieldTypes.size());
       Assert.assertEquals(FieldType.STRING, fieldTypes.get("source:type"));
       Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
@@ -553,18 +583,19 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
       Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
       Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
+      Assert.assertEquals(FieldType.STRING, fieldTypes.get("guid"));
     }
     // getCommonColumnMetadata with only bro
     {
       Map<String, FieldType> fieldTypes = dao.getCommonColumnMetadata(Collections.singletonList("bro"));
-      Assert.assertEquals(11, fieldTypes.size());
+      Assert.assertEquals(12, fieldTypes.size());
       Assert.assertEquals(FieldType.STRING, fieldTypes.get("bro_field"));
       Assert.assertEquals(FieldType.STRING, fieldTypes.get("duplicate_name_field"));
     }
     // getCommonColumnMetadata with only snort
     {
       Map<String, FieldType> fieldTypes = dao.getCommonColumnMetadata(Collections.singletonList("snort"));
-      Assert.assertEquals(11, fieldTypes.size());
+      Assert.assertEquals(12, fieldTypes.size());
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
     }
@@ -583,6 +614,18 @@ public abstract class SearchIntegrationTest {
         Map<String, Object> source = results.get(i).getSource();
         Assert.assertEquals(1, source.size());
         Assert.assertNotNull(source.get("ip_src_addr"));
+      }
+    }
+    //Meta Alerts Fields query
+    {
+      SearchRequest request = JSONUtils.INSTANCE.load(metaAlertsFieldQuery, SearchRequest.class);
+      SearchResponse response = dao.search(request);
+      Assert.assertEquals(2, response.getTotal());
+      List<SearchResult> results = response.getResults();
+      for (int i = 0;i < 2;++i) {
+        Map<String, Object> source = results.get(i).getSource();
+        Assert.assertEquals(1, source.size());
+        Assert.assertEquals(source.get("guid"), "meta_" + (i + 1));
       }
     }
     //No results fields query

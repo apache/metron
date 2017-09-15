@@ -50,6 +50,9 @@
         "error_type": {
           "type": "string",
           "index": "not_analyzed"
+        },
+        "alert": {
+          "type": "nested"
         }
       }
     }

@@ -20,9 +20,11 @@ package org.apache.metron.elasticsearch.integration;
 
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
+import org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.integration.InMemoryComponent;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -87,8 +89,8 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
   @Override
   protected IndexDao createDao() throws Exception {
-    IndexDao ret = new ElasticsearchDao();
-    ret.init(
+    IndexDao elasticsearchDao = new ElasticsearchDao();
+    elasticsearchDao.init(
             new AccessConfig() {{
               setMaxSearchResults(100);
               setMaxSearchGroups(100);
@@ -102,7 +104,9 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
               );
             }}
     );
-    return ret;
+    MetaAlertDao ret = new ElasticsearchMetaAlertDao();
+    ret.init(elasticsearchDao);
+    return elasticsearchDao;
   }
 
   @Override
@@ -138,6 +142,14 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
       IndexRequestBuilder indexRequestBuilder = es.getClient().prepareIndex("snort_index_2017.01.01.02", "snort_doc");
       indexRequestBuilder = indexRequestBuilder.setSource(jsonObject.toJSONString());
       indexRequestBuilder = indexRequestBuilder.setTimestamp(jsonObject.get("timestamp").toString());
+      bulkRequest.add(indexRequestBuilder);
+    }
+    JSONArray metaAlertArray = (JSONArray) new JSONParser().parse(metaAlertData);
+    for(Object o: metaAlertArray) {
+      JSONObject jsonObject = (JSONObject) o;
+      IndexRequestBuilder indexRequestBuilder = es.getClient().prepareIndex("metaalerts", "metaalert_doc");
+      indexRequestBuilder = indexRequestBuilder.setSource(jsonObject.toJSONString());
+//      indexRequestBuilder = indexRequestBuilder.setTimestamp(jsonObject.get("timestamp").toString());
       bulkRequest.add(indexRequestBuilder);
     }
     BulkResponse bulkResponse = bulkRequest.execute().actionGet();

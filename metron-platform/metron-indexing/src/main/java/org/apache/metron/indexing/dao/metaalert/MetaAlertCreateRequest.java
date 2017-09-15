@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,40 +15,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.indexing.dao.search;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+package org.apache.metron.indexing.dao.metaalert;
 
-public enum FieldType {
-  @JsonProperty("string")
-  STRING("string"),
-  @JsonProperty("ip")
-  IP("ip"),
-  @JsonProperty("integer")
-  INTEGER("integer"),
-  @JsonProperty("long")
-  LONG("long"),
-  @JsonProperty("date")
-  DATE("date"),
-  @JsonProperty("float")
-  FLOAT("float"),
-  @JsonProperty("double")
-  DOUBLE("double"),
-  @JsonProperty("boolean")
-  BOOLEAN("boolean"),
-  @JsonProperty("nested")
-  NESTED("nested"),
-  @JsonProperty("other")
-  OTHER("other");
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+public class MetaAlertCreateRequest {
+  // A map from the alert GUID to the Document index
+  private Map<String, String> guidToIndices;
+  private List<String> groups;
 
-  private String fieldType;
-
-  FieldType(String fieldType) {
-    this.fieldType = fieldType;
+  public MetaAlertCreateRequest() {
+    this.guidToIndices = new HashMap<>();
+    this.groups = new ArrayList<>();
   }
 
-  public String getFieldType() {
-    return fieldType;
+  public Map<String, String> getGuidToIndices() {
+    return guidToIndices;
+  }
+
+  public void setGuidToIndices(Map<String, String> guidToIndices) {
+    this.guidToIndices = guidToIndices;
+  }
+
+  public List<String> getGroups() {
+    return groups;
+  }
+
+  public void setGroups(List<String> groups) {
+    this.groups = groups;
   }
 }
