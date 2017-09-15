@@ -39,11 +39,15 @@ def init_zk_config(params):
       path=ambari_format("{java_home}/bin")
   )
 
-def set_zk_configured(params):
-  File(params.zk_configured_flag_file,
+def set_configured(user, flag_file, log_msg):
+  Logger.info(log_msg)
+  File(flag_file,
        content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-       owner=params.metron_user,
+       owner=user,
        mode=0755)
+
+def set_zk_configured(params):
+  set_configured(params.metron_user, params.zk_configured_flag_file, "Setting Zookeeper configured to true")
 
 def build_global_config_patch(params, patch_path):
   # see RFC 6902 at https://tools.ietf.org/html/rfc6902

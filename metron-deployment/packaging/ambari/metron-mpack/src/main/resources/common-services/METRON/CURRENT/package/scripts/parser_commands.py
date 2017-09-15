@@ -57,16 +57,10 @@ class ParserCommands:
         return self.__acl_configured
 
     def set_configured(self):
-        File(self.__params.parsers_configured_flag_file,
-             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-             owner=self.__params.metron_user,
-             mode=0755)
+        metron_service.set_configured(self.__params.metron_user, self.__params.parsers_configured_flag_file, "Setting Parsers configured to true")
 
     def set_acl_configured(self):
-        File(self.__params.parsers_acl_configured_flag_file,
-             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-             owner=self.__params.metron_user,
-             mode=0755)
+        metron_service.set_configured(self.__params.metron_user, self.__params.parsers_acl_configured_flag_file, "Setting Parsers ACL configured to true")
 
     def init_parsers(self):
         Logger.info(

@@ -53,31 +53,23 @@ class ProfilerCommands:
     def is_acl_configured(self):
         return self.__acl_configured
 
-    def set_configured(self):
-        File(self.__params.profiler_configured_flag_file,
-             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-             owner=self.__params.metron_user,
-             mode=0755)
-
     def is_hbase_configured(self):
         return self.__hbase_configured
 
     def is_hbase_acl_configured(self):
         return self.__hbase_acl_configured
 
+    def set_configured(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.profiler_configured_flag_file, "Setting Profiler configured flag to true")
+
+    def set_acl_configured(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.profiler_acl_configured_flag_file, "Setting Profiler acl configured flag to true")
+
     def set_hbase_configured(self):
-        Logger.info("Setting HBase Configured to True")
-        File(self.__params.profiler_hbase_configured_flag_file,
-             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-             owner=self.__params.metron_user,
-             mode=0755)
+        metron_service.set_configured(self.__params.metron_user, self.__params.profiler_hbase_configured_flag_file, "Setting HBase configured to True")
 
     def set_hbase_acl_configured(self):
-        Logger.info("Setting HBase ACL Configured to True")
-        File(self.__params.profiler_hbase_acl_configured_flag_file,
-             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-             owner=self.__params.metron_user,
-             mode=0755)
+        metron_service.set_configured(self.__params.metron_user, self.__params.profiler_hbase_acl_configured_flag_file, "Setting HBase ACL configured to True")
 
     def create_hbase_tables(self):
         Logger.info("Creating HBase Tables")
@@ -122,12 +114,6 @@ class ProfilerCommands:
 
         Logger.info("Done setting HBase ACLs")
         self.set_hbase_acl_configured()
-
-    def set_acl_configured(self):
-        File(self.__params.profiler_acl_configured_flag_file,
-             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-             owner=self.__params.metron_user,
-             mode=0755)
 
     def start_profiler_topology(self, env):
         Logger.info('Starting ' + self.__profiler_topology)

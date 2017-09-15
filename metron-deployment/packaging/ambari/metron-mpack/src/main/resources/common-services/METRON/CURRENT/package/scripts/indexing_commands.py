@@ -57,31 +57,26 @@ class IndexingCommands:
     def is_hdfs_perm_configured(self):
         return self.__hdfs_perm_configured
 
-    def set_configured(self):
-        File(self.__params.indexing_configured_flag_file,
-             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-             owner=self.__params.metron_user,
-             mode=0755)
-
     def is_hbase_configured(self):
         return self.__hbase_configured
 
     def is_hbase_acl_configured(self):
         return self.__hbase_acl_configured
 
+    def set_configured(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.indexing_configured_flag_file, "Setting Indexing configured to True")
+
     def set_hbase_configured(self):
-        Logger.info("Setting HBase Configured to True")
-        File(self.__params.indexing_hbase_configured_flag_file,
-             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-             owner=self.__params.metron_user,
-             mode=0755)
+        metron_service.set_configured(self.__params.metron_user, self.__params.indexing_hbase_configured_flag_file, "Setting HBase configured to True")
 
     def set_hbase_acl_configured(self):
-        Logger.info("Setting HBase ACL Configured to True")
-        File(self.__params.indexing_hbase_acl_configured_flag_file,
-             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-             owner=self.__params.metron_user,
-             mode=0755)
+        metron_service.set_configured(self.__params.metron_user, self.__params.indexing_hbase_acl_configured_flag_file, "Setting HBase ACL configured to True")
+
+    def set_acl_configured(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.indexing_acl_configured_flag_file, "Setting Indexing ACL configured to True")
+
+    def set_hdfs_perm_configured(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.indexing_hdfs_perm_configured_flag_file, "Setting HDFS perm configured to True")
 
     def create_hbase_tables(self):
         Logger.info("Creating HBase Tables")
@@ -122,18 +117,6 @@ class IndexingCommands:
 
         Logger.info("Done setting HBase ACLs")
         self.set_hbase_acl_configured()
-
-    def set_acl_configured(self):
-        File(self.__params.indexing_acl_configured_flag_file,
-             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-             owner=self.__params.metron_user,
-             mode=0755)
-
-    def set_hdfs_perm_configured(self):
-        File(self.__params.indexing_hdfs_perm_configured_flag_file,
-             content="This file created on: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-             owner=self.__params.metron_user,
-             mode=0755)
 
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics for indexing')

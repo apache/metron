@@ -276,6 +276,14 @@ public class ConfigurationsUtils {
     uploadConfigsToZookeeper(rootFilePath, rootFilePath, rootFilePath, rootFilePath, rootFilePath, client);
   }
 
+  /**
+   * Uploads config to ZK for the specified configuration type.
+   *
+   * @param rootFilePath base configuration path on the local FS
+   * @param client zk client
+   * @param type config type to upload configs for
+   * @throws Exception
+   */
   public static void uploadConfigsToZookeeper(String rootFilePath, CuratorFramework client,
       ConfigurationType type) throws Exception {
     uploadConfigsToZookeeper(rootFilePath, client, type, Optional.empty());
@@ -427,6 +435,16 @@ public class ConfigurationsUtils {
     return readSensorConfigsFromFile(rootPath, configType, Optional.empty());
   }
 
+  /**
+   * Will read configs from local disk at the specified rootPath. Will read all configs for a given
+   * configuration type. If an optional specific config name is also provided, it will only read
+   * configs for that configuration type and name combo. e.g. PARSER, bro
+   * @param rootPath root FS location to read configs from
+   * @param configType e.g. GLOBAL, PARSER, ENRICHMENT, etc.
+   * @param configName a specific config, for instance a sensor name like bro, yaf, snort, etc.
+   * @return map of file names to the contents of that file as a byte array
+   * @throws IOException
+   */
   public static Map<String, byte[]> readSensorConfigsFromFile(String rootPath,
       ConfigurationType configType, Optional<String> configName) throws IOException {
     Map<String, byte[]> sensorConfigs = new HashMap<>();
@@ -517,6 +535,13 @@ public class ConfigurationsUtils {
     }
   }
 
+  /**
+   * Writes all config content to the provided print stream.
+   *
+   * @param out stream to use as output
+   * @param client zk client
+   * @throws Exception
+   */
   public static void dumpConfigs(PrintStream out, CuratorFramework client) throws Exception {
     ConfigurationsUtils.visitConfigs(client, (type, name, data) -> {
       type.deserialize(data);
@@ -524,6 +549,17 @@ public class ConfigurationsUtils {
     });
   }
 
+  /**
+   * Writes config content for a specific config type to the provided print stream. Optionally
+   * provide a config name in addition to the config type and it will only print the json for a
+   * specific config, e.g. bro, yaf, snort, etc.
+   *
+   * @param out stream to use as output
+   * @param client zk client
+   * @param configType GLOBAL, PARSER, ENRICHMENT, etc.
+   * @param configName Typically a sensor name like bro, snort, yaf, etc.
+   * @throws Exception
+   */
   public static void dumpConfigs(PrintStream out, CuratorFramework client,
       ConfigurationType configType, Optional<String> configName) throws Exception {
     ConfigurationsUtils.visitConfigs(client, (type, name, data) -> {
@@ -533,3 +569,4 @@ public class ConfigurationsUtils {
     }, configType, configName);
   }
 }
+
