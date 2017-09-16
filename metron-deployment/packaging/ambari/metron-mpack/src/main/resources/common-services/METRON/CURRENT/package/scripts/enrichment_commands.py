@@ -63,19 +63,19 @@ class EnrichmentCommands:
         return self.__geo_configured
 
     def set_kafka_configured(self):
-        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_kafka_configured_flag_file, "Setting Kafka configured to True")
+        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_kafka_configured_flag_file, "Setting Kafka configured to True for enrichment")
 
     def set_kafka_acl_configured(self):
-        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_kafka_acl_configured_flag_file, "Setting Kafka ACL configured to True")
+        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_kafka_acl_configured_flag_file, "Setting Kafka ACL configured to True for enrichment")
 
     def set_hbase_configured(self):
-        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_hbase_configured_flag_file, "Setting HBase configured to True")
+        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_hbase_configured_flag_file, "Setting HBase configured to True for enrichment")
 
     def set_hbase_acl_configured(self):
-        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_hbase_acl_configured_flag_file, "Setting HBase ACL configured to True")
+        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_hbase_acl_configured_flag_file, "Setting HBase ACL configured to True for enrichment")
 
     def set_geo_configured(self):
-        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_geo_configured_flag_file, "Setting GEO configured to True")
+        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_geo_configured_flag_file, "Setting GEO configured to True for enrichment")
 
     def init_geo(self):
         Logger.info("Creating HDFS location for GeoIP database")
@@ -125,10 +125,10 @@ class EnrichmentCommands:
                                         -s {1} \
                                         -z {2}"""
             Logger.info('Starting ' + self.__enrichment_topology)
-            Execute(start_cmd_template.format(self.__params.metron_home,
-                                              self.__enrichment_topology,
-                                              self.__params.zookeeper_quorum),
-                    user=self.__params.metron_user)
+            start_cmd = start_cmd_template.format(self.__params.metron_home,
+                                                  self.__enrichment_topology,
+                                                  self.__params.zookeeper_quorum)
+            Execute(start_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
         else:
             Logger.info('Enrichment topology already running')
 
@@ -139,7 +139,7 @@ class EnrichmentCommands:
 
         if self.is_topology_active(env):
             stop_cmd = 'storm kill ' + self.__enrichment_topology
-            Execute(stop_cmd, user=self.__params.metron_user)
+            Execute(stop_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
         else:
             Logger.info("Enrichment topology already stopped")
 

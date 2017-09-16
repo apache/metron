@@ -198,7 +198,7 @@ def init_kafka_topics(params, topics):
                                     num_partitions,
                                     replication_factor,
                                     retention_bytes),
-            user=params.kafka_user)
+            user=params.kafka_user, tries=3, try_sleep=5, logoutput=True)
   Logger.info("Done creating Kafka topics")
 
 def init_kafka_acls(params, topics, groups):
@@ -217,7 +217,7 @@ def init_kafka_acls(params, topics, groups):
                                 params.zookeeper_quorum,
                                 params.metron_user,
                                 topic),
-            user=params.kafka_user)
+            user=params.kafka_user, tries=3, try_sleep=5, logoutput=True)
 
   acl_template = """{0}/kafka-acls.sh \
                                   --authorizer kafka.security.auth.SimpleAclAuthorizer \
@@ -232,5 +232,5 @@ def init_kafka_acls(params, topics, groups):
                                 params.zookeeper_quorum,
                                 params.metron_user,
                                 group),
-            user=params.kafka_user)
+            user=params.kafka_user, tries=3, try_sleep=5, logoutput=True)
   Logger.info("Done creating Kafka ACLs")

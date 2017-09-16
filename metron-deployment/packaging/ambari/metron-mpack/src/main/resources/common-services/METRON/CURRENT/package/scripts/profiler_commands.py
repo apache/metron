@@ -66,13 +66,13 @@ class ProfilerCommands:
         metron_service.set_configured(self.__params.metron_user, self.__params.profiler_acl_configured_flag_file, "Setting Profiler acl configured flag to true")
 
     def set_hbase_configured(self):
-        metron_service.set_configured(self.__params.metron_user, self.__params.profiler_hbase_configured_flag_file, "Setting HBase configured to True")
+        metron_service.set_configured(self.__params.metron_user, self.__params.profiler_hbase_configured_flag_file, "Setting HBase configured to True for profiler")
 
     def set_hbase_acl_configured(self):
-        metron_service.set_configured(self.__params.metron_user, self.__params.profiler_hbase_acl_configured_flag_file, "Setting HBase ACL configured to True")
+        metron_service.set_configured(self.__params.metron_user, self.__params.profiler_hbase_acl_configured_flag_file, "Setting HBase ACL configured to True for profiler")
 
     def create_hbase_tables(self):
-        Logger.info("Creating HBase Tables")
+        Logger.info("Creating HBase Tables for profiler")
         if self.__params.security_enabled:
             metron_security.kinit(self.__params.kinit_path_local,
                   self.__params.hbase_keytab_path,
@@ -88,7 +88,7 @@ class ProfilerCommands:
                 user=self.__params.hbase_user
                 )
 
-        Logger.info("Done creating HBase Tables")
+        Logger.info("Done creating HBase Tables for profiler")
         self.set_hbase_configured()
 
     def init_kafka_acls(self):
@@ -96,7 +96,7 @@ class ProfilerCommands:
         metron_service.init_kafka_acls(self.__params, [self.__profiler_topic], ['profiler'])
 
     def set_hbase_acls(self):
-        Logger.info("Setting HBase ACLs")
+        Logger.info("Setting HBase ACLs for profiler")
         if self.__params.security_enabled:
             metron_security.kinit(self.__params.kinit_path_local,
                   self.__params.hbase_keytab_path,
@@ -112,7 +112,7 @@ class ProfilerCommands:
                 user=self.__params.hbase_user
                 )
 
-        Logger.info("Done setting HBase ACLs")
+        Logger.info("Done setting HBase ACLs for profiler")
         self.set_hbase_acl_configured()
 
     def start_profiler_topology(self, env):
@@ -127,11 +127,10 @@ class ProfilerCommands:
             start_cmd_template = """{0}/bin/start_profiler_topology.sh \
                                     -s {1} \
                                     -z {2}"""
-            Execute(start_cmd_template.format(self.__params.metron_home,
-                                              self.__profiler_topology,
-                                              self.__params.zookeeper_quorum),
-                    user=self.__params.metron_user)
-
+            start_cmd = start_cmd_template.format(self.__params.metron_home,
+                                                  self.__profiler_topology,
+                                                  self.__params.zookeeper_quorum)
+            Execute(start_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
         else:
             Logger.info('Profiler topology already running')
 
@@ -147,7 +146,7 @@ class ProfilerCommands:
                                       self.__params.metron_principal_name,
                                       execute_user=self.__params.metron_user)
             stop_cmd = 'storm kill ' + self.__profiler_topology
-            Execute(stop_cmd, user=self.__params.metron_user)
+            Execute(stop_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
 
         else:
             Logger.info("Profiler topology already stopped")
