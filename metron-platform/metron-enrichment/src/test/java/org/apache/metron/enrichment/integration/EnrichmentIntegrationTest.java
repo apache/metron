@@ -17,6 +17,13 @@
  */
 package org.apache.metron.enrichment.integration;
 
+import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_RULES_KEY;
+import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_RULE_COMMENT;
+import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_RULE_NAME;
+import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_RULE_REASON;
+import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_RULE_SCORE;
+import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_SCORE_KEY;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -24,6 +31,18 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Stream;
+import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
@@ -36,8 +55,8 @@ import org.apache.metron.enrichment.integration.components.ConfigUploadComponent
 import org.apache.metron.enrichment.lookup.LookupKV;
 import org.apache.metron.enrichment.lookup.accesstracker.PersistentBloomTrackerCreator;
 import org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions;
-import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.ProcessorResult;
@@ -52,21 +71,6 @@ import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.Set;
-import java.util.stream.Stream;
-
-import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.*;
 
 public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   private static final String ERROR_TOPIC = "enrichment_error";
@@ -129,15 +133,15 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
       setProperty("enrichment_join_cache_size", "1000");
       setProperty("threatintel_join_cache_size", "1000");
       setProperty("enrichment_hbase_provider_impl", "" + MockHBaseTableProvider.class.getName());
-      setProperty("enrichment_table", enrichmentsTableName);
-      setProperty("enrichment_cf", cf);
+      setProperty("enrichment_hbase_table", enrichmentsTableName);
+      setProperty("enrichment_hbase_cf", cf);
       setProperty("enrichment_host_known_hosts", "[{\"ip\":\"10.1.128.236\", \"local\":\"YES\", \"type\":\"webserver\", \"asset_value\" : \"important\"}," +
               "{\"ip\":\"10.1.128.237\", \"local\":\"UNKNOWN\", \"type\":\"unknown\", \"asset_value\" : \"important\"}," +
               "{\"ip\":\"10.60.10.254\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"}," +
               "{\"ip\":\"10.0.2.15\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"}]");
 
-      setProperty("threatintel_table", threatIntelTableName);
-      setProperty("threatintel_cf", cf);
+      setProperty("threatintel_hbase_table", threatIntelTableName);
+      setProperty("threatintel_hbase_cf", cf);
 
 
       setProperty("enrichment_kafka_spout_parallelism", "1");
