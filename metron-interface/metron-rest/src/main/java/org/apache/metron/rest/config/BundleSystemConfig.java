@@ -15,39 +15,48 @@
 
 package org.apache.metron.rest.config;
 
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+
 import java.io.ByteArrayInputStream;
 import java.lang.invoke.MethodHandles;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Optional;
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.bundles.BundleSystem;
+import org.apache.metron.bundles.BundleSystemBuilder;
+import org.apache.metron.bundles.BundleSystemType;
 import org.apache.metron.bundles.util.BundleProperties;
-import org.apache.metron.bundles.util.FileSystemManagerFactory;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.metron.rest.MetronRestConstants;
+import org.apache.metron.rest.service.HdfsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Profile;
 
+@Configuration
+@Profile("!" + TEST_PROFILE)
 public class BundleSystemConfig {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  private HdfsService hdfsService;
 
-  public BundleSystemConfig() {}
+  @Autowired
+  public BundleSystemConfig(HdfsService hdfsService) {this.hdfsService = hdfsService;}
 
-  public static BundleSystem bundleSystem(CuratorFramework client) throws Exception {
+  @Bean
+  public BundleSystem bundleSystem(CuratorFramework client) throws Exception {
     Optional<BundleProperties> properties = getBundleProperties(client);
     if (!properties.isPresent()) {
       throw new IllegalStateException("BundleProperties are not available");
     }
-    return new BundleSystem.Builder().withBundleProperties(properties.get()).build();
+    // we require an ON_DEMAND BundleSystem that will not be created until needed
+    // The reason is, when we create the BundleSystem here in the bean at initialization time,
+    // the VFS System seems to have trouble reading from hdfs
+    return new BundleSystemBuilder().withBundleProperties(properties.get()).withBundleSystemType(
+        BundleSystemType.ON_DEMAND).build();
   }
 
   private static Optional<BundleProperties> getBundleProperties(CuratorFramework client)

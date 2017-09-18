@@ -27,6 +27,7 @@ import org.apache.curator.framework.api.GetChildrenBuilder;
 import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.curator.framework.api.SetDataBuilder;
 import org.apache.metron.bundles.BundleSystem;
+import org.apache.metron.bundles.BundleSystemBuilder;
 import org.apache.metron.bundles.bundle.Bundle;
 import org.apache.metron.bundles.util.BundleProperties;
 import org.apache.metron.common.configuration.ConfigurationType;
@@ -118,10 +119,9 @@ public class SensorParserConfigServiceImplTest {
       BundleProperties properties = BundleProperties.createBasicBundleProperties(fis, new HashMap<>());
       properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY,"./target");
       properties.unSetProperty("bundle.library.directory.alt");
-      bundleSystem = new BundleSystem.Builder().withBundleProperties(properties).build();
+      bundleSystem = new BundleSystemBuilder().withBundleProperties(properties).build();
       sensorParserConfigService = new SensorParserConfigServiceImpl(environment, objectMapper, curatorFramework,
-          grokService);
-      ((SensorParserConfigServiceImpl)sensorParserConfigService).setBundleSystem(bundleSystem);
+          grokService, bundleSystem);
     }
   }
 

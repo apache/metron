@@ -22,12 +22,15 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.metron.common.configuration.extensions.ParserExtensionConfig;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +45,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/ext/parsers")
 public class ParserExtensionController {
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   @Autowired
   private ExtensionService extensionService;
 
@@ -59,7 +64,7 @@ public class ParserExtensionController {
         return result;
       }
     }catch(Exception e){
-
+      LOG.warn("Exception finding parser " + extensionName + " continuing",e);
     }
 
 
@@ -69,6 +74,7 @@ public class ParserExtensionController {
                             extensionTgz.getInputStream())))) {
       extensionService.install(ExtensionService.ExtensionType.PARSER, extensionTgz.getOriginalFilename(), tarArchiveInputStream);
     } catch (Exception e) {
+      LOG.error("Exception Installing Extension " + extensionTgz.getOriginalFilename(),e);
       throw new RestException(e);
     }
     result.setResult(new ResponseEntity<Void>(HttpStatus.CREATED));
@@ -108,7 +114,8 @@ public class ParserExtensionController {
         result.setResult(new ResponseEntity<Void>(HttpStatus.NOT_FOUND));
       }
       return result;
-    }catch(Exception e){
+    } catch (Exception e) {
+      LOG.error("Error deleting Extension " + name,e);
       throw new RestException(e);
     }
   }

@@ -17,14 +17,10 @@
 
 package org.apache.metron.bundles;
 
-import static org.junit.Assert.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.metron.bundles.BundleThreadContextClassLoaderTest.WithPropertiesConstructor;
@@ -68,7 +64,7 @@ public class BundleSystemTest {
         .createBasicBundleProperties("target/bundle.properties", null);
 
     properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY, "target/BundleMapper/lib");
-    BundleSystem bundleSystem = new BundleSystem.Builder().withBundleProperties(properties)
+    BundleSystem bundleSystem = new BundleSystemBuilder().withBundleProperties(properties)
         .withExtensionClasses(
             Arrays.asList(AbstractFoo.class)).build();
     Assert.assertTrue(
@@ -79,7 +75,7 @@ public class BundleSystemTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void createInstanceFail() throws Exception {
-    BundleSystem bundleSystem = new BundleSystem.Builder().build();
+    BundleSystem bundleSystem = new BundleSystemBuilder().build();
   }
 
   @Test
@@ -97,7 +93,7 @@ public class BundleSystemTest {
     }
     FileSystemManager fileSystemManager = FileSystemManagerFactory
         .createFileSystemManager(new String[]{properties.getArchiveExtension()});
-    BundleSystem bundleSystem = new BundleSystem.Builder()
+    BundleSystem bundleSystem = new BundleSystemBuilder()
         .withFileSystemManager(fileSystemManager)
         .withBundleProperties(properties).withExtensionClasses(
             Arrays.asList(AbstractFoo.class, MessageParser.class)).build();

@@ -93,7 +93,11 @@ public class SensorParserConfigController {
   @ApiResponse(message = "Returns a list of available parser classes", code = 200)
   @RequestMapping(value = "/list/available", method = RequestMethod.GET)
   ResponseEntity<Map<String, String>> getAvailable() throws RestException {
-    return new ResponseEntity<>(sensorParserConfigService.getAvailableParsers(), HttpStatus.OK);
+    try {
+      return new ResponseEntity<>(sensorParserConfigService.getAvailableParsers(), HttpStatus.OK);
+    } catch (Exception e) {
+      throw new RestException(e);
+    }
   }
 
   @ApiOperation(value = "Scans the classpath for available parser classes and reloads the cached parser class list")

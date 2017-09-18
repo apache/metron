@@ -23,8 +23,8 @@ import {LoginGuard} from './shared/login-guard';
 export const routes: Routes = [
   { path: '',  redirectTo: 'sensors', canActivate: [AuthGuard], pathMatch: 'full'},
   { path: 'login', loadChildren: 'app/login/login.module#LoginModule', canActivate: [LoginGuard] },
-  { path: 'sensors', loadChildren: 'app/sensors/sensor-parser-list/sensor-parser-list.module#SensorParserListModule',
-    canActivate: [AuthGuard] },
+  { path: 'sensors', loadChildren: 'app/sensors/sensor-parser-list/sensor-parser-list.module#SensorParserListModule', canActivate: [AuthGuard] },
+  { path: 'extensions', loadChildren: 'app/extensions/extensions-parser-list/extensions-parser-list.module#ExtensionsParserListModule', canActivate: [AuthGuard] },
 ];
 
 export const appRoutingProviders: any[] = [

@@ -15,23 +15,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
-
-import org.apache.hadoop.fs.Path;
-import org.apache.metron.rest.RestException;
-
-import java.util.List;
-
-public interface HdfsService {
-
-    String read(Path path) throws RestException;
-
-    void write(Path path, byte[] contents,String userMode, String groupMode, String otherMode) throws RestException;
-
-    List<String> list(Path path) throws RestException;
-
-    boolean delete(Path path, boolean recursive) throws RestException;
-
-    boolean mkdirs(Path path) throws RestException;
-
- }
+export * from './extensions-parser-list.component';

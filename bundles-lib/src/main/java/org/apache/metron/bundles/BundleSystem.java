@@ -18,156 +18,23 @@
 package org.apache.metron.bundles;
 
 import com.google.common.annotations.VisibleForTesting;
-import java.lang.invoke.MethodHandles;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.FileSystemManager;
-import org.apache.metron.bundles.bundle.Bundle;
-import org.apache.metron.bundles.util.BundleProperties;
-import org.apache.metron.bundles.util.FileSystemManagerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * High level interface to the Bundle System.  While you may want to use the lower level classes it
  * is not required, as BundleSystem provides the base required interface for initializing the system
  * and instantiating classes
  */
-public class BundleSystem {
+public interface BundleSystem {
 
-  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  /**
-   * Builder for a BundleSystem. only {@link BundleProperties} are required. Beyond that, the
-   * BundleProperties, if they are the only parameter must have archive extension and bundle
-   * extension types properties present.
-   */
-  public static class Builder {
-
-    private BundleProperties properties;
-    private FileSystemManager fileSystemManager;
-    private List<Class> extensionClasses = new LinkedList<>();
-    private Bundle systemBundle;
-
-    /**
-     * The BundleProperties to use.  Unless other builder parameters override options
-     * (withExtensionClasses ), they must have archive extension and bundle extensions types
-     * specified
-     *
-     * @param properties The BundleProperties
-     * @return Builder
-     */
-    public Builder withBundleProperties(BundleProperties properties) {
-      this.properties = properties;
-      return this;
+  @VisibleForTesting()
+  static void reset() {
+    synchronized (BundleSystem.class) {
+      BundleClassLoaders.reset();
+      ExtensionManager.reset();
     }
-
-    /**
-     * Provide a {@link FileSystemManager} to overide the default
-     *
-     * @param fileSystemManager override
-     * @return Builder
-     */
-    public Builder withFileSystemManager(FileSystemManager fileSystemManager) {
-      this.fileSystemManager = fileSystemManager;
-      return this;
-    }
-
-    /**
-     * Provide Extension Classes.  If not provided with this override then the classes will be
-     * configured from the BundleProperties. If provided, the properties file will not be used for
-     * classes.
-     *
-     * @param extensionClasses override
-     * @return Builder
-     */
-    public Builder withExtensionClasses(List<Class> extensionClasses) {
-      this.extensionClasses.addAll(extensionClasses);
-      return this;
-    }
-
-    /**
-     * Provide a SystemBundle.  If not provided with this override then the default SystemBundle
-     * will be created.
-     */
-    public Builder withSystemBundle(Bundle systemBundle) {
-      this.systemBundle = systemBundle;
-      return this;
-    }
-
-    /**
-     * Builds a new BundleSystem.
-     *
-     * @return BundleSystem
-     * @throws NotInitializedException if any errors happen during build
-     */
-    public BundleSystem build() throws NotInitializedException {
-      if (this.properties == null) {
-        throw new IllegalArgumentException("BundleProperties are required");
-      }
-      try {
-        if (this.fileSystemManager == null) {
-          this.fileSystemManager = FileSystemManagerFactory
-              .createFileSystemManager(new String[]{properties.getArchiveExtension()});
-        }
-        if (this.extensionClasses.isEmpty()) {
-          properties.getBundleExtensionTypes().forEach((x, y) -> {
-            try {
-              this.extensionClasses.add(Class.forName(y));
-            } catch (ClassNotFoundException e) {
-              throw new IllegalStateException(e);
-            }
-          });
-        }
-        if (this.systemBundle == null) {
-          this.systemBundle = ExtensionManager
-              .createSystemBundle(this.fileSystemManager, this.properties);
-        }
-        List<URI> libDirs = properties.getBundleLibraryDirectories();
-        List<FileObject> libFileObjects = new ArrayList<>();
-        libDirs.forEach((x) -> {
-          try {
-            FileObject fileObject = fileSystemManager.resolveFile(x);
-            if (fileObject.exists()) {
-              libFileObjects.add(fileObject);
-            }
-          } catch (Exception e) {
-            throw new IllegalStateException(e);
-          }
-        });
-
-        // initialize the Bundle System
-        BundleClassLoaders.init(fileSystemManager, libFileObjects, properties);
-        ExtensionManager
-            .init(extensionClasses, systemBundle, BundleClassLoaders.getInstance().getBundles());
-        return new BundleSystem(fileSystemManager, extensionClasses, libFileObjects, systemBundle, properties);
-      } catch (Exception e) {
-        throw new NotInitializedException(e);
-      }
-    }
-  }
-
-  private final BundleProperties properties;
-  private final FileSystemManager fileSystemManager;
-  private final List<Class> extensionClasses;
-  private final List<FileObject> extensionDirectories;
-  private final Bundle systemBundle;
-
-  private BundleSystem(FileSystemManager fileSystemManager, List<Class> extensionClasses,List<FileObject>
-      extensionDirectories, Bundle systemBundle, BundleProperties properties) {
-    this.properties = properties;
-    this.fileSystemManager = fileSystemManager;
-    this.extensionClasses = extensionClasses;
-    this.systemBundle = systemBundle;
-    this.extensionDirectories = extensionDirectories;
   }
 
   /**
@@ -180,26 +47,17 @@ public class BundleSystem {
    * @throws ClassNotFoundException if the class cannot be found
    * @throws InstantiationException if the class cannot be instantiated
    */
-  public <T> T createInstance(final String specificClassName, final Class<T> clazz)
+  <T> T createInstance(String specificClassName, Class<T> clazz)
       throws ClassNotFoundException, InstantiationException,
-      NotInitializedException, IllegalAccessException {
-    synchronized (BundleSystem.class) {
-      return BundleThreadContextClassLoader
-          .createInstance(specificClassName, clazz, this.properties);
-    }
-  }
+      NotInitializedException, IllegalAccessException;
 
   @SuppressWarnings("unchecked")
-  public <T> Set<Class<? extends T>> getExtensionsClassesForExtensionType(final Class<T> extensionType)
-      throws NotInitializedException {
-    Set<Class<? extends T>> set = new HashSet<Class<? extends T>>();
-    synchronized (BundleSystem.class) {
-      ExtensionManager.getInstance().getExtensions(extensionType).forEach((x) -> {
-        set.add((Class<T>) x);
-      });
-    }
-    return set;
-  }
+  /**
+   * Returns the available classes registered in the system for a given extension types.
+   * For example, all the {@link MessageParser} implementations.
+   */
+  <T> Set<Class<? extends T>> getExtensionsClassesForExtensionType(Class<T> extensionType)
+      throws NotInitializedException;
 
   /**
    * Loads a Bundle into the system.
@@ -207,23 +65,6 @@ public class BundleSystem {
    * @param bundleFileName the name of a Bundle file to load into the system. This file must exist
    * in one of the library directories
    */
-  public void addBundle(String bundleFileName)
-      throws NotInitializedException, ClassNotFoundException, FileSystemException, URISyntaxException {
-    if (StringUtils.isEmpty(bundleFileName)) {
-      throw new IllegalArgumentException("bundleFileName cannot be null or empty");
-    }
-    synchronized (BundleSystem.class) {
-      Bundle bundle = BundleClassLoaders.getInstance().addBundle(bundleFileName);
-      ExtensionManager.getInstance().addBundle(bundle);
-    }
-  }
-
-  @VisibleForTesting()
-  public static void reset() {
-    synchronized (BundleSystem.class) {
-      BundleClassLoaders.reset();
-      ExtensionManager.reset();
-    }
-  }
-
+  void addBundle(String bundleFileName)
+          throws NotInitializedException, ClassNotFoundException, FileSystemException, URISyntaxException;
 }
