@@ -67,6 +67,10 @@ RESOURCE_LIST=(
     metron-platform/metron-indexing/indexing_arch.png
     metron-platform/metron-enrichment/enrichment_arch.png
     metron-analytics/metron-maas-service/maas_arch.png
+    metron-maven-archetypes/metron-parser-extension-archetype/extensions.png
+    metron-maven-archetypes/metron-parser-extension-archetype/extension_install.png
+    metron-maven-archetypes/metron-parser-extension-archetype/installed_extension.png
+    metron-maven-archetypes/metron-parser-extension-archetype/uninstall_extension.png
 )
 
 ## This is a list of duples, flattened into a bash array.  Even fields are relative paths to a .md file
@@ -86,6 +90,10 @@ HREF_REWRITE_LIST=(
     metron-platform/metron-indexing/README.md 's#(indexing_arch.png)#(../../images/indexing_arch.png)#g'
     metron-platform/metron-parsers/README.md 's#(parser_arch.png)#(../../images/parser_arch.png)#g'
     metron-analytics/metron-maas-service/README.md 's#(maas_arch.png)#(../../images/maas_arch.png)#g'
+    metron-maven-archetypes/metron-parser-extension-archetype/UI.md 's#(extensions.png)#(../../images/extensions.png)#g'
+    metron-maven-archetypes/metron-parser-extension-archetype/UI.md 's#(extension_install.png)#(../../images/extension_install.png)#g'
+    metron-maven-archetypes/metron-parser-extension-archetype/UI.md 's#(installed_extension.png)#(../../images/installed_extension.png)#g'
+    metron-maven-archetypes/metron-parser-extension-archetype/UI.md 's#(uninstall_extension.png)#(../../images/uninstall_extension.png)#g'
 )
 
 TEMPLATES_DIR="$METRON_SOURCE/site-book/src/site/src-resources/templates"
