@@ -405,7 +405,7 @@ public class ConfigurationManagerIntegrationTest {
       args = ArrayUtils.addAll(args, "--config_name", configName.get());
     }
     if (patchPath.isPresent()) {
-      args = ArrayUtils.addAll(args, "--patch_path", patchPath.get().getAbsolutePath());
+      args = ArrayUtils.addAll(args, "--patch_file", patchPath.get().getAbsolutePath());
     } else if (patchMode.isPresent()) {
       args = ArrayUtils.addAll(args,
           "--patch_mode", patchMode.get().toString(),

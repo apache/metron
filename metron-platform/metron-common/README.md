@@ -114,12 +114,11 @@ This has the following options:
                                            store the JSON configuration
                                            from Zookeeper
  -pk,--patch_key <PATCH_KEY>               The key to modify
- -pm,--patch_mode <PATCH_MODE>             One of: ADD, REMOVE, REPLACE,
-                                           MOVE, COPY, TEST - relevant
+ -pm,--patch_mode <PATCH_MODE>             One of: ADD, REMOVE - relevant
                                            only for key/value patches,
                                            i.e. when a patch file is not
                                            used.
- -pp,--patch_path <PATCH_PATH>             Path to the patch file.
+ -pf,--patch_file <PATCH_FILE>             Path to the patch file.
  -pv,--patch_value <PATCH_VALUE>           Value to use in the patch.
  -z,--zk_quorum <host:port,[host:port]*>   Zookeeper Quorum URL
                                            (zk1:port,zk2:port,...)
@@ -134,6 +133,144 @@ Usage examples:
 * To push only the PARSER configs into zookeeper on the singlenode vagrant machine: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m PUSH -i $METRON_HOME/config/zookeeper -c PARSER`
 * To push only the PARSER 'bro' configs into zookeeper on the singlenode vagrant machine: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m PUSH -i $METRON_HOME/config/zookeeper -c PARSER -n bro`
 * To pull all configs from zookeeper to the singlenode vagrant machine disk: `$METRON_HOME/bin/zk_load_configs.sh -z node1:2181 -m PULL -o $METRON_HOME/config/zookeeper -f`
+
+## Patching mechanism
+
+The configuration management utility leverages a JSON patching library that conforms to [RFC-6902 spec](https://tools.ietf.org/html/rfc6902). We're using the zjsonpatch library implementation from here - https://github.com/flipkart-incubator/zjsonpatch.
+There are a couple options for leveraging patching. You can choose to patch the Zookeeper config via patch file:
+
+`$METRON_HOME/bin/zk_load_configs.sh -z $ZOOKEEPER -m PATCH -c GLOBAL -pf /tmp/mypatch.txt`
+
+or key/value pair:
+
+`$METRON_HOME/bin/zk_load_configs.sh -z $ZOOKEEPER -m PATCH -c GLOBAL -pm ADD -pk foo -pv \"\"bar\"\"`
+
+The options exposed via patch file are the full range of options from RFC-6902:
+  - ADD
+  - REMOVE
+  - REPLACE
+  - MOVE
+  - COPY
+  - TEST
+
+whereas with key/value patching, we only current expose ADD and REMOVE. Note that ADD will function as a REPLACE when the key already exists.
+
+### Patch File
+
+Let's say we want to add a complex JSON object to our configuration with a patch file. e.g.
+```
+"foo" : {
+    "bar" : {
+      "baz" : [ "bazval1", "bazval2" ]
+    }
+  }
+```
+
+We would write a patch file "/tmp/mypatch.txt" with contents:
+```
+[
+    {
+        "op": "add",
+        "path": "/foo",
+        "value": { "bar" : { "baz" : [ "bazval1", "bazval2" ] } }
+    }
+]
+```
+
+And submit via zk_load_configs as follows:
+```
+ $METRON_HOME/bin/zk_load_configs.sh -z $ZOOKEEPER -m PATCH -c GLOBAL -pf /tmp/mypatch.txt
+```
+
+### Patch Key/Value
+
+Now let's try the same without using a patch file, instead using the patch_key and patch_value options right from the command line utility. This would like like the following.
+
+```
+$METRON_HOME/bin/zk_load_configs.sh -z $ZOOKEEPER -m PATCH -c GLOBAL -pm ADD -pk "/foo" -pv "{ \"bar\" : { \"baz\" : [ \"bazval1\", \"bazval2\" ] } }"
+```
+
+### Applying Multiple Patches
+
+Applying multiple patches is also pretty straightforward. You can achieve this in a single command using patch files, or simply execute multiple commands in sequence using the patch_key/value approach.
+
+Let's say we wanted to add the following to our global config:
+```
+"apache" : "metron",
+"is" : "the best",
+"streaming" : "analytics platform"
+```
+
+and remove the /foo key from the previous example.
+
+Create a patch file /tmp/mypatch.txt with four separate patch operations.
+```
+[
+    {
+        "op": "remove",
+        "path": "/foo"
+    },
+    {
+        "op": "add",
+        "path": "/apache",
+        "value": "metron"
+    },
+    {
+        "op": "add",
+        "path": "/is",
+        "value": "the best"
+    },
+    {
+        "op": "add",
+        "path": "/streaming",
+        "value": "analytics platform"
+    }
+]
+```
+
+Now submit again and you should see a Global config with the "foo" key removed and three new keys added.
+```
+ $METRON_HOME/bin/zk_load_configs.sh -z $ZOOKEEPER -m PATCH -c GLOBAL -pf /tmp/mypatch.txt
+```
+
+### Notes On Patching
+
+For any given patch key, the last/leaf node in the key's parent *must* exist, otherwise an exception will be thrown. For example, if you want to add the following:
+```
+"foo": {
+    "bar": "baz"
+}
+```
+
+It is not sufficient to use /foo/bar as a key if foo does not already exist. You would either need to incrementally build the JSON and make this a two step process
+```
+[
+    {
+        "op": "add",
+        "path": "/foo",
+        "value": { }
+    },
+    {
+        "op": "add",
+        "path": "/foo/bar",
+        "value": "baz"
+    }
+]
+```
+
+Or provide the value as a complete JSON object.
+```
+[
+    {
+        "op": "add",
+        "path": "/foo",
+        "value": { "bar" : "baz" }
+    }
+]
+```
+
+The REMOVE operation is idempotent. Running the remove command on the same key multiple
+times will not fail once the key has been removed.
 
 # Topology Errors
 

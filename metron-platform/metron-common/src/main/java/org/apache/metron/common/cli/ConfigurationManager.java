@@ -36,6 +36,7 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
@@ -89,10 +90,10 @@ public class ConfigurationManager {
         .withDescription("The configuration name: bro, yaf, snort, squid, etc.")
         .create(s)
         ),
-    PATCH_PATH("pp", s -> OptionBuilder.isRequired(false)
+    PATCH_FILE("pf", s -> OptionBuilder.isRequired(false)
         .hasArg()
-        .withLongOpt("patch_path")
-        .withArgName("PATCH_PATH")
+        .withLongOpt("patch_file")
+        .withArgName("PATCH_FILE")
         .withDescription("Path to the patch file.")
         .create(s)
     ),
@@ -100,7 +101,7 @@ public class ConfigurationManager {
         .hasArg()
         .withLongOpt("patch_mode")
         .withArgName("PATCH_MODE")
-        .withDescription("One of: ADD, REMOVE, REPLACE, MOVE, COPY, TEST - relevant only for key/value patches, i.e. when a patch file is not used.")
+        .withDescription("One of: ADD, REMOVE - relevant only for key/value patches, i.e. when a patch file is not used.")
         .create(s)
     ),
     PATCH_KEY("pk", s -> OptionBuilder.isRequired(false)
@@ -252,6 +253,9 @@ public class ConfigurationManager {
 
       case "push":
         String inputDirStr = ConfigurationOptions.INPUT.get(cli);
+        if (StringUtils.isEmpty(inputDirStr)) {
+          throw new IllegalArgumentException("Input directory is required when performing a PUSH operation.");
+        }
         if (configType.isPresent()) {
           push(inputDirStr, client, ConfigurationType.valueOf(configType.get()), configName);
         } else {
@@ -272,7 +276,7 @@ public class ConfigurationManager {
 
       case "patch":
         if(configType.isPresent()) {
-          Optional<String> patchPath = Optional.ofNullable(ConfigurationOptions.PATCH_PATH.get(cli));
+          Optional<String> patchPath = Optional.ofNullable(ConfigurationOptions.PATCH_FILE.get(cli));
           Optional<String> patchMode = Optional.ofNullable(ConfigurationOptions.PATCH_MODE.get(cli));
           Optional<String> patchKey = Optional.ofNullable(ConfigurationOptions.PATCH_KEY.get(cli));
           Optional<String> patchValue = Optional.ofNullable(ConfigurationOptions.PATCH_VALUE.get(cli));
