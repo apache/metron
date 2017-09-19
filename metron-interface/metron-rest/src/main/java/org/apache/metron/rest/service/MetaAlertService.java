@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,40 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.indexing.dao.search;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+package org.apache.metron.rest.service;
 
-public enum FieldType {
-  @JsonProperty("string")
-  STRING("string"),
-  @JsonProperty("ip")
-  IP("ip"),
-  @JsonProperty("integer")
-  INTEGER("integer"),
-  @JsonProperty("long")
-  LONG("long"),
-  @JsonProperty("date")
-  DATE("date"),
-  @JsonProperty("float")
-  FLOAT("float"),
-  @JsonProperty("double")
-  DOUBLE("double"),
-  @JsonProperty("boolean")
-  BOOLEAN("boolean"),
-  @JsonProperty("nested")
-  NESTED("nested"),
-  @JsonProperty("other")
-  OTHER("other");
+import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
+import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.rest.RestException;
 
+public interface MetaAlertService {
 
-  private String fieldType;
+  MetaAlertCreateResponse create(MetaAlertCreateRequest createRequest) throws RestException;
 
-  FieldType(String fieldType) {
-    this.fieldType = fieldType;
-  }
-
-  public String getFieldType() {
-    return fieldType;
-  }
+  SearchResponse getAllMetaAlertsForAlert(String guid) throws RestException;
 }

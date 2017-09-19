@@ -225,6 +225,9 @@
         },
         "end-reason": {
           "type": "string"
+        },
+        "alert": {
+          "type": "nested"
         }
       }
     }

@@ -124,12 +124,12 @@ class ParserCommands:
 
         for parser in stopped_parsers:
             Logger.info('Starting ' + parser)
-            Execute(start_cmd_template.format(self.__params.metron_home,
-                                              self.__params.kafka_brokers,
-                                              self.__params.zookeeper_quorum,
-                                              parser,
-                                              self.__params.kafka_security_protocol),
-                    user=self.__params.metron_user)
+            start_cmd = start_cmd_template.format(self.__params.metron_home,
+                                                  self.__params.kafka_brokers,
+                                                  self.__params.zookeeper_quorum,
+                                                  parser,
+                                                  self.__params.kafka_security_protocol)
+            Execute(start_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
 
         Logger.info('Finished starting parser topologies')
 
@@ -147,7 +147,7 @@ class ParserCommands:
                                       self.__params.metron_keytab_path,
                                       self.__params.metron_principal_name,
                                       execute_user=self.__params.metron_user)
-            Execute(stop_cmd, user=self.__params.metron_user)
+            Execute(stop_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
         Logger.info('Done stopping parser topologies')
 
     def restart_parser_topologies(self, env):
