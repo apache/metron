@@ -32,7 +32,7 @@ Follow these instructions to install the Profiler.  This assumes that core Metro
 
     ```
     [root@node1 ~]# find /localrepo/  -name "metron-profiler*.rpm"
-    /localrepo/metron-profiler-0.4.0-201707112313.noarch.rpm
+    /localrepo/metron-profiler-0.4.1-201707112313.noarch.rpm
     ```
 
 1. Install the RPM.
@@ -55,7 +55,7 @@ Follow these instructions to install the Profiler.  This assumes that core Metro
     /usr/metron/0.4.1/flux/profiler
     /usr/metron/0.4.1/flux/profiler/remote.yaml
     /usr/metron/0.4.1/lib
-    /usr/metron/0.4.1/lib/metron-profiler-0.4.0-uber.jar
+    /usr/metron/0.4.1/lib/metron-profiler-0.4.1-uber.jar
     ```
 
 1. Create a table within HBase that will store the profile data. By default, the table is named `profiler` with a column family `P`.  The table name and column family must match the Profiler's configuration (see [Configuring the Profiler](#configuring-the-profiler)).  
