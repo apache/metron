@@ -49,7 +49,7 @@ def set_configured(user, flag_file, log_msg):
 def set_zk_configured(params):
   set_configured(params.metron_user, params.zk_configured_flag_file, "Setting Zookeeper configured to true")
 
-def build_global_config_patch(params, patch_path):
+def build_global_config_patch(params, patch_file):
   # see RFC 6902 at https://tools.ietf.org/html/rfc6902
   patch_template = """
   [
@@ -95,19 +95,19 @@ def build_global_config_patch(params, patch_path):
     }
   ]
   """
-  File(patch_path,
+  File(patch_file,
        content=InlineTemplate(patch_template),
        owner=params.metron_user,
        group=params.metron_group)
 
 def patch_global_config(params):
-  patch_path = "/tmp/metron-global-config-patch.json"
-  Logger.info("Setup temporary global config JSON patch (formatting per RFC6902): " + patch_path)
-  build_global_config_patch(params, patch_path)
+  patch_file = "/tmp/metron-global-config-patch.json"
+  Logger.info("Setup temporary global config JSON patch (formatting per RFC6902): " + patch_file)
+  build_global_config_patch(params, patch_file)
 
   Logger.info('Patching global config in ZooKeeper')
   Execute(ambari_format(
-      "{metron_home}/bin/zk_load_configs.sh --zk_quorum {zookeeper_quorum} --mode PATCH --config_type GLOBAL --patch_path " + patch_path),
+      "{metron_home}/bin/zk_load_configs.sh --zk_quorum {zookeeper_quorum} --mode PATCH --config_type GLOBAL --patch_file " + patch_file),
       path=ambari_format("{java_home}/bin")
   )
 
