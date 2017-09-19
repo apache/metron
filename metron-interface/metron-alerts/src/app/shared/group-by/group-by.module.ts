@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,17 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {NgModule} from '@angular/core';
+import { DecimalPipe } from '@angular/common';
+import { DragulaModule } from 'ng2-dragula';
 
-package org.apache.metron.rest.service;
+import {SharedModule} from '../shared.module';
+import {GroupByComponent} from './group-by.component';
 
-import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
-import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.apache.metron.rest.RestException;
-
-public interface MetaAlertService {
-
-  MetaAlertCreateResponse create(MetaAlertCreateRequest createRequest) throws RestException;
-
-  SearchResponse getAllMetaAlertsForAlert(String guid) throws RestException;
+@NgModule({
+  imports: [
+    SharedModule,
+    DragulaModule
+  ],
+  exports: [GroupByComponent],
+  declarations: [GroupByComponent],
+  providers: [DecimalPipe],
+})
+export class GroupByModule {
 }

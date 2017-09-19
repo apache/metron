@@ -17,7 +17,7 @@
 #
 
 METRON_VERSION=${project.version}
-METRON_HOME=/usr/metron/$METRON_VERSION
+METRON_HOME=/usr/hcp/$METRON_VERSION/metron
 
 cd $METRON_HOME/web/alerts-ui
 npm install

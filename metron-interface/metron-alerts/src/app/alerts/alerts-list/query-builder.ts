@@ -19,9 +19,12 @@ import {Filter} from '../../model/filter';
 import {ColumnNamesService} from '../../service/column-names.service';
 import {SearchRequest} from '../../model/search-request';
 import {SortField} from '../../model/sort-field';
+import {GroupRequest} from '../../model/group-request';
+import {Group} from '../../model/group';
 
 export class QueryBuilder {
   private _searchRequest = new SearchRequest();
+  private _groupRequest = new GroupRequest();
   private _query = '*';
   private _displayQuery = this._query;
   private _filters: Filter[] = [];
@@ -62,12 +65,17 @@ export class QueryBuilder {
     this.query = this._searchRequest.query;
   }
 
-  addOrUpdateFilter(field: string, value: string) {
-    let filter = this._filters.find(tFilter => tFilter.field === field);
-    if (filter) {
-      filter.value = value;
+  get groupRequest(): GroupRequest {
+    this._groupRequest.query = this.generateSelect();
+    return this._groupRequest;
+  }
+
+  addOrUpdateFilter(filter: Filter) {
+    let existingFilter = this._filters.find(tFilter => tFilter.field === filter.field);
+    if (existingFilter) {
+      existingFilter.value = filter.value;
     } else {
-      this._filters.push(new Filter(field, value));
+      this._filters.push(filter);
     }
 
     this.onSearchChange();
@@ -111,6 +119,10 @@ export class QueryBuilder {
     this.searchRequest.size = size;
   }
 
+  setGroupby(groups: string[]) {
+    this.groupRequest.groups = groups.map(groupName => new Group(groupName));
+  }
+
   setSort(sortBy: string, order: string) {
     let sortField = new SortField();
     sortField.field = sortBy;
@@ -130,7 +142,7 @@ export class QueryBuilder {
         let field = term.substring(0, separatorPos).replace('\\', '');
         field = updateNameTransform ? ColumnNamesService.getColumnDisplayKey(field) : field;
         let value = term.substring(separatorPos + 1, term.length);
-        this.addOrUpdateFilter(field, value);
+        this.addOrUpdateFilter(new Filter(field, value));
       }
     }
   }

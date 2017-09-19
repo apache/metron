@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,19 +16,13 @@
  * limitations under the License.
  */
 
-package org.apache.metron.elasticsearch.dao;
+export class GroupByComponentData {
+  name: string;
+  count: number;
+  selected = false;
 
-public enum MetaAlertStatus {
-  ACTIVE("active"),
-  INACTIVE("inactive");
-
-  private String statusString;
-
-  MetaAlertStatus(String statusString) {
-    this.statusString = statusString;
-  }
-
-  public String getStatusString() {
-    return statusString;
+  constructor(name: string, count: number) {
+    this.name = name;
+    this.count = count;
   }
 }

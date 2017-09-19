@@ -34,6 +34,7 @@ export class MetronTableDirective implements AfterViewInit {
   @Output() onSort = new EventEmitter<SortEvent>();
   @Input() data: any[] = [];
   @Input() cellSelectable = false;
+
   rowhighlightColor = '#333333';
   highlightColor = '#0F4450';
   border = '1px solid #1B596C';
@@ -65,7 +66,9 @@ export class MetronTableDirective implements AfterViewInit {
 
     } else {
         let parent = this.getParentTR($event.target);
-        parent.style.backgroundColor = this.rowhighlightColor;
+        if (!parent.classList.contains('no-hover')) {
+          parent.style.backgroundColor = this.rowhighlightColor;
+        }
     }
   }
 

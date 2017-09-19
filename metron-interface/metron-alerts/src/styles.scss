@@ -20,6 +20,7 @@
 @import "_variables.scss";
 @import "slider.scss";
 @import "metron-dialog.scss";
+@import "hexagon";
 
 body,
 button {
@@ -241,4 +242,11 @@ form
   {
     outline: none;
   }
+}
+
+.tooltip-inner {
+  opacity: 0.9;
+  font-size: 11px;
+  border-radius: 0px;
+  border: 1px solid $silver-2;
 }

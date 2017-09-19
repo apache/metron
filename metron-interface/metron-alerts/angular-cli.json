@@ -20,6 +20,7 @@
       "prefix": "app",
       "styles": [
         "../node_modules/font-awesome/css/font-awesome.css",
+        "../node_modules/dragula/dist/dragula.css",
         "vendor.scss",
         "styles.scss"
       ],

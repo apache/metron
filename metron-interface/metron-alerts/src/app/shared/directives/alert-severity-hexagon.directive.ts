@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,17 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Directive, ElementRef, SimpleChanges, Input, OnChanges } from '@angular/core';
 
-package org.apache.metron.indexing.dao.metaalert;
+@Directive({
+  selector: '[appAlertSeverityHexagon]'
+})
+export class AlertSeverityHexagonDirective implements OnChanges {
 
-public class MetaAlertCreateResponse {
-  private boolean created;
+  @Input() severity: number;
 
-  public boolean isCreated() {
-    return created;
+  constructor(private el: ElementRef) { }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['severity'] && changes['severity'].currentValue) {
+      this.setColor(this.severity);
+    }
   }
 
-  public void setCreated(boolean created) {
-    this.created = created;
+  private setColor(severity: number) {
+    if ( severity > 100 ) {
+      this.el.nativeElement.classList.add('error');
+    } else if ( severity > 50 ) {
+      this.el.nativeElement.classList.add('warning');
+    } else  {
+      this.el.nativeElement.classList.add('info');
+    }
   }
+
 }

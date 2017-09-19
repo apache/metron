@@ -1,3 +1,4 @@
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -15,37 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import {AuthenticationService} from './service/authentication.service';
-
-declare var $;
-
-@Component({
-  selector: 'metron-alerts-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
-})
-export class AppComponent implements OnInit {
-  loggedIn = false;
-
-  constructor(private authService: AuthenticationService) {
-    this.authService.onLoginEvent.subscribe(result => {
-      this.loggedIn = result;
-    });
-  }
-
-  ngOnInit(): void {
-    $('body').tooltip({
-      trigger : 'hover',
-      selector: '[data-toggle="tooltip"]'
-    });
-
-    $('body').on('show.bs.tooltip	', function () {
-      $('.tooltip').tooltip('hide');
-    });
-
-    $(document).on('click', function () {
-      $('.tooltip').tooltip('hide');
-    });
-  }
+export class GroupResult {
+  key: string;
+  total: number;
+  score: number;
+  groupedBy: string;
+  groupResults: GroupResult[] = [];
 }
