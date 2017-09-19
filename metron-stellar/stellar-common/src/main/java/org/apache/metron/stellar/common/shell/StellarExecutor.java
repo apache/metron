@@ -23,20 +23,6 @@ package org.apache.metron.stellar.common.shell;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import org.apache.commons.collections4.trie.PatriciaTrie;
-import org.apache.commons.lang.StringUtils;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.metron.stellar.common.configuration.ConfigurationsUtils;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.MapVariableResolver;
-import org.apache.metron.stellar.dsl.StellarFunctionInfo;
-import org.apache.metron.stellar.dsl.StellarFunctions;
-import org.apache.metron.stellar.dsl.VariableResolver;
-import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
-import org.apache.metron.stellar.common.StellarProcessor;
-import org.apache.metron.stellar.common.utils.JSONUtils;
-import org.jboss.aesh.console.Console;
-
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,12 +33,26 @@ import java.util.Properties;
 import java.util.SortedMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import org.apache.commons.collections4.trie.PatriciaTrie;
+import org.apache.commons.lang.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.metron.stellar.common.StellarProcessor;
+import org.apache.metron.stellar.common.configuration.ConfigurationsUtils;
+import org.apache.metron.stellar.common.utils.JSONUtils;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.MapVariableResolver;
+import org.apache.metron.stellar.dsl.StellarFunctionInfo;
+import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.stellar.dsl.VariableResolver;
+import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
+import org.jboss.aesh.console.Console;
 
 import static org.apache.metron.stellar.common.configuration.ConfigurationsUtils.readGlobalConfigBytesFromZookeeper;
 import static org.apache.metron.stellar.common.shell.StellarExecutor.OperationType.DOC;
 import static org.apache.metron.stellar.common.shell.StellarExecutor.OperationType.NORMAL;
-
-import static org.apache.metron.stellar.dsl.Context.Capabilities.*;
+import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
+import static org.apache.metron.stellar.dsl.Context.Capabilities.STELLAR_CONFIG;
+import static org.apache.metron.stellar.dsl.Context.Capabilities.ZOOKEEPER_CLIENT;
 
 /**
  * Executes Stellar expressions and maintains state across multiple invocations.

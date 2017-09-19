@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="Date-Revision-yyyymmdd" content="20170915" />
     <meta http-equiv="Content-Language" content="en" />
-    <title>Metron &#x2013; Vagrant Deployment</title>
+    <title>Metron &#x2013; </title>
     <link rel="stylesheet" href="../../css/apache-maven-fluido-1.3.0.min.css" />
     <link rel="stylesheet" href="../../css/site.css" />
     <link rel="stylesheet" href="../../css/print.css" media="print" />
@@ -57,7 +57,7 @@
         Documentation</a>
         </li>
       <li class="divider ">/</li>
-        <li class="">Vagrant Deployment</li>
+        <li class=""></li>
         
                 
                     
@@ -103,120 +103,18 @@
           <i class="none"></i>
         Docker</a>
             </li>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                                                                                                                                                                                                                                
       <li>
     
                           <a href="../../metron-deployment/index.html" title="Deployment">
-          <i class="icon-chevron-down"></i>
+          <i class="icon-chevron-right"></i>
         Deployment</a>
-                    <ul class="nav nav-list">
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/Kerberos-ambari-setup.html" title="Kerberos-ambari-setup">
-          <i class="none"></i>
-        Kerberos-ambari-setup</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/Kerberos-manual-setup.html" title="Kerberos-manual-setup">
-          <i class="none"></i>
-        Kerberos-manual-setup</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/amazon-ec2/index.html" title="Amazon-ec2">
-          <i class="none"></i>
-        Amazon-ec2</a>
-            </li>
-                                                                        
-      <li>
-    
-                          <a href="../../metron-deployment/other-examples/index.html" title="Other-examples">
-          <i class="icon-chevron-right"></i>
-        Other-examples</a>
                   </li>
                       
-      <li>
-    
-                          <a href="../../metron-deployment/packaging/ambari/index.html" title="Ambari">
-          <i class="none"></i>
-        Ambari</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/packaging/docker/ansible-docker/index.html" title="Ansible-docker">
-          <i class="none"></i>
-        Ansible-docker</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/packaging/docker/rpm-docker/index.html" title="Rpm-docker">
-          <i class="none"></i>
-        Rpm-docker</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/packaging/packer-build/index.html" title="Packer-build">
-          <i class="none"></i>
-        Packer-build</a>
-            </li>
-                                                                                                                                                
-      <li>
-    
-                          <a href="../../metron-deployment/roles/index.html" title="Roles">
-          <i class="icon-chevron-right"></i>
-        Roles</a>
-                  </li>
-                                                                                                                                  
       <li class="active">
     
-            <a href="#"><i class="icon-chevron-down"></i>Vagrant</a>
-                  <ul class="nav nav-list">
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/vagrant/codelab-platform/index.html" title="Codelab-platform">
-          <i class="none"></i>
-        Codelab-platform</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/vagrant/fastcapa-test-platform/index.html" title="Fastcapa-test-platform">
-          <i class="none"></i>
-        Fastcapa-test-platform</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/vagrant/full-dev-platform/index.html" title="Full-dev-platform">
-          <i class="none"></i>
-        Full-dev-platform</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-deployment/vagrant/quick-dev-platform/index.html" title="Quick-dev-platform">
-          <i class="none"></i>
-        Quick-dev-platform</a>
-            </li>
-              </ul>
-        </li>
-              </ul>
-        </li>
-                      
-      <li>
-    
-                          <a href="../../metron-interface/metron-alerts/index.html" title="Alerts">
-          <i class="none"></i>
-        Alerts</a>
-            </li>
+            <a href="#"><i class="none"></i>Alerts</a>
+          </li>
                       
       <li>
     
@@ -281,19 +179,143 @@
                 
         <div id="bodyColumn"  class="span9" >
                                   
-            <h1>Vagrant Deployment</h1>
-<p><a name="Vagrant_Deployment"></a></p>
+            <ul>
+  
+<li><a href="#Caveats">Caveats</a></li>
+  
+<li><a href="#Prerequisites">Prerequisites</a></li>
+  
+<li><a href="#Development_Setup">Development Setup</a></li>
+  
+<li><a href="#E2E_Tests">E2E Tests</a></li>
+  
+<li><a href="#Mpack_Integration">Mpack Integration</a></li>
+  
+<li><a href="#Installing_on_an_existing_Cluster">Installing on an existing Cluster</a></li>
+</ul>
+<div class="section">
+<h2><a name="Caveats"></a>Caveats</h2>
 
 <ul>
   
-<li>Codelab Platform</li>
+<li>UI doesn&#x2019;t have an authentication module yet</li>
   
-<li>Fast CAPA Test Platform</li>
+<li>UI uses local storage to save all the data. A middleware needs to be designed and developed for persisting the data</li>
+</ul></div>
+<div class="section">
+<h2><a name="Prerequisites"></a>Prerequisites</h2>
+
+<ul>
   
-<li>Full Dev Platform</li>
+<li>Elastic search should be up and running and should have some alerts populated by metron topologies</li>
   
-<li>Quick Dev Platform</li>
-</ul>
+<li>The alerts can be populated using Quick Dev, Full Dev or any other setup</li>
+  
+<li>UI is developed using angular4 and uses angular-cli</li>
+  
+<li>node.JS &gt;= 7.8.0</li>
+</ul></div>
+<div class="section">
+<h2><a name="Development_Setup"></a>Development Setup</h2>
+
+<ol style="list-style-type: decimal">
+  
+<li>
+<p>Install all the dependent node_modules using the following command</p>
+  
+<div class="source">
+<div class="source">
+<pre>cd metron/metron-interface/metron-alerts
+npm install
+</pre></div></div></li>
+  
+<li>
+<p>UI can be run by using the following command</p>
+  
+<div class="source">
+<div class="source">
+<pre>./scripts/start-dev.sh
+</pre></div></div></li>
+  
+<li>You can view the GUI @http://localhost:4200 . The default credentials for login are admin/password</li>
+</ol>
+<p><b>NOTE</b>: <i>In the development mode ui by default connects to ES at <a class="externalLink" href="http://node1:9200">http://node1:9200</a> for fetching data. If you wish to change it you can change the ES url at metron/metron-interface/metron-alerts/proxy.conf.json</i></p></div>
+<div class="section">
+<h2><a name="E2E_Tests"></a>E2E Tests</h2>
+<p>An expressjs server is available for mocking the elastic search api.</p>
+
+<ol style="list-style-type: decimal">
+  
+<li>
+<p>Run e2e webserver :</p>
+  
+<div class="source">
+<div class="source">
+<pre>cd metron/metron-interface/metron-alerts
+sh ./scripts/start-server-for-e2e.sh
+</pre></div></div></li>
+  
+<li>
+<p>run e2e test using the following command</p>
+  
+<div class="source">
+<div class="source">
+<pre>cd metron/metron-interface/metron-alerts
+npm run e2e
+</pre></div></div></li>
+  
+<li>
+<p>E2E tests uses data from full-dev wherever applicable. The tests assume rest-api&#x2019;s are available @http://node1:8082</p></li>
+</ol>
+<p><b>NOTE</b>: <i>e2e tests covers all the general workflows and we will extend them as we need</i></p></div>
+<div class="section">
+<h2><a name="Mpack_Integration"></a>Mpack Integration</h2>
+<p>Yet to come</p></div>
+<div class="section">
+<h2><a name="Installing_on_an_existing_Cluster"></a>Installing on an existing Cluster</h2>
+
+<ol style="list-style-type: decimal">
+  
+<li>
+<p>Build Metron:</p>
+  
+<div class="source">
+<div class="source">
+<pre>mvn clean package -DskipTests
+</pre></div></div></li>
+  
+<li>
+<p>Copy <tt>metron/metron-interface/metron-alerts/target/metron-alerts-METRON_VERSION-archive.tar.gz</tt> to the desired host.</p></li>
+  
+<li>
+<p>Untar the archive in the target directory. The directory structure will look like:</p>
+  
+<div class="source">
+<div class="source">
+<pre>bin
+  start_alerts_ui.sh
+web
+  alerts-ui
+    package.json
+    server.js
+    web assets (html, css, js, ...)
+</pre></div></div></li>
+  
+<li>
+<p><a class="externalLink" href="https://github.com/expressjs/express">Expressjs</a> webserver script is included in the build that will serve the application. (The script has few rewrite rules and we can replace expressjs with any other webserver)</p></li>
+  
+<li>
+<p>Then start the application with the script:</p>
+  
+<div class="source">
+<div class="source">
+<pre>./bin/start_alerts_ui.sh
+Usage: server.js -p [port] -r [restUrl]
+Options:
+  -p             Port to run metron alerts ui                [required]
+  -r, --resturl  Url where elastic search rest api is available  [required]
+</pre></div></div></li>
+</ol></div>
                   </div>
             </div>
           </div>
