@@ -18,8 +18,8 @@
 
 package org.apache.metron.rest.service.impl;
 
-import org.apache.metron.rest.model.AlertsProfile;
-import org.apache.metron.rest.repository.AlertsProfileRepository;
+import org.apache.metron.rest.model.AlertProfile;
+import org.apache.metron.rest.repository.AlertProfileRepository;
 import org.apache.metron.rest.security.SecurityUtils;
 import org.apache.metron.rest.service.AlertsProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,25 +29,25 @@ import org.springframework.stereotype.Service;
 @Service
 public class AlertsProfileServiceImpl implements AlertsProfileService {
 
-  private AlertsProfileRepository alertsProfileRepository;
+  private AlertProfileRepository alertsProfileRepository;
 
   @Autowired
-  public AlertsProfileServiceImpl(AlertsProfileRepository alertsProfileRepository) {
+  public AlertsProfileServiceImpl(AlertProfileRepository alertsProfileRepository) {
     this.alertsProfileRepository = alertsProfileRepository;
   }
 
   @Override
-  public AlertsProfile get() {
+  public AlertProfile get() {
     return alertsProfileRepository.findOne(SecurityUtils.getCurrentUser());
   }
 
   @Override
-  public Iterable<AlertsProfile> findAll() {
+  public Iterable<AlertProfile> findAll() {
     return alertsProfileRepository.findAll();
   }
 
   @Override
-  public AlertsProfile save(AlertsProfile alertsProfile) {
+  public AlertProfile save(AlertProfile alertsProfile) {
     String user = SecurityUtils.getCurrentUser();
     alertsProfile.setId(user);
     return alertsProfileRepository.save(alertsProfile);

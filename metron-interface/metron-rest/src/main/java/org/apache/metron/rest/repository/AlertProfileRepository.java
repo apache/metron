@@ -18,8 +18,8 @@
 
 package org.apache.metron.rest.repository;
 
-import org.apache.metron.rest.model.AlertsProfile;
+import org.apache.metron.rest.model.AlertProfile;
 import org.springframework.data.repository.CrudRepository;
 
-public interface AlertsProfileRepository extends CrudRepository<AlertsProfile, String> {
+public interface AlertProfileRepository extends CrudRepository<AlertProfile, String> {
 }

@@ -26,7 +26,7 @@ import javax.persistence.Id;
 import org.apache.metron.rest.converter.JsonConverter;
 
 @Entity
-public class AlertsProfile {
+public class AlertProfile {
 
   @Id
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -71,7 +71,7 @@ public class AlertsProfile {
       return false;
     }
 
-    AlertsProfile that = (AlertsProfile) o;
+    AlertProfile that = (AlertProfile) o;
 
     return id != null ? id.equals(that.id) : that.id == null &&
         (tableColumns != null ? tableColumns.equals(that.tableColumns) : that.tableColumns == null &&

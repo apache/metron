@@ -20,6 +20,7 @@ package org.apache.metron.rest.service;
 import java.util.List;
 import java.util.Map;
 import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.model.AlertProfile;
 
 /**
  * This is a set of operations created to interact with alerts.
@@ -27,4 +28,12 @@ import org.apache.metron.rest.RestException;
 public interface AlertService {
 
   void escalateAlerts(List<Map<String, Object>> alerts) throws RestException;
+
+  AlertProfile getProfile();
+
+  Iterable<AlertProfile> findAllProfiles();
+
+  AlertProfile saveProfile(AlertProfile alertsProfile);
+
+  boolean deleteProfile(String user);
 }

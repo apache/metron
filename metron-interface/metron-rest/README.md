@@ -186,10 +186,10 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 |            |
 | ---------- |
 | [ `POST /api/v1/alert/escalate`](#get-apiv1alertescalate)|
-| [ `GET /api/v1/alerts/profile`](#get-apiv1alertsprofile)|
-| [ `GET /api/v1/alerts/profile/all`](#get-apiv1alertsprofileall)|
-| [ `DELETE /api/v1/alerts/profile`](#delete-apiv1alertsprofile)|
-| [ `POST /api/v1/alerts/profile`](#post-apiv1alertsprofile)|
+| [ `GET /api/v1/alert/profile`](#get-apiv1alertprofile)|
+| [ `GET /api/v1/alert/profile/all`](#get-apiv1alertprofileall)|
+| [ `DELETE /api/v1/alert/profile`](#delete-apiv1alertprofile)|
+| [ `POST /api/v1/alert/profile`](#post-apiv1alertprofile)|
 | [ `GET /api/v1/global/config`](#get-apiv1globalconfig)|
 | [ `DELETE /api/v1/global/config`](#delete-apiv1globalconfig)|
 | [ `POST /api/v1/global/config`](#post-apiv1globalconfig)|
@@ -264,19 +264,19 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Alerts were escalated
     
-### `GET /api/v1/alerts/profile`
+### `GET /api/v1/alert/profile`
   * Description: Retrieves the current user's alerts profile
   * Returns:
     * 200 - Alerts profile
     * 404 - The current user does not have an alerts profile
     
-### `GET /api/v1/alerts/profile/all`
+### `GET /api/v1/alert/profile/all`
   * Description: Retrieves all users' alerts profiles.  Only users that are part of the "ROLE_ADMIN" role are allowed to get all alerts profiles.
   * Returns:
     * 200 - List of all alerts profiles
     * 403 - The current user does not have permission to get all alerts profiles
 
-### `DELETE /api/v1/alerts/profile`
+### `DELETE /api/v1/alert/profile`
   * Description: Deletes a user's alerts profile.  Only users that are part of the "ROLE_ADMIN" role are allowed to delete user alerts profiles.
   * Input:
     * user - The user whose prolife will be deleted
@@ -285,7 +285,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 403 - The current user does not have permission to delete alerts profiles
     * 404 - Alerts profile could not be found
 
-### `POST /api/v1/alerts/profile`
+### `POST /api/v1/alert/profile`
   * Description: Creates or updates the current user's alerts profile
   * Input:
     * alertsProfile - The alerts profile to be saved

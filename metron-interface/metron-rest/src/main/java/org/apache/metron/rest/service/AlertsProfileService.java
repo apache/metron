@@ -18,15 +18,15 @@
 
 package org.apache.metron.rest.service;
 
-import org.apache.metron.rest.model.AlertsProfile;
+import org.apache.metron.rest.model.AlertProfile;
 
 public interface AlertsProfileService {
 
-  AlertsProfile get();
+  AlertProfile get();
 
-  Iterable<AlertsProfile> findAll();
+  Iterable<AlertProfile> findAll();
 
-  AlertsProfile save(AlertsProfile alertsProfile);
+  AlertProfile save(AlertProfile alertsProfile);
 
   boolean delete(String user);
 }
