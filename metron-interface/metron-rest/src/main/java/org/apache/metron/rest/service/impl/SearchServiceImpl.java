@@ -19,10 +19,11 @@ package org.apache.metron.rest.service.impl;
 
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SearchService;
@@ -34,7 +35,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class SearchServiceImpl implements SearchService {
@@ -58,6 +58,16 @@ public class SearchServiceImpl implements SearchService {
   }
 
   @Override
+  public GroupResponse group(GroupRequest groupRequest) throws RestException {
+    try {
+      return dao.group(groupRequest);
+    }
+    catch(InvalidSearchException ise) {
+      throw new RestException(ise.getMessage(), ise);
+    }
+  }
+
+  @Override
   public Optional<Map<String, Object>> getLatest(GetRequest request) throws RestException {
     try {
       return dao.getLatestResult(request);
@@ -66,6 +76,7 @@ public class SearchServiceImpl implements SearchService {
     }
   }
 
+  @Override
   public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws RestException {
     try {
       return dao.getColumnMetadata(indices);

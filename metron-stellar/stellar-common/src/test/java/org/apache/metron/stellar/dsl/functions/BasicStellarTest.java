@@ -548,6 +548,11 @@ public class BasicStellarTest {
   }
 
   @Test
+  public void testToStringNull() {
+    Assert.assertEquals("null", run("TO_STRING(\"null\")", ImmutableMap.of("foo", "null")));
+  }
+
+  @Test
   public void testToInteger() {
     Assert.assertEquals(5, run("TO_INTEGER(foo)", ImmutableMap.of("foo", "5")));
     Assert.assertEquals(5, run("TO_INTEGER(foo)", ImmutableMap.of("foo", 5)));
@@ -622,6 +627,18 @@ public class BasicStellarTest {
     Assert.assertFalse(runPredicate("'foo' in { }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
     Assert.assertFalse(runPredicate("null in { 'foo' : 5 }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
     Assert.assertTrue(runPredicate("null not in { 'foo' : 5 }", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+  }
+
+  @Test
+
+  public void testShortCircuit_mixedBoolOps() throws Exception {
+    final Map<String, String> variableMap = new HashMap<String, String>();
+    Assert.assertTrue(runPredicate("(false && true) || true"
+            , new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("(false && false) || true"
+            , new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("(true || true) && false"
+            , new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
   }
 
   @Test

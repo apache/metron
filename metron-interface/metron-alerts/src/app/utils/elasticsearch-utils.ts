@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import {ColumnMetadata} from '../model/column-metadata';
-import {AlertsSearchResponse} from '../model/alerts-search-response';
+import {SearchResponse} from '../model/search-response';
 
 export class ElasticsearchUtils {
 
@@ -50,13 +50,13 @@ export class ElasticsearchUtils {
       }
     }
 
-    columnMetadata.push(new ColumnMetadata('_id', 'string'));
+    columnMetadata.push(new ColumnMetadata('id', 'string'));
     return columnMetadata;
   }
 
-  public static extractAlertsData(res: Response): AlertsSearchResponse {
+  public static extractAlertsData(res: Response): SearchResponse {
     let response: any = res || {};
-    let alertsSearchResponse: AlertsSearchResponse = new AlertsSearchResponse();
+    let alertsSearchResponse: SearchResponse = new SearchResponse();
     alertsSearchResponse.total = response['hits']['total'];
     alertsSearchResponse.results = response['hits']['hits'];
     return alertsSearchResponse;

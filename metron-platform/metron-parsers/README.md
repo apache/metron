@@ -103,6 +103,17 @@ then it is assumed to be a regex and will match any topic matching the pattern (
 * `mergeMetadata` : Boolean indicating whether to merge metadata with the message or not (`false` by default).  See below for a discussion about metadata.
 * `parserConfig` : A JSON Map representing the parser implementation specific configuration.
 * `fieldTransformations` : An array of complex objects representing the transformations to be done on the message generated from the parser before writing out to the kafka topic.
+* `spoutParallelism` : The kafka spout parallelism (default to `1`).  This can be overridden on the command line.
+* `spoutNumTasks` : The number of tasks for the spout (default to `1`). This can be overridden on the command line.
+* `parserParallelism` : The parser bolt parallelism (default to `1`). This can be overridden on the command line.
+* `parserNumTasks` : The number of tasks for the parser bolt (default to `1`). This can be overridden on the command line.
+* `errorWriterParallelism` : The error writer bolt parallelism (default to `1`). This can be overridden on the command line.
+* `errorWriterNumTasks` : The number of tasks for the error writer bolt (default to `1`). This can be overridden on the command line.
+* `numWorkers` : The number of workers to use in the topology (default is the storm default of `1`).
+* `numAckers` : The number of acker executors to use in the topology (default is the storm default of `1`).
+* `spoutConfig` : A map representing a custom spout config (this is a map). This can be overridden on the command line.
+* `securityProtocol` : The security protocol to use for reading from kafka (this is a string).  This can be overridden on the command line and also specified in the spout config via the `security.protocol` key.  If both are specified, then they are merged and the CLI will take precedence.
+* `stormConfig` : The storm config to use (this is a map).  This can be overridden on the command line.  If both are specified, they are merged with CLI properties taking precedence.
 
 The `fieldTransformations` is a complex object which defines a
 transformation which can be done to a message.  This transformation can 
@@ -212,6 +223,49 @@ into `{ "protocol" : "TCP", "source.type" : "bro", ...}`
 * `STELLAR` : This transformation executes a set of transformations
   expressed as [Stellar Language](../metron-common) statements.
 
+### Assignment to `null`
+
+If, in your field transformation, you assign a field to `null`, the field will be removed.
+You can use this capability to rename variables.
+
+Consider this example:
+```
+ "fieldTransformations" : [
+         { "transformation" : "STELLAR"
+         ,"output" : [ "new_field", "old_field"]
+         ,"config" : {
+           "new_field" : "old_field"
+          ,"old_field" : "null"
+                     }
+         }
+ ]
+```
+This would set `new_field` to the value of `old_field` and remove `old_field`.
+
+### Warning: Transforming the same field twice
+
+Currently, the stellar expressions are expressed in the form of a map where the keys define
+the fields and the values define the Stellar expressions.  You order the expression evaluation
+in the `output` field.  A consequence of this choice to store the assignments as a map is that
+the same field cannot appear in the map as a key twice.
+
+For instance, the following will not function as expected:
+```
+ "fieldTransformations" : [
+         { "transformation" : "STELLAR"
+         ,"output" : [ "new_field"]
+         ,"config" : {
+           "new_field" : "TO_UPPER(field1)"
+          ,"new_field" : "TO_LOWER(new_field)"
+                     }
+         }
+ ]
+```
+
+In the above example, the last instance of `new_field` will win and `TO_LOWER(new_field)` will be evaluated
+while `TO_UPPER(field1)` will be skipped.
+
+### Example
 Consider the following sensor parser config to add three new fields to a
 message:
 * `utc_timestamp` : The unix epoch timestamp based on the `timestamp` field, a `dc` field which is the data center the message comes from and a `dc2tz` map mapping data centers to timezones

@@ -85,7 +85,17 @@ public class HdfsServiceImplExceptionTest {
         when(FileSystem.get(configuration)).thenReturn(fileSystem);
         when(fileSystem.create(new Path(testDir), true)).thenThrow(new IOException());
 
-        hdfsService.write(new Path(testDir), "contents".getBytes(UTF_8));
+        hdfsService.write(new Path(testDir), "contents".getBytes(UTF_8),null, null,null);
+    }
+
+    @Test
+    public void writeShouldThrowIfInvalidPermissions() throws Exception {
+        exception.expect(RestException.class);
+
+        FileSystem fileSystem = mock(FileSystem.class);
+        when(FileSystem.get(configuration)).thenReturn(fileSystem);
+
+        hdfsService.write(new Path(testDir,"test"),"oops".getBytes(UTF_8), "foo", "r-x","r--");
     }
 
     @Test

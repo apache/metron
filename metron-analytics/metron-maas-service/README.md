@@ -126,16 +126,29 @@ Now let's install some prerequisites:
 Start Squid via `service squid start`
 
 Now that we have flask and jinja, we can create a mock DGA service to deploy with MaaS:
-* Download the files in [this](https://gist.github.com/cestella/cba10aff0f970078a4c2c8cade3a4d1a) gist into the `/root/mock_dga` directory
-* Make `rest.sh` executable via `chmod +x /root/mock_dga/rest.sh`
+* Download the files in [this](https://gist.github.com/cestella/cba10aff0f970078a4c2c8cade3a4d1a) gist into the `$HOME/mock_dga` directory
+* Make `rest.sh` executable via `chmod +x $HOME/mock_dga/rest.sh`
 
 This service will treat `yahoo.com` and `amazon.com` as legit and everything else as malicious.  The contract is that the REST service exposes an endpoint `/apply` and returns back JSON maps with a single key `is_malicious` which can be `malicious` or `legit`.
 
 ## Deploy Mock DGA Service via MaaS
 
+The following presumes that you are a logged in as a user who has a
+home directory in HDFS under `/user/$USER`.  If you do not, please create one
+and ensure the permissions are set appropriate:
+```
+su - hdfs -c "hadoop fs -mkdir /user/$USER"
+su - hdfs -c "hadoop fs -chown $USER:$USER /user/$USER"
+```
+Or, in the common case for the `metron` user:
+```
+su - hdfs -c "hadoop fs -mkdir /user/metron"
+su - hdfs -c "hadoop fs -chown metron:metron /user/metron"
+```
+
 Now let's start MaaS and deploy the Mock DGA Service:
 * Start MaaS via `$METRON_HOME/bin/maas_service.sh -zq node1:2181`
-* Start one instance of the mock DGA model with 512M of memory via `$METRON_HOME/bin/maas_deploy.sh -zq node1:2181 -lmp /root/mock_dga -hmp /user/root/models -mo ADD -m 512 -n dga -v 1.0 -ni 1`
+* Start one instance of the mock DGA model with 512M of memory via `$METRON_HOME/bin/maas_deploy.sh -zq node1:2181 -lmp $HOME/mock_dga -hmp /user/$USER/models -mo ADD -m 512 -n dga -v 1.0 -ni 1`
 * As a sanity check:
   * Ensure that the model is running via `$METRON_HOME/bin/maas_deploy.sh -zq node1:2181 -mo LIST`.  You should see `Model dga @ 1.0` be displayed and under that a url such as (but not exactly) `http://node1:36161`
   * Try to hit the model via curl: `curl 'http://localhost:36161/apply?host=caseystella.com'` and ensure that it returns a JSON map indicating the domain is malicious.
@@ -170,8 +183,6 @@ Now that we have a deployed model, let's adjust the configurations for the Squid
 * Edit the squid enrichment configuration at `$METRON_HOME/config/zookeeper/enrichments/squid.json` (this file will not exist, so create a new one) to make the threat triage adjust the level of risk based on the model output:
 ```
 {
-  "index": "squid",
-  "batchSize": 1,
   "enrichment" : {
     "fieldMap": {}
   },

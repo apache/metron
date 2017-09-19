@@ -20,7 +20,6 @@ import {Headers, RequestOptions} from '@angular/http';
 
 import {HttpUtil} from '../utils/httpUtil';
 import {DataSource} from './data-source';
-import {Alert} from '../model/alert';
 import {ColumnMetadata} from '../model/column-metadata';
 import {ElasticsearchUtils} from '../utils/elasticsearch-utils';
 import {
@@ -31,13 +30,14 @@ import {ColumnNames} from '../model/column-names';
 import {ColumnNamesService} from './column-names.service';
 import {TableMetadata} from '../model/table-metadata';
 import {SaveSearch} from '../model/save-search';
-import {AlertsSearchResponse} from '../model/alerts-search-response';
+import {SearchResponse} from '../model/search-response';
 import {SearchRequest} from '../model/search-request';
+import {AlertSource} from '../model/alert-source';
 
 export class ElasticSearchLocalstorageImpl extends DataSource {
 
   private defaultColumnMetadata = [
-    new ColumnMetadata('_id', 'string'),
+    new ColumnMetadata('id', 'string'),
     new ColumnMetadata('timestamp', 'date'),
     new ColumnMetadata('source:type', 'string'),
     new ColumnMetadata('ip_src_addr', 'ip'),
@@ -47,7 +47,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
     new ColumnMetadata('alert_status', 'string')
   ];
 
-  getAlerts(searchRequest: SearchRequest): Observable<AlertsSearchResponse> {
+  getAlerts(searchRequest: SearchRequest): Observable<SearchResponse> {
     let url = '/search/*' + ElasticsearchUtils.excludeIndexName + '/_search';
     let request: any  = JSON.parse(JSON.stringify(searchRequest));
     request.query = { query_string: { query: searchRequest.query } };
@@ -59,12 +59,11 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
       .onErrorResumeNext();
   }
 
-  getAlert(index: string, type: string, alertId: string): Observable<Alert> {
-    return this.http.get('/search/' + index + '/' + type + '/' + alertId, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractData);
+  getAlert(sourceType: string, alertId: string): Observable<AlertSource> {
+    return Observable.throw('Method not implemented in ElasticSearchLocalstorageImpl');
   }
 
-  updateAlertState(request: any) {
+  updateAlertState(request: any): Observable<{}> {
     return this.http.post('/search/_bulk', request, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError);

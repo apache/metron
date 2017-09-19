@@ -21,5 +21,5 @@ tmp/**
 tmp/**/*
 temp/**
 temp/**/*
-
+metron-interface/metron-alerts/node/
 repodata/

@@ -90,15 +90,9 @@
     </property>
     <property>
         <name>metron_temp_grok_path</name>
-        <description>Temporary local file path where grok patterns are written during testing</description>
-        <value>./patterns/temp</value>
+        <description>Temporary HDFS file path where grok patterns are written during testing</description>
+        <value>{{metron_apps_hdfs_dir}}/patterns/tmp</value>
         <display-name>Metron temp grok path</display-name>
-    </property>
-    <property>
-        <name>metron_default_grok_path</name>
-        <description>Default HDFS directory path used when storing Grok patterns</description>
-        <value>/apps/metron/patterns</value>
-        <display-name>Metron default grok path</display-name>
     </property>
     <property>
         <name>metron_spring_options</name>
@@ -108,5 +102,11 @@
         <value-attributes>
             <empty-value-valid>true</empty-value-valid>
         </value-attributes>
+    </property>
+    <property>
+        <name>metron_escalation_topic</name>
+        <description>Escalated alerts will be produced to this topic</description>
+        <value>escalation</value>
+        <display-name>Metron escalation topic</display-name>
     </property>
 </configuration>

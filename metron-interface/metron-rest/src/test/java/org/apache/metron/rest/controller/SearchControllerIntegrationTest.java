@@ -17,18 +17,8 @@
  */
 package org.apache.metron.rest.controller;
 
-import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
-import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.google.common.collect.ImmutableMap;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.indexing.dao.InMemoryDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.indexing.dao.search.FieldType;
@@ -46,6 +36,19 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -69,7 +72,11 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
   @Before
   public void setup() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
-    loadTestData();
+    ImmutableMap<String, String> testData = ImmutableMap.of(
+        "bro_index_2017.01.01.01", SearchIntegrationTest.broData,
+        "snort_index_2017.01.01.01", SearchIntegrationTest.snortData
+    );
+    loadTestData(testData);
     loadColumnTypes();
   }
 
@@ -170,6 +177,22 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.responseCode").value(500))
             .andExpect(jsonPath("$.message").value("Search result size must be less than 100"));
+
+    this.mockMvc.perform(post(searchUrl + "/group").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(SearchIntegrationTest.groupByQuery))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.*", hasSize(2)))
+            .andExpect(jsonPath("$.groupedBy").value("is_alert"))
+            .andExpect(jsonPath("$.groupResults.*", hasSize(1)))
+            .andExpect(jsonPath("$.groupResults[0].*", hasSize(5)))
+            .andExpect(jsonPath("$.groupResults[0].key").value("is_alert_value"))
+            .andExpect(jsonPath("$.groupResults[0].total").value(10))
+            .andExpect(jsonPath("$.groupResults[0].groupedBy").value("latitude"))
+            .andExpect(jsonPath("$.groupResults[0].groupResults.*", hasSize(1)))
+            .andExpect(jsonPath("$.groupResults[0].groupResults[0].*", hasSize(3)))
+            .andExpect(jsonPath("$.groupResults[0].groupResults[0].key").value("latitude_value"))
+            .andExpect(jsonPath("$.groupResults[0].groupResults[0].total").value(10))
+            .andExpect(jsonPath("$.groupResults[0].groupResults[0].score").value(50));
 
     this.mockMvc.perform(post(searchUrl + "/column/metadata").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[\"bro\",\"snort\"]"))
             .andExpect(status().isOk())

@@ -185,6 +185,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 
 |            |
 | ---------- |
+| [ `POST /api/v1/alert/escalate`](#get-apiv1alertescalate)|
 | [ `GET /api/v1/alerts/profile`](#get-apiv1alertsprofile)|
 | [ `GET /api/v1/alerts/profile/all`](#get-apiv1alertsprofileall)|
 | [ `DELETE /api/v1/alerts/profile`](#delete-apiv1alertsprofile)|
@@ -204,10 +205,14 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/kafka/topic/{name}`](#get-apiv1kafkatopicname)|
 | [ `DELETE /api/v1/kafka/topic/{name}`](#delete-apiv1kafkatopicname)|
 | [ `GET /api/v1/kafka/topic/{name}/sample`](#get-apiv1kafkatopicnamesample)|
+| [ `GET /api/v1/metaalert/searchByAlert`](#get-apiv1metaalertsearchbyalert)|
+| [ `GET /api/v1/metaalert/create`](#get-apiv1metaalertcreate)|
 | [ `GET /api/v1/search/search`](#get-apiv1searchsearch)|
+| [ `POST /api/v1/search/search`](#get-apiv1searchsearch)|
+| [ `POST /api/v1/search/group`](#get-apiv1searchgroup)|
 | [ `GET /api/v1/search/findOne`](#get-apiv1searchfindone)|
-| [ `GET /api/v1/search/search`](#get-apiv1searchcolumnmetadata)|
-| [ `GET /api/v1/search/search`](#get-apiv1searchcolumnmetadatacommon)|
+| [ `GET /api/v1/search/column/metadata`](#get-apiv1searchcolumnmetadata)|
+| [ `GET /api/v1/search/column/metadata/common`](#get-apiv1searchcolumnmetadatacommon)|
 | [ `GET /api/v1/sensor/enrichment/config`](#get-apiv1sensorenrichmentconfig)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available/enrichments`](#get-apiv1sensorenrichmentconfiglistavailableenrichments)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available/threat/triage/aggregators`](#get-apiv1sensorenrichmentconfiglistavailablethreattriageaggregators)|
@@ -252,6 +257,13 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `PUT /api/v1/update/replace`](#patch-apiv1updatereplace)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
 
+### `POST /api/v1/alert/escalate`
+  * Description: Escalates a list of alerts by producing it to the Kafka escalate topic
+  * Input:
+    * alerts - The alerts to be escalated
+  * Returns:
+    * 200 - Alerts were escalated
+    
 ### `GET /api/v1/alerts/profile`
   * Description: Retrieves the current user's alerts profile
   * Returns:
@@ -322,10 +334,13 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - JSON results
 
 ### `POST /api/v1/hdfs`
-  * Description: Writes contents to an HDFS file.  Warning: this will overwrite the contents of a file if it already exists.
+  * Description: Writes contents to an HDFS file.  Warning: this will overwrite the contents of a file if it already exists. Permissions must be set for all three groups if they are to be set. If any are missing, the default permissions will be used, and if any are invalid an exception will be thrown.
   * Input:
     * path - Path to HDFS file
     * contents - File contents
+    * userMode - [optional] symbolic permission string for user portion of the permissions to be set on the file written. For example 'rwx' or read, write, execute. The symbol '-' is used to exclude that permission such as 'rw-' for read, write, no execute
+    * groupMode - [optional] symbolic permission string for group portion of the permissions to be set on the file written. For example 'rwx' or read, write, execute. The symbol '-' is used to exclude that permission such as 'rw-' for read, write, no execute
+    * otherMode - [optional] symbolic permission string for other portion of the permissions to be set on the file written. For example 'rwx' or read, write, execute. The symbol '-' is used to exclude that permission such as 'rw-' for read, write, no execute
   * Returns:
     * 200 - Contents were written
 
@@ -388,6 +403,39 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - Returns sample message
     * 404 - Either Kafka topic is missing or contains no messages
 
+### `POST /api/v1/metaalert/searchByAlert`
+  * Description: Searches meta alerts to find any containing an alert for the provided GUID
+  * Input:
+    * guid - GUID of the alert
+  * Returns:
+    * 200 - Returns the meta alerts associated with this alert
+    * 404 - The child alert isn't found
+
+### `POST /api/v1/metaalert/create`
+  * Description: Creates a meta alert containing the provide alerts
+  * Input:
+    * request - Meta Alert Create Request
+  * Returns:
+    * 200 - The meta alert was created
+
+### `POST /api/v1/search/search`
+  * Description: Searches the indexing store
+  * Input:
+      * searchRequest - Search request
+  * Returns:
+    * 200 - Search response
+    
+### `POST /api/v1/search/group`
+  * Description: Searches the indexing store and returns field groups. Groups are hierarchical and nested in the order the fields appear in the 'groups' request parameter. The default sorting within groups is by count descending.  A groupOrder type of count will sort based on then number of documents in a group while a groupType of term will sort by the groupBy term.
+  * Input:
+      * groupRequest - Group request
+        * indices - list of indices to search
+        * query - lucene query
+        * scoreField - field used to compute a total score for each group
+        * groups - List of groups (field name and sort order) 
+  * Returns:
+    * 200 - Group response
+    
 ### `GET /api/v1/search/findOne`
   * Description: Returns latest document for a guid and sensor
   * Input:
@@ -404,13 +452,6 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Document representing the output
     * 404 - Document with UUID and sensor type not found
-
-### `GET /api/v1/search/search`
-  * Description: Searches the indexing store
-  * Input:
-      * searchRequest - Search request
-  * Returns:
-    * 200 - Search results
     
 ### `GET /api/v1/search/column/metadata`
   * Description: Get column metadata for each index in the list of indicies

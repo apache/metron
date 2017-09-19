@@ -141,7 +141,7 @@ event bro_init() &priority=-5
 
 #### Notes
  * `logs_to_send` is mutually exclusive with `$pred`, thus for each log you want to set `$pred` on, you must individually setup a `Log::add_filter` and refrain from including that log in `logs_to_send`.
- * You can also filter IPv6 logs from within your Metron cluster [using Stellar](../../metron-platform/metron-common#IS_IP).  In that case, you wouldn't apply a predicate in your bro configuration, and instead Stellar would filter the logs out before they were processed by the enrichment layer of Metron.
+ * You can also filter IPv6 logs from within your Metron cluster [using Stellar](../../metron-stellar/stellar-common#IS_IP).  In that case, you wouldn't apply a predicate in your bro configuration, and instead Stellar would filter the logs out before they were processed by the enrichment layer of Metron.
  * It is also possible to use the `is_v6_subnet()` bro function in your predicate, as of their [2.5 release](https://www.bro.org/sphinx-git/install/release-notes.html#bro-2-5), however the above example should work on [bro 2.4](https://www.bro.org/sphinx-git/install/release-notes.html#bro-2-4) and newer, which has been the focus of the kafka plugin.
 
 Settings

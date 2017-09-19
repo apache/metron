@@ -1,3 +1,5 @@
+import {SortField} from './sort-field';
+import {INDEXES} from '../utils/constants';
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -16,9 +18,10 @@
  * limitations under the License.
  */
 export class SearchRequest {
-  _source: string[];
-  query = '*';
-  from = 0;
-  size = 15;
-  sort: {}[] = [{ timestamp: {order : 'desc', ignore_unmapped: true, unmapped_type: 'date'} }];
+  // _source: string[]; //TODO: This needs to be removed
+  from: number;
+  indices: string[] = INDEXES;
+  query: string;
+  size: number;
+  sort: SortField[];
 }

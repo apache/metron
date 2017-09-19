@@ -21,21 +21,33 @@
 package org.apache.metron.stellar.common.shell;
 
 import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.google.common.base.Splitter;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
 
 public class StellarShellOptionsValidator {
 
   private static final Pattern validPortPattern = Pattern.compile("(^.*)[:](\\d+)$");
-  private static final Pattern validHostNamePattern;
+  private static final Predicate<String> hostnameValidator = hostname -> {
+    if(StringUtils.isEmpty(hostname)) {
+      return false;
+    }
+    try {
+      InetAddress add = InetAddress.getByName(hostname);
+      return true;
+    } catch (UnknownHostException e) {
+      return false;
+    }
+  };
 
-  static {
-    validHostNamePattern = Pattern.compile(
-        "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\\\-]*[a-zA-Z0-9])\\\\.)"
-            + "*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\\\-]*[A-Za-z0-9])$");
-  }
+
 
   private static final InetAddressValidator inetAddressValidator = InetAddressValidator
       .getInstance();
@@ -63,30 +75,32 @@ public class StellarShellOptionsValidator {
   /**
    * Zookeeper argument should be in the form [HOST|IP]:PORT.
    *
-   * @param z the zookeeper url fragment
+   * @param zMulti the zookeeper url fragment
    */
-  private static void validateZookeeperOption(String z) throws IllegalArgumentException {
+  private static void validateZookeeperOption(String zMulti) throws IllegalArgumentException {
+    for(String z : Splitter.on(",").split(zMulti)) {
+      Matcher matcher = validPortPattern.matcher(z);
+      boolean hasPort = z.contains(":");
+      if (hasPort && !matcher.matches()) {
+        throw new IllegalArgumentException(String.format("Zookeeper option must have valid port: %s", z));
+      }
 
-    Matcher matcher = validPortPattern.matcher(z);
-    if (!matcher.matches()) {
-      throw new IllegalArgumentException(String.format("Zookeeper option must have port: %s", z));
-    }
+      if (hasPort && matcher.groupCount() != 2) {
+        throw new IllegalArgumentException(
+                String.format("Zookeeper Option must be in the form of [HOST|IP]:PORT  %s", z));
+      }
+      String name = hasPort?matcher.group(1):z;
+      Integer port = hasPort?Integer.parseInt(matcher.group(2)):null;
 
-    if (matcher.groupCount() != 2) {
-      throw new IllegalArgumentException(
-          String.format("Zookeeper Option must be in the form of [HOST|IP]:PORT  %s", z));
-    }
-    String name = matcher.group(1);
-    Integer port = Integer.parseInt(matcher.group(2));
+      if (!hostnameValidator.test(name) && !inetAddressValidator.isValid(name)) {
+        throw new IllegalArgumentException(
+                String.format("Zookeeper Option %s is not a valid host name or ip address  %s", name, z));
+      }
 
-    if (!validHostNamePattern.matcher(name).matches() && !inetAddressValidator.isValid(name)) {
-      throw new IllegalArgumentException(
-          String.format("Zookeeper Option %s is not a valid host name or ip address  %s", name, z));
-    }
-
-    if(port == 0 || port > 65535){
-      throw new IllegalArgumentException(
-          String.format("Zookeeper Option %s port is not valid",z));
+      if (hasPort && (port == 0 || port > 65535)) {
+        throw new IllegalArgumentException(
+                String.format("Zookeeper Option %s port is not valid", z));
+      }
     }
   }
 

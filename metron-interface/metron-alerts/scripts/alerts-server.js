@@ -22,14 +22,13 @@
 var os          = require('os');
 var app         = require('express')();
 var path        = require('path');
-var compression = require('compression')
+var compression = require('compression');
 var serveStatic = require('serve-static');
 var favicon     = require('serve-favicon');
 var proxy       = require('http-proxy-middleware');
 var argv        = require('optimist')
                   .demand(['p', 'r'])
-                  .alias('r', 'resturl')
-                  .usage('Usage: server.js -p [port] -r [restUrl]')
+                  .usage('Usage: alert-server.js -p [port] -r [restUrl]')
                   .describe('p', 'Port to run metron management ui')
                   .describe('r', 'Url where metron rest application is available')
                   .argv;
@@ -39,7 +38,7 @@ var metronUIAddress = '';
 var ifaces = os.networkInterfaces();
 var restUrl =  argv.r || argv.resturl;
 var conf = {
-  "elastic": {
+  "rest": {
     "target": restUrl,
     "secure": false
   }
@@ -71,8 +70,7 @@ var rewriteSearchProxy = proxy({
 
 app.use(compression());
 
-app.use('/search', rewriteSearchProxy);
-app.use('/_cluster', proxy(conf.elastic));
+app.use('/api', proxy(conf.rest));
 
 app.use(favicon(path.join(__dirname, '../alerts-ui/favicon.ico')));
 
