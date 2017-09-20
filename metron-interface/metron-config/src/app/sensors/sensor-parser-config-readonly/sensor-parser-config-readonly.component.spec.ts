@@ -301,6 +301,7 @@ describe('Component: SensorParserConfigReadonly', () => {
   }));
 
   it('should have metadata defined ', async(() => {
+    // the expected value refers to the number of fields that should be visible in the readonly view
     expect(component.editViewMetaData.length).toEqual(32);
   }));
 

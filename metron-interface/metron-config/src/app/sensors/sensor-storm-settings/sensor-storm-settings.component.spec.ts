@@ -114,6 +114,48 @@ describe('Component: SensorStormSettingsComponent', () => {
         expect(component.onStormSettingsChanged.emit).toHaveBeenCalled();
     });
 
+    it('hasSpoutConfigChanged should properly detect changes', () => {
+        let sensorParserConfigWithSpoutConfig = new SensorParserConfig();
+        sensorParserConfigWithSpoutConfig.spoutConfig = {};
+        component.sensorParserConfig = sensorParserConfigWithSpoutConfig;
+        component.newSpoutConfig = '{}';
+        expect(component.hasSpoutConfigChanged()).toEqual(false);
+
+        sensorParserConfigWithSpoutConfig.spoutConfig = {'field': 'value'};
+        component.sensorParserConfig = sensorParserConfigWithSpoutConfig;
+        component.newSpoutConfig = '{ "field"  :  "value" }';
+        expect(component.hasSpoutConfigChanged()).toEqual(false);
+
+        sensorParserConfigWithSpoutConfig.spoutConfig = {'field': 'value'};
+        component.sensorParserConfig = sensorParserConfigWithSpoutConfig;
+        component.newSpoutConfig = '{"field": "value2"}';
+        expect(component.hasSpoutConfigChanged()).toEqual(true);
+
+        component.newSpoutConfig = '{"field": "value2", }';
+        expect(component.hasSpoutConfigChanged()).toEqual(true);
+    });
+
+    it('hasStormConfigChanged should properly detect changes', () => {
+        let sensorParserConfigWithStormConfig = new SensorParserConfig();
+        sensorParserConfigWithStormConfig.stormConfig = {};
+        component.sensorParserConfig = sensorParserConfigWithStormConfig;
+        component.newStormConfig = '{}';
+        expect(component.hasStormConfigChanged()).toEqual(false);
+
+        sensorParserConfigWithStormConfig.stormConfig = {'field': 'value'};
+        component.sensorParserConfig = sensorParserConfigWithStormConfig;
+        component.newStormConfig = '{ "field"  :  "value" }';
+        expect(component.hasStormConfigChanged()).toEqual(false);
+
+        sensorParserConfigWithStormConfig.stormConfig = {'field': 'value'};
+        component.sensorParserConfig = sensorParserConfigWithStormConfig;
+        component.newStormConfig = '{"field": "value2"}';
+        expect(component.hasStormConfigChanged()).toEqual(true);
+
+        component.newSpoutConfig = '{"field": "value2", }';
+        expect(component.hasStormConfigChanged()).toEqual(true);
+    });
+
     it('should hide panel', () => {
         spyOn(component.hideStormSettings, 'emit');
 

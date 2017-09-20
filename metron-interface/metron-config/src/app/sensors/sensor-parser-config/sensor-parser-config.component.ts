@@ -411,7 +411,6 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   onStormSettingsChanged(): void {
-    console.log(this.sensorParserConfig);
   }
 
   onAdvancedConfigFormClose(): void {

@@ -37,8 +37,8 @@ public class SensorParserConfig implements Serializable {
   private String invalidWriterClassName;
   private Boolean readMetadata = false;
   private Boolean mergeMetadata = false;
-  private Integer numWorkers = null;
-  private Integer numAckers= null;
+  private Integer numWorkers = 1;
+  private Integer numAckers= 1;
   private Integer spoutParallelism = 1;
   private Integer spoutNumTasks = 1;
   private Integer parserParallelism = 1;

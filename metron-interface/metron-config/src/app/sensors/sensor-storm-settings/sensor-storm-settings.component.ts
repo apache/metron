@@ -35,8 +35,8 @@ export class SensorStormSettingsComponent implements OnChanges {
   @Output() onStormSettingsChanged: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   newSensorParserConfig: SensorParserConfig = new SensorParserConfig();
-  newSpoutConfig: string = '';
-  newStormConfig: string = '';
+  newSpoutConfig: string = '{}';
+  newStormConfig: string = '{}';
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['showStormSettings'] && changes['showStormSettings'].currentValue) {
@@ -69,5 +69,27 @@ export class SensorStormSettingsComponent implements OnChanges {
 
   onCancel(): void {
     this.hideStormSettings.emit(true);
+  }
+
+  hasSpoutConfigChanged(): boolean {
+    try {
+      // serialize/deserialize to ignore formatting differences
+      return JSON.stringify(JSON.parse(this.newSpoutConfig), null, '\t') !==
+          JSON.stringify(this.sensorParserConfig.spoutConfig, null, '\t');
+    } catch (err) {
+      // malformed json means it is being edited
+      return true;
+    }
+  }
+
+  hasStormConfigChanged(): boolean {
+    try {
+      // serialize/deserialize to ignore formatting differences
+      return JSON.stringify(JSON.parse(this.newStormConfig), null, '\t') !==
+          JSON.stringify(this.sensorParserConfig.stormConfig, null, '\t');
+    } catch (err) {
+      // malformed json means it is being edited
+      return true;
+    }
   }
 }
