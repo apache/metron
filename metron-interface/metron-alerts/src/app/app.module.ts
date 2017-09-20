@@ -41,6 +41,7 @@ import {LoginModule} from './login/login.module';
 import {AuthGuard} from './shared/auth-guard';
 import {AuthenticationService} from './service/authentication.service';
 import {LoginGuard} from './shared/login-guard';
+import {INDEXES} from './utils/constants';
 
 
 
@@ -68,6 +69,7 @@ export function initConfig(config: ColumnNamesService) {
   ],
   providers: [{ provide: APP_INITIALIZER, useFactory: initConfig, deps: [ColumnNamesService], multi: true },
               { provide: DataSource, useClass: ElasticSearchLocalstorageImpl },
+              { provide: INDEXES,  useValue: ['bro'] },
               AuthenticationService,
               AuthGuard,
               LoginGuard,

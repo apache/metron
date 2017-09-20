@@ -23,8 +23,6 @@ import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/onErrorResumeNext';
 
 import {HttpUtil} from '../utils/httpUtil';
-import {Alert} from '../model/alert';
-import {DataSource} from './data-source';
 import {SearchResponse} from '../model/search-response';
 import {SearchRequest} from '../model/search-request';
 import {AlertSource} from '../model/alert-source';
@@ -58,7 +56,6 @@ export class SearchService {
   }
 
   constructor(private http: Http,
-              private dataSource: DataSource,
               private ngZone: NgZone) { }
 
   groups(groupRequest: GroupRequest): Observable<GroupResult> {
@@ -113,19 +110,5 @@ export class SearchService {
     .map(HttpUtil.extractData)
     .catch(HttpUtil.handleError)
     .onErrorResumeNext();
-  }
-
-  public updateAlertState(alerts: Alert[], state: string, workflowId: string) {
-    let request = '';
-    for (let alert of alerts) {
-      request += '{ "update" : { "sensorType" : "' + alert.source['source:type'] + '", "guid" : "' + alert.source.guid + '" } }\n' +
-                  '{ "doc": { "alert_status": "' + state + '"';
-      if (workflowId) {
-        request += ', "workflow_id": "' + workflowId + '"';
-      }
-      request += ' }}\n';
-    }
-
-    return this.dataSource.updateAlertState(request);
   }
 }

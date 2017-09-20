@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 import {Subscription} from 'rxjs/Rx';
-
 import {SearchResponse} from '../../../model/search-response';
 import {Pagination} from '../../../model/pagination';
 import {TREE_SUB_GROUP_SIZE} from '../../../utils/constants';
@@ -32,15 +31,16 @@ export class TreeGroupData {
   expand = false;
   score: number;
 
-  //Used by only Dashrow
+  // Used by only Dashrow
   sortField: SortField;
   sortEvent: SortEvent = { sortBy: '', type: '', sortOrder: Sort.ASC};
   treeSubGroups: TreeGroupData[] = [];
 
-  //Used by only Leafnodes
+  // Used by only Leafnodes
   groupQueryMap = null;
   response: SearchResponse = new SearchResponse();
   pagingData: Pagination = new Pagination();
+
 
   constructor(key: string, total: number, score: number, level: number, expand: boolean) {
     this.key = key;

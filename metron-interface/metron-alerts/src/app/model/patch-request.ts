@@ -15,22 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs/Rx';
-import {Alert} from '../model/alert';
-import {Http, Headers, RequestOptions} from '@angular/http';
-import {HttpUtil} from '../utils/httpUtil';
-
-@Injectable()
-export class WorkflowService {
-
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
-
-  constructor(private http: Http) {
-  }
-
-  public start(alerts: Alert[]): Observable<string> {
-    return this.http.post('/api/v1/workflow', alerts, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractString);
-  }
+export class PatchRequest {
+  guid: string;
+  sensorType: string;
+  index: string;
+  patch: {};
+  source: {};
 }

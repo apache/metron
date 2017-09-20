@@ -110,6 +110,7 @@ export class TreeViewComponent extends TableViewComponent implements OnChanges {
   }
 
   updateGroupData(groupResponse) {
+    this.selectedAlerts = [];
     this.groupResponse = groupResponse;
     this.parseTopLevelGroup();
   }
@@ -292,6 +293,24 @@ export class TreeViewComponent extends TableViewComponent implements OnChanges {
     treeGroup.treeSubGroups.forEach(treeSubGroup => treeSubGroup.sortField = sortField);
 
     this.refreshAllExpandedGroups();
+  }
+
+  selectAllGroupRows($event, group: TreeGroupData) {
+    this.selectedAlerts = [];
+
+    if ($event.target.checked) {
+      if (group.expand && group.show && group.response) {
+        this.selectedAlerts = group.response.results;
+      }
+
+      group.treeSubGroups.forEach(subGroup => {
+        if (subGroup.expand && subGroup.show && subGroup.response) {
+          this.selectedAlerts = this.selectedAlerts.concat(subGroup.response.results);
+        }
+      });
+    }
+    
+    this.selectedAlertsChange.emit(this.selectedAlerts);
   }
 
   refreshAllExpandedGroups() {

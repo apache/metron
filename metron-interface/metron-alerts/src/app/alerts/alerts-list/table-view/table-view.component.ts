@@ -84,6 +84,7 @@ export class TableViewComponent {
   setAlertData(results: SearchResponse) {
     this.searchResponse = results;
     this.pagingData.total = results.total;
+    this.selectedAlerts = [];
     this.alerts = this.searchResponse.results ? this.searchResponse.results : [];
   }
 
@@ -102,7 +103,8 @@ export class TableViewComponent {
           returnValue = alert[column.name];
           break;
         case 'alert_status':
-          returnValue = 'NEW';
+          let alertStatus = alert.source['alert_status'];
+          returnValue = alertStatus ? alertStatus : 'NEW';
           break;
         default:
           returnValue = alert.source[column.name];
@@ -162,6 +164,12 @@ export class TableViewComponent {
   showDetails($event, alert: Alert) {
     if ($event.target.parentElement.firstElementChild.type !== 'checkbox' && $event.target.nodeName !== 'A') {
       this.onShowDetails.emit(alert);
+    }
+  }
+
+  updateSelectedAlertStatus(status: string) {
+    for (let selectedAlert of this.selectedAlerts) {
+      selectedAlert.source['alert_status'] = status;
     }
   }
 }

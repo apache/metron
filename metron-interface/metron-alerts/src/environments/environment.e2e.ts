@@ -16,6 +16,6 @@
  * limitations under the License.
  */
 export const environment = {
-  production: true,
-  indices: null
+  production: false,
+  indices: 'alerts_ui_e2e'
 };

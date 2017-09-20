@@ -22,9 +22,6 @@ import {ColumnMetadata} from '../model/column-metadata';
 import {ColumnNames} from '../model/column-names';
 import {TableMetadata} from '../model/table-metadata';
 import {SaveSearch} from '../model/save-search';
-import {SearchResponse} from '../model/search-response';
-import {SearchRequest} from '../model/search-request';
-import {AlertSource} from '../model/alert-source';
 
 @Injectable()
 export abstract class DataSource {
@@ -32,14 +29,8 @@ export abstract class DataSource {
 
   constructor(protected http: Http) {}
 
-  // Calls to fetch alerts
-  abstract getAlerts(searchRequest: SearchRequest): Observable<SearchResponse>
-  abstract getAlert(sourceType: string, alertId: string): Observable<AlertSource>
-  abstract updateAlertState(request: any): Observable<{}>
-
   // Calls to fetch default alert table column names and all the field names across all indexes
   abstract getDefaultAlertTableColumnNames(): Observable<ColumnMetadata[]>
-  abstract getAllFieldNames(): Observable<ColumnMetadata[]>
 
   // Calls to rename field names and to fetch the renamed field names
   abstract getAlertTableColumnNames(): Observable<ColumnNames[]>

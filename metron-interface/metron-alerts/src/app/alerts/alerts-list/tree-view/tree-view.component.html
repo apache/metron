@@ -12,18 +12,18 @@
   the specific language governing permissions and limitations under the License.
 -->
 <div role="tablist"  class="tree-wrapper" aria-multiselectable="true">
-  <div class="card" *ngFor="let group of topGroups; let i = index;">
+  <div class="card" *ngFor="let group of topGroups; let i = index;" [attr.data-name]="group.key">
     <div class="card-header" role="tab" [attr.id]="'title-' + i">
       <div class="hexagon" appAlertSeverityHexagon [severity]="group.score">
-        <span *ngIf="group.score < 1000">{{ group.score }}</span>
-        <span *ngIf="group.score >= 1000">999<sup>+</sup></span>
+        <span *ngIf="group.score < 1000" class="dash-score">{{ group.score }}</span>
+        <span *ngIf="group.score >= 1000" class="dash-score">999<sup>+</sup></span>
       </div>
       <div class="mrow top-group" (click)="toggleTopLevelGroup(group)">
         <div class="col-5 text-light severity-padding"> <span class="title"> {{ group.key | centerEllipses:45 }} </span> </div>
         <div class="col-6 text-light two-line"> <span class="text-dark"> ALERTS </span> <br> <span class="title"> {{ group.total | number }} </span> </div>
         <div class="col-1 text-right pr-4">
-            <span class="down-arrow" data-animation="false" data-toggle="tooltip" data-placement="left" title="Open Group"
-                   aria-expanded="false" [attr.href]="'#body-' + i" [attr.aria-controls]="'body-' + i"> </span>
+            <i class="down-arrow" data-animation="false" data-toggle="tooltip" data-placement="left" title="Open Group"
+                   aria-expanded="false" [attr.href]="'#body-' + i" [attr.aria-controls]="'body-' + i"> </i>
         </div>
       </div>
     </div>
@@ -40,7 +40,7 @@
               <th *ngFor="let column of alertsColumnsToDisplay" [id]="column.name">
                 <metron-config-sorter [type]="column.type" [sortBy]="column.name" title="{{column.name}}" [sortOnCol]="group.sortEvent.sortBy"  [sortOrder]="group.sortEvent.sortOrder"> {{ column.name | columnNameTranslate | centerEllipses:15 }}</metron-config-sorter>
               </th>
-              <th style="width:25px"><input id="select-deselect-all" class="fontawesome-checkbox" type="checkbox" (click)="selectAllRows($event)">
+              <th style="width:25px"><input id="select-deselect-all" class="fontawesome-checkbox" type="checkbox" (click)="selectAllGroupRows($event, group)">
                 <label for="select-deselect-all"></label>
               </th>
             </tr>
@@ -53,7 +53,7 @@
                       <a> {{ alert.source[threatScoreFieldName] ? alert.source[threatScoreFieldName] : '-' }}</a>
                     </div>
                   </td>
-                  <td *ngFor="let column of alertsColumnsToDisplay" #cell>
+                  <td #cell *ngFor="let column of alertsColumnsToDisplay"  [attr.data-name]="column.name">
                     <a title="{{getValue(alert, column, true)}}" style="color:#689AA9" (click)="addFilter(column.name, getValue(alert, column, false))">{{ getValue(alert, column, true) | centerEllipses:20:cell }}</a>
                   </td>
                   <td>
@@ -70,7 +70,7 @@
               </ng-container>
               <ng-container *ngFor="let subGroup of group.treeSubGroups;let i = index">
 
-                <tr class="table-group-row" [ngClass]="{'d-none': !subGroup.show}" (click)="toggleSubGroups(group, subGroup, i)">
+                <tr class="table-group-row" [ngClass]="{'d-none': !subGroup.show}" (click)="toggleSubGroups(group, subGroup, i)" [attr.data-name]="subGroup.key">
                   <td [attr.colspan]="alertsColumnsToDisplay.length + 4" [ngStyle]="{'padding-left.px': (16 * (subGroup.level -1))}">
                     <span class="table-group-icon-col" data-animation="false" data-toggle="tooltip" data-placement="bottom" title="Open Group">
                       <i class="fa" aria-hidden="true" [ngClass]="{'fa-caret-down': subGroup.expand, 'fa-caret-right': !subGroup.expand}"></i>
@@ -86,7 +86,7 @@
                       <a> {{ alert.source[threatScoreFieldName] ? alert.source[threatScoreFieldName] : '-' }}</a>
                     </div>
                   </td>
-                  <td *ngFor="let column of alertsColumnsToDisplay" #cell>
+                  <td #cell *ngFor="let column of alertsColumnsToDisplay" [attr.data-name]="column.name">
                     <a (click)="addFilter(column.name, getValue(alert, column, false))" title="{{getValue(alert, column, true)}}" style="color:#689AA9" (click)="addFilter(column.name, getValue(alert, column, false))">{{ getValue(alert, column, true) | centerEllipses:20:cell }}</a>
                   </td>
                   <td>
