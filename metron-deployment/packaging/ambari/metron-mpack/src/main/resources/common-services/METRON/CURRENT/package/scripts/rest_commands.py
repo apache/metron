@@ -18,8 +18,6 @@ limitations under the License.
 
 """
 import os
-import string
-
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.libraries.functions import get_user_call_output
@@ -28,6 +26,7 @@ from resource_management.libraries.functions.show_logs import show_logs
 
 import metron_service
 from metron_security import kinit
+
 
 # Wrap major operations and functionality in this class
 class RestCommands:
@@ -75,23 +74,6 @@ class RestCommands:
     def start_rest_application(self):
         Logger.info('Starting REST application')
 
-        # Build the spring options
-        # the vagrant Spring profile provides configuration values, otherwise configuration is provided by rest_application.yml
-        metron_spring_options = format(" --server.port={metron_rest_port}")
-        if not "vagrant" in self.__params.metron_spring_profiles_active:
-            metron_spring_options += format(" --spring.config.location={metron_home}/config/rest_application.yml")
-        if self.__params.metron_spring_profiles_active:
-            metron_spring_options += format(" --spring.profiles.active={metron_spring_profiles_active}")
-
-        metron_rest_classpath = format("{hadoop_conf_dir}:{hbase_conf_dir}:{metron_home}/lib/metron-rest-{metron_version}.jar")
-        if self.__params.metron_jdbc_client_path:
-            metron_rest_classpath += format(":{metron_jdbc_client_path}")
-
-        if self.__params.metron_indexing_classpath:
-            metron_rest_classpath += format(":{metron_indexing_classpath}")
-        else:
-            metron_rest_classpath += format(":{metron_home}/lib/metron-elasticsearch-{metron_version}-uber.jar")
-
         if self.__params.security_enabled:
             kinit(self.__params.kinit_path_local,
             self.__params.metron_keytab_path,
@@ -104,16 +86,22 @@ class RestCommands:
         process_id_exists_command = format("ls {pid_file} >/dev/null 2>&1 && ps -p {pid} >/dev/null 2>&1")
 
         # Set the password with env variable instead of param to avoid it showing in ps
-        cmd = format(("set -o allexport; source {metron_sysconfig}; set +o allexport;"
-                     "export METRON_JDBC_PASSWORD={metron_jdbc_password!p};"
-                     "{java_home}/bin/java -cp {metron_rest_classpath} org.apache.metron.rest.MetronRestApplication {metron_spring_options} >> {metron_log_dir}/metron-rest.log 2>&1 & echo $! > {pid_file};"
-                     "unset METRON_JDBC_PASSWORD;"))
-        daemon_cmd = cmd
+        cmd = format((
+          "export METRON_JDBC_PASSWORD={metron_jdbc_password!p};"
+          "export JAVA_HOME={java_home};"
+          "export METRON_REST_CLASSPATH={metron_rest_classpath};"
+          "export METRON_INDEX_CP={metron_indexing_classpath};"
+          "export METRON_LOG_DIR={metron_log_dir};"
+          "export METRON_PID_FILE={pid_file};"
+          "{metron_home}/bin/metron-rest.sh;"
+          "unset METRON_JDBC_PASSWORD;"
+        ))
 
-        Execute(daemon_cmd,
+        Execute(cmd,
                 user = self.__params.metron_user,
                 logoutput=True,
-                not_if = process_id_exists_command)
+                not_if = process_id_exists_command,
+                timeout=60)
         Logger.info('Done starting REST application')
 
     def stop_rest_application(self):
@@ -124,7 +112,6 @@ class RestCommands:
         pid = get_user_call_output.get_user_call_output(format("cat {pid_file}"), user=self.__params.metron_user, is_checked_call=False)[1]
         process_id_exists_command = format("ls {pid_file} >/dev/null 2>&1 && ps -p {pid} >/dev/null 2>&1")
 
-
         if self.__params.security_enabled:
             kinit(self.__params.kinit_path_local,
             self.__params.metron_keytab_path,
@@ -132,16 +119,16 @@ class RestCommands:
             execute_user=self.__params.metron_user)
 
         # Politely kill
-        daemon_kill_cmd = ('kill', format("{pid}"))
-        Execute(daemon_kill_cmd,
+        kill_cmd = ('kill', format("{pid}"))
+        Execute(kill_cmd,
                 sudo=True,
                 not_if = format("! ({process_id_exists_command})")
                 )
 
         # Violently kill
-        daemon_hard_kill_cmd = ('kill', '-9', format("{pid}"))
+        hard_kill_cmd = ('kill', '-9', format("{pid}"))
         wait_time = 5
-        Execute(daemon_hard_kill_cmd,
+        Execute(hard_kill_cmd,
                 not_if = format("! ({process_id_exists_command}) || ( sleep {wait_time} && ! ({process_id_exists_command}) )"),
                 sudo=True,
                 ignore_failures = True

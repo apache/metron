@@ -41,7 +41,6 @@ tmp_dir = Script.get_tmp_dir()
 
 hostname = config['hostname']
 metron_home = status_params.metron_home
-metron_version = config['configurations']['metron-env']['metron_version']
 
 parsers = status_params.parsers
 parser_error_topic = config['configurations']['metron-parsers-env']['parser_error_topic']
@@ -173,16 +172,6 @@ HdfsResource = functools.partial(
     dfs_type=dfs_type
 )
 
-# HBase
-# Getting the conf dir of HBase is non trivial.  Pulled from Ambari's HBase params file.
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-stack_version_formatted = format_stack_version(stack_version_unformatted)
-stack_root = Script.get_stack_root()
-hbase_conf_dir = "/etc/hbase/conf"
-if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
-    # Required to be colocated, so just use hbase-client component directly
-    hbase_conf_dir = format("{stack_root}/current/hbase-client/conf")
-
 # Metron HBase configuration
 enrichment_hbase_provider_impl = 'org.apache.metron.hbase.HTableProvider'
 enrichment_table = status_params.enrichment_table
@@ -251,6 +240,7 @@ metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", ['localhost'])[
 metron_rest_pid_dir = config['configurations']['metron-rest-env']['metron_rest_pid_dir']
 metron_rest_pid = 'metron-rest.pid'
 metron_indexing_classpath = config['configurations']['metron-rest-env']['metron_indexing_classpath']
+metron_rest_classpath = config['configurations']['metron-rest-env']['metron_rest_classpath']
 metron_sysconfig = config['configurations']['metron-rest-env']['metron_sysconfig']
 
 # Enrichment

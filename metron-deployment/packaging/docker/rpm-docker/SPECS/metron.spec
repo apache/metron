@@ -368,6 +368,7 @@ This package installs the Metron Rest %{metron_home}
 %dir %{metron_home}/bin
 %dir %{metron_home}/lib
 %{metron_home}/config/rest_application.yml
+%{metron_home}/bin/metron-rest.sh
 %attr(0644,root,root) %{metron_home}/lib/metron-rest-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -448,6 +449,8 @@ This package install the Metron MaaS Service files %{metron_home}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %changelog
+* Tue Sep 19 2017 Apache Metron <dev@metron.apache.org> - 0.4.2
+- Updated and renamed metron-rest script
 * Tue Aug 29 2017 Apache Metron <dev@metron.apache.org> - 0.4.1
 - Add Metron MaaS service
 * Thu Jun 29 2017 Apache Metron <dev@metron.apache.org> - 0.4.1
