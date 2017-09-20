@@ -60,7 +60,7 @@ No optional parameter has a default.
 | Environment Variable                  | Description                                                       | Required | Default
 | ------------------------------------- | ----------------------------------------------------------------- | -------- | -------
 | METRON_LOG_DIR                        | Directory where the log file is written                           | Optional | /var/log/metron/
-| METRON_PID_FILE                       | File where the pid is written                           | Optional | /var/run/metron/
+| METRON_PID_FILE                       | File where the pid is written                                     | Optional | /var/run/metron/
 | METRON_REST_PORT                      | REST application port                                             | Optional | 8082
 | METRON_JDBC_CLIENT_PATH               | Path to JDBC client jar                                           | Optional | H2 is bundled
 | METRON_TEMP_GROK_PATH                 | Temporary directory used to test grok statements                  | Optional | ./patterns/temp
