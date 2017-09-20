@@ -277,18 +277,36 @@ public class ConfigurationsUtils {
   }
 
   /**
-   * Uploads config to ZK for the specified configuration type.
+   * Uploads config to Zookeeper based on the specified rootPath and configuration type. The local
+   * file and zookeeper paths are dynamically calculated based on the rootPath and config type.
+   * When grabbing files from the local FS, the rootPath is used. When reading/writing to Zookeeper,
+   * the path returned by
+   * {@link org.apache.metron.common.configuration.ConfigurationType#getZookeeperRoot()} is used.
+   * For example, when grabbing GLOBAL config from the local FS, the path is based on 'rootPath/.'
+   * whereas PARSER would be based on 'rootPath/parsers'.
    *
    * @param rootFilePath base configuration path on the local FS
    * @param client zk client
    * @param type config type to upload configs for
-   * @throws Exception
    */
   public static void uploadConfigsToZookeeper(String rootFilePath, CuratorFramework client,
       ConfigurationType type) throws Exception {
     uploadConfigsToZookeeper(rootFilePath, client, type, Optional.empty());
   }
 
+  /**
+   * Does the same as
+   * {@link org.apache.metron.common.configuration.ConfigurationsUtils#uploadConfigsToZookeeper(
+   * java.lang.String, org.apache.curator.framework.CuratorFramework,
+   * org.apache.metron.common.configuration.ConfigurationType)}
+   * with the addition of being able to specify a specific config name for the given configuration
+   * type. e.g. config type=PARSER, config name=bro
+   *
+   * @param rootFilePath base configuration path on the local FS
+   * @param client zk client
+   * @param type config type to upload configs for
+   * @param configName specific config under the specified config type
+   */
   public static void uploadConfigsToZookeeper(String rootFilePath, CuratorFramework client,
       ConfigurationType type, Optional<String> configName) throws Exception {
     switch (type) {
@@ -296,13 +314,14 @@ public class ConfigurationsUtils {
         final byte[] globalConfig = readGlobalConfigFromFile(rootFilePath);
         if (globalConfig.length > 0) {
           setupStellarStatically(client, Optional.of(new String(globalConfig)));
-          writeGlobalConfigToZookeeper(readGlobalConfigFromFile(rootFilePath), client);
+          writeGlobalConfigToZookeeper(globalConfig, client);
         }
         break;
       case PARSER: // intentional pass-through
       case ENRICHMENT: // intentional pass-through
       case INDEXING:
-        Map<String, byte[]> sensorIndexingConfigs = readSensorConfigsFromFile(rootFilePath, type, configName);
+        Map<String, byte[]> sensorIndexingConfigs = readSensorConfigsFromFile(rootFilePath, type,
+            configName);
         for (String sensorType : sensorIndexingConfigs.keySet()) {
           writeConfigToZookeeper(type, configName, sensorIndexingConfigs.get(sensorType), client);
         }
@@ -471,10 +490,33 @@ public class ConfigurationsUtils {
     return sensorConfigs;
   }
 
-  public static void applyConfigPatchToZookeeper(ConfigurationType configurationType, byte[] patchData, String zookeeperUrl) throws Exception {
+  /**
+   * Reads Json data for the specified config type from zookeeper,
+   * applies the patch from patchData, and writes it back to Zookeeper in a pretty print format.
+   * Patching JSON flattens existing formatting, so this will keep configs readable.
+   * Starts up curatorclient based on zookeeperUrl.
+   *
+   * @param configurationType GLOBAL, PARSER, etc.
+   * @param configName e.g. bro, yaf, snort
+   * @param patchData a JSON patch in the format specified by RFC 6902
+   * @param zookeeperUrl configs are here
+   */
+  public static void applyConfigPatchToZookeeper(ConfigurationType configurationType,
+      byte[] patchData, String zookeeperUrl) throws Exception {
     applyConfigPatchToZookeeper(configurationType, Optional.empty(), patchData, zookeeperUrl);
   }
 
+  /**
+   * Reads Json data for the specified config type and config name (if applicable) from zookeeper,
+   * applies the patch from patchData, and writes it back to Zookeeper in a pretty print format.
+   * Patching JSON flattens existing formatting, so this will keep configs readable.
+   * Starts up curatorclient based on zookeeperUrl.
+   *
+   * @param configurationType GLOBAL, PARSER, etc.
+   * @param configName e.g. bro, yaf, snort
+   * @param patchData a JSON patch in the format specified by RFC 6902
+   * @param zookeeperUrl configs are here
+   */
   public static void applyConfigPatchToZookeeper(ConfigurationType configurationType,
       Optional<String> configName, byte[] patchData, String zookeeperUrl) throws Exception {
     try (CuratorFramework client = getClient(zookeeperUrl)) {
@@ -483,6 +525,17 @@ public class ConfigurationsUtils {
     }
   }
 
+  /**
+   * Reads Json data for the specified config type and config name (if applicable) from zookeeper,
+   * applies the patch from patchData, and writes it back to Zookeeper in a pretty print format.
+   * Patching JSON flattens existing formatting, so this will keep configs readable. The
+   * curatorclient should be started already.
+   *
+   * @param configurationType GLOBAL, PARSER, etc.
+   * @param configName e.g. bro, yaf, snort
+   * @param patchData a JSON patch in the format specified by RFC 6902
+   * @param client access to zookeeeper
+   */
   public static void applyConfigPatchToZookeeper(ConfigurationType configurationType,
       Optional<String> configName,
       byte[] patchData, CuratorFramework client) throws Exception {
@@ -490,7 +543,8 @@ public class ConfigurationsUtils {
     JsonNode source = JSONUtils.INSTANCE.readTree(configData);
     JsonNode patch = JSONUtils.INSTANCE.readTree(patchData);
     JsonNode patchedConfig = JSONUtils.INSTANCE.applyPatch(patch, source);
-    writeConfigToZookeeper(configurationType, configName, JSONUtils.INSTANCE.toJSONPretty(patchedConfig), client);
+    writeConfigToZookeeper(configurationType, configName,
+        JSONUtils.INSTANCE.toJSONPretty(patchedConfig), client);
   }
 
   public interface ConfigurationVisitor{
