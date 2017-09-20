@@ -59,6 +59,8 @@ No optional parameter has a default.
 ### Optional - With Defaults
 | Environment Variable                  | Description                                                       | Required | Default
 | ------------------------------------- | ----------------------------------------------------------------- | -------- | -------
+| METRON_LOG_DIR                        | Directory where the log file is written                           | Optional | /var/log/metron/
+| METRON_PID_FILE                       | File where the pid is written                           | Optional | /var/run/metron/
 | METRON_REST_PORT                      | REST application port                                             | Optional | 8082
 | METRON_JDBC_CLIENT_PATH               | Path to JDBC client jar                                           | Optional | H2 is bundled
 | METRON_TEMP_GROK_PATH                 | Temporary directory used to test grok statements                  | Optional | ./patterns/temp
@@ -89,7 +91,6 @@ For example, edit these variables in `/etc/sysconfig/metron` before starting the
 METRON_JDBC_DRIVER="org.h2.Driver"
 METRON_JDBC_URL="jdbc:h2:file:~/metrondb"
 METRON_JDBC_USERNAME="root"
-METRON_JDBC_PASSWORD='root"
 METRON_JDBC_PLATFORM="h2"
 ```
 
@@ -132,16 +133,18 @@ METRON_JDBC_PLATFORM="mysql"
 METRON_JDBC_CLIENT_PATH=$METRON_HOME/lib/mysql-connector-java-5.1.41/mysql-connector-java-5.1.41-bin.jar
   ```
 
-1. Start the REST API. Replace the elasticsearch jar as needed for indexing.
+1. Switch to the metron user
   ```
-set -o allexport; source {metron_sysconfig}; set +o allexport;
+sudo su - metron
+  ```
+
+1. Start the REST API. Adjust the password as necessary.
+  ```
+set -o allexport;
+source /etc/metron/sysconfig;
+set +o allexport;
 export METRON_JDBC_PASSWORD='Myp@ssw0rd';
-$JAVA_HOME/bin/java \
--cp /usr/hdp/current/hadoop-client/conf:/usr/hdp/current/hbase-client/conf:/usr/metron/0.4.1/lib/metron-rest-0.4.1.jar:/usr/metron/0.4 .1/lib/metron-elasticsearch-0.4.1-uber.jar \
-org.apache.metron.rest.MetronRestApplication \
---server.port=8082 \
---spring.config.location=/usr/metron/0.4.1/config/rest_application.yml \
---spring.profiles.active=dev >>  /var/log/metron/metron-rest.log 2>&1 & echo $! > /var/run/metron/metron-rest.pid;
+$METRON_HOME/bin/metron-rest.sh
 unset METRON_JDBC_PASSWORD;
   ```
 
