@@ -1,0 +1,8 @@
+{
+  "es.clustername": "metron",
+  "es.ip": "node1:9300",
+  "es.date.format": "yyyy.MM.dd.HH",
+  "parser.error.topic": "indexing",
+  "update.hbase.table": "metron_update",
+  "update.hbase.cf": "t"
+}

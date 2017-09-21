@@ -27,6 +27,7 @@ import metron_service
 import metron_security
 
 class Enrichment(Script):
+
     def install(self, env):
         from params import params
         env.set_params(params)
@@ -43,6 +44,11 @@ class Enrichment(Script):
              group=params.metron_group
              )
 
+        if not metron_service.is_zk_configured(params):
+          metron_service.init_zk_config(params)
+          metron_service.set_zk_configured(params)
+        metron_service.refresh_configs(params)
+
         Logger.info("Calling security setup")
         storm_security_setup(params)
 
@@ -57,8 +63,6 @@ class Enrichment(Script):
                                   params.metron_keytab_path,
                                   params.metron_principal_name,
                                   execute_user=params.metron_user)
-
-        metron_service.load_global_config(params)
 
         if not commands.is_kafka_configured():
             commands.init_kafka_topics()

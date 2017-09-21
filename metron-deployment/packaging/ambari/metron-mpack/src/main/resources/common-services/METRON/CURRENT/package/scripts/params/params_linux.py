@@ -60,6 +60,8 @@ metron_escalation_topic = config['configurations']['metron-rest-env']['metron_es
 metron_config_path = metron_home + '/config'
 metron_zookeeper_config_dir = status_params.metron_zookeeper_config_dir
 metron_zookeeper_config_path = status_params.metron_zookeeper_config_path
+# indicates if zk_load_configs.sh --mode PUSH has been executed
+zk_configured_flag_file = status_params.zk_configured_flag_file
 parsers_configured_flag_file = status_params.parsers_configured_flag_file
 parsers_acl_configured_flag_file = status_params.parsers_acl_configured_flag_file
 rest_acl_configured_flag_file = status_params.rest_acl_configured_flag_file
@@ -73,7 +75,6 @@ indexing_acl_configured_flag_file = status_params.indexing_acl_configured_flag_f
 indexing_hbase_configured_flag_file = status_params.indexing_hbase_configured_flag_file
 indexing_hbase_acl_configured_flag_file = status_params.indexing_hbase_acl_configured_flag_file
 indexing_hdfs_perm_configured_flag_file = status_params.indexing_hdfs_perm_configured_flag_file
-global_json_template = config['configurations']['metron-env']['global-json']
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 
 # Elasticsearch hosts and port management
@@ -170,14 +171,14 @@ HdfsResource = functools.partial(
 
 # HBase
 enrichment_hbase_provider_impl = 'org.apache.metron.hbase.HTableProvider'
-enrichment_table = status_params.enrichment_table
-enrichment_cf = status_params.enrichment_cf
-update_table = status_params.update_table
-update_cf = status_params.update_cf
+enrichment_hbase_table = status_params.enrichment_hbase_table
+enrichment_hbase_cf = status_params.enrichment_hbase_cf
+update_hbase_table = status_params.update_hbase_table
+update_hbase_cf = status_params.update_hbase_cf
 
 
-threatintel_table = status_params.threatintel_table
-threatintel_cf = status_params.threatintel_cf
+threatintel_hbase_table = status_params.threatintel_hbase_table
+threatintel_hbase_cf = status_params.threatintel_hbase_cf
 
 # Kafka Topics
 ambari_kafka_service_check_topic = 'ambari_kafka_service_check'
