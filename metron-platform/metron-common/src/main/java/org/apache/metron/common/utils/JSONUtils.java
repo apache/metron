@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,22 +21,26 @@ package org.apache.metron.common.utils;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.zjsonpatch.JsonPatch;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
-import java.io.*;
-import java.util.Map;
 
 public enum JSONUtils {
   INSTANCE;
 
   private static ThreadLocal<JSONParser> _parser = ThreadLocal.withInitial(() ->
-          new JSONParser());
+      new JSONParser());
 
   private static ThreadLocal<ObjectMapper> _mapper = ThreadLocal.withInitial(() ->
-          new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL));
+      new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL));
 
   public <T> T convert(Object original, Class<T> targetClass) {
     return _mapper.get().convertValue(original, targetClass);
@@ -83,8 +87,12 @@ public enum JSONUtils {
     }
   }
 
-  public byte[] toJSON(Object config) throws JsonProcessingException {
-    return _mapper.get().writeValueAsBytes(config);
+  public byte[] toJSONPretty(String config) throws IOException {
+    return toJSONPretty(readTree(config));
+  }
+
+  public byte[] toJSONPretty(Object config) throws JsonProcessingException {
+    return _mapper.get().writerWithDefaultPrettyPrinter().writeValueAsBytes(config);
   }
 
   /**
@@ -93,4 +101,51 @@ public enum JSONUtils {
   public JSONObject toJSONObject(Object o) throws JsonProcessingException, ParseException {
     return (JSONObject) _parser.get().parse(toJSON(o, false));
   }
+
+  /**
+   * Reads a JSON string into a JsonNode Object
+   *
+   * @param json JSON value to deserialize
+   * @return deserialized JsonNode Object
+   */
+  public JsonNode readTree(String json) throws IOException {
+    return _mapper.get().readTree(json);
+  }
+
+  /**
+   * Reads a JSON byte array into a JsonNode Object
+   *
+   * @param json JSON value to deserialize
+   * @return deserialized JsonNode Object
+   */
+  public JsonNode readTree(byte[] json) throws IOException {
+    return _mapper.get().readTree(json);
+  }
+
+  /**
+   * Update JSON given a JSON Patch (see RFC 6902 at https://tools.ietf.org/html/rfc6902)
+   * Operations:
+   * <ul>
+   *   <li>add</li>
+   *   <li>remove</li>
+   *   <li>replace</li>
+   *   <li>move</li>
+   *   <li>copy</li>
+   *   <li>test</li>
+   * </ul>
+   *
+   * @param patch Array of JSON patches, e.g. [{ "op": "move", "from": "/a", "path": "/c" }]
+   * @param source Source JSON to apply patch to
+   * @return new json after applying the patch
+   */
+  public JsonNode applyPatch(String patch, String source) throws IOException {
+    JsonNode patchNode = readTree(patch);
+    JsonNode sourceNode = readTree(source);
+    return applyPatch(patchNode, sourceNode);
+  }
+
+  public JsonNode applyPatch(JsonNode patch, JsonNode source) throws IOException {
+    return JsonPatch.apply(patch, source);
+  }
+
 }

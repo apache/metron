@@ -44,6 +44,6 @@ public class EnrichmentConfigurations extends Configurations {
     }
 
     private String getKey(String sensorType) {
-        return ConfigurationType.ENRICHMENT.getName() + "." + sensorType;
+        return ConfigurationType.ENRICHMENT.getTypeName() + "." + sensorType;
     }
 }

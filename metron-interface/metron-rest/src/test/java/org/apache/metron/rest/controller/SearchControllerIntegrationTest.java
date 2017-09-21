@@ -17,6 +17,8 @@
  */
 package org.apache.metron.rest.controller;
 
+import com.google.common.collect.ImmutableMap;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.indexing.dao.InMemoryDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.indexing.dao.search.FieldType;
@@ -70,7 +72,11 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
   @Before
   public void setup() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
-    loadTestData();
+    ImmutableMap<String, String> testData = ImmutableMap.of(
+        "bro_index_2017.01.01.01", SearchIntegrationTest.broData,
+        "snort_index_2017.01.01.01", SearchIntegrationTest.snortData
+    );
+    loadTestData(testData);
     loadColumnTypes();
   }
 

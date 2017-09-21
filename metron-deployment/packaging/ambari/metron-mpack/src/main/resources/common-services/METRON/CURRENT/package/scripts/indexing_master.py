@@ -49,9 +49,12 @@ class Indexing(Script):
              group=params.metron_group
              )
 
-        commands = IndexingCommands(params)
-        metron_service.load_global_config(params)
+        if not metron_service.is_zk_configured(params):
+            metron_service.init_zk_config(params)
+            metron_service.set_zk_configured(params)
+        metron_service.refresh_configs(params)
 
+        commands = IndexingCommands(params)
         if not commands.is_configured():
             commands.init_kafka_topics()
             commands.init_hdfs_dir()
@@ -124,6 +127,11 @@ class Indexing(Script):
              content=StaticFile('error_index.template')
              )
 
+        File(params.meta_index_path,
+             mode=0755,
+             content=StaticFile('meta_index.mapping')
+             )
+
         bro_cmd = ambari_format(
             'curl -s -XPOST http://{es_http_url}/_template/bro_index -d @{bro_index_path}')
         Execute(bro_cmd, logoutput=True)
@@ -135,6 +143,9 @@ class Indexing(Script):
         Execute(yaf_cmd, logoutput=True)
         error_cmd = ambari_format(
             'curl -s -XPOST http://{es_http_url}/_template/error_index -d @{error_index_path}')
+        Execute(error_cmd, logoutput=True)
+        error_cmd = ambari_format(
+            'curl -s -XPOST http://{es_http_url}/metaalerts -d @{meta_index_path}')
         Execute(error_cmd, logoutput=True)
 
     def elasticsearch_template_delete(self, env):

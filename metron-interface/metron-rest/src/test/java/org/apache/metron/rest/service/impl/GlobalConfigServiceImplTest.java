@@ -17,6 +17,17 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.DeleteBuilder;
 import org.apache.curator.framework.api.GetDataBuilder;
@@ -30,18 +41,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @SuppressWarnings("ALL")
 public class GlobalConfigServiceImplTest {
@@ -134,7 +133,7 @@ public class GlobalConfigServiceImplTest {
     exception.expect(RestException.class);
 
     SetDataBuilder setDataBuilder = mock(SetDataBuilder.class);
-    when(setDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot(), "{}".getBytes())).thenThrow(Exception.class);
+    when(setDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot(), "{ }".getBytes())).thenThrow(Exception.class);
 
     when(curatorFramework.setData()).thenReturn(setDataBuilder);
 
@@ -144,11 +143,11 @@ public class GlobalConfigServiceImplTest {
   @Test
   public void saveShouldReturnSameConfigThatIsPassedOnSuccessfulSave() throws Exception {
     SetDataBuilder setDataBuilder = mock(SetDataBuilder.class);
-    when(setDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot(), "{}".getBytes())).thenReturn(new Stat());
+    when(setDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot(), "{ }".getBytes())).thenReturn(new Stat());
 
     when(curatorFramework.setData()).thenReturn(setDataBuilder);
 
     assertEquals(new HashMap<>(), globalConfigService.save(new HashMap<>()));
-    verify(setDataBuilder).forPath(eq(ConfigurationType.GLOBAL.getZookeeperRoot()), eq("{}".getBytes()));
+    verify(setDataBuilder).forPath(eq(ConfigurationType.GLOBAL.getZookeeperRoot()), eq("{ }".getBytes()));
   }
 }

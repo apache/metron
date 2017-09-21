@@ -60,6 +60,8 @@ metron_escalation_topic = config['configurations']['metron-rest-env']['metron_es
 metron_config_path = metron_home + '/config'
 metron_zookeeper_config_dir = status_params.metron_zookeeper_config_dir
 metron_zookeeper_config_path = status_params.metron_zookeeper_config_path
+# indicates if zk_load_configs.sh --mode PUSH has been executed
+zk_configured_flag_file = status_params.zk_configured_flag_file
 parsers_configured_flag_file = status_params.parsers_configured_flag_file
 parsers_acl_configured_flag_file = status_params.parsers_acl_configured_flag_file
 rest_acl_configured_flag_file = status_params.rest_acl_configured_flag_file
@@ -73,7 +75,6 @@ indexing_acl_configured_flag_file = status_params.indexing_acl_configured_flag_f
 indexing_hbase_configured_flag_file = status_params.indexing_hbase_configured_flag_file
 indexing_hbase_acl_configured_flag_file = status_params.indexing_hbase_acl_configured_flag_file
 indexing_hdfs_perm_configured_flag_file = status_params.indexing_hdfs_perm_configured_flag_file
-global_json_template = config['configurations']['metron-env']['global-json']
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 
 # Elasticsearch hosts and port management
@@ -170,14 +171,14 @@ HdfsResource = functools.partial(
 
 # HBase
 enrichment_hbase_provider_impl = 'org.apache.metron.hbase.HTableProvider'
-enrichment_table = status_params.enrichment_table
-enrichment_cf = status_params.enrichment_cf
-update_table = status_params.update_table
-update_cf = status_params.update_cf
+enrichment_hbase_table = status_params.enrichment_hbase_table
+enrichment_hbase_cf = status_params.enrichment_hbase_cf
+update_hbase_table = status_params.update_hbase_table
+update_hbase_cf = status_params.update_hbase_cf
 
 
-threatintel_table = status_params.threatintel_table
-threatintel_cf = status_params.threatintel_cf
+threatintel_hbase_table = status_params.threatintel_hbase_table
+threatintel_hbase_cf = status_params.threatintel_hbase_cf
 
 # Kafka Topics
 ambari_kafka_service_check_topic = 'ambari_kafka_service_check'
@@ -188,6 +189,7 @@ bro_index_path = tmp_dir + "/bro_index.template"
 snort_index_path = tmp_dir + "/snort_index.template"
 yaf_index_path = tmp_dir + "/yaf_index.template"
 error_index_path = tmp_dir + "/error_index.template"
+meta_index_path = tmp_dir + "/meta_index.mapping"
 
 # Zeppelin Notebooks
 metron_config_zeppelin_path = format("{metron_config_path}/zeppelin")
@@ -258,7 +260,6 @@ threat_intel_join_parallelism = config['configurations']['metron-enrichment-env'
 kafka_writer_parallelism = config['configurations']['metron-enrichment-env']['kafka_writer_parallelism']
 
 # Profiler
-
 metron_profiler_topology = 'profiler'
 profiler_input_topic = config['configurations']['metron-enrichment-env']['enrichment_output_topic']
 profiler_kafka_start = config['configurations']['metron-profiler-env']['profiler_kafka_start']
@@ -273,7 +274,7 @@ profiler_acker_executors = config['configurations']['metron-profiler-env']['prof
 profiler_hbase_table = config['configurations']['metron-profiler-env']['profiler_hbase_table']
 profiler_hbase_cf = config['configurations']['metron-profiler-env']['profiler_hbase_cf']
 profiler_configured_flag_file = status_params.profiler_configured_flag_file
-profiler_acl_configured_flag_file = status_params.indexing_acl_configured_flag_file
+profiler_acl_configured_flag_file = status_params.profiler_acl_configured_flag_file
 profiler_hbase_configured_flag_file = status_params.profiler_hbase_configured_flag_file
 profiler_hbase_acl_configured_flag_file = status_params.profiler_hbase_acl_configured_flag_file
 if not len(profiler_topology_worker_childopts) == 0:
@@ -303,4 +304,3 @@ metron_apps_indexed_hdfs_dir = format(format(config['configurations']['metron-in
 bolt_hdfs_rotation_policy = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy']
 bolt_hdfs_rotation_policy_units = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_units']
 bolt_hdfs_rotation_policy_count = config['configurations']['metron-indexing-env']['bolt_hdfs_rotation_policy_count']
-

@@ -51,3 +51,8 @@ index:
   hbase:
   # HBase is provided via a mock provider, so no actual HBase infrastructure is started.
      provider: org.apache.metron.hbase.mock.MockHBaseTableProvider
+
+meta:
+  dao:
+  # By default, we use the InMemoryMetaAlertDao for our tests
+    impl: org.apache.metron.indexing.dao.InMemoryMetaAlertDao

@@ -224,6 +224,9 @@ In the core language functions, we support basic functional programming primitiv
 | [ `TO_EPOCH_TIMESTAMP`](#to_epoch_timestamp)                                                       |
 | [ `TO_FLOAT`](#to_float)                                                                           |
 | [ `TO_INTEGER`](#to_integer)                                                                       |
+| [ `TO_JSON_LIST`](#to_json_List)                                                                   |
+| [ `TO_JSON_MAP`](#to_json_map)                                                                     |
+| [ `TO_JSON_OBJECT`](#to_json_object)                                                               |
 | [ `TO_LONG`](#to_long)                                                                             |
 | [ `TO_LOWER`](#to_lower)                                                                           |
 | [ `TO_STRING`](#to_string)                                                                         |
@@ -638,6 +641,27 @@ In the core language functions, we support basic functional programming primitiv
   * Description: Returns a list of the encodings that are currently supported.
   * Returns: A List of String
  
+### `TO_JSON_LIST`
+  * Description: Accepts JSON string as an input and returns a List object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `GET_FIRST( TO_JSON_LIST(  '[ "foo", 2]')` would yield `foo`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed List object
+
+### `TO_JSON_MAP`
+  * Description: Accepts JSON string as an input and returns a Map object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `MAP_GET( 'bar', TO_JSON_MAP(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed Map object
+
+### `TO_JSON_OBJECT`
+  * Description: Accepts JSON string as an input and returns a JSON Object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `MAP_GET( 'bar', TO_JSON_OBJECT(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed JSON object
+
 ### `LOG2`
   * Description: Returns the log (base `2`) of a number.
   * Input:
@@ -698,7 +722,7 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * dateTime - The datetime as a long representing the milliseconds since unix epoch
   * Returns: The current month (0-based).
-
+  
 ### `MULTISET_ADD`
   * Description: Adds to a multiset, which is a map associating objects to their instance counts.
   * Input:
@@ -1096,6 +1120,12 @@ Shell-like operations are supported such as
 * emacs or vi keybindings for edit mode
 
 Note: Stellar classpath configuration from the global config is honored here if the REPL knows about zookeeper.
+
+### Environment Variables
+When starting the REPL via `$METRON_HOME/bin/stellar` you can specify
+certain environment variables to customize the experience:
+* `JVMFLAGS` - Arbitrary JVM flags to pass to the `java` command when starting the REPL.
+* `CONTRIB` - Directory where jars with Stellar functions can be placed.  The default is `$METRON_HOME/contrib`.
 
 ### Getting Started
 
