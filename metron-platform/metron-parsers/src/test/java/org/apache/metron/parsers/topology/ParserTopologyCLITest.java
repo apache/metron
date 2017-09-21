@@ -494,12 +494,8 @@ public class ParserTopologyCLITest {
                       }
                       , () -> {
                         SensorParserConfig config = getBaseConfig();
-                        config.setStormConfig(
-                          new HashMap<String, Object>() {{
-                            put(Config.TOPOLOGY_WORKERS, 100);
-                            put(Config.TOPOLOGY_ACKER_EXECUTORS, 200);
-                          }}
-                                             );
+                        config.setNumWorkers(100);
+                        config.setNumAckers(200);
                         return config;
                               }
                       , input -> {
