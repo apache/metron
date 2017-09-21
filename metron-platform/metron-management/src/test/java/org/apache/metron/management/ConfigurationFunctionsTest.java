@@ -82,6 +82,8 @@ public class ConfigurationFunctionsTest {
       "fieldTransformations" : [ ],
       "readMetadata":false,
       "mergeMetadata":false,
+      "numWorkers": 1,
+      "numAckers": 1,
       "parserParallelism" : 1,
       "errorWriterParallelism" : 1,
       "spoutNumTasks" : 1,
