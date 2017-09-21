@@ -18,6 +18,7 @@ limitations under the License.
 import os
 import time
 from datetime import datetime
+from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 
@@ -46,6 +47,12 @@ class EnrichmentCommands:
         self.__hbase_configured = os.path.isfile(self.__params.enrichment_hbase_configured_flag_file)
         self.__hbase_acl_configured = os.path.isfile(self.__params.enrichment_hbase_acl_configured_flag_file)
         self.__geo_configured = os.path.isfile(self.__params.enrichment_geo_configured_flag_file)
+
+    def __get_topics(self):
+        return [self.__enrichment_topic, self.__params.enrichment_error_topic]
+
+    def __get_kafka_acl_groups(self):
+        return [self.__enrichment_topic]
 
     def is_kafka_configured(self):
         return self.__kafka_configured
@@ -105,15 +112,15 @@ class EnrichmentCommands:
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics for enrichment')
         # All errors go to indexing topics, so create it here if it's not already
-        metron_service.init_kafka_topics(self.__params, [self.__enrichment_topic, self.__params.enrichment_error_topic])
+        metron_service.init_kafka_topics(self.__params, self.__get_topics())
         self.set_kafka_configured()
 
     def init_kafka_acls(self):
         Logger.info('Creating Kafka ACls for enrichment')
+        metron_service.init_kafka_acls(self.__params, self.__get_topics())
+
         # Enrichment topic names matches group
-        metron_service.init_kafka_acls(self.__params,
-                                       [self.__enrichment_topic, self.__params.enrichment_error_topic],
-                                       [self.__enrichment_topic])
+        metron_service.init_kafka_acl_groups(self.__params, self.__get_kafka_acl_groups())
 
         self.set_kafka_acl_configured()
 
@@ -182,6 +189,7 @@ class EnrichmentCommands:
                   self.__params.hbase_keytab_path,
                   self.__params.hbase_principal_name,
                   execute_user=self.__params.hbase_user)
+
         cmd = "echo \"create '{0}','{1}'\" | hbase shell -n"
         add_enrichment_cmd = cmd.format(self.__params.enrichment_hbase_table, self.__params.enrichment_hbase_cf)
         Execute(add_enrichment_cmd,
@@ -211,6 +219,7 @@ class EnrichmentCommands:
                   self.__params.hbase_keytab_path,
                   self.__params.hbase_principal_name,
                   execute_user=self.__params.hbase_user)
+
         cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n"
         add_enrichment_acl_cmd = cmd.format(self.__params.metron_user, self.__params.enrichment_hbase_table)
         Execute(add_enrichment_acl_cmd,
@@ -232,3 +241,48 @@ class EnrichmentCommands:
 
         Logger.info("Done setting HBase ACLs")
         self.set_hbase_acl_configured()
+
+    def service_check(self, env):
+        """
+        Performs a service check for Enrichment.
+        :param env: Environment
+        """
+        Logger.info("Checking for Geo database")
+        metron_service.check_hdfs_file_exists(self.__params, self.__params.geoip_hdfs_dir + "/GeoLite2-City.mmdb.gz")
+
+        Logger.info('Checking Kafka topics for Enrichment')
+        metron_service.check_kafka_topics(self.__params, self.__get_topics())
+
+        Logger.info("Checking HBase for Enrichment")
+        metron_service.check_hbase_table(
+          self.__params,
+          self.__params.enrichment_hbase_table)
+        metron_service.check_hbase_column_family(
+          self.__params,
+          self.__params.enrichment_hbase_table,
+          self.__params.enrichment_hbase_cf)
+
+        Logger.info("Checking HBase for Threat Intel")
+        metron_service.check_hbase_table(
+          self.__params,
+          self.__params.threatintel_hbase_table)
+        metron_service.check_hbase_column_family(
+          self.__params,
+          self.__params.threatintel_hbase_table,
+          self.__params.threatintel_hbase_cf)
+
+        if self.__params.security_enabled:
+
+          Logger.info('Checking Kafka ACLs for Enrichment')
+          metron_service.check_kafka_acls(self.__params, self.__get_topics())
+          metron_service.check_kafka_acl_groups(self.__params, self.__get_kafka_acl_groups())
+
+          Logger.info("Checking HBase ACLs for Enrichment")
+          metron_service.check_hbase_acls(self.__params, self.__params.enrichment_hbase_table)
+          metron_service.check_hbase_acls(self.__params, self.__params.threatintel_hbase_table)
+
+        Logger.info("Checking for Enrichment topology")
+        if not self.is_topology_active(env):
+            raise Fail("Enrichment topology not running")
+
+        Logger.info("Enrichment service check completed successfully")
