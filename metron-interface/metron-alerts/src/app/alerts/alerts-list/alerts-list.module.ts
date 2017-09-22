@@ -31,7 +31,6 @@ import {ConfigureRowsModule} from '../configure-rows/configure-rows.module';
 import {GroupByModule} from '../../shared/group-by/group-by.module';
 import {TableViewComponent} from './table-view/table-view.component';
 import {TreeViewComponent} from './tree-view/tree-view.component';
-import {TableViewComponent} from './table-view/table-view.component';
 
 @NgModule({
     imports: [routing, SharedModule, ConfigureRowsModule, MetronSorterModule, MetronTablePaginationModule,
