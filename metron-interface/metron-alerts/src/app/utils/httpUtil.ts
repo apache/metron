@@ -36,7 +36,6 @@ export class HttpUtil {
     // We'd also dig deeper into the error to get a better message
     let restError: RestError;
     if (res.status === 401) {
-      restError = res.json();
       window.location.pathname = '/login';
     } else if (res.status !== 404) {
       restError = res.json();
