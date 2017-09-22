@@ -20,6 +20,7 @@ import { MetronAlertDetailsPage } from '../alert-details.po';
 import {customMatchers} from '../../matchers/custom-matchers';
 import {LoginPage} from '../../login/login.po';
 import {loadTestData, deleteTestData} from '../../utils/e2e_util';
+import { MetronAlertsPage } from '../../alerts-list/alerts-list.po';
 
 describe('metron-alerts alert status', function() {
   let page: MetronAlertDetailsPage;
@@ -32,6 +33,7 @@ describe('metron-alerts alert status', function() {
   });
 
   afterAll(() => {
+    new MetronAlertsPage().navigateTo();
     loginPage.logout();
     deleteTestData();
   });

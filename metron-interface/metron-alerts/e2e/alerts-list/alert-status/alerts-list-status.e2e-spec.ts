@@ -50,9 +50,6 @@ describe('metron-alerts alert status', function() {
     expect(page.getAlertStatus(0, 'NEW')).toEqual('OPEN');
     expect(page.getAlertStatus(1, 'NEW')).toEqual('OPEN');
     expect(page.getAlertStatus(2, 'NEW')).toEqual('OPEN');
-    page.toggleAlertInList(0);
-    page.toggleAlertInList(1);
-    page.toggleAlertInList(2);
   });
 
   it('should change alert status for multiple alerts to DISMISS', () => {
@@ -63,9 +60,6 @@ describe('metron-alerts alert status', function() {
     expect(page.getAlertStatus(3, 'NEW')).toEqual('DISMISS');
     expect(page.getAlertStatus(4, 'NEW')).toEqual('DISMISS');
     expect(page.getAlertStatus(5, 'NEW')).toEqual('DISMISS');
-    page.toggleAlertInList(3);
-    page.toggleAlertInList(4);
-    page.toggleAlertInList(5);
   });
 
   it('should change alert status for multiple alerts to ESCALATE', () => {
@@ -76,9 +70,6 @@ describe('metron-alerts alert status', function() {
     expect(page.getAlertStatus(6, 'NEW')).toEqual('ESCALATE');
     expect(page.getAlertStatus(7, 'NEW')).toEqual('ESCALATE');
     expect(page.getAlertStatus(8, 'NEW')).toEqual('ESCALATE');
-    page.toggleAlertInList(6);
-    page.toggleAlertInList(7);
-    page.toggleAlertInList(8);
   });
 
   it('should change alert status for multiple alerts to RESOLVE', () => {
@@ -89,9 +80,6 @@ describe('metron-alerts alert status', function() {
     expect(page.getAlertStatus(9, 'NEW')).toEqual('RESOLVE');
     expect(page.getAlertStatus(10, 'NEW')).toEqual('RESOLVE');
     expect(page.getAlertStatus(11, 'NEW')).toEqual('RESOLVE');
-    page.toggleAlertInList(9);
-    page.toggleAlertInList(10);
-    page.toggleAlertInList(11);
   });
 
 });

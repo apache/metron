@@ -37,6 +37,7 @@ import {SearchResponse} from '../../model/search-response';
 import {ElasticsearchUtils} from '../../utils/elasticsearch-utils';
 import {TableViewComponent} from './table-view/table-view.component';
 import {Filter} from '../../model/filter';
+import {Pagination} from '../../model/pagination';
 import {environment} from '../../../environments/environment';
 
 @Component({
@@ -66,6 +67,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   tableMetaData = new TableMetadata();
   queryBuilder: QueryBuilder = new QueryBuilder();
+  pagination: Pagination = new Pagination();
 
   constructor(private router: Router,
               private searchService: SearchService,
@@ -162,6 +164,18 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     return false;
   }
 
+  onRefreshData($event) {
+    this.search($event);
+  }
+
+  onSelectedAlertsChange(selectedAlerts) {
+    if (selectedAlerts.length > 0) {
+      this.pause();
+    } else {
+      this.resume();
+    }
+  }
+
   onAddFilter(filter: Filter) {
     this.queryBuilder.addOrUpdateFilter(filter);
     this.search();
@@ -170,11 +184,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   onConfigRowsChange() {
     this.searchService.interval = this.refreshInterval;
     this.search();
-  }
-
-  searchView(resetPaginationParams = true, pageSize: number = null) {
-    this.changeDetector.detectChanges();
-    this.dataViewComponent.search(resetPaginationParams, pageSize);
   }
 
   onPausePlay() {
@@ -244,23 +253,24 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   search(resetPaginationParams = true, savedSearch?: SaveSearch) {
-    this.selectedAlerts = [];
-
     this.saveCurrentSearch(savedSearch);
-
-    this.queryBuilder.setFromAndSize(0, 0);
-    let searchRequest = this.queryBuilder.searchRequest;
-    if (this.indices) {
-      searchRequest.indices = this.indices;
+    if (resetPaginationParams) {
+      this.pagination.from = 0;
     }
-    this.searchService.search(searchRequest).subscribe(results => {
+    this.queryBuilder.searchRequest.from = this.pagination.from;
+    if (this.tableMetaData.size) {
+      this.pagination.size = this.tableMetaData.size;
+    }
+    this.queryBuilder.searchRequest.size = this.pagination.size;
+    if (this.indices) {
+      this.queryBuilder.searchRequest.indices = this.indices;
+    }
+    this.searchService.search(this.queryBuilder.searchRequest).subscribe(results => {
       this.setData(results);
     }, error => {
       this.setData(new SearchResponse());
       this.metronDialogBox.showConfirmationMessage(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
     });
-
-    this.searchView(resetPaginationParams, this.tableMetaData.size);
 
     this.tryStartPolling();
   }
@@ -280,7 +290,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   setData(results: SearchResponse) {
+    this.selectedAlerts = [];
     this.searchResponse = results;
+    this.pagination.total = results.total;
     this.alerts = results.results ? results.results : [];
   }
 
@@ -301,6 +313,15 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.tryStopPolling();
   }
 
+  pause() {
+    this.pauseRefresh = true;
+    this.tryStopPolling();
+  }
+
+  resume() {
+    this.pauseRefresh = false;
+    this.tryStartPolling();
+  }
 
   showSavedSearches() {
     this.saveRefreshState();
@@ -318,7 +339,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       this.tryStopPolling();
       this.refreshTimer = this.searchService.pollSearch(this.queryBuilder.searchRequest).subscribe(results => {
         this.setData(results);
-        this.searchView(false);
       });
     }
   }
@@ -339,5 +359,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       this.alerts.filter(alert => alert.source.guid == selectedAlert.source.guid)
       .map(alert => alert.source['alert_status'] = status);
     }
+    this.selectedAlerts = [];
+    this.resume();
   }
+
 }
