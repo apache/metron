@@ -198,8 +198,8 @@ public class ElasticsearchMetaAlertIntegrationTest {
 
       {
         //ensure alerts in ES are up-to-date
-        Document doc = metaDao.getLatest(guid, SENSOR_NAME);
-        Assert.assertEquals(message0, doc.getDocument());
+        boolean found = findUpdatedDoc(message0, guid);
+        Assert.assertTrue("Unable to find updated document", found);
         long cnt = 0;
         for (int t = 0; t < MAX_RETRIES && cnt == 0; ++t, Thread.sleep(SLEEP_MS)) {
           docs = es.getAllIndexedDocs(INDEX, SENSOR_NAME + "_doc");
@@ -257,8 +257,8 @@ public class ElasticsearchMetaAlertIntegrationTest {
         }
       }, Optional.empty());
 
-      Document doc = metaDao.getLatest(guid, SENSOR_NAME);
-      Assert.assertEquals(message0, doc.getDocument());
+      boolean found = findUpdatedDoc(message0, guid);
+      Assert.assertTrue("Unable to find updated document", found);
       {
         //ensure ES is up-to-date
         long cnt = 0;
@@ -300,6 +300,18 @@ public class ElasticsearchMetaAlertIntegrationTest {
         }
       }
     }
+  }
+
+  protected boolean findUpdatedDoc(Map<String, Object> message0, String guid)
+      throws InterruptedException, IOException {
+    boolean found = false;
+    for (int t = 0; t < MAX_RETRIES && !found; ++t, Thread.sleep(SLEEP_MS)) {
+      Document doc = metaDao.getLatest(guid, SENSOR_NAME);
+      if (message0.equals(doc.getDocument())) {
+        found = true;
+      }
+    }
+    return found;
   }
 
   protected void elasticsearchAdd(List<Map<String, Object>> inputData, String index, String docType)

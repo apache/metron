@@ -308,9 +308,6 @@ public class ElasticsearchDao implements IndexDao {
       if (failed > 0) {
         throw new IOException("ElasticsearchDao upsert failed: " + Arrays.toString(shardInfo.getFailures()));
       }
-      Thread.sleep(10000);
-      org.elasticsearch.action.search.SearchResponse resultAfter = client.prepareSearch("test*").setFetchSource(true).setQuery(QueryBuilders.matchAllQuery()).get();
-      resultAfter.getHits();
     } catch (Exception e) {
       throw new IOException(e.getMessage(), e);
     }
