@@ -21,10 +21,14 @@ import os
 
 from datetime import datetime
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute, File
+from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.libraries.functions import get_user_call_output
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.show_logs import show_logs
 
 import metron_service
+from metron_security import kinit
+
 
 # Wrap major operations and functionality in this class
 class RestCommands:
@@ -36,6 +40,18 @@ class RestCommands:
             raise ValueError("params argument is required for initialization")
         self.__params = params
         self.__acl_configured = os.path.isfile(self.__params.rest_acl_configured_flag_file)
+        Directory(params.metron_rest_pid_dir,
+                  mode=0755,
+                  owner=params.metron_user,
+                  group=params.metron_group,
+                  create_parents=True
+                  )
+        Directory(params.metron_log_dir,
+                  mode=0755,
+                  owner=params.metron_user,
+                  group=params.metron_group,
+                  create_parents=True
+                  )
 
     def is_acl_configured(self):
         return self.__acl_configured
@@ -56,17 +72,82 @@ class RestCommands:
 
     def start_rest_application(self):
         Logger.info('Starting REST application')
-        command = format("service metron-rest start {metron_jdbc_password!p}")
-        Execute(command)
+
+        if self.__params.security_enabled:
+            kinit(self.__params.kinit_path_local,
+            self.__params.metron_keytab_path,
+            self.__params.metron_principal_name,
+            execute_user=self.__params.metron_user)
+
+        # Get the PID associated with the service
+        pid_file = format("{metron_rest_pid_dir}/{metron_rest_pid}")
+        pid = get_user_call_output.get_user_call_output(format("cat {pid_file}"), user=self.__params.metron_user, is_checked_call=False)[1]
+        process_id_exists_command = format("ls {pid_file} >/dev/null 2>&1 && ps -p {pid} >/dev/null 2>&1")
+
+        # Set the password with env variable instead of param to avoid it showing in ps
+        cmd = format((
+          "export METRON_JDBC_PASSWORD={metron_jdbc_password!p};"
+          "export JAVA_HOME={java_home};"
+          "export METRON_REST_CLASSPATH={metron_rest_classpath};"
+          "export METRON_INDEX_CP={metron_indexing_classpath};"
+          "export METRON_LOG_DIR={metron_log_dir};"
+          "export METRON_PID_FILE={pid_file};"
+          "{metron_home}/bin/metron-rest.sh;"
+          "unset METRON_JDBC_PASSWORD;"
+        ))
+
+        Execute(cmd,
+                user = self.__params.metron_user,
+                logoutput=True,
+                not_if = process_id_exists_command,
+                timeout=60)
         Logger.info('Done starting REST application')
 
     def stop_rest_application(self):
         Logger.info('Stopping REST application')
-        Execute("service metron-rest stop")
+
+        # Get the pid associated with the service
+        pid_file = format("{metron_rest_pid_dir}/{metron_rest_pid}")
+        pid = get_user_call_output.get_user_call_output(format("cat {pid_file}"), user=self.__params.metron_user, is_checked_call=False)[1]
+        process_id_exists_command = format("ls {pid_file} >/dev/null 2>&1 && ps -p {pid} >/dev/null 2>&1")
+
+        if self.__params.security_enabled:
+            kinit(self.__params.kinit_path_local,
+            self.__params.metron_keytab_path,
+            self.__params.metron_principal_name,
+            execute_user=self.__params.metron_user)
+
+        # Politely kill
+        kill_cmd = ('kill', format("{pid}"))
+        Execute(kill_cmd,
+                sudo=True,
+                not_if = format("! ({process_id_exists_command})")
+                )
+
+        # Violently kill
+        hard_kill_cmd = ('kill', '-9', format("{pid}"))
+        wait_time = 5
+        Execute(hard_kill_cmd,
+                not_if = format("! ({process_id_exists_command}) || ( sleep {wait_time} && ! ({process_id_exists_command}) )"),
+                sudo=True,
+                ignore_failures = True
+                )
+
+        try:
+            # check if stopped the process, else fail the task
+            Execute(format("! ({process_id_exists_command})"),
+                tries=20,
+                try_sleep=3,
+                  )
+        except:
+            show_logs(self.__params.metron_log_dir, self.__params.metron_user)
+            raise
+
+        File(pid_file, action = "delete")
         Logger.info('Done stopping REST application')
 
     def restart_rest_application(self, env):
         Logger.info('Restarting the REST application')
-        command = format("service metron-rest restart {metron_jdbc_password!p}")
-        Execute(command)
+        self.stop_rest_application()
+        self.start_rest_application()
         Logger.info('Done restarting the REST application')

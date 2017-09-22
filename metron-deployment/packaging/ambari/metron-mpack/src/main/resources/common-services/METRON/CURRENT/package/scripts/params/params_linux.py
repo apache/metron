@@ -29,6 +29,9 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script import Script
+from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
 
 import status_params
 
@@ -38,6 +41,7 @@ tmp_dir = Script.get_tmp_dir()
 
 hostname = config['hostname']
 metron_home = status_params.metron_home
+
 parsers = status_params.parsers
 parser_error_topic = config['configurations']['metron-parsers-env']['parser_error_topic']
 geoip_hdfs_dir = "/apps/metron/geo/default/"
@@ -169,7 +173,7 @@ HdfsResource = functools.partial(
     dfs_type=dfs_type
 )
 
-# HBase
+# Metron HBase configuration
 enrichment_hbase_provider_impl = 'org.apache.metron.hbase.HTableProvider'
 enrichment_hbase_table = status_params.enrichment_hbase_table
 enrichment_hbase_cf = status_params.enrichment_hbase_cf
@@ -232,6 +236,13 @@ if security_enabled:
 
 # Management UI
 metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", ['localhost'])[0]
+
+# REST
+metron_rest_pid_dir = config['configurations']['metron-rest-env']['metron_rest_pid_dir']
+metron_rest_pid = 'metron-rest.pid'
+metron_indexing_classpath = config['configurations']['metron-rest-env']['metron_indexing_classpath']
+metron_rest_classpath = config['configurations']['metron-rest-env']['metron_rest_classpath']
+metron_sysconfig = config['configurations']['metron-rest-env']['metron_sysconfig']
 
 # Enrichment
 geoip_url = config['configurations']['metron-enrichment-env']['geoip_url']
