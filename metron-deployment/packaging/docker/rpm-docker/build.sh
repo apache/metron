@@ -20,6 +20,7 @@
 # Spec's release, not in the version.  Make sure this is split out based on the acutal version.
 # E.g. 0.2.0BETA becomes 0.2.0 version and BETA prerelease.
 # Empty string is acceptable when there is no prerelease tag.
+
 FULL_VERSION=$1
 echo "FULL_VERSION: ${FULL_VERSION}"
 VERSION=$(echo ${FULL_VERSION} | tr -d '"'"'[:alpha:]'"'"')
@@ -35,8 +36,14 @@ if [ $? -ne 0 ] && [ $OWNER_UID -ne 0 ]; then
     useradd -u $OWNER_UID builder
 fi
 
-rm -rf SRPMS/ RPMS/ && \
-QA_SKIP_BUILD_ROOT=1 rpmbuild -v -ba --define "_topdir $(pwd)" --define "_version ${VERSION}" --define "_prerelease ${PRERELEASE}" SPECS/metron.spec && \
+rm -rf SRPMS/ RPMS/
+
+QA_SKIP_BUILD_ROOT=1 rpmbuild -v -ba --define "_topdir $(pwd)" --define "_version ${VERSION}" --define "_prerelease ${PRERELEASE}" SPECS/metron.spec
+if [ $? -ne 0 ]; then
+  echo "RPM build errors encountered" >&2
+  exit 1
+fi
+
 rpmlint -i SPECS/metron.spec RPMS/*/metron* SRPMS/metron
 
 # Ensure original user permissions are maintained after build
