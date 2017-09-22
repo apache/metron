@@ -77,7 +77,8 @@
                             [(selectedAlerts)]="selectedAlerts"
                             (onResize)="onResize()"
                             (onAddFilter)="onAddFilter($event)"
-                            (onShowDetails)="showDetails($event)"></app-table-view>
+                            (onShowDetails)="showDetails($event)"
+                            (onShowConfigureTable)="showConfigureTable()"></app-table-view>
             <app-tree-view #dataViewComponent *ngIf="queryBuilder.groupRequest.groups.length !== 0"
                            [queryBuilder]="queryBuilder"
                            [alertsColumnsToDisplay]="alertsColumnsToDisplay"

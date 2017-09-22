@@ -114,9 +114,12 @@ This package installs the Metron common files %{metron_home}
 %dir %{metron_root}
 %dir %{metron_home}
 %dir %{metron_home}/bin
+%dir %{metron_home}/config
+%dir %{metron_home}/config/zookeeper
 %dir %{metron_home}/lib
 %{metron_home}/bin/zk_load_configs.sh
 %{metron_home}/bin/stellar
+%{metron_home}/config/zookeeper/global.json
 %attr(0644,root,root) %{metron_home}/lib/metron-common-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

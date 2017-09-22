@@ -55,6 +55,7 @@ export class TableViewComponent {
   @Output() onResize = new EventEmitter<void>();
   @Output() onAddFilter = new EventEmitter<Filter>();
   @Output() onShowDetails = new EventEmitter<Alert>();
+  @Output() onShowConfigureTable = new EventEmitter<Alert>();
   @Output() selectedAlertsChange = new EventEmitter< Alert[]>();
 
   constructor(router: Router,
@@ -171,5 +172,9 @@ export class TableViewComponent {
     for (let selectedAlert of this.selectedAlerts) {
       selectedAlert.source['alert_status'] = status;
     }
+  }
+
+  showConfigureTable() {
+    this.onShowConfigureTable.emit();
   }
 }
