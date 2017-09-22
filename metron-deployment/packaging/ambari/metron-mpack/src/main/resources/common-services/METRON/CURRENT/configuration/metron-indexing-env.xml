@@ -61,6 +61,18 @@
         <display-name>Indexing Writer Class Name</display-name>
     </property>
     <property>
+        <name>update_hbase_table</name>
+        <value>metron_update</value>
+        <description>The HBase table which will hold edits to indexed data</description>
+        <display-name>Indexing Update Table</display-name>
+    </property>
+    <property>
+        <name>update_hbase_cf</name>
+        <value>t</value>
+        <description>The HBase column family which will hold edits to indexed data</description>
+        <display-name>Indexing Update Column Family</display-name>
+    </property>
+    <property>
         <name>indexing_workers</name>
         <description>Number of Indexing Topology Workers</description>
         <value>1</value>

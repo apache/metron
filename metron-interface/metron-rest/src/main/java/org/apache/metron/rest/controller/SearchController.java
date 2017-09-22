@@ -20,6 +20,9 @@ package org.apache.metron.rest.controller;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
+import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
@@ -33,8 +36,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/search")
@@ -48,6 +52,33 @@ public class SearchController {
   @RequestMapping(value = "/search", method = RequestMethod.POST)
   ResponseEntity<SearchResponse> search(final @ApiParam(name = "searchRequest", value = "Search request", required = true) @RequestBody SearchRequest searchRequest) throws RestException {
     return new ResponseEntity<>(searchService.search(searchRequest), HttpStatus.OK);
+  }
+
+  @ApiOperation(value = "Searches the indexing store and returns field groups. "
+      + "Groups are hierarchical and nested in the order the fields appear in the 'groups' request parameter. "
+      + "The default sorting within groups is by count descending.")
+  @ApiResponse(message = "Group response", code = 200)
+  @RequestMapping(value = "/group", method = RequestMethod.POST)
+  ResponseEntity<GroupResponse> group(final @ApiParam(name = "groupRequest", value = "Group request", required = true) @RequestBody GroupRequest groupRequest) throws RestException {
+    return new ResponseEntity<>(searchService.group(groupRequest), HttpStatus.OK);
+  }
+
+  @ApiOperation(value = "Returns latest document for a guid and sensor")
+  @ApiResponse(message = "Document representing the output", code = 200)
+  @RequestMapping(value = "/findOne", method = RequestMethod.POST)
+  ResponseEntity<Map<String, Object>> getLatest(
+          final @ApiParam(name = "getRequest", value = "Get Request", required = true)
+                @RequestBody
+          GetRequest request
+  ) throws RestException
+  {
+    Optional<Map<String, Object>> latest = searchService.getLatest(request);
+    if(latest.isPresent()) {
+      return new ResponseEntity<>(latest.get(), HttpStatus.OK);
+    }
+    else {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
   }
 
   @ApiOperation(value = "Get column metadata for each index in the list of indices")

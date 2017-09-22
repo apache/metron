@@ -203,6 +203,9 @@
         },
         "ttl": {
           "type": "integer"
+        },
+        "alert": {
+          "type": "nested"
         }
       }
     }

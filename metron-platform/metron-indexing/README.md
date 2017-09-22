@@ -11,9 +11,9 @@ from the enrichment topology that have been enriched and storing the data in one
 By default, this topology writes out to both HDFS and one of
 Elasticsearch and Solr.
 
-Indices are written in batch and the batch size is specified in the
-[Sensor Indexing Configuration](#sensor-indexing-configuration) via the `batchSize` parameter.
-This config is variable by sensor type.
+Indices are written in batch and the batch size and batch timeout are specified in the
+[Sensor Indexing Configuration](#sensor-indexing-configuration) via the `batchSize` and `batchTimeout` parameters.
+These configs are variable by sensor type.
 
 ## Indexing Architecture
 
@@ -40,7 +40,10 @@ elasticsearch or solr and hdfs writers running.
 
 The configuration for an individual writer-specific configuration is a JSON map with the following fields:
 * `index` : The name of the index to write to (defaulted to the name of the sensor).
-* `batchSize` : The size of the batch that is written to the indices at once (defaulted to `1`).
+* `batchSize` : The size of the batch that is written to the indices at once. Defaults to `1` (no batching).
+* `batchTimeout` : The timeout after which a batch will be flushed even if batchSize has not been met.  Optional.
+If unspecified, or set to `0`, it defaults to a system-determined duration which is a fraction of the Storm 
+parameter `topology.message.timeout.secs`.  Ignored if batchSize is `1`, since this disables batching.
 * `enabled` : Whether the writer is enabled (default `true`).
 
 ### Indexing Configuration Examples
@@ -56,10 +59,12 @@ or no file at all.
 * elasticsearch writer
   * enabled
   * batch size of 1
+  * batch timeout system default
   * index name the same as the sensor
 * hdfs writer
   * enabled
   * batch size of 1
+  * batch timeout system default
   * index name the same as the sensor
 
 If a writer config is unspecified, then a warning is indicated in the
@@ -72,11 +77,13 @@ Storm console.  e.g.:
    "elasticsearch": {
       "index": "foo",
       "batchSize" : 100,
+      "batchTimeout" : 0,
       "enabled" : true 
     },
    "hdfs": {
       "index": "foo",
       "batchSize": 1,
+      "batchTimeout" : 0,
       "enabled" : true
     }
 }
@@ -84,10 +91,12 @@ Storm console.  e.g.:
 * elasticsearch writer
   * enabled
   * batch size of 100
+  * batch timeout system default
   * index name of "foo"
 * hdfs writer
   * enabled
   * batch size of 1
+  * batch timeout system default
   * index name of "foo"
 
 #### HDFS Writer turned off
@@ -100,6 +109,7 @@ Storm console.  e.g.:
    "hdfs": {
       "index": "foo",
       "batchSize": 100,
+      "batchTimeout" : 0,
       "enabled" : false
     }
 }
@@ -107,9 +117,51 @@ Storm console.  e.g.:
 * elasticsearch writer
   * enabled
   * batch size of 1
+  * batch timeout system default
   * index name of "foo"
 * hdfs writer
   * disabled
+
+# Updates to Indexed Data
+
+There are clear usecases where we would want to incorporate the capability to update indexed data.
+Thus far, we have limited capabilities provided to support this use-case:
+* Updates to the random access index (e.g. Elasticsearch and Solr) should be supported
+* Updates to the cold storage index (e.g. HDFS) is not supported currently, however to support the batch
+use-case updated documents will be provided in a NoSQL write-ahead log (e.g. a HBase table) and an Java API
+will be provided to retrieve those updates scalably (i.e. a scan-free architecture).
+
+Put simply, the random access index will be always up-to-date, but the HDFS index will need to be
+joined to the NoSQL write-ahead log to get current updates.
+
+## The `IndexDao` Abstraction
+
+The indices mentioned above as part of Update should be pluggable by the developer so that
+new write-ahead logs or real-time indices can be supported by providing an implementation supporting
+the data access patterns.
+
+To support a new index, one would need to implement the `org.apache.metron.indexing.dao.IndexDao` abstraction
+and provide update and search capabilities.  IndexDaos may be composed and updates will be performed
+in parallel.  This enables a flexible strategy for specifying your backing store for updates at runtime.
+For instance, currently the REST API supports the update functionality and may be configured with a list of
+IndexDao implementations to use to support the updates.
+
+### The `MetaAlertDao`
+
+The goal of meta alerts is to be able to group together a set of alerts while being able to transparently perform actions
+like searches, as if meta alerts were normal alerts.  `org.apache.metron.indexing.dao.MetaAlertDao` extends `IndexDao` and
+enables a couple extra features: creation of a meta alert and the ability to get all meta alerts associated with an alert.
+
+The implementation of this is to denormalize the relationship between alerts and meta alerts, and store alerts as a nested field within a meta alert.
+The use of nested fields is to avoid the limitations of parent-child relationships (one-to-many) and merely linking by IDs
+(which causes issues with pagination as a result of being unable to join indices).
+
+The search functionality of `IndexDao` is wrapped by the `MetaAlertDao` in order to provide both regular and meta alerts side-by-side with sorting.
+The updating capabilities are similarly wrapped, in order to ensure updates are carried through both the alerts and associated meta alerts.
+Both of these functions are handled under the hood.
+
+In addition, an API endpoint is added for the meta alert specific features of creation and going from meta alert to alert.
+The denormalization handles the case of going from meta alert to alert automatically.
 
 # Notes on Performance Tuning
 

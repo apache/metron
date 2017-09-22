@@ -184,6 +184,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 
 |            |
 | ---------- |
+| [ `POST /api/v1/alert/escalate`](#get-apiv1alertescalate)|
 | [ `GET /api/v1/global/config`](#get-apiv1globalconfig)|
 | [ `DELETE /api/v1/global/config`](#delete-apiv1globalconfig)|
 | [ `POST /api/v1/global/config`](#post-apiv1globalconfig)|
@@ -199,9 +200,14 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/kafka/topic/{name}`](#get-apiv1kafkatopicname)|
 | [ `DELETE /api/v1/kafka/topic/{name}`](#delete-apiv1kafkatopicname)|
 | [ `GET /api/v1/kafka/topic/{name}/sample`](#get-apiv1kafkatopicnamesample)|
+| [ `GET /api/v1/metaalert/searchByAlert`](#get-apiv1metaalertsearchbyalert)|
+| [ `GET /api/v1/metaalert/create`](#get-apiv1metaalertcreate)|
 | [ `GET /api/v1/search/search`](#get-apiv1searchsearch)|
-| [ `GET /api/v1/search/search`](#get-apiv1searchcolumnmetadata)|
-| [ `GET /api/v1/search/search`](#get-apiv1searchcolumnmetadatacommon)|
+| [ `POST /api/v1/search/search`](#get-apiv1searchsearch)|
+| [ `POST /api/v1/search/group`](#get-apiv1searchgroup)|
+| [ `GET /api/v1/search/findOne`](#get-apiv1searchfindone)|
+| [ `GET /api/v1/search/column/metadata`](#get-apiv1searchcolumnmetadata)|
+| [ `GET /api/v1/search/column/metadata/common`](#get-apiv1searchcolumnmetadatacommon)|
 | [ `GET /api/v1/sensor/enrichment/config`](#get-apiv1sensorenrichmentconfig)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available/enrichments`](#get-apiv1sensorenrichmentconfiglistavailableenrichments)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available/threat/triage/aggregators`](#get-apiv1sensorenrichmentconfiglistavailablethreattriageaggregators)|
@@ -242,7 +248,16 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/storm/parser/stop/{name}`](#get-apiv1stormparserstopname)|
 | [ `GET /api/v1/storm/{name}`](#get-apiv1stormname)|
 | [ `GET /api/v1/storm/supervisors`](#get-apiv1stormsupervisors)|
+| [ `PATCH /api/v1/update/patch`](#patch-apiv1updatepatch)|
+| [ `PUT /api/v1/update/replace`](#patch-apiv1updatereplace)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
+
+### `POST /api/v1/alert/escalate`
+  * Description: Escalates a list of alerts by producing it to the Kafka escalate topic
+  * Input:
+    * alerts - The alerts to be escalated
+  * Returns:
+    * 200 - Alerts were escalated
 
 ### `GET /api/v1/global/config`
   * Description: Retrieves the current Global Config from Zookeeper
@@ -284,10 +299,13 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - JSON results
 
 ### `POST /api/v1/hdfs`
-  * Description: Writes contents to an HDFS file.  Warning: this will overwrite the contents of a file if it already exists.
+  * Description: Writes contents to an HDFS file.  Warning: this will overwrite the contents of a file if it already exists. Permissions must be set for all three groups if they are to be set. If any are missing, the default permissions will be used, and if any are invalid an exception will be thrown.
   * Input:
     * path - Path to HDFS file
     * contents - File contents
+    * userMode - [optional] symbolic permission string for user portion of the permissions to be set on the file written. For example 'rwx' or read, write, execute. The symbol '-' is used to exclude that permission such as 'rw-' for read, write, no execute
+    * groupMode - [optional] symbolic permission string for group portion of the permissions to be set on the file written. For example 'rwx' or read, write, execute. The symbol '-' is used to exclude that permission such as 'rw-' for read, write, no execute
+    * otherMode - [optional] symbolic permission string for other portion of the permissions to be set on the file written. For example 'rwx' or read, write, execute. The symbol '-' is used to exclude that permission such as 'rw-' for read, write, no execute
   * Returns:
     * 200 - Contents were written
 
@@ -350,12 +368,55 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - Returns sample message
     * 404 - Either Kafka topic is missing or contains no messages
 
-### `GET /api/v1/search/search`
+### `POST /api/v1/metaalert/searchByAlert`
+  * Description: Searches meta alerts to find any containing an alert for the provided GUID
+  * Input:
+    * guid - GUID of the alert
+  * Returns:
+    * 200 - Returns the meta alerts associated with this alert
+    * 404 - The child alert isn't found
+
+### `POST /api/v1/metaalert/create`
+  * Description: Creates a meta alert containing the provide alerts
+  * Input:
+    * request - Meta Alert Create Request
+  * Returns:
+    * 200 - The meta alert was created
+
+### `POST /api/v1/search/search`
   * Description: Searches the indexing store
   * Input:
       * searchRequest - Search request
   * Returns:
-    * 200 - Search results
+    * 200 - Search response
+    
+### `POST /api/v1/search/group`
+  * Description: Searches the indexing store and returns field groups. Groups are hierarchical and nested in the order the fields appear in the 'groups' request parameter. The default sorting within groups is by count descending.  A groupOrder type of count will sort based on then number of documents in a group while a groupType of term will sort by the groupBy term.
+  * Input:
+      * groupRequest - Group request
+        * indices - list of indices to search
+        * query - lucene query
+        * scoreField - field used to compute a total score for each group
+        * groups - List of groups (field name and sort order) 
+  * Returns:
+    * 200 - Group response
+    
+### `GET /api/v1/search/findOne`
+  * Description: Returns latest document for a guid and sensor
+  * Input:
+      * getRequest - Get request
+        * guid - message UUID
+        * sensorType - Sensor Type
+      * Example: Return `bro` document with UUID of `000-000-0000`
+```
+{
+  "guid" : "000-000-0000",
+  "sensorType" : "bro"
+}
+```
+  * Returns:
+    * 200 - Document representing the output
+    * 404 - Document with UUID and sensor type not found
     
 ### `GET /api/v1/search/column/metadata`
   * Description: Get column metadata for each index in the list of indicies
@@ -623,6 +684,56 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Description: Retrieves the status of all Storm Supervisors
   * Returns:
     * 200 - Returns a list of the status of all Storm Supervisors 
+
+### `PATCH /api/v1/update/patch`
+  * Description: Update a document with a patch
+  * Input:
+    * request - Patch Request
+      * guid - The Patch UUID
+      * sensorType - The sensor type
+      * patch - An array of [RFC 6902](https://tools.ietf.org/html/rfc6902) patches.
+    * Example adding a field called `project` with value `metron` to the `bro` message with UUID of `000-000-0000` :
+  ```
+  {
+     "guid" : "000-000-0000",
+     "sensorType" : "bro",
+     "patch" : [
+      {
+                "op": "add"
+               , "path": "/project"
+               , "value": "metron"
+      }
+              ]
+   }
+  ```
+  * Returns:
+    * 200 - nothing
+    * 404 - document not found
+
+### `PUT /api/v1/update/replace`
+  * Description: Replace a document
+  * Input:
+    * request - Replacement request
+      * guid - The Patch UUID
+      * sensorType - The sensor type
+      * replacement - A Map representing the replaced document
+    * Example replacing a `bro` message with guid of `000-000-0000`
+```
+   {
+     "guid" : "000-000-0000",
+     "sensorType" : "bro",
+     "replacement" : {
+       "source:type": "bro",
+       "guid" : "bro_index_2017.01.01.01:1",
+       "ip_src_addr":"192.168.1.2",
+       "ip_src_port": 8009,
+       "timestamp":200,
+       "rejected":false
+      }
+   }
+```
+  * Returns:
+    * 200 - Current user
 
 ### `GET /api/v1/user`
   * Description: Retrieves the current user

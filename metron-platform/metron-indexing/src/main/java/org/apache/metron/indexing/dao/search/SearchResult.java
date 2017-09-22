@@ -24,7 +24,24 @@ public class SearchResult {
   private String id;
   private Map<String, Object> source;
   private float score;
+  private String index;
 
+  /**
+   * The index that the result comes from
+   * @return
+   */
+  public String getIndex() {
+    return index;
+  }
+
+  public void setIndex(String index) {
+    this.index = index;
+  }
+
+  /**
+   * The ID of the document from the index.
+   * @return
+   */
   public String getId() {
     return id;
   }
@@ -33,6 +50,10 @@ public class SearchResult {
     this.id = id;
   }
 
+  /**
+   * The source (the actual result).
+   * @return
+   */
   public Map<String, Object> getSource() {
     return source;
   }
@@ -41,11 +62,25 @@ public class SearchResult {
     this.source = source;
   }
 
+  /**
+   * The score from the index.
+   * @return
+   */
   public float getScore() {
     return score;
   }
 
   public void setScore(float score) {
     this.score = score;
+  }
+
+  @Override
+  public String toString() {
+    return "SearchResult{" +
+        "id='" + id + '\'' +
+        ", source=" + source +
+        ", score=" + score +
+        ", index='" + index + '\'' +
+        '}';
   }
 }

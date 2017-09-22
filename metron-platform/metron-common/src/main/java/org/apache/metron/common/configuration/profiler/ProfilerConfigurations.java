@@ -48,6 +48,6 @@ public class ProfilerConfigurations extends Configurations {
   }
 
   private String getKey() {
-    return ConfigurationType.PROFILER.getName();
+    return ConfigurationType.PROFILER.getTypeName();
   }
 }

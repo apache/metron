@@ -19,6 +19,7 @@ limitations under the License.
 """
 import os
 
+from datetime import datetime
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 from resource_management.libraries.functions.format import format
@@ -40,15 +41,17 @@ class RestCommands:
         return self.__acl_configured
 
     def set_acl_configured(self):
-        File(self.__params.rest_acl_configured_flag_file,
-             content="",
-             owner=self.__params.metron_user,
-             mode=0755)
+        metron_service.set_configured(self.__params.metron_user, self.__params.rest_acl_configured_flag_file, "Setting REST ACL configured to true")
+
+    def init_kafka_topics(self):
+        Logger.info('Creating Kafka topics for rest')
+        topics = [self.__params.metron_escalation_topic]
+        metron_service.init_kafka_topics(self.__params, topics)
 
     def init_kafka_acls(self):
         Logger.info('Creating Kafka ACLs for rest')
         # The following topics must be permissioned for the rest application list operation
-        topics = [self.__params.ambari_kafka_service_check_topic, self.__params.consumer_offsets_topic]
+        topics = [self.__params.ambari_kafka_service_check_topic, self.__params.consumer_offsets_topic, self.__params.metron_escalation_topic]
         metron_service.init_kafka_acls(self.__params, topics, ['metron-rest'])
 
     def start_rest_application(self):

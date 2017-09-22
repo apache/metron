@@ -18,6 +18,7 @@ limitations under the License.
 import os
 import time
 
+from datetime import datetime
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 
@@ -33,6 +34,8 @@ class IndexingCommands:
     __configured = False
     __acl_configured = False
     __hdfs_perm_configured = False
+    __hbase_configured = False
+    __hbase_acl_configured = False
 
     def __init__(self, params):
         if params is None:
@@ -42,6 +45,9 @@ class IndexingCommands:
         self.__indexing_topic = params.indexing_input_topic
         self.__configured = os.path.isfile(self.__params.indexing_configured_flag_file)
         self.__acl_configured = os.path.isfile(self.__params.indexing_acl_configured_flag_file)
+        self.__hbase_configured = os.path.isfile(self.__params.indexing_hbase_configured_flag_file)
+        self.__hbase_acl_configured = os.path.isfile(self.__params.indexing_hbase_acl_configured_flag_file)
+        self.__hdfs_perm_configured = os.path.isfile(self.__params.indexing_hdfs_perm_configured_flag_file)
 
     def is_configured(self):
         return self.__configured
@@ -52,30 +58,73 @@ class IndexingCommands:
     def is_hdfs_perm_configured(self):
         return self.__hdfs_perm_configured
 
+    def is_hbase_configured(self):
+        return self.__hbase_configured
+
+    def is_hbase_acl_configured(self):
+        return self.__hbase_acl_configured
+
     def set_configured(self):
-        File(self.__params.indexing_configured_flag_file,
-             content="",
-             owner=self.__params.metron_user,
-             mode=0755)
+        metron_service.set_configured(self.__params.metron_user, self.__params.indexing_configured_flag_file, "Setting Indexing configured to True")
+
+    def set_hbase_configured(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.indexing_hbase_configured_flag_file, "Setting HBase configured to True for indexing")
+
+    def set_hbase_acl_configured(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.indexing_hbase_acl_configured_flag_file, "Setting HBase ACL configured to True for indexing")
 
     def set_acl_configured(self):
-        File(self.__params.indexing_acl_configured_flag_file,
-             content="",
-             owner=self.__params.metron_user,
-             mode=0755)
+        metron_service.set_configured(self.__params.metron_user, self.__params.indexing_acl_configured_flag_file, "Setting Indexing ACL configured to True")
 
     def set_hdfs_perm_configured(self):
-        File(self.__params.indexing_hdfs_perm_configured_flag_file,
-             content="",
-             owner=self.__params.metron_user,
-             mode=0755)
+        metron_service.set_configured(self.__params.metron_user, self.__params.indexing_hdfs_perm_configured_flag_file, "Setting HDFS perm configured to True")
+
+    def create_hbase_tables(self):
+        Logger.info("Creating HBase Tables for indexing")
+        if self.__params.security_enabled:
+            metron_security.kinit(self.__params.kinit_path_local,
+                  self.__params.hbase_keytab_path,
+                  self.__params.hbase_principal_name,
+                  execute_user=self.__params.hbase_user)
+        cmd = "echo \"create '{0}','{1}'\" | hbase shell -n"
+        add_update_cmd = cmd.format(self.__params.update_hbase_table, self.__params.update_hbase_cf)
+        Execute(add_update_cmd,
+                tries=3,
+                try_sleep=5,
+                logoutput=False,
+                path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+                user=self.__params.hbase_user
+                )
+
+        Logger.info("Done creating HBase Tables for indexing")
+        self.set_hbase_configured()
+
+    def set_hbase_acls(self):
+        Logger.info("Setting HBase ACLs for indexing")
+        if self.__params.security_enabled:
+            metron_security.kinit(self.__params.kinit_path_local,
+                  self.__params.hbase_keytab_path,
+                  self.__params.hbase_principal_name,
+                  execute_user=self.__params.hbase_user)
+        cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n"
+        add_update_acl_cmd = cmd.format(self.__params.metron_user, self.__params.update_hbase_table)
+        Execute(add_update_acl_cmd,
+                tries=3,
+                try_sleep=5,
+                logoutput=False,
+                path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+                user=self.__params.hbase_user
+                )
+
+        Logger.info("Done setting HBase ACLs for indexing")
+        self.set_hbase_acl_configured()
 
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics for indexing')
         metron_service.init_kafka_topics(self.__params, [self.__indexing_topic])
 
     def init_kafka_acls(self):
-        Logger.info('Creating Kafka ACLs')
+        Logger.info('Creating Kafka ACLs for indexing')
         # Indexed topic names matches the group
         metron_service.init_kafka_acls(self.__params, [self.__indexing_topic], [self.__indexing_topic])
 
@@ -104,13 +153,14 @@ class IndexingCommands:
                                       self.__params.metron_keytab_path,
                                       self.__params.metron_principal_name,
                                       execute_user=self.__params.metron_user)
+
             start_cmd_template = """{0}/bin/start_elasticsearch_topology.sh \
-                                    -s {1} \
-                                    -z {2}"""
-            Execute(start_cmd_template.format(self.__params.metron_home,
-                                              self.__indexing_topology,
-                                              self.__params.zookeeper_quorum),
-                    user=self.__params.metron_user)
+                                        -s {1} \
+                                        -z {2}"""
+            start_cmd = start_cmd_template.format(self.__params.metron_home,
+                                                  self.__indexing_topology,
+                                                  self.__params.zookeeper_quorum)
+            Execute(start_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
 
         else:
             Logger.info('Indexing topology already running')
@@ -127,7 +177,7 @@ class IndexingCommands:
                                       self.__params.metron_principal_name,
                                       execute_user=self.__params.metron_user)
             stop_cmd = 'storm kill ' + self.__indexing_topology
-            Execute(stop_cmd, user=self.__params.metron_user)
+            Execute(stop_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
 
         else:
             Logger.info("Indexing topology already stopped")

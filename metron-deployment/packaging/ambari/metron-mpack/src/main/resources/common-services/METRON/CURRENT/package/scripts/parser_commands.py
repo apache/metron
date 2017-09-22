@@ -23,6 +23,7 @@ import re
 import subprocess
 import time
 
+from datetime import datetime
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 
@@ -56,16 +57,10 @@ class ParserCommands:
         return self.__acl_configured
 
     def set_configured(self):
-        File(self.__params.parsers_configured_flag_file,
-             content="",
-             owner=self.__params.metron_user,
-             mode=0755)
+        metron_service.set_configured(self.__params.metron_user, self.__params.parsers_configured_flag_file, "Setting Parsers configured to true")
 
     def set_acl_configured(self):
-        File(self.__params.parsers_acl_configured_flag_file,
-             content="",
-             owner=self.__params.metron_user,
-             mode=0755)
+        metron_service.set_configured(self.__params.metron_user, self.__params.parsers_acl_configured_flag_file, "Setting Parsers ACL configured to true")
 
     def init_parsers(self):
         Logger.info(
@@ -77,7 +72,8 @@ class ParserCommands:
                                    action="create_on_execute",
                                    owner=self.__params.metron_user,
                                    mode=0755,
-                                   source=self.__params.local_grok_patterns_dir)
+                                   source=self.__params.local_grok_patterns_dir,
+                                   recursive_chown = True)
 
         Logger.info("Done initializing parser configuration")
 
@@ -123,12 +119,12 @@ class ParserCommands:
 
         for parser in stopped_parsers:
             Logger.info('Starting ' + parser)
-            Execute(start_cmd_template.format(self.__params.metron_home,
-                                              self.__params.kafka_brokers,
-                                              self.__params.zookeeper_quorum,
-                                              parser,
-                                              self.__params.kafka_security_protocol),
-                    user=self.__params.metron_user)
+            start_cmd = start_cmd_template.format(self.__params.metron_home,
+                                                  self.__params.kafka_brokers,
+                                                  self.__params.zookeeper_quorum,
+                                                  parser,
+                                                  self.__params.kafka_security_protocol)
+            Execute(start_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
 
         Logger.info('Finished starting parser topologies')
 
@@ -146,7 +142,7 @@ class ParserCommands:
                                       self.__params.metron_keytab_path,
                                       self.__params.metron_principal_name,
                                       execute_user=self.__params.metron_user)
-            Execute(stop_cmd, user=self.__params.metron_user)
+            Execute(stop_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
         Logger.info('Done stopping parser topologies')
 
     def restart_parser_topologies(self, env):

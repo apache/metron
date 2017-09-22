@@ -17,13 +17,35 @@
  */
 package org.apache.metron.indexing.dao;
 
+import org.apache.metron.hbase.TableProvider;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class AccessConfig {
   private Integer maxSearchResults;
+  private Integer maxSearchGroups;
+  private Supplier<Map<String, Object>> globalConfigSupplier;
   private Map<String, String> optionalSettings = new HashMap<>();
+  private TableProvider tableProvider = null;
 
+  /**
+   * A supplier which will return the current global config.
+   * @return
+   */
+  public Supplier<Map<String, Object>> getGlobalConfigSupplier() {
+    return globalConfigSupplier;
+  }
+
+  public void setGlobalConfigSupplier(Supplier<Map<String, Object>> globalConfigSupplier) {
+    this.globalConfigSupplier = globalConfigSupplier;
+  }
+
+  /**
+   * The maximum search result.
+   * @return
+   */
   public Integer getMaxSearchResults() {
     return maxSearchResults;
   }
@@ -32,6 +54,22 @@ public class AccessConfig {
     this.maxSearchResults = maxSearchResults;
   }
 
+  /**
+   * The maximum search groups.
+   * @return
+   */
+  public Integer getMaxSearchGroups() {
+    return maxSearchGroups;
+  }
+
+  public void setMaxSearchGroups(Integer maxSearchGroups) {
+    this.maxSearchGroups = maxSearchGroups;
+  }
+
+  /**
+   * Get optional settings for initializing indices.
+   * @return
+   */
   public Map<String, String> getOptionalSettings() {
     return optionalSettings;
   }
@@ -39,4 +77,17 @@ public class AccessConfig {
   public void setOptionalSettings(Map<String, String> optionalSettings) {
     this.optionalSettings = optionalSettings;
   }
+
+  /**
+   * Return the table provider to use for NoSql DAOs
+   * @return
+   */
+  public TableProvider getTableProvider() {
+    return tableProvider;
+  }
+
+  public void setTableProvider(TableProvider tableProvider) {
+    this.tableProvider = tableProvider;
+  }
+
 }

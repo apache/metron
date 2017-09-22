@@ -40,7 +40,11 @@ class ParserMaster(Script):
     def configure(self, env, upgrade_type=None, config_dir=None):
         from params import params
         env.set_params(params)
-        metron_service.load_global_config(params)
+
+        if not metron_service.is_zk_configured(params):
+            metron_service.init_zk_config(params)
+            metron_service.set_zk_configured(params)
+        metron_service.refresh_configs(params)
         commands = ParserCommands(params)
         if not commands.is_configured():
             commands.init_parsers()

@@ -17,6 +17,7 @@ limitations under the License.
 
 import os
 import time
+from datetime import datetime
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 
@@ -52,49 +53,29 @@ class EnrichmentCommands:
     def is_kafka_acl_configured(self):
         return self.__kafka_acl_configured
 
-    def set_kafka_configured(self):
-        Logger.info("Setting Kafka Configured to True")
-        File(self.__params.enrichment_kafka_configured_flag_file,
-             content="",
-             owner=self.__params.metron_user,
-             mode=0755)
-
-    def set_kafka_acl_configured(self):
-        Logger.info("Setting Kafka ACL Configured to True")
-        File(self.__params.enrichment_kafka_acl_configured_flag_file,
-             content="",
-             owner=self.__params.metron_user,
-             mode=0755)
-
     def is_hbase_configured(self):
         return self.__hbase_configured
 
     def is_hbase_acl_configured(self):
         return self.__hbase_acl_configured
 
-    def set_hbase_configured(self):
-        Logger.info("Setting HBase Configured to True")
-        File(self.__params.enrichment_hbase_configured_flag_file,
-             content="",
-             owner=self.__params.metron_user,
-             mode=0755)
-
-    def set_hbase_acl_configured(self):
-        Logger.info("Setting HBase ACL Configured to True")
-        File(self.__params.enrichment_hbase_acl_configured_flag_file,
-             content="",
-             owner=self.__params.metron_user,
-             mode=0755)
-
     def is_geo_configured(self):
         return self.__geo_configured
 
+    def set_kafka_configured(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_kafka_configured_flag_file, "Setting Kafka configured to True for enrichment")
+
+    def set_kafka_acl_configured(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_kafka_acl_configured_flag_file, "Setting Kafka ACL configured to True for enrichment")
+
+    def set_hbase_configured(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_hbase_configured_flag_file, "Setting HBase configured to True for enrichment")
+
+    def set_hbase_acl_configured(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_hbase_acl_configured_flag_file, "Setting HBase ACL configured to True for enrichment")
+
     def set_geo_configured(self):
-        Logger.info("Setting GEO Configured to True")
-        File(self.__params.enrichment_geo_configured_flag_file,
-             content="",
-             owner=self.__params.metron_user,
-             mode=0755)
+        metron_service.set_configured(self.__params.metron_user, self.__params.enrichment_geo_configured_flag_file, "Setting GEO configured to True for enrichment")
 
     def init_geo(self):
         Logger.info("Creating HDFS location for GeoIP database")
@@ -144,10 +125,10 @@ class EnrichmentCommands:
                                         -s {1} \
                                         -z {2}"""
             Logger.info('Starting ' + self.__enrichment_topology)
-            Execute(start_cmd_template.format(self.__params.metron_home,
-                                              self.__enrichment_topology,
-                                              self.__params.zookeeper_quorum),
-                    user=self.__params.metron_user)
+            start_cmd = start_cmd_template.format(self.__params.metron_home,
+                                                  self.__enrichment_topology,
+                                                  self.__params.zookeeper_quorum)
+            Execute(start_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
         else:
             Logger.info('Enrichment topology already running')
 
@@ -158,7 +139,7 @@ class EnrichmentCommands:
 
         if self.is_topology_active(env):
             stop_cmd = 'storm kill ' + self.__enrichment_topology
-            Execute(stop_cmd, user=self.__params.metron_user)
+            Execute(stop_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
         else:
             Logger.info("Enrichment topology already stopped")
 
@@ -202,7 +183,7 @@ class EnrichmentCommands:
                   self.__params.hbase_principal_name,
                   execute_user=self.__params.hbase_user)
         cmd = "echo \"create '{0}','{1}'\" | hbase shell -n"
-        add_enrichment_cmd = cmd.format(self.__params.enrichment_table, self.__params.enrichment_cf)
+        add_enrichment_cmd = cmd.format(self.__params.enrichment_hbase_table, self.__params.enrichment_hbase_cf)
         Execute(add_enrichment_cmd,
                 tries=3,
                 try_sleep=5,
@@ -211,7 +192,7 @@ class EnrichmentCommands:
                 user=self.__params.hbase_user
                 )
 
-        add_threatintel_cmd = cmd.format(self.__params.threatintel_table, self.__params.threatintel_cf)
+        add_threatintel_cmd = cmd.format(self.__params.threatintel_hbase_table, self.__params.threatintel_hbase_cf)
         Execute(add_threatintel_cmd,
                 tries=3,
                 try_sleep=5,
@@ -231,7 +212,7 @@ class EnrichmentCommands:
                   self.__params.hbase_principal_name,
                   execute_user=self.__params.hbase_user)
         cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n"
-        add_enrichment_acl_cmd = cmd.format(self.__params.metron_user, self.__params.enrichment_table)
+        add_enrichment_acl_cmd = cmd.format(self.__params.metron_user, self.__params.enrichment_hbase_table)
         Execute(add_enrichment_acl_cmd,
                 tries=3,
                 try_sleep=5,
@@ -240,7 +221,7 @@ class EnrichmentCommands:
                 user=self.__params.hbase_user
                 )
 
-        add_threatintel_acl_cmd = cmd.format(self.__params.metron_user, self.__params.threatintel_table)
+        add_threatintel_acl_cmd = cmd.format(self.__params.metron_user, self.__params.threatintel_hbase_table)
         Execute(add_threatintel_acl_cmd,
                 tries=3,
                 try_sleep=5,

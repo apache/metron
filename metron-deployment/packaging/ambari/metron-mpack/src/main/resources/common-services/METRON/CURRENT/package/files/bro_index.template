@@ -151,6 +151,9 @@
           "type": "string",
           "index": "not_analyzed"
         },
+        "alert": {
+          "type": "nested"
+        },
         "ip_src_addr": {
           "type": "ip"
         },

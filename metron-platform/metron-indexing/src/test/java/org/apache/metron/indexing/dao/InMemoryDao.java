@@ -24,11 +24,13 @@ import com.google.common.collect.Iterables;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.*;
+import org.apache.metron.indexing.dao.update.Document;
 
 import java.io.IOException;
 import java.util.*;
 
 public class InMemoryDao implements IndexDao {
+  // Map from index to list of documents as JSON strings
   public static Map<String, List<String>> BACKING_STORE = new HashMap<>();
   public static Map<String, Map<String, FieldType>> COLUMN_METADATA;
   private AccessConfig config;
@@ -75,6 +77,27 @@ public class InMemoryDao implements IndexDao {
     return ret;
   }
 
+  @Override
+  public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
+    GroupResponse groupResponse = new GroupResponse();
+    groupResponse.setGroupedBy(groupRequest.getGroups().get(0).getField());
+    groupResponse.setGroupResults(getGroupResults(groupRequest.getGroups(), 0));
+    return groupResponse;
+  }
+
+  private List<GroupResult> getGroupResults(List<Group> groups, int index) {
+    Group group = groups.get(index);
+    GroupResult groupResult = new GroupResult();
+    groupResult.setKey(group.getField() + "_value");
+    if (index < groups.size() - 1) {
+      groupResult.setGroupedBy(groups.get(index + 1).getField());
+      groupResult.setGroupResults(getGroupResults(groups, index + 1));
+    } else {
+      groupResult.setScore(50.0);
+    }
+    groupResult.setTotal(10);
+    return Collections.singletonList(groupResult);
+  }
 
   private static class ComparableComparator implements Comparator<Comparable>  {
     SortOrder order = null;
@@ -101,6 +124,9 @@ public class InMemoryDao implements IndexDao {
   }
 
   private static boolean isMatch(String query, Map<String, Object> doc) {
+    if (query == null) {
+      return false;
+    }
     if(query.equals("*")) {
       return true;
     }
@@ -108,12 +134,36 @@ public class InMemoryDao implements IndexDao {
       Iterable<String> splits = Splitter.on(":").split(query.trim());
       String field = Iterables.getFirst(splits, "");
       String val = Iterables.getLast(splits, "");
-      Object o = doc.get(field);
-      if(o == null) {
+
+      // Immediately quit if there's no value ot find
+      if (val == null) {
         return false;
       }
-      else {
-        return o.equals(val);
+
+      // Check if we're looking into a nested field.  The '|' is arbitrarily chosen.
+      String nestingField = null;
+      if (field.contains("|")) {
+        Iterable<String> fieldSplits = Splitter.on('|').split(field);
+        nestingField = Iterables.getFirst(fieldSplits, null);
+        field = Iterables.getLast(fieldSplits, null);
+      }
+      if (nestingField == null) {
+        // Just grab directly
+        Object o = doc.get(field);
+        return val.equals(o);
+      } else {
+        // We need to look into a nested field for the value
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> nestedList = (List<Map<String, Object>>) doc.get(nestingField);
+        if (nestedList == null) {
+          return false;
+        } else {
+          for (Map<String, Object> nestedEntry : nestedList) {
+            if (val.equals(nestedEntry.get(field))) {
+              return true;
+            }
+          }
+        }
       }
     }
     return false;
@@ -129,11 +179,41 @@ public class InMemoryDao implements IndexDao {
   }
 
   @Override
-  public void init(Map<String, Object> globalConfig, AccessConfig config) {
+  public void init(AccessConfig config) {
     this.config = config;
   }
 
   @Override
+  public Document getLatest(String guid, String sensorType) throws IOException {
+    for(Map.Entry<String, List<String>> kv: BACKING_STORE.entrySet()) {
+      if(kv.getKey().startsWith(sensorType)) {
+        for(String doc : kv.getValue()) {
+          Map<String, Object> docParsed = parse(doc);
+          if(docParsed.getOrDefault(Constants.GUID, "").equals(guid)) {
+            return new Document(doc, guid, sensorType, 0L);
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public void update(Document update, Optional<String> index) throws IOException {
+    for (Map.Entry<String, List<String>> kv : BACKING_STORE.entrySet()) {
+      if (kv.getKey().startsWith(update.getSensorType())) {
+        for (Iterator<String> it = kv.getValue().iterator(); it.hasNext(); ) {
+          String doc = it.next();
+          Map<String, Object> docParsed = parse(doc);
+          if (docParsed.getOrDefault(Constants.GUID, "").equals(update.getGuid())) {
+            it.remove();
+          }
+        }
+        kv.getValue().add(JSONUtils.INSTANCE.toJSON(update.getDocument(), true));
+      }
+    }
+  }
+
   public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException {
     Map<String, Map<String, FieldType>> columnMetadata = new HashMap<>();
     for(String index: indices) {

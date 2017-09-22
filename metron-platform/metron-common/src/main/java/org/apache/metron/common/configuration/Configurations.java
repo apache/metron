@@ -40,7 +40,7 @@ public class Configurations implements Serializable {
 
   @SuppressWarnings("unchecked")
   public Map<String, Object> getGlobalConfig() {
-    return (Map<String, Object>) configurations.getOrDefault(ConfigurationType.GLOBAL.getName(), new HashMap());
+    return (Map<String, Object>) configurations.getOrDefault(ConfigurationType.GLOBAL.getTypeName(), new HashMap());
   }
 
   public List<FieldValidator> getFieldValidations() {
@@ -59,7 +59,7 @@ public class Configurations implements Serializable {
   }
 
   public void updateGlobalConfig(Map<String, Object> globalConfig) {
-    configurations.put(ConfigurationType.GLOBAL.getName(), globalConfig);
+    configurations.put(ConfigurationType.GLOBAL.getTypeName(), globalConfig);
     validations = FieldValidator.readValidations(getGlobalConfig());
   }
 
