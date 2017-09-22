@@ -175,6 +175,7 @@ public class MathFunctionsTest {
   public void testIsNaN() {
     Assert.assertTrue(runPredicate("IS_NAN(NaN)", new HashMap<>()));
     Assert.assertFalse(runPredicate("IS_NAN(1.0)", new HashMap<>()));
+    Assert.assertTrue(runPredicate("IS_NAN(0.0/0.0)",new HashMap<>()));
   }
 
   @Test(expected = ParseException.class)
