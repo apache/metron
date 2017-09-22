@@ -184,11 +184,6 @@ $searchbox-height: 42px;
   cursor: pointer;
 }
 
-.configure-table-icon {
-  font-size: 16px;
-  cursor: pointer;
-}
-
 .pause-play {
   height: 38px;
   padding: 0px;
@@ -230,10 +225,6 @@ $searchbox-height: 42px;
     font-size: 0.8em;
     min-height: 38px;
   }
-}
-
-.table-wrapper {
-  min-height: calc(100vh - 250px);
 }
 
 .ace_editor {
