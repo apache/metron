@@ -15,5 +15,4 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-SCRIPTS_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-$SCRIPTS_ROOT/../node_modules/@angular/cli/bin/ng serve -environment e2e --proxy-config proxy.conf.json $@
+curl -s -XDELETE "http://node1:9200/alerts_ui_e2e_index"

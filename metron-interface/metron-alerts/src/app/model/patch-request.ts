@@ -15,7 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const environment = {
-  production: true,
-  indices: null
-};
+export class PatchRequest {
+  guid: string;
+  sensorType: string;
+  index: string;
+  patch: {};
+  source: {};
+}
