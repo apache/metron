@@ -26,13 +26,13 @@ import org.apache.metron.common.configuration.enrichment.threatintel.RuleScore;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatIntelConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatScore;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
+import org.apache.metron.stellar.common.StellarPredicateProcessor;
+import org.apache.metron.stellar.common.StellarProcessor;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.MapVariableResolver;
 import org.apache.metron.stellar.dsl.VariableResolver;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
-import org.apache.metron.stellar.common.StellarPredicateProcessor;
-import org.apache.metron.stellar.common.StellarProcessor;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -96,13 +96,26 @@ public class ThreatTriageProcessor implements Function<Map, ThreatScore> {
     Aggregators aggregators = threatTriageConfig.getAggregator();
     List<Number> allScores = threatScore.getRuleScores().stream().map(score -> score.getRule().getScore()).collect(Collectors.toList());
     Double aggregateScore = aggregators.aggregate(allScores, threatTriageConfig.getAggregationConfig());
-    // return the overall threat score
     threatScore.setScore(aggregateScore);
+
     return threatScore;
   }
 
   private <T> T execute(String expression, StellarProcessor processor, VariableResolver resolver, Class<T> clazz) {
     Object result = processor.parse(expression, resolver, functionResolver, context);
     return ConversionUtils.convert(result, clazz);
+  }
+
+  public List<RiskLevelRule> getRiskLevelRules() {
+    return threatTriageConfig.getRiskLevelRules();
+  }
+
+  public SensorEnrichmentConfig getSensorConfig() {
+    return sensorConfig;
+  }
+
+  @Override
+  public String toString() {
+    return String.format("ThreatTriage{%d rule(s)}", threatTriageConfig.getRiskLevelRules().size());
   }
 }
