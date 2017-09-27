@@ -40,17 +40,7 @@
 
 1. Copy the `$METRON_HOME/bin/metron-alerts-ui` script to `/etc/init.d/metron-alerts-ui`
 
-1. [Express](https://expressjs.com/) is installed at `$METRON_HOME/web/expressjs/` as part of the Management UI installation process.  The Management UI should be installeed first on the same host as the Alerts UI.
-
-### From Package Manager
-
-1. Deploy the RPM at `/metron/metron-deployment/packaging/docker/rpm-docker/target/RPMS/noarch/metron-alerts-$METRON_VERSION-*.noarch.rpm`
-
-1. Install the RPM with:
-
-    ```
-    rpm -ih metron-alerts-$METRON_VERSION-*.noarch.rpm
-    ```
+1. [Express](https://expressjs.com/) is installed at `$METRON_HOME/web/expressjs/` as part of the Management UI installation process.  The Management UI should be installed first on the same host as the Alerts UI.
 
 ## Configuration
 
@@ -72,7 +62,7 @@ After configuration is complete, the Management UI can be managed as a service:
 service metron-alerts-ui start
 ```
 
-The application will be available at http://host:4201 assuming the port is set to `4201`.  Logs can be found at `/var/log/metron/metron-management-ui.log`.
+The application will be available at http://host:4201 assuming the port is set to `4201`.  Logs can be found at `/var/log/metron/metron-alerts-ui.log`.
 
 ## Development Setup
 
@@ -85,7 +75,7 @@ The application will be available at http://host:4201 assuming the port is set t
     ```
     ./scripts/start-dev.sh
     ```
-1. You can view the GUI @http://localhost:4200 . The default credentials for login are admin/password
+1. You can view the GUI @http://localhost:4201. The default credentials for login are admin/password
 
 **NOTE**: *In the development mode ui by default connects to REST at http://node1:8082 for fetching data. If you wish to change it you can change the REST url at metron/metron-interface/metron-alerts/proxy.conf.json*
 
