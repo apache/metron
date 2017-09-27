@@ -139,15 +139,10 @@ public static Optional<MessageParser<JSONObject>> loadParser(Map stormConfig,
   try {
     // fetch the BundleProperties from zookeeper
     Optional<BundleProperties> bundleProperties = getBundleProperties(client);
-    BundleProperties props = bundleProperties.get();
-
-    // create the BundleSystem
-    // we only need to pass in the properties
-    BundleSystem bundleSystem = new BundleSystem.Builder().withBundleProperties(props).build();
-
-    // create our instance
-    parser = bundleSystem
-          .createInstance(parserConfig.getParserClassName(), MessageParser.class);
+   BundleProperties props = bundleProperties.get();
+        BundleSystem bundleSystem = new BundleSystemBuilder().withBundleProperties(props).build();
+        parser = bundleSystem
+            .createInstance(parserConfig.getParserClassName(), MessageParser.class);
     } else {
       LOG.error("BundleProperties are missing!");
     }
@@ -167,5 +162,15 @@ With the BundleSystem, you may the defaults by calling the builder with :
 - withSystemBundle
 - withFileSystemManager
 - withExtensionClasses
+
+BundleSystem also also supports delay loading of the BundleSystem.  This means that a BundleSystem
+instance will be created, but the bundles will not be loaded or initialized until used.
+
+This is specified with the builder by specifing BundleSystemType:
+
+```java
+ new BundleSystemBuilder().withBundleProperties(properties.get()).withBundleSystemType(
+        BundleSystemType.ON_DEMAND).build();
+```
  
 
