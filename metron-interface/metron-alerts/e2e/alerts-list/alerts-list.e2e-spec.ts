@@ -19,6 +19,7 @@
 import { MetronAlertsPage } from './alerts-list.po';
 import { customMatchers } from  '../matchers/custom-matchers';
 import { LoginPage } from '../login/login.po';
+import { loadTestData, deleteTestData } from "../utils/e2e_util";
 
 describe('metron-alerts App', function() {
   let page: MetronAlertsPage;
@@ -29,12 +30,14 @@ describe('metron-alerts App', function() {
                                 'ip_dst_addr', 'host', 'alert_status' ];
 
   beforeAll(() => {
+    loadTestData();
     loginPage = new LoginPage();
     loginPage.login();
   });
 
   afterAll(() => {
     loginPage.logout();
+    deleteTestData();
   });
 
   beforeEach(() => {
@@ -55,7 +58,7 @@ describe('metron-alerts App', function() {
     expect(page.isPausePlayRefreshButtonPresent()).toEqualBcoz(true, 'for pause/play button');
     expect(page.isConfigureTableColumnsPresent()).toEqualBcoz(true, 'for alerts table column configure button');
 
-    expect(page.getAlertTableTitle()).toEqualBcoz('Alerts (25 of 169)', 'for alerts title');
+    expect(page.getAlertTableTitle()).toEqualBcoz('Alerts (169)', 'for alerts title');
     expect(page.getActionDropdownItems()).toEqualBcoz([ 'Open', 'Dismiss', 'Escalate', 'Resolve' ], 'for default dropdown actions');
     expect(page.getTableColumnNames()).toEqualBcoz(columnNames, 'for default column names for alert list table');
   });

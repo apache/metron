@@ -15,7 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const environment = {
-  production: true,
-  indices: null
-};
+import {Injectable} from '@angular/core';
+import {Observable} from 'rxjs/Rx';
+import {Alert} from '../model/alert';
+import {Http, Headers, RequestOptions} from '@angular/http';
+import {HttpUtil} from '../utils/httpUtil';
+
+@Injectable()
+export class AlertsService {
+
+  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
+
+  constructor(private http: Http) {
+  }
+
+  public escalate(alerts: Alert[]): Observable<null> {
+    return this.http.post('/api/v1/alert/escalate', alerts, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    .catch(HttpUtil.handleError);
+  }
+}

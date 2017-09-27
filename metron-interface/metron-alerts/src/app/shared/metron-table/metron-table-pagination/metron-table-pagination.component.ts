@@ -25,17 +25,8 @@ import {Pagination} from '../../../model/pagination';
 })
 export class MetronTablePaginationComponent  {
 
+  @Input() pagination = new Pagination();
   @Output() pageChange = new EventEmitter();
-  pagination = new Pagination();
-
-  @Input()
-  get pagingData() {
-    return this.pagination;
-  }
-
-  set pagingData(val) {
-    this.pagination = val;
-  }
 
   onPrevious() {
     this.pagination.from -= this.pagination.size;
