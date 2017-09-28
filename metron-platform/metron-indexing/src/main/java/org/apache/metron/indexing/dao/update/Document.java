@@ -92,4 +92,37 @@ public class Document {
         ", sensorType='" + sensorType + '\'' +
         '}';
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    Document document1 = (Document) o;
+
+    if (timestamp != null ? !timestamp.equals(document1.timestamp) : document1.timestamp != null) {
+      return false;
+    }
+    if (document != null ? !document.equals(document1.document) : document1.document != null) {
+      return false;
+    }
+    if (guid != null ? !guid.equals(document1.guid) : document1.guid != null) {
+      return false;
+    }
+    return sensorType != null ? sensorType.equals(document1.sensorType)
+        : document1.sensorType == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = timestamp != null ? timestamp.hashCode() : 0;
+    result = 31 * result + (document != null ? document.hashCode() : 0);
+    result = 31 * result + (guid != null ? guid.hashCode() : 0);
+    result = 31 * result + (sensorType != null ? sensorType.hashCode() : 0);
+    return result;
+  }
 }

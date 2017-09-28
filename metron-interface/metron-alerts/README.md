@@ -85,7 +85,7 @@ The application will be available at http://host:4201 assuming the port is set t
     ```
     ./scripts/start-dev.sh
     ```
-1. You can view the GUI @http://localhost:4200 . The default credentials for login are admin/password
+1. You can view the GUI @http://localhost:4201. The default credentials for login are admin/password
 
 **NOTE**: *In the development mode ui by default connects to REST at http://node1:8082 for fetching data. If you wish to change it you can change the REST url at metron/metron-interface/metron-alerts/proxy.conf.json*
 
