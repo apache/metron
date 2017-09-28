@@ -22,24 +22,24 @@
       <directory>${project.basedir}/dist</directory>
       <outputDirectory>/web/alerts-ui</outputDirectory>
       <excludes>
+        <exclude>**/.npmignore</exclude>
       </excludes>
       <fileMode>0644</fileMode>
     </fileSet>
     <fileSet>
       <directory>${project.basedir}/scripts</directory>
-      <outputDirectory>/web/alerts-ui</outputDirectory>
+      <outputDirectory>web/expressjs</outputDirectory>
       <includes>
-        <include>package.json</include>
         <include>alerts-server.js</include>
       </includes>
       <fileMode>0644</fileMode>
     </fileSet>
     <fileSet>
       <directory>${project.basedir}/scripts</directory>
-      <outputDirectory>/bin</outputDirectory>
+      <outputDirectory>bin</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <includes>
-        <include>start_alerts_ui.sh</include>
+        <include>metron-alerts-ui</include>
       </includes>
       <fileMode>0755</fileMode>
       <lineEnding>unix</lineEnding>

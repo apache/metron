@@ -125,7 +125,7 @@ public class StellarStatisticsFunctions {
           , description = "Adds one or more input values to those that are used to calculate the summary statistics."
           , params = {
                       "stats - The Stellar statistics object.  If null, then a new one is initialized."
-                     , "value+ - One or more numbers to add"
+                     , "value+ - One or more items to add. Each item may be a number or a list of numbers. If an item is a list, each number in the list will be added."
                      }
           , returns = "A Stellar statistics object"
           )
@@ -141,8 +141,21 @@ public class StellarStatisticsFunctions {
 
       // add each of the numeric values
       for(int i=1; i<args.size(); i++) {
-        double value = convert(args.get(i), Double.class);
-        stats.addValue(value);
+        Object n = args.get(i);
+        if( n != null) {
+          if(n instanceof Iterable) {
+            for(Object num : (Iterable<Object>)n) {
+              if(num != null) {
+                Double value = convert(num, Double.class);
+                stats.addValue(value);
+              }
+            }
+          }
+          else {
+            Double value = convert(args.get(i), Double.class);
+            stats.addValue(value);
+          }
+        }
       }
 
       return stats;

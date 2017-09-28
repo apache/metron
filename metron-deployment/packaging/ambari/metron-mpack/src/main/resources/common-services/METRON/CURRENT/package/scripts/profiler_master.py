@@ -27,6 +27,7 @@ from resource_management.libraries.script import Script
 
 from metron_security import storm_security_setup
 import metron_service
+import metron_security
 from profiler_commands import ProfilerCommands
 
 
@@ -49,25 +50,42 @@ class Profiler(Script):
              group=params.metron_group
              )
 
+        if not metron_service.is_zk_configured(params):
+            metron_service.init_zk_config(params)
+            metron_service.set_zk_configured(params)
+        metron_service.refresh_configs(params)
+
         commands = ProfilerCommands(params)
-        metron_service.load_global_config(params)
-
-        if not commands.is_configured():
-            commands.set_configured()
-
         if not commands.is_hbase_configured():
             commands.create_hbase_tables()
         if params.security_enabled and not commands.is_hbase_acl_configured():
             commands.set_hbase_acls()
+        if params.security_enabled and not commands.is_acl_configured():
+            commands.init_kafka_acls()
+            commands.set_acl_configured()
 
         Logger.info("Calling security setup")
         storm_security_setup(params)
+        if not commands.is_configured():
+            commands.set_configured()
 
     def start(self, env, upgrade_type=None):
         from params import params
         env.set_params(params)
         self.configure(env)
         commands = ProfilerCommands(params)
+        if params.security_enabled:
+            metron_security.kinit(params.kinit_path_local,
+                                  params.metron_keytab_path,
+                                  params.metron_principal_name,
+                                  execute_user=params.metron_user)
+
+        if params.security_enabled and not commands.is_hbase_acl_configured():
+            commands.set_hbase_acls()
+        if params.security_enabled and not commands.is_acl_configured():
+            commands.init_kafka_acls()
+            commands.set_acl_configured()
+
         commands.start_profiler_topology(env)
 
     def stop(self, env, upgrade_type=None):

@@ -280,10 +280,20 @@ The probe can be used in a Kerberized environment.  Follow these additional step
 FAQs
 ====
 
-**Question**: How do I get more logs?
+### How do I get more logs?
 
 Use the following two command-line arguments to get detailed logging.
 
 ```
 -X debug=all --log-level DEBUG
 ```
+
+### When I run Pycapa against a Kafka broker with Kerberos enabled, why do I get an error like "No such configuration property: 'sasl.kerberos.principal'"?
+
+This can be a confusing error message because `sasl.kerberos.principal` is indeed a valid property for librdkafka as defined [here](https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md).  This is most likely because Pycapa is running against a version of Librdkafka without SASL support enabled.  This might happen if you have accidentally installed multiple versions of Librdkafka and Pycapa is unexpectedly using the version without SASL support enabled.
+
+Bottom Line: Make sure that Pycapa is running against a version of Librdkafka with SASL support enabled.
+
+
+
+

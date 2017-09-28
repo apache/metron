@@ -18,12 +18,14 @@
 package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import oi.thekraken.grok.api.Grok;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.DeleteBuilder;
 import org.apache.curator.framework.api.GetChildrenBuilder;
 import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.curator.framework.api.SetDataBuilder;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.rest.RestException;
@@ -43,7 +45,10 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import static org.apache.metron.rest.MetronRestConstants.GROK_TEMP_PATH_SPRING_PROPERTY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -88,11 +93,18 @@ public class SensorParserConfigServiceImplTest {
   @Multiline
   public static String broJson;
 
+  private String user = "user1";
+
   @Before
   public void setUp() throws Exception {
     objectMapper = mock(ObjectMapper.class);
     curatorFramework = mock(CuratorFramework.class);
-    grokService = mock(GrokService.class);
+    Environment environment = mock(Environment.class);
+    Authentication authentication = mock(Authentication.class);
+    when(authentication.getName()).thenReturn(user);
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    when(environment.getProperty(GROK_TEMP_PATH_SPRING_PROPERTY)).thenReturn("./target");
+    grokService = new GrokServiceImpl(environment, mock(Grok.class), new HdfsServiceImpl(new Configuration()));
     sensorParserConfigService = new SensorParserConfigServiceImpl(objectMapper, curatorFramework, grokService);
   }
 
@@ -269,12 +281,12 @@ public class SensorParserConfigServiceImplTest {
     parseMessageRequest.setGrokStatement(grokStatement);
     parseMessageRequest.setSampleData(sampleData);
 
-    File patternFile = new File("./target/squidTest");
+    File grokRoot = new File("./target", user);
+    grokRoot.mkdir();
+    File patternFile = new File(grokRoot, "squid");
     FileWriter writer = new FileWriter(patternFile);
     writer.write(grokStatement);
     writer.close();
-
-    when(grokService.saveTemporary(grokStatement, "squid")).thenReturn(patternFile);
 
     assertEquals(new HashMap() {{
       put("elapsed", 161);

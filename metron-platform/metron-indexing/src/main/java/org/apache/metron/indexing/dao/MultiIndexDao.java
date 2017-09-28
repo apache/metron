@@ -22,6 +22,8 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
@@ -118,6 +120,17 @@ public class MultiIndexDao implements IndexDao {
   }
 
   @Override
+  public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
+    for(IndexDao dao : indices) {
+      GroupResponse s = dao.group(groupRequest);
+      if(s != null) {
+        return s;
+      }
+    }
+    return null;
+  }
+
+  @Override
   public void init(AccessConfig config) {
     for(IndexDao dao : indices) {
       dao.init(config);
@@ -155,5 +168,9 @@ public class MultiIndexDao implements IndexDao {
       throw new IOException(Joiner.on("\n").join(error));
     }
     return ret;
+  }
+
+  public List<IndexDao> getIndices() {
+    return indices;
   }
 }

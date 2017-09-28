@@ -69,6 +69,10 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
             message = "Metron REST must be colocated with an instance of STORM SUPERVISOR"
             items.append({ "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'METRON_REST', "host": metronRESTHost })
 
+        if metronParsersHost !=  metronRESTHost:
+            message = "Metron REST must be co-located with Metron Parsers on {0}".format(metronParsersHost)
+            items.append({ "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'METRON_REST', "host": metronRESTHost })
+
         if metronParsersHost != metronEnrichmentMaster:
             message = "Metron Enrichment Master must be co-located with Metron Parsers on {0}".format(metronParsersHost)
             items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_ENRICHMENT_MASTER', "host": metronEnrichmentMaster })

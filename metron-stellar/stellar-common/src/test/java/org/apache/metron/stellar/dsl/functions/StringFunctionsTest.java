@@ -20,15 +20,18 @@ package org.apache.metron.stellar.dsl.functions;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.collections4.map.HashedMap;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
@@ -408,6 +411,41 @@ public class StringFunctionsTest {
 
   }
 
+  @Test
+  public void testSubstring() throws Exception {
+    Map<String, Object> variables = ImmutableMap.of("s", "apache metron");
+    Assert.assertEquals("metron", run("SUBSTRING(s, 7)", variables));
+    Assert.assertEquals("me", run("SUBSTRING(s, 7, 9)", variables));
+    Assert.assertNull(run("SUBSTRING(null, 7, 9)", new HashMap<>()));
+    Assert.assertNull(run("SUBSTRING(null, null, 9)", new HashMap<>()));
+    Assert.assertNull(run("SUBSTRING(s, null, 9)", variables));
+    Assert.assertNull(run("SUBSTRING(null, null, null)", new HashMap<>()));
+    Assert.assertEquals("metron", run("SUBSTRING(s, 7, null)", variables));
+  }
+
+  @Test(expected=ParseException.class)
+  public void testSubstring_invalidEmpty() throws Exception {
+    Assert.assertEquals("metron", run("SUBSTRING()", new HashMap<>()));
+  }
+
+  @Test(expected=ParseException.class)
+  public void testSubstring_invalidWrongTypeStart() throws Exception {
+    Map<String, Object> variables = ImmutableMap.of("s", "apache metron");
+    Assert.assertEquals("metron", (String) run("SUBSTRING(s, '7')", variables));
+  }
+
+  @Test(expected=ParseException.class)
+  public void testSubstring_invalidWrongTypeEnd() throws Exception {
+    Map<String, Object> variables = ImmutableMap.of("s", "apache metron");
+    Assert.assertEquals("metron", (String) run("SUBSTRING(s, 7, '9')", variables));
+  }
+
+  @Test(expected=ParseException.class)
+  public void testSubstring_invalidWrongTypeInput() throws Exception {
+    Map<String, Object> variables = ImmutableMap.of("s", 7);
+    Assert.assertEquals("metron", (String) run("SUBSTRING(s, 7, '9')", variables));
+  }
+
   /**
    * COUNT_MATCHES StringFunction
    */
@@ -449,4 +487,262 @@ public class StringFunctionsTest {
     Assert.assertTrue(thrown);
 
   }
+
+  /**
+   * TO_JSON_OBJECT StringFunction
+   */
+
+  // Input strings to be used
+  /**
+   { "foo" : 2 }
+   */
+  @Multiline
+  private String string1;
+
+  /**
+   {
+     "foo" : "abc",
+     "bar" : "def"
+   }
+   */
+  @Multiline
+  private String string2;
+
+  /**
+   [ "foo", 2 ]
+   */
+  @Multiline
+  private String string3;
+
+  /**
+   [ "foo", "bar", "car" ]
+   */
+  @Multiline
+  private String string4;
+
+  /**
+   [
+     {
+       "foo1":"abc",
+       "bar1":"def"
+     },
+     {
+       "foo2":"ghi",
+       "bar2":"jkl"
+     }
+   ]
+   */
+  @Multiline
+  private String string5;
+
+  @Test
+  public void testToJsonObject() throws Exception {
+    //JSON Object
+    Object ret1 = run("TO_JSON_OBJECT(msg)", ImmutableMap.of("msg", string1));
+    Assert.assertNotNull(ret1);
+    Assert.assertTrue (ret1 instanceof HashMap);
+
+    Object ret2 = run("TO_JSON_OBJECT(msg)", ImmutableMap.of("msg", string2));
+    Assert.assertNotNull(ret2);
+    Assert.assertTrue (ret2 instanceof HashMap);
+    Assert.assertEquals("def", run("MAP_GET( 'bar', returnval)", ImmutableMap.of("returnval", ret2)));
+
+    //Simple Arrays
+    Object ret3 = run("TO_JSON_OBJECT(msg)", ImmutableMap.of("msg", string3));
+    Assert.assertNotNull(ret3);
+    Assert.assertTrue (ret3 instanceof ArrayList);
+    List<Object> result3 = (List<Object>) ret3;
+    Assert.assertEquals(2, result3.get(1));
+
+    Object ret4 = run("TO_JSON_OBJECT(msg)", ImmutableMap.of("msg", string4));
+    Assert.assertNotNull(ret4);
+    Assert.assertTrue (ret4 instanceof ArrayList);
+    List<Object> result4 = (List<Object>) ret4;
+    Assert.assertEquals("car", result4.get(2));
+
+    //JSON Array
+    Object ret5 = run( "TO_JSON_OBJECT(msg)", ImmutableMap.of("msg", string5));
+    Assert.assertNotNull(ret5);
+    Assert.assertTrue (ret5 instanceof ArrayList);
+    List<List<Object>> result5 = (List<List<Object>>) ret5;
+    HashMap<String,String> results5Map1 = (HashMap) result5.get(0);
+    Assert.assertEquals("def", results5Map1.get("bar1"));
+    HashMap<String,String> results5Map2 = (HashMap) result5.get(1);
+    Assert.assertEquals("ghi", results5Map2.get("foo2"));
+
+    // No input
+    boolean thrown = false;
+    try {
+      run("TO_JSON_OBJECT()", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("Unable to parse"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+
+    // Invalid input
+    try {
+      run("TO_JSON_OBJECT('123, 456')", new HashedMap<>());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("Valid JSON string not supplied"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+
+    // Malformed JSON String
+    try {
+      run("TO_JSON_OBJECT('{\"foo\" : 2')", new HashedMap<>());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("Valid JSON string not supplied"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+  }
+
+  @Test
+  public void testToJsonMap() throws Exception {
+    //JSON Object
+    Object ret1 = run("TO_JSON_MAP(msg)", ImmutableMap.of("msg", string1));
+    Assert.assertNotNull(ret1);
+    Assert.assertTrue (ret1 instanceof HashMap);
+
+    Object ret2 = run("TO_JSON_MAP(msg)", ImmutableMap.of("msg", string2));
+    Assert.assertNotNull(ret2);
+    Assert.assertTrue (ret2 instanceof HashMap);
+    Assert.assertEquals("def", run("MAP_GET( 'bar', returnval)", ImmutableMap.of("returnval", ret2)));
+
+    //Simple Arrays
+    boolean thrown = false;
+    try {
+      run("TO_JSON_MAP(msg)", ImmutableMap.of("msg", string3));
+    } catch (ParseException pe) {
+      thrown = true;
+    }
+    Assert.assertTrue(thrown);
+
+    thrown = false;
+    try {
+      run("TO_JSON_MAP(msg)", ImmutableMap.of("msg", string4));
+    } catch (ParseException pe) {
+      thrown = true;
+    }
+    Assert.assertTrue (thrown);
+
+    //JSON Array
+    thrown = false;
+    try {
+      run("TO_JSON_MAP(msg)", ImmutableMap.of("msg", string5));
+    } catch (ParseException pe) {
+      thrown = true;
+    }
+    Assert.assertTrue(thrown);
+
+
+    // No input
+    try {
+      run("TO_JSON_MAP()", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("Unable to parse"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+
+    // Invalid input
+    try {
+      run("TO_JSON_MAP('123, 456')", new HashedMap<>());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("Valid JSON string not supplied"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+
+    // Malformed JSON String
+    try {
+      run("TO_JSON_MAP('{\"foo\" : 2')", new HashedMap<>());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("Valid JSON string not supplied"));
+    }
+    Assert.assertTrue(thrown);
+    thrown = false;
+  }
+
+  @Test
+  public void testToJsonList() throws Exception {
+    //Simple Arrays
+    Object ret3 = run("TO_JSON_LIST(msg)", ImmutableMap.of("msg", string3));
+    Assert.assertNotNull(ret3);
+    Assert.assertTrue (ret3 instanceof ArrayList);
+    List<Object> result3 = (List<Object>) ret3;
+    Assert.assertEquals(2, result3.get(1));
+
+    Object ret4 = run("TO_JSON_LIST(msg)", ImmutableMap.of("msg", string4));
+    Assert.assertNotNull(ret4);
+    Assert.assertTrue (ret4 instanceof ArrayList);
+    List<Object> result4 = (List<Object>) ret4;
+    Assert.assertEquals("car", result4.get(2));
+
+    //JSON Array
+    Object ret5 = run( "TO_JSON_LIST(msg)", ImmutableMap.of("msg", string5));
+    Assert.assertNotNull(ret5);
+    Assert.assertTrue (ret5 instanceof ArrayList);
+    List<List<Object>> result5 = (List<List<Object>>) ret5;
+    HashMap<String,String> results5Map1 = (HashMap) result5.get(0);
+    Assert.assertEquals("def", results5Map1.get("bar1"));
+    HashMap<String,String> results5Map2 = (HashMap) result5.get(1);
+    Assert.assertEquals("ghi", results5Map2.get("foo2"));
+
+    //JSON Object - throws exception
+    boolean thrown = false;
+    try {
+      run("TO_JSON_LIST(msg)", ImmutableMap.of("msg", string1));
+    } catch (ParseException pe) {
+      thrown = true;
+    }
+    Assert.assertTrue(thrown);
+
+    thrown = false;
+    try {
+      run("TO_JSON_LIST(msg)", ImmutableMap.of("msg", string2));
+    } catch (ParseException pe) {
+      thrown = true;
+    }
+    Assert.assertTrue (thrown);
+
+    // No input
+    thrown = false;
+    try {
+      run("TO_JSON_LIST()", Collections.emptyMap());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("Unable to parse"));
+    }
+    Assert.assertTrue(thrown);
+
+    // Invalid input
+    thrown = false;
+    try {
+      run("TO_JSON_LIST('123, 456')", new HashedMap<>());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("Valid JSON string not supplied"));
+    }
+    Assert.assertTrue(thrown);
+
+    // Malformed JSON String
+    thrown = false;
+    try {
+      run("TO_JSON_LIST('{\"foo\" : 2')", new HashedMap<>());
+    } catch (ParseException pe) {
+      thrown = true;
+      Assert.assertTrue(pe.getMessage().contains("Valid JSON string not supplied"));
+    }
+    Assert.assertTrue(thrown);
+  }
+
 }

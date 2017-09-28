@@ -62,12 +62,12 @@ export class QueryBuilder {
     this.query = this._searchRequest.query;
   }
 
-  addOrUpdateFilter(field: string, value: string) {
-    let filter = this._filters.find(tFilter => tFilter.field === field);
-    if (filter) {
-      filter.value = value;
+  addOrUpdateFilter(filter: Filter) {
+    let existingFilter = this._filters.find(tFilter => tFilter.field === filter.field);
+    if (existingFilter) {
+      existingFilter.value = filter.value;
     } else {
-      this._filters.push(new Filter(field, value));
+      this._filters.push(filter);
     }
 
     this.onSearchChange();
@@ -130,7 +130,7 @@ export class QueryBuilder {
         let field = term.substring(0, separatorPos).replace('\\', '');
         field = updateNameTransform ? ColumnNamesService.getColumnDisplayKey(field) : field;
         let value = term.substring(separatorPos + 1, term.length);
-        this.addOrUpdateFilter(field, value);
+        this.addOrUpdateFilter(new Filter(field, value));
       }
     }
   }

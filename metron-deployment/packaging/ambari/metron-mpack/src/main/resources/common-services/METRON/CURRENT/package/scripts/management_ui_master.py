@@ -38,7 +38,6 @@ class ManagementUIMaster(Script):
         from params import params
         env.set_params(params)
         self.install_packages(env)
-        Execute('npm --prefix ' + params.metron_home + '/web/expressjs/ install')
 
     def configure(self, env, upgrade_type=None, config_dir=None):
         print 'configure managment_ui'

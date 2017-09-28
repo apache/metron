@@ -27,7 +27,6 @@ METRON_JDBC_USERNAME="{{metron_jdbc_username}}"
 METRON_JDBC_PLATFORM="{{metron_jdbc_platform}}"
 METRON_JDBC_CLIENT_PATH="{{metron_jdbc_client_path}}"
 METRON_TEMP_GROK_PATH="{{metron_temp_grok_path}}"
-METRON_DEFAULT_GROK_PATH="{{metron_default_grok_path}}"
 METRON_SPRING_OPTIONS="{{metron_spring_options}}"
 ZOOKEEPER="{{zookeeper_quorum}}"
 BROKERLIST="{{kafka_brokers}}"
@@ -40,3 +39,4 @@ SECURITY_ENABLED={{security_enabled|lower}}
 {% endif %}
 KAFKA_SECURITY_PROTOCOL="{{kafka_security_protocol}}"
 PARSER_TOPOLOGY_OPTIONS="/home/{{metron_user}}/.storm/storm.config"
+METRON_ESCALATION_TOPIC="{{metron_escalation_topic}}"

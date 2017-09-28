@@ -464,11 +464,11 @@
           "subsection-name": "subsection-indexing-kafka"
         },
         {
-          "config": "metron-indexing-env/update_table",
+          "config": "metron-indexing-env/update_hbase_table",
           "subsection-name": "subsection-indexing-update"
         },
         {
-          "config": "metron-indexing-env/update_cf",
+          "config": "metron-indexing-env/update_hbase_cf",
           "subsection-name": "subsection-indexing-update"
         },
         {
@@ -614,6 +614,10 @@
         },
         {
           "config": "metron-rest-env/metron_spring_options",
+          "subsection-name": "subsection-rest"
+        },
+        {
+          "config": "metron-rest-env/metron_escalation_topic",
           "subsection-name": "subsection-rest"
         },
         {
@@ -806,13 +810,13 @@
         }
       },
       {
-        "config": "metron-indexing-env/update_table",
+        "config": "metron-indexing-env/update_hbase_table",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-indexing-env/update_cf",
+        "config": "metron-indexing-env/update_hbase_cf",
         "widget": {
           "type": "text-field"
         }
@@ -1036,6 +1040,12 @@
       },
       {
         "config": "metron-rest-env/metron_spring_options",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-rest-env/metron_escalation_topic",
         "widget": {
           "type": "text-field"
         }
