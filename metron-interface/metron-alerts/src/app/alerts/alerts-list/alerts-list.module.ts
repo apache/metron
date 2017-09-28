@@ -21,6 +21,7 @@ import {AlertsListComponent}   from './alerts-list.component';
 import {routing} from './alerts-list.routing';
 import {SharedModule} from '../../shared/shared.module';
 import {SearchService} from '../../service/search.service';
+import {UpdateService} from '../../service/update.service';
 import {MetronSorterModule} from '../../shared/metron-table/metron-sorter/metron-sorter.module';
 import {ListGroupModule} from '../../shared/list-group/list-grup.module';
 import {CollapseModule} from '../../shared/collapse/collapse.module';
@@ -33,7 +34,7 @@ import {TableViewComponent} from './table-view/table-view.component';
                 ListGroupModule, CollapseModule],
     exports: [AlertsListComponent],
     declarations: [AlertsListComponent, TableViewComponent],
-    providers: [SearchService]
+    providers: [SearchService, UpdateService]
 })
 export class AlertsListModule {
 }

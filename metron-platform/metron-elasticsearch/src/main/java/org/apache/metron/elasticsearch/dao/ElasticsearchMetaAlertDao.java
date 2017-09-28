@@ -294,11 +294,14 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
    * @throws IOException If there's a problem running the update
    */
   protected void handleMetaUpdate(Document update, Optional<String> index) throws IOException {
-    // We have an update to a meta alert itself (e.g. adding a document, etc.)  Calculate scores
-    // and defer the final result to the Elasticsearch DAO.
-    MetaScores metaScores = calculateMetaScores(update);
-    update.getDocument().putAll(metaScores.getMetaScores());
-    update.getDocument().put(threatTriageField, metaScores.getMetaScores().get(threatSort));
+    // We have an update to a meta alert itself
+    // If we've updated the alerts field (i.e add/remove), recalculate meta alert scores.
+    if (update.getDocument().containsKey(MetaAlertDao.ALERT_FIELD)) {
+      MetaScores metaScores = calculateMetaScores(update);
+      update.getDocument().putAll(metaScores.getMetaScores());
+      update.getDocument().put(threatTriageField, metaScores.getMetaScores().get(threatSort));
+    }
+
     indexDao.update(update, index);
   }
 

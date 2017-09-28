@@ -24,7 +24,7 @@ export class LoginPage {
     }
 
     login() {
-        browser.wait(function() {return element(by.css('input.form-control')).isPresent(); });
+        this.navigateToLogin();
         this.setUserNameAndPassword('admin', 'password');
         this.submitLoginForm();
         browser.waitForAngularEnabled(false);
