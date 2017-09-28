@@ -52,6 +52,10 @@
     rpm -ih metron-alerts-$METRON_VERSION-*.noarch.rpm
     ```
 
+### From Ambari MPack
+
+The Alerts UI is included in the Metron Ambari MPack.  It can be accessed through the Quick Links in the Metron service.  
+
 ## Configuration
 
 The Alerts UI is configured in the `$METRON_HOME/config/alerts_ui.yml` file.  Create this file and set the values to match your environment:
