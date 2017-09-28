@@ -43,9 +43,6 @@ class AlertsUIMaster(Script):
         print 'configure alerts_ui'
         from params import params
         env.set_params(params)
-        # File(format("/etc/default/metron"),
-        #      content=Template("metron.j2")
-        #      )
 
         File(format("{metron_config_path}/alerts_ui.yml"),
              mode=0755,
@@ -53,13 +50,6 @@ class AlertsUIMaster(Script):
              owner=params.metron_user,
              group=params.metron_group
              )
-
-        # Directory('/var/run/metron',
-        #           create_parents=False,
-        #           mode=0755,
-        #           owner=params.metron_user,
-        #           group=params.metron_group
-        #           )
 
     def start(self, env, upgrade_type=None):
         from params import params
