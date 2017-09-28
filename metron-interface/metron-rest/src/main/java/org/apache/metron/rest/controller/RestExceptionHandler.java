@@ -35,7 +35,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
   @ResponseBody
   ResponseEntity<?> handleControllerException(HttpServletRequest request, Throwable ex) {
     HttpStatus status = getStatus(request);
-    return new ResponseEntity<>(new RestError(status.value(), ex.getMessage(), ex.getMessage()), status);
+    return new ResponseEntity<>(new RestError(status.value(), ex.getMessage(), getFullMessage(ex)), status);
   }
 
   private HttpStatus getStatus(HttpServletRequest request) {
@@ -44,5 +44,15 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
       return HttpStatus.INTERNAL_SERVER_ERROR;
     }
     return HttpStatus.valueOf(statusCode);
+  }
+
+  private String getFullMessage(Throwable ex) {
+    String fullMessage = ex.getMessage();
+    Throwable cause = ex.getCause();
+    while(cause != null) {
+      fullMessage = cause.getMessage();
+      cause = cause.getCause();
+    }
+    return fullMessage;
   }
 }
