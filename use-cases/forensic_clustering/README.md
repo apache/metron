@@ -376,6 +376,14 @@ Now, we can create the enrichments thusly by creating `$METRON_HOME/config/zooke
 }
 ```
 
+### A Note About Similarity Hashes and TLSH
+
+Notice that we have specified a number of hash functions of `16` when constructing the similarity bin.  
+I arrived at that by trial and error, which is not always tenable, frankly.  What is more sensible is 
+likely to construct *multiple* similarity bins of size `8`, `16`, `32` at minimum.
+* The smaller the number of hashes, the more loose the notion of similarity (more possibly dissimilar things would get grouped together).  
+* The larger the number of hashes, the more strict (similar things may not be grouped together).
+
 ## Create the Data Loader
 
 We want to pull a snapshot of the cowrie logs, so create `~/load_data.sh` with the following content:
@@ -416,4 +424,10 @@ Once this data is loaded, we can use the Alerts UI, starting from known maliciou
 * We can now pivot and look for instances of messages with the same `semantic_hash` but who are *not* alerts:
 ![Pivot](clustered.png)
 
-As you can see, we have found a few more malicious actors and can now look at *other* things that they're doing to build and refine our definition of what an alert is without resorting to hard-coding of rules.
+As you can see, we have found a few more malicious actors:
+* 177.239.192.172
+* 180.110.69.182
+* 177.238.236.21
+* 94.78.80.45
+
+Now we can look at *other* things that they're doing to build and refine our definition of what an alert is without resorting to hard-coding of rules.  Note that nothing in our enrichments actually used the string `busybox`, so this is a more general purpose way of navigating similar things.
