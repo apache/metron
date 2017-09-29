@@ -62,4 +62,7 @@ public class MetronRestConstants {
 
   public static final String META_DAO_IMPL = "meta.dao.impl";
   public static final String META_DAO_SORT = "meta.dao.sort";
+
+  public static final String SECURITY_ROLE_USER = "USER";
+  public static final String SECURITY_ROLE_ADMIN = "ADMIN";
 }

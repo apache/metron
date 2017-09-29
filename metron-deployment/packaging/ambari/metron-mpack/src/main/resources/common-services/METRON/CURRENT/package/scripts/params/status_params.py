@@ -79,6 +79,7 @@ metron_rest_port = config['configurations']['metron-rest-env']['metron_rest_port
 
 # UI
 metron_management_ui_port = config['configurations']['metron-management-ui-env']['metron_management_ui_port']
+metron_alerts_ui_port = config['configurations']['metron-alerts-ui-env']['metron_alerts_ui_port']
 
 # Storm
 storm_rest_addr = config['configurations']['metron-env']['storm_rest_addr']

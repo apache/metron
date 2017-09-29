@@ -52,6 +52,21 @@
           "regex": "^(\\d+)$",
           "site": "metron-management-ui-env"
         }
+      },
+      {
+        "name": "metron_alerts_ui",
+        "label": "Alerts UI",
+        "requires_user_name": "false",
+        "component_name": "METRON_ALERTS_UI",
+        "url": "%@://%@:%@/",
+        "port": {
+          "http_property": "metron_alerts_ui_port",
+          "http_default_port": "4201",
+          "https_property": "metron_alerts_ui_port",
+          "https_default_port": "4201",
+          "regex": "^(\\d+)$",
+          "site": "metron-alerts-ui-env"
+        }
       }
     ]
   }
