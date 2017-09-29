@@ -23,6 +23,7 @@
     <artifactId>metron-rest-client</artifactId>
     <url>https://metron.apache.org/</url>
     <properties>
+      <eclipse.javax.persistence.version>2.1.1</eclipse.javax.persistence.version>
     </properties>
     <dependencies>
         <dependency>
@@ -35,6 +36,16 @@
                     <artifactId>jackson-databind</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.metron</groupId>
+            <artifactId>metron-indexing</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>javax.persistence</artifactId>
+            <version>${eclipse.javax.persistence.version}</version>
         </dependency>
     </dependencies>
 

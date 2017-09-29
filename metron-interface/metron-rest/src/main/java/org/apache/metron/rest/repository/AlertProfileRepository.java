@@ -15,25 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
 
-import java.util.List;
-import java.util.Map;
-import org.apache.metron.rest.RestException;
+package org.apache.metron.rest.repository;
+
 import org.apache.metron.rest.model.AlertProfile;
+import org.springframework.data.repository.CrudRepository;
 
-/**
- * This is a set of operations created to interact with alerts.
- */
-public interface AlertService {
-
-  void escalateAlerts(List<Map<String, Object>> alerts) throws RestException;
-
-  AlertProfile getProfile();
-
-  Iterable<AlertProfile> findAllProfiles();
-
-  AlertProfile saveProfile(AlertProfile alertsProfile);
-
-  boolean deleteProfile(String user);
+public interface AlertProfileRepository extends CrudRepository<AlertProfile, String> {
 }
