@@ -15,32 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.stellar.common.utils.hashing;
+package org.apache.metron.stellar.common.utils.hashing.tlsh;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
 import com.trendmicro.tlsh.BucketOption;
 import com.trendmicro.tlsh.ChecksumOption;
-import com.trendmicro.tlsh.Tlsh;
-import com.trendmicro.tlsh.TlshCreator;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
-import org.apache.metron.stellar.common.utils.JSONUtils;
 import org.apache.metron.stellar.common.utils.SerDeUtils;
+import org.apache.metron.stellar.common.utils.hashing.EnumConfigurable;
+import org.apache.metron.stellar.common.utils.hashing.Hasher;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.function.Function;
 
 public class TLSHHasher implements Hasher {
   public static final String TLSH_KEY = "tlsh";
   public static final String TLSH_BIN_KEY = "tlsh_bin";
+
   public enum Config implements EnumConfigurable {
     BUCKET_SIZE("bucketSize"),
     CHECKSUM("checksumBytes"),
@@ -74,7 +67,7 @@ public class TLSHHasher implements Hasher {
    */
   @Override
   public Object getHash(Object o) throws EncoderException, NoSuchAlgorithmException {
-    TlshCreator creator = new TlshCreator(bucketOption, checksumOption);
+    TLSH tlsh = TLSHCache.INSTANCE.get().getTLSH(bucketOption, checksumOption);
     byte[] data = null;
     if(o instanceof String) {
       data = ((String)o).getBytes();
@@ -85,17 +78,16 @@ public class TLSHHasher implements Hasher {
     else {
       data = SerDeUtils.toBytes(o);
     }
-    creator.update(data);
     try {
-      String tlsh = creator.getHash(force).getEncoded();
+      String hash = tlsh.apply(data, force);
       if(hashes != null && hashes.size() > 0) {
         Map<String, Object> ret = new HashMap<>();
-        ret.put(TLSH_KEY, tlsh);
-        ret.putAll(bin(tlsh));
+        ret.put(TLSH_KEY, hash);
+        ret.putAll(bin(hash));
         return ret;
       }
       else {
-        return tlsh;
+        return hash;
       }
     }
     catch(IllegalStateException ise) {
@@ -129,14 +121,7 @@ public class TLSHHasher implements Hasher {
     return ret;
   }
 
-  public static int distance(String hash1, String hash2, Optional<Boolean> includeLength) {
-    if(hash1 == null || hash2 == null && hash1 != hash2) {
-      return -1;
-    }
-    Tlsh t1 = Tlsh.fromTlshStr(hash1);
-    Tlsh t2 = Tlsh.fromTlshStr(hash2);
-    return t1.totalDiff(t2, includeLength.orElse(false));
-  }
+
 
 
   @Override

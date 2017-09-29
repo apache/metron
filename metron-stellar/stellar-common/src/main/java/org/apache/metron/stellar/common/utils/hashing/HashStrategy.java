@@ -18,6 +18,7 @@
 package org.apache.metron.stellar.common.utils.hashing;
 
 import com.google.common.base.Joiner;
+import org.apache.metron.stellar.common.utils.hashing.tlsh.TLSHHasher;
 
 import java.util.*;
 import java.util.function.Function;

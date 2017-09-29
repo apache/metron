@@ -17,11 +17,11 @@
  */
 package org.apache.metron.stellar.dsl.functions;
 
-import com.google.common.base.Joiner;
 import org.apache.commons.codec.EncoderException;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.common.utils.hashing.HashStrategy;
-import org.apache.metron.stellar.common.utils.hashing.TLSHHasher;
+import org.apache.metron.stellar.common.utils.hashing.tlsh.TLSH;
+import org.apache.metron.stellar.common.utils.hashing.tlsh.TLSHHasher;
 import org.apache.metron.stellar.dsl.BaseStellarFunction;
 import org.apache.metron.stellar.dsl.Stellar;
 
@@ -139,7 +139,7 @@ public class HashFunctions {
           includeLength = Optional.ofNullable(ConversionUtils.convert(includeLengthArg, Boolean.class));
         }
       }
-      return TLSHHasher.distance(h1Obj == null?null:h1Obj.toString(), h2Obj == null?null:h2Obj.toString(), includeLength);
+      return TLSH.distance(h1Obj == null?null:h1Obj.toString(), h2Obj == null?null:h2Obj.toString(), includeLength);
     }
   }
 }

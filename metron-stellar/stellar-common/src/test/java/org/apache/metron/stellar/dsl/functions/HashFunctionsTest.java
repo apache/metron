@@ -22,9 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.metron.stellar.common.utils.hashing.TLSHHasher;
-import org.apache.metron.stellar.dsl.Stellar;
-import org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver;
+import org.apache.metron.stellar.common.utils.hashing.tlsh.TLSHHasher;
 import org.junit.Assert;
 import org.junit.Test;
 
