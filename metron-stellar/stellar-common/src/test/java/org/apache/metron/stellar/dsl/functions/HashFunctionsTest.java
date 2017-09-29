@@ -31,13 +31,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ForkJoinPool;
 
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 import static org.junit.Assert.*;
@@ -237,9 +232,41 @@ public class HashFunctionsTest {
     }
   }
 
+
+  @Test
+  public void tlsh_multithread() throws Exception {
+    //we want to ensure that everything is threadsafe, so we'll spin up some random data
+    //generate some hashes and then do it all in parallel and make sure it all matches.
+    Map<Map.Entry<byte[], Map<String, Object>>, String> hashes = new HashMap<>();
+    Random r = new Random(0);
+    for(int i = 0;i < 20;++i) {
+      byte[] d = new byte[256];
+      r.nextBytes(d);
+      Map<String, Object> config = new HashMap<String, Object>()
+      {{
+          put(TLSHHasher.Config.BUCKET_SIZE.key, r.nextBoolean() ? 128 : 256);
+          put(TLSHHasher.Config.CHECKSUM.key, r.nextBoolean() ? 1 : 3);
+      }};
+      String hash = (String)run("HASH(data, 'tlsh', config)", ImmutableMap.of("config", config, "data", d));
+      Assert.assertNotNull(hash);
+      hashes.put(new AbstractMap.SimpleEntry<>(d, config), hash);
+    }
+    ForkJoinPool forkJoinPool = new ForkJoinPool(5);
+
+    forkJoinPool.submit(() ->
+            hashes.entrySet().parallelStream().forEach(
+                   kv ->  {
+                     Map<String, Object> config = kv.getKey().getValue();
+                     byte[] data = kv.getKey().getKey();
+                     String hash = (String)run("HASH(data, 'tlsh', config)", ImmutableMap.of("config", config, "data", data));
+                     Assert.assertEquals(hash, kv.getValue());
+                   }
+            )
+    );
+  }
+
   @Test
   public void tlsh_similarity() throws Exception {
-
     for(Map.Entry<String, String> kv : ImmutableMap.of("been", "ben", "document", "dokumant", "code", "cad").entrySet()) {
       Map<String, Object> variables = ImmutableMap.of("toHash", TLSH_DATA, "toHashSimilar", TLSH_DATA.replace(kv.getKey(), kv.getValue()));
       Map<String, Object> bin1 = (Map<String, Object>) run("HASH(toHashSimilar, 'tlsh', { 'hashes' : 4, 'bucketSize' : 128 })", variables);
@@ -261,7 +288,7 @@ public class HashFunctionsTest {
         Assert.assertEquals((int)0, (int)diff);
       }
     }
-}
+  }
 
   @Test(expected=Exception.class)
   public void tlshDist_invalidInput() throws Exception {
