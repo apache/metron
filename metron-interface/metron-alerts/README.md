@@ -42,6 +42,20 @@
 
 1. [Express](https://expressjs.com/) is installed at `$METRON_HOME/web/expressjs/` as part of the Management UI installation process.  The Management UI should be installed first on the same host as the Alerts UI.
 
+### From Package Manager
+
+1. Deploy the RPM at `/metron/metron-deployment/packaging/docker/rpm-docker/target/RPMS/noarch/metron-alerts-$METRON_VERSION-*.noarch.rpm`
+
+1. Install the RPM with:
+
+    ```
+    rpm -ih metron-alerts-$METRON_VERSION-*.noarch.rpm
+    ```
+
+### From Ambari MPack
+
+The Alerts UI is included in the Metron Ambari MPack.  It can be accessed through the Quick Links in the Metron service.  
+
 ## Configuration
 
 The Alerts UI is configured in the `$METRON_HOME/config/alerts_ui.yml` file.  Create this file and set the values to match your environment:

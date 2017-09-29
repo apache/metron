@@ -15,25 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
 
-import java.util.List;
-import java.util.Map;
-import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.AlertProfile;
+package org.apache.metron.rest.security;
 
-/**
- * This is a set of operations created to interact with alerts.
- */
-public interface AlertService {
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
-  void escalateAlerts(List<Map<String, Object>> alerts) throws RestException;
+public class SecurityUtils {
 
-  AlertProfile getProfile();
-
-  Iterable<AlertProfile> findAllProfiles();
-
-  AlertProfile saveProfile(AlertProfile alertsProfile);
-
-  boolean deleteProfile(String user);
+  /** Returns the username of the currently logged in user.
+   *
+   * @return username
+   */
+  public static String getCurrentUser() {
+    Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    String user;
+    if (principal instanceof UserDetails) {
+      user = ((UserDetails)principal).getUsername();
+    } else {
+      user = principal.toString();
+    }
+    return user;
+  }
 }

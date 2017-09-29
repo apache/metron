@@ -46,6 +46,8 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
         metronProfilerHost = self.getHosts(componentsList, "METRON_PROFILER")[0]
         metronIndexingHost = self.getHosts(componentsList, "METRON_INDEXING")[0]
         metronRESTHost = self.getHosts(componentsList, "METRON_REST")[0]
+        metronManagementUIHost = self.getHosts(componentsList, "METRON_MANAGEMENT_UI")[0]
+        metronAlertsUIHost = self.getHosts(componentsList, "METRON_ALERTS_UI")[0]
 
         hbaseClientHosts = self.getHosts(componentsList, "HBASE_CLIENT")
         hdfsClientHosts = self.getHosts(componentsList, "HDFS_CLIENT")
@@ -98,6 +100,10 @@ class METRON${metron.short.version}ServiceAdvisor(service_advisor.ServiceAdvisor
         if metronEnrichmentMaster not in hbaseClientHosts:
             message = "Metron Enrichment Master must be co-located with an instance of HBase Client"
             items.append({ "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'METRON_ENRICHMENT_MASTER', "host": metronEnrichmentMaster })
+
+        if metronManagementUIHost != metronAlertsUIHost:
+            message = "Metron Alerts UI must be co-located with Metron Management UI on {0}".format(metronManagementUIHost)
+            items.append({ "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'METRON_ALERTS_UI', "host": metronAlertsUIHost })
 
         return items
 
