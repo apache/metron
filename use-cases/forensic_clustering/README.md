@@ -418,7 +418,7 @@ $METRON_HOME/bin/start_parser_topology.sh -k $BROKERLIST -z $ZOOKEEPER -s cowrie
 
 Once this data is loaded, we can use the Alerts UI, starting from known malicious actors, to find others doing similar things.
 
-*First we can look at the alerts directly and find an instance of our `/bin/busybox` activity:
+* First we can look at the alerts directly and find an instance of our `/bin/busybox` activity:
 ![Alerts](find_alerts.png)
 
 * We can now pivot and look for instances of messages with the same `semantic_hash` but who are *not* alerts:
