@@ -64,7 +64,7 @@
 
                 <tr *ngIf="group.response.results.length > 0" class="no-hover" [ngClass]="{'d-none': !group.expand || !group.show}">
                   <td [attr.colspan]="alertsColumnsToDisplay.length + 3" class="text-right">
-                    <metron-table-pagination [(pagingData)]="group.pagingData" (pageChange)="groupPageChange(group)"> </metron-table-pagination>
+                    <metron-table-pagination [(pagination)]="group.pagingData" (pageChange)="groupPageChange(group)"> </metron-table-pagination>
                   </td>
                 </tr>
               </ng-container>
@@ -97,7 +97,7 @@
 
                 <tr *ngIf="subGroup.response.results.length > 0" class="no-hover" [ngClass]="{'d-none': !subGroup.expand || !subGroup.show}">
                   <td [attr.colspan]="alertsColumnsToDisplay.length + 3" class="text-right">
-                    <metron-table-pagination [(pagingData)]="subGroup.pagingData" (pageChange)="groupPageChange(subGroup)"> </metron-table-pagination>
+                    <metron-table-pagination [(pagination)]="subGroup.pagingData" (pageChange)="groupPageChange(subGroup)"> </metron-table-pagination>
                   </td>
                 </tr>
 

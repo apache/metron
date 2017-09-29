@@ -34,7 +34,6 @@ export class MetronTableDirective implements AfterViewInit {
   @Output() onSort = new EventEmitter<SortEvent>();
   @Input() data: any[] = [];
   @Input() cellSelectable = false;
-
   rowhighlightColor = '#333333';
   highlightColor = '#0F4450';
   border = '1px solid #1B596C';

@@ -42,6 +42,8 @@ import {AuthGuard} from './shared/auth-guard';
 import {AuthenticationService} from './service/authentication.service';
 import {LoginGuard} from './shared/login-guard';
 
+
+
 export function initConfig(config: ColumnNamesService) {
   return () => config.list();
 }

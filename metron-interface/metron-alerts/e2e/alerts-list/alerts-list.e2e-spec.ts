@@ -19,7 +19,7 @@
 import { MetronAlertsPage } from './alerts-list.po';
 import { customMatchers } from  '../matchers/custom-matchers';
 import { LoginPage } from '../login/login.po';
-import { loadTestData, deleteTestData } from '../utils/e2e_util';
+import { loadTestData, deleteTestData } from "../utils/e2e_util";
 
 describe('metron-alerts App', function() {
   let page: MetronAlertsPage;

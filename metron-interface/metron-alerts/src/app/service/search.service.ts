@@ -66,16 +66,6 @@ export class SearchService {
     .onErrorResumeNext();
   }
 
-  public pollGroups(groupRequest: GroupRequest): Observable<SearchResponse> {
-    return this.ngZone.runOutsideAngular(() => {
-      return this.ngZone.run(() => {
-        return Observable.interval(this.interval * 1000).switchMap(() => {
-          return this.groups(groupRequest);
-        });
-      });
-    });
-  }
-
   public getAlert(sourceType: string, alertId: string): Observable<AlertSource> {
     let url = '/api/v1/search/findOne';
     let requestSchema = { guid: alertId, sensorType: sourceType};

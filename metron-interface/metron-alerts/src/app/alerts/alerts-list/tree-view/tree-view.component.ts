@@ -41,8 +41,6 @@ import {SearchRequest} from '../../../model/search-request';
 
 export class TreeViewComponent extends TableViewComponent implements OnChanges {
 
-  @Input() groups: Group[] = [];
-
   groupByFields: string[] = [];
   topGroups: TreeGroupData[] = [];
   groupResponse: GroupResponse = new GroupResponse();
@@ -140,7 +138,7 @@ export class TreeViewComponent extends TableViewComponent implements OnChanges {
   }
 
   initTopGroups() {
-    let groupByFields =  this.groups.map(group => group.field);
+    let groupByFields =  this.queryBuilder.groupRequest.groups.map(group => group.field);
     let currentTopGroupKeys = this.groupResponse.groupResults.map(groupResult => groupResult.key);
     let previousTopGroupKeys = this.topGroups.map(group => group.key);
 
@@ -157,7 +155,7 @@ export class TreeViewComponent extends TableViewComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if ((changes['groups'] && changes['groups'].currentValue)) {
+    if ((changes['alerts'] && changes['alerts'].currentValue)) {
       this.search();
     }
   }
@@ -310,7 +308,7 @@ export class TreeViewComponent extends TableViewComponent implements OnChanges {
       });
     }
     
-    this.selectedAlertsChange.emit(this.selectedAlerts);
+    this.onSelectedAlertsChange.emit(this.selectedAlerts);
   }
 
   refreshAllExpandedGroups() {

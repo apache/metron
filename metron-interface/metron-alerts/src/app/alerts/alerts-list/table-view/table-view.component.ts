@@ -23,10 +23,8 @@ import {Pagination} from '../../../model/pagination';
 import {SortEvent} from '../../../shared/metron-table/metron-table.directive';
 import {ColumnMetadata} from '../../../model/column-metadata';
 import {Alert} from '../../../model/alert';
-import {SearchResponse} from '../../../model/search-response';
 import {SearchService} from '../../../service/search.service';
-import {MetronDialogBox, DialogType} from '../../../shared/metron-dialog-box';
-import {ElasticsearchUtils} from '../../../utils/elasticsearch-utils';
+import {MetronDialogBox} from '../../../shared/metron-dialog-box';
 import {QueryBuilder} from '../query-builder';
 import {Sort} from '../../../utils/enums';
 import {Filter} from '../../../model/filter';
@@ -39,24 +37,25 @@ import {Filter} from '../../../model/filter';
 
 export class TableViewComponent {
 
-  alerts: Alert[] = [];
+  
   threatScoreFieldName = 'threat:triage:score';
 
   router: Router;
   searchService: SearchService;
   metronDialogBox: MetronDialogBox;
-  pagingData = new Pagination();
-  searchResponse: SearchResponse = new SearchResponse();
 
+  @Input() alerts: Alert[] = [];
   @Input() queryBuilder: QueryBuilder;
+  @Input() pagination: Pagination;
   @Input() alertsColumnsToDisplay: ColumnMetadata[] = [];
   @Input() selectedAlerts: Alert[] = [];
-
+  
   @Output() onResize = new EventEmitter<void>();
   @Output() onAddFilter = new EventEmitter<Filter>();
+  @Output() onRefreshData = new EventEmitter<boolean>();
   @Output() onShowDetails = new EventEmitter<Alert>();
   @Output() onShowConfigureTable = new EventEmitter<Alert>();
-  @Output() selectedAlertsChange = new EventEmitter< Alert[]>();
+  @Output() onSelectedAlertsChange = new EventEmitter< Alert[]>();
 
   constructor(router: Router,
               searchService: SearchService,
@@ -66,34 +65,11 @@ export class TableViewComponent {
     this.metronDialogBox = metronDialogBox;
   }
 
-  search(resetPaginationParams = true, pageSize: number = null) {
-    if (resetPaginationParams) {
-      this.pagingData.from = 0;
-    }
-
-    this.pagingData.size = pageSize === null ? this.pagingData.size : pageSize;
-    this.queryBuilder.setFromAndSize(this.pagingData.from, this.pagingData.size);
-
-    this.searchService.search(this.queryBuilder.searchRequest).subscribe(results => {
-      this.setAlertData(results);
-    }, error => {
-      this.setAlertData(new SearchResponse());
-      this.metronDialogBox.showConfirmationMessage(ElasticsearchUtils.extractESErrorMessage(error), DialogType.Error);
-    });
-  }
-
-  setAlertData(results: SearchResponse) {
-    this.searchResponse = results;
-    this.pagingData.total = results.total;
-    this.selectedAlerts = [];
-    this.alerts = this.searchResponse.results ? this.searchResponse.results : [];
-  }
-
   onSort(sortEvent: SortEvent) {
     let sortOrder = (sortEvent.sortOrder === Sort.ASC ? 'asc' : 'desc');
     let sortBy = sortEvent.sortBy === 'id' ? '_uid' : sortEvent.sortBy;
     this.queryBuilder.setSort(sortBy, sortOrder);
-    this.search();
+    this.onRefreshData.emit(true);
   }
 
   getValue(alert: Alert, column: ColumnMetadata, formatData: boolean) {
@@ -131,7 +107,8 @@ export class TableViewComponent {
   }
 
   onPageChange() {
-    this.search(false);
+    this.queryBuilder.setFromAndSize(this.pagination.from, this.pagination.size);
+    this.onRefreshData.emit(false);
   }
 
   selectRow($event, alert: Alert) {
@@ -141,7 +118,7 @@ export class TableViewComponent {
       this.selectedAlerts.splice(this.selectedAlerts.indexOf(alert), 1);
     }
 
-    this.selectedAlertsChange.emit(this.selectedAlerts);
+    this.onSelectedAlertsChange.emit(this.selectedAlerts);
   }
 
   selectAllRows($event) {
@@ -150,7 +127,7 @@ export class TableViewComponent {
       this.selectedAlerts = this.alerts;
     }
 
-    this.selectedAlertsChange.emit(this.selectedAlerts);
+    this.onSelectedAlertsChange.emit(this.selectedAlerts);
   }
 
   resize() {
@@ -165,12 +142,6 @@ export class TableViewComponent {
   showDetails($event, alert: Alert) {
     if ($event.target.parentElement.firstElementChild.type !== 'checkbox' && $event.target.nodeName !== 'A') {
       this.onShowDetails.emit(alert);
-    }
-  }
-
-  updateSelectedAlertStatus(status: string) {
-    for (let selectedAlert of this.selectedAlerts) {
-      selectedAlert.source['alert_status'] = status;
     }
   }
 

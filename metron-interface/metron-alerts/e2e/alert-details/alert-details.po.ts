@@ -45,11 +45,6 @@ export class MetronAlertDetailsPage {
     element.all(by.css('.metron-slider-pane-details table tbody tr')).get(2).all(by.css('td')).get(1).click();
   }
 
-  closeDetailsPage() {
-    element(by.css('app-alert-details .close-button')).click();
-    browser.sleep(2000);
-  }
-
   getAlertStatus(previousText) {
     let alertStatusElement = element.all(by.css('.metron-slider-pane-details .form .row')).get(0).all(by.css('div')).get(1);
     return this.waitForTextChange(alertStatusElement, previousText).then(() => {

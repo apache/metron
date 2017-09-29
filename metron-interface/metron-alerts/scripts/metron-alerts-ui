@@ -16,10 +16,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# metron rest application service
+# metron alerts UI service
 # chkconfig: - 20 80
-# description: rest application
-# processname: metron-rest
+# description: Alerts UI
+# processname: metron-alerts-ui
 #
 
 # all LSB compliant distributions provide the following
@@ -28,49 +28,23 @@ if [ -f /lib/lsb/init-functions ]; then
     . /lib/lsb/init-functions
 fi
 
-NAME=metron-rest
-DESC="Metron REST Application"
+NAME=metron-alerts-ui
+DESC="Metron Alerts UI"
 METRON_VERSION=${project.version}
 METRON_HOME=/usr/metron/$METRON_VERSION
 METRON_LOG_DIR="/var/log/metron"
 METRON_PID_DIR="/var/run/metron"
 METRON_USER="metron"
 METRON_GROUP="metron"
-METRON_REST_PORT=8082
-METRON_JDBC_PASSWORD="$2"
 METRON_SYSCONFIG="/etc/default/metron"
 if [ -f "$METRON_SYSCONFIG" ]; then
     set -a
     . "$METRON_SYSCONFIG"
 fi
 
-HBASE_HOME=${HBASE_HOME:-/usr/hdp/current/hbase-client}
 PIDFILE="$METRON_PID_DIR/$NAME.pid"
-LOCKFILE=/var/lock/subsys/$NAME
 
-METRON_REST_CLASSPATH="$HADOOP_CONF_DIR:${HBASE_HOME}/conf:$METRON_HOME/lib/metron-rest-$METRON_VERSION.jar"
-
-# the vagrant Spring profile provides configuration values, otherwise configuration is provided by rest_application.yml
-if [[ !($METRON_SPRING_PROFILES_ACTIVE == *"vagrant"*) ]]; then
-  METRON_SPRING_OPTIONS+=" --spring.config.location=$METRON_HOME/config/rest_application.yml"
-fi
-METRON_SPRING_OPTIONS+=" --server.port=$METRON_REST_PORT"
-if [ $METRON_SPRING_PROFILES_ACTIVE ]; then
-    METRON_SPRING_OPTIONS+=" --spring.profiles.active=$METRON_SPRING_PROFILES_ACTIVE"
-fi
-if [ $METRON_JDBC_PASSWORD ]; then
-    METRON_SPRING_OPTIONS+=" --spring.datasource.password=$METRON_JDBC_PASSWORD"
-fi
-if [ $METRON_JDBC_CLIENT_PATH ]; then
-    METRON_REST_CLASSPATH+=":$METRON_JDBC_CLIENT_PATH"
-fi
-if [ $METRON_INDEX_CP ]; then
-    METRON_REST_CLASSPATH+=":$METRON_INDEX_CP"
-else
-    METRON_REST_CLASSPATH+=":$METRON_HOME/lib/metron-elasticsearch-$METRON_VERSION-uber.jar"
-fi
-METRON_JVMFLAGS+=" -cp $METRON_REST_CLASSPATH"
-DAEMON="$JAVA_HOME/bin/java $METRON_JVMFLAGS org.apache.metron.rest.MetronRestApplication $METRON_SPRING_OPTIONS"
+DAEMON="node $METRON_HOME/web/expressjs/alerts-server.js -c $METRON_HOME/config/alerts_ui.yml"
 
 #
 # start the rest application
@@ -170,7 +144,7 @@ case "$1" in
   #
   restart)
     $0 stop
-    $0 start $2
+    $0 start
   ;;
 
   ##############################################################################
