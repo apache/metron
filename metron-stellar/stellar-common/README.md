@@ -220,6 +220,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `SYSTEM_ENV_GET`](#system_env_get)                                                               |
 | [ `SYSTEM_PROPERTY_GET`](#system_property_get)                                                     |
 | [ `TAN`](#tan)                                                                                     |
+| [ `TLSH_DIST`](#tlsh_dist)                                                                                     |
 | [ `TO_DOUBLE`](#to_double)                                                                         |
 | [ `TO_EPOCH_TIMESTAMP`](#to_epoch_timestamp)                                                       |
 | [ `TO_FLOAT`](#to_float)                                                                           |
