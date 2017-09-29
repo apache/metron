@@ -251,6 +251,142 @@ public class BasicStellarTest {
   }
 
   @Test
+  public void testNaN(){
+    // any equity is false
+    // https://docs.oracle.com/javase/specs/jls/se6/html/typesValues.html
+    {
+      String query = "NaN == NaN";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "5.0 == NaN";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NULL == NaN";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "'metron' == NaN";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+
+    // any inequity is true
+    {
+      String query = "NaN != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "5 != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "'metron' != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+
+    //  any > >= < <= is false
+    {
+      String query = "NaN > 5";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN < 5";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN >= 5";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN <= 5";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN > NaN";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN < NaN";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN >= NaN";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN <= NaN";
+      Assert.assertFalse(runPredicate(query,new HashMap<>()));
+    }
+
+    // all operations
+    {
+      String query = "(5 + NaN) != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "5 + NaN";
+      Assert.assertTrue(run(query,new HashMap<>()).toString().equals("NaN"));
+    }
+    {
+      String query = "(5 - NaN) != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "5 - NaN";
+      Assert.assertTrue(run(query,new HashMap<>()).toString().equals("NaN"));
+    }
+    {
+      String query = "(5 / NaN) != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "5 / NaN";
+      Assert.assertTrue(run(query,new HashMap<>()).toString().equals("NaN"));
+    }
+    {
+      String query = "(5 * NaN) != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "5 * NaN";
+      Assert.assertTrue(run(query,new HashMap<>()).toString().equals("NaN"));
+    }
+    {
+      String query = "(NaN + NaN) != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN + NaN";
+      Assert.assertTrue(run(query,new HashMap<>()).toString().equals("NaN"));
+    }
+    {
+      String query = "(NaN - NaN) != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN - NaN";
+      Assert.assertTrue(run(query,new HashMap<>()).toString().equals("NaN"));
+    }
+    {
+      String query = "(NaN * NaN) != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN * NaN";
+      Assert.assertTrue(run(query,new HashMap<>()).toString().equals("NaN"));
+    }
+    {
+      String query = "(NaN / NaN) != NaN";
+      Assert.assertTrue(runPredicate(query,new HashMap<>()));
+    }
+    {
+      String query = "NaN / NaN";
+      Assert.assertTrue(run(query,new HashMap<>()).toString().equals("NaN"));
+    }
+  }
+
+  @Test
   public void testMapConstant() {
     {
       String query = "MAP_GET('bar', { 'foo' : 1, 'bar' : 'bar'})";

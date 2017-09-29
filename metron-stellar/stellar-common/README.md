@@ -41,9 +41,10 @@ The following keywords need to be single quote escaped in order to be used in St
 |               |               |             |             |             |
 | :-----------: | :-----------: | :---------: | :---------: | :---------: |
 | not           | else          | exists      | if          | then        |
-| and           | or            | in          | ==          | !=          |
-| \<=           | \>            | \>=         | \+          | \-          |
-| \<            | ?             | \*          | /           | ,           |
+| and           | or            | in          | NaN         | ==          |
+| !=            | \<=           | \>          | \>=         | \+          |
+| \-            | \<            | ?           | \*          | /           |
+| ,             |               |             |             |             |
 
 Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 
@@ -158,6 +159,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `IS_EMPTY`](#is_empty)                                                                           |
 | [ `IS_INTEGER`](#is_integer)                                                                       |
 | [ `IS_IP`](#is_ip)                                                                                 |
+| [ `IS_NAN`](#is_nan)                                                             |
 | [ `IS_URL`](#is_url)                                                                               |
 | [ `JOIN`](#join)                                                                                   |
 | [ `KAFKA_GET`](#kafka_get)                                                                         |
@@ -580,6 +582,12 @@ In the core language functions, we support basic functional programming primitiv
     * ip - An object which we wish to test is an ip
     * type (optional) - Object of string or collection type (e.g. list) one of IPV4 or IPV6 or both.  The default is IPV4.
   * Returns: True if the string is an IP and false otherwise.
+
+### `IS_NAN`
+  * Description: Evaluates if the passed number is NaN.  The number is evaluated as a double.
+  * Input:
+    * number - number to evaluate"
+  * Returns: True if the number is NaN, false if it is 
 
 ### `IS_URL`
   * Description: Tests if a string is a valid URL
