@@ -1,6 +1,6 @@
 [//]: # (Metron 0.4.0 bare metal installation guide for CentOS 6)
 [//]: # (Written by Laurens Vets, laurens@daemon.be)
-[//]: # (Version 0.3.2, July 2017)
+[//]: # (Version 0.3.3, July 2017)
 
 ## Metron 0.4.0 with HDP 2.5 bare-metal install on Centos 6 with MariaDB for Metron REST: ##
 
@@ -32,12 +32,14 @@ I installed Metron in a test environment with 3 VMs to try it out as well as a s
 If passwordless ssh has not yet been set up within the cluster, then in main node generate key:
 ```
 # cat /dev/zero | ssh-keygen -q -N "" 2>/dev/null
+# cd ~/.ssh
+# cat id_rsa.pub >> authorized_keys
 ```
-If you're not installing on a single node, add this newly generated key to all the slave nodes:
+- If you're not installing on a single node, add this newly generated key to all the slave nodes:
 ```
 ssh-copy-id -i ~/.ssh/id_rsa.pub <replace_with_node_ip>
 ```
-_Side note:_ You might have to adapt your sshd_config file and add "PermitRootLogin yes" amongst other parameters if you want passwordless root access, but that's outside the scope of this document.
+__Side note:__ You might have to adapt your sshd_config file and add "PermitRootLogin yes" amongst other parameters if you want passwordless root access, but that's outside the scope of this document.
 
 - Increase limits for ElasticSearch and Storm on nodes where you will be installing them (if you don't know, increase it everywhere):
 ```
@@ -80,6 +82,20 @@ Afterwards, run:
 # grub-install /dev/sda
 
 ```
+
+- If you do not want to mess with grub/kernel parameters, add the following to /etc/rc.local:
+```
+vim /etc/rc.local:
+# Disable THP at boot time
+if test -f /sys/kernel/mm/redhat_transparent_hugepage/enabled; then
+  echo never > /sys/kernel/mm/redhat_transparent_hugepage/enabled
+fi
+
+if test -f /sys/kernel/mm/redhat_transparent_hugepage/defrag; then
+  echo never > /sys/kernel/mm/redhat_transparent_hugepage/defrag
+fi
+```
+
 After reboot check that changes were applied (make sure that word "never" is selected in square-brackets):
 ```
 # cat /sys/kernel/mm/transparent_hugepage/enabled
@@ -90,13 +106,13 @@ always madvise [never]
 
 - On all nodes Install pre-requisites for Ambari:
 ```
-# yum install git wget curl rpm tar unzip bzip2 wget createrepo yum-utils ntp python-pip psutils python-psutil ntp libffi-devel gcc openssl-devel -y
+# yum install git wget curl rpm tar unzip bzip2 wget createrepo yum-utils ntp python-pip psutils python-psutil ntp libffi-devel gcc openssl-devel npm -y
 # pip install --upgrade pip
 # pip install requests urllib
 # pip install --upgrade setuptools
 ```
 
-- Install Maven on main node and on Metron node install java 1.8 (if you don't know which it is, install it everywhere):
+- Install Maven 3.3.9 on main node and on Metron node install java 1.8 (if you don't know which it is, install it everywhere):
 ```
 # yum install java-1.8.0-openjdk java-1.8.0-openjdk-devel -y
 ```
@@ -113,7 +129,7 @@ always madvise [never]
 # source /etc/profile.d/java_18.sh
 ```
 
-- Download and install Maven:
+- Download and install Maven 3.3.9:
 ```
 # wget http://apache.volia.net/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
 # tar -zxf apache-maven-3.3.9-bin.tar.gz
@@ -166,7 +182,9 @@ OS name: "linux", version: "3.10.0-514.16.1.el7.x86_64", arch: "amd64", family: 
 ```
 
 - Remove ipv4 'localhost.localdomain' from /etc/hosts
+
 - Remove ipv6 'localhost.localdomain' from /etc/hosts
+
 - Add "127.0.0.1    localhost" to /etc/hosts
 
 - Install the database we will use for Metron REST:
@@ -255,6 +273,13 @@ Now we are going to start to building Metron. At the time of writing, Metron 0.4
 # git clone https://github.com/apache/metron
 ```
 
+If you want to make sure you're on the 0.4.0 release branch, do:
+```
+# git clone https://github.com/apache/metron
+# cd metron
+# git checkout Metron_0.4.0
+```
+
 - Build Metron with HDP 2.5 profile:
 ```
 # cd metron
@@ -270,12 +295,14 @@ If for some reason, the rpm-docker fails with the message "/bin/bash: ./build.sh
 # cp -rp /root/metron/metron-deployment/packaging/docker/rpm-docker/RPMS/noarch/* /localrepo/
 # createrepo /localrepo
 ```
-If you're doing a multi node install, also copy the packages to the other nodes:
+If you're doing a multi node install, also create localrepo on the nodes and copy the packages to the other nodes:
 ```
-# scp /localrepo/* <replace_with_node_ip>:/localrepo/
-# createrepo /localrepo
+# ssh root@node2 mkdir /localrepo
+# scp /localrepo/*\.rpm root@node2:/localrepo/.
+# ssh root@node2 yum install createrepo -y
+# ssh root@node2 createrepo /localrepo
 ```
-- Make sure to run `createrepo /localrepo` on every node!
+- Make sure to do the above on each node.
 
 Fetch & create logrotate script for Hadoop Services:
 ```
@@ -296,7 +323,7 @@ Inspired by: [http://docs.hortonworks.com/HDPDocuments/Ambari-2.4.1.0/bk_ambari-
 # echo -e "* - nofile 32768\n* - nproc 65536" >> /etc/security/limits.conf
 ```
 
-- Enable time sync, disable firewall and SElinux:
+- Enable time sync, disable firewall and SElinux on every node:
 ```
 # yum install ntp -y
 # service ntpd start
@@ -306,20 +333,20 @@ Inspired by: [http://docs.hortonworks.com/HDPDocuments/Ambari-2.4.1.0/bk_ambari-
 # /sbin/chkconfig --list ntpd
 ```
 
-- Disable firewall:
+- Disable firewall on every node:
 ```
 # service iptables save
 # service iptables stop
 # chkconfig iptables off
 ```
 
-- Disable IPv6 firewall:
+- Disable IPv6 firewall on every node:
 ```
 # service ip6tables save
 # service ip6tables stop
 # chkconfig ip6tables off
 ```
-- Disable SElinux 
+- Disable SElinux  on every node:
 ```
 # setenforce 0 (=> I know, but for the sake of simplicity, quickness & testing, I've disabled selinux.)
 ```
@@ -469,6 +496,7 @@ ZooKeeper Client |
 ZooKeeper Server |
 
 - Install everything. Metron REST will probably not work as we still need to add a user and the database to MySQL.
+At this point, make sure that all the services are up. You might have to manually start a few.
 
 - Configure a user for Metron REST in MySQL. On the node where you installed the Metron REST UI, do:
 ```
@@ -555,21 +583,10 @@ Install pycapa
 # yum update -y
 # yum install python27 -y
 # scl enable python27 bash
-
 # cd /opt/rh/python27/root/usr/bin/
 # LD_LIBRARY_PATH=$LD_LIBRARY_PATH ./pip2.7 install --upgrade pip
 # LD_LIBRARY_PATH=$LD_LIBRARY_PATH ./pip2.7 install requests
 
-
-(# /opt/rh/python27/root/usr/bin/virtualenv py27venv
-# source py27venv/bin/activate
-# pip install --upgrade pip
-# pip install ansible==2.0.0.2
-# ansible --version
-# deactivate)
-```
-
-```
 # yum install @Development python-virtualenv libpcap-devel libselinux-python -y
 # mkdir /usr/local/pycapa
 # cd /usr/local/pycapa
@@ -578,7 +595,6 @@ Install pycapa
 # cp -r /root/metron/metron-sensors/pycapa/. /usr/local/pycapa/.
 # pip install --upgrade pip
 # /usr/local/pycapa/pycapa-venv/bin/pip install -r requirements.txt
-(# pip install -r requirements.txt)
 
 # /usr/local/pycapa/pycapa-venv/bin/python setup.py install
 # ln -s /usr/local/lib/librdkafka.so.1 /opt/rh/python27/root/usr/lib64
@@ -594,7 +610,6 @@ Log out and log in to make sure Python is back to version 2.6 instead of 2.7.
 # sed -i 's/--kafka {{ kafka_broker_url }}/--kafka-broker <IP:6667>/' /etc/init.d/pycapa
 # sed -i 's/--topic {{ pycapa_topic }}/--kafka-topic pcap/' /etc/init.d/pycapa
 # sed -i 's/{{ pycapa_sniff_interface }}/tap0/' /etc/init.d/pycapa
-(# sed -i 's/export LD_LIBRARY_PATH=\/opt\/rh\/python27\/root\/usr\/lib64/export LD_LIBRARY_PATH=\/usr\/local\/lib/' /etc/init.d/pycapa)
 # chmod 755 /etc/init.d/pycapa
 # yum install @Development libdnet-devel rpm-build libpcap libpcap-devel pcre pcre-devel zlib zlib-devel glib2-devel -y
 # yum install kafka -y
@@ -793,6 +808,8 @@ Install monit
 
 ### Miscellaneous Issues ###
 
+- There's currently a bug in Metron 0.4.0 where Metron REST doesn't start when restarting the Metron services. This bug was fixed in METRON-990 (https://github.com/apache/metron/pull/613/commits/1a9b19a0101ada58cb671ab224934f304df6fff8) but unfortunately, this fix didn't make the 0.4.0 release. In order to fix this, edit the file "/etc/rc.d/init.d/metron-rest" and on line 148, change "$0 start" to "$0 start $2".
+
 - I had a problem with Zeppelin after rebooting this machine and had to manually create the Zeppelin run directory:
 ```
 # mkdir /var/run/zeppelin
@@ -861,8 +878,9 @@ To:
 supervisor.slots.ports: [6700, 6701, 6702, 6703, 6704, 6705]
 ```
 
-- Install Apache NiFi. Download nifi-1.2.0-bin.tar.gz from https://nifi.apache.org/download.html
+- Install Apache NiFi in /root (You can pretty much use any directory you want). Download nifi-1.2.0-bin.tar.gz from https://nifi.apache.org/download.html
 ```
+# cd /root
 # wget http://apache.mirror.iweb.ca/nifi/1.2.0/nifi-1.2.0-bin.tar.gz
 # tar xf nifi-1.2.0-bin.tar.gz
 ```
@@ -886,4 +904,3 @@ In the end, you'll end up with a bunch of exposed UIs:
 - Kafka: http://node1:6667
 
 ### TROUBLESHOOTING ###
-
