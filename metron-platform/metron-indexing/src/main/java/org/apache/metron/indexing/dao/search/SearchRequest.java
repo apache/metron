@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.metron.indexing.dao.search;
 
 import java.util.ArrayList;
@@ -114,5 +115,34 @@ public class SearchRequest {
 
   public void setFacetFields(List<String> facetFields) {
     this.facetFields = facetFields;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    SearchRequest that = (SearchRequest) o;
+
+    return indices != null ? indices.equals(that.indices) : that.indices == null &&
+        (query != null ? query.equals(that.query) : that.query == null) && size == that.size &&
+        from == that.from &&
+        (sort != null ? sort.equals(that.sort) : that.sort == null) &&
+        (facetFields != null ? facetFields.equals(that.facetFields) : that.facetFields == null);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = indices != null ? indices.hashCode() : 0;
+    result = 31 * result + (query != null ? query.hashCode() : 0);
+    result = 31 * result + getSize();
+    result = 31 * result + getFrom();
+    result = 31 * result + (sort != null ? sort.hashCode() : 0);
+    result = 31 * result + (facetFields != null ? facetFields.hashCode() : 0);
+    return result;
   }
 }

@@ -318,6 +318,32 @@
                 <config-type>metron-management-ui-env</config-type>
             </configuration-dependencies>
         </component>
+        <component>
+          <name>METRON_ALERTS_UI</name>
+          <displayName>Metron Alerts UI</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <reassignAllowed>false</reassignAllowed>
+          <clientsToUpdateConfigs></clientsToUpdateConfigs>
+          <dependencies>
+            <dependency>
+              <name>METRON/METRON_MANAGEMENT_UI</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/alerts_ui_master.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <configuration-dependencies>
+            <config-type>metron-rest-env</config-type>
+            <config-type>metron-alerts-ui-env</config-type>
+          </configuration-dependencies>
+        </component>
 
         <component>
           <name>METRON_CLIENT</name>
@@ -380,6 +406,9 @@
             </package>
             <package>
               <name>metron-config</name>
+            </package>
+            <package>
+              <name>metron-alerts</name>
             </package>
           </packages>
         </osSpecific>

@@ -49,9 +49,12 @@ class Indexing(Script):
              group=params.metron_group
              )
 
-        commands = IndexingCommands(params)
-        metron_service.load_global_config(params)
+        if not metron_service.is_zk_configured(params):
+            metron_service.init_zk_config(params)
+            metron_service.set_zk_configured(params)
+        metron_service.refresh_configs(params)
 
+        commands = IndexingCommands(params)
         if not commands.is_configured():
             commands.init_kafka_topics()
             commands.init_hdfs_dir()

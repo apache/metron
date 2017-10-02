@@ -50,7 +50,7 @@ public class VFSClassloaderUtil {
    * * FTP
    * * HTTP/S
    * * file
-   * @return
+   * @return vfs
    * @throws FileSystemException
    */
   public static FileSystemManager generateVfs() throws FileSystemException {

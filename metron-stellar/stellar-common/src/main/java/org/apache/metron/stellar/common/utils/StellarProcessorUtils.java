@@ -53,7 +53,7 @@ public class StellarProcessorUtils {
      * @param rule
      * @param variables
      * @param context
-     * @return
+     * @return ret
      */
     public static Object run(String rule, Map<String, Object> variables, Context context) {
         StellarProcessor processor = new StellarProcessor();
@@ -149,7 +149,6 @@ public class StellarProcessorUtils {
      * {@inheritDoc}
      *
      * @param action
-     * @implSpec If the action is an instance of {@code IntConsumer} then it is cast
      * to {@code IntConsumer} and passed to
      * {@link #tryAdvance(IntConsumer)}; otherwise
      * the action is adapted to an instance of {@code IntConsumer}, by

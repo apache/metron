@@ -19,8 +19,12 @@ package org.apache.metron.indexing.dao;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.flipkart.zjsonpatch.JsonPatch;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
@@ -28,16 +32,9 @@ import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
-import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
-
-import java.io.IOException;
-import org.apache.metron.indexing.dao.search.FieldType;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 public interface IndexDao {
 
@@ -115,7 +112,7 @@ public interface IndexDao {
       }
     }
     JsonNode originalNode = JSONUtils.INSTANCE.convert(latest, JsonNode.class);
-    JsonNode patched = JsonPatch.apply(request.getPatch(), originalNode);
+    JsonNode patched = JSONUtils.INSTANCE.applyPatch(request.getPatch(), originalNode);
     Map<String, Object> updated = JSONUtils.INSTANCE.getMapper()
                                            .convertValue(patched, new TypeReference<Map<String, Object>>() {});
     Document d = new Document( updated

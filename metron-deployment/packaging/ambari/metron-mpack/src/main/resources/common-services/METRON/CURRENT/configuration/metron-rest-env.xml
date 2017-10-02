@@ -109,4 +109,39 @@
         <value>escalation</value>
         <display-name>Metron escalation topic</display-name>
     </property>
+    <property>
+        <name>metron_rest_classpath</name>
+        <description>Additional classpath for metron REST.</description>
+        <value/>
+        <display-name>Metron rest additional classpath</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+    <property>
+        <name>metron_indexing_classpath</name>
+        <description>Classpath for metron indexing if Elasticsearch isn't being used</description>
+        <value/>
+        <display-name>Metron indexing classpath</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+    </property>
+    <property>
+        <name>metron_sysconfig</name>
+        <description>Local location of a custom sysconfig</description>
+        <value>/etc/default/metron</value>
+        <display-name>Metron sysconfig</display-name>
+    </property>
+    <property>
+        <name>metron_rest_pid_dir</name>
+        <value>/var/run/metron</value>
+        <display-name>Metron REST PID Dir</display-name>
+        <description>Metron REST PID Dir.</description>
+        <value-attributes>
+            <type>directory</type>
+            <overridable>false</overridable>
+            <editable-only-at-install>true</editable-only-at-install>
+        </value-attributes>
+    </property>
 </configuration>

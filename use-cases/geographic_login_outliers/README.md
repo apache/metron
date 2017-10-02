@@ -223,7 +223,7 @@ We also want to set up a triage rule associating a score and setting an alert if
 From here, we've set up our configuration and can push the configs:
 * Push the configs to zookeeper via
 ```
-$METRON_HOME/bin/zk_load_configs.sh --mode PUSH -z node1:2181 -i $METRON_HOME/config/zookeeper/
+$METRON_HOME/bin/zk_load_configs.sh --mode PUSH -z $ZOOKEEPER -i $METRON_HOME/config/zookeeper/
 ```
 * Start the parser via:
 ```
@@ -231,7 +231,8 @@ $METRON_HOME/bin/start_parser_topology.sh -k $BROKERLIST -z $ZOOKEEPER -s auth
 ```
 * Push synthetic data into the `auth` topic via
 ```
-python ~/gen_data.py | /usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh --broker-list node1:6667 --topic auth
+python ~/gen_data.py |
+/usr/hdp/current/kafka-broker/bin/kafka-console-producer.sh --broker-list $BROKERLIST --topic auth
 ```
 * Wait for about `5` minutes and kill the previous command
 * Push a synthetic record indicating `user1` has logged in from a russian IP (`109.252.227.173`):

@@ -18,10 +18,11 @@
 
 package org.apache.metron.elasticsearch.dao;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -60,6 +61,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Test;
+import org.mockito.Mock;
 
 public class ElasticsearchMetaAlertDaoTest {
 
@@ -307,13 +309,13 @@ public class ElasticsearchMetaAlertDaoTest {
         MetaAlertStatus.ACTIVE.getStatusString(),
         actualDocument.get(MetaAlertDao.STATUS_FIELD)
     );
-    assertArrayEquals(
-        alertList.toArray(),
-        (Object[]) actualDocument.get(MetaAlertDao.ALERT_FIELD)
+    assertEquals(
+        alertList,
+        actualDocument.get(MetaAlertDao.ALERT_FIELD)
     );
-    assertArrayEquals(
-        groups.toArray(),
-        (Object[]) actualDocument.get(MetaAlertDao.GROUPS_FIELD)
+    assertEquals(
+        groups,
+        actualDocument.get(MetaAlertDao.GROUPS_FIELD)
     );
 
     // Don't care about the result, just that it's a UUID. Exception will be thrown if not.
@@ -369,13 +371,13 @@ public class ElasticsearchMetaAlertDaoTest {
 
     Map<String, Object> actualDocument = actual.getDocument();
     assertNotNull(actualDocument.get(Fields.TIMESTAMP.getName()));
-    assertArrayEquals(
-        alertList.toArray(),
-        (Object[]) actualDocument.get(MetaAlertDao.ALERT_FIELD)
+    assertEquals(
+        alertList,
+        actualDocument.get(MetaAlertDao.ALERT_FIELD)
     );
-    assertArrayEquals(
-        groups.toArray(),
-        (Object[]) actualDocument.get(MetaAlertDao.GROUPS_FIELD)
+    assertEquals(
+        groups,
+        actualDocument.get(MetaAlertDao.GROUPS_FIELD)
     );
 
     // Don't care about the result, just that it's a UUID. Exception will be thrown if not.
@@ -406,7 +408,7 @@ public class ElasticsearchMetaAlertDaoTest {
   }
 
   @Test
-  public void testCalculateMetaScores() {
+  public void testCalculateMetaScoresList() {
     List<Map<String, Object>> alertList = new ArrayList<>();
     Map<String, Object> alertMap = new HashMap<>();
     alertMap.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
@@ -423,5 +425,50 @@ public class ElasticsearchMetaAlertDaoTest {
     ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();
     MetaScores actual = metaAlertDao.calculateMetaScores(doc);
     assertEquals(expected.getMetaScores(), actual.getMetaScores());
+  }
+
+  @Test
+  public void testHandleMetaUpdateNonAlert() throws IOException {
+    ElasticsearchDao mockEsDao= mock(ElasticsearchDao.class);
+
+    Map<String, Object> docMap = new HashMap<>();
+    docMap.put(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
+    Document update = new Document(docMap, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
+
+    ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao(mockEsDao);
+    metaAlertDao.handleMetaUpdate(update, Optional.of(MetaAlertDao.METAALERTS_INDEX));
+    verify(mockEsDao, times(1))
+        .update(update, Optional.of(MetaAlertDao.METAALERTS_INDEX));
+  }
+
+  @Test
+  public void testHandleMetaUpdateAlert() throws IOException {
+    ElasticsearchDao mockEsDao= mock(ElasticsearchDao.class);
+
+    Map<String, Object> alertMap = new HashMap<>();
+    alertMap.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
+    List<Map<String, Object>> alertList = new ArrayList<>();
+    alertList.add(alertMap);
+
+    Map<String, Object> docMapBefore = new HashMap<>();
+    docMapBefore.put(MetaAlertDao.ALERT_FIELD, alertList);
+    Document before = new Document(docMapBefore, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
+
+    Map<String, Object> docMapAfter = new HashMap<>();
+    docMapAfter.putAll(docMapBefore);
+    docMapAfter.put("average", 10.0d);
+    docMapAfter.put("min", 10.0d);
+    docMapAfter.put("median", 10.0d);
+    docMapAfter.put("max", 10.0d);
+    docMapAfter.put("count", 1L);
+    docMapAfter.put("sum", 10.0d);
+    docMapAfter.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
+    Document after = new Document(docMapAfter, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
+
+    ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao(mockEsDao);
+    metaAlertDao.handleMetaUpdate(before, Optional.of(MetaAlertDao.METAALERTS_INDEX));
+
+    verify(mockEsDao, times(1))
+        .update(after, Optional.of(MetaAlertDao.METAALERTS_INDEX));
   }
 }

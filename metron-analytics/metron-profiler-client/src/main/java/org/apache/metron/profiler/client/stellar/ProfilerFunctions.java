@@ -20,7 +20,7 @@
 
 package org.apache.metron.profiler.client.stellar;
 
-import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.profiler.ProfileMeasurement;
@@ -29,7 +29,6 @@ import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
-import org.apache.storm.shade.org.apache.commons.lang.ClassUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;

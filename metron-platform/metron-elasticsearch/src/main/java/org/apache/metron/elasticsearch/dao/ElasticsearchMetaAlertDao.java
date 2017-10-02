@@ -275,13 +275,13 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
         alertList.add(response.getSource());
       }
     }
-    metaSource.put(ALERT_FIELD, alertList.toArray());
+    metaSource.put(ALERT_FIELD, alertList);
 
-    // Add any meta fields and score calculation.
+    // Add any meta fields
     String guid = UUID.randomUUID().toString();
     metaSource.put(Constants.GUID, guid);
     metaSource.put(Constants.Fields.TIMESTAMP.getName(), System.currentTimeMillis());
-    metaSource.put(GROUPS_FIELD, groups.toArray());
+    metaSource.put(GROUPS_FIELD, groups);
     metaSource.put(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
 
     return new Document(metaSource, guid, METAALERT_TYPE, System.currentTimeMillis());
@@ -294,11 +294,14 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
    * @throws IOException If there's a problem running the update
    */
   protected void handleMetaUpdate(Document update, Optional<String> index) throws IOException {
-    // We have an update to a meta alert itself (e.g. adding a document, etc.)  Calculate scores
-    // and defer the final result to the Elasticsearch DAO.
-    MetaScores metaScores = calculateMetaScores(update);
-    update.getDocument().putAll(metaScores.getMetaScores());
-    update.getDocument().put(threatTriageField, metaScores.getMetaScores().get(threatSort));
+    // We have an update to a meta alert itself
+    // If we've updated the alerts field (i.e add/remove), recalculate meta alert scores.
+    if (update.getDocument().containsKey(MetaAlertDao.ALERT_FIELD)) {
+      MetaScores metaScores = calculateMetaScores(update);
+      update.getDocument().putAll(metaScores.getMetaScores());
+      update.getDocument().put(threatTriageField, metaScores.getMetaScores().get(threatSort));
+    }
+
     indexDao.update(update, index);
   }
 

@@ -34,6 +34,7 @@ import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
 
+import static org.apache.metron.stellar.dsl.Context.Capabilities.STELLAR_CONFIG;
 import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_EXCLUDES_KEY;
 import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_SEARCH_INCLUDES_KEY;
 import static org.apache.metron.stellar.dsl.functions.resolver.ClasspathFunctionResolver.Config.STELLAR_VFS_PATHS;

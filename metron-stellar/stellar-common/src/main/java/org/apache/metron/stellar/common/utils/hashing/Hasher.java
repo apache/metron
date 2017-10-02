@@ -20,6 +20,10 @@ package org.apache.metron.stellar.common.utils.hashing;
 import org.apache.commons.codec.EncoderException;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public interface Hasher {
 
@@ -31,5 +35,12 @@ public interface Hasher {
    * @throws EncoderException If unable to encode the hash then this exception occurs.
    * @throws NoSuchAlgorithmException If the supplied algorithm is not known.
    */
-  String getHash(final Object toHash) throws EncoderException, NoSuchAlgorithmException;
+  Object getHash(final Object toHash) throws EncoderException, NoSuchAlgorithmException;
+
+  /**
+   * Configure the hasher with a string to object map.
+   * @param config
+   */
+  void configure(final Optional<Map<String, Object>> config);
+
 }

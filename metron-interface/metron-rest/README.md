@@ -59,9 +59,8 @@ No optional parameter has a default.
 ### Optional - With Defaults
 | Environment Variable                  | Description                                                       | Required | Default
 | ------------------------------------- | ----------------------------------------------------------------- | -------- | -------
-| METRON_USER                           | Run the application as this user                                  | Optional | metron
 | METRON_LOG_DIR                        | Directory where the log file is written                           | Optional | /var/log/metron/
-| METRON_PID_DIR                        | Directory where the pid file is written                           | Optional | /var/run/metron/
+| METRON_PID_FILE                       | File where the pid is written                                     | Optional | /var/run/metron/
 | METRON_REST_PORT                      | REST application port                                             | Optional | 8082
 | METRON_JDBC_CLIENT_PATH               | Path to JDBC client jar                                           | Optional | H2 is bundled
 | METRON_TEMP_GROK_PATH                 | Temporary directory used to test grok statements                  | Optional | ./patterns/temp
@@ -81,18 +80,18 @@ These are set in the `/etc/sysconfig/metron` file.
 
 ## Database setup
 
-The REST application persists data in a relational database and requires a dedicated database user and database (see https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html for more detail).
+The REST application persists data in a relational database and requires a dedicated database user and database (see https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html for more detail).  
+Spring uses Hibernate as the default ORM framework but another framework is needed becaused Hibernate is not compatible with the Apache 2 license.  For this reason Metron uses [EclipseLink](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html#boot-features-embedded-database-support).  See the [Spring Data JPA - EclipseLink](https://github.com/spring-projects/spring-data-examples/tree/master/jpa/eclipselink) project for an example on how to configure EclipseLink in Spring.
 
 ### Development
 
-The REST application comes with embedded database support for development purposes (https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html#boot-features-embedded-database-support).
+The REST application comes with [embedded database support](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html#boot-features-embedded-database-support) for development purposes.
 
 For example, edit these variables in `/etc/sysconfig/metron` before starting the application to configure H2:
 ```
 METRON_JDBC_DRIVER="org.h2.Driver"
 METRON_JDBC_URL="jdbc:h2:file:~/metrondb"
 METRON_JDBC_USERNAME="root"
-METRON_JDBC_PASSWORD='root"
 METRON_JDBC_PLATFORM="h2"
 ```
 
@@ -100,7 +99,15 @@ METRON_JDBC_PLATFORM="h2"
 
 The REST application should be configured with a production-grade database outside of development.
 
-For example, the following configures the application for MySQL:
+#### Ambari Install
+
+Installing with Ambari is recommended for production deployments.
+Ambari handles setup, configuration, and management of the REST component.
+This includes managing the PID file, directing logging, etc.
+
+#### Manual Install
+
+The following configures the application for MySQL:
 
 1. Install MySQL if not already available (this example uses version 5.7, installation instructions can be found [here](https://dev.mysql.com/doc/refman/5.7/en/linux-installation-yum-repo.html))
 
@@ -127,17 +134,22 @@ METRON_JDBC_PLATFORM="mysql"
 METRON_JDBC_CLIENT_PATH=$METRON_HOME/lib/mysql-connector-java-5.1.41/mysql-connector-java-5.1.41-bin.jar
   ```
 
+1. Switch to the metron user
+  ```
+sudo su - metron
+  ```
+
+1. Start the REST API. Adjust the password as necessary.
+  ```
+set -o allexport;
+source /etc/metron/sysconfig;
+set +o allexport;
+export METRON_JDBC_PASSWORD='Myp@ssw0rd';
+$METRON_HOME/bin/metron-rest.sh
+unset METRON_JDBC_PASSWORD;
+  ```
+
 ## Usage
-
-After configuration is complete, the REST application can be managed as a service:
-```
-service metron-rest start
-```
-
-If a production database is configured, the JDBC password should be passed in as the first argument on startup:
-```
-service metron-rest start Myp@ssw0rd
-```
 
 The REST application can be accessed with the Swagger UI at http://host:port/swagger-ui.html#/.  The default port is 8082.
 
@@ -185,6 +197,10 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 |            |
 | ---------- |
 | [ `POST /api/v1/alert/escalate`](#get-apiv1alertescalate)|
+| [ `GET /api/v1/alert/profile`](#get-apiv1alertprofile)|
+| [ `GET /api/v1/alert/profile/all`](#get-apiv1alertprofileall)|
+| [ `DELETE /api/v1/alert/profile`](#delete-apiv1alertprofile)|
+| [ `POST /api/v1/alert/profile`](#post-apiv1alertprofile)|
 | [ `GET /api/v1/global/config`](#get-apiv1globalconfig)|
 | [ `DELETE /api/v1/global/config`](#delete-apiv1globalconfig)|
 | [ `POST /api/v1/global/config`](#post-apiv1globalconfig)|
@@ -258,6 +274,36 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * alerts - The alerts to be escalated
   * Returns:
     * 200 - Alerts were escalated
+    
+### `GET /api/v1/alert/profile`
+  * Description: Retrieves the current user's alerts profile
+  * Returns:
+    * 200 - Alerts profile
+    * 404 - The current user does not have an alerts profile
+    
+### `GET /api/v1/alert/profile/all`
+  * Description: Retrieves all users' alerts profiles.  Only users that are part of the "ROLE_ADMIN" role are allowed to get all alerts profiles.
+  * Returns:
+    * 200 - List of all alerts profiles
+    * 403 - The current user does not have permission to get all alerts profiles
+
+### `DELETE /api/v1/alert/profile`
+  * Description: Deletes a user's alerts profile.  Only users that are part of the "ROLE_ADMIN" role are allowed to delete user alerts profiles.
+  * Input:
+    * user - The user whose prolife will be deleted
+  * Returns:
+    * 200 - Alerts profile was deleted
+    * 403 - The current user does not have permission to delete alerts profiles
+    * 404 - Alerts profile could not be found
+
+### `POST /api/v1/alert/profile`
+  * Description: Creates or updates the current user's alerts profile
+  * Input:
+    * alertsProfile - The alerts profile to be saved
+  * Returns:
+    * 200 - Alerts profile updated. Returns saved alerts profile.
+    * 201 - Alerts profile created. Returns saved alerts profile.
+
 
 ### `GET /api/v1/global/config`
   * Description: Retrieves the current Global Config from Zookeeper
