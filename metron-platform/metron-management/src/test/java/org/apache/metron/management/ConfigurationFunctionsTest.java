@@ -87,7 +87,9 @@ public class ConfigurationFunctionsTest {
       "parserParallelism" : 1,
       "errorWriterParallelism" : 1,
       "spoutNumTasks" : 1,
-      "stormConfig" : {},
+      "stormConfig" : {
+        "topology.workers":1,
+        "topology.acker.executors":1},
       "errorWriterNumTasks":1,
       "spoutConfig":{},
       "parserNumTasks":1,
