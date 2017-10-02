@@ -17,18 +17,41 @@
  */
 package org.apache.metron.stellar.common.utils.hashing;
 
+import com.google.common.base.Joiner;
 import org.apache.commons.codec.BinaryEncoder;
+import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.EncoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.charset.UnsupportedCharsetException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.Security;
+import java.util.*;
+import java.util.function.Function;
 
 public class DefaultHasher implements Hasher {
+
+  public enum Config implements EnumConfigurable {
+    CHARSET("charset"),
+    ;
+    private String key;
+    Config(String key) {
+      this.key = key;
+    }
+
+    @Override
+    public String getKey() {
+      return key;
+    }
+
+  }
 
   private String algorithm;
   private BinaryEncoder encoder;
@@ -59,6 +82,16 @@ public class DefaultHasher implements Hasher {
     this.algorithm = algorithm;
     this.encoder = encoder;
     this.charset = StandardCharsets.UTF_8;
+  }
+
+  /**
+   * Builds a utility to hash values based on a given algorithm. Uses {@link StandardCharsets#UTF_8} for encoding.
+   * @param algorithm The algorithm used when hashing a value.
+   * @see java.security.Security
+   * @see java.security.MessageDigest
+   */
+  public DefaultHasher(final String algorithm) {
+    this(algorithm, new Hex(StandardCharsets.UTF_8));
   }
 
   /**
@@ -94,4 +127,25 @@ public class DefaultHasher implements Hasher {
 
     return new String(encode, charset);
   }
+
+  @Override
+  public void configure(Optional<Map<String, Object>> config) {
+    if(config.isPresent() && !config.get().isEmpty()) {
+      charset = Config.CHARSET.get(config.get()
+              , o -> {
+                String charset = ConversionUtils.convert(o, String.class);
+                if(charset != null) {
+                  Charset set = Charset.forName(charset);
+                  return set;
+                }
+                return null;
+              }
+      ).orElse(charset);
+    }
+  }
+
+  public static final Set<String> supportedHashes() {
+    return new HashSet<>(Security.getAlgorithms("MessageDigest"));
+  }
+
 }
