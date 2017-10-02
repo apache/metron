@@ -59,7 +59,7 @@ public class IndexingConfigurations extends Configurations {
   }
 
   private String getKey(String sensorType) {
-    return ConfigurationType.INDEXING.getName() + "." + sensorType;
+    return ConfigurationType.INDEXING.getTypeName() + "." + sensorType;
   }
 
   public boolean isDefault(String sensorName, String writerName) {

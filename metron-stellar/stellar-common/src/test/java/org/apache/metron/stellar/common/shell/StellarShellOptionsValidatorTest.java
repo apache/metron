@@ -37,9 +37,10 @@ public class StellarShellOptionsValidatorTest {
   @Test
   public void validateOptions() throws Exception {
     String[] validZHostArg = new String[]{"-z", "localhost:8888"};
+    String[] validZHostArgNoPort = new String[]{"-z", "localhost"};
+    String[] validZIPArgNoPort = new String[]{"-z", "10.10.10.3"};
+    String[] validZHostArgList = new String[]{"-z", "localhost:8888,localhost:2181,localhost"};
     String[] validZIPArg = new String[]{"-z", "10.10.10.3:9999"};
-    String[] invalidZNoPortArg = new String[]{"-z", "youtube.com"};
-    String[] invalidZIPNoPortArg = new String[]{"-z", "10.10.10.3"};
     String[] invalidZNameArg = new String[]{"-z", "!!!@!!@!:8882"};
     String[] invalidZIPArg = new String[]{"-z", "11111.22222.10.3:3332"};
     String[] invalidZMissingNameArg = new String[]{"-z", ":8882"};
@@ -88,27 +89,18 @@ public class StellarShellOptionsValidatorTest {
     commandLine = parser.parse(options, validPFileArg);
     StellarShellOptionsValidator.validateOptions(commandLine);
 
+    commandLine = parser.parse(options, validZHostArgNoPort);
+    StellarShellOptionsValidator.validateOptions(commandLine);
+
+    commandLine = parser.parse(options, validZHostArgList);
+    StellarShellOptionsValidator.validateOptions(commandLine);
+
+    commandLine = parser.parse(options, validZIPArgNoPort);
+    StellarShellOptionsValidator.validateOptions(commandLine);
     // these should not
 
     boolean thrown = false;
 
-    try {
-      commandLine = parser.parse(options, invalidZNoPortArg);
-      StellarShellOptionsValidator.validateOptions(commandLine);
-    } catch (IllegalArgumentException e) {
-      thrown = true;
-    }
-    Assert.assertTrue("Did not catch failure for not providing port with host name ", thrown);
-    thrown = false;
-
-    try {
-      commandLine = parser.parse(options, invalidZIPNoPortArg);
-      StellarShellOptionsValidator.validateOptions(commandLine);
-    } catch (IllegalArgumentException e) {
-      thrown = true;
-    }
-    Assert.assertTrue("Did not catch failure for not providing port with ip address ", thrown);
-    thrown = false;
 
     try {
       commandLine = parser.parse(options, invalidZNameArg);

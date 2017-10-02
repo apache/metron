@@ -335,6 +335,34 @@
                 }
               ]
             }
+          },
+          {
+            "name": "alerts-ui",
+            "display-name": "Alerts UI",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-alerts-ui",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-alerts-ui",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
           }
         ]
       }
@@ -464,11 +492,11 @@
           "subsection-name": "subsection-indexing-kafka"
         },
         {
-          "config": "metron-indexing-env/update_table",
+          "config": "metron-indexing-env/update_hbase_table",
           "subsection-name": "subsection-indexing-update"
         },
         {
-          "config": "metron-indexing-env/update_cf",
+          "config": "metron-indexing-env/update_hbase_cf",
           "subsection-name": "subsection-indexing-update"
         },
         {
@@ -623,6 +651,10 @@
         {
           "config": "metron-management-ui-env/metron_management_ui_port",
           "subsection-name": "subsection-management-ui"
+        },
+        {
+          "config": "metron-alerts-ui-env/metron_alerts_ui_port",
+          "subsection-name": "subsection-alerts-ui"
         }
       ]
     },
@@ -810,13 +842,13 @@
         }
       },
       {
-        "config": "metron-indexing-env/update_table",
+        "config": "metron-indexing-env/update_hbase_table",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-indexing-env/update_cf",
+        "config": "metron-indexing-env/update_hbase_cf",
         "widget": {
           "type": "text-field"
         }
@@ -1052,6 +1084,12 @@
       },
       {
         "config": "metron-management-ui-env/metron_management_ui_port",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-alerts-ui-env/metron_alerts_ui_port",
         "widget": {
           "type": "text-field"
         }

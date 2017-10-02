@@ -22,40 +22,27 @@
 var os          = require('os');
 var app         = require('express')();
 var path        = require('path');
-var compression = require('compression')
+var compression = require('compression');
 var serveStatic = require('serve-static');
 var favicon     = require('serve-favicon');
 var proxy       = require('http-proxy-middleware');
 var argv        = require('optimist')
-                  .demand(['p', 'r', 'e'])
-                  .alias('r', 'resturl')
-                  .alias('e', 'elasticurl')
-                  .usage('Usage: server.js -p [port] -r [restUrl] -e [elasticURL]')
-                  .describe('p', 'Port to run metron management ui')
-                  .describe('r', 'Url where metron rest application is available')
+                  .demand(['c'])
+                  .alias('c', 'config_file')
+                  .usage('Usage: alerts-server.js -c [config_file]')
+                  .describe('c', 'Path to alerts_ui.yml')
                   .argv;
+var YAML        = require('yamljs');
 
-var port = argv.p;
 var metronUIAddress = '';
 var ifaces = os.networkInterfaces();
-var restUrl =  argv.r || argv.resturl;
-var elasticUrl =  argv.e || argv.elasticurl;
-var conf = {
-  "elastic": {
-    "target": elasticUrl,
-    "secure": false
-  },
-  "rest": {
-    "target": restUrl,
-    "secure": false
-  }
-};
+var uiConfig = YAML.load(argv.c);
 
 Object.keys(ifaces).forEach(function (dev) {
   ifaces[dev].forEach(function (details) {
     if (details.family === 'IPv4') {
       metronUIAddress += '\n';
-      metronUIAddress += 'http://' + details.address + ':' + port;
+      metronUIAddress += 'http://' + details.address + ':' + uiConfig.port;
     }
   });
 });
@@ -67,18 +54,11 @@ function setCustomCacheControl (res, path) {
   res.setHeader("Expires", new Date(Date.now() + 2592000000).toUTCString());
 }
 
-var rewriteSearchProxy = proxy({
-  target: restUrl,
-  ws: true,
-  pathRewrite: {
-    '^/search' : ''
-  }
-});
-
 app.use(compression());
 
-app.use('/api', proxy(conf.rest));
-app.use('/_cluster', proxy(conf.elastic));
+var restUrl = 'http://' + uiConfig.rest.host + ':' + uiConfig.rest.port;
+app.use('/api/v1', proxy(restUrl));
+app.use('/logout', proxy(restUrl));
 
 app.use(favicon(path.join(__dirname, '../alerts-ui/favicon.ico')));
 
@@ -91,6 +71,6 @@ app.get('*', function(req, res){
   res.sendFile(path.resolve('../alerts-ui/index.html'));
 });
 
-app.listen(port, function(){
+app.listen(uiConfig.port, function(){
   console.log("Metron alerts ui is listening on " + metronUIAddress);
 });

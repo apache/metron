@@ -17,28 +17,37 @@
  */
 package org.apache.metron.stellar.common;
 
+import com.google.common.base.Joiner;
+import java.io.Serializable;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.Context.ActivityType;
-import org.apache.metron.stellar.dsl.Token;
-import org.apache.metron.stellar.dsl.VariableResolver;
-import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.metron.stellar.common.evaluators.ArithmeticEvaluator;
 import org.apache.metron.stellar.common.evaluators.ComparisonExpressionWithOperatorEvaluator;
 import org.apache.metron.stellar.common.evaluators.NumberLiteralEvaluator;
 import org.apache.metron.stellar.common.generated.StellarBaseListener;
 import org.apache.metron.stellar.common.generated.StellarParser;
-import com.google.common.base.Joiner;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.FunctionMarker;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunction;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
-
-import java.io.Serializable;
-import java.util.*;
+import org.apache.metron.stellar.dsl.Token;
+import org.apache.metron.stellar.dsl.VariableResolver;
+import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 
 import static java.lang.String.format;
+import org.apache.metron.stellar.dsl.Context.ActivityType;
 
 public class StellarCompiler extends StellarBaseListener {
   private static Token<?> EXPRESSION_REFERENCE = new Token<>(null, Object.class);
@@ -121,15 +130,15 @@ public class StellarCompiler extends StellarBaseListener {
             //if we have a boolean as the current value and the next non-contextual token is a short circuit op
             //then we need to short circuit possibly
             if(token.getUnderlyingType() == BooleanArg.class) {
-              if (curr.getMultiArgContext() != null
-                      && curr.getMultiArgContext().getVariety() == FrameContext.BOOLEAN_OR
+              if (token.getMultiArgContext() != null
+                      && token.getMultiArgContext().getVariety() == FrameContext.BOOLEAN_OR
                       && (Boolean) (curr.getValue())
                       ) {
                 //short circuit the or
                 FrameContext.Context context = curr.getMultiArgContext();
                 shortCircuit(it, context);
-              } else if (curr.getMultiArgContext() != null
-                      && curr.getMultiArgContext().getVariety() == FrameContext.BOOLEAN_AND
+              } else if (token.getMultiArgContext() != null
+                      && token.getMultiArgContext().getVariety() == FrameContext.BOOLEAN_AND
                       && !(Boolean) (curr.getValue())
                       ) {
                 //short circuit the and
@@ -253,6 +262,11 @@ public class StellarCompiler extends StellarBaseListener {
   @Override
   public void exitNullConst(StellarParser.NullConstContext ctx) {
     expression.tokenDeque.push(new Token<>(null, Object.class, getArgContext()));
+  }
+
+  @Override
+  public void exitNaNArith(StellarParser.NaNArithContext ctx) {
+    expression.tokenDeque.push(new Token<>(Double.NaN, Double.class, getArgContext()));
   }
 
   @Override

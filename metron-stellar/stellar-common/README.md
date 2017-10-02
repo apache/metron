@@ -1,24 +1,24 @@
 
+# Stellar Language
 
-# Contents
+For a variety of components (threat intelligence triage and field transformations) we have the need to do simple computation and transformation using the data from messages as variables.  For those purposes, there exists a simple, scaled down DSL created to do simple computation and transformation.
 
-* [Stellar Language](#stellar-language)
-    * [Stellar Language Keywords](#stellar-language-keywords)
-    * [Stellar Core Functions](#stellar-core-functions)
-    * [Stellar Benchmarks](#stellar-benchmarks)
-    * [Stellar Shell](#stellar-shell)
+
+* [Introduction](#introduction)
+* [Stellar Core Functions](#stellar-core-functions)
+* [Stellar Benchmarks](#stellar-benchmarks)
+* [Stellar Shell](#stellar-shell)
+    * [Getting Started](#getting-started)
+    * [Command Line Options](#command-line-options)
+    * [Variable Assignment](#variable-assignment)
+    * [Magic Commands](#magic-commands)
+    * [Advanced Usage](#advanced-usage)
 * [Stellar Configuration](#stellar-configuration)
 
 
-# Stellar Language
+## Introduction
 
-For a variety of components (threat intelligence triage and field
-transformations) we have the need to do simple computation and
-transformation using the data from messages as variables.  
-For those purposes, there exists a simple, scaled down DSL 
-created to do simple computation and transformation.
-
-The query language supports the following:
+The Stellar language supports the following:
 * Referencing fields in the enriched JSON
 * String literals are quoted with either `'` or `"`
 * String literals support escaping for `'`, `"`, `\t`, `\r`, `\n`, and backslash 
@@ -35,25 +35,26 @@ The query language supports the following:
 * The ability to have parenthesis to make order of operations explicit
 * User defined functions, including Lambda expressions 
 
-## Stellar Language Keywords
+### Stellar Language Keywords
 The following keywords need to be single quote escaped in order to be used in Stellar expressions:
 
 |               |               |             |             |             |
 | :-----------: | :-----------: | :---------: | :---------: | :---------: |
 | not           | else          | exists      | if          | then        |
-| and           | or            | in          | ==          | !=          |
-| \<=           | \>            | \>=         | \+          | \-          |
-| \<            | ?             | \*          | /           | ,           |
+| and           | or            | in          | NaN         | ==          |
+| !=            | \<=           | \>          | \>=         | \+          |
+| \-            | \<            | ?           | \*          | /           |
+| ,             |               |             |             |             |
 
 Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 
-## Stellar Language Inclusion Checks (`in` and `not in`)
+### Stellar Language Inclusion Checks (`in` and `not in`)
 1. `in` supports string contains. e.g. `'foo' in 'foobar' == true`
 2. `in` supports collection contains. e.g. `'foo' in [ 'foo', 'bar' ] == true`
 3. `in` supports map key contains. e.g. `'foo' in { 'foo' : 5} == true`
 4. `not in` is the negation of the in expression. e.g. `'grok' not in 'foobar' == true`
 
-## Stellar Language Comparisons (`<`, `<=`, `>`, `>=`)
+### Stellar Language Comparisons (`<`, `<=`, `>`, `>=`)
 
 1. If either side of the comparison is null then return false.
 2. If both values being compared implement number then the following:
@@ -64,7 +65,7 @@ Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 3. If both sides are of the same type and are comparable then use the compareTo method to compare values.
 4. If none of the above are met then an exception is thrown.
 
-## Stellar Language Equality Check (`==`, `!=`)
+### Stellar Language Equality Check (`==`, `!=`)
 
 Below is how the `==` operator is expected to work:
 
@@ -78,7 +79,7 @@ Below is how the `==` operator is expected to work:
 
 The `!=` operator is the negation of the above.
 
-## Stellar Language Lambda Expressions
+### Stellar Language Lambda Expressions
 
 Stellar provides the capability to pass lambda expressions to functions
 which wish to support that layer of indirection.  The syntax is:
@@ -110,8 +111,8 @@ In the core language functions, we support basic functional programming primitiv
 | [ `BLOOM_EXISTS`](#bloom_exists)                                                                   |
 | [ `BLOOM_INIT`](#bloom_init)                                                                       |
 | [ `BLOOM_MERGE`](#bloom_merge)                                                                     |
-| [ `CEILING`](#ceiling)                                                           |
-| [ `COS`](#cos)                                                                   |
+| [ `CEILING`](#ceiling)                                                                             |
+| [ `COS`](#cos)                                                                                     |
 | [ `CHOP`](#chop)                                                                                   |
 | [ `CHOMP`](#chomp)                                                                                 |
 | [ `COUNT_MATCHES`](#count_matches)                                                                 |
@@ -126,20 +127,26 @@ In the core language functions, we support basic functional programming primitiv
 | [ `ENDS_WITH`](#ends_with)                                                                         |
 | [ `ENRICHMENT_EXISTS`](#enrichment_exists)                                                         |
 | [ `ENRICHMENT_GET`](#enrichment_get)                                                               |
-| [ `EXP`](#exp)                                                                   |
+| [ `EXP`](#exp)                                                                                     |
 | [ `FILL_LEFT`](#fill_left)                                                                         |
 | [ `FILL_RIGHT`](#fill_right)                                                                       |
 | [ `FILTER`](#filter)                                                                               |
-| [ `FLOOR`](#floor)                                                               |
-| [ `FUZZY_LANGS`](#fuzzy_langs)                                                   |
-| [ `FUZZY_SCORE`](#fuzzy_score)                                                   |
+| [ `FLOOR`](#floor)                                                                                 |
+| [ `FUZZY_LANGS`](#fuzzy_langs)                                                                     |
+| [ `FUZZY_SCORE`](#fuzzy_score)                                                                     |
 | [ `FORMAT`](#format)                                                                               |
 | [ `GEO_GET`](#geo_get)                                                                             |
+| [ `GEOHASH_CENTROID`](#geohash_centroid)                                                           |
+| [ `GEOHASH_DIST`](#geohash_dist)                                                                   |
+| [ `GEOHASH_FROM_LATLONG`](#geohash_from_latlong)                                                   |
+| [ `GEOHASH_FROM_LOC`](#geohash_from_loc)                                                           |
+| [ `GEOHASH_MAX_DIST`](#geohash_max_dist)                                                           |
+| [ `GEOHASH_TO_LATLONG`](#geohash_to_latlong)                                                       |
 | [ `GET`](#get)                                                                                     |
 | [ `GET_FIRST`](#get_first)                                                                         |
 | [ `GET_LAST`](#get_last)                                                                           |
-| [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)                                           |
-| [ `HASH`](#hash)                                                                           |
+| [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)                                             |
+| [ `HASH`](#hash)                                                                                   |
 | [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality)                   |
 | [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
 | [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)                               |
@@ -152,6 +159,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `IS_EMPTY`](#is_empty)                                                                           |
 | [ `IS_INTEGER`](#is_integer)                                                                       |
 | [ `IS_IP`](#is_ip)                                                                                 |
+| [ `IS_NAN`](#is_nan)                                                             |
 | [ `IS_URL`](#is_url)                                                                               |
 | [ `JOIN`](#join)                                                                                   |
 | [ `KAFKA_GET`](#kafka_get)                                                                         |
@@ -160,9 +168,9 @@ In the core language functions, we support basic functional programming primitiv
 | [ `KAFKA_TAIL`](#kafka_tail)                                                                       |
 | [ `LENGTH`](#length)                                                                               |
 | [ `LIST_ADD`](#list_add)                                                                           |
-| [ `LOG2`](#log2)                                                                               |
-| [ `LOG10`](#log10)                                                                               |
-| [ `LN`](#ln)                                                                               |
+| [ `LOG2`](#log2)                                                                                   |
+| [ `LOG10`](#log10)                                                                                 |
+| [ `LN`](#ln)                                                                                       |
 | [ `MAAS_GET_ENDPOINT`](#maas_get_endpoint)                                                         |
 | [ `MAAS_MODEL_APPLY`](#maas_model_apply)                                                           |
 | [ `MAP`](#map)                                                                                     |
@@ -180,15 +188,15 @@ In the core language functions, we support basic functional programming primitiv
 | [ `PROTOCOL_TO_NAME`](#protocol_to_name)                                                           |
 | [ `REDUCE`](#reduce)                                                                               |
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
-| [ `REGEXP_GROUP_VAL`](#regexp_group_val)                                                                   |
-| [ `ROUND`](#round)                                                                   |
-| [ `SET_ADD`](#set_add)                                                                            |
+| [ `REGEXP_GROUP_VAL`](#regexp_group_val)                                                           |
+| [ `ROUND`](#round)                                                                                 |
+| [ `SET_ADD`](#set_add)                                                                             |
 | [ `SET_INIT`](#set_init)                                                                           |
 | [ `SET_MERGE`](#set_merge)                                                                         |
 | [ `SET_REMOVE`](#set_remove)                                                                       |
 | [ `SPLIT`](#split)                                                                                 |
-| [ `SIN`](#sin)                                                                                 |
-| [ `SQRT`](#sqrt)                                                                                 |
+| [ `SIN`](#sin)                                                                                     |
+| [ `SQRT`](#sqrt)                                                                                   |
 | [ `STARTS_WITH`](#starts_with)                                                                     |
 | [ `STATS_ADD`](../../metron-analytics/metron-statistics#stats_add)                                 |
 | [ `STATS_BIN`](../../metron-analytics/metron-statistics#stats_bin)                                 |
@@ -210,13 +218,18 @@ In the core language functions, we support basic functional programming primitiv
 | [ `STATS_SUM_SQUARES`](../../metron-analytics/metron-statistics#stats_sum_squares)                 |
 | [ `STATS_VARIANCE`](../../metron-analytics/metron-statistics#stats_variance)                       |
 | [ `STRING_ENTROPY`](#string_entropy)                                                               |
+| [ `SUBSTRING`](#substring)                                                                         |
 | [ `SYSTEM_ENV_GET`](#system_env_get)                                                               |
 | [ `SYSTEM_PROPERTY_GET`](#system_property_get)                                                     |
-| [ `TAN`](#tan)                                                                         |
+| [ `TAN`](#tan)                                                                                     |
+| [ `TLSH_DIST`](#tlsh_dist)                                                                                     |
 | [ `TO_DOUBLE`](#to_double)                                                                         |
 | [ `TO_EPOCH_TIMESTAMP`](#to_epoch_timestamp)                                                       |
 | [ `TO_FLOAT`](#to_float)                                                                           |
 | [ `TO_INTEGER`](#to_integer)                                                                       |
+| [ `TO_JSON_LIST`](#to_json_List)                                                                   |
+| [ `TO_JSON_MAP`](#to_json_map)                                                                     |
+| [ `TO_JSON_OBJECT`](#to_json_object)                                                               |
 | [ `TO_LONG`](#to_long)                                                                             |
 | [ `TO_LOWER`](#to_lower)                                                                           |
 | [ `TO_STRING`](#to_string)                                                                         |
@@ -229,8 +242,8 @@ In the core language functions, we support basic functional programming primitiv
 | [ `WEEK_OF_MONTH`](#week_of_month)                                                                 |
 | [ `WEEK_OF_YEAR`](#week_of_year)                                                                   |
 | [ `YEAR`](#year)                                                                                   |
-| [ `ZIP`](#zip)                                                                                   |
-| [ `ZIP_JAGGED`](#zip_jagged)                                                                                   |
+| [ `ZIP`](#zip)                                                                                     |
+| [ `ZIP_JAGGED`](#zip_jagged)                                                                       |
 
 ### `APPEND_IF_MISSING`
   * Description: Appends the suffix to the end of the string if the string does not already end with any of the suffixes.
@@ -443,6 +456,50 @@ In the core language functions, we support basic functional programming primitiv
     * fields - Optional list of GeoIP fields to grab. Options are locID, country, city postalCode, dmaCode, latitude, longitude, location_point
   * Returns: If a Single field is requested a string of the field, If multiple fields a map of string of the fields, and null otherwise
 
+### `GEOHASH_CENTROID`
+  * Description: Compute the centroid (geographic midpoint or center of gravity) of a set of [geohashes](https://en.wikipedia.org/wiki/Geohash)
+  * Input:
+    * hashes - A collection of [geohashes](https://en.wikipedia.org/wiki/Geohash) or a map associating geohashes to numeric weights
+    * character_precision? - The number of characters to use in the hash. Default is 12
+  * Returns: The geohash of the centroid
+
+### `GEOHASH_DIST`
+  * Description: Compute the distance between [geohashes](https://en.wikipedia.org/wiki/Geohash)
+  * Input:
+    * hash1 - The first point as a geohash
+    * hash2 - The second point as a geohash
+    * strategy? - The great circle distance strategy to use.  One of [HAVERSINE](https://en.wikipedia.org/wiki/Haversine_formula), [LAW_OF_COSINES](https://en.wikipedia.org/wiki/Law_of_cosines#Using_the_distance_formula), or [VICENTY](https://en.wikipedia.org/wiki/Vincenty%27s_formulae).  Haversine is default.
+  * Returns: The distance in kilometers between the hashes.
+
+### `GEOHASH_FROM_LATLONG`
+  * Description: Compute [geohash](https://en.wikipedia.org/wiki/Geohash) given a lat/long
+  * Input:
+    * latitude - The latitude
+    * longitude - The longitude
+    * character_precision? - The number of characters to use in the hash. Default is 12
+  * Returns: A [geohash](https://en.wikipedia.org/wiki/Geohash) of the lat/long
+
+### `GEOHASH_FROM_LOC`
+  * Description: Compute [geohash](https://en.wikipedia.org/wiki/Geohash) given a geo enrichment location
+  * Input:
+    * map - the latitude and logitude in a map (the output of [GEO_GET](#geo_get) )
+    * longitude - The longitude
+    * character_precision? - The number of characters to use in the hash. Default is `12`
+  * Returns: A [geohash](https://en.wikipedia.org/wiki/Geohash) of the location
+
+### `GEOHASH_MAX_DIST`
+  * Description: Compute the maximum distance among a list of [geohashes](https://en.wikipedia.org/wiki/Geohash)
+  * Input:
+    * hashes - A set of [geohashes](https://en.wikipedia.org/wiki/Geohash)
+    * strategy? - The great circle distance strategy to use. One of [HAVERSINE](https://en.wikipedia.org/wiki/Haversine_formula), [LAW_OF_COSINES](https://en.wikipedia.org/wiki/Law_of_cosines#Using_the_distance_formula), or [VICENTY](https://en.wikipedia.org/wiki/Vincenty%27s_formulae).  Haversine is default.
+  * Returns: The maximum distance in kilometers between any two locations
+
+### `GEOHASH_TO_LATLONG`
+  * Description: Compute the lat/long of a given [geohash](https://en.wikipedia.org/wiki/Geohash)
+  * Input:
+    * hash - The [geohash](https://en.wikipedia.org/wiki/Geohash)
+  * Returns: A map containing the latitude and longitude of the hash (keys "latitude" and "longitude")
+
 ### `GET`
   * Description: Returns the i'th element of the list 
   * Input:
@@ -468,12 +525,18 @@ In the core language functions, we support basic functional programming primitiv
 
 ### `HASH`
   * Description: Hashes a given value using the given hashing algorithm and returns a hex encoded string.
-  * Input: 
-    * toHash - value to hash.
-    * hashType - A valid string representation of a hashing algorithm. See 'GET_HASHES_AVAILABLE'.
-  * Returns: A hex encoded string of a hashed value using the given algorithm. If 'hashType' is null 
-  then '00', padded to the necessary length, will be returned. If 'toHash' is not able to be hashed or 
-  'hashType' is null then null is returned.
+  * Input:
+     * toHash - value to hash.
+     * hashType - A valid string representation of a hashing algorithm. See 'GET_HASHES_AVAILABLE'.
+     * config? - Configuration for the hash function in the form of a String to object map.
+        * For forensic hash TLSH (see [https://github.com/trendmicro/tlsh](https://github.com/trendmicro/tlsh) and Jonathan Oliver, Chun Cheng, and Yanggui Chen, TLSH - A Locality Sensitive Hash. 4th Cybercrime and Trustworthy Computing Workshop, Sydney, November 2013):
+          * bucketSize : This defines the size of the hash created.  Valid values are 128 (default) or 256 (the former results in a 70 character hash and latter results in 134 characters)
+          * checksumBytes : This defines how many bytes are used to capture the checksum.  Valid values are 1 (default) and 3
+          * force : If true (the default) then a hash can be generated from as few as 50 bytes.  If false, then at least 256 bytes are required.  Insufficient variation or size in the bytes result in a null being returned.
+          * hashes : You can compute a second hash for use in fuzzy clustering TLSH signatures.  The number of hashes is the lever to adjust the size of those clusters and \"fuzzy\" the clusters are.  If this is specified, then one or more bins are created based on the specified size and the function will return a Map containing the bins.
+        * For all other hashes:
+          * charset : The character set to use (UTF8 is default).
+  * Returns = A hex encoded string of a hashed value using the given algorithm. If 'hashType' is null then '00', padded to the necessary length, will be returned. If 'toHash' is not able to be hashed or 'hashType' is null then null is returned.
 
 ### `IN_SUBNET`
   * Description: Returns true if an IP is within a subnet range.
@@ -526,6 +589,12 @@ In the core language functions, we support basic functional programming primitiv
     * ip - An object which we wish to test is an ip
     * type (optional) - Object of string or collection type (e.g. list) one of IPV4 or IPV6 or both.  The default is IPV4.
   * Returns: True if the string is an IP and false otherwise.
+
+### `IS_NAN`
+  * Description: Evaluates if the passed number is NaN.  The number is evaluated as a double.
+  * Input:
+    * number - number to evaluate"
+  * Returns: True if the number is NaN, false if it is 
 
 ### `IS_URL`
   * Description: Tests if a string is a valid URL
@@ -587,6 +656,27 @@ In the core language functions, we support basic functional programming primitiv
   * Description: Returns a list of the encodings that are currently supported.
   * Returns: A List of String
  
+### `TO_JSON_LIST`
+  * Description: Accepts JSON string as an input and returns a List object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `GET_FIRST( TO_JSON_LIST(  '[ "foo", 2]')` would yield `foo`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed List object
+
+### `TO_JSON_MAP`
+  * Description: Accepts JSON string as an input and returns a Map object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `MAP_GET( 'bar', TO_JSON_MAP(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed Map object
+
+### `TO_JSON_OBJECT`
+  * Description: Accepts JSON string as an input and returns a JSON Object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `MAP_GET( 'bar', TO_JSON_OBJECT(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed JSON object
+
 ### `LOG2`
   * Description: Returns the log (base `2`) of a number.
   * Input:
@@ -647,7 +737,7 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * dateTime - The datetime as a long representing the milliseconds since unix epoch
   * Returns: The current month (0-based).
-
+  
 ### `MULTISET_ADD`
   * Description: Adds to a multiset, which is a map associating objects to their instance counts.
   * Input:
@@ -819,11 +909,27 @@ In the core language functions, we support basic functional programming primitiv
     * key - Property to get the value for
   * Returns: String
 
+### `SUBSTRING`
+  * Description: Returns the substring of a string
+  * Input:
+    * input - The string to take the substring of
+    * start - The starting position (`0`-based and inclusive)
+    * end? - The ending position (`0`-based and exclusive)
+  * Returns: The substring of the input
+
 ### `TAN`
   * Description: Returns the tangent of a number.
   * Input:
     * number - The number to take the tangent of
   * Returns: The tangent of the number passed in.
+
+### `TLSH_DIST`
+  * Description: Will return the hamming distance between two TLSH hashes (note: must be computed with the same params).  For more information, see [https://github.com/trendmicro/tlsh](https://github.com/trendmicro/tlsh) and Jonathan Oliver, Chun Cheng, and Yanggui Chen, TLSH - A Locality Sensitive Hash. 4th Cybercrime and Trustworthy Computing Workshop, Sydney, November 2013.  For a discussion of tradeoffs, see Table II on page 5 of [https://github.com/trendmicro/tlsh/blob/master/TLSH_CTC_final.pdf](https://github.com/trendmicro/tlsh/blob/master/TLSH_CTC_final.pdf)
+  * Input:
+     * hash1 - The first TLSH hash
+     * hash2 - The first TLSH hash
+     * includeLength? - Include the length in the distance calculation or not?
+  Returns: An integer representing the distance between hash1 and hash2.  The distance is roughly hamming distance, so 0 is very similar.
 
 ### `TO_DOUBLE`
   * Description: Transforms the first argument to a double precision number
@@ -1038,6 +1144,12 @@ Shell-like operations are supported such as
 
 Note: Stellar classpath configuration from the global config is honored here if the REPL knows about zookeeper.
 
+### Environment Variables
+When starting the REPL via `$METRON_HOME/bin/stellar` you can specify
+certain environment variables to customize the experience:
+* `JVMFLAGS` - Arbitrary JVM flags to pass to the `java` command when starting the REPL.
+* `CONTRIB` - Directory where jars with Stellar functions can be placed.  The default is `$METRON_HOME/contrib`.
+
 ### Getting Started
 
 To run the Stellar Shell from within a deployed Metron cluster, run the following command on the host where Metron is installed.
@@ -1147,13 +1259,43 @@ IN_SUBNET
 Lists all variables in the Stellar environment.
 
 ```
-Stellar, Go!
-{es.clustername=metron, es.ip=node1, es.port=9300, es.date.format=yyyy.MM.dd.HH}
 [Stellar]>>> %vars
 [Stellar]>>> foo := 2 + 2
 4.0
 [Stellar]>>> %vars
 foo = 4.0
+```
+
+#### `%globals`
+
+Lists all values that are defined in the global configuration.
+
+Most of Metron's functional components have access to what is called the global configuration.  This is a key/value configuration store that can be used to customize Metron.  Many Stellar functions accept configuration values from the global configuration.  The Stellar Shell also leverages the global configuration for customizing the behavior of many Stellar functions.  
+
+```
+[Stellar]>>> %globals
+{es.clustername=metron, es.ip=node1:9300, es.date.format=yyyy.MM.dd.HH, parser.error.topic=indexing, update.hbase.table=metron_update, update.hbase.cf=t}
+```
+
+#### `%define`
+
+Defines a global configuration value in the current shell session.  This value will be forgotten once the session is ended.
+
+```
+[Stellar]>>> %define bootstrap.servers := "node1:6667"
+node1:6667
+[Stellar]>>> %globals
+{bootstrap.servers=node1:6667}
+``` 
+
+#### `%undefine`
+
+Undefine a global configuration value in the current shell session.  This will not modify the persisted global configuration.
+
+```
+[Stellar]>>> %undefine bootstrap.servers
+[Stellar]>>> %globals
+{}
 ```
 
 #### `?<function>`
@@ -1205,7 +1347,7 @@ Please note that functions are loading lazily in the background and will be unav
 ABS, APPEND_IF_MISSING, BIN, BLOOM_ADD, BLOOM_EXISTS, BLOOM_INIT, BLOOM_MERGE, CHOMP, CHOP, COUNT_MATCHES, DAY_OF_MONTH, DAY_OF_WEEK, DAY_OF_YEAR, DOMAIN_REMOVE_SUBDOMAINS, DOMAIN_REMOVE_TLD, DOMAIN_TO_TLD, ENDS_WITH, FILL_LEFT, FILL_RIGHT, FILTER, FORMAT, GET, GET_FIRST, GET_LAST, HLLP_ADD, HLLP_CARDINALITY, HLLP_INIT, HLLP_MERGE, IN_SUBNET, IS_DATE, IS_DOMAIN, IS_EMAIL, IS_EMPTY, IS_INTEGER, IS_IP, IS_URL, JOIN, LENGTH, LIST_ADD, MAAS_GET_ENDPOINT, MAAS_MODEL_APPLY, MAP, MAP_EXISTS, MAP_GET, MONTH, OUTLIER_MAD_ADD, OUTLIER_MAD_SCORE, OUTLIER_MAD_STATE_MERGE, PREPEND_IF_MISSING, PROFILE_FIXED, PROFILE_GET, PROFILE_WINDOW, PROTOCOL_TO_NAME, REDUCE, REGEXP_MATCH, SPLIT, STARTS_WITH, STATS_ADD, STATS_BIN, STATS_COUNT, STATS_GEOMETRIC_MEAN, STATS_INIT, STATS_KURTOSIS, STATS_MAX, STATS_MEAN, STATS_MERGE, STATS_MIN, STATS_PERCENTILE, STATS_POPULATION_VARIANCE, STATS_QUADRATIC_MEAN, STATS_SD, STATS_SKEWNESS, STATS_SUM, STATS_SUM_LOGS, STATS_SUM_SQUARES, STATS_VARIANCE, STRING_ENTROPY, SYSTEM_ENV_GET, SYSTEM_PROPERTY_GET, TO_DOUBLE, TO_EPOCH_TIMESTAMP, TO_FLOAT, TO_INTEGER, TO_LONG, TO_LOWER, TO_STRING, TO_UPPER, TRIM, URL_TO_HOST, URL_TO_PATH, URL_TO_PORT, URL_TO_PROTOCOL, WEEK_OF_MONTH, WEEK_OF_YEAR, YEAR 
 ```
 
-# Stellar Configuration
+## Stellar Configuration
 
 Stellar can be configured in a variety of ways from the [Global Configuration](../../metron-platform/metron-common/README.md#global-configuration).
 In particular, there are three main configuration parameters around configuring Stellar:

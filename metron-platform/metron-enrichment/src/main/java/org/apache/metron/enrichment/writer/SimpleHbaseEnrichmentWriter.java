@@ -124,6 +124,8 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
 
   @Override
   public void configure(String sensorName, WriterConfiguration configuration) {
+    validateEnrichmentType(sensorName, configuration);
+    validateKeyColumns(sensorName, configuration);
     String hbaseProviderImpl = Configurations.HBASE_PROVIDER.getAndConvert(configuration.getSensorConfig(sensorName),String.class);
     if(hbaseProviderImpl != null) {
       provider = ReflectionUtils.createInstance(hbaseProviderImpl);
@@ -132,6 +134,39 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
       converter = new EnrichmentConverter();
     }
     LOG.debug("Sensor: '{}': {Provider: '{}', Converter: '{}'}", sensorName, getClassName(provider), getClassName(converter));
+  }
+
+
+  private void validateEnrichmentType(String sensorName, WriterConfiguration configuration) {
+    Map<String, Object> sensorConfig = configuration.getSensorConfig(sensorName);
+    Object enrichmentTypeObj = Configurations.ENRICHMENT_TYPE.get(sensorConfig);
+    if (enrichmentTypeObj == null) {
+      throw new IllegalArgumentException(String.format("%s must be provided", Configurations.ENRICHMENT_TYPE.getKey()));
+    }
+
+    if (!(enrichmentTypeObj instanceof String)) {
+      throw new IllegalArgumentException(String.format("%s must be a string", Configurations.ENRICHMENT_TYPE.getKey()));
+    }
+
+    String enrichmentType = enrichmentTypeObj.toString();
+    if (enrichmentType.trim().isEmpty()) {
+      throw new IllegalArgumentException(String.format("%s must not be an empty string",
+              Configurations.ENRICHMENT_TYPE.getKey()));
+    }
+  }
+
+  private void validateKeyColumns(String sensorName, WriterConfiguration configuration) {
+    Map<String, Object> sensorConfig = configuration.getSensorConfig(sensorName);
+    Object keyColumnsObj = Configurations.KEY_COLUMNS.get(sensorConfig);
+
+    try {
+      List<String> keyColumns = getColumns(keyColumnsObj, true);
+      if (keyColumns == null || keyColumns.isEmpty()) {
+        throw new IllegalArgumentException(String.format("%s must be provided", Configurations.KEY_COLUMNS.getKey()));
+      }
+    } catch (RuntimeException ex) {
+      throw new IllegalArgumentException(ex.getMessage(), ex);
+    }
   }
 
   private String getClassName(Object object) {
@@ -196,7 +231,14 @@ public class SimpleHbaseEnrichmentWriter extends AbstractWriter implements BulkM
     else if (o instanceof List) {
       List<String> keyCols = new ArrayList<>();
       for(Object key : (List)o) {
-        keyCols.add(key.toString());
+        if (key == null) {
+          throw new IllegalArgumentException("Column name must not be null");
+        }
+        String columnName = key.toString();
+        if (columnName.trim().isEmpty()) {
+          throw new IllegalArgumentException("Column name must not be empty");
+        }
+        keyCols.add(columnName);
       }
       LOG.debug("Key columns: '{}'", String.join(",", keyCols));
       return keyCols;

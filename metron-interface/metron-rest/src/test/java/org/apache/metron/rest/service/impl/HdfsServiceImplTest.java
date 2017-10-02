@@ -19,7 +19,10 @@ package org.apache.metron.rest.service.impl;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.metron.rest.service.HdfsService;
 import org.junit.After;
 import org.junit.Before;
@@ -84,9 +87,20 @@ public class HdfsServiceImplTest {
     @Test
     public void writeShouldProperlyWriteContents() throws Exception {
         String contents = "contents";
-        hdfsService.write(new Path(testDir, "writeTest.txt"), contents.getBytes(UTF_8));
+        hdfsService.write(new Path(testDir, "writeTest.txt"), contents.getBytes(UTF_8),null,null,null);
 
         assertEquals("contents", FileUtils.readFileToString(new File(testDir, "writeTest.txt")));
+    }
+
+    @Test
+    public void writeShouldProperlyWriteContentsWithPermissions() throws Exception {
+        String contents = "contents";
+        Path thePath = new Path(testDir,"writeTest2.txt");
+        hdfsService.write(thePath, contents.getBytes(UTF_8),"rw-","r-x","r--");
+
+        assertEquals("contents", FileUtils.readFileToString(new File(testDir, "writeTest2.txt")));
+        assertEquals(FileSystem.get(configuration).listStatus(thePath)[0].getPermission().toShort(),
+        new FsPermission(FsAction.READ_WRITE,FsAction.READ_EXECUTE,FsAction.READ).toShort());
     }
 
     @Test

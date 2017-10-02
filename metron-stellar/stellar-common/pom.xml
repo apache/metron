@@ -29,6 +29,7 @@
         <commons.config.version>1.10</commons.config.version>
     </properties>
     <dependencies>
+
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-auth</artifactId>
@@ -49,6 +50,11 @@
                     <artifactId>commons-io</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.trendmicro</groupId>
+            <artifactId>tlsh</artifactId>
+            <version>3.7.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -257,6 +263,16 @@
                         <configuration>
                             <shadedArtifactAttached>true</shadedArtifactAttached>
                             <shadedClassifierName>uber</shadedClassifierName>
+                            <filters>
+                              <filter>
+                                <artifact>*:*</artifact>
+                                <excludes>
+                                  <exclude>META-INF/*.SF</exclude>
+                                  <exclude>META-INF/*.DSA</exclude>
+                                  <exclude>META-INF/*.RSA</exclude>
+                                </excludes>
+                              </filter>
+                            </filters>
                             <relocations>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>

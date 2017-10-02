@@ -30,7 +30,7 @@ import {ColumnNames} from '../model/column-names';
 import {ColumnNamesService} from './column-names.service';
 import {TableMetadata} from '../model/table-metadata';
 import {SaveSearch} from '../model/save-search';
-import {AlertsSearchResponse} from '../model/alerts-search-response';
+import {SearchResponse} from '../model/search-response';
 import {SearchRequest} from '../model/search-request';
 import {AlertSource} from '../model/alert-source';
 
@@ -47,7 +47,7 @@ export class ElasticSearchLocalstorageImpl extends DataSource {
     new ColumnMetadata('alert_status', 'string')
   ];
 
-  getAlerts(searchRequest: SearchRequest): Observable<AlertsSearchResponse> {
+  getAlerts(searchRequest: SearchRequest): Observable<SearchResponse> {
     let url = '/search/*' + ElasticsearchUtils.excludeIndexName + '/_search';
     let request: any  = JSON.parse(JSON.stringify(searchRequest));
     request.query = { query_string: { query: searchRequest.query } };

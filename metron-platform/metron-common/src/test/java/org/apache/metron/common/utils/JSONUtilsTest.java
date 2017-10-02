@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,29 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.metron.common.utils;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.test.utils.UnitTestHelper;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-
 public class JSONUtilsTest {
+
   private static File tmpDir;
 
   /**
-   {
-   "a" : "hello",
-   "b" : "world"
-   }
+   * { "a" : "hello", "b" : "world" }
    */
   @Multiline
   private static String config;
@@ -55,9 +55,10 @@ public class JSONUtilsTest {
       put("a", "hello");
       put("b", "world");
     }};
-    Map<String, Object> actual = JSONUtils.INSTANCE.load(configFile, new TypeReference<Map<String, Object>>() {
-    });
-    Assert.assertThat("config not equal", actual, equalTo(expected));
+    Map<String, Object> actual = JSONUtils.INSTANCE
+        .load(configFile, new TypeReference<Map<String, Object>>() {
+        });
+    assertThat("config not equal", actual, equalTo(expected));
   }
 
   @Test
@@ -67,18 +68,19 @@ public class JSONUtilsTest {
       put("b", "world");
     }};
     Map<String, Object> actual = JSONUtils.INSTANCE.load(configFile, Map.class);
-    Assert.assertThat("config not equal", actual, equalTo(expected));
+    assertThat("config not equal", actual, equalTo(expected));
   }
 
   @Test
   public void loads_file_with_custom_class() throws Exception {
     TestConfig expected = new TestConfig().setA("hello").setB("world");
     TestConfig actual = JSONUtils.INSTANCE.load(configFile, TestConfig.class);
-    Assert.assertThat("a not equal", actual.getA(), equalTo(expected.getA()));
-    Assert.assertThat("b not equal", actual.getB(), equalTo(expected.getB()));
+    assertThat("a not equal", actual.getA(), equalTo(expected.getA()));
+    assertThat("b not equal", actual.getB(), equalTo(expected.getB()));
   }
 
   public static class TestConfig {
+
     private String a;
     private String b;
 
@@ -100,4 +102,67 @@ public class JSONUtilsTest {
       return this;
     }
   }
+
+  /**
+   * { "a": "b" }
+   */
+  @Multiline
+  public static String sourceJson;
+
+  /**
+   * [{ "op": "move", "from": "/a", "path": "/c" }]
+   */
+  @Multiline
+  public static String patchJson;
+
+  /**
+   * { "c": "b" }
+   */
+  @Multiline
+  public static String expectedJson;
+
+  @Test
+  public void applyPatch_modifies_source_json_doc() throws IOException {
+    JsonNode actual = JSONUtils.INSTANCE.applyPatch(patchJson, sourceJson);
+    JsonNode expected = JSONUtils.INSTANCE.readTree(expectedJson);
+    assertThat(actual, equalTo(expected));
+  }
+
+  /**
+   * {
+   *    "foo" : {
+   *      "bar" : {
+   *        "baz" : [ "val1", "val2" ]
+   *      }
+   *    }
+   * }
+   */
+  @Multiline
+  public static String complexJson;
+
+  /**
+   * [{ "op": "add", "path": "/foo/bar/baz", "value": [ "new1", "new2" ] }]
+   */
+  @Multiline
+  public static String patchComplexJson;
+
+  /**
+   * {
+   *    "foo" : {
+   *      "bar" : {
+   *        "baz" : [ "new1", "new2" ]
+   *      }
+   *    }
+   * }
+   */
+  @Multiline
+  public static String expectedComplexJson;
+
+  @Test
+  public void applyPatch_modifies_complex_source_json_doc() throws IOException {
+    JsonNode actual = JSONUtils.INSTANCE.applyPatch(patchComplexJson, complexJson);
+    JsonNode expected = JSONUtils.INSTANCE.readTree(expectedComplexJson);
+    assertThat(actual, equalTo(expected));
+  }
+
 }

@@ -26,7 +26,6 @@ public class MetronRestConstants {
   public static final String DOCKER_PROFILE = "docker";
   public static final String CSRF_ENABLE_PROFILE = "csrf-enable";
 
-  public static final String GROK_DEFAULT_PATH_SPRING_PROPERTY = "grok.path.default";
   public static final String GROK_TEMP_PATH_SPRING_PROPERTY = "grok.path.temp";
   public static final String GROK_CLASS_NAME = GrokParser.class.getName();
   public static final String GROK_PATH_KEY = "grokPath";
@@ -57,6 +56,13 @@ public class MetronRestConstants {
   public static final String KERBEROS_KEYTAB_SPRING_PROPERTY = "kerberos.keytab";
 
   public static final String SEARCH_MAX_RESULTS = "search.max.results";
+  public static final String SEARCH_MAX_GROUPS = "search.max.groups";
   public static final String INDEX_DAO_IMPL = "index.dao.impl";
   public static final String INDEX_HBASE_TABLE_PROVIDER_IMPL = "index.hbase.provider";
+
+  public static final String META_DAO_IMPL = "meta.dao.impl";
+  public static final String META_DAO_SORT = "meta.dao.sort";
+
+  public static final String SECURITY_ROLE_USER = "USER";
+  public static final String SECURITY_ROLE_ADMIN = "ADMIN";
 }

@@ -1,4 +1,17 @@
 # Ambari Management Pack Development
+
+## Table of Contents
+
+* [Overview](#overview)
+* [Ambari Zookeeper Config Lifecycle](#ambari-zookeeper-config-lifecycle)
+* [Adding a new property](#adding-a-new-property)
+* [How to identify errors in MPack changes](#how-to-identify-errors-in-mpack-changes)
+* [Testing changes without cycling Vagrant build](#testing-changes-without-cycling-vagrant-build)
+* [Configuration involving dependency services](#configuration-involving-dependency-services)
+* [Kerberos](#kerberos)
+* [Best practices](#best-practices)
+
+## Overview
 Typically, Ambari Management Pack development will be done in the Vagrant environments. These instructions are specific to Vagrant, but can be adapted for other environemnts (e.g. make sure to be on the correct nodes for server vs agent files)
 
 There is an `mpack.json` file which describes what services the mpack will contains, versions, etc.
@@ -36,6 +49,38 @@ The layout of `/addon-services/METRON.CURRENT` is
 * `role_command_order.json`
   * Defines the order of service startup and other actions relative to each other.
 
+## Ambari Zookeeper Config Lifecycle
+The source of truth for Metron configuration resides in Zookeeper as a series of JSON documents. There are actually multiple locations that you can populate the Zookeeper configs from:
+- $METRON_HOME/config/zookeeper
+- Stellar REPL
+- Management UI
+- Ambari
+
+Any change that works with Metron configuration stored in Zookeeper should always pull the latest config from Zookeeper first before making any changes and publishing them back up to avoid
+potentially overwriting the latest configs with stale data. The lifecycle for configuration management with Ambari is as follows:
+- First start/install for parsers, enrichment, indexing, or the profiler
+  - Perform a PUSH from local disk to Zookeeper
+- All component start/restart operations for parsers, enrichment, indexing, or the profiler
+  - Perform a JSON patch (RFC 6902) on the configs in Zookeeper and push the patched, pretty formatted config up to Zookeeper. Patching is currently applicable to to global.json only.
+  - Pull all configs to the local file system.
+
+The patching mechanism we introduced to Ambari for managing the global config is by default additive in nature, though it will also overwrite any existing values with the latest values from Ambari.
+This means that you can add any properties to the global config outside of Ambari you like, provided you are not modifying values explicitly managed by Ambari. This is important because you will not
+get any errors when modifying the configuration outside of Ambari. Instead, if you modified es.ip and changed global.json outsided Ambari, you would not see this change in Ambari. Meanwhile, the
+indexing topology would be using the new value stored in Zookeeper. Remember, Zookeeper is the source of truth. If you were to restart a Metron topology component via Ambari, that es.ip property
+would now be set back to the value stored in Ambari. So in summary, if it's managed by Ambari, only change that value via Ambari. If it's not, then feel free to use whatever mechanism you like,
+just be sure to pull the latest config from Zookeeper before making any changes. We make no effort to handle race conditions. It's last commit wins. Below are the global config properties managed
+by Ambari:
+- es.clustername
+- es.ip
+- es.date.format
+- parser.error.topic
+- update.hbase.table
+- update.hbase.cf
+- profiler.client.period.duration
+- profiler.client.period.duration.units
+
+
 ## Adding a new property
 1. Add the property to the appropriate `*-env.xml` file found in `METRON.CURRENT/configuration`.
   ```
@@ -61,7 +106,8 @@ Afterwards, in `params_linux.py`, reference the new property:
   ```
   new_property = status_params.new_property
   ```
-This behavior is because Ambari doesn't send all parameters to the status, so it needs to be explicitly provided.
+This behavior is because Ambari doesn't send all parameters to the status, so it needs to be explicitly provided. Also note that status_params.py parameters are not automatically pulled into the params_linux.py namespace, so we explicitly choose the variables to include.
+ See https://docs.python.org/2/howto/doanddont.html#at-module-level for more info.
 
 4. Ambari master services can then import the params:
 
@@ -117,6 +163,33 @@ hdfs_grok_patterns_dir = format("{metron_apps_hdfs_dir}/patterns")
 ```
 The `format` function is a special Ambari function that will let you create a string with properties in curly braces replaced by their values.
 In this case, `hdfs_grok_patterns_dir` will be `/apps/metron/patterns` and will be what we now follow in this example.
+
+Note: There are instances where we deviate a bit from this pattern and use format(format("{{some_prop}}")). This is not a mistake. Ambari does not natively support nested properties, and this was a workaround that accomplished being
+able to initialize values from env.xml files and have them also available to users as Ambari properties later. Here's an example from params_linux.py:
+```
+metron_apps_indexed_hdfs_dir = format(format(config['configurations']['metron-indexing-env']['metron_apps_indexed_hdfs_dir']))
+```
+and the relavant properties in metron-env.xml and metron-indexing-env.xml
+
+metron-env.xml
+```
+<property>
+    <name>metron_apps_hdfs_dir</name>
+    <value>/apps/metron</value>
+    <description>Metron apps HDFS dir</description>
+    <display-name>Metron apps HDFS dir</display-name>
+</property>
+```
+
+metron-indexing-env.xml
+```
+<property>
+    <name>metron_apps_indexed_hdfs_dir</name>
+    <value>{{metron_apps_hdfs_dir}}/indexing/indexed</value>
+    <description>Indexing bolts will write to this HDFS directory</description>
+    <display-name>Metron apps indexed HDFS dir</display-name>
+</property>
+```
 
 #### Importing the parameters into scripts
 `hdfs_grok_patterns_dir` is used in `METRON.CURRENT/package/scripts/parser_commands.py`, but before we can reference it, we'll need the params available to `parser_commands.py`
