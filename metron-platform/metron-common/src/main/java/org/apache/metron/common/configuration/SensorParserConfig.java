@@ -37,8 +37,8 @@ public class SensorParserConfig implements Serializable {
   private String invalidWriterClassName;
   private Boolean readMetadata = false;
   private Boolean mergeMetadata = false;
-  private Integer numWorkers = 1;
-  private Integer numAckers= 1;
+  private Integer numWorkers = null;
+  private Integer numAckers= null;
   private Integer spoutParallelism = 1;
   private Integer spoutNumTasks = 1;
   private Integer parserParallelism = 1;
@@ -47,14 +47,17 @@ public class SensorParserConfig implements Serializable {
   private Integer errorWriterNumTasks = 1;
   private Map<String, Object> spoutConfig = new HashMap<>();
   private String securityProtocol = null;
-  private Map<String, Object> stormConfig = new HashMap<>();
+  private Map<String, Object> stormConfig = new HashMap<String, Object>() {{
+    put("topology.workers", 1);
+    put("topology.acker.executors", 1);
+  }};;
 
   /**
    * Return the number of workers for the topology.  This property will be used for the parser unless overridden on the CLI.
    * @return
    */
   public Integer getNumWorkers() {
-    return numWorkers;
+    return numWorkers != null ? numWorkers : (Integer) stormConfig.get("topology.workers");
   }
 
   public void setNumWorkers(Integer numWorkers) {
@@ -66,7 +69,7 @@ public class SensorParserConfig implements Serializable {
    * @return
    */
   public Integer getNumAckers() {
-    return numAckers;
+    return numAckers != null ? numAckers : (Integer) stormConfig.get("topology.acker.executors");
   }
 
   public void setNumAckers(Integer numAckers) {
@@ -299,8 +302,8 @@ public class SensorParserConfig implements Serializable {
             ", invalidWriterClassName='" + invalidWriterClassName + '\'' +
             ", readMetadata=" + readMetadata +
             ", mergeMetadata=" + mergeMetadata +
-            ", numWorkers=" + numWorkers +
-            ", numAckers=" + numAckers +
+            ", numWorkers=" + getNumWorkers() +
+            ", numAckers=" + getNumAckers() +
             ", spoutParallelism=" + spoutParallelism +
             ", spoutNumTasks=" + spoutNumTasks +
             ", parserParallelism=" + parserParallelism +
