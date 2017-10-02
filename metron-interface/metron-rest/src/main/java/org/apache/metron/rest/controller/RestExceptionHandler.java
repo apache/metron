@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.controller;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.RestError;
 import org.springframework.http.HttpStatus;
@@ -35,7 +36,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
   @ResponseBody
   ResponseEntity<?> handleControllerException(HttpServletRequest request, Throwable ex) {
     HttpStatus status = getStatus(request);
-    return new ResponseEntity<>(new RestError(status.value(), ex.getMessage(), getFullMessage(ex)), status);
+    return new ResponseEntity<>(new RestError(status.value(), ex.getMessage(), ExceptionUtils.getStackTrace(ex)), status);
   }
 
   private HttpStatus getStatus(HttpServletRequest request) {
@@ -44,15 +45,5 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
       return HttpStatus.INTERNAL_SERVER_ERROR;
     }
     return HttpStatus.valueOf(statusCode);
-  }
-
-  private String getFullMessage(Throwable ex) {
-    String fullMessage = ex.getMessage();
-    Throwable cause = ex.getCause();
-    while(cause != null) {
-      fullMessage = cause.getMessage();
-      cause = cause.getCause();
-    }
-    return fullMessage;
   }
 }

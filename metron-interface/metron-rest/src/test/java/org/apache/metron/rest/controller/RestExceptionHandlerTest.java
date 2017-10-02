@@ -19,6 +19,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.metron.rest.model.RestError;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,53 +30,45 @@ public class RestExceptionHandlerTest {
 
   private RestExceptionHandler restExceptionHandler;
   private HttpServletRequest request;
-  private Throwable ex;
 
   @Before
   public void setUp() throws Exception {
     restExceptionHandler = new RestExceptionHandler();
     request = mock(HttpServletRequest.class);
-    ex = mock(Throwable.class);
   }
 
   @Test
   public void handleControllerExceptionShouldProperlyReturnRestError() throws Exception {
     when(request.getAttribute("javax.servlet.error.status_code")).thenReturn(401);
-    when(ex.getMessage()).thenReturn("unauthorized");
-    when(ex.getCause()).thenReturn(null);
+    Throwable throwable = new RuntimeException("unauthorized");
 
-    ResponseEntity responseEntity = restExceptionHandler.handleControllerException(request, ex);
+    ResponseEntity responseEntity = restExceptionHandler.handleControllerException(request, throwable);
     assertEquals(HttpStatus.UNAUTHORIZED, responseEntity.getStatusCode());
     RestError actualRestError = (RestError) responseEntity.getBody();
     assertEquals("unauthorized", actualRestError.getMessage());
-    assertEquals("unauthorized", actualRestError.getFullMessage());
+    assertEquals(ExceptionUtils.getFullStackTrace(throwable), actualRestError.getFullMessage());
     assertEquals(401, actualRestError.getResponseCode());
   }
 
   @Test
   public void handleControllerExceptionShouldDefaultTo500() throws Exception {
     when(request.getAttribute("javax.servlet.error.status_code")).thenReturn(null);
-    when(ex.getMessage()).thenReturn("some error");
-    when(ex.getCause()).thenReturn(null);
+    Throwable throwable = new RuntimeException("some error");
 
-    ResponseEntity responseEntity = restExceptionHandler.handleControllerException(request, ex);
+    ResponseEntity responseEntity = restExceptionHandler.handleControllerException(request, throwable);
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
   }
 
   @Test
   public void handleControllerExceptionShouldReturnRootCause() throws Exception {
     when(request.getAttribute("javax.servlet.error.status_code")).thenReturn(500);
-    when(ex.getMessage()).thenReturn("some error");
-    Throwable rootCause = mock(Throwable.class);
-    when(rootCause.getCause()).thenReturn(null);
-    when(rootCause.getMessage()).thenReturn("root cause");
-    when(ex.getCause()).thenReturn(rootCause);
+    Throwable throwable = new RuntimeException("some error", new RuntimeException("some root cause"));
 
-    ResponseEntity responseEntity = restExceptionHandler.handleControllerException(request, ex);
+    ResponseEntity responseEntity = restExceptionHandler.handleControllerException(request, throwable);
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     RestError actualRestError = (RestError) responseEntity.getBody();
     assertEquals("some error", actualRestError.getMessage());
-    assertEquals("root cause", actualRestError.getFullMessage());
+    assertEquals(ExceptionUtils.getFullStackTrace(throwable), actualRestError.getFullMessage());
     assertEquals(500, actualRestError.getResponseCode());
   }
 }
