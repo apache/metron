@@ -7,15 +7,27 @@ This is achieved by summarizing the streaming telemetry data consumed by Metron 
 Any field contained within a message can be used to generate a profile.  A profile can even be produced by combining fields that originate in different data sources.  A user has considerable power to transform the data used in a profile by leveraging the Stellar language. A user only need configure the desired profiles and ensure that the Profiler topology is running.
 
 * [Installation](#installation)
-* [Getting Started](#getting-started)
 * [Creating Profiles](#creating-profiles)
+* [Deploying Profiles](#deploying-profiles)
+* [Anatomy of a Profile](#anatomy-of-a-profile)
 * [Configuring the Profiler](#configuring-the-profiler)
 * [Examples](#examples)
 * [Implementation](#implementation)
 
 ## Installation
 
-Follow these instructions to install the Profiler.  This assumes that core Metron has already been installed and validated.  
+The Profiler can be installed with either of these two methods.
+
+ * [Ambari Installation](#ambari-installation)
+ * [Manual Installation](#manual-installation)
+
+### Ambari Installation
+
+The Metron Profiler is installed automatically when installing Metron using the Ambari MPack.  You can skip the [Installation](#installation) section and move ahead to [Creating Profiles](#creating-profiles) should this be the case.
+
+### Manual Installation
+
+This section will describe the steps necessary to manually install the Profiler on an RPM-based Linux distribution.  This assumes that core Metron has already been installed and validated.  If you installed Metron using the [Ambari MPack](#ambari-mpack), then the Profiler has already been installed and you can skip this section.
 
 1. Build the Metron RPMs (see Building the [RPMs](../../metron-deployment#rpms)).  
 
@@ -58,20 +70,20 @@ Follow these instructions to install the Profiler.  This assumes that core Metro
     /usr/metron/0.4.1/lib/metron-profiler-0.4.0-uber.jar
     ```
 
+1. Edit the configuration file located at `$METRON_HOME/config/profiler.properties`.  
+    ```
+    kafka.zk=node1:2181
+    kafka.broker=node1:6667
+    ```
+    * Change `kafka.zk` to refer to Zookeeper in your environment.  
+    * Change `kafka.broker` to refer to a Kafka Broker in your environment.
+
 1. Create a table within HBase that will store the profile data. By default, the table is named `profiler` with a column family `P`.  The table name and column family must match the Profiler's configuration (see [Configuring the Profiler](#configuring-the-profiler)).  
 
     ```
     $ /usr/hdp/current/hbase-client/bin/hbase shell
     hbase(main):001:0> create 'profiler', 'P'
     ```
-
-1. Edit the configuration file located at `$METRON_HOME/config/profiler.properties`.  
-    ```
-    kafka.zk=node1:2181
-    kafka.broker=node1:6667
-    ```
-    Change `kafka.zk` to refer to Zookeeper in your environment.  
-    Change `kafka.broker` to refer to a Kafka Broker in your environment.
 
 1. Start the Profiler topology.
     ```
@@ -81,9 +93,157 @@ Follow these instructions to install the Profiler.  This assumes that core Metro
 
 At this point the Profiler is running and consuming telemetry messages.  We have not defined any profiles yet, so it is not doing anything very useful.  The next section walks you through the steps to create your very first "Hello, World!" profile.
 
-## Getting Started
+## Creating Profiles
 
-This section will describe the steps required to get your first "Hello, World!"" profile running.  This assumes that you have a successful Profiler [Installation](#installation) and have it running.
+This section will describe how to create your very first "Hello, World" profile.  It will also outline a useful workflow for creating, testing, and deploying profiles.
+
+Creating and refining profiles is an iterative process.  Iterating against a live stream of data is slow, difficult and error prone.  The Profile Debugger was created to provide a controlled and isolated execution environment to create, refine and troubleshoot profiles.
+
+1. Launch the Stellar Shell.  We will leverage the Profiler Debugger from within the Stellar Shell.  
+	```
+	[root@node1 ~]# $METRON_HOME/bin/stellar
+	Stellar, Go!
+	[Stellar]>>> %functions PROFILER
+	PROFILER_APPLY, PROFILER_FLUSH, PROFILER_INIT
+	```  
+	
+1. Create a simple `hello-world` profile that will count the number of messages for each `ip_src_addr`.  The `SHELL_EDIT` function will open an editor in which you can copy/paste the following Profiler configuration.
+	```
+	[Stellar]>>> conf := SHELL_EDIT()
+	[Stellar]>>> conf
+	{
+	  "profiles": [
+	    {
+	      "profile": "hello-world",
+	      "onlyif":  "exists(ip_src_addr)",
+	      "foreach": "ip_src_addr",
+	      "init":    { "count": "0" },
+	      "update":  { "count": "count + 1" },
+	      "result":  "count"
+	    }
+	  ]
+	}
+	```
+
+1. Create a Profile execution environment; the Profile Debugger. 
+
+	The Profiler will output the number of profiles that have been defined, the number of messages that have been applied and the number of routes that have been followed.  
+
+	A route is defined when a message is applied to a specific profile.
+	* If a message is not needed by any profile, then there are no routes. 
+	* If a message is needed by one profile, then one route has been followed.
+	* If a message is needed by two profiles, then two routes have been followed.
+
+	```
+	[Stellar]>>> p := PROFILER_INIT(conf)
+	[Stellar]>>> p
+	Profiler{1 profile(s), 0 messages(s), 0 route(s)}
+	```
+
+1. Create a message that mimics the telemetry that your profile will consume. 
+
+	This message can be as simple or complex as you like.  For the `hello-world` profile, all you need is a message containing an `ip_src_addr` field.
+
+	```
+	[Stellar]>>> msg := SHELL_EDIT()
+	[Stellar]>>> msg
+	{
+		"ip_src_addr": "10.0.0.1"
+	}
+	```
+
+1. Apply the message to your Profiler, as many times as you like.
+
+	```
+	[Stellar]>>> PROFILER_APPLY(msg, p)
+	Profiler{1 profile(s), 1 messages(s), 1 route(s)}
+	```
+	```
+	[Stellar]>>> PROFILER_APPLY(msg, p)
+	Profiler{1 profile(s), 2 messages(s), 2 route(s)}
+	```
+
+1. Flush the Profiler.  
+	
+	A flush is what occurs at the end of each 15 minute period in the Profiler.  The result is a list of Profile Measurements. Each measurement is a map containing detailed information about the profile data that has been generated. The `value` field is what is written to HBase when running this profile in the Profiler topology. 
+	
+	There will always be one measurement for each [profile, entity] pair.  This profile simply counts the number of messages by IP source address. Notice that the value is '3' for the entity '10.0.0.1' as we applied 3 messages with an 'ip_src_addr' of ’10.0.0.1'.
+	
+	```
+	[Stellar]>>> values := PROFILER_FLUSH(profiler)
+	[Stellar]>>> values
+	[{period={duration=900000, period=1669628, start=1502665200000, end=1502666100000},
+	profile=hello-world, groups=[], value=3, entity=10.0.0.1}]
+	```
+
+1. Apply real, live telemetry to your profile.
+
+	Once you are happy with your profile against a controlled data set, it can be useful to introduce more complex, live data.  This example extracts 10 messages of live, enriched telemetry to test your profile(s).
+	```
+	[Stellar]>>> %define bootstrap.servers := "node1:6667" 
+	node1:6667
+	[Stellar]>>> msgs := KAFKA_GET("indexing", 10) 
+	[Stellar]>>> LENGTH(msgs)
+	10
+	```
+	Apply those 10 messages to your profile(s).
+	```
+	[Stellar]>>> PROFILER_APPLY(msgs, p)
+	  Profiler{1 profile(s), 10 messages(s), 10 route(s)}
+	```
+
+
+## Deploying Profiles
+
+This section will describe the steps required to get your first "Hello, World!"" profile running.  This assumes that you have a successful Profiler [Installation](#installation) and have it running.  You can deploy profiles in two different ways.
+
+* [Deploying Profiles with the Stellar Shell](#deploying-profiles-with-the-stellar-shell)
+* [Deploying Profiles from the Command Line](#deploying-profiles-from-the-command-line)
+
+### Deploying Profiles with the Stellar Shell
+
+Continuing the previous running example, at this point, you have seen how your profile behaves against real, live telemetry in a controlled execution environment.  The next step is to deploy your profile to the live, actively running Profiler topology.
+
+1.  Start the Stellar Shell with the `-z ZK:2181` command line argument.  This is required when deploying a new profile to the active Profiler topology.  Replace `ZK:2181` with a URL that is appropriate to your environment.
+	```
+	[root@node1 ~]# $METRON_HOME/bin/stellar -z ZK:2181
+	Stellar, Go!
+	[Stellar]>>>
+	[Stellar]>>> %functions CONFIG CONFIG_GET, CONFIG_PUT
+	```
+	
+1. If you haven't already, define your profile.
+	```
+	[Stellar]>>> conf := SHELL_EDIT()
+	[Stellar]>>> conf
+	{
+	  "profiles": [
+	    {
+	      "profile": "hello-world",
+	      "onlyif":  "exists(ip_src_addr)",
+	      "foreach": "ip_src_addr",
+	      "init":    { "count": "0" },
+	      "update":  { "count": "count + 1" },
+	      "result":  "count"
+	    }
+	  ]
+	}
+	```
+
+1. Check what is already deployed.  
+
+	Pushing a new profile configuration is destructive.  It will overwrite any existing configuration.  Check what you have out there.  Manually merge the existing configuration with your new profile definition.
+	
+	```
+	[Stellar]>>> existing := CONFIG_GET("PROFILER")
+	```
+
+1. Deploy your profile.  This will push the configuration to to the live, actively running Profiler topology.  This will overwrite any existing profile definitions.
+	```
+	[Stellar]>>> CONFIG_PUT("PROFILER", conf)
+	```
+
+### Deploying Profiles from the Command Line 
 
 1. Create the profile definition in a file located at `$METRON_HOME/config/zookeeper/profiler.json`.  This file will likely not exist, if you have never created Profiles before.
 
@@ -149,12 +309,9 @@ This section will describe the steps required to get your first "Hello, World!""
 
     It is assumed that the `PROFILE_GET` client is correctly configured to match the Profile configuration before using it to read that Profile.  More information on configuring and using the Profiler client can be found [here](../metron-profiler-client).  
 
+## Anatomy of a Profile
 
-## Creating Profiles
-
-The Profiler specification requires a JSON-formatted set of elements, many of which can contain Stellar code.  The specification contains the following elements.  (For the impatient, skip ahead to the [Examples](#examples).)
-The specification for the Profiler topology is stored in Zookeeper at  `/metron/topology/profiler`.  These properties also exist in the local filesystem at `$METRON_HOME/config/zookeeper/profiler.json`.
-The values can be changed on disk and then uploaded to Zookeeper using `$METRON_HOME/bin/zk_load_configs.sh`.
+A profile definition requires a JSON-formatted set of elements, many of which can contain Stellar code.  The specification contains the following elements.  (For the impatient, skip ahead to the [Examples](#examples).)
 
 | Name                          |               | Description
 |---                            |---            |---
@@ -392,29 +549,32 @@ The maximum number of seconds between batch writes to HBase.
 
 ## Examples
 
-The following examples are intended to highlight the functionality provided by the Profiler. Each shows the configuration that would be required to generate the profile.  
+The following examples are intended to highlight the functionality provided by the Profiler. Try out these examples easily in the Stellar Shell as described in the [Creating Profiles](#creating-profiles) section.
 
-These examples assume a fictitious input message stream that looks something like the following.
-
+These examples assume a fictitious input message stream that looks like the following.  
 ```
-{
-  "ip_src_addr": "10.0.0.1",
-  "protocol": "HTTPS",
-  "length": "10",
-  "bytes_in": "234"
-},
-{
-  "ip_src_addr": "10.0.0.2",
-  "protocol": "HTTP",
-  "length": "20",
-  "bytes_in": "390"
-},
-{
-  "ip_src_addr": "10.0.0.3",
-  "protocol": "DNS",
-  "length": "30",
-  "bytes_in": "560"
-}
+[Stellar]>>> msgs := SHELL_EDIT()
+[Stellar]>>> msgs
+[
+  {
+    "ip_src_addr": "10.0.0.1",
+    "protocol": "HTTPS",
+    "length": "10",
+    "bytes_in": "234"
+  },
+  {
+    "ip_src_addr": "10.0.0.2",
+    "protocol": "HTTP",
+    "length": "20",
+    "bytes_in": "390"
+  },
+  {
+    "ip_src_addr": "10.0.0.3",
+    "protocol": "DNS",
+    "length": "30",
+    "bytes_in": "560"
+  }
+]
 ```
 
 

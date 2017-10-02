@@ -41,9 +41,10 @@ The following keywords need to be single quote escaped in order to be used in St
 |               |               |             |             |             |
 | :-----------: | :-----------: | :---------: | :---------: | :---------: |
 | not           | else          | exists      | if          | then        |
-| and           | or            | in          | ==          | !=          |
-| \<=           | \>            | \>=         | \+          | \-          |
-| \<            | ?             | \*          | /           | ,           |
+| and           | or            | in          | NaN         | ==          |
+| !=            | \<=           | \>          | \>=         | \+          |
+| \-            | \<            | ?           | \*          | /           |
+| ,             |               |             |             |             |
 
 Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 
@@ -158,6 +159,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `IS_EMPTY`](#is_empty)                                                                           |
 | [ `IS_INTEGER`](#is_integer)                                                                       |
 | [ `IS_IP`](#is_ip)                                                                                 |
+| [ `IS_NAN`](#is_nan)                                                             |
 | [ `IS_URL`](#is_url)                                                                               |
 | [ `JOIN`](#join)                                                                                   |
 | [ `KAFKA_GET`](#kafka_get)                                                                         |
@@ -220,6 +222,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `SYSTEM_ENV_GET`](#system_env_get)                                                               |
 | [ `SYSTEM_PROPERTY_GET`](#system_property_get)                                                     |
 | [ `TAN`](#tan)                                                                                     |
+| [ `TLSH_DIST`](#tlsh_dist)                                                                                     |
 | [ `TO_DOUBLE`](#to_double)                                                                         |
 | [ `TO_EPOCH_TIMESTAMP`](#to_epoch_timestamp)                                                       |
 | [ `TO_FLOAT`](#to_float)                                                                           |
@@ -522,12 +525,18 @@ In the core language functions, we support basic functional programming primitiv
 
 ### `HASH`
   * Description: Hashes a given value using the given hashing algorithm and returns a hex encoded string.
-  * Input: 
-    * toHash - value to hash.
-    * hashType - A valid string representation of a hashing algorithm. See 'GET_HASHES_AVAILABLE'.
-  * Returns: A hex encoded string of a hashed value using the given algorithm. If 'hashType' is null 
-  then '00', padded to the necessary length, will be returned. If 'toHash' is not able to be hashed or 
-  'hashType' is null then null is returned.
+  * Input:
+     * toHash - value to hash.
+     * hashType - A valid string representation of a hashing algorithm. See 'GET_HASHES_AVAILABLE'.
+     * config? - Configuration for the hash function in the form of a String to object map.
+        * For forensic hash TLSH (see [https://github.com/trendmicro/tlsh](https://github.com/trendmicro/tlsh) and Jonathan Oliver, Chun Cheng, and Yanggui Chen, TLSH - A Locality Sensitive Hash. 4th Cybercrime and Trustworthy Computing Workshop, Sydney, November 2013):
+          * bucketSize : This defines the size of the hash created.  Valid values are 128 (default) or 256 (the former results in a 70 character hash and latter results in 134 characters)
+          * checksumBytes : This defines how many bytes are used to capture the checksum.  Valid values are 1 (default) and 3
+          * force : If true (the default) then a hash can be generated from as few as 50 bytes.  If false, then at least 256 bytes are required.  Insufficient variation or size in the bytes result in a null being returned.
+          * hashes : You can compute a second hash for use in fuzzy clustering TLSH signatures.  The number of hashes is the lever to adjust the size of those clusters and \"fuzzy\" the clusters are.  If this is specified, then one or more bins are created based on the specified size and the function will return a Map containing the bins.
+        * For all other hashes:
+          * charset : The character set to use (UTF8 is default).
+  * Returns = A hex encoded string of a hashed value using the given algorithm. If 'hashType' is null then '00', padded to the necessary length, will be returned. If 'toHash' is not able to be hashed or 'hashType' is null then null is returned.
 
 ### `IN_SUBNET`
   * Description: Returns true if an IP is within a subnet range.
@@ -580,6 +589,12 @@ In the core language functions, we support basic functional programming primitiv
     * ip - An object which we wish to test is an ip
     * type (optional) - Object of string or collection type (e.g. list) one of IPV4 or IPV6 or both.  The default is IPV4.
   * Returns: True if the string is an IP and false otherwise.
+
+### `IS_NAN`
+  * Description: Evaluates if the passed number is NaN.  The number is evaluated as a double.
+  * Input:
+    * number - number to evaluate"
+  * Returns: True if the number is NaN, false if it is 
 
 ### `IS_URL`
   * Description: Tests if a string is a valid URL
@@ -907,6 +922,14 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * number - The number to take the tangent of
   * Returns: The tangent of the number passed in.
+
+### `TLSH_DIST`
+  * Description: Will return the hamming distance between two TLSH hashes (note: must be computed with the same params).  For more information, see [https://github.com/trendmicro/tlsh](https://github.com/trendmicro/tlsh) and Jonathan Oliver, Chun Cheng, and Yanggui Chen, TLSH - A Locality Sensitive Hash. 4th Cybercrime and Trustworthy Computing Workshop, Sydney, November 2013.  For a discussion of tradeoffs, see Table II on page 5 of [https://github.com/trendmicro/tlsh/blob/master/TLSH_CTC_final.pdf](https://github.com/trendmicro/tlsh/blob/master/TLSH_CTC_final.pdf)
+  * Input:
+     * hash1 - The first TLSH hash
+     * hash2 - The first TLSH hash
+     * includeLength? - Include the length in the distance calculation or not?
+  Returns: An integer representing the distance between hash1 and hash2.  The distance is roughly hamming distance, so 0 is very similar.
 
 ### `TO_DOUBLE`
   * Description: Transforms the first argument to a double precision number

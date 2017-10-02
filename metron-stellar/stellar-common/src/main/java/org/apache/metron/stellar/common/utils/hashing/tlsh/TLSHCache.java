@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,22 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs/Rx';
-import {Alert} from '../model/alert';
-import {Http, Headers, RequestOptions} from '@angular/http';
-import {HttpUtil} from '../utils/httpUtil';
+package org.apache.metron.stellar.common.utils.hashing.tlsh;
 
-@Injectable()
-export class WorkflowService {
+import com.trendmicro.tlsh.BucketOption;
+import com.trendmicro.tlsh.ChecksumOption;
 
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
+import java.util.AbstractMap;
+import java.util.HashMap;
+import java.util.Map;
 
-  constructor(private http: Http) {
-  }
+/**
+ * Create a threadlocal cache of TLSH handlers.
+ */
+public class TLSHCache {
+  public static ThreadLocal<TLSHCache> INSTANCE = ThreadLocal.withInitial(() -> new TLSHCache());
+  private Map<Map.Entry<BucketOption, ChecksumOption>, TLSH> cache = new HashMap<>();
+  private TLSHCache() {}
 
-  public start(alerts: Alert[]): Observable<string> {
-    return this.http.post('/api/v1/workflow', alerts, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .map(HttpUtil.extractString);
+  public TLSH getTLSH(BucketOption bo, ChecksumOption co) {
+    return cache.computeIfAbsent( new AbstractMap.SimpleEntry<>(bo, co)
+                                , kv -> new TLSH(kv.getKey(), kv.getValue())
+                                );
   }
 }

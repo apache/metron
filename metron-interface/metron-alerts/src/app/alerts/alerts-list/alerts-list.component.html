@@ -66,13 +66,17 @@
     <div class="row">
         <div class="col-sm-12 pl-0">
             <app-table-view #dataViewComponent
+                            [alerts]="alerts"
                             [queryBuilder]="queryBuilder"
+                            [pagination]="pagination"
                             [alertsColumnsToDisplay]="alertsColumnsToDisplay"
                             [(selectedAlerts)]="selectedAlerts"
                             (onResize)="onResize()"
                             (onAddFilter)="onAddFilter($event)"
+                            (onRefreshData)="onRefreshData($event)"
                             (onShowDetails)="showDetails($event)"
-                            (onShowConfigureTable)="showConfigureTable()"></app-table-view>
+                            (onShowConfigureTable)="showConfigureTable()"
+                            (onSelectedAlertsChange)="onSelectedAlertsChange($event)"></app-table-view>
         </div>
     </div>
 </div>
