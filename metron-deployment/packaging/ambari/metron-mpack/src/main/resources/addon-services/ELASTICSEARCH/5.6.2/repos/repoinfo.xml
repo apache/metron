@@ -16,15 +16,15 @@
 <reposinfo>
     <os family="redhat6">
         <repo>
-            <baseurl>https://packages.elastic.co/elasticsearch/2.x/centos</baseurl>
-            <repoid>elastic-2.x</repoid>
+            <baseurl>https://artifacts.elastic.co/packages/5.x/yum</baseurl>
+            <repoid>elasticsearch-5.x</repoid>
             <reponame>ELASTICSEARCH</reponame>
         </repo>
     </os>
     <os family="redhat7">
         <repo>
-            <baseurl>https://packages.elastic.co/elasticsearch/2.x/centos</baseurl>
-            <repoid>elasticsearch-2.x</repoid>
+            <baseurl>https://artifacts.elastic.co/packages/5.x/yum</baseurl>
+            <repoid>elasticsearch-5.x</repoid>
             <reponame>ELASTICSEARCH</reponame>
         </repo>
     </os>

@@ -25,7 +25,7 @@
       "service_versions_map": [
         {
           "service_name" : "KIBANA",
-          "service_version" : "4.5.1",
+          "service_version" : "5.6.2",
           "applicable_stacks" : [
             {
               "stack_name" : "HDP",
@@ -43,7 +43,7 @@
         },
         {
           "service_name" : "ELASTICSEARCH",
-          "service_version" : "2.3.3",
+          "service_version" : "5.6.2",
           "applicable_stacks" : [
             {
               "stack_name" : "HDP",

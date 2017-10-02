@@ -22,7 +22,8 @@
     <services>
         <service>
             <name>KIBANA</name>
-            <extends>common-services/KIBANA/4.5.1</extends>
+            <version>5.6.2</version>
+            <extends>common-services/KIBANA/5.6.2</extends>
         </service>
     </services>
 </metainfo>

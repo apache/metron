@@ -19,32 +19,31 @@
     <schemaVersion>2.0</schemaVersion>
     <services>
         <service>
-            <name>ELASTICSEARCH</name>
-            <displayName>Elasticsearch</displayName>
-            <comment>Indexing and Search</comment>
-            <version>2.3.3</version>
+            <name>KIBANA</name>
+            <displayName>Kibana</displayName>
+            <comment>Kibana Dashboard</comment>
+            <version>5.6.2</version>
             <components>
                 <component>
-                    <name>ES_MASTER</name>
-                    <displayName>Elasticsearch Master</displayName>
+                    <name>KIBANA_MASTER</name>
+                    <displayName>Kibana Server</displayName>
                     <category>MASTER</category>
-                    <cardinality>1+</cardinality>
+                    <cardinality>1</cardinality>
                     <commandScript>
-                        <script>scripts/elastic_master.py</script>
+                        <script>scripts/kibana_master.py</script>
                         <scriptType>PYTHON</scriptType>
                         <timeout>600</timeout>
                     </commandScript>
-                </component>
-                <component>
-                    <name>ES_SLAVE</name>
-                    <displayName>Elasticsearch Data Node</displayName>
-                    <category>SLAVE</category>
-                    <cardinality>0+</cardinality>
-                    <commandScript>
-                        <script>scripts/elastic_slave.py</script>
-                        <scriptType>PYTHON</scriptType>
-                        <timeout>600</timeout>
-                    </commandScript>
+                    <customCommands>
+                        <customCommand>
+                            <name>LOAD_TEMPLATE</name>
+                            <background>false</background>
+                            <commandScript>
+                                <script>scripts/kibana_master.py</script>
+                                <scriptType>PYTHON</scriptType>
+                            </commandScript>
+                        </customCommand>
+                    </customCommands>
                 </component>
             </components>
             <osSpecifics>
@@ -52,20 +51,17 @@
                     <osFamily>any</osFamily>
                     <packages>
                         <package>
-                            <name>elasticsearch-2.3.3</name>
+                            <name>python-elasticsearch</name>
+                        </package>
+                        <package>
+                            <name>kibana-5.6.2</name>
                         </package>
                     </packages>
                 </osSpecific>
             </osSpecifics>
-            <commandScript>
-                <script>scripts/service_check.py</script>
-                <scriptType>PYTHON</scriptType>
-                <timeout>300</timeout>
-            </commandScript>
             <configuration-dependencies>
-                <config-type>elastic-env</config-type>
-                <config-type>elastic-site</config-type>
-                <config-type>elastic-sysconfig</config-type>
+                <config-type>kibana-env</config-type>
+                <config-type>kibana-site</config-type>
             </configuration-dependencies>
             <restartRequiredAfterChange>true</restartRequiredAfterChange>
             <quickLinksConfigurations>

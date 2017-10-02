@@ -16,25 +16,25 @@
 <reposinfo>
     <os family="redhat6">
         <repo>
-            <baseurl>http://packages.elastic.co/kibana/4.5/centos</baseurl>
-            <repoid>kibana-4.x</repoid>
+            <baseurl>https://artifacts.elastic.co/packages/5.x/yum</baseurl>
+            <repoid>kibana-5.x</repoid>
             <reponame>KIBANA</reponame>
         </repo>
         <repo>
-            <baseurl>http://packages.elastic.co/curator/4/centos/6</baseurl>
-            <repoid>ES-Curator-4.x</repoid>
+            <baseurl>http://packages.elastic.co/curator/5/centos/6</baseurl>
+            <repoid>ES-Curator-5.x</repoid>
             <reponame>CURATOR</reponame>
         </repo>
     </os>
     <os family="redhat7">
         <repo>
-            <baseurl>http://packages.elastic.co/kibana/4.5/centos</baseurl>
-            <repoid>kibana-4.x</repoid>
+            <baseurl>https://artifacts.elastic.co/packages/5.x/yum</baseurl>
+            <repoid>kibana-5.x</repoid>
             <reponame>KIBANA</reponame>
         </repo>
         <repo>
-            <baseurl>http://packages.elastic.co/curator/4/centos/7</baseurl>
-            <repoid>ES-Curator-4.x</repoid>
+            <baseurl>http://packages.elastic.co/curator/5/centos/7</baseurl>
+            <repoid>ES-Curator-5.x</repoid>
             <reponame>CURATOR</reponame>
         </repo>
     </os>
