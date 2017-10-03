@@ -47,17 +47,14 @@ public class SensorParserConfig implements Serializable {
   private Integer errorWriterNumTasks = 1;
   private Map<String, Object> spoutConfig = new HashMap<>();
   private String securityProtocol = null;
-  private Map<String, Object> stormConfig = new HashMap<String, Object>() {{
-    put("topology.workers", 1);
-    put("topology.acker.executors", 1);
-  }};;
+  private Map<String, Object> stormConfig = new HashMap<>();
 
   /**
    * Return the number of workers for the topology.  This property will be used for the parser unless overridden on the CLI.
    * @return
    */
   public Integer getNumWorkers() {
-    return numWorkers != null ? numWorkers : (Integer) stormConfig.get("topology.workers");
+    return numWorkers;
   }
 
   public void setNumWorkers(Integer numWorkers) {
@@ -69,7 +66,7 @@ public class SensorParserConfig implements Serializable {
    * @return
    */
   public Integer getNumAckers() {
-    return numAckers != null ? numAckers : (Integer) stormConfig.get("topology.acker.executors");
+    return numAckers;
   }
 
   public void setNumAckers(Integer numAckers) {
@@ -302,8 +299,8 @@ public class SensorParserConfig implements Serializable {
             ", invalidWriterClassName='" + invalidWriterClassName + '\'' +
             ", readMetadata=" + readMetadata +
             ", mergeMetadata=" + mergeMetadata +
-            ", numWorkers=" + getNumWorkers() +
-            ", numAckers=" + getNumAckers() +
+            ", numWorkers=" + numWorkers +
+            ", numAckers=" + numAckers +
             ", spoutParallelism=" + spoutParallelism +
             ", spoutNumTasks=" + spoutNumTasks +
             ", parserParallelism=" + parserParallelism +

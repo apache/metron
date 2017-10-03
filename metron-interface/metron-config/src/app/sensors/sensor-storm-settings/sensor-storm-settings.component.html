@@ -27,6 +27,7 @@
           <div style="width: 25%">
               <metron-config-number-spinner name="numWorkers" [(ngModel)]="newSensorParserConfig.numWorkers" [min]="1"> </metron-config-number-spinner>
           </div>
+          <div><label *ngIf="!newSensorParserConfig.numWorkers"><span class="warning-text"> This uses Storm defaults if not set </span></label></div>
           <label *ngIf="newSensorParserConfig.numWorkers !== sensorParserConfig.numWorkers"><span class="warning-text"> This change requires a parser topology restart </span></label>
       </div>
       <div class="form-group">
@@ -34,7 +35,8 @@
           <div style="width: 25%">
               <metron-config-number-spinner name="numAckers" [(ngModel)]="newSensorParserConfig.numAckers" [min]="1"> </metron-config-number-spinner>
           </div>
-        <label *ngIf="newSensorParserConfig.numAckers !== sensorParserConfig.numAckers"><span class="warning-text"> This change requires a parser topology restart </span></label>
+          <div><label *ngIf="!newSensorParserConfig.numAckers"><span class="warning-text"> This uses Storm defaults if not set </span></label></div>
+          <label *ngIf="newSensorParserConfig.numAckers !== sensorParserConfig.numAckers"><span class="warning-text"> This change requires a parser topology restart </span></label>
       </div>
       <div class="form-group">
           <label attr.for="spoutParallelism">SPOUT PARALLELISM</label>
