@@ -46,7 +46,7 @@ public class RestExceptionHandlerTest {
     assertEquals(HttpStatus.UNAUTHORIZED, responseEntity.getStatusCode());
     RestError actualRestError = (RestError) responseEntity.getBody();
     assertEquals("unauthorized", actualRestError.getMessage());
-    assertEquals(ExceptionUtils.getFullStackTrace(throwable), actualRestError.getFullMessage());
+    assertEquals("RuntimeException: unauthorized", actualRestError.getFullMessage());
     assertEquals(401, actualRestError.getResponseCode());
   }
 
@@ -68,7 +68,7 @@ public class RestExceptionHandlerTest {
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     RestError actualRestError = (RestError) responseEntity.getBody();
     assertEquals("some error", actualRestError.getMessage());
-    assertEquals(ExceptionUtils.getFullStackTrace(throwable), actualRestError.getFullMessage());
+    assertEquals("RuntimeException: some root cause", actualRestError.getFullMessage());
     assertEquals(500, actualRestError.getResponseCode());
   }
 }

@@ -36,7 +36,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
   @ResponseBody
   ResponseEntity<?> handleControllerException(HttpServletRequest request, Throwable ex) {
     HttpStatus status = getStatus(request);
-    return new ResponseEntity<>(new RestError(status.value(), ex.getMessage(), ExceptionUtils.getStackTrace(ex)), status);
+    return new ResponseEntity<>(new RestError(status.value(), ex.getMessage(), ExceptionUtils.getRootCauseMessage(ex)), status);
   }
 
   private HttpStatus getStatus(HttpServletRequest request) {
