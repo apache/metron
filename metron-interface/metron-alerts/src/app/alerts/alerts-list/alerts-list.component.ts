@@ -59,7 +59,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   pauseRefresh = false;
   lastPauseRefreshValue = false;
   threatScoreFieldName = 'threat:triage:score';
-  indices: string[];
 
   @ViewChild('table') table: ElementRef;
   @ViewChild('dataViewComponent') dataViewComponent: TableViewComponent;
@@ -84,9 +83,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
         this.restoreRefreshState();
       }
     });
-    if (environment.indices) {
-      this.indices = environment.indices.split(',');
-    }
   }
 
   addAlertColChangedListner() {
@@ -100,6 +96,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   addLoadSavedSearchListner() {
     this.saveSearchService.loadSavedSearch$.subscribe((savedSearch: SaveSearch) => {
       let queryBuilder = new QueryBuilder();
+      queryBuilder.setGroupby(this.queryBuilder.groupRequest.groups.map(group => group.field));
       queryBuilder.searchRequest = savedSearch.searchRequest;
       this.queryBuilder = queryBuilder;
       this.prepareColumnData(savedSearch.tableColumns, []);
@@ -186,6 +183,11 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.search();
   }
 
+  onGroupsChange(groups) {
+    this.queryBuilder.setGroupby(groups);
+    this.search();
+  }
+
   onPausePlay() {
     this.pauseRefresh = !this.pauseRefresh;
     if (this.pauseRefresh) {
@@ -220,8 +222,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE').subscribe(results => {
       this.updateSelectedAlertStatus('ESCALATE');
     });
-    this.alertsService.escalate(this.selectedAlerts).subscribe();
-   
   }
 
   processDismiss() {
@@ -257,14 +257,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     if (resetPaginationParams) {
       this.pagination.from = 0;
     }
-    this.queryBuilder.searchRequest.from = this.pagination.from;
-    if (this.tableMetaData.size) {
-      this.pagination.size = this.tableMetaData.size;
-    }
-    this.queryBuilder.searchRequest.size = this.pagination.size;
-    if (this.indices) {
-      this.queryBuilder.searchRequest.indices = this.indices;
-    }
+
+    this.setSearchRequestSize();
+
     this.searchService.search(this.queryBuilder.searchRequest).subscribe(results => {
       this.setData(results);
     }, error => {
@@ -273,6 +268,19 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     });
 
     this.tryStartPolling();
+  }
+
+  setSearchRequestSize() {
+    if (this.queryBuilder.groupRequest.groups.length == 0) {
+      this.queryBuilder.searchRequest.from = this.pagination.from;
+      if (this.tableMetaData.size) {
+        this.pagination.size = this.tableMetaData.size;
+      }
+      this.queryBuilder.searchRequest.size = this.pagination.size;
+    } else {
+      this.queryBuilder.searchRequest.from = 0;
+      this.queryBuilder.searchRequest.size = 0;
+    }
   }
 
   saveCurrentSearch(savedSearch: SaveSearch) {

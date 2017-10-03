@@ -10,6 +10,16 @@ export function changeURL(url: string) {
     });
 }
 
+export function waitForURL(url: string) {
+  let EC = protractor.ExpectedConditions;
+  return browser.wait(EC.urlIs(url));
+}
+
+export function waitForText(element, text) {
+  let EC = protractor.ExpectedConditions;
+  return browser.wait(EC.textToBePresentInElementValue(element, text));
+}
+
 export function waitForElementInVisibility (_element ) {
     let EC = protractor.ExpectedConditions;
     return browser.wait(EC.invisibilityOf(_element));

@@ -40,6 +40,9 @@
         </div>
         <div class="col-md-3 px-0">
             <div class="pull-right" style="position: relative; display: block;">
+                <div class="btn cog">
+                    <i class="fa fa-cog configure-table-icon" (click)="showConfigureTable()"></i>
+                </div>
                 <div class="btn settings">
                     <i #settingsIcon class="fa fa-sliders" aria-hidden="true"></i>
                 </div>
@@ -64,8 +67,11 @@
 
 <div class="container-fluid nav-content">
     <div class="row">
+        <div class="col-sm-12 pl-0 pb-3">
+            <app-group-by [facets]="searchResponse.facetCounts" (groupsChange)="onGroupsChange($event)"> </app-group-by>
+        </div>
         <div class="col-sm-12 pl-0">
-            <app-table-view #dataViewComponent
+            <app-table-view #dataViewComponent *ngIf="queryBuilder.groupRequest.groups.length === 0"
                             [alerts]="alerts"
                             [queryBuilder]="queryBuilder"
                             [pagination]="pagination"
@@ -75,8 +81,16 @@
                             (onAddFilter)="onAddFilter($event)"
                             (onRefreshData)="onRefreshData($event)"
                             (onShowDetails)="showDetails($event)"
-                            (onShowConfigureTable)="showConfigureTable()"
                             (onSelectedAlertsChange)="onSelectedAlertsChange($event)"></app-table-view>
+            <app-tree-view #dataViewComponent *ngIf="queryBuilder.groupRequest.groups.length !== 0"
+                           [alerts]="alerts"
+                           [queryBuilder]="queryBuilder"
+                           [alertsColumnsToDisplay]="alertsColumnsToDisplay"
+                           [(selectedAlerts)]="selectedAlerts"
+                           (onResize)="onResize()"
+                           (onAddFilter)="onAddFilter($event)"
+                           (onShowDetails)="showDetails($event)"
+                           (onSelectedAlertsChange)="onSelectedAlertsChange($event)"></app-tree-view>
         </div>
     </div>
 </div>
