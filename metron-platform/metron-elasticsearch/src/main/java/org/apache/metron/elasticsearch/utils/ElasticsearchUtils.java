@@ -21,7 +21,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.elasticsearch.writer.ElasticsearchWriter;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
@@ -29,7 +28,12 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ElasticsearchUtils {
 
@@ -45,13 +49,28 @@ public class ElasticsearchUtils {
     return DATE_FORMAT_CACHE.get().computeIfAbsent(format, SimpleDateFormat::new);
   }
 
+  /**
+   * Builds the name of an Elasticsearch index.
+   * @param sensorType The sensor type; bro, yaf, snort, ...
+   * @param indexPostfix The index postfix; most often a formatted date.
+   * @param configurations User-defined configuration for the writers.
+   */
   public static String getIndexName(String sensorType, String indexPostfix, WriterConfiguration configurations) {
     String indexName = sensorType;
     if (configurations != null) {
       indexName = configurations.getIndex(sensorType);
     }
-    indexName = indexName + "_index_" + indexPostfix;
+    indexName = indexName + getIndexDelimiter() + "_" + indexPostfix;
     return indexName;
+  }
+
+  /**
+   * Returns the delimiter that is appended to the user-defined index name to separate
+   * the index's date postfix.  For example, if the user-defined index name is 'bro'
+   * and the delimiter is '_index_', then one likely index name is 'bro_index_2017.10.03.19'.
+   */
+  public static String getIndexDelimiter() {
+    return "_index";
   }
 
   public static TransportClient getClient(Map<String, Object> globalConfiguration, Map<String, String> optionalSettings) {

@@ -268,7 +268,7 @@ public abstract class SearchIntegrationTest {
   /**
    * {
    * "fields": ["guid"],
-   * "indices": ["metaalerts"],
+   * "indices": ["metaalert"],
    * "query": "*",
    * "from": 0,
    * "size": 10,
