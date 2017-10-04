@@ -311,7 +311,7 @@ export class SensorParserConfigComponent implements OnInit {
     if (!this.indexingConfigurations.solr.index) {
       this.indexingConfigurations.solr.index = this.sensorParserConfig.sensorTopic;
     }
-    this.sensorParserConfigService.post(this.sensorName, sensorParserConfig).subscribe(
+    this.sensorParserConfigService.post(this.sensorName, this.sensorParserConfig).subscribe(
       sensorParserConfig => {
         if (this.isGrokParser(sensorParserConfig)) {
             this.hdfsService.post(this.sensorParserConfig.parserConfig['grokPath'], this.grokStatement).subscribe(
