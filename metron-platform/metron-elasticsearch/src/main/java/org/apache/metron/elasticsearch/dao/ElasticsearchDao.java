@@ -20,6 +20,7 @@ package org.apache.metron.elasticsearch.dao;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -95,8 +96,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ElasticsearchDao implements IndexDao {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private transient TransportClient client;
   private AccessConfig accessConfig;
   private List<String> ignoredIndices = new ArrayList<>();
@@ -167,6 +172,7 @@ public class ElasticsearchDao implements IndexDao {
       elasticsearchResponse = client.search(new org.elasticsearch.action.search.SearchRequest(wildcardIndices)
               .source(searchSourceBuilder)).actionGet();
     } catch (SearchPhaseExecutionException e) {
+      LOG.error("Could not execute search", e);
       throw new InvalidSearchException("Could not execute search", e);
     }
     SearchResponse searchResponse = new SearchResponse();

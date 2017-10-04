@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,31 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {FieldTransformer} from './field-transformer';
-export class SensorParserConfig {
-  parserClassName: string;
-  filterClassName: string;
-  sensorTopic: string;
-  writerClassName: string;
-  errorWriterClassName: string;
-  invalidWriterClassName: string;
-  parserConfig: {};
-  fieldTransformations: FieldTransformer[];
-  numWorkers: number;
-  numAckers: number;
-  spoutParallelism: number;
-  spoutNumTasks: number;
-  parserParallelism: number;
-  parserNumTasks: number;
-  errorWriterParallelism: number;
-  errorWriterNumTasks: number;
-  spoutConfig: {};
-  stormConfig: {};
+package org.apache.metron.stellar.external;
 
-  constructor() {
-    this.parserConfig = {};
-    this.fieldTransformations = [];
-    this.spoutConfig = {};
-    this.stormConfig = {};
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.dsl.StellarFunction;
+import java.util.List;
+
+public class TimeFunction {
+  @Stellar( name="NOW",
+            description = "Right now!",
+            params = {},
+            returns="Timestamp"
+          )
+  public static class Now implements StellarFunction {
+    
+    public Object apply(List<Object> list, Context context) throws ParseException {
+      return System.currentTimeMillis();
+    }
+    
+    public void initialize(Context context) { }
+    
+    public boolean isInitialized() {
+      return true;
+    }
   }
 }

@@ -17,6 +17,7 @@
  */
 import { Component } from '@angular/core';
 import { AuthenticationService } from '../service/authentication.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'metron-alerts-login',
@@ -27,9 +28,14 @@ export class LoginComponent {
 
   user: string;
   password: string;
-  loginFailure = '';
+  loginFailure: string = '';
 
-  constructor(private authenticationService: AuthenticationService) {
+  constructor(private authenticationService: AuthenticationService, private activatedRoute: ActivatedRoute) {
+    this.activatedRoute.queryParams.subscribe(params => {
+      if (params['sessionExpired'] === 'true') {
+        this.loginFailure = 'Session has expired';
+      }
+    });
   }
 
   login(): void {

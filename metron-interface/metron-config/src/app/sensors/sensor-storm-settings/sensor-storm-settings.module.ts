@@ -15,31 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {FieldTransformer} from './field-transformer';
-export class SensorParserConfig {
-  parserClassName: string;
-  filterClassName: string;
-  sensorTopic: string;
-  writerClassName: string;
-  errorWriterClassName: string;
-  invalidWriterClassName: string;
-  parserConfig: {};
-  fieldTransformations: FieldTransformer[];
-  numWorkers: number;
-  numAckers: number;
-  spoutParallelism: number;
-  spoutNumTasks: number;
-  parserParallelism: number;
-  parserNumTasks: number;
-  errorWriterParallelism: number;
-  errorWriterNumTasks: number;
-  spoutConfig: {};
-  stormConfig: {};
+import { NgModule } from '@angular/core';
+import {SharedModule} from '../../shared/shared.module';
+import {SensorStormSettingsComponent} from './sensor-storm-settings.component';
+import {AceEditorModule} from '../../shared/ace-editor/ace-editor.module';
+import {NumberSpinnerModule} from '../../shared/number-spinner/number-spinner.module';
 
-  constructor() {
-    this.parserConfig = {};
-    this.fieldTransformations = [];
-    this.spoutConfig = {};
-    this.stormConfig = {};
-  }
-}
+@NgModule ({
+  imports: [ SharedModule, AceEditorModule, NumberSpinnerModule ],
+  declarations: [ SensorStormSettingsComponent ],
+  exports: [ SensorStormSettingsComponent ]
+})
+export class SensorStormSettingsModule {}
