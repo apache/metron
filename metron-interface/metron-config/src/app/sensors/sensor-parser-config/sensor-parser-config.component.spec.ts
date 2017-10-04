@@ -73,7 +73,7 @@ class MockSensorParserConfigService extends SensorParserConfigService {
     super(http2, config2);
   }
 
-  public post(sensorParserConfig: SensorParserConfig): Observable<SensorParserConfig> {
+  public post(name: string, sensorParserConfig: SensorParserConfig): Observable<SensorParserConfig> {
     if (this.throwError) {
       let error = new RestError();
       error.message = 'SensorParserConfig post error';
@@ -570,7 +570,7 @@ describe('Component: SensorParserConfig', () => {
     component.sensorParserConfig = Object.assign(new SensorParserConfig(), squidSensorParserConfig);
     component.createForms();
 
-    expect(Object.keys(component.sensorConfigForm.controls).length).toEqual(15);
+    expect(Object.keys(component.sensorConfigForm.controls).length).toEqual(16);
     expect(Object.keys(component.transformsValidationForm.controls).length).toEqual(2);
     expect(component.showAdvancedParserConfiguration).toEqual(true);
 
@@ -664,17 +664,17 @@ describe('Component: SensorParserConfig', () => {
     fixture.destroy();
   }));
 
-  it('should handle onSetSensorName', async(() => {
+  it('should handle onSetKafkaTopic', async(() => {
     spyOn(component, 'getKafkaStatus');
     spyOn(component, 'isConfigValid');
 
-    component.onSetSensorName();
+    component.onSetKafkaTopic();
     expect(component.getKafkaStatus).not.toHaveBeenCalled();
     expect(component.isConfigValid).toHaveBeenCalled();
 
     component.sensorParserConfig.sensorTopic = 'bro';
-    component.onSetSensorName();
-    expect(component.sensorNameValid).toEqual(true);
+    component.onSetKafkaTopic();
+    expect(component.kafkaTopicValid).toEqual(true);
     expect(component.getKafkaStatus).toHaveBeenCalled();
 
     fixture.destroy();
@@ -719,6 +719,7 @@ describe('Component: SensorParserConfig', () => {
     expect(component.configValid).toEqual(false);
 
     component.sensorNameValid = true;
+    component.kafkaTopicValid = true;
     component.parserClassValid = true;
 
     component.isConfigValid();

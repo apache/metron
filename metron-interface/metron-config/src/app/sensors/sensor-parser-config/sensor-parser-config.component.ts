@@ -52,6 +52,7 @@ export class SensorParserConfigComponent implements OnInit {
   sensorConfigForm: FormGroup;
   transformsValidationForm: FormGroup;
 
+  sensorName: string = '';
   sensorParserConfig: SensorParserConfig = new SensorParserConfig();
   sensorEnrichmentConfig: SensorEnrichmentConfig = new SensorEnrichmentConfig();
   indexingConfigurations: IndexingConfigurations = new IndexingConfigurations();
@@ -65,6 +66,7 @@ export class SensorParserConfigComponent implements OnInit {
 
   configValid = false;
   sensorNameValid = false;
+  kafkaTopicValid = false;
   parserClassValid = false;
   grokStatementValid = false;
   availableParsers = {};
@@ -99,6 +101,7 @@ export class SensorParserConfigComponent implements OnInit {
   init(id: string): void {
     if (id !== 'new') {
       this.editMode = true;
+      this.sensorName = id;
       this.sensorParserConfigService.get(id).subscribe((results: SensorParserConfig) => {
         this.sensorParserConfig = results;
         this.sensorNameValid = true;
@@ -158,6 +161,7 @@ export class SensorParserConfigComponent implements OnInit {
   createSensorConfigForm(): FormGroup {
     let group: any = {};
 
+    group['sensorName'] = new FormControl(this.sensorName, Validators.required);
     group['sensorTopic'] = new FormControl(this.sensorParserConfig.sensorTopic, Validators.required);
     group['parserClassName'] = new FormControl(this.sensorParserConfig.parserClassName, Validators.required);
     group['grokStatement'] = new FormControl(this.grokStatement);
@@ -208,9 +212,15 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   onSetSensorName(): void {
-    this.sensorNameValid = this.sensorParserConfig.sensorTopic !== undefined &&
-        this.sensorParserConfig.sensorTopic.length > 0;
-    if (this.sensorNameValid) {
+    this.sensorNameValid = this.sensorName !== undefined &&
+        this.sensorName.length > 0;
+    this.isConfigValid();
+  }
+
+  onSetKafkaTopic(): void {
+    this.kafkaTopicValid = this.sensorParserConfig.sensorTopic !== undefined &&
+        /[a-zA-Z0-9._-]+$/.test(this.sensorParserConfig.sensorTopic);
+    if (this.kafkaTopicValid) {
       this.getKafkaStatus();
     }
     this.isConfigValid();
@@ -236,7 +246,7 @@ export class SensorParserConfigComponent implements OnInit {
 
   isConfigValid() {
     let isGrokParser = this.isGrokParser(this.sensorParserConfig);
-    this.configValid = this.sensorNameValid && this.parserClassValid && (!isGrokParser || this.grokStatementValid);
+    this.configValid = this.sensorNameValid && this.kafkaTopicValid && this.parserClassValid && (!isGrokParser || this.grokStatementValid);
   }
 
   getKafkaStatus() {
@@ -307,7 +317,7 @@ export class SensorParserConfigComponent implements OnInit {
     if (!this.indexingConfigurations.solr.index) {
       this.indexingConfigurations.solr.index = this.sensorParserConfig.sensorTopic;
     }
-    this.sensorParserConfigService.post(sensorParserConfigSave).subscribe(
+    this.sensorParserConfigService.post(this.sensorName, sensorParserConfigSave).subscribe(
       sensorParserConfig => {
         if (this.isGrokParser(sensorParserConfig)) {
             this.hdfsService.post(this.sensorParserConfig.parserConfig['grokPath'], this.grokStatement).subscribe(
@@ -326,7 +336,7 @@ export class SensorParserConfigComponent implements OnInit {
               this.metronAlerts.showErrorMessage(this.getMessagePrefix() + msg + error.message);
         });
         this.metronAlerts.showSuccessMessage(this.getMessagePrefix() + ' Sensor ' + sensorParserConfig.sensorTopic);
-        this.sensorParserConfigService.dataChangedSource.next([sensorParserConfigSave]);
+        this.sensorParserConfigService.dataChangedSource.next([this.sensorName]);
         this.goBack();
       }, (error: RestError) => {
         this.metronAlerts.showErrorMessage('Unable to save sensor config: ' + error.message);

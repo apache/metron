@@ -62,9 +62,9 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
   private Map<String, String> availableParsers;
 
   @Override
-  public SensorParserConfig save(SensorParserConfig sensorParserConfig) throws RestException {
+  public SensorParserConfig save(String name, SensorParserConfig sensorParserConfig) throws RestException {
     try {
-      ConfigurationsUtils.writeSensorParserConfigToZookeeper(sensorParserConfig.getSensorTopic(),
+      ConfigurationsUtils.writeSensorParserConfigToZookeeper(name,
           objectMapper.writeValueAsString(sensorParserConfig).getBytes(), client);
     } catch (Exception e) {
       throw new RestException(e);
@@ -86,11 +86,11 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
   }
 
   @Override
-  public Iterable<SensorParserConfig> getAll() throws RestException {
-    List<SensorParserConfig> sensorParserConfigs = new ArrayList<>();
+  public Map<String, SensorParserConfig> getAll() throws RestException {
+    Map<String, SensorParserConfig> sensorParserConfigs = new HashMap<>();
     List<String> sensorNames = getAllTypes();
     for (String name : sensorNames) {
-      sensorParserConfigs.add(findOne(name));
+      sensorParserConfigs.put(name, findOne(name));
     }
     return sensorParserConfigs;
   }

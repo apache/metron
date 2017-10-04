@@ -229,9 +229,9 @@ public class SensorParserConfigServiceImplTest {
     when(getDataBuilder.forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/squid")).thenReturn(squidJson.getBytes());
     when(curatorFramework.getData()).thenReturn(getDataBuilder);
 
-    assertEquals(new ArrayList() {{
-      add(getTestBroSensorParserConfig());
-      add(getTestSquidSensorParserConfig());
+    assertEquals(new HashMap() {{
+      put("bro", getTestBroSensorParserConfig());
+      put("squid", getTestSquidSensorParserConfig());
     }}, sensorParserConfigService.getAll());
   }
 
@@ -246,7 +246,7 @@ public class SensorParserConfigServiceImplTest {
 
     final SensorParserConfig sensorParserConfig = new SensorParserConfig();
     sensorParserConfig.setSensorTopic("bro");
-    sensorParserConfigService.save(sensorParserConfig);
+    sensorParserConfigService.save("bro", sensorParserConfig);
   }
 
   @Test
@@ -259,7 +259,7 @@ public class SensorParserConfigServiceImplTest {
     when(setDataBuilder.forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/bro", broJson.getBytes())).thenReturn(new Stat());
     when(curatorFramework.setData()).thenReturn(setDataBuilder);
 
-    assertEquals(getTestBroSensorParserConfig(), sensorParserConfigService.save(sensorParserConfig));
+    assertEquals(getTestBroSensorParserConfig(), sensorParserConfigService.save("bro", sensorParserConfig));
     verify(setDataBuilder).forPath(eq(ConfigurationType.PARSER.getZookeeperRoot() + "/bro"), eq(broJson.getBytes()));
   }
 

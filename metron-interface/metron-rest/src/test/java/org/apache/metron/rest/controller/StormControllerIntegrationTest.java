@@ -178,7 +178,7 @@ public class StormControllerIntegrationTest {
     SensorParserConfig sensorParserConfig = new SensorParserConfig();
     sensorParserConfig.setParserClassName("org.apache.metron.parsers.bro.BasicBroParser");
     sensorParserConfig.setSensorTopic("broTest");
-    sensorParserConfigService.save(sensorParserConfig);
+    sensorParserConfigService.save("broTest", sensorParserConfig);
 
     this.mockMvc.perform(get(stormUrl + "/parser/start/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
