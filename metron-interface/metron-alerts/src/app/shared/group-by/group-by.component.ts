@@ -14,6 +14,7 @@ export class GroupByComponent implements OnInit, OnChanges {
   backgroundColor = '#0F4450';
   border = '1px solid #1B596C';
 
+  groupSelected = false;
   data: GroupByComponentData[] = [];
   @Input() facets: Facets = new Facets();
 
@@ -30,6 +31,7 @@ export class GroupByComponent implements OnInit, OnChanges {
       return selectedGroups;
     }, selectedGroupNames);
     this.groupsChange.emit(selectedGroupNames);
+    this.groupSelected = (selectedGroupNames.length !== 0);
   }
 
   ngOnInit() {

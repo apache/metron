@@ -23,6 +23,6 @@
                 <div class="name"> {{ group.name | columnNameTranslate | centerEllipses:15 }}</div>
             </div>
         </div>
-        <div class="ungroup ml-2" (click)="unGroup()"><span class="ungroup-button"> UnGroup </span></div>
+        <div class="ungroup ml-2" [ngClass]="{'disabled': !groupSelected}" (click)="unGroup()"><span class="ungroup-button"> UnGroup </span></div>
     </div>
 </div>
