@@ -36,9 +36,11 @@ import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.ParseMessageRequest;
 import org.apache.metron.rest.service.GrokService;
 import org.apache.metron.rest.service.SensorParserConfigService;
+import org.apache.metron.rest.util.ParserIndex;
 import org.apache.zookeeper.KeeperException;
 import org.json.simple.JSONObject;
 import org.reflections.Reflections;
+import org.reflections.util.ConfigurationBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -59,7 +61,6 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
     this.grokService = grokService;
   }
 
-  private Map<String, String> availableParsers;
 
   @Override
   public SensorParserConfig save(SensorParserConfig sensorParserConfig) throws RestException {
@@ -122,29 +123,15 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
 
   @Override
   public Map<String, String> getAvailableParsers() {
-    if (availableParsers == null) {
-      availableParsers = new HashMap<>();
-      Set<Class<? extends MessageParser>> parserClasses = getParserClasses();
-      parserClasses.forEach(parserClass -> {
-        if (!"BasicParser".equals(parserClass.getSimpleName())) {
-          availableParsers.put(parserClass.getSimpleName().replaceAll("Basic|Parser", ""),
-              parserClass.getName());
-        }
-      });
-    }
-    return availableParsers;
+    return ParserIndex.INSTANCE.getIndex();
   }
 
   @Override
   public Map<String, String> reloadAvailableParsers() {
-    availableParsers = null;
+    ParserIndex.INSTANCE.reload();
     return getAvailableParsers();
   }
 
-  private Set<Class<? extends MessageParser>> getParserClasses() {
-    Reflections reflections = new Reflections("org.apache.metron.parsers");
-    return reflections.getSubTypesOf(MessageParser.class);
-  }
 
   @Override
   public JSONObject parseMessage(ParseMessageRequest parseMessageRequest) throws RestException {

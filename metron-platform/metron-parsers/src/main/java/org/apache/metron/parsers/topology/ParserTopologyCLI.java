@@ -285,7 +285,14 @@ public class ParserTopologyCLI {
   }
 
   private static CommandLine parse(Options options, String[] args) {
-    CommandLineParser parser = new PosixParser();
+    CommandLineParser parser = new PosixParser() {
+      @Override
+      protected void processOption(String arg, ListIterator iter) throws ParseException {
+        if(getOptions().hasOption(arg)) {
+          super.processOption(arg, iter);
+        }
+      }
+    };
     try {
       return ParserOptions.parse(parser, args);
     } catch (ParseException pe) {
