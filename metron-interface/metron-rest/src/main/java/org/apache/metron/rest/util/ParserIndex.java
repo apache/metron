@@ -24,6 +24,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Index the parsers.  Analyzing the classpath is a costly operation, so caching it makes sense.
+ * Eventually, we will probably want to have a timer that periodically reindexes so that new parsers show up.
+ */
 public enum ParserIndex {
   INSTANCE;
   private static Set<Class<? extends MessageParser>> index;
@@ -33,11 +37,17 @@ public enum ParserIndex {
     load();
   }
 
-  public Map<String, String> getIndex() {
+  public synchronized Map<String, String> getIndex() {
+    if(availableParsers == null) {
+      load();
+    }
     return availableParsers;
   }
 
-  public Set<Class<? extends MessageParser>> getClasses() {
+  public synchronized Set<Class<? extends MessageParser>> getClasses() {
+    if(index == null) {
+      load();
+    }
     return index;
   }
 

@@ -23,7 +23,7 @@ PARSER_CONTRIB=${PARSER_CONTRIB:-$METRON_HOME/parser_contrib}
 if [ -d "$PARSER_CONTRIB" ]; then
   export STORM_EXT_CLASSPATH=$METRON_HOME/lib/$TOPOLOGY_JAR
   export EXTRA_JARS=$(ls -m $PARSER_CONTRIB/*.jar | tr -d ' ' | tr -d '\n' | sed 's/\/\//\//g')
-  storm jar $METRON_HOME/lib/$TOPOLOGY_JAR org.apache.metron.parsers.topology.ParserTopologyCLI "$@" -c client.jartransformer.class=org.apache.metron.parsers.topology.ClasspathMergers 
+  storm jar $METRON_HOME/lib/$TOPOLOGY_JAR org.apache.metron.parsers.topology.ParserTopologyCLI "$@" -c client.jartransformer.class=org.apache.metron.parsers.topology.MergeAndShadeTransformer
 else
   storm jar $METRON_HOME/lib/$TOPOLOGY_JAR org.apache.metron.parsers.topology.ParserTopologyCLI "$@"
 fi

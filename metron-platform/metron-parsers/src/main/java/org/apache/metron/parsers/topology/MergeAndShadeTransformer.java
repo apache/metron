@@ -18,7 +18,6 @@
 package org.apache.metron.parsers.topology;
 
 import com.google.common.base.Splitter;
-import org.apache.commons.io.IOUtils;
 import org.apache.storm.daemon.JarTransformer;
 import org.apache.storm.hack.StormShadeTransformer;
 
@@ -26,15 +25,15 @@ import java.io.*;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 
-public class ClasspathMergers implements JarTransformer {
+public class MergeAndShadeTransformer implements JarTransformer {
+  public static final String EXTRA_JARS_ENV = "EXTRA_JARS";
   StormShadeTransformer _underlyingTransformer = new StormShadeTransformer();
   @Override
   public void transform(InputStream input, OutputStream output) throws IOException {
-    String extraJars = System.getenv().get("EXTRA_JARS");
+    String extraJars = System.getenv().get(EXTRA_JARS_ENV);
     if(extraJars == null || extraJars.length() == 0) {
       _underlyingTransformer.transform(input, output);
       return;
