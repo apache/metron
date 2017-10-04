@@ -57,7 +57,9 @@
 		<module>metron-writer</module>
 		<module>metron-hbase</module>
 		<module>elasticsearch-shaded</module>
+		<module>elasticsearch-shaded562</module>
 		<module>metron-elasticsearch</module>
+		<module>metron-elasticsearch-test</module>
 		<module>metron-storm-kafka</module>
 		<module>metron-storm-kafka-override</module>
 	</modules>
