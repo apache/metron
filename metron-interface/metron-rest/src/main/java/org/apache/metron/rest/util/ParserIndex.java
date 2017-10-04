@@ -41,19 +41,21 @@ public enum ParserIndex {
     return index;
   }
 
-  public static synchronized void reload() {
+  public static void reload() {
     load();
   }
 
-  private static void load() {
+  private static synchronized void load() {
     Reflections reflections = new Reflections();
-    index = reflections.getSubTypesOf(MessageParser.class);
-    availableParsers = new HashMap<>();
-    index.forEach(parserClass -> {
+    Set<Class<? extends MessageParser>> indexLoc = reflections.getSubTypesOf(MessageParser.class);
+    Map<String, String> availableParsersLoc = new HashMap<>();
+    indexLoc.forEach(parserClass -> {
       if (!"BasicParser".equals(parserClass.getSimpleName())) {
-        availableParsers.put(parserClass.getSimpleName().replaceAll("Basic|Parser", ""),
+        availableParsersLoc.put(parserClass.getSimpleName().replaceAll("Basic|Parser", ""),
                 parserClass.getName());
       }
     });
+    index = indexLoc;
+    availableParsers = availableParsersLoc;
   }
 }
