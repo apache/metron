@@ -28,6 +28,12 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 
+/**
+ * This is a storm jar transformer that will add in additional jars pulled from an
+ * environment variable.  The jars will be merged with the main uber jar and then
+ * the resulting jar will be shaded and relocated according to the StormShadeTransformer.
+ *
+ */
 public class MergeAndShadeTransformer implements JarTransformer {
   public static final String EXTRA_JARS_ENV = "EXTRA_JARS";
   StormShadeTransformer _underlyingTransformer = new StormShadeTransformer();
