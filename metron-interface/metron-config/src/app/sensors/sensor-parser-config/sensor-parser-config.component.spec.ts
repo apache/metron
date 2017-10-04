@@ -771,7 +771,7 @@ describe('Component: SensorParserConfig', () => {
   }));
 
   it('should handle onSaveGrokStatement', async(() => {
-    component.sensorParserConfig.sensorTopic = 'squid';
+    component.sensorName = 'squid';
 
     component.onSaveGrokStatement('grok statement');
     expect(component.grokStatement).toEqual('grok statement');
@@ -980,7 +980,7 @@ describe('Component: SensorParserConfig', () => {
 
   it('should handle onShowGrokPane', async(() => {
     spyOn(component, 'showPane');
-    component.sensorParserConfig.sensorTopic = 'squid';
+    component.sensorName = 'squid';
 
     component.onShowGrokPane();
     expect(component.patternLabel).toEqual('SQUID');

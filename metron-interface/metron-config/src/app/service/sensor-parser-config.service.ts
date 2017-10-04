@@ -39,7 +39,8 @@ export class SensorParserConfigService {
   }
 
   public post(name: string, sensorParserConfig: SensorParserConfig): Observable<SensorParserConfig> {
-    return this.http.post(this.url + '/' + name, JSON.stringify(sensorParserConfig), new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    return this.http.post(this.url + '/' + name, JSON.stringify(sensorParserConfig),
+        new RequestOptions({headers: new Headers(this.defaultHeaders)}))
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError);
   }

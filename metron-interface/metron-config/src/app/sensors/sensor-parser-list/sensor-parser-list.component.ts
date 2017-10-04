@@ -62,7 +62,7 @@ export class SensorParserListComponent implements OnInit {
     this.sensorParserConfigService.getAll().subscribe(
       (results: {string: SensorParserConfig}) => {
         this.sensors = [];
-        for(let sensorName of Object.keys(results)) {
+        for (let sensorName of Object.keys(results)) {
           let sensorParserConfigHistory = new SensorParserConfigHistory();
           sensorParserConfigHistory.sensorName = sensorName;
           sensorParserConfigHistory.config = results[sensorName];
@@ -252,9 +252,6 @@ export class SensorParserListComponent implements OnInit {
   }
 
   onDeleteSensor() {
-    let selectedSensorsToDelete = this.selectedSensors.map(info => {
-      return info.config;
-    });
     this.deleteSensor(null, this.selectedSensors);
   }
 
