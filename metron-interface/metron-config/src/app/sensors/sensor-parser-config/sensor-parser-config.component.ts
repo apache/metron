@@ -292,7 +292,7 @@ export class SensorParserConfigComponent implements OnInit {
     this.grokStatement = grokStatement;
     let grokPath = this.sensorParserConfig.parserConfig['grokPath'];
     if (!grokPath || grokPath.indexOf('/patterns') === 0) {
-      this.sensorParserConfig.parserConfig['grokPath'] = '/apps/metron/patterns/' + this.sensorParserConfig.sensorTopic;
+      this.sensorParserConfig.parserConfig['grokPath'] = '/apps/metron/patterns/' + this.sensorName;
     }
   }
 
@@ -303,13 +303,13 @@ export class SensorParserConfigComponent implements OnInit {
 
   onSave() {
     if (!this.indexingConfigurations.hdfs.index) {
-      this.indexingConfigurations.hdfs.index = this.sensorParserConfig.sensorTopic;
+      this.indexingConfigurations.hdfs.index = this.sensorName;
     }
     if (!this.indexingConfigurations.elasticsearch.index) {
-      this.indexingConfigurations.elasticsearch.index = this.sensorParserConfig.sensorTopic;
+      this.indexingConfigurations.elasticsearch.index = this.sensorName;
     }
     if (!this.indexingConfigurations.solr.index) {
-      this.indexingConfigurations.solr.index = this.sensorParserConfig.sensorTopic;
+      this.indexingConfigurations.solr.index = this.sensorName;
     }
     this.sensorParserConfigService.post(this.sensorName, this.sensorParserConfig).subscribe(
       sensorParserConfig => {
@@ -317,19 +317,19 @@ export class SensorParserConfigComponent implements OnInit {
             this.hdfsService.post(this.sensorParserConfig.parserConfig['grokPath'], this.grokStatement).subscribe(
                 response => {}, (error: RestError) => this.metronAlerts.showErrorMessage(error.message));
         }
-        this.sensorEnrichmentConfigService.post(sensorParserConfig.sensorTopic, this.sensorEnrichmentConfig).subscribe(
+        this.sensorEnrichmentConfigService.post(this.sensorName, this.sensorEnrichmentConfig).subscribe(
             (sensorEnrichmentConfig: SensorEnrichmentConfig) => {
         }, (error: RestError) => {
               let msg = ' Sensor parser config but unable to save enrichment configuration: ';
               this.metronAlerts.showErrorMessage(this.getMessagePrefix() + msg + error.message);
         });
-        this.sensorIndexingConfigService.post(sensorParserConfig.sensorTopic, this.indexingConfigurations).subscribe(
+        this.sensorIndexingConfigService.post(this.sensorName, this.indexingConfigurations).subscribe(
             (indexingConfigurations: IndexingConfigurations) => {
         }, (error: RestError) => {
               let msg = ' Sensor parser config but unable to save indexing configuration: ';
               this.metronAlerts.showErrorMessage(this.getMessagePrefix() + msg + error.message);
         });
-        this.metronAlerts.showSuccessMessage(this.getMessagePrefix() + ' Sensor ' + sensorParserConfig.sensorTopic);
+        this.metronAlerts.showSuccessMessage(this.getMessagePrefix() + ' Sensor ' + this.sensorName);
         this.sensorParserConfigService.dataChangedSource.next([this.sensorName]);
         this.goBack();
       }, (error: RestError) => {
@@ -395,7 +395,7 @@ export class SensorParserConfigComponent implements OnInit {
 
   onShowGrokPane() {
     if (!this.patternLabel) {
-      this.patternLabel = this.sensorParserConfig.sensorTopic.toUpperCase();
+      this.patternLabel = this.sensorName.toUpperCase();
     }
     this.showPane(this.pane.GROK);
   }
