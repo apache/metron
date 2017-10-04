@@ -19,7 +19,10 @@ package org.apache.metron.rest.util;
 
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +33,7 @@ import java.util.Set;
  */
 public enum ParserIndex {
   INSTANCE;
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static Set<Class<? extends MessageParser>> index;
   private static Map<String, String> availableParsers ;
 
@@ -56,6 +60,7 @@ public enum ParserIndex {
   }
 
   private static synchronized void load() {
+    LOG.error("Starting Parser Index Load");
     Reflections reflections = new Reflections();
     Set<Class<? extends MessageParser>> indexLoc = reflections.getSubTypesOf(MessageParser.class);
     Map<String, String> availableParsersLoc = new HashMap<>();
@@ -65,6 +70,7 @@ public enum ParserIndex {
                 parserClass.getName());
       }
     });
+    LOG.error("Finished Parser Index Load; found {} parsers, indexed {} parsers", indexLoc.size(), availableParsersLoc.size());
     index = indexLoc;
     availableParsers = availableParsersLoc;
   }
