@@ -19,10 +19,14 @@ package org.apache.metron.rest.util;
 
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.reflections.Reflections;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
+import java.net.URL;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -59,9 +63,20 @@ public enum ParserIndex {
     load();
   }
 
+  /**
+   * To handle the situation where classpath is specified in the manifest of the jar, we have to augment the URLs.
+   * This happens as part of the surefire plugin as well as elsewhere in the wild.
+   * @param classLoaders
+   * @return
+   */
+  private static Collection<URL> effectiveClassPathUrls(ClassLoader... classLoaders) {
+    return ClasspathHelper.forManifest(ClasspathHelper.forClassLoader(classLoaders));
+  }
+
   private static synchronized void load() {
     LOG.error("Starting Parser Index Load");
-    Reflections reflections = new Reflections();
+    ClassLoader classLoader = ParserIndex.class.getClassLoader();
+    Reflections reflections = new Reflections(new ConfigurationBuilder().setUrls(effectiveClassPathUrls(classLoader)));
     Set<Class<? extends MessageParser>> indexLoc = reflections.getSubTypesOf(MessageParser.class);
     Map<String, String> availableParsersLoc = new HashMap<>();
     indexLoc.forEach(parserClass -> {
