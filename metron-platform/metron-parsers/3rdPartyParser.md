@@ -291,9 +291,9 @@ This should yield something like:
       "_id" : "3ae4dd4d-8c09-4f2a-93c0-26ec5508baaa",
       "_score" : 1.0,
       "_source" : {
-        "original_string" : "casey,stella",
-        "last" : "stella",
-        "first" : "casey",
+        "original_string" : "apache,metron",
+        "last" : "metron",
+        "first" : "apache",
         "timestamp" : 1507138373223
       }
     } ]
