@@ -46,6 +46,10 @@ If unspecified, or set to `0`, it defaults to a system-determined duration which
 parameter `topology.message.timeout.secs`.  Ignored if batchSize is `1`, since this disables batching.
 * `enabled` : Whether the writer is enabled (default `true`).
 
+
+### Elasticsearch
+Metron comes with built-in templates for the default sensors for Elasticsearch. When adding a new sensor, it will be necessary to add a new template defining the output fields appropriately. In addition, there is a requirement for a field `alert` of type `nested` for Elasticsearch 2.x installs.  This is detailed at [metron-elasticsearch](../metron-elasticsearch/README.md)
+
 ### Indexing Configuration Examples
 For a given  sensor, the following scenarios would be indicated by
 the following cases:
@@ -163,35 +167,6 @@ Both of these functions are handled under the hood.
 In addition, an API endpoint is added for the meta alert specific features of creation and going from meta alert to alert.
 The denormalization handles the case of going from meta alert to alert automatically.
 
-With Elasticsearch 2.x, there is an additional requirement that all sensors templates have a nested alert field defined.  This field is a dummy field, and will be obsolete in Elasticsearch 5.x.  See [Ignoring Unmapped Fields](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_ignoring_unmapped_fields) for more information
-
-Definition of the expected field:
-```
-  "alert": {
-    "type": "nested"
-  }
-```
-
-Without this field, an error will be thrown during ALL searches (including from UIs, resulting in no alerts being found for any sensor):
-
-Exception seen:
-```
-QueryParsingException[[nested] failed to find nested object under path [alert]];
-```
-
-To put a new template into Elasticsearch to resolve this issue, update the template with the new field:
-```
-curl -XPUT 'http://node1:9200/$SENSOR*/_mapping/$SENSOR_doc' -d '
-{
-        "properties" : {
-          <Existing fields in properties>,
-          "alert" : {
-            "type" : "nested"
-          }
-        }
-}
-'
-```
 
 # Notes on Performance Tuning
 
