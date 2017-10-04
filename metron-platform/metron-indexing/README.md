@@ -167,7 +167,6 @@ Both of these functions are handled under the hood.
 In addition, an API endpoint is added for the meta alert specific features of creation and going from meta alert to alert.
 The denormalization handles the case of going from meta alert to alert automatically.
 
-
 # Notes on Performance Tuning
 
 Default installed Metron is untuned for production deployment.  By far
