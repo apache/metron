@@ -20,8 +20,11 @@ package org.apache.metron.parsers.topology;
 import com.google.common.base.Splitter;
 import org.apache.storm.daemon.JarTransformer;
 import org.apache.storm.hack.StormShadeTransformer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.lang.invoke.MethodHandles;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.jar.JarEntry;
@@ -36,6 +39,8 @@ import java.util.jar.JarOutputStream;
  */
 public class MergeAndShadeTransformer implements JarTransformer {
   public static final String EXTRA_JARS_ENV = "EXTRA_JARS";
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   StormShadeTransformer _underlyingTransformer = new StormShadeTransformer();
   @Override
   public void transform(InputStream input, OutputStream output) throws IOException {
@@ -56,7 +61,7 @@ public class MergeAndShadeTransformer implements JarTransformer {
         if (!f.exists()) {
           continue;
         }
-        System.out.println("Merging " + f.getName());
+        LOG.info("Merging jar {} from {}", f.getName(), f.getAbsolutePath());
         try (JarInputStream jin = new JarInputStream(new BufferedInputStream(new FileInputStream(f)))) {
           copy(jin, jout, entries);
         }
@@ -70,6 +75,9 @@ public class MergeAndShadeTransformer implements JarTransformer {
     for(JarEntry entry = jin.getNextJarEntry(); entry != null; entry = jin.getNextJarEntry()) {
       if(entries.contains(entry.getName())) {
         continue;
+      }
+      if(LOG.isDebugEnabled()) {
+        LOG.debug("Merging jar entry {}", entry.getName());
       }
       entries.add(entry.getName());
       jout.putNextEntry(entry);

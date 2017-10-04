@@ -74,7 +74,7 @@ public enum ParserIndex {
   }
 
   private static synchronized void load() {
-    LOG.error("Starting Parser Index Load");
+    LOG.debug("Starting Parser Index Load");
     ClassLoader classLoader = ParserIndex.class.getClassLoader();
     Reflections reflections = new Reflections(new ConfigurationBuilder().setUrls(effectiveClassPathUrls(classLoader)));
     Set<Class<? extends MessageParser>> indexLoc = reflections.getSubTypesOf(MessageParser.class);
@@ -85,7 +85,7 @@ public enum ParserIndex {
                 parserClass.getName());
       }
     });
-    LOG.error("Finished Parser Index Load; found {} parsers, indexed {} parsers", indexLoc.size(), availableParsersLoc.size());
+    LOG.debug("Finished Parser Index Load; found {} parsers, indexed {} parsers", indexLoc.size(), availableParsersLoc.size());
     index = indexLoc;
     availableParsers = availableParsersLoc;
   }
