@@ -49,4 +49,5 @@ curl -XPUT "http://${ELASTICSEARCH}:9200/${SENSOR}_index*/_mapping/${SENSOR}_doc
         }
 }
 '
+rm ${SENSOR}.template
 ```
