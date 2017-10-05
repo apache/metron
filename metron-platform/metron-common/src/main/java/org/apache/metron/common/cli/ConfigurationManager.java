@@ -261,6 +261,7 @@ public class ConfigurationManager {
         } else {
           push(inputDirStr, client);
         }
+        break;
 
       case "dump":
         if (configType.isPresent()) {
