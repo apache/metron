@@ -13,6 +13,7 @@ Two steps must be done for each sensor, but not on each index for each sensor.
 First is to update the Elasticsearch template for each sensor, so any new indices have the field:
 
 ```
+export ELASTICSEARCH="node1"
 export SENSOR="bro"
 curl -XGET "http://${ELASTICSEARCH}:9200/_template/${SENSOR}_index*?pretty=true" -o "${SENSOR}.template"
 sed -i '' '2d;$d' ./${SENSOR}.template
@@ -24,8 +25,6 @@ curl -XPUT "http://${ELASTICSEARCH}:9200/_template/${SENSOR}_index" -d @${SENSOR
 To update existing indexes, update Elasticsearch mappings with the new field for each sensor.  Make sure to set the ELASTICSEARCH variable appropriately.
 
 ```
-export ELASTICSEARCH="node1"
-export SENSOR="bro"
 curl -XPUT "http://${ELASTICSEARCH}:9200/${SENSOR}_index*/_mapping/${SENSOR}_doc" -d '
 {
         "properties" : {
