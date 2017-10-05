@@ -22,13 +22,6 @@ The configuration for the `enrichment` topology, the topology primarily
 responsible for enrichment and threat intelligence enrichment, is
 defined by JSON documents stored in zookeeper.
 
-There are two types of configurations at the moment, `global` and
-`sensor` specific.  
-
-## Global Configuration 
-
-See the "[Global Configuration](../metron-common)" section.
-
 ## Sensor Enrichment Configuration
 
 The sensor specific configuration is intended to configure the
