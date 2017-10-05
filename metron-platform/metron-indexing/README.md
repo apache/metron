@@ -48,7 +48,7 @@ parameter `topology.message.timeout.secs`.  Ignored if batchSize is `1`, since t
 
 
 ### Elasticsearch
-Metron comes with built-in templates for the default sensors for Elasticsearch. When adding a new sensor, it will be necessary to add a new template defining the output fields appropriately. In addition, there is a requirement for a field `alert` of type `nested` for Elasticsearch 2.x installs.  This is detailed at [metron-elasticsearch](../metron-elasticsearch/README.md#using-metron-with-elasticsearch-2x)
+Metron comes with built-in templates for the default sensors for Elasticsearch. When adding a new sensor, it will be necessary to add a new template defining the output fields appropriately. In addition, there is a requirement for a field `alert` of type `nested` for Elasticsearch 2.x installs.  This is detailed at [Using Metron with Elasticsearch 2.x](../metron-elasticsearch/README.md#using-metron-with-elasticsearch-2x)
 
 ### Indexing Configuration Examples
 For a given  sensor, the following scenarios would be indicated by

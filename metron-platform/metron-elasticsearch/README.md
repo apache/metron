@@ -17,7 +17,10 @@ QueryParsingException[[nested] failed to find nested object under path [alert]];
 
 There are two steps to resolve this issue.  First is to update the Elasticsearch template for each sensor, so any new indices have the field. This requires retrieving the template, removing an extraneous JSON field so we can put it back later, and adding our new field.
 
+Make sure to set the ELASTICSEARCH variable appropriately. $SENSOR can contain wildcards, so if rollover has occurred, it's not necessary to do each index individually. The example here appends `index*` to get all indexes for a the provided sensor.
+
 ```
+export ELASTICSEARCH="node1"
 export SENSOR="bro"
 curl -XGET "http://${ELASTICSEARCH}:9200/_template/${SENSOR}_index*?pretty=true" -o "${SENSOR}.template"
 sed -i '' '2d;$d' ./${SENSOR}.template
@@ -35,11 +38,9 @@ We'll want to put the template back into Elasticsearch:
 curl -XPUT "http://${ELASTICSEARCH}:9200/_template/${SENSOR}_index" -d @${SENSOR}.template
 ```
 
-To update existing indexes, update Elasticsearch mappings with the new field for each sensor.  Make sure to set the ELASTICSEARCH variable appropriately. $SENSOR can contain wildcards, so if rollover has occurred, it's not necessary to do each index individually. The example here appends `index*` to get all indexes for a the provided sensor.
+To update existing indexes, update Elasticsearch mappings with the new field for each sensor. 
 
 ```
-export ELASTICSEARCH="node1"
-export SENSOR="bro"
 curl -XPUT "http://${ELASTICSEARCH}:9200/${SENSOR}_index*/_mapping/${SENSOR}_doc" -d '
 {
         "properties" : {
