@@ -28,7 +28,7 @@ The sensor specific configuration is intended to configure the
 individual enrichments and threat intelligence enrichments for a given
 sensor type (e.g. `snort`).
 
-Just like the global config, the format is a JSON stored in zookeeper.
+Just like the [Global Configuration](../metron-common)", the format is a JSON stored in zookeeper.
 The configuration is a complex JSON object with the following top level fields:
 
 * `enrichment` : A complex JSON object representing the configuration of the enrichments
