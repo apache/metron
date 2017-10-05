@@ -40,8 +40,8 @@
               <th *ngFor="let column of alertsColumnsToDisplay" [id]="column.name">
                 <metron-config-sorter [type]="column.type" [sortBy]="column.name" title="{{column.name}}" [sortOnCol]="group.sortEvent.sortBy"  [sortOrder]="group.sortEvent.sortOrder"> {{ column.name | columnNameTranslate | centerEllipses:15 }}</metron-config-sorter>
               </th>
-              <th style="width:25px"><input id="select-deselect-all" class="fontawesome-checkbox" type="checkbox" (click)="selectAllGroupRows($event, group)">
-                <label for="select-deselect-all"></label>
+              <th style="width:25px"><input id="select-deselect-all-{{ group.key }}" class="fontawesome-checkbox" type="checkbox" (click)="selectAllGroupRows($event, group)">
+                <label for="select-deselect-all-{{ group.key }}"></label>
               </th>
             </tr>
             </thead>

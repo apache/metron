@@ -38,7 +38,6 @@ import {ElasticsearchUtils} from '../../utils/elasticsearch-utils';
 import {TableViewComponent} from './table-view/table-view.component';
 import {Filter} from '../../model/filter';
 import {Pagination} from '../../model/pagination';
-import {environment} from '../../../environments/environment';
 
 @Component({
   selector: 'app-alerts-list',
@@ -166,6 +165,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   onSelectedAlertsChange(selectedAlerts) {
+    this.selectedAlerts = selectedAlerts;
     if (selectedAlerts.length > 0) {
       this.pause();
     } else {
@@ -363,9 +363,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   updateSelectedAlertStatus(status: string) {
     for (let selectedAlert of this.selectedAlerts) {
-      selectedAlert.status = status;
-      this.alerts.filter(alert => alert.source.guid == selectedAlert.source.guid)
-      .map(alert => alert.source['alert_status'] = status);
+      selectedAlert.source['alert_status'] = status;
     }
     this.selectedAlerts = [];
     this.resume();

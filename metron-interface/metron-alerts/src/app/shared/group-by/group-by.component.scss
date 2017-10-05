@@ -108,6 +108,17 @@
   font-size: 12px;
   color: $curious-blue;
 
+  &.disabled {
+    opacity: 0.5;
+    color: $dusty-grey;
+    cursor: not-allowed;
+
+    .ungroup-button:hover {
+      background-color: transparent;
+      border-color: transparent;
+    }
+  }
+
   .ungroup-button {
     padding: 3px;
     border: 2px solid transparent;
