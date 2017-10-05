@@ -39,6 +39,7 @@ import {TableViewComponent} from './table-view/table-view.component';
 import {Filter} from '../../model/filter';
 import {Pagination} from '../../model/pagination';
 import {environment} from '../../../environments/environment';
+import {PatchRequest} from '../../model/patch-request';
 
 @Component({
   selector: 'app-alerts-list',
@@ -87,6 +88,12 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     if (environment.indices) {
       this.indices = environment.indices.split(',');
     }
+  }
+
+  addAlertChangedListner() {
+    this.updateService.alertChanged$.subscribe(patchRequest => {
+      this.updateAlert(patchRequest);
+    });
   }
 
   addAlertColChangedListner() {
@@ -150,6 +157,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.getAlertColumnNames(true);
     this.addAlertColChangedListner();
     this.addLoadSavedSearchListner();
+    this.addAlertChangedListner();
   }
 
   onClear() {
@@ -221,7 +229,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       this.updateSelectedAlertStatus('ESCALATE');
     });
     this.alertsService.escalate(this.selectedAlerts).subscribe();
-   
+
   }
 
   processDismiss() {
@@ -302,10 +310,11 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   showDetails(alert: Alert) {
+    let url = '/alerts-list(dialog:details/' + alert.source['source:type'] + '/' + alert.source.guid + '/' + alert.index + ')';
     this.selectedAlerts = [];
     this.selectedAlerts = [alert];
     this.saveRefreshState();
-    this.router.navigateByUrl('/alerts-list(dialog:details/' + alert.source['source:type'] + '/' + alert.source.guid + ')');
+    this.router.navigateByUrl(url);
   }
 
   saveRefreshState() {
@@ -353,10 +362,17 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.searchService.interval = this.refreshInterval;
   }
 
+  updateAlert(patchRequest: PatchRequest) {
+    this.searchService.getAlert(patchRequest.sensorType, patchRequest.guid).subscribe(alertSource => {
+      this.alerts.filter(alert => alert.source.guid === patchRequest.guid)
+      .map(alert => alert.source = alertSource);
+    });
+  }
+
   updateSelectedAlertStatus(status: string) {
     for (let selectedAlert of this.selectedAlerts) {
       selectedAlert.status = status;
-      this.alerts.filter(alert => alert.source.guid == selectedAlert.source.guid)
+      this.alerts.filter(alert => alert.source.guid === selectedAlert.source.guid)
       .map(alert => alert.source['alert_status'] = status);
     }
     this.selectedAlerts = [];

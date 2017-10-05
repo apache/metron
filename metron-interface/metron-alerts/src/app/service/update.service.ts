@@ -17,6 +17,7 @@
  */
 import {Injectable} from '@angular/core';
 import {Headers, RequestOptions} from '@angular/http';
+import {Subject}    from 'rxjs/Subject';
 import {Observable} from 'rxjs/Rx';
 import 'rxjs/add/observable/interval';
 import 'rxjs/add/operator/switchMap';
@@ -32,13 +33,31 @@ export class UpdateService {
 
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
 
+  alertChangedSource = new Subject<PatchRequest>();
+  alertChanged$ = this.alertChangedSource.asObservable();
 
   constructor(private http: Http) { }
 
   public patch(patchRequest: PatchRequest): Observable<{}> {
     let url = '/api/v1/update/patch';
-    return this.http.patch(url, patchRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-    .catch(HttpUtil.handleError);
+    let observable = Observable.create((observer => {
+
+      let reqCompleted = (result) => {
+        if (observer) {
+          observer.next(result);
+          observer.complete();
+        }
+
+        this.alertChangedSource.next(patchRequest);
+      };
+
+      this.http.patch(url, patchRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+      .catch(HttpUtil.handleError)
+      .subscribe(result => reqCompleted(result));
+
+    }));
+    return observable;
+
   }
 
   public updateAlertState(alerts: Alert[], state: string): Observable<{}> {

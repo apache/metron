@@ -37,7 +37,7 @@ import {Filter} from '../../../model/filter';
 
 export class TableViewComponent {
 
-  
+
   threatScoreFieldName = 'threat:triage:score';
 
   router: Router;
@@ -49,7 +49,7 @@ export class TableViewComponent {
   @Input() pagination: Pagination;
   @Input() alertsColumnsToDisplay: ColumnMetadata[] = [];
   @Input() selectedAlerts: Alert[] = [];
-  
+
   @Output() onResize = new EventEmitter<void>();
   @Output() onAddFilter = new EventEmitter<Filter>();
   @Output() onRefreshData = new EventEmitter<boolean>();

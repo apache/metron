@@ -184,6 +184,10 @@ export class MetronAlertsPage {
     return element(by.css('.ace_line')).getText();
   }
 
+  isCommentIconPresentInTable() {
+    return element.all(by.css('app-table-view .fa.fa-comments-o')).count();
+  }
+
   getRecentSearchOptions() {
     browser.sleep(1000);
     let map = {};
@@ -231,10 +235,12 @@ export class MetronAlertsPage {
   }
 
   clickRemoveSearchChip() {
-    let aceLine = element.all(by.css('.ace_keyword')).get(0);
-    browser.actions().mouseMove(aceLine).perform().then(() => {
-      this.waitForElementPresence(element(by.css('.ace_value i'))).then(() => {
-        element.all(by.css('.ace_value i')).get(0).click();
+    element(by.css('app-alerts-list .ace_text-input')).sendKeys('').then(() => {
+      let aceLine = element.all(by.css('.ace_keyword')).get(0);
+      browser.actions().mouseMove(aceLine).perform().then(() => {
+        this.waitForElementPresence(element(by.css('.ace_value i'))).then(() => {
+          element.all(by.css('.ace_value i')).get(0).click();
+        });
       });
     });
   }

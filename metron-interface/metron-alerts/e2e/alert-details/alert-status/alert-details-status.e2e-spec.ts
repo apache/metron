@@ -57,4 +57,36 @@ describe('metron-alerts alert status', function() {
     page.clickNew();
   });
 
+  it('should add comments', () => {
+    let comment1 = 'This is a sample comment';
+    let comment2 = 'This is a sample comment again';
+    let userNameAndTimestamp = '- admin - a few seconds ago';
+
+    page.clickCommentsInSideNav();
+    page.addCommentAndSave(comment1, 0);
+
+    expect(page.getCommentsText()).toEqual([comment1]);
+    expect(page.getCommentsUserNameAndTimeStamp()).toEqual([userNameAndTimestamp]);
+
+    page.addCommentAndSave(comment2, 1);
+    expect(page.getCommentsText()).toEqual([comment2, comment1]);
+    expect(page.getCommentsUserNameAndTimeStamp()).toEqual([userNameAndTimestamp, userNameAndTimestamp]);
+
+    page.deleteComment();
+    page.clickNoForConfirmation();
+    expect(page.getCommentsText()).toEqual([comment2, comment1]);
+
+    page.deleteComment();
+    page.clickYesForConfirmation();
+    expect(page.getCommentsText()).toEqual([comment1]);
+
+    expect(page.getCommentIconCountInListView()).toEqual(1);
+
+    page.deleteComment();
+    page.clickYesForConfirmation();
+    expect(page.getCommentsText()).toEqual([]);
+
+    page.closeDetailPane();
+  });
+
 });
