@@ -78,6 +78,7 @@ but a convenient index is provided here:
 | [`profiler.period.duration.units`](../../metron-analytics/metron-profiler#profilerperioddurationunits)              | Profiler      | String     | `profiler_period_units`    |
 | [`update.hbase.table`](../metron-indexing#updatehbasetable)                                                         | REST/Indexing | String     | `update_hbase_table`       |
 | [`update.hbase.cf`](../metron-indexing#updatehbasecf)                                                               | REST/Indexing | String     | `update_hbase_cf`          |
+| [`geo.hdfs.file`](../metron-enrichment#geohdfsfile)                                                                 | Enrichment    | String     | `geo_hdfs_file`            |
 
 ## Note Configs in Ambari
 If a field is managed via ambari, you should change the field via

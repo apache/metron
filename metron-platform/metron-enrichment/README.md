@@ -25,9 +25,26 @@ defined by JSON documents stored in zookeeper.
 There are two types of configurations at the moment, `global` and
 `sensor` specific.  
 
+
 ## Global Configuration 
 
-See the "[Global Configuration](../metron-common)" section.
+There are a few enrichments which have independent configurations, such
+as from the global config.
+
+Also, see the "[Global Configuration](../metron-common)" section for
+more discussion of the global config.
+
+### GeoIP
+Metron supports enrichment of IP information using
+[GeoLite2](https://dev.maxmind.com/geoip/geoip2/geolite2/). The
+location of the file is managed in the global config.
+
+#### `geo.hdfs.file`
+
+The location on HDFS of the GeoLite2 database file to use for GeoIP
+lookups.  This file will be localized on the storm supervisors running
+the topology and used from there.  If this file changes, a topology
+restart will be required.
 
 ## Sensor Enrichment Configuration
 
@@ -268,6 +285,7 @@ An example configuration for the YAF sensor is as follows:
 ```
 
 ThreatIntel alert levels are emitted as a new field "threat.triage.level." So for the example above, an incoming message that trips the `ip_src_addr` rule will have a new field threat.triage.level=10.
+
 
 # Example Enrichment via Stellar
 
