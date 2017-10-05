@@ -434,6 +434,12 @@ and pass `--extra_topology_options custom_config.json` to `start_parser_topology
 Default installed Metron is untuned for production deployment.  There
 are a few knobs to tune to get the most out of your system.
 
+# Notes on Adding a New Sensor
+In order to allow for meta alerts to be queries alongside regular alerts in Elasticsearch 2.x,
+it is necessary to add an additional field to the templates and mapping for existing sensors.
+
+Please see a description of the steps necessary to make this change in the metron-elasticsearch [Using Metron with Elasticsearch 2.x](./metron-platform/metron-elasticsearch#using-metron-with-elasticsearch-2x)
+
 ## Kafka Queue
 The kafka queue associated with your parser is a collection point for
 all of the data sent to your parser.  As such, make sure that the number of partitions in
