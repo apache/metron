@@ -231,10 +231,12 @@ export class MetronAlertsPage {
   }
 
   clickRemoveSearchChip() {
-    let aceLine = element.all(by.css('.ace_keyword')).get(0);
-    browser.actions().mouseMove(aceLine).perform().then(() => {
-      this.waitForElementPresence(element(by.css('.ace_value i'))).then(() => {
-        element.all(by.css('.ace_value i')).get(0).click();
+    element(by.css('app-alerts-list .ace_text-input')).sendKeys('').then(() => {
+      let aceLine = element.all(by.css('.ace_keyword')).get(0);
+      browser.actions().mouseMove(aceLine).perform().then(() => {
+        this.waitForElementPresence(element(by.css('.ace_value i'))).then(() => {
+          element.all(by.css('.ace_value i')).get(0).click();
+        });
       });
     });
   }

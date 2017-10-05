@@ -41,6 +41,7 @@ import {LoginModule} from './login/login.module';
 import {AuthGuard} from './shared/auth-guard';
 import {AuthenticationService} from './service/authentication.service';
 import {LoginGuard} from './shared/login-guard';
+import {UpdateService} from './service/update.service';
 
 
 
@@ -74,7 +75,8 @@ export function initConfig(config: ColumnNamesService) {
               ConfigureTableService,
               SaveSearchService,
               MetronDialogBox,
-              ColumnNamesService],
+              ColumnNamesService,
+              UpdateService],
   bootstrap: [AppComponent]
 })
 
