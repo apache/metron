@@ -43,8 +43,9 @@ location of the file is managed in the global config.
 
 The location on HDFS of the GeoLite2 database file to use for GeoIP
 lookups.  This file will be localized on the storm supervisors running
-the topology and used from there.  If this file changes, a topology
-restart will be required.
+the topology and used from there. This is lazy, so if this property
+changes in a running topology, the file will be localized from HDFS upon first
+time the file is used via the geo enrichment. 
 
 ## Sensor Enrichment Configuration
 
