@@ -123,4 +123,4 @@ Some useful utilities that cross all of these parts of the architecture:
 In order to allow for meta alerts to be queries alongside regular alerts in Elasticsearch 2.x,
 it is necessary to add an additional field to the templates and mapping for existing sensors.
 
-Please see a description of the steps necessary to make this change in the metron-elasticsearch [README](./metron-platform/metron-elasticsearch#using-metron-with-elasticsearch-2.x)
+Please see a description of the steps necessary to make this change in the metron-elasticsearch [README](./metron-platform/metron-elasticsearch#using-metron-with-elasticsearch-2x)
