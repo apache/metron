@@ -42,7 +42,7 @@ public enum QueueHandler {
   /**
    * Create a queue handler of the specific type
    * @param config
-   * @return
+   * @return queueCreator
    */
   public Queue<ModelRequest> create(Map<String, Object> config) {
     return queueCreator.apply(config);
