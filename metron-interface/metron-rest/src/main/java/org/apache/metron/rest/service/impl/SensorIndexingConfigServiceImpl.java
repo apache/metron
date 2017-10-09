@@ -22,9 +22,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.configuration.IndexingConfigurations;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
+import org.apache.metron.rest.util.ConfigurationsCache;
 import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -60,16 +62,8 @@ public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigServ
 
   @Override
   public Map<String, Object> findOne(String name) throws RestException {
-    Map<String, Object> sensorIndexingConfig;
-    try {
-      byte[] sensorIndexingConfigBytes = ConfigurationsUtils.readSensorIndexingConfigBytesFromZookeeper(name, client);
-      sensorIndexingConfig = JSONUtils.INSTANCE.load(new ByteArrayInputStream(sensorIndexingConfigBytes), new TypeReference<Map<String, Object>>(){});
-    } catch (KeeperException.NoNodeException e) {
-      return null;
-    } catch (Exception e) {
-      throw new RestException(e);
-    }
-    return sensorIndexingConfig;
+    IndexingConfigurations configs = ConfigurationsCache.INSTANCE.get(client, IndexingConfigurations.class);
+    return configs.getSensorIndexingConfig(name);
   }
 
   @Override
@@ -77,22 +71,18 @@ public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigServ
     Map<String, Map<String, Object>> sensorIndexingConfigs = new HashMap<>();
     List<String> sensorNames = getAllTypes();
     for (String name : sensorNames) {
-      sensorIndexingConfigs.put(name, findOne(name));
+      Map<String, Object> config = findOne(name);
+      if(config != null) {
+        sensorIndexingConfigs.put(name, config);
+      }
     }
     return sensorIndexingConfigs;
   }
 
   @Override
   public List<String> getAllTypes() throws RestException {
-    List<String> types;
-    try {
-        types = client.getChildren().forPath(ConfigurationType.INDEXING.getZookeeperRoot());
-    } catch (KeeperException.NoNodeException e) {
-        types = new ArrayList<>();
-    } catch (Exception e) {
-      throw new RestException(e);
-    }
-    return types;
+    IndexingConfigurations configs = ConfigurationsCache.INSTANCE.get(client, IndexingConfigurations.class);
+    return configs.getTypes();
   }
 
   @Override

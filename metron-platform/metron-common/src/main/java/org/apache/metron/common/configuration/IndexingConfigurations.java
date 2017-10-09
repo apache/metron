@@ -33,6 +33,30 @@ public class IndexingConfigurations extends Configurations {
   public static final String INDEX_CONF = "index";
   public static final String OUTPUT_PATH_FUNCTION_CONF = "outputPathFunction";
 
+  public Map<String, Object> getSensorIndexingConfig(String sensorType) {
+    Map<String, Object> ret = (Map<String, Object>) configurations.get(getKey(sensorType));
+    if(ret == null) {
+      return new HashMap<>();
+    }
+    else {
+      return ret;
+    }
+  }
+
+  public List<String> getTypes() {
+    List<String> ret = new ArrayList<>();
+    for(String keyedSensor : configurations.keySet()) {
+      if(!keyedSensor.isEmpty()) {
+        ret.add(keyedSensor.substring(ConfigurationType.INDEXING.getTypeName().length() + 1));
+      }
+    }
+    return ret;
+  }
+
+  public void delete(String sensorType) {
+    configurations.remove(getKey(sensorType));
+  }
+
   public Map<String, Object> getSensorIndexingConfig(String sensorType, String writerName) {
     Map<String, Object> ret = (Map<String, Object>) configurations.get(getKey(sensorType));
     if(ret == null) {

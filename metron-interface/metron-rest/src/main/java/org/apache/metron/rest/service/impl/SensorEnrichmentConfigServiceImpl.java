@@ -22,9 +22,11 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.aggregator.Aggregators;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SensorEnrichmentConfigService;
+import org.apache.metron.rest.util.ConfigurationsCache;
 import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -61,38 +63,27 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
 
     @Override
     public SensorEnrichmentConfig findOne(String name) throws RestException {
-        SensorEnrichmentConfig sensorEnrichmentConfig;
-        try {
-            sensorEnrichmentConfig = ConfigurationsUtils.readSensorEnrichmentConfigFromZookeeper(name, client);
-        } catch (KeeperException.NoNodeException e) {
-          return null;
-        } catch (Exception e) {
-          throw new RestException(e);
-        }
-      return sensorEnrichmentConfig;
+      EnrichmentConfigurations configs = ConfigurationsCache.INSTANCE.get(client, EnrichmentConfigurations.class);
+      return configs.getSensorEnrichmentConfig(name);
     }
 
     @Override
     public Map<String, SensorEnrichmentConfig> getAll() throws RestException {
-        Map<String, SensorEnrichmentConfig> sensorEnrichmentConfigs = new HashMap<>();
-        List<String> sensorNames = getAllTypes();
-        for (String name : sensorNames) {
-            sensorEnrichmentConfigs.put(name, findOne(name));
+      Map<String, SensorEnrichmentConfig> sensorEnrichmentConfigs = new HashMap<>();
+      List<String> sensorNames = getAllTypes();
+      for (String name : sensorNames) {
+        SensorEnrichmentConfig config = findOne(name);
+        if(config != null) {
+          sensorEnrichmentConfigs.put(name, config);
         }
-        return sensorEnrichmentConfigs;
+      }
+      return sensorEnrichmentConfigs;
     }
 
     @Override
     public List<String> getAllTypes() throws RestException {
-        List<String> types;
-        try {
-            types = client.getChildren().forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot());
-        } catch (KeeperException.NoNodeException e) {
-            types = new ArrayList<>();
-        } catch (Exception e) {
-          throw new RestException(e);
-        }
-      return types;
+      EnrichmentConfigurations configs = ConfigurationsCache.INSTANCE.get(client, EnrichmentConfigurations.class);
+      return configs.getTypes();
     }
 
     @Override

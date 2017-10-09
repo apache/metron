@@ -21,9 +21,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.GlobalConfigService;
+import org.apache.metron.rest.util.ConfigurationsCache;
 import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,16 +54,14 @@ public class GlobalConfigServiceImpl implements GlobalConfigService {
 
     @Override
     public Map<String, Object> get() throws RestException {
-        Map<String, Object> globalConfig;
-        try {
-            byte[] globalConfigBytes = ConfigurationsUtils.readGlobalConfigBytesFromZookeeper(client);
-            globalConfig = JSONUtils.INSTANCE.load(new ByteArrayInputStream(globalConfigBytes), new TypeReference<Map<String, Object>>(){});
-        } catch (KeeperException.NoNodeException e) {
-            return null;
-        } catch (Exception e) {
-          throw new RestException(e);
-        }
-        return globalConfig;
+      Map<String, Object> globalConfig;
+      try {
+        EnrichmentConfigurations configs = ConfigurationsCache.INSTANCE.get(client, EnrichmentConfigurations.class);
+        globalConfig = configs.getGlobalConfig();
+      } catch (Exception e) {
+        throw new RestException(e.getMessage(), e);
+      }
+      return globalConfig;
     }
 
     @Override

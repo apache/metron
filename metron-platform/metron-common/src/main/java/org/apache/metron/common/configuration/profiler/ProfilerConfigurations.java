@@ -50,4 +50,9 @@ public class ProfilerConfigurations extends Configurations {
   private String getKey() {
     return ConfigurationType.PROFILER.getTypeName();
   }
+
+  public void delete() {
+    configurations.remove(getKey());
+  }
+
 }

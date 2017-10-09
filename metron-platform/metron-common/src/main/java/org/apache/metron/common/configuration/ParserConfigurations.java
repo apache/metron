@@ -22,6 +22,8 @@ import org.apache.metron.common.utils.JSONUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ParserConfigurations extends Configurations {
 
@@ -41,6 +43,20 @@ public class ParserConfigurations extends Configurations {
   public void updateSensorParserConfig(String sensorType, SensorParserConfig sensorParserConfig) {
     sensorParserConfig.init();
     configurations.put(getKey(sensorType), sensorParserConfig);
+  }
+
+  public List<String> getTypes() {
+    List<String> ret = new ArrayList<>();
+    for(String keyedSensor : configurations.keySet()) {
+      if(!keyedSensor.isEmpty()) {
+        ret.add(keyedSensor.substring(ConfigurationType.PARSER.getTypeName().length() + 1));
+      }
+    }
+    return ret;
+  }
+
+  public void delete(String sensorType) {
+    configurations.remove(getKey(sensorType));
   }
 
   private String getKey(String sensorType) {

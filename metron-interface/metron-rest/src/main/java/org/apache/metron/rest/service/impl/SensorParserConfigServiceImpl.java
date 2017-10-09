@@ -29,6 +29,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.fs.Path;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.rest.MetronRestConstants;
@@ -36,6 +37,7 @@ import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.ParseMessageRequest;
 import org.apache.metron.rest.service.GrokService;
 import org.apache.metron.rest.service.SensorParserConfigService;
+import org.apache.metron.rest.util.ConfigurationsCache;
 import org.apache.zookeeper.KeeperException;
 import org.json.simple.JSONObject;
 import org.reflections.Reflections;
@@ -74,15 +76,8 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
 
   @Override
   public SensorParserConfig findOne(String name) throws RestException {
-    SensorParserConfig sensorParserConfig;
-    try {
-      sensorParserConfig = ConfigurationsUtils.readSensorParserConfigFromZookeeper(name, client);
-    } catch (KeeperException.NoNodeException e) {
-      return null;
-    } catch (Exception e) {
-      throw new RestException(e);
-    }
-    return sensorParserConfig;
+    ParserConfigurations configs = ConfigurationsCache.INSTANCE.get(client, ParserConfigurations.class);
+    return configs.getSensorParserConfig(name);
   }
 
   @Override
@@ -90,7 +85,10 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
     List<SensorParserConfig> sensorParserConfigs = new ArrayList<>();
     List<String> sensorNames = getAllTypes();
     for (String name : sensorNames) {
-      sensorParserConfigs.add(findOne(name));
+      SensorParserConfig config = findOne(name);
+      if(config != null) {
+        sensorParserConfigs.add(config);
+      }
     }
     return sensorParserConfigs;
   }
@@ -109,15 +107,8 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
 
   @Override
   public List<String> getAllTypes() throws RestException {
-    List<String> types;
-    try {
-      types = client.getChildren().forPath(ConfigurationType.PARSER.getZookeeperRoot());
-    } catch (KeeperException.NoNodeException e) {
-      types = new ArrayList<>();
-    } catch (Exception e) {
-      throw new RestException(e);
-    }
-    return types;
+    ParserConfigurations configs = ConfigurationsCache.INSTANCE.get(client, ParserConfigurations.class);
+    return configs.getTypes();
   }
 
   @Override
