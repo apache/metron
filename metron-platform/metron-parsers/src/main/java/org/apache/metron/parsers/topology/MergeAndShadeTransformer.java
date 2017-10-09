@@ -41,12 +41,12 @@ public class MergeAndShadeTransformer implements JarTransformer {
   public static final String EXTRA_JARS_ENV = "EXTRA_JARS";
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  StormShadeTransformer _underlyingTransformer = new StormShadeTransformer();
+  private StormShadeTransformer underlyingTransformer = new StormShadeTransformer();
   @Override
   public void transform(InputStream input, OutputStream output) throws IOException {
     String extraJars = System.getenv().get(EXTRA_JARS_ENV);
     if(extraJars == null || extraJars.length() == 0) {
-      _underlyingTransformer.transform(input, output);
+      underlyingTransformer.transform(input, output);
       return;
     }
     File tmpFile = File.createTempFile("metron", "jar");
@@ -67,18 +67,28 @@ public class MergeAndShadeTransformer implements JarTransformer {
         }
       }
     }
-    _underlyingTransformer.transform(new BufferedInputStream(new FileInputStream(tmpFile)), output);
+    underlyingTransformer.transform(new BufferedInputStream(new FileInputStream(tmpFile)), output);
   }
 
-  private void copy(JarInputStream jin, JarOutputStream jout, Set<String> entries) throws IOException {
+  /**
+   * Merges two jars.  The first jar will get merged into the output jar.
+   * A running set of jar entries is kept so that duplicates are skipped.
+   * This has the side-effect that the first instance of a given entry will be added
+   * and all subsequent entries are skipped.
+   *
+   * @param jin The input jar
+   * @param jout The output jar
+   * @param entries The set of existing entries.  Note that this set will be mutated as part of this call.
+   * @return The set of entries.
+   * @throws IOException
+   */
+  private Set<String> copy(JarInputStream jin, JarOutputStream jout, Set<String> entries) throws IOException {
     byte[] buffer = new byte[1024];
     for(JarEntry entry = jin.getNextJarEntry(); entry != null; entry = jin.getNextJarEntry()) {
       if(entries.contains(entry.getName())) {
         continue;
       }
-      if(LOG.isDebugEnabled()) {
-        LOG.debug("Merging jar entry {}", entry.getName());
-      }
+      LOG.debug("Merging jar entry {}", entry.getName());
       entries.add(entry.getName());
       jout.putNextEntry(entry);
       int len = 0;
@@ -86,5 +96,6 @@ public class MergeAndShadeTransformer implements JarTransformer {
         jout.write(buffer, 0, len);
       }
     }
+    return entries;
   }
 }
