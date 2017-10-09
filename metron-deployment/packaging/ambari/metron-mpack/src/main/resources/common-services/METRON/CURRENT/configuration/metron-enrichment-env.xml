@@ -82,6 +82,30 @@
     <display-name>Threat Intel Error Topic</display-name>
   </property>
   <property>
+    <name>enrichment_hbase_table</name>
+    <value>enrichment</value>
+    <description>The HBase table which will hold enrichment data</description>
+    <display-name>Enrichment HBase Table</display-name>
+  </property>
+  <property>
+    <name>enrichment_hbase_cf</name>
+    <value>t</value>
+    <description>The HBase column family which will hold enrichment data in HBase.</description>
+    <display-name>HBase Table Column Family</display-name>
+  </property>
+  <property>
+    <name>threatintel_hbase_table</name>
+    <value>threatintel</value>
+    <description>The HBase table which will hold threatintel data</description>
+    <display-name>Threatintel HBase Table</display-name>
+  </property>
+  <property>
+    <name>threatintel_hbase_cf</name>
+    <value>t</value>
+    <description>The HBase column family which will hold threatintel data in HBase.</description>
+    <display-name>HBase Table Column Family</display-name>
+  </property>
+  <property>
     <name>enrichment_workers</name>
     <description>Number of Workers for the Enrichment Topology</description>
     <value>1</value>

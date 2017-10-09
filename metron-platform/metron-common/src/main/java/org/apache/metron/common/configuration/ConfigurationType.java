@@ -69,20 +69,20 @@ public enum ConfigurationType implements Function<String, Object> {
     }
   });
 
-  String name;
+  String typeName;
   String directory;
   String zookeeperRoot;
   Function<String,?> deserializer;
 
-  ConfigurationType(String name, String directory, Function<String, ?> deserializer) {
-    this.name = name;
+  ConfigurationType(String typeName, String directory, Function<String, ?> deserializer) {
+    this.typeName = typeName;
     this.directory = directory;
-    this.zookeeperRoot = Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + name;
+    this.zookeeperRoot = Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + typeName;
     this.deserializer = deserializer;
   }
 
-  public String getName() {
-    return name;
+  public String getTypeName() {
+    return typeName;
   }
 
   public String getDirectory() {
@@ -101,4 +101,5 @@ public enum ConfigurationType implements Function<String, Object> {
   public String getZookeeperRoot() {
     return zookeeperRoot;
   }
+
 }

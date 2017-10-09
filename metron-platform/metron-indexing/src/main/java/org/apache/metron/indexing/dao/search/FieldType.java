@@ -36,6 +36,8 @@ public enum FieldType {
   DOUBLE("double"),
   @JsonProperty("boolean")
   BOOLEAN("boolean"),
+  @JsonProperty("nested")
+  NESTED("nested"),
   @JsonProperty("other")
   OTHER("other");
 

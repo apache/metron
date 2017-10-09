@@ -67,7 +67,7 @@ public class ConfiguredParserBoltTest extends BaseConfiguredBoltTest {
     this.zookeeperUrl = testZkServer.getConnectString();
     byte[] globalConfig = ConfigurationsUtils.readGlobalConfigFromFile(TestConstants.SAMPLE_CONFIG_PATH);
     ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig, zookeeperUrl);
-    parserConfigurationTypes.add(ConfigurationType.GLOBAL.getName());
+    parserConfigurationTypes.add(ConfigurationType.GLOBAL.getTypeName());
     Map<String, byte[]> sensorEnrichmentConfigs = ConfigurationsUtils.readSensorEnrichmentConfigsFromFile(TestConstants.ENRICHMENTS_CONFIGS_PATH);
     for (String sensorType : sensorEnrichmentConfigs.keySet()) {
       ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensorType, sensorEnrichmentConfigs.get(sensorType), zookeeperUrl);
@@ -106,13 +106,13 @@ public class ConfiguredParserBoltTest extends BaseConfiguredBoltTest {
     Map<String, Object> sampleGlobalConfig = sampleConfigurations.getGlobalConfig();
     sampleGlobalConfig.put("newGlobalField", "newGlobalValue");
     ConfigurationsUtils.writeGlobalConfigToZookeeper(sampleGlobalConfig, zookeeperUrl);
-    waitForConfigUpdate(ConfigurationType.GLOBAL.getName());
+    waitForConfigUpdate(ConfigurationType.GLOBAL.getTypeName());
     Assert.assertEquals("Add global config field", sampleConfigurations.getGlobalConfig(), configuredBolt.getConfigurations().getGlobalConfig());
 
     configsUpdated = new HashSet<>();
     sampleGlobalConfig.remove("newGlobalField");
     ConfigurationsUtils.writeGlobalConfigToZookeeper(sampleGlobalConfig, zookeeperUrl);
-    waitForConfigUpdate(ConfigurationType.GLOBAL.getName());
+    waitForConfigUpdate(ConfigurationType.GLOBAL.getTypeName());
     Assert.assertEquals("Remove global config field", sampleConfigurations, configuredBolt.getConfigurations());
 
     configsUpdated = new HashSet<>();

@@ -28,7 +28,9 @@ elif [ -e /usr/lib/bigtop-utils/bigtop-detect-javahome ]; then
   . /usr/lib/bigtop-utils/bigtop-detect-javahome
 fi
 
-export HBASE_CONFIGS=/etc/hbase/conf
+export HBASE_CONFIGS=$(hbase classpath)
 export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
-java $JVMFLAGS -cp "$HBASE_CONFIGS:$METRON_HOME/lib/*" org.apache.metron.stellar.common.shell.StellarShell "$@"
+export STELLAR_LIB=$(find $METRON_HOME/lib/ -name metron-parsers*.jar)
+export MANAGEMENT_LIB=$(find $METRON_HOME/lib/ -name metron-management*.jar)
+java $JVMFLAGS -cp "$HBASE_CONFIGS:${CONTRIB:-$METRON_HOME/contrib/*}:$STELLAR_LIB:$MANAGEMENT_LIB" org.apache.metron.stellar.common.shell.StellarShell "$@"

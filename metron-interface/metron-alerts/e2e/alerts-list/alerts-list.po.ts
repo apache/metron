@@ -68,8 +68,18 @@ export class MetronAlertsPage {
     return element(by.css('.col-form-label-lg')).getText();
   }
 
+  clickActionDropdown() {
+    return element(by.buttonText('ACTIONS')).click();
+  }
+
+  clickActionDropdownOption(option: string) {
+    this.clickActionDropdown().then(() => {
+      element(by.cssContainingText('.dropdown-menu span', option)).click();
+    });
+  }
+
   getActionDropdownItems() {
-    return element(by.buttonText('ACTIONS')).click().then(() => element.all(by.css('.dropdown-menu .dropdown-item.disabled')).getText());
+    return this.clickActionDropdown().then(() => element.all(by.css('.dropdown-menu .dropdown-item.disabled')).getText());
   }
 
   getTableColumnNames() {
@@ -240,5 +250,28 @@ export class MetronAlertsPage {
   waitForElementPresence (element ) {
     let EC = protractor.ExpectedConditions;
     return browser.wait(EC.presenceOf(element));
+  }
+
+  waitForTextChange(element, previousText) {
+    let EC = protractor.ExpectedConditions;
+    return browser.wait(EC.not(EC.textToBePresentInElement(element, previousText)));
+  }
+
+  toggleAlertInList(index: number) {
+    let selector = by.css('app-alerts-list tbody tr label');
+    let checkbox = element.all(selector).get(index);
+    this.waitForElementPresence(checkbox).then(() => {
+      browser.actions().mouseMove(checkbox).perform().then(() => {
+        checkbox.click();
+      });
+    });
+  }
+
+  getAlertStatus(rowIndex: number, previousText) {
+    let row = element.all(by.css('app-alerts-list tbody tr')).get(rowIndex);
+    let column = row.all(by.css('td a')).get(8);
+    return this.waitForTextChange(column, previousText).then(() => {
+      return column.getText();
+    });
   }
 }

@@ -46,6 +46,10 @@ If unspecified, or set to `0`, it defaults to a system-determined duration which
 parameter `topology.message.timeout.secs`.  Ignored if batchSize is `1`, since this disables batching.
 * `enabled` : Whether the writer is enabled (default `true`).
 
+
+### Elasticsearch
+Metron comes with built-in templates for the default sensors for Elasticsearch. When adding a new sensor, it will be necessary to add a new template defining the output fields appropriately. In addition, there is a requirement for a field `alert` of type `nested` for Elasticsearch 2.x installs.  This is detailed at [Using Metron with Elasticsearch 2.x](../metron-elasticsearch/README.md#using-metron-with-elasticsearch-2x)
+
 ### Indexing Configuration Examples
 For a given  sensor, the following scenarios would be indicated by
 the following cases:
@@ -145,6 +149,23 @@ and provide update and search capabilities.  IndexDaos may be composed and updat
 in parallel.  This enables a flexible strategy for specifying your backing store for updates at runtime.
 For instance, currently the REST API supports the update functionality and may be configured with a list of
 IndexDao implementations to use to support the updates.
+
+### The `MetaAlertDao`
+
+The goal of meta alerts is to be able to group together a set of alerts while being able to transparently perform actions
+like searches, as if meta alerts were normal alerts.  `org.apache.metron.indexing.dao.MetaAlertDao` extends `IndexDao` and
+enables a couple extra features: creation of a meta alert and the ability to get all meta alerts associated with an alert.
+
+The implementation of this is to denormalize the relationship between alerts and meta alerts, and store alerts as a nested field within a meta alert.
+The use of nested fields is to avoid the limitations of parent-child relationships (one-to-many) and merely linking by IDs
+(which causes issues with pagination as a result of being unable to join indices).
+
+The search functionality of `IndexDao` is wrapped by the `MetaAlertDao` in order to provide both regular and meta alerts side-by-side with sorting.
+The updating capabilities are similarly wrapped, in order to ensure updates are carried through both the alerts and associated meta alerts.
+Both of these functions are handled under the hood.
+
+In addition, an API endpoint is added for the meta alert specific features of creation and going from meta alert to alert.
+The denormalization handles the case of going from meta alert to alert automatically.
 
 # Notes on Performance Tuning
 

@@ -19,8 +19,6 @@
 package org.apache.metron.common.utils;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
-
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -33,4 +31,16 @@ public class StringUtils {
              .toArray()
                                 );
   }
+
+  /**
+   * Strips specified number of lines from beginning for String val
+   * @param val
+   * @param numLines
+   */
+  public static String stripLines(String val, int numLines) {
+    int start = org.apache.commons.lang3.StringUtils.ordinalIndexOf(val, System.lineSeparator(), numLines);
+    start = start >= 0 ? start : 0;
+    return val.substring(start);
+  }
+
 }

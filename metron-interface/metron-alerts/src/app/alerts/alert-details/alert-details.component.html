@@ -23,17 +23,17 @@
             <table>
                 <tr>
                     <td class="title"> Status</td>
-                    <td class="secondary" [ngClass]="{'primary': selectedAlertState === alertState.ESCALATE, 'secondary': selectedAlertState !== alertState.ESCALATE}" (click)="processEscalate()">ESCALATE</td>
+                    <td [ngClass]="{'primary': selectedAlertState === alertState.ESCALATE, 'secondary': selectedAlertState !== alertState.ESCALATE}" (click)="processEscalate()">ESCALATE</td>
                     <td></td>
                 </tr>
                 <tr>
-                    <td class="secondary" [ngClass]="{'primary': selectedAlertState === alertState.NEW, 'secondary': selectedAlertState !== alertState.NEW}" (click)="processNew()">NEW</td>
-                    <td class="primary" [ngClass]="{'primary': selectedAlertState === alertState.OPEN, 'secondary': selectedAlertState !== alertState.OPEN}" (click)="processOpen()">OPEN</td>
-                    <td class="secondary" [ngClass]="{'primary': selectedAlertState === alertState.DISMISS, 'secondary': selectedAlertState !== alertState.DISMISS}" (click)="processDismiss()">DISMISS</td>
+                    <td [ngClass]="{'primary': selectedAlertState === alertState.NEW, 'secondary': selectedAlertState !== alertState.NEW}" (click)="processNew()">NEW</td>
+                    <td [ngClass]="{'primary': selectedAlertState === alertState.OPEN, 'secondary': selectedAlertState !== alertState.OPEN}" (click)="processOpen()">OPEN</td>
+                    <td [ngClass]="{'primary': selectedAlertState === alertState.DISMISS, 'secondary': selectedAlertState !== alertState.DISMISS}" (click)="processDismiss()">DISMISS</td>
                 </tr>
                 <tr>
                     <td></td>
-                    <td class="secondary" [ngClass]="{'primary': selectedAlertState === alertState.RESOLVE, 'secondary': selectedAlertState !== alertState.RESOLVE}" (click)="processResolve()">RESOLVE</td>
+                    <td [ngClass]="{'primary': selectedAlertState === alertState.RESOLVE, 'secondary': selectedAlertState !== alertState.RESOLVE}" (click)="processResolve()">RESOLVE</td>
                     <td></td>
                 </tr>
             </table>
