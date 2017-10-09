@@ -19,6 +19,7 @@ package org.apache.metron.elasticsearch.dao;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import org.apache.commons.lang.StringUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -78,6 +79,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static org.apache.metron.elasticsearch.utils.ElasticsearchUtils.INDEX_NAME_DELIMITER;
+import static java.lang.String.format;
 
 public class ElasticsearchDao implements IndexDao {
 
@@ -207,7 +211,7 @@ public class ElasticsearchDao implements IndexDao {
   private String[] wildcardIndices(List<String> indices) {
     return indices
             .stream()
-            .map(index -> String.format("%s%s*", index, ElasticsearchUtils.getIndexDelimiter()))
+            .map(index -> String.format("%s%s*", index, INDEX_NAME_DELIMITER))
             .toArray(value -> new String[indices.size()]);
   }
 
@@ -312,11 +316,18 @@ public class ElasticsearchDao implements IndexDao {
   @Override
   public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException {
     Map<String, Map<String, FieldType>> allColumnMetadata = new HashMap<>();
-    ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings =
-            client.admin().indices().getMappings(new GetMappingsRequest().indices(getLatestIndices(indices))).actionGet().getMappings();
-    for(Object index: mappings.keys().toArray()) {
+    String[] latestIndices = getLatestIndices(indices);
+    ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings = client
+            .admin()
+            .indices()
+            .getMappings(new GetMappingsRequest().indices(latestIndices))
+            .actionGet()
+            .getMappings();
+    for(Object key: mappings.keys().toArray()) {
+      String indexName = key.toString();
+
       Map<String, FieldType> indexColumnMetadata = new HashMap<>();
-      ImmutableOpenMap<String, MappingMetaData> mapping = mappings.get(index.toString());
+      ImmutableOpenMap<String, MappingMetaData> mapping = mappings.get(indexName);
       Iterator<String> mappingIterator = mapping.keysIt();
       while(mappingIterator.hasNext()) {
         MappingMetaData mappingMetaData = mapping.get(mappingIterator.next());
@@ -325,7 +336,9 @@ public class ElasticsearchDao implements IndexDao {
           indexColumnMetadata.put(field, elasticsearchSearchTypeMap.getOrDefault(map.get(field).get("type"), FieldType.OTHER));
         }
       }
-      allColumnMetadata.put(index.toString().split(ElasticsearchUtils.getIndexDelimiter())[0], indexColumnMetadata);
+
+      String baseIndexName = ElasticsearchUtils.getBaseIndexName(indexName);
+      allColumnMetadata.put(baseIndexName, indexColumnMetadata);
     }
     return allColumnMetadata;
   }
@@ -359,7 +372,7 @@ public class ElasticsearchDao implements IndexDao {
     String[] indices = client.admin().indices().prepareGetIndex().setFeatures().get().getIndices();
     for (String index : indices) {
       if (!ignoredIndices.contains(index)) {
-        int prefixEnd = index.indexOf(ElasticsearchUtils.getIndexDelimiter());
+        int prefixEnd = index.indexOf(INDEX_NAME_DELIMITER);
         if (prefixEnd != -1) {
           String prefix = index.substring(0, prefixEnd);
           if (includeIndices.contains(prefix)) {

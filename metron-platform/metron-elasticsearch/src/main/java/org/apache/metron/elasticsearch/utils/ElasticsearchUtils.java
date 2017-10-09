@@ -20,6 +20,7 @@ package org.apache.metron.elasticsearch.utils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import org.apache.commons.lang.StringUtils;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
@@ -35,10 +36,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.String.format;
+
 public class ElasticsearchUtils {
 
   private static ThreadLocal<Map<String, SimpleDateFormat>> DATE_FORMAT_CACHE
           = ThreadLocal.withInitial(() -> new HashMap<>());
+
+  /**
+   * A delimiter that is appended to the user-defined index name to separate
+   * the index's date postfix.
+   *
+   * For example, if the user-defined index name is 'bro', the delimiter is
+   * '_index', and the index's date postfix is '2017.10.03.19', then the actual
+   * index name should be 'bro_index_2017.10.03.19'.
+   */
+  public static final String INDEX_NAME_DELIMITER = "_index";
 
   public static SimpleDateFormat getIndexFormat(WriterConfiguration configurations) {
     return getIndexFormat(configurations.getGlobalConfig());
@@ -60,17 +73,28 @@ public class ElasticsearchUtils {
     if (configurations != null) {
       indexName = configurations.getIndex(sensorType);
     }
-    indexName = indexName + getIndexDelimiter() + "_" + indexPostfix;
+    indexName = indexName + INDEX_NAME_DELIMITER + "_" + indexPostfix;
     return indexName;
   }
 
   /**
-   * Returns the delimiter that is appended to the user-defined index name to separate
-   * the index's date postfix.  For example, if the user-defined index name is 'bro'
-   * and the delimiter is '_index_', then one likely index name is 'bro_index_2017.10.03.19'.
+   * Extracts the base index name from a full index name.
+   *
+   * For example, given an index named 'bro_index_2017.01.01.01', the base
+   * index name is 'bro'.
+   *
+   * @param indexName The full index name including delimiter and date postfix.
+   * @return The base index name.
    */
-  public static String getIndexDelimiter() {
-    return "_index";
+  public static String getBaseIndexName(String indexName) {
+
+    String[] parts = indexName.split(INDEX_NAME_DELIMITER);
+    if(parts.length < 1 || StringUtils.isEmpty(parts[0])) {
+      String msg = format("Unexpected index name; index=%s, delimiter=%s", indexName, INDEX_NAME_DELIMITER);
+      throw new IllegalStateException(msg);
+    }
+
+    return parts[0];
   }
 
   public static TransportClient getClient(Map<String, Object> globalConfiguration, Map<String, String> optionalSettings) {
