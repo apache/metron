@@ -31,13 +31,14 @@ import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.parsers.interfaces.MessageParser;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.ParseMessageRequest;
 import org.apache.metron.rest.service.GrokService;
 import org.apache.metron.rest.service.SensorParserConfigService;
-import org.apache.metron.common.zookeeper.ConfigurationsCache;
+import org.apache.metron.common.zookeeper.ZKConfigurationsCache;
 import org.apache.zookeeper.KeeperException;
 import org.json.simple.JSONObject;
 import org.reflections.Reflections;
@@ -51,7 +52,11 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
 
   private CuratorFramework client;
 
+  private ConfigurationsCache cache;
+
   private GrokService grokService;
+
+  private Map<String, String> availableParsers;
 
   @Autowired
   public SensorParserConfigServiceImpl(ObjectMapper objectMapper, CuratorFramework client,
@@ -59,9 +64,12 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
     this.objectMapper = objectMapper;
     this.client = client;
     this.grokService = grokService;
+    cache = ZKConfigurationsCache.INSTANCE;
   }
 
-  private Map<String, String> availableParsers;
+  public void setCache(ConfigurationsCache cache) {
+    this.cache = cache;
+  }
 
   @Override
   public SensorParserConfig save(SensorParserConfig sensorParserConfig) throws RestException {
@@ -76,7 +84,7 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
 
   @Override
   public SensorParserConfig findOne(String name) throws RestException {
-    ParserConfigurations configs = ConfigurationsCache.INSTANCE.get(client, ParserConfigurations.class);
+    ParserConfigurations configs = cache.get(client, ParserConfigurations.class);
     return configs.getSensorParserConfig(name);
   }
 
@@ -107,7 +115,7 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
 
   @Override
   public List<String> getAllTypes() throws RestException {
-    ParserConfigurations configs = ConfigurationsCache.INSTANCE.get(client, ParserConfigurations.class);
+    ParserConfigurations configs = cache.get(client, ParserConfigurations.class);
     return configs.getTypes();
   }
 

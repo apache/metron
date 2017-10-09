@@ -28,7 +28,7 @@ import java.util.List;
 public class ParserConfigurations extends Configurations {
 
   public SensorParserConfig getSensorParserConfig(String sensorType) {
-    return (SensorParserConfig) configurations.get(getKey(sensorType));
+    return (SensorParserConfig) getConfigurations().get(getKey(sensorType));
   }
 
   public void updateSensorParserConfig(String sensorType, byte[] data) throws IOException {
@@ -42,12 +42,12 @@ public class ParserConfigurations extends Configurations {
 
   public void updateSensorParserConfig(String sensorType, SensorParserConfig sensorParserConfig) {
     sensorParserConfig.init();
-    configurations.put(getKey(sensorType), sensorParserConfig);
+    getConfigurations().put(getKey(sensorType), sensorParserConfig);
   }
 
   public List<String> getTypes() {
     List<String> ret = new ArrayList<>();
-    for(String keyedSensor : configurations.keySet()) {
+    for(String keyedSensor : getConfigurations().keySet()) {
       if(!keyedSensor.isEmpty()) {
         ret.add(keyedSensor.substring(ConfigurationType.PARSER.getTypeName().length() + 1));
       }
@@ -56,10 +56,10 @@ public class ParserConfigurations extends Configurations {
   }
 
   public void delete(String sensorType) {
-    configurations.remove(getKey(sensorType));
+    getConfigurations().remove(getKey(sensorType));
   }
 
-  private String getKey(String sensorType) {
+  public static String getKey(String sensorType) {
     return ConfigurationType.PARSER.getTypeName() + "." + sensorType;
   }
 }

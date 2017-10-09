@@ -21,9 +21,10 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.GlobalConfigService;
-import org.apache.metron.common.zookeeper.ConfigurationsCache;
+import org.apache.metron.common.zookeeper.ZKConfigurationsCache;
 import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,9 +35,16 @@ import java.util.Map;
 public class GlobalConfigServiceImpl implements GlobalConfigService {
     private CuratorFramework client;
 
+    private ConfigurationsCache cache;
+
     @Autowired
     public GlobalConfigServiceImpl(CuratorFramework client) {
       this.client = client;
+      cache = ZKConfigurationsCache.INSTANCE;
+    }
+
+    public void setCache(ConfigurationsCache cache) {
+      this.cache = cache;
     }
 
     @Override
@@ -53,7 +61,7 @@ public class GlobalConfigServiceImpl implements GlobalConfigService {
     public Map<String, Object> get() throws RestException {
       Map<String, Object> globalConfig;
       try {
-        EnrichmentConfigurations configs = ConfigurationsCache.INSTANCE.get(client, EnrichmentConfigurations.class);
+        EnrichmentConfigurations configs = cache.get(client, EnrichmentConfigurations.class);
         globalConfig = configs.getGlobalConfig();
       } catch (Exception e) {
         throw new RestException(e.getMessage(), e);

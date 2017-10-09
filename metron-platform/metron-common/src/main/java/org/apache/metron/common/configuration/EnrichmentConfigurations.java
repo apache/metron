@@ -29,7 +29,7 @@ import java.util.List;
 public class EnrichmentConfigurations extends Configurations {
 
   public SensorEnrichmentConfig getSensorEnrichmentConfig(String sensorType) {
-    return (SensorEnrichmentConfig) configurations.get(getKey(sensorType));
+    return (SensorEnrichmentConfig) getConfigurations().get(getKey(sensorType));
   }
 
   public void updateSensorEnrichmentConfig(String sensorType, byte[] data) throws IOException {
@@ -42,16 +42,16 @@ public class EnrichmentConfigurations extends Configurations {
   }
 
   public void updateSensorEnrichmentConfig(String sensorType, SensorEnrichmentConfig sensorEnrichmentConfig) {
-    configurations.put(getKey(sensorType), sensorEnrichmentConfig);
+    getConfigurations().put(getKey(sensorType), sensorEnrichmentConfig);
   }
 
   public void delete(String sensorType) {
-    configurations.remove(getKey(sensorType));
+    getConfigurations().remove(getKey(sensorType));
   }
 
   public List<String> getTypes() {
     List<String> ret = new ArrayList<>();
-    for(String keyedSensor : configurations.keySet()) {
+    for(String keyedSensor : getConfigurations().keySet()) {
       if(!keyedSensor.isEmpty()) {
         ret.add(keyedSensor.substring(ConfigurationType.ENRICHMENT.getTypeName().length() + 1));
       }
@@ -59,7 +59,7 @@ public class EnrichmentConfigurations extends Configurations {
     return ret;
   }
 
-  private String getKey(String sensorType) {
+  public static String getKey(String sensorType) {
     return ConfigurationType.ENRICHMENT.getTypeName() + "." + sensorType;
   }
 }

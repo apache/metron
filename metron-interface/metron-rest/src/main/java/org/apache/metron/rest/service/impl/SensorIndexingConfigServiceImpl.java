@@ -22,9 +22,10 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.IndexingConfigurations;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
-import org.apache.metron.common.zookeeper.ConfigurationsCache;
+import org.apache.metron.common.zookeeper.ZKConfigurationsCache;
 import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -40,10 +41,17 @@ public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigServ
 
   private CuratorFramework client;
 
+  private ConfigurationsCache cache;
+
   @Autowired
   public SensorIndexingConfigServiceImpl(ObjectMapper objectMapper, CuratorFramework client) {
     this.objectMapper = objectMapper;
     this.client = client;
+    cache = ZKConfigurationsCache.INSTANCE;
+  }
+
+  public void setCache(ConfigurationsCache cache) {
+    this.cache = cache;
   }
 
   @Override
@@ -58,8 +66,8 @@ public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigServ
 
   @Override
   public Map<String, Object> findOne(String name) throws RestException {
-    IndexingConfigurations configs = ConfigurationsCache.INSTANCE.get(client, IndexingConfigurations.class);
-    return configs.getSensorIndexingConfig(name);
+    IndexingConfigurations configs = cache.get(client, IndexingConfigurations.class);
+    return configs.getSensorIndexingConfig(name, false);
   }
 
   @Override
@@ -77,7 +85,7 @@ public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigServ
 
   @Override
   public List<String> getAllTypes() throws RestException {
-    IndexingConfigurations configs = ConfigurationsCache.INSTANCE.get(client, IndexingConfigurations.class);
+    IndexingConfigurations configs = cache.get(client, IndexingConfigurations.class);
     return configs.getTypes();
   }
 

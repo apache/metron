@@ -24,9 +24,10 @@ import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SensorEnrichmentConfigService;
-import org.apache.metron.common.zookeeper.ConfigurationsCache;
+import org.apache.metron.common.zookeeper.ZKConfigurationsCache;
 import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,10 +46,17 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
 
     private CuratorFramework client;
 
+    private ConfigurationsCache cache;
+
     @Autowired
     public SensorEnrichmentConfigServiceImpl(ObjectMapper objectMapper, CuratorFramework client) {
       this.objectMapper = objectMapper;
       this.client = client;
+      cache = ZKConfigurationsCache.INSTANCE;
+    }
+
+    public void setCache(ConfigurationsCache cache) {
+      this.cache = cache;
     }
 
     @Override
@@ -63,7 +71,7 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
 
     @Override
     public SensorEnrichmentConfig findOne(String name) throws RestException {
-      EnrichmentConfigurations configs = ConfigurationsCache.INSTANCE.get(client, EnrichmentConfigurations.class);
+      EnrichmentConfigurations configs = cache.get(client, EnrichmentConfigurations.class);
       return configs.getSensorEnrichmentConfig(name);
     }
 
@@ -82,7 +90,7 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
 
     @Override
     public List<String> getAllTypes() throws RestException {
-      EnrichmentConfigurations configs = ConfigurationsCache.INSTANCE.get(client, EnrichmentConfigurations.class);
+      EnrichmentConfigurations configs = cache.get(client, EnrichmentConfigurations.class);
       return configs.getTypes();
     }
 
