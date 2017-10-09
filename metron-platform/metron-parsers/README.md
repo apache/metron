@@ -76,7 +76,22 @@ So putting it all together a typical Metron message with all 5-tuple fields pres
 
 ## Global Configuration 
 
-See the "[Global Configuration](../metron-common)" section.
+There are a few properties which can be managed in the global configuration that have pertinence to
+parsers and parsing in general.
+
+### `parser.error.topic`
+
+The topic where messages which were unable to be parsed due to error are sent.
+Error messages will be indexed under a sensor type of `error` and the messages will have
+the following fields:
+* `sensor.type`: `error`
+* `failed_sensor_type` : The sensor type of the message which wasn't able to be parsed
+* `error_type` : The error type, in this case `parser`.
+* `stack` : The stack trace of the error
+* `hostname` : The hostname of the node where the error happened
+* `raw_message` : The raw message in string form
+* `raw_message_bytes` : The raw message bytes
+* `error_hash` : A hash of the error message
 
 ## Parser Configuration
 
