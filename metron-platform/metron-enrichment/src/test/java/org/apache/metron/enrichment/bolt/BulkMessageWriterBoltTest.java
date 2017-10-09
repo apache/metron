@@ -123,7 +123,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
             .withBulkMessageWriter(bulkMessageWriter).withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
             .withMessageGetterField("message");
     bulkMessageWriterBolt.setCuratorFramework(client);
-    bulkMessageWriterBolt.setTreeCache(cache);
+    bulkMessageWriterBolt.setZKCache(cache);
     bulkMessageWriterBolt.getConfigurations().updateSensorIndexingConfig(sensorType,
             new FileInputStream(sampleSensorIndexingConfigPath));
     bulkMessageWriterBolt.declareOutputFields(declarer);
@@ -182,7 +182,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
             .withBulkMessageWriter(bulkMessageWriter).withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
             .withMessageGetterField("message").withBatchTimeoutDivisor(3);
     bulkMessageWriterBolt.setCuratorFramework(client);
-    bulkMessageWriterBolt.setTreeCache(cache);
+    bulkMessageWriterBolt.setZKCache(cache);
     bulkMessageWriterBolt.getConfigurations().updateSensorIndexingConfig(sensorType,
             new FileInputStream(sampleSensorIndexingConfigPath));
     bulkMessageWriterBolt.declareOutputFields(declarer);
@@ -226,7 +226,7 @@ public class BulkMessageWriterBoltTest extends BaseEnrichmentBoltTest {
             .withBulkMessageWriter(bulkMessageWriter).withMessageGetter(MessageGetters.JSON_FROM_FIELD.name())
             .withMessageGetterField("message");
     bulkMessageWriterBolt.setCuratorFramework(client);
-    bulkMessageWriterBolt.setTreeCache(cache);
+    bulkMessageWriterBolt.setZKCache(cache);
     bulkMessageWriterBolt.getConfigurations().updateSensorIndexingConfig(sensorType
             , new FileInputStream(sampleSensorIndexingConfigPath));
     bulkMessageWriterBolt.declareOutputFields(declarer);

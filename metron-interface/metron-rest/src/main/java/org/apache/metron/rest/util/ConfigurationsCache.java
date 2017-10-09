@@ -6,11 +6,10 @@ import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.*;
 import org.apache.metron.common.configuration.profiler.ProfilerConfigurations;
-import org.apache.metron.common.zookeeper.SimpleEventListener;
-import org.apache.metron.common.zookeeper.ZKCache;
+import org.apache.metron.zookeeper.SimpleEventListener;
+import org.apache.metron.zookeeper.ZKCache;
 import org.apache.metron.common.zookeeper.configurations.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

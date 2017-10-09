@@ -20,7 +20,6 @@ package org.apache.metron.common.zookeeper.configurations;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.zookeeper.SimpleEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

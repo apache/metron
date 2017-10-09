@@ -17,23 +17,21 @@
  */
 package org.apache.metron.common.bolt;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.Map;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
-import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.metron.common.zookeeper.SimpleEventListener;
+import org.apache.metron.zookeeper.SimpleEventListener;
 import org.apache.metron.common.zookeeper.configurations.ConfigurationsUpdater;
 import org.apache.metron.common.zookeeper.configurations.Reloadable;
-import org.apache.metron.common.zookeeper.ZKCache;
+import org.apache.metron.zookeeper.ZKCache;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.base.BaseRichBolt;
@@ -71,6 +69,7 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
   public CONFIG_T getConfigurations() {
     return configurations;
   }
+
   protected abstract ConfigurationsUpdater<CONFIG_T> createUpdater();
 
 
