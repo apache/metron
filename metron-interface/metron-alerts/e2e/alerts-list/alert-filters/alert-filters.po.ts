@@ -17,13 +17,21 @@
  */
 
 import {browser, element, by} from 'protractor';
+import {waitForElementPresence} from '../../utils/e2e_util';
 
 export class AlertFacetsPage {
 
   private sleepTime = 500;
 
+  navgateToAlertList() {
+    browser.waitForAngularEnabled(false);
+    return browser.get('/alerts-list');
+  }
+
   getFacetsTitle() {
-    return element.all(by.css('app-alert-filters .title')).getText();
+    return waitForElementPresence(element.all(by.css('app-alert-filters metron-collapse'))).then(() => {
+      return element.all(by.css('app-alert-filters .title')).getText();
+    });
   }
 
   getFacetsValues() {
