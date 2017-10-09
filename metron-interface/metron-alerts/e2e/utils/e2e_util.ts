@@ -20,6 +20,11 @@ export function waitForText(element, text) {
   return browser.wait(EC.textToBePresentInElementValue(element, text));
 }
 
+export function waitForTextChange(element, previousText) {
+  let EC = protractor.ExpectedConditions;
+  return browser.wait(EC.not(EC.textToBePresentInElement(element, previousText)));
+}
+
 export function waitForElementInVisibility (_element ) {
     let EC = protractor.ExpectedConditions;
     return browser.wait(EC.invisibilityOf(_element));

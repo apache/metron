@@ -20,9 +20,11 @@ import { MetronAlertsPage } from '../alerts-list.po';
 import {customMatchers} from '../../matchers/custom-matchers';
 import {LoginPage} from '../../login/login.po';
 import {loadTestData, deleteTestData} from '../../utils/e2e_util';
+import {TreeViewPage} from '../tree-view/tree-view.po';
 
 describe('metron-alerts alert status', function() {
   let page: MetronAlertsPage;
+  let treePage: TreeViewPage;
   let loginPage: LoginPage;
 
   beforeAll(() => {
@@ -38,6 +40,7 @@ describe('metron-alerts alert status', function() {
 
   beforeEach(() => {
     page = new MetronAlertsPage();
+    treePage = new TreeViewPage();
     jasmine.addMatchers(customMatchers);
   });
 
@@ -80,6 +83,45 @@ describe('metron-alerts alert status', function() {
     expect(page.getAlertStatus(9, 'NEW')).toEqual('RESOLVE');
     expect(page.getAlertStatus(10, 'NEW')).toEqual('RESOLVE');
     expect(page.getAlertStatus(11, 'NEW')).toEqual('RESOLVE');
+  });
+
+
+  it('should change alert status for multiple alerts to OPEN in tree view', () => {
+    treePage.selectGroup('source:type');
+    treePage.selectGroup('enrichments:geo:ip_dst_addr:country');
+    
+    treePage.expandDashGroup('alerts_ui_e2e');
+    treePage.expandSubGroup('alerts_ui_e2e', 'US');
+    treePage.expandSubGroup('alerts_ui_e2e', 'RU');
+    treePage.expandSubGroup('alerts_ui_e2e', 'FR');
+
+    treePage.toggleAlertInTree(1);
+    treePage.toggleAlertInTree(2);
+    treePage.toggleAlertInTree(3);
+    page.clickActionDropdownOption('Open');
+    expect(treePage.getAlertStatusForTreeView(1, 'NEW')).toEqual('OPEN');
+    expect(treePage.getAlertStatusForTreeView(2, 'NEW')).toEqual('OPEN');
+    expect(treePage.getAlertStatusForTreeView(3, 'NEW')).toEqual('OPEN');
+
+    treePage.toggleAlertInTree(4);
+    treePage.toggleAlertInTree(5);
+    page.clickActionDropdownOption('Dismiss');
+    expect(treePage.getAlertStatusForTreeView(4, 'NEW')).toEqual('DISMISS');
+    expect(treePage.getAlertStatusForTreeView(5, 'NEW')).toEqual('DISMISS');
+
+    treePage.toggleAlertInTree(8);
+    treePage.toggleAlertInTree(9);
+    page.clickActionDropdownOption('Escalate');
+    expect(treePage.getAlertStatusForTreeView(8, 'NEW')).toEqual('ESCALATE');
+    expect(treePage.getAlertStatusForTreeView(9, 'NEW')).toEqual('ESCALATE');
+
+    treePage.toggleAlertInTree(10);
+    treePage.toggleAlertInTree(11);
+    treePage.toggleAlertInTree(12);
+    page.clickActionDropdownOption('Resolve');
+    expect(treePage.getAlertStatusForTreeView(10, 'NEW')).toEqual('RESOLVE');
+    expect(treePage.getAlertStatusForTreeView(11, 'NEW')).toEqual('RESOLVE');
+    expect(treePage.getAlertStatusForTreeView(12, 'NEW')).toEqual('RESOLVE');
   });
 
 });

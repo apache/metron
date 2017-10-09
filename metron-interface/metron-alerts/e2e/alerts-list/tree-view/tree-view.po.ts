@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
-import {browser, element, by} from 'protractor';
-import {waitForElementPresence} from '../../utils/e2e_util';
+import {browser, element, by, protractor} from 'protractor';
+import {waitForElementPresence, waitForTextChange} from '../../utils/e2e_util';
 
 export class TreeViewPage {
   navigateToAlertsList() {
@@ -58,9 +58,10 @@ export class TreeViewPage {
   }
 
   expandDashGroup(name: string) {
-    this.scrollToDashRow(name);
-    return waitForElementPresence( element(by.css('[data-name="' + name + '"] .card-header'))).then(() => {
-      return element(by.css('[data-name="' + name + '"] .card-header i')).click();
+    waitForElementPresence( element(by.css('[data-name="' + name + '"] .card-header'))).then(() => {
+      this.scrollToDashRow(name);
+      element(by.css('[data-name="' + name + '"] .card-header i')).click();
+      browser.sleep(2000);
     });
   }
 
@@ -124,5 +125,25 @@ export class TreeViewPage {
 
   sortSubGroup(groupName: string, colName: string) {
     return element.all(by.css('[data-name="' + groupName + '"] metron-config-sorter[title="' + colName + '"]')).click();
+  }
+
+  toggleAlertInTree(index: number) {
+    let selector = by.css('app-tree-view tbody tr');
+    let checkbox = element.all(selector).get(index).element(by.css('label'));
+    waitForElementPresence(checkbox).then(() => {
+      browser.actions().mouseMove(checkbox).perform().then(() => {
+        checkbox.click();
+      });
+    });
+  }
+
+  getAlertStatusForTreeView(rowIndex: number, previousText) {
+    let row = element.all(by.css('app-tree-view tbody tr')).get(rowIndex);
+    // browser.pause();
+    // let column = row.all(by.css('td[data-name="alert_status"] a'));
+    let column = row.all(by.css('td a')).get(8);
+    return waitForTextChange(column, previousText).then(() => {
+      return column.getText();
+    });
   }
 }

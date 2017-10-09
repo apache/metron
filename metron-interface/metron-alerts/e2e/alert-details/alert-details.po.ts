@@ -22,7 +22,8 @@ export class MetronAlertDetailsPage {
 
   navigateTo() {
     browser.waitForAngularEnabled(false);
-    return browser.get('/alerts-list(dialog:details/alerts_ui_e2e/c4c5e418-3938-099e-bb0d-37028a98dca8)');
+    browser.get('/alerts-list(dialog:details/alerts_ui_e2e/c4c5e418-3938-099e-bb0d-37028a98dca8)');
+    browser.sleep(2000);
   }
 
   clickNew() {

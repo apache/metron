@@ -17,6 +17,7 @@
  */
 
 import {browser, element, by, protractor} from 'protractor';
+import {waitForElementVisibility, waitForElementPresence} from '../utils/e2e_util';
 
 export class MetronAlertsPage {
   navigateTo() {
@@ -69,12 +70,15 @@ export class MetronAlertsPage {
   }
 
   clickActionDropdown() {
-    return element(by.buttonText('ACTIONS')).click();
+    let actionsDropDown = element(by.buttonText('ACTIONS'));
+    browser.actions().mouseMove(actionsDropDown).perform();
+    return actionsDropDown.click();
   }
 
   clickActionDropdownOption(option: string) {
     this.clickActionDropdown().then(() => {
       element(by.cssContainingText('.dropdown-menu span', option)).click();
+      browser.sleep(2000);
     });
   }
 
@@ -115,7 +119,8 @@ export class MetronAlertsPage {
   }
 
   clickSettings() {
-    return element(by.css('.btn.settings')).click();
+    let settingsIcon = element(by.css('.btn.settings'));
+    return waitForElementVisibility(settingsIcon).then(() => settingsIcon.click());
   }
 
   getSettingsLabels() {
@@ -165,7 +170,7 @@ export class MetronAlertsPage {
   }
 
   clickTableText(name: string) {
-    element.all(by.linkText(name)).get(0).click();
+    waitForElementPresence(element.all(by.css('app-table-view tbody tr'))).then(() => element.all(by.linkText(name)).get(0).click());
   }
 
   clickClearSearch() {
@@ -233,7 +238,7 @@ export class MetronAlertsPage {
   clickRemoveSearchChip() {
     let aceLine = element.all(by.css('.ace_keyword')).get(0);
     browser.actions().mouseMove(aceLine).perform().then(() => {
-      this.waitForElementPresence(element(by.css('.ace_value i'))).then(() => {
+      waitForElementVisibility(element(by.css('.ace_value i'))).then(() => {
         element.all(by.css('.ace_value i')).get(0).click();
       });
     });
