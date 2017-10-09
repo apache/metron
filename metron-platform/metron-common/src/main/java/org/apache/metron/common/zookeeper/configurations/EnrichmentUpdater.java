@@ -43,7 +43,6 @@ public class EnrichmentUpdater extends ConfigurationsUpdater<EnrichmentConfigura
   @Override
   public void forceUpdate(CuratorFramework client) {
     try {
-
       ConfigurationsUtils.updateEnrichmentConfigsFromZookeeper(getConfigurations(), client);
     } catch (Exception e) {
       LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...");

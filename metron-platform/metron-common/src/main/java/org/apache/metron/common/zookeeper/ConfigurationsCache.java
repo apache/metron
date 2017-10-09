@@ -26,7 +26,10 @@ import org.apache.metron.common.configuration.profiler.ProfilerConfigurations;
 import org.apache.metron.zookeeper.SimpleEventListener;
 import org.apache.metron.zookeeper.ZKCache;
 import org.apache.metron.common.zookeeper.configurations.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +41,8 @@ import java.util.function.Supplier;
 
 public enum ConfigurationsCache {
   INSTANCE;
+
+  private static final Logger LOG =  LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   List<ConfigurationsUpdater< ? extends Configurations>> updaters;
   Map<Class<? extends Configurations>, Configurations> configs;
@@ -64,7 +69,7 @@ public enum ConfigurationsCache {
     return () -> clazz.cast(configs.get(clazz));
   }
 
-  public <T extends Configurations> T get(CuratorFramework client, Class<T> configClass) {
+  public <T extends Configurations> T get(CuratorFramework client, Class<T> configClass){
     Lock writeLock = lock.writeLock();
     try {
       writeLock.lock();
@@ -90,6 +95,10 @@ public enum ConfigurationsCache {
 
         cache.start();
       }
+    }
+    catch(Exception ex) {
+      LOG.error("Unable to set up zookeeper configuration cache: " + ex.getMessage(), ex);
+      throw new IllegalStateException("Unable to set up zookeeper configuration cache: " + ex.getMessage(), ex);
     }
     finally {
       writeLock.unlock();

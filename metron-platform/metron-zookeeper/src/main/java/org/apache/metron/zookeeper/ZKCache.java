@@ -110,8 +110,8 @@ public class ZKCache implements AutoCloseable{
     return client;
   }
 
-  public void start() {
-    if(cache != null) {
+  public void start() throws Exception {
+    if(cache == null) {
       if(ownClient) {
         client.start();
       }
@@ -119,6 +119,7 @@ public class ZKCache implements AutoCloseable{
       for(TreeCacheListener l : listeners) {
         cache.getListenable().addListener(l);
       }
+      cache.start();
     }
   }
 

@@ -106,8 +106,8 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
                            .withRoot(Constants.ZOOKEEPER_TOPOLOGY_ROOT)
                            .build();
         updater.forceUpdate(client);
+        cache.start();
       }
-      cache.start();
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw new RuntimeException(e);
