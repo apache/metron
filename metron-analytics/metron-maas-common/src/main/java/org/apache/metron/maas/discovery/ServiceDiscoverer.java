@@ -214,7 +214,7 @@ public class ServiceDiscoverer implements Closeable{
    * Retrieve the endpoints for a given model.  A model may or may not have a version associated with it.
    * If the version is missing, then all endpoints are returned associated with that model name.
    * @param model
-   * @return state
+   * @return endpoints for a given model
    */
   public List<ModelEndpoint> getEndpoints(Model model) {
     rwLock.readLock().lock();
@@ -324,7 +324,7 @@ public class ServiceDiscoverer implements Closeable{
    * List all endpoints for a given model.
    *
    * @param model
-   * @return ret
+   * @return ret a mapping of models for a given model
    */
   public Map<Model, List<ModelEndpoint>> listEndpoints(Model model) {
     Map<Model, List<ModelEndpoint>> ret = new HashMap<>();

@@ -50,7 +50,7 @@ public class MaaSConfig {
   /**
    * Get the distributed queue implementation handler.  By default, we use a queue in zookeeper
    * as implemented by Apache Curator.
-   * @return queue
+   * @return queue implementation handler
    */
   public QueueHandler getQueue() {
     return queue;
