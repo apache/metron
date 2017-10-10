@@ -70,11 +70,13 @@ public enum ZKConfigurationsCache implements ConfigurationsCache {
   }
 
   public void reset() {
-     Lock writeLock = lock.writeLock();
+    Lock writeLock = lock.writeLock();
     try {
       writeLock.lock();
-      cache.close();
-      cache = null;
+      if(cache != null) {
+        cache.close();
+        cache = null;
+      }
     }
     finally{
       writeLock.unlock();

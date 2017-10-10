@@ -20,6 +20,7 @@ package org.apache.metron.common.zookeeper.configurations;
 import static org.apache.metron.common.configuration.ConfigurationType.PROFILER;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationType;
+import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfigurations;
 import org.apache.metron.common.utils.JSONUtils;
@@ -47,6 +48,7 @@ public class ProfilerUpdater extends ConfigurationsUpdater<ProfilerConfiguration
   @Override
   public void forceUpdate(CuratorFramework client) {
     try {
+      ConfigurationsUtils.updateConfigsFromZookeeper(getConfigurations(), client);
       ProfilerConfig config = readFromZookeeper(client);
       if(config != null) {
         getConfigurations().updateProfilerConfig(config);

@@ -44,7 +44,11 @@ public class Configurations implements Serializable {
 
   @SuppressWarnings("unchecked")
   public Map<String, Object> getGlobalConfig() {
-    return (Map<String, Object>) getConfigurations().getOrDefault(ConfigurationType.GLOBAL.getTypeName(), new HashMap());
+    return getGlobalConfig(true);
+  }
+
+  public Map<String, Object> getGlobalConfig(boolean emptyMapOnNonExistent) {
+    return (Map<String, Object>) getConfigurations().getOrDefault(ConfigurationType.GLOBAL.getTypeName(), emptyMapOnNonExistent?new HashMap():null);
   }
 
   public List<FieldValidator> getFieldValidations() {
