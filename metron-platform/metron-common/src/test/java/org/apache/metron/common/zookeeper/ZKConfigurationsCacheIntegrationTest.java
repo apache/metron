@@ -198,7 +198,6 @@ public class ZKConfigurationsCacheIntegrationTest {
         return;
       }
       catch(AssertionError t) {
-        t.printStackTrace();
       }
       Thread.sleep(delta);
     }
