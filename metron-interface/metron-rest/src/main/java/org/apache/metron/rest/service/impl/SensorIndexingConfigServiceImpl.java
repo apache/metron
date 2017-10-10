@@ -86,6 +86,16 @@ public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigServ
     return configs.getTypes();
   }
 
+  /**
+   * Get a list of index names for a given writer (e.g. elasticsearch, solr, hdfs).
+   * This functions in the following way:
+   *   * If an index config exists, then the index name will be returned. If unspecified, then the sensor name is used
+   *   * If a parser exists and an index does NOT exist, then it will be included.
+   *   * If the writer is disabled in the index config, then it will NOT be included.
+   * @param writerName The writer name to use
+   * @return An iterable of index names
+   * @throws RestException
+   */
   @Override
   public Iterable<String> getAllIndices(String writerName) throws RestException {
     if(StringUtils.isEmpty(writerName)) {
@@ -95,8 +105,10 @@ public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigServ
     ParserConfigurations parserConfigs = cache.get( ParserConfigurations.class);
     Set<String> ret = new HashSet<>();
     for(String sensorName : Iterables.concat(parserConfigs.getTypes(), indexingConfigs.getTypes())) {
-      String indexName = indexingConfigs.getIndex(sensorName, writerName);
-      ret.add(indexName == null?sensorName:indexName);
+      if(indexingConfigs.isEnabled(sensorName, writerName)) {
+        String indexName = indexingConfigs.getIndex(sensorName, writerName);
+        ret.add(indexName == null ? sensorName : indexName);
+      }
     }
     return ret;
   }

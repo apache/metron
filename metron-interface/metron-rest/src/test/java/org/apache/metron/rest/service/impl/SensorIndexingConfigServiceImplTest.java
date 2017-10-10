@@ -147,6 +147,8 @@ public class SensorIndexingConfigServiceImplTest {
     when(indexingConfiguration.getTypes()).thenReturn(Collections.emptyList());
     when(indexingConfiguration.getIndex(eq("bro"), eq("elasticsearch"))).thenReturn(null);
     when(indexingConfiguration.getIndex(eq("snort"), eq("elasticsearch"))).thenReturn(null);
+    when(indexingConfiguration.isEnabled(eq("snort"), eq("elasticsearch"))).thenReturn(true);
+    when(indexingConfiguration.isEnabled(eq("bro"), eq("elasticsearch"))).thenReturn(true);
 
     when(cache.get(eq(ParserConfigurations.class))).thenReturn(parserConfiguration);
     when(cache.get(eq(IndexingConfigurations.class))).thenReturn(indexingConfiguration);
@@ -162,9 +164,13 @@ public class SensorIndexingConfigServiceImplTest {
     ParserConfigurations parserConfiguration = mock(ParserConfigurations.class);
     when(parserConfiguration.getTypes()).thenReturn(Collections.emptyList());
     IndexingConfigurations indexingConfiguration = mock(IndexingConfigurations.class);
-    when(indexingConfiguration.getTypes()).thenReturn(ImmutableList.of("bro", "snort"));
+    // rename bro, include snort by default configs, and disable yaf
+    when(indexingConfiguration.getTypes()).thenReturn(ImmutableList.of("bro", "snort", "yaf"));
     when(indexingConfiguration.getIndex(eq("bro"), eq("elasticsearch"))).thenReturn("renamed_bro");
     when(indexingConfiguration.getIndex(eq("snort"), eq("elasticsearch"))).thenReturn(null);
+    when(indexingConfiguration.isEnabled(eq("snort"), eq("elasticsearch"))).thenReturn(true);
+    when(indexingConfiguration.isEnabled(eq("bro"), eq("elasticsearch"))).thenReturn(true);
+    when(indexingConfiguration.isEnabled(eq("yaf"), eq("elasticsearch"))).thenReturn(false);
 
     when(cache.get(eq(ParserConfigurations.class))).thenReturn(parserConfiguration);
     when(cache.get(eq(IndexingConfigurations.class))).thenReturn(indexingConfiguration);
@@ -181,11 +187,14 @@ public class SensorIndexingConfigServiceImplTest {
     ParserConfigurations parserConfiguration = mock(ParserConfigurations.class);
     when(parserConfiguration.getTypes()).thenReturn(ImmutableList.of("bro", "yaf"));
     IndexingConfigurations indexingConfiguration = mock(IndexingConfigurations.class);
-    when(indexingConfiguration.getTypes()).thenReturn(ImmutableList.of("bro", "snort"));
+    when(indexingConfiguration.getTypes()).thenReturn(ImmutableList.of("bro", "snort", "squid"));
     when(indexingConfiguration.getIndex(eq("bro"), eq("elasticsearch"))).thenReturn("renamed_bro");
     when(indexingConfiguration.getIndex(eq("snort"), eq("elasticsearch"))).thenReturn("snort");
     when(indexingConfiguration.getIndex(eq("yaf"), eq("elasticsearch"))).thenReturn(null);
-
+    when(indexingConfiguration.isEnabled(eq("snort"), eq("elasticsearch"))).thenReturn(true);
+    when(indexingConfiguration.isEnabled(eq("bro"), eq("elasticsearch"))).thenReturn(true);
+    when(indexingConfiguration.isEnabled(eq("yaf"), eq("elasticsearch"))).thenReturn(true);
+    when(indexingConfiguration.isEnabled(eq("squid"), eq("elasticsearch"))).thenReturn(false);
     when(cache.get(eq(ParserConfigurations.class))).thenReturn(parserConfiguration);
     when(cache.get(eq(IndexingConfigurations.class))).thenReturn(indexingConfiguration);
     List<String> indices = new ArrayList<String>();
