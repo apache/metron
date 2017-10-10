@@ -19,7 +19,9 @@ package org.apache.metron.common.zookeeper.configurations;
 
 import org.apache.metron.common.configuration.ConfigurationType;
 
-public interface Reloadable {
+import java.io.Serializable;
+
+public interface Reloadable extends Serializable {
   void reloadCallback(String name, ConfigurationType type);
 
 }

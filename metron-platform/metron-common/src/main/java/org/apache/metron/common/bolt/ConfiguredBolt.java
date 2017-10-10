@@ -47,11 +47,9 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
   protected CuratorFramework client;
   protected ZKCache cache;
   private final CONFIG_T configurations;
-  private ConfigurationsUpdater<CONFIG_T> updater;
   public ConfiguredBolt(String zookeeperUrl) {
     this.zookeeperUrl = zookeeperUrl;
-    this.updater = createUpdater();
-    this.configurations = updater.defaultConfigurations();
+    this.configurations = createUpdater().defaultConfigurations();
   }
 
   public void setCuratorFramework(CuratorFramework client) {
@@ -91,6 +89,7 @@ public abstract class ConfiguredBolt<CONFIG_T extends Configurations> extends Ba
       //zookeeper.
       ConfigurationsUtils.setupStellarStatically(client);
       if (cache == null) {
+        ConfigurationsUpdater<CONFIG_T> updater = createUpdater();
         SimpleEventListener listener = new SimpleEventListener.Builder()
                                                               .with( updater::update
                                                                    , TreeCacheEvent.Type.NODE_ADDED
