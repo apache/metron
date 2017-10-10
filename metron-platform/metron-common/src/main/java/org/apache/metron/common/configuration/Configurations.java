@@ -67,10 +67,15 @@ public class Configurations implements Serializable {
   }
 
   public void updateGlobalConfig(Map<String, Object> globalConfig) {
-    getConfigurations().put(ConfigurationType.GLOBAL.getTypeName(), globalConfig);
-    validations = FieldValidator.readValidations(getGlobalConfig());
+    if(globalConfig != null) {
+      getConfigurations().put(ConfigurationType.GLOBAL.getTypeName(), globalConfig);
+      validations = FieldValidator.readValidations(getGlobalConfig());
+    }
   }
 
+  public void deleteGlobalConfig() {
+    getConfigurations().remove(ConfigurationType.GLOBAL.getTypeName());
+  }
 
   @Override
   public boolean equals(Object o) {

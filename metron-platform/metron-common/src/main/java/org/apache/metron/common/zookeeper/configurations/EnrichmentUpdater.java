@@ -64,7 +64,7 @@ public class EnrichmentUpdater extends ConfigurationsUpdater<EnrichmentConfigura
       reloadCallback(name, ConfigurationType.ENRICHMENT);
     } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
       LOG.debug("Deleting global config from internal cache");
-      getConfigurations().updateGlobalConfig((Map<String, Object>)null);
+      getConfigurations().deleteGlobalConfig();
       reloadCallback(name, ConfigurationType.GLOBAL);
     }
   }

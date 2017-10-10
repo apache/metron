@@ -62,7 +62,7 @@ public class GlobalConfigServiceImpl implements GlobalConfigService {
       Map<String, Object> globalConfig;
       try {
         EnrichmentConfigurations configs = cache.get(client, EnrichmentConfigurations.class);
-        globalConfig = configs.getGlobalConfig();
+        globalConfig = configs.getGlobalConfig(false);
       } catch (Exception e) {
         throw new RestException(e.getMessage(), e);
       }

@@ -60,7 +60,7 @@ public class ParserUpdater extends ConfigurationsUpdater<ParserConfigurations> {
       reloadCallback(name, ConfigurationType.PARSER);
     } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
       LOG.debug("Deleting global config from internal cache");
-      getConfigurations().updateGlobalConfig((Map<String, Object>)null);
+      getConfigurations().deleteGlobalConfig();
       reloadCallback(name, ConfigurationType.GLOBAL);
     }
   }

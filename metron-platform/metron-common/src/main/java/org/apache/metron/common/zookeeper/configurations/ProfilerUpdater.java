@@ -79,7 +79,7 @@ public class ProfilerUpdater extends ConfigurationsUpdater<ProfilerConfiguration
       reloadCallback(name, ConfigurationType.PROFILER);
     } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
       LOG.debug("Deleting global config from internal cache");
-      getConfigurations().updateGlobalConfig((Map<String, Object>)null);
+      getConfigurations().deleteGlobalConfig();
       reloadCallback(name, ConfigurationType.GLOBAL);
     }
   }
