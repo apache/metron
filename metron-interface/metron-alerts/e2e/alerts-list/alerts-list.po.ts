@@ -231,14 +231,16 @@ export class MetronAlertsPage {
   }
 
   clickRemoveSearchChip() {
-    element(by.css('app-alerts-list .ace_text-input')).sendKeys('').then(() => {
-      let aceLine = element.all(by.css('.ace_keyword')).get(0);
-      browser.actions().mouseMove(aceLine).perform().then(() => {
-        this.waitForElementPresence(element(by.css('.ace_value i'))).then(() => {
-          element.all(by.css('.ace_value i')).get(0).click();
-        });
-      });
-    });
+    let aceLine = element.all(by.css('.ace_keyword')).get(0);
+    /* - Focus on the search text box by sending a empty string
+       - move the mouse to the text in search bos so that delete buttons become visible
+       - wait for delete buttons become visible
+       - click on delete button
+    */
+    element(by.css('app-alerts-list .ace_text-input')).sendKeys('')
+    .then(() => browser.actions().mouseMove(aceLine).perform())
+    .then(() => this.waitForElementPresence(element(by.css('.ace_value i'))))
+    .then(() => element.all(by.css('.ace_value i')).get(0).click());
   }
 
   setSearchText(search: string) {
@@ -275,5 +277,10 @@ export class MetronAlertsPage {
     return this.waitForTextChange(column, previousText).then(() => {
       return column.getText();
     });
+  }
+
+  getAlertStatusById(id: string) {
+    return element(by.css('a[title="' + id +'"]'))
+          .element(by.xpath('../..')).all(by.css('td a')).get(8).getText();
   }
 }
