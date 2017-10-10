@@ -29,6 +29,7 @@ import org.apache.metron.common.zookeeper.configurations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,43 +40,77 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
-public enum ZKConfigurationsCache implements ConfigurationsCache {
-  INSTANCE;
-
+public class ZKConfigurationsCache implements ConfigurationsCache {
   private static final Logger LOG =  LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  List<ConfigurationsUpdater< ? extends Configurations>> updaters;
-  Map<Class<? extends Configurations>, Configurations> configs;
-  ZKCache cache;
-  ReadWriteLock lock = new ReentrantReadWriteLock();
 
-  ZKConfigurationsCache() {
-    Reloadable noopReloadable = (name, type) -> { };
-    updaters = new ArrayList<ConfigurationsUpdater< ? extends Configurations>>()
-    {{
-      add(new EnrichmentUpdater( noopReloadable, createSupplier(EnrichmentConfigurations.class)));
-      add(new ParserUpdater( noopReloadable, createSupplier(ParserConfigurations.class)));
-      add(new ProfilerUpdater( noopReloadable, createSupplier(ProfilerConfigurations.class)));
-      add(new IndexingUpdater( noopReloadable, createSupplier(IndexingConfigurations.class)));
-    }};
-    configs = new HashMap<>();
-    for(ConfigurationsUpdater<? extends Configurations> updater : updaters) {
-      configs.put(updater.getConfigurationClass(), updater.defaultConfigurations());
+
+  private interface UpdaterSupplier {
+    ConfigurationsUpdater<? extends Configurations> create(Map<Class<? extends Configurations>, Configurations> configs,Reloadable reloadCallback);
+  }
+
+  public enum ConfiguredTypes implements UpdaterSupplier {
+    ENRICHMENT((c,r) -> new EnrichmentUpdater( r, createSupplier(EnrichmentConfigurations.class, c)))
+    ,PARSER((c,r) -> new ParserUpdater( r, createSupplier(ParserConfigurations.class, c)))
+    ,INDEXING((c,r) -> new IndexingUpdater( r, createSupplier(IndexingConfigurations.class, c)))
+    ,PROFILER((c,r) -> new ProfilerUpdater( r, createSupplier(ProfilerConfigurations.class, c)))
+    ;
+    UpdaterSupplier updaterSupplier;
+    ConfiguredTypes(UpdaterSupplier supplier) {
+      this.updaterSupplier = supplier;
+    }
+
+    @Override
+    public ConfigurationsUpdater<? extends Configurations>
+    create(Map<Class<? extends Configurations>, Configurations> configs, Reloadable reloadCallback) {
+      return updaterSupplier.create(configs, reloadCallback);
     }
   }
 
+  private List<ConfigurationsUpdater< ? extends Configurations>> updaters;
+  private final Map<Class<? extends Configurations>, Configurations> configs;
+  private ZKCache cache;
+  private CuratorFramework client;
+  ReadWriteLock lock = new ReentrantReadWriteLock();
 
-  private <T extends Configurations> Supplier<T> createSupplier(Class<T> clazz) {
+  public ZKConfigurationsCache(CuratorFramework client, Reloadable reloadable, ConfiguredTypes... types) {
+    updaters = new ArrayList<>();
+    configs = new HashMap<>();
+    this.client = client;
+    for(ConfiguredTypes t : types) {
+      ConfigurationsUpdater<? extends Configurations> updater = t.create(configs, reloadable);
+      configs.put(updater.getConfigurationClass(), updater.defaultConfigurations());
+      updaters.add(updater);
+    }
+  }
+
+  public ZKConfigurationsCache(CuratorFramework client, Reloadable reloadable) {
+    this(client, reloadable, ConfiguredTypes.values());
+  }
+
+  public ZKConfigurationsCache(CuratorFramework client, ConfiguredTypes... types) {
+    this(client, (name, type) -> {}, types);
+  }
+
+  public ZKConfigurationsCache(CuratorFramework client) {
+    this(client, ConfiguredTypes.values());
+  }
+
+  private static <T extends Configurations> Supplier<T> createSupplier(Class<T> clazz, Map<Class<? extends Configurations>, Configurations> configs) {
     return () -> clazz.cast(configs.get(clazz));
   }
 
-  public void reset() {
+  public void start() {
+    initializeCache(client);
+  }
+
+  @Override
+  public void close() {
     Lock writeLock = lock.writeLock();
     try {
       writeLock.lock();
-      if(cache != null) {
+      if (cache != null) {
         cache.close();
-        cache = null;
       }
     }
     finally{
@@ -83,43 +118,52 @@ public enum ZKConfigurationsCache implements ConfigurationsCache {
     }
   }
 
-
-  public <T extends Configurations> T get(CuratorFramework client, Class<T> configClass){
+  public void reset() {
     Lock writeLock = lock.writeLock();
     try {
       writeLock.lock();
-      if (cache == null) {
-
-
-        SimpleEventListener listener = new SimpleEventListener.Builder()
-                .with(Iterables.transform(updaters, u -> u::update)
-                        , TreeCacheEvent.Type.NODE_ADDED
-                        , TreeCacheEvent.Type.NODE_UPDATED
-                )
-                .with(Iterables.transform(updaters, u -> u::delete)
-                        , TreeCacheEvent.Type.NODE_REMOVED
-                )
-                .build();
-        cache = new ZKCache.Builder()
-                .withClient(client)
-                .withListener(listener)
-                .withRoot(Constants.ZOOKEEPER_TOPOLOGY_ROOT)
-                .build();
-
-        for (ConfigurationsUpdater<? extends Configurations> updater : updaters) {
-          updater.forceUpdate(client);
-        }
-        cache.start();
-      }
+      close();
+      initializeCache(client);
     }
-    catch(Exception ex) {
-      LOG.error("Unable to set up zookeeper configuration cache: " + ex.getMessage(), ex);
-      throw new IllegalStateException("Unable to set up zookeeper configuration cache: " + ex.getMessage(), ex);
+    finally{
+      writeLock.unlock();
+    }
+  }
+
+  private void initializeCache(CuratorFramework client) {
+    Lock writeLock = lock.writeLock();
+    try {
+      writeLock.lock();
+      SimpleEventListener listener = new SimpleEventListener.Builder()
+              .with(Iterables.transform(updaters, u -> u::update)
+                      , TreeCacheEvent.Type.NODE_ADDED
+                      , TreeCacheEvent.Type.NODE_UPDATED
+              )
+              .with(Iterables.transform(updaters, u -> u::delete)
+                      , TreeCacheEvent.Type.NODE_REMOVED
+              )
+              .build();
+      cache = new ZKCache.Builder()
+              .withClient(client)
+              .withListener(listener)
+              .withRoot(Constants.ZOOKEEPER_TOPOLOGY_ROOT)
+              .build();
+
+      for (ConfigurationsUpdater<? extends Configurations> updater : updaters) {
+        updater.forceUpdate(client);
+      }
+      cache.start();
+    } catch (Exception e) {
+      LOG.error("Unable to initialize zookeeper cache: " + e.getMessage(), e);
+      throw new IllegalStateException("Unable to initialize zookeeper cache: " + e.getMessage(), e);
     }
     finally {
       writeLock.unlock();
     }
+  }
 
+
+  public <T extends Configurations> T get(Class<T> configClass){
     Lock readLock = lock.readLock();
     try {
       readLock.lock();

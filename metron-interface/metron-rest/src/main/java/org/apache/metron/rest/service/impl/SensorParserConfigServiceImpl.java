@@ -60,16 +60,13 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
 
   @Autowired
   public SensorParserConfigServiceImpl(ObjectMapper objectMapper, CuratorFramework client,
-      GrokService grokService) {
+      GrokService grokService, ConfigurationsCache cache) {
     this.objectMapper = objectMapper;
     this.client = client;
     this.grokService = grokService;
-    cache = ZKConfigurationsCache.INSTANCE;
-  }
-
-  public void setCache(ConfigurationsCache cache) {
     this.cache = cache;
   }
+
 
   @Override
   public SensorParserConfig save(SensorParserConfig sensorParserConfig) throws RestException {
@@ -84,7 +81,7 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
 
   @Override
   public SensorParserConfig findOne(String name) throws RestException {
-    ParserConfigurations configs = cache.get(client, ParserConfigurations.class);
+    ParserConfigurations configs = cache.get( ParserConfigurations.class);
     return configs.getSensorParserConfig(name);
   }
 
@@ -115,7 +112,7 @@ public class SensorParserConfigServiceImpl implements SensorParserConfigService 
 
   @Override
   public List<String> getAllTypes() throws RestException {
-    ParserConfigurations configs = cache.get(client, ParserConfigurations.class);
+    ParserConfigurations configs = cache.get( ParserConfigurations.class);
     return configs.getTypes();
   }
 

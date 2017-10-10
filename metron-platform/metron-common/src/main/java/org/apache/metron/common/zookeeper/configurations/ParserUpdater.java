@@ -21,6 +21,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.ParserConfigurations;
+import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -41,7 +42,11 @@ public class ParserUpdater extends ConfigurationsUpdater<ParserConfigurations> {
   public void forceUpdate(CuratorFramework client) {
     try {
       ConfigurationsUtils.updateParserConfigsFromZookeeper(getConfigurations(), client);
-    } catch (Exception e) {
+    }
+    catch (KeeperException.NoNodeException nne) {
+      LOG.warn("No current parser configs in zookeeper, but the cache should load lazily...");
+    }
+    catch (Exception e) {
       LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...", e);
     }
   }

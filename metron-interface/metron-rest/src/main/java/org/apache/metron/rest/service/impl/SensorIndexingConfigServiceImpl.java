@@ -44,13 +44,9 @@ public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigServ
   private ConfigurationsCache cache;
 
   @Autowired
-  public SensorIndexingConfigServiceImpl(ObjectMapper objectMapper, CuratorFramework client) {
+  public SensorIndexingConfigServiceImpl(ObjectMapper objectMapper, CuratorFramework client, ConfigurationsCache cache) {
     this.objectMapper = objectMapper;
     this.client = client;
-    cache = ZKConfigurationsCache.INSTANCE;
-  }
-
-  public void setCache(ConfigurationsCache cache) {
     this.cache = cache;
   }
 
@@ -66,7 +62,7 @@ public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigServ
 
   @Override
   public Map<String, Object> findOne(String name) throws RestException {
-    IndexingConfigurations configs = cache.get(client, IndexingConfigurations.class);
+    IndexingConfigurations configs = cache.get( IndexingConfigurations.class);
     return configs.getSensorIndexingConfig(name, false);
   }
 
@@ -85,7 +81,7 @@ public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigServ
 
   @Override
   public List<String> getAllTypes() throws RestException {
-    IndexingConfigurations configs = cache.get(client, IndexingConfigurations.class);
+    IndexingConfigurations configs = cache.get( IndexingConfigurations.class);
     return configs.getTypes();
   }
 

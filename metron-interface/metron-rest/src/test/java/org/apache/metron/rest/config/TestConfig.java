@@ -36,6 +36,8 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
+import org.apache.metron.common.zookeeper.ZKConfigurationsCache;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.UnableToStartException;
@@ -73,6 +75,11 @@ public class TestConfig {
   @Bean
   public KafkaComponent kafkaWithZKComponent(Properties zkProperties) {
     return new KafkaComponent().withTopologyProperties(zkProperties);
+  }
+
+  @Bean(initMethod = "start", destroyMethod="close")
+  public ConfigurationsCache cache(CuratorFramework client) {
+    return new ZKConfigurationsCache(client);
   }
 
   @Bean(destroyMethod = "stop")

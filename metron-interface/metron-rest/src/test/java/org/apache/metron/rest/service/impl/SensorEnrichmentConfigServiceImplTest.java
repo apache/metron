@@ -89,9 +89,8 @@ public class SensorEnrichmentConfigServiceImplTest {
   public void setUp() throws Exception {
     objectMapper = mock(ObjectMapper.class);
     curatorFramework = mock(CuratorFramework.class);
-    sensorEnrichmentConfigService = new SensorEnrichmentConfigServiceImpl(objectMapper, curatorFramework);
     cache = mock(ConfigurationsCache.class);
-    ((SensorEnrichmentConfigServiceImpl)sensorEnrichmentConfigService).setCache(cache);
+    sensorEnrichmentConfigService = new SensorEnrichmentConfigServiceImpl(objectMapper, curatorFramework, cache);
   }
 
 
@@ -139,7 +138,7 @@ public class SensorEnrichmentConfigServiceImplTest {
         return ImmutableMap.of(EnrichmentConfigurations.getKey("bro"), sensorEnrichmentConfig);
       }
     };
-    when(cache.get(eq(curatorFramework), eq(EnrichmentConfigurations.class)))
+    when(cache.get(eq(EnrichmentConfigurations.class)))
             .thenReturn(configs);
 
     //We only have bro, so we should expect it to be returned
@@ -159,7 +158,7 @@ public class SensorEnrichmentConfigServiceImplTest {
                               );
       }
     };
-    when(cache.get(eq(curatorFramework), eq(EnrichmentConfigurations.class)))
+    when(cache.get(eq(EnrichmentConfigurations.class)))
             .thenReturn(configs);
 
     assertEquals(new ArrayList() {{
@@ -179,7 +178,7 @@ public class SensorEnrichmentConfigServiceImplTest {
         return ImmutableMap.of(EnrichmentConfigurations.getKey("bro"), sensorEnrichmentConfig);
       }
     };
-    when(cache.get(eq(curatorFramework), eq(EnrichmentConfigurations.class)))
+    when(cache.get( eq(EnrichmentConfigurations.class)))
             .thenReturn(configs);
 
     assertEquals(new HashMap() {{ put("bro", sensorEnrichmentConfig);}}, sensorEnrichmentConfigService.getAll());

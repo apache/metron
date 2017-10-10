@@ -110,9 +110,8 @@ public class SensorParserConfigServiceImplTest {
     SecurityContextHolder.getContext().setAuthentication(authentication);
     when(environment.getProperty(GROK_TEMP_PATH_SPRING_PROPERTY)).thenReturn("./target");
     grokService = new GrokServiceImpl(environment, mock(Grok.class), new HdfsServiceImpl(new Configuration()));
-    sensorParserConfigService = new SensorParserConfigServiceImpl(objectMapper, curatorFramework, grokService);
     cache = mock(ConfigurationsCache.class);
-    ((SensorParserConfigServiceImpl)sensorParserConfigService).setCache(cache);
+    sensorParserConfigService = new SensorParserConfigServiceImpl(objectMapper, curatorFramework, grokService, cache);
   }
 
 
@@ -160,7 +159,7 @@ public class SensorParserConfigServiceImplTest {
         return ImmutableMap.of(ParserConfigurations.getKey("bro"), sensorParserConfig);
       }
     };
-    when(cache.get(eq(curatorFramework), eq(ParserConfigurations.class)))
+    when(cache.get(eq(ParserConfigurations.class)))
             .thenReturn(configs);
 
     //We only have bro, so we should expect it to be returned
@@ -179,7 +178,7 @@ public class SensorParserConfigServiceImplTest {
                               );
       }
     };
-    when(cache.get(eq(curatorFramework), eq(ParserConfigurations.class)))
+    when(cache.get( eq(ParserConfigurations.class)))
             .thenReturn(configs);
 
     assertEquals(new ArrayList() {{
@@ -200,7 +199,7 @@ public class SensorParserConfigServiceImplTest {
                               );
       }
     };
-    when(cache.get(eq(curatorFramework), eq(ParserConfigurations.class)))
+    when(cache.get( eq(ParserConfigurations.class)))
             .thenReturn(configs);
 
     assertEquals(new ArrayList() {{

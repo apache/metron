@@ -58,9 +58,8 @@ public class GlobalConfigServiceImplTest {
   @Before
   public void setUp() throws Exception {
     curatorFramework = mock(CuratorFramework.class);
-    globalConfigService = new GlobalConfigServiceImpl(curatorFramework);
     cache = mock(ConfigurationsCache.class);
-    ((GlobalConfigServiceImpl)globalConfigService).setCache(cache);
+    globalConfigService = new GlobalConfigServiceImpl(curatorFramework, cache);
   }
 
 
@@ -111,7 +110,7 @@ public class GlobalConfigServiceImplTest {
         return ImmutableMap.of(ConfigurationType.GLOBAL.getTypeName(), configMap);
       }
     };
-    when(cache.get(eq(curatorFramework), eq(EnrichmentConfigurations.class)))
+    when(cache.get( eq(EnrichmentConfigurations.class)))
             .thenReturn(configs);
 
     assertEquals(configMap, globalConfigService.get());

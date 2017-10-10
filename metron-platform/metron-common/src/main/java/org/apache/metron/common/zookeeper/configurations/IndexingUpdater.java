@@ -21,6 +21,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.IndexingConfigurations;
+import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -41,8 +42,12 @@ public class IndexingUpdater extends ConfigurationsUpdater<IndexingConfiguration
   public void forceUpdate(CuratorFramework client) {
     try {
       ConfigurationsUtils.updateSensorIndexingConfigsFromZookeeper(getConfigurations(), client);
-    } catch (Exception e) {
-      LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...", e);
+    }
+    catch (KeeperException.NoNodeException nne) {
+      LOG.warn("No current indexing configs in zookeeper, but the cache should load lazily...");
+    }
+    catch (Exception e) {
+      LOG.warn("Unable to load indexing configs from zookeeper, but the cache should load lazily...", e);
     }
   }
 

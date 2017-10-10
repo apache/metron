@@ -20,7 +20,7 @@ package org.apache.metron.common.zookeeper;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.Configurations;
 
-public interface ConfigurationsCache {
-  <T extends Configurations> T get(CuratorFramework client, Class<T> configClass);
+public interface ConfigurationsCache extends AutoCloseable{
+  <T extends Configurations> T get(Class<T> configClass);
   void reset();
 }

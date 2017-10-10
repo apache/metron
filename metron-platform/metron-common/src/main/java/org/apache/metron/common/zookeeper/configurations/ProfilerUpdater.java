@@ -24,6 +24,7 @@ import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfigurations;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.zookeeper.KeeperException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -51,6 +52,9 @@ public class ProfilerUpdater extends ConfigurationsUpdater<ProfilerConfiguration
     try {
       ConfigurationsUtils.updateConfigsFromZookeeper(getConfigurations(), client);
     }
+    catch (KeeperException.NoNodeException nne) {
+      LOG.warn("No current global configs in zookeeper, but the cache should load lazily...");
+    }
     catch(Exception e) {
       LOG.warn("Unable to load global configs from zookeeper, but the cache should load lazily...", e);
     }
@@ -60,7 +64,11 @@ public class ProfilerUpdater extends ConfigurationsUpdater<ProfilerConfiguration
         getConfigurations().updateProfilerConfig(config);
       }
 
-    } catch (Exception e) {
+    }
+    catch (KeeperException.NoNodeException nne) {
+      LOG.warn("No current profiler configs in zookeeper, but the cache should load lazily...");
+    }
+    catch (Exception e) {
       LOG.warn("Unable to load profiler configs from zookeeper, but the cache should load lazily...", e);
     }
   }

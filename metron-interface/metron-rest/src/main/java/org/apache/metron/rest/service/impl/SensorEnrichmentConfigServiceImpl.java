@@ -49,13 +49,9 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
     private ConfigurationsCache cache;
 
     @Autowired
-    public SensorEnrichmentConfigServiceImpl(ObjectMapper objectMapper, CuratorFramework client) {
+    public SensorEnrichmentConfigServiceImpl(ObjectMapper objectMapper, CuratorFramework client, ConfigurationsCache cache) {
       this.objectMapper = objectMapper;
       this.client = client;
-      cache = ZKConfigurationsCache.INSTANCE;
-    }
-
-    public void setCache(ConfigurationsCache cache) {
       this.cache = cache;
     }
 
@@ -71,7 +67,7 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
 
     @Override
     public SensorEnrichmentConfig findOne(String name) throws RestException {
-      EnrichmentConfigurations configs = cache.get(client, EnrichmentConfigurations.class);
+      EnrichmentConfigurations configs = cache.get( EnrichmentConfigurations.class);
       return configs.getSensorEnrichmentConfig(name);
     }
 
@@ -90,7 +86,7 @@ public class SensorEnrichmentConfigServiceImpl implements SensorEnrichmentConfig
 
     @Override
     public List<String> getAllTypes() throws RestException {
-      EnrichmentConfigurations configs = cache.get(client, EnrichmentConfigurations.class);
+      EnrichmentConfigurations configs = cache.get( EnrichmentConfigurations.class);
       return configs.getTypes();
     }
 

@@ -80,9 +80,8 @@ public class SensorIndexingConfigServiceImplTest {
   public void setUp() throws Exception {
     objectMapper = mock(ObjectMapper.class);
     curatorFramework = mock(CuratorFramework.class);
-    sensorIndexingConfigService = new SensorIndexingConfigServiceImpl(objectMapper, curatorFramework);
     cache = mock(ConfigurationsCache.class);
-    ((SensorIndexingConfigServiceImpl)sensorIndexingConfigService).setCache(cache);
+    sensorIndexingConfigService = new SensorIndexingConfigServiceImpl(objectMapper, curatorFramework, cache);
   }
 
 
@@ -130,7 +129,7 @@ public class SensorIndexingConfigServiceImplTest {
         return ImmutableMap.of(IndexingConfigurations.getKey("bro"), sensorIndexingConfig);
       }
     };
-    when(cache.get(eq(curatorFramework), eq(IndexingConfigurations.class)))
+    when(cache.get( eq(IndexingConfigurations.class)))
             .thenReturn(configs);
 
     //We only have bro, so we should expect it to be returned
@@ -152,7 +151,7 @@ public class SensorIndexingConfigServiceImplTest {
                               );
       }
     };
-    when(cache.get(eq(curatorFramework), eq(IndexingConfigurations.class)))
+    when(cache.get(eq(IndexingConfigurations.class)))
             .thenReturn(configs);
 
     assertEquals(new ArrayList() {{
@@ -171,7 +170,7 @@ public class SensorIndexingConfigServiceImplTest {
         return ImmutableMap.of(IndexingConfigurations.getKey("bro"), sensorIndexingConfig );
       }
     };
-    when(cache.get(eq(curatorFramework), eq(IndexingConfigurations.class)))
+    when(cache.get(eq(IndexingConfigurations.class)))
             .thenReturn(configs);
 
     assertEquals(new HashMap() {{ put("bro", sensorIndexingConfig);}}, sensorIndexingConfigService.getAll());

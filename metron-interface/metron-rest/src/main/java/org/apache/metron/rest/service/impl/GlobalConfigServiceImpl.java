@@ -38,9 +38,9 @@ public class GlobalConfigServiceImpl implements GlobalConfigService {
     private ConfigurationsCache cache;
 
     @Autowired
-    public GlobalConfigServiceImpl(CuratorFramework client) {
+    public GlobalConfigServiceImpl(CuratorFramework client, ConfigurationsCache cache) {
       this.client = client;
-      cache = ZKConfigurationsCache.INSTANCE;
+      this.cache = cache;
     }
 
     public void setCache(ConfigurationsCache cache) {
@@ -61,7 +61,7 @@ public class GlobalConfigServiceImpl implements GlobalConfigService {
     public Map<String, Object> get() throws RestException {
       Map<String, Object> globalConfig;
       try {
-        EnrichmentConfigurations configs = cache.get(client, EnrichmentConfigurations.class);
+        EnrichmentConfigurations configs = cache.get( EnrichmentConfigurations.class);
         globalConfig = configs.getGlobalConfig(false);
       } catch (Exception e) {
         throw new RestException(e.getMessage(), e);
