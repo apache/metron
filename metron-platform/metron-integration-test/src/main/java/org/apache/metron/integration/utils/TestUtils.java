@@ -31,6 +31,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TestUtils {
+  public static long MAX_ASSERT_WAIT_MS = 10000L;
+  public interface Assertion {
+    void apply() throws Exception;
+  }
+  public static void assertEventually(Assertion assertion) throws Exception {
+    assertEventually(assertion, MAX_ASSERT_WAIT_MS);
+  }
+  private static void assertEventually(Assertion assertion
+                             , long msToWait
+                             ) throws Exception {
+    long delta = msToWait/10;
+    for(int i = 0;i < 10;++i) {
+      try{
+        assertion.apply();
+        return;
+      }
+      catch(AssertionError t) {
+      }
+      Thread.sleep(delta);
+    }
+    assertion.apply();
+  }
 
   public static List<byte[]> readSampleData(String samplePath) throws IOException {
     BufferedReader br = new BufferedReader(new FileReader(samplePath));
