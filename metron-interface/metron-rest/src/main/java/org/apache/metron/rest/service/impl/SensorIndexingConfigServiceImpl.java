@@ -18,10 +18,13 @@
 package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Iterables;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.IndexingConfigurations;
+import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
@@ -30,9 +33,7 @@ import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigService {
@@ -83,6 +84,21 @@ public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigServ
   public List<String> getAllTypes() throws RestException {
     IndexingConfigurations configs = cache.get( IndexingConfigurations.class);
     return configs.getTypes();
+  }
+
+  @Override
+  public Iterable<String> getAllIndices(String writerName) throws RestException {
+    if(StringUtils.isEmpty(writerName)) {
+      return Collections.emptyList();
+    }
+    IndexingConfigurations indexingConfigs = cache.get( IndexingConfigurations.class);
+    ParserConfigurations parserConfigs = cache.get( ParserConfigurations.class);
+    Set<String> ret = new HashSet<>();
+    for(String sensorName : Iterables.concat(parserConfigs.getTypes(), indexingConfigs.getTypes())) {
+      String indexName = indexingConfigs.getIndex(sensorName, writerName);
+      ret.add(indexName == null?sensorName:indexName);
+    }
+    return ret;
   }
 
   @Override
