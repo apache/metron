@@ -52,7 +52,7 @@ public class EnrichmentConfigurations extends Configurations {
   public List<String> getTypes() {
     List<String> ret = new ArrayList<>();
     for(String keyedSensor : getConfigurations().keySet()) {
-      if(!keyedSensor.isEmpty()) {
+      if(!keyedSensor.isEmpty() && keyedSensor.startsWith(ConfigurationType.ENRICHMENT.getTypeName())) {
         ret.add(keyedSensor.substring(ConfigurationType.ENRICHMENT.getTypeName().length() + 1));
       }
     }

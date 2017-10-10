@@ -48,7 +48,7 @@ public class ParserConfigurations extends Configurations {
   public List<String> getTypes() {
     List<String> ret = new ArrayList<>();
     for(String keyedSensor : getConfigurations().keySet()) {
-      if(!keyedSensor.isEmpty()) {
+      if(!keyedSensor.isEmpty() && keyedSensor.startsWith(ConfigurationType.PARSER.getTypeName())) {
         ret.add(keyedSensor.substring(ConfigurationType.PARSER.getTypeName().length() + 1));
       }
     }
