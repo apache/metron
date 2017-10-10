@@ -222,7 +222,7 @@ public class ConfigurationsUtils {
   public static void updateSensorIndexingConfigsFromZookeeper(IndexingConfigurations configurations, CuratorFramework client) throws Exception {
     updateConfigsFromZookeeper( configurations
                               , INDEXING
-                              , sensorType -> configurations.updateSensorIndexingConfig(sensorType, readSensorParserConfigBytesFromZookeeper(sensorType, client))
+                              , sensorType -> configurations.updateSensorIndexingConfig(sensorType, readSensorIndexingConfigBytesFromZookeeper(sensorType, client))
                               , client
                               );
   }
@@ -230,7 +230,7 @@ public class ConfigurationsUtils {
   public static void updateEnrichmentConfigsFromZookeeper(EnrichmentConfigurations configurations, CuratorFramework client) throws Exception {
     updateConfigsFromZookeeper( configurations
                               , ENRICHMENT
-                              , sensorType -> configurations.updateSensorEnrichmentConfig(sensorType, readSensorParserConfigBytesFromZookeeper(sensorType, client))
+                              , sensorType -> configurations.updateSensorEnrichmentConfig(sensorType, readSensorEnrichmentConfigBytesFromZookeeper(sensorType, client))
                               , client
                               );
   }

@@ -89,9 +89,7 @@ public enum ZKConfigurationsCache implements ConfigurationsCache {
     try {
       writeLock.lock();
       if (cache == null) {
-        for (ConfigurationsUpdater<? extends Configurations> updater : updaters) {
-          updater.forceUpdate(client);
-        }
+
 
         SimpleEventListener listener = new SimpleEventListener.Builder()
                 .with(Iterables.transform(updaters, u -> u::update)
@@ -108,6 +106,9 @@ public enum ZKConfigurationsCache implements ConfigurationsCache {
                 .withRoot(Constants.ZOOKEEPER_TOPOLOGY_ROOT)
                 .build();
 
+        for (ConfigurationsUpdater<? extends Configurations> updater : updaters) {
+          updater.forceUpdate(client);
+        }
         cache.start();
       }
     }

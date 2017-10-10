@@ -133,6 +133,8 @@ public class ZKConfigurationsCacheIntegrationTest {
     zkComponent.start();
     client = ConfigurationsUtils.getClient(zkComponent.getConnectionString());
     client.start();
+    cache = ZKConfigurationsCache.INSTANCE;
+    cache.get(client, IndexingConfigurations.class);
     {
       //parser
       byte[] config = IOUtils.toByteArray(new FileInputStream(new File(TestConstants.PARSER_CONFIGS_PATH + "/parsers/bro.json")));
@@ -163,7 +165,6 @@ public class ZKConfigurationsCacheIntegrationTest {
       byte[] config = IOUtils.toByteArray(new FileInputStream(new File(TestConstants.SAMPLE_CONFIG_PATH + "/global.json")));
       ConfigurationsUtils.writeGlobalConfigToZookeeper(config, client);
     }
-    cache = ZKConfigurationsCache.INSTANCE;
   }
 
   @After
@@ -181,41 +182,37 @@ public class ZKConfigurationsCacheIntegrationTest {
 
   @Test
   public void validateDelete() throws Exception {
+    client.delete().forPath(ConfigurationType.GLOBAL.getZookeeperRoot());
+    client.delete().forPath(ConfigurationType.INDEXING.getZookeeperRoot() + "/test");
+    client.delete().forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/test");
+    client.delete().forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/bro");
+    client.delete().forPath(ConfigurationType.PROFILER.getZookeeperRoot() );
+    Thread.sleep(2000);
     //global
     {
-      client.delete().forPath(ConfigurationType.GLOBAL.getZookeeperRoot());
-      Thread.sleep(500);
       IndexingConfigurations config = cache.get(client, IndexingConfigurations.class);
       Assert.assertNull(config.getGlobalConfig(false));
     }
     //indexing
     {
-      client.delete().forPath(ConfigurationType.INDEXING.getZookeeperRoot() + "/test");
-      Thread.sleep(500);
       IndexingConfigurations config = cache.get(client, IndexingConfigurations.class);
       Assert.assertNull(config.getSensorIndexingConfig("test", false));
       Assert.assertNull(config.getGlobalConfig(false));
     }
     //enrichment
     {
-      client.delete().forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/test");
-      Thread.sleep(500);
       EnrichmentConfigurations config = cache.get(client, EnrichmentConfigurations.class);
       Assert.assertNull(config.getSensorEnrichmentConfig("test"));
       Assert.assertNull(config.getGlobalConfig(false));
     }
     //parser
     {
-      client.delete().forPath(ConfigurationType.PARSER.getZookeeperRoot() + "/bro");
-      Thread.sleep(500);
       ParserConfigurations config = cache.get(client, ParserConfigurations.class);
       Assert.assertNull(config.getSensorParserConfig("bro"));
       Assert.assertNull(config.getGlobalConfig(false));
     }
     //profiler
     {
-      client.delete().forPath(ConfigurationType.PROFILER.getZookeeperRoot() );
-      Thread.sleep(500);
       ProfilerConfigurations config = cache.get(client, ProfilerConfigurations.class);
       Assert.assertNull(config.getProfilerConfig());
       Assert.assertNull(config.getGlobalConfig(false));
@@ -224,45 +221,43 @@ public class ZKConfigurationsCacheIntegrationTest {
 
   @Test
   public void validateUpdate() throws Exception {
+    ConfigurationsUtils.writeSensorIndexingConfigToZookeeper("test", testIndexingConfig.getBytes(), client);
+    ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.getBytes(), client);
+    ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper("test", testEnrichmentConfig.getBytes(), client);
+    ConfigurationsUtils.writeSensorParserConfigToZookeeper("bro", testParserConfig.getBytes(), client);
+    ConfigurationsUtils.writeProfilerConfigToZookeeper( profilerConfig.getBytes(), client);
+    Thread.sleep(2000);
     //indexing
     {
-      ConfigurationsUtils.writeSensorIndexingConfigToZookeeper("test", testIndexingConfig.getBytes(), client);
       Map<String, Object> expectedConfig = JSONUtils.INSTANCE.load(testIndexingConfig, new TypeReference<Map<String, Object>>() {});
-      Thread.sleep(500);
       IndexingConfigurations config = cache.get(client, IndexingConfigurations.class);
       Assert.assertEquals(expectedConfig, config.getSensorIndexingConfig("test"));
     }
     //enrichment
     {
-      ConfigurationsUtils.writeGlobalConfigToZookeeper(globalConfig.getBytes(), client);
-      ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper("test", testEnrichmentConfig.getBytes(), client);
       SensorEnrichmentConfig expectedConfig = JSONUtils.INSTANCE.load(testEnrichmentConfig, SensorEnrichmentConfig.class);
       Map<String, Object> expectedGlobalConfig = JSONUtils.INSTANCE.load(globalConfig, new TypeReference<Map<String, Object>>() {});
-      Thread.sleep(500);
       EnrichmentConfigurations config = cache.get(client, EnrichmentConfigurations.class);
       Assert.assertEquals(expectedConfig, config.getSensorEnrichmentConfig("test"));
       Assert.assertEquals(expectedGlobalConfig, config.getGlobalConfig());
     }
     //parsers
     {
-      ConfigurationsUtils.writeSensorParserConfigToZookeeper("bro", testParserConfig.getBytes(), client);
       SensorParserConfig expectedConfig = JSONUtils.INSTANCE.load(testParserConfig, SensorParserConfig.class);
-      Thread.sleep(500);
       ParserConfigurations config = cache.get(client, ParserConfigurations.class);
       Assert.assertEquals(expectedConfig, config.getSensorParserConfig("bro"));
     }
     //profiler
     {
-      ConfigurationsUtils.writeProfilerConfigToZookeeper( profilerConfig.getBytes(), client);
       ProfilerConfig expectedConfig = JSONUtils.INSTANCE.load(profilerConfig, ProfilerConfig.class);
-      Thread.sleep(500);
       ProfilerConfigurations config = cache.get(client, ProfilerConfigurations.class);
       Assert.assertEquals(expectedConfig, config.getProfilerConfig());
     }
   }
 
   @Test
-  public void validateBaseWrite() throws IOException {
+  public void validateBaseWrite() throws IOException, InterruptedException {
+    Thread.sleep(2000);
     File globalConfigFile = new File(TestConstants.SAMPLE_CONFIG_PATH + "/global.json");
     Map<String, Object> expectedGlobalConfig = JSONUtils.INSTANCE.load(globalConfigFile, new TypeReference<Map<String, Object>>() { });
     //indexing

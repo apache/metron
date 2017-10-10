@@ -22,13 +22,18 @@ import com.google.common.collect.Iterables;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 
 public class SimpleEventListener implements TreeCacheListener {
+
+  private static final Logger LOG =  LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   public interface Callback {
     void apply(CuratorFramework client, String path, byte[] data) throws IOException;
@@ -72,6 +77,7 @@ public class SimpleEventListener implements TreeCacheListener {
       path = event.getData().getPath();
       data = event.getData().getData();
     }
+    LOG.debug("Type: {}, Path: {}, Data: {}", event.getType(), (path == null?"":path) , (data == null?"":new String(data)));
     List<Callback> callback = callbacks.get(event.getType());
     if(callback != null) {
       for(Callback cb : callback) {

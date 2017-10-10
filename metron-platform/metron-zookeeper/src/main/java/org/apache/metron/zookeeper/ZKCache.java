@@ -115,7 +115,9 @@ public class ZKCache implements AutoCloseable{
       if(ownClient) {
         client.start();
       }
-      cache = new TreeCache(client, zkRoot);
+      TreeCache.Builder builder = TreeCache.newBuilder(client, zkRoot);
+      builder.setCacheData(true);
+      cache = builder.build();
       for(TreeCacheListener l : listeners) {
         cache.getListenable().addListener(l);
       }
