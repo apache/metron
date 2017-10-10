@@ -151,7 +151,7 @@ export class TimeRangeComponent implements OnInit, OnChanges {
         break;
       case 'all-time':
         fromDate = '1970-01-01T05:30:00+05:30';
-        toDate = moment().local().format();
+        toDate = '2100-01-01T05:30:00+05:30';
         break;
       case 'yesterday':
         fromDate = moment().subtract(1, 'days').startOf('day').local().format();
