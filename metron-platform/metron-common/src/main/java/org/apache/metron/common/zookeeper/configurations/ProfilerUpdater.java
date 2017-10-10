@@ -28,6 +28,7 @@ import org.apache.metron.common.utils.JSONUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class ProfilerUpdater extends ConfigurationsUpdater<ProfilerConfigurations> {
@@ -68,10 +69,12 @@ public class ProfilerUpdater extends ConfigurationsUpdater<ProfilerConfiguration
   public void delete(CuratorFramework client, String path, byte[] data) throws IOException {
     String name = path.substring(path.lastIndexOf("/") + 1);
     if (path.startsWith(ConfigurationType.PROFILER.getZookeeperRoot())) {
+      LOG.debug("Deleting profiler config from internal cache");
       getConfigurations().delete();
       reloadCallback(name, ConfigurationType.PROFILER);
     } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
-      getConfigurations().updateGlobalConfig(new HashMap<>());
+      LOG.debug("Deleting global config from internal cache");
+      getConfigurations().updateGlobalConfig((Map<String, Object>)null);
       reloadCallback(name, ConfigurationType.GLOBAL);
     }
   }
@@ -83,11 +86,13 @@ public class ProfilerUpdater extends ConfigurationsUpdater<ProfilerConfiguration
 
       // update the profiler configuration from zookeeper
       if (path.startsWith(ConfigurationType.PROFILER.getZookeeperRoot())) {
+        LOG.debug("Updating the profiler config: {}", new String(data == null?"".getBytes():data));
         getConfigurations().updateProfilerConfig(data);
         reloadCallback(name, ConfigurationType.PROFILER);
 
       // update the global configuration from zookeeper
       } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
+        LOG.debug("Updating the global config: {}", new String(data == null?"".getBytes():data));
         getConfigurations().updateGlobalConfig(data);
         reloadCallback(name, ConfigurationType.GLOBAL);
       }

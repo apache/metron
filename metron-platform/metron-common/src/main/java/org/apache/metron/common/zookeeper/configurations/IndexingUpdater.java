@@ -24,6 +24,7 @@ import org.apache.metron.common.configuration.IndexingConfigurations;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class IndexingUpdater extends ConfigurationsUpdater<IndexingConfigurations> {
@@ -54,10 +55,12 @@ public class IndexingUpdater extends ConfigurationsUpdater<IndexingConfiguration
   public void delete(CuratorFramework client, String path, byte[] data) throws IOException {
     String name = path.substring(path.lastIndexOf("/") + 1);
     if (path.startsWith(ConfigurationType.INDEXING.getZookeeperRoot())) {
+      LOG.debug("Deleting indexing {} config from internal cache", name);
       getConfigurations().delete(name);
       reloadCallback(name, ConfigurationType.INDEXING);
     } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
-      getConfigurations().updateGlobalConfig(new HashMap<>());
+      LOG.debug("Deleting global config from internal cache");
+      getConfigurations().updateGlobalConfig((Map<String, Object>)null);
       reloadCallback(name, ConfigurationType.GLOBAL);
     }
   }
@@ -67,9 +70,11 @@ public class IndexingUpdater extends ConfigurationsUpdater<IndexingConfiguration
     if (data.length != 0) {
       String name = path.substring(path.lastIndexOf("/") + 1);
       if (path.startsWith(ConfigurationType.INDEXING.getZookeeperRoot())) {
+        LOG.debug("Updating the indexing config: {} -> {}", name, new String(data == null?"".getBytes():data));
         getConfigurations().updateSensorIndexingConfig(name, data);
         reloadCallback(name, ConfigurationType.INDEXING);
       } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
+        LOG.debug("Updating the global config: {}", new String(data == null?"".getBytes():data));
         getConfigurations().updateGlobalConfig(data);
         reloadCallback(name, ConfigurationType.GLOBAL);
       }

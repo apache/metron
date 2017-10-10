@@ -24,6 +24,7 @@ import org.apache.metron.common.configuration.ParserConfigurations;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class ParserUpdater extends ConfigurationsUpdater<ParserConfigurations> {
@@ -54,10 +55,12 @@ public class ParserUpdater extends ConfigurationsUpdater<ParserConfigurations> {
   public void delete(CuratorFramework client, String path, byte[] data) throws IOException {
     String name = path.substring(path.lastIndexOf("/") + 1);
     if (path.startsWith(ConfigurationType.PARSER.getZookeeperRoot())) {
+      LOG.debug("Deleting parser {} config from internal cache", name);
       getConfigurations().delete(name);
       reloadCallback(name, ConfigurationType.PARSER);
     } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
-      getConfigurations().updateGlobalConfig(new HashMap<>());
+      LOG.debug("Deleting global config from internal cache");
+      getConfigurations().updateGlobalConfig((Map<String, Object>)null);
       reloadCallback(name, ConfigurationType.GLOBAL);
     }
   }
@@ -66,9 +69,11 @@ public class ParserUpdater extends ConfigurationsUpdater<ParserConfigurations> {
     if (data.length != 0) {
       String name = path.substring(path.lastIndexOf("/") + 1);
       if (path.startsWith(ConfigurationType.PARSER.getZookeeperRoot())) {
+        LOG.debug("Updating the parser config: {} -> {}", name, new String(data == null?"".getBytes():data));
         getConfigurations().updateSensorParserConfig(name, data);
         reloadCallback(name, ConfigurationType.PARSER);
       } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
+        LOG.debug("Updating the global config: {}", new String(data == null?"".getBytes():data));
         getConfigurations().updateGlobalConfig(data);
         reloadCallback(name, ConfigurationType.GLOBAL);
       }

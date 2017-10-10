@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class EnrichmentUpdater extends ConfigurationsUpdater<EnrichmentConfigurations>{
@@ -58,10 +59,12 @@ public class EnrichmentUpdater extends ConfigurationsUpdater<EnrichmentConfigura
   public void delete(CuratorFramework client, String path, byte[] data) throws IOException {
     String name = path.substring(path.lastIndexOf("/") + 1);
     if (path.startsWith(ConfigurationType.ENRICHMENT.getZookeeperRoot())) {
+      LOG.debug("Deleting enrichment {} config from internal cache", name);
       getConfigurations().delete(name);
       reloadCallback(name, ConfigurationType.ENRICHMENT);
     } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
-      getConfigurations().updateGlobalConfig(new HashMap<>());
+      LOG.debug("Deleting global config from internal cache");
+      getConfigurations().updateGlobalConfig((Map<String, Object>)null);
       reloadCallback(name, ConfigurationType.GLOBAL);
     }
   }
@@ -71,9 +74,11 @@ public class EnrichmentUpdater extends ConfigurationsUpdater<EnrichmentConfigura
     if (data.length != 0) {
       String name = path.substring(path.lastIndexOf("/") + 1);
       if (path.startsWith(ConfigurationType.ENRICHMENT.getZookeeperRoot())) {
+        LOG.debug("Updating the enrichment config: {} -> {}", name, new String(data == null?"".getBytes():data));
         getConfigurations().updateSensorEnrichmentConfig(name, data);
         reloadCallback(name, ConfigurationType.ENRICHMENT);
       } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
+        LOG.debug("Updating the global config: {}", new String(data == null?"".getBytes():data));
         getConfigurations().updateGlobalConfig(data);
         reloadCallback(name, ConfigurationType.GLOBAL);
       }
