@@ -100,6 +100,7 @@ public class ZKConfigurationsCache implements ConfigurationsCache {
     return () -> clazz.cast(configs.get(clazz));
   }
 
+  @Override
   public void start() {
     initializeCache(client);
   }

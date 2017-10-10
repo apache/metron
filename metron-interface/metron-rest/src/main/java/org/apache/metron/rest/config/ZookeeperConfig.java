@@ -40,7 +40,11 @@ public class ZookeeperConfig {
 
   @Bean(initMethod = "start", destroyMethod="close")
   public ConfigurationsCache cache(CuratorFramework client) {
-    return new ZKConfigurationsCache(client);
+    return new ZKConfigurationsCache( client
+                                    , ZKConfigurationsCache.ConfiguredTypes.ENRICHMENT
+                                    , ZKConfigurationsCache.ConfiguredTypes.PARSER
+                                    , ZKConfigurationsCache.ConfiguredTypes.INDEXING
+                                    );
   }
 
   @Bean(initMethod = "start", destroyMethod="close")

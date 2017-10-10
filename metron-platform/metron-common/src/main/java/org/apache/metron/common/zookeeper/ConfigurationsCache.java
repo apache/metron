@@ -23,4 +23,5 @@ import org.apache.metron.common.configuration.Configurations;
 public interface ConfigurationsCache extends AutoCloseable{
   <T extends Configurations> T get(Class<T> configClass);
   void reset();
+  void start();
 }
