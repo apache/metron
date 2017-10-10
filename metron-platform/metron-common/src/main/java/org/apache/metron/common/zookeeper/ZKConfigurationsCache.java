@@ -69,6 +69,19 @@ public enum ZKConfigurationsCache implements ConfigurationsCache {
     return () -> clazz.cast(configs.get(clazz));
   }
 
+  public void reset() {
+     Lock writeLock = lock.writeLock();
+    try {
+      writeLock.lock();
+      cache.close();
+      cache = null;
+    }
+    finally{
+      writeLock.unlock();
+    }
+  }
+
+
   public <T extends Configurations> T get(CuratorFramework client, Class<T> configClass){
     Lock writeLock = lock.writeLock();
     try {

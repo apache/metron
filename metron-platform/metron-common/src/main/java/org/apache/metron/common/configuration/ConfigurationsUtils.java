@@ -187,7 +187,7 @@ public class ConfigurationsUtils {
     updateConfigsFromZookeeper(configurations, client);
     List<String> sensorTypes = client.getChildren().forPath(INDEXING.getZookeeperRoot());
     for(String sensorType: sensorTypes) {
-      configurations.updateSensorIndexingConfig(sensorType, readSensorEnrichmentConfigBytesFromZookeeper(sensorType, client));
+      configurations.updateSensorIndexingConfig(sensorType, readSensorIndexingConfigBytesFromZookeeper(sensorType, client));
     }
   }
 

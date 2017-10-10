@@ -22,4 +22,5 @@ import org.apache.metron.common.configuration.Configurations;
 
 public interface ConfigurationsCache {
   <T extends Configurations> T get(CuratorFramework client, Class<T> configClass);
+  void reset();
 }
