@@ -50,13 +50,18 @@ public class ProfilerUpdater extends ConfigurationsUpdater<ProfilerConfiguration
   public void forceUpdate(CuratorFramework client) {
     try {
       ConfigurationsUtils.updateConfigsFromZookeeper(getConfigurations(), client);
+    }
+    catch(Exception e) {
+      LOG.warn("Unable to load global configs from zookeeper, but the cache should load lazily...", e);
+    }
+    try {
       ProfilerConfig config = readFromZookeeper(client);
       if(config != null) {
         getConfigurations().updateProfilerConfig(config);
       }
 
     } catch (Exception e) {
-      LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...", e);
+      LOG.warn("Unable to load profiler configs from zookeeper, but the cache should load lazily...", e);
     }
   }
 
