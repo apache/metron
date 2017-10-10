@@ -19,6 +19,7 @@ import {Filter} from '../../model/filter';
 import {ColumnNamesService} from '../../service/column-names.service';
 import {SearchRequest} from '../../model/search-request';
 import {SortField} from '../../model/sort-field';
+import {TIMESTAMP_FIELD_NAME} from '../../utils/constants';
 
 export class QueryBuilder {
   private _searchRequest = new SearchRequest();
@@ -63,9 +64,17 @@ export class QueryBuilder {
   }
 
   addOrUpdateFilter(filter: Filter) {
-    let existingFilter = this._filters.find(tFilter => tFilter.field === filter.field);
+    let existingFilterIndex = -1;
+    let existingFilter = this._filters.find((tFilter, index) => {
+      if (tFilter.field === filter.field) {
+        existingFilterIndex = index;
+        return true;
+      }
+      return false;
+    });
+
     if (existingFilter) {
-      existingFilter.value = filter.value;
+      this._filters.splice(existingFilterIndex, 1, filter);
     } else {
       this._filters.push(filter);
     }
@@ -74,20 +83,26 @@ export class QueryBuilder {
   }
 
   generateSelect() {
-    let select = this._filters.map(filter => {
-      return filter.field.replace(/:/g, '\\:') +
-              ':' +
-        String(filter.value)
-          .replace(/[\*\+\-=~><\"\?^\${}\(\)\:\!\/[\]\\\s]/g, '\\$&') // replace single  special characters
-          .replace(/\|\|/g, '\\||') // replace ||
-          .replace(/\&\&/g, '\\&&'); // replace &&
-    }).join(' AND ');
+    let select = this._filters.map(filter => filter.getQueryString()).join(' AND ');
     return (select.length === 0) ? '*' : select;
   }
 
   generateSelectForDisplay() {
-    let select = this._filters.map(filter => ColumnNamesService.getColumnDisplayValue(filter.field) + ':' + filter.value).join(' AND ');
+    let appliedFilters = [];
+    this._filters.reduce((appliedFilters, filter) => {
+      if (filter.display) {
+        appliedFilters.push(ColumnNamesService.getColumnDisplayValue(filter.field) + ':' + filter.value);
+      }
+
+      return appliedFilters;
+    }, appliedFilters);
+
+    let select = appliedFilters.join(' AND ');
     return (select.length === 0) ? '*' : select;
+  }
+
+  isTimeStampFieldPresent(): boolean {
+    return !!this._filters.find(filter => (filter.field === TIMESTAMP_FIELD_NAME));
   }
 
   onSearchChange() {
@@ -121,7 +136,7 @@ export class QueryBuilder {
 
   private updateFilters(tQuery: string, updateNameTransform = false) {
     let query = tQuery;
-    this._filters = [];
+    this.removeDisplayedFilters();
 
     if (query && query !== '' && query !== '*') {
       let terms = query.split(' AND ');
@@ -131,6 +146,14 @@ export class QueryBuilder {
         field = updateNameTransform ? ColumnNamesService.getColumnDisplayKey(field) : field;
         let value = term.substring(separatorPos + 1, term.length);
         this.addOrUpdateFilter(new Filter(field, value));
+      }
+    }
+  }
+
+  private removeDisplayedFilters() {
+    for (let i = this._filters.length-1; i >= 0; i--) {
+      if (this._filters[i].display) {
+        this._filters.splice(i, 1);
       }
     }
   }

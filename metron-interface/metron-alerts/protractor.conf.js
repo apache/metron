@@ -30,7 +30,8 @@ exports.config = {
     './e2e/alerts-list/configure-table/configure-table.e2e-spec.ts',
     './e2e/alerts-list/save-search/save-search.e2e-spec.ts',
     './e2e/alerts-list/alert-status/alerts-list-status.e2e-spec.ts',
-    './e2e/alert-details/alert-status/alert-details-status.e2e-spec.ts'
+    './e2e/alert-details/alert-status/alert-details-status.e2e-spec.ts',
+    './e2e/alerts-list/search-time-range/search-time-range.e2e-spec.ts'
   ],
   capabilities: {
     'browserName': 'chrome',

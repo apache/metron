@@ -24,6 +24,7 @@ import { NavContentDirective } from './directives/nav-content.directive';
 import { CenterEllipsesPipe } from './pipes/center-ellipses.pipe';
 import { AlertSearchDirective } from './directives/alert-search.directive';
 import { ColumnNameTranslatePipe } from './pipes/column-name-translate.pipe';
+import { MapKeysPipe } from './pipes/map-keys.pipe';
 
 @NgModule({
   imports:  [
@@ -35,7 +36,8 @@ import { ColumnNameTranslatePipe } from './pipes/column-name-translate.pipe';
     NavContentDirective,
     CenterEllipsesPipe,
     AlertSearchDirective,
-    ColumnNameTranslatePipe
+    ColumnNameTranslatePipe,
+    MapKeysPipe
   ],
   exports:  [
     CommonModule,
@@ -45,7 +47,8 @@ import { ColumnNameTranslatePipe } from './pipes/column-name-translate.pipe';
     NavContentDirective,
     CenterEllipsesPipe,
     AlertSearchDirective,
-    ColumnNameTranslatePipe
+    ColumnNameTranslatePipe,
+    MapKeysPipe
   ]
 })
 export class SharedModule { }

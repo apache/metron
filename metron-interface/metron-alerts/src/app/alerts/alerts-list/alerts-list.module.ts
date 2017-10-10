@@ -27,11 +27,12 @@ import {ListGroupModule} from '../../shared/list-group/list-grup.module';
 import {CollapseModule} from '../../shared/collapse/collapse.module';
 import {MetronTablePaginationModule} from '../../shared/metron-table/metron-table-pagination/metron-table-pagination.module';
 import {ConfigureRowsModule} from '../configure-rows/configure-rows.module';
+import {TimeRangeModule} from '../../shared/time-range/time-range.module';
 import {TableViewComponent} from './table-view/table-view.component';
 
 @NgModule({
     imports: [routing, SharedModule, ConfigureRowsModule, MetronSorterModule, MetronTablePaginationModule,
-                ListGroupModule, CollapseModule],
+                ListGroupModule, CollapseModule, TimeRangeModule],
     exports: [AlertsListComponent],
     declarations: [AlertsListComponent, TableViewComponent],
     providers: [SearchService, UpdateService]

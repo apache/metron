@@ -1,0 +1,57 @@
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at
+  http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+<button class="btn btn-secondary btn-search" [disabled]="disabled" type="button" data-animation="false"  data-toggle="collapse" data-target="#time-range" aria-expanded="false" aria-controls="time-range">
+  <span> {{selectedTimeRangeValue}} </span>
+  <br/> <span style="font-size: 8px;" *ngIf="selectedTimeRangeValue !== 'All time'"> {{fromDateStr}} to {{toDateStr}}</span>
+</button>
+
+<div #datePicker class="collapse" id="time-range">
+  <div class="card card-block">
+    <div class="container-fluid no-gutters h-100">
+      <div class="row h-100">
+        <div class="col-4 time-range">
+          <div class="title">Time Range</div> <br>
+          <form>
+            <div class="form-group">
+              <label>FROM</label>
+              <app-date-picker [(date)]="datePickerFromDate"> </app-date-picker>
+            </div>
+            <div class="form-group">
+              <label>TO</label>
+              <app-date-picker [(date)]="datePickerToDate" [minDate]="datePickerFromDate"> </app-date-picker>
+            </div>
+            <button class="btn btn-primary pull-right" type="button" [disabled]='datePickerFromDate==="" || datePickerToDate===""' (click)="applyCustomDate()">APPLY</button>
+          </form>
+        </div>
+        <div class="col-8 quick-ranges pr-0">
+          <div class="title"> Quick Ranges </div> <br>
+          <div class="row no-gutters">
+            <div class="col-3">
+                <span *ngFor="let key of timeRangeMappingCol1 | mapKeys" (click)="selectTimeRange($event, timeRangeMappingCol1[key])">  {{ key }} </span> <br>
+            </div>
+            <div class="col-3">
+              <span *ngFor="let key of timeRangeMappingCol2 | mapKeys" (click)="selectTimeRange($event, timeRangeMappingCol2[key])">  {{ key }} </span> <br>
+            </div>
+            <div class="col-3">
+              <span *ngFor="let key of timeRangeMappingCol3 | mapKeys" (click)="selectTimeRange($event, timeRangeMappingCol3[key])">  {{ key }} </span> <br>
+            </div>
+            <div class="col-3">
+              <span *ngFor="let key of timeRangeMappingCol4 | mapKeys" (click)="selectTimeRange($event, timeRangeMappingCol4[key])">  {{ key }} </span> <br>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
