@@ -42,7 +42,7 @@ public class IndexingUpdater extends ConfigurationsUpdater<IndexingConfiguration
     try {
       ConfigurationsUtils.updateSensorIndexingConfigsFromZookeeper(getConfigurations(), client);
     } catch (Exception e) {
-      LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...");
+      LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...", e);
     }
   }
 

@@ -56,7 +56,7 @@ public class ProfilerUpdater extends ConfigurationsUpdater<ProfilerConfiguration
       }
 
     } catch (Exception e) {
-      LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...");
+      LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...", e);
     }
   }
 
