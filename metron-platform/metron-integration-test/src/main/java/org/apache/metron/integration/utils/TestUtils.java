@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TestUtils {
-  public static long MAX_ASSERT_WAIT_MS = 10000L;
+  public static long MAX_ASSERT_WAIT_MS = 30000L;
   public interface Assertion {
     void apply() throws Exception;
   }
