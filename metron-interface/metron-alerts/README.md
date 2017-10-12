@@ -7,6 +7,7 @@
 
 ## Caveats
 * UI uses local storage to save all the data.  A middleware needs to be designed and developed for persisting the data
+* Users cannot search for the contents of the comment's in the Alerts-UI
 
 ## Prerequisites
 * The Metron REST application should be up and running and Elasticsearch should have some alerts populated by Metron topologies
@@ -54,7 +55,7 @@
 
 ### From Ambari MPack
 
-The Alerts UI is included in the Metron Ambari MPack.  It can be accessed through the Quick Links in the Metron service.  
+The Alerts UI is included in the Metron Ambari MPack.  It can be accessed through the Quick Links in the Metron service.
 
 ## Configuration
 
