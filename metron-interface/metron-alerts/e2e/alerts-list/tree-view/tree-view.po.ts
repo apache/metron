@@ -51,6 +51,13 @@ export class TreeViewPage {
     return element(by.css('app-group-by div[data-name="' + name + '"]')).click();
   }
 
+  dragGroup(from: string, to: string) {
+    browser.actions().dragAndDrop(
+        element(by.css('app-group-by div[data-name="' + from + '"]')),
+        element(by.css('app-group-by div[data-name="' + to + '"]'))
+    ).perform();
+  }
+
   getDashGroupValues(name: string) {
     return waitForElementPresence(element(by.css('[data-name="' + name + '"] .card-header span'))).then(() => {
       return element.all(by.css('[data-name="' + name + '"] .card-header span')).getText();

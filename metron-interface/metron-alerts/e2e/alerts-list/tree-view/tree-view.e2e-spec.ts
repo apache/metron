@@ -59,6 +59,59 @@ describe('metron-alerts tree view', function () {
                                                     '5 Group By Elements values should be present');
   });
 
+  it('drag and drop should change group order', () => {
+    let before = {
+      'firstDashRow': ['0', 'alerts_ui_e2e', 'ALERTS', '169'],
+      'firstSubGroup': '0 US (22)',
+      'secondSubGroup': '0 RU (44)',
+      'thirdSubGroup': '0 FR (25)'
+    };
+
+    let after = {
+      'firstDashRow': ['0', 'US', 'ALERTS', '22'],
+      'secondDashRow': ['0', 'RU', 'ALERTS', '44'],
+      'thirdDashRow': ['0', 'FR', 'ALERTS', '25'],
+      'firstDashSubGroup': '0 alerts_ui_e2e (22)',
+      'secondDashSubGroup': '0 alerts_ui_e2e (44)',
+      'thirdDashSubGroup': '0 alerts_ui_e2e (25)'
+    };
+
+    page.selectGroup('source:type');
+    page.selectGroup('enrichments:geo:ip_dst_addr:country');
+    page.expandDashGroup('alerts_ui_e2e');
+    expect(page.getDashGroupValues('alerts_ui_e2e')).toEqualBcoz(before.firstDashRow, 'First Dash Row should be correct');
+    expect(page.getSubGroupValues('alerts_ui_e2e', 'US')).toEqualBcoz(before.firstSubGroup,
+        'Dash Group Values should be correct for US');
+    expect(page.getSubGroupValues('alerts_ui_e2e', 'RU')).toEqualBcoz(before.secondSubGroup,
+        'Dash Group Values should be present for RU');
+    expect(page.getSubGroupValues('alerts_ui_e2e', 'FR')).toEqualBcoz(before.thirdSubGroup,
+        'Dash Group Values should be present for FR');
+
+    page.dragGroup('source:type', 'ip_src_addr');
+    //page.selectGroup('source:type');
+    expect(page.getDashGroupValues('US')).toEqualBcoz(after.firstDashRow, 'First Dash Row after ' +
+        'reorder should be correct');
+    expect(page.getDashGroupValues('RU')).toEqualBcoz(after.secondDashRow, 'Second Dash Row after ' +
+        'reorder should be correct');
+    expect(page.getDashGroupValues('FR')).toEqualBcoz(after.thirdDashRow, 'Third Dash Row after ' +
+        'reorder should be correct');
+
+    page.expandDashGroup('US');
+    expect(page.getSubGroupValues('US', 'alerts_ui_e2e')).toEqualBcoz(after.firstDashSubGroup,
+        'First Dash Group Values should be present for alerts_ui_e2e');
+
+    page.expandDashGroup('RU');
+    expect(page.getSubGroupValues('RU', 'alerts_ui_e2e')).toEqualBcoz(after.secondDashSubGroup,
+        'Second Dash Group Values should be present for alerts_ui_e2e');
+
+    page.expandDashGroup('FR');
+    expect(page.getSubGroupValues('FR', 'alerts_ui_e2e')).toEqualBcoz(after.thirdDashSubGroup,
+        'Third Dash Group Values should be present for alerts_ui_e2e');
+
+    page.dragGroup('source:type', 'ip_dst_addr');
+    page.unGroup();
+  });
+
   it('should have group details for single group by', () => {
     let dashRowValues = ['0', 'alerts_ui_e2e', 'ALERTS', '169'];
     let row1_page1 = ['-', 'dcda4423-7...0962fafc47', '2017-09-13 17:59:32', 'alerts_ui_e2e',
