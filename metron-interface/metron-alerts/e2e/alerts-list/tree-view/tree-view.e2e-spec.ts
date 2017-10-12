@@ -169,8 +169,8 @@ describe('metron-alerts tree view', function () {
 
     listPage.setSearchText('enrichments:geo:ip_dst_addr:country:FR');
 
-    page.expandSubGroup('alerts_ui_e2e', 'FR');
     expect(page.getNumOfSubGroups('alerts_ui_e2e')).toEqual(1, 'one sub groups should be present');
+    page.expandSubGroup('alerts_ui_e2e', 'FR');
 
     let expected = ['FR', 'FR', 'FR', 'FR', 'FR'];
     expect(page.getCellValuesFromTable('alerts_ui_e2e', 'enrichments:geo:ip_dst_addr:country', 'FR')).toEqual(expected,

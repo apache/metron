@@ -171,6 +171,13 @@ export class TreeViewComponent extends TableViewComponent implements OnChanges {
   setData(selectedGroup: TreeGroupData, results: SearchResponse) {
     selectedGroup.response.results = results.results;
     selectedGroup.pagingData.total = results.total;
+    selectedGroup.total = results.total;
+
+    this.topGroups.map(topGroup => {
+      if (topGroup.treeSubGroups.length > 0) {
+        topGroup.total = topGroup.treeSubGroups.reduce((total, subGroup) => { return total + subGroup.total }, 0);
+      }
+    });
   }
 
   checkAndToSubscription(group: TreeGroupData) {
