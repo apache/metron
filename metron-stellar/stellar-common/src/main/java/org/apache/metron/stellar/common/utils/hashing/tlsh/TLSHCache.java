@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,13 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import {routing} from './login.routing';
-import {LoginComponent} from './login.component';
-import {SharedModule} from '../shared/shared.module';
+package org.apache.metron.stellar.common.utils.hashing.tlsh;
 
-@NgModule ({
-  imports: [ routing, SharedModule ],
-  declarations: [ LoginComponent ]
-})
-export class LoginModule { }
+import com.trendmicro.tlsh.BucketOption;
+import com.trendmicro.tlsh.ChecksumOption;
+
+import java.util.AbstractMap;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Create a threadlocal cache of TLSH handlers.
+ */
+public class TLSHCache {
+  public static ThreadLocal<TLSHCache> INSTANCE = ThreadLocal.withInitial(() -> new TLSHCache());
+  private Map<Map.Entry<BucketOption, ChecksumOption>, TLSH> cache = new HashMap<>();
+  private TLSHCache() {}
+
+  public TLSH getTLSH(BucketOption bo, ChecksumOption co) {
+    return cache.computeIfAbsent( new AbstractMap.SimpleEntry<>(bo, co)
+                                , kv -> new TLSH(kv.getKey(), kv.getValue())
+                                );
+  }
+}

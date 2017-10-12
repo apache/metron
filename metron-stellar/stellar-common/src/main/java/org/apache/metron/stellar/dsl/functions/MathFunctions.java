@@ -21,6 +21,7 @@ package org.apache.metron.stellar.dsl.functions;
 
 import org.apache.metron.stellar.common.utils.math.MathOperations;
 import org.apache.metron.stellar.common.utils.math.StellarMathFunction;
+import org.apache.metron.stellar.dsl.BaseStellarFunction;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
@@ -192,6 +193,31 @@ public class MathFunctions {
   public static class Round extends StellarMathFunction {
    public Round() {
       super(MathOperations.ROUND);
+    }
+  }
+
+  @Stellar(name = "IS_NAN",
+      description = "Evaluates if the passed number is NaN.  The number is evaluated as a double",
+       params = {
+        "number - number to evaluate"
+       },
+       returns = "True if the value is NaN, false if it is not")
+  public static class IsNaN extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> args) {
+
+      if (args == null || args.size() != 1) {
+        throw new IllegalStateException(
+            "IS_NAN expects one: [number] ");
+      }
+
+      Object obj = args.get(0);
+      if (obj instanceof Number) {
+        return Double.isNaN(((Number) obj).doubleValue());
+      } else {
+        throw new ParseException("IS_NAN() expects a number argument");
+      }
     }
   }
 }

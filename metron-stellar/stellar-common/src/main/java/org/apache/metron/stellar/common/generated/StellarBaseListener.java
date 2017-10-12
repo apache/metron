@@ -553,6 +553,18 @@ public class StellarBaseListener implements StellarListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterNaNArith(StellarParser.NaNArithContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitNaNArith(StellarParser.NaNArithContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterParenArith(StellarParser.ParenArithContext ctx) { }
 	/**
 	 * {@inheritDoc}
