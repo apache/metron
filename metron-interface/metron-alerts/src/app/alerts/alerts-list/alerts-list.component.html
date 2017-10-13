@@ -62,9 +62,12 @@
     </div>
 </div>
 
-<div class="container-fluid nav-content">
+<div class="container-fluid no-gutters">
     <div class="row">
-        <div class="col-sm-12 pl-0">
+        <div class="px-0" style="width: 200px;max-width: 200px;">
+            <app-alert-filters [facets]="searchResponse.facetCounts" (facetFilterChange)="onAddFacetFilter($event)"> </app-alert-filters>
+        </div>
+        <div class="col">
             <app-table-view #dataViewComponent
                             [alerts]="alerts"
                             [queryBuilder]="queryBuilder"
@@ -76,7 +79,9 @@
                             (onRefreshData)="onRefreshData($event)"
                             (onShowDetails)="showDetails($event)"
                             (onShowConfigureTable)="showConfigureTable()"
-                            (onSelectedAlertsChange)="onSelectedAlertsChange($event)"></app-table-view>
+                            (onSelectedAlertsChange)="onSelectedAlertsChange($event)">
+
+            </app-table-view>
         </div>
     </div>
 </div>
