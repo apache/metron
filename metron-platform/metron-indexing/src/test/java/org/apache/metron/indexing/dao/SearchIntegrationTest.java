@@ -17,9 +17,11 @@
  */
 package org.apache.metron.indexing.dao;
 
+import java.util.Optional;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
@@ -90,6 +92,15 @@ public abstract class SearchIntegrationTest {
    */
   @Multiline
   public static String allQuery;
+
+  /**
+   * {
+   * "guid": "bro-3",
+   * "sensorType": "bro"
+   * }
+   */
+  @Multiline
+  public static String findOneGuidQuery;
 
   /**
    * {
@@ -369,6 +380,15 @@ public abstract class SearchIntegrationTest {
         Assert.assertEquals("bro", results.get(i).getSource().get("source:type"));
         Assert.assertEquals(10-i, results.get(i).getSource().get("timestamp"));
       }
+    }
+    //Find One Guid Testcase
+    {
+      GetRequest request = JSONUtils.INSTANCE.load(findOneGuidQuery, GetRequest.class);
+      Optional<Map<String, Object>> response = dao.getLatestResult(request);
+      Assert.assertTrue(response.isPresent());
+      Map<String, Object> doc = response.get();
+      Assert.assertEquals("bro", doc.get("source:type"));
+      Assert.assertEquals(3, doc.get("timestamp"));
     }
     //Filter test case
     {
