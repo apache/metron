@@ -47,7 +47,7 @@ This configuration is stored in zookeeper, but looks something like
   "es.ip": "node1",
   "es.port": "9300",
   "es.date.format": "yyyy.MM.dd.HH",
-  "parser.error.topic": "indexing"
+  "parser.error.topic": "indexing",
   "fieldValidations" : [
               {
                 "input" : [ "ip_src_addr", "ip_dst_addr" ],
@@ -59,6 +59,31 @@ This configuration is stored in zookeeper, but looks something like
                        ]
 }
 ```
+
+Various parts of our stack uses the global config are documented throughout the Metron documentation,
+but a convenient index is provided here:
+
+| Property Name                                                                                                       | Subsystem     | Type       | Ambari Property            |
+|---------------------------------------------------------------------------------------------------------------------|---------------|------------|----------------------------|
+| [`es.clustername`](../metron-elasticsearch#esclustername)                                                           | Indexing      | String     | `es_cluster_name`          |
+| [`es.ip`](../metron-elasticsearch#esip)                                                                             | Indexing      | String     | `es_hosts`                 |
+| [`es.port`](../metron-elasticsearch#esport)                                                                         | Indexing      | String     | `es_port`                  |
+| [`es.date.format`](../metron-elasticsearch#esdateformat)                                                            | Indexing      | String     | `es_date_format`           |
+| [`fieldValidations`](#validation-framework)                                                                         | Parsing       | Object     | N/A                        |
+| [`parser.error.topic`](../metron-parsers#parsererrortopic)                                                          | Parsing       | String     | N/A                        |
+| [`stellar.function.paths`](../../metron-stellar/stellar-common#stellarfunctionpaths)                                | Stellar       | CSV String | N/A                        |
+| [`stellar.function.resolver.includes`](../../metron-stellar/stellar-common#stellarfunctionresolverincludesexcludes) | Stellar       | CSV String | N/A                        |
+| [`stellar.function.resolver.excludes`](../../metron-stellar/stellar-common#stellarfunctionresolverincludesexcludes) | Stellar       | CSV String | N/A                        |
+| [`profiler.period.duration`](../../metron-analytics/metron-profiler#profilerperiodduration)                         | Profiler      | Integer    | `profiler_period_duration` |
+| [`profiler.period.duration.units`](../../metron-analytics/metron-profiler#profilerperioddurationunits)              | Profiler      | String     | `profiler_period_units`    |
+| [`update.hbase.table`](../metron-indexing#updatehbasetable)                                                         | REST/Indexing | String     | `update_hbase_table`       |
+| [`update.hbase.cf`](../metron-indexing#updatehbasecf)                                                               | REST/Indexing | String     | `update_hbase_cf`          |
+| [`geo.hdfs.file`](../metron-enrichment#geohdfsfile)                                                                 | Enrichment    | String     | `geo_hdfs_file`            |
+
+## Note Configs in Ambari
+If a field is managed via ambari, you should change the field via
+ambari.  Otherwise, upon service restarts, you may find your update
+overwritten.
 
 # Validation Framework
 

@@ -4,6 +4,35 @@
 
 Elasticsearch can be used as the real-time portion of the datastore resulting from [metron-indexing](../metron-indexing.README.md).
 
+## Properties
+
+### `es.clustername`
+
+The name of the elasticsearch Cluster.  See [here](https://www.elastic.co/guide/en/elasticsearch/reference/current/important-settings.html#cluster.name)
+
+### `es.ip`
+
+Specifies the nodes in the elasticsearch cluster to use for writing.
+The format is one of the following:
+* A hostname or IP address with a port (e.g. `hostname1:1234`), in which case `es.port` is ignored.
+* A hostname or IP address without a port (e.g. `hostname1`), in which case `es.port` is used.
+* A string containing a CSV of hostnames without ports (e.g. `hostname1,hostname2,hostname3`) without spaces between.  `es.port` is assumed to be the port for each host.
+* A string containing a CSV of hostnames with ports (e.g. `hostname1:1234,hostname2:1234,hostname3:1234`) without spaces between.  `es.port` is ignored.
+* A list of hostnames with ports (e.g. `[ "hostname1:1234", "hostname2:1234"]`).  Note, `es.port` is NOT used in this construction.
+
+### `es.port`
+
+The port for the elasticsearch hosts.  This will be used in accordance with the discussion of `es.ip`.
+
+### `es.date.format`
+
+The date format to use when constructing the indices.  For every message, the date format will be applied
+to the current time and that will become the last part of the index name where the message is written to.
+
+For instance, an `es.date.format` of `yyyy.MM.dd.HH` would have the consequence that the indices would
+roll hourly, whereas an `es.date.format` of `yyyy.MM.dd` would have the consequence that the indices would
+roll daily.
+
 ## Using Metron with Elasticsearch 2.x
 
 With Elasticsearch 2.x, there is a requirement that all sensors templates have a nested alert field defined.  This field is a dummy field, and will be obsolete in Elasticsearch 5.x.  See [Ignoring Unmapped Fields](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_ignoring_unmapped_fields) for more information
