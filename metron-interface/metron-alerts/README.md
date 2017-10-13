@@ -6,8 +6,14 @@
 - [Installing on an existing Cluster](#installing-on-an-existing-cluster)
 
 ## Caveats
-* UI uses local storage to save all the data.  A middleware needs to be designed and developed for persisting the data
-* Users cannot search for the contents of the comment's in the Alerts-UI
+### Local Storage
+UI uses local storage to save all the data.  A middleware needs to be designed and developed for persisting the data
+
+### Search for Alert GUIDs
+Alert GUIDs must be double-quoted when being searched on to ensure correctness of results, e.g. guid:"id1".
+
+### Search for Comments
+Users cannot search for the contents of the comment's in the Alerts-UI
 
 ## Prerequisites
 * The Metron REST application should be up and running and Elasticsearch should have some alerts populated by Metron topologies

@@ -20,6 +20,7 @@ package org.apache.metron.elasticsearch.dao;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,7 +32,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.apache.metron.common.Constants;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -45,20 +45,16 @@ import org.apache.metron.indexing.dao.search.GroupResult;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.elasticsearch.action.ActionWriteResponse.ShardInfo;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.search.*;
-import org.elasticsearch.action.update.UpdateRequest;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.search.SortOrder;
 import org.apache.metron.indexing.dao.update.Document;
+import org.elasticsearch.action.ActionWriteResponse.ShardInfo;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
 import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
-import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
@@ -77,26 +73,12 @@ import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
 import org.elasticsearch.search.aggregations.metrics.sum.Sum;
 import org.elasticsearch.search.aggregations.metrics.sum.SumBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.*;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Date;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ElasticsearchDao implements IndexDao {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private transient TransportClient client;
   private AccessConfig accessConfig;
   private List<String> ignoredIndices = new ArrayList<>();
@@ -167,6 +149,7 @@ public class ElasticsearchDao implements IndexDao {
       elasticsearchResponse = client.search(new org.elasticsearch.action.search.SearchRequest(wildcardIndices)
               .source(searchSourceBuilder)).actionGet();
     } catch (SearchPhaseExecutionException e) {
+      LOG.error("Could not execute search", e);
       throw new InvalidSearchException("Could not execute search", e);
     }
     SearchResponse searchResponse = new SearchResponse();
@@ -247,30 +230,31 @@ public class ElasticsearchDao implements IndexDao {
    * Return the search hit based on the UUID and sensor type.
    * A callback can be specified to transform the hit into a type T.
    * If more than one hit happens, the first one will be returned.
-   * @throws IOException
    */
-  <T> Optional<T> searchByGuid(String guid, String sensorType, Function<SearchHit, Optional<T>> callback) throws IOException{
-    QueryBuilder query =  QueryBuilders.matchQuery(Constants.GUID, guid);
+  <T> Optional<T> searchByGuid(String guid, String sensorType,
+      Function<SearchHit, Optional<T>> callback) {
+    QueryBuilder query =  QueryBuilders.idsQuery(sensorType + "_doc").ids(guid);
     SearchRequestBuilder request = client.prepareSearch()
-                                         .setTypes(sensorType + "_doc")
                                          .setQuery(query)
                                          .setSource("message")
                                          ;
-    MultiSearchResponse response = client.prepareMultiSearch()
-                                         .add(request)
-                                         .get();
-    for(MultiSearchResponse.Item i : response) {
-      org.elasticsearch.action.search.SearchResponse resp = i.getResponse();
-      SearchHits hits = resp.getHits();
-      for(SearchHit hit : hits) {
-        Optional<T> ret = callback.apply(hit);
-        if(ret.isPresent()) {
-          return ret;
-        }
+    org.elasticsearch.action.search.SearchResponse response = request.get();
+    SearchHits hits = response.getHits();
+    long totalHits = hits.getTotalHits();
+    if (totalHits > 1) {
+      LOG.warn("Encountered {} results for guid {} in sensor {}. Returning first hit.",
+          totalHits,
+          guid,
+          sensorType
+      );
+    }
+    for (SearchHit hit : hits) {
+      Optional<T> ret = callback.apply(hit);
+      if (ret.isPresent()) {
+        return ret;
       }
     }
     return Optional.empty();
-
   }
 
   @Override

@@ -25,7 +25,6 @@ import {KafkaService} from './service/kafka.service';
 import {GrokValidationService} from './service/grok-validation.service';
 import {StellarService} from './service/stellar.service';
 import {MetronAlerts} from './shared/metron-alerts';
-import {LoginComponent} from './login/login.component';
 import {NavbarComponent} from './navbar/navbar.component';
 import {VerticalNavbarComponent} from './verticalnavbar/verticalnavbar.component';
 import {routing, appRoutingProviders} from './app.routes';
@@ -49,7 +48,7 @@ import {HdfsService} from './service/hdfs.service';
 @NgModule({
   imports: [ BrowserModule, routing, FormsModule, ReactiveFormsModule, HttpModule, SensorParserListModule,
     SensorParserConfigModule, SensorParserConfigReadonlyModule, GeneralSettingsModule ],
-  declarations: [ AppComponent, LoginComponent, NavbarComponent, VerticalNavbarComponent ],
+  declarations: [ AppComponent, NavbarComponent, VerticalNavbarComponent ],
   providers: [  AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,
     SensorParserConfigHistoryService, SensorEnrichmentConfigService, SensorIndexingConfigService,
     StormService, KafkaService, GrokValidationService, StellarService, HdfsService,

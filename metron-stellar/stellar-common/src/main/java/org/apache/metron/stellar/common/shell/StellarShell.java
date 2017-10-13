@@ -24,12 +24,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.PropertyConfigurator;
 import org.apache.metron.stellar.common.StellarAssignment;
 import org.apache.metron.stellar.common.utils.JSONUtils;
 import org.apache.metron.stellar.dsl.StellarFunctionInfo;
@@ -124,7 +121,12 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     options.addOption("na", "no_ansi", false, "Make the input prompt not use ANSI colors.");
     options.addOption("h", "help", false, "Print help");
     options.addOption("p", "properties", true, "File containing Stellar properties");
-
+    {
+      Option o = new Option("l", "log4j", true, "The log4j properties file to load");
+      o.setArgName("FILE");
+      o.setRequired(false);
+      options.addOption(o);
+    }
     CommandLineParser parser = new PosixParser();
     CommandLine commandLine = parser.parse(options, args);
 
@@ -141,7 +143,10 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
       System.out.println(e.getMessage());
       System.exit(1);
     }
-    
+    //setting up logging if specified
+    if(commandLine.hasOption("l")) {
+      PropertyConfigurator.configure(commandLine.getOptionValue("l"));
+    }
     console = createConsole(commandLine);
     executor = createExecutor(commandLine, console, getStellarProperties(commandLine));
     loadVariables(commandLine, executor);

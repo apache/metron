@@ -64,23 +64,8 @@ export class SensorRawJsonComponent implements OnChanges {
 
   onSave() {
     let newParsedSensorParserConfig = JSON.parse(this.newSensorParserConfig);
-    this.sensorParserConfig.sensorTopic = newParsedSensorParserConfig.sensorTopic;
-    this.sensorParserConfig.parserConfig = newParsedSensorParserConfig.parserConfig;
-    this.sensorParserConfig.parserClassName = newParsedSensorParserConfig.parserClassName;
-    this.sensorParserConfig.fieldTransformations = newParsedSensorParserConfig.fieldTransformations;
-
-    if (newParsedSensorParserConfig.writerClassName != null) {
-      this.sensorParserConfig.writerClassName = newParsedSensorParserConfig.writerClassName;
-    }
-    if (newParsedSensorParserConfig.errorWriterClassName != null) {
-      this.sensorParserConfig.errorWriterClassName = newParsedSensorParserConfig.errorWriterClassName;
-    }
-    if (newParsedSensorParserConfig.filterClassName != null) {
-      this.sensorParserConfig.filterClassName = newParsedSensorParserConfig.filterClassName;
-    }
-    if (newParsedSensorParserConfig.invalidWriterClassName != null) {
-      this.sensorParserConfig.invalidWriterClassName = newParsedSensorParserConfig.invalidWriterClassName;
-    }
+    Object.keys(newParsedSensorParserConfig).filter(key => newParsedSensorParserConfig[key])
+      .forEach(key => this.sensorParserConfig[key] = newParsedSensorParserConfig[key]);
 
     let newParsedSensorEnrichmentConfig = JSON.parse(this.newSensorEnrichmentConfig);
     this.sensorEnrichmentConfig.enrichment = Object.assign(new EnrichmentConfig(), newParsedSensorEnrichmentConfig.enrichment);
