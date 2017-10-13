@@ -24,11 +24,13 @@ import { MetronAlertsPage } from '../../alerts-list/alerts-list.po';
 
 describe('metron-alerts alert status', function() {
   let page: MetronAlertDetailsPage;
+  let listPage: MetronAlertsPage;
   let loginPage: LoginPage;
 
   beforeAll(() => {
     loadTestData();
     loginPage = new LoginPage();
+    listPage = new MetronAlertsPage();
     loginPage.login();
   });
 
@@ -44,16 +46,22 @@ describe('metron-alerts alert status', function() {
   });
 
   it('should change alert statuses', () => {
-    page.navigateTo();
+    let alertId = 'c4c5e418-3938-099e-bb0d-37028a98dca8';
+    
+    page.navigateTo(alertId);
     page.clickNew();
     page.clickOpen();
     expect(page.getAlertStatus('NEW')).toEqual('OPEN');
+    expect(listPage.getAlertStatusById(alertId)).toEqual('OPEN');
     page.clickDismiss();
     expect(page.getAlertStatus('OPEN')).toEqual('DISMISS');
+    expect(listPage.getAlertStatusById(alertId)).toEqual('DISMISS');
     page.clickEscalate();
     expect(page.getAlertStatus('DISMISS')).toEqual('ESCALATE');
+    expect(listPage.getAlertStatusById(alertId)).toEqual('ESCALATE');
     page.clickResolve();
     expect(page.getAlertStatus('ESCALATE')).toEqual('RESOLVE');
+    expect(listPage.getAlertStatusById(alertId)).toEqual('RESOLVE');
     page.clickNew();
   });
 

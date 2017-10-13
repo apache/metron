@@ -172,6 +172,10 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     return false;
   }
 
+  onAddFacetFilter($event) {
+    this.onAddFilter(new Filter($event.name, $event.key));
+  }
+
   onRefreshData($event) {
     this.search($event);
   }
@@ -229,7 +233,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       this.updateSelectedAlertStatus('ESCALATE');
     });
     this.alertsService.escalate(this.selectedAlerts).subscribe();
-
+   
   }
 
   processDismiss() {
@@ -368,7 +372,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       .map(alert => alert.source = alertSource);
     });
   }
-
+  
   updateSelectedAlertStatus(status: string) {
     for (let selectedAlert of this.selectedAlerts) {
       selectedAlert.status = status;

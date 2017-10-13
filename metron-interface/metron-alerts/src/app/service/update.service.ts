@@ -40,24 +40,12 @@ export class UpdateService {
 
   public patch(patchRequest: PatchRequest): Observable<{}> {
     let url = '/api/v1/update/patch';
-    let observable = Observable.create((observer => {
-
-      let reqCompleted = (result) => {
-        if (observer) {
-          observer.next(result);
-          observer.complete();
-        }
-
-        this.alertChangedSource.next(patchRequest);
-      };
-
-      this.http.patch(url, patchRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-      .catch(HttpUtil.handleError)
-      .subscribe(result => reqCompleted(result));
-
-    }));
-    return observable;
-
+    return this.http.patch(url, patchRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    .catch(HttpUtil.handleError)
+    .map(result => {
+      this.alertChangedSource.next(patchRequest);
+      return result;
+    });
   }
 
   public updateAlertState(alerts: Alert[], state: string): Observable<{}> {

@@ -21,9 +21,9 @@ import {waitForElementInVisibility, waitForElementPresence, waitForElementVisibi
 
 export class MetronAlertDetailsPage {
 
-  navigateTo() {
+  navigateTo(alertId: string) {
     browser.waitForAngularEnabled(false);
-    browser.get('/alerts-list(dialog:details/alerts_ui_e2e/c4c5e418-3938-099e-bb0d-37028a98dca8/alerts_ui_e2e_index)');
+    browser.get('/alerts-list(dialog:details/alerts_ui_e2e/'+ alertId +'/alerts_ui_e2e_index)');
     browser.sleep(2000);
   }
 
@@ -32,7 +32,9 @@ export class MetronAlertDetailsPage {
     let addCommentButtonElement = element(by.buttonText('ADD COMMENT'));
     let latestCommentEle = element.all(by.css('.comment-container .comment')).get(index);
 
-    textAreaElement.clear().then(() => textAreaElement.sendKeys(comment)).then(() => addCommentButtonElement.click())
+    textAreaElement.clear()
+    .then(() => textAreaElement.sendKeys(comment))
+    .then(() => addCommentButtonElement.click())
     .then(() => waitForElementPresence(latestCommentEle));
   }
 
