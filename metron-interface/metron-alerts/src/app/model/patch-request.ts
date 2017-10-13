@@ -15,10 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {Patch} from './patch';
+
 export class PatchRequest {
   guid: string;
   sensorType: string;
   index: string;
-  patch: {};
+  patch: Patch[] = [];
   source: {};
 }

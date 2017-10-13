@@ -314,10 +314,11 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   showDetails(alert: Alert) {
+    let url = '/alerts-list(dialog:details/' + alert.source['source:type'] + '/' + alert.source.guid + '/' + alert.index + ')';
     this.selectedAlerts = [];
     this.selectedAlerts = [alert];
     this.saveRefreshState();
-    this.router.navigateByUrl('/alerts-list(dialog:details/' + alert.source['source:type'] + '/' + alert.source.guid + ')');
+    this.router.navigateByUrl(url);
   }
 
   saveRefreshState() {
@@ -367,7 +368,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   updateAlert(patchRequest: PatchRequest) {
     this.searchService.getAlert(patchRequest.sensorType, patchRequest.guid).subscribe(alertSource => {
-      this.alerts.filter(alert => alert.source.guid == patchRequest.guid)
+      this.alerts.filter(alert => alert.source.guid === patchRequest.guid)
       .map(alert => alert.source = alertSource);
     });
   }
@@ -375,7 +376,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   updateSelectedAlertStatus(status: string) {
     for (let selectedAlert of this.selectedAlerts) {
       selectedAlert.status = status;
-      this.alerts.filter(alert => alert.source.guid == selectedAlert.source.guid)
+      this.alerts.filter(alert => alert.source.guid === selectedAlert.source.guid)
       .map(alert => alert.source['alert_status'] = status);
     }
     this.selectedAlerts = [];

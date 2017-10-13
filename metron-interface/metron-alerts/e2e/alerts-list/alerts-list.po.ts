@@ -184,6 +184,10 @@ export class MetronAlertsPage {
     return element(by.css('.ace_line')).getText();
   }
 
+  isCommentIconPresentInTable() {
+    return element.all(by.css('app-table-view .fa.fa-comments-o')).count();
+  }
+
   getRecentSearchOptions() {
     browser.sleep(1000);
     let map = {};
