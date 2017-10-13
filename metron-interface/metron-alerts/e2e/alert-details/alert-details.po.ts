@@ -20,9 +20,9 @@ import {browser, element, by, protractor} from 'protractor';
 
 export class MetronAlertDetailsPage {
 
-  navigateTo() {
+  navigateTo(alertId: string) {
     browser.waitForAngularEnabled(false);
-    return browser.get('/alerts-list(dialog:details/alerts_ui_e2e/c4c5e418-3938-099e-bb0d-37028a98dca8)');
+    return browser.get('/alerts-list(dialog:details/alerts_ui_e2e/'+ alertId +')');
   }
 
   clickNew() {
