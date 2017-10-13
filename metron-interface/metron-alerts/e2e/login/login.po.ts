@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { browser, element, by } from 'protractor';
-import {waitForElementVisibility} from '../utils/e2e_util';
+import {waitForElementVisibility, waitForURL} from '../utils/e2e_util';
 
 export class LoginPage {
     navigateToLogin() {
@@ -35,7 +35,7 @@ export class LoginPage {
         browser.waitForAngularEnabled(false);
         element.all(by.css('.alert .close')).click();
         element.all(by.css('.logout-link')).click();
-        browser.sleep(2000);
+        waitForURL('http://localhost:4200/login');
     }
 
     setUserNameAndPassword(userName: string, password: string) {
@@ -49,7 +49,7 @@ export class LoginPage {
 
     getErrorMessage() {
         browser.waitForAngularEnabled(false);
-        let errElement = element(by.css('div[style="color:#a94442"]'));
+        let errElement = element(by.css('.login-failed-msg'));
         return waitForElementVisibility(errElement).then(() => {
             return errElement.getText().then((message) => {
                 return message.replace(/\n/, '').replace(/LOG\ IN$/, '');
