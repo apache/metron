@@ -59,6 +59,7 @@ class ParserCommands:
         return topics
 
     def __get_kafka_acl_groups(self):
+        # Parser group is the parser name + '_parser'
         return [parser + '_parser' for parser in self.get_parser_list()]
 
     def is_configured(self):
@@ -99,14 +100,8 @@ class ParserCommands:
 
     def init_kafka_acls(self):
         Logger.info('Creating Kafka ACLs for Parsers')
-
-        # set ACLs for the topics
-        topics = self.__get_topics()
-        metron_service.init_kafka_acls(self.__params, topics)
-
-        # Parser group is the parser name + '_parser'
-        groups = [parser + '_parser' for parser in self.get_parser_list()]
-        metron_service.init_kafka_acl_groups(self.__params, groups)
+        metron_service.init_kafka_acls(self.__params, self.__get_topics())
+        metron_service.init_kafka_acl_groups(self.__params, self.__get_kafka_acl_groups())
 
     def start_parser_topologies(self, env):
         Logger.info("Starting Metron parser topologies: {0}".format(self.get_parser_list()))
