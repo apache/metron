@@ -82,21 +82,9 @@ describe('metron-alerts facets', function() {
         'r03afd2...grams.in': '3' ,
         'va872g....grams.in': '1'
     };
-    let ipDstAddrMap = {
-        '72.34.49.86': '9',
-        '95.163.121.204': '44',
-        '192.168.66.121': '36',
-        '62.75.195.236': '23',
-        '192.168.138.2': '22',
-        '224.0.0.251': '20',
-        '204.152.254.221': '13',
-        '188.165.164.184': '2'
-    };
 
     expect(page.getFacetValues(0)).toEqualBcoz({ US: '22', RU: '44', FR: '25' }, 'for enrichment facet');
     expect(page.getFacetValues(1)).toEqual(hostMap, 'for host facet');
-    // expect(page.getFacetValues(2)).toEqual(ipDstAddrMap, 'for ip_dst_addr facet');
-    // expect(page.getFacetValues(3)).toEqual({ '192.168.138.158': '113', '192.168.66.1': '56'}, 'for ip_src_addr facet');
     expect(page.getFacetValues(4)).toEqual({ alerts_ui_e2e: '169' }, 'for source:type facet');
   });
 
