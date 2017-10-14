@@ -17,7 +17,12 @@ export function waitForURL(url: string) {
 
 export function waitForText(element, text) {
   let EC = protractor.ExpectedConditions;
-  return browser.wait(EC.textToBePresentInElement(element, text));
+  return browser.wait(EC.textToBePresentInElementValue(element, text));
+}
+
+export function waitForTextChange(element, previousText) {
+  let EC = protractor.ExpectedConditions;
+  return browser.wait(EC.not(EC.textToBePresentInElement(element, previousText)));
 }
 
 export function waitForElementInVisibility (_element ) {

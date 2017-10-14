@@ -15,37 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import {AuthenticationService} from './service/authentication.service';
 
-declare var $;
+import {GroupOrder} from './group-order';
 
-@Component({
-  selector: 'metron-alerts-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
-})
-export class AppComponent implements OnInit {
-  loggedIn = false;
+export class Group {
+  order: GroupOrder;
+  field: string;
 
-  constructor(private authService: AuthenticationService) {
-    this.authService.onLoginEvent.subscribe(result => {
-      this.loggedIn = result;
-    });
-  }
-
-  ngOnInit(): void {
-    $('body').tooltip({
-      trigger : 'hover',
-      selector: '[data-toggle="tooltip"]'
-    });
-
-    $('body').on('show.bs.tooltip	', function () {
-      $('.tooltip').tooltip('hide');
-    });
-
-    $(document).on('click', function () {
-      $('.tooltip').tooltip('hide');
-    });
+  constructor(field: string) {
+    this.field = field;
+    this.order = new GroupOrder();
   }
 }

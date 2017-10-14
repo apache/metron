@@ -51,6 +51,7 @@ export class LoginPage {
         browser.waitForAngularEnabled(false);
         let errElement = element(by.css('.login-failed-msg'));
         return waitForElementVisibility(errElement).then(() => {
+            browser.sleep(1000);
             return errElement.getText().then((message) => {
                 return message.replace(/\n/, '').replace(/LOG\ IN$/, '');
             });
