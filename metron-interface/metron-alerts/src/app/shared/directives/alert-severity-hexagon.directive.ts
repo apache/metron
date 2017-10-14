@@ -15,37 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import {AuthenticationService} from './service/authentication.service';
+import { Directive, ElementRef, SimpleChanges, Input, OnChanges } from '@angular/core';
 
-declare var $;
-
-@Component({
-  selector: 'metron-alerts-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+@Directive({
+  selector: '[appAlertSeverityHexagon]'
 })
-export class AppComponent implements OnInit {
-  loggedIn = false;
+export class AlertSeverityHexagonDirective implements OnChanges {
 
-  constructor(private authService: AuthenticationService) {
-    this.authService.onLoginEvent.subscribe(result => {
-      this.loggedIn = result;
-    });
+  @Input() severity: number;
+
+  constructor(private el: ElementRef) { }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['severity'] && changes['severity'].currentValue) {
+      this.setColor(this.severity);
+    }
   }
 
-  ngOnInit(): void {
-    $('body').tooltip({
-      trigger : 'hover',
-      selector: '[data-toggle="tooltip"]'
-    });
-
-    $('body').on('show.bs.tooltip	', function () {
-      $('.tooltip').tooltip('hide');
-    });
-
-    $(document).on('click', function () {
-      $('.tooltip').tooltip('hide');
-    });
+  private setColor(severity: number) {
+    if ( severity > 100 ) {
+      this.el.nativeElement.classList.add('error');
+    } else if ( severity > 50 ) {
+      this.el.nativeElement.classList.add('warning');
+    } else  {
+      this.el.nativeElement.classList.add('info');
+    }
   }
+
 }

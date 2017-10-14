@@ -38,7 +38,6 @@ import {ElasticsearchUtils} from '../../utils/elasticsearch-utils';
 import {TableViewComponent} from './table-view/table-view.component';
 import {Filter} from '../../model/filter';
 import {Pagination} from '../../model/pagination';
-import {environment} from '../../../environments/environment';
 import {PatchRequest} from '../../model/patch-request';
 
 @Component({
@@ -60,7 +59,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   pauseRefresh = false;
   lastPauseRefreshValue = false;
   threatScoreFieldName = 'threat:triage:score';
-  indices: string[];
 
   @ViewChild('table') table: ElementRef;
   @ViewChild('dataViewComponent') dataViewComponent: TableViewComponent;
@@ -85,9 +83,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
         this.restoreRefreshState();
       }
     });
-    if (environment.indices) {
-      this.indices = environment.indices.split(',');
-    }
   }
 
   addAlertChangedListner() {
@@ -107,6 +102,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   addLoadSavedSearchListner() {
     this.saveSearchService.loadSavedSearch$.subscribe((savedSearch: SaveSearch) => {
       let queryBuilder = new QueryBuilder();
+      queryBuilder.setGroupby(this.queryBuilder.groupRequest.groups.map(group => group.field));
       queryBuilder.searchRequest = savedSearch.searchRequest;
       this.queryBuilder = queryBuilder;
       this.prepareColumnData(savedSearch.tableColumns, []);
@@ -115,7 +111,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   calcColumnsToDisplay() {
-    let availableWidth = document.documentElement.clientWidth - (200 + (15 * 3)); /* screenwidth - (navPaneWidth + (paddings))*/
+    let availableWidth = document.documentElement.clientWidth - (200 + (15 * 4)); /* screenwidth - (navPaneWidth + (paddings))*/
     availableWidth = availableWidth - (55 + 25 + 25); /* availableWidth - (score + colunSelectIcon +selectCheckbox )*/
     let tWidth = 0;
     this.alertsColumnsToDisplay =  this.alertsColumns.filter(colMetaData => {
@@ -181,6 +177,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   onSelectedAlertsChange(selectedAlerts) {
+    this.selectedAlerts = selectedAlerts;
     if (selectedAlerts.length > 0) {
       this.pause();
     } else {
@@ -195,6 +192,11 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   onConfigRowsChange() {
     this.searchService.interval = this.refreshInterval;
+    this.search();
+  }
+
+  onGroupsChange(groups) {
+    this.queryBuilder.setGroupby(groups);
     this.search();
   }
 
@@ -232,8 +234,6 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE').subscribe(results => {
       this.updateSelectedAlertStatus('ESCALATE');
     });
-    this.alertsService.escalate(this.selectedAlerts).subscribe();
-   
   }
 
   processDismiss() {
@@ -269,14 +269,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     if (resetPaginationParams) {
       this.pagination.from = 0;
     }
-    this.queryBuilder.searchRequest.from = this.pagination.from;
-    if (this.tableMetaData.size) {
-      this.pagination.size = this.tableMetaData.size;
-    }
-    this.queryBuilder.searchRequest.size = this.pagination.size;
-    if (this.indices) {
-      this.queryBuilder.searchRequest.indices = this.indices;
-    }
+
+    this.setSearchRequestSize();
+
     this.searchService.search(this.queryBuilder.searchRequest).subscribe(results => {
       this.setData(results);
     }, error => {
@@ -285,6 +280,19 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     });
 
     this.tryStartPolling();
+  }
+
+  setSearchRequestSize() {
+    if (this.queryBuilder.groupRequest.groups.length == 0) {
+      this.queryBuilder.searchRequest.from = this.pagination.from;
+      if (this.tableMetaData.size) {
+        this.pagination.size = this.tableMetaData.size;
+      }
+      this.queryBuilder.searchRequest.size = this.pagination.size;
+    } else {
+      this.queryBuilder.searchRequest.from = 0;
+      this.queryBuilder.searchRequest.size = 0;
+    }
   }
 
   saveCurrentSearch(savedSearch: SaveSearch) {
@@ -375,9 +383,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   
   updateSelectedAlertStatus(status: string) {
     for (let selectedAlert of this.selectedAlerts) {
-      selectedAlert.status = status;
-      this.alerts.filter(alert => alert.source.guid === selectedAlert.source.guid)
-      .map(alert => alert.source['alert_status'] = status);
+      selectedAlert.source['alert_status'] = status;
     }
     this.selectedAlerts = [];
     this.resume();

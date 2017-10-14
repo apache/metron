@@ -40,6 +40,9 @@
         </div>
         <div class="col-md-3 px-0">
             <div class="pull-right" style="position: relative; display: block;">
+                <div class="btn cog">
+                    <i class="fa fa-cog configure-table-icon" (click)="showConfigureTable()"></i>
+                </div>
                 <div class="btn settings">
                     <i #settingsIcon class="fa fa-sliders" aria-hidden="true"></i>
                 </div>
@@ -64,25 +67,36 @@
 
 <div class="container-fluid no-gutters">
     <div class="row">
-        <div class="px-0" style="width: 200px;max-width: 200px;">
-            <app-alert-filters [facets]="searchResponse.facetCounts" (facetFilterChange)="onAddFacetFilter($event)"> </app-alert-filters>
+      <div class="px-0" style="width: 200px;max-width: 200px;">
+        <app-alert-filters [facets]="searchResponse.facetCounts" (facetFilterChange)="onAddFacetFilter($event)"> </app-alert-filters>
+      </div>
+      <div class="col px-0 ml-4">
+        <div class="col-sm-12 pl-0 pb-3">
+          <app-group-by [facets]="searchResponse.facetCounts" (groupsChange)="onGroupsChange($event)"> </app-group-by>
         </div>
-        <div class="col">
+        <div class="col-sm-12 px-0">
             <app-table-view #dataViewComponent
-                            [alerts]="alerts"
+                            [alerts]="alerts" *ngIf="queryBuilder.groupRequest.groups.length === 0"
                             [queryBuilder]="queryBuilder"
                             [pagination]="pagination"
                             [alertsColumnsToDisplay]="alertsColumnsToDisplay"
-                            [(selectedAlerts)]="selectedAlerts"
+                            [selectedAlerts]="selectedAlerts"
                             (onResize)="onResize()"
                             (onAddFilter)="onAddFilter($event)"
                             (onRefreshData)="onRefreshData($event)"
                             (onShowDetails)="showDetails($event)"
-                            (onShowConfigureTable)="showConfigureTable()"
-                            (onSelectedAlertsChange)="onSelectedAlertsChange($event)">
-
-            </app-table-view>
+                            (onSelectedAlertsChange)="onSelectedAlertsChange($event)"></app-table-view>
+            <app-tree-view #dataViewComponent *ngIf="queryBuilder.groupRequest.groups.length !== 0"
+                           [alerts]="alerts"
+                           [queryBuilder]="queryBuilder"
+                           [alertsColumnsToDisplay]="alertsColumnsToDisplay"
+                           [selectedAlerts]="selectedAlerts"
+                           (onResize)="onResize()"
+                           (onAddFilter)="onAddFilter($event)"
+                           (onShowDetails)="showDetails($event)"
+                           (onSelectedAlertsChange)="onSelectedAlertsChange($event)"></app-tree-view>
         </div>
     </div>
+  </div>
 </div>
 

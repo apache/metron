@@ -109,6 +109,10 @@ export class MetronAlertDetailsPage {
     return element.all(by.css('app-table-view .fa.fa-comments-o')).count();
   }
 
+  getCommentIconCountInTreeView() {
+    return element.all(by.css('app-tree-view .fa.fa-comments-o')).count();
+  }
+
   waitForTextChange(element, previousText) {
     let EC = protractor.ExpectedConditions;
     return browser.wait(EC.not(EC.textToBePresentInElement(element, previousText)));
