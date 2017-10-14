@@ -65,14 +65,18 @@
     </div>
 </div>
 
-<div class="container-fluid nav-content">
+<div class="container-fluid no-gutters">
     <div class="row">
+      <div class="px-0" style="width: 200px;max-width: 200px;">
+        <app-alert-filters [facets]="searchResponse.facetCounts" (facetFilterChange)="onAddFacetFilter($event)"> </app-alert-filters>
+      </div>
+      <div class="col px-0 ml-4">
         <div class="col-sm-12 pl-0 pb-3">
-            <app-group-by [facets]="searchResponse.facetCounts" (groupsChange)="onGroupsChange($event)"> </app-group-by>
+          <app-group-by [facets]="searchResponse.facetCounts" (groupsChange)="onGroupsChange($event)"> </app-group-by>
         </div>
-        <div class="col-sm-12 pl-0">
-            <app-table-view #dataViewComponent *ngIf="queryBuilder.groupRequest.groups.length === 0"
-                            [alerts]="alerts"
+        <div class="col-sm-12 px-0">
+            <app-table-view #dataViewComponent
+                            [alerts]="alerts" *ngIf="queryBuilder.groupRequest.groups.length === 0"
                             [queryBuilder]="queryBuilder"
                             [pagination]="pagination"
                             [alertsColumnsToDisplay]="alertsColumnsToDisplay"
@@ -93,5 +97,6 @@
                            (onSelectedAlertsChange)="onSelectedAlertsChange($event)"></app-tree-view>
         </div>
     </div>
+  </div>
 </div>
 

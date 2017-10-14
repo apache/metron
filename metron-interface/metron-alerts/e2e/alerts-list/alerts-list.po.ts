@@ -189,10 +189,14 @@ export class MetronAlertsPage {
     return element(by.css('.ace_line')).getText();
   }
 
+  isCommentIconPresentInTable() {
+    return element.all(by.css('app-table-view .fa.fa-comments-o')).count();
+  }
+
   getRecentSearchOptions() {
     browser.sleep(1000);
     let map = {};
-    let recentSearches = element.all(by.css('metron-collapse')).get(0);
+    let recentSearches = element.all(by.css('app-saved-searches metron-collapse')).get(0);
     return recentSearches.all(by.css('a')).getText().then(title => {
        return recentSearches.all(by.css('.collapse.show')).getText().then(values => {
          map[title] = values;
@@ -204,7 +208,7 @@ export class MetronAlertsPage {
   getSavedSearchOptions() {
     browser.sleep(1000);
     let map = {};
-    let recentSearches = element.all(by.css('metron-collapse')).get(1);
+    let recentSearches = element.all(by.css('app-saved-searches metron-collapse')).get(1);
     return recentSearches.all(by.css('a')).getText().then(title => {
       return recentSearches.all(by.css('.collapse.show')).getText().then(values => {
         map[title] = values;
@@ -237,11 +241,15 @@ export class MetronAlertsPage {
 
   clickRemoveSearchChip() {
     let aceLine = element.all(by.css('.ace_keyword')).get(0);
-    browser.actions().mouseMove(aceLine).perform().then(() => {
-      waitForElementVisibility(element(by.css('.ace_value i'))).then(() => {
-        element.all(by.css('.ace_value i')).get(0).click();
-      });
-    });
+    /* - Focus on the search text box by sending a empty string
+       - move the mouse to the text in search bos so that delete buttons become visible
+       - wait for delete buttons become visible
+       - click on delete button
+    */
+    element(by.css('app-alerts-list .ace_text-input')).sendKeys('')
+    .then(() => browser.actions().mouseMove(aceLine).perform())
+    .then(() => this.waitForElementPresence(element(by.css('.ace_value i'))))
+    .then(() => element.all(by.css('.ace_value i')).get(0).click());
   }
 
   setSearchText(search: string) {
@@ -278,5 +286,10 @@ export class MetronAlertsPage {
     return this.waitForTextChange(column, previousText).then(() => {
       return column.getText();
     });
+  }
+
+  getAlertStatusById(id: string) {
+    return element(by.css('a[title="' + id +'"]'))
+          .element(by.xpath('../..')).all(by.css('td a')).get(8).getText();
   }
 }

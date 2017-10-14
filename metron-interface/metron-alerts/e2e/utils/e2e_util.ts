@@ -47,8 +47,10 @@ export function waitForStalenessOf (_element ) {
 
 export function loadTestData() {
   deleteTestData();
-  fs.createReadStream('e2e/mock-data/alerts_ui_e2e_index.template').pipe(request.post('http://node1:9200/_template/alerts_ui_e2e_index'));
-  fs.createReadStream('e2e/mock-data/alerts_ui_e2e_index.data').pipe(request.post('http://node1:9200/alerts_ui_e2e_index/alerts_ui_e2e_doc/_bulk'));
+  fs.createReadStream('e2e/mock-data/alerts_ui_e2e_index.template')
+    .pipe(request.post('http://node1:9200/_template/alerts_ui_e2e_index'));
+  fs.createReadStream('e2e/mock-data/alerts_ui_e2e_index.data')
+    .pipe(request.post('http://node1:9200/alerts_ui_e2e_index/alerts_ui_e2e_doc/_bulk'));
 }
 
 export function deleteTestData() {

@@ -115,9 +115,9 @@ describe('metron-alerts tree view', function () {
   it('should have group details for single group by', () => {
     let dashRowValues = ['0', 'alerts_ui_e2e', 'ALERTS', '169'];
     let row1_page1 = ['-', 'dcda4423-7...0962fafc47', '2017-09-13 17:59:32', 'alerts_ui_e2e',
-      '192.168.138.158', 'US', '72.34.49.86', 'comarksecurity.com', 'NEW', ''];
+      '192.168.138.158', 'US', '72.34.49.86', 'comarksecurity.com', 'NEW', '', ''];
     let row1_page2 = ['-', '07b29c29-9...ff19eaa888', '2017-09-13 17:59:37', 'alerts_ui_e2e',
-      '192.168.138.158', 'FR', '62.75.195.236', '62.75.195.236', 'NEW', ''];
+      '192.168.138.158', 'FR', '62.75.195.236', '62.75.195.236', 'NEW', '', ''];
 
     page.selectGroup('source:type');
     expect(page.getActiveGroups()).toEqualBcoz(['source:type'], 'only source type group should be selected');

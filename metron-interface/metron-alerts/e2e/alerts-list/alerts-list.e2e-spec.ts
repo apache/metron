@@ -19,13 +19,13 @@
 import { MetronAlertsPage } from './alerts-list.po';
 import { customMatchers } from  '../matchers/custom-matchers';
 import { LoginPage } from '../login/login.po';
-import { loadTestData, deleteTestData } from "../utils/e2e_util";
+import { loadTestData, deleteTestData } from '../utils/e2e_util';
 
 describe('metron-alerts App', function() {
   let page: MetronAlertsPage;
   let loginPage: LoginPage;
   let columnNames = [ 'Score', 'id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichm...:country',
-                      'ip_dst_addr', 'host', 'alert_status', ''];
+                      'ip_dst_addr', 'host', 'alert_status', '', ''];
   let colNamesColumnConfig = [ 'score', 'id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
                                 'ip_dst_addr', 'host', 'alert_status' ];
 

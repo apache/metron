@@ -28,7 +28,7 @@ export class LoginComponent {
 
   user: string;
   password: string;
-  loginFailure: string = '';
+  loginFailure = '';
 
   constructor(private authenticationService: AuthenticationService, private activatedRoute: ActivatedRoute) {
     this.activatedRoute.queryParams.subscribe(params => {

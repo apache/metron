@@ -20,3 +20,4 @@ export class Facets {
     [key: string]: number
   }
 }
+

@@ -22,13 +22,13 @@ import {AlertsListComponent}   from './alerts-list.component';
 import {routing} from './alerts-list.routing';
 import {SharedModule} from '../../shared/shared.module';
 import {SearchService} from '../../service/search.service';
-import {UpdateService} from '../../service/update.service';
 import {MetronSorterModule} from '../../shared/metron-table/metron-sorter/metron-sorter.module';
 import {ListGroupModule} from '../../shared/list-group/list-grup.module';
 import {CollapseModule} from '../../shared/collapse/collapse.module';
 import {MetronTablePaginationModule} from '../../shared/metron-table/metron-table-pagination/metron-table-pagination.module';
 import {ConfigureRowsModule} from '../configure-rows/configure-rows.module';
 import {GroupByModule} from '../../shared/group-by/group-by.module';
+import {AlertFiltersComponent} from './alert-filters/alert-filters.component';
 import {TableViewComponent} from './table-view/table-view.component';
 import {TreeViewComponent} from './tree-view/tree-view.component';
 
@@ -36,8 +36,8 @@ import {TreeViewComponent} from './tree-view/tree-view.component';
     imports: [routing, SharedModule, ConfigureRowsModule, MetronSorterModule, MetronTablePaginationModule,
                 ListGroupModule, CollapseModule, GroupByModule],
     exports: [AlertsListComponent],
-    declarations: [AlertsListComponent, TableViewComponent, TreeViewComponent],
-    providers: [DecimalPipe, SearchService, UpdateService]
+    declarations: [AlertsListComponent, TableViewComponent, TreeViewComponent, AlertFiltersComponent],
+    providers: [DecimalPipe, SearchService]
 })
 export class AlertsListModule {
 }

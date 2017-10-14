@@ -49,7 +49,7 @@ export class LoginPage {
 
     getErrorMessage() {
         browser.waitForAngularEnabled(false);
-        let errElement = element(by.css('div[style="color:#a94442"]'));
+        let errElement = element(by.css('.login-failed-msg'));
         return waitForElementVisibility(errElement).then(() => {
             browser.sleep(1000);
             return errElement.getText().then((message) => {

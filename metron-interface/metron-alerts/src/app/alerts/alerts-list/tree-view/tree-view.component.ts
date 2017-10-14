@@ -32,6 +32,8 @@ import {Sort} from '../../../utils/enums';
 import {MetronDialogBox, DialogType} from '../../../shared/metron-dialog-box';
 import {ElasticsearchUtils} from '../../../utils/elasticsearch-utils';
 import {SearchRequest} from '../../../model/search-request';
+import {UpdateService} from '../../../service/update.service';
+import {PatchRequest} from '../../../model/patch-request';
 
 @Component({
   selector: 'app-tree-view',
@@ -48,8 +50,15 @@ export class TreeViewComponent extends TableViewComponent implements OnChanges {
 
   constructor(router: Router,
               searchService: SearchService,
-              metronDialogBox: MetronDialogBox) {
+              metronDialogBox: MetronDialogBox,
+              private updateService: UpdateService) {
     super(router, searchService, metronDialogBox);
+  }
+
+  addAlertChangedListner() {
+    this.updateService.alertChanged$.subscribe(patchRequest => {
+      this.updateAlert(patchRequest);
+    });
   }
 
   collapseGroup(groupArray: TreeGroupData[], level: number, index: number) {
@@ -158,6 +167,10 @@ export class TreeViewComponent extends TableViewComponent implements OnChanges {
     if ((changes['alerts'] && changes['alerts'].currentValue)) {
       this.search();
     }
+  }
+
+  ngOnInit() {
+    this.addAlertChangedListner();
   }
 
   searchGroup(selectedGroup: TreeGroupData, searchRequest: SearchRequest): Subscription {
@@ -321,6 +334,19 @@ export class TreeViewComponent extends TableViewComponent implements OnChanges {
   refreshAllExpandedGroups() {
     Object.keys(this.treeGroupSubscriptionMap).forEach(key => {
       this.getAlerts(this.treeGroupSubscriptionMap[key].group);
+    });
+  }
+
+  updateAlert(patchRequest: PatchRequest) {
+    this.searchService.getAlert(patchRequest.sensorType, patchRequest.guid).subscribe(alertSource => {
+
+      Object.keys(this.treeGroupSubscriptionMap).forEach(key => {
+        let group = this.treeGroupSubscriptionMap[key].group;
+        if(group.response && group.response.results && group.response.results.length > 0) {
+          group.response.results.filter(alert => alert.source.guid === patchRequest.guid)
+          .map(alert => alert.source = alertSource);
+        }
+      });
     });
   }
 }

@@ -26,3 +26,4 @@ export class SearchResponse {
   facetCounts: Facets;
   groups: SearchResultGroup[];
 }
+

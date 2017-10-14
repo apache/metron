@@ -25,6 +25,14 @@ export class TreeViewPage {
     return browser.get('/alerts-list');
   }
 
+  clickOnRow(id: string) {
+    let idElement = element(by.css('a[title="' + id +'"]'));
+    waitForElementPresence(idElement)
+    .then(() => browser.actions().mouseMove(idElement).perform())
+    .then(() => idElement.element(by.xpath('../..')).all(by.css('td')).get(9).click());
+    browser.sleep(2000);
+  }
+
   getActiveGroups() {
     return element.all(by.css('app-group-by .group-by-items.active')).getAttribute('data-name');
   }
@@ -146,8 +154,6 @@ export class TreeViewPage {
 
   getAlertStatusForTreeView(rowIndex: number, previousText) {
     let row = element.all(by.css('app-tree-view tbody tr')).get(rowIndex);
-    // browser.pause();
-    // let column = row.all(by.css('td[data-name="alert_status"] a'));
     let column = row.all(by.css('td a')).get(8);
     return waitForTextChange(column, previousText).then(() => {
       return column.getText();

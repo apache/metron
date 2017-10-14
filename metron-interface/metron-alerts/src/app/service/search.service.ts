@@ -69,7 +69,6 @@ export class SearchService {
   public getAlert(sourceType: string, alertId: string): Observable<AlertSource> {
     let url = '/api/v1/search/findOne';
     let requestSchema = { guid: alertId, sensorType: sourceType};
-
     return this.http.post(url, requestSchema, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
     .map(HttpUtil.extractData)
     .catch(HttpUtil.handleError)

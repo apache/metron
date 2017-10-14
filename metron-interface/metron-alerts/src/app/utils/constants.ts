@@ -28,3 +28,4 @@ export let TREE_SUB_GROUP_SIZE = 5;
 export let DEFAULT_FACETS = ['source:type', 'ip_src_addr', 'ip_dst_addr', 'host', 'enrichments:geo:ip_dst_addr:country'];
 export let DEFAULT_GROUPS = ['source:type', 'ip_src_addr', 'ip_dst_addr', 'host', 'enrichments:geo:ip_dst_addr:country'];
 export let INDEXES =  environment.indices ? environment.indices.split(',') : ['websphere', 'snort', 'asa', 'bro', 'yaf'];
+

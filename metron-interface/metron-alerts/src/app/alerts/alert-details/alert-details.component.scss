@@ -18,8 +18,8 @@
 @import "../../../slider";
 @import "../../../variables";
 
-.container-fluid {
-  padding-top: 15px;
+.title-container {
+  margin: 13px 0px;
 }
 
 .form-title {
@@ -69,4 +69,77 @@
   .key {
     color: $dove-grey;
   }
+}
+
+.dialog1x {
+  width: 400px;
+}
+
+.nav-container {
+  min-height: 99vh;
+  width: 54px;
+  background: $mine-shaft-3;
+  border-right: 1px solid $dove-grey;
+
+  i {
+    cursor: pointer;
+    font-size: 19px;
+    color: $dusty-grey;
+  }
+
+  .active i {
+    color: #FFFFFF;
+  }
+
+  .nav-link {
+    padding: 15px 1em;
+
+    &.active {
+      border-left: 4px solid #31ABDF;
+      background: $mine-shaft-2;
+    }
+  }
+}
+
+.details-container {
+  width: 340px;
+}
+
+textarea {
+  margin-top: 5px;
+  height: 100px;
+}
+
+.btn-mine_shaft_2 {
+  margin-top: 10px;
+  margin-bottom: 15px;
+}
+
+.username-timestamp {
+  color: $rolling-stone;
+}
+
+.comment-container {
+  font-size: 14px;
+  padding: 10px 0px;
+
+  i {
+    right: 25px;
+    display: none;
+    cursor: pointer;
+    font-size: 18px;
+    position: absolute;
+  }
+
+  .comment {
+    padding-right: 25px;
+  }
+
+  &:hover {
+    background: $nile-blue;
+  }
+}
+
+.comment-container:hover i {
+  display: block;
 }

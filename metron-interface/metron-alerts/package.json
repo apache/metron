@@ -26,6 +26,7 @@
     "core-js": "^2.4.1",
     "font-awesome": "^4.7.0",
     "ng2-dragula": "^1.5.0",
+    "moment": "^2.18.1",
     "rxjs": "^5.1.0",
     "web-animations-js": "^2.2.2",
     "zone.js": "^0.8.4"
@@ -35,6 +36,7 @@
     "@angular/compiler-cli": "^4.0.0",
     "@types/ace": "0.0.32",
     "@types/jasmine": "2.5.38",
+    "@types/moment": "^2.13.0",
     "@types/node": "~6.0.60",
     "codelyzer": "~2.0.0",
     "compression": "1.6.2",
