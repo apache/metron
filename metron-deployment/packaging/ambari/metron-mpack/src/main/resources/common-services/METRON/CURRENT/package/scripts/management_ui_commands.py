@@ -20,6 +20,9 @@ limitations under the License.
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
+from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.core.exceptions import ExecutionFailed
+from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 
 # Wrap major operations and functionality in this class
 class ManagementUICommands:
@@ -44,3 +47,26 @@ class ManagementUICommands:
         Logger.info('Restarting the Management UI')
         Execute('service metron-management-ui restart')
         Logger.info('Done restarting the Management UI')
+
+    def check_status(self, env):
+        Logger.info('Status check the Management UI')
+        cmd = "curl --max-time 3 {0}:{1}"
+        try:
+          Execute(
+            cmd.format(self.__params.hostname, self.__params.metron_management_ui_port),
+            tries=3,
+            try_sleep=5,
+            logoutput=False,
+            user=self.__params.metron_user)
+        except:
+          raise ComponentIsNotRunning()
+
+    def service_check(self, env):
+        """
+        Performs a service check for the Management UI
+        :param env: Environment
+        """
+        from params import status_params
+        env.set_params(status_params)
+        self.check_status(env)
+        Logger.info("Management UI service check completed successfully")
