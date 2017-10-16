@@ -19,19 +19,6 @@ package org.apache.metron.elasticsearch.dao;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -75,6 +62,23 @@ import org.elasticsearch.search.aggregations.metrics.sum.SumBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static org.apache.metron.elasticsearch.utils.ElasticsearchUtils.INDEX_NAME_DELIMITER;
+
 
 public class ElasticsearchDao implements IndexDao {
 
@@ -131,9 +135,9 @@ public class ElasticsearchDao implements IndexDao {
             .size(searchRequest.getSize())
             .from(searchRequest.getFrom())
             .query(queryBuilder)
-
             .trackScores(true);
-    searchRequest.getSort().forEach(sortField -> searchSourceBuilder.sort(sortField.getField(), getElasticsearchSortOrder(sortField.getSortOrder())));Optional<List<String>> fields = searchRequest.getFields();
+    searchRequest.getSort().forEach(sortField -> searchSourceBuilder.sort(sortField.getField(), getElasticsearchSortOrder(sortField.getSortOrder())));
+    Optional<List<String>> fields = searchRequest.getFields();
     if (fields.isPresent()) {
       searchSourceBuilder.fields(fields.get());
     } else {
@@ -143,7 +147,7 @@ public class ElasticsearchDao implements IndexDao {
     if (facetFields.isPresent()) {
       facetFields.get().forEach(field -> searchSourceBuilder.aggregation(new TermsBuilder(getFacentAggregationName(field)).field(field)));
     }
-    String[] wildcardIndices = searchRequest.getIndices().stream().map(index -> String.format("%s*", index)).toArray(value -> new String[searchRequest.getIndices().size()]);
+    String[] wildcardIndices = wildcardIndices(searchRequest.getIndices());
     org.elasticsearch.action.search.SearchResponse elasticsearchResponse;
     try {
       elasticsearchResponse = client.search(new org.elasticsearch.action.search.SearchRequest(wildcardIndices)
@@ -179,11 +183,13 @@ public class ElasticsearchDao implements IndexDao {
     final SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
     searchSourceBuilder.query(new QueryStringQueryBuilder(groupRequest.getQuery()));
     searchSourceBuilder.aggregation(getGroupsTermBuilder(groupRequest, 0));
-    String[] wildcardIndices = groupRequest.getIndices().stream().map(index -> String.format("%s*", index)).toArray(value -> new String[groupRequest.getIndices().size()]);
-    org.elasticsearch.action.search.SearchResponse elasticsearchResponse;
+    String[] wildcardIndices = wildcardIndices(groupRequest.getIndices());
+    org.elasticsearch.action.search.SearchRequest request;
+    org.elasticsearch.action.search.SearchResponse response;
+
     try {
-      elasticsearchResponse = client.search(new org.elasticsearch.action.search.SearchRequest(wildcardIndices)
-          .source(searchSourceBuilder)).actionGet();
+      request = new org.elasticsearch.action.search.SearchRequest(wildcardIndices).source(searchSourceBuilder);
+      response = client.search(request).actionGet();
     } catch (SearchPhaseExecutionException e) {
       throw new InvalidSearchException("Could not execute search", e);
     }
@@ -195,8 +201,15 @@ public class ElasticsearchDao implements IndexDao {
     }
     GroupResponse groupResponse = new GroupResponse();
     groupResponse.setGroupedBy(groupRequest.getGroups().get(0).getField());
-    groupResponse.setGroupResults(getGroupResults(groupRequest, 0, elasticsearchResponse.getAggregations(), commonColumnMetadata));
+    groupResponse.setGroupResults(getGroupResults(groupRequest, 0, response.getAggregations(), commonColumnMetadata));
     return groupResponse;
+  }
+
+  private String[] wildcardIndices(List<String> indices) {
+    return indices
+            .stream()
+            .map(index -> String.format("%s%s*", index, INDEX_NAME_DELIMITER))
+            .toArray(value -> new String[indices.size()]);
   }
 
   @Override
@@ -301,11 +314,18 @@ public class ElasticsearchDao implements IndexDao {
   @Override
   public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException {
     Map<String, Map<String, FieldType>> allColumnMetadata = new HashMap<>();
-    ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings =
-            client.admin().indices().getMappings(new GetMappingsRequest().indices(getLatestIndices(indices))).actionGet().getMappings();
-    for(Object index: mappings.keys().toArray()) {
+    String[] latestIndices = getLatestIndices(indices);
+    ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings = client
+            .admin()
+            .indices()
+            .getMappings(new GetMappingsRequest().indices(latestIndices))
+            .actionGet()
+            .getMappings();
+    for(Object key: mappings.keys().toArray()) {
+      String indexName = key.toString();
+
       Map<String, FieldType> indexColumnMetadata = new HashMap<>();
-      ImmutableOpenMap<String, MappingMetaData> mapping = mappings.get(index.toString());
+      ImmutableOpenMap<String, MappingMetaData> mapping = mappings.get(indexName);
       Iterator<String> mappingIterator = mapping.keysIt();
       while(mappingIterator.hasNext()) {
         MappingMetaData mappingMetaData = mapping.get(mappingIterator.next());
@@ -314,7 +334,9 @@ public class ElasticsearchDao implements IndexDao {
           indexColumnMetadata.put(field, elasticsearchSearchTypeMap.getOrDefault(map.get(field).get("type"), FieldType.OTHER));
         }
       }
-      allColumnMetadata.put(index.toString().split("_index_")[0], indexColumnMetadata);
+
+      String baseIndexName = ElasticsearchUtils.getBaseIndexName(indexName);
+      allColumnMetadata.put(baseIndexName, indexColumnMetadata);
     }
     return allColumnMetadata;
   }
@@ -348,7 +370,7 @@ public class ElasticsearchDao implements IndexDao {
     String[] indices = client.admin().indices().prepareGetIndex().setFeatures().get().getIndices();
     for (String index : indices) {
       if (!ignoredIndices.contains(index)) {
-        int prefixEnd = index.indexOf("_index_");
+        int prefixEnd = index.indexOf(INDEX_NAME_DELIMITER);
         if (prefixEnd != -1) {
           String prefix = index.substring(0, prefixEnd);
           if (includeIndices.contains(prefix)) {
