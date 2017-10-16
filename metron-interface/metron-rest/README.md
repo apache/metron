@@ -142,7 +142,7 @@ The following configures the application for MySQL:
 1. Start the REST API. Adjust the password as necessary.
     ```
     set -o allexport;
-    source /etc/metron/sysconfig;
+    source /etc/sysconfig/metron;
     set +o allexport;
     export METRON_JDBC_PASSWORD='Myp@ssw0rd';
     $METRON_HOME/bin/metron-rest.sh
