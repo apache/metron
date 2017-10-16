@@ -14,19 +14,19 @@ This module provides a RESTful API for interacting with Metron.
 ### From Source
 
 1. Package the application with Maven:
-  ```
-mvn clean package
-  ```
+    ```
+    mvn clean package
+    ```
 
 1. Untar the archive in the $METRON_HOME directory.  The directory structure will look like:
-  ```
-config
-  rest_application.yml
-bin
-  metron-rest
-lib
-  metron-rest-$METRON_VERSION.jar
-  ```
+    ```
+    config
+      rest_application.yml
+    bin
+      metron-rest
+    lib
+      metron-rest-$METRON_VERSION.jar
+    ```
 
 1. Copy the `$METRON_HOME/bin/metron-rest` script to `/etc/init.d/metron-rest`
 
@@ -35,9 +35,9 @@ lib
 1. Deploy the RPM at `/metron/metron-deployment/packaging/docker/rpm-docker/target/RPMS/noarch/metron-rest-$METRON_VERSION-*.noarch.rpm`
 
 1. Install the RPM with:
-  ```
-rpm -ih metron-rest-$METRON_VERSION-*.noarch.rpm
-  ```
+    ```
+    rpm -ih metron-rest-$METRON_VERSION-*.noarch.rpm
+    ```
 
 ## Configuration
 
@@ -112,42 +112,42 @@ The following configures the application for MySQL:
 1. Install MySQL if not already available (this example uses version 5.7, installation instructions can be found [here](https://dev.mysql.com/doc/refman/5.7/en/linux-installation-yum-repo.html))
 
 1. Create a metron user and REST database and permission the user for that database:
-  ```
-CREATE USER 'metron'@'node1' IDENTIFIED BY 'Myp@ssw0rd';
-CREATE DATABASE IF NOT EXISTS metronrest;
-GRANT ALL PRIVILEGES ON metronrest.* TO 'metron'@'node1';
-  ```
+    ```
+    CREATE USER 'metron'@'node1' IDENTIFIED BY 'Myp@ssw0rd';
+    CREATE DATABASE IF NOT EXISTS metronrest;
+    GRANT ALL PRIVILEGES ON metronrest.* TO 'metron'@'node1';
+    ```
 
 1. Install the MySQL JDBC client onto the REST application host and configurate the METRON_JDBC_CLIENT_PATH variable:
-  ```
-cd $METRON_HOME/lib
-wget https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.41.tar.gz
-tar xf mysql-connector-java-5.1.41.tar.gz
-  ```
+    ```
+    cd $METRON_HOME/lib
+    wget https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.41.tar.gz
+    tar xf mysql-connector-java-5.1.41.tar.gz
+    ```
 
 1. Edit these variables in `/etc/sysconfig/metron` to configure the REST application for MySQL:
-  ```
-METRON_JDBC_DRIVER="com.mysql.jdbc.Driver"
-METRON_JDBC_URL="jdbc:mysql://mysql_host:3306/metronrest"
-METRON_JDBC_USERNAME="metron"
-METRON_JDBC_PLATFORM="mysql"
-METRON_JDBC_CLIENT_PATH=$METRON_HOME/lib/mysql-connector-java-5.1.41/mysql-connector-java-5.1.41-bin.jar
-  ```
+    ```
+    METRON_JDBC_DRIVER="com.mysql.jdbc.Driver"
+    METRON_JDBC_URL="jdbc:mysql://mysql_host:3306/metronrest"
+    METRON_JDBC_USERNAME="metron"
+    METRON_JDBC_PLATFORM="mysql"
+    METRON_JDBC_CLIENT_PATH=$METRON_HOME/lib/mysql-connector-java-5.1.41/mysql-connector-java-5.1.41-bin.jar
+    ```
 
 1. Switch to the metron user
-  ```
-sudo su - metron
-  ```
+    ```
+    sudo su - metron
+    ```
 
 1. Start the REST API. Adjust the password as necessary.
-  ```
-set -o allexport;
-source /etc/metron/sysconfig;
-set +o allexport;
-export METRON_JDBC_PASSWORD='Myp@ssw0rd';
-$METRON_HOME/bin/metron-rest.sh
-unset METRON_JDBC_PASSWORD;
-  ```
+    ```
+    set -o allexport;
+    source /etc/metron/sysconfig;
+    set +o allexport;
+    export METRON_JDBC_PASSWORD='Myp@ssw0rd';
+    $METRON_HOME/bin/metron-rest.sh
+    unset METRON_JDBC_PASSWORD;
+    ```
 
 ## Usage
 
