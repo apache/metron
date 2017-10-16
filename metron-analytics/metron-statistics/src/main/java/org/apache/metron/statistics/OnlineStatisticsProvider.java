@@ -185,7 +185,7 @@ public class OnlineStatisticsProvider implements StatisticsProvider, KryoSeriali
   /**
    * Unbiased kurtosis.
    * See http://commons.apache.org/proper/commons-math/apidocs/org/apache/commons/math4/stat/descriptive/moment/Kurtosis.html
-   * @return
+   * @return unbiased kurtosis
    */
   @Override
   public double getKurtosis() {
@@ -202,7 +202,7 @@ public class OnlineStatisticsProvider implements StatisticsProvider, KryoSeriali
   /**
    * Unbiased skewness.
    * See  http://commons.apache.org/proper/commons-math/apidocs/org/apache/commons/math4/stat/descriptive/moment/Skewness.html
-   * @return
+   * @return unbiased skewness
    */
   @Override
   public double getSkewness() {
@@ -218,7 +218,7 @@ public class OnlineStatisticsProvider implements StatisticsProvider, KryoSeriali
   /**
    * This returns an approximate percentile based on a t-digest.
    * @param p
-   * @return
+   * @return an approximate percentile based on a t-digest
    */
   @Override
   public double getPercentile(double p) {
