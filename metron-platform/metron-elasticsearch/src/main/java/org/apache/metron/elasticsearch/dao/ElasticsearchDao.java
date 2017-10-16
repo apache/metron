@@ -19,8 +19,6 @@ package org.apache.metron.elasticsearch.dao;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import org.apache.commons.lang.StringUtils;
-import org.apache.metron.common.Constants;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -40,7 +38,6 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.elasticsearch.action.ActionWriteResponse.ShardInfo;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
 import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.update.UpdateRequest;
@@ -81,7 +78,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.apache.metron.elasticsearch.utils.ElasticsearchUtils.INDEX_NAME_DELIMITER;
-import static java.lang.String.format;
+
 
 public class ElasticsearchDao implements IndexDao {
 
@@ -246,30 +243,31 @@ public class ElasticsearchDao implements IndexDao {
    * Return the search hit based on the UUID and sensor type.
    * A callback can be specified to transform the hit into a type T.
    * If more than one hit happens, the first one will be returned.
-   * @throws IOException
    */
-  <T> Optional<T> searchByGuid(String guid, String sensorType, Function<SearchHit, Optional<T>> callback) throws IOException{
-    QueryBuilder query =  QueryBuilders.matchQuery(Constants.GUID, guid);
+  <T> Optional<T> searchByGuid(String guid, String sensorType,
+      Function<SearchHit, Optional<T>> callback) {
+    QueryBuilder query =  QueryBuilders.idsQuery(sensorType + "_doc").ids(guid);
     SearchRequestBuilder request = client.prepareSearch()
-                                         .setTypes(sensorType + "_doc")
                                          .setQuery(query)
                                          .setSource("message")
                                          ;
-    MultiSearchResponse response = client.prepareMultiSearch()
-                                         .add(request)
-                                         .get();
-    for(MultiSearchResponse.Item i : response) {
-      org.elasticsearch.action.search.SearchResponse resp = i.getResponse();
-      SearchHits hits = resp.getHits();
-      for(SearchHit hit : hits) {
-        Optional<T> ret = callback.apply(hit);
-        if(ret.isPresent()) {
-          return ret;
-        }
+    org.elasticsearch.action.search.SearchResponse response = request.get();
+    SearchHits hits = response.getHits();
+    long totalHits = hits.getTotalHits();
+    if (totalHits > 1) {
+      LOG.warn("Encountered {} results for guid {} in sensor {}. Returning first hit.",
+          totalHits,
+          guid,
+          sensorType
+      );
+    }
+    for (SearchHit hit : hits) {
+      Optional<T> ret = callback.apply(hit);
+      if (ret.isPresent()) {
+        return ret;
       }
     }
     return Optional.empty();
-
   }
 
   @Override

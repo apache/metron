@@ -21,4 +21,5 @@ export class Alert {
   score: number;
   source: AlertSource;
   status: string;
+  index: string;
 }

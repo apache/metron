@@ -51,10 +51,10 @@ describe('metron-alerts configure table', function() {
     page.navigateTo();
 
     page.clickConfigureTable();
-    expect(page.getSelectedColumnNames()).toEqual(colNamesColumnConfig, 'for default selected column names');
+    expect(page.getSelectedColumnNames()).toEqualBcoz(colNamesColumnConfig, 'for default selected column names');
     page.toggleSelectCol('id');
     page.toggleSelectCol('guid', 'method');
-    expect(page.getSelectedColumnNames()).toEqual(newColNamesColumnConfig, 'for guid added to selected column names');
+    expect(page.getSelectedColumnNames()).toEqualBcoz(newColNamesColumnConfig, 'for guid added to selected column names');
     page.saveConfigureColumns();
 
   });
