@@ -50,6 +50,8 @@ import org.apache.metron.indexing.dao.search.SortOrder;
 import org.apache.metron.indexing.dao.update.Document;
 import org.elasticsearch.action.ActionWriteResponse.ShardInfo;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -278,30 +280,18 @@ public class ElasticsearchDao implements IndexDao {
 
   @Override
   public void update(Document update, Optional<String> index) throws IOException {
-    String indexPostfix = ElasticsearchUtils.getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
+    String indexPostfix = ElasticsearchUtils
+        .getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
     String sensorType = update.getSensorType();
     String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, null);
+    String existingIndex = calculateExistingIndex(update, index, indexPostfix);
 
-    String type = sensorType + "_doc";
-    Object ts = update.getTimestamp();
-    IndexRequest indexRequest = new IndexRequest(indexName, type, update.getGuid())
-            .source(update.getDocument())
-            ;
-    if(ts != null) {
-      indexRequest = indexRequest.timestamp(ts.toString());
-    }
-    String existingIndex = index.orElse(
-            searchByGuid(update.getGuid()
-                        , sensorType
-                        , hit -> Optional.ofNullable(hit.getIndex())
-                        ).orElse(indexName)
-                                       );
-    UpdateRequest updateRequest = new UpdateRequest(existingIndex, type, update.getGuid())
-            .doc(update.getDocument())
-            .upsert(indexRequest)
-            ;
+    UpdateRequest updateRequest = buildUpdateRequest(update, sensorType, indexName, existingIndex);
 
-    org.elasticsearch.action.search.SearchResponse result = client.prepareSearch("test*").setFetchSource(true).setQuery(QueryBuilders.matchAllQuery()).get();
+    org.elasticsearch.action.search.SearchResponse result = client.prepareSearch("test*")
+        .setFetchSource(true)
+        .setQuery(QueryBuilders.matchAllQuery())
+        .get();
     result.getHits();
     try {
       UpdateResponse response = client.update(updateRequest).get();
@@ -309,11 +299,83 @@ public class ElasticsearchDao implements IndexDao {
       ShardInfo shardInfo = response.getShardInfo();
       int failed = shardInfo.getFailed();
       if (failed > 0) {
-        throw new IOException("ElasticsearchDao upsert failed: " + Arrays.toString(shardInfo.getFailures()));
+        throw new IOException(
+            "ElasticsearchDao upsert failed: " + Arrays.toString(shardInfo.getFailures()));
       }
     } catch (Exception e) {
       throw new IOException(e.getMessage(), e);
     }
+  }
+
+  /**
+   * Update given a Document and optionally the index where the document exists.
+   *
+   * @param updates The Document to index map to
+   * @throws IOException
+   */
+  public void update(Map<Document, Optional<String>> updates) throws IOException {
+    if (updates.size() == 1) {
+      updates.entrySet().iterator().next();
+      updates.entrySet().iterator().next();
+
+    }
+
+    String indexPostfix = ElasticsearchUtils
+        .getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
+
+    BulkRequestBuilder bulkRequestBuilder = client.prepareBulk();
+
+    // Get the indices we'll actually be using for each Document.
+    for (Map.Entry<Document, Optional<String>> updateEntry : updates.entrySet()) {
+      Document update = updateEntry.getKey();
+      String sensorType = update.getSensorType();
+      String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, null);
+      String existingIndex = calculateExistingIndex(update, updateEntry.getValue(), indexPostfix);
+      UpdateRequest updateRequest = buildUpdateRequest(
+          update,
+          sensorType,
+          indexName,
+          existingIndex
+      );
+
+      bulkRequestBuilder.add(updateRequest);
+    }
+
+    BulkResponse bulkResponse = bulkRequestBuilder.get();
+    if (bulkResponse.hasFailures()) {
+      LOG.error("Bulk Request has failures: {}", bulkResponse.buildFailureMessage());
+      throw new IOException(
+          "ElasticsearchDao upsert failed: " + bulkResponse.buildFailureMessage());
+    }
+  }
+
+  protected String calculateExistingIndex(Document update, Optional<String> index,
+      String indexPostFix) {
+    String sensorType = update.getSensorType();
+    String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostFix, null);
+
+    return index.orElse(
+        searchByGuid(update.getGuid(),
+            sensorType,
+            hit -> Optional.ofNullable(hit.getIndex())
+        ).orElse(indexName)
+    );
+  }
+
+  protected UpdateRequest buildUpdateRequest(Document update, String sensorType, String indexName,
+      String existingIndex) {
+    String type = sensorType + "_doc";
+    Object ts = update.getTimestamp();
+    IndexRequest indexRequest = new IndexRequest(indexName, type, update.getGuid())
+        .source(update.getDocument())
+        ;
+    if(ts != null) {
+      indexRequest = indexRequest.timestamp(ts.toString());
+    }
+
+    return new UpdateRequest(existingIndex, type, update.getGuid())
+        .doc(update.getDocument())
+        .upsert(indexRequest);
   }
 
   @SuppressWarnings("unchecked")

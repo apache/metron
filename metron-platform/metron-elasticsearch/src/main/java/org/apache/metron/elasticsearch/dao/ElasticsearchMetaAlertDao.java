@@ -168,13 +168,16 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     MultiGetResponse multiGetResponse = getDocumentsByGuid(request);
     Document createDoc = buildCreateDocument(multiGetResponse, request.getGroups());
 
+    Map<Document, Optional<String>> updates = new HashMap<>();
+
     try {
       handleMetaUpdate(createDoc, Optional.of(METAALERTS_INDEX));
       MetaAlertCreateResponse createResponse = new MetaAlertCreateResponse();
 
       // We need to update the associated alerts
-      List<String> metaAlertField = new ArrayList<>();
+      List<String> metaAlertField;
       for (MultiGetItemResponse itemResponse : multiGetResponse) {
+        metaAlertField = new ArrayList<>();
         GetResponse response = itemResponse.getResponse();
         if (response.isExists()) {
           List<String> alertField = (List<String>) response.getSourceAsMap()
@@ -183,13 +186,15 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
             metaAlertField.addAll(alertField);
           }
         }
-        metaAlertField.add(itemResponse.getId());
+        metaAlertField.add(createDoc.getGuid());
 
         // Kick off the alert update. Don't need to propagate to meta alert.
         Document alertUpdate = buildAlertUpdate(response.getId(),
             (String) response.getSource().get("source:type"), metaAlertField);
-        indexDao.update(alertUpdate, Optional.empty());
+        updates.put(alertUpdate, Optional.of(itemResponse.getIndex()));
       }
+
+      elasticsearchDao.update(updates);
 
       createResponse.setCreated(true);
       return createResponse;
