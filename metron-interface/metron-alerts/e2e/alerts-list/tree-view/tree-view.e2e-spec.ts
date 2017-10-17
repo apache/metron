@@ -175,7 +175,7 @@ describe('metron-alerts tree view', function () {
   });
 
 
-  it('should have sort working for group details for multiple sub groups', () => {
+  xit('should have sort working for group details for multiple sub groups', () => {
 
     let usIDCol = ['dcda4423-7...0962fafc47', '9a969c64-b...001cb011a3', 'a651f7c3-1...a97d4966c9',
                     'afc36901-3...d931231ab2', 'd860ac35-1...f9e282d571'];
