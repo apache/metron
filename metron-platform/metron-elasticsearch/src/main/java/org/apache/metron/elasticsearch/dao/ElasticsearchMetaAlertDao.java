@@ -21,6 +21,7 @@ package org.apache.metron.elasticsearch.dao;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.constantScoreQuery;
+import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
@@ -177,14 +178,17 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   public SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
     // Wrap the query to also get any meta-alerts.
     QueryBuilder qb = constantScoreQuery(boolQuery()
-        .should(new QueryStringQueryBuilder(searchRequest.getQuery()))
-        .should(boolQuery()
-            .must(termQuery(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()))
-            .must(nestedQuery(
+        .must(boolQuery()
+            .should(new QueryStringQueryBuilder(searchRequest.getQuery()))
+            .should(nestedQuery(
                 ALERT_FIELD,
                 new QueryStringQueryBuilder(searchRequest.getQuery())
                 )
             )
+        )
+        .must(boolQuery()
+            .should(termQuery(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()))
+            .should(boolQuery().mustNot(existsQuery(MetaAlertDao.STATUS_FIELD)))
         )
     );
     return elasticsearchDao.search(searchRequest, qb);
