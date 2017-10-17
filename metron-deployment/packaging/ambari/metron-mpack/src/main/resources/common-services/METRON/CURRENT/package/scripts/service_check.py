@@ -28,6 +28,7 @@ from indexing_commands import IndexingCommands
 from profiler_commands import ProfilerCommands
 from rest_commands import RestCommands
 from management_ui_commands import ManagementUICommands
+from alerts_ui_commands import AlertsUICommands
 
 class ServiceCheck(Script):
 
@@ -63,6 +64,11 @@ class ServiceCheck(Script):
         Logger.info("Performing Management UI service check")
         mgmt_cmds = ManagementUICommands(params)
         mgmt_cmds.service_check(env)
+
+        # check the alerts UI
+        Logger.info("Performing Alerts UI service check")
+        alerts_cmds = AlertsUICommands(params)
+        alerts_cmds.service_check(env)
 
         Logger.info("Metron service check completed successfully")
         exit(0)
