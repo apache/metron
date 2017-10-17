@@ -194,6 +194,8 @@ op_list :
   | op_list COMMA identifier_operand
   | conditional_expr
   | op_list COMMA conditional_expr
+  | comparison_expr
+  | op_list COMMA comparison_expr
   ;
 
 list_entity :
@@ -203,7 +205,9 @@ list_entity :
 
 kv_list :
   identifier_operand COLON transformation_expr
+  | comparison_expr COLON transformation_expr
   | kv_list COMMA identifier_operand COLON transformation_expr
+  | kv_list COMMA comparison_expr COLON transformation_expr
   ;
 
 map_entity :
@@ -249,6 +253,7 @@ identifier_operand :
   | NULL #NullConst
   | EXISTS LPAREN IDENTIFIER RPAREN #ExistsFunc
   | LPAREN conditional_expr RPAREN #condExpr_paren
+  | functions #func
   ;
 
 
