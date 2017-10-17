@@ -18,18 +18,6 @@
 package org.apache.metron.elasticsearch.writer;
 
 import org.apache.metron.common.Constants;
-import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
-import org.apache.storm.task.TopologyContext;
-import org.apache.storm.tuple.Tuple;
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.FieldNameConverter;
 import org.apache.metron.common.writer.BulkMessageWriter;
@@ -46,13 +34,19 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
   private Map<String, String> optionalSettings;
   private transient TransportClient client;
   private SimpleDateFormat dateFormat;
-  private static final Logger LOG = LoggerFactory
-          .getLogger(ElasticsearchWriter.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchWriter.class);
   private FieldNameConverter fieldNameConverter = new ElasticsearchFieldNameConverter();
 
   public ElasticsearchWriter withOptionalSettings(Map<String, String> optionalSettings) {
@@ -64,34 +58,24 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration configurations) {
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
     client = ElasticsearchUtils.getClient(globalConfiguration, optionalSettings);
-    dateFormat = new SimpleDateFormat((String) globalConfiguration.get("es.date.format"));
+    dateFormat = ElasticsearchUtils.getIndexFormat(globalConfiguration);
   }
+
 
   @Override
   public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
-    String indexPostfix = dateFormat.format(new Date());
+    final String indexPostfix = dateFormat.format(new Date());
     BulkRequestBuilder bulkRequest = client.prepareBulk();
 
     for(JSONObject message: messages) {
 
-      String indexName = sensorType;
-
-      if (configurations != null) {
-        indexName = configurations.getIndex(sensorType);
-      }
-
-      indexName = indexName + "_index_" + indexPostfix;
-
       JSONObject esDoc = new JSONObject();
       for(Object k : message.keySet()){
-
-        deDot(k.toString(),message,esDoc);
-
+        deDot(k.toString(), message, esDoc);
       }
 
-      IndexRequestBuilder indexRequestBuilder = client.prepareIndex(indexName,
-              sensorType + "_doc");
-
+      String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, configurations);
+      IndexRequestBuilder indexRequestBuilder = client.prepareIndex(indexName, sensorType + "_doc");
       indexRequestBuilder = indexRequestBuilder.setSource(esDoc.toJSONString());
       String guid = (String)esDoc.get(Constants.GUID);
       if(guid != null) {
@@ -102,12 +86,11 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
       if(ts != null) {
         indexRequestBuilder = indexRequestBuilder.setTimestamp(ts.toString());
       }
-      bulkRequest.add(indexRequestBuilder);
 
+      bulkRequest.add(indexRequestBuilder);
     }
 
     BulkResponse bulkResponse = bulkRequest.execute().actionGet();
-
     return buildWriteReponse(tuples, bulkResponse);
   }
 
