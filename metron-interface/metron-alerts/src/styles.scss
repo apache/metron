@@ -259,4 +259,61 @@ hr {
   padding: 0;
 }
 
+/** Custom Radio box **/
+$background_color_1: #eee;
+$background_color_2: #ccc;
+$background_color_3: #2196F3;
+.radio-container {
+  display: block;
+  position: relative;
+  padding-left: 35px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  font-size: 22px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  input {
+    position: absolute;
+    opacity: 0;
+    &:checked {
+      &~.checkmark {
+        background-color: $eastern-blue-2;
+        &:after {
+          display: block;
+        }
+      }
+    }
+  }
+  &:hover {
+    input {
+      &~.checkmark {
+        background-color: $eastern-blue-2;
+      }
+    }
+  }
+  .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 12px;
+    width: 12px;
+    background-color: $mine-shaft-2;
+    border: 1px solid $tundora;
+    border-radius: 50%;
 
+    &:after {
+      top: 2px;
+      left: 2px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: $white;
+      content: "";
+      position: absolute;
+      display: none;
+    }
+  }
+}
+/**********************/
