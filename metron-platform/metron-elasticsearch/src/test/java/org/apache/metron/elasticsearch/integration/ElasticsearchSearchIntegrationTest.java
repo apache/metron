@@ -18,6 +18,8 @@
 package org.apache.metron.elasticsearch.integration;
 
 
+import java.io.File;
+import java.util.HashMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao;
@@ -35,9 +37,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
-import java.io.File;
-import java.util.HashMap;
 
 public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   private static String indexDir = "target/elasticsearch_search";
@@ -93,6 +92,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    *   "properties": {
    *     "guid": { "type": "keyword" },
    *     "alert": {
+   *        "type": "nested",
    *        "properties": {
    *          "guid": { "type": "keyword" }
    *        }
@@ -109,7 +109,6 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    */
   @Multiline
   private static String metaalertTypeMappings;
-
 
   @Override
   protected IndexDao createDao() throws Exception {
@@ -181,5 +180,9 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     if (bulkResponse.hasFailures()) {
       throw new RuntimeException("Failed to index test data");
     }
+//    SearchRequestBuilder metaalerts = es.getClient().prepareSearch("metaalerts")
+//        .setQuery(QueryBuilders.matchAllQuery()).setFetchSource(true);
+//    SearchResponse response = metaalerts.get();
+//    System.out.println("blah");
   }
 }
