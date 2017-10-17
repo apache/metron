@@ -28,6 +28,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   height: 35px;
+  line-height: 2.1  ;
 }
 
 .actions {
@@ -92,6 +93,10 @@
 }
 .dialog1x {
   width: 400px;
+
+  &.is-meta-alert {
+    width: 346px;
+  }
 }
 
 .nav-container {

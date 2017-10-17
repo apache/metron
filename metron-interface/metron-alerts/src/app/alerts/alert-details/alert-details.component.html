@@ -11,10 +11,10 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<div class="metron-slider-pane-details load-right-to-left dialog1x">
-    <div class="container-fluid pl-0 h-100">
+<div class="metron-slider-pane-details load-right-to-left dialog1x" [ngClass]="{'is-meta-alert': isMetaAlert}">
+    <div class="container-fluid pl-0 h-100" [ngClass]="{'pr-0': isMetaAlert}">
         <div class="h-100 d-flex">
-            <div class="nav-container">
+            <div class="nav-container" *ngIf="!isMetaAlert">
                 <ul class="nav flex-column">
                     <li class="nav-item">
                         <a class="nav-link" [ngClass]="{'active': activeTab === tabs.DETAILS}" (click)="activeTab=tabs.DETAILS">
@@ -37,7 +37,7 @@
                                     <span appAlertSeverity [severity]="alertSource['threat:triage:score']"> </span>
                                     <span> {{ alertSource['threat:triage:score'] }} </span>
                                 </div>
-                                <div class="px-0" style="width: 200px">
+                                <div class="px-0" style="width: 205px">
                                     <span [ngClass]="{'editable-text': alertSources.length > 1}" *ngIf="!showEditor" (click)="toggleNameEditor()"> {{ (alertSource.name && alertSource.name.length > 0)? alertSource.name : alertId | centerEllipses:20 }} </span>
                                     <div class="input-group" *ngIf="showEditor">
                                         <input type="text" class="form-control"  [(ngModel)]="alertName">

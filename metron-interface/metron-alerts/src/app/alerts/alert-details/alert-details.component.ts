@@ -29,7 +29,7 @@ import {Patch} from '../../model/patch';
 import {AlertComment} from './alert-comment';
 import {AuthenticationService} from '../../service/authentication.service';
 import {MetronDialogBox} from '../../shared/metron-dialog-box';
-import {META_ALERTS_INDEX} from '../../utils/constants';
+import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
@@ -60,6 +60,7 @@ export class AlertDetailsComponent implements OnInit {
   alertName = '';
   alertSourceType = '';
   showEditor = false;
+  isMetaAlert = false;
   alertIndex = '';
   alertState = AlertState;
   tabs = Tabs;
@@ -125,6 +126,7 @@ export class AlertDetailsComponent implements OnInit {
       this.alertId = params['guid'];
       this.alertSourceType = params['sourceType'];
       this.alertIndex = params['index'];
+      this.isMetaAlert = (this.alertIndex === META_ALERTS_INDEX && this.alertSourceType !== META_ALERTS_SENSOR_TYPE) ? true : false;
       this.getData();
     });
   };

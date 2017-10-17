@@ -39,7 +39,7 @@ import {TableViewComponent} from './table-view/table-view.component';
 import {Filter} from '../../model/filter';
 import {Pagination} from '../../model/pagination';
 import {PatchRequest} from '../../model/patch-request';
-import {META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
+import {META_ALERTS_SENSOR_TYPE, META_ALERTS_INDEX} from '../../utils/constants';
 import {MetaAlertService} from '../../service/meta-alert.service';
 
 @Component({
@@ -335,7 +335,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.selectedAlerts = [];
     this.selectedAlerts = [alert];
     this.saveRefreshState();
-    let sourceType = (alert.source.alert && alert.source.alert.length > 0) ? META_ALERTS_SENSOR_TYPE : alert.source['source:type'];
+    let sourceType = (alert.index === META_ALERTS_INDEX && !alert.source['source:type'])  ? META_ALERTS_SENSOR_TYPE : alert.source['source:type'];
     let url = '/alerts-list(dialog:details/' + sourceType + '/' + alert.source.guid + '/' + alert.index + ')';
     this.router.navigateByUrl(url);
   }
