@@ -228,6 +228,10 @@
         },
         "alert": {
           "type": "nested"
+        },
+        "metaalerts": {
+          "type": "string",
+          "index": "not_analyzed"
         }
       }
     }

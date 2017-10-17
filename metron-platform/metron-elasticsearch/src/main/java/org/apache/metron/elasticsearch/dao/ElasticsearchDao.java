@@ -170,20 +170,35 @@ public class ElasticsearchDao implements IndexDao {
 
   @Override
   public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
-    if(client == null) {
+    return group(groupRequest, new QueryStringQueryBuilder(groupRequest.getQuery()));
+  }
+
+  /**
+   * Defers to a provided {@link org.elasticsearch.index.query.QueryBuilder} for the query.
+   * @param groupRequest The request defining the parameters of the grouping
+   * @param queryBuilder The actual query to be run. Intended for if the SearchRequest requires wrapping
+   * @return The results of the query
+   * @throws InvalidSearchException When the query is malformed or the current state doesn't allow search
+   */
+  protected GroupResponse group(GroupRequest groupRequest, QueryBuilder queryBuilder)
+      throws InvalidSearchException {
+    if (client == null) {
       throw new InvalidSearchException("Uninitialized Dao!  You must call init() prior to use.");
     }
     if (groupRequest.getGroups() == null || groupRequest.getGroups().size() == 0) {
       throw new InvalidSearchException("At least 1 group must be provided.");
     }
     final SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-    searchSourceBuilder.query(new QueryStringQueryBuilder(groupRequest.getQuery()));
+    searchSourceBuilder.query(queryBuilder);
     searchSourceBuilder.aggregation(getGroupsTermBuilder(groupRequest, 0));
-    String[] wildcardIndices = groupRequest.getIndices().stream().map(index -> String.format("%s*", index)).toArray(value -> new String[groupRequest.getIndices().size()]);
+    String[] wildcardIndices = groupRequest.getIndices().stream()
+        .map(index -> String.format("%s*", index))
+        .toArray(value -> new String[groupRequest.getIndices().size()]);
     org.elasticsearch.action.search.SearchResponse elasticsearchResponse;
     try {
-      elasticsearchResponse = client.search(new org.elasticsearch.action.search.SearchRequest(wildcardIndices)
-          .source(searchSourceBuilder)).actionGet();
+      elasticsearchResponse = client
+          .search(new org.elasticsearch.action.search.SearchRequest(wildcardIndices)
+              .source(searchSourceBuilder)).actionGet();
     } catch (SearchPhaseExecutionException e) {
       throw new InvalidSearchException("Could not execute search", e);
     }
@@ -191,11 +206,15 @@ public class ElasticsearchDao implements IndexDao {
     try {
       commonColumnMetadata = getCommonColumnMetadata(groupRequest.getIndices());
     } catch (IOException e) {
-      throw new InvalidSearchException(String.format("Could not get common column metadata for indices %s", Arrays.toString(groupRequest.getIndices().toArray())));
+      throw new InvalidSearchException(String
+          .format("Could not get common column metadata for indices %s",
+              Arrays.toString(groupRequest.getIndices().toArray())));
     }
     GroupResponse groupResponse = new GroupResponse();
     groupResponse.setGroupedBy(groupRequest.getGroups().get(0).getField());
-    groupResponse.setGroupResults(getGroupResults(groupRequest, 0, elasticsearchResponse.getAggregations(), commonColumnMetadata));
+    groupResponse.setGroupResults(
+        getGroupResults(groupRequest, 0, elasticsearchResponse.getAggregations(),
+            commonColumnMetadata));
     return groupResponse;
   }
 

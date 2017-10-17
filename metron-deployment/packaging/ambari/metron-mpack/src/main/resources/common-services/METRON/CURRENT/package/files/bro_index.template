@@ -154,6 +154,10 @@
         "alert": {
           "type": "nested"
         },
+        "metaalerts": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
         "ip_src_addr": {
           "type": "ip"
         },
