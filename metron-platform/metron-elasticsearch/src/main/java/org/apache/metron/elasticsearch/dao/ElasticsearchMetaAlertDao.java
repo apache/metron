@@ -179,17 +179,8 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
   @Override
   public SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
-    // Wrap the query to also get any meta-alerts. Make sure not to return anything that is also
-    // in a meta alert.
-    //TODO  Need to update this with Ryan's PR.
-    QueryBuilder qb = constantScoreQuery(boolQuery()
-        .must(new QueryStringQueryBuilder(searchRequest.getQuery()))
-        .must(boolQuery()
-            .should(termQuery(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()))
-            .should(boolQuery().mustNot(existsQuery(MetaAlertDao.STATUS_FIELD)))
-        )
-        .mustNot(existsQuery(MetaAlertDao.METAALERT_FIELD))
-    );
+    // Wrap the query to also get any meta-alerts.
+    QueryBuilder qb = wrapBaseQueryWithMetaAlertQuery(searchRequest.getQuery());
     return elasticsearchDao.search(searchRequest, qb);
   }
 
@@ -367,8 +358,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
         @SuppressWarnings("unchecked")
         List<String> metaAlertField = (List<String>) alert.getDocument()
             .get(MetaAlertDao.METAALERT_FIELD);
-        boolean removed = metaAlertField.remove(guid);
-        if (removed) {
+        if (metaAlertField.remove(guid)) {
           alertUpdate = buildAlertUpdate(guid, alert.getSensorType(), metaAlertField);
           indexDao.update(alertUpdate, Optional.empty());
         }
@@ -396,6 +386,9 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       Optional<String> index) throws IOException {
     Document latest = indexDao
         .getLatest(update.getGuid(), index.orElse(MetaAlertDao.METAALERTS_INDEX));
+    if (latest == null) {
+      return new ArrayList<>();
+    }
     return (List<Map<String, Object>>) latest.getDocument().get(MetaAlertDao.ALERT_FIELD);
   }
 
@@ -471,17 +464,28 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
     // Wrap the query to also get any meta-alerts. Make sure not to return anything that is also
     // in a meta alert.
+    // Wrap the query to also get any meta-alerts.
+    QueryBuilder qb = wrapBaseQueryWithMetaAlertQuery(groupRequest.getQuery());
+    return elasticsearchDao.group(groupRequest, qb);
+  }
+
+  protected QueryBuilder wrapBaseQueryWithMetaAlertQuery(String query) {
     // TODO  Need to update this with Ryan's PR.
-    // TODO refactor the wrapping to be a common method with search() and pass it the query
-    QueryBuilder qb = constantScoreQuery(boolQuery()
-        .must(new QueryStringQueryBuilder(groupRequest.getQuery()))
+    return constantScoreQuery(boolQuery()
+        .must(boolQuery()
+            .should(new QueryStringQueryBuilder(query))
+            .should(nestedQuery(
+                ALERT_FIELD,
+                new QueryStringQueryBuilder(query)
+                )
+            )
+        )
         .must(boolQuery()
             .should(termQuery(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()))
             .should(boolQuery().mustNot(existsQuery(MetaAlertDao.STATUS_FIELD)))
         )
         .mustNot(existsQuery(MetaAlertDao.METAALERT_FIELD))
     );
-    return elasticsearchDao.group(groupRequest, qb);
   }
 
   /**

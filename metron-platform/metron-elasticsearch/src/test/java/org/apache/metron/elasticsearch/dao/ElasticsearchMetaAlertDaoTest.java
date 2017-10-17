@@ -61,7 +61,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Test;
-import org.mockito.Mock;
 
 public class ElasticsearchMetaAlertDaoTest {
 
@@ -428,11 +427,11 @@ public class ElasticsearchMetaAlertDaoTest {
   }
 
   @Test
-  public void testHandleMetaUpdateNonAlert() throws IOException {
-    ElasticsearchDao mockEsDao= mock(ElasticsearchDao.class);
+  public void testHandleMetaUpdateNonAlertNonStatus() throws IOException {
+    ElasticsearchDao mockEsDao = mock(ElasticsearchDao.class);
 
     Map<String, Object> docMap = new HashMap<>();
-    docMap.put(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
+    docMap.put("test", "value");
     Document update = new Document(docMap, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
 
     ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao(mockEsDao);
@@ -443,10 +442,11 @@ public class ElasticsearchMetaAlertDaoTest {
 
   @Test
   public void testHandleMetaUpdateAlert() throws IOException {
-    ElasticsearchDao mockEsDao= mock(ElasticsearchDao.class);
+    ElasticsearchDao mockEsDao = mock(ElasticsearchDao.class);
 
     Map<String, Object> alertMap = new HashMap<>();
     alertMap.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
+    alertMap.put(Constants.GUID, "guid_alert");
     List<Map<String, Object>> alertList = new ArrayList<>();
     alertList.add(alertMap);
 
