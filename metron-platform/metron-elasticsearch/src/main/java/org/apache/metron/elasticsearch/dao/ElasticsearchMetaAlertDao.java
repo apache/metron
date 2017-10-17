@@ -164,17 +164,22 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       throw new InvalidCreateException("MetaAlertCreateRequest must contain UI groups");
     }
 
-    // Retrieve the documents going into the meta alert
+    // Retrieve the documents going into the meta alert and build it
     MultiGetResponse multiGetResponse = getDocumentsByGuid(request);
     Document createDoc = buildCreateDocument(multiGetResponse, request.getGroups());
+    MetaScores metaScores = calculateMetaScores(createDoc);
+    createDoc.getDocument().putAll(metaScores.getMetaScores());
+    createDoc.getDocument().put(threatTriageField, metaScores.getMetaScores().get(threatSort));
 
+
+    // Start a list of updates / inserts we need to run
     Map<Document, Optional<String>> updates = new HashMap<>();
+    updates.put(createDoc, Optional.of(MetaAlertDao.METAALERTS_INDEX));
 
+    MetaAlertCreateResponse createResponse = new MetaAlertCreateResponse();
     try {
-      handleMetaUpdate(createDoc, Optional.of(METAALERTS_INDEX));
-      MetaAlertCreateResponse createResponse = new MetaAlertCreateResponse();
-
-      // We need to update the associated alerts
+      // We need to update the associated alerts with the new meta alerts, making sure existing
+      // links are maintained.
       List<String> metaAlertField;
       for (MultiGetItemResponse itemResponse : multiGetResponse) {
         metaAlertField = new ArrayList<>();
@@ -188,19 +193,18 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
         }
         metaAlertField.add(createDoc.getGuid());
 
-        // Kick off the alert update. Don't need to propagate to meta alert.
         Document alertUpdate = buildAlertUpdate(response.getId(),
             (String) response.getSource().get("source:type"), metaAlertField);
         updates.put(alertUpdate, Optional.of(itemResponse.getIndex()));
       }
 
+      // Kick off all of our updates in bulk.
       elasticsearchDao.update(updates);
-
-      createResponse.setCreated(true);
-      return createResponse;
     } catch (IOException ioe) {
       throw new InvalidCreateException("Unable to create meta alert", ioe);
     }
+    createResponse.setCreated(true);
+    return createResponse;
   }
 
   @Override
