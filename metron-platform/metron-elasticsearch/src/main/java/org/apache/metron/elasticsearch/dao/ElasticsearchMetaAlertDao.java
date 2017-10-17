@@ -170,6 +170,20 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     try {
       handleMetaUpdate(createDoc, Optional.of(METAALERTS_INDEX));
       MetaAlertCreateResponse createResponse = new MetaAlertCreateResponse();
+
+      // We need to update the associated alerts
+      for (String guid : request.getGuidToIndices().keySet()) {
+        // Retrieve the associated alert, so we can update the array
+        Document alert = elasticsearchDao.getLatest(guid, null);
+        @SuppressWarnings("unchecked")
+        List<String> metaAlertField = (List<String>) alert.getDocument()
+            .get(MetaAlertDao.METAALERT_FIELD);
+        metaAlertField.add(guid);
+
+        // Kick off the alert update. Don't need to propagate to meta alert.
+        Document alertUpdate = buildAlertUpdate(guid, alert.getSensorType(), metaAlertField);
+        indexDao.update(alertUpdate, Optional.empty());
+      }
       createResponse.setCreated(true);
       return createResponse;
     } catch (IOException ioe) {
