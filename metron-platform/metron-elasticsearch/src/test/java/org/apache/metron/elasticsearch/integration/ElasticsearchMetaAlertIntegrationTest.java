@@ -348,7 +348,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
     SearchResponse searchResponse = metaDao.search(new SearchRequest() {
       {
         setQuery("*");
-        setIndices(Collections.singletonList(MetaAlertDao.METAALERTS_INDEX));
+        setIndices(Collections.singletonList(MetaAlertDao.METAALERT_TYPE));
         setFrom(0);
         setSize(5);
         setSort(Collections.singletonList(new SortField(){{ setField(Constants.GUID); }}));
@@ -401,7 +401,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
     SearchResponse searchResponse = metaDao.search(new SearchRequest() {
       {
         setQuery("(ip_src_addr:192.168.1.1 AND ip_src_port:8009) OR (alert.ip_src_addr:192.168.1.1 AND alert.ip_src_port:8009)");
-        setIndices(Collections.singletonList(MetaAlertDao.METAALERTS_INDEX));
+        setIndices(Collections.singletonList(MetaAlertDao.METAALERT_TYPE));
         setFrom(0);
         setSize(5);
         setSort(Collections.singletonList(new SortField(){{ setField(Constants.GUID); }}));
@@ -413,7 +413,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
     searchResponse = metaDao.search(new SearchRequest() {
       {
         setQuery("(ip_src_addr:192.168.1.1 AND ip_src_port:8010) OR (alert.ip_src_addr:192.168.1.1 AND alert.ip_src_port:8010)");
-        setIndices(Collections.singletonList(MetaAlertDao.METAALERTS_INDEX));
+        setIndices(Collections.singletonList(MetaAlertDao.METAALERT_TYPE));
         setFrom(0);
         setSize(5);
         setSort(Collections.singletonList(new SortField(){{ setField(Constants.GUID); }}));
