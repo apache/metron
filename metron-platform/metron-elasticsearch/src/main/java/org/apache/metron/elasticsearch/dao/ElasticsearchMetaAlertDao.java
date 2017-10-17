@@ -154,6 +154,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request)
       throws InvalidCreateException, IOException {
     if (request.getGuidToIndices().isEmpty()) {
@@ -172,18 +173,24 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       MetaAlertCreateResponse createResponse = new MetaAlertCreateResponse();
 
       // We need to update the associated alerts
-      for (String guid : request.getGuidToIndices().keySet()) {
-        // Retrieve the associated alert, so we can update the array
-        Document alert = elasticsearchDao.getLatest(guid, null);
-        @SuppressWarnings("unchecked")
-        List<String> metaAlertField = (List<String>) alert.getDocument()
-            .get(MetaAlertDao.METAALERT_FIELD);
-        metaAlertField.add(guid);
+      List<String> metaAlertField = new ArrayList<>();
+      for (MultiGetItemResponse itemResponse : multiGetResponse) {
+        GetResponse response = itemResponse.getResponse();
+        if (response.isExists()) {
+          List<String> alertField = (List<String>) response.getSourceAsMap()
+              .get(MetaAlertDao.METAALERT_FIELD);
+          if (alertField != null) {
+            metaAlertField.addAll(alertField);
+          }
+        }
+        metaAlertField.add(itemResponse.getId());
 
         // Kick off the alert update. Don't need to propagate to meta alert.
-        Document alertUpdate = buildAlertUpdate(guid, alert.getSensorType(), metaAlertField);
+        Document alertUpdate = buildAlertUpdate(response.getId(),
+            (String) response.getSource().get("source:type"), metaAlertField);
         indexDao.update(alertUpdate, Optional.empty());
       }
+
       createResponse.setCreated(true);
       return createResponse;
     } catch (IOException ioe) {
