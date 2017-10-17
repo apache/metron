@@ -17,19 +17,13 @@
  */
 package org.apache.metron.elasticsearch.writer;
 
-import org.apache.metron.common.Constants;
-import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
-import org.apache.storm.task.TopologyContext;
-import org.apache.storm.tuple.Tuple;
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.FieldNameConverter;
 import org.apache.metron.common.writer.BulkMessageWriter;

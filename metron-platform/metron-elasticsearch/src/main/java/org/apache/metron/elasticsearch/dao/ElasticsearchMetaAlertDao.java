@@ -34,6 +34,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.apache.lucene.search.join.ScoreMode;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -51,19 +52,19 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.update.Document;
-import org.elasticsearch.action.ActionWriteResponse.ShardInfo;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.get.MultiGetItemResponse;
 import org.elasticsearch.action.get.MultiGetRequest.Item;
 import org.elasticsearch.action.get.MultiGetRequestBuilder;
 import org.elasticsearch.action.get.MultiGetResponse;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.support.replication.ReplicationResponse.ShardInfo;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.index.query.InnerHitBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
-import org.elasticsearch.index.query.support.QueryInnerHitBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 
@@ -182,7 +183,8 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
             .must(termQuery(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()))
             .must(nestedQuery(
                 ALERT_FIELD,
-                new QueryStringQueryBuilder(searchRequest.getQuery())
+                new QueryStringQueryBuilder(searchRequest.getQuery()),
+                ScoreMode.None
                 )
             )
         )
@@ -228,8 +230,9 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
             nestedQuery(
                 ALERT_FIELD,
                 boolQuery()
-                    .must(termQuery(ALERT_FIELD + "." + Constants.GUID, guid))
-            ).innerHit(new QueryInnerHitBuilder())
+                    .must(termQuery(ALERT_FIELD + "." + Constants.GUID, guid)),
+                ScoreMode.None
+            ).innerHit(new InnerHitBuilder())
         )
         .must(termQuery(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()));
     SearchRequest sr = new SearchRequest();
@@ -239,7 +242,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     return elasticsearchDao
         .getClient()
         .prepareSearch(index)
-        .addFields("*")
+        .addStoredField("*")
         .setFetchSource(true)
         .setQuery(qb)
         .execute()

@@ -2,9 +2,6 @@
   "template": "yaf_index*",
   "mappings": {
     "yaf_doc": {
-      "_timestamp": {
-        "enabled": true
-      },
       "dynamic_templates": [
       {
         "geo_location_point": {
@@ -20,8 +17,8 @@
           "match": "enrichments:geo:*:country",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "text",
+            "index": "false"
           }
         }
       },
@@ -30,8 +27,8 @@
           "match": "enrichments:geo:*:city",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "text",
+            "index": "false"
           }
         }
       },
@@ -40,8 +37,8 @@
           "match": "enrichments:geo:*:locID",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "text",
+            "index": "false"
           }
         }
       },
@@ -50,8 +47,8 @@
           "match": "enrichments:geo:*:dmaCode",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "text",
+            "index": "false"
           }
         }
       },
@@ -60,8 +57,8 @@
           "match": "enrichments:geo:*:postalCode",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "text",
+            "index": "false"
           }
         }
       },
@@ -105,7 +102,7 @@
       {
         "threat_triage_reason": {
           "mapping": {
-            "type": "string"
+            "type": "text"
           },
           "match": "threat.triage.rules:*:reason",
           "match_mapping_type": "*"
@@ -114,7 +111,7 @@
       {
         "threat_triage_name": {
           "mapping": {
-            "type": "string"
+            "type": "text"
           },
           "match": "threat.triage.rules:*:name",
           "match_mapping_type": "*"
@@ -127,8 +124,8 @@
           "format": "epoch_millis"
         },
         "source:type": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "ip_dst_addr": {
           "type": "ip"
@@ -157,55 +154,55 @@
           "type": "double"
         },
         "proto": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "sip": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "sp": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "dip": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "dp": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "iflags": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "uflags": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "riflags": {
-          "type": "string"
+          "type": "text"
         },
         "ruflags": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "isn": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "risn": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "tag": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "rtag": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "pkt": {
           "type": "integer"
@@ -220,11 +217,11 @@
           "type": "integer"
         },
         "app": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "end-reason": {
-          "type": "string"
+          "type": "text"
         },
         "alert": {
           "type": "nested"

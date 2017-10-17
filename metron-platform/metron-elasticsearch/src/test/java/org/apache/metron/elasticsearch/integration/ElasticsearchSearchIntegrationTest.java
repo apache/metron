@@ -30,6 +30,7 @@ import org.apache.metron.integration.InMemoryComponent;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
+import org.elasticsearch.action.support.WriteRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -46,7 +47,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    * {
    * "bro_doc": {
    *   "properties": {
-   *     "source:type": { "type": "string" },
+   *     "source:type": { "type": "keyword" },
    *     "ip_src_addr": { "type": "ip" },
    *     "ip_src_port": { "type": "integer" },
    *     "long_field": { "type": "long" },
@@ -55,8 +56,8 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    *     "score": { "type": "double" },
    *     "is_alert": { "type": "boolean" },
    *     "location_point": { "type": "geo_point" },
-   *     "bro_field": { "type": "string" },
-   *     "duplicate_name_field": { "type": "string" }
+   *     "bro_field": { "type": "text", "fielddata": "true" },
+   *     "duplicate_name_field": { "type": "text", "fielddata": "true" }
    *   }
    * }
    * }
@@ -68,7 +69,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    * {
    * "snort_doc": {
    *   "properties": {
-   *     "source:type": { "type": "string" },
+   *     "source:type": { "type": "keyword" },
    *     "ip_src_addr": { "type": "ip" },
    *     "ip_src_port": { "type": "integer" },
    *     "long_field": { "type": "long" },
@@ -85,6 +86,29 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    */
   @Multiline
   private static String snortTypeMappings;
+
+  /**
+   * {
+   * "metaalert_doc": {
+   *   "properties": {
+   *     "guid": { "type": "keyword" },
+   *     "alert": {
+   *        "properties": {
+   *          "guid": { "type": "keyword" }
+   *        }
+   *     },
+   *     "average": { "type": "keyword" },
+   *     "min" : { "type": "keyword" },
+   *     "median" : { "type": "keyword" },
+   *     "max": { "type": "keyword" },
+   *     "count": { "type": "keyword" },
+   *     "sum": { "type": "keyword" }
+   *   }
+   * }
+   * }
+   */
+  @Multiline
+  private static String metaalertTypeMappings;
 
 
   @Override
@@ -126,8 +150,10 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
             .addMapping("bro_doc", broTypeMappings).get();
     es.getClient().admin().indices().prepareCreate("snort_index_2017.01.01.02")
             .addMapping("snort_doc", snortTypeMappings).get();
+    es.getClient().admin().indices().prepareCreate("metaalerts")
+        .addMapping("metaalert_doc", metaalertTypeMappings).get();
 
-    BulkRequestBuilder bulkRequest = es.getClient().prepareBulk().setRefresh(true);
+    BulkRequestBuilder bulkRequest = es.getClient().prepareBulk().setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
     JSONArray broArray = (JSONArray) new JSONParser().parse(broData);
     for(Object o: broArray) {
       JSONObject jsonObject = (JSONObject) o;
@@ -149,7 +175,6 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
       JSONObject jsonObject = (JSONObject) o;
       IndexRequestBuilder indexRequestBuilder = es.getClient().prepareIndex("metaalerts", "metaalert_doc");
       indexRequestBuilder = indexRequestBuilder.setSource(jsonObject.toJSONString());
-//      indexRequestBuilder = indexRequestBuilder.setTimestamp(jsonObject.get("timestamp").toString());
       bulkRequest.add(indexRequestBuilder);
     }
     BulkResponse bulkResponse = bulkRequest.execute().actionGet();

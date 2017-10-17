@@ -19,20 +19,17 @@ package org.apache.metron.elasticsearch.matcher;
 
 import org.apache.metron.indexing.dao.search.SortField;
 import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.client.Requests;
-import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
+import org.junit.Assert;
 import org.mockito.ArgumentMatcher;
-
-import java.util.Arrays;
 
 public class SearchRequestMatcher extends ArgumentMatcher<SearchRequest> {
 
   private String[] expectedIndicies;
-  private BytesReference expectedSource;
+  private SearchSourceBuilder expectedSource;
 
   public SearchRequestMatcher(String[] indices, String query, int size, int from, SortField[] sortFields) {
     expectedIndicies = indices;
@@ -47,14 +44,14 @@ public class SearchRequestMatcher extends ArgumentMatcher<SearchRequest> {
       fieldSortBuilder.order(sortField.getSortOrder() == org.apache.metron.indexing.dao.search.SortOrder.DESC ? SortOrder.DESC : SortOrder.ASC);
       searchSourceBuilder = searchSourceBuilder.sort(fieldSortBuilder);
     }
-    expectedSource = searchSourceBuilder.buildAsBytes(Requests.CONTENT_TYPE);
+    expectedSource = searchSourceBuilder;
   }
 
   @Override
   public boolean matches(Object o) {
     SearchRequest searchRequest = (SearchRequest) o;
-    boolean indiciesMatch = Arrays.equals(expectedIndicies, searchRequest.indices());
-    boolean sourcesMatch = searchRequest.source().equals(expectedSource);
-    return indiciesMatch && sourcesMatch;
+    Assert.assertArrayEquals("Indices did not match", expectedIndicies, searchRequest.indices());
+    Assert.assertEquals("Source did not match", expectedSource, searchRequest.source());
+    return true;
   }
 }

@@ -17,28 +17,26 @@
  */
 package org.apache.metron.indexing.dao;
 
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.indexing.dao.search.FieldType;
-import org.apache.metron.indexing.dao.search.GroupRequest;
-import org.apache.metron.indexing.dao.search.GroupResponse;
-import org.apache.metron.indexing.dao.search.InvalidSearchException;
-import org.apache.metron.indexing.dao.search.SearchRequest;
-import org.apache.metron.indexing.dao.search.SearchResponse;
-import org.apache.metron.indexing.dao.search.SearchResult;
-import org.apache.metron.indexing.dao.search.GroupResult;
-import org.apache.metron.integration.InMemoryComponent;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.*;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
+import org.apache.metron.indexing.dao.search.GroupResult;
+import org.apache.metron.indexing.dao.search.InvalidSearchException;
+import org.apache.metron.indexing.dao.search.SearchRequest;
+import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.search.SearchResult;
+import org.apache.metron.integration.InMemoryComponent;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 public abstract class SearchIntegrationTest {
   /**
@@ -354,69 +352,139 @@ public abstract class SearchIntegrationTest {
   }
 
   @Test
+  public void all_query_returns_all_results() throws Exception {
+    //All Query Testcase
+    SearchRequest request = JSONUtils.INSTANCE.load(allQuery, SearchRequest.class);
+    SearchResponse response = dao.search(request);
+    Assert.assertEquals(10, response.getTotal());
+    List<SearchResult> results = response.getResults();
+    for (int i = 0; i < 5; ++i) {
+      Assert.assertEquals("snort", results.get(i).getSource().get("source:type"));
+      Assert.assertEquals(10 - i, results.get(i).getSource().get("timestamp"));
+    }
+    for (int i = 5; i < 10; ++i) {
+      Assert.assertEquals("bro", results.get(i).getSource().get("source:type"));
+      Assert.assertEquals(10 - i, results.get(i).getSource().get("timestamp"));
+    }
+  }
+
+
+  @Test
+  public void filter_query_filters_results() throws Exception {
+    SearchRequest request = JSONUtils.INSTANCE.load(filterQuery, SearchRequest.class);
+    SearchResponse response = dao.search(request);
+    Assert.assertEquals(3, response.getTotal());
+    List<SearchResult> results = response.getResults();
+    Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
+    Assert.assertEquals(9, results.get(0).getSource().get("timestamp"));
+    Assert.assertEquals("snort", results.get(1).getSource().get("source:type"));
+    Assert.assertEquals(7, results.get(1).getSource().get("timestamp"));
+    Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
+    Assert.assertEquals(1, results.get(2).getSource().get("timestamp"));
+  }
+
+  @Test
+  public void sort_query_sorts_results_ascending() throws Exception {
+    SearchRequest request = JSONUtils.INSTANCE.load(sortQuery, SearchRequest.class);
+    SearchResponse response = dao.search(request);
+    Assert.assertEquals(10, response.getTotal());
+    List<SearchResult> results = response.getResults();
+    for (int i = 8001; i < 8011; ++i) {
+      Assert.assertEquals(i, results.get(i - 8001).getSource().get("ip_src_port"));
+    }
+  }
+
+  @Test
+  public void results_are_paginated() throws Exception {
+    SearchRequest request = JSONUtils.INSTANCE.load(paginationQuery, SearchRequest.class);
+    SearchResponse response = dao.search(request);
+    Assert.assertEquals(10, response.getTotal());
+    List<SearchResult> results = response.getResults();
+    Assert.assertEquals(3, results.size());
+    Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
+    Assert.assertEquals(6, results.get(0).getSource().get("timestamp"));
+    Assert.assertEquals("bro", results.get(1).getSource().get("source:type"));
+    Assert.assertEquals(5, results.get(1).getSource().get("timestamp"));
+    Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
+    Assert.assertEquals(4, results.get(2).getSource().get("timestamp"));
+  }
+
+  @Test
+  public void returns_results_only_for_specified_indices() throws Exception {
+    SearchRequest request = JSONUtils.INSTANCE.load(indexQuery, SearchRequest.class);
+    SearchResponse response = dao.search(request);
+    Assert.assertEquals(5, response.getTotal());
+    List<SearchResult> results = response.getResults();
+    for (int i = 5, j = 0; i > 0; i--, j++) {
+      Assert.assertEquals("bro", results.get(j).getSource().get("source:type"));
+      Assert.assertEquals(i, results.get(j).getSource().get("timestamp"));
+    }
+  }
+
+  @Test
   public void test() throws Exception {
     //All Query Testcase
-    {
-      SearchRequest request = JSONUtils.INSTANCE.load(allQuery, SearchRequest.class);
-      SearchResponse response = dao.search(request);
-      Assert.assertEquals(10, response.getTotal());
-      List<SearchResult> results = response.getResults();
-      for(int i = 0;i < 5;++i) {
-        Assert.assertEquals("snort", results.get(i).getSource().get("source:type"));
-        Assert.assertEquals(10-i, results.get(i).getSource().get("timestamp"));
-      }
-      for(int i = 5;i < 10;++i) {
-        Assert.assertEquals("bro", results.get(i).getSource().get("source:type"));
-        Assert.assertEquals(10-i, results.get(i).getSource().get("timestamp"));
-      }
-    }
+//    {
+//      SearchRequest request = JSONUtils.INSTANCE.load(allQuery, SearchRequest.class);
+//      SearchResponse response = dao.search(request);
+//      Assert.assertEquals(10, response.getTotal());
+//      List<SearchResult> results = response.getResults();
+//      for(int i = 0;i < 5;++i) {
+//        Assert.assertEquals("snort", results.get(i).getSource().get("source:type"));
+//        Assert.assertEquals(10-i, results.get(i).getSource().get("timestamp"));
+//      }
+//      for(int i = 5;i < 10;++i) {
+//        Assert.assertEquals("bro", results.get(i).getSource().get("source:type"));
+//        Assert.assertEquals(10-i, results.get(i).getSource().get("timestamp"));
+//      }
+//    }
     //Filter test case
-    {
-      SearchRequest request = JSONUtils.INSTANCE.load(filterQuery, SearchRequest.class);
-      SearchResponse response = dao.search(request);
-      Assert.assertEquals(3, response.getTotal());
-      List<SearchResult> results = response.getResults();
-      Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
-      Assert.assertEquals(9, results.get(0).getSource().get("timestamp"));
-      Assert.assertEquals("snort", results.get(1).getSource().get("source:type"));
-      Assert.assertEquals(7, results.get(1).getSource().get("timestamp"));
-      Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
-      Assert.assertEquals(1, results.get(2).getSource().get("timestamp"));
-    }
+//    {
+//      SearchRequest request = JSONUtils.INSTANCE.load(filterQuery, SearchRequest.class);
+//      SearchResponse response = dao.search(request);
+//      Assert.assertEquals(3, response.getTotal());
+//      List<SearchResult> results = response.getResults();
+//      Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
+//      Assert.assertEquals(9, results.get(0).getSource().get("timestamp"));
+//      Assert.assertEquals("snort", results.get(1).getSource().get("source:type"));
+//      Assert.assertEquals(7, results.get(1).getSource().get("timestamp"));
+//      Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
+//      Assert.assertEquals(1, results.get(2).getSource().get("timestamp"));
+//    }
     //Sort test case
-    {
-      SearchRequest request = JSONUtils.INSTANCE.load(sortQuery, SearchRequest.class);
-      SearchResponse response = dao.search(request);
-      Assert.assertEquals(10, response.getTotal());
-      List<SearchResult> results = response.getResults();
-      for(int i = 8001;i < 8011;++i) {
-        Assert.assertEquals(i, results.get(i-8001).getSource().get("ip_src_port"));
-      }
-    }
+//    {
+//      searchrequest request = jsonutils.instance.load(sortquery, searchrequest.class);
+//      searchresponse response = dao.search(request);
+//      assert.assertequals(10, response.gettotal());
+//      list<searchresult> results = response.getresults();
+//      for (int i = 8001; i < 8011; ++i) {
+//        assert.assertequals(i, results.get(i - 8001).getsource().get("ip_src_port"));
+//      }
+//    }
     //pagination test case
-    {
-      SearchRequest request = JSONUtils.INSTANCE.load(paginationQuery, SearchRequest.class);
-      SearchResponse response = dao.search(request);
-      Assert.assertEquals(10, response.getTotal());
-      List<SearchResult> results = response.getResults();
-      Assert.assertEquals(3, results.size());
-      Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
-      Assert.assertEquals(6, results.get(0).getSource().get("timestamp"));
-      Assert.assertEquals("bro", results.get(1).getSource().get("source:type"));
-      Assert.assertEquals(5, results.get(1).getSource().get("timestamp"));
-      Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
-      Assert.assertEquals(4, results.get(2).getSource().get("timestamp"));
-    }
+//    {
+//      SearchRequest request = JSONUtils.INSTANCE.load(paginationQuery, SearchRequest.class);
+//      SearchResponse response = dao.search(request);
+//      Assert.assertEquals(10, response.getTotal());
+//      List<SearchResult> results = response.getResults();
+//      Assert.assertEquals(3, results.size());
+//      Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
+//      Assert.assertEquals(6, results.get(0).getSource().get("timestamp"));
+//      Assert.assertEquals("bro", results.get(1).getSource().get("source:type"));
+//      Assert.assertEquals(5, results.get(1).getSource().get("timestamp"));
+//      Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
+//      Assert.assertEquals(4, results.get(2).getSource().get("timestamp"));
+//    }
     //Index query
     {
-      SearchRequest request = JSONUtils.INSTANCE.load(indexQuery, SearchRequest.class);
-      SearchResponse response = dao.search(request);
-      Assert.assertEquals(5, response.getTotal());
-      List<SearchResult> results = response.getResults();
-      for(int i = 5,j=0;i > 0;i--,j++) {
-        Assert.assertEquals("bro", results.get(j).getSource().get("source:type"));
-        Assert.assertEquals(i, results.get(j).getSource().get("timestamp"));
-      }
+//      SearchRequest request = JSONUtils.INSTANCE.load(indexQuery, SearchRequest.class);
+//      SearchResponse response = dao.search(request);
+//      Assert.assertEquals(5, response.getTotal());
+//      List<SearchResult> results = response.getResults();
+//      for(int i = 5,j=0;i > 0;i--,j++) {
+//        Assert.assertEquals("bro", results.get(j).getSource().get("source:type"));
+//        Assert.assertEquals(i, results.get(j).getSource().get("timestamp"));
+//      }
     }
     //Facet query including all field types
     {
@@ -526,7 +594,7 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(2, fieldTypes.size());
       Map<String, FieldType> broTypes = fieldTypes.get("bro");
       Assert.assertEquals(12, broTypes.size());
-      Assert.assertEquals(FieldType.STRING, broTypes.get("source:type"));
+      Assert.assertEquals(FieldType.KEYWORD, broTypes.get("source:type"));
       Assert.assertEquals(FieldType.IP, broTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, broTypes.get("ip_src_port"));
       Assert.assertEquals(FieldType.LONG, broTypes.get("long_field"));
@@ -535,12 +603,12 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(FieldType.DOUBLE, broTypes.get("score"));
       Assert.assertEquals(FieldType.BOOLEAN, broTypes.get("is_alert"));
       Assert.assertEquals(FieldType.OTHER, broTypes.get("location_point"));
-      Assert.assertEquals(FieldType.STRING, broTypes.get("bro_field"));
-      Assert.assertEquals(FieldType.STRING, broTypes.get("duplicate_name_field"));
-      Assert.assertEquals(FieldType.STRING, broTypes.get("guid"));
+      Assert.assertEquals(FieldType.TEXT, broTypes.get("bro_field"));
+      Assert.assertEquals(FieldType.TEXT, broTypes.get("duplicate_name_field"));
+      Assert.assertEquals(FieldType.TEXT, broTypes.get("guid"));
       Map<String, FieldType> snortTypes = fieldTypes.get("snort");
       Assert.assertEquals(12, snortTypes.size());
-      Assert.assertEquals(FieldType.STRING, snortTypes.get("source:type"));
+      Assert.assertEquals(FieldType.KEYWORD, snortTypes.get("source:type"));
       Assert.assertEquals(FieldType.IP, snortTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, snortTypes.get("ip_src_port"));
       Assert.assertEquals(FieldType.LONG, snortTypes.get("long_field"));
@@ -551,7 +619,7 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(FieldType.OTHER, snortTypes.get("location_point"));
       Assert.assertEquals(FieldType.INTEGER, snortTypes.get("snort_field"));
       Assert.assertEquals(FieldType.INTEGER, snortTypes.get("duplicate_name_field"));
-      Assert.assertEquals(FieldType.STRING, broTypes.get("guid"));
+      Assert.assertEquals(FieldType.TEXT, broTypes.get("guid"));
     }
     // getColumnMetadata with only bro
     {
@@ -559,7 +627,7 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(1, fieldTypes.size());
       Map<String, FieldType> broTypes = fieldTypes.get("bro");
       Assert.assertEquals(12, broTypes.size());
-      Assert.assertEquals(FieldType.STRING, broTypes.get("bro_field"));
+      Assert.assertEquals(FieldType.TEXT, broTypes.get("bro_field"));
     }
     // getColumnMetadata with only snort
     {
@@ -574,7 +642,7 @@ public abstract class SearchIntegrationTest {
       Map<String, FieldType> fieldTypes = dao.getCommonColumnMetadata(Arrays.asList("bro", "snort"));
       // Should only return fields in both
       Assert.assertEquals(10, fieldTypes.size());
-      Assert.assertEquals(FieldType.STRING, fieldTypes.get("source:type"));
+      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("source:type"));
       Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
       Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
@@ -583,14 +651,14 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
       Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
       Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-      Assert.assertEquals(FieldType.STRING, fieldTypes.get("guid"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
     }
     // getCommonColumnMetadata with only bro
     {
       Map<String, FieldType> fieldTypes = dao.getCommonColumnMetadata(Collections.singletonList("bro"));
       Assert.assertEquals(12, fieldTypes.size());
-      Assert.assertEquals(FieldType.STRING, fieldTypes.get("bro_field"));
-      Assert.assertEquals(FieldType.STRING, fieldTypes.get("duplicate_name_field"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("duplicate_name_field"));
     }
     // getCommonColumnMetadata with only snort
     {
@@ -600,34 +668,34 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
     }
     //Fields query
-    {
-      SearchRequest request = JSONUtils.INSTANCE.load(fieldsQuery, SearchRequest.class);
-      SearchResponse response = dao.search(request);
-      Assert.assertEquals(10, response.getTotal());
-      List<SearchResult> results = response.getResults();
-      for(int i = 0;i < 5;++i) {
-        Map<String, Object> source = results.get(i).getSource();
-        Assert.assertEquals(1, source.size());
-        Assert.assertNotNull(source.get("ip_src_addr"));
-      }
-      for(int i = 5;i < 10;++i) {
-        Map<String, Object> source = results.get(i).getSource();
-        Assert.assertEquals(1, source.size());
-        Assert.assertNotNull(source.get("ip_src_addr"));
-      }
-    }
+//    {
+//      SearchRequest request = JSONUtils.INSTANCE.load(fieldsQuery, SearchRequest.class);
+//      SearchResponse response = dao.search(request);
+//      Assert.assertEquals(10, response.getTotal());
+//      List<SearchResult> results = response.getResults();
+//      for(int i = 0;i < 5;++i) {
+//        Map<String, Object> source = results.get(i).getSource();
+//        Assert.assertEquals(1, source.size());
+//        Assert.assertNotNull(source.get("ip_src_addr"));
+//      }
+//      for(int i = 5;i < 10;++i) {
+//        Map<String, Object> source = results.get(i).getSource();
+//        Assert.assertEquals(1, source.size());
+//        Assert.assertNotNull(source.get("ip_src_addr"));
+//      }
+//    }
     //Meta Alerts Fields query
-    {
-      SearchRequest request = JSONUtils.INSTANCE.load(metaAlertsFieldQuery, SearchRequest.class);
-      SearchResponse response = dao.search(request);
-      Assert.assertEquals(2, response.getTotal());
-      List<SearchResult> results = response.getResults();
-      for (int i = 0;i < 2;++i) {
-        Map<String, Object> source = results.get(i).getSource();
-        Assert.assertEquals(1, source.size());
-        Assert.assertEquals(source.get("guid"), "meta_" + (i + 1));
-      }
-    }
+//    {
+//      SearchRequest request = JSONUtils.INSTANCE.load(metaAlertsFieldQuery, SearchRequest.class);
+//      SearchResponse response = dao.search(request);
+//      Assert.assertEquals(2, response.getTotal());
+//      List<SearchResult> results = response.getResults();
+//      for (int i = 0;i < 2;++i) {
+//        Map<String, Object> source = results.get(i).getSource();
+//        Assert.assertEquals(1, source.size());
+//        Assert.assertEquals(source.get("guid"), "meta_" + (i + 1));
+//      }
+//    }
     //No results fields query
     {
       SearchRequest request = JSONUtils.INSTANCE.load(noResultsFieldsQuery, SearchRequest.class);
@@ -772,6 +840,37 @@ public abstract class SearchIntegrationTest {
       catch(InvalidSearchException ise) {
         Assert.assertEquals("Could not execute search", ise.getMessage());
       }
+    }
+  }
+
+  @Test
+  public void queries_fields() throws Exception {
+    SearchRequest request = JSONUtils.INSTANCE.load(fieldsQuery, SearchRequest.class);
+    SearchResponse response = dao.search(request);
+    Assert.assertEquals(10, response.getTotal());
+    List<SearchResult> results = response.getResults();
+    for (int i = 0; i < 5; ++i) {
+      Map<String, Object> source = results.get(i).getSource();
+      Assert.assertEquals(1, source.size());
+      Assert.assertNotNull(source.get("ip_src_addr"));
+    }
+    for (int i = 5; i < 10; ++i) {
+      Map<String, Object> source = results.get(i).getSource();
+      Assert.assertEquals(1, source.size());
+      Assert.assertNotNull(source.get("ip_src_addr"));
+    }
+  }
+
+  @Test
+  public void searches_metaalerts_fields() throws Exception {
+    SearchRequest request = JSONUtils.INSTANCE.load(metaAlertsFieldQuery, SearchRequest.class);
+    SearchResponse response = dao.search(request);
+    Assert.assertEquals(2, response.getTotal());
+    List<SearchResult> results = response.getResults();
+    for (int i = 0; i < 2; ++i) {
+      Map<String, Object> source = results.get(i).getSource();
+      Assert.assertEquals(1, source.size());
+      Assert.assertEquals(source.get("guid"), "meta_" + (i + 1));
     }
   }
 

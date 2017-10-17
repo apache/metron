@@ -17,8 +17,19 @@
  */
 package org.apache.metron.rest.controller;
 
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.google.common.collect.ImmutableMap;
-import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.metron.indexing.dao.InMemoryDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.indexing.dao.search.FieldType;
@@ -36,19 +47,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
-import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -257,12 +255,12 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
   private void loadColumnTypes() throws ParseException {
     Map<String, Map<String, FieldType>> columnTypes = new HashMap<>();
     Map<String, FieldType> broTypes = new HashMap<>();
-    broTypes.put("common_string_field", FieldType.STRING);
+    broTypes.put("common_string_field", FieldType.TEXT);
     broTypes.put("common_integer_field", FieldType.INTEGER);
     broTypes.put("bro_field", FieldType.BOOLEAN);
     broTypes.put("duplicate_field", FieldType.DATE);
     Map<String, FieldType> snortTypes = new HashMap<>();
-    snortTypes.put("common_string_field", FieldType.STRING);
+    snortTypes.put("common_string_field", FieldType.TEXT);
     snortTypes.put("common_integer_field", FieldType.INTEGER);
     snortTypes.put("snort_field", FieldType.DOUBLE);
     snortTypes.put("duplicate_field", FieldType.LONG);
