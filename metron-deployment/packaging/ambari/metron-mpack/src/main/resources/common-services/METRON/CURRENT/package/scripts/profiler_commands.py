@@ -19,6 +19,7 @@ import os
 import time
 
 from datetime import datetime
+from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 
@@ -47,6 +48,12 @@ class ProfilerCommands:
         self.__hbase_configured = os.path.isfile(self.__params.profiler_hbase_configured_flag_file)
         self.__hbase_acl_configured = os.path.isfile(self.__params.profiler_hbase_acl_configured_flag_file)
 
+    def __get_topics(self):
+        return [self.__profiler_topic]
+
+    def __get_kafka_acl_groups(self):
+        return ['profiler']
+
     def is_configured(self):
         return self.__configured
 
@@ -72,7 +79,7 @@ class ProfilerCommands:
         metron_service.set_configured(self.__params.metron_user, self.__params.profiler_hbase_acl_configured_flag_file, "Setting HBase ACL configured to True for profiler")
 
     def create_hbase_tables(self):
-        Logger.info("Creating HBase Tables for profiler")
+        Logger.info("Creating HBase table '{0}' for profiler".format(self.__params.profiler_hbase_table))
         if self.__params.security_enabled:
             metron_security.kinit(self.__params.kinit_path_local,
                   self.__params.hbase_keytab_path,
@@ -88,12 +95,13 @@ class ProfilerCommands:
                 user=self.__params.hbase_user
                 )
 
-        Logger.info("Done creating HBase Tables for profiler")
         self.set_hbase_configured()
+        Logger.info("Done creating HBase Tables for profiler")
 
     def init_kafka_acls(self):
         Logger.info('Creating Kafka ACls for profiler')
-        metron_service.init_kafka_acls(self.__params, [self.__profiler_topic], ['profiler'])
+        metron_service.init_kafka_acls(self.__params, self.__get_topics())
+        metron_service.init_kafka_acl_groups(self.__params, self.__get_kafka_acl_groups())
 
     def set_hbase_acls(self):
         Logger.info("Setting HBase ACLs for profiler")
@@ -102,6 +110,7 @@ class ProfilerCommands:
                   self.__params.hbase_keytab_path,
                   self.__params.hbase_principal_name,
                   execute_user=self.__params.hbase_user)
+                  
         cmd = "echo \"grant '{0}', 'RW', '{1}'\" | hbase shell -n"
         add_table_acl_cmd = cmd.format(self.__params.metron_user, self.__params.profiler_hbase_table)
         Execute(add_table_acl_cmd,
@@ -112,8 +121,8 @@ class ProfilerCommands:
                 user=self.__params.hbase_user
                 )
 
-        Logger.info("Done setting HBase ACLs for profiler")
         self.set_hbase_acl_configured()
+        Logger.info("Done setting HBase ACLs for profiler")
 
     def start_profiler_topology(self, env):
         Logger.info('Starting ' + self.__profiler_topology)
@@ -182,3 +191,30 @@ class ProfilerCommands:
             is_running = topologies[self.__profiler_topology] in ['ACTIVE', 'REBALANCING']
         active &= is_running
         return active
+
+    def service_check(self, env):
+        """
+        Performs a service check for the Profiler.
+        :param env: Environment
+        """
+        Logger.info('Checking Kafka topics for Profiler')
+        metron_service.check_kafka_topics(self.__params, [self.__params.profiler_input_topic])
+
+        Logger.info("Checking HBase table for profiler")
+        metron_service.check_hbase_table(self.__params, self.__params.profiler_hbase_table)
+        metron_service.check_hbase_column_family(self.__params, self.__params.profiler_hbase_table, self.__params.profiler_hbase_cf)
+
+        if self.__params.security_enabled:
+
+            Logger.info('Checking Kafka ACLs for Profiler')
+            metron_service.check_kafka_acls(self.__params, self.__get_topics())
+            metron_service.check_kafka_acl_groups(self.__params, self.__get_kafka_acl_groups())
+
+            Logger.info('Checking Kafka ACLs for Profiler')
+            metron_service.check_hbase_acls(self.__params, self.__params.profiler_hbase_table)
+
+        Logger.info("Checking for Profiler topology")
+        if not self.is_topology_active(env):
+            raise Fail("Profiler topology not running")
+
+        Logger.info("Profiler service check completed successfully")

@@ -19,13 +19,13 @@
 import { MetronAlertsPage } from './alerts-list.po';
 import { customMatchers } from  '../matchers/custom-matchers';
 import { LoginPage } from '../login/login.po';
-import { loadTestData, deleteTestData } from "../utils/e2e_util";
+import { loadTestData, deleteTestData } from '../utils/e2e_util';
 
 describe('metron-alerts App', function() {
   let page: MetronAlertsPage;
   let loginPage: LoginPage;
   let columnNames = [ 'Score', 'id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichm...:country',
-                      'ip_dst_addr', 'host', 'alert_status', '', '' ];
+                      'ip_dst_addr', 'host', 'alert_status', '', ''];
   let colNamesColumnConfig = [ 'score', 'id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
                                 'ip_dst_addr', 'host', 'alert_status' ];
 
@@ -145,6 +145,35 @@ describe('metron-alerts App', function() {
     expect(page.getSelectedColumnNames()).toEqual(newColNamesColumnConfig, 'for guid added to selected column names');
     page.saveConfigureColumns();
 
+  });
+
+  it('sould have all time-range controls', () => {
+    let quickRanges = [
+      'Last 7 days', 'Last 30 days', 'Last 60 days', 'Last 90 days', 'Last 6 months', 'Last 1 year', 'Last 2 years', 'Last 5 years',
+      'Yesterday', 'Day before yesterday', 'This day last week', 'Previous week', 'Previous month', 'Previous year', 'All time',
+      'Today', 'Today so far', 'This week', 'This week so far', 'This month', 'This year',
+      'Last 5 minutes', 'Last 15 minutes', 'Last 30 minutes', 'Last 1 hour', 'Last 3 hours', 'Last 6 hours', 'Last 12 hours', 'Last 24 hours'
+    ];
+
+    page.clickDateSettings();
+    expect(page.getTimeRangeTitles()).toEqual(['Time Range', 'Quick Ranges']);
+    expect(page.getQuickTimeRanges()).toEqual(quickRanges);
+    expect(page.getValueForManualTimeRange()).toEqual([ 'now/d', 'now/d' ]);
+    expect(page.isManulaTimeRangeApplyButtonPresent()).toEqual(true);
+    expect(page.getTimeRangeButtonText()).toEqual('All time');
+
+  });
+
+  it('sould have all time-range included while searching', () => {
+    page.selectQuickTimeRange('Last 5 years');
+    expect(page.getTimeRangeButtonText()).toEqual('Last 5 years');
+
+    page.clickDateSettings();
+    page.setDate(0, '2017', 'September', '13', '23', '29', '35');
+    page.setDate(1, '2017', 'September', '13', '23', '29', '40');
+    page.selectTimeRangeApplyButton();
+
+    expect(page.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (5)');
   });
 
 });

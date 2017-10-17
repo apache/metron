@@ -20,11 +20,11 @@ import {routing} from './alerts-details.routing';
 import {SharedModule} from '../../shared/shared.module';
 import {AlertDetailsComponent} from './alert-details.component';
 import {AlertsService} from '../../service/alerts.service';
-import {UpdateService} from '../../service/update.service';
+import {AuthenticationService} from '../../service/authentication.service';
 
 @NgModule ({
     imports: [ routing,  SharedModule],
     declarations: [ AlertDetailsComponent ],
-    providers: [ AlertsService, UpdateService ],
+    providers: [ AuthenticationService, AlertsService ]
 })
 export class AlertDetailsModule { }

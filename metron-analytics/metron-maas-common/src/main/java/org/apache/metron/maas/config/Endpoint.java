@@ -52,7 +52,7 @@ public class Endpoint {
    * and functions which are used for data science as 'ds', you can alias /foo to 'enrich'
    * and /bar to 'ds' by creating a map which maps the 'enrich' to 'foo' and 'ds' to 'bar'.
    *
-   * @return
+   * @return functions
    */
   public Map<String, String> getFunctions() {
     return functions;

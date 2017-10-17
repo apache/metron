@@ -17,14 +17,35 @@
  */
 import { Component, OnInit } from '@angular/core';
 import {Router, ActivatedRoute} from '@angular/router';
+import * as moment from 'moment/moment';
+
 import {SearchService} from '../../service/search.service';
 import {UpdateService} from '../../service/update.service';
 import {Alert} from '../../model/alert';
 import {AlertsService} from '../../service/alerts.service';
 import {AlertSource} from '../../model/alert-source';
+import {PatchRequest} from '../../model/patch-request';
+import {Patch} from '../../model/patch';
+import {AlertComment} from './alert-comment';
+import {AuthenticationService} from '../../service/authentication.service';
+import {MetronDialogBox} from '../../shared/metron-dialog-box';
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
+}
+
+export enum Tabs {
+  DETAILS, COMMENTS
+}
+
+class AlertCommentWrapper {
+  alertComment: AlertComment;
+  displayTime: string;
+
+  constructor(alertComment: AlertComment, displayTime: string) {
+    this.alertComment = alertComment;
+    this.displayTime = displayTime;
+  }
 }
 
 @Component({
@@ -36,16 +57,25 @@ export class AlertDetailsComponent implements OnInit {
 
   alertId = '';
   alertSourceType = '';
+  alertIndex = '';
   alertState = AlertState;
+  tabs = Tabs;
+  activeTab = Tabs.DETAILS;
   selectedAlertState: AlertState = AlertState.NEW;
   alertSource: AlertSource = new AlertSource();
   alertFields: string[] = [];
+  alertCommentStr = '';
+  alertCommentsWrapper: AlertCommentWrapper[] = [];
 
   constructor(private router: Router,
               private activatedRoute: ActivatedRoute,
               private searchService: SearchService,
               private updateService: UpdateService,
-              private alertsService: AlertsService) { }
+              private alertsService: AlertsService,
+              private authenticationService: AuthenticationService,
+              private metronDialogBox: MetronDialogBox) {
+
+  }
 
   goBack() {
     this.router.navigateByUrl('/alerts-list');
@@ -53,11 +83,20 @@ export class AlertDetailsComponent implements OnInit {
   }
 
   getData() {
+    this.alertCommentStr = '';
     this.searchService.getAlert(this.alertSourceType, this.alertId).subscribe(alert => {
       this.alertSource = alert;
-      this.alertFields = Object.keys(alert).filter(field => !field.includes(':ts') && field !== 'original_string').sort();
+      this.alertFields = Object.keys(alert).filter(field => !field.includes(':ts') && field !== 'original_string' && field !== 'comments')
+                          .sort();
       this.selectedAlertState = this.getAlertState(alert['alert_status']);
+      this.setComments(alert);
     });
+  }
+
+  setComments(alert) {
+    let alertComments = alert['comments'] ? alert['comments'] : [];
+    this.alertCommentsWrapper = alertComments.map(alertComment =>
+        new AlertCommentWrapper(alertComment, moment(new Date(alertComment.timestamp)).fromNow()));
   }
 
   getAlertState(alertStatus) {
@@ -78,9 +117,10 @@ export class AlertDetailsComponent implements OnInit {
     this.activatedRoute.params.subscribe(params => {
       this.alertId = params['guid'];
       this.alertSourceType = params['sourceType'];
+      this.alertIndex = params['index'];
       this.getData();
     });
-  }
+  };
 
   processOpen() {
     let tAlert = new Alert();
@@ -133,6 +173,40 @@ export class AlertDetailsComponent implements OnInit {
     });
   }
 
+  onAddComment() {
+    let alertComment = new AlertComment(this.alertCommentStr, this.authenticationService.getCurrentUserName(), new Date().getTime());
+    let tAlertComments = this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment);
+    tAlertComments.unshift(alertComment);
+    this.patchAlert(new Patch('add', '/comments', tAlertComments));
+  }
+
+  patchAlert(patch: Patch) {
+    let patchRequest = new PatchRequest();
+    patchRequest.guid = this.alertSource.guid;
+    patchRequest.index = this.alertIndex;
+    patchRequest.patch = [patch];
+    patchRequest.sensorType = this.alertSourceType;
+
+    this.updateService.patch(patchRequest).subscribe(() => {
+      this.getData();
+    });
+  }
+
+  onDeleteComment(index: number) {
+    let commentText =  'Do you wish to delete the comment ';
+    if (this.alertCommentsWrapper[index].alertComment.comment.length > 25 ) {
+      commentText += ' \'' + this.alertCommentsWrapper[index].alertComment.comment.substr(0, 25) + '...\'';
+    } else {
+      commentText += ' \'' + this.alertCommentsWrapper[index].alertComment.comment + '\'';
+    }
+
+    this.metronDialogBox.showConfirmationMessage(commentText).subscribe(response => {
+      if (response) {
+        this.alertCommentsWrapper.splice(index, 1);
+        this.patchAlert(new Patch('add', '/comments', this.alertCommentsWrapper.map(alertsWrapper => alertsWrapper.alertComment)));
+      }
+    });
+  }
 }
 
 

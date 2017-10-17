@@ -48,7 +48,7 @@ public interface StatisticsProvider {
   /**
    * Unbiased skewness.
    * See  http://commons.apache.org/proper/commons-math/apidocs/org/apache/commons/math4/stat/descriptive/moment/Skewness.html
-   * @return
+   * @return unbiased skewness
    */
   double getSkewness();
 

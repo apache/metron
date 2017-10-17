@@ -52,7 +52,7 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
 
   /**
    * {
-   * "indices": ["metaalerts"],
+   * "indices": ["metaalert"],
    * "query": "alert|guid:${GUID}",
    * "from": 0,
    * "size": 10,

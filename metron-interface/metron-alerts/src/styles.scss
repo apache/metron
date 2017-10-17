@@ -21,6 +21,7 @@
 @import "slider.scss";
 @import "metron-dialog.scss";
 @import "../node_modules/pikaday-time/scss/pikaday.scss";
+@import "hexagon";
 
 body,
 button {
@@ -236,7 +237,6 @@ form
   color: $piction-blue;
   font-size: 14px;
   min-width: 85px;
-  width: 85px;
   cursor: pointer;
   &:focus
   {
@@ -250,4 +250,20 @@ form
   -moz-appearance: none;
   appearance: none;
   padding: 0px 15px;
+}
+
+.tooltip-inner {
+  opacity: 0.9;
+  font-size: 11px;
+  border-radius: 0px;
+  border: 1px solid $silver-2;
+}
+
+hr {
+  display: block;
+  height: 1px;
+  border: 0;
+  border-top: 1px solid $tundora-1;
+  margin: 0.3rem 0;
+  padding: 0;
 }

@@ -20,5 +20,5 @@ import { RouterModule } from '@angular/router';
 import {AlertDetailsComponent} from './alert-details.component';
 
 export const routing: ModuleWithProviders = RouterModule.forChild([
-    { path: 'details/:sourceType/:guid', component: AlertDetailsComponent, outlet: 'dialog'}
+    { path: 'details/:sourceType/:guid/:index', component: AlertDetailsComponent, outlet: 'dialog'}
 ]);
