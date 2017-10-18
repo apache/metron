@@ -254,7 +254,12 @@ public class ElasticsearchDao implements IndexDao {
    */
   <T> Optional<T> searchByGuid(String guid, String sensorType,
       Function<SearchHit, Optional<T>> callback) {
-    QueryBuilder query =  QueryBuilders.idsQuery(sensorType + "_doc").ids(guid);
+    QueryBuilder query;
+    if (sensorType != null) {
+      query = QueryBuilders.idsQuery(sensorType + "_doc").ids(guid);
+    } else {
+      query = QueryBuilders.idsQuery().ids(guid);
+    }
     SearchRequestBuilder request = client.prepareSearch()
                                          .setQuery(query)
                                          .setSource("message")
