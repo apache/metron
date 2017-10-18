@@ -315,7 +315,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
 
   /**
    {
-     "guid": "search_by_status_active",
+     "guid": "active_metaalert",
      "source:type": "metaalert",
      "alert": [],
      "status": "active"
@@ -326,7 +326,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
 
   /**
    {
-     "guid": "search_by_status_inactive",
+     "guid": "inactive_metaalert",
      "source:type": "metaalert",
      "alert": [],
      "status": "inactive"
@@ -346,7 +346,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
     // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
     elasticsearchAdd(metaInputData, MetaAlertDao.METAALERTS_INDEX, MetaAlertDao.METAALERT_TYPE);
     // Wait for updates to persist
-    findUpdatedDoc(inactiveMetaAlertJSON, "search_by_status_inactive", MetaAlertDao.METAALERT_TYPE);
+    findUpdatedDoc(inactiveMetaAlertJSON, "inactive_metaalert", MetaAlertDao.METAALERT_TYPE);
 
     SearchResponse searchResponse = metaDao.search(new SearchRequest() {
       {
@@ -363,43 +363,74 @@ public class ElasticsearchMetaAlertIntegrationTest {
 
   /**
    {
-   "guid": "search_by_nested_alert_0",
+   "guid": "search_by_nested_alert_active_0",
    "source:type": "test",
    "ip_src_addr": "192.168.1.1",
    "ip_src_port": 8010
    }
    */
   @Multiline
-  public static String searchByNestedAlert0;
+  public static String searchByNestedAlertActive0;
 
   /**
    {
-   "guid": "search_by_nested_alert_1",
+   "guid": "search_by_nested_alert_inactive_1",
    "source:type": "test",
    "ip_src_addr": "192.168.1.2",
    "ip_src_port": 8009
    }
    */
   @Multiline
-  public static String searchByNestedAlert1;
+  public static String searchByNestedAlertActive1;
+
+  /**
+   {
+   "guid": "search_by_nested_alert_inactive_0",
+   "source:type": "test",
+   "ip_src_addr": "192.168.1.3",
+   "ip_src_port": 8008
+   }
+   */
+  @Multiline
+  public static String searchByNestedAlertInactive0;
+
+  /**
+   {
+   "guid": "search_by_nested_alert_inactive_1",
+   "source:type": "test",
+   "ip_src_addr": "192.168.1.4",
+   "ip_src_port": 8007
+   }
+   */
+  @Multiline
+  public static String searchByNestedAlertInactive1;
 
   @Test
   public void shouldSearchByNestedAlert() throws Exception {
-    List<Map<String, Object>> inputData = new ArrayList<>();
-    Map<String, Object> searchByNestedAlert0JSON = JSONUtils.INSTANCE.load(searchByNestedAlert0, new TypeReference<Map<String, Object>>() {});
-    inputData.add(searchByNestedAlert0JSON);
-    Map<String, Object> searchByNestedAlert1JSON = JSONUtils.INSTANCE.load(searchByNestedAlert1, new TypeReference<Map<String, Object>>() {});
-    inputData.add(searchByNestedAlert1JSON);
-    elasticsearchAdd(inputData, INDEX, SENSOR_NAME);
+    // Create alerts
+    List<Map<String, Object>> alerts = new ArrayList<>();
+    Map<String, Object> searchByNestedAlertActive0JSON = JSONUtils.INSTANCE.load(searchByNestedAlertActive0, new TypeReference<Map<String, Object>>() {});
+    alerts.add(searchByNestedAlertActive0JSON);
+    Map<String, Object> searchByNestedAlertActive1JSON = JSONUtils.INSTANCE.load(searchByNestedAlertActive1, new TypeReference<Map<String, Object>>() {});
+    alerts.add(searchByNestedAlertActive1JSON);
+    Map<String, Object> searchByNestedAlertInactive0JSON = JSONUtils.INSTANCE.load(searchByNestedAlertInactive0, new TypeReference<Map<String, Object>>() {});
+    alerts.add(searchByNestedAlertInactive0JSON);
+    Map<String, Object> searchByNestedAlertInactive1JSON = JSONUtils.INSTANCE.load(searchByNestedAlertInactive1, new TypeReference<Map<String, Object>>() {});
+    alerts.add(searchByNestedAlertInactive1JSON);
+    elasticsearchAdd(alerts, INDEX, SENSOR_NAME);
     // Wait for updates to persist
-    findUpdatedDoc(searchByNestedAlert0JSON, "search_by_nested_alert_0", SENSOR_NAME);
+    findUpdatedDoc(searchByNestedAlertInactive1JSON, "search_by_nested_alert_inactive_1", SENSOR_NAME);
 
+    // Create metaalerts
     Map<String, Object> activeMetaAlertJSON = JSONUtils.INSTANCE.load(activeMetaAlert, new TypeReference<Map<String, Object>>() {});
-    activeMetaAlertJSON.put("alert", Arrays.asList(searchByNestedAlert0JSON, searchByNestedAlert1JSON));
+    activeMetaAlertJSON.put("alert", Arrays.asList(searchByNestedAlertActive0JSON, searchByNestedAlertActive1JSON));
+    Map<String, Object> inactiveMetaAlertJSON = JSONUtils.INSTANCE.load(inactiveMetaAlert, new TypeReference<Map<String, Object>>() {});
+    inactiveMetaAlertJSON.put("alert", Arrays.asList(searchByNestedAlertInactive0JSON, searchByNestedAlertInactive1JSON));
+
     // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    elasticsearchAdd(Collections.singletonList(activeMetaAlertJSON), MetaAlertDao.METAALERTS_INDEX, MetaAlertDao.METAALERT_TYPE);
+    elasticsearchAdd(Arrays.asList(activeMetaAlertJSON, inactiveMetaAlertJSON), MetaAlertDao.METAALERTS_INDEX, MetaAlertDao.METAALERT_TYPE);
     // Wait for updates to persist
-    findUpdatedDoc(activeMetaAlertJSON, "search_by_status_active", MetaAlertDao.METAALERT_TYPE);
+    findUpdatedDoc(activeMetaAlertJSON, "active_metaalert", MetaAlertDao.METAALERT_TYPE);
 
     SearchResponse searchResponse = metaDao.search(new SearchRequest() {
       {
@@ -424,14 +455,14 @@ public class ElasticsearchMetaAlertIntegrationTest {
     });
     // Nested query should match a nested alert
     Assert.assertEquals(1, searchResponse.getTotal());
-    Assert.assertEquals("search_by_status_active", searchResponse.getResults().get(0).getSource().get("guid"));
+    Assert.assertEquals("active_metaalert", searchResponse.getResults().get(0).getSource().get("guid"));
   }
 
   /**
    {
-     "guid": "update_metaalert_alert_0",
-     "source:type": "test",
-     "field": "value 0"
+   "guid": "update_metaalert_alert_0",
+   "source:type": "test",
+   "field": "value 0"
    }
    */
   @Multiline
@@ -439,9 +470,9 @@ public class ElasticsearchMetaAlertIntegrationTest {
 
   /**
    {
-     "guid": "update_metaalert_alert_1",
-     "source:type": "test",
-     "field":"value 1"
+   "guid": "update_metaalert_alert_1",
+   "source:type": "test",
+   "field":"value 1"
    }
    */
   @Multiline
@@ -449,15 +480,15 @@ public class ElasticsearchMetaAlertIntegrationTest {
 
   /**
    {
-     "guid": "update_metaalert_alert_0",
-     "patch": [
-       {
-         "op": "add",
-         "path": "/field",
-         "value": "patched value 0"
-       }
-     ],
-     "sensorType": "test"
+   "guid": "update_metaalert_alert_0",
+   "patch": [
+   {
+   "op": "add",
+   "path": "/field",
+   "value": "patched value 0"
+   }
+   ],
+   "sensorType": "test"
    }
    */
   @Multiline
@@ -465,13 +496,13 @@ public class ElasticsearchMetaAlertIntegrationTest {
 
   /**
    {
-     "guid": "update_metaalert_alert_0",
-     "replacement": {
-       "guid": "update_metaalert_alert_0",
-       "source:type": "test",
-       "field": "replaced value 0"
-     },
-     "sensorType": "test"
+   "guid": "update_metaalert_alert_0",
+   "replacement": {
+   "guid": "update_metaalert_alert_0",
+   "source:type": "test",
+   "field": "replaced value 0"
+   },
+   "sensorType": "test"
    }
    */
   @Multiline
