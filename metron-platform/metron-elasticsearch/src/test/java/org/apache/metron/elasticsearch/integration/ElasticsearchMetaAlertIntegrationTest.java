@@ -44,10 +44,13 @@ import org.apache.metron.elasticsearch.integration.components.ElasticSearchCompo
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MetaAlertDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SortField;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -66,7 +69,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
   private static final String NEW_FIELD = "new-field";
 
   private static IndexDao esDao;
-  private static IndexDao metaDao;
+  private static MetaAlertDao metaDao;
   private static ElasticSearchComponent es;
 
   @BeforeClass
@@ -424,12 +427,126 @@ public class ElasticsearchMetaAlertIntegrationTest {
     Assert.assertEquals("search_by_status_active", searchResponse.getResults().get(0).getSource().get("guid"));
   }
 
+  /**
+   {
+     "guid": "update_metaalert_alert_0",
+     "source:type": "test",
+     "field": "value 0"
+   }
+   */
+  @Multiline
+  public static String updateMetaAlertAlert0;
+
+  /**
+   {
+     "guid": "update_metaalert_alert_1",
+     "source:type": "test",
+     "field":"value 1"
+   }
+   */
+  @Multiline
+  public static String updateMetaAlertAlert1;
+
+  /**
+   {
+     "guid": "update_metaalert_alert_0",
+     "patch": [
+       {
+         "op": "add",
+         "path": "/field",
+         "value": "patched value 0"
+       }
+     ],
+     "sensorType": "test"
+   }
+   */
+  @Multiline
+  public static String updateMetaAlertPatchRequest;
+
+  /**
+   {
+     "guid": "update_metaalert_alert_0",
+     "replacement": {
+       "guid": "update_metaalert_alert_0",
+       "source:type": "test",
+       "field": "replaced value 0"
+     },
+     "sensorType": "test"
+   }
+   */
+  @Multiline
+  public static String updateMetaAlertReplaceRequest;
+
+  @Test
+  public void shouldUpdateMetaAlertOnAlertPatchOrReplace() throws Exception {
+    List<Map<String, Object>> inputData = new ArrayList<>();
+    Map<String, Object> updateMetaAlertAlert0JSON = JSONUtils.INSTANCE.load(updateMetaAlertAlert0, new TypeReference<Map<String, Object>>() {});
+    inputData.add(updateMetaAlertAlert0JSON);
+    Map<String, Object> updateMetaAlertAlert1JSON = JSONUtils.INSTANCE.load(updateMetaAlertAlert1, new TypeReference<Map<String, Object>>() {});
+    inputData.add(updateMetaAlertAlert1JSON);
+    elasticsearchAdd(inputData, INDEX, SENSOR_NAME);
+    // Wait for updates to persist
+    findUpdatedDoc(updateMetaAlertAlert1JSON, "update_metaalert_alert_1", SENSOR_NAME);
+
+    MetaAlertCreateResponse metaAlertCreateResponse = metaDao.createMetaAlert(new MetaAlertCreateRequest() {{
+      setGuidToIndices(new HashMap<String, String>() {{
+        put("update_metaalert_alert_0", INDEX);
+        put("update_metaalert_alert_1", INDEX);
+      }});
+      setGroups(Collections.singletonList("group"));
+    }});
+    // Wait for updates to persist
+    findCreatedDoc(metaAlertCreateResponse.getGuid(), MetaAlertDao.METAALERT_TYPE);
+
+    // Patch alert
+    metaDao.patch(JSONUtils.INSTANCE.load(updateMetaAlertPatchRequest, PatchRequest.class), Optional.empty());
+
+    // Wait for updates to persist
+    updateMetaAlertAlert0JSON.put("field", "patched value 0");
+    findUpdatedDoc(updateMetaAlertAlert1JSON, "update_metaalert_alert_0", SENSOR_NAME);
+
+    Map<String, Object> metaalert = metaDao.getLatest(metaAlertCreateResponse.getGuid(), MetaAlertDao.METAALERT_TYPE).getDocument();
+    List<Map<String, Object>> alerts = (List<Map<String, Object>>) metaalert.get("alert");
+    Assert.assertEquals(2, alerts.size());
+    Assert.assertEquals("update_metaalert_alert_1", alerts.get(0).get("guid"));
+    Assert.assertEquals("value 1", alerts.get(0).get("field"));
+    Assert.assertEquals("update_metaalert_alert_0", alerts.get(1).get("guid"));
+    Assert.assertEquals("patched value 0", alerts.get(1).get("field"));
+
+    // Replace alert
+    metaDao.replace(JSONUtils.INSTANCE.load(updateMetaAlertReplaceRequest, ReplaceRequest.class), Optional.empty());
+
+    // Wait for updates to persist
+    updateMetaAlertAlert0JSON.put("field", "replaced value 0");
+    findUpdatedDoc(updateMetaAlertAlert1JSON, "update_metaalert_alert_0", SENSOR_NAME);
+
+    metaalert = metaDao.getLatest(metaAlertCreateResponse.getGuid(), MetaAlertDao.METAALERT_TYPE).getDocument();
+    alerts = (List<Map<String, Object>>) metaalert.get("alert");
+    Assert.assertEquals(2, alerts.size());
+    Assert.assertEquals("update_metaalert_alert_1", alerts.get(0).get("guid"));
+    Assert.assertEquals("value 1", alerts.get(0).get("field"));
+    Assert.assertEquals("update_metaalert_alert_0", alerts.get(1).get("guid"));
+    Assert.assertEquals("replaced value 0", alerts.get(1).get("field"));
+  }
+
   protected boolean findUpdatedDoc(Map<String, Object> message0, String guid, String sensorType)
       throws InterruptedException, IOException {
     boolean found = false;
     for (int t = 0; t < MAX_RETRIES && !found; ++t, Thread.sleep(SLEEP_MS)) {
       Document doc = metaDao.getLatest(guid, sensorType);
       if (doc != null && message0.equals(doc.getDocument())) {
+        found = true;
+      }
+    }
+    return found;
+  }
+
+  protected boolean findCreatedDoc(String guid, String sensorType)
+      throws InterruptedException, IOException {
+    boolean found = false;
+    for (int t = 0; t < MAX_RETRIES && !found; ++t, Thread.sleep(SLEEP_MS)) {
+      Document doc = metaDao.getLatest(guid, sensorType);
+      if (doc != null) {
         found = true;
       }
     }
