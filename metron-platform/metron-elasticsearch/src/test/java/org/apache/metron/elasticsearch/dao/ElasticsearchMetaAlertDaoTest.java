@@ -252,7 +252,7 @@ public class ElasticsearchMetaAlertDaoTest {
       }
 
       @Override
-      public void bulkUpdate(Map<Document, Optional<String>> updates) throws IOException {
+      public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
       }
 
       @Override

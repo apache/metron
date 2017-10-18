@@ -71,11 +71,11 @@ public class MultiIndexDao implements IndexDao {
   }
 
   @Override
-  public void bulkUpdate(Map<Document, Optional<String>> updates) throws IOException {
+  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
     List<String> exceptions =
         indices.parallelStream().map(dao -> {
           try {
-            dao.bulkUpdate(updates);
+            dao.batchUpdate(updates);
             return null;
           } catch (Throwable e) {
             return dao.getClass() + ": " + e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e);

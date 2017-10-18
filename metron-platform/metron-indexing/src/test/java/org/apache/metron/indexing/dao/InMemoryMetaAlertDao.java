@@ -99,7 +99,7 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public void bulkUpdate(Map<Document, Optional<String>> updates) throws IOException {
+  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
     throw new UnsupportedOperationException("InMemoryMetaAlertDao can't do bulk updates");
   }
 

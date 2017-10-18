@@ -129,7 +129,7 @@ public class HBaseDao implements IndexDao {
 
 
   @Override
-  public void bulkUpdate(Map<Document, Optional<String>> updates) throws IOException {
+  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
     List<Put> puts = new ArrayList<>();
     for (Map.Entry<Document, Optional<String>> updateEntry : updates.entrySet()) {
       Document update = updateEntry.getKey();

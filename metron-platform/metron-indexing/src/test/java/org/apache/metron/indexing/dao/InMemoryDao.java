@@ -215,7 +215,7 @@ public class InMemoryDao implements IndexDao {
   }
 
   @Override
-  public void bulkUpdate(Map<Document, Optional<String>> updates) throws IOException {
+  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
     for (Map.Entry<Document, Optional<String>> update : updates.entrySet()) {
       update(update.getKey(), update.getValue());
     }

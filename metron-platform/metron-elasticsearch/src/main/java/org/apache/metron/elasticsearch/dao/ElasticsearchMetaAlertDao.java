@@ -200,7 +200,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       }
 
       // Kick off all of our updates in bulk.
-      indexDao.bulkUpdate(updates);
+      indexDao.batchUpdate(updates);
     } catch (IOException ioe) {
       throw new InvalidCreateException("Unable to create meta alert", ioe);
     }
@@ -243,7 +243,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public void bulkUpdate(Map<Document, Optional<String>> updates) throws IOException {
+  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
     throw new UnsupportedOperationException("Meta alerts do not currently allow for bulk updates");
   }
 
@@ -337,7 +337,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
     // Run meta alert update.
     updates.put(update, Optional.of(index));
-    indexDao.bulkUpdate(updates);
+    indexDao.batchUpdate(updates);
   }
 
   protected Map<Document, Optional<String>> buildStatusAlertUpdates(Document update)

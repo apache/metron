@@ -96,7 +96,7 @@ public interface IndexDao {
    * @param updates A map of the documents to update to the index where they live.
    * @throws IOException
    */
-  void bulkUpdate(Map<Document, Optional<String>> updates) throws IOException;
+  void batchUpdate(Map<Document, Optional<String>> updates) throws IOException;
 
   /**
    * Update a document in an index given a JSON Patch (see RFC 6902 at https://tools.ietf.org/html/rfc6902)

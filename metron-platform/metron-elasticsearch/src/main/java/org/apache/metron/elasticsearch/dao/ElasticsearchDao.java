@@ -321,7 +321,7 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
-  public void bulkUpdate(Map<Document, Optional<String>> updates) throws IOException {
+  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
     String indexPostfix = ElasticsearchUtils
         .getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
 
