@@ -27,7 +27,7 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
 
 public interface MetaAlertDao extends IndexDao {
 
-  String METAALERTS_INDEX = "metaalert";
+  String METAALERTS_INDEX = "metaalert_index";
   String METAALERT_TYPE = "metaalert";
   String METAALERT_FIELD = "metaalerts";
   String METAALERT_DOC = METAALERT_TYPE + "_doc";
