@@ -20,8 +20,8 @@ package org.apache.metron.elasticsearch.utils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import org.apache.commons.lang.StringUtils;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.elasticsearch.writer.ElasticsearchWriter;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
@@ -29,12 +29,29 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.lang.String.format;
 
 public class ElasticsearchUtils {
 
   private static ThreadLocal<Map<String, SimpleDateFormat>> DATE_FORMAT_CACHE
           = ThreadLocal.withInitial(() -> new HashMap<>());
+
+  /**
+   * A delimiter that is appended to the user-defined index name to separate
+   * the index's date postfix.
+   *
+   * For example, if the user-defined index name is 'bro', the delimiter is
+   * '_index', and the index's date postfix is '2017.10.03.19', then the actual
+   * index name should be 'bro_index_2017.10.03.19'.
+   */
+  public static final String INDEX_NAME_DELIMITER = "_index";
 
   public static SimpleDateFormat getIndexFormat(WriterConfiguration configurations) {
     return getIndexFormat(configurations.getGlobalConfig());
@@ -45,13 +62,39 @@ public class ElasticsearchUtils {
     return DATE_FORMAT_CACHE.get().computeIfAbsent(format, SimpleDateFormat::new);
   }
 
+  /**
+   * Builds the name of an Elasticsearch index.
+   * @param sensorType The sensor type; bro, yaf, snort, ...
+   * @param indexPostfix The index postfix; most often a formatted date.
+   * @param configurations User-defined configuration for the writers.
+   */
   public static String getIndexName(String sensorType, String indexPostfix, WriterConfiguration configurations) {
     String indexName = sensorType;
     if (configurations != null) {
       indexName = configurations.getIndex(sensorType);
     }
-    indexName = indexName + "_index_" + indexPostfix;
+    indexName = indexName + INDEX_NAME_DELIMITER + "_" + indexPostfix;
     return indexName;
+  }
+
+  /**
+   * Extracts the base index name from a full index name.
+   *
+   * For example, given an index named 'bro_index_2017.01.01.01', the base
+   * index name is 'bro'.
+   *
+   * @param indexName The full index name including delimiter and date postfix.
+   * @return The base index name.
+   */
+  public static String getBaseIndexName(String indexName) {
+
+    String[] parts = indexName.split(INDEX_NAME_DELIMITER);
+    if(parts.length < 1 || StringUtils.isEmpty(parts[0])) {
+      String msg = format("Unexpected index name; index=%s, delimiter=%s", indexName, INDEX_NAME_DELIMITER);
+      throw new IllegalStateException(msg);
+    }
+
+    return parts[0];
   }
 
   public static TransportClient getClient(Map<String, Object> globalConfiguration, Map<String, String> optionalSettings) {

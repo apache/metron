@@ -155,7 +155,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     JSONArray metaAlertArray = (JSONArray) new JSONParser().parse(metaAlertData);
     for(Object o: metaAlertArray) {
       JSONObject jsonObject = (JSONObject) o;
-      IndexRequestBuilder indexRequestBuilder = es.getClient().prepareIndex("metaalerts", "metaalert_doc");
+      IndexRequestBuilder indexRequestBuilder = es.getClient().prepareIndex("metaalert_index", "metaalert_doc");
       indexRequestBuilder = indexRequestBuilder.setSource(jsonObject.toJSONString());
       bulkRequest.add(indexRequestBuilder);
     }

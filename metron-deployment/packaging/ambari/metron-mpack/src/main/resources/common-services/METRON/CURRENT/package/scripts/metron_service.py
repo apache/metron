@@ -20,12 +20,12 @@ import subprocess
 
 from datetime import datetime
 from resource_management.core.logger import Logger
+from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.resources.system import Execute
 from resource_management.core.source import InlineTemplate
 from resource_management.libraries.functions import format as ambari_format
-from resource_management.libraries.functions.get_user_call_output import \
-  get_user_call_output
+from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 from metron_security import kinit
 
 
@@ -134,7 +134,6 @@ def refresh_configs(params):
 
 def get_running_topologies(params):
   Logger.info('Getting Running Storm Topologies from Storm REST Server')
-
   Logger.info('Security enabled? ' + str(params.security_enabled))
 
   # Want to sudo to the metron user and kinit as them so we aren't polluting root with Metron's Kerberos tickets.
@@ -201,36 +200,246 @@ def init_kafka_topics(params, topics):
             user=params.kafka_user, tries=3, try_sleep=5, logoutput=True)
   Logger.info("Done creating Kafka topics")
 
-def init_kafka_acls(params, topics, groups):
-  Logger.info('Creating Kafka ACLs')
+def init_kafka_acls(params, topics):
+    Logger.info('Creating Kafka topic ACLs')
+    acl_template = """{0}/kafka-acls.sh \
+    --authorizer kafka.security.auth.SimpleAclAuthorizer \
+    --authorizer-properties zookeeper.connect={1} \
+    --add \
+    --allow-principal User:{2} \
+    --topic {3}"""
 
-  acl_template = """{0}/kafka-acls.sh \
-                                  --authorizer kafka.security.auth.SimpleAclAuthorizer \
-                                  --authorizer-properties zookeeper.connect={1} \
-                                  --add \
-                                  --allow-principal User:{2} \
-                                  --topic {3}"""
+    for topic in topics:
+        Logger.info("Creating ACL for topic '{0}'".format(topic))
+        Execute(acl_template.format(params.kafka_bin_dir,
+                                    params.zookeeper_quorum,
+                                    params.metron_user,
+                                    topic),
+                user=params.kafka_user, tries=3, try_sleep=5, logoutput=True)
 
-  for topic in topics:
-    Logger.info("Creating ACL for topic '{0}'".format(topic))
-    Execute(acl_template.format(params.kafka_bin_dir,
-                                params.zookeeper_quorum,
-                                params.metron_user,
-                                topic),
-            user=params.kafka_user, tries=3, try_sleep=5, logoutput=True)
+def init_kafka_acl_groups(params, groups):
+    Logger.info('Creating Kafka group ACLs')
+    acl_template = """{0}/kafka-acls.sh \
+    --authorizer kafka.security.auth.SimpleAclAuthorizer \
+    --authorizer-properties zookeeper.connect={1} \
+    --add \
+    --allow-principal User:{2} \
+    --group {3}"""
 
-  acl_template = """{0}/kafka-acls.sh \
-                                  --authorizer kafka.security.auth.SimpleAclAuthorizer \
-                                  --authorizer-properties zookeeper.connect={1} \
-                                  --add \
-                                  --allow-principal User:{2} \
-                                  --group {3}"""
+    for group in groups:
+        Logger.info("Creating ACL for group '{0}'".format(group))
+        Execute(acl_template.format(params.kafka_bin_dir,
+                                    params.zookeeper_quorum,
+                                    params.metron_user,
+                                    group),
+                user=params.kafka_user, tries=3, try_sleep=5, logoutput=True)
 
-  for group in groups:
-    Logger.info("Creating ACL for group '{0}'".format(group))
-    Execute(acl_template.format(params.kafka_bin_dir,
-                                params.zookeeper_quorum,
-                                params.metron_user,
-                                group),
-            user=params.kafka_user, tries=3, try_sleep=5, logoutput=True)
-  Logger.info("Done creating Kafka ACLs")
+def execute(cmd, user, err_msg=None, tries=3, try_sleep=5, logoutput=True, path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'):
+    """
+    Executes a command and raises an appropriate error message if the command
+    fails.
+    :param cmd: The command to execute.
+    :param user: The user to execute the command as.
+    :param err_msg: The error message to display if the command fails.
+    :param tries: The number of attempts to execute the command.
+    :param try_sleep: The time between attempts.
+    :param logoutput: If true, log the command output.
+    :param path: The path use when running the command.
+    :return:
+    """
+    try:
+        Execute(cmd, tries=tries, try_sleep=try_sleep, logoutput=logoutput, user=user, path=path)
+    except:
+        if err_msg is None:
+            err_msg = "Execution failed: cmd={0}, user={1}".format(cmd, user)
+        raise Fail(err_msg)
+
+def check_kafka_topics(params, topics):
+    """
+    Validates that the Kafka topics exist.  An exception is raised if any of the
+    topics do not exist.
+    :param params:
+    :param topics: A list of topic names.
+    """
+
+    # if needed kinit as 'metron'
+    if params.security_enabled:
+        kinit(params.kinit_path_local,
+              params.metron_keytab_path,
+              params.metron_principal_name,
+              execute_user=params.metron_user)
+
+    template = """{0}/kafka-topics.sh \
+      --zookeeper {1} \
+      --list | \
+      awk 'BEGIN {{cnt=0;}} /{2}/ {{cnt++}} END {{if (cnt > 0) {{exit 0}} else {{exit 1}}}}'"""
+
+    for topic in topics:
+        Logger.info("Checking existence of Kafka topic '{0}'".format(topic))
+        cmd = template.format(params.kafka_bin_dir, params.zookeeper_quorum, topic)
+        err_msg = "Missing Kafka topic; topic={0}".format(topic)
+        execute(cmd, user=params.kafka_user, err_msg=err_msg)
+
+def check_hbase_table(params, table):
+    """
+    Validates that an HBase table exists.  An exception is raised if the table
+    does not exist.
+    :param params:
+    :param table: The name of the HBase table.
+    """
+    Logger.info("Checking HBase table '{0}'".format(table))
+
+    # if needed kinit as 'hbase'
+    if params.security_enabled:
+        kinit(params.kinit_path_local,
+              params.hbase_keytab_path,
+              params.hbase_principal_name,
+              execute_user=params.hbase_user)
+
+    template = "echo \"exists '{0}'\" | hbase shell -n | grep 'Table {1} does exist'"
+    cmd = template.format(table, table)
+    err_msg = "Missing HBase table; table={0}".format(table)
+    execute(cmd, user=params.hbase_user, err_msg=err_msg)
+
+def check_hbase_column_family(params, table, column_family):
+    """
+    Validates that an HBase column family exists.  An exception is raised if the
+    column family does not exist.
+    :param params:
+    :param table: The name of the HBase table.
+    :param column_family: The name of the HBase column family.
+    """
+    Logger.info("Checking column family '{0}:{1}'".format(table, column_family))
+
+    # if needed kinit as 'hbase'
+    if params.security_enabled:
+        kinit(params.kinit_path_local,
+              params.hbase_keytab_path,
+              params.hbase_principal_name,
+              execute_user=params.hbase_user)
+
+    template = "echo \"desc '{0}'\" | hbase shell -n | grep \"NAME => '{1}'\""
+    cmd = template.format(table, column_family)
+    err_msg = "Missing HBase column family; table={0}, cf={1}".format(table, column_family)
+    execute(cmd, user=params.hbase_user, err_msg=err_msg)
+
+def check_hbase_acls(params, table, user=None, permissions="READ,WRITE"):
+    """
+    Validates that HBase table permissions exist for a user. An exception is
+    raised if the permissions do not exist.
+    :param params:
+    :param table: The name of the HBase table.
+    :param user: The name of the user.
+    :param permissions: The permissions that should exist.
+    """
+    if user is None:
+        user = params.metron_user
+    Logger.info("Checking HBase ACLs; table={0}, user={1}, permissions={2}".format(table, user, permissions))
+
+    # if needed kinit as 'hbase'
+    if params.security_enabled:
+        kinit(params.kinit_path_local,
+              params.hbase_keytab_path,
+              params.hbase_principal_name,
+              execute_user=params.hbase_user)
+
+
+
+    template = """echo "user_permission '{0}'" | \
+      hbase shell -n | \
+      grep " {1} " | \
+      grep "actions={2}"
+    """
+    cmd = template.format(table, user, permissions)
+    err_msg = "Missing HBase access; table={0}, user={1}, permissions={2}".format(table, user, permissions)
+    execute(cmd, user=params.hbase_user, err_msg=err_msg)
+
+def check_hdfs_dir_exists(params, path, user=None):
+    """
+    Validate that a directory exists in HDFS.
+    :param params:
+    :param path: The directory path in HDFS.
+    :param user: The user to execute the check under.
+    """
+    if user is None:
+        user = params.metron_user
+    Logger.info("Checking HDFS; directory={0} user={1}".format(path, user))
+
+    # if needed kinit as 'metron'
+    if params.security_enabled:
+        kinit(params.kinit_path_local,
+              params.metron_keytab_path,
+              params.metron_principal_name,
+              execute_user=params.metron_user)
+
+    template = "{0}/hdfs dfs -test -d {1}"
+    cmd = template.format(params.hadoop_bin_dir, path)
+    err_msg = "Missing directory in HDFS: directory={0} user={1}".format(path, user)
+    execute(cmd, user=params.metron_user, err_msg=err_msg)
+
+def check_hdfs_file_exists(params, path, user=None):
+    """
+    Validate that a file exists in HDFS.
+    :param params:
+    :param path: The file path in HDFS.
+    :param user: The user to execute the check under.
+    """
+    if user is None:
+        user = params.metron_user
+    Logger.info("Checking HDFS; file={0}, user={1}".format(path, user))
+
+    # if needed kinit as 'metron'
+    if params.security_enabled:
+        kinit(params.kinit_path_local,
+              params.metron_keytab_path,
+              params.metron_principal_name,
+              execute_user=params.metron_user)
+
+    template = "{0}/hdfs dfs -test -f {1}"
+    cmd = template.format(params.hadoop_bin_dir, path)
+    err_msg = "Missing file in HDFS; file={0}".format(path)
+    execute(cmd, user=user, err_msg=err_msg)
+
+def check_kafka_acls(params, topics, user=None):
+    """
+    Validate that permissions have been granted for a list of Kakfa topics.
+    :param params:
+    :param topics: A list of topic names.
+    :param user: The user whose access is checked.
+    """
+    if user is None:
+        user = params.metron_user
+
+    template = """{0}/kafka-acls.sh \
+        --authorizer kafka.security.auth.SimpleAclAuthorizer \
+        --authorizer-properties zookeeper.connect={1} \
+        --topic {2} \
+        --list | grep 'User:{3}'"""
+
+    for topic in topics:
+        Logger.info("Checking ACL; topic={0}, user={1}'".format(topic, user))
+        cmd = template.format(params.kafka_bin_dir, params.zookeeper_quorum, topic, user)
+        err_msg = "Missing Kafka access; topic={0}, user={1}".format(topic, user)
+        execute(cmd, user=params.kafka_user, err_msg=err_msg)
+
+def check_kafka_acl_groups(params, groups, user=None):
+    """
+    Validate that Kafka group permissions have been granted.
+    :param params:
+    :param groups: A list of group name.
+    :param user: The user whose access is checked.
+    """
+    if user is None:
+        user = params.metron_user
+
+    template = """{0}/kafka-acls.sh \
+        --authorizer kafka.security.auth.SimpleAclAuthorizer \
+        --authorizer-properties zookeeper.connect={1} \
+        --group {2} \
+        --list | grep 'User:{3}'"""
+
+    for group in groups:
+        Logger.info("Checking group ACL for topic '{0}'".format(group))
+        cmd = template.format(params.kafka_bin_dir, params.zookeeper_quorum, group, user)
+        err_msg = "Missing Kafka group access; group={0}, user={1}".format(group, user)
+        execute(cmd, user=params.kafka_user, err_msg=err_msg)
