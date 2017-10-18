@@ -534,7 +534,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
 
     // Wait for updates to persist
     updateMetaAlertAlert0JSON.put("field", "patched value 0");
-    findUpdatedDoc(updateMetaAlertAlert1JSON, "update_metaalert_alert_0", SENSOR_NAME);
+    findUpdatedDoc(updateMetaAlertAlert0JSON, "update_metaalert_alert_0", SENSOR_NAME);
 
     Map<String, Object> metaalert = metaDao.getLatest(metaAlertCreateResponse.getGuid(), MetaAlertDao.METAALERT_TYPE).getDocument();
     List<Map<String, Object>> alerts = (List<Map<String, Object>>) metaalert.get("alert");
@@ -549,7 +549,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
 
     // Wait for updates to persist
     updateMetaAlertAlert0JSON.put("field", "replaced value 0");
-    findUpdatedDoc(updateMetaAlertAlert1JSON, "update_metaalert_alert_0", SENSOR_NAME);
+    findUpdatedDoc(updateMetaAlertAlert0JSON, "update_metaalert_alert_0", SENSOR_NAME);
 
     metaalert = metaDao.getLatest(metaAlertCreateResponse.getGuid(), MetaAlertDao.METAALERT_TYPE).getDocument();
     alerts = (List<Map<String, Object>>) metaalert.get("alert");
