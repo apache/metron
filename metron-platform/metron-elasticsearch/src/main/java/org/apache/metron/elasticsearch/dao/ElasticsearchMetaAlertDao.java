@@ -186,6 +186,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
                 )
             )
         )
+        // Ensures that it's a meta alert with active status or that it's an alert (signified by having no status field)
         .must(boolQuery()
             .should(termQuery(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()))
             .should(boolQuery().mustNot(existsQuery(MetaAlertDao.STATUS_FIELD)))
