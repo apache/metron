@@ -65,9 +65,9 @@ public enum ParserIndex {
 
   /**
    * To handle the situation where classpath is specified in the manifest of the jar, we have to augment the URLs.
-   * This happens as part of the surefire plugin as well as elsewhere in the wild.
+   * This happens as part of the surefire plugin as well as elsewhere in the wild (especially in maven when running tests. ;).
    * @param classLoaders
-   * @return
+   * @return A collection of URLs representing the effective classpath URLs
    */
   private static Collection<URL> effectiveClassPathUrls(ClassLoader... classLoaders) {
     return ClasspathHelper.forManifest(ClasspathHelper.forClassLoader(classLoaders));
