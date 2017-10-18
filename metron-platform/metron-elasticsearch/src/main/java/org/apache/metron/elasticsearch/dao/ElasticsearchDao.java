@@ -307,19 +307,8 @@ public class ElasticsearchDao implements IndexDao {
     }
   }
 
-  /**
-   * Update given a Document and optionally the index where the document exists.
-   *
-   * @param updates The Document to index map to
-   * @throws IOException
-   */
-  public void update(Map<Document, Optional<String>> updates) throws IOException {
-    if (updates.size() == 1) {
-      updates.entrySet().iterator().next();
-      updates.entrySet().iterator().next();
-
-    }
-
+  @Override
+  public void bulkUpdate(Map<Document, Optional<String>> updates) throws IOException {
     String indexPostfix = ElasticsearchUtils
         .getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
 

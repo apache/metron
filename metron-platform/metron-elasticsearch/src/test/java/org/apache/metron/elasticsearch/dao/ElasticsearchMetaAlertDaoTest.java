@@ -252,6 +252,10 @@ public class ElasticsearchMetaAlertDaoTest {
       }
 
       @Override
+      public void bulkUpdate(Map<Document, Optional<String>> updates) throws IOException {
+      }
+
+      @Override
       public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices)
           throws IOException {
         return null;
@@ -435,7 +439,7 @@ public class ElasticsearchMetaAlertDaoTest {
     Document update = new Document(docMap, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
 
     ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao(mockEsDao);
-    metaAlertDao.handleMetaUpdate(update, Optional.of(MetaAlertDao.METAALERTS_INDEX));
+    metaAlertDao.handleMetaUpdate(update);
     verify(mockEsDao, times(1))
         .update(update, Optional.of(MetaAlertDao.METAALERTS_INDEX));
   }
@@ -466,7 +470,7 @@ public class ElasticsearchMetaAlertDaoTest {
     Document after = new Document(docMapAfter, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
 
     ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao(mockEsDao);
-    metaAlertDao.handleMetaUpdate(before, Optional.of(MetaAlertDao.METAALERTS_INDEX));
+    metaAlertDao.handleMetaUpdate(before);
 
     verify(mockEsDao, times(1))
         .update(after, Optional.of(MetaAlertDao.METAALERTS_INDEX));
