@@ -116,6 +116,7 @@
         <global_kryo_serializers_version>0.38</global_kryo_serializers_version>
         <global_reflections_version>0.9.10</global_reflections_version>
         <global_checkstyle_version>8.0</global_checkstyle_version>
+        <global_log4j_core_version>2.1</global_log4j_core_version>
     </properties>
 
     <profiles>
