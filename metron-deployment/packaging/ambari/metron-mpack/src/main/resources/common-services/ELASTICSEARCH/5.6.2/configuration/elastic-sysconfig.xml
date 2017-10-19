@@ -63,9 +63,6 @@
 # Directory where the Elasticsearch binary distribution resides
 ES_HOME={{elastic_home}}
 
-# Heap Size (defaults to 256m min, 1g max)
-ES_HEAP_SIZE={{heap_size}}
-
 # Maximum number of open files
 MAX_OPEN_FILES={{max_open_files}}
 
@@ -98,7 +95,8 @@ JAVA_HOME={{java64_home}}
 # Additional Java OPTS
 ES_JAVA_OPTS="-verbose:gc -Xloggc:{{log_dir}}/elasticsearch_gc.log -XX:-CMSConcurrentMTEnabled \
 -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
--XX:ErrorFile={{log_dir}}/elasticsearch_err.log -XX:ParallelGCThreads=8"
+-XX:ErrorFile={{log_dir}}/elasticsearch_err.log -XX:ParallelGCThreads=8 \
+-Xms{{heap_size}} -Xmx{{heap_size}}"
         </value>
     </property>
 </configuration>

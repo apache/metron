@@ -27,8 +27,6 @@ cluster:
 discovery:
   zen:
     ping:
-      multicast:
-        enabled: {{discovery_zen_ping_multicast_enabled}}
       unicast:
         hosts: {{zen_discovery_ping_unicast_hosts}}
 
@@ -51,14 +49,11 @@ gateway:
   recover_after_data_nodes: {{gateway_recover_after_data_nodes}}
   recover_after_time: {{recover_after_time}}
   expected_data_nodes: {{expected_data_nodes}}
-  
-index:
-  number_of_shards: {{index_number_of_shards}}
-  merge.scheduler.max_thread_count: {{index_merge_scheduler_max_thread_count}}
-  translog.flush_threshold_size: {{index_translog_flush_threshold_size}}
-  refresh_interval: {{index_refresh_interval}}
-  number_of_replicas: {{index_number_of_replicas}}
- 
+
+# https://www.elastic.co/guide/en/elasticsearch/guide/current/indexing-performance.html
+transient:
+  indices.store.throttle.type: merge
+
 indices:
   memory:
    index_buffer_size: {{indices_memory_index_buffer_size}}
@@ -68,7 +63,7 @@ indices:
   cluster:
    send_refresh_mapping: {{indices_cluster_send_refresh_mapping}}
 
-bootstrap.mlockall: {{bootstrap_mlockall}}
+bootstrap.memory_lock: {{bootstrap_memory_lock}}
 
 threadpool:
   bulk:

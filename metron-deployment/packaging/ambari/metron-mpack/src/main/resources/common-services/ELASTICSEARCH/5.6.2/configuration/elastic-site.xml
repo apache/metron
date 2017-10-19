@@ -76,11 +76,6 @@
     </property>
     <!--  Multi-node Discovery -->
     <property>
-        <name>discovery_zen_ping_multicast_enabled</name>
-        <value>false</value>
-        <description>Whether to use multicast</description>
-    </property>
-    <property>
         <name>discovery_zen_ping_timeout</name>
         <value>3s</value>
         <description>Wait for ping responses for master discovery</description>
@@ -143,7 +138,7 @@
         <description>Percentage of heap used for write buffers</description>
     </property>
     <property>
-        <name>bootstrap_mlockall</name>
+        <name>bootstrap_memory_lock</name>
         <value>true</value>
         <description>The third option on Linux/Unix systems only, is to use mlockall to try to lock the process address space into RAM, preventing any Elasticsearch memory from being swapped out</description>
     </property>
@@ -194,7 +189,7 @@
     </property>
     <property>
         <name>network_publish_host</name>
-        <value></value>
+        <value>[]</value>
         <value-attributes>
             <empty-value-valid>true</empty-value-valid>
         </value-attributes>
