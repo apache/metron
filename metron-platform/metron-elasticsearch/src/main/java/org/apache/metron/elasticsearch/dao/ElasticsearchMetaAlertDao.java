@@ -215,6 +215,24 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     return elasticsearchDao.search(searchRequest, qb);
   }
 
+  protected QueryBuilder wrapBaseQueryWithMetaAlertQuery(String query) {
+    return constantScoreQuery(boolQuery()
+        .must(boolQuery()
+            .should(new QueryStringQueryBuilder(query))
+            .should(nestedQuery(
+                ALERT_FIELD,
+                new QueryStringQueryBuilder(query)
+                )
+            )
+        )
+        .must(boolQuery()
+            .should(termQuery(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()))
+            .should(boolQuery().mustNot(existsQuery(MetaAlertDao.STATUS_FIELD)))
+        )
+        .mustNot(existsQuery(MetaAlertDao.METAALERT_FIELD))
+    );
+  }
+
   @Override
   public Document getLatest(String guid, String sensorType) throws IOException {
     return indexDao.getLatest(guid, sensorType);
@@ -385,8 +403,8 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     return updates;
   }
 
-
-  protected Map<Document, Optional<String>> buildAlertFieldUpdates(Document update) throws IOException {
+  protected Map<Document, Optional<String>> buildAlertFieldUpdates(Document update)
+      throws IOException {
     Map<Document, Optional<String>> updates = new HashMap<>();
     // If we've updated the alerts field (i.e add/remove), recalculate meta alert scores and
     // the metaalerts fields for updating the children alerts.
@@ -547,29 +565,11 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
   @Override
   public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
-    // Wrap the query to also get any meta-alerts. Make sure not to return anything that is also
-    // in a meta alert.
-    // Wrap the query to also get any meta-alerts.
-    QueryBuilder qb = wrapBaseQueryWithMetaAlertQuery(groupRequest.getQuery());
+    // Wrap the query to hide any alerts already contained in meta alerts
+    QueryBuilder qb = QueryBuilders.boolQuery()
+        .must(new QueryStringQueryBuilder(groupRequest.getQuery()))
+        .mustNot(existsQuery(MetaAlertDao.METAALERT_FIELD));
     return elasticsearchDao.group(groupRequest, qb);
-  }
-
-  protected QueryBuilder wrapBaseQueryWithMetaAlertQuery(String query) {
-    return constantScoreQuery(boolQuery()
-        .must(boolQuery()
-            .should(new QueryStringQueryBuilder(query))
-            .should(nestedQuery(
-                ALERT_FIELD,
-                new QueryStringQueryBuilder(query)
-                )
-            )
-        )
-        .must(boolQuery()
-            .should(termQuery(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()))
-            .should(boolQuery().mustNot(existsQuery(MetaAlertDao.STATUS_FIELD)))
-        )
-        .mustNot(existsQuery(MetaAlertDao.METAALERT_FIELD))
-    );
   }
 
   /**
