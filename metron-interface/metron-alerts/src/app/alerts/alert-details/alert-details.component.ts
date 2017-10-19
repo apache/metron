@@ -29,6 +29,7 @@ import {Patch} from '../../model/patch';
 import {AlertComment} from './alert-comment';
 import {AuthenticationService} from '../../service/authentication.service';
 import {MetronDialogBox} from '../../shared/metron-dialog-box';
+import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
@@ -56,13 +57,17 @@ class AlertCommentWrapper {
 export class AlertDetailsComponent implements OnInit {
 
   alertId = '';
+  alertName = '';
   alertSourceType = '';
+  showEditor = false;
+  isMetaAlert = false;
   alertIndex = '';
   alertState = AlertState;
   tabs = Tabs;
   activeTab = Tabs.DETAILS;
   selectedAlertState: AlertState = AlertState.NEW;
   alertSource: AlertSource = new AlertSource();
+  alertSources = [];
   alertFields: string[] = [];
   alertCommentStr = '';
   alertCommentsWrapper: AlertCommentWrapper[] = [];
@@ -82,14 +87,17 @@ export class AlertDetailsComponent implements OnInit {
     return false;
   }
 
-  getData() {
+  getData(fireToggleEditor = false) {
     this.alertCommentStr = '';
-    this.searchService.getAlert(this.alertSourceType, this.alertId).subscribe(alert => {
-      this.alertSource = alert;
-      this.alertFields = Object.keys(alert).filter(field => !field.includes(':ts') && field !== 'original_string' && field !== 'comments')
-                          .sort();
-      this.selectedAlertState = this.getAlertState(alert['alert_status']);
-      this.setComments(alert);
+    this.searchService.getAlert(this.alertSourceType, this.alertId).subscribe(alertSource => {
+      this.alertSource = alertSource;
+      this.selectedAlertState = this.getAlertState(alertSource['alert_status']);
+      this.alertSources = (alertSource.alert && alertSource.alert.length > 0) ? alertSource.alert : [alertSource];
+      this.setComments(alertSource);
+
+      if (fireToggleEditor) {
+        this.toggleNameEditor();
+      }
     });
   }
 
@@ -118,6 +126,7 @@ export class AlertDetailsComponent implements OnInit {
       this.alertId = params['guid'];
       this.alertSourceType = params['sourceType'];
       this.alertIndex = params['index'];
+      this.isMetaAlert = (this.alertIndex === META_ALERTS_INDEX && this.alertSourceType !== META_ALERTS_SENSOR_TYPE) ? true : false;
       this.getData();
     });
   };
@@ -171,6 +180,27 @@ export class AlertDetailsComponent implements OnInit {
     this.updateService.updateAlertState([tAlert], 'RESOLVE').subscribe(results => {
       this.getData();
     });
+  }
+
+  toggleNameEditor() {
+    if (this.alertSources.length > 1) {
+      this.alertName = '';
+      this.showEditor = !this.showEditor;
+    }
+  }
+
+  saveName() {
+    if (this.alertName.length > 0){
+      let patchRequest = new PatchRequest();
+      patchRequest.guid = this.alertId;
+      patchRequest.sensorType = 'metaalert';
+      patchRequest.index = META_ALERTS_INDEX;
+      patchRequest.patch = [new Patch('add', '/name', this.alertName)];
+
+      this.updateService.patch(patchRequest).subscribe(rep => {
+        this.getData(true);
+      });
+    }
   }
 
   onAddComment() {

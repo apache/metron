@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit, ViewChild, ElementRef, OnDestroy, ChangeDetectorRef} from '@angular/core';
+import {Component, OnInit, ViewChild, ElementRef, OnDestroy} from '@angular/core';
 import {Router, NavigationStart} from '@angular/router';
 import {Observable, Subscription} from 'rxjs/Rx';
 
@@ -39,6 +39,8 @@ import {TableViewComponent} from './table-view/table-view.component';
 import {Filter} from '../../model/filter';
 import {Pagination} from '../../model/pagination';
 import {PatchRequest} from '../../model/patch-request';
+import {META_ALERTS_SENSOR_TYPE, META_ALERTS_INDEX} from '../../utils/constants';
+import {MetaAlertService} from '../../service/meta-alert.service';
 
 @Component({
   selector: 'app-alerts-list',
@@ -58,6 +60,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   refreshTimer: Subscription;
   pauseRefresh = false;
   lastPauseRefreshValue = false;
+  isMetaAlertPresentInSelectedAlerts = false;
   threatScoreFieldName = 'threat:triage:score';
 
   @ViewChild('table') table: ElementRef;
@@ -76,7 +79,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
               private clusterMetaDataService: ClusterMetaDataService,
               private saveSearchService: SaveSearchService,
               private metronDialogBox: MetronDialogBox,
-              private changeDetector: ChangeDetectorRef) {
+              private metaAlertsService: MetaAlertService) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/alerts-list') {
         this.selectedAlerts = [];
@@ -178,6 +181,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   onSelectedAlertsChange(selectedAlerts) {
     this.selectedAlerts = selectedAlerts;
+    this.isMetaAlertPresentInSelectedAlerts = this.selectedAlerts.some(alert => (alert.source.alert && alert.source.alert.length > 0));
+
     if (selectedAlerts.length > 0) {
       this.pause();
     } else {
@@ -231,19 +236,19 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   processEscalate() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE').subscribe(results => {
+    this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE', false).subscribe(results => {
       this.updateSelectedAlertStatus('ESCALATE');
     });
   }
 
   processDismiss() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'DISMISS').subscribe(results => {
+    this.updateService.updateAlertState(this.selectedAlerts, 'DISMISS', false).subscribe(results => {
       this.updateSelectedAlertStatus('DISMISS');
     });
   }
 
   processOpen() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'OPEN').subscribe(results => {
+    this.updateService.updateAlertState(this.selectedAlerts, 'OPEN', false).subscribe(results => {
       this.updateSelectedAlertStatus('OPEN');
     });
   }
@@ -252,6 +257,11 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.updateService.updateAlertState(this.selectedAlerts, 'RESOLVE').subscribe(results => {
       this.updateSelectedAlertStatus('RESOLVE');
     });
+  }
+
+  processAddToAlert() {
+    this.metaAlertsService.selectedAlerts = this.selectedAlerts;
+    this.router.navigateByUrl('/alerts-list(dialog:add-to-meta-alert)');
   }
 
   removeFilter(field: string) {
@@ -283,7 +293,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   setSearchRequestSize() {
-    if (this.queryBuilder.groupRequest.groups.length == 0) {
+    if (this.queryBuilder.groupRequest.groups.length === 0) {
       this.queryBuilder.searchRequest.from = this.pagination.from;
       if (this.tableMetaData.size) {
         this.pagination.size = this.tableMetaData.size;
@@ -322,10 +332,11 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   showDetails(alert: Alert) {
-    let url = '/alerts-list(dialog:details/' + alert.source['source:type'] + '/' + alert.source.guid + '/' + alert.index + ')';
     this.selectedAlerts = [];
     this.selectedAlerts = [alert];
     this.saveRefreshState();
+    let sourceType = (alert.index === META_ALERTS_INDEX && !alert.source['source:type'])  ? META_ALERTS_SENSOR_TYPE : alert.source['source:type'];
+    let url = '/alerts-list(dialog:details/' + sourceType + '/' + alert.source.guid + '/' + alert.index + ')';
     this.router.navigateByUrl(url);
   }
 

@@ -75,7 +75,7 @@ export class TreeViewPage {
   expandDashGroup(name: string) {
     waitForElementPresence( element(by.css('[data-name="' + name + '"] .card-header'))).then(() => {
       this.scrollToDashRow(name);
-      element(by.css('[data-name="' + name + '"] .card-header i')).click();
+      element(by.css('[data-name="' + name + '"] .card-header i.down-arrow')).click();
       browser.sleep(2000);
     });
   }

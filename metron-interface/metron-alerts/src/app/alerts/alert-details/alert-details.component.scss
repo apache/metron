@@ -27,6 +27,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  height: 35px;
+  line-height: 2.1  ;
 }
 
 .actions {
@@ -71,8 +73,30 @@
   }
 }
 
+.alert-details-title {
+  font-size: 15px;
+}
+
+.editable-text {
+  cursor: pointer;
+  border-bottom: 1px dashed $piction-blue;
+}
+
+.input-group-addon {
+  height: 35px;
+  background: #333333;
+  border: 1px solid #4D4D4D;
+  i {
+    font-size: 15px;
+    color: #999999;
+  }
+}
 .dialog1x {
   width: 400px;
+
+  &.is-meta-alert {
+    width: 346px;
+  }
 }
 
 .nav-container {
@@ -142,4 +166,13 @@ textarea {
 
 .comment-container:hover i {
   display: block;
+}
+
+.input-group-addon {
+  cursor: pointer;
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

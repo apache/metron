@@ -15,6 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {Utils} from '../utils/utils';
+
 export class Filter {
   field: string;
   value: string;
@@ -22,5 +24,16 @@ export class Filter {
   constructor(field: string, value: string) {
     this.field = field;
     this.value = value;
+  }
+
+  getQueryString(): string {
+    if (this.field === 'guid') {
+      let valueWithQuote = '\"' + this.value + '\"';
+      return '(' + Utils.escapeESField(this.field) + ':' + valueWithQuote + ' OR ' +
+          Utils.escapeESField('alert.' + this.field) + ':' +  valueWithQuote + ')';
+    }
+
+    return '(' + Utils.escapeESField(this.field) + ':' +  Utils.escapeESValue(this.value)  + ' OR ' +
+                Utils.escapeESField('alert.' + this.field) + ':' +  Utils.escapeESValue(this.value) + ')';
   }
 }

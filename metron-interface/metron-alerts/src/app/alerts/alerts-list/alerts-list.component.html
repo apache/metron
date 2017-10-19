@@ -58,6 +58,7 @@
                         <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processDismiss()">Dismiss</span>
                         <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processEscalate()">Escalate</span>
                         <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processResolve()">Resolve</span>
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0 || isMetaAlertPresentInSelectedAlerts" (click)="processAddToAlert()">Add to Alert</span>
                     </div>
                 </div>
             </div>
