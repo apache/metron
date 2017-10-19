@@ -555,7 +555,6 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   protected QueryBuilder wrapBaseQueryWithMetaAlertQuery(String query) {
-    // TODO  Need to update this with Ryan's PR.
     return constantScoreQuery(boolQuery()
         .must(boolQuery()
             .should(new QueryStringQueryBuilder(query))
