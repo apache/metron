@@ -211,26 +211,22 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   @Override
   public SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
     // Wrap the query to also get any meta-alerts.
-    QueryBuilder qb = wrapBaseQueryWithMetaAlertQuery(searchRequest.getQuery());
-    return elasticsearchDao.search(searchRequest, qb);
-  }
-
-  protected QueryBuilder wrapBaseQueryWithMetaAlertQuery(String query) {
-    return constantScoreQuery(boolQuery()
+    QueryBuilder qb = constantScoreQuery(boolQuery()
         .must(boolQuery()
-            .should(new QueryStringQueryBuilder(query))
+            .should(new QueryStringQueryBuilder(searchRequest.getQuery()))
             .should(nestedQuery(
                 ALERT_FIELD,
-                new QueryStringQueryBuilder(query)
+                new QueryStringQueryBuilder(searchRequest.getQuery())
                 )
             )
         )
+        // Ensures that it's a meta alert with active status or that it's an alert (signified by having no status field)
         .must(boolQuery()
             .should(termQuery(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()))
             .should(boolQuery().mustNot(existsQuery(MetaAlertDao.STATUS_FIELD)))
         )
-        .mustNot(existsQuery(MetaAlertDao.METAALERT_FIELD))
     );
+    return elasticsearchDao.search(searchRequest, qb);
   }
 
   @Override
