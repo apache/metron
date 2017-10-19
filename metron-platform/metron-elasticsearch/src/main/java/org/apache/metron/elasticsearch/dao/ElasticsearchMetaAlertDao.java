@@ -66,7 +66,6 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.index.query.support.QueryInnerHitBuilder;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
 
 public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
@@ -168,6 +167,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       handleMetaUpdate(createDoc, Optional.of(METAALERTS_INDEX));
       MetaAlertCreateResponse createResponse = new MetaAlertCreateResponse();
       createResponse.setCreated(true);
+      createResponse.setGuid(createDoc.getGuid());
       return createResponse;
     } catch (IOException ioe) {
       throw new InvalidCreateException("Unable to create meta alert", ioe);
@@ -404,16 +404,14 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
     // Run through the nested alerts of the meta alert and either use the new or old versions
     builder.startArray(ALERT_FIELD);
-    Map<String, SearchHits> innerHits = hit.getInnerHits();
+    Map<String, Object> hitAlerts = hit.sourceAsMap();
 
-    SearchHits alertHits = innerHits.get(ALERT_FIELD);
-    for (SearchHit alertHit : alertHits.getHits()) {
-      Map<String, Object> docMap;
-      // If we're at the update use it, otherwise use the original
-      if (alertHit.sourceAsMap().get(Constants.GUID).equals(update.getGuid())) {
+    List<Map<String, Object>> alertHits = (List<Map<String, Object>>) hitAlerts.get(ALERT_FIELD);
+    for (Map<String, Object> alertHit : alertHits) {
+      Map<String, Object> docMap = alertHit;
+      // If we're at the update use it instead of the original
+      if (alertHit.get(Constants.GUID).equals(update.getGuid())) {
         docMap = update.getDocument();
-      } else {
-        docMap = alertHit.getSource();
       }
       builder.map(docMap);
 
