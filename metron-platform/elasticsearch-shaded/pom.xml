@@ -86,8 +86,13 @@
                 <artifactId>log4j</artifactId>
               </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
+          </dependency>
+          <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.8.2</version>
+          </dependency>
+          <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
             <version>${global_elasticsearch_version}</version>
@@ -161,7 +166,11 @@
                               </excludes>
                             </filter>
                           </filters>  
-                            <relocations>
+                          <relocations>
+                                <relocation>
+                                    <pattern>org.apache.logging.log4j</pattern>
+                                    <shadedPattern>org.apache.metron.logging.log4j</shadedPattern>
+                                </relocation>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
                                     <shadedPattern>org.apache.metron.guava.elasticsearch-shaded</shadedPattern>
