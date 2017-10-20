@@ -28,10 +28,23 @@ import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.util.function.Supplier;
 
+/**
+ * Handles update for an underlying Configurations object.  This is the base abstract implementation.
+ * You will find system-specific implementations (e.g. IndexingUpdater, ParserUpdater, etc.) which
+ * correspond to the various components of our system which accept configuration from zookeeper.
+ *
+ * @param <T> the Type of Configuration
+ */
 public abstract class ConfigurationsUpdater<T extends Configurations> implements Serializable {
   protected static final Logger LOG =  LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private Reloadable reloadable;
   private Supplier<T> configSupplier;
+
+  /**
+   * Construct a ConfigurationsUpdater
+   * @param reloadable A callback which gets called whenever a reload happens
+   * @param configSupplier A Supplier which creates the Configurations object.
+   */
   public ConfigurationsUpdater(Reloadable reloadable
                               , Supplier<T> configSupplier
   )
@@ -40,12 +53,92 @@ public abstract class ConfigurationsUpdater<T extends Configurations> implements
     this.configSupplier = configSupplier;
   }
 
+  /**
+   * Update callback, this is called whenever a path is updated in zookeeper which we are monitoring.
+   *
+   * @param client The CuratorFramework
+   * @param path The zookeeper path
+   * @param data The change.
+   * @throws IOException When update is impossible.
+   */
+  public void update(CuratorFramework client, String path, byte[] data) throws IOException {
+    if (data.length != 0) {
+      String name = path.substring(path.lastIndexOf("/") + 1);
+      if (path.startsWith(getType().getZookeeperRoot())) {
+        LOG.debug("Updating the {} config: {} -> {}", getType().name(), name, new String(data == null?"".getBytes():data));
+        update(name, data);
+        reloadCallback(name, getType());
+      } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
+        LOG.debug("Updating the global config: {}", new String(data == null?"".getBytes():data));
+        getConfigurations().updateGlobalConfig(data);
+        reloadCallback(name, ConfigurationType.GLOBAL);
+      }
+    }
+  }
 
-  public abstract void update(CuratorFramework client, String path, byte[] data) throws IOException;
-  public abstract void delete(CuratorFramework client, String path, byte[] data) throws IOException;
+  /**
+   * Delete callback, this is called whenever a path is deleted in zookeeper which we are monitoring.
+   *
+   * @param client The CuratorFramework
+   * @param path The zookeeper path
+   * @param data The change.
+   * @throws IOException When update is impossible.
+   */
+  public void delete(CuratorFramework client, String path, byte[] data) throws IOException {
+    String name = path.substring(path.lastIndexOf("/") + 1);
+    if (path.startsWith(getType().getZookeeperRoot())) {
+      LOG.debug("Deleting {} {} config from internal cache", getType().name(), name);
+      delete(name);
+      reloadCallback(name, getType());
+    } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
+      LOG.debug("Deleting global config from internal cache");
+      getConfigurations().deleteGlobalConfig();
+      reloadCallback(name, ConfigurationType.GLOBAL);
+    }
+  }
 
+  /**
+   * The ConfigurationsType that we're monitoring.
+   * @return The ConfigurationsType enum
+   */
+  public abstract ConfigurationType getType();
+
+  /**
+   * The simple update.  This differs from the full update elsewhere in that
+   * this is ONLY called on updates to path to the zookeeper nodes which correspond
+   * to your configurations type (rather than all configurations type).
+   * @param name The path
+   * @param data The data updated
+   * @throws IOException when update is unable to happen
+   */
+  public abstract void update(String name, byte[] data) throws IOException;
+
+  /**
+   * The simple delete.  This differs from the full delete elsewhere in that
+   * this is ONLY called on deletes to path to the zookeeper nodes which correspond
+   * to your configurations type (rather than all configurations type).
+   * @param name the path
+   * @throws IOException when update is unable to happen
+   */
+  public abstract void delete(String name);
+
+  /**
+   *
+   * @return The Class for the Configurations type.
+   */
   public abstract Class<T> getConfigurationClass();
+
+  /**
+   * This pulls the configuration from zookeeper and updates the cache.  It represents the initial state.
+   * Force update is called when the zookeeper cache is initialized to ensure that the caches are updated.
+   * @param client
+   */
   public abstract void forceUpdate(CuratorFramework client);
+
+  /**
+   * Create an empty Configurations object of type T.
+   * @return
+   */
   public abstract T defaultConfigurations();
 
   protected void reloadCallback(String name, ConfigurationType type) {
