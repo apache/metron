@@ -27,6 +27,8 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -54,8 +56,6 @@ import org.elasticsearch.action.get.MultiGetItemResponse;
 import org.elasticsearch.action.get.MultiGetResponse;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHitField;
-import org.elasticsearch.search.SearchHits;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -95,22 +95,13 @@ public class ElasticsearchMetaAlertDaoTest {
     when(metaHit.getSource()).thenReturn(metaSource);
 
     // Construct the inner alert
-    SearchHit innerAlertHit = mock(SearchHit.class);
     HashMap<String, Object> innerAlertSource = new HashMap<>();
     innerAlertSource.put(Constants.GUID, "a1");
-    when(innerAlertHit.sourceAsMap()).thenReturn(innerAlertSource);
-    SearchHitField field = mock(SearchHitField.class);
-    when(field.getValue()).thenReturn(10d);
-    when(innerAlertHit.field(MetaAlertDao.THREAT_FIELD_DEFAULT)).thenReturn(field);
-    SearchHit[] innerHitArray = new SearchHit[1];
-    innerHitArray[0] = innerAlertHit;
+    innerAlertSource.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10d);
 
-    // Construct the inner hits that contains the alert
-    SearchHits searchHits = mock(SearchHits.class);
-    when(searchHits.getHits()).thenReturn(innerHitArray);
-    Map<String, SearchHits> innerHits = new HashMap<>();
-    innerHits.put(MetaAlertDao.ALERT_FIELD, searchHits);
-    when(metaHit.getInnerHits()).thenReturn(innerHits);
+    Map<String, Object> innerHits = new HashMap<>();
+    innerHits.put(MetaAlertDao.ALERT_FIELD, Collections.singletonList(innerAlertSource));
+    when(metaHit.sourceAsMap()).thenReturn(innerHits);
 
     // Construct  the updated Document
     Map<String, Object> updateMap = new HashMap<>();
@@ -168,43 +159,18 @@ public class ElasticsearchMetaAlertDaoTest {
     when(metaHit.getSource()).thenReturn(metaSource);
 
     // Construct the inner alerts
-    SearchHit innerAlertHitOne = mock(SearchHit.class);
     HashMap<String, Object> innerAlertSourceOne = new HashMap<>();
     String guidOne = "a1";
     innerAlertSourceOne.put(Constants.GUID, guidOne);
-    when(innerAlertHitOne.sourceAsMap()).thenReturn(innerAlertSourceOne);
-    when(innerAlertHitOne.getId()).thenReturn(guidOne);
-    SearchHitField triageOne = mock(SearchHitField.class);
-    when(triageOne.getValue()).thenReturn(threatValueOne);
-    Map<String, Object> innerAlertHitOneSource = new HashMap<>();
-    innerAlertHitOneSource.put(MetaAlertDao.THREAT_FIELD_DEFAULT, threatValueTwo);
-    innerAlertHitOneSource.put(Constants.GUID, guidOne);
-    when(innerAlertHitOne.getSource()).thenReturn(innerAlertHitOneSource);
-    when(innerAlertHitOne.field(MetaAlertDao.THREAT_FIELD_DEFAULT)).thenReturn(triageOne);
+    innerAlertSourceOne.put(MetaAlertDao.THREAT_FIELD_DEFAULT, threatValueTwo);
 
-    SearchHit innerAlertHitTwo = mock(SearchHit.class);
     HashMap<String, Object> innerAlertSourceTwo = new HashMap<>();
     innerAlertSourceTwo.put(Constants.GUID, guidTwo);
-    when(innerAlertHitTwo.sourceAsMap()).thenReturn(innerAlertSourceTwo);
-    when(innerAlertHitOne.getId()).thenReturn(guidTwo);
-    SearchHitField triageTwo = mock(SearchHitField.class);
-    when(triageTwo.getValue()).thenReturn(threatValueTwo);
-    Map<String, Object> innerAlertHitTwoSource = new HashMap<>();
-    innerAlertHitTwoSource.put(MetaAlertDao.THREAT_FIELD_DEFAULT, threatValueTwo);
-    innerAlertHitTwoSource.put(Constants.GUID, guidTwo);
-    when(innerAlertHitTwo.getSource()).thenReturn(innerAlertHitTwoSource);
-    when(innerAlertHitTwo.field(MetaAlertDao.THREAT_FIELD_DEFAULT)).thenReturn(triageTwo);
+    innerAlertSourceTwo.put(MetaAlertDao.THREAT_FIELD_DEFAULT, threatValueTwo);
 
-    SearchHit[] innerHitArray = new SearchHit[2];
-    innerHitArray[0] = innerAlertHitOne;
-    innerHitArray[1] = innerAlertHitTwo;
-
-    // Construct the inner hits that contains the alert
-    SearchHits searchHits = mock(SearchHits.class);
-    when(searchHits.getHits()).thenReturn(innerHitArray);
-    Map<String, SearchHits> innerHits = new HashMap<>();
-    innerHits.put(MetaAlertDao.ALERT_FIELD, searchHits);
-    when(metaHit.getInnerHits()).thenReturn(innerHits);
+    Map<String, Object> innerHits = new HashMap<>();
+    innerHits.put(MetaAlertDao.ALERT_FIELD, Arrays.asList(innerAlertSourceOne, innerAlertSourceTwo));
+    when(metaHit.sourceAsMap()).thenReturn(innerHits);
 
     // Construct  the updated Document
     Map<String, Object> updateMap = new HashMap<>();

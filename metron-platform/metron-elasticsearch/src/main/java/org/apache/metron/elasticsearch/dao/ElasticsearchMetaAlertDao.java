@@ -177,7 +177,6 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     Map<Document, Optional<String>> updates = new HashMap<>();
     updates.put(createDoc, Optional.of(MetaAlertDao.METAALERTS_INDEX));
 
-    MetaAlertCreateResponse createResponse = new MetaAlertCreateResponse();
     try {
       // We need to update the associated alerts with the new meta alerts, making sure existing
       // links are maintained.
@@ -201,11 +200,14 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
       // Kick off all of our updates in bulk.
       indexDao.batchUpdate(updates);
+
+      MetaAlertCreateResponse createResponse = new MetaAlertCreateResponse();
+      createResponse.setCreated(true);
+      createResponse.setGuid(createDoc.getGuid());
+      return createResponse;
     } catch (IOException ioe) {
       throw new InvalidCreateException("Unable to create meta alert", ioe);
     }
-    createResponse.setCreated(true);
-    return createResponse;
   }
 
   @Override
