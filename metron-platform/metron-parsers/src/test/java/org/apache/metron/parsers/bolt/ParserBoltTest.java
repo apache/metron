@@ -126,6 +126,17 @@ public class ParserBoltTest extends BaseBoltTest {
       public void delete(CuratorFramework client, String path, byte[] data) throws IOException { }
 
       @Override
+      public ConfigurationType getType() {
+        return ConfigurationType.PARSER;
+      }
+
+      @Override
+      public void update(String name, byte[] data) throws IOException { }
+
+      @Override
+      public void delete(String name) { }
+
+      @Override
       public Class<ParserConfigurations> getConfigurationClass() {
         return ParserConfigurations.class;
       }
