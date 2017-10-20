@@ -18,9 +18,11 @@
 package org.apache.metron.rest.controller;
 
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.rest.model.TopologyStatusCode;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.service.SensorParserConfigService;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -169,8 +171,11 @@ public class StormControllerIntegrationTest {
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.GLOBAL_CONFIG_MISSING.name()));
 
     globalConfigService.save(globalConfig);
-    //we must wait for the config to find its way into the config.
-    Thread.sleep(500);
+    {
+      final Map<String, Object> expectedGlobalConfig = globalConfig;
+      //we must wait for the config to find its way into the config.
+      TestUtils.assertEventually(() -> Assert.assertEquals(expectedGlobalConfig, globalConfigService.get()));
+    }
 
     this.mockMvc.perform(get(stormUrl + "/parser/start/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
@@ -181,8 +186,11 @@ public class StormControllerIntegrationTest {
     sensorParserConfig.setParserClassName("org.apache.metron.parsers.bro.BasicBroParser");
     sensorParserConfig.setSensorTopic("broTest");
     sensorParserConfigService.save(sensorParserConfig);
-    //we must wait for the config to find its way into the config.
-    Thread.sleep(500);
+    {
+      final Map<String, Object> expectedGlobalConfig = globalConfig;
+      //we must wait for the config to find its way into the config.
+      TestUtils.assertEventually(() -> Assert.assertEquals(expectedGlobalConfig, globalConfigService.get()));
+    }
 
     this.mockMvc.perform(get(stormUrl + "/parser/start/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
