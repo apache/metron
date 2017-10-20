@@ -73,7 +73,7 @@ public class DateSpecifierPredicate implements Predicate<Long> {
   /**
    * Returns true if the timestamp happens on the specified day and false otherwise.
    * @param ts
-   * @return
+   * @return boolean returns true if the timestamp happens on the specified day and false otherwise
    */
   @Override
   public boolean test(Long ts) {
