@@ -52,9 +52,6 @@ gateway:
   expected_data_nodes: {{expected_data_nodes}}
 
 # https://www.elastic.co/guide/en/elasticsearch/guide/current/indexing-performance.html
-transient:
-  indices.store.throttle.type: merge
-
 indices:
   store.throttle.type: {{indices_memory_index_store_throttle_type}}
   memory:
