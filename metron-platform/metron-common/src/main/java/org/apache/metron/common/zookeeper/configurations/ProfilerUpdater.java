@@ -79,36 +79,18 @@ public class ProfilerUpdater extends ConfigurationsUpdater<ProfilerConfiguration
   }
 
   @Override
-  public void delete(CuratorFramework client, String path, byte[] data) throws IOException {
-    String name = path.substring(path.lastIndexOf("/") + 1);
-    if (path.startsWith(ConfigurationType.PROFILER.getZookeeperRoot())) {
-      LOG.debug("Deleting profiler config from internal cache");
-      getConfigurations().delete();
-      reloadCallback(name, ConfigurationType.PROFILER);
-    } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
-      LOG.debug("Deleting global config from internal cache");
-      getConfigurations().deleteGlobalConfig();
-      reloadCallback(name, ConfigurationType.GLOBAL);
-    }
+  public ConfigurationType getType() {
+    return ConfigurationType.PROFILER;
   }
 
   @Override
-  public void update(CuratorFramework client, String path, byte[] data) throws IOException {
-    if (data.length != 0) {
-      String name = path.substring(path.lastIndexOf("/") + 1);
-
-      // update the profiler configuration from zookeeper
-      if (path.startsWith(ConfigurationType.PROFILER.getZookeeperRoot())) {
-        LOG.debug("Updating the profiler config: {}", new String(data == null?"".getBytes():data));
-        getConfigurations().updateProfilerConfig(data);
-        reloadCallback(name, ConfigurationType.PROFILER);
-
-      // update the global configuration from zookeeper
-      } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
-        LOG.debug("Updating the global config: {}", new String(data == null?"".getBytes():data));
-        getConfigurations().updateGlobalConfig(data);
-        reloadCallback(name, ConfigurationType.GLOBAL);
-      }
-    }
+  public void delete(String name) {
+    getConfigurations().delete();
   }
+
+  @Override
+  public void update(String name, byte[] data) throws IOException {
+    getConfigurations().updateProfilerConfig(data);
+  }
+
 }

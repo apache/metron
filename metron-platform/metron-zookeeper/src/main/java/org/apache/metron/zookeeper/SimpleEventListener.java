@@ -31,20 +31,50 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 
+/**
+ * This is a simple convenience implementation of a TreeCacheListener.
+ * It allows multiple callbacks to be called with one listener.
+ */
 public class SimpleEventListener implements TreeCacheListener {
 
   private static final Logger LOG =  LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  /**
+   * The callback interface.  This is to be implemented for all callbacks bound to a SimpleEventListener
+   */
   public interface Callback {
+    /**
+     * Called upon an event.
+     * @param client The zookeeper client
+     * @param path The zookeeper path changed
+     * @param data The data that changed.
+     * @throws IOException
+     */
     void apply(CuratorFramework client, String path, byte[] data) throws IOException;
   }
 
+  /**
+   * Builder to create a SimpleEventListener
+   */
   public static class Builder {
     private EnumMap<TreeCacheEvent.Type, List<Callback>> callbacks = new EnumMap<>(TreeCacheEvent.Type.class);
+
+    /**
+     * Add a callback bound to one or more TreeCacheEvent.Type.
+     * @param callback The callback to be called when an event of each of types happens
+     * @param types The zookeeper event types to bind to
+     * @return The Builder
+     */
     public Builder with(Callback callback, TreeCacheEvent.Type... types) {
       return with(ImmutableList.of(callback), types);
     }
 
+    /**
+     * Add a callback bound to one or more TreeCacheEvent.Type.
+     * @param callback The iterable of callbacks to be called when an event of each of types happens
+     * @param types The zookeeper event types to bind to
+     * @return The Builder
+     */
     public Builder with(Iterable<? extends Callback> callback, TreeCacheEvent.Type... types) {
       for(TreeCacheEvent.Type t : types) {
         List<Callback> cbs = callbacks.get(t);
@@ -57,6 +87,10 @@ public class SimpleEventListener implements TreeCacheListener {
       return this;
     }
 
+    /**
+     * Create the listener.
+     * @return The SimpleEventListener
+     */
     public SimpleEventListener build() {
       return new SimpleEventListener(callbacks);
     }

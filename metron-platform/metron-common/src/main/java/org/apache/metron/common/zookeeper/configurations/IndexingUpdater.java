@@ -57,32 +57,18 @@ public class IndexingUpdater extends ConfigurationsUpdater<IndexingConfiguration
   }
 
   @Override
-  public void delete(CuratorFramework client, String path, byte[] data) throws IOException {
-    String name = path.substring(path.lastIndexOf("/") + 1);
-    if (path.startsWith(ConfigurationType.INDEXING.getZookeeperRoot())) {
-      LOG.debug("Deleting indexing {} config from internal cache", name);
-      getConfigurations().delete(name);
-      reloadCallback(name, ConfigurationType.INDEXING);
-    } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
-      LOG.debug("Deleting global config from internal cache");
-      getConfigurations().deleteGlobalConfig();
-      reloadCallback(name, ConfigurationType.GLOBAL);
-    }
+  public ConfigurationType getType() {
+    return ConfigurationType.INDEXING;
   }
 
   @Override
-  public void update(CuratorFramework client, String path, byte[] data) throws IOException {
-    if (data.length != 0) {
-      String name = path.substring(path.lastIndexOf("/") + 1);
-      if (path.startsWith(ConfigurationType.INDEXING.getZookeeperRoot())) {
-        LOG.debug("Updating the indexing config: {} -> {}", name, new String(data == null?"".getBytes():data));
-        getConfigurations().updateSensorIndexingConfig(name, data);
-        reloadCallback(name, ConfigurationType.INDEXING);
-      } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
-        LOG.debug("Updating the global config: {}", new String(data == null?"".getBytes():data));
-        getConfigurations().updateGlobalConfig(data);
-        reloadCallback(name, ConfigurationType.GLOBAL);
-      }
-    }
+  public void delete(String name) {
+    getConfigurations().delete(name);
   }
+
+  @Override
+  public void update(String name, byte[] data) throws IOException {
+    getConfigurations().updateSensorIndexingConfig(name, data);
+  }
+
 }
