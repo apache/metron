@@ -147,7 +147,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
 
     ProfileBuilderBolt bolt = new ProfileBuilderBolt("zookeeperURL");
     bolt.setCuratorFramework(client);
-    bolt.setTreeCache(cache);
+    bolt.setZKCache(cache);
     bolt.withPeriodDuration(10, TimeUnit.MINUTES);
     bolt.withProfileTimeToLive(30, TimeUnit.MINUTES);
 

@@ -17,27 +17,34 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.GlobalConfigService;
+import org.apache.metron.common.zookeeper.ZKConfigurationsCache;
 import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
 import java.util.Map;
 
 @Service
 public class GlobalConfigServiceImpl implements GlobalConfigService {
     private CuratorFramework client;
 
+    private ConfigurationsCache cache;
+
     @Autowired
-    public GlobalConfigServiceImpl(CuratorFramework client) {
+    public GlobalConfigServiceImpl(CuratorFramework client, ConfigurationsCache cache) {
       this.client = client;
+      this.cache = cache;
+    }
+
+    public void setCache(ConfigurationsCache cache) {
+      this.cache = cache;
     }
 
     @Override
@@ -52,16 +59,14 @@ public class GlobalConfigServiceImpl implements GlobalConfigService {
 
     @Override
     public Map<String, Object> get() throws RestException {
-        Map<String, Object> globalConfig;
-        try {
-            byte[] globalConfigBytes = ConfigurationsUtils.readGlobalConfigBytesFromZookeeper(client);
-            globalConfig = JSONUtils.INSTANCE.load(new ByteArrayInputStream(globalConfigBytes), new TypeReference<Map<String, Object>>(){});
-        } catch (KeeperException.NoNodeException e) {
-            return null;
-        } catch (Exception e) {
-          throw new RestException(e);
-        }
-        return globalConfig;
+      Map<String, Object> globalConfig;
+      try {
+        EnrichmentConfigurations configs = cache.get( EnrichmentConfigurations.class);
+        globalConfig = configs.getGlobalConfig(false);
+      } catch (Exception e) {
+        throw new RestException(e.getMessage(), e);
+      }
+      return globalConfig;
     }
 
     @Override
