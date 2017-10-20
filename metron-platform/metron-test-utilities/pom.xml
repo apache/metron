@@ -28,6 +28,11 @@
   </properties>
   <dependencies>
     <dependency>
+      <groupId>org.apache.metron</groupId>
+      <artifactId>metron-zookeeper</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
       <version>1.2.17</version>
@@ -127,11 +132,7 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-recipes</artifactId>
-      <version>${global_curator_version}</version>
-    </dependency>
+
     <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-test</artifactId>

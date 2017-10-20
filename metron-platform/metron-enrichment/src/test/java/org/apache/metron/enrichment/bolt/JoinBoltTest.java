@@ -99,7 +99,7 @@ public class JoinBoltTest extends BaseEnrichmentBoltTest {
     }
     joinBolt = new StandAloneJoinBolt("zookeeperUrl");
     joinBolt.setCuratorFramework(client);
-    joinBolt.setTreeCache(cache);
+    joinBolt.setZKCache(cache);
   }
 
   @Test

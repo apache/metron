@@ -23,27 +23,43 @@ import org.apache.metron.common.utils.JSONUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EnrichmentConfigurations extends Configurations {
 
-    public SensorEnrichmentConfig getSensorEnrichmentConfig(String sensorType) {
-        return (SensorEnrichmentConfig) configurations.get(getKey(sensorType));
-    }
+  public SensorEnrichmentConfig getSensorEnrichmentConfig(String sensorType) {
+    return (SensorEnrichmentConfig) getConfigurations().get(getKey(sensorType));
+  }
 
-    public void updateSensorEnrichmentConfig(String sensorType, byte[] data) throws IOException {
-        updateSensorEnrichmentConfig(sensorType, new ByteArrayInputStream(data));
-    }
+  public void updateSensorEnrichmentConfig(String sensorType, byte[] data) throws IOException {
+    updateSensorEnrichmentConfig(sensorType, new ByteArrayInputStream(data));
+  }
 
-    public void updateSensorEnrichmentConfig(String sensorType, InputStream io) throws IOException {
-        SensorEnrichmentConfig sensorEnrichmentConfig = JSONUtils.INSTANCE.load(io, SensorEnrichmentConfig.class);
-        updateSensorEnrichmentConfig(sensorType, sensorEnrichmentConfig);
-    }
+  public void updateSensorEnrichmentConfig(String sensorType, InputStream io) throws IOException {
+    SensorEnrichmentConfig sensorEnrichmentConfig = JSONUtils.INSTANCE.load(io, SensorEnrichmentConfig.class);
+    updateSensorEnrichmentConfig(sensorType, sensorEnrichmentConfig);
+  }
 
-    public void updateSensorEnrichmentConfig(String sensorType, SensorEnrichmentConfig sensorEnrichmentConfig) {
-        configurations.put(getKey(sensorType), sensorEnrichmentConfig);
-    }
+  public void updateSensorEnrichmentConfig(String sensorType, SensorEnrichmentConfig sensorEnrichmentConfig) {
+    getConfigurations().put(getKey(sensorType), sensorEnrichmentConfig);
+  }
 
-    private String getKey(String sensorType) {
-        return ConfigurationType.ENRICHMENT.getTypeName() + "." + sensorType;
+  public void delete(String sensorType) {
+    getConfigurations().remove(getKey(sensorType));
+  }
+
+  public List<String> getTypes() {
+    List<String> ret = new ArrayList<>();
+    for(String keyedSensor : getConfigurations().keySet()) {
+      if(!keyedSensor.isEmpty() && keyedSensor.startsWith(ConfigurationType.ENRICHMENT.getTypeName())) {
+        ret.add(keyedSensor.substring(ConfigurationType.ENRICHMENT.getTypeName().length() + 1));
+      }
     }
+    return ret;
+  }
+
+  public static String getKey(String sensorType) {
+    return ConfigurationType.ENRICHMENT.getTypeName() + "." + sensorType;
+  }
 }

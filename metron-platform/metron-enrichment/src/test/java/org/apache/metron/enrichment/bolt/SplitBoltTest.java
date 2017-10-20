@@ -88,7 +88,7 @@ public class SplitBoltTest extends BaseEnrichmentBoltTest {
   public void test() {
     StandAloneSplitBolt splitBolt = spy(new StandAloneSplitBolt("zookeeperUrl"));
     splitBolt.setCuratorFramework(client);
-    splitBolt.setTreeCache(cache);
+    splitBolt.setZKCache(cache);
     doCallRealMethod().when(splitBolt).reloadCallback(anyString(), any(ConfigurationType.class));
     splitBolt.prepare(new HashMap(), topologyContext, outputCollector);
     splitBolt.declareOutputFields(declarer);

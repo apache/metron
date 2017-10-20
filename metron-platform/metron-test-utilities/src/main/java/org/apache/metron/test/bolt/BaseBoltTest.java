@@ -17,6 +17,7 @@
  */
 package org.apache.metron.test.bolt;
 
+import org.apache.metron.zookeeper.ZKCache;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -54,7 +55,7 @@ public abstract class BaseBoltTest {
   protected CuratorFramework client;
 
   @Mock
-  protected TreeCache cache;
+  protected ZKCache cache;
 
   @Before
   public void initMocks() {
