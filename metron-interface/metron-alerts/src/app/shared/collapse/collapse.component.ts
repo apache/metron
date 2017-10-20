@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+
 import 'bootstrap';
 import {CollapseComponentData} from './collapse-component-data';
 
@@ -33,7 +34,7 @@ export class CollapseComponent implements OnInit {
   @Input() fontSize = 14;
   @Input() titleSeperator = false;
   @Input() deleteOption = false;
-  @Input() show = false;
+  @Input() countOption = false;
   @Input() strLength = 30;
 
   @Output() onSelect = new EventEmitter<{name: string, key: string}>();

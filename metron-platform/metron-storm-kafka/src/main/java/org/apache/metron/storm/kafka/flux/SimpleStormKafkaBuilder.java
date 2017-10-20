@@ -74,7 +74,7 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
     /**
      * Return a list of the enums
      * @param configs
-     * @return
+     * @return ret a list of enums
      */
     public static List<FieldsConfiguration> toList(String... configs) {
       List<FieldsConfiguration> ret = new ArrayList<>();
@@ -87,7 +87,7 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
     /**
      * Return a list of the enums from their string representation.
      * @param configs
-     * @return
+     * @return ret a list of enums from string representation
      */
     public static List<FieldsConfiguration> toList(List<String> configs) {
       List<FieldsConfiguration> ret = new ArrayList<>();
@@ -101,7 +101,7 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
      * Construct a Fields object from an iterable of enums.  These fields are the fields
      * exposed in the Storm tuple emitted from the spout.
      * @param configs
-     * @return
+     * @return Fields object from enums iterable
      */
     public static Fields getFields(Iterable<FieldsConfiguration> configs) {
       List<String> fields = new ArrayList<>();
@@ -254,7 +254,7 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
    * @param zkQuorum
    * @param fieldsConfiguration
    * @param kafkaProps  The aforementioned map.
-   * @return
+   * @return StormKafkaSpout from a given topic, zk quorum and fields
    */
   public static <K, V> StormKafkaSpout<K, V> create( String topic
                                                    , String zkQuorum

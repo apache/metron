@@ -28,12 +28,16 @@ import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
-import org.apache.metron.common.zookeeper.ZKConfigurationsCache;
 import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Collections;
+import java.util.Set;
+import java.util.HashSet;
 
 @Service
 public class SensorIndexingConfigServiceImpl implements SensorIndexingConfigService {
