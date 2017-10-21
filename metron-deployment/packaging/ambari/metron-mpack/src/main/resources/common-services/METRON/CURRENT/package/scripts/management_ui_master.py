@@ -73,7 +73,7 @@ class ManagementUIMaster(Script):
         from params import status_params
         env.set_params(status_params)
         commands = ManagementUICommands(status_params)
-        commands.check_status(env)
+        commands.status_management_ui(env)
 
     def restart(self, env):
         from params import params
