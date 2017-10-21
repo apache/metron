@@ -59,7 +59,9 @@ indices:
   fielddata:
    cache.size: {{indices_fielddata_cache_size}}
 
-bootstrap.memory_lock: {{bootstrap_memory_lock}}
+bootstrap:
+  memory_lock: {{bootstrap_memory_lock}}
+  system_call_filter: false
 
 thread_pool:
   bulk:
