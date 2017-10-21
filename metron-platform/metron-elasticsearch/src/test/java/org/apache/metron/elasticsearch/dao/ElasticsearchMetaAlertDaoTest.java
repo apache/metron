@@ -169,7 +169,8 @@ public class ElasticsearchMetaAlertDaoTest {
     innerAlertSourceTwo.put(MetaAlertDao.THREAT_FIELD_DEFAULT, threatValueTwo);
 
     Map<String, Object> innerHits = new HashMap<>();
-    innerHits.put(MetaAlertDao.ALERT_FIELD, Arrays.asList(innerAlertSourceOne, innerAlertSourceTwo));
+    innerHits
+        .put(MetaAlertDao.ALERT_FIELD, Arrays.asList(innerAlertSourceOne, innerAlertSourceTwo));
     when(metaHit.sourceAsMap()).thenReturn(innerHits);
 
     // Construct  the updated Document
@@ -412,33 +413,80 @@ public class ElasticsearchMetaAlertDaoTest {
 
   @Test
   public void testHandleMetaUpdateAlert() throws IOException {
-    ElasticsearchDao mockEsDao = mock(ElasticsearchDao.class);
-
-    Map<String, Object> alertMap = new HashMap<>();
-    alertMap.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
-    alertMap.put(Constants.GUID, "guid_alert");
+    // The child alert of the meta alert
+    Map<String, Object> alertMapBefore = new HashMap<>();
+    alertMapBefore.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
+    String guidAlert = "guid_alert";
+    alertMapBefore.put(Constants.GUID, guidAlert);
     List<Map<String, Object>> alertList = new ArrayList<>();
-    alertList.add(alertMap);
+    alertList.add(alertMapBefore);
+    String alertSensorType = "alert_sensor";
+    Document alertBefore = new Document(
+        alertMapBefore,
+        guidAlert,
+        alertSensorType,
+        0L
+    );
 
-    Map<String, Object> docMapBefore = new HashMap<>();
-    docMapBefore.put(MetaAlertDao.ALERT_FIELD, alertList);
-    Document before = new Document(docMapBefore, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
+    // The original meta alert. It contains the alert we previously constructed.
+    Map<String, Object> metaMapBefore = new HashMap<>();
+    String metaGuid = "guid_meta";
+    metaMapBefore.putAll(alertBefore.getDocument());
+    metaMapBefore.put(MetaAlertDao.ALERT_FIELD, alertList);
+    metaMapBefore.put(Constants.GUID, metaGuid);
+    Document metaBefore = new Document(
+        metaMapBefore,
+        metaGuid,
+        MetaAlertDao.METAALERT_TYPE,
+        0L
+    );
 
-    Map<String, Object> docMapAfter = new HashMap<>();
-    docMapAfter.putAll(docMapBefore);
-    docMapAfter.put("average", 10.0d);
-    docMapAfter.put("min", 10.0d);
-    docMapAfter.put("median", 10.0d);
-    docMapAfter.put("max", 10.0d);
-    docMapAfter.put("count", 1L);
-    docMapAfter.put("sum", 10.0d);
-    docMapAfter.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
-    Document after = new Document(docMapAfter, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
+    // Build the Documents we expect to see from updates
+    // Build the after alert.  Don't add the original fields: This is only an update.
+    // The new field is the link to the meta alert.
+    Map<String, Object> alertMapAfter = new HashMap<>();
+    List<String> metaAlertField = new ArrayList<>();
+    metaAlertField.add(metaGuid);
+    alertMapAfter.put(MetaAlertDao.METAALERT_FIELD, metaAlertField);
+    Document alertAfter = new Document(
+        alertMapAfter,
+        guidAlert,
+        alertSensorType,
+        0L
+    );
 
+    // Build the meta alert after. This'll be a replace, so add the original fields plus the
+    // threat fields
+    Map<String, Object> metaMapAfter = new HashMap<>();
+    metaMapAfter.putAll(metaMapBefore);
+    metaMapAfter.put("average", 10.0d);
+    metaMapAfter.put("min", 10.0d);
+    metaMapAfter.put("median", 10.0d);
+    metaMapAfter.put("max", 10.0d);
+    metaMapAfter.put("count", 1L);
+    metaMapAfter.put("sum", 10.0d);
+    metaMapAfter.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
+
+    Document metaAfter = new Document(
+        metaMapAfter,
+        metaGuid,
+        MetaAlertDao.METAALERT_TYPE,
+        0L
+    );
+
+    // Build the method calls we'd expect to see.
+    Map<Document, Optional<String>> updates = new HashMap<>();
+    updates.put(metaAfter, Optional.of(MetaAlertDao.METAALERTS_INDEX));
+    updates.put(alertAfter, Optional.empty());
+
+    // Build a mock ElasticsearchDao to track interactions.  Actual runs are in integration tests
+    ElasticsearchDao mockEsDao = mock(ElasticsearchDao.class);
     ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao(mockEsDao);
-    metaAlertDao.handleMetaUpdate(before);
+    when(mockEsDao.getLatest(guidAlert, null)).thenReturn(alertBefore);
+    metaAlertDao.handleMetaUpdate(metaBefore);
 
-    verify(mockEsDao, times(1))
-        .update(after, Optional.of(MetaAlertDao.METAALERTS_INDEX));
+    // Validate we're calling what we need to with what we expect.
+    verify(mockEsDao, times(1)).getLatest(guidAlert, null);
+    verify(mockEsDao, times(1)).batchUpdate(updates);
   }
 }

@@ -194,12 +194,13 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
         metaAlertField.add(createDoc.getGuid());
 
         Document alertUpdate = buildAlertUpdate(response.getId(),
-            (String) response.getSource().get(SOURCE_TYPE), metaAlertField);
+            (String) response.getSource().get(SOURCE_TYPE), metaAlertField,
+            (Long) response.getSourceAsMap().get("_timestamp"));
         updates.put(alertUpdate, Optional.of(itemResponse.getIndex()));
       }
 
-      // Kick off all of our updates in bulk.
-      indexDao.batchUpdate(updates);
+      // Kick off any updates.
+      indexDaoUpdate(updates);
 
       MetaAlertCreateResponse createResponse = new MetaAlertCreateResponse();
       createResponse.setCreated(true);
@@ -222,7 +223,8 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
                 )
             )
         )
-        // Ensures that it's a meta alert with active status or that it's an alert (signified by having no status field)
+        // Ensures that it's a meta alert with active status or that it's an alert (signified by
+        // having no status field)
         .must(boolQuery()
             .should(termQuery(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()))
             .should(boolQuery().mustNot(existsQuery(MetaAlertDao.STATUS_FIELD)))
@@ -260,7 +262,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
   @Override
   public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
-    throw new UnsupportedOperationException("Meta alerts do not currently allow for bulk updates");
+    throw new UnsupportedOperationException("Meta alerts do not allow for bulk updates");
   }
 
   /**
@@ -353,7 +355,21 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
     // Run meta alert update.
     updates.put(update, Optional.of(index));
-    indexDao.batchUpdate(updates);
+    indexDaoUpdate(updates);
+  }
+
+  /**
+   * Calls the single update variant if there's only one update, otherwise calls batch.
+   * @param updates The list of updates to run
+   * @throws IOException If there's an update error
+   */
+  protected void indexDaoUpdate(Map<Document, Optional<String>> updates) throws IOException {
+    if (updates.size() == 1) {
+      Entry<Document, Optional<String>> singleUpdate = updates.entrySet().iterator().next();
+      indexDao.update(singleUpdate.getKey(), singleUpdate.getValue());
+    } else if (updates.size() > 1) {
+      indexDao.batchUpdate(updates);
+    } // else we have no updates, so don't do anything
   }
 
   protected Map<Document, Optional<String>> buildStatusAlertUpdates(Document update)
@@ -379,7 +395,8 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
         alertUpdate = buildAlertUpdate(
             alertGuid,
             (String) alert.get(SOURCE_TYPE),
-            metaAlertField
+            metaAlertField,
+            (Long) alert.get("_timestamp")
         );
       }
 
@@ -389,7 +406,8 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
         alertUpdate = buildAlertUpdate(
             alertGuid,
             (String) alert.get(SOURCE_TYPE),
-            metaAlertField
+            metaAlertField,
+            (Long) alert.get("_timestamp")
         );
       }
 
@@ -444,7 +462,8 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
         metaAlertField.addAll(alertField);
       }
       if (metaAlertField.remove(update.getGuid())) {
-        alertUpdate = buildAlertUpdate(guid, alert.getSensorType(), metaAlertField);
+        alertUpdate = buildAlertUpdate(guid, alert.getSensorType(), metaAlertField,
+            alert.getTimestamp());
         updates.put(alertUpdate, Optional.empty());
       }
     }
@@ -461,7 +480,8 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
         metaAlertField.addAll(alertField);
       }
       metaAlertField.add(update.getGuid());
-      alertUpdate = buildAlertUpdate(guid, alert.getSensorType(), metaAlertField);
+      alertUpdate = buildAlertUpdate(guid, alert.getSensorType(), metaAlertField,
+          alert.getTimestamp());
       updates.put(alertUpdate, Optional.empty());
     }
 
@@ -500,7 +520,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
    * @return The update Document
    */
   protected Document buildAlertUpdate(String alertGuid, String sensorType,
-      List<String> metaAlertField) {
+      List<String> metaAlertField, Long timestamp) {
     Document alertUpdate;
     Map<String, Object> document = new HashMap<>();
     document.put(MetaAlertDao.METAALERT_FIELD, metaAlertField);
@@ -508,7 +528,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
         document,
         alertGuid,
         sensorType,
-        null
+        timestamp
     );
     return alertUpdate;
   }
