@@ -19,7 +19,7 @@
   pam_limits:
     domain: elasticsearch
     limit_type: '-'
-    limit_item: noproc
+    limit_item: nproc
     value: 2048
 
 - name: Adjust nofile security limits for ES
