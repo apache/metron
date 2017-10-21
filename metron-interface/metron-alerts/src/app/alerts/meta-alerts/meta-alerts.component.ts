@@ -24,7 +24,7 @@ import {SearchRequest} from '../../model/search-request';
 import {SearchService} from '../../service/search.service';
 import {SearchResponse} from '../../model/search-response';
 import {SortField} from '../../model/sort-field';
-import {META_ALERTS_INDEX} from '../../utils/constants';
+import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
 import {AlertSource} from '../../model/alert-source';
 import {PatchRequest} from '../../model/patch-request';
 import {Patch} from '../../model/patch';
@@ -56,9 +56,9 @@ export class MetaAlertsComponent implements OnInit {
     searchRequest.from = 0;
     searchRequest.size = 999;
     searchRequest.facetFields = [];
-    searchRequest.indices =  [META_ALERTS_INDEX];
+    searchRequest.indices =  [META_ALERTS_SENSOR_TYPE];
     searchRequest.sort = [new SortField('threat:triage:score', 'desc')];
-    searchRequest.fields = ['id', 'alert_status', 'threat:triage:score', 'count', 'guid', 'name'];
+    //searchRequest.fields = [];
 
     this.searchService.search(searchRequest).subscribe(resp => this.searchResponse = resp);
   }
@@ -67,7 +67,7 @@ export class MetaAlertsComponent implements OnInit {
     let patchRequest = new PatchRequest();
     patchRequest.guid = this.selectedMetaAlert;
     patchRequest.sensorType = 'metaalert';
-    patchRequest.index = META_ALERTS_INDEX;
+    patchRequest.index = META_ALERTS_INDEX + '_index';
     patchRequest.patch = [new Patch('replace', 'alert', alertSources)];
 
     this.updateService.patch(patchRequest).subscribe(rep => {
@@ -82,7 +82,7 @@ export class MetaAlertsComponent implements OnInit {
     searchRequest.from = 0;
     searchRequest.size = 1;
     searchRequest.facetFields = [];
-    searchRequest.indices =  [META_ALERTS_INDEX];
+    searchRequest.indices =  [META_ALERTS_SENSOR_TYPE];
     searchRequest.sort = [];
     searchRequest.fields = [];
 

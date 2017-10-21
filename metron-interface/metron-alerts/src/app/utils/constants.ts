@@ -19,7 +19,7 @@
 import {environment} from '../../environments/environment';
 
 export const META_ALERTS_SENSOR_TYPE = 'metaalert';
-export const META_ALERTS_INDEX = 'metaalerts';
+export const META_ALERTS_INDEX = 'metaalert_index';
 
 export const NUM_SAVED_SEARCH = 10;
 export const ALERTS_RECENT_SEARCH = 'metron-alerts-recent-saved-search';
@@ -30,5 +30,5 @@ export const ALERTS_COLUMN_NAMES = 'metron-alerts-column-names';
 export let TREE_SUB_GROUP_SIZE = 5;
 export let DEFAULT_FACETS = ['source:type', 'ip_src_addr', 'ip_dst_addr', 'host', 'enrichments:geo:ip_dst_addr:country'];
 export let DEFAULT_GROUPS = ['source:type', 'ip_src_addr', 'ip_dst_addr', 'host', 'enrichments:geo:ip_dst_addr:country'];
-export let INDEXES =  environment.indices ? environment.indices.split(',') : ['websphere', 'snort', 'asa', 'bro', 'yaf',  'metaalerts'];
+export let INDEXES = environment.indices ? environment.indices.split(',') : ['websphere', 'snort', 'asa', 'bro', 'yaf', 'metaalert'];
 
