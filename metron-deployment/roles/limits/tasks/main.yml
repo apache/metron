@@ -15,8 +15,31 @@
 #  limitations under the License.
 #
 ---
-dependencies:
-  - libselinux-python
-  - epel
-  - ntp
-  - limits
+- name: Adjust nproc security limits for ES
+  pam_limits:
+    domain: elasticsearch
+    limit_type: '-'
+    limit_item: noproc
+    value: 2048
+
+- name: Adjust nofile security limits for ES
+  pam_limits:
+    domain: elasticsearch
+    limit_type: '-'
+    limit_item: nofile
+    value: 65536
+
+- name: Adjust memlock soft security limits for ES
+  pam_limits:
+    domain: elasticsearch
+    limit_type: soft
+    limit_item: memlock
+    value: unlimited
+
+- name: Adjust memlock hard security limits for ES
+  pam_limits:
+    domain: elasticsearch
+    limit_type: hard
+    limit_item: memlock
+    value: unlimited
+
