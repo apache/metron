@@ -303,6 +303,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("hbase.provider.impl", "" + MockHBaseTableProvider.class.getName());
       setProperty("storm.auto.credentials", "[]");
       setProperty("kafka.security.protocol", "PLAINTEXT");
+      setProperty("topology.auto-credentials", "[]");
     }};
 
     // create the mock table

@@ -140,7 +140,7 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
 
     ProfileSplitterBolt bolt = new ProfileSplitterBolt("zookeeperURL");
     bolt.setCuratorFramework(client);
-    bolt.setTreeCache(cache);
+    bolt.setZKCache(cache);
     bolt.getConfigurations().updateProfilerConfig(profilerConfig.getBytes("UTF-8"));
     bolt.prepare(new HashMap<>(), topologyContext, outputCollector);
 

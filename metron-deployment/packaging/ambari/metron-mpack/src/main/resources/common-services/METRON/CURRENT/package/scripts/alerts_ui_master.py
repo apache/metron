@@ -67,11 +67,8 @@ class AlertsUIMaster(Script):
     def status(self, env):
         from params import status_params
         env.set_params(status_params)
-        cmd = format('curl --max-time 3 {hostname}:{metron_alerts_ui_port}')
-        try:
-            get_user_call_output(cmd, user=status_params.metron_user)
-        except ExecutionFailed:
-            raise ComponentIsNotRunning()
+        commands = AlertsUICommands(status_params)
+        commands.status_alerts_ui(env)
 
     def restart(self, env):
         from params import params

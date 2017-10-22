@@ -20,12 +20,14 @@ import subprocess
 
 from datetime import datetime
 from resource_management.core.logger import Logger
+from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.resources.system import Execute
 from resource_management.core.source import InlineTemplate
 from resource_management.libraries.functions import format as ambari_format
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
+
 from metron_security import kinit
 
 
@@ -443,3 +445,17 @@ def check_kafka_acl_groups(params, groups, user=None):
         cmd = template.format(params.kafka_bin_dir, params.zookeeper_quorum, group, user)
         err_msg = "Missing Kafka group access; group={0}, user={1}".format(group, user)
         execute(cmd, user=params.kafka_user, err_msg=err_msg)
+
+def check_http(host, port, user):
+    """
+    Check for a valid HTTP response.
+    :param hostname: The hostname.
+    :param port: The port number.
+    :param user: Execute the HTTP request as.
+    """
+    cmd = "curl -sS --max-time 3 {0}:{1}".format(host, port)
+    Logger.info('Checking HTTP connectivity; host={0}, port={1}, user={2} cmd={3}'.format(host, port, user, cmd))
+    try:
+      Execute(cmd, tries=3, try_sleep=5, logoutput=False, user=user)
+    except:
+      raise ComponentIsNotRunning()
