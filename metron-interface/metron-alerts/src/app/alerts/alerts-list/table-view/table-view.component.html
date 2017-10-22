@@ -55,7 +55,6 @@
             </td>
             <td *ngFor="let column of alertsColumnsToDisplay" #cell>
               <a *ngIf="column.name === 'id'" (click)="addFilter('guid', alert.id)" title="alert.source.id" style="color:#689AA9"> {{ (alert.source.name && alert.source.name.length > 0 ? alert.source.name : alert.id) | centerEllipses:20:cell }}</a> <span  *ngIf="column.name === 'id'"> ({{ alert.source.alert.length }})</span>
-              <a *ngIf="column.name === 'alert_status'" (click)="addFilter(column.name, getValue(alert, column, false))" title="{{getValue(alert, column, true)}}" style="color:#689AA9">{{ getValue(alert, column, true) | centerEllipses:20:cell }}</a>
             </td>
             <td width="20" (click)="deleteMetaAlert($event, alert, alertIndex)"> <i class="fa fa-chain-broken" aria-hidden="true"></i> </td>
             <td width="20"> <i class="fa fa-comments-o" aria-hidden="true" *ngIf="alert.source.comments && alert.source.comments.length > 0"></i> </td>

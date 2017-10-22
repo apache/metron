@@ -56,9 +56,7 @@ $group-height: 70px;
   }
 
   .fa-link, .fa-chain-broken {
-    padding: 10px;
-    font-size: 22px;
-    margin-top: 12px;
+
     color: $piction-blue;
     border: 2px solid transparent;
 
@@ -163,4 +161,10 @@ sup {
 
 .top-group {
   cursor: pointer;
+}
+
+.top-group-link {
+  padding: 10px;
+  font-size: 22px;
+  margin-top: 12px;
 }
