@@ -30,25 +30,18 @@ export class QueryBuilder {
   private _displayQuery = this._query;
   private _filters: Filter[] = [];
 
-  set query(value: string) {
-    value = value.replace(/\\:/g, ':');
-    this._query = value;
-    this.updateFilters(this._query, false);
-    this.onSearchChange();
-  }
-
   get query(): string {
     return this._query;
   }
 
-  set displayQuery(value: string) {
-    this._displayQuery = value;
-    this.updateFilters(this._displayQuery, true);
-    this.onSearchChange();
-  }
-
   get displayQuery(): string {
     return this._displayQuery;
+  }
+
+  set filters(filters: Filter[]) {
+    filters.forEach(filter =>  {
+      this.addOrUpdateFilter(filter)
+    });
   }
 
   get filters(): Filter[] {
@@ -63,12 +56,22 @@ export class QueryBuilder {
 
   set searchRequest(value: SearchRequest) {
     this._searchRequest = value;
-    this.query = this._searchRequest.query;
+    this.setSearch(this._searchRequest.query);
   }
 
   get groupRequest(): GroupRequest {
     this._groupRequest.query = this.generateSelect();
     return this._groupRequest;
+  }
+
+  setSearch(query: string) {
+    this.updateFilters(query);
+    this.onSearchChange();
+  }
+
+  clearSearch() {
+    this._filters = [];
+    this.onSearchChange();
   }
 
   addOrUpdateFilter(filter: Filter) {
@@ -95,6 +98,11 @@ export class QueryBuilder {
     return (select.length === 0) ? '*' : select;
   }
 
+  generateNameForSearchRequest() {
+    let select = this._filters.map(filter => ColumnNamesService.getColumnDisplayValue(filter.field) + ':' + filter.value).join(' AND ');
+    return (select.length === 0) ? '*' : select;
+  }
+
   generateSelectForDisplay() {
     let appliedFilters = [];
     this._filters.reduce((appliedFilters, filter) => {
@@ -110,7 +118,7 @@ export class QueryBuilder {
   }
 
   isTimeStampFieldPresent(): boolean {
-    return !!this._filters.find(filter => (filter.field === TIMESTAMP_FIELD_NAME));
+    return this._filters.some(filter => (filter.field === TIMESTAMP_FIELD_NAME &&  !isNaN(Number(filter.value))));
   }
 
   onSearchChange() {
@@ -146,7 +154,7 @@ export class QueryBuilder {
     this.searchRequest.sort = [sortField];
   }
 
-  private updateFilters(tQuery: string, updateNameTransform = false) {
+  private updateFilters(tQuery: string) {
     let query = tQuery;
     this.removeDisplayedFilters();
 
@@ -155,7 +163,6 @@ export class QueryBuilder {
       for (let term of terms) {
         let separatorPos = term.lastIndexOf(':');
         let field = term.substring(0, separatorPos).replace('\\', '');
-        field = updateNameTransform ? ColumnNamesService.getColumnDisplayKey(field) : field;
         let value = term.substring(separatorPos + 1, term.length);
         this.addOrUpdateFilter(new Filter(field, value));
       }

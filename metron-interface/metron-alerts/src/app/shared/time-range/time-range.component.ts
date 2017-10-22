@@ -17,8 +17,13 @@
  */
 import { Component, OnInit, ViewChild, ElementRef, HostListener, EventEmitter, Output, Input, OnChanges, SimpleChanges} from '@angular/core';
 import * as moment from 'moment/moment';
-import {Filter, RangeFilter} from '../../model/filter';
-import {DEFAULT_TIMESTAMP_FORMAT, CUSTOMM_DATE_RANGE_LABEL} from '../../utils/constants';
+
+import {Filter} from '../../model/filter';
+import {
+    DEFAULT_TIMESTAMP_FORMAT, CUSTOMM_DATE_RANGE_LABEL,
+    TIMESTAMP_FIELD_NAME, ALL_TIME
+} from '../../utils/constants';
+import {DateFilterValue} from '../../model/date-filter-value';
 
 @Component({
   selector: 'app-time-range',
@@ -33,6 +38,7 @@ export class TimeRangeComponent implements OnInit, OnChanges {
   selectedTimeRangeValue = 'All time';
 
   @Input() disabled = false;
+  @Input() selectedTimeRange: Filter;
   @ViewChild('datePicker') datePicker: ElementRef;
   @Output() timeRangeChange = new EventEmitter<Filter>();
 
@@ -53,7 +59,7 @@ export class TimeRangeComponent implements OnInit, OnChanges {
     'Previous week':          'previous-week',
     'Previous month':         'previous-month',
     'Previous year':          'previous-year',
-    'All time':               'all-time'
+    'All time':               ALL_TIME
   };
   timeRangeMappingCol3 = {
     'Today':                  'today',
@@ -77,13 +83,33 @@ export class TimeRangeComponent implements OnInit, OnChanges {
   constructor() { }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes && !changes['disabled'].currentValue){
-      this.setDate(this.getTimeRangeStr());
+    if (changes && changes['selectedTimeRange']) {
+      this.onSelectedTimeRangeChange();
     }
   }
 
   ngOnInit() {
-    this.setDate(this.getTimeRangeStr());
+  }
+
+  onSelectedTimeRangeChange() {
+    let foundQuickRange = false;
+    let merged = Object.assign({}, this.timeRangeMappingCol1, this.timeRangeMappingCol2, this.timeRangeMappingCol3, this.timeRangeMappingCol4);
+    Object.keys(merged).forEach(key => {
+      if (this.selectedTimeRange.value === merged[key]) {
+        foundQuickRange = true;
+        this.selectedTimeRangeValue = key;
+        if (this.selectedTimeRange.dateFilterValue) {
+          this.toDateStr = moment(this.selectedTimeRange.dateFilterValue.toDate).format(DEFAULT_TIMESTAMP_FORMAT);
+          this.fromDateStr = moment(this.selectedTimeRange.dateFilterValue.fromDate).format(DEFAULT_TIMESTAMP_FORMAT);
+        }
+      }
+    });
+
+    if (!foundQuickRange) {
+      this.selectedTimeRangeValue = CUSTOMM_DATE_RANGE_LABEL;
+      this.toDateStr = moment(this.selectedTimeRange.dateFilterValue.toDate).format(DEFAULT_TIMESTAMP_FORMAT);
+      this.fromDateStr = moment(this.selectedTimeRange.dateFilterValue.fromDate).format(DEFAULT_TIMESTAMP_FORMAT);
+    }
   }
 
   getTimeRangeStr() {
@@ -105,149 +131,25 @@ export class TimeRangeComponent implements OnInit, OnChanges {
     this.selectedTimeRangeValue = $event.target.textContent.trim();
     this.datePickerFromDate = '';
     this.datePickerToDate = '';
-    this.setDate(range);
+    this.timeRangeChange.emit(new Filter(TIMESTAMP_FIELD_NAME, range, false));
   }
 
   hideDatePicker() {
     this.datePicker.nativeElement.classList.remove('show');
   }
 
-  setDate(range:string) {
-    let toDate = '';
-    let fromDate = '';
-    
-    switch (range) {
-      case 'last-7-days':
-        fromDate = moment().subtract(7, 'days').local().format();
-        toDate = moment().local().format();
-        break;
-      case 'last-30-days':
-        fromDate = moment().subtract(30, 'days').local().format();
-        toDate = moment().local().format();
-        break;
-      case 'last-60-days':
-        fromDate = moment().subtract(60, 'days').local().format();
-        toDate = moment().local().format();
-        break;
-      case 'last-90-days':
-        fromDate = moment().subtract(90, 'days').local().format();
-        toDate = moment().local().format();
-        break;
-      case 'last-6-months':
-        fromDate = moment().subtract(6, 'months').local().format();
-        toDate = moment().local().format();
-        break;
-      case 'last-1-year':
-        fromDate = moment().subtract(1, 'year').local().format();
-        toDate = moment().local().format();
-        break;
-      case 'last-2-years':
-        fromDate = moment().subtract(2, 'years').local().format();
-        toDate = moment().local().format();
-        break;
-      case 'last-5-years':
-        fromDate = moment().subtract(5, 'years').local().format();
-        toDate = moment().local().format();
-        break;
-      case 'all-time':
-        fromDate = '1970-01-01T05:30:00+05:30';
-        toDate = '2100-01-01T05:30:00+05:30';
-        break;
-      case 'yesterday':
-        fromDate = moment().subtract(1, 'days').startOf('day').local().format();
-        toDate = moment().subtract(1, 'days').endOf('day').local().format();
-        break;
-      case 'day-before-yesterday':
-        fromDate = moment().subtract(2, 'days').startOf('day').local().format();
-        toDate = moment().subtract(2, 'days').endOf('day').local().format();
-        break;
-      case 'this-day-last-week':
-        fromDate = moment().subtract(7, 'days').startOf('day').local().format();
-        toDate = moment().subtract(7, 'days').endOf('day').local().format();
-        break;
-      case 'previous-week':
-        fromDate = moment().subtract(1, 'weeks').startOf('week').local().format();
-        toDate = moment().subtract(1, 'weeks').endOf('week').local().format();
-        break;
-      case 'previous-month':
-        fromDate = moment().subtract(1, 'months').startOf('month').local().format();
-        toDate = moment().subtract(1, 'months').endOf('month').local().format();
-        break;
-      case 'previous-year':
-        fromDate = moment().subtract(1, 'years').startOf('year').local().format();
-        toDate = moment().subtract(1, 'years').endOf('year').local().format();
-        break;
-      case 'today':
-        fromDate = moment().startOf('day').local().format();
-        toDate = moment().endOf('day').local().format();
-        break;
-      case 'today-so-far':
-        fromDate = moment().startOf('day').local().format();
-        toDate = moment().local().format();
-        break;
-      case 'this-week':
-        fromDate = moment().startOf('week').local().format();
-        toDate = moment().endOf('week').local().format();
-        break;
-      case 'this-week-so-far':
-        fromDate = moment().startOf('week').local().format();
-        toDate = moment().local().format();
-        break;
-      case 'this-month':
-        fromDate = moment().startOf('month').local().format();
-        toDate = moment().endOf('month').local().format();
-        break;
-      case 'this-year':
-        fromDate = moment().startOf('year').local().format();
-        toDate = moment().endOf('year').local().format();
-        break;
-      case 'last-5-minutes':
-        fromDate = moment().subtract(5, 'minutes').local().format();
-        toDate = moment().local().format();
-        break;
-      case 'last-15-minutes':
-        fromDate = moment().subtract(15, 'minutes').local().format();
-        toDate = moment().local().format();
-        break;
-      case 'last-30-minutes':
-        fromDate = moment().subtract(30, 'minutes').local().format();
-        toDate = moment().local().format();
-        break;
-      case 'last-1-hour':
-        fromDate = moment().subtract(60, 'minutes').local().format();
-        toDate = moment().local().format();
-        break;
-      case 'last-3-hours':
-        fromDate = moment().subtract(3, 'hours').local().format();
-        toDate = moment().local().format();
-        break;
-      case 'last-6-hours':
-        fromDate = moment().subtract(6, 'hours').local().format();
-        toDate = moment().local().format();
-        break;
-      case 'last-12-hours':
-        fromDate = moment().subtract(12, 'hours').local().format();
-        toDate = moment().local().format();
-        break;
-      case 'last-24-hours':
-        fromDate = moment().subtract(24, 'hours').local().format();
-        toDate = moment().local().format();
-        break;
-    }
-
-    this.applyRange(toDate, fromDate);
-  }
-
-  applyRange(toDate:string, fromDate:string) {
-    this.toDateStr = moment(toDate).format(DEFAULT_TIMESTAMP_FORMAT);
-    this.fromDateStr = moment(fromDate).format(DEFAULT_TIMESTAMP_FORMAT);
-    this.timeRangeChange.emit(new RangeFilter('timestamp', new Date((fromDate)).getTime(), new Date((toDate)).getTime(), false));
-  }
-
   applyCustomDate() {
-    this.applyRange(this.datePickerToDate, this.datePickerFromDate);
-    this.selectedTimeRangeValue = CUSTOMM_DATE_RANGE_LABEL;
     this.hideDatePicker();
+    this.selectedTimeRangeValue = CUSTOMM_DATE_RANGE_LABEL;
+    this.toDateStr = moment(this.datePickerToDate).format(DEFAULT_TIMESTAMP_FORMAT);
+    this.fromDateStr = moment(this.datePickerFromDate).format(DEFAULT_TIMESTAMP_FORMAT);
+
+    let toDate = new Date(this.toDateStr).getTime();
+    let fromDate = new Date(this.fromDateStr).getTime();
+    let value = '(>=' + fromDate + ' AND ' + ' <=' + toDate + ')';
+    let filter = new Filter(TIMESTAMP_FIELD_NAME, value, false);
+    filter.dateFilterValue = new DateFilterValue(fromDate, toDate);
+    this.timeRangeChange.emit(filter);
   }
 
   isPikaSelectElement(targetElement: HTMLElement): boolean {

@@ -16,11 +16,23 @@
  * limitations under the License.
  */
 import {ElasticsearchUtils} from '../utils/elasticsearch-utils';
+import {TIMESTAMP_FIELD_NAME} from '../utils/constants';
+import {Utils} from '../utils/utils';
+import {DateFilterValue} from './date-filter-value';
 
 export class Filter {
   field: string;
   value: string;
   display: boolean;
+  dateFilterValue: DateFilterValue;
+
+  static fromJSON(objs: Filter[]): Filter[] {
+    let filters = [];
+    for (let obj of objs) {
+      filters.push(new Filter(obj.field, obj.value, obj.display));
+    }
+    return filters;
+  }
 
   constructor(field: string, value: string, display = true) {
     this.field = field;
@@ -29,26 +41,16 @@ export class Filter {
   }
 
   getQueryString(): string {
+    if (this.field === TIMESTAMP_FIELD_NAME && !this.display) {
+      this.dateFilterValue = Utils.timeRangeToDateObj(this.value);
+      if (this.dateFilterValue !== null) {
+        return ElasticsearchUtils.escapeESField(this.field) + ':' +
+            '(>=' + this.dateFilterValue.fromDate + ' AND ' + ' <=' + this.dateFilterValue.toDate + ')';
+      } else {
+        return ElasticsearchUtils.escapeESField(this.field) + ':' + this.value;
+      }
+    }
+
     return ElasticsearchUtils.escapeESField(this.field) + ':' +  ElasticsearchUtils.escapeESValue(this.value);
-  }
-}
-
-export class RangeFilter extends Filter {
-  gte: number;
-  lte: number;
-
-  constructor(field:string, gte:number, lte:number, display = true) {
-    super(field, '', display);
-    this.gte = gte;
-    this.lte = lte;
-    this.value = this.getFilterValue();
-  }
-
-  getQueryString(): string {
-    return ElasticsearchUtils.escapeESField(this.field) + ':' +  this.getFilterValue();
-  }
-
-  getFilterValue() {
-    return '(>=' + this.gte + ' AND ' + ' <=' + this.lte + ')';
   }
 }

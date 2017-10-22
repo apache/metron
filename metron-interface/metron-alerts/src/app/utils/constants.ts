@@ -26,8 +26,9 @@ export const ALERTS_COLUMN_NAMES = 'metron-alerts-column-names';
 
 export let THREAT_SCORE_FIELD_NAME = 'threat:triage:score';
 export let TIMESTAMP_FIELD_NAME = 'timestamp';
+export let ALL_TIME = 'all-time';
 
-export let DEFAULT_TIMESTAMP_FORMAT = 'YYYY-MM-DD H:m:s';
+export let DEFAULT_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 export let CUSTOMM_DATE_RANGE_LABEL = 'Date Range';
 
 export let TREE_SUB_GROUP_SIZE = 5;
