@@ -563,7 +563,8 @@ public class ElasticsearchMetaAlertIntegrationTest {
     searchResponse = metaDao.search(new SearchRequest() {
       {
         setQuery(
-            "(ip_src_addr:192.168.1.1 AND ip_src_port:8010) OR (alert.ip_src_addr:192.168.1.1 AND alert.ip_src_port:8010)");
+            "(ip_src_addr:192.168.1.1 AND ip_src_port:8010)"
+                + " OR (alert.ip_src_addr:192.168.1.1 AND alert.ip_src_port:8010)");
         setIndices(Collections.singletonList("*"));
         setFrom(0);
         setSize(5);
@@ -578,6 +579,29 @@ public class ElasticsearchMetaAlertIntegrationTest {
     // Nested query should match a nested alert
     Assert.assertEquals(1, searchResponse.getTotal());
     Assert.assertEquals("active_metaalert",
+        searchResponse.getResults().get(0).getSource().get("guid"));
+
+    // Query against all indices. The child alert has no actual attached meta alerts, and should
+    // be returned on its own.
+    searchResponse = metaDao.search(new SearchRequest() {
+      {
+        setQuery(
+            "(ip_src_addr:192.168.1.3 AND ip_src_port:8008)"
+                + " OR (alert.ip_src_addr:192.168.1.3 AND alert.ip_src_port:8008)");
+        setIndices(Collections.singletonList("*"));
+        setFrom(0);
+        setSize(5);
+        setSort(Collections.singletonList(new SortField() {
+          {
+            setField(Constants.GUID);
+          }
+        }));
+      }
+    });
+
+    // Nested query should match a plain alert
+    Assert.assertEquals(1, searchResponse.getTotal());
+    Assert.assertEquals("search_by_nested_alert_inactive_0",
         searchResponse.getResults().get(0).getSource().get("guid"));
   }
 
