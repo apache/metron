@@ -57,7 +57,7 @@ describe('meta-alerts workflow', function() {
     jasmine.addMatchers(customMatchers);
   });
 
-  it('should change alert status for multiple alerts to OPEN', () => {
+  it('should have all the steps for meta alerts workflow', () => {
     let confirmText = 'Do you wish to create a meta alert with the selected 113 alerts?';
     let dashRowValues = {
       'firstDashRow': ['0', '192.168.138.158', 'ALERTS', '113'],
@@ -78,7 +78,7 @@ describe('meta-alerts workflow', function() {
     treePage.clickOnMergeAlerts('192.168.138.158');
     treePage.clickYesForConfirmation();
 
-    treePage.waitForElementToDisappear('192.168.138.158');
+    // treePage.waitForElementToDisappear('192.168.138.158');
 
     treePage.unGroup();
 

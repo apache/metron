@@ -376,14 +376,14 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
         metaAlert.guidToIndices = this.createGuidToIndexMap(searchResponse);
         metaAlert.groups = this.queryBuilder.groupRequest.groups.map(grp => grp.field);
         this.metaAlertService.create(metaAlert).subscribe(() => {
-          this.topGroups.splice(index, 1);
+          this.onRefreshData.emit(true);
           console.log('Meta alert created successfully');
         });
       }
     });
   }
 
-  createMetaAlert(group: TreeGroupData, index: number) {
+  createMetaAlert($event, group: TreeGroupData, index: number) {
     if (this.canCreateMetaAlert(group.total)) {
       let confirmationMsg = 'Do you wish to create a meta alert with the selected ' +
                             (group.total === 1 ? ' alert' : group.total + ' alerts') + '?';
@@ -393,6 +393,9 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
         }
       });
     }
+
+    $event.stopPropagation();
+    return false;
   }
 
   updateAlert(patchRequest: PatchRequest) {
