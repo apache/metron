@@ -46,6 +46,10 @@ import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
+import org.apache.metron.indexing.dao.search.Group;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
+import org.apache.metron.indexing.dao.search.GroupResult;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SortField;
@@ -207,6 +211,31 @@ public class ElasticsearchMetaAlertIntegrationTest {
   @Multiline
   public static String nestedAlertMapping;
 
+  /**
+   {
+   "guid": "group_by_child_alert",
+   "source:type": "test",
+   "ip_src_addr": "192.168.1.1",
+   "ip_src_port": 8010,
+   "score_field": 1,
+   "metaalerts": ["active_metaalert"]
+   }
+   */
+  @Multiline
+  public static String groupByChildAlert;
+
+  /**
+   {
+   "guid": "group_by_standalone_alert",
+   "source:type": "test",
+   "ip_src_addr": "192.168.1.1",
+   "ip_src_port": 8010,
+   "score_field": 10
+   }
+   */
+  @Multiline
+  public static String groupByStandaloneAlert;
+
   @BeforeClass
   public static void setup() throws Exception {
     // setup the client
@@ -230,6 +259,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
     };
     accessConfig.setMaxSearchResults(1000);
     accessConfig.setGlobalConfigSupplier(() -> globalConfig);
+    accessConfig.setMaxSearchGroups(100);
 
     esDao = new ElasticsearchDao();
     esDao.init(accessConfig);
@@ -605,6 +635,54 @@ public class ElasticsearchMetaAlertIntegrationTest {
     Assert.assertEquals(1, searchResponse.getTotal());
     Assert.assertEquals("search_by_nested_alert_inactive_0",
         searchResponse.getResults().get(0).getSource().get("guid"));
+  }
+
+  @Test
+  public void shouldGroupHidesAlert() throws Exception {
+    // Create alerts
+    List<Map<String, Object>> alerts = new ArrayList<>();
+    Map<String, Object> groupByChildAlertJson = JSONUtils.INSTANCE
+        .load(groupByChildAlert, new TypeReference<Map<String, Object>>() {
+        });
+    alerts.add(groupByChildAlertJson);
+    Map<String, Object> groupByStandaloneAlertJson = JSONUtils.INSTANCE
+        .load(groupByStandaloneAlert, new TypeReference<Map<String, Object>>() {
+        });
+    alerts.add(groupByStandaloneAlertJson);
+    elasticsearchAdd(alerts, INDEX, SENSOR_NAME);
+    // Wait for updates to persist
+    findUpdatedDoc(groupByChildAlertJson, "group_by_child_alert",
+        SENSOR_NAME);
+    findUpdatedDoc(groupByStandaloneAlertJson, "group_by_standalone_alert",
+        SENSOR_NAME);
+
+    // Put the nested type into the test index, so that it'll match appropriately
+    ((ElasticsearchDao) esDao).getClient().admin().indices().preparePutMapping(INDEX)
+        .setType("test_doc")
+        .setSource(nestedAlertMapping)
+        .get();
+
+    // Don't need any meta alerts to actually exist, since we've populated the field on the alerts.
+
+    // Build our group request
+    Group searchGroup = new Group();
+    searchGroup.setField("ip_src_addr");
+    List<Group> groupList = new ArrayList<>();
+    groupList.add(searchGroup);
+    GroupResponse groupResponse = metaDao.group(new GroupRequest() {
+      {
+        setQuery("ip_src_addr:192.168.1.1");
+        setIndices(Collections.singletonList("*"));
+        setScoreField("score_field");
+        setGroups(groupList);
+    }});
+
+    // Should only return the standalone alert in the group
+    GroupResult result = groupResponse.getGroupResults().get(0);
+    Assert.assertEquals(1, result.getTotal());
+    Assert.assertEquals("192.168.1.1", result.getKey());
+    // No delta, since no ops happen
+    Assert.assertEquals(10.0d, result.getScore(), 0.0d);
   }
 
   @Test
