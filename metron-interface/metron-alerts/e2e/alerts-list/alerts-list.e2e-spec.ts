@@ -158,7 +158,7 @@ describe('metron-alerts App', function() {
     page.clickDateSettings();
     expect(page.getTimeRangeTitles()).toEqual(['Time Range', 'Quick Ranges']);
     expect(page.getQuickTimeRanges()).toEqual(quickRanges);
-    expect(page.getValueForManualTimeRange()).toEqual([ 'now/d', 'now/d' ]);
+    expect(page.getValueForManualTimeRange()).toEqual([ 'now', 'now' ]);
     expect(page.isManulaTimeRangeApplyButtonPresent()).toEqual(true);
     expect(page.getTimeRangeButtonText()).toEqual('All time');
 

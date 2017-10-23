@@ -8,7 +8,7 @@ import * as Pikaday from "pikaday-time";
   styleUrls: ['./date-picker.component.scss']
 })
 export class DatePickerComponent implements OnInit, OnChanges {
-  defaultDateStr = 'now/d';
+  defaultDateStr = 'now';
   picker: Pikaday;
   dateStr = this.defaultDateStr;
 
