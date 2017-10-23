@@ -114,8 +114,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   calcColumnsToDisplay() {
-    let availableWidth = document.documentElement.clientWidth - (200 + (15 * 4)); /* screenwidth - (navPaneWidth + (paddings))*/
-    availableWidth = availableWidth - (55 + 25 + 25); /* availableWidth - (score + colunSelectIcon +selectCheckbox )*/
+    let availableWidth = document.documentElement.clientWidth - (200 + (15 + 15 + 25)); /* screenwidth - (navPaneWidth + (paddings))*/
+    availableWidth = availableWidth - ((20 * 3) + 55 + 25); /* availableWidth - (score + colunSelectIcon +selectCheckbox )*/
     let tWidth = 0;
     this.alertsColumnsToDisplay =  this.alertsColumns.filter(colMetaData => {
       if (colMetaData.type.toUpperCase() === 'DATE') {
@@ -335,7 +335,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.selectedAlerts = [];
     this.selectedAlerts = [alert];
     this.saveRefreshState();
-    let sourceType = (alert.index === META_ALERTS_INDEX && !alert.source['source:type'])  ? META_ALERTS_SENSOR_TYPE : alert.source['source:type'];
+    let sourceType = (alert.index === META_ALERTS_INDEX && !alert.source['source:type'])
+                          ? META_ALERTS_SENSOR_TYPE : alert.source['source:type'];
     let url = '/alerts-list(dialog:details/' + sourceType + '/' + alert.source.guid + '/' + alert.index + ')';
     this.router.navigateByUrl(url);
   }
@@ -391,7 +392,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       .map(alert => alert.source = alertSource);
     });
   }
-  
+
   updateSelectedAlertStatus(status: string) {
     for (let selectedAlert of this.selectedAlerts) {
       selectedAlert.source['alert_status'] = status;

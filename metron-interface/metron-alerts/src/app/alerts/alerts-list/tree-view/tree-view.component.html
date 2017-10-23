@@ -76,7 +76,7 @@
               <ng-container *ngFor="let subGroup of group.treeSubGroups;let i = index">
 
                 <tr class="table-group-row" [ngClass]="{'d-none': !subGroup.show}" (click)="toggleSubGroups(group, subGroup, i)" [attr.data-name]="subGroup.key">
-                  <td [attr.colspan]="alertsColumnsToDisplay.length + 3" [ngStyle]="{'padding-left.px': (16 * (subGroup.level -1))}">
+                  <td [attr.colspan]="alertsColumnsToDisplay.length + 2" [ngStyle]="{'padding-left.px': (16 * (subGroup.level -1))}">
                     <span class="table-group-icon-col" data-animation="false" data-toggle="tooltip" data-placement="bottom" title="Open Group">
                       <i class="fa" aria-hidden="true" [ngClass]="{'fa-caret-down': subGroup.expand, 'fa-caret-right': !subGroup.expand}"></i>
                     </span>
@@ -86,6 +86,7 @@
                   <td>
                     <i style="color: #32ABDF;" class="fa fa-link" aria-hidden="true" (click)="createMetaAlert(subGroup, i)" data-animation="false" data-toggle="tooltip" data-placement="left"  title="Merge Alerts"></i>
                   </td>
+                  <td> </td>
                 </tr>
 
                 <tr *ngFor="let alert of subGroup.response.results" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1, 'd-none': !subGroup.expand || !subGroup.show}" (click)="showDetails($event, alert)">

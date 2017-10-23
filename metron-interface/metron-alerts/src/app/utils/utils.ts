@@ -15,7 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import {META_ALERTS_SENSOR_TYPE, META_ALERTS_INDEX} from './constants';
+import {META_ALERTS_SENSOR_TYPE} from './constants';
 import {Alert} from '../model/alert';
 
 export class Utils {

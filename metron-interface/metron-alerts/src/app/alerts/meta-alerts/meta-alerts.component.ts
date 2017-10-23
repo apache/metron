@@ -58,7 +58,6 @@ export class MetaAlertsComponent implements OnInit {
     searchRequest.facetFields = [];
     searchRequest.indices =  [META_ALERTS_SENSOR_TYPE];
     searchRequest.sort = [new SortField('threat:triage:score', 'desc')];
-    //searchRequest.fields = [];
 
     this.searchService.search(searchRequest).subscribe(resp => this.searchResponse = resp);
   }

@@ -72,10 +72,10 @@
         <app-alert-filters [facets]="searchResponse.facetCounts" (facetFilterChange)="onAddFacetFilter($event)"> </app-alert-filters>
       </div>
       <div class="col px-0 ml-4">
-        <div class="col-sm-12 pl-0 pb-3">
+        <div class="col-xs-12 pl-0 pb-3">
           <app-group-by [facets]="searchResponse.facetCounts" (groupsChange)="onGroupsChange($event)"> </app-group-by>
         </div>
-        <div class="col-sm-12 px-0">
+        <div class="col-xs-12 px-0">
             <app-table-view #dataViewComponent
                             [alerts]="alerts" *ngIf="queryBuilder.groupRequest.groups.length === 0"
                             [queryBuilder]="queryBuilder"

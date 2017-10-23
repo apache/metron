@@ -23,7 +23,7 @@ export class MetronAlertDetailsPage {
 
   navigateTo(alertId: string) {
     browser.waitForAngularEnabled(false);
-    browser.get('/alerts-list(dialog:details/alerts_ui_e2e/'+ alertId +'/alerts_ui_e2e_index)');
+    browser.get('/alerts-list(dialog:details/alerts_ui_e2e/' + alertId + '/alerts_ui_e2e_index)');
     browser.sleep(2000);
   }
 
@@ -118,4 +118,29 @@ export class MetronAlertDetailsPage {
     return browser.wait(EC.not(EC.textToBePresentInElement(element, previousText)));
   }
 
+  getAlertNameOrId() {
+    let nameSelector = element(by.css('app-alert-details .editable-text'));
+    return waitForElementVisibility(nameSelector).then(() => nameSelector.getText());
+  }
+
+  clickRenameMetaAlert() {
+    element(by.css('app-alert-details .editable-text')).click();
+  }
+
+  renameMetaAlert(name: string) {
+    element(by.css('app-alert-details input.form-control')).sendKeys(name);
+  }
+
+  cancelRename() {
+    element(by.css('app-alert-details .input-group .fa.fa-times')).click();
+  }
+
+  saveRename() {
+    element(by.css('app-alert-details .fa.fa-check')).click();
+  }
+
+  getAlertDetailsCount() {
+    let titleElement = element.all(by.css('app-alert-details .alert-details-title')).get(0);
+    return waitForElementVisibility(titleElement).then(() => element.all(by.css('app-alert-details .alert-details-title')).count());
+  }
 }

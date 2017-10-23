@@ -175,21 +175,15 @@ describe('metron-alerts tree view', function () {
   });
 
 
-  xit('should have sort working for group details for multiple sub groups', () => {
+  it('should have sort working for group details for multiple sub groups', () => {
 
-    let usIDCol = ['dcda4423-7...0962fafc47', '9a969c64-b...001cb011a3', 'a651f7c3-1...a97d4966c9',
-                    'afc36901-3...d931231ab2', 'd860ac35-1...f9e282d571'];
-    let ruIDCol = ['350c0e9f-a...3cbe5b29d2', '9b47e24a-e...2ca6627943', '4cac5e2c-3...3deb1ebcc6',
-                    'eb54c3fa-c...e02719c3b0', 'cace11d0-c...b1bd7b9499'];
-    let frIDCol = ['07b29c29-9...ff19eaa888', '7cd91565-1...de5be54a6e', 'ca5bde58-a...f3a88d2df4',
-                    '5d6faf83-8...b88a407647', 'e2883424-f...79bb8b0606'];
+    let usTSCol = ['2017-09-13 17:59:32', '2017-09-13 17:59:42', '2017-09-13 17:59:53', '2017-09-13 18:00:02', '2017-09-13 18:00:14'];
+    let ruTSCol = ['2017-09-13 17:59:33', '2017-09-13 17:59:48', '2017-09-13 17:59:51', '2017-09-13 17:59:54', '2017-09-13 17:59:57'];
+    let frTSCol = ['2017-09-13 17:59:37', '2017-09-13 17:59:46', '2017-09-13 18:00:31', '2017-09-13 18:00:33', '2017-09-13 18:00:37'];
 
-    let usSortedIDCol = ['04a5c3d0-9...af17c06fbc', '06e70f55-4...f486927126', '105529cb-2...61b58237cc',
-                          '4c732cb0-0...6a93129aba', '500eb5e2-6...37b0f98772'];
-    let ruSortedIDCol = ['001b5451-6...38ec4221ee', '00814048-d...c9e6f27800', '0454b31e-e...0a711a36e7',
-                          '09552ace-9...e146579030', '0e99ba49-4...456c107bc9'];
-    let frSortedIDCol = ['07b29c29-9...ff19eaa888', '2681ed49-b...c33a80d429', '29ffaeb4-e...36822e5f81',
-                          '2cc174d7-c...8073777309', '436b9ecf-b...5f1ece4c4d'];
+    let usSortedTSCol = ['2017-09-13 18:02:19', '2017-09-13 18:02:16', '2017-09-13 18:02:09', '2017-09-13 18:01:58', '2017-09-13 18:01:52'];
+    let ruSortedTSCol = ['2017-09-13 18:02:13', '2017-09-13 18:02:12', '2017-09-13 18:02:11', '2017-09-13 18:02:07', '2017-09-13 18:02:06'];
+    let frSortedTSCol = ['2017-09-13 18:02:20', '2017-09-13 18:02:14', '2017-09-13 18:02:05', '2017-09-13 18:02:04', '2017-09-13 18:01:51'];
 
     page.selectGroup('source:type');
     page.selectGroup('enrichments:geo:ip_dst_addr:country');
@@ -199,14 +193,18 @@ describe('metron-alerts tree view', function () {
     page.expandSubGroup('alerts_ui_e2e', 'RU');
     page.expandSubGroup('alerts_ui_e2e', 'FR');
 
-    let unsortedIds = [...usIDCol, ...ruIDCol, ...frIDCol];
-    let sortedIds = [...usSortedIDCol, ...ruSortedIDCol, ...frSortedIDCol];
+    let unsortedTS = [...usTSCol, ...ruTSCol, ...frTSCol];
+    let sortedTS = [...usSortedTSCol, ...ruSortedTSCol, ...frSortedTSCol];
 
-    expect(page.getCellValuesFromTable('alerts_ui_e2e', 'id', 'e2883424-f...79bb8b0606')).toEqual(unsortedIds, 'id should not be sorted');
+    page.sortSubGroup('alerts_ui_e2e', 'timestamp');
 
-    page.sortSubGroup('alerts_ui_e2e', 'id');
+    expect(page.getCellValuesFromTable('alerts_ui_e2e', 'timestamp', '2017-09-13 18:00:37')).toEqual(unsortedTS,
+                                                                                                      'timestamp should be sorted asc');
 
-    expect(page.getCellValuesFromTable('alerts_ui_e2e', 'id', '436b9ecf-b...5f1ece4c4d')).toEqual(sortedIds, 'id should be sorted');
+    page.sortSubGroup('alerts_ui_e2e', 'timestamp');
+
+    expect(page.getCellValuesFromTable('alerts_ui_e2e', 'timestamp', '2017-09-13 18:01:51')).toEqual(sortedTS,
+                                                                                                      'timestamp should be sorted dsc');
 
     page.unGroup();
     expect(page.getActiveGroups()).toEqualBcoz([], 'no groups should be selected');

@@ -56,3 +56,14 @@ export function loadTestData() {
 export function deleteTestData() {
   request.delete('http://node1:9200/alerts_ui_e2e_index*');
 }
+
+export function deleteMetaAlertsIndex() {
+  request.delete('http://node1:9200/metaalert_index*');
+}
+
+export function createMetaAlertsIndex() {
+  deleteTestData();
+  fs.createReadStream('./../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/meta_index.mapping')
+  .pipe(request.post('http://node1:9200/metaalert_index'));
+}
+

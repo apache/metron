@@ -190,7 +190,7 @@ export class AlertDetailsComponent implements OnInit {
   }
 
   saveName() {
-    if (this.alertName.length > 0){
+    if (this.alertName.length > 0) {
       let patchRequest = new PatchRequest();
       patchRequest.guid = this.alertId;
       patchRequest.sensorType = 'metaalert';

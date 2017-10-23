@@ -385,7 +385,8 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
 
   createMetaAlert(group: TreeGroupData, index: number) {
     if (this.canCreateMetaAlert(group.total)) {
-      let confirmationMsg = 'Do you wish to create a meta alert with the selected ' + (group.total == 1 ? ' alert' : group.total + ' alerts') + '?';
+      let confirmationMsg = 'Do you wish to create a meta alert with the selected ' +
+                            (group.total === 1 ? ' alert' : group.total + ' alerts') + '?';
       this.metronDialogBox.showConfirmationMessage(confirmationMsg).subscribe((response) => {
         if (response) {
           this.doCreateMetaAlert(group, index);

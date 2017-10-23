@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
-import {browser, element, by, protractor} from 'protractor';
-import {waitForElementPresence, waitForTextChange} from '../../utils/e2e_util';
+import {browser, element, by} from 'protractor';
+import {waitForElementPresence, waitForTextChange, waitForElementVisibility, waitForElementInVisibility} from '../../utils/e2e_util';
 
 export class TreeViewPage {
   navigateToAlertsList() {
@@ -26,7 +26,7 @@ export class TreeViewPage {
   }
 
   clickOnRow(id: string) {
-    let idElement = element(by.css('a[title="' + id +'"]'));
+    let idElement = element(by.css('a[title="' + id + '"]'));
     waitForElementPresence(idElement)
     .then(() => browser.actions().mouseMove(idElement).perform())
     .then(() => idElement.element(by.xpath('../..')).all(by.css('td')).get(9).click());
@@ -130,7 +130,7 @@ export class TreeViewPage {
   }
 
   getCellValuesFromTable(groupName: string, cellName: string, waitForAnchor: string) {
-    return waitForElementPresence(element(by. cssContainingText('[data-name="' + cellName + '"] a', waitForAnchor))).then(() => {
+    return waitForElementPresence(element(by.cssContainingText('[data-name="' + cellName + '"] a', waitForAnchor))).then(() => {
       return element.all(by.css('[data-name="' + groupName + '"] table tbody [data-name="' + cellName + '"]')).map(element => {
         browser.actions().mouseMove(element).perform();
         return (element.getText());
@@ -158,5 +158,35 @@ export class TreeViewPage {
     return waitForTextChange(column, previousText).then(() => {
       return column.getText();
     });
+  }
+
+  clickOnMergeAlerts(groupName: string) {
+    return element(by.css('[data-name="' + groupName + '"] .fa-link')).click();
+  }
+
+  getConfirmationText() {
+    browser.sleep(1000);
+    let dialogElement = element(by.css('.metron-dialog .modal-header .close'));
+    return waitForElementVisibility(dialogElement).then(() =>  element(by.css('.metron-dialog .modal-body')).getText());
+  }
+
+  clickNoForConfirmation() {
+    browser.sleep(1000);
+    let dialogElement = element(by.css('.metron-dialog .modal-header .close'));
+    let maskElement = element(by.css('.modal-backdrop.fade'));
+    waitForElementVisibility(dialogElement).then(() => element(by.css('.metron-dialog')).element(by.buttonText('Cancel')).click())
+    .then(() => waitForElementInVisibility(maskElement));
+  }
+
+  clickYesForConfirmation() {
+    browser.sleep(1000);
+    let dialogElement = element(by.css('.metron-dialog .modal-header .close'));
+    let maskElement = element(by.css('.modal-backdrop.fade'));
+    waitForElementVisibility(dialogElement).then(() => element(by.css('.metron-dialog')).element(by.buttonText('OK')).click())
+    .then(() => waitForElementInVisibility(maskElement));
+  }
+
+  waitForElementToDisappear(groupName: string) {
+    return waitForElementInVisibility(element.all(by.css('[data-name="' + groupName + '"]')));
   }
 }
