@@ -20,6 +20,12 @@ limitations under the License.
 
 from resource_management.libraries.script import Script
 
+def yamlify_variables(var) :
+  if isinstance(var, type(True)):
+    return str(var).lower()
+  else:
+    return var
+
 # server configurations
 config = Script.get_config()
 
@@ -60,14 +66,14 @@ indices_memory_index_store_throttle_type = config['configurations']['elastic-sit
 index_number_of_shards = config['configurations']['elastic-site']['index_number_of_shards']
 index_number_of_replicas = config['configurations']['elastic-site']['index_number_of_replicas']
 indices_memory_index_buffer_size = config['configurations']['elastic-site']['indices_memory_index_buffer_size']
-bootstrap_memory_lock = config['configurations']['elastic-site']['bootstrap_memory_lock']
+bootstrap_memory_lock = yamlify_variables(config['configurations']['elastic-site']['bootstrap_memory_lock'])
 threadpool_bulk_queue_size = config['configurations']['elastic-site']['threadpool_bulk_queue_size']
 cluster_routing_allocation_node_concurrent_recoveries = config['configurations']['elastic-site']['cluster_routing_allocation_node_concurrent_recoveries']
 cluster_routing_allocation_disk_watermark_low = config['configurations']['elastic-site']['cluster_routing_allocation_disk_watermark_low']
-cluster_routing_allocation_disk_threshold_enabled = config['configurations']['elastic-site']['cluster_routing_allocation_disk_threshold_enabled']
+cluster_routing_allocation_disk_threshold_enabled = yamlify_variables(config['configurations']['elastic-site']['cluster_routing_allocation_disk_threshold_enabled'])
 cluster_routing_allocation_disk_watermark_high = config['configurations']['elastic-site']['cluster_routing_allocation_disk_watermark_high']
 indices_fielddata_cache_size = config['configurations']['elastic-site']['indices_fielddata_cache_size']
-indices_cluster_send_refresh_mapping = config['configurations']['elastic-site']['indices_cluster_send_refresh_mapping']
+indices_cluster_send_refresh_mapping = yamlify_variables(config['configurations']['elastic-site']['indices_cluster_send_refresh_mapping'])
 threadpool_index_queue_size = config['configurations']['elastic-site']['threadpool_index_queue_size']
 
 discovery_zen_ping_timeout = config['configurations']['elastic-site']['discovery_zen_ping_timeout']

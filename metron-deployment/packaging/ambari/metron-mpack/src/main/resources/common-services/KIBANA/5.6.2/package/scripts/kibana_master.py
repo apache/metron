@@ -48,7 +48,7 @@ class Kibana(Script):
 
         directories = [params.log_dir, params.pid_dir, params.conf_dir]
         Directory(directories,
-                  # recursive=True,
+                  create_parents=True,
                   mode=0755,
                   owner=params.kibana_user,
                   group=params.kibana_user

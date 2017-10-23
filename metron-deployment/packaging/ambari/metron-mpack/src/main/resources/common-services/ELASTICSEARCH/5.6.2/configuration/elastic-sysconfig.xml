@@ -46,7 +46,7 @@
     </property>
     <property>
         <name>max_open_files</name>
-        <value>65535</value>
+        <value>65536</value>
         <description>Maximum number of open files</description>
     </property>
     <property>

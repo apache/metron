@@ -37,9 +37,10 @@ node:
 path:
   data: {{path_data}}
 
-http.cors.enabled: {{http_cors_enabled}}
+http:
+  port: {{http_port}}
+  cors.enabled: {{http_cors_enabled}}
 
-port: {{http_port}}
 
 transport:
   tcp:
@@ -49,23 +50,19 @@ gateway:
   recover_after_data_nodes: {{gateway_recover_after_data_nodes}}
   recover_after_time: {{recover_after_time}}
   expected_data_nodes: {{expected_data_nodes}}
-  
 # https://www.elastic.co/guide/en/elasticsearch/guide/current/indexing-performance.html
-transient:
-  indices.store.throttle.type: merge
-
 indices:
+  store.throttle.type: {{indices_memory_index_store_throttle_type}}
   memory:
    index_buffer_size: {{indices_memory_index_buffer_size}}
-   store.throttle.type: {{indices_memory_index_store_throttle_type}}
   fielddata:
    cache.size: {{indices_fielddata_cache_size}}
-  cluster:
-   send_refresh_mapping: {{indices_cluster_send_refresh_mapping}}
 
-bootstrap.memory_lock: {{bootstrap_memory_lock}}
+bootstrap:
+  memory_lock: {{bootstrap_memory_lock}}
+  system_call_filter: false
 
-threadpool:
+thread_pool:
   bulk:
     queue_size: {{threadpool_bulk_queue_size}}
   index:

@@ -116,6 +116,7 @@
         <global_kryo_serializers_version>0.38</global_kryo_serializers_version>
         <global_reflections_version>0.9.10</global_reflections_version>
         <global_checkstyle_version>8.0</global_checkstyle_version>
+        <global_log4j_core_version>2.1</global_log4j_core_version>
     </properties>
 
     <profiles>
@@ -155,7 +156,7 @@
                     <version>${global_surefire_version}</version>
                     <configuration>
                         <!-- Skip the default running of this plug-in (or everything is run twice...see below) -->
-                        <argLine>@{argLine} -Xmx2048m</argLine>
+                        <argLine>-Xmx2048m</argLine>
                         <skip>true</skip>
                         <!-- Show 100% of the lines from the stack trace (doesn't work) -->
                         <trimStackTrace>false</trimStackTrace>
