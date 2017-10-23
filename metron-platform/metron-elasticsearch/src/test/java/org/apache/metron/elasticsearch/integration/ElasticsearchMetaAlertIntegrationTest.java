@@ -59,6 +59,7 @@ import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -237,16 +238,13 @@ public class ElasticsearchMetaAlertIntegrationTest {
   public static String groupByStandaloneAlert;
 
   @BeforeClass
-  public static void setup() throws Exception {
+  public static void setupBefore() throws Exception {
     // setup the client
     es = new ElasticSearchComponent.Builder()
         .withHttpPort(9211)
         .withIndexDir(new File(INDEX_DIR))
         .build();
     es.start();
-
-    es.createIndexWithMapping(MetaAlertDao.METAALERTS_INDEX, MetaAlertDao.METAALERT_DOC,
-        buildMetaMappingSource());
 
     AccessConfig accessConfig = new AccessConfig();
     Map<String, Object> globalConfig = new HashMap<String, Object>() {
@@ -264,6 +262,12 @@ public class ElasticsearchMetaAlertIntegrationTest {
     esDao = new ElasticsearchDao();
     esDao.init(accessConfig);
     metaDao = new ElasticsearchMetaAlertDao(esDao);
+  }
+
+  @Before
+  public void setup() throws IOException {
+    es.createIndexWithMapping(MetaAlertDao.METAALERTS_INDEX, MetaAlertDao.METAALERT_DOC,
+        buildMetaMappingSource());
   }
 
   @AfterClass
