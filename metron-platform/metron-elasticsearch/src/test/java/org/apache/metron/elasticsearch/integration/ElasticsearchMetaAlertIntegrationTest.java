@@ -518,6 +518,8 @@ public class ElasticsearchMetaAlertIntegrationTest {
         SENSOR_NAME);
     findUpdatedDoc(searchByNestedAlertInactive1JSON, "search_by_nested_alert_inactive_1",
         SENSOR_NAME);
+
+    // Put the nested type into the test index, so that it'll match appropriately
     ((ElasticsearchDao) esDao).getClient().admin().indices().preparePutMapping(INDEX)
         .setType("test_doc")
         .setSource(nestedAlertMapping)
