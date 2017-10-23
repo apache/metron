@@ -51,6 +51,7 @@ export class TableViewComponent implements OnChanges {
   router: Router;
   searchService: SearchService;
   updateService: UpdateService;
+  isStatusFieldPresent = false;
   metronDialogBox: MetronDialogBox;
   metaAlertsDisplayState: {[key: string]: MetronAlertDisplayState} = {};
   metronAlertDisplayState = MetronAlertDisplayState;
@@ -82,6 +83,10 @@ export class TableViewComponent implements OnChanges {
     if (changes && changes['alerts'] && changes['alerts'].currentValue) {
       let expandedMetaAlerts = this.getGUIDOfAllExpandedMetaAlerts();
       this.updateExpandedStateForChangedData(expandedMetaAlerts);
+    }
+
+    if (changes && changes['alertsColumnsToDisplay'] && changes['alertsColumnsToDisplay'].currentValue) {
+      this.isStatusFieldPresent = this.alertsColumnsToDisplay.some(col => col.name === 'alert_status');
     }
   }
 

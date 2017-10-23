@@ -53,8 +53,12 @@
             <td (click)="addFilter(threatScoreFieldName, alert.source[threatScoreFieldName])">
               <span appAlertSeverity [severity]="alert.source[threatScoreFieldName]"> <a> {{ alert.source[threatScoreFieldName] ? alert.source[threatScoreFieldName] : '-' }} </a> </span>
             </td>
-            <td *ngFor="let column of alertsColumnsToDisplay" #cell>
-              <a *ngIf="column.name === 'id'" (click)="addFilter('guid', alert.id)" title="alert.source.id" style="color:#689AA9"> {{ (alert.source.name && alert.source.name.length > 0 ? alert.source.name : alert.id) | centerEllipses:20:cell }}</a> <span  *ngIf="column.name === 'id'"> ({{ alert.source.alert.length }})</span>
+            <td [attr.colspan]="alertsColumnsToDisplay.length - 1">
+              <a (click)="addFilter('guid', alert.id)" [attr.title]="alert.id" style="color:#689AA9"> {{ (alert.source.name && alert.source.name.length > 0 ? alert.source.name : alert.id) | centerEllipses:20:cell }} </a>
+              <span> ({{ alert.source.alert.length }})</span>
+            </td>
+            <td>
+              <a *ngIf="isStatusFieldPresent" (click)="addFilter('alert_status', alert.source['alert_status'])" style="color:#689AA9"> {{ alert.source['alert_status'] ?alert.source['alert_status'] : 'New' | centerEllipses:20:cell}} </a>
             </td>
             <td width="20" (click)="deleteMetaAlert($event, alert, alertIndex)"> <i class="fa fa-chain-broken" aria-hidden="true"></i> </td>
             <td width="20"> <i class="fa fa-comments-o" aria-hidden="true" *ngIf="alert.source.comments && alert.source.comments.length > 0"></i> </td>

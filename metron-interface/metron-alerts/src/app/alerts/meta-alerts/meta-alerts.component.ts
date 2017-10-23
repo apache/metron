@@ -67,7 +67,7 @@ export class MetaAlertsComponent implements OnInit {
     let patchRequest = new PatchRequest();
     patchRequest.guid = this.selectedMetaAlert;
     patchRequest.sensorType = 'metaalert';
-    patchRequest.index = META_ALERTS_INDEX + '_index';
+    patchRequest.index = META_ALERTS_INDEX;
     patchRequest.patch = [new Patch('replace', 'alert', alertSources)];
 
     this.updateService.patch(patchRequest).subscribe(rep => {
@@ -88,9 +88,9 @@ export class MetaAlertsComponent implements OnInit {
 
     this.searchService.search(searchRequest).subscribe((searchResponse: SearchResponse) => {
       if (searchResponse.results.length === 1) {
-        searchResponse.results[0].source.alert = [...searchResponse.results[0].source.alert,
+        let allAlertsInMetaAlerts = [...searchResponse.results[0].source.alert,
                                                   ...this.metaAlertService.selectedAlerts.map(alert => alert.source)];
-        this.doAddAlertToMetaAlert(searchResponse.results[0].source.alert);
+        this.doAddAlertToMetaAlert(allAlertsInMetaAlerts);
       } else {
         console.log('Unable to get a single meta alert');
       }
