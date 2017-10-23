@@ -229,6 +229,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
             .should(termQuery(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()))
             .should(boolQuery().mustNot(existsQuery(MetaAlertDao.STATUS_FIELD)))
         )
+        .mustNot(existsQuery(MetaAlertDao.METAALERT_FIELD))
     );
     return elasticsearchDao.search(searchRequest, qb);
   }
