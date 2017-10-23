@@ -2,9 +2,6 @@
   "template": "snort_index*",
   "mappings": {
     "snort_doc": {
-      "_timestamp": {
-        "enabled": true
-      },
       "dynamic_templates": [
       {
         "geo_location_point": {
@@ -20,8 +17,8 @@
           "match": "enrichments:geo:*:country",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "text",
+            "index": "false"
           }
         }
       },
@@ -30,8 +27,8 @@
           "match": "enrichments:geo:*:city",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "text",
+            "index": "false"
           }
         }
       },
@@ -40,8 +37,8 @@
           "match": "enrichments:geo:*:locID",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "text",
+            "index": "false"
           }
         }
       },
@@ -50,8 +47,8 @@
           "match": "enrichments:geo:*:dmaCode",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "text",
+            "index": "false"
           }
         }
       },
@@ -60,8 +57,8 @@
           "match": "enrichments:geo:*:postalCode",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "text",
+            "index": "false"
           }
         }
       },
@@ -105,7 +102,8 @@
         {
           "threat_triage_reason": {
             "mapping": {
-              "type": "string"
+              "type": "text",
+              "fielddata": "true"
             },
             "match": "threat.triage.rules:*:reason",
             "match_mapping_type": "*"
@@ -114,7 +112,8 @@
         {
           "threat_triage_name": {
             "mapping": {
-              "type": "string"
+              "type": "text",
+              "fielddata": "true"
             },
             "match": "threat.triage.rules:*:name",
             "match_mapping_type": "*"
@@ -127,8 +126,8 @@
           "format": "epoch_millis"
         },
         "source:type": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "ip_dst_addr": {
           "type": "ip"
@@ -146,16 +145,16 @@
           "type": "integer"
         },
         "ethdst": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "ethlen": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "ethsrc": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "id": {
           "type": "integer"
@@ -167,33 +166,39 @@
           "type": "boolean"
         },
         "msg": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "protocol": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "sig_generator": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": "false"
         },
         "sig_id": {
           "type": "integer"
         },
         "sig_rev": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "tcpack": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "tcpflags": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "tcpseq": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "tcpwindow": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "threat:triage:level": {
           "type": "double"

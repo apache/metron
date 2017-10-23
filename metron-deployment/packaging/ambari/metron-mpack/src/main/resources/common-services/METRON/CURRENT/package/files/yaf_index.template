@@ -102,7 +102,8 @@
       {
         "threat_triage_reason": {
           "mapping": {
-            "type": "text"
+            "type": "text",
+            "fielddata": "true"
           },
           "match": "threat.triage.rules:*:reason",
           "match_mapping_type": "*"
@@ -111,7 +112,8 @@
       {
         "threat_triage_name": {
           "mapping": {
-            "type": "text"
+            "type": "text",
+            "fielddata": "true"
           },
           "match": "threat.triage.rules:*:name",
           "match_mapping_type": "*"
@@ -182,7 +184,8 @@
           "index": "false"
         },
         "riflags": {
-          "type": "text"
+          "type": "text",
+          "fielddata": "true"
         },
         "ruflags": {
           "type": "text",
@@ -221,7 +224,8 @@
           "index": "false"
         },
         "end-reason": {
-          "type": "text"
+          "type": "text",
+          "fielddata": "true"
         },
         "alert": {
           "type": "nested"
