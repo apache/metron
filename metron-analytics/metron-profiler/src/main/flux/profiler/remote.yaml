@@ -20,6 +20,7 @@ config:
     topology.worker.childopts: ${topology.worker.childopts}
     topology.workers: ${profiler.workers}
     topology.acker.executors: ${profiler.executors}
+    topology.auto-credentials: ${topology.auto-credentials}
 
 components:
 
@@ -44,6 +45,7 @@ components:
               ref: "rowKeyBuilder"
             - name: "columnBuilder"
               ref: "columnBuilder"
+
     # Any kafka props for the producer go here.
     -   id: "kafkaProps"
         className: "java.util.HashMap"
@@ -65,7 +67,7 @@ components:
                     - "security.protocol"
                     - "${kafka.security.protocol}"
 
-  # The fields to pull out of the kafka messages
+    # The fields to pull out of the kafka messages
     -   id: "fields"
         className: "java.util.ArrayList"
         configMethods:

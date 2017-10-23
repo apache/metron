@@ -22,11 +22,13 @@ import org.apache.metron.common.utils.JSONUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ParserConfigurations extends Configurations {
 
   public SensorParserConfig getSensorParserConfig(String sensorType) {
-    return (SensorParserConfig) configurations.get(getKey(sensorType));
+    return (SensorParserConfig) getConfigurations().get(getKey(sensorType));
   }
 
   public void updateSensorParserConfig(String sensorType, byte[] data) throws IOException {
@@ -40,10 +42,24 @@ public class ParserConfigurations extends Configurations {
 
   public void updateSensorParserConfig(String sensorType, SensorParserConfig sensorParserConfig) {
     sensorParserConfig.init();
-    configurations.put(getKey(sensorType), sensorParserConfig);
+    getConfigurations().put(getKey(sensorType), sensorParserConfig);
   }
 
-  private String getKey(String sensorType) {
+  public List<String> getTypes() {
+    List<String> ret = new ArrayList<>();
+    for(String keyedSensor : getConfigurations().keySet()) {
+      if(!keyedSensor.isEmpty() && keyedSensor.startsWith(ConfigurationType.PARSER.getTypeName())) {
+        ret.add(keyedSensor.substring(ConfigurationType.PARSER.getTypeName().length() + 1));
+      }
+    }
+    return ret;
+  }
+
+  public void delete(String sensorType) {
+    getConfigurations().remove(getKey(sensorType));
+  }
+
+  public static String getKey(String sensorType) {
     return ConfigurationType.PARSER.getTypeName() + "." + sensorType;
   }
 }
