@@ -219,8 +219,8 @@ And we ran our bro parser topology with the following options. We did not need t
 though you could certainly do so if necessary. Notice that we only needed 1 worker.
 
 ```
-/usr/metron/0.4.0/bin/start_parser_topology.sh -k $BROKERLIST -z $ZOOKEEPER -s bro -ksp SASL_PLAINTEXT
-    -ot enrichments
+/usr/metron/0.4.1/bin/start_parser_topology.sh -k $BROKERLIST -z $ZOOKEEPER -s bro -ksp SASL_PLAINTEXT \
+    -ot enrichments \
     -e ~metron/.storm/storm-bro.config \
     -esc ~/.storm/spout-bro.config \
     -sp 24 \
