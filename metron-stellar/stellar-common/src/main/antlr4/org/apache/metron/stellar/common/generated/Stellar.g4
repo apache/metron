@@ -283,12 +283,11 @@ match_expr :
   ;
 
 match_clauses :
-  match_clause
+  match_clause (COMMA match_clause)*
   ;
 
 match_clause :
   match_clause_check COLON  match_clause_action
-  | match_clause COMMA match_clause_check COLON match_clause_action
   ;
 
 match_clause_action :

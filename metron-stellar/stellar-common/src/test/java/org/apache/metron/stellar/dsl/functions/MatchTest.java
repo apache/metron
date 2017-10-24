@@ -20,7 +20,6 @@ package org.apache.metron.stellar.dsl.functions;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +27,7 @@ import java.util.Map;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class MatchTest {
@@ -71,11 +71,15 @@ public class MatchTest {
         }}));
 
   }
-/*
+
   @Test
   @SuppressWarnings("unchecked")
-  public void testMatchComplexEvaluation() {
-    String expr = "match{ var1 :  MAP(['foo', 'bar'], (x) -> TO_UPPER(x)) , default : ['ok','ok'] }";
+  @Ignore
+  public void testMatchMAPEvaluation() {
+
+    // NOTE: THIS IS BROKEN RIGHT NOW.
+
+    String expr = "match{ var1 :  MAP(['foo', 'bar'], (x) -> TO_UPPER(x)) }";
 
     Object o = run(expr, ImmutableMap.of("foo", "foo", "bar", "bar", "var1", true));
 
@@ -87,7 +91,7 @@ public class MatchTest {
     Assert.assertEquals("FOO", result.get(0));
     Assert.assertEquals("BAR", result.get(1));
 }
-*/
+
   @Test
   @SuppressWarnings("unchecked")
   public void testMatchRegexMatch() {
@@ -127,6 +131,24 @@ public class MatchTest {
         run("match{ threat.triage.level < 10 : 'info', threat.triage.level < 20 : TO_UPPER('warning'), default : 'critical' }",
             new HashMap() {{
               put("threat.triage.level", 15);
+            }}));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testWithFunctionMultiArgs() {
+    Assert.assertEquals("false",
+        run("match{ threat.triage.level < 10 : 'info', threat.triage.level < 20 : TO_STRING(IS_ENCODING(other,'BASE32')), default : 'critical' }",
+            new HashMap() {{
+              put("threat.triage.level", 15);
+              put("other", "value");
+            }}));
+
+    Assert.assertEquals(false,
+        run("match{ threat.triage.level < 10 : 'info', threat.triage.level < 20 : IS_ENCODING(other,'BASE32'), default : 'critical' }",
+            new HashMap() {{
+              put("threat.triage.level", 15);
+              put("other", "value");
             }}));
   }
 

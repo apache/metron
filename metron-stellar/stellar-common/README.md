@@ -114,8 +114,9 @@ The syntax is:
 Where:
 
 * `logical_expression` is a Stellar expression that evaluates to true or false.  For instance `var > 0` or `var > 0 AND var2 == 'foo'`
-* `evaluation_expression` is any Stellar Expression
+* `evaluation_expression` is any Stellar Expression 
 
+> Currently the MAP() function is not supported
 > Lambda expressions are supported, but they must be no argument lambdas such as `() -> STATEMENT`
 
 * Only the first clause that evaluates to true will be executed.
