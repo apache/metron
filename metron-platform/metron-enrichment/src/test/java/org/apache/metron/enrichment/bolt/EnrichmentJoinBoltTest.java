@@ -73,7 +73,7 @@ public class EnrichmentJoinBoltTest extends BaseEnrichmentBoltTest {
   public void test() throws IOException {
     EnrichmentJoinBolt enrichmentJoinBolt = new EnrichmentJoinBolt("zookeeperUrl");
     enrichmentJoinBolt.setCuratorFramework(client);
-    enrichmentJoinBolt.setTreeCache(cache);
+    enrichmentJoinBolt.setZKCache(cache);
     enrichmentJoinBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, new FileInputStream(sampleSensorEnrichmentConfigPath));
     enrichmentJoinBolt.withMaxCacheSize(100);
     enrichmentJoinBolt.withMaxTimeRetain(10000);

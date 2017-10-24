@@ -38,7 +38,9 @@ import org.springframework.web.context.WebApplicationContext;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.apache.metron.integration.utils.TestUtils.assertEventually;
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -198,16 +200,16 @@ public class SensorParserConfigControllerIntegrationTest {
     this.sensorParserConfigService.delete("broTest");
     this.sensorParserConfigService.delete("squidTest");
     Method[] method = SensorParserConfig.class.getMethods();
-    int numFields = 0;
+    final AtomicInteger numFields = new AtomicInteger(0);
     for(Method m : method) {
       if(m.getName().startsWith("set")) {
-        numFields++;
+        numFields.set(numFields.get() + 1);
       }
     }
     this.mockMvc.perform(post(sensorParserConfigUrl).with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(squidJson))
             .andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.*", hasSize(numFields)))
+            .andExpect(jsonPath("$.*", hasSize(numFields.get())))
             .andExpect(jsonPath("$.parserClassName").value("org.apache.metron.parsers.GrokParser"))
             .andExpect(jsonPath("$.sensorTopic").value("squidTest"))
             .andExpect(jsonPath("$.parserConfig.grokPath").value("target/patterns/squidTest"))
@@ -219,10 +221,10 @@ public class SensorParserConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.fieldTransformations[0].config.full_hostname").value("URL_TO_HOST(url)"))
             .andExpect(jsonPath("$.fieldTransformations[0].config.domain_without_subdomains").value("DOMAIN_REMOVE_SUBDOMAINS(full_hostname)"));
 
-    this.mockMvc.perform(get(sensorParserConfigUrl + "/squidTest").with(httpBasic(user,password)))
+    assertEventually(() -> this.mockMvc.perform(get(sensorParserConfigUrl + "/squidTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.*", hasSize(numFields)))
+            .andExpect(jsonPath("$.*", hasSize(numFields.get())))
             .andExpect(jsonPath("$.parserClassName").value("org.apache.metron.parsers.GrokParser"))
             .andExpect(jsonPath("$.sensorTopic").value("squidTest"))
             .andExpect(jsonPath("$.parserConfig.grokPath").value("target/patterns/squidTest"))
@@ -232,7 +234,8 @@ public class SensorParserConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.fieldTransformations[0].output[0]").value("full_hostname"))
             .andExpect(jsonPath("$.fieldTransformations[0].output[1]").value("domain_without_subdomains"))
             .andExpect(jsonPath("$.fieldTransformations[0].config.full_hostname").value("URL_TO_HOST(url)"))
-            .andExpect(jsonPath("$.fieldTransformations[0].config.domain_without_subdomains").value("DOMAIN_REMOVE_SUBDOMAINS(full_hostname)"));
+            .andExpect(jsonPath("$.fieldTransformations[0].config.domain_without_subdomains").value("DOMAIN_REMOVE_SUBDOMAINS(full_hostname)"))
+    );
 
     this.mockMvc.perform(get(sensorParserConfigUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
@@ -251,7 +254,7 @@ public class SensorParserConfigControllerIntegrationTest {
     this.mockMvc.perform(post(sensorParserConfigUrl).with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
             .andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.*", hasSize(numFields)))
+            .andExpect(jsonPath("$.*", hasSize(numFields.get())))
             .andExpect(jsonPath("$.parserClassName").value("org.apache.metron.parsers.bro.BasicBroParser"))
             .andExpect(jsonPath("$.sensorTopic").value("broTest"))
             .andExpect(jsonPath("$.readMetadata").value("true"))
@@ -261,7 +264,7 @@ public class SensorParserConfigControllerIntegrationTest {
     this.mockMvc.perform(post(sensorParserConfigUrl).with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.*", hasSize(numFields)))
+            .andExpect(jsonPath("$.*", hasSize(numFields.get())))
             .andExpect(jsonPath("$.parserClassName").value("org.apache.metron.parsers.bro.BasicBroParser"))
             .andExpect(jsonPath("$.sensorTopic").value("broTest"))
             .andExpect(jsonPath("$.readMetadata").value("true"))
