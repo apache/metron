@@ -172,6 +172,8 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     MetaScores metaScores = calculateMetaScores(createDoc);
     createDoc.getDocument().putAll(metaScores.getMetaScores());
     createDoc.getDocument().put(threatTriageField, metaScores.getMetaScores().get(threatSort));
+    // Add source type to be consistent with other sources and allow filtering
+    createDoc.getDocument().put("source:type", MetaAlertDao.METAALERT_TYPE);
 
     // Start a list of updates / inserts we need to run
     Map<Document, Optional<String>> updates = new HashMap<>();
