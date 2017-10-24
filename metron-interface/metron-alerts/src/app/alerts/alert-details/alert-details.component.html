@@ -12,35 +12,70 @@
   the specific language governing permissions and limitations under the License.
   -->
 <div class="metron-slider-pane-details load-right-to-left dialog1x">
-    <div class="container-fluid">
-        <div class="row mb-3">
-            <div class="col-md-10">
-                <div class="form-title" appAlertSeverity [severity]="alertSource['threat:triage:score']"> {{ alertSource['threat:triage:score'] }} {{ alertSource.guid }}</div>
+    <div class="container-fluid pl-0 h-100">
+        <div class="h-100 d-flex">
+            <div class="nav-container">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" [ngClass]="{'active': activeTab === tabs.DETAILS}" (click)="activeTab=tabs.DETAILS">
+                            <i class="fa fa-info-circle" aria-hidden="true"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" [ngClass]="{'active': activeTab === tabs.COMMENTS}" (click)="activeTab=tabs.COMMENTS">
+                            <i class="fa fa-comment" aria-hidden="true"></i>
+                        </a>
+                    </li>
+                </ul>
             </div>
-            <div class="col-md-2"><i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="goBack()"></i></div>
-        </div>
-        <div class="row justify-content-center py-4 actions">
-            <table>
-                <tr>
-                    <td class="title"> Status</td>
-                    <td [ngClass]="{'primary': selectedAlertState === alertState.ESCALATE, 'secondary': selectedAlertState !== alertState.ESCALATE}" (click)="processEscalate()">ESCALATE</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td [ngClass]="{'primary': selectedAlertState === alertState.NEW, 'secondary': selectedAlertState !== alertState.NEW}" (click)="processNew()">NEW</td>
-                    <td [ngClass]="{'primary': selectedAlertState === alertState.OPEN, 'secondary': selectedAlertState !== alertState.OPEN}" (click)="processOpen()">OPEN</td>
-                    <td [ngClass]="{'primary': selectedAlertState === alertState.DISMISS, 'secondary': selectedAlertState !== alertState.DISMISS}" (click)="processDismiss()">DISMISS</td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td [ngClass]="{'primary': selectedAlertState === alertState.RESOLVE, 'secondary': selectedAlertState !== alertState.RESOLVE}" (click)="processResolve()">RESOLVE</td>
-                    <td></td>
-                </tr>
-            </table>
-        </div>
-        <div class="ml-1 my-4 form">
-            <div *ngFor="let field of alertFields" class="row">
-              <div class="col-6 mb-1 key">{{ field }}</div>   <div class="col-6"> {{ alertSource[field] }} </div>
+            <div class="details-container">
+                <div class="container-fluid h-100">
+                    <div class="row title-container">
+                        <div class="col-md-10 px-0">
+                            <div class="form-title" appAlertSeverity [severity]="alertSource['threat:triage:score']"> {{ alertSource['threat:triage:score'] }} {{ alertSource.guid }}</div>
+                        </div>
+                        <div class="col-md-2 px-0">
+                            <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="goBack()"></i>
+                        </div>
+                    </div>
+                    <div class="row justify-content-center py-4 actions">
+                        <table>
+                            <tr>
+                                <td class="title"> Status</td>
+                                <td [ngClass]="{'primary': selectedAlertState === alertState.ESCALATE, 'secondary': selectedAlertState !== alertState.ESCALATE}" data-name="escalate" (click)="processEscalate()">ESCALATE</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td [ngClass]="{'primary': selectedAlertState === alertState.NEW, 'secondary': selectedAlertState !== alertState.NEW}" data-name="new" (click)="processNew()">NEW</td>
+                                <td [ngClass]="{'primary': selectedAlertState === alertState.OPEN, 'secondary': selectedAlertState !== alertState.OPEN}" data-name="open" (click)="processOpen()">OPEN</td>
+                                <td [ngClass]="{'primary': selectedAlertState === alertState.DISMISS, 'secondary': selectedAlertState !== alertState.DISMISS}" data-name="dismiss" (click)="processDismiss()">DISMISS</td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td [ngClass]="{'primary': selectedAlertState === alertState.RESOLVE, 'secondary': selectedAlertState !== alertState.RESOLVE}" data-name="resolve" (click)="processResolve()">RESOLVE</td>
+                                <td></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="ml-1 my-4 form" *ngIf="activeTab === tabs.DETAILS">
+                        <div *ngFor="let field of alertFields" class="row">
+                            <div class="col-6 mb-1 key">{{ field }}</div>   <div class="col-6 value"> {{ alertSource[field] }} </div>
+                        </div>
+                    </div>
+                    <div *ngIf="activeTab === tabs.COMMENTS" class="my-4">
+                        <div> Comments <span *ngIf="alertCommentsWrapper.length > 0"> ({{alertCommentsWrapper.length}}) </span></div>
+                        <textarea class="form-control" [(ngModel)]="alertCommentStr"> </textarea>
+                        <button class="btn btn-mine_shaft_2" [disabled]="alertCommentStr.trim().length === 0" (click)="onAddComment()">ADD COMMENT</button>
+                        <ng-container *ngFor="let alertCommentWrapper of alertCommentsWrapper; let i = index">
+                            <hr>
+                            <div class="comment-container">
+                                <i class="fa fa-trash-o" aria-hidden="true" (click)="onDeleteComment(i)"></i>
+                                <div class="comment"> {{ alertCommentWrapper.alertComment.comment }} </div>
+                                <div class="font-italic username-timestamp"> - {{ alertCommentWrapper.alertComment.username }} - {{alertCommentWrapper.displayTime}}</div>
+                            </div>
+                        </ng-container>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

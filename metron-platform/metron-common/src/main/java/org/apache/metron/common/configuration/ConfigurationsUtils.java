@@ -28,11 +28,16 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -44,8 +49,11 @@ import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConfigurationsUtils {
+  protected static final Logger LOG =  LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   public static CuratorFramework getClient(String zookeeperUrl) {
     RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
@@ -175,28 +183,56 @@ public class ConfigurationsUtils {
     configurations.updateGlobalConfig(readGlobalConfigBytesFromZookeeper(client));
   }
 
-  public static void updateParserConfigsFromZookeeper(ParserConfigurations configurations, CuratorFramework client) throws Exception {
-    updateConfigsFromZookeeper(configurations, client);
-    List<String> sensorTypes = client.getChildren().forPath(PARSER.getZookeeperRoot());
-    for(String sensorType: sensorTypes) {
-      configurations.updateSensorParserConfig(sensorType, readSensorParserConfigBytesFromZookeeper(sensorType, client));
+
+  private interface Callback {
+    void apply(String sensorType) throws Exception;
+  }
+
+  private static void updateConfigsFromZookeeper( Configurations configurations
+                                                , ConfigurationType type
+                                                , Callback callback
+                                                , CuratorFramework client
+                                                )  throws Exception
+  {
+    Exception globalUpdateException = null;
+    try {
+      updateConfigsFromZookeeper(configurations, client);
     }
+    catch(Exception e) {
+      LOG.warn("Unable to update global config when updating indexing configs: " + e.getMessage(), e);
+      globalUpdateException = e;
+    }
+    List<String> sensorTypes = client.getChildren().forPath(type.getZookeeperRoot());
+    for(String sensorType: sensorTypes) {
+      callback.apply(sensorType);
+    }
+    if(globalUpdateException != null) {
+      throw globalUpdateException;
+    }
+  }
+
+  public static void updateParserConfigsFromZookeeper(ParserConfigurations configurations, CuratorFramework client) throws Exception {
+    updateConfigsFromZookeeper( configurations
+                              , PARSER
+                              , sensorType -> configurations.updateSensorParserConfig(sensorType, readSensorParserConfigBytesFromZookeeper(sensorType, client))
+                              , client
+                              );
   }
 
   public static void updateSensorIndexingConfigsFromZookeeper(IndexingConfigurations configurations, CuratorFramework client) throws Exception {
-    updateConfigsFromZookeeper(configurations, client);
-    List<String> sensorTypes = client.getChildren().forPath(INDEXING.getZookeeperRoot());
-    for(String sensorType: sensorTypes) {
-      configurations.updateSensorIndexingConfig(sensorType, readSensorEnrichmentConfigBytesFromZookeeper(sensorType, client));
-    }
+    updateConfigsFromZookeeper( configurations
+                              , INDEXING
+                              , sensorType -> configurations.updateSensorIndexingConfig(sensorType, readSensorIndexingConfigBytesFromZookeeper(sensorType, client))
+                              , client
+                              );
   }
 
   public static void updateEnrichmentConfigsFromZookeeper(EnrichmentConfigurations configurations, CuratorFramework client) throws Exception {
-    updateConfigsFromZookeeper(configurations, client);
-    List<String> sensorTypes = client.getChildren().forPath(ENRICHMENT.getZookeeperRoot());
-    for(String sensorType: sensorTypes) {
-      configurations.updateSensorEnrichmentConfig(sensorType, readSensorEnrichmentConfigBytesFromZookeeper(sensorType, client));
-    }
+    updateConfigsFromZookeeper( configurations
+                              , ENRICHMENT
+                              , sensorType -> configurations.updateSensorEnrichmentConfig(sensorType, readSensorEnrichmentConfigBytesFromZookeeper(sensorType, client))
+                              , client
+                              );
   }
 
   public static SensorEnrichmentConfig readSensorEnrichmentConfigFromZookeeper(String sensorType, CuratorFramework client) throws Exception {

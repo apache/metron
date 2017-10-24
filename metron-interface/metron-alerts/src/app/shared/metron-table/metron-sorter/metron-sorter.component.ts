@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import {MetronTableDirective, SortEvent} from '../metron-table.directive';
 import {Sort} from '../../../utils/enums';
 
@@ -24,7 +24,10 @@ import {Sort} from '../../../utils/enums';
   templateUrl: './metron-sorter.component.html',
   styleUrls: ['./metron-sorter.component.scss']
 })
-export class MetronSorterComponent {
+export class MetronSorterComponent implements OnChanges {
+
+  @Input() sortOnCol: string;
+  @Input() sortOrder: number;
 
   @Input() sortBy: string;
   @Input() type = 'string';
@@ -37,6 +40,15 @@ export class MetronSorterComponent {
       this.sortAsc = (event.sortBy === this.sortBy && event.sortOrder === Sort.ASC);
       this.sortDesc = (event.sortBy === this.sortBy && event.sortOrder === Sort.DSC);
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['sortOnCol'] && changes['sortOnCol'].currentValue) {
+      if (this.sortOnCol === this.sortBy ) {
+        this.sortAsc = this.sortOrder === Sort.ASC;
+        this.sortDesc = this.sortOrder === Sort.DSC;
+      }
+    }
   }
 
   sort() {

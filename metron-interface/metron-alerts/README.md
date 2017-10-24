@@ -6,7 +6,14 @@
 - [Installing on an existing Cluster](#installing-on-an-existing-cluster)
 
 ## Caveats
-* UI uses local storage to save all the data.  A middleware needs to be designed and developed for persisting the data
+### Local Storage
+UI uses local storage to save all the data.  A middleware needs to be designed and developed for persisting the data
+
+### Search for Alert GUIDs
+Alert GUIDs must be double-quoted when being searched on to ensure correctness of results, e.g. guid:"id1".
+
+### Search for Comments
+Users cannot search for the contents of the comment's in the Alerts-UI
 
 ## Prerequisites
 * The Metron REST application should be up and running and Elasticsearch should have some alerts populated by Metron topologies
@@ -41,6 +48,20 @@
 1. Copy the `$METRON_HOME/bin/metron-alerts-ui` script to `/etc/init.d/metron-alerts-ui`
 
 1. [Express](https://expressjs.com/) is installed at `$METRON_HOME/web/expressjs/` as part of the Management UI installation process.  The Management UI should be installed first on the same host as the Alerts UI.
+
+### From Package Manager
+
+1. Deploy the RPM at `/metron/metron-deployment/packaging/docker/rpm-docker/target/RPMS/noarch/metron-alerts-$METRON_VERSION-*.noarch.rpm`
+
+1. Install the RPM with:
+
+    ```
+    rpm -ih metron-alerts-$METRON_VERSION-*.noarch.rpm
+    ```
+
+### From Ambari MPack
+
+The Alerts UI is included in the Metron Ambari MPack.  It can be accessed through the Quick Links in the Metron service.
 
 ## Configuration
 

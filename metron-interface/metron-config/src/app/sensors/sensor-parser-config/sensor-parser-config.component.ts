@@ -34,7 +34,7 @@ import {HdfsService} from '../../service/hdfs.service';
 import {GrokValidationService} from '../../service/grok-validation.service';
 
 export enum Pane {
-  GROK, RAWJSON, FIELDSCHEMA, THREATTRIAGE
+  GROK, RAWJSON, FIELDSCHEMA, THREATTRIAGE, STORMSETTINGS
 }
 
 export enum KafkaStatus {
@@ -62,6 +62,7 @@ export class SensorParserConfigComponent implements OnInit {
   showRawJson: boolean = false;
   showFieldSchema: boolean = false;
   showThreatTriage: boolean = false;
+  showStormSettings: boolean = false;
 
   configValid = false;
   sensorNameValid = false;
@@ -291,13 +292,6 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   onSave() {
-    let sensorParserConfigSave: SensorParserConfig = new SensorParserConfig();
-    sensorParserConfigSave.parserConfig = {};
-    sensorParserConfigSave.sensorTopic = this.sensorParserConfig.sensorTopic;
-    sensorParserConfigSave.parserClassName = this.sensorParserConfig.parserClassName;
-    sensorParserConfigSave.parserConfig = this.sensorParserConfig.parserConfig;
-    sensorParserConfigSave.fieldTransformations = this.sensorParserConfig.fieldTransformations;
-
     if (!this.indexingConfigurations.hdfs.index) {
       this.indexingConfigurations.hdfs.index = this.sensorParserConfig.sensorTopic;
     }
@@ -307,7 +301,7 @@ export class SensorParserConfigComponent implements OnInit {
     if (!this.indexingConfigurations.solr.index) {
       this.indexingConfigurations.solr.index = this.sensorParserConfig.sensorTopic;
     }
-    this.sensorParserConfigService.post(sensorParserConfigSave).subscribe(
+    this.sensorParserConfigService.post(this.sensorParserConfig).subscribe(
       sensorParserConfig => {
         if (this.isGrokParser(sensorParserConfig)) {
             this.hdfsService.post(this.sensorParserConfig.parserConfig['grokPath'], this.grokStatement).subscribe(
@@ -326,7 +320,7 @@ export class SensorParserConfigComponent implements OnInit {
               this.metronAlerts.showErrorMessage(this.getMessagePrefix() + msg + error.message);
         });
         this.metronAlerts.showSuccessMessage(this.getMessagePrefix() + ' Sensor ' + sensorParserConfig.sensorTopic);
-        this.sensorParserConfigService.dataChangedSource.next([sensorParserConfigSave]);
+        this.sensorParserConfigService.dataChangedSource.next([this.sensorParserConfig]);
         this.goBack();
       }, (error: RestError) => {
         this.metronAlerts.showErrorMessage('Unable to save sensor config: ' + error.message);
@@ -409,10 +403,14 @@ export class SensorParserConfigComponent implements OnInit {
     this.showFieldSchema = (pane === Pane.FIELDSCHEMA) ? visibilty : false;
     this.showRawJson = (pane ===  Pane.RAWJSON) ? visibilty : false;
     this.showThreatTriage = (pane ===  Pane.THREATTRIAGE) ? visibilty : false;
+    this.showStormSettings = (pane === Pane.STORMSETTINGS) ? visibilty : false;
   }
 
   onRawJsonChanged(): void {
     this.sensorFieldSchema.createFieldSchemaRows();
+  }
+
+  onStormSettingsChanged(): void {
   }
 
   onAdvancedConfigFormClose(): void {

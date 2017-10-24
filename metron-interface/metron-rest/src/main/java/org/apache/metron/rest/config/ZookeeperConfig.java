@@ -24,6 +24,8 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
+import org.apache.metron.common.zookeeper.ZKConfigurationsCache;
 import org.apache.metron.rest.MetronRestConstants;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,6 +37,15 @@ import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 @Configuration
 @Profile("!" + TEST_PROFILE)
 public class ZookeeperConfig {
+
+  @Bean(initMethod = "start", destroyMethod="close")
+  public ConfigurationsCache cache(CuratorFramework client) {
+    return new ZKConfigurationsCache( client
+                                    , ZKConfigurationsCache.ConfiguredTypes.ENRICHMENT
+                                    , ZKConfigurationsCache.ConfiguredTypes.PARSER
+                                    , ZKConfigurationsCache.ConfiguredTypes.INDEXING
+                                    );
+  }
 
   @Bean(initMethod = "start", destroyMethod="close")
   public CuratorFramework client(Environment environment) {

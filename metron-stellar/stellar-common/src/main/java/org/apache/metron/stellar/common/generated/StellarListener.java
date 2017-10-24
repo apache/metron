@@ -523,6 +523,18 @@ public interface StellarListener extends ParseTreeListener {
 	 */
 	void exitVariable(StellarParser.VariableContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code NaNArith}
+	 * labeled alternative in {@link StellarParser#arithmetic_operands}.
+	 * @param ctx the parse tree
+	 */
+	void enterNaNArith(StellarParser.NaNArithContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code NaNArith}
+	 * labeled alternative in {@link StellarParser#arithmetic_operands}.
+	 * @param ctx the parse tree
+	 */
+	void exitNaNArith(StellarParser.NaNArithContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code ParenArith}
 	 * labeled alternative in {@link StellarParser#arithmetic_operands}.
 	 * @param ctx the parse tree

@@ -25,17 +25,24 @@ import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
+import org.hamcrest.Description;
 import org.mockito.ArgumentMatcher;
 
 import java.util.Arrays;
 
 public class SearchRequestMatcher extends ArgumentMatcher<SearchRequest> {
 
-  private String[] expectedIndicies;
+  private String[] expectedIndices;
+  private String[] actualIndices;
+
   private BytesReference expectedSource;
+  private BytesReference actualSource;
+
+  private boolean indicesMatch;
+  private boolean sourcesMatch;
 
   public SearchRequestMatcher(String[] indices, String query, int size, int from, SortField[] sortFields) {
-    expectedIndicies = indices;
+    expectedIndices = indices;
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
             .size(size)
             .from(from)
@@ -53,8 +60,34 @@ public class SearchRequestMatcher extends ArgumentMatcher<SearchRequest> {
   @Override
   public boolean matches(Object o) {
     SearchRequest searchRequest = (SearchRequest) o;
-    boolean indiciesMatch = Arrays.equals(expectedIndicies, searchRequest.indices());
-    boolean sourcesMatch = searchRequest.source().equals(expectedSource);
-    return indiciesMatch && sourcesMatch;
+
+    actualIndices = searchRequest.indices();
+    actualSource = searchRequest.source();
+
+    indicesMatch = Arrays.equals(expectedIndices, actualIndices);
+    sourcesMatch = expectedSource.equals(actualSource);
+
+    return indicesMatch && sourcesMatch;
+  }
+
+  @Override
+  public void describeTo(Description description) {
+    if(!indicesMatch) {
+      description.appendText("Bad search request indices: ");
+      description.appendText(" expected=");
+      description.appendValue(expectedIndices);
+      description.appendText(", got=");
+      description.appendValue(actualIndices);
+      description.appendText("  ");
+    }
+
+    if(!sourcesMatch) {
+      description.appendText("Bad search request sources: ");
+      description.appendText(" expected=");
+      description.appendValue(expectedSource);
+      description.appendText(", got=");
+      description.appendValue(actualSource);
+      description.appendText("  ");
+    }
   }
 }
