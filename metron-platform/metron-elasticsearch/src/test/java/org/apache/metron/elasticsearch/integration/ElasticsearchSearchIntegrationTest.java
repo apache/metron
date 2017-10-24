@@ -160,8 +160,8 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
             .addMapping("bro_doc", broTypeMappings).get();
     es.getClient().admin().indices().prepareCreate("snort_index_2017.01.01.02")
             .addMapping("snort_doc", snortTypeMappings).get();
-    es.getClient().admin().indices().prepareCreate("metaalerts")
-        .addMapping("metaalert_doc", metaalertTypeMappings).get();
+    es.getClient().admin().indices().prepareCreate(MetaAlertDao.METAALERTS_INDEX)
+        .addMapping(MetaAlertDao.METAALERT_DOC, metaalertTypeMappings).get();
 
     BulkRequestBuilder bulkRequest = es.getClient().prepareBulk().setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
     JSONArray broArray = (JSONArray) new JSONParser().parse(broData);

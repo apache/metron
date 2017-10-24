@@ -561,7 +561,7 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(FieldType.OTHER, broTypes.get("location_point"));
     Assert.assertEquals(FieldType.TEXT, broTypes.get("bro_field"));
     Assert.assertEquals(FieldType.TEXT, broTypes.get("duplicate_name_field"));
-    Assert.assertEquals(FieldType.TEXT, broTypes.get("guid"));
+    Assert.assertEquals(FieldType.KEYWORD, broTypes.get("guid"));
     Map<String, FieldType> snortTypes = fieldTypes.get("snort");
     Assert.assertEquals(12, snortTypes.size());
     Assert.assertEquals(FieldType.KEYWORD, snortTypes.get("source:type"));
@@ -575,7 +575,7 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(FieldType.OTHER, snortTypes.get("location_point"));
     Assert.assertEquals(FieldType.INTEGER, snortTypes.get("snort_field"));
     Assert.assertEquals(FieldType.INTEGER, snortTypes.get("duplicate_name_field"));
-    Assert.assertEquals(FieldType.TEXT, broTypes.get("guid"));
+    Assert.assertEquals(FieldType.KEYWORD, broTypes.get("guid"));
   }
 
   @Test
@@ -610,7 +610,7 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
       Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
       Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
+      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
     }
   }
 
