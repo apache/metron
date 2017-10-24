@@ -188,4 +188,15 @@ public class MatchTest {
 
   }
 
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testShortCircut() {
+
+   Assert.assertEquals("ok",  run("match{ foo > 100 : THROW('oops'), foo > 200 : THROW('oh no'), default : 'ok' }",
+          new HashMap() {{
+            put("foo", 50);
+          }}));
+  }
+
 }
