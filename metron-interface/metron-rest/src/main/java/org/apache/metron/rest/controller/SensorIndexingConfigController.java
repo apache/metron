@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -72,6 +73,13 @@ public class SensorIndexingConfigController {
   @RequestMapping(method = RequestMethod.GET)
   ResponseEntity<Map<String, Map<String, Object>>> getAll() throws Exception {
     return new ResponseEntity<>(sensorIndexingConfigService.getAll(), HttpStatus.OK);
+  }
+
+  @ApiOperation(value = "Retrieves all indices")
+  @ApiResponse(message = "Returns all the indices in use", code = 200)
+  @RequestMapping(value = "/list/indices/{writerName}", method = RequestMethod.GET)
+  ResponseEntity<Iterable<String>> getAllIndices(@ApiParam(name="writerName", value="Writer name.  One of solr, elasticsearch or hdfs", required=true)@PathVariable String writerName) throws Exception {
+    return new ResponseEntity<>(sensorIndexingConfigService.getAllIndices(writerName), HttpStatus.OK);
   }
 
   @ApiOperation(value = "Deletes a SensorIndexingConfig from Zookeeper")
