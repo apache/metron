@@ -83,3 +83,10 @@ discovery_zen_fd_ping_retries = config['configurations']['elastic-site']['discov
 
 network_host = config['configurations']['elastic-site']['network_host']
 network_publish_host = config['configurations']['elastic-site']['network_publish_host']
+
+limits_conf_dir = "/etc/security/limits.d"
+limits_conf_file = limits_conf_dir + "/elasticsearch.conf"
+elastic_user_nofile_limit = config['configurations']['elastic-env']['elastic_user_nofile_limit']
+elastic_user_nproc_limit = config['configurations']['elastic-env']['elastic_user_nproc_limit']
+elastic_user_memlock_soft_limit = config['configurations']['elastic-env']['elastic_user_memlock_soft_limit']
+elastic_user_memlock_hard_limit = config['configurations']['elastic-env']['elastic_user_memlock_hard_limit']

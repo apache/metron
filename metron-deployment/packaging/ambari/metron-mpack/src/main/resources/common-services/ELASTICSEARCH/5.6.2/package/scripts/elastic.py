@@ -23,18 +23,22 @@ from resource_management.core.resources.system import File
 from resource_management.core.source import InlineTemplate
 from resource_management.core.source import Template
 from resource_management.core.resources import User
+from resource_management.core.logger import Logger
+from resource_management.libraries.functions import format as ambari_format
 
 def elastic():
     import params
 
+    Logger.info("Creating user: {0}:{1}".format(params.elastic_user, params.elastic_group))
     User(params.elastic_user, action = "create", groups = params.elastic_group)
+
     params.path_data = params.path_data.replace('"', '')
     data_path = params.path_data.replace(' ', '').split(',')
     data_path[:] = [x.replace('"', '') for x in data_path]
-
     directories = [params.log_dir, params.pid_dir, params.conf_dir]
     directories = directories + data_path + ["{0}/scripts".format(params.conf_dir)]
 
+    Logger.info("Creating directories: {0}".format(directories))
     Directory(directories,
               create_parents=True,
               mode=0755,
@@ -42,7 +46,7 @@ def elastic():
               group=params.elastic_group
               )
 
-    print "Master env: ""{0}/elastic-env.sh".format(params.conf_dir)
+    Logger.info("Master env: ""{0}/elastic-env.sh".format(params.conf_dir))
     File("{0}/elastic-env.sh".format(params.conf_dir),
          owner=params.elastic_user,
          group=params.elastic_group,
@@ -50,8 +54,7 @@ def elastic():
          )
 
     configurations = params.config['configurations']['elastic-site']
-
-    print "Master yml: ""{0}/elasticsearch.yml".format(params.conf_dir)
+    Logger.info("Master yml: ""{0}/elasticsearch.yml".format(params.conf_dir))
     File("{0}/elasticsearch.yml".format(params.conf_dir),
          content=Template(
              "elasticsearch.master.yaml.j2",
@@ -60,9 +63,24 @@ def elastic():
          group=params.elastic_group
          )
 
-    print "Master sysconfig: /etc/sysconfig/elasticsearch"
+    Logger.info("Master sysconfig: /etc/sysconfig/elasticsearch")
     File("/etc/sysconfig/elasticsearch",
          owner="root",
          group="root",
          content=InlineTemplate(params.sysconfig_template)
+         )
+
+    # in some OS this folder may not exist, so create it
+    Logger.info("Ensure PAM limits directory exists: {0}".format(params.limits_conf_dir))
+    Directory(params.limits_conf_dir,
+              create_parents=True,
+              owner='root',
+              group='root'
+    )
+
+    Logger.info("Master PAM limits: {0}".format(params.limits_conf_file))
+    File(params.limits_conf_file,
+         content=Template('elasticsearch_limits.conf.j2'),
+         owner="root",
+         group="root"
          )

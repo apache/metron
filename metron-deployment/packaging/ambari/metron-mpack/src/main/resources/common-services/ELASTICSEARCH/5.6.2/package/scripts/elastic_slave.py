@@ -28,42 +28,43 @@ class Elasticsearch(Script):
     def install(self, env):
         import params
         env.set_params(params)
-        Logger.info('Install ES Data Node')
+        Logger.info('Install Elasticsearch data node')
         self.install_packages(env)
 
     def configure(self, env, upgrade_type=None, config_dir=None):
         import params
         env.set_params(params)
+        Logger.info('Configure Elasticsearch data node')
         slave()
 
     def stop(self, env, upgrade_type=None):
         import params
         env.set_params(params)
+        Logger.info('Stop Elasticsearch data node')
         stop_cmd = "service elasticsearch stop"
-        print 'Stop the Slave'
         Execute(stop_cmd)
 
     def start(self, env, upgrade_type=None):
         import params
         env.set_params(params)
         self.configure(env)
+        Logger.info('Start Elasticsearch data node')
         start_cmd = "service elasticsearch start"
-        print 'Start the Slave'
         Execute(start_cmd)
 
     def status(self, env):
         import params
         env.set_params(params)
+        Logger.info('Check status of Elasticsearch data node')
         status_cmd = "service elasticsearch status"
-        print 'Status of the Slave'
         Execute(status_cmd)
 
     def restart(self, env):
         import params
         env.set_params(params)
         self.configure(env)
+        Logger.info('Restart Elasticsearch data node')
         restart_cmd = "service elasticsearch restart"
-        print 'Restarting the Slave'
         Execute(restart_cmd)
 
 

@@ -23,18 +23,21 @@ from resource_management.core.resources.system import File
 from resource_management.core.source import InlineTemplate
 from resource_management.core.source import Template
 from resource_management.core.resources import User
+from resource_management.core.logger import Logger
 
 def slave():
     import params
 
+    Logger.info("Creating user: {0}:{1}".format(params.elastic_user, params.elastic_group))
     User(params.elastic_user, action = "create", groups = params.elastic_group)
+
     params.path_data = params.path_data.replace('"', '')
     data_path = params.path_data.replace(' ', '').split(',')
     data_path[:] = [x.replace('"', '') for x in data_path]
-
     directories = [params.log_dir, params.pid_dir, params.conf_dir]
     directories = directories + data_path
 
+    Logger.info("Creating directories: {0}".format(directories))
     Directory(directories,
               create_parents=True,
               mode=0755,
@@ -48,19 +51,30 @@ def slave():
          content=InlineTemplate(params.elastic_env_sh_template)
          )
 
-    configurations = params.config['configurations']['elastic-site']
-
-    File("{0}/elasticsearch.yml".format(params.conf_dir),
+    elastic_site = params.config['configurations']['elastic-site']
+    path = "{0}/elasticsearch.yml".format(params.conf_dir)
+    Logger.info("Cre")
+    File(path,
          content=Template(
              "elasticsearch.slave.yaml.j2",
-             configurations=configurations),
+             configurations=elastic_site),
          owner=params.elastic_user,
          group=params.elastic_group
          )
 
-    print "Master sysconfig: /etc/sysconfig/elasticsearch"
+    Logger.info("Slave sysconfig: /etc/sysconfig/elasticsearch")
     File(format("/etc/sysconfig/elasticsearch"),
          owner="root",
          group="root",
          content=InlineTemplate(params.sysconfig_template)
+         )
+
+    elastic_env = params.config['configurations']['elastic-env']
+    Logger.info("Slave PAM limits: {0}".format(params.limits_conf_file))
+    File(params.limits_conf_file,
+         content=Template(
+              'elasticsearch_limits.conf.j2',
+              configurations=elastic_env),
+         owner="root",
+         group="root"
          )
