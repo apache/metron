@@ -4,48 +4,39 @@
     "error_doc": {
       "properties": {
         "exception": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "hostname": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "stack": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "timestamp": {
           "type": "date",
           "format": "epoch_millis"
         },
         "message": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "raw_message": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword",
+          "ignore_above": 8191
         },
         "raw_message_bytes": {
-          "type": "binary",
-          "index": "no"
+          "type": "binary"
         },
         "error_fields": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "error_hash": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "failed_sensor_type": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "error_type": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "alert": {
           "type": "nested"
