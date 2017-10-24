@@ -30,6 +30,7 @@ The Stellar language supports the following:
 * Simple comparison operations `<`, `>`, `<=`, `>=`
 * Simple equality comparison operations `==`, `!=`
 * if/then/else comparisons (i.e. `if var1 < 10 then 'less than 10' else '10 or more'`)
+* Simple match evaluations (i.e. `match{ var1 < 10 : 'warn', var1 >= 10 : 'critical', default : 'info'}`
 * Determining whether a field exists (via `exists`)
 * An `in` operator that works like the `in` in Python
 * The ability to have parenthesis to make order of operations explicit
@@ -41,10 +42,11 @@ The following keywords need to be single quote escaped in order to be used in St
 |               |               |             |             |             |
 | :-----------: | :-----------: | :---------: | :---------: | :---------: |
 | not           | else          | exists      | if          | then        |
-| and           | or            | in          | NaN         | ==          |
-| !=            | \<=           | \>          | \>=         | \+          |
-| \-            | \<            | ?           | \*          | /           |
-| ,             |               |             |             |             |
+| and           | or            | in          | NaN         | match       |
+| default       | ==            | !=          | \<=         | \>          | 
+| \>=           | \+            | \-          | \<          | ?           | 
+| \*            | /             | ,           | \{          | \}          |
+|               |               |             |             |             |
 
 Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 
@@ -99,6 +101,26 @@ In the core language functions, we support basic functional programming primitiv
 * `MAP` - Applies a lambda expression over a list of input.  For instance `MAP([ 'foo', 'bar'], (x) -> TO_UPPER(x) )` returns `[ 'FOO', 'BAR' ]`
 * `FILTER` - Filters a list by a predicate in the form of a lambda expression.  For instance `FILTER([ 'foo', 'bar'], (x ) -> x == 'foo' )` returns `[ 'foo' ]`
 * `REDUCE` - Applies a function over a list of input.  For instance `REDUCE([ 1, 2, 3], (sum, x) -> sum + x, 0 )` returns `6`
+
+### Stellar Language Match Expression
+
+Stellar provides the capability to write match expressions, which are similar to switch statements commonly found in c like languages, but more like
+Scala's match.
+
+The syntax is:
+* `match{ logical_expression1 : {evaluation expression1}, logical_expression2 : {evaluation_expression2}` : A match expression with no default
+* `match{ logical_expression1 : {evaluation expression1}, logical_expression2 : {evaluation_expression2}, default : default_expression}` : A match expression with a default expression
+
+Where:
+
+* `logical_expression` is a Stellar expression that evaluates to true or false.  For instance `var > 0` or `var > 0 AND var2 == 'foo'`
+* `evaluation_expression` is any Stellar Expression
+
+> Lambda expressions are supported, but they must be no argument lambdas such as `() -> STATEMENT`
+
+* Only the first clause that evaluates to true will be executed.
+* The match must return some value.  In other words, a default should be provided unless the logical_expressions are posed such that
+one will always evaluate to true.  Failure to do this will result in an error.
 
 ## Stellar Core Functions
 

@@ -67,6 +67,10 @@ ELSE : 'ELSE' | 'else';
 NULL : 'null' | 'NULL';
 NAN : 'NaN';
 
+AS : 'as' | 'AS';
+MATCH : 'match' | 'MATCH';
+DEFAULT : 'default' | 'DEFAULT';
+
 MINUS : '-';
 PLUS : '+';
 DIV : '/';
@@ -138,6 +142,7 @@ transformation_expr:
   | comparison_expr # ComparisonExpression
   | logical_expr #LogicalExpression
   | in_expr #InExpression
+  | match_expr #MatchExpr
   ;
 
 if_expr:
@@ -249,6 +254,7 @@ identifier_operand :
   | NULL #NullConst
   | EXISTS LPAREN IDENTIFIER RPAREN #ExistsFunc
   | LPAREN conditional_expr RPAREN #condExpr_paren
+  | DEFAULT #Default
   ;
 
 
@@ -272,4 +278,31 @@ lambda_variable:
   IDENTIFIER
   ;
 
+match_expr :
+  MATCH LBRACE match_clauses RBRACE #MatchClauses
+  ;
 
+match_clauses :
+  match_clause
+  ;
+
+match_clause :
+  match_clause_check COLON  match_clause_action
+  | match_clause COMMA match_clause_check COLON match_clause_action
+  ;
+
+match_clause_action :
+  match_clause_action_expr #MatchClauseAction
+  ;
+
+match_clause_action_expr :
+  transformation_expr
+  ;
+
+match_clause_check :
+  match_clause_expr #MatchClauseCheckExpr
+  ;
+
+match_clause_expr :
+  logical_expr
+  ;
