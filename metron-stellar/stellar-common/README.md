@@ -117,6 +117,7 @@ Where:
 * `evaluation_expression` is any Stellar Expression 
 
 > Currently the MAP() function is not supported
+
 > Lambda expressions are supported, but they must be no argument lambdas such as `() -> STATEMENT`
 
 * Only the first clause that evaluates to true will be executed.
