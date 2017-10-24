@@ -28,8 +28,10 @@ export class Filter {
 
   static fromJSON(objs: Filter[]): Filter[] {
     let filters = [];
-    for (let obj of objs) {
-      filters.push(new Filter(obj.field, obj.value, obj.display));
+    if (objs) {
+      for (let obj of objs) {
+        filters.push(new Filter(obj.field, obj.value, obj.display));
+      }
     }
     return filters;
   }
