@@ -17,8 +17,7 @@
           "match": "enrichments:geo:*:country",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "text",
-            "index": "false"
+            "type": "keyword"
           }
         }
       },
@@ -27,8 +26,7 @@
           "match": "enrichments:geo:*:city",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "text",
-            "index": "false"
+            "type": "keyword"
           }
         }
       },
@@ -37,8 +35,7 @@
           "match": "enrichments:geo:*:locID",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "text",
-            "index": "false"
+            "type": "keyword"
           }
         }
       },
@@ -47,8 +44,7 @@
           "match": "enrichments:geo:*:dmaCode",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "text",
-            "index": "false"
+            "type": "keyword"
           }
         }
       },
@@ -57,8 +53,7 @@
           "match": "enrichments:geo:*:postalCode",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "text",
-            "index": "false"
+            "type": "keyword"
           }
         }
       },
@@ -126,8 +121,7 @@
           "format": "epoch_millis"
         },
         "source:type": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "ip_dst_addr": {
           "type": "ip"
@@ -145,16 +139,13 @@
           "type": "integer"
         },
         "ethdst": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "ethlen": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "ethsrc": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "id": {
           "type": "integer"
@@ -170,12 +161,10 @@
           "fielddata": "true"
         },
         "protocol": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "sig_generator": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "sig_id": {
           "type": "integer"

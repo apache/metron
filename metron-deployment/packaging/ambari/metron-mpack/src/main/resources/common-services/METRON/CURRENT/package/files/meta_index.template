@@ -1,4 +1,5 @@
 {
+  "template": "metaalert_index*",
   "mappings": {
     "metaalert_doc": {
       "dynamic_templates": [
@@ -7,24 +8,20 @@
           "path_match": "alert.*",
           "match_mapping_type": "string",
           "mapping": {
-            "type": "text",
-            "index": "false"
+            "type": "keyword"
           }
         }
         }
       ],
       "properties": {
         "guid": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "score": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "status": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "timestamp": {
           "type": "date",

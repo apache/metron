@@ -17,8 +17,7 @@
           "match": "enrichments:geo:*:country",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "text",
-            "index": "false"
+            "type": "keyword"
           }
         }
       },
@@ -27,8 +26,7 @@
           "match": "enrichments:geo:*:city",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "text",
-            "index": "false"
+            "type": "keyword"
           }
         }
       },
@@ -37,8 +35,7 @@
           "match": "enrichments:geo:*:locID",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "text",
-            "index": "false"
+            "type": "keyword"
           }
         }
       },
@@ -47,8 +44,7 @@
           "match": "enrichments:geo:*:dmaCode",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "text",
-            "index": "false"
+            "type": "keyword"
           }
         }
       },
@@ -57,8 +53,7 @@
           "match": "enrichments:geo:*:postalCode",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "text",
-            "index": "false"
+            "type": "keyword"
           }
         }
       },
@@ -126,8 +121,7 @@
           "format": "epoch_millis"
         },
         "source:type": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "ip_dst_addr": {
           "type": "ip"
@@ -156,56 +150,44 @@
           "type": "double"
         },
         "proto": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "sip": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "sp": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "dip": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "dp": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "iflags": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "uflags": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "riflags": {
           "type": "text",
           "fielddata": "true"
         },
         "ruflags": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "isn": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "risn": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "tag": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "rtag": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "pkt": {
           "type": "integer"
@@ -220,8 +202,7 @@
           "type": "integer"
         },
         "app": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "end-reason": {
           "type": "text",

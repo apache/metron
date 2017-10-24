@@ -17,8 +17,7 @@
           "match": "enrichments:geo:*:country",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "text",
-            "index": "false"
+            "type": "keyword"
           }
         }
       },
@@ -27,8 +26,7 @@
           "match": "enrichments:geo:*:city",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "text",
-            "index": "false"
+            "type": "keyword"
           }
         }
       },
@@ -37,8 +35,7 @@
           "match": "enrichments:geo:*:locID",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "text",
-            "index": "false"
+            "type": "keyword"
           }
         }
       },
@@ -47,8 +44,7 @@
           "match": "enrichments:geo:*:dmaCode",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "text",
-            "index": "false"
+            "type": "keyword"
           }
         }
       },
@@ -57,8 +53,7 @@
           "match": "enrichments:geo:*:postalCode",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "text",
-            "index": "false"
+            "type": "keyword"
           }
         }
       },
@@ -136,8 +131,7 @@
          * Metron-specific fields
          */
         "source:type": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         /*
          * Widely-used Bro fields (potentially renamed during Metron ingest)
@@ -147,8 +141,7 @@
           "format": "epoch_millis"
         },
         "uid": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "alert": {
           "type": "nested"
@@ -195,24 +188,20 @@
           "type": "integer"
         },
         "method": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "host": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "uri": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword",
+          "ignore_above": 8191
         },
         "referrer": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "version": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "user_agent": {
           "type": "text",
@@ -228,16 +217,13 @@
           "type": "integer"
         },
         "status_msg": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "username": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "password": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "capture_password": {
           "type": "boolean"
@@ -254,36 +240,31 @@
          *   Notes:     Field exists in the DNS and DHCP logs
          */
         "proto": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "trans_id": {
           "type": "long"
         },
         "query": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "qclass": {
           "type": "integer"
         },
         "qclass_name": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "qtype": {
           "type": "integer"
         },
         "qtype_name": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "rcode": {
           "type": "integer"
         },
         "rcode_name": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "AA": {
           "type": "boolean"
@@ -322,58 +303,46 @@
          *   Notes:     Field exists in the Conn and Files logs
          */
         "service": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "duration": {
           "type": "float"
         },
         "orig_bytes": {
-          "type": "long",
-          "index": "false"
+          "type": "long"
         },
         "resp_bytes": {
-          "type": "long",
-          "index": "false"
+          "type": "long"
         },
         "conn_state": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "local_orig": {
           "type": "boolean"
         },
         "local_resp": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "missed_bytes": {
-          "type": "long",
-          "index": "false"
+          "type": "long"
         },
         "history": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "orig_pkts": {
-          "type": "long",
-          "index": "false"
+          "type": "long"
         },
         "orig_ip_bytes": {
-          "type": "long",
-          "index": "false"
+          "type": "long"
         },
         "resp_pkts": {
-          "type": "long",
-          "index": "false"
+          "type": "long"
         },
         "resp_ip_bytes": {
-          "type": "long",
-          "index": "false"
+          "type": "long"
         },
         "tunnel_parents": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         /*
          * DPD log support
@@ -384,12 +353,10 @@
          *   Notes:     Field exists in the DNS, Conn, DPD, and Notice logs
          */
         "analyzer": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "failure_reason": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         /*
          * FTP log support
@@ -409,12 +376,10 @@
          *   Notes:     Field exists in the FTP and Notice logs
          */
         "user": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "command": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "arg": {
           "type": "text",
@@ -433,8 +398,7 @@
           "type": "integer"
         },
         "reply_msg": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "data_channel:passive": {
           "type": "boolean"
@@ -457,8 +421,7 @@
           "type": "boolean"
         },
         "fuid": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         /*
          * Files log support
@@ -480,8 +443,7 @@
           "analyzer": "simple"
         },
         "source": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "depth": {
           "type": "integer"
@@ -492,8 +454,7 @@
           "analyzer": "simple"
         },
         "filename": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "is_orig": {
           "type": "boolean"
@@ -514,20 +475,16 @@
           "type": "boolean"
         },
         "parent_fuid": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "md5": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "sha1": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "sha256": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         /*
          * Known::CertInfo log support
@@ -551,8 +508,7 @@
           "analyzer": "simple"
         },
         "serial": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         /*
          * SMTP log support
@@ -578,8 +534,7 @@
           "analyzer": "simple"
         },
         "date": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "from": {
           "type": "text",
@@ -597,12 +552,10 @@
           "analyzer": "simple"
         },
         "msg_id": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "in_reply_to": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "x_originating_ip": {
           "type": "ip"
@@ -623,15 +576,13 @@
           "analyzer": "simple"
         },
         "path": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "tls": {
           "type": "boolean"
         },
         "fuids": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "is_webmail": {
           "type": "boolean"
@@ -645,27 +596,22 @@
          *   Notes:     Field exists in the HTTP, SSL, and SSH logs
          */
         "cipher": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "curve": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "server_name": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "resumed": {
           "type": "boolean"
         },
         "last_alert": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "next_protocol": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "established": {
           "type": "boolean"
@@ -675,19 +621,16 @@
          * https://www.bro.org/sphinx/scripts/base/frameworks/notice/weird.bro.html#type-Weird::Info
          */
         "name": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "addl": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "notice": {
           "type": "boolean"
         },
         "peer": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         /*
          * Notice log support
@@ -701,24 +644,19 @@
          *   Notes:     Field exists in the DNS, Conn, DPD, and Notice logs
          */
         "file_mime_type": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "file_desc": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "note": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "msg": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "sub": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "src": {
           "type": "ip"
@@ -727,27 +665,22 @@
           "type": "ip"
         },
         "p": {
-          "type": "integer",
-          "index": "false"
+          "type": "integer"
         },
         "n": {
-          "type": "integer",
-          "index": "false"
+          "type": "integer"
         },
         "src_peer": {
           "type": "ip"
         },
         "peer_descr": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "actions": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "suppress_for": {
-          "type": "double",
-          "index": "false"
+          "type": "double"
         },
         "dropped": {
           "type": "boolean"
@@ -764,15 +697,13 @@
          *   Notes:     Field exists in the DHCP, RADIUS, and Known::DevicesInfo logs
          */
         "mac": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "assigned_ip": {
           "type": "ip"
         },
         "lease_time": {
-          "type": "float",
-          "index": "false"
+          "type": "float"
         },
         /*
          * SSH log support
@@ -786,44 +717,34 @@
           "type": "boolean"
         },
         "auth_attempts": {
-          "type": "integer",
-          "index": "false"
+          "type": "integer"
         },
         "direction": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "client": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "server": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "cipher_alg": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "mac_alg": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "compression_alg": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "kex_alg": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "host_key_alg": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "host_key": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         /*
          * Software log support
@@ -834,32 +755,25 @@
          *   Notes:     Field exists in the HTTP and Software logs
          */
         "host_p": {
-          "type": "integer",
-          "index": "false"
+          "type": "integer"
         },
         "software_type": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "version:major": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "version:minor": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "version:minor2": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "version:minor3": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "version:addl": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "unparsed_version": {
           "type": "text",
@@ -881,12 +795,10 @@
           "type": "ip"
         },
         "connect_info": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "result": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         /*
          * X509 log support
@@ -900,79 +812,61 @@
          *              logs, however, id is a string to identify the certificate file id.
          */
         "id": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "certificate:version": {
-          "type": "integer",
-          "index": "false"
+          "type": "integer"
         },
         "certificate:serial": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "certificate:subject": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "certificate:issuer": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "certificate:not_valid_before": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "certificate:not_valid_after": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "certificate:key_alg": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "certificate:sig_alg": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "certificate:key_type": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "certificate:key_length": {
-          "type": "integer",
-          "index": "false"
+          "type": "integer"
         },
         "certificate:exponent": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "certificate:curve": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "san:dns": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "san:uri": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "san:email": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "san:ip": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         },
         "basic_constraints:ca": {
           "type": "boolean"
         },
         "basic_constraints:path_len": {
-          "type": "integer",
-          "index": "false"
+          "type": "integer"
         },
         /*
          * Known::DevicesInfo log support
@@ -983,8 +877,7 @@
          *   Notes:     Field exists in the DHCP, RADIUS, and Known::DevicesInfo logs
          */
         "dhcp_host_name": {
-          "type": "text",
-          "index": "false"
+          "type": "keyword"
         }
       }
     }
