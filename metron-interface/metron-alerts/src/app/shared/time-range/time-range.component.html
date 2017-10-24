@@ -29,16 +29,16 @@
             </div>
             <div class="form-group">
               <label>TO</label>
-              <app-date-picker [(date)]="datePickerToDate" [minDate]="datePickerFromDate"> </app-date-picker>
+              <app-date-picker [(date)]="datePickerToDate"> </app-date-picker>
             </div>
-            <button class="btn btn-primary pull-right" type="button" [disabled]='datePickerFromDate==="" || datePickerToDate===""' (click)="applyCustomDate()">APPLY</button>
+            <button class="btn btn-primary pull-right" type="button" [disabled]='datePickerFromDate===""' (click)="applyCustomDate()">APPLY</button>
           </form>
         </div>
         <div class="col-8 quick-ranges pr-0">
           <div class="title"> Quick Ranges </div> <br>
           <div class="row no-gutters">
             <div class="col-3">
-                <span *ngFor="let key of timeRangeMappingCol1 | mapKeys" (click)="selectTimeRange($event, timeRangeMappingCol1[key])">  {{ key }} </span> <br>
+              <span *ngFor="let key of timeRangeMappingCol1 | mapKeys" (click)="selectTimeRange($event, timeRangeMappingCol1[key])">  {{ key }} </span> <br>
             </div>
             <div class="col-3">
               <span *ngFor="let key of timeRangeMappingCol2 | mapKeys" (click)="selectTimeRange($event, timeRangeMappingCol2[key])">  {{ key }} </span> <br>

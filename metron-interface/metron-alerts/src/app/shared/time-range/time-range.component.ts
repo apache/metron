@@ -141,12 +141,14 @@ export class TimeRangeComponent implements OnInit, OnChanges {
   applyCustomDate() {
     this.hideDatePicker();
     this.selectedTimeRangeValue = CUSTOMM_DATE_RANGE_LABEL;
-    this.toDateStr = moment(this.datePickerToDate).format(DEFAULT_TIMESTAMP_FORMAT);
+    this.toDateStr = this.datePickerToDate.length > 0  ? moment(this.datePickerToDate).format(DEFAULT_TIMESTAMP_FORMAT) : 'NOW';
     this.fromDateStr = moment(this.datePickerFromDate).format(DEFAULT_TIMESTAMP_FORMAT);
 
-    let toDate = new Date(this.toDateStr).getTime();
+    let toDate = this.datePickerToDate.length > 0 ? new Date(this.toDateStr).getTime() : null;
     let fromDate = new Date(this.fromDateStr).getTime();
-    let value = '(>=' + fromDate + ' AND ' + ' <=' + toDate + ')';
+    let toDateExpression = this.datePickerToDate.length > 0 ?  (' AND ' + ' <=' + toDate) : '';
+
+    let value = '(>=' + fromDate + toDateExpression + ')';
     let filter = new Filter(TIMESTAMP_FIELD_NAME, value, false);
     filter.dateFilterValue = new DateFilterValue(fromDate, toDate);
     this.timeRangeChange.emit(filter);

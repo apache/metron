@@ -65,7 +65,7 @@ export class QueryBuilder {
   }
 
   setSearch(query: string) {
-    this.updateFilters(query);
+    this.updateFilters(query, true);
     this.onSearchChange();
   }
 
@@ -154,7 +154,7 @@ export class QueryBuilder {
     this.searchRequest.sort = [sortField];
   }
 
-  private updateFilters(tQuery: string) {
+  private updateFilters(tQuery: string, updateNameTransform = false) {
     let query = tQuery;
     this.removeDisplayedFilters();
 
@@ -163,6 +163,7 @@ export class QueryBuilder {
       for (let term of terms) {
         let separatorPos = term.lastIndexOf(':');
         let field = term.substring(0, separatorPos).replace('\\', '');
+        field = updateNameTransform ? ColumnNamesService.getColumnDisplayKey(field) : field;
         let value = term.substring(separatorPos + 1, term.length);
         this.addOrUpdateFilter(new Filter(field, value));
       }
