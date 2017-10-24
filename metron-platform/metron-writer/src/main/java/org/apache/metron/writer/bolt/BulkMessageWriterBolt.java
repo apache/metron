@@ -100,7 +100,7 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
    * may want to take this behavior into account.
    *
    * @param batchTimeoutDivisor
-   * @return
+   * @return BulkMessageWriterBolt
    */
   public BulkMessageWriterBolt withBatchTimeoutDivisor(int batchTimeoutDivisor) {
     if (batchTimeoutDivisor <= 0) {
@@ -129,7 +129,7 @@ public class BulkMessageWriterBolt extends ConfiguredIndexingBolt {
    * This method is called by TopologyBuilder.createTopology() to obtain topology and
    * bolt specific configuration parameters.  We use it primarily to configure how often
    * a tick tuple will be sent to our bolt.
-   * @return
+   * @return conf topology and bolt specific configuration parameters
    */
   @Override
   public Map<String, Object> getComponentConfiguration() {

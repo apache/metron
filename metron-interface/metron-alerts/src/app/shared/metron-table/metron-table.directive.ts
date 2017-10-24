@@ -65,7 +65,9 @@ export class MetronTableDirective implements AfterViewInit {
 
     } else {
         let parent = this.getParentTR($event.target);
-        parent.style.backgroundColor = this.rowhighlightColor;
+        if (!parent.classList.contains('no-hover')) {
+          parent.style.backgroundColor = this.rowhighlightColor;
+        }
     }
   }
 

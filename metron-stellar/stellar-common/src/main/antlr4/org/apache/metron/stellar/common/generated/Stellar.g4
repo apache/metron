@@ -65,6 +65,7 @@ IF : 'IF' | 'if';
 THEN : 'THEN' | 'then';
 ELSE : 'ELSE' | 'else';
 NULL : 'null' | 'NULL';
+NAN : 'NaN';
 
 MINUS : '-';
 PLUS : '+';
@@ -231,6 +232,7 @@ arithmetic_operands :
   | LONG_LITERAL #LongLiteral
   | FLOAT_LITERAL #FloatLiteral
   | IDENTIFIER #Variable
+  | NAN #NaNArith
   | LPAREN arithmetic_expr RPAREN #ParenArith
   | LPAREN conditional_expr RPAREN #condExpr
   ;

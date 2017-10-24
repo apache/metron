@@ -14,19 +14,19 @@ This module provides a RESTful API for interacting with Metron.
 ### From Source
 
 1. Package the application with Maven:
-  ```
-mvn clean package
-  ```
+    ```
+    mvn clean package
+    ```
 
 1. Untar the archive in the $METRON_HOME directory.  The directory structure will look like:
-  ```
-config
-  rest_application.yml
-bin
-  metron-rest
-lib
-  metron-rest-$METRON_VERSION.jar
-  ```
+    ```
+    config
+      rest_application.yml
+    bin
+      metron-rest
+    lib
+      metron-rest-$METRON_VERSION.jar
+    ```
 
 1. Copy the `$METRON_HOME/bin/metron-rest` script to `/etc/init.d/metron-rest`
 
@@ -35,9 +35,9 @@ lib
 1. Deploy the RPM at `/metron/metron-deployment/packaging/docker/rpm-docker/target/RPMS/noarch/metron-rest-$METRON_VERSION-*.noarch.rpm`
 
 1. Install the RPM with:
-  ```
-rpm -ih metron-rest-$METRON_VERSION-*.noarch.rpm
-  ```
+    ```
+    rpm -ih metron-rest-$METRON_VERSION-*.noarch.rpm
+    ```
 
 ## Configuration
 
@@ -76,17 +76,18 @@ No optional parameter has a default.
 | METRON_PRINCIPAL_NAME                 | Kerberos principal for the metron user                            | Optional
 | METRON_SERVICE_KEYTAB                 | Path to the Kerberos keytab for the metron user                   | Optional
 
-These are set in the `/etc/sysconfig/metron` file.
+These are set in the `/etc/default/metron` file.
 
 ## Database setup
 
-The REST application persists data in a relational database and requires a dedicated database user and database (see https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html for more detail).
+The REST application persists data in a relational database and requires a dedicated database user and database (see https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html for more detail).  
+Spring uses Hibernate as the default ORM framework but another framework is needed becaused Hibernate is not compatible with the Apache 2 license.  For this reason Metron uses [EclipseLink](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html#boot-features-embedded-database-support).  See the [Spring Data JPA - EclipseLink](https://github.com/spring-projects/spring-data-examples/tree/master/jpa/eclipselink) project for an example on how to configure EclipseLink in Spring.
 
 ### Development
 
-The REST application comes with embedded database support for development purposes (https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html#boot-features-embedded-database-support).
+The REST application comes with [embedded database support](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html#boot-features-embedded-database-support) for development purposes.
 
-For example, edit these variables in `/etc/sysconfig/metron` before starting the application to configure H2:
+For example, edit these variables in `/etc/default/metron` before starting the application to configure H2:
 ```
 METRON_JDBC_DRIVER="org.h2.Driver"
 METRON_JDBC_URL="jdbc:h2:file:~/metrondb"
@@ -111,42 +112,42 @@ The following configures the application for MySQL:
 1. Install MySQL if not already available (this example uses version 5.7, installation instructions can be found [here](https://dev.mysql.com/doc/refman/5.7/en/linux-installation-yum-repo.html))
 
 1. Create a metron user and REST database and permission the user for that database:
-  ```
-CREATE USER 'metron'@'node1' IDENTIFIED BY 'Myp@ssw0rd';
-CREATE DATABASE IF NOT EXISTS metronrest;
-GRANT ALL PRIVILEGES ON metronrest.* TO 'metron'@'node1';
-  ```
+    ```
+    CREATE USER 'metron'@'node1' IDENTIFIED BY 'Myp@ssw0rd';
+    CREATE DATABASE IF NOT EXISTS metronrest;
+    GRANT ALL PRIVILEGES ON metronrest.* TO 'metron'@'node1';
+    ```
 
 1. Install the MySQL JDBC client onto the REST application host and configurate the METRON_JDBC_CLIENT_PATH variable:
-  ```
-cd $METRON_HOME/lib
-wget https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.41.tar.gz
-tar xf mysql-connector-java-5.1.41.tar.gz
-  ```
+    ```
+    cd $METRON_HOME/lib
+    wget https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.41.tar.gz
+    tar xf mysql-connector-java-5.1.41.tar.gz
+    ```
 
-1. Edit these variables in `/etc/sysconfig/metron` to configure the REST application for MySQL:
-  ```
-METRON_JDBC_DRIVER="com.mysql.jdbc.Driver"
-METRON_JDBC_URL="jdbc:mysql://mysql_host:3306/metronrest"
-METRON_JDBC_USERNAME="metron"
-METRON_JDBC_PLATFORM="mysql"
-METRON_JDBC_CLIENT_PATH=$METRON_HOME/lib/mysql-connector-java-5.1.41/mysql-connector-java-5.1.41-bin.jar
-  ```
+1. Edit these variables in `/etc/default/metron` to configure the REST application for MySQL:
+    ```
+    METRON_JDBC_DRIVER="com.mysql.jdbc.Driver"
+    METRON_JDBC_URL="jdbc:mysql://mysql_host:3306/metronrest"
+    METRON_JDBC_USERNAME="metron"
+    METRON_JDBC_PLATFORM="mysql"
+    METRON_JDBC_CLIENT_PATH=$METRON_HOME/lib/mysql-connector-java-5.1.41/mysql-connector-java-5.1.41-bin.jar
+    ```
 
 1. Switch to the metron user
-  ```
-sudo su - metron
-  ```
+    ```
+    sudo su - metron
+    ```
 
 1. Start the REST API. Adjust the password as necessary.
-  ```
-set -o allexport;
-source /etc/metron/sysconfig;
-set +o allexport;
-export METRON_JDBC_PASSWORD='Myp@ssw0rd';
-$METRON_HOME/bin/metron-rest.sh
-unset METRON_JDBC_PASSWORD;
-  ```
+    ```
+    set -o allexport;
+    source /etc/default/metron;
+    set +o allexport;
+    export METRON_JDBC_PASSWORD='Myp@ssw0rd';
+    $METRON_HOME/bin/metron-rest.sh
+    unset METRON_JDBC_PASSWORD;
+    ```
 
 ## Usage
 
@@ -165,7 +166,7 @@ insert into authorities (username, authority) values ('your_username', 'ROLE_USE
 
 ### Kerberos
 
-Metron REST can be configured for a cluster with Kerberos enabled.  A client JAAS file is required for Kafka and Zookeeper and a Kerberos keytab for the metron user principal is required for all other services.  Configure these settings in the `/etc/sysconfig/metron` file:
+Metron REST can be configured for a cluster with Kerberos enabled.  A client JAAS file is required for Kafka and Zookeeper and a Kerberos keytab for the metron user principal is required for all other services.  Configure these settings in the `/etc/default/metron` file:
 ```
 SECURITY_ENABLED=true
 METRON_JVMFLAGS="-Djava.security.auth.login.config=$METRON_HOME/client_jaas.conf"
@@ -184,7 +185,7 @@ The REST application comes with a few [Spring Profiles](http://docs.spring.io/au
 | vagrant                  | sets configuration variables to match the Metron vagrant environment    |
 | docker                   | sets configuration variables to match the Metron docker environment     |
 
-Setting active profiles is done with the METRON_SPRING_PROFILES_ACTIVE variable.  For example, set this variable in `/etc/sysconfig/metron` to configure the REST application for the Vagrant environment and add a test user:
+Setting active profiles is done with the METRON_SPRING_PROFILES_ACTIVE variable.  For example, set this variable in `/etc/default/metron` to configure the REST application for the Vagrant environment and add a test user:
 ```
 METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
 ```
@@ -196,6 +197,10 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 |            |
 | ---------- |
 | [ `POST /api/v1/alert/escalate`](#get-apiv1alertescalate)|
+| [ `GET /api/v1/alert/profile`](#get-apiv1alertprofile)|
+| [ `GET /api/v1/alert/profile/all`](#get-apiv1alertprofileall)|
+| [ `DELETE /api/v1/alert/profile`](#delete-apiv1alertprofile)|
+| [ `POST /api/v1/alert/profile`](#post-apiv1alertprofile)|
 | [ `GET /api/v1/global/config`](#get-apiv1globalconfig)|
 | [ `DELETE /api/v1/global/config`](#delete-apiv1globalconfig)|
 | [ `POST /api/v1/global/config`](#post-apiv1globalconfig)|
@@ -269,6 +274,36 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * alerts - The alerts to be escalated
   * Returns:
     * 200 - Alerts were escalated
+    
+### `GET /api/v1/alert/profile`
+  * Description: Retrieves the current user's alerts profile
+  * Returns:
+    * 200 - Alerts profile
+    * 404 - The current user does not have an alerts profile
+    
+### `GET /api/v1/alert/profile/all`
+  * Description: Retrieves all users' alerts profiles.  Only users that are part of the "ROLE_ADMIN" role are allowed to get all alerts profiles.
+  * Returns:
+    * 200 - List of all alerts profiles
+    * 403 - The current user does not have permission to get all alerts profiles
+
+### `DELETE /api/v1/alert/profile`
+  * Description: Deletes a user's alerts profile.  Only users that are part of the "ROLE_ADMIN" role are allowed to delete user alerts profiles.
+  * Input:
+    * user - The user whose prolife will be deleted
+  * Returns:
+    * 200 - Alerts profile was deleted
+    * 403 - The current user does not have permission to delete alerts profiles
+    * 404 - Alerts profile could not be found
+
+### `POST /api/v1/alert/profile`
+  * Description: Creates or updates the current user's alerts profile
+  * Input:
+    * alertsProfile - The alerts profile to be saved
+  * Returns:
+    * 200 - Alerts profile updated. Returns saved alerts profile.
+    * 201 - Alerts profile created. Returns saved alerts profile.
+
 
 ### `GET /api/v1/global/config`
   * Description: Retrieves the current Global Config from Zookeeper
@@ -395,14 +430,14 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - The meta alert was created
 
 ### `POST /api/v1/search/search`
-  * Description: Searches the indexing store
+  * Description: Searches the indexing store. GUIDs must be quoted to ensure correct results.
   * Input:
       * searchRequest - Search request
   * Returns:
     * 200 - Search response
     
 ### `POST /api/v1/search/group`
-  * Description: Searches the indexing store and returns field groups. Groups are hierarchical and nested in the order the fields appear in the 'groups' request parameter. The default sorting within groups is by count descending.  A groupOrder type of count will sort based on then number of documents in a group while a groupType of term will sort by the groupBy term.
+  * Description: Searches the indexing store and returns field groups. GUIDs must be quoted to ensure correct results. Groups are hierarchical and nested in the order the fields appear in the 'groups' request parameter. The default sorting within groups is by count descending.  A groupOrder type of count will sort based on then number of documents in a group while a groupType of term will sort by the groupBy term.
   * Input:
       * groupRequest - Group request
         * indices - list of indices to search
@@ -775,7 +810,7 @@ mvn spring-boot:run -Drun.profiles=vagrant,dev
 
 The metron-rest application will be available at http://localhost:8080/swagger-ui.html#/.
 
-To run the application locally on the Quick Dev host (node1), follow the [Installation](#installation) instructions above.  Then set the METRON_SPRING_PROFILES_ACTIVE variable in `/etc/sysconfig/metron`:
+To run the application locally on the Quick Dev host (node1), follow the [Installation](#installation) instructions above.  Then set the METRON_SPRING_PROFILES_ACTIVE variable in `/etc/default/metron`:
 ```
 METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
 ```
@@ -785,7 +820,7 @@ and start the application:
 service metron-rest start
 ```
 
-In a cluster with Kerberos enabled, update the security settings in `/etc/sysconfig/metron`.  Security is disabled by default in the `vagrant` Spring profile so that setting must be overriden with the METRON_SPRING_OPTIONS variable:
+In a cluster with Kerberos enabled, update the security settings in `/etc/default/metron`.  Security is disabled by default in the `vagrant` Spring profile so that setting must be overriden with the METRON_SPRING_OPTIONS variable:
 ```
 METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
 METRON_JVMFLAGS="-Djava.security.auth.login.config=$METRON_HOME/client_jaas.conf"

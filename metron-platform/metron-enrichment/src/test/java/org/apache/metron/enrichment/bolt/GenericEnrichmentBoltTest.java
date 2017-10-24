@@ -161,7 +161,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
       }
     };
     genericEnrichmentBolt.setCuratorFramework(client);
-    genericEnrichmentBolt.setTreeCache(cache);
+    genericEnrichmentBolt.setZKCache(cache);
     genericEnrichmentBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, new FileInputStream(sampleSensorEnrichmentConfigPath));
 
     HashMap<String, Object> globalConfig = new HashMap<>();

@@ -20,6 +20,10 @@ limitations under the License.
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
+from resource_management.core.exceptions import ExecutionFailed
+from resource_management.libraries.functions.get_user_call_output import get_user_call_output
+
+import metron_service
 
 # Wrap major operations and functionality in this class
 class ManagementUICommands:
@@ -31,16 +35,52 @@ class ManagementUICommands:
         self.__params = params
 
     def start_management_ui(self):
+        """
+        Starts the Management UI
+        :param env: Environment
+        """
         Logger.info('Starting Management UI')
         Execute("service metron-management-ui start")
         Logger.info('Done starting Management UI')
 
     def stop_management_ui(self):
+        """
+        Stops the Management UI
+        :param env: Environment
+        """
         Logger.info('Stopping Management UI')
         Execute("service metron-management-ui stop")
         Logger.info('Done stopping Management UI')
 
     def restart_management_ui(self, env):
+        """
+        Restarts the Management UI
+        :param env: Environment
+        """
         Logger.info('Restarting the Management UI')
         Execute('service metron-management-ui restart')
         Logger.info('Done restarting the Management UI')
+
+    def status_management_ui(self, env):
+        """
+        Performs a status check for the Management UI
+        :param env: Environment
+        """
+        Logger.info('Status check the Management UI')
+        metron_service.check_http(
+          self.__params.hostname,
+          self.__params.metron_management_ui_port,
+          self.__params.metron_user)
+
+    def service_check(self, env):
+        """
+        Performs a service check for the Management UI
+        :param env: Environment
+        """
+        Logger.info('Checking connectivity to Management UI')
+        metron_service.check_http(
+          self.__params.hostname,
+          self.__params.metron_management_ui_port,
+          self.__params.metron_user)
+
+        Logger.info("Management UI service check completed successfully")

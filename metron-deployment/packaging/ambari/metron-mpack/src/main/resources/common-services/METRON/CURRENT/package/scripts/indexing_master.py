@@ -145,7 +145,7 @@ class Indexing(Script):
             'curl -s -XPOST http://{es_http_url}/_template/error_index -d @{error_index_path}')
         Execute(error_cmd, logoutput=True)
         error_cmd = ambari_format(
-            'curl -s -XPOST http://{es_http_url}/metaalerts -d @{meta_index_path}')
+            'curl -s -XPOST http://{es_http_url}/metaalert_index -d @{meta_index_path}')
         Execute(error_cmd, logoutput=True)
 
     def elasticsearch_template_delete(self, env):

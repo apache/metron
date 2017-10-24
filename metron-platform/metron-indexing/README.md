@@ -46,6 +46,10 @@ If unspecified, or set to `0`, it defaults to a system-determined duration which
 parameter `topology.message.timeout.secs`.  Ignored if batchSize is `1`, since this disables batching.
 * `enabled` : Whether the writer is enabled (default `true`).
 
+
+### Elasticsearch
+Metron comes with built-in templates for the default sensors for Elasticsearch. When adding a new sensor, it will be necessary to add a new template defining the output fields appropriately. In addition, there is a requirement for a field `alert` of type `nested` for Elasticsearch 2.x installs.  This is detailed at [Using Metron with Elasticsearch 2.x](../metron-elasticsearch/README.md#using-metron-with-elasticsearch-2x)
+
 ### Indexing Configuration Examples
 For a given  sensor, the following scenarios would be indicated by
 the following cases:
@@ -145,6 +149,19 @@ and provide update and search capabilities.  IndexDaos may be composed and updat
 in parallel.  This enables a flexible strategy for specifying your backing store for updates at runtime.
 For instance, currently the REST API supports the update functionality and may be configured with a list of
 IndexDao implementations to use to support the updates.
+
+### The `HBaseDao`
+
+Updates will be written to HBase. The key structure is the GUID and
+for each new version, a new column is created with value as the message.
+
+The HBase table and column family are configured via fields in the global configuration.
+
+#### `update.hbase.table`
+The HBase table to use for message updates.
+
+#### `update.hbase.cf`
+The HBase column family to use for message updates.
 
 ### The `MetaAlertDao`
 

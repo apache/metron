@@ -34,6 +34,8 @@
         <swagger.version>2.5.0</swagger.version>
         <mysql.client.version>5.1.40</mysql.client.version>
         <spring-kafka.version>1.1.1.RELEASE</spring-kafka.version>
+        <spring.version>4.2.2.RELEASE</spring.version>
+        <eclipse.link.version>2.6.4</eclipse.link.version>
     </properties>
     <dependencies>
         <dependency>
@@ -290,6 +292,34 @@
             <artifactId>reflections</artifactId>
             <version>${global_reflections_version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-entitymanager</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                </exclusion>
+              <exclusion>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-commons-annotations</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.hibernate.javax.persistence</groupId>
+                <artifactId>hibernate-jpa-2.1-api</artifactId>
+              </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>org.eclipse.persistence.jpa</artifactId>
+            <version>${eclipse.link.version}</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -385,4 +415,95 @@
             </plugin>
         </plugins>
     </build>
+
+  <profiles>
+      <profile>
+
+          <!--
+          Sets up the build to run the EclipseLink Maven plugin at compile time and instrument
+          domain types. This will prevent the need for load-time weaving when running the app.
+          -->
+
+          <id>static-weaving</id>
+
+          <build>
+              <plugins>
+
+                <!-- Static weaver for EclipseLink -->
+                <plugin>
+                    <groupId>com.ethlo.persistence.tools</groupId>
+                    <artifactId>eclipselink-maven-plugin</artifactId>
+                    <version>2.6.4.2</version>
+                    <executions>
+                        <execution>
+                            <phase>process-classes</phase>
+                            <goals>
+                                <goal>weave</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.eclipse.persistence</groupId>
+                            <artifactId>org.eclipse.persistence.jpa</artifactId>
+                            <version>${eclipse.link.version}</version>
+                        </dependency>
+                    </dependencies>
+
+                </plugin>
+              </plugins>
+          </build>
+
+          <repositories>
+              <repository>
+                  <id>com.ethlo.eclipselink.tools</id>
+                  <url>http://ethlo.com/maven</url>
+              </repository>
+          </repositories>
+
+          <pluginRepositories>
+              <pluginRepository>
+                  <id>com.ethlo.eclipselink.tools</id>
+                  <url>http://ethlo.com/maven</url>
+              </pluginRepository>
+          </pluginRepositories>
+
+      </profile>
+
+      <profile>
+
+          <!--
+          Sets up the build to use load-time weaving by configuring the Surefire and Boot
+          plugins to run with Spring's instrumentation agent. They will automatically pick
+          up the EclipseLink weaver and instrument domain types at load time.
+          -->
+
+          <id>load-time-weaving</id>
+
+          <activation>
+              <activeByDefault>true</activeByDefault>
+          </activation>
+
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-surefire-plugin</artifactId>
+                      <dependencies>
+                          <dependency>
+                              <groupId>org.springframework</groupId>
+                              <artifactId>spring-instrument</artifactId>
+                              <version>${spring.version}</version>
+                          </dependency>
+                      </dependencies>
+                      <configuration>
+                          <argLine>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring.version}/spring-instrument-${spring.version}.jar</argLine>
+                      </configuration>
+                  </plugin>
+              </plugins>
+          </build>
+      </profile>
+
+  </profiles>
 </project>

@@ -15,20 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {Http, Headers, RequestOptions} from '@angular/http';
 import {Injectable, NgZone} from '@angular/core';
-import {Headers, RequestOptions} from '@angular/http';
 import {Observable} from 'rxjs/Rx';
 import 'rxjs/add/observable/interval';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/onErrorResumeNext';
 
 import {HttpUtil} from '../utils/httpUtil';
-import {Alert} from '../model/alert';
-import {Http} from '@angular/http';
-import {DataSource} from './data-source';
 import {SearchResponse} from '../model/search-response';
 import {SearchRequest} from '../model/search-request';
 import {AlertSource} from '../model/alert-source';
+import {GroupRequest} from '../model/group-request';
+import {GroupResult} from '../model/group-result';
 import {INDEXES} from '../utils/constants';
 import {ColumnMetadata} from '../model/column-metadata';
 
@@ -57,13 +56,19 @@ export class SearchService {
   }
 
   constructor(private http: Http,
-              private dataSource: DataSource,
               private ngZone: NgZone) { }
+
+  groups(groupRequest: GroupRequest): Observable<GroupResult> {
+    let url = '/api/v1/search/group';
+    return this.http.post(url, groupRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+    .map(HttpUtil.extractData)
+    .catch(HttpUtil.handleError)
+    .onErrorResumeNext();
+  }
 
   public getAlert(sourceType: string, alertId: string): Observable<AlertSource> {
     let url = '/api/v1/search/findOne';
     let requestSchema = { guid: alertId, sensorType: sourceType};
-
     return this.http.post(url, requestSchema, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
     .map(HttpUtil.extractData)
     .catch(HttpUtil.handleError)
@@ -94,19 +99,5 @@ export class SearchService {
     .map(HttpUtil.extractData)
     .catch(HttpUtil.handleError)
     .onErrorResumeNext();
-  }
-
-  public updateAlertState(alerts: Alert[], state: string, workflowId: string) {
-    let request = '';
-    for (let alert of alerts) {
-      request += '{ "update" : { "sensorType" : "' + alert.source['source:type'] + '", "guid" : "' + alert.source.guid + '" } }\n' +
-                  '{ "doc": { "alert_status": "' + state + '"';
-      if (workflowId) {
-        request += ', "workflow_id": "' + workflowId + '"';
-      }
-      request += ' }}\n';
-    }
-
-    return this.dataSource.updateAlertState(request);
   }
 }

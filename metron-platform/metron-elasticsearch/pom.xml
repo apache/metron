@@ -81,7 +81,7 @@
         <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-hbase</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
             <scope>test</scope>
             <type>test-jar</type>
             <exclusions>
@@ -168,16 +168,6 @@
             <groupId>io.netty</groupId>
             <artifactId>netty</artifactId>
             <version>3.10.5.Final</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.2.3</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>2.2.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>

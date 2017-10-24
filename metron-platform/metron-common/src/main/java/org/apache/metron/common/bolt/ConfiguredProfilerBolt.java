@@ -17,16 +17,12 @@
  */
 package org.apache.metron.common.bolt;
 
-import static org.apache.metron.common.configuration.ConfigurationType.PROFILER;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfigurations;
-import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.common.zookeeper.configurations.ConfigurationsUpdater;
+import org.apache.metron.common.zookeeper.configurations.ProfilerUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,43 +42,8 @@ public abstract class ConfiguredProfilerBolt extends ConfiguredBolt<ProfilerConf
   }
 
   @Override
-  protected ProfilerConfigurations defaultConfigurations() {
-    return new ProfilerConfigurations();
+  protected ConfigurationsUpdater<ProfilerConfigurations> createUpdater() {
+    return new ProfilerUpdater(this, this::getConfigurations);
   }
 
-  @Override
-  public void loadConfig() {
-    try {
-      ProfilerConfig config = readFromZookeeper(client);
-      if(config != null) {
-        getConfigurations().updateProfilerConfig(config);
-      }
-
-    } catch (Exception e) {
-      LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...");
-    }
-  }
-
-  private ProfilerConfig readFromZookeeper(CuratorFramework client) throws Exception {
-    byte[] raw = client.getData().forPath(PROFILER.getZookeeperRoot());
-    return JSONUtils.INSTANCE.load(new ByteArrayInputStream(raw), ProfilerConfig.class);
-  }
-
-  @Override
-  public void updateConfig(String path, byte[] data) throws IOException {
-    if (data.length != 0) {
-      String name = path.substring(path.lastIndexOf("/") + 1);
-
-      // update the profiler configuration from zookeeper
-      if (path.startsWith(ConfigurationType.PROFILER.getZookeeperRoot())) {
-        getConfigurations().updateProfilerConfig(data);
-        reloadCallback(name, ConfigurationType.PROFILER);
-
-      // update the global configuration from zookeeper
-      } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
-        getConfigurations().updateGlobalConfig(data);
-        reloadCallback(name, ConfigurationType.GLOBAL);
-      }
-    }
-  }
 }

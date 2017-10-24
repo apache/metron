@@ -19,6 +19,7 @@ import os
 import time
 
 from datetime import datetime
+from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 
@@ -48,6 +49,13 @@ class IndexingCommands:
         self.__hbase_configured = os.path.isfile(self.__params.indexing_hbase_configured_flag_file)
         self.__hbase_acl_configured = os.path.isfile(self.__params.indexing_hbase_acl_configured_flag_file)
         self.__hdfs_perm_configured = os.path.isfile(self.__params.indexing_hdfs_perm_configured_flag_file)
+
+    def __get_topics(self):
+        return [self.__indexing_topic]
+
+    def __get_kafka_acl_groups(self):
+        # Indexed topic names matches the group
+        return [self.__indexing_topic]
 
     def is_configured(self):
         return self.__configured
@@ -121,12 +129,12 @@ class IndexingCommands:
 
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics for indexing')
-        metron_service.init_kafka_topics(self.__params, [self.__indexing_topic])
+        metron_service.init_kafka_topics(self.__params, self.__get_topics())
 
     def init_kafka_acls(self):
         Logger.info('Creating Kafka ACLs for indexing')
-        # Indexed topic names matches the group
-        metron_service.init_kafka_acls(self.__params, [self.__indexing_topic], [self.__indexing_topic])
+        metron_service.init_kafka_acls(self.__params, self.__get_topics())
+        metron_service.init_kafka_acl_groups(self.__params, self.__get_kafka_acl_groups())
 
     def init_hdfs_dir(self):
         Logger.info('Setting up HDFS indexing directory')
@@ -213,3 +221,30 @@ class IndexingCommands:
             is_running = topologies[self.__indexing_topology] in ['ACTIVE', 'REBALANCING']
         active &= is_running
         return active
+
+    def service_check(self, env):
+        """
+        Performs a service check for Indexing.
+        :param env: Environment
+        """
+        Logger.info('Checking Kafka topics for Indexing')
+        metron_service.check_kafka_topics(self.__params, self.__get_topics())
+
+        Logger.info("Checking HBase for Indexing")
+        metron_service.check_hbase_table(self.__params, self.__params.update_hbase_table)
+        metron_service.check_hbase_column_family(self.__params, self.__params.update_hbase_table, self.__params.update_hbase_cf)
+
+        if self.__params.security_enabled:
+
+            Logger.info('Checking Kafka ACLs for Indexing')
+            metron_service.check_kafka_acls(self.__params, self.__get_topics())
+            metron_service.check_kafka_acl_groups(self.__params, self.__get_kafka_acl_groups())
+
+            Logger.info("Checking HBase ACLs for Indexing")
+            metron_service.check_hbase_acls(self.__params, self.__params.update_hbase_table)
+
+        Logger.info("Checking for Indexing topology")
+        if not self.is_topology_active(env):
+            raise Fail("Indexing topology not running")
+
+        Logger.info("Indexing service check completed successfully")

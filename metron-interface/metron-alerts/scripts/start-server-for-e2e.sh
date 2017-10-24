@@ -16,6 +16,4 @@
 #  limitations under the License.
 #
 SCRIPTS_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $SCRIPTS_ROOT/.. && npm run build
-node $SCRIPTS_ROOT/../alerts-server-e2e.js -p 4200 -r http://node1:8082
-
+$SCRIPTS_ROOT/../node_modules/@angular/cli/bin/ng serve -environment e2e --proxy-config proxy.conf.json $@
