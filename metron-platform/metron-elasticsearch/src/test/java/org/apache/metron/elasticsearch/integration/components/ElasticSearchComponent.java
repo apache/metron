@@ -22,12 +22,8 @@ import static java.util.Arrays.asList;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
@@ -56,11 +52,29 @@ import org.elasticsearch.transport.Netty4Plugin;
 
 public class ElasticSearchComponent implements InMemoryComponent {
 
+  private static class Mapping {
+    String index;
+    String docType;
+    String mapping;
+
+    public Mapping(String index, String docType, String mapping) {
+      this.index = index;
+      this.docType = docType;
+      this.mapping = mapping;
+    }
+  }
+
   public static class Builder {
 
     private int httpPort;
     private File indexDir;
     private Map<String, String> extraElasticSearchSettings = null;
+    private List<Mapping> mappings = new ArrayList<>();
+
+    public Builder withMapping(String index, String docType, String mapping) {
+      mappings.add(new Mapping(index, docType, mapping));
+      return this;
+    }
 
     public Builder withHttpPort(int httpPort) {
       this.httpPort = httpPort;
@@ -79,7 +93,7 @@ public class ElasticSearchComponent implements InMemoryComponent {
     }
 
     public ElasticSearchComponent build() {
-      return new ElasticSearchComponent(httpPort, indexDir, extraElasticSearchSettings);
+      return new ElasticSearchComponent(httpPort, indexDir, extraElasticSearchSettings, mappings);
     }
   }
 
@@ -89,16 +103,18 @@ public class ElasticSearchComponent implements InMemoryComponent {
   private int httpPort;
   private File indexDir;
   private Map<String, String> extraElasticSearchSettings;
+  private List<Mapping> mappings;
 
-  public ElasticSearchComponent(int httpPort, File indexDir) {
-    this(httpPort, indexDir, null);
+  public ElasticSearchComponent(int httpPort, File indexDir, List<Mapping> mappings) {
+    this(httpPort, indexDir, null, Collections.EMPTY_LIST);
   }
 
   public ElasticSearchComponent(int httpPort, File indexDir,
-      Map<String, String> extraElasticSearchSettings) {
+      Map<String, String> extraElasticSearchSettings, List<Mapping> mappings) {
     this.httpPort = httpPort;
     this.indexDir = indexDir;
     this.extraElasticSearchSettings = extraElasticSearchSettings;
+    this.mappings = mappings;
   }
 
   @Override
@@ -132,6 +148,10 @@ public class ElasticSearchComponent implements InMemoryComponent {
       throw new UnableToStartException("Error starting ES node.", e);
     }
     waitForCluster(client, ClusterHealthStatus.YELLOW, STARTUP_TIMEOUT);
+    for(Mapping m : Optional.ofNullable(mappings).orElse(new ArrayList<>())) {
+          client.admin().indices().prepareCreate(m.index)
+            .addMapping(m.docType, m.mapping).get();
+    }
   }
 
   private void cleanDir(File dir) throws IOException {
