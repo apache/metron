@@ -33,7 +33,7 @@ public class ThreatIntelSplitterBoltTest extends BaseEnrichmentBoltTest {
     String threatIntelType = "hbaseThreatIntel";
     ThreatIntelSplitterBolt threatIntelSplitterBolt = new ThreatIntelSplitterBolt("zookeeperUrl");
     threatIntelSplitterBolt.setCuratorFramework(client);
-    threatIntelSplitterBolt.setTreeCache(cache);
+    threatIntelSplitterBolt.setZKCache(cache);
     threatIntelSplitterBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, new FileInputStream(sampleSensorEnrichmentConfigPath));
     threatIntelSplitterBolt.prepare(new HashMap<>(), topologyContext, outputCollector);
     Map<String, Object> fieldMap = threatIntelSplitterBolt.getFieldMap(sensorType);
