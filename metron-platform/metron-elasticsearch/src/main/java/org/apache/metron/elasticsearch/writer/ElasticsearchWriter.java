@@ -45,8 +45,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   private Map<String, String> optionalSettings;
   private transient TransportClient client;
   private SimpleDateFormat dateFormat;
-  private static final Logger LOG = LoggerFactory
-          .getLogger(ElasticsearchWriter.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchWriter.class);
   private FieldNameConverter fieldNameConverter = new ElasticsearchFieldNameConverter();
 
   public ElasticsearchWriter withOptionalSettings(Map<String, String> optionalSettings) {
@@ -58,34 +57,24 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration configurations) {
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
     client = ElasticsearchUtils.getClient(globalConfiguration, optionalSettings);
-    dateFormat = new SimpleDateFormat((String) globalConfiguration.get("es.date.format"));
+    dateFormat = ElasticsearchUtils.getIndexFormat(globalConfiguration);
   }
+
 
   @Override
   public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
-    String indexPostfix = dateFormat.format(new Date());
+    final String indexPostfix = dateFormat.format(new Date());
     BulkRequestBuilder bulkRequest = client.prepareBulk();
 
     for(JSONObject message: messages) {
 
-      String indexName = sensorType;
-
-      if (configurations != null) {
-        indexName = configurations.getIndex(sensorType);
-      }
-
-      indexName = indexName + "_index_" + indexPostfix;
-
       JSONObject esDoc = new JSONObject();
       for(Object k : message.keySet()){
-
-        deDot(k.toString(),message,esDoc);
-
+        deDot(k.toString(), message, esDoc);
       }
 
-      IndexRequestBuilder indexRequestBuilder = client.prepareIndex(indexName,
-              sensorType + "_doc");
-
+      String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, configurations);
+      IndexRequestBuilder indexRequestBuilder = client.prepareIndex(indexName, sensorType + "_doc");
       indexRequestBuilder = indexRequestBuilder.setSource(esDoc.toJSONString());
       String guid = (String)esDoc.get(Constants.GUID);
       if(guid != null) {
@@ -96,12 +85,11 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
       if(ts != null) {
         indexRequestBuilder = indexRequestBuilder.setTimestamp(ts.toString());
       }
-      bulkRequest.add(indexRequestBuilder);
 
+      bulkRequest.add(indexRequestBuilder);
     }
 
     BulkResponse bulkResponse = bulkRequest.execute().actionGet();
-
     return buildWriteReponse(tuples, bulkResponse);
   }
 

@@ -76,7 +76,22 @@ So putting it all together a typical Metron message with all 5-tuple fields pres
 
 ## Global Configuration 
 
-See the "[Global Configuration](../metron-common)" section.
+There are a few properties which can be managed in the global configuration that have pertinence to
+parsers and parsing in general.
+
+### `parser.error.topic`
+
+The topic where messages which were unable to be parsed due to error are sent.
+Error messages will be indexed under a sensor type of `error` and the messages will have
+the following fields:
+* `sensor.type`: `error`
+* `failed_sensor_type` : The sensor type of the message which wasn't able to be parsed
+* `error_type` : The error type, in this case `parser`.
+* `stack` : The stack trace of the error
+* `hostname` : The hostname of the node where the error happened
+* `raw_message` : The raw message in string form
+* `raw_message_bytes` : The raw message bytes
+* `error_hash` : A hash of the error message
 
 ## Parser Configuration
 
@@ -433,6 +448,12 @@ and pass `--extra_topology_options custom_config.json` to `start_parser_topology
 
 Default installed Metron is untuned for production deployment.  There
 are a few knobs to tune to get the most out of your system.
+
+# Notes on Adding a New Sensor
+In order to allow for meta alerts to be queries alongside regular alerts in Elasticsearch 2.x,
+it is necessary to add an additional field to the templates and mapping for existing sensors.
+
+Please see a description of the steps necessary to make this change in the metron-elasticsearch [Using Metron with Elasticsearch 2.x](./metron-platform/metron-elasticsearch#using-metron-with-elasticsearch-2x)
 
 ## Kafka Queue
 The kafka queue associated with your parser is a collection point for

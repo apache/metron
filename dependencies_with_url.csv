@@ -113,6 +113,7 @@ com.fasterxml.jackson.core:jackson-core:jar:2.6.6:compile,ASLv2,https://github.c
 com.fasterxml.jackson.core:jackson-core:jar:2.7.4:compile,ASLv2,https://github.com/FasterXML/jackson-core
 com.fasterxml.jackson.core:jackson-core:jar:2.8.3:compile,ASLv2,https://github.com/FasterXML/jackson-core
 com.fasterxml.jackson.core:jackson-databind:jar:2.2.3:compile,ASLv2,http://wiki.fasterxml.com/JacksonHome
+com.fasterxml.jackson.core:jackson-databind:jar:2.4.3:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-databind:jar:2.7.4:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.core:jackson-databind:jar:2.8.3:compile,ASLv2,http://github.com/FasterXML/jackson
 com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:jar:2.6.6:compile,ASLv2,http://wiki.fasterxml.com/JacksonForCbor
@@ -332,3 +333,11 @@ org.elasticsearch.plugin:transport-netty3-client:jar:5.6.2:compile,ASLv2,https:/
 org.elasticsearch.plugin:transport-netty4-client:jar:5.6.2:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
 org.elasticsearch:securesm:jar:1.1:compile,ASLv2,https://github.com/elastic/elasticsearch/blob/master/LICENSE.txt
 org.hdrhistogram:HdrHistogram:jar:2.1.9:compile,BSD,https://github.com/HdrHistogram/HdrHistogram/blob/master/LICENSE.txt
+com.trendmicro:tlsh:jar:3.7.1:compile,ASLv2,https://github.com/trendmicro/tlsh
+org.glassfish:javax.json:jar:1.0.4:compile,Common Development and Distribution License (CDDL) v1.0,https://github.com/javaee/jsonp
+org.eclipse.persistence:javax.persistence:jar:2.1.1:compile,EPL 1.0,http://www.eclipse.org/eclipselink
+org.eclipse.persistence:org.eclipse.persistence.antlr:jar:2.6.4:compile,EPL 1.0,http://www.eclipse.org/eclipselink
+org.eclipse.persistence:org.eclipse.persistence.asm:jar:2.6.4:compile,EPL 1.0,http://www.eclipse.org/eclipselink
+org.eclipse.persistence:org.eclipse.persistence.core:jar:2.6.4:compile,EPL 1.0,http://www.eclipse.org/eclipselink
+org.eclipse.persistence:org.eclipse.persistence.jpa.jpql:jar:2.6.4:compile,EPL 1.0,http://www.eclipse.org/eclipselink
+org.eclipse.persistence:org.eclipse.persistence.jpa:jar:2.6.4:compile,EPL 1.0,http://www.eclipse.org/eclipselink

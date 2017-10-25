@@ -21,6 +21,7 @@ package org.apache.metron.elasticsearch.dao;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.constantScoreQuery;
+import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
@@ -66,7 +67,6 @@ import org.elasticsearch.index.query.InnerHitBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
 
 public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
@@ -168,6 +168,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       handleMetaUpdate(createDoc, Optional.of(METAALERTS_INDEX));
       MetaAlertCreateResponse createResponse = new MetaAlertCreateResponse();
       createResponse.setCreated(true);
+      createResponse.setGuid(createDoc.getGuid());
       return createResponse;
     } catch (IOException ioe) {
       throw new InvalidCreateException("Unable to create meta alert", ioe);
@@ -178,15 +179,19 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   public SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
     // Wrap the query to also get any meta-alerts.
     QueryBuilder qb = constantScoreQuery(boolQuery()
-        .should(new QueryStringQueryBuilder(searchRequest.getQuery()))
-        .should(boolQuery()
-            .must(termQuery(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()))
-            .must(nestedQuery(
+        .must(boolQuery()
+            .should(new QueryStringQueryBuilder(searchRequest.getQuery()))
+            .should(nestedQuery(
                 ALERT_FIELD,
                 new QueryStringQueryBuilder(searchRequest.getQuery()),
                 ScoreMode.None
                 )
             )
+        )
+        // Ensures that it's a meta alert with active status or that it's an alert (signified by having no status field)
+        .must(boolQuery()
+            .should(termQuery(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()))
+            .should(boolQuery().mustNot(existsQuery(MetaAlertDao.STATUS_FIELD)))
         )
     );
     return elasticsearchDao.search(searchRequest, qb);
@@ -297,11 +302,14 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
    * @throws IOException If there's a problem running the update
    */
   protected void handleMetaUpdate(Document update, Optional<String> index) throws IOException {
-    // We have an update to a meta alert itself (e.g. adding a document, etc.)  Calculate scores
-    // and defer the final result to the Elasticsearch DAO.
-    MetaScores metaScores = calculateMetaScores(update);
-    update.getDocument().putAll(metaScores.getMetaScores());
-    update.getDocument().put(threatTriageField, metaScores.getMetaScores().get(threatSort));
+    // We have an update to a meta alert itself
+    // If we've updated the alerts field (i.e add/remove), recalculate meta alert scores.
+    if (update.getDocument().containsKey(MetaAlertDao.ALERT_FIELD)) {
+      MetaScores metaScores = calculateMetaScores(update);
+      update.getDocument().putAll(metaScores.getMetaScores());
+      update.getDocument().put(threatTriageField, metaScores.getMetaScores().get(threatSort));
+    }
+
     indexDao.update(update, index);
   }
 
@@ -399,16 +407,14 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
     // Run through the nested alerts of the meta alert and either use the new or old versions
     builder.startArray(ALERT_FIELD);
-    Map<String, SearchHits> innerHits = hit.getInnerHits();
+    Map<String, Object> hitAlerts = hit.sourceAsMap();
 
-    SearchHits alertHits = innerHits.get(ALERT_FIELD);
-    for (SearchHit alertHit : alertHits.getHits()) {
-      Map<String, Object> docMap;
-      // If we're at the update use it, otherwise use the original
-      if (alertHit.sourceAsMap().get(Constants.GUID).equals(update.getGuid())) {
+    List<Map<String, Object>> alertHits = (List<Map<String, Object>>) hitAlerts.get(ALERT_FIELD);
+    for (Map<String, Object> alertHit : alertHits) {
+      Map<String, Object> docMap = alertHit;
+      // If we're at the update use it instead of the original
+      if (alertHit.get(Constants.GUID).equals(update.getGuid())) {
         docMap = update.getDocument();
-      } else {
-        docMap = alertHit.getSource();
       }
       builder.map(docMap);
 

@@ -265,6 +265,11 @@ public class StellarCompiler extends StellarBaseListener {
   }
 
   @Override
+  public void exitNaNArith(StellarParser.NaNArithContext ctx) {
+    expression.tokenDeque.push(new Token<>(Double.NaN, Double.class, getArgContext()));
+  }
+
+  @Override
   public void exitArithExpr_plus(StellarParser.ArithExpr_plusContext ctx) {
     final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {

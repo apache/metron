@@ -41,6 +41,7 @@
         </license>
     </licenses>
     <modules>
+        <module>stellar-3rd-party-example</module>
         <module>stellar-common</module>
     </modules>
     <dependencies>

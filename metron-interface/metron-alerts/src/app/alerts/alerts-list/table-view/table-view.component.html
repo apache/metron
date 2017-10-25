@@ -17,7 +17,7 @@
     <tr>
       <th style="width:55px"> <metron-config-sorter [type]="'number'" [sortBy]="threatScoreFieldName"> Score </metron-config-sorter> </th>
       <th *ngFor="let column of alertsColumnsToDisplay" [id]="column.name"> <metron-config-sorter [type]="column.type" [sortBy]="column.name" title="{{column.name}}"> {{ column.name | columnNameTranslate | centerEllipses:15 }}</metron-config-sorter> </th>
-      <th style="width:25px"><i class="fa fa-cog configure-table-icon" (click)="showConfigureTable()"></i></th>
+      <th></th>
       <th style="width:25px"><input id="select-deselect-all" class="fontawesome-checkbox" type="checkbox" (click)="selectAllRows($event)"><label for="select-deselect-all"></label></th>
     </tr>
     </thead>
@@ -29,7 +29,7 @@
       <td *ngFor="let column of alertsColumnsToDisplay" #cell>
         <a (click)="addFilter(column.name, getValue(alert, column, false))" title="{{getValue(alert, column, true)}}" style="color:#689AA9">{{ getValue(alert, column, true) | centerEllipses:20:cell }}</a>
       </td>
-      <td></td>
+      <td> <i class="fa fa-comments-o" aria-hidden="true" *ngIf="alert.source.comments && alert.source.comments.length > 0"></i> </td>
       <td><input id="{{ alert.id }}" class="fontawesome-checkbox" type="checkbox" name="{{alert.id}}" (click)="selectRow($event, alert)" [checked]="selectedAlerts.indexOf(alert) != -1"><label attr.for="{{ alert.id }}"></label></td>
     </tr>
     </tbody>
@@ -37,6 +37,6 @@
 </div>
 <div clas="row">
   <div class="col-md-3 push-md-5">
-    <metron-table-pagination [(pagingData)]="pagingData" (pageChange)="onPageChange()"> </metron-table-pagination>
+    <metron-table-pagination [(pagination)]="pagination" (pageChange)="onPageChange()"> </metron-table-pagination>
   </div>
 </div>

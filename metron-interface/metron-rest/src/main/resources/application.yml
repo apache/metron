@@ -58,3 +58,5 @@ meta:
   dao:
   # By default, we use the ElasticsearchMetaAlertDao
     impl: org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao
+
+spring.jpa.generate-ddl: true

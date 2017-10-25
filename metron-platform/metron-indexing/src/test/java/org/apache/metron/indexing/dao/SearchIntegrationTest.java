@@ -22,9 +22,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.GroupResult;
@@ -90,6 +92,15 @@ public abstract class SearchIntegrationTest {
    */
   @Multiline
   public static String allQuery;
+
+  /**
+   * {
+   * "guid": "bro-3",
+   * "sensorType": "bro"
+   * }
+   */
+  @Multiline
+  public static String findOneGuidQuery;
 
   /**
    * {
@@ -268,7 +279,7 @@ public abstract class SearchIntegrationTest {
   /**
    * {
    * "fields": ["guid"],
-   * "indices": ["metaalerts"],
+   * "indices": ["metaalert"],
    * "query": "*",
    * "from": 0,
    * "size": 10,
@@ -355,6 +366,16 @@ public abstract class SearchIntegrationTest {
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
+
+  @Test
+  public void find_one_guid() throws Exception {
+    GetRequest request = JSONUtils.INSTANCE.load(findOneGuidQuery, GetRequest.class);
+      Optional<Map<String, Object>> response = dao.getLatestResult(request);
+      Assert.assertTrue(response.isPresent());
+      Map<String, Object> doc = response.get();
+      Assert.assertEquals("bro", doc.get("source:type"));
+      Assert.assertEquals(3, doc.get("timestamp"));
+  }
 
   @Test
   public void all_query_returns_all_results() throws Exception {
@@ -540,7 +561,7 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(FieldType.OTHER, broTypes.get("location_point"));
     Assert.assertEquals(FieldType.TEXT, broTypes.get("bro_field"));
     Assert.assertEquals(FieldType.TEXT, broTypes.get("duplicate_name_field"));
-    Assert.assertEquals(FieldType.TEXT, broTypes.get("guid"));
+    Assert.assertEquals(FieldType.KEYWORD, broTypes.get("guid"));
     Map<String, FieldType> snortTypes = fieldTypes.get("snort");
     Assert.assertEquals(12, snortTypes.size());
     Assert.assertEquals(FieldType.KEYWORD, snortTypes.get("source:type"));
@@ -554,7 +575,7 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(FieldType.OTHER, snortTypes.get("location_point"));
     Assert.assertEquals(FieldType.INTEGER, snortTypes.get("snort_field"));
     Assert.assertEquals(FieldType.INTEGER, snortTypes.get("duplicate_name_field"));
-    Assert.assertEquals(FieldType.TEXT, broTypes.get("guid"));
+    Assert.assertEquals(FieldType.KEYWORD, broTypes.get("guid"));
   }
 
   @Test
@@ -589,7 +610,7 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
       Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
       Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
+      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
     }
   }
 

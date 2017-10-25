@@ -59,18 +59,27 @@ class RestCommands:
     def set_acl_configured(self):
         metron_service.set_configured(self.__params.metron_user, self.__params.rest_acl_configured_flag_file, "Setting REST ACL configured to true")
 
+    def __get_topics(self):
+        return [self.__params.metron_escalation_topic]
+
     def init_kafka_topics(self):
         Logger.info('Creating Kafka topics for rest')
-        topics = [self.__params.metron_escalation_topic]
-        metron_service.init_kafka_topics(self.__params, topics)
+        metron_service.init_kafka_topics(self.__params, self.__get_topics())
 
     def init_kafka_acls(self):
         Logger.info('Creating Kafka ACLs for rest')
+
         # The following topics must be permissioned for the rest application list operation
-        topics = [self.__params.ambari_kafka_service_check_topic, self.__params.consumer_offsets_topic, self.__params.metron_escalation_topic]
-        metron_service.init_kafka_acls(self.__params, topics, ['metron-rest'])
+        topics = self.__get_topics() + [self.__params.ambari_kafka_service_check_topic, self.__params.consumer_offsets_topic]
+        metron_service.init_kafka_acls(self.__params, topics)
+
+        groups = ['metron-rest']
+        metron_service.init_kafka_acl_groups(self.__params, groups)
 
     def start_rest_application(self):
+        """
+        Start the REST application
+        """
         Logger.info('Starting REST application')
 
         if self.__params.security_enabled:
@@ -104,6 +113,9 @@ class RestCommands:
         Logger.info('Done starting REST application')
 
     def stop_rest_application(self):
+        """
+        Stop the REST application
+        """
         Logger.info('Stopping REST application')
 
         # Get the pid associated with the service
@@ -147,7 +159,42 @@ class RestCommands:
         Logger.info('Done stopping REST application')
 
     def restart_rest_application(self, env):
+        """
+        Restart the REST application
+        :param env: Environment
+        """
         Logger.info('Restarting the REST application')
         self.stop_rest_application()
         self.start_rest_application()
         Logger.info('Done restarting the REST application')
+
+    def status_rest_application(self, env):
+        """
+        Performs a status check for the REST application
+        :param env: Environment
+        """
+        Logger.info('Status check the REST application')
+        metron_service.check_http(
+            self.__params.hostname,
+            self.__params.metron_rest_port,
+            self.__params.metron_user)
+
+    def service_check(self, env):
+        """
+        Performs a service check for the REST application
+        :param env: Environment
+        """
+        Logger.info('Checking connectivity to REST application')
+        metron_service.check_http(
+            self.__params.hostname,
+            self.__params.metron_rest_port,
+            self.__params.metron_user)
+
+        Logger.info('Checking Kafka topics for the REST application')
+        metron_service.check_kafka_topics(self.__params, self.__get_topics())
+
+        if self.__params.security_enabled:
+            Logger.info('Checking Kafka topic ACL for the REST application')
+            metron_service.check_kafka_acls(self.__params, self.__get_topics())
+
+        Logger.info("REST application service check completed successfully")

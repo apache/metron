@@ -23,10 +23,14 @@ import java.util.Map;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.model.AlertProfile;
+import org.apache.metron.rest.repository.AlertProfileRepository;
+import org.apache.metron.rest.security.SecurityUtils;
 import org.apache.metron.rest.service.AlertService;
 import org.apache.metron.rest.service.KafkaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -39,12 +43,15 @@ public class AlertServiceImpl implements AlertService {
 
   private Environment environment;
   private final KafkaService kafkaService;
+  private AlertProfileRepository alertProfileRepository;
 
   @Autowired
   public AlertServiceImpl(final KafkaService kafkaService,
-                          final Environment environment) {
+                          final Environment environment,
+                          final AlertProfileRepository alertsProfileRepository) {
     this.kafkaService = kafkaService;
     this.environment = environment;
+    this.alertProfileRepository = alertsProfileRepository;
   }
 
   @Override
@@ -58,5 +65,33 @@ public class AlertServiceImpl implements AlertService {
     } catch (JsonProcessingException e) {
       throw new RestException(e);
     }
+  }
+
+  @Override
+  public AlertProfile getProfile() {
+    return alertProfileRepository.findOne(SecurityUtils.getCurrentUser());
+  }
+
+  @Override
+  public Iterable<AlertProfile> findAllProfiles() {
+    return alertProfileRepository.findAll();
+  }
+
+  @Override
+  public AlertProfile saveProfile(AlertProfile alertsProfile) {
+    String user = SecurityUtils.getCurrentUser();
+    alertsProfile.setId(user);
+    return alertProfileRepository.save(alertsProfile);
+  }
+
+  @Override
+  public boolean deleteProfile(String user) {
+    boolean success = true;
+    try {
+      alertProfileRepository.delete(user);
+    } catch (EmptyResultDataAccessException e) {
+      success = false;
+    }
+    return success;
   }
 }

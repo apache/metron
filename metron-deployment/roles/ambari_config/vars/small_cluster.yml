@@ -36,6 +36,7 @@ metron_enrichment_master : [METRON_ENRICHMENT_MASTER]
 metron_parsers : [METRON_PARSERS]
 metron_rest: [METRON_REST]
 metron_management_ui: [METRON_MANAGEMENT_UI]
+metron_alerts_ui: [METRON_ALERTS_UI]
 
 master_1_components: "{{ hadoop_master | union(hadoop_clients) | union(es_slave) }}"
 master_1_host:
@@ -44,7 +45,7 @@ master_2_components: "{{ zookeeper_master | union(storm_master) | union(spark_ma
 master_2_host:
   - "{{groups.ambari_slave[1]}}"
 metron_components: >
-    {{ metron_indexing | union(metron_profiler) | union(metron_enrichment_master) | union(metron_parsers) | union(metron_rest) | union(metron_management_ui) | union(hadoop_slave) | union(storm_slave) |
+    {{ metron_indexing | union(metron_profiler) | union(metron_enrichment_master) | union(metron_parsers) | union(metron_rest) | union(metron_management_ui) | union(metron_alerts_ui) | union(hadoop_slave) | union(storm_slave) |
     union(kafka_broker) | union(hbase_slave) | union(hadoop_clients) }}
 metron_host:
   - "{{ groups.metron[0] }}"

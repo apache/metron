@@ -31,6 +31,7 @@ import {RiskLevelRule} from '../../model/risk-level-rule';
 import {HdfsService} from '../../service/hdfs.service';
 import {RestError} from '../../model/rest-error';
 import {GrokValidationService} from '../../service/grok-validation.service';
+import {SensorParserConfig} from '../../model/sensor-parser-config';
 
 @Component({
   selector: 'metron-config-sensor-parser-readonly',
@@ -43,6 +44,7 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   startStopInProgress: boolean = false;
   kafkaTopic: KafkaTopic = new KafkaTopic();
   sensorParserConfigHistory: SensorParserConfigHistory = new SensorParserConfigHistory();
+  sensorParserConfig: SensorParserConfig = new SensorParserConfig();
   topologyStatus: TopologyStatus = new TopologyStatus();
   sensorEnrichmentConfig: SensorEnrichmentConfig = new SensorEnrichmentConfig();
   grokStatement: string = '';
@@ -68,6 +70,14 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
     {label: 'THROUGHPUT', model: 'topologyStatus', value: 'throughput'},
     {label: 'EMITTED(10 MIN)', model: 'topologyStatus', value: 'emitted'},
     {label: 'ACKED(10 MIN)', model: 'topologyStatus', value: 'acked'},
+    {label: 'NUM WORKERS', model: 'sensorParserConfig', value: 'numWorkers'},
+    {label: 'NUM ACKERS', model: 'sensorParserConfig', value: 'numAckers'},
+    {label: 'SPOUT PARALLELISM', model: 'sensorParserConfig', value: 'spoutParallelism'},
+    {label: 'SPOUT NUM TASKS', model: 'sensorParserConfig', value: 'spoutNumTasks'},
+    {label: 'PARSER PARALLELISM', model: 'sensorParserConfig', value: 'parserParallelism'},
+    {label: 'PARSER NUM TASKS', model: 'sensorParserConfig', value: 'parserNumTasks'},
+    {label: 'ERROR WRITER PARALLELISM', model: 'sensorParserConfig', value: 'errorWriterParallelism'},
+    {label: 'ERROR NUM TASKS', model: 'sensorParserConfig', value: 'errorWriterNumTasks'},
 
     {type: 'SPACER', model: '', value: ''},
 
@@ -102,6 +112,7 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
     this.sensorParserConfigHistoryService.get(this.selectedSensorName).subscribe(
       (results: SensorParserConfigHistory) => {
         this.sensorParserConfigHistory = results;
+        this.sensorParserConfig = this.sensorParserConfigHistory.config;
         this.setGrokStatement();
         this.setTransformsConfigKeys();
 
@@ -145,7 +156,7 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
 
   getTopologyStatus(key: string): string {
     if (key === 'latency') {
-      return this.topologyStatus.latency >= 0? (this.topologyStatus.latency + 's') : '-';
+      return this.topologyStatus.latency >= 0 ? (this.topologyStatus.latency + 's') : '-';
     } else if (key === 'throughput') {
       return this.topologyStatus.throughput >= 0 ? ((Math.round(this.topologyStatus.throughput * 100) / 100) + 'kb/s') : '-';
     } else if (key === 'emitted') {

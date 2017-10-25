@@ -11,20 +11,20 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<a [attr.href]="'#' + uniqueId"  data-toggle="collapse"  aria-expanded="true" [attr.aria-controls]="uniqueId" class="pr-2"
-   [ngClass]="{'font-size-14' : fontSize === 14, 'font-size-15' : fontSize === 15, 'border-bottom' : titleSeperator=== true}">
-  {{ data.groupName }}
+<a [attr.href]="'#' + uniqueId"  data-toggle="collapse"  aria-expanded="false" [attr.aria-controls]="uniqueId" class="pr-2 collapsed"
+   [ngClass]="{'font-size-12' : fontSize === 12, 'font-size-15' : fontSize === 15, 'border-bottom' : titleSeperator=== true}">
+  {{ data.groupName | columnNameTranslate | centerEllipses: strLength  }}  <span *ngIf="countOption" class="group-items-count"> {{ data.groupItems.length }} </span>
 </a>
-<div class="collapse" [attr.id]="uniqueId" [ngClass]="{'show': show === true}">
+<div class="collapse" [attr.id]="uniqueId" [ngClass]="{'show': data.collapsed === false}">
   <div *ngIf="data.groupItems.length === 0" class="container-fluid no-data-text">
-    <i> {{ 'No ' +  data.groupName + ' yet'}} </i>
+    <i> {{ 'No ' +  data.groupName  | centerEllipses: strLength }}  </i>
   </div>
   <ul  *ngIf="data.groupItems.length > 0"  class="list-group">
     <li *ngFor="let groupItem of data.groupItems" class="list-group-item justify-content-between anchor"
-        [ngClass]="{'font-size-14' : fontSize === 14, 'font-size-15' : fontSize === 15}" [attr.title]="groupItem.name"
+        [ngClass]="{'font-size-12' : fontSize === 12, 'font-size-15' : fontSize === 15}" [attr.title]="groupItem.name"
         (click)="onSelectClick(groupItem.name)">
       {{ groupItem.name | centerEllipses: strLength }}
-      <span *ngIf="data.doc_count" class="badge badge-default badge-pill"> {{ groupItem.count }} </span>
+      <span *ngIf="countOption" class="count"> {{ groupItem.count }} </span>
       <span *ngIf="deleteOption" class="delete" (click)="onDeleteClick($event, groupItem.name)"> </span>
     </li>
   </ul>

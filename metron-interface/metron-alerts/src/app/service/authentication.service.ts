@@ -81,6 +81,10 @@ export class AuthenticationService {
     return this.http.get(this.loginUrl, options);
   }
 
+  public getCurrentUserName(): string {
+    return this.currentUser;
+  }
+
   public isAuthenticationChecked(): boolean {
     return this.currentUser !== AuthenticationService.USER_NOT_VERIFIED;
   }
