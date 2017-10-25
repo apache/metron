@@ -105,10 +105,6 @@ public class ElasticSearchComponent implements InMemoryComponent {
   private Map<String, String> extraElasticSearchSettings;
   private List<Mapping> mappings;
 
-  public ElasticSearchComponent(int httpPort, File indexDir, List<Mapping> mappings) {
-    this(httpPort, indexDir, null, Collections.EMPTY_LIST);
-  }
-
   public ElasticSearchComponent(int httpPort, File indexDir,
       Map<String, String> extraElasticSearchSettings, List<Mapping> mappings) {
     this.httpPort = httpPort;
