@@ -17,10 +17,10 @@
  */
 package org.apache.metron.rest.service.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.DeleteBuilder;
@@ -29,12 +29,14 @@ import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.curator.framework.api.SetDataBuilder;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.IndexingConfigurations;
+import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,6 +46,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -139,7 +142,85 @@ public class SensorIndexingConfigServiceImplTest {
   }
 
 
+  @Test
+  public void getAllIndicesWithOnlyParsers() throws RestException {
+    ParserConfigurations parserConfiguration = mock(ParserConfigurations.class);
+    when(parserConfiguration.getTypes()).thenReturn(ImmutableList.of("bro", "snort"));
+    IndexingConfigurations indexingConfiguration = mock(IndexingConfigurations.class);
+    when(indexingConfiguration.getTypes()).thenReturn(Collections.emptyList());
+    when(indexingConfiguration.getIndex(eq("bro"), eq("elasticsearch"))).thenReturn(null);
+    when(indexingConfiguration.getIndex(eq("snort"), eq("elasticsearch"))).thenReturn(null);
+    when(indexingConfiguration.isEnabled(eq("snort"), eq("elasticsearch"))).thenReturn(true);
+    when(indexingConfiguration.isEnabled(eq("bro"), eq("elasticsearch"))).thenReturn(true);
 
+    when(cache.get(eq(ParserConfigurations.class))).thenReturn(parserConfiguration);
+    when(cache.get(eq(IndexingConfigurations.class))).thenReturn(indexingConfiguration);
+    List<String> indices = new ArrayList<String>();
+    Iterables.addAll(indices, sensorIndexingConfigService.getAllIndices("elasticsearch"));
+    Assert.assertEquals(2, indices.size());
+    Assert.assertTrue(indices.contains("bro"));
+    Assert.assertTrue(indices.contains("snort"));
+  }
+
+  @Test
+  public void getAllIndicesWithOnlyIndexing() throws RestException {
+    ParserConfigurations parserConfiguration = mock(ParserConfigurations.class);
+    when(parserConfiguration.getTypes()).thenReturn(Collections.emptyList());
+    IndexingConfigurations indexingConfiguration = mock(IndexingConfigurations.class);
+    // rename bro, include snort by default configs, and disable yaf
+    when(indexingConfiguration.getTypes()).thenReturn(ImmutableList.of("bro", "snort", "yaf"));
+    when(indexingConfiguration.getIndex(eq("bro"), eq("elasticsearch"))).thenReturn("renamed_bro");
+    when(indexingConfiguration.getIndex(eq("snort"), eq("elasticsearch"))).thenReturn(null);
+    when(indexingConfiguration.isEnabled(eq("snort"), eq("elasticsearch"))).thenReturn(true);
+    when(indexingConfiguration.isEnabled(eq("bro"), eq("elasticsearch"))).thenReturn(true);
+    when(indexingConfiguration.isEnabled(eq("yaf"), eq("elasticsearch"))).thenReturn(false);
+
+    when(cache.get(eq(ParserConfigurations.class))).thenReturn(parserConfiguration);
+    when(cache.get(eq(IndexingConfigurations.class))).thenReturn(indexingConfiguration);
+    List<String> indices = new ArrayList<String>();
+    Iterables.addAll(indices, sensorIndexingConfigService.getAllIndices("elasticsearch"));
+    Assert.assertEquals(2, indices.size());
+    Assert.assertTrue(indices.contains("renamed_bro"));
+    Assert.assertTrue(indices.contains("snort"));
+  }
+
+  @Test
+  public void getAllIndicesWithParsersAndIndexConfigs() throws RestException {
+
+    ParserConfigurations parserConfiguration = mock(ParserConfigurations.class);
+    when(parserConfiguration.getTypes()).thenReturn(ImmutableList.of("bro", "yaf"));
+    IndexingConfigurations indexingConfiguration = mock(IndexingConfigurations.class);
+    when(indexingConfiguration.getTypes()).thenReturn(ImmutableList.of("bro", "snort", "squid"));
+    when(indexingConfiguration.getIndex(eq("bro"), eq("elasticsearch"))).thenReturn("renamed_bro");
+    when(indexingConfiguration.getIndex(eq("snort"), eq("elasticsearch"))).thenReturn("snort");
+    when(indexingConfiguration.getIndex(eq("yaf"), eq("elasticsearch"))).thenReturn(null);
+    when(indexingConfiguration.isEnabled(eq("snort"), eq("elasticsearch"))).thenReturn(true);
+    when(indexingConfiguration.isEnabled(eq("bro"), eq("elasticsearch"))).thenReturn(true);
+    when(indexingConfiguration.isEnabled(eq("yaf"), eq("elasticsearch"))).thenReturn(true);
+    when(indexingConfiguration.isEnabled(eq("squid"), eq("elasticsearch"))).thenReturn(false);
+    when(cache.get(eq(ParserConfigurations.class))).thenReturn(parserConfiguration);
+    when(cache.get(eq(IndexingConfigurations.class))).thenReturn(indexingConfiguration);
+    List<String> indices = new ArrayList<String>();
+    Iterables.addAll(indices, sensorIndexingConfigService.getAllIndices("elasticsearch"));
+    Assert.assertEquals(3, indices.size());
+    Assert.assertTrue(indices.contains("renamed_bro"));
+    Assert.assertTrue(indices.contains("snort"));
+    Assert.assertTrue(indices.contains("yaf"));
+  }
+
+  @Test
+  public void getAllIndicesWithNoConfigs() throws RestException {
+    ParserConfigurations parserConfiguration = mock(ParserConfigurations.class);
+    when(parserConfiguration.getTypes()).thenReturn(Collections.emptyList());
+    IndexingConfigurations indexingConfiguration = mock(IndexingConfigurations.class);
+    when(indexingConfiguration.getTypes()).thenReturn(Collections.emptyList());
+
+    when(cache.get(eq(ParserConfigurations.class))).thenReturn(parserConfiguration);
+    when(cache.get(eq(IndexingConfigurations.class))).thenReturn(indexingConfiguration);
+    List<String> indices = new ArrayList<String>();
+    Iterables.addAll(indices, sensorIndexingConfigService.getAllIndices("elasticsearch"));
+    Assert.assertEquals(0, indices.size());
+  }
 
   @Test
   public void getAllTypesShouldProperlyReturnTypes() throws Exception {
