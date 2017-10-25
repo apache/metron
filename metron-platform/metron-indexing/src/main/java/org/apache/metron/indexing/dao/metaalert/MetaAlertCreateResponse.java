@@ -20,6 +20,7 @@ package org.apache.metron.indexing.dao.metaalert;
 
 public class MetaAlertCreateResponse {
   private boolean created;
+  private String guid;
 
   public boolean isCreated() {
     return created;
@@ -27,5 +28,13 @@ public class MetaAlertCreateResponse {
 
   public void setCreated(boolean created) {
     this.created = created;
+  }
+
+  public String getGuid() {
+    return guid;
+  }
+
+  public void setGuid(String guid) {
+    this.guid = guid;
   }
 }

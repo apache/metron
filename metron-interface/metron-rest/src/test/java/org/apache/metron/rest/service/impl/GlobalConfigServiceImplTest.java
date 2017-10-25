@@ -28,11 +28,15 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import com.google.common.collect.ImmutableMap;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.DeleteBuilder;
 import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.curator.framework.api.SetDataBuilder;
 import org.apache.metron.common.configuration.ConfigurationType;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.zookeeper.KeeperException;
@@ -49,11 +53,13 @@ public class GlobalConfigServiceImplTest {
 
   CuratorFramework curatorFramework;
   GlobalConfigService globalConfigService;
+  ConfigurationsCache cache;
 
   @Before
   public void setUp() throws Exception {
     curatorFramework = mock(CuratorFramework.class);
-    globalConfigService = new GlobalConfigServiceImpl(curatorFramework);
+    cache = mock(ConfigurationsCache.class);
+    globalConfigService = new GlobalConfigServiceImpl(curatorFramework, cache);
   }
 
 
@@ -98,22 +104,16 @@ public class GlobalConfigServiceImplTest {
       put("k", "v");
     }};
 
-    GetDataBuilder getDataBuilder = mock(GetDataBuilder.class);
-    when(getDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot())).thenReturn(config.getBytes());
-
-    when(curatorFramework.getData()).thenReturn(getDataBuilder);
+    EnrichmentConfigurations configs = new EnrichmentConfigurations(){
+      @Override
+      public Map<String, Object> getConfigurations() {
+        return ImmutableMap.of(ConfigurationType.GLOBAL.getTypeName(), configMap);
+      }
+    };
+    when(cache.get( eq(EnrichmentConfigurations.class)))
+            .thenReturn(configs);
 
     assertEquals(configMap, globalConfigService.get());
-  }
-
-  @Test
-  public void getShouldReturnNullWhenNoNodeExceptionIsThrown() throws Exception {
-    GetDataBuilder getDataBuilder = mock(GetDataBuilder.class);
-    when(getDataBuilder.forPath(ConfigurationType.GLOBAL.getZookeeperRoot())).thenThrow(KeeperException.NoNodeException.class);
-
-    when(curatorFramework.getData()).thenReturn(getDataBuilder);
-
-    assertNull(globalConfigService.get());
   }
 
   @Test

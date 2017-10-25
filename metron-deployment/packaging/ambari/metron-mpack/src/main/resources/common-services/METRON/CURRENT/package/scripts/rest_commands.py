@@ -77,6 +77,9 @@ class RestCommands:
         metron_service.init_kafka_acl_groups(self.__params, groups)
 
     def start_rest_application(self):
+        """
+        Start the REST application
+        """
         Logger.info('Starting REST application')
 
         if self.__params.security_enabled:
@@ -110,6 +113,9 @@ class RestCommands:
         Logger.info('Done starting REST application')
 
     def stop_rest_application(self):
+        """
+        Stop the REST application
+        """
         Logger.info('Stopping REST application')
 
         # Get the pid associated with the service
@@ -153,21 +159,41 @@ class RestCommands:
         Logger.info('Done stopping REST application')
 
     def restart_rest_application(self, env):
+        """
+        Restart the REST application
+        :param env: Environment
+        """
         Logger.info('Restarting the REST application')
         self.stop_rest_application()
         self.start_rest_application()
         Logger.info('Done restarting the REST application')
 
-    def service_check(self, env):
+    def status_rest_application(self, env):
         """
-        Performs a service check for the Metron API.
+        Performs a status check for the REST application
         :param env: Environment
         """
+        Logger.info('Status check the REST application')
+        metron_service.check_http(
+            self.__params.hostname,
+            self.__params.metron_rest_port,
+            self.__params.metron_user)
+
+    def service_check(self, env):
+        """
+        Performs a service check for the REST application
+        :param env: Environment
+        """
+        Logger.info('Checking connectivity to REST application')
+        metron_service.check_http(
+            self.__params.hostname,
+            self.__params.metron_rest_port,
+            self.__params.metron_user)
+
         Logger.info('Checking Kafka topics for the REST application')
         metron_service.check_kafka_topics(self.__params, self.__get_topics())
 
         if self.__params.security_enabled:
-
             Logger.info('Checking Kafka topic ACL for the REST application')
             metron_service.check_kafka_acls(self.__params, self.__get_topics())
 

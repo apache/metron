@@ -43,6 +43,13 @@ public class ProfileResultExpressions {
   }
 
   @Override
+  public String toString() {
+    return "ProfileResultExpressions{" +
+            "expression='" + expression + '\'' +
+            '}';
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
