@@ -263,7 +263,7 @@ public class SensorParserConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.mergeMetadata").value("true"))
             .andExpect(jsonPath("$.parserConfig").isEmpty());
 
-    this.mockMvc.perform(post(sensorParserConfigUrl).with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
+    assertEventually(() -> this.mockMvc.perform(post(sensorParserConfigUrl).with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.*", hasSize(numFields.get())))
@@ -271,7 +271,7 @@ public class SensorParserConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.sensorTopic").value("broTest"))
             .andExpect(jsonPath("$.readMetadata").value("true"))
             .andExpect(jsonPath("$.mergeMetadata").value("true"))
-            .andExpect(jsonPath("$.parserConfig").isEmpty());
+            .andExpect(jsonPath("$.parserConfig").isEmpty()));
 
     this.mockMvc.perform(get(sensorParserConfigUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
