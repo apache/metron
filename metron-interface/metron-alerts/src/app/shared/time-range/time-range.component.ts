@@ -107,7 +107,9 @@ export class TimeRangeComponent implements OnInit, OnChanges {
 
     if (!foundQuickRange) {
       this.selectedTimeRangeValue = CUSTOMM_DATE_RANGE_LABEL;
-      this.toDateStr = moment(this.selectedTimeRange.dateFilterValue.toDate).format(DEFAULT_TIMESTAMP_FORMAT);
+      this.toDateStr = this.selectedTimeRange.dateFilterValue.toDate !== null ?
+                        moment(this.selectedTimeRange.dateFilterValue.toDate).format(DEFAULT_TIMESTAMP_FORMAT) :
+                        'NOW';
       this.fromDateStr = moment(this.selectedTimeRange.dateFilterValue.fromDate).format(DEFAULT_TIMESTAMP_FORMAT);
     }
   }

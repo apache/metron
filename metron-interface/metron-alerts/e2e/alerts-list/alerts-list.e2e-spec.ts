@@ -147,7 +147,7 @@ describe('metron-alerts App', function() {
 
   });
 
-  it('sould have all time-range controls', () => {
+  it('should have all time-range controls', () => {
     let quickRanges = [
       'Last 7 days', 'Last 30 days', 'Last 60 days', 'Last 90 days', 'Last 6 months', 'Last 1 year', 'Last 2 years', 'Last 5 years',
       'Yesterday', 'Day before yesterday', 'This day last week', 'Previous week', 'Previous month', 'Previous year', 'All time',
@@ -161,19 +161,182 @@ describe('metron-alerts App', function() {
     expect(page.getValueForManualTimeRange()).toEqual([ 'now', 'now' ]);
     expect(page.isManulaTimeRangeApplyButtonPresent()).toEqual(true);
     expect(page.getTimeRangeButtonText()).toEqual('All time');
+    page.clickDateSettings();
 
   });
 
-  it('sould have all time-range included while searching', () => {
+  it('should have all time range values populated - 1', () => {
+    let secInADay = (24 * 60 * 60 * 1000);
+
+    page.clickClearSearch();
+    expect(page.getTimeRangebuttonText()).toEqualBcoz(['All time'], 'for all-time');
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Last 7 days');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz(['Last 7 days', String(secInADay * 7)], 'for last 7 days');
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Last 30 days');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz(['Last 30 days', String(secInADay * 30)], 'for last 30 days');
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Last 60 days');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz(['Last 60 days', String(secInADay * 60)], 'for last 60 days');
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Last 90 days');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz(['Last 90 days', String(secInADay * 90)], 'for last 90 days');
+
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Last 1 year');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz(['Last 1 year', String(secInADay * 365)], 'for last 1 year');
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Last 2 years');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz(['Last 2 years', String((secInADay * 365 * 2) + secInADay)], 'for last 2 years');
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Last 5 years');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz(['Last 5 years', String((secInADay * 365 * 5) + secInADay)], 'for last 5 years');
+
+    page.clickClearSearch();
+  });
+
+  it('should have all time range values populated - 2', () => {
+    let secInADay = (24*60*60*1000);
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Yesterday');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz([ 'Yesterday', String(secInADay - 1000)], 'yesterday');
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Day before yesterday');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz([ 'Day before yesterday', String(secInADay - 1000)], 'day before yesterday');
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('This day last week');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz([ 'This day last week', String(secInADay - 1000)], 'this day last week');
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Previous week');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz([ 'Previous week', String((secInADay * 7) - (1000))], 'for previous week');
+
+    page.clickClearSearch();
+  });
+
+  it('should have all time range values populated - 3', () => {
+    let secInADay = (24*60*60*1000);
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Today');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz([ 'Today', String(secInADay - 1000)], 'for today');
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('This week');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz([ 'This week', String((secInADay*7) - 1000)], 'for this week');
+
+    page.clickClearSearch();
+  });
+
+  it('should have all time range values populated - 4', () => {
+    let secInADay = (24*60*60*1000);
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Last 5 minutes');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz([ 'Last 5 minutes', String(5 * 60 * 1000)], 'for last 5 minutes');
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Last 15 minutes');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz([ 'Last 15 minutes', String(15 * 60 * 1000)], 'for last 15 minutes');
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Last 30 minutes');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz([ 'Last 30 minutes', String(30 * 60 * 1000)], 'for last 30 minutes');
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Last 1 hour');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz([ 'Last 1 hour', String(60 * 60 * 1000)], 'for last 1 hour');
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Last 3 hours');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz([ 'Last 3 hours', String(3 * 60 * 60 * 1000)], 'for last 3 hours');
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Last 6 hours');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz([ 'Last 6 hours', String(6 * 60 * 60 * 1000)], 'for last 6 hours');
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Last 12 hours');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz([ 'Last 12 hours', String(12 * 60 * 60 * 1000)], 'for last 12 hours');
+
+    page.clickDateSettings();
+    page.selectQuickTimeRange('Last 24 hours');
+    expect(page.getTimeRangebuttonText()).toEqualBcoz([ 'Last 24 hours', String(24 * 60 * 60 * 1000)], 'for last 24 hours');
+
+    page.clickClearSearch();
+  });
+
+  it('should disable date picker when timestamp is present in search', () => {
+    page.clickTableText('2017-09-13 18:02:20');
+    expect(page.isDateSeettingDisabled()).toEqual(true);
+
+    page.clickClearSearch();
+    expect(page.isDateSeettingDisabled()).toEqual(false);
+
+    page.clickTableText('alerts_ui_e2e');
+    expect(page.isDateSeettingDisabled()).toEqual(false);
+
+    page.clickClearSearch();
+  });
+
+  it('should have now included when to date is empty', () => {
+    page.clickDateSettings();
+    page.setDate(0, '2017', 'September', '13', '23', '29', '35');
+    page.selectTimeRangeApplyButton();
+    expect(page.getTimeRangeButtonTextForNow()).toEqual([ 'Date Range', '2017-09-13 23:29:35 to NOW' ]);
+
+    page.clickClearSearch();
+  });
+  
+  it('should have all time-range included while searching', () => {
+    page.clearLocalStorage();
+    page.clickDateSettings();
+
+    /* Select Last 5years for time range */
     page.selectQuickTimeRange('Last 5 years');
     expect(page.getTimeRangeButtonText()).toEqual('Last 5 years');
 
+    /* Select custom date for time range */
     page.clickDateSettings();
     page.setDate(0, '2017', 'September', '13', '23', '29', '35');
     page.setDate(1, '2017', 'September', '13', '23', '29', '40');
     page.selectTimeRangeApplyButton();
-
     expect(page.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (5)');
+
+    /* Save custom date in saved searches */
+    page.saveSearch('e2e-2');
+    page.clickSavedSearch();
+    expect(page.getRecentSearchOptions()).toEqual(['timestamp:(>=15...=1505325580000)', 'timestamp:last-5-years'],
+                                                    'for recent search options');
+    expect(page.getSavedSearchOptions()).toEqual(['e2e-2'],
+                                                    'for saved search options');
+    page.clickCloseSavedSearch();
+
+    /* Clear Search should should show all rows */
+    page.clickClearSearch();
+    expect(page.getChangesAlertTableTitle('Alerts (5)')).toEqual('Alerts (169)');
+
+    /* Load the saved search */
+    page.clickSavedSearch();
+    page.loadSavedSearch('e2e-2');
+    expect(page.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (5)');
+
+    /* Load recent search */
+    page.clickSavedSearch();
+    page.loadRecentSearch('last-5-years');
+    expect(page.getChangesAlertTableTitle('Alerts (5)')).toEqual('Alerts (169)');
+
   });
 
 });

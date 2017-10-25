@@ -22,7 +22,7 @@ import {DateFilterValue} from '../model/date-filter-value';
 
 export class Utils {
 
-  public static timeRangeToDateObj(range: string) {
+  public static timeRangeToDateObj(range:string) {
     let timeRangeToDisplayStr = Utils.timeRangeToDisplayStr(range);
     if (timeRangeToDisplayStr != null) {
       let toDate = new Date((timeRangeToDisplayStr.toDate)).getTime();
@@ -36,12 +36,16 @@ export class Utils {
     }
     return null;
   }
-  public static parseTimeRange(range: string) {
-    let parsed = range.replace(/^\(>=/,'')
-    .replace(/\)$/,'')
-    .replace(/<=/,'').split('AND');
+
+  public static parseTimeRange(range:string) {
+    let parsed = range.replace(/^\(>=/, '')
+    .replace(/\)$/, '')
+    .replace(/<=/, '').split('AND');
     if (parsed.length === 2 && !isNaN(Number(parsed[0])) && !isNaN(Number(parsed[1]))) {
       return {toDate: Number(parsed[1]), fromDate: Number(parsed[0])};
+    }
+    if (parsed.length === 1 && !isNaN(Number(parsed[0]))) {
+      return {toDate: null, fromDate: Number(parsed[0])};
     }
 
     return null;

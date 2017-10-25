@@ -152,12 +152,14 @@ export class MetronAlertsPage {
   }
 
   clickConfigureTable() {
-    element(by.css('app-alerts-list .fa.fa-cog.configure-table-icon')).click();
+    let gearIcon = element(by.css('app-alerts-list .fa.fa-cog.configure-table-icon'));
+    waitForElementVisibility(gearIcon).then(() => gearIcon.click());
     browser.sleep(1000);
   }
 
   clickCloseSavedSearch() {
     element(by.css('app-saved-searches .close-button')).click();
+    browser.sleep(2000);
   }
 
   clickSavedSearch() {
@@ -170,7 +172,7 @@ export class MetronAlertsPage {
   }
 
   clickTableText(name: string) {
-    waitForElementPresence(element.all(by.css('app-table-view tbody tr'))).then(() => element.all(by.linkText(name)).get(0).click());
+    waitForElementPresence(element.all(by.css('app-table-view tbody tr a'))).then(() => element.all(by.linkText(name)).get(0).click());
   }
 
   clickClearSearch() {
@@ -195,26 +197,22 @@ export class MetronAlertsPage {
 
   getRecentSearchOptions() {
     browser.sleep(1000);
-    let map = {};
-    let recentSearches = element.all(by.css('app-saved-searches metron-collapse')).get(0);
-    return recentSearches.all(by.css('a')).getText().then(title => {
-       return recentSearches.all(by.css('.collapse.show')).getText().then(values => {
-         map[title] = values;
-        return map;
-      });
-    });
+    return element(by.linkText('Recent Searches')).element(by.xpath('..')).all(by.css('li')).getText();
+  }
+
+  getDefaultRecentSearchValue() {
+    browser.sleep(1000);
+    return element(by.linkText('Recent Searches')).element(by.xpath('..')).all(by.css('i')).getText();
   }
 
   getSavedSearchOptions() {
     browser.sleep(1000);
-    let map = {};
-    let recentSearches = element.all(by.css('app-saved-searches metron-collapse')).get(1);
-    return recentSearches.all(by.css('a')).getText().then(title => {
-      return recentSearches.all(by.css('.collapse.show')).getText().then(values => {
-        map[title] = values;
-        return map;
-      });
-    });
+    return element(by.linkText('Saved Searches')).element(by.xpath('..')).all(by.css('li')).getText();
+  }
+
+  getDefaultSavedSearchValue() {
+    browser.sleep(1000);
+    return element(by.linkText('Saved Searches')).element(by.xpath('..')).all(by.css('i')).getText();
   }
 
   getSelectedColumnNames() {
@@ -288,6 +286,10 @@ export class MetronAlertsPage {
     });
   }
 
+  isDateSeettingDisabled() {
+    return element.all(by.css('app-time-range button.btn.btn-search[disabled=""]')).count().then((count) => { return (count === 1); });
+  }
+
   clickDateSettings() {
     element(by.css('app-time-range button.btn-search')).click();
     browser.sleep(2000);
@@ -310,8 +312,8 @@ export class MetronAlertsPage {
   }
 
   selectQuickTimeRange(quickRange: string) {
-    element(by.cssContainingText('.quick-ranges span', quickRange)).click();
-    browser.sleep(1000);
+    element.all(by.cssContainingText('.quick-ranges span', quickRange)).get(0).click();
+    browser.sleep(2000);
   }
   
   getTimeRangeButtonText() {
@@ -352,4 +354,38 @@ export class MetronAlertsPage {
     return element(by.css('a[title="' + id +'"]'))
           .element(by.xpath('../..')).all(by.css('td a')).get(8).getText();
   }
+
+  loadSavedSearch(name: string) {
+    element.all(by.css('app-saved-searches metron-collapse')).get(1).element(by.css('li[title="'+ name +'"]')).click();
+    browser.sleep(1000);
+  }
+
+  loadRecentSearch(name: string) {
+    element.all(by.css('app-saved-searches metron-collapse')).get(0).all(by.css('li')).get(2).click();
+    browser.sleep(1000);
+  }
+
+  getTimeRangeButtonTextForNow() {
+    return element.all(by.css('app-time-range button span')).getText();
+  }
+  
+  getTimeRangebuttonText() {
+    return element.all(by.css('app-time-range button span')).getText().then(arr => {
+      let retArr = [arr[0]];
+      for (let i=1; i < arr.length; i++) {
+        let dateStr = arr[i].split(' to ');
+        let fromTime = new Date(dateStr[0]).getTime();
+        let toTime = new Date(dateStr[1]).getTime();
+        retArr.push((toTime - fromTime) + '');
+      }
+      return retArr;
+    });
+  }
+  
+  renameColumn(name: string, value: string) {
+    element(by.cssContainingText('app-configure-table span', name))
+    .element(by.xpath('../..'))
+    .element(by.css('.input')).sendKeys(value);
+  }
+
 }

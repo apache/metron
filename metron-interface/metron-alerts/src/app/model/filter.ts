@@ -45,7 +45,7 @@ export class Filter {
   getQueryString(): string {
     if (this.field === TIMESTAMP_FIELD_NAME && !this.display) {
       this.dateFilterValue = Utils.timeRangeToDateObj(this.value);
-      if (this.dateFilterValue !== null) {
+      if (this.dateFilterValue !== null && this.dateFilterValue.toDate !== null) {
         return ElasticsearchUtils.escapeESField(this.field) + ':' +
             '(>=' + this.dateFilterValue.fromDate + ' AND ' + ' <=' + this.dateFilterValue.toDate + ')';
       } else {
