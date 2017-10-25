@@ -20,8 +20,10 @@ package org.apache.metron.rest.controller;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.service.SensorParserConfigService;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -289,6 +291,11 @@ public class SensorParserConfigControllerIntegrationTest {
 
     this.mockMvc.perform(delete(sensorParserConfigUrl + "/squidTest").with(httpBasic(user,password)).with(csrf()))
             .andExpect(status().isOk());
+
+    {
+      //we must wait for the config to find its way into the config.
+      TestUtils.assertEventually(() -> Assert.assertNull(sensorParserConfigService.findOne("squidTest")));
+    }
 
     this.mockMvc.perform(get(sensorParserConfigUrl + "/squidTest").with(httpBasic(user,password)))
             .andExpect(status().isNotFound());
