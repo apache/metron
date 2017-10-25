@@ -49,7 +49,6 @@
     <value>/var/run/elasticsearch</value>
     <description>The directory for pid files</description>
   </property>
-
   <!-- elasticsearch-env.sh -->
   <property>
     <name>content</name>
@@ -63,5 +62,25 @@
 export JAVA_HOME={{java64_home}}
 export PATH=$PATH:$JAVA_HOME/bin
     </value>
+  </property>
+  <property>
+    <name>elastic_user_nofile_limit</name>
+    <value>65536</value>
+    <description>Max open file limit for Elasticsearch user.</description>
+  </property>
+  <property>
+    <name>elastic_user_nproc_limit</name>
+    <value>2048</value>
+    <description>Max number of processes for Elasticsearch user.</description>
+  </property>
+  <property>
+    <name>elastic_user_memlock_soft_limit</name>
+    <value>unlimited</value>
+    <description>Max locked-in memory address space (soft memlock limit).</description>
+  </property>
+  <property>
+    <name>elastic_user_memlock_hard_limit</name>
+    <value>unlimited</value>
+    <description>Max locked-in memory address space (hard memlock limit).</description>
   </property>
 </configuration>
