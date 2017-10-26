@@ -80,6 +80,8 @@ class Indexing(Script):
         from params import params
         env.set_params(params)
         self.configure(env)
+        # Install elasticsearch templates
+        self.elasticsearch_template_install(env)
         commands = IndexingCommands(params)
         commands.start_indexing_topology(env)
 
