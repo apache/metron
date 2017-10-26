@@ -32,6 +32,8 @@ public interface SensorIndexingConfigService {
 
   List<String> getAllTypes() throws RestException;
 
+  Iterable<String> getAllIndices(String writerName) throws RestException;
+
   boolean delete(String name) throws RestException;
 
 }
