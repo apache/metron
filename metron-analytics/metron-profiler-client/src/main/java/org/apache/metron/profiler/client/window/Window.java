@@ -45,7 +45,7 @@ public class Window {
   /**
    * Return the start of the interval relative to the timestamp passed.
    * @param now
-   * @return
+   * @return long returns the start of the interval relative to the timestamp passed
    */
   public long getStartMillis(long now) {
     return startMillis.apply(now);
@@ -58,9 +58,9 @@ public class Window {
   /**
    * Return the end of the interval relative to the timestamp passed.
    * @param now
-   * @return
+   * @return long returns the end of the interval relative to the timestamp passed
    */
-  public Long getEndMillis(long now) {
+  public long getEndMillis(long now) {
     return endMillis.apply(now);
   }
 
@@ -72,7 +72,8 @@ public class Window {
    * Get the set of inclusion predicates.  If any of these are true as applied to the window interval start time,
    * then a field is included unless it's explicitly excluded.
    * @param now
-   * @return
+   * @return Iterable<Predicate<Long>> returns a set of inclusion predicates. If any of these are true as
+   * applied to the window interval start time, then a field is included unless it's explicitly excluded
    */
   public Iterable<Predicate<Long>> getIncludes(long now) {
     return Iterables.transform(includes, f -> f.apply(now));
@@ -86,7 +87,9 @@ public class Window {
    * Get the set of exclusion predicates.  If any of these exclusion predicates are true as applied to the window
    * interval start time, then the interval is excluded.  NOTE: Exclusions trump inclusions.
    * @param now
-   * @return
+   * @return Iterable<Predicate<Long>> returns the set of exclusion predicates. If any of these exclusion
+   * predicates are true as applied to the window interval start time, then the interval is excluded.
+   * Exclusions trump inclusions.
    */
   public Iterable<Predicate<Long>> getExcludes(long now){
     return Iterables.transform(excludes, f -> f.apply(now));
@@ -98,7 +101,7 @@ public class Window {
 
   /**
    * The bin width.  This is fixed regardless of relative time.
-   * @return
+   * @return binWidth returns the bin width. This is fixed regardless of the relative time
    */
   public Optional<Long> getBinWidth() {
     return binWidth;
@@ -110,7 +113,8 @@ public class Window {
 
   /**
    * The skip distance.  How long between interval windows that one must go.
-   * @return
+   * @return skipDistance returns the skip distance. How long between interval
+   * windows that one must go.
    */
   public Optional<Long> getSkipDistance() {
     return skipDistance;
@@ -125,7 +129,8 @@ public class Window {
    * given inclusion and exclusion predicates.
    *
    * @param now
-   * @return
+   * @return intervals returns a set of sorted (oldest to newest) window intervals relative to the
+   * passed timestamp given inclusion and exclusion predicates.
    */
   public List<Range<Long>> toIntervals(long now) {
     List<Range<Long>> intervals = new ArrayList<>();
