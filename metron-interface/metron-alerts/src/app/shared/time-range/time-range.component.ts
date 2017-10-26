@@ -101,6 +101,9 @@ export class TimeRangeComponent implements OnInit, OnChanges {
         if (this.selectedTimeRange.dateFilterValue) {
           this.toDateStr = moment(this.selectedTimeRange.dateFilterValue.toDate).format(DEFAULT_TIMESTAMP_FORMAT);
           this.fromDateStr = moment(this.selectedTimeRange.dateFilterValue.fromDate).format(DEFAULT_TIMESTAMP_FORMAT);
+
+          this.datePickerFromDate = '';
+          this.datePickerToDate = '';
         }
       }
     });
@@ -109,8 +112,11 @@ export class TimeRangeComponent implements OnInit, OnChanges {
       this.selectedTimeRangeValue = CUSTOMM_DATE_RANGE_LABEL;
       this.toDateStr = this.selectedTimeRange.dateFilterValue.toDate !== null ?
                         moment(this.selectedTimeRange.dateFilterValue.toDate).format(DEFAULT_TIMESTAMP_FORMAT) :
-                        'NOW';
+                        'now';
       this.fromDateStr = moment(this.selectedTimeRange.dateFilterValue.fromDate).format(DEFAULT_TIMESTAMP_FORMAT);
+
+      this.datePickerFromDate = this.fromDateStr;
+      this.datePickerToDate = this.selectedTimeRange.dateFilterValue.toDate !== null ? this.toDateStr : '';
     }
   }
 

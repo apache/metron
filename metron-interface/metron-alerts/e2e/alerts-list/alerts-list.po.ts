@@ -368,17 +368,19 @@ export class MetronAlertsPage {
   getTimeRangeButtonTextForNow() {
     return element.all(by.css('app-time-range button span')).getText();
   }
-  
-  getTimeRangebuttonText() {
-    return element.all(by.css('app-time-range button span')).getText().then(arr => {
-      let retArr = [arr[0]];
-      for (let i=1; i < arr.length; i++) {
-        let dateStr = arr[i].split(' to ');
-        let fromTime = new Date(dateStr[0]).getTime();
-        let toTime = new Date(dateStr[1]).getTime();
-        retArr.push((toTime - fromTime) + '');
-      }
-      return retArr;
+
+  getTimeRangeButtonAndSubText() {
+    return waitForElementInVisibility(element(by.css('#time-range')))
+    .then(() => element.all(by.css('app-time-range button span')).getText())
+    .then(arr => {
+        let retArr = [arr[0]];
+        for (let i=1; i < arr.length; i++) {
+          let dateStr = arr[i].split(' to ');
+          let fromTime = new Date(dateStr[0]).getTime();
+          let toTime = new Date(dateStr[1]).getTime();
+          retArr.push((toTime - fromTime) + '');
+        }
+        return retArr;
     });
   }
   
