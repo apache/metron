@@ -99,6 +99,11 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
+  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+    throw new UnsupportedOperationException("InMemoryMetaAlertDao can't do bulk updates");
+  }
+
+  @Override
   public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices)
       throws IOException {
     return indexDao.getColumnMetadata(indices);
