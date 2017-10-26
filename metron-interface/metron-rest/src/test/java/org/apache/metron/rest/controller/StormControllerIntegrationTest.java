@@ -187,9 +187,9 @@ public class StormControllerIntegrationTest {
     sensorParserConfig.setSensorTopic("broTest");
     sensorParserConfigService.save(sensorParserConfig);
     {
-      final Map<String, Object> expectedGlobalConfig = globalConfig;
+      final SensorParserConfig expectedSensorParserConfig = sensorParserConfig;
       //we must wait for the config to find its way into the config.
-      TestUtils.assertEventually(() -> Assert.assertEquals(expectedGlobalConfig, globalConfigService.get()));
+      TestUtils.assertEventually(() -> Assert.assertEquals(expectedSensorParserConfig, sensorParserConfigService.findOne("broTest")));
     }
 
     this.mockMvc.perform(get(stormUrl + "/parser/start/broTest").with(httpBasic(user,password)))

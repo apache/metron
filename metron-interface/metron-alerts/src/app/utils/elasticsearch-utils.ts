@@ -71,4 +71,16 @@ export class ElasticsearchUtils {
     return message;
   }
 
+
+  public static escapeESField(field: string) {
+    return field.replace(/:/g, '\\:');
+  }
+
+  public static escapeESValue(value: string) {
+    return String(value)
+    .replace(/[\*\+\-=~><\"\?^\${}\(\)\:\!\/[\]\\\s]/g, '\\$&') // replace single  special characters
+    .replace(/\|\|/g, '\\||') // replace ||
+    .replace(/\&\&/g, '\\&&'); // replace &&
+  }
+
 }
