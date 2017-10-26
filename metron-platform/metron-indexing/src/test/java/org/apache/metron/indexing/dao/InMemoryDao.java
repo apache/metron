@@ -214,6 +214,13 @@ public class InMemoryDao implements IndexDao {
     }
   }
 
+  @Override
+  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+    for (Map.Entry<Document, Optional<String>> update : updates.entrySet()) {
+      update(update.getKey(), update.getValue());
+    }
+  }
+
   public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException {
     Map<String, Map<String, FieldType>> columnMetadata = new HashMap<>();
     for(String index: indices) {

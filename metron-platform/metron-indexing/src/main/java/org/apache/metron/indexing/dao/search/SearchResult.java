@@ -83,4 +83,36 @@ public class SearchResult {
         ", index='" + index + '\'' +
         '}';
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    SearchResult that = (SearchResult) o;
+
+    if (Float.compare(that.getScore(), getScore()) != 0) {
+      return false;
+    }
+    if (getId() != null ? !getId().equals(that.getId()) : that.getId() != null) {
+      return false;
+    }
+    if (getSource() != null ? !getSource().equals(that.getSource()) : that.getSource() != null) {
+      return false;
+    }
+    return getIndex() != null ? getIndex().equals(that.getIndex()) : that.getIndex() == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = getId() != null ? getId().hashCode() : 0;
+    result = 31 * result + (getSource() != null ? getSource().hashCode() : 0);
+    result = 31 * result + (getScore() != +0.0f ? Float.floatToIntBits(getScore()) : 0);
+    result = 31 * result + (getIndex() != null ? getIndex().hashCode() : 0);
+    return result;
+  }
 }

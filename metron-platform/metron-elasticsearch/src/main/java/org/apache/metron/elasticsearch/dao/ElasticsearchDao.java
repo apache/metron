@@ -17,8 +17,23 @@
  */
 package org.apache.metron.elasticsearch.dao;
 
+import static org.apache.metron.elasticsearch.utils.ElasticsearchUtils.INDEX_NAME_DELIMITER;
+
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -37,6 +52,8 @@ import org.apache.metron.indexing.dao.search.SortOrder;
 import org.apache.metron.indexing.dao.update.Document;
 import org.elasticsearch.action.ActionWriteResponse.ShardInfo;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -62,22 +79,6 @@ import org.elasticsearch.search.aggregations.metrics.sum.SumBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static org.apache.metron.elasticsearch.utils.ElasticsearchUtils.INDEX_NAME_DELIMITER;
 
 
 public class ElasticsearchDao implements IndexDao {
@@ -174,21 +175,34 @@ public class ElasticsearchDao implements IndexDao {
 
   @Override
   public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
-    if(client == null) {
+    return group(groupRequest, new QueryStringQueryBuilder(groupRequest.getQuery()));
+  }
+
+  /**
+   * Defers to a provided {@link org.elasticsearch.index.query.QueryBuilder} for the query.
+   * @param groupRequest The request defining the parameters of the grouping
+   * @param queryBuilder The actual query to be run. Intended for if the SearchRequest requires wrapping
+   * @return The results of the query
+   * @throws InvalidSearchException When the query is malformed or the current state doesn't allow search
+   */
+  protected GroupResponse group(GroupRequest groupRequest, QueryBuilder queryBuilder)
+      throws InvalidSearchException {
+    if (client == null) {
       throw new InvalidSearchException("Uninitialized Dao!  You must call init() prior to use.");
     }
     if (groupRequest.getGroups() == null || groupRequest.getGroups().size() == 0) {
       throw new InvalidSearchException("At least 1 group must be provided.");
     }
     final SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-    searchSourceBuilder.query(new QueryStringQueryBuilder(groupRequest.getQuery()));
+    searchSourceBuilder.query(queryBuilder);
     searchSourceBuilder.aggregation(getGroupsTermBuilder(groupRequest, 0));
     String[] wildcardIndices = wildcardIndices(groupRequest.getIndices());
     org.elasticsearch.action.search.SearchRequest request;
     org.elasticsearch.action.search.SearchResponse response;
 
     try {
-      request = new org.elasticsearch.action.search.SearchRequest(wildcardIndices).source(searchSourceBuilder);
+      request = new org.elasticsearch.action.search.SearchRequest(wildcardIndices)
+          .source(searchSourceBuilder);
       response = client.search(request).actionGet();
     } catch (SearchPhaseExecutionException e) {
       throw new InvalidSearchException("Could not execute search", e);
@@ -197,11 +211,14 @@ public class ElasticsearchDao implements IndexDao {
     try {
       commonColumnMetadata = getCommonColumnMetadata(groupRequest.getIndices());
     } catch (IOException e) {
-      throw new InvalidSearchException(String.format("Could not get common column metadata for indices %s", Arrays.toString(groupRequest.getIndices().toArray())));
+      throw new InvalidSearchException(String
+          .format("Could not get common column metadata for indices %s",
+              Arrays.toString(groupRequest.getIndices().toArray())));
     }
     GroupResponse groupResponse = new GroupResponse();
     groupResponse.setGroupedBy(groupRequest.getGroups().get(0).getField());
-    groupResponse.setGroupResults(getGroupResults(groupRequest, 0, response.getAggregations(), commonColumnMetadata));
+    groupResponse.setGroupResults(
+        getGroupResults(groupRequest, 0, response.getAggregations(), commonColumnMetadata));
     return groupResponse;
   }
 
@@ -246,7 +263,12 @@ public class ElasticsearchDao implements IndexDao {
    */
   <T> Optional<T> searchByGuid(String guid, String sensorType,
       Function<SearchHit, Optional<T>> callback) {
-    QueryBuilder query =  QueryBuilders.idsQuery(sensorType + "_doc").ids(guid);
+    QueryBuilder query;
+    if (sensorType != null) {
+      query = QueryBuilders.idsQuery(sensorType + "_doc").ids(guid);
+    } else {
+      query = QueryBuilders.idsQuery().ids(guid);
+    }
     SearchRequestBuilder request = client.prepareSearch()
                                          .setQuery(query)
                                          .setSource("message")
@@ -272,30 +294,18 @@ public class ElasticsearchDao implements IndexDao {
 
   @Override
   public void update(Document update, Optional<String> index) throws IOException {
-    String indexPostfix = ElasticsearchUtils.getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
+    String indexPostfix = ElasticsearchUtils
+        .getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
     String sensorType = update.getSensorType();
     String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, null);
+    String existingIndex = calculateExistingIndex(update, index, indexPostfix);
 
-    String type = sensorType + "_doc";
-    Object ts = update.getTimestamp();
-    IndexRequest indexRequest = new IndexRequest(indexName, type, update.getGuid())
-            .source(update.getDocument())
-            ;
-    if(ts != null) {
-      indexRequest = indexRequest.timestamp(ts.toString());
-    }
-    String existingIndex = index.orElse(
-            searchByGuid(update.getGuid()
-                        , sensorType
-                        , hit -> Optional.ofNullable(hit.getIndex())
-                        ).orElse(indexName)
-                                       );
-    UpdateRequest updateRequest = new UpdateRequest(existingIndex, type, update.getGuid())
-            .doc(update.getDocument())
-            .upsert(indexRequest)
-            ;
+    UpdateRequest updateRequest = buildUpdateRequest(update, sensorType, indexName, existingIndex);
 
-    org.elasticsearch.action.search.SearchResponse result = client.prepareSearch("test*").setFetchSource(true).setQuery(QueryBuilders.matchAllQuery()).get();
+    org.elasticsearch.action.search.SearchResponse result = client.prepareSearch("test*")
+        .setFetchSource(true)
+        .setQuery(QueryBuilders.matchAllQuery())
+        .get();
     result.getHits();
     try {
       UpdateResponse response = client.update(updateRequest).get();
@@ -303,11 +313,72 @@ public class ElasticsearchDao implements IndexDao {
       ShardInfo shardInfo = response.getShardInfo();
       int failed = shardInfo.getFailed();
       if (failed > 0) {
-        throw new IOException("ElasticsearchDao upsert failed: " + Arrays.toString(shardInfo.getFailures()));
+        throw new IOException(
+            "ElasticsearchDao upsert failed: " + Arrays.toString(shardInfo.getFailures()));
       }
     } catch (Exception e) {
       throw new IOException(e.getMessage(), e);
     }
+  }
+
+  @Override
+  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+    String indexPostfix = ElasticsearchUtils
+        .getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
+
+    BulkRequestBuilder bulkRequestBuilder = client.prepareBulk();
+
+    // Get the indices we'll actually be using for each Document.
+    for (Map.Entry<Document, Optional<String>> updateEntry : updates.entrySet()) {
+      Document update = updateEntry.getKey();
+      String sensorType = update.getSensorType();
+      String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, null);
+      String existingIndex = calculateExistingIndex(update, updateEntry.getValue(), indexPostfix);
+      UpdateRequest updateRequest = buildUpdateRequest(
+          update,
+          sensorType,
+          indexName,
+          existingIndex
+      );
+
+      bulkRequestBuilder.add(updateRequest);
+    }
+
+    BulkResponse bulkResponse = bulkRequestBuilder.get();
+    if (bulkResponse.hasFailures()) {
+      LOG.error("Bulk Request has failures: {}", bulkResponse.buildFailureMessage());
+      throw new IOException(
+          "ElasticsearchDao upsert failed: " + bulkResponse.buildFailureMessage());
+    }
+  }
+
+  protected String calculateExistingIndex(Document update, Optional<String> index,
+      String indexPostFix) {
+    String sensorType = update.getSensorType();
+    String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostFix, null);
+
+    return index.orElse(
+        searchByGuid(update.getGuid(),
+            sensorType,
+            hit -> Optional.ofNullable(hit.getIndex())
+        ).orElse(indexName)
+    );
+  }
+
+  protected UpdateRequest buildUpdateRequest(Document update, String sensorType, String indexName,
+      String existingIndex) {
+    String type = sensorType + "_doc";
+    Object ts = update.getTimestamp();
+    IndexRequest indexRequest = new IndexRequest(indexName, type, update.getGuid())
+        .source(update.getDocument())
+        ;
+    if(ts != null) {
+      indexRequest = indexRequest.timestamp(ts.toString());
+    }
+
+    return new UpdateRequest(existingIndex, type, update.getGuid())
+        .doc(update.getDocument())
+        .upsert(indexRequest);
   }
 
   @SuppressWarnings("unchecked")
