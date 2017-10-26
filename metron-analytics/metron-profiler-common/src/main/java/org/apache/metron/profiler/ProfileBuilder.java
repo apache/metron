@@ -61,7 +61,7 @@ public interface ProfileBuilder {
 
   /**
    * Returns the definition of the profile being built.
-   * @return
+   * @return ProfileConfig definition of the profile
    */
   ProfileConfig getDefinition();
 
