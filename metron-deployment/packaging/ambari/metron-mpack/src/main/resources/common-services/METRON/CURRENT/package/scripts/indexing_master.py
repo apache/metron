@@ -144,9 +144,12 @@ class Indexing(Script):
         error_cmd = ambari_format(
             'curl -s -XPOST http://{es_http_url}/_template/error_index -d @{error_index_path}')
         Execute(error_cmd, logoutput=True)
-        error_cmd = ambari_format(
+        metaalert_template_cmd = ambari_format(
             'curl -s -XPOST http://{es_http_url}/_template/metaalert_index -d @{meta_index_path}')
-        Execute(error_cmd, logoutput=True)
+        Execute(metaalert_template_cmd, logoutput=True)
+        metaalert_index_cmd = ambari_format( 'curl -s -XPUT http://{es_http_url}/metaalert_index')
+        Execute(metaalert_index_cmd, logoutput=True)
+
 
     def elasticsearch_template_delete(self, env):
         from params import params
@@ -160,8 +163,8 @@ class Indexing(Script):
         Execute(yaf_cmd, logoutput=True)
         error_cmd = ambari_format('curl -s -XDELETE "http://{es_http_url}/error_index*"')
         Execute(error_cmd, logoutput=True)
-        error_cmd = ambari_format('curl -s -XDELETE "http://{es_http_url}/metaalerts*"')
-        Execute(error_cmd, logoutput=True)
+        metaalert_cmd = ambari_format('curl -s -XDELETE "http://{es_http_url}/metaalert_index"')
+        Execute(metaalert_cmd, logoutput=True)
 
     def zeppelin_notebook_import(self, env):
         from params import params
