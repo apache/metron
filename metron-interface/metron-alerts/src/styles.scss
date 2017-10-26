@@ -25,12 +25,12 @@
 
 body,
 button {
-  font-family: Roboto-Regular;
+    font-family: Roboto-Regular;
 }
 
 .mrow {
-  @extend .row;
-  @extend .mx-0;
+    @extend .row;
+    @extend .mx-0;
 }
 
 .input {
@@ -59,20 +59,20 @@ button {
 }
 
 .table {
-  thead tr th {
-    font-size: 13px;
-    border-top: none;
-  }
-  tbody tr td {
-    font-size: 14px;
-    cursor: pointer;
-  }
-  tr:last-child td {
-    border-bottom: 1px solid $table-border-color;
-  }
-  td a {
-    border: 1px solid transparent;
-  }
+    thead tr th {
+        font-size: 13px;
+        border-top: none;
+    }
+    tbody tr td {
+        font-size: 14px;
+        cursor: pointer;
+    }
+    tr:last-child td {
+      border-bottom: 1px solid $table-border-color;
+    }
+    td a {
+      border: 1px solid transparent;
+    }
 }
 
 form
@@ -116,30 +116,30 @@ form
 
 .fontawesome-checkbox
 {
-  display: none;
+    display: none;
 }
 
 .fontawesome-checkbox ~label
 {
-  margin: 0px;
-  display: inline-block;
-  height: 13px;
-  line-height: 13px;
-  border: 1px solid $tundora;
-  border-radius: 2px;
+    margin: 0px;
+    display: inline-block;
+    height: 13px;
+    line-height: 13px;
+    border: 1px solid $tundora;
+    border-radius: 2px;
 }
 
 .fontawesome-checkbox ~label:before {
-  font-family: "FontAwesome";
-  font-style: normal;
-  font-size: 12px;
-  content: '\f0c8';
-  color: $mine-shaft-2;
+    font-family: "FontAwesome";
+    font-style: normal;
+    font-size: 12px;
+    content: '\f0c8';
+    color: $mine-shaft-2;
 }
 
 .fontawesome-checkbox:checked ~ label:before {
-  content: '\f14a';
-  color: $checkbox-checked-color;
+    content: '\f14a';
+    color: $checkbox-checked-color;
 }
 
 .text-color-curious-blue-13 {
@@ -161,7 +161,7 @@ form
 }
 
 .readonly-bg {
-  background: $mine-shaft;
+    background: $mine-shaft;
 }
 
 .background-tiber {
@@ -325,3 +325,4 @@ $background_color_3: #2196F3;
     }
   }
 }
+

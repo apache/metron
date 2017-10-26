@@ -19,10 +19,7 @@
 import { MetronAlertsPage } from '../alerts-list.po';
 import {customMatchers} from '../../matchers/custom-matchers';
 import {LoginPage} from '../../login/login.po';
-import {
-    loadTestData, deleteTestData, deleteMetaAlertsIndex,
-    createMetaAlertsIndex
-} from '../../utils/e2e_util';
+import {loadTestData, deleteTestData} from '../../utils/e2e_util';
 import {TreeViewPage} from '../tree-view/tree-view.po';
 import {MetronAlertDetailsPage} from '../../alert-details/alert-details.po';
 import {MetaAlertPage} from './meta-alert.po';
@@ -36,8 +33,6 @@ describe('meta-alerts workflow', function() {
 
   beforeAll(() => {
     loadTestData();
-    deleteMetaAlertsIndex();
-    createMetaAlertsIndex();
 
     loginPage = new LoginPage();
     loginPage.login();
@@ -58,7 +53,7 @@ describe('meta-alerts workflow', function() {
   });
 
   it('should have all the steps for meta alerts workflow', () => {
-    let confirmText = 'Do you wish to create a meta alert with the selected 113 alerts?';
+    let confirmText = 'Do you wish to create a meta alert with 113 selected alerts?';
     let dashRowValues = {
       'firstDashRow': ['0', '192.168.138.158', 'ALERTS', '113'],
       'secondDashRow': ['0', '192.168.66.1', 'ALERTS', '56']

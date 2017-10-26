@@ -229,8 +229,8 @@ export class MetronAlertsPage {
   }
 
   saveSearch(name: string) {
-    return element(by.css('.save-button')).click().then(() => element(by.css('app-save-search #name')).sendKeys(name))
-    .then(() => element(by.css('app-save-search button[type="submit"]')).click());
+     return element(by.css('.save-button')).click().then(() => element(by.css('app-save-search #name')).sendKeys(name))
+      .then(() => element(by.css('app-save-search button[type="submit"]')).click());
   }
 
   saveConfigureColumns() {
@@ -358,7 +358,7 @@ export class MetronAlertsPage {
 
   getAlertStatusById(id: string) {
     return element(by.css('a[title="' + id + '"]'))
-    .element(by.xpath('../..')).all(by.css('td a')).get(8).getText();
+          .element(by.xpath('../..')).all(by.css('td a')).get(8).getText();
   }
 
   sortTable(colName: string) {
@@ -412,14 +412,14 @@ export class MetronAlertsPage {
     return waitForElementInVisibility(element(by.css('#time-range')))
     .then(() => element.all(by.css('app-time-range button span')).getText())
     .then(arr => {
-      let retArr = [arr[0]];
-      for (let i=1; i < arr.length; i++) {
-        let dateStr = arr[i].split(' to ');
-        let fromTime = new Date(dateStr[0]).getTime();
-        let toTime = new Date(dateStr[1]).getTime();
-        retArr.push((toTime - fromTime) + '');
-      }
-      return retArr;
+        let retArr = [arr[0]];
+        for (let i=1; i < arr.length; i++) {
+          let dateStr = arr[i].split(' to ');
+          let fromTime = new Date(dateStr[0]).getTime();
+          let toTime = new Date(dateStr[1]).getTime();
+          retArr.push((toTime - fromTime) + '');
+        }
+        return retArr;
     });
   }
 

@@ -27,7 +27,7 @@
                         <app-time-range (timeRangeChange)="onTimeRangeChange($event)" [disabled]="timeStampfilterPresent" [selectedTimeRange]="selectedTimeRange"> </app-time-range>
                     </span>
                     <span class="input-group-btn">
-                        <button class="btn btn-secondary btn-search" type="button" (click)="onSearch(alertSearchDirective.getSeacrhText())"></button>
+                        <button class="btn btn-secondary btn-search" type="button" data-name="search" (click)="onSearch(alertSearchDirective.getSeacrhText())"></button>
                     </span>
                 </div>
             </div>

@@ -23,7 +23,7 @@ export class MetronAlertDetailsPage {
 
   navigateTo(alertId: string) {
     browser.waitForAngularEnabled(false);
-    browser.get('/alerts-list(dialog:details/alerts_ui_e2e/' + alertId + '/alerts_ui_e2e_index)');
+    browser.get('/alerts-list(dialog:details/alerts_ui_e2e/'+ alertId +'/alerts_ui_e2e_index)');
     browser.sleep(2000);
   }
 

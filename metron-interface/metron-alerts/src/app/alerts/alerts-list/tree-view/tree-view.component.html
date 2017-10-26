@@ -84,7 +84,7 @@
                     <span class="group-value"> <span class="text-light"> {{ subGroup.key }} </span> ({{ subGroup.total}})</span>
                   </td>
                   <td>
-                    <i style="color: #32ABDF;" class="fa fa-link" aria-hidden="true" (click)="createMetaAlert(subGroup, i)" data-animation="false" data-toggle="tooltip" data-placement="left"  title="Merge Alerts"></i>
+                    <i style="color: #32ABDF;" class="fa fa-link" aria-hidden="true" (click)="createMetaAlert($event, subGroup, i)" data-animation="false" data-toggle="tooltip" data-placement="left"  title="Merge Alerts"></i>
                   </td>
                   <td> </td>
                 </tr>

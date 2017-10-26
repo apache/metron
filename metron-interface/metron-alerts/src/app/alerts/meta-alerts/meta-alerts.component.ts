@@ -24,10 +24,14 @@ import {SearchRequest} from '../../model/search-request';
 import {SearchService} from '../../service/search.service';
 import {SearchResponse} from '../../model/search-response';
 import {SortField} from '../../model/sort-field';
-import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
+import {
+  MAX_ALERTS_IN_META_ALERTS, META_ALERTS_INDEX,
+  META_ALERTS_SENSOR_TYPE
+} from '../../utils/constants';
 import {AlertSource} from '../../model/alert-source';
 import {PatchRequest} from '../../model/patch-request';
 import {Patch} from '../../model/patch';
+import {DialogType, MetronDialogBox} from '../../shared/metron-dialog-box';
 
 @Component({
   selector: 'app-meta-alerts',
@@ -42,7 +46,8 @@ export class MetaAlertsComponent implements OnInit {
   constructor(private router: Router,
               private metaAlertService: MetaAlertService,
               private updateService: UpdateService,
-              private searchService: SearchService) {
+              private searchService: SearchService,
+              private metronDialogBox: MetronDialogBox) {
   }
 
   goBack() {
@@ -89,7 +94,14 @@ export class MetaAlertsComponent implements OnInit {
       if (searchResponse.results.length === 1) {
         let allAlertsInMetaAlerts = [...searchResponse.results[0].source.alert,
                                                   ...this.metaAlertService.selectedAlerts.map(alert => alert.source)];
-        this.doAddAlertToMetaAlert(allAlertsInMetaAlerts);
+
+        if (allAlertsInMetaAlerts.length > MAX_ALERTS_IN_META_ALERTS){
+          let errorMessage = 'Meta Alert cannot have more than ' + MAX_ALERTS_IN_META_ALERTS +' alerts within it';
+          this.metronDialogBox.showConfirmationMessage(errorMessage, DialogType.Error);
+          return;
+        }
+
+          this.doAddAlertToMetaAlert(allAlertsInMetaAlerts);
       } else {
         console.log('Unable to get a single meta alert');
       }

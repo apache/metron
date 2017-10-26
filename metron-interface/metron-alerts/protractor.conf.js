@@ -32,8 +32,8 @@ exports.config = {
     './e2e/alerts-list/tree-view/tree-view.e2e-spec.ts',
     './e2e/alerts-list/alert-filters/alert-filters.e2e-spec.ts',
     './e2e/alerts-list/alert-status/alerts-list-status.e2e-spec.ts',
-    './e2e/alert-details/alert-status/alert-details-status.e2e-spec.ts',
-    './e2e/alerts-list/meta-alerts/meta-alert.e2e-spec.ts'
+    './e2e/alerts-list/meta-alerts/meta-alert.e2e-spec.ts',
+    './e2e/alert-details/alert-status/alert-details-status.e2e-spec.ts'
   ],
   capabilities: {
     'browserName': 'chrome',

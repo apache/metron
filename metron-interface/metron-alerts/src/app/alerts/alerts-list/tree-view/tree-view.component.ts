@@ -33,7 +33,7 @@ import {ElasticsearchUtils} from '../../../utils/elasticsearch-utils';
 import {SearchRequest} from '../../../model/search-request';
 import {MetaAlertCreateRequest} from '../../../model/meta-alert-create-request';
 import {MetaAlertService} from '../../../service/meta-alert.service';
-import {INDEXES} from '../../../utils/constants';
+import {INDEXES, MAX_ALERTS_IN_META_ALERTS} from '../../../utils/constants';
 import {UpdateService} from '../../../service/update.service';
 import {PatchRequest} from '../../../model/patch-request';
 
@@ -247,7 +247,6 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   parseSubGroups(group: GroupResult, groupAsArray: TreeGroupData[],
                  parentQueryMap: {[key: string]: string}, currentGroupKey: string, level: number, index: number): number {
     index++;
-    parentQueryMap[currentGroupKey] = group.key;
 
     let currentTreeNodeData = (groupAsArray.length > 0) ? groupAsArray[index] : null;
 
@@ -264,6 +263,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
 
     groupAsArray[index].isLeafNode = false;
     groupAsArray[index].groupQueryMap = JSON.parse(JSON.stringify(parentQueryMap));
+    groupAsArray[index].groupQueryMap[currentGroupKey] = group.key;
 
     if (!group.groupResults) {
       groupAsArray[index].isLeafNode = true;
@@ -344,8 +344,8 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   }
 
   canCreateMetaAlert(count: number) {
-    if (count > 999) {
-      let errorMessage = 'Meta Alert cannot have more than 999 alerts within it';
+    if (count > MAX_ALERTS_IN_META_ALERTS) {
+      let errorMessage = 'Meta Alert cannot have more than ' + MAX_ALERTS_IN_META_ALERTS +' alerts within it';
       this.metronDialogBox.showConfirmationMessage(errorMessage, DialogType.Error).subscribe((response) => {});
       return false;
     }
@@ -365,7 +365,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
     searchRequest.from = 0;
     searchRequest.indices = INDEXES;
     searchRequest.query = this.createQuery(group);
-    searchRequest.size =  999;
+    searchRequest.size =  MAX_ALERTS_IN_META_ALERTS;
     return this.searchService.search(searchRequest);
   }
 
@@ -385,8 +385,8 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
 
   createMetaAlert($event, group: TreeGroupData, index: number) {
     if (this.canCreateMetaAlert(group.total)) {
-      let confirmationMsg = 'Do you wish to create a meta alert with the selected ' +
-                            (group.total === 1 ? ' alert' : group.total + ' alerts') + '?';
+      let confirmationMsg = 'Do you wish to create a meta alert with ' +
+                            (group.total === 1 ? ' alert' : group.total + ' selected alerts') + '?';
       this.metronDialogBox.showConfirmationMessage(confirmationMsg).subscribe((response) => {
         if (response) {
           this.doCreateMetaAlert(group, index);

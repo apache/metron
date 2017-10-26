@@ -182,8 +182,8 @@ describe('metron-alerts tree view', function () {
     let frTSCol = ['2017-09-13 17:59:37', '2017-09-13 17:59:46', '2017-09-13 18:00:31', '2017-09-13 18:00:33', '2017-09-13 18:00:37'];
 
     let usSortedTSCol = ['2017-09-13 18:02:19', '2017-09-13 18:02:16', '2017-09-13 18:02:09', '2017-09-13 18:01:58', '2017-09-13 18:01:52'];
-    let ruSortedTSCol = ['2017-09-13 18:02:13', '2017-09-13 18:02:12', '2017-09-13 18:02:11', '2017-09-13 18:02:07', '2017-09-13 18:02:06'];
-    let frSortedTSCol = ['2017-09-13 18:02:20', '2017-09-13 18:02:14', '2017-09-13 18:02:05', '2017-09-13 18:02:04', '2017-09-13 18:01:51'];
+    let ruSortedTSCol = ['2017-09-14 06:29:40', '2017-09-14 06:29:40', '2017-09-14 06:29:40', '2017-09-14 06:29:40', '2017-09-13 18:02:13'];
+    let frSortedTSCol = ['2017-09-14 06:29:40', '2017-09-14 04:29:40', '2017-09-13 18:02:20', '2017-09-13 18:02:05', '2017-09-13 18:02:04'];
 
     page.selectGroup('source:type');
     page.selectGroup('enrichments:geo:ip_dst_addr:country');
@@ -203,7 +203,7 @@ describe('metron-alerts tree view', function () {
 
     page.sortSubGroup('alerts_ui_e2e', 'timestamp');
 
-    expect(page.getCellValuesFromTable('alerts_ui_e2e', 'timestamp', '2017-09-13 18:01:51')).toEqual(sortedTS,
+    expect(page.getCellValuesFromTable('alerts_ui_e2e', 'timestamp', '2017-09-13 18:02:04')).toEqual(sortedTS,
                                                                                                       'timestamp should be sorted dsc');
 
     page.unGroup();

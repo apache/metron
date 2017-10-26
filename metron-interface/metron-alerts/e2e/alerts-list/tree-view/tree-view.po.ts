@@ -26,7 +26,7 @@ export class TreeViewPage {
   }
 
   clickOnRow(id: string) {
-    let idElement = element(by.css('a[title="' + id + '"]'));
+    let idElement = element(by.css('a[title="' + id +'"]'));
     waitForElementPresence(idElement)
     .then(() => browser.actions().mouseMove(idElement).perform())
     .then(() => idElement.element(by.xpath('../..')).all(by.css('td')).get(9).click());

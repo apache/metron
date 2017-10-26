@@ -85,14 +85,12 @@ public class ElasticsearchDao implements IndexDao {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private transient TransportClient client;
   private AccessConfig accessConfig;
-  private List<String> ignoredIndices = new ArrayList<String>() {{
-    add(".kibana");
-    add("metaalert_index");
-  }};
+  private List<String> ignoredIndices = new ArrayList<>();
 
   protected ElasticsearchDao(TransportClient client, AccessConfig config) {
     this.client = client;
     this.accessConfig = config;
+    this.ignoredIndices.add(".kibana");
   }
 
   public ElasticsearchDao() {
