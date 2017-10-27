@@ -301,12 +301,6 @@ public class ElasticsearchDao implements IndexDao {
     String existingIndex = calculateExistingIndex(update, index, indexPostfix);
 
     UpdateRequest updateRequest = buildUpdateRequest(update, sensorType, indexName, existingIndex);
-
-    org.elasticsearch.action.search.SearchResponse result = client.prepareSearch("test*")
-        .setFetchSource(true)
-        .setQuery(QueryBuilders.matchAllQuery())
-        .get();
-    result.getHits();
     try {
       UpdateResponse response = client.update(updateRequest).get();
 
