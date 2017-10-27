@@ -56,8 +56,8 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
   protected String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
   protected String fluxPath = "../metron-indexing/src/main/flux/indexing/remote.yaml";
   protected String testSensorType = "test";
-
-
+  protected final int NUM_RETRIES = 100;
+  protected final long TOTAL_TIME_MS = 150000L;
   public static List<Map<String, Object>> readDocsFromDisk(String hdfsDirStr) throws IOException {
     List<Map<String, Object>> ret = new ArrayList<>();
     File hdfsDir = new File(hdfsDirStr);
@@ -180,8 +180,8 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
             .withComponent("storm", fluxComponent)
             .withComponent("search", getSearchComponent(topologyProperties))
             .withMillisecondsBetweenAttempts(1500)
-            .withNumRetries(100)
-            .withMaxTimeMS(150000)
+            .withNumRetries(NUM_RETRIES)
+            .withMaxTimeMS(TOTAL_TIME_MS)
             .withCustomShutdownOrder(new String[] {"search","storm","config","kafka","zk"})
             .build();
 
@@ -198,8 +198,6 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
       // on the field name converter
       assertInputDocsMatchOutputs(inputDocs, docs, getFieldNameConverter());
       assertInputDocsMatchOutputs(inputDocs, readDocsFromDisk(hdfsDir), x -> x);
-    } catch(Throwable e) {
-      e.printStackTrace();
     }
     finally {
       if(runner != null) {
