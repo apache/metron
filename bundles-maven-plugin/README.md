@@ -39,6 +39,9 @@ the main 'metron' code tree.
 
 ## Getting Started
 
+While it is most likely
+that a maven archetype is being utilized to create bundles, as part of a toolkit etc, you may want to create on manually, or may need to create a project for use in an archetype.
+
 The plugin is utilized by setting the packaging of a maven module to 'bundle'.
 
 ```xml
