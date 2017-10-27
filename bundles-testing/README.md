@@ -9,3 +9,6 @@ The implementation (bundles-test-implemenation) is packaged as a bundle (bundles
 The integration test loads the implemenation through the bundle system, by interface, and executes its methods.
 The demonstrates the main use case.
 
+> NOTE: the code for the implemenation and bundle are provided, but are not built as part of the project.
+
+> The bundle produced is in the test/resources directory of the integration project
