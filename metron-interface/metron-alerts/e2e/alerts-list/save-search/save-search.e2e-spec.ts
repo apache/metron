@@ -47,8 +47,10 @@ describe('metron-alerts Search', function() {
 
     page.clickSavedSearch();
     expect(page.getSavedSearchTitle()).toEqualBcoz('Searches', 'for saved searches title');
-    expect(page.getRecentSearchOptions()).toEqualBcoz({ 'Recent Searches': [ 'No Recent Searches' ] }, 'for recent search options');
-    expect(page.getSavedSearchOptions()).toEqualBcoz({ 'Saved Searches': [ 'No Saved Searches' ] }, 'for saved search options');
+    expect(page.getRecentSearchOptions()).toEqualBcoz([], 'for recent search options');
+    expect(page.getSavedSearchOptions()).toEqualBcoz([], 'for saved search options');
+    expect(page.getDefaultRecentSearchValue()).toEqualBcoz([ 'No Recent Searches' ], 'for recent search default value');
+    expect(page.getDefaultSavedSearchValue()).toEqualBcoz([ 'No Saved Searches' ], 'for saved search default value');
     page.clickCloseSavedSearch();
 
   });
@@ -56,7 +58,7 @@ describe('metron-alerts Search', function() {
   it('should have all save search controls and they save search should be working', () => {
     page.saveSearch('e2e-1');
     page.clickSavedSearch();
-    expect(page.getSavedSearchOptions()).toEqualBcoz({ 'Saved Searches': [ 'e2e-1' ] }, 'for saved search options e2e-1');
+    expect(page.getSavedSearchOptions()).toEqualBcoz([ 'e2e-1' ], 'for saved search options e2e-1');
     page.clickCloseSavedSearch();
   });
 

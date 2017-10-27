@@ -15,12 +15,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {ElasticsearchUtils} from '../utils/elasticsearch-utils';
+import {TIMESTAMP_FIELD_NAME} from '../utils/constants';
+import {Utils} from '../utils/utils';
+import {DateFilterValue} from './date-filter-value';
+
 export class Filter {
   field: string;
   value: string;
+  display: boolean;
+  dateFilterValue: DateFilterValue;
 
-  constructor(field: string, value: string) {
+  static fromJSON(objs: Filter[]): Filter[] {
+    let filters = [];
+    if (objs) {
+      for (let obj of objs) {
+        filters.push(new Filter(obj.field, obj.value, obj.display));
+      }
+    }
+    return filters;
+  }
+
+  constructor(field: string, value: string, display = true) {
     this.field = field;
     this.value = value;
+    this.display = display;
+  }
+
+  getQueryString(): string {
+    if (this.field === TIMESTAMP_FIELD_NAME && !this.display) {
+      this.dateFilterValue = Utils.timeRangeToDateObj(this.value);
+      if (this.dateFilterValue !== null && this.dateFilterValue.toDate !== null) {
+        return ElasticsearchUtils.escapeESField(this.field) + ':' +
+            '(>=' + this.dateFilterValue.fromDate + ' AND ' + ' <=' + this.dateFilterValue.toDate + ')';
+      } else {
+        return ElasticsearchUtils.escapeESField(this.field) + ':' + this.value;
+      }
+    }
+
+    return ElasticsearchUtils.escapeESField(this.field) + ':' +  ElasticsearchUtils.escapeESValue(this.value);
   }
 }

@@ -17,7 +17,7 @@
  */
 
 import {browser, element, by, protractor} from 'protractor';
-import {waitForElementVisibility, waitForElementPresence} from '../utils/e2e_util';
+import {waitForElementVisibility, waitForElementPresence, waitForElementInVisibility} from '../utils/e2e_util';
 
 export class MetronAlertsPage {
   navigateTo() {
@@ -124,7 +124,7 @@ export class MetronAlertsPage {
   }
 
   getSettingsLabels() {
-    return element.all(by.css('form label:not(.switch)')).getText();
+    return element.all(by.css('app-configure-rows  form label:not(.switch)')).getText();
   }
 
   getRefreshRateOptions() {
@@ -152,12 +152,14 @@ export class MetronAlertsPage {
   }
 
   clickConfigureTable() {
-    element(by.css('app-alerts-list .fa.fa-cog.configure-table-icon')).click();
+    let gearIcon = element(by.css('app-alerts-list .fa.fa-cog.configure-table-icon'));
+    waitForElementVisibility(gearIcon).then(() => gearIcon.click());
     browser.sleep(1000);
   }
 
   clickCloseSavedSearch() {
     element(by.css('app-saved-searches .close-button')).click();
+    browser.sleep(2000);
   }
 
   clickSavedSearch() {
@@ -170,7 +172,7 @@ export class MetronAlertsPage {
   }
 
   clickTableText(name: string) {
-    waitForElementPresence(element.all(by.css('app-table-view tbody tr'))).then(() => element.all(by.linkText(name)).get(0).click());
+    waitForElementPresence(element.all(by.css('app-table-view tbody tr a'))).then(() => element.all(by.linkText(name)).get(0).click());
   }
 
   clickClearSearch() {
@@ -195,26 +197,22 @@ export class MetronAlertsPage {
 
   getRecentSearchOptions() {
     browser.sleep(1000);
-    let map = {};
-    let recentSearches = element.all(by.css('app-saved-searches metron-collapse')).get(0);
-    return recentSearches.all(by.css('a')).getText().then(title => {
-       return recentSearches.all(by.css('.collapse.show')).getText().then(values => {
-         map[title] = values;
-        return map;
-      });
-    });
+    return element(by.linkText('Recent Searches')).element(by.xpath('..')).all(by.css('li')).getText();
+  }
+
+  getDefaultRecentSearchValue() {
+    browser.sleep(1000);
+    return element(by.linkText('Recent Searches')).element(by.xpath('..')).all(by.css('i')).getText();
   }
 
   getSavedSearchOptions() {
     browser.sleep(1000);
-    let map = {};
-    let recentSearches = element.all(by.css('app-saved-searches metron-collapse')).get(1);
-    return recentSearches.all(by.css('a')).getText().then(title => {
-      return recentSearches.all(by.css('.collapse.show')).getText().then(values => {
-        map[title] = values;
-        return map;
-      });
-    });
+    return element(by.linkText('Saved Searches')).element(by.xpath('..')).all(by.css('li')).getText();
+  }
+
+  getDefaultSavedSearchValue() {
+    browser.sleep(1000);
+    return element(by.linkText('Saved Searches')).element(by.xpath('..')).all(by.css('i')).getText();
   }
 
   getSelectedColumnNames() {
@@ -288,8 +286,108 @@ export class MetronAlertsPage {
     });
   }
 
+  isDateSeettingDisabled() {
+    return element.all(by.css('app-time-range button.btn.btn-search[disabled=""]')).count().then((count) => { return (count === 1); });
+  }
+
+  clickDateSettings() {
+    element(by.css('app-time-range button.btn-search')).click();
+    browser.sleep(2000);
+  }
+
+  getTimeRangeTitles() {
+    return element.all(by.css('app-time-range .title')).getText();
+  }
+  
+  getQuickTimeRanges() {
+    return element.all(by.css('app-time-range .quick-ranges span')).getText();
+  }
+
+  getValueForManualTimeRange() {
+    return element.all(by.css('app-time-range input.form-control')). getAttribute('value');
+  }
+
+  isManulaTimeRangeApplyButtonPresent() {
+    return element.all(by.css('app-time-range')).all(by.buttonText('APPLY')).count().then(count => count === 1);
+  }
+
+  selectQuickTimeRange(quickRange: string) {
+    element.all(by.cssContainingText('.quick-ranges span', quickRange)).get(0).click();
+    browser.sleep(2000);
+  }
+  
+  getTimeRangeButtonText() {
+    return element.all(by.css('app-time-range button.btn-search span')).get(0).getText();
+  }
+
+  setDate(index: number, year: string, month: string, day: string, hour: string, min: string, sec: string) {
+    element.all(by.css('app-time-range .calendar')).get(index).click()
+    .then(() => element.all(by.css('.pika-select.pika-select-hour')).get(index).click())
+    .then(() => element.all(by.css('.pika-select.pika-select-hour')).get(index).element(by.cssContainingText('option', hour)).click())
+    .then(() => element.all(by.css('.pika-select.pika-select-minute')).get(index).click())
+    .then(() => element.all(by.css('.pika-select.pika-select-minute')).get(index).element(by.cssContainingText('option', min)).click())
+    .then(() => element.all(by.css('.pika-select.pika-select-second')).get(index).click())
+    .then(() => element.all(by.css('.pika-select.pika-select-second')).get(index).element(by.cssContainingText('option', sec)).click())
+    .then(() => element.all(by.css('.pika-select.pika-select-year')).get(index).click())
+    .then(() => element.all(by.css('.pika-select.pika-select-year')).get(index).element(by.cssContainingText('option', year)).click())
+    .then(() => element.all(by.css('.pika-select.pika-select-month')).get(index).click())
+    .then(() => element.all(by.css('.pika-select.pika-select-month')).get(index).element(by.cssContainingText('option', month)).click())
+    .then(() => element.all(by.css('.pika-table')).get(index).element(by.buttonText(day)).click())
+    .then(() => waitForElementInVisibility(element.all(by.css('.pika-single')).get(index)));
+
+    browser.sleep(1000);
+  }
+
+  selectTimeRangeApplyButton() {
+    return element(by.css('app-time-range')).element(by.buttonText('APPLY')).click();
+  }
+
+  getChangesAlertTableTitle(previousText: string) {
+    // browser.pause();
+    let title = element(by.css('.col-form-label-lg'));
+    return this.waitForTextChange(title, previousText).then(() => {
+      return title.getText();
+    });
+  }
+
   getAlertStatusById(id: string) {
     return element(by.css('a[title="' + id +'"]'))
           .element(by.xpath('../..')).all(by.css('td a')).get(8).getText();
   }
+
+  loadSavedSearch(name: string) {
+    element.all(by.css('app-saved-searches metron-collapse')).get(1).element(by.css('li[title="'+ name +'"]')).click();
+    browser.sleep(1000);
+  }
+
+  loadRecentSearch(name: string) {
+    element.all(by.css('app-saved-searches metron-collapse')).get(0).all(by.css('li')).get(2).click();
+    browser.sleep(1000);
+  }
+
+  getTimeRangeButtonTextForNow() {
+    return element.all(by.css('app-time-range button span')).getText();
+  }
+
+  getTimeRangeButtonAndSubText() {
+    return waitForElementInVisibility(element(by.css('#time-range')))
+    .then(() => element.all(by.css('app-time-range button span')).getText())
+    .then(arr => {
+        let retArr = [arr[0]];
+        for (let i=1; i < arr.length; i++) {
+          let dateStr = arr[i].split(' to ');
+          let fromTime = new Date(dateStr[0]).getTime();
+          let toTime = new Date(dateStr[1]).getTime();
+          retArr.push((toTime - fromTime) + '');
+        }
+        return retArr;
+    });
+  }
+  
+  renameColumn(name: string, value: string) {
+    element(by.cssContainingText('app-configure-table span', name))
+    .element(by.xpath('../..'))
+    .element(by.css('.input')).sendKeys(value);
+  }
+
 }

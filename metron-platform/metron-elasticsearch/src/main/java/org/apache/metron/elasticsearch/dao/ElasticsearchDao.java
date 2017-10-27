@@ -252,6 +252,9 @@ public class ElasticsearchDao implements IndexDao {
    */
   <T> Optional<T> searchByGuid(String guid, String sensorType,
       Function<SearchHit, Optional<T>> callback) {
+    if(guid == null) {
+      return Optional.empty();
+    }
     QueryBuilder query =  QueryBuilders.idsQuery(sensorType + "_doc").addIds(guid);
     SearchRequestBuilder request = client.prepareSearch()
                                          .setQuery(query)
@@ -300,8 +303,6 @@ public class ElasticsearchDao implements IndexDao {
             .upsert(indexRequest)
             ;
 
-    org.elasticsearch.action.search.SearchResponse result = client.prepareSearch("test*").setFetchSource(true).setQuery(QueryBuilders.matchAllQuery()).get();
-    result.getHits();
     try {
       UpdateResponse response = client.update(updateRequest).get();
 

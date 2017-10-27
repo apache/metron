@@ -24,6 +24,7 @@ import { NavContentDirective } from './directives/nav-content.directive';
 import { CenterEllipsesPipe } from './pipes/center-ellipses.pipe';
 import { AlertSearchDirective } from './directives/alert-search.directive';
 import { ColumnNameTranslatePipe } from './pipes/column-name-translate.pipe';
+import { MapKeysPipe } from './pipes/map-keys.pipe';
 import { AlertSeverityHexagonDirective } from './directives/alert-severity-hexagon.directive';
 
 @NgModule({
@@ -37,6 +38,7 @@ import { AlertSeverityHexagonDirective } from './directives/alert-severity-hexag
     CenterEllipsesPipe,
     AlertSearchDirective,
     ColumnNameTranslatePipe,
+    MapKeysPipe,
     AlertSeverityHexagonDirective
   ],
   exports:  [
@@ -48,6 +50,7 @@ import { AlertSeverityHexagonDirective } from './directives/alert-severity-hexag
     CenterEllipsesPipe,
     AlertSearchDirective,
     ColumnNameTranslatePipe,
+    MapKeysPipe,
     AlertSeverityHexagonDirective
   ]
 })
