@@ -616,9 +616,9 @@ Log out and log in to make sure Python is back to version 2.6 instead of 2.7.
 ```
 Install bro:
 ```
-# wget -O /tmp/bro-2.4.1.tar.gz https://www.bro.org/downloads/release/bro-2.4.1.tar.gz
-# /bin/gtar --extract -C /tmp -z -f /tmp/bro-2.4.1.tar.gz
-# cd /tmp/bro-2.4.1
+# wget -O /tmp/bro-2.4.2.tar.gz https://www.bro.org/downloads/bro-2.4.2.tar.gz
+# /bin/gtar --extract -C /tmp -z -f /tmp/bro-2.4.2.tar.gz
+# cd /tmp/bro-2.4.2
 # ./configure --prefix=/usr/local/bro
 # make -j4
 # make install
@@ -641,7 +641,7 @@ bro-kafka:
 # cp -r /root/metron/metron-sensors/bro-plugin-kafka /tmp
 # cd /tmp/bro-plugin-kafka
 # rm -rf build/
-# ./configure --bro-dist=/tmp/bro-2.4.1 --install-root=/usr/local/bro/lib/bro/plugins/ --with-librdkafka=/usr/local
+# ./configure --bro-dist=/tmp/bro-2.4.2 --install-root=/usr/local/bro/lib/bro/plugins/ --with-librdkafka=/usr/local
 # make -j4
 # make install
 ```
