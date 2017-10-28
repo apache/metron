@@ -37,8 +37,6 @@ class Indexing(Script):
         from params import params
         env.set_params(params)
         self.install_packages(env)
-        # Install elasticsearch templates
-        self.elasticsearch_template_install(env)
 
     def configure(self, env, upgrade_type=None, config_dir=None):
         from params import params
@@ -84,6 +82,13 @@ class Indexing(Script):
         self.configure(env)
         commands = IndexingCommands(params)
         commands.start_indexing_topology(env)
+        # Install elasticsearch templates
+        try:
+            if not commands.is_elasticsearch_template_installed():
+                self.elasticsearch_template_install(env)
+                commands.set_elasticsearch_template_installed()
+        except:
+            Logger.warning("WARNING: Elasticsearch templates could not be installed. The Elasticsearch service is possibly not running")
 
     def stop(self, env, upgrade_type=None):
         from params import params
