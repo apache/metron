@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Elasticsearch can be used as the real-time portion of the datastore resulting from [metron-indexing](../metron-indexing.README.md).
+Elasticsearch can be used as the real-time portion of the datastore resulting from [metron-indexing](../metron-indexing/README.md).
 
 ## Properties
 
@@ -81,3 +81,13 @@ curl -XPUT "http://${ELASTICSEARCH}:9200/${SENSOR}_index*/_mapping/${SENSOR}_doc
 '
 rm ${SENSOR}.template
 ```
+
+## Installing Elasticsearch Templates
+
+The stock set of Elasticsearch templates for bro, snort, yaf, error index and meta index are installed automatically during the first time install and startup of Metron Indexing service.
+
+In a rare case where the Elasticsearch service were to be down during first time Metron Indexing startup, the Elasticsearch template will not be installed. For such a scenario, an Admin can install the template manually from the Ambari UI by following the below flow:
+
+Ambari UI -> Services -> Metron -> Service Actions -> Elasticsearch Template Install
+
+> Note: If you have made any customization to your index templates, then installing Elasticsearch templates afresh will lead to overwriting your existing changes. Please exercise caution.
