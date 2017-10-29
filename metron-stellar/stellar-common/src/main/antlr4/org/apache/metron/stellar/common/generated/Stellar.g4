@@ -67,7 +67,6 @@ ELSE : 'ELSE' | 'else';
 NULL : 'null' | 'NULL';
 NAN : 'NaN';
 
-AS : 'as' | 'AS';
 MATCH : 'match' | 'MATCH';
 DEFAULT : 'default' | 'DEFAULT';
 

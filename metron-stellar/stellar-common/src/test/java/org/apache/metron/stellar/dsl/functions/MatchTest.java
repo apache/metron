@@ -21,6 +21,7 @@ import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPredicate;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -173,25 +174,65 @@ public class MatchTest {
 
   @Test
   @SuppressWarnings("unchecked")
+  public void testVariableOnlyNoDefault() {
+    Assert.assertEquals("a",  run("match{ foo : 'a'}",
+        new HashMap() {{
+          put("foo", true);
+        }}));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  @Ignore("Ignore temporarily until we resolve logical issues with validate")
+  public void testVariableEqualsCheckNoDefault() {
+    // empty stack on validate because of foo == null and no false clause
+    Assert.assertEquals("a",  run("match{ foo == true : 'a' }",
+        new HashMap() {{
+          put("foo", true);
+        }}));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testVariableOnlyCheckWithDefault() {
+    Assert.assertEquals("a",  run("match{ foo : 'a', default : 'b' }",
+        new HashMap() {{
+          put("foo", true);
+        }}));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testHandleVariableEqualsCheckWithDefault() {
+    Assert.assertEquals("a",  run("match{ foo == true : 'a', default: 'b' }",
+        new HashMap() {{
+          put("foo", true);
+        }}));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void workingMatchWithMap() {
+    Assert.assertEquals(Arrays.asList("OK", "HAHA"),  run("match{ foo > 100 : THROW('oops'), foo > 200 : THROW('oh no'), foo >= 50 : MAP(['ok', 'haha'], (a) -> TO_UPPER(a)), default: 'a' }",
+        new HashMap() {{
+          put("foo", 50);
+        }}));
+  }
+
+  @Test(expected = ParseException.class)
+  @SuppressWarnings("unchecked")
   public void testMatchErrorNoDefault() {
 
-    boolean caught = false;
-    try {
-      run("match{ foo > 100 : 'greater than 100', foo > 200 : 'greater than 200' }",
-          new HashMap() {{
-            put("foo", 50);
-          }});
-    } catch (ParseException pe) {
-      caught = true;
-    }
-    Assert.assertTrue(caught);
+    run("match{ foo > 100 : 'greater than 100', foo > 200 : 'greater than 200' }", new HashMap() {{
+      put("foo", 50);
+    }});
 
   }
 
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testShortCircut() {
+  public void testShortCircuit() {
 
    Assert.assertEquals("ok",  run("match{ foo > 100 : THROW('oops'), foo > 200 : THROW('oh no'), default : 'ok' }",
           new HashMap() {{

@@ -108,7 +108,7 @@ Stellar provides the capability to write match expressions, which are similar to
 Scala's match.
 
 The syntax is:
-* `match{ logical_expression1 : evaluation expression1, logical_expression2 : evaluation_expression2` : A match expression with no default
+* `match{ logical_expression1 : evaluation expression1, logical_expression2 : evaluation_expression2}` : A match expression with no default
 * `match{ logical_expression1 : evaluation expression1, logical_expression2 : evaluation_expression2, default : default_expression}` : A match expression with a default expression
 
 Where:

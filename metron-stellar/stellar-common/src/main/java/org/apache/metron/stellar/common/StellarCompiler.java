@@ -724,6 +724,25 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitMatchClauseCheckExpr(StellarParser.MatchClauseCheckExprContext ctx) {
+
+    final FrameContext.Context context = getArgContext();
+
+
+
+    // if we are validating, and we have a single variable then we will get
+    // a null and we need to protect against that
+    if(ctx.getStart() == ctx.getStop()) {
+      expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
+        if (state.context.getActivityType().equals(ActivityType.VALIDATION_ACTIVITY)) {
+          if (tokenDeque.size() == 1 && (tokenDeque.peek().getValue() == null
+              || tokenDeque.peek().getUnderlyingType() == Boolean.class)) {
+            tokenDeque.pop();
+            tokenDeque.add(new Token<>(true, Boolean.class, getArgContext()));
+          }
+
+        }
+      }, DeferredFunction.class, context));
+    }
     expression.tokenDeque.push(new Token<>(new MatchClauseCheckExpr(), MatchClauseCheckExpr.class, getArgContext()));
   }
 
