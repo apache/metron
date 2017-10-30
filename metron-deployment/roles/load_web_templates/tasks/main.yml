@@ -15,14 +15,6 @@
 #  limitations under the License.
 #
 ---
-- name: Load ES Templates
-  command: >
-    curl -s -w "%{http_code}" -u admin:admin -H "X-Requested-By: ambari" -X POST -d '{ "RequestInfo": { "context": "Install ES Template from REST", "command": "ELASTICSEARCH_TEMPLATE_INSTALL"},"Requests/resource_filters": [{"service_name": "METRON","component_name": "METRON_INDEXING","hosts" : "{{ metron_hosts[0] }}"}]}' http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/requests
-  args:
-    warn: off
-  register: result
-  failed_when: "result.rc != 0 or '202' not in result.stdout"
-
 - name: Load Kibana Dashboard
   command: >
     curl -s -w "%{http_code}" -u admin:admin -H "X-Requested-By: ambari" -X POST -d '{ "RequestInfo": { "context": "Install Kibana Dashboard from REST", "command": "LOAD_TEMPLATE"},"Requests/resource_filters": [{"service_name": "KIBANA","component_name": "KIBANA_MASTER","hosts" : "{{ kibana_hosts[0] }}"}]}' http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/requests
