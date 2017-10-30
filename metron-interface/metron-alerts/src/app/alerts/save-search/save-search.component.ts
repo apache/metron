@@ -47,7 +47,9 @@ export class SaveSearchComponent implements OnInit {
   save() {
     this.saveSearch.searchRequest = this.saveSearchService.queryBuilder.searchRequest;
     this.saveSearch.tableColumns = this.saveSearchService.tableColumns;
-
+    this.saveSearch.filters = this.saveSearchService.queryBuilder.filters;
+    this.saveSearch.searchRequest.query = '';
+    
     this.saveSearchService.saveSearch(this.saveSearch).subscribe(() => {
       this.goBack();
     }, error => {

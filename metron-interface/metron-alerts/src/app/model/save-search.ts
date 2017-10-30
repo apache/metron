@@ -19,18 +19,21 @@
 import {QueryBuilder} from '../alerts/alerts-list/query-builder';
 import {ColumnMetadata} from './column-metadata';
 import {SearchRequest} from './search-request';
+import {Filter} from './filter';
 
 export class SaveSearch {
   name  = '';
   lastAccessed = 0;
   searchRequest: SearchRequest;
   tableColumns: ColumnMetadata[];
+  filters: Filter[];
 
   public static fromJSON(obj: SaveSearch): SaveSearch {
     let saveSearch = new SaveSearch();
     saveSearch.name = obj.name;
     saveSearch.lastAccessed = obj.lastAccessed;
     saveSearch.searchRequest = obj.searchRequest;
+    saveSearch.filters = Filter.fromJSON(obj.filters);
     saveSearch.tableColumns = ColumnMetadata.fromJSON(obj.tableColumns);
 
     return saveSearch;
@@ -43,6 +46,6 @@ export class SaveSearch {
 
     let queryBuilder = new QueryBuilder();
     queryBuilder.searchRequest = this.searchRequest;
-    return queryBuilder.generateSelectForDisplay();
+    return queryBuilder.generateNameForSearchRequest();
   }
 }
