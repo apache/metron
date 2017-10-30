@@ -809,16 +809,6 @@ public interface StellarListener extends ParseTreeListener {
 	 */
 	void exitMatchClauseAction(StellarParser.MatchClauseActionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link StellarParser#match_clause_action_expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterMatch_clause_action_expr(StellarParser.Match_clause_action_exprContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link StellarParser#match_clause_action_expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitMatch_clause_action_expr(StellarParser.Match_clause_action_exprContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code MatchClauseCheckExpr}
 	 * labeled alternative in {@link StellarParser#match_clause_check}.
 	 * @param ctx the parse tree
@@ -830,14 +820,4 @@ public interface StellarListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitMatchClauseCheckExpr(StellarParser.MatchClauseCheckExprContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link StellarParser#match_clause_expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterMatch_clause_expr(StellarParser.Match_clause_exprContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link StellarParser#match_clause_expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitMatch_clause_expr(StellarParser.Match_clause_exprContext ctx);
 }

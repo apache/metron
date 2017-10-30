@@ -853,18 +853,6 @@ public class StellarBaseListener implements StellarListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterMatch_clause_action_expr(StellarParser.Match_clause_action_exprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitMatch_clause_action_expr(StellarParser.Match_clause_action_exprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterMatchClauseCheckExpr(StellarParser.MatchClauseCheckExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -872,18 +860,6 @@ public class StellarBaseListener implements StellarListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitMatchClauseCheckExpr(StellarParser.MatchClauseCheckExprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterMatch_clause_expr(StellarParser.Match_clause_exprContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitMatch_clause_expr(StellarParser.Match_clause_exprContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

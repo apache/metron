@@ -295,17 +295,9 @@ match_clause :
   ;
 
 match_clause_action :
-  match_clause_action_expr #MatchClauseAction
+  transformation_expr #MatchClauseAction
   ;
-
-match_clause_action_expr :
-  transformation_expr
-  ;
-
+  
 match_clause_check :
-  match_clause_expr #MatchClauseCheckExpr
-  ;
-
-match_clause_expr :
-  logical_expr
+  logical_expr #MatchClauseCheckExpr
   ;
