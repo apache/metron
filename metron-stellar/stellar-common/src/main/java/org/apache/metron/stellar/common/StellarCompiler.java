@@ -662,7 +662,7 @@ public class StellarCompiler extends StellarBaseListener {
   public void exitMap_entity(StellarParser.Map_entityContext ctx) {
     final FrameContext.Context context = getArgContext();
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
-      HashMap<String, Object> args = new HashMap<>();
+      HashMap<Object, Object> args = new HashMap<>();
       Object value = null;
       for (int i = 0; true; i++) {
         Token<?> token = popDeque(tokenDeque);
@@ -672,7 +672,7 @@ public class StellarCompiler extends StellarBaseListener {
           if (i % 2 == 0) {
             value = token.getValue();
           } else {
-            args.put(token.getValue() + "", value);
+            args.put(token.getValue(), value);
           }
         }
       }

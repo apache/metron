@@ -679,6 +679,18 @@ public interface StellarListener extends ParseTreeListener {
 	 */
 	void exitCondExpr_paren(StellarParser.CondExpr_parenContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code func}
+	 * labeled alternative in {@link StellarParser#identifier_operand}.
+	 * @param ctx the parse tree
+	 */
+	void enterFunc(StellarParser.FuncContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code func}
+	 * labeled alternative in {@link StellarParser#identifier_operand}.
+	 * @param ctx the parse tree
+	 */
+	void exitFunc(StellarParser.FuncContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link StellarParser#lambda_without_args}.
 	 * @param ctx the parse tree
 	 */
