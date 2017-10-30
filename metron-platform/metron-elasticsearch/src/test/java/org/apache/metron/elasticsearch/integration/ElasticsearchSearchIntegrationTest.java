@@ -18,17 +18,11 @@
 package org.apache.metron.elasticsearch.integration;
 
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.concurrent.ExecutionException;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
-import org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
-import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.integration.InMemoryComponent;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -43,7 +37,13 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
+
 public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
+
   private static String indexDir = "target/elasticsearch_search";
   private static String dateFormat = "yyyy.MM.dd.HH";
   private static final int MAX_RETRIES = 10;
@@ -53,19 +53,46 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    * {
    * "bro_doc": {
    *   "properties": {
-   *     "source:type": { "type": "string" },
-   *     "ip_src_addr": { "type": "ip" },
-   *     "ip_src_port": { "type": "integer" },
-   *     "long_field": { "type": "long" },
-   *     "timestamp" : { "type": "date" },
-   *     "latitude" : { "type": "float" },
-   *     "score": { "type": "double" },
-   *     "is_alert": { "type": "boolean" },
-   *     "location_point": { "type": "geo_point" },
-   *     "bro_field": { "type": "string" },
-   *     "duplicate_name_field": { "type": "string" }
+   *     "source:type": {
+   *        "type": "string",
+   *        "index": "not_analyzed"
+   *     },
+   *     "ip_src_addr": {
+   *        "type": "ip"
+   *     },
+   *     "ip_src_port": {
+   *        "type": "integer"
+   *     },
+   *     "long_field": {
+   *        "type": "long"
+   *     },
+   *     "timestamp": {
+   *        "type": "date",
+   *        "format": "epoch_millis"
+   *      },
+   *     "latitude" : {
+   *        "type": "float"
+   *      },
+   *     "score": {
+   *        "type": "double"
+   *     },
+   *     "is_alert": {
+   *        "type": "boolean"
+   *     },
+   *     "location_point": {
+   *        "type": "geo_point"
+   *     },
+   *     "bro_field": {
+   *        "type": "string"
+   *     },
+   *     "duplicate_name_field": {
+   *        "type": "string"
+   *     },
+   *     "alert": {
+   *         "type": "nested"
+   *     }
    *   }
-   * }
+   *  }
    * }
    */
   @Multiline
@@ -73,47 +100,73 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
   /**
    * {
-   * "snort_doc": {
-   *   "properties": {
-   *     "source:type": { "type": "string" },
-   *     "ip_src_addr": { "type": "ip" },
-   *     "ip_src_port": { "type": "integer" },
-   *     "long_field": { "type": "long" },
-   *     "timestamp" : { "type": "date" },
-   *     "latitude" : { "type": "float" },
-   *     "score": { "type": "double" },
-   *     "is_alert": { "type": "boolean" },
-   *     "location_point": { "type": "geo_point" },
-   *     "snort_field": { "type": "integer" },
-   *     "duplicate_name_field": { "type": "integer" }
-   *   }
-   * }
+   *  "snort_doc": {
+   *     "properties": {
+   *        "source:type": {
+   *          "type": "string",
+   *          "index": "not_analyzed"
+   *        },
+   *        "ip_src_addr": {
+   *          "type": "ip"
+   *        },
+   *        "ip_src_port": {
+   *          "type": "integer"
+   *        },
+   *        "long_field": {
+   *          "type": "long"
+   *        },
+   *        "timestamp": {
+   *          "type": "date",
+   *          "format": "epoch_millis"
+   *        },
+   *        "latitude" : {
+   *          "type": "float"
+   *        },
+   *        "score": {
+   *          "type": "double"
+   *        },
+   *        "is_alert": {
+   *          "type": "boolean"
+   *        },
+   *        "location_point": {
+   *          "type": "geo_point"
+   *        },
+   *        "snort_field": {
+   *          "type": "integer"
+   *        },
+   *        "duplicate_name_field": {
+   *          "type": "integer"
+   *        },
+   *        "alert": {
+   *           "type": "nested"
+   *        },
+   *        "threat:triage:score": {
+   *           "type": "float"
+   *        }
+   *      }
+   *    }
    * }
    */
   @Multiline
   private static String snortTypeMappings;
 
-
   @Override
   protected IndexDao createDao() throws Exception {
-    IndexDao elasticsearchDao = new ElasticsearchDao();
-    elasticsearchDao.init(
-            new AccessConfig() {{
-              setMaxSearchResults(100);
-              setMaxSearchGroups(100);
-              setGlobalConfigSupplier( () ->
-                new HashMap<String, Object>() {{
-                  put("es.clustername", "metron");
-                  put("es.port", "9300");
-                  put("es.ip", "localhost");
-                  put("es.date.format", dateFormat);
-                  }}
-              );
+    AccessConfig config = new AccessConfig();
+    config.setMaxSearchResults(100);
+    config.setMaxSearchGroups(100);
+    config.setGlobalConfigSupplier( () ->
+            new HashMap<String, Object>() {{
+              put("es.clustername", "metron");
+              put("es.port", "9300");
+              put("es.ip", "localhost");
+              put("es.date.format", dateFormat);
             }}
     );
-    MetaAlertDao ret = new ElasticsearchMetaAlertDao();
-    ret.init(elasticsearchDao);
-    return elasticsearchDao;
+
+    IndexDao dao = new ElasticsearchDao();
+    dao.init(config);
+    return dao;
   }
 
   @Override

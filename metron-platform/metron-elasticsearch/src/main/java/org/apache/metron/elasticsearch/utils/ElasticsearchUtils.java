@@ -22,10 +22,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringUtils;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.xcontent.XContentHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
@@ -39,6 +44,8 @@ import java.util.Map;
 import static java.lang.String.format;
 
 public class ElasticsearchUtils {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static ThreadLocal<Map<String, SimpleDateFormat>> DATE_FORMAT_CACHE
           = ThreadLocal.withInitial(() -> new HashMap<>());
@@ -178,5 +185,47 @@ public class ElasticsearchUtils {
       return ret;
     }
     throw new IllegalStateException("Unable to read the elasticsearch ips, expected es.ip to be either a list of strings, a string hostname or a host:port string");
+  }
+
+  /**
+   * Converts an Elasticsearch SearchRequest to JSON.
+   * @param esRequest The search request.
+   * @return The JSON representation of the SearchRequest.
+   */
+  public static String toJSON(org.elasticsearch.action.search.SearchRequest esRequest) {
+    String json = "null";
+    if(esRequest != null) {
+      try {
+        json = XContentHelper.convertToJson(esRequest.source(), true);
+
+      } catch (Throwable t) {
+        LOG.error("Failed to convert search request to JSON", t);
+        json = "JSON conversion failed; request=" + esRequest.toString();
+      }
+    }
+    return json;
+  }
+
+  /**
+   * Convert a SearchRequest to JSON.
+   * @param request The search request.
+   * @return The JSON representation of the SearchRequest.
+   */
+  public static String toJSON(Object request) {
+    String json = "null";
+    if(request != null) {
+      try {
+        json = new ObjectMapper()
+                .writer()
+                .withDefaultPrettyPrinter()
+                .writeValueAsString(request);
+
+      } catch (Throwable t) {
+        LOG.error("Failed to convert to JSON", t);
+        json = "JSON conversion failed; request=" + request.toString();
+      }
+    }
+
+    return json;
   }
 }

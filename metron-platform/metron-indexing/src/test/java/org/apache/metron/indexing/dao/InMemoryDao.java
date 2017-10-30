@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Ordering;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.*;
@@ -101,13 +102,14 @@ public class InMemoryDao implements IndexDao {
 
   private static class ComparableComparator implements Comparator<Comparable>  {
     SortOrder order = null;
+
     public ComparableComparator(SortOrder order) {
       this.order = order;
     }
     @Override
     public int compare(Comparable o1, Comparable o2) {
-      int result = ComparisonChain.start().compare(o1, o2).result();
-      return order == SortOrder.ASC?result:-1*result;
+      int result = ComparisonChain.start().compare(o1, o2, Ordering.natural().nullsLast()).result();
+      return order == SortOrder.ASC ? result : -1*result;
     }
   }
 
