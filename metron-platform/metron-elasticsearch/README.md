@@ -93,6 +93,6 @@ For such a scenario, an Admin can have the template installed in two ways:
 _Method 1_ - Manually from the Ambari UI by following the flow:
 Ambari UI -> Services -> Metron -> Service Actions -> Elasticsearch Template Install
 
-_Method 2_ - Stop the Metron Indexing service, and start it again from Ambari UI.
+_Method 2_ - Stop the Metron Indexing service, and start it again from Ambari UI. Note that the Metron Indexing service tracks if it has successfully installed the Elasticsearch templates, and will attempt to do so each time it is Started until successful.
 
 > Note: If you have made any customization to your index templates, then installing Elasticsearch templates afresh will lead to overwriting your existing changes. Please exercise caution.
