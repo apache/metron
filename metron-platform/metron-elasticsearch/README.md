@@ -86,7 +86,7 @@ rm ${SENSOR}.template
 
 The stock set of Elasticsearch templates for bro, snort, yaf, error index and meta index are installed automatically during the first time install and startup of Metron Indexing service.
 
-In a rare case where the Elasticsearch service were to be down during first time Metron Indexing startup, the Elasticsearch template will not be installed. For such a scenario, an Admin can install the template manually from the Ambari UI by following the below flow:
+It is possible that Elasticsearch service is not available when the Metron Indexing Service startup, in that case the Elasticsearch template will not be installed. For such a scenario, an Admin can install the template manually from the Ambari UI by following the below flow:
 
 Ambari UI -> Services -> Metron -> Service Actions -> Elasticsearch Template Install
 
