@@ -80,6 +80,7 @@ indexing_acl_configured_flag_file = status_params.indexing_acl_configured_flag_f
 indexing_hbase_configured_flag_file = status_params.indexing_hbase_configured_flag_file
 indexing_hbase_acl_configured_flag_file = status_params.indexing_hbase_acl_configured_flag_file
 indexing_hdfs_perm_configured_flag_file = status_params.indexing_hdfs_perm_configured_flag_file
+elasticsearch_template_installed_flag_file = status_params.elasticsearch_template_installed_flag_file
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 
 # Elasticsearch hosts and port management
