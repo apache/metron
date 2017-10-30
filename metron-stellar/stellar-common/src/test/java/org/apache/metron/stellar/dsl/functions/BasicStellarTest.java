@@ -218,6 +218,25 @@ public class BasicStellarTest {
     }
   }
 
+  @Test
+  public void testConditionalsAsMapKeys() {
+    {
+      String query = "{ ( RET_TRUE() && y < 50 ) : 'info', y >= 50 : 'warn'}";
+      Map<Boolean, String> ret = (Map)run(query, ImmutableMap.of("y", 50));
+      Assert.assertEquals(ret.size(), 2);
+      Assert.assertEquals("warn", ret.get(true));
+      Assert.assertEquals("info", ret.get(false));
+    }
+  }
+
+
+  @Test
+  public void testConditionalsAsFunctionArgs() {
+    {
+      String query = "RET_TRUE(y < 10)";
+      Assert.assertTrue((boolean)run(query, ImmutableMap.of("y", 50)));
+    }
+  }
 
   @Test
   public void testFunctionEmptyArgs() {
