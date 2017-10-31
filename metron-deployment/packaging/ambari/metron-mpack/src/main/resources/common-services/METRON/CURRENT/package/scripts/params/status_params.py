@@ -74,6 +74,9 @@ indexing_hdfs_perm_configured_flag_file = metron_zookeeper_config_path + '/../me
 indexing_hbase_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_hbase_configured'
 indexing_hbase_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_hbase_acl_configured'
 
+# Elasticsearch
+elasticsearch_template_installed_flag_file = metron_zookeeper_config_path + '/../metron_elasticsearch_template_installed_flag_file'
+
 # REST
 metron_rest_port = config['configurations']['metron-rest-env']['metron_rest_port']
 

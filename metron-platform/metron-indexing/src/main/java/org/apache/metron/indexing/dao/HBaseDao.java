@@ -18,6 +18,13 @@
 
 package org.apache.metron.indexing.dao;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Optional;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -32,12 +39,6 @@ import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.Document;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Optional;
 
 /**
  * The HBaseDao is an index dao which only supports the following actions:
@@ -121,12 +122,31 @@ public class HBaseDao implements IndexDao {
 
   @Override
   public synchronized void update(Document update, Optional<String> index) throws IOException {
+    Put put = buildPut(update);
+    getTableInterface().put(put);
+  }
+
+
+
+  @Override
+  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+    List<Put> puts = new ArrayList<>();
+    for (Map.Entry<Document, Optional<String>> updateEntry : updates.entrySet()) {
+      Document update = updateEntry.getKey();
+
+      Put put = buildPut(update);
+      puts.add(put);
+    }
+    getTableInterface().put(puts);
+  }
+
+  protected Put buildPut(Document update) throws JsonProcessingException {
     Put put = new Put(update.getGuid().getBytes());
-    long ts = update.getTimestamp() == null?System.currentTimeMillis():update.getTimestamp();
+    long ts = update.getTimestamp() == null ? System.currentTimeMillis() : update.getTimestamp();
     byte[] columnQualifier = Bytes.toBytes(ts);
     byte[] doc = JSONUtils.INSTANCE.toJSONPretty(update.getDocument());
     put.addColumn(cf, columnQualifier, doc);
-    getTableInterface().put(put);
+    return put;
   }
 
   @Override

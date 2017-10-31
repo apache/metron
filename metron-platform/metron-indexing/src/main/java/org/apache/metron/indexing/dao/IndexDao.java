@@ -90,6 +90,13 @@ public interface IndexDao {
    */
   void update(Document update, Optional<String> index) throws IOException;
 
+  /**
+   * Update given a Document and optionally the index where the document exists.
+   *
+   * @param updates A map of the documents to update to the index where they live.
+   * @throws IOException
+   */
+  void batchUpdate(Map<Document, Optional<String>> updates) throws IOException;
 
   /**
    * Update a document in an index given a JSON Patch (see RFC 6902 at https://tools.ietf.org/html/rfc6902)
@@ -104,7 +111,7 @@ public interface IndexDao {
     Map<String, Object> latest = request.getSource();
     if(latest == null) {
       Document latestDoc = getLatest(request.getGuid(), request.getSensorType());
-      if(latestDoc.getDocument() != null) {
+      if(latestDoc != null && latestDoc.getDocument() != null) {
         latest = latestDoc.getDocument();
       }
       else {
