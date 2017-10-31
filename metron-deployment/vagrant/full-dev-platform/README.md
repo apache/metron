@@ -29,7 +29,8 @@ Any platform that supports these tools is suitable, but the following instructio
 1. Run the following command in a terminal to install all of the required tools.
 
     ```  
-    brew cask install vagrant virtualbox java docker
+    brew cask install vagrant virtualbox docker
+    brew cask install caskroom/versions/java8
     brew install maven@3.3 git
     pip install ansible==2.2.2.0
     vagrant plugin install vagrant-hostmanager
