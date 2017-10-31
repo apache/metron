@@ -137,6 +137,11 @@ public class HDFSIndexingIntegrationTest extends IndexingIntegrationTest {
 
   @Override
   public void setAdditionalProperties(Properties topologyProperties) {
+    topologyProperties.setProperty("batch_indexing_kafka_start", "UNCOMMITTED_EARLIEST");
+    topologyProperties.setProperty("batch_indexing_workers", "1");
+    topologyProperties.setProperty("batch_indexing_acker_executors", "0");
+    topologyProperties.setProperty("batch_indexing_topology_max_spout_pending", "");
+    topologyProperties.setProperty("batch_indexing_kafka_spout_parallelism", "1");
     topologyProperties.setProperty("bolt_hdfs_rotation_policy", TimedRotationPolicy.class.getCanonicalName());
     topologyProperties.setProperty("bolt_hdfs_rotation_policy_count", "1");
     topologyProperties.setProperty("bolt_hdfs_rotation_policy_units", "DAYS");

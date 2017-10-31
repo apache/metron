@@ -275,7 +275,8 @@ This package installs the Metron Indexing files
 %dir %{metron_home}
 %dir %{metron_home}/flux
 %dir %{metron_home}/flux/indexing
-%{metron_home}/flux/indexing/remote.yaml
+%{metron_home}/flux/indexing/batch/remote.yaml
+%{metron_home}/flux/indexing/random_access/remote.yaml
 %{metron_home}/config/zookeeper/indexing/bro.json
 %{metron_home}/config/zookeeper/indexing/snort.json
 %{metron_home}/config/zookeeper/indexing/websphere.json

@@ -66,7 +66,8 @@ profiler_hbase_acl_configured_flag_file = metron_zookeeper_config_path + '/../me
 
 
 # Indexing
-metron_indexing_topology = 'indexing'
+batch_metron_indexing_topology = 'batch_indexing'
+ra_metron_indexing_topology = 'random_access_indexing'
 indexing_input_topic = config['configurations']['metron-indexing-env']['indexing_input_topic']
 indexing_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_configured'
 indexing_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_acl_configured'

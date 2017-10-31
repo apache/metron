@@ -51,10 +51,6 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
   protected String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
   protected String testSensorType = "test";
 
-
-
-
-
   protected void preTest() {}
 
   @Test

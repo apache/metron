@@ -16,11 +16,11 @@
 #}
 
 ##### Storm #####
-indexing.workers={{indexing_workers}}
-indexing.acker.executors={{indexing_acker_executors}}
+indexing.workers={{batch_indexing_workers}}
+indexing.acker.executors={{batch_indexing_acker_executors}}
 topology.worker.childopts={{indexing_topology_worker_childopts}}
 topology.auto-credentials={{topology_auto_credentials}}
-topology.max.spout.pending={{indexing_topology_max_spout_pending}}
+topology.max.spout.pending={{batch_indexing_topology_max_spout_pending}}
 
 ##### Kafka #####
 kafka.zk={{zookeeper_quorum}}
@@ -28,7 +28,7 @@ kafka.broker={{kafka_brokers}}
 kafka.security.protocol={{kafka_security_protocol}}
 
 # One of EARLIEST, LATEST, UNCOMMITTED_EARLIEST, UNCOMMITTED_LATEST
-kafka.start={{indexing_kafka_start}}
+kafka.start={{batch_indexing_kafka_start}}
 
 indexing.input.topic={{indexing_input_topic}}
 indexing.error.topic={{indexing_error_topic}}
@@ -40,5 +40,5 @@ bolt.hdfs.rotation.policy.count={{bolt_hdfs_rotation_policy_count}}
 indexing.hdfs.output={{metron_apps_indexed_hdfs_dir}}
 
 ##### Parallelism #####
-kafka.spout.parallelism={{indexing_kafka_spout_parallelism}}
+kafka.spout.parallelism={{batch_indexing_kafka_spout_parallelism}}
 hdfs.writer.parallelism={{hdfs_writer_parallelism}}

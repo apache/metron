@@ -108,7 +108,13 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
 
   @Override
   public void setAdditionalProperties(Properties topologyProperties) {
-    topologyProperties.setProperty("indexing_writer_class_name", "org.apache.metron.solr.writer.SolrWriter");
+    topologyProperties.setProperty("ra_indexing_writer_class_name", "org.apache.metron.solr.writer.SolrWriter");
+    topologyProperties.setProperty("ra_indexing_kafka_start", "UNCOMMITTED_EARLIEST");
+    topologyProperties.setProperty("ra_indexing_workers", "1");
+    topologyProperties.setProperty("ra_indexing_acker_executors", "0");
+    topologyProperties.setProperty("ra_indexing_topology_max_spout_pending", "");
+    topologyProperties.setProperty("ra_indexing_kafka_spout_parallelism", "1");
+    topologyProperties.setProperty("ra_indexing_writer_parallelism", "1");
   }
 
   @Override

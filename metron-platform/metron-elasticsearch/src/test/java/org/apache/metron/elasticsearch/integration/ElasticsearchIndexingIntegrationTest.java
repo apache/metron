@@ -99,7 +99,13 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
     topologyProperties.setProperty("es.clustername", "metron");
     topologyProperties.setProperty("es.port", "9300");
     topologyProperties.setProperty("es.ip", "localhost");
-    topologyProperties.setProperty("indexing_writer_class_name", "org.apache.metron.elasticsearch.writer.ElasticsearchWriter");
+    topologyProperties.setProperty("ra_indexing_writer_class_name", "org.apache.metron.elasticsearch.writer.ElasticsearchWriter");
+    topologyProperties.setProperty("ra_indexing_kafka_start", "UNCOMMITTED_EARLIEST");
+    topologyProperties.setProperty("ra_indexing_workers", "1");
+    topologyProperties.setProperty("ra_indexing_acker_executors", "0");
+    topologyProperties.setProperty("ra_indexing_topology_max_spout_pending", "");
+    topologyProperties.setProperty("ra_indexing_kafka_spout_parallelism", "1");
+    topologyProperties.setProperty("ra_indexing_writer_parallelism", "1");
   }
 
   @Override

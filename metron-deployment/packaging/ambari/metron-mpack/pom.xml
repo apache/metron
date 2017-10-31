@@ -121,6 +121,14 @@
                                     </includes>
                                     <filtering>false</filtering>
                                 </resource>
+                                <resource>
+                                    <directory>${basedir}/../../../../metron-platform/metron-indexing/src/main/config</directory>
+                                    <includes>
+                                        <include>hdfs.properties.j2</include>
+                                    </includes>
+                                    <filtering>false</filtering>
+                                </resource>
+
                             </resources>
                         </configuration>
                     </execution>
