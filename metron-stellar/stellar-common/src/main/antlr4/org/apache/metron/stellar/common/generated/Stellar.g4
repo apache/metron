@@ -69,6 +69,7 @@ NAN : 'NaN';
 
 MATCH : 'match' | 'MATCH';
 DEFAULT : 'default' | 'DEFAULT';
+MATCH_ACTION : '=>';
 
 MINUS : '-';
 PLUS : '+';
@@ -283,7 +284,7 @@ lambda_variable:
   ;
 
 match_expr :
-  MATCH LBRACE match_clauses RBRACE #MatchClauses
+  MATCH LBRACE match_clauses COMMA DEFAULT MATCH_ACTION match_clause_action RBRACE #MatchClauses
   ;
 
 match_clauses :
@@ -291,7 +292,7 @@ match_clauses :
   ;
 
 match_clause :
-  match_clause_check COLON  match_clause_action
+  match_clause_check MATCH_ACTION  match_clause_action
   ;
 
 match_clause_action :
@@ -300,4 +301,5 @@ match_clause_action :
   
 match_clause_check :
   logical_expr #MatchClauseCheckExpr
+  | conditional_expr #MatchClauseCheckExpr
   ;

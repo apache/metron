@@ -36,27 +36,27 @@ public class MatchTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testMatchLambda() {
-    Assert.assertTrue(runPredicate("match { 1 >= 0 : ()-> true }", new HashMap() {{
+    Assert.assertTrue(runPredicate("match { 1 >= 0 => ()-> true, default => ()->false }", new HashMap() {{
       put("foo", 0);
     }}));
     Assert.assertTrue(
-        runPredicate("match { foo == 0 : ()-> true, default : ()-> false }", new HashMap() {{
+        runPredicate("match { foo == 0 => ()-> true, default => ()-> false }", new HashMap() {{
           put("foo", 0);
         }}));
 
     Assert.assertFalse(
-        runPredicate("match { foo == 0 : ()-> true, default : ()-> false }", new HashMap() {{
+        runPredicate("match { foo == 0 => ()-> true, default => ()-> false }", new HashMap() {{
           put("foo", 1);
         }}));
 
     Assert.assertTrue(
-        runPredicate("match { foo == 0 : ()-> false, foo == 1 : ()-> true, default : ()-> false }",
+        runPredicate("match { foo == 0 => ()-> false, foo == 1 => ()-> true, default => ()-> false }",
             new HashMap() {{
               put("foo", 1);
             }}));
 
     Assert.assertTrue(runPredicate(
-        "match { foo == 0 : ()-> bFalse, foo == 1 : ()-> bTrue, default : ()-> bFalse }",
+        "match { foo == 0 => ()-> bFalse, foo == 1 => ()-> bTrue, default => ()-> bFalse }",
         new HashMap() {{
           put("foo", 1);
           put("bFalse", false);
@@ -64,7 +64,7 @@ public class MatchTest {
         }}));
 
     Assert.assertTrue(runPredicate(
-        "match { foo == 0 : ()-> bFalse, foo == 1 : ()-> bTrue, default : ()-> bFalse }",
+        "match { foo == 0 => ()-> bFalse, foo == 1 => ()-> bTrue, default => ()-> bFalse }",
         new HashMap() {{
           put("foo", 1);
           put("bFalse", false);
@@ -75,12 +75,9 @@ public class MatchTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  @Ignore
   public void testMatchMAPEvaluation() {
 
-    // NOTE: THIS IS BROKEN RIGHT NOW.
-
-    String expr = "match{ var1 :  MAP(['foo', 'bar'], (x) -> TO_UPPER(x)) }";
+    String expr = "match{ var1 =>  MAP(['foo', 'bar'], (x) -> TO_UPPER(x)), default => null }";
 
     Object o = run(expr, ImmutableMap.of("foo", "foo", "bar", "bar", "var1", true));
 
@@ -103,15 +100,15 @@ public class MatchTest {
       put("empty", "");
     }};
 
-    Assert.assertTrue(runPredicate("match{ REGEXP_MATCH(numbers,numberPattern): true, default : false}", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
-    Assert.assertFalse(runPredicate("match{ REGEXP_MATCH(letters,numberPattern) : true, default :false}", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("match{ REGEXP_MATCH(numbers,numberPattern)=> true, default => false}", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertFalse(runPredicate("match{ REGEXP_MATCH(letters,numberPattern) => true, default =>false}", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
   }
 
   @Test
   @SuppressWarnings("unchecked")
   public void testMatchBareStatements() {
 
-    Assert.assertTrue(runPredicate("match { foo == 0 : bFalse, foo == 1 : bTrue, default : false }",
+    Assert.assertTrue(runPredicate("match { foo == 0 => bFalse, foo == 1 => bTrue, default => false }",
         new HashMap() {{
           put("foo", 1);
           put("bFalse", false);
@@ -119,7 +116,7 @@ public class MatchTest {
         }}));
 
     Assert.assertEquals("warning",
-        run("match{ threat.triage.level < 10 : 'info', threat.triage.level < 20 : 'warning', default : 'critical' }",
+        run("match{ threat.triage.level < 10 => 'info', threat.triage.level < 20 => 'warning', default => 'critical' }",
             new HashMap() {{
               put("threat.triage.level", 15);
             }}));
@@ -129,7 +126,7 @@ public class MatchTest {
   @SuppressWarnings("unchecked")
   public void testWithFunction() {
     Assert.assertEquals("WARNING",
-        run("match{ threat.triage.level < 10 : 'info', threat.triage.level < 20 : TO_UPPER('warning'), default : 'critical' }",
+        run("match{ threat.triage.level < 10 => 'info', threat.triage.level < 20 => TO_UPPER('warning'), default => 'critical' }",
             new HashMap() {{
               put("threat.triage.level", 15);
             }}));
@@ -139,14 +136,14 @@ public class MatchTest {
   @SuppressWarnings("unchecked")
   public void testWithFunctionMultiArgs() {
     Assert.assertEquals("false",
-        run("match{ threat.triage.level < 10 : 'info', threat.triage.level < 20 : TO_STRING(IS_ENCODING(other,'BASE32')), default : 'critical' }",
+        run("match{ threat.triage.level < 10 => 'info', threat.triage.level < 20 => TO_STRING(IS_ENCODING(other,'BASE32')), default => 'critical' }",
             new HashMap() {{
               put("threat.triage.level", 15);
               put("other", "value");
             }}));
 
     Assert.assertEquals(false,
-        run("match{ threat.triage.level < 10 : 'info', threat.triage.level < 20 : IS_ENCODING(other,'BASE32'), default : 'critical' }",
+        run("match{ threat.triage.level < 10 => 'info', threat.triage.level < 20 => IS_ENCODING(other,'BASE32'), default => 'critical' }",
             new HashMap() {{
               put("threat.triage.level", 15);
               put("other", "value");
@@ -158,14 +155,14 @@ public class MatchTest {
   public void testLogical() {
 
     Assert.assertTrue(
-        runPredicate("match { foo == 0  OR bar == 'yes' : ()-> true, default : ()-> false }",
+        runPredicate("match { foo == 0  OR bar == 'yes' => ()-> true, default => ()-> false }",
             new HashMap() {{
               put("foo", 1);
               put("bar", "yes");
             }}));
 
     Assert.assertTrue(
-        runPredicate("match { foo == 0  AND bar == 'yes' : ()-> true, default : ()-> false }",
+        runPredicate("match { foo == 0  AND bar == 'yes' => ()-> true, default => ()-> false }",
             new HashMap() {{
               put("foo", 0);
               put("bar", "yes");
@@ -174,8 +171,8 @@ public class MatchTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testVariableOnlyNoDefault() {
-    Assert.assertEquals("a",  run("match{ foo : 'a'}",
+  public void testVariableOnly() {
+    Assert.assertEquals("a",  run("match{ foo => 'a', default => null}",
         new HashMap() {{
           put("foo", true);
         }}));
@@ -183,19 +180,35 @@ public class MatchTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  @Ignore("Ignore temporarily until we resolve logical issues with validate")
-  public void testVariableEqualsCheckNoDefault() {
-    // empty stack on validate because of foo == null and no false clause
-    Assert.assertEquals("a",  run("match{ foo == true : 'a' }",
+  public void testVariableEqualsCheck() {
+    Assert.assertEquals("a",  run("match{ foo == 5 => 'a', default => 'ok' }",
         new HashMap() {{
-          put("foo", true);
+          put("foo", 5);
+        }}));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testVariableIFCheck() {
+    Assert.assertEquals("a",  run("match{ IF foo == 5 THEN true ELSE false => 'a', default => 'ok' }",
+        new HashMap() {{
+          put("foo", 5);
+        }}));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testernaryFuncWithoutIfCheck() {
+    Assert.assertEquals("a",  run("match{ foo == 5 ? true : false => 'a', default => 'ok' }",
+        new HashMap() {{
+          put("foo", 5);
         }}));
   }
 
   @Test
   @SuppressWarnings("unchecked")
   public void testVariableOnlyCheckWithDefault() {
-    Assert.assertEquals("a",  run("match{ foo : 'a', default : 'b' }",
+    Assert.assertEquals("a",  run("match{ foo => 'a', default => 'b' }",
         new HashMap() {{
           put("foo", true);
         }}));
@@ -204,7 +217,7 @@ public class MatchTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testHandleVariableEqualsCheckWithDefault() {
-    Assert.assertEquals("a",  run("match{ foo == true : 'a', default: 'b' }",
+    Assert.assertEquals("a",  run("match{ foo == true => 'a', default=> 'b' }",
         new HashMap() {{
           put("foo", true);
         }}));
@@ -213,7 +226,7 @@ public class MatchTest {
   @Test
   @SuppressWarnings("unchecked")
   public void workingMatchWithMap() {
-    Assert.assertEquals(Arrays.asList("OK", "HAHA"),  run("match{ foo > 100 : THROW('oops'), foo > 200 : THROW('oh no'), foo >= 50 : MAP(['ok', 'haha'], (a) -> TO_UPPER(a)), default: 'a' }",
+    Assert.assertEquals(Arrays.asList("OK", "HAHA"),  run("match{ foo > 100 => THROW('oops'), foo > 200 => THROW('oh no'), foo >= 50 => MAP(['ok', 'haha'], (a) -> TO_UPPER(a)), default=> 'a' }",
         new HashMap() {{
           put("foo", 50);
         }}));
@@ -223,18 +236,25 @@ public class MatchTest {
   @SuppressWarnings("unchecked")
   public void testMatchErrorNoDefault() {
 
-    run("match{ foo > 100 : 'greater than 100', foo > 200 : 'greater than 200' }", new HashMap() {{
+    run("match{ foo > 100 => 'greater than 100', foo > 200 => 'greater than 200' }", new HashMap() {{
       put("foo", 50);
     }});
 
   }
 
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testThis() {
+    run("IF EXISTS(x) AND x THEN 'what 1' ELSE 'what 2'",new HashMap() {{
+      put("x",true);
+    }});
+  }
 
   @Test
   @SuppressWarnings("unchecked")
   public void testShortCircuit() {
 
-   Assert.assertEquals("ok",  run("match{ foo > 100 : THROW('oops'), foo > 200 : THROW('oh no'), default : 'ok' }",
+   Assert.assertEquals("ok",  run("match{ foo > 100 => THROW('oops'), foo > 200 => THROW('oh no'), default => 'ok' }",
           new HashMap() {{
             put("foo", 50);
           }}));

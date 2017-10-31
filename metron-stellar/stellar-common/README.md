@@ -30,7 +30,7 @@ The Stellar language supports the following:
 * Simple comparison operations `<`, `>`, `<=`, `>=`
 * Simple equality comparison operations `==`, `!=`
 * if/then/else comparisons (i.e. `if var1 < 10 then 'less than 10' else '10 or more'`)
-* Simple match evaluations (i.e. `match{ var1 < 10 : 'warn', var1 >= 10 : 'critical', default : 'info'}`
+* Simple match evaluations (i.e. `match{ var1 < 10 => 'warn', var1 >= 10 => 'critical', default => 'info'}`
 * Determining whether a field exists (via `exists`)
 * An `in` operator that works like the `in` in Python
 * The ability to have parenthesis to make order of operations explicit
@@ -46,7 +46,7 @@ The following keywords need to be single quote escaped in order to be used in St
 | default       | ==            | !=          | \<=         | \>          | 
 | \>=           | \+            | \-          | \<          | ?           | 
 | \*            | /             | ,           | \{          | \}          |
-|               |               |             |             |             |
+| \=>           |               |             |             |             |
 
 Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 
@@ -108,21 +108,19 @@ Stellar provides the capability to write match expressions, which are similar to
 Scala's match.
 
 The syntax is:
-* `match{ logical_expression1 : evaluation expression1, logical_expression2 : evaluation_expression2}` : A match expression with no default
-* `match{ logical_expression1 : evaluation expression1, logical_expression2 : evaluation_expression2, default : default_expression}` : A match expression with a default expression
+* `match{ logical_expression1 => evaluation expression1, logical_expression2 => evaluation_expression2, default => default_expression}` 
 
 Where:
 
-* `logical_expression` is a Stellar expression that evaluates to true or false.  For instance `var > 0` or `var > 0 AND var2 == 'foo'`
-* `evaluation_expression` is any Stellar Expression 
+* `logical_expression` is a Stellar expression that evaluates to true or false.  For instance `var > 0` or `var > 0 AND var2 == 'foo'` or `IF ... THEN ... ELSE` 
+* `evaluation_expression` is any Stellar Expression
+* `default` is a required default return value, should no logical expression match
 
-> Currently the MAP() function is not supported
+> default is required 
 
 > Lambda expressions are supported, but they must be no argument lambdas such as `() -> STATEMENT`
 
 * Only the first clause that evaluates to true will be executed.
-* The match must return some value.  In other words, a default should be provided unless the logical_expressions are posed such that
-one will always evaluate to true.  Failure to do this will result in an error.
 
 ## Stellar Core Functions
 
