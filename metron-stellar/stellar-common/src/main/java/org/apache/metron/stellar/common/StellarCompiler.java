@@ -724,11 +724,7 @@ public class StellarCompiler extends StellarBaseListener {
 
   @Override
   public void exitMatchClauseCheckExpr(StellarParser.MatchClauseCheckExprContext ctx) {
-
     final FrameContext.Context context = getArgContext();
-
-
-
     // if we are validating, and we have a single variable then we will get
     // a null and we need to protect against that
     if(ctx.getStart() == ctx.getStop()) {

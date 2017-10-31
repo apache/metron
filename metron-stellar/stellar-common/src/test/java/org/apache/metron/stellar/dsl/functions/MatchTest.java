@@ -150,6 +150,17 @@ public class MatchTest {
             }}));
   }
 
+  @Test(expected = ParseException.class)
+  @SuppressWarnings("unchecked")
+  public void testNestedMatchNotSupportted() {
+    // we cannot nest short circuit types in stellar
+    Assert.assertEquals(false, run("match{  x == 0 => match{ y == 10 => false, default => true}, default => true}",
+        new HashMap(){{
+          put("x",0);
+          put("y", 10);
+    }}));
+  }
+
   @Test
   @SuppressWarnings("unchecked")
   public void testLogical() {
