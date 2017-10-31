@@ -66,17 +66,14 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
         ElasticSearchComponent elasticSearchComponent = runner.getComponent("search", ElasticSearchComponent.class);
         KafkaComponent kafkaComponent = runner.getComponent("kafka", KafkaComponent.class);
         if (elasticSearchComponent.hasIndex(index)) {
-          List<Map<String, Object>> docsFromDisk;
           try {
             docs = elasticSearchComponent.getAllIndexedDocs(index, testSensorType + "_doc");
-            docsFromDisk = readDocsFromDisk(hdfsDir);
-            System.out.println(docs.size() + " vs " + inputMessages.size() + " vs " + docsFromDisk.size());
           } catch (IOException e) {
             throw new IllegalStateException("Unable to retrieve indexed documents.", e);
           }
-          if (docs.size() < inputMessages.size() || docs.size() != docsFromDisk.size()) {
+          if (docs.size() < inputMessages.size() ) {
             errors = kafkaComponent.readMessages(ERROR_TOPIC);
-            if(errors.size() > 0){
+            if(errors.size() > 0 && errors.size() + docs.size() == inputMessages.size()){
               return ReadinessState.READY;
             }
             return ReadinessState.NOT_READY;
@@ -113,5 +110,10 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
   @Override
   public String getTemplatePath() {
     return "../metron-elasticsearch/src/main/config/elasticsearch.properties.j2";
+  }
+
+  @Override
+  public String getFluxPath() {
+    return "../metron-indexing/src/main/flux/indexing/random_access/remote.yaml";
   }
 }

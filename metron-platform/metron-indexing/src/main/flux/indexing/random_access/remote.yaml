@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "indexing"
+name: "random_access_indexing"
 
 config:
     topology.workers: ${indexing.workers}
@@ -24,35 +24,6 @@ config:
     topology.max.spout.pending: ${topology.max.spout.pending}
 
 components:
-
-    -   id: "fileNameFormat"
-        className: "org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat"
-        configMethods:
-            -   name: "withPrefix"
-                args:
-                    - "enrichment-"
-            -   name: "withExtension"
-                args:
-                  - ".json"
-            -   name: "withPath"
-                args:
-                    - "${indexing.hdfs.output}"
-
-    -   id: "hdfsRotationPolicy"
-        className: "${bolt.hdfs.rotation.policy}"
-        constructorArgs:
-          -  ${bolt.hdfs.rotation.policy.count}
-          - "${bolt.hdfs.rotation.policy.units}"
-#indexing
-    -   id: "hdfsWriter"
-        className: "org.apache.metron.writer.hdfs.HdfsWriter"
-        configMethods:
-            -   name: "withFileNameFormat"
-                args:
-                    - ref: "fileNameFormat"
-            -   name: "withRotationPolicy"
-                args:
-                    - ref: "hdfsRotationPolicy"
 
     -   id: "kafkaWriterProps"
         className: "java.util.HashMap"
@@ -144,19 +115,6 @@ bolts:
                     - "DEFAULT_JSON_FROM_POSITION"
         parallelism: ${indexing.writer.parallelism}
 
-    -   id: "hdfsIndexingBolt"
-        className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
-        constructorArgs:
-            - "${kafka.zk}"
-        configMethods:
-            -   name: "withBulkMessageWriter"
-                args:
-                    - ref: "hdfsWriter"
-            -   name: "withMessageGetter"
-                args:
-                    - "DEFAULT_JSON_FROM_POSITION"
-        parallelism: ${hdfs.writer.parallelism}
-
     -   id: "indexingErrorBolt"
         className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
         constructorArgs:
@@ -174,21 +132,8 @@ streams:
         grouping:
             type: SHUFFLE
 
-    -   name: "spout -> hdfs"
-        from: "kafkaSpout"
-        to: "hdfsIndexingBolt"
-        grouping:
-            type: SHUFFLE
-
     -   name: "indexingBolt -> errorIndexingBolt"
         from: "indexingBolt"
-        to: "indexingErrorBolt"
-        grouping:
-            streamId: "error"
-            type: SHUFFLE
-
-    -   name: "hdfsBolt -> errorIndexingBolt"
-        from: "hdfsIndexingBolt"
         to: "indexingErrorBolt"
         grouping:
             streamId: "error"
