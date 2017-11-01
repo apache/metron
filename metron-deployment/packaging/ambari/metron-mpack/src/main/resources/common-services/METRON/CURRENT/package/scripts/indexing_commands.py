@@ -48,6 +48,7 @@ class IndexingCommands:
         self.__acl_configured = os.path.isfile(self.__params.indexing_acl_configured_flag_file)
         self.__hbase_configured = os.path.isfile(self.__params.indexing_hbase_configured_flag_file)
         self.__hbase_acl_configured = os.path.isfile(self.__params.indexing_hbase_acl_configured_flag_file)
+        self.__elasticsearch_template_installed = os.path.isfile(self.__params.elasticsearch_template_installed_flag_file)
         self.__hdfs_perm_configured = os.path.isfile(self.__params.indexing_hdfs_perm_configured_flag_file)
 
     def __get_topics(self):
@@ -72,6 +73,9 @@ class IndexingCommands:
     def is_hbase_acl_configured(self):
         return self.__hbase_acl_configured
 
+    def is_elasticsearch_template_installed(self):
+        return self.__elasticsearch_template_installed
+
     def set_configured(self):
         metron_service.set_configured(self.__params.metron_user, self.__params.indexing_configured_flag_file, "Setting Indexing configured to True")
 
@@ -86,6 +90,9 @@ class IndexingCommands:
 
     def set_hdfs_perm_configured(self):
         metron_service.set_configured(self.__params.metron_user, self.__params.indexing_hdfs_perm_configured_flag_file, "Setting HDFS perm configured to True")
+
+    def set_elasticsearch_template_installed(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.elasticsearch_template_installed_flag_file, "Setting Elasticsearch template installed to True")
 
     def create_hbase_tables(self):
         Logger.info("Creating HBase Tables for indexing")

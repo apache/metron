@@ -66,7 +66,7 @@ $searchbox-height: 42px;
 
   .btn-saved-searches {
     font-size: 15px;
-
+    font-family: Roboto;
     background: $mine-shaft-5;
     border: 1px solid $tundora;
     color: $silver-chalice;
@@ -86,7 +86,7 @@ $searchbox-height: 42px;
   .btn-search-clear {
     border-top: 1px solid $tundora;
     border-bottom: 1px solid $tundora;
-    border-right: 1px solid $blue-chill;
+    border-right: 1px solid $tundora;
     background: $mine-shaft-1;
     border-left: none;
     padding: 0px 5px 0px 0px;

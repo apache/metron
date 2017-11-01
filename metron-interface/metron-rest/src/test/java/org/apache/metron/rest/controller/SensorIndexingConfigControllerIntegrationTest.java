@@ -98,11 +98,26 @@ public class SensorIndexingConfigControllerIntegrationTest {
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(content().bytes("{}".getBytes()));
 
+    this.mockMvc.perform(get(sensorIndexingConfigUrl + "/list/indices/elasticsearch").with(httpBasic(user,password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(content().bytes("[]".getBytes()));
+
+    this.mockMvc.perform(get(sensorIndexingConfigUrl + "/list/indices/blah").with(httpBasic(user,password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(content().bytes("[]".getBytes()));
+
     this.mockMvc.perform(post(sensorIndexingConfigUrl + "/broTest").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
             .andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.index").value("broTest"))
             .andExpect(jsonPath("$.batchSize").value(1));
+
+    this.mockMvc.perform(get(sensorIndexingConfigUrl + "/list/indices/elasticsearch").with(httpBasic(user,password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(content().bytes("[\"broTest\"]".getBytes()));
 
     assertEventually(() -> this.mockMvc.perform(post(sensorIndexingConfigUrl + "/broTest").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
             .andExpect(status().isOk())
