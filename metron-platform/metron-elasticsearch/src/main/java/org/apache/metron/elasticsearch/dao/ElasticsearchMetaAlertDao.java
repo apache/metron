@@ -18,6 +18,7 @@
 
 package org.apache.metron.elasticsearch.dao;
 
+import static org.apache.metron.common.Constants.SOURCE_TYPE;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.constantScoreQuery;
@@ -74,7 +75,6 @@ import org.elasticsearch.search.SearchHit;
 
 public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
-  private static final String SOURCE_TYPE = Constants.SENSOR_TYPE.replace('.', ':');
   private IndexDao indexDao;
   private ElasticsearchDao elasticsearchDao;
   private String index = METAALERTS_INDEX;
@@ -167,38 +167,34 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     }
 
     // Retrieve the documents going into the meta alert and build it
-    MultiGetResponse multiGetResponse = getDocumentsByGuid(request);
-    Document createDoc = buildCreateDocument(multiGetResponse, request.getGroups());
-    MetaScores metaScores = calculateMetaScores(createDoc);
-    createDoc.getDocument().putAll(metaScores.getMetaScores());
-    createDoc.getDocument().put(threatTriageField, metaScores.getMetaScores().get(threatSort));
+    Map<String, String> guidToIndices = request.getGuidToIndices();
+    Iterable<Document> alerts = indexDao.getAllLatest(guidToIndices);
+
+    Document metaAlert = buildCreateDocument(alerts, request.getGroups());
+    MetaScores metaScores = calculateMetaScores(metaAlert);
+    metaAlert.getDocument().putAll(metaScores.getMetaScores());
+    metaAlert.getDocument().put(threatTriageField, metaScores.getMetaScores().get(threatSort));
     // Add source type to be consistent with other sources and allow filtering
-    createDoc.getDocument().put("source:type", MetaAlertDao.METAALERT_TYPE);
+    metaAlert.getDocument().put(SOURCE_TYPE, MetaAlertDao.METAALERT_TYPE);
 
     // Start a list of updates / inserts we need to run
     Map<Document, Optional<String>> updates = new HashMap<>();
-    updates.put(createDoc, Optional.of(MetaAlertDao.METAALERTS_INDEX));
+    updates.put(metaAlert, Optional.of(MetaAlertDao.METAALERTS_INDEX));
 
     try {
       // We need to update the associated alerts with the new meta alerts, making sure existing
       // links are maintained.
-      List<String> metaAlertField;
-      for (MultiGetItemResponse itemResponse : multiGetResponse) {
-        metaAlertField = new ArrayList<>();
-        GetResponse response = itemResponse.getResponse();
-        if (response.isExists()) {
-          List<String> alertField = (List<String>) response.getSourceAsMap()
-              .get(MetaAlertDao.METAALERT_FIELD);
-          if (alertField != null) {
-            metaAlertField.addAll(alertField);
-          }
+      List<String> metaAlerts;
+      for (Document alert: alerts) {
+        Map<String, Object> document = alert.getDocument();
+        metaAlerts = new ArrayList<>();
+        List<String> existingMetaAlerts = (List<String>) document.get(MetaAlertDao.METAALERT_FIELD);
+        if (existingMetaAlerts != null) {
+          metaAlerts.addAll(existingMetaAlerts);
         }
-        metaAlertField.add(createDoc.getGuid());
-
-        Document alertUpdate = buildAlertUpdate(response.getId(),
-            (String) response.getSource().get(SOURCE_TYPE), metaAlertField,
-            (Long) response.getSourceAsMap().get("_timestamp"));
-        updates.put(alertUpdate, Optional.of(itemResponse.getIndex()));
+        metaAlerts.add(metaAlert.getGuid());
+        document.put(MetaAlertDao.METAALERT_FIELD, metaAlerts);
+        updates.put(alert, Optional.of(guidToIndices.get(alert.getGuid())));
       }
 
       // Kick off any updates.
@@ -206,7 +202,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
       MetaAlertCreateResponse createResponse = new MetaAlertCreateResponse();
       createResponse.setCreated(true);
-      createResponse.setGuid(createDoc.getGuid());
+      createResponse.setGuid(metaAlert.getGuid());
       return createResponse;
     } catch (IOException ioe) {
       throw new InvalidCreateException("Unable to create meta alert", ioe);
@@ -239,6 +235,11 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   @Override
   public Document getLatest(String guid, String sensorType) throws IOException {
     return indexDao.getLatest(guid, sensorType);
+  }
+
+  @Override
+  public Iterable<Document> getAllLatest(Map<String, String> guidToIndices) throws IOException {
+    return indexDao.getAllLatest(guidToIndices);
   }
 
   @Override
@@ -298,33 +299,17 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   /**
-   * Return child documents after retrieving them from Elasticsearch.
-   * @param request The request detailing which child alerts we need
-   * @return The Elasticsearch response to our request for alerts
-   */
-  protected MultiGetResponse getDocumentsByGuid(MetaAlertCreateRequest request) {
-    MultiGetRequestBuilder multiGet = elasticsearchDao.getClient().prepareMultiGet();
-    for (Entry<String, String> entry : request.getGuidToIndices().entrySet()) {
-      multiGet.add(new Item(entry.getValue(), null, entry.getKey()));
-    }
-    return multiGet.get();
-  }
-
-  /**
    * Build the Document representing a meta alert to be created.
-   * @param multiGetResponse The Elasticsearch results for the meta alerts child documents
+   * @param alerts The Elasticsearch results for the meta alerts child documents
    * @param groups The groups used to create this meta alert
    * @return A Document representing the new meta alert
    */
-  protected Document buildCreateDocument(MultiGetResponse multiGetResponse, List<String> groups) {
+  protected Document buildCreateDocument(Iterable<Document> alerts, List<String> groups) {
     // Need to create a Document from the multiget. Scores will be calculated later
     Map<String, Object> metaSource = new HashMap<>();
     List<Map<String, Object>> alertList = new ArrayList<>();
-    for (MultiGetItemResponse itemResponse : multiGetResponse) {
-      GetResponse response = itemResponse.getResponse();
-      if (response.isExists()) {
-        alertList.add(response.getSource());
-      }
+    for (Document alert: alerts) {
+      alertList.add(alert.getDocument());
     }
     metaSource.put(ALERT_FIELD, alertList);
 

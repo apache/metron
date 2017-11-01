@@ -18,6 +18,8 @@
 
 package org.apache.metron.elasticsearch.integration;
 
+import static org.apache.metron.common.Constants.SOURCE_TYPE;
+import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_FIELD;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -850,6 +852,22 @@ public class ElasticsearchMetaAlertIntegrationTest {
         }});
     // Wait for updates to persist
     findCreatedDoc(metaAlertCreateResponse.getGuid(), MetaAlertDao.METAALERT_TYPE);
+
+    // Verify alerts are properly updated with metaalert field
+    Document alert1 = metaDao.getLatest("update_metaalert_alert_0", SENSOR_NAME);
+    Assert.assertEquals(4, alert1.getDocument().size());
+    Assert.assertEquals(1, ((List) alert1.getDocument().get(METAALERT_FIELD)).size());
+    Assert.assertEquals(metaAlertCreateResponse.getGuid(), ((List) alert1.getDocument().get(METAALERT_FIELD)).get(0));
+    Assert.assertEquals(SENSOR_NAME, alert1.getDocument().get(SOURCE_TYPE));
+    Assert.assertEquals("value 0", alert1.getDocument().get("field"));
+    Assert.assertEquals("update_metaalert_alert_0", alert1.getDocument().get("guid"));
+    Document alert2 = metaDao.getLatest("update_metaalert_alert_1", SENSOR_NAME);
+    Assert.assertEquals(4, alert2.getDocument().size());
+    Assert.assertEquals(1, ((List) alert2.getDocument().get(METAALERT_FIELD)).size());
+    Assert.assertEquals(metaAlertCreateResponse.getGuid(), ((List) alert2.getDocument().get(METAALERT_FIELD)).get(0));
+    Assert.assertEquals(SENSOR_NAME, alert2.getDocument().get(SOURCE_TYPE));
+    Assert.assertEquals("value 1", alert2.getDocument().get("field"));
+    Assert.assertEquals("update_metaalert_alert_1", alert2.getDocument().get("guid"));
 
     // Patch alert
     metaDao.patch(JSONUtils.INSTANCE.load(updateMetaAlertPatchRequest, PatchRequest.class),

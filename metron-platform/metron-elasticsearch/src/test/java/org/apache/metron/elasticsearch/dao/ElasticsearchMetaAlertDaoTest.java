@@ -215,6 +215,11 @@ public class ElasticsearchMetaAlertDaoTest {
       }
 
       @Override
+      public Iterable<Document> getAllLatest(Map<String, String> guidToIndices) throws IOException {
+        return null;
+      }
+
+      @Override
       public void update(Document update, Optional<String> index) throws IOException {
       }
 
@@ -252,24 +257,12 @@ public class ElasticsearchMetaAlertDaoTest {
     Map<String, Object> alertOne = new HashMap<>();
     alertOne.put(Constants.GUID, "alert_one");
     alertOne.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
-    GetResponse getResponseOne = mock(GetResponse.class);
-    when(getResponseOne.isExists()).thenReturn(true);
-    when(getResponseOne.getSource()).thenReturn(alertOne);
-    MultiGetItemResponse multiGetItemResponseOne = mock(MultiGetItemResponse.class);
-    when(multiGetItemResponseOne.getResponse()).thenReturn(getResponseOne);
-
-    // Add it to the iterator
-    @SuppressWarnings("unchecked")
-    Iterator<MultiGetItemResponse> mockIterator = mock(Iterator.class);
-    when(mockIterator.hasNext()).thenReturn(true, false);
-    when(mockIterator.next()).thenReturn(multiGetItemResponseOne);
-
-    // Add it to the response
-    MultiGetResponse mockResponse = mock(MultiGetResponse.class);
-    when(mockResponse.iterator()).thenReturn(mockIterator);
+    List<Document> alerts = new ArrayList<Document>() {{
+      add(new Document(alertOne, "", "", 0L));
+    }};
 
     // Actually build the doc
-    Document actual = emaDao.buildCreateDocument(mockResponse, groups);
+    Document actual = emaDao.buildCreateDocument(alerts, groups);
 
     ArrayList<Map<String, Object>> alertList = new ArrayList<>();
     alertList.add(alertOne);
@@ -306,34 +299,18 @@ public class ElasticsearchMetaAlertDaoTest {
     Map<String, Object> alertOne = new HashMap<>();
     alertOne.put(Constants.GUID, "alert_one");
     alertOne.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
-    GetResponse getResponseOne = mock(GetResponse.class);
-    when(getResponseOne.isExists()).thenReturn(true);
-    when(getResponseOne.getSource()).thenReturn(alertOne);
-    MultiGetItemResponse multiGetItemResponseOne = mock(MultiGetItemResponse.class);
-    when(multiGetItemResponseOne.getResponse()).thenReturn(getResponseOne);
 
     // Build the second response from the multiget
     Map<String, Object> alertTwo = new HashMap<>();
     alertTwo.put(Constants.GUID, "alert_one");
     alertTwo.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 5.0d);
-    GetResponse getResponseTwo = mock(GetResponse.class);
-    when(getResponseTwo.isExists()).thenReturn(true);
-    when(getResponseTwo.getSource()).thenReturn(alertTwo);
-    MultiGetItemResponse multiGetItemResponseTwo = mock(MultiGetItemResponse.class);
-    when(multiGetItemResponseTwo.getResponse()).thenReturn(getResponseTwo);
-
-    // Add it to the iterator
-    @SuppressWarnings("unchecked")
-    Iterator<MultiGetItemResponse> mockIterator = mock(Iterator.class);
-    when(mockIterator.hasNext()).thenReturn(true, true, false);
-    when(mockIterator.next()).thenReturn(multiGetItemResponseOne, multiGetItemResponseTwo);
-
-    // Add them to the response
-    MultiGetResponse mockResponse = mock(MultiGetResponse.class);
-    when(mockResponse.iterator()).thenReturn(mockIterator);
+    List<Document> alerts = new ArrayList<Document>() {{
+      add(new Document(alertOne, "", "", 0L));
+      add(new Document(alertTwo, "", "", 0L));
+    }};
 
     // Actually build the doc
-    Document actual = emaDao.buildCreateDocument(mockResponse, groups);
+    Document actual = emaDao.buildCreateDocument(alerts, groups);
 
     ArrayList<Map<String, Object>> alertList = new ArrayList<>();
     alertList.add(alertOne);

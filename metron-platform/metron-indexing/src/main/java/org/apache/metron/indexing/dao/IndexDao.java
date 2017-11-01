@@ -65,6 +65,8 @@ public interface IndexDao {
    */
   Document getLatest(String guid, String sensorType) throws IOException;
 
+  Iterable<Document> getAllLatest(Map<String, String> guidToIndices) throws IOException;
+
   /**
    * Return the latest version of a document given a GetRequest.
    * @param request The GetRequest which indicates the GUID and sensor type.

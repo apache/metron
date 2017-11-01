@@ -94,6 +94,11 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
+  public Iterable<Document> getAllLatest(Map<String, String> guidToIndices) throws IOException {
+    return indexDao.getAllLatest(guidToIndices);
+  }
+
+  @Override
   public void update(Document update, Optional<String> index) throws IOException {
     indexDao.update(update, index);
   }

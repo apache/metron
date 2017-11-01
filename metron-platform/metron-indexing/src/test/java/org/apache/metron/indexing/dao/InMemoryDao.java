@@ -17,6 +17,8 @@
  */
 package org.apache.metron.indexing.dao;
 
+import static org.apache.metron.common.Constants.SOURCE_TYPE;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ComparisonChain;
@@ -196,6 +198,22 @@ public class InMemoryDao implements IndexDao {
       }
     }
     return null;
+  }
+
+  @Override
+  public Iterable<Document> getAllLatest(Map<String, String> guidToIndices) throws IOException {
+    List<Document> documents = new ArrayList<>();
+    for(Map.Entry<String, String> kv: guidToIndices.entrySet()) {
+      String guid = kv.getKey();
+      List<String> docs = BACKING_STORE.get(kv.getValue());
+      for(String doc : docs) {
+        Map<String, Object> docParsed = parse(doc);
+        if(docParsed.getOrDefault(Constants.GUID, "").equals(guid)) {
+          documents.add(new Document(doc, guid, (String) docParsed.get(SOURCE_TYPE), 0L));
+        }
+      }
+    }
+    return documents;
   }
 
   @Override

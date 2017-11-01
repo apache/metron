@@ -121,12 +121,15 @@ public class HBaseDao implements IndexDao {
   }
 
   @Override
+  public Iterable<Document> getAllLatest(Map<String, String> guidToIndices) throws IOException {
+    return null;
+  }
+
+  @Override
   public synchronized void update(Document update, Optional<String> index) throws IOException {
     Put put = buildPut(update);
     getTableInterface().put(put);
   }
-
-
 
   @Override
   public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {

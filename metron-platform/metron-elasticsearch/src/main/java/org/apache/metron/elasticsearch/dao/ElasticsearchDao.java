@@ -17,6 +17,7 @@
  */
 package org.apache.metron.elasticsearch.dao;
 
+import static org.apache.metron.common.Constants.SOURCE_TYPE;
 import static org.apache.metron.elasticsearch.utils.ElasticsearchUtils.INDEX_NAME_DELIMITER;
 
 import com.google.common.base.Splitter;
@@ -31,6 +32,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -54,6 +56,11 @@ import org.elasticsearch.action.ActionWriteResponse.ShardInfo;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.get.MultiGetItemResponse;
+import org.elasticsearch.action.get.MultiGetRequest.Item;
+import org.elasticsearch.action.get.MultiGetRequestBuilder;
+import org.elasticsearch.action.get.MultiGetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -254,6 +261,29 @@ public class ElasticsearchDao implements IndexDao {
             }
             );
     return ret.orElse(null);
+  }
+
+  @Override
+  public Iterable<Document> getAllLatest(Map<String, String> guidToIndices) throws IOException {
+    List<Document> documents = new ArrayList<>();
+    MultiGetRequestBuilder multiGet = getClient().prepareMultiGet();
+    for (Entry<String, String> entry : guidToIndices.entrySet()) {
+      multiGet.add(new Item(entry.getValue(), null, entry.getKey()));
+    }
+    MultiGetResponse multiGetResponse = multiGet.get();
+    for (MultiGetItemResponse itemResponse : multiGetResponse) {
+      GetResponse response = itemResponse.getResponse();
+      if (response.isExists()) {
+        Map<String, Object> source = response.getSource();
+        documents.add(new Document(
+            source,
+            response.getId(),
+            (String) source.get(SOURCE_TYPE),
+            (Long) source.get("_timestamp")
+        ));
+      }
+    }
+    return documents;
   }
 
   /**

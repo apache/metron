@@ -17,6 +17,8 @@
  */
 package org.apache.metron.indexing.dao;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.Iterator;
 import java.util.Optional;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.utils.JSONUtils;
@@ -29,8 +31,8 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.search.GroupResult;
+import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.integration.InMemoryComponent;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -101,6 +103,15 @@ public abstract class SearchIntegrationTest {
    */
   @Multiline
   public static String findOneGuidQuery;
+
+  /**
+   * {
+   * "bro-1": "bro_index_2017.01.01.01",
+   * "bro-2": "bro_index_2017.01.01.01"
+   * }
+   */
+  @Multiline
+  public static String getAllLatestQuery;
 
   /**
    * {
@@ -389,6 +400,19 @@ public abstract class SearchIntegrationTest {
       Map<String, Object> doc = response.get();
       Assert.assertEquals("bro", doc.get("source:type"));
       Assert.assertEquals(3, doc.get("timestamp"));
+    }
+    //Get All Latest Guid Testcase
+    {
+      Map<String, String> request = JSONUtils.INSTANCE.load(getAllLatestQuery, new TypeReference<Map<String, String>>() {
+      });
+      Iterator<Document> response = dao.getAllLatest(request).iterator();
+      Document bro2 = response.next();
+      Assert.assertEquals("bro_1", bro2.getDocument().get("guid"));
+      Assert.assertEquals("bro", bro2.getDocument().get("source:type"));
+      Document snort2 = response.next();
+      Assert.assertEquals("bro_2", snort2.getDocument().get("guid"));
+      Assert.assertEquals("bro", snort2.getDocument().get("source:type"));
+      Assert.assertFalse(response.hasNext());
     }
     //Filter test case
     {
