@@ -108,6 +108,9 @@ public class KafkaConfig {
     producerConfig.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
     producerConfig.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
     producerConfig.put("request.required.acks", 1);
+    if (environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)) {
+      producerConfig.put("security.protocol", "SASL_PLAINTEXT");
+    }
     return producerConfig;
   }
 
