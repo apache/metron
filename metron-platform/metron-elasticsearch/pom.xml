@@ -200,6 +200,11 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>${global_powermock_version}</version>
+        </dependency>
     </dependencies>
 
     <build>
