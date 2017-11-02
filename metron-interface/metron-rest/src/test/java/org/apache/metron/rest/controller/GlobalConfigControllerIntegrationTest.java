@@ -91,8 +91,9 @@ public class GlobalConfigControllerIntegrationTest {
     public void test() throws Exception {
         this.globalConfigService.delete();
 
-        this.mockMvc.perform(get(globalConfigUrl).with(httpBasic(user,password)))
-                .andExpect(status().isNotFound());
+        assertEventually(() -> this.mockMvc.perform(get(globalConfigUrl).with(httpBasic(user,password)))
+                .andExpect(status().isNotFound())
+        );
 
         this.mockMvc.perform(post(globalConfigUrl).with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(globalJson))
                 .andExpect(status().isCreated())
@@ -109,8 +110,9 @@ public class GlobalConfigControllerIntegrationTest {
         this.mockMvc.perform(delete(globalConfigUrl).with(httpBasic(user,password)).with(csrf()))
                 .andExpect(status().isOk());
 
-        this.mockMvc.perform(delete(globalConfigUrl).with(httpBasic(user,password)).with(csrf()))
-                .andExpect(status().isNotFound());
+        assertEventually(() -> this.mockMvc.perform(delete(globalConfigUrl).with(httpBasic(user,password)).with(csrf()))
+                .andExpect(status().isNotFound())
+        );
 
         this.globalConfigService.delete();
     }

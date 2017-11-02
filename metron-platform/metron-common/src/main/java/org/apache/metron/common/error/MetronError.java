@@ -32,13 +32,14 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.metron.common.Constants.ERROR_TYPE;
 import static org.apache.metron.common.Constants.ErrorFields;
 
 public class MetronError {
 
   private String message;
   private Throwable throwable;
-  private String sensorType = "error";
+  private String sensorType = ERROR_TYPE;
   private ErrorType errorType = ErrorType.DEFAULT_ERROR;
   private Set<String> errorFields;
   private List<Object> rawMessages;
