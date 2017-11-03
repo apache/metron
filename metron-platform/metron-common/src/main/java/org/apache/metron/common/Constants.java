@@ -32,6 +32,7 @@ public class Constants {
   public static final String ENRICHMENT_TOPIC = "enrichments";
   public static final String INDEXING_TOPIC = "indexing";
   public static final String ERROR_STREAM = "error";
+  public static final String ERROR_TYPE = "error";
   public static final String SIMPLE_HBASE_ENRICHMENT = "hbaseEnrichment";
   public static final String SIMPLE_HBASE_THREAT_INTEL = "hbaseThreatIntel";
   public static final String GUID = "guid";

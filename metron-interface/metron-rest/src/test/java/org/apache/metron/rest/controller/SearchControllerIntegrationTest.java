@@ -18,11 +18,11 @@
 package org.apache.metron.rest.controller;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.indexing.dao.InMemoryDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.indexing.dao.search.FieldType;
-import org.apache.metron.rest.service.SearchService;
+import org.apache.metron.rest.service.SensorIndexingConfigService;
 import org.json.simple.parser.ParseException;
 import org.junit.After;
 import org.junit.Before;
@@ -40,6 +40,7 @@ import org.springframework.web.context.WebApplicationContext;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.apache.metron.integration.utils.TestUtils.assertEventually;
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -55,10 +56,25 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles(TEST_PROFILE)
 public class SearchControllerIntegrationTest extends DaoControllerTest {
 
-
+  /**
+   * {
+   * "indices": [],
+   * "query": "*",
+   * "from": 0,
+   * "size": 10,
+   * "sort": [
+   *   {
+   *     "field": "timestamp",
+   *     "sortOrder": "desc"
+   *   }
+   * ]
+   * }
+   */
+  @Multiline
+  public static String defaultQuery;
 
   @Autowired
-  private SearchService searchService;
+  private SensorIndexingConfigService sensorIndexingConfigService;
 
   @Autowired
   private WebApplicationContext wac;
@@ -89,6 +105,31 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
   public void testSecurity() throws Exception {
     this.mockMvc.perform(post(searchUrl + "/search").with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(SearchIntegrationTest.allQuery))
             .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  public void testDefaultQuery() throws Exception {
+    sensorIndexingConfigService.save("bro", new HashMap<String, Object>() {{
+      put("index", "bro");
+    }});
+
+    assertEventually(() -> this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(defaultQuery))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+        .andExpect(jsonPath("$.total").value(5))
+        .andExpect(jsonPath("$.results[0].source.source:type").value("bro"))
+        .andExpect(jsonPath("$.results[0].source.timestamp").value(5))
+        .andExpect(jsonPath("$.results[1].source.source:type").value("bro"))
+        .andExpect(jsonPath("$.results[1].source.timestamp").value(4))
+        .andExpect(jsonPath("$.results[2].source.source:type").value("bro"))
+        .andExpect(jsonPath("$.results[2].source.timestamp").value(3))
+        .andExpect(jsonPath("$.results[3].source.source:type").value("bro"))
+        .andExpect(jsonPath("$.results[3].source.timestamp").value(2))
+        .andExpect(jsonPath("$.results[4].source.source:type").value("bro"))
+        .andExpect(jsonPath("$.results[4].source.timestamp").value(1))
+    );
+
+    sensorIndexingConfigService.delete("bro");
   }
 
   @Test
