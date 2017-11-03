@@ -252,7 +252,7 @@ export class TableViewComponent implements OnChanges {
     patchRequest.patch = [new Patch('replace', 'alert', metaAlerts)];
 
 
-    this.updateService.patch(patchRequest).subscribe(rep => {
+    this.updateService.patch(patchRequest, true).subscribe(rep => {
       alert.source.alert.splice(metaAlertIndex, 1);
     });
   }
@@ -264,7 +264,7 @@ export class TableViewComponent implements OnChanges {
     patchRequest.index = alert.index;
     patchRequest.patch = [new Patch('replace', '/status', 'inactive')];
 
-    this.updateService.patch(patchRequest).subscribe(rep => {
+    this.updateService.patch(patchRequest, true).subscribe(rep => {
       this.alerts.splice(index, 1);
     });
 

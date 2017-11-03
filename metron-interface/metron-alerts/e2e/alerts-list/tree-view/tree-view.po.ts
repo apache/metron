@@ -17,7 +17,10 @@
  */
 
 import {browser, element, by} from 'protractor';
-import {waitForElementPresence, waitForTextChange, waitForElementVisibility, waitForElementInVisibility} from '../../utils/e2e_util';
+import {
+  waitForElementPresence, waitForTextChange, waitForElementVisibility,
+  waitForElementInVisibility
+} from '../../utils/e2e_util';
 
 export class TreeViewPage {
   navigateToAlertsList() {
@@ -165,24 +168,24 @@ export class TreeViewPage {
   }
 
   getConfirmationText() {
-    browser.sleep(1000);
-    let dialogElement = element(by.css('.metron-dialog .modal-header .close'));
-    return waitForElementVisibility(dialogElement).then(() =>  element(by.css('.metron-dialog .modal-body')).getText());
+    let maskElement = element(by.className('modal-backdrop'));
+    return waitForElementVisibility(maskElement)
+    .then(() =>  element(by.css('.metron-dialog .modal-body')).getText());
   }
 
   clickNoForConfirmation() {
-    browser.sleep(1000);
-    let dialogElement = element(by.css('.metron-dialog .modal-header .close'));
-    let maskElement = element(by.css('.modal-backdrop.fade'));
-    waitForElementVisibility(dialogElement).then(() => element(by.css('.metron-dialog')).element(by.buttonText('Cancel')).click())
+    let maskElement = element(by.className('modal-backdrop'));
+    let closeButton = element(by.css('.metron-dialog')).element(by.buttonText('Cancel'));
+    waitForElementVisibility(maskElement)
+    .then(() => closeButton.click())
     .then(() => waitForElementInVisibility(maskElement));
   }
 
   clickYesForConfirmation() {
-    browser.sleep(1000);
-    let dialogElement = element(by.css('.metron-dialog .modal-header .close'));
-    let maskElement = element(by.css('.modal-backdrop.fade'));
-    waitForElementVisibility(dialogElement).then(() => element(by.css('.metron-dialog')).element(by.buttonText('OK')).click())
+    let okButton = element(by.css('.metron-dialog')).element(by.buttonText('OK'));
+    let maskElement = element(by.className('modal-backdrop'));
+    waitForElementVisibility(maskElement)
+    .then(() => okButton.click())
     .then(() => waitForElementInVisibility(maskElement));
   }
 

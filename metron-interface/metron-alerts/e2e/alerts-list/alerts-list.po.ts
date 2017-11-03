@@ -365,8 +365,9 @@ export class MetronAlertsPage {
     element.all(by.css('table thead th')).all(by.linkText(colName)).get(0).click();
   }
 
-  getCellValue(rowIndex: number, colIndex: number) {
-    return element.all(by.css('table tbody tr')).get(rowIndex).all(by.css('td')).get(colIndex).getText();
+  getCellValue(rowIndex: number, colIndex: number, previousText: string) {
+    let cellElement = element.all(by.css('table tbody tr')).get(rowIndex).all(by.css('td')).get(colIndex);
+    return this.waitForTextChange(cellElement, previousText).then(() => cellElement.getText());
   }
 
   expandMetaAlert(rowIndex: number) {
