@@ -164,7 +164,7 @@ public class ElasticsearchDao implements IndexDao {
     if (facetFields.isPresent()) {
       Map<String, FieldType> commonColumnMetadata;
       try {
-        commonColumnMetadata = getCommonColumnMetadata(searchRequest.getIndices());
+        commonColumnMetadata = getColumnMetadata(searchRequest.getIndices());
       } catch (IOException e) {
         throw new InvalidSearchException(String.format("Could not get common column metadata for indices %s", Arrays.toString(searchRequest.getIndices().toArray())));
       }
@@ -209,7 +209,7 @@ public class ElasticsearchDao implements IndexDao {
     }
     Map<String, FieldType> commonColumnMetadata;
     try {
-      commonColumnMetadata = getCommonColumnMetadata(groupRequest.getIndices());
+      commonColumnMetadata = getColumnMetadata(groupRequest.getIndices());
     } catch (IOException e) {
       throw new InvalidSearchException(String
           .format("Could not get common column metadata for indices %s",
@@ -377,8 +377,8 @@ public class ElasticsearchDao implements IndexDao {
 
   @SuppressWarnings("unchecked")
   @Override
-  public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException {
-    Map<String, Map<String, FieldType>> allColumnMetadata = new HashMap<>();
+  public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
+    Map<String, FieldType> indexColumnMetadata = new HashMap<>();
     String[] latestIndices = getLatestIndices(indices);
     ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings = client
             .admin()
@@ -388,22 +388,24 @@ public class ElasticsearchDao implements IndexDao {
             .getMappings();
     for(Object key: mappings.keys().toArray()) {
       String indexName = key.toString();
-
-      Map<String, FieldType> indexColumnMetadata = new HashMap<>();
       ImmutableOpenMap<String, MappingMetaData> mapping = mappings.get(indexName);
       Iterator<String> mappingIterator = mapping.keysIt();
       while(mappingIterator.hasNext()) {
         MappingMetaData mappingMetaData = mapping.get(mappingIterator.next());
         Map<String, Map<String, String>> map = (Map<String, Map<String, String>>) mappingMetaData.getSourceAsMap().get("properties");
         for(String field: map.keySet()) {
-          indexColumnMetadata.put(field, elasticsearchSearchTypeMap.getOrDefault(map.get(field).get("type"), FieldType.OTHER));
+          FieldType type = elasticsearchSearchTypeMap.getOrDefault(map.get(field).get("type"), FieldType.OTHER);
+          if (indexColumnMetadata.containsKey(field)) {
+            if (!type.equals(indexColumnMetadata.get(field))) {
+              indexColumnMetadata.remove(field);
+            }
+          } else {
+            indexColumnMetadata.put(field, type);
+          }
         }
       }
-
-      String baseIndexName = ElasticsearchUtils.getBaseIndexName(indexName);
-      allColumnMetadata.put(baseIndexName, indexColumnMetadata);
     }
-    return allColumnMetadata;
+    return indexColumnMetadata;
   }
 
   @SuppressWarnings("unchecked")

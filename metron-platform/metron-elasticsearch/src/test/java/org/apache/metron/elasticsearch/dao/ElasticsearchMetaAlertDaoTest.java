@@ -223,7 +223,7 @@ public class ElasticsearchMetaAlertDaoTest {
       }
 
       @Override
-      public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices)
+      public Map<String, FieldType> getColumnMetadata(List<String> indices)
           throws IOException {
         return null;
       }

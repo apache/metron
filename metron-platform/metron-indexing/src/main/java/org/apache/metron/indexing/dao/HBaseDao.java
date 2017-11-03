@@ -150,7 +150,7 @@ public class HBaseDao implements IndexDao {
   }
 
   @Override
-  public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException {
+  public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
     return null;
   }
 

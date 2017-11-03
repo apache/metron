@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Iterables;
+import java.util.Map.Entry;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.*;
@@ -221,12 +222,24 @@ public class InMemoryDao implements IndexDao {
     }
   }
 
-  public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException {
-    Map<String, Map<String, FieldType>> columnMetadata = new HashMap<>();
+  @Override
+  public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
+    Map<String, FieldType> indexColumnMetadata = new HashMap<>();
     for(String index: indices) {
-      columnMetadata.put(index, new HashMap<>(COLUMN_METADATA.get(index)));
+      Map<String, FieldType> columnMetadata = COLUMN_METADATA.get(index);
+      for (Entry entry: columnMetadata.entrySet()) {
+        String field = (String) entry.getKey();
+        FieldType type = (FieldType) entry.getValue();
+        if (indexColumnMetadata.containsKey(field)) {
+          if (!type.equals(indexColumnMetadata.get(field))) {
+            indexColumnMetadata.remove(field);
+          }
+        } else {
+          indexColumnMetadata.put(field, type);
+        }
+      }
     }
-    return columnMetadata;
+    return indexColumnMetadata;
   }
 
   @Override

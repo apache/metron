@@ -147,6 +147,6 @@ public interface IndexDao {
     update(d, Optional.ofNullable(request.getIndex()));
   }
 
-  Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException;
+  Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException;
   Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException;
 }
