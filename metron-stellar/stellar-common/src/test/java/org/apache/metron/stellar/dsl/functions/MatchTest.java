@@ -33,7 +33,7 @@ import org.junit.Test;
 
 public class MatchTest {
 
-  // Short Cirtuit
+  // Short Circuit
 
   @Test
   public void testThreeTrueClausesFirstOnlyFires() {
