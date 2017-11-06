@@ -28,7 +28,6 @@ import java.util.Map;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class MatchTest {
@@ -36,6 +35,7 @@ public class MatchTest {
   // Short Circuit
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testThreeTrueClausesFirstOnlyFires() {
     Assert.assertTrue(runPredicate(
         "match{foo > 0 => true, foo > 5 => false, foo > 10 => false, default => false}",
@@ -45,6 +45,7 @@ public class MatchTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testTwoClausesSecondFires() {
     Assert.assertTrue(runPredicate("match{foo < 0 => false, foo < 500 => true, default => false}",
         new HashMap() {{
@@ -174,7 +175,7 @@ public class MatchTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testMatchRegexMatch() {
-    final Map<String, String> variableMap = new HashMap<String, String>() {{
+    final Map<String, String> variables = new HashMap<String, String>() {{
       put("numbers", "12345");
       put("numberPattern", "\\d(\\d)(\\d).*");
       put("letters", "abcde");
@@ -183,10 +184,10 @@ public class MatchTest {
 
     Assert.assertTrue(
         runPredicate("match{ REGEXP_MATCH(numbers,numberPattern)=> true, default => false}",
-            new DefaultVariableResolver(v -> variableMap.get(v), v -> variableMap.containsKey(v))));
+            new DefaultVariableResolver(variables::get, variables::containsKey)));
     Assert.assertFalse(
         runPredicate("match{ REGEXP_MATCH(letters,numberPattern) => true, default =>false}",
-            new DefaultVariableResolver(v -> variableMap.get(v), v -> variableMap.containsKey(v))));
+            new DefaultVariableResolver(variables::get, variables::containsKey)));
   }
 
   // BARE STATEMENTS
