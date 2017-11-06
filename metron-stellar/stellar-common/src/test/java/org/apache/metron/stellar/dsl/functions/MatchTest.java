@@ -33,12 +33,58 @@ import org.junit.Test;
 
 public class MatchTest {
 
+  // Short Cirtuit
+
+  @Test
+  public void testThreeTrueClausesFirstOnlyFires() {
+    Assert.assertTrue(runPredicate(
+        "match{foo > 0 => true, foo > 5 => false, foo > 10 => false, default => false}",
+        new HashMap() {{
+          put("foo", 100);
+        }}));
+  }
+
+  @Test
+  public void testTwoClausesSecondFires() {
+    Assert.assertTrue(runPredicate("match{foo < 0 => false, foo < 500 => true, default => false}",
+        new HashMap() {{
+          put("foo", 100);
+        }}));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testThreeClausesFirstFires() {
+    List<String> list = (List<String>) run(
+        "match{ foo > 100 => ['oops'], foo > 200 => ['oh no'], foo >= 500 => MAP(['ok', 'haha'], (a) -> TO_UPPER(a)), default => ['a']}",
+        new HashMap() {{
+          put("foo", 500);
+        }});
+
+    Assert.assertTrue(list.size() == 1);
+    Assert.assertTrue(list.contains("oops"));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testShortCircuitWithThrows() {
+
+    Assert.assertEquals("ok",
+        run("match{ foo > 100 => THROW('oops'), foo > 200 => THROW('oh no'), default => 'ok' }",
+            new HashMap() {{
+              put("foo", 50);
+            }}));
+  }
+
+
+  // LAMBDAS
   @Test
   @SuppressWarnings("unchecked")
   public void testMatchLambda() {
-    Assert.assertTrue(runPredicate("match { 1 >= 0 => ()-> true, default => ()->false }", new HashMap() {{
-      put("foo", 0);
-    }}));
+    Assert.assertTrue(
+        runPredicate("match { 1 >= 0 => ()-> true, default => ()->false }", new HashMap() {{
+          put("foo", 0);
+        }}));
     Assert.assertTrue(
         runPredicate("match { foo == 0 => ()-> true, default => ()-> false }", new HashMap() {{
           put("foo", 0);
@@ -49,11 +95,11 @@ public class MatchTest {
           put("foo", 1);
         }}));
 
-    Assert.assertTrue(
-        runPredicate("match { foo == 0 => ()-> false, foo == 1 => ()-> true, default => ()-> false }",
-            new HashMap() {{
-              put("foo", 1);
-            }}));
+    Assert.assertTrue(runPredicate(
+        "match { foo == 0 => ()-> false, foo == 1 => ()-> true, default => ()-> false }",
+        new HashMap() {{
+          put("foo", 1);
+        }}));
 
     Assert.assertTrue(runPredicate(
         "match { foo == 0 => ()-> bFalse, foo == 1 => ()-> bTrue, default => ()-> bFalse }",
@@ -73,6 +119,7 @@ public class MatchTest {
 
   }
 
+  // GENERAL WITH MAP EVAL
   @Test
   @SuppressWarnings("unchecked")
   public void testMatchMAPEvaluation() {
@@ -88,8 +135,42 @@ public class MatchTest {
     Assert.assertEquals(2, result.size());
     Assert.assertEquals("FOO", result.get(0));
     Assert.assertEquals("BAR", result.get(1));
-}
+  }
 
+  @Test
+  @SuppressWarnings("unchecked")
+  public void workingMatchWithMap() {
+    Assert.assertEquals(Arrays.asList("OK", "HAHA"),
+        run("match{ foo > 100 => THROW('oops'), foo > 200 => THROW('oh no'), foo >= 50 => MAP(['ok', 'haha'], (a) -> TO_UPPER(a)), default=> 'a' }",
+            new HashMap() {{
+              put("foo", 50);
+            }}));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testMapSmall() {
+    List<String> ret = (List<String>) run(
+        "match{ foo < 100 => ['oops'], default => MAP(['ok', 'haha'], (a) -> TO_UPPER(a))}",
+        new HashMap() {{
+          put("foo", 500);
+        }});
+    Assert.assertTrue(ret.size() == 2);
+    Assert.assertTrue(ret.contains("OK"));
+    Assert.assertTrue(ret.contains("HAHA"));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testMultiClauseMap() {
+    run("match{ foo < 100 => ['oops'], foo < 200 => ['oh no'], foo >= 500 => MAP(['ok', 'haha'], (a) -> TO_UPPER(a)), default => ['a']}",
+        new HashMap() {{
+          put("foo", 500);
+        }});
+  }
+
+
+  // REGEX
   @Test
   @SuppressWarnings("unchecked")
   public void testMatchRegexMatch() {
@@ -100,20 +181,26 @@ public class MatchTest {
       put("empty", "");
     }};
 
-    Assert.assertTrue(runPredicate("match{ REGEXP_MATCH(numbers,numberPattern)=> true, default => false}", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
-    Assert.assertFalse(runPredicate("match{ REGEXP_MATCH(letters,numberPattern) => true, default =>false}", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(
+        runPredicate("match{ REGEXP_MATCH(numbers,numberPattern)=> true, default => false}",
+            new DefaultVariableResolver(v -> variableMap.get(v), v -> variableMap.containsKey(v))));
+    Assert.assertFalse(
+        runPredicate("match{ REGEXP_MATCH(letters,numberPattern) => true, default =>false}",
+            new DefaultVariableResolver(v -> variableMap.get(v), v -> variableMap.containsKey(v))));
   }
 
+  // BARE STATEMENTS
   @Test
   @SuppressWarnings("unchecked")
   public void testMatchBareStatements() {
 
-    Assert.assertTrue(runPredicate("match { foo == 0 => bFalse, foo == 1 => bTrue, default => false }",
-        new HashMap() {{
-          put("foo", 1);
-          put("bFalse", false);
-          put("bTrue", true);
-        }}));
+    Assert.assertTrue(
+        runPredicate("match { foo == 0 => bFalse, foo == 1 => bTrue, default => false }",
+            new HashMap() {{
+              put("foo", 1);
+              put("bFalse", false);
+              put("bTrue", true);
+            }}));
 
     Assert.assertEquals("warning",
         run("match{ threat.triage.level < 10 => 'info', threat.triage.level < 20 => 'warning', default => 'critical' }",
@@ -122,6 +209,7 @@ public class MatchTest {
             }}));
   }
 
+  // FUNCTIONS
   @Test
   @SuppressWarnings("unchecked")
   public void testWithFunction() {
@@ -150,17 +238,8 @@ public class MatchTest {
             }}));
   }
 
-  @Test(expected = ParseException.class)
-  @SuppressWarnings("unchecked")
-  public void testNestedMatchNotSupportted() {
-    // we cannot nest short circuit types in stellar
-    Assert.assertEquals(false, run("match{  x == 0 => match{ y == 10 => false, default => true}, default => true}",
-        new HashMap(){{
-          put("x",0);
-          put("y", 10);
-    }}));
-  }
 
+  // LOGICAL EXPRESSIONS IN CHECKS
   @Test
   @SuppressWarnings("unchecked")
   public void testLogical() {
@@ -182,18 +261,9 @@ public class MatchTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testVariableOnly() {
-    Assert.assertEquals("a",  run("match{ foo => 'a', default => null}",
-        new HashMap() {{
-          put("foo", true);
-        }}));
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testVariableEqualsCheck() {
-    Assert.assertEquals("a",  run("match{ foo == 5 => 'a', default => 'ok' }",
-        new HashMap() {{
+  public void testernaryFuncWithoutIfCheck() {
+    Assert.assertEquals("a",
+        run("match{ foo == 5 ? true : false => 'a', default => 'ok' }", new HashMap() {{
           put("foo", 5);
         }}));
   }
@@ -201,120 +271,77 @@ public class MatchTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testVariableIFCheck() {
-    Assert.assertEquals("a",  run("match{ IF foo == 5 THEN true ELSE false => 'a', default => 'ok' }",
-        new HashMap() {{
+    Assert.assertEquals("a",
+        run("match{ IF foo == 5 THEN true ELSE false => 'a', default => 'ok' }", new HashMap() {{
           put("foo", 5);
         }}));
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testernaryFuncWithoutIfCheck() {
-    Assert.assertEquals("a",  run("match{ foo == 5 ? true : false => 'a', default => 'ok' }",
-        new HashMap() {{
-          put("foo", 5);
-        }}));
+  public void testVariableOnly() {
+    Assert.assertEquals("a", run("match{ foo => 'a', default => null}", new HashMap() {{
+      put("foo", true);
+    }}));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testVariableEqualsCheck() {
+    Assert.assertEquals("a", run("match{ foo == 5 => 'a', default => 'ok' }", new HashMap() {{
+      put("foo", 5);
+    }}));
   }
 
   @Test
   @SuppressWarnings("unchecked")
   public void testVariableOnlyCheckWithDefault() {
-    Assert.assertEquals("a",  run("match{ foo => 'a', default => 'b' }",
-        new HashMap() {{
-          put("foo", true);
-        }}));
+    Assert.assertEquals("a", run("match{ foo => 'a', default => 'b' }", new HashMap() {{
+      put("foo", true);
+    }}));
   }
 
   @Test
   @SuppressWarnings("unchecked")
   public void testHandleVariableEqualsCheckWithDefault() {
-    Assert.assertEquals("a",  run("match{ foo == true => 'a', default=> 'b' }",
-        new HashMap() {{
-          put("foo", true);
-        }}));
+    Assert.assertEquals("a", run("match{ foo == true => 'a', default=> 'b' }", new HashMap() {{
+      put("foo", true);
+    }}));
   }
 
-  @Test
-  @SuppressWarnings("unchecked")
-  public void workingMatchWithMap() {
-    Assert.assertEquals(Arrays.asList("OK", "HAHA"),  run("match{ foo > 100 => THROW('oops'), foo > 200 => THROW('oh no'), foo >= 50 => MAP(['ok', 'haha'], (a) -> TO_UPPER(a)), default=> 'a' }",
-        new HashMap() {{
-          put("foo", 50);
-        }}));
-  }
+  // SYNTAX ERRORS
 
   @Test(expected = ParseException.class)
   @SuppressWarnings("unchecked")
   public void testMatchErrorNoDefault() {
 
-    run("match{ foo > 100 => 'greater than 100', foo > 200 => 'greater than 200' }", new HashMap() {{
-      put("foo", 50);
-    }});
+    run("match{ foo > 100 => 'greater than 100', foo > 200 => 'greater than 200' }",
+        new HashMap() {{
+          put("foo", 50);
+        }});
 
+  }
+
+
+  @Test(expected = ParseException.class)
+  @SuppressWarnings("unchecked")
+  public void testNestedMatchNotSupportted() {
+    // we cannot nest short circuit types in stellar
+    Assert.assertEquals(false,
+        run("match{  x == 0 => match{ y == 10 => false, default => true}, default => true}",
+            new HashMap() {{
+              put("x", 0);
+              put("y", 10);
+            }}));
   }
 
   @Test
   @SuppressWarnings("unchecked")
   public void testReturnList() {
-    Object o = run("match{ foo > 100 => ['oops'],default => ['a']}",new HashMap(){{
-      put("foo",500);
+    Object o = run("match{ foo > 100 => ['oops'],default => ['a']}", new HashMap() {{
+      put("foo", 500);
     }});
-    List l = (List)o;
+    List l = (List) o;
     Assert.assertTrue(l.size() == 1);
   }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testMapSmall() {
-   List<String> ret = (List<String>)run("match{ foo < 100 => ['oops'], default => MAP(['ok', 'haha'], (a) -> TO_UPPER(a))}",new HashMap(){{
-      put("foo",500);
-    }});
-   Assert.assertTrue(ret.size() == 2);
-   Assert.assertTrue(ret.contains("OK"));
-   Assert.assertTrue(ret.contains("HAHA"));
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testMultiClauseMap() {
-    run("match{ foo < 100 => ['oops'], foo < 200 => ['oh no'], foo >= 500 => MAP(['ok', 'haha'], (a) -> TO_UPPER(a)), default => ['a']}",new HashMap(){{
-      put("foo",500);
-    }});
-  }
-
-  @Test
-  public void testThreeTrueClausesFirstOnlyFires() {
-    Assert.assertTrue(runPredicate("match{foo > 0 => true, foo > 5 => false, foo > 10 => false, default => false}",new HashMap(){{
-      put("foo", 100);
-    }}));
-  }
-
-  @Test
-  public void testTwoClausesSecondFires() {
-    Assert.assertTrue(runPredicate("match{foo < 0 => false, foo < 500 => true, default => false}",new HashMap(){{
-      put("foo", 100);
-    }}));
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testThreeClausesFirstFires() {
-    List<String> list = (List<String>)run("match{ foo > 100 => ['oops'], foo > 200 => ['oh no'], foo >= 500 => MAP(['ok', 'haha'], (a) -> TO_UPPER(a)), default => ['a']}",new HashMap(){{
-      put("foo",500);
-    }});
-
-    Assert.assertTrue(list.size() == 1);
-    Assert.assertTrue(list.contains("oops"));
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testShortCircuit() {
-
-   Assert.assertEquals("ok",  run("match{ foo > 100 => THROW('oops'), foo > 200 => THROW('oh no'), default => 'ok' }",
-          new HashMap() {{
-            put("foo", 50);
-          }}));
-  }
-
 }
