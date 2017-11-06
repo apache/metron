@@ -112,12 +112,14 @@ The syntax is:
 Where:
 
 * `logical_expression` is a Stellar expression that evaluates to true or false.  For instance `var > 0` or `var > 0 AND var2 == 'foo'` or `IF ... THEN ... ELSE` 
-* `evaluation_expression` is any Stellar Expression
+* `evaluation_expression` is a Stellar Expression
 * `default` is a required default return value, should no logical expression match
 
 > default is required 
 
 > Lambda expressions are supported, but they must be no argument lambdas such as `() -> STATEMENT`
+
+> `evaluation_expression` can use ternary expressions, but not IF THEN ELSE
 
 * Only the first clause that evaluates to true will be executed.
 

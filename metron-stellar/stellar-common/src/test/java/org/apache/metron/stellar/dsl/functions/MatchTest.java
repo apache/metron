@@ -237,6 +237,7 @@ public class MatchTest {
               put("threat.triage.level", 15);
               put("other", "value");
             }}));
+
   }
 
 
@@ -262,10 +263,20 @@ public class MatchTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testernaryFuncWithoutIfCheck() {
+  public void testTernaryFuncWithoutIfCheck() {
     Assert.assertEquals("a",
         run("match{ foo == 5 ? true : false => 'a', default => 'ok' }", new HashMap() {{
           put("foo", 5);
+        }}));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testTernaryFuncAsMatchAction() {
+    Assert.assertEquals(false, run("match{ threat.triage.level < 10 => 'info', threat.triage.level < 20 => IS_ENCODING(other,'BASE32')? true : false, default => 'critical' }",
+        new HashMap() {{
+          put("threat.triage.level", 15);
+          put("other", "value");
         }}));
   }
 
