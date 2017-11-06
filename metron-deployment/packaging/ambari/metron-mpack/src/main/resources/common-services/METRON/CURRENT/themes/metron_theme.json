@@ -851,11 +851,18 @@
       },
 
       {
-        "config": "metron-indexing-env/indexing_kafka_start",
+        "config": "metron-indexing-env/batch_indexing_kafka_start",
         "widget": {
           "type": "combo"
         }
       },
+      {
+        "config": "metron-indexing-env/ra_indexing_kafka_start",
+        "widget": {
+          "type": "combo"
+        }
+      },
+
       {
         "config": "metron-indexing-env/indexing_input_topic",
         "widget": {
@@ -881,19 +888,32 @@
         }
       },
       {
-        "config": "metron-indexing-env/indexing_writer_class_name",
+        "config": "metron-indexing-env/ra_indexing_writer_class_name",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-indexing-env/indexing_workers",
+        "config": "metron-indexing-env/ra_indexing_workers",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-indexing-env/indexing_acker_executors",
+        "config": "metron-indexing-env/batch_indexing_workers",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+
+      {
+        "config": "metron-indexing-env/batch_indexing_acker_executors",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/ra_indexing_acker_executors",
         "widget": {
           "type": "text-field"
         }
@@ -905,19 +925,32 @@
         }
       },
       {
-        "config": "metron-indexing-env/indexing_topology_max_spout_pending",
+        "config": "metron-indexing-env/batch_indexing_topology_max_spout_pending",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-indexing-env/indexing_kafka_spout_parallelism",
+        "config": "metron-indexing-env/ra_indexing_topology_max_spout_pending",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+
+      {
+        "config": "metron-indexing-env/ra_indexing_kafka_spout_parallelism",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "metron-indexing-env/indexing_writer_parallelism",
+        "config": "metron-indexing-env/batch_indexing_kafka_spout_parallelism",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-indexing-env/ra_indexing_writer_parallelism",
         "widget": {
           "type": "text-field"
         }
