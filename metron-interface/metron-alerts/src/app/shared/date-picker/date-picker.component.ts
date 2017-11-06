@@ -55,8 +55,8 @@ export class DatePickerComponent implements OnInit, OnChanges {
   }
 
   setMinDate() {
-    let currentDate = new Date(this.dateStr).getTime();
-    let currentMinDate = new Date(this.minDate).getTime();
+    let currentDate = moment(this.dateStr).toDate().getTime();
+    let currentMinDate = moment(this.minDate).toDate().getTime();
     if (currentMinDate > currentDate) {
       this.dateStr = this.defaultDateStr;
     }
