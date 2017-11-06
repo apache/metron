@@ -255,10 +255,56 @@ public class MatchTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testThis() {
-    run("IF EXISTS(x) AND x THEN 'what 1' ELSE 'what 2'",new HashMap() {{
-      put("x",true);
+  public void testReturnList() {
+    Object o = run("match{ foo > 100 => ['oops'],default => ['a']}",new HashMap(){{
+      put("foo",500);
     }});
+    List l = (List)o;
+    Assert.assertTrue(l.size() == 1);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testMapSmall() {
+   List<String> ret = (List<String>)run("match{ foo < 100 => ['oops'], default => MAP(['ok', 'haha'], (a) -> TO_UPPER(a))}",new HashMap(){{
+      put("foo",500);
+    }});
+   Assert.assertTrue(ret.size() == 2);
+   Assert.assertTrue(ret.contains("OK"));
+   Assert.assertTrue(ret.contains("HAHA"));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testMultiClauseMap() {
+    run("match{ foo < 100 => ['oops'], foo < 200 => ['oh no'], foo >= 500 => MAP(['ok', 'haha'], (a) -> TO_UPPER(a)), default => ['a']}",new HashMap(){{
+      put("foo",500);
+    }});
+  }
+
+  @Test
+  public void testThreeTrueClausesFirstOnlyFires() {
+    Assert.assertTrue(runPredicate("match{foo > 0 => true, foo > 5 => false, foo > 10 => false, default => false}",new HashMap(){{
+      put("foo", 100);
+    }}));
+  }
+
+  @Test
+  public void testTwoClausesSecondFires() {
+    Assert.assertTrue(runPredicate("match{foo < 0 => false, foo < 500 => true, default => false}",new HashMap(){{
+      put("foo", 100);
+    }}));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testThreeClausesFirstFires() {
+    List<String> list = (List<String>)run("match{ foo > 100 => ['oops'], foo > 200 => ['oh no'], foo >= 500 => MAP(['ok', 'haha'], (a) -> TO_UPPER(a)), default => ['a']}",new HashMap(){{
+      put("foo",500);
+    }});
+
+    Assert.assertTrue(list.size() == 1);
+    Assert.assertTrue(list.contains("oops"));
   }
 
   @Test

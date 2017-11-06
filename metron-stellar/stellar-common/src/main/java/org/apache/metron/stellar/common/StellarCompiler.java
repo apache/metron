@@ -68,6 +68,7 @@ public class StellarCompiler extends StellarBaseListener {
   public static class EndConditional implements ShortCircuitOp {}
   public static class MatchClauseCheckExpr implements ShortCircuitOp {}
   public static class MatchClauseEnd implements ShortCircuitOp {}
+  public static class MatchClausesEnd implements ShortCircuitOp {}
 
   public static class ExpressionState {
     Context context;
@@ -125,7 +126,7 @@ public class StellarCompiler extends StellarBaseListener {
               || token.getUnderlyingType() == MatchClauseCheckExpr.class)) {
             while (it.hasNext()) {
               token = it.next();
-              if (token.getUnderlyingType() == MatchClauseEnd.class) {
+              if (token.getUnderlyingType() == MatchClausesEnd.class) {
                 break;
               }
             }
@@ -767,6 +768,11 @@ public class StellarCompiler extends StellarBaseListener {
   @Override
   public void exitMatch_clause(StellarParser.Match_clauseContext ctx) {
     expression.tokenDeque.push(new Token<>(new MatchClauseEnd(), MatchClauseEnd.class, getArgContext()));
+  }
+
+  @Override
+  public void exitMatchClauses(StellarParser.MatchClausesContext ctx) {
+    expression.tokenDeque.push(new Token<>(new MatchClausesEnd(),MatchClausesEnd.class, getArgContext()));
   }
 
   @Override
