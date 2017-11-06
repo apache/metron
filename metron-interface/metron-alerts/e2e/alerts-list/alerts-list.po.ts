@@ -66,10 +66,6 @@ export class MetronAlertsPage {
     return element(by.css('.fa.fa-cog.configure-table-icon')).isPresent();
   }
 
-  getAlertTableTitle() {
-    return element(by.css('.col-form-label-lg')).getText();
-  }
-
   clickActionDropdown() {
     let actionsDropDown = element(by.buttonText('ACTIONS'));
     browser.actions().mouseMove(actionsDropDown).perform();
@@ -350,7 +346,6 @@ export class MetronAlertsPage {
   }
 
   getChangesAlertTableTitle(previousText: string) {
-    // browser.pause();
     let title = element(by.css('.col-form-label-lg'));
     return this.waitForTextChange(title, previousText).then(() => {
       return title.getText();

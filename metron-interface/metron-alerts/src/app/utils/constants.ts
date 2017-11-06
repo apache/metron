@@ -32,7 +32,8 @@ export let TIMESTAMP_FIELD_NAME = 'timestamp';
 export let ALL_TIME = 'all-time';
 
 export let DEFAULT_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH:mm:ss';
-export let CUSTOMM_DATE_RANGE_LABEL = 'Date Range';
+export let CUSTOM_DATE_RANGE_LABEL = 'Date Range';
+export let DATE_NOW_STR = 'now';
 
 export let TREE_SUB_GROUP_SIZE = 5;
 export let DEFAULT_FACETS = ['source:type', 'ip_src_addr', 'ip_dst_addr', 'host', 'enrichments:geo:ip_dst_addr:country'];

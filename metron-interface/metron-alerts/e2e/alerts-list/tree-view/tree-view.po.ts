@@ -122,7 +122,7 @@ export class TreeViewPage {
 
   scrollToDashRow(name: string) {
     let scrollToEle = element(by.css('[data-name="' + name + '"] .card-header'));
-    waitForElementPresence(scrollToEle).then(() => {
+    waitForElementVisibility(scrollToEle).then(() => {
       return browser.actions().mouseMove(scrollToEle).perform();
     });
   }

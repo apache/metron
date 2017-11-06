@@ -20,8 +20,8 @@ import * as moment from 'moment/moment';
 
 import {Filter} from '../../model/filter';
 import {
-    DEFAULT_TIMESTAMP_FORMAT, CUSTOMM_DATE_RANGE_LABEL,
-    TIMESTAMP_FIELD_NAME, ALL_TIME
+  DEFAULT_TIMESTAMP_FORMAT, CUSTOM_DATE_RANGE_LABEL,
+  TIMESTAMP_FIELD_NAME, ALL_TIME, DATE_NOW_STR
 } from '../../utils/constants';
 import {DateFilterValue} from '../../model/date-filter-value';
 
@@ -106,10 +106,10 @@ export class TimeRangeComponent implements OnChanges {
     });
 
     if (!foundQuickRange) {
-      this.selectedTimeRangeValue = CUSTOMM_DATE_RANGE_LABEL;
+      this.selectedTimeRangeValue = CUSTOM_DATE_RANGE_LABEL;
       this.toDateStr = this.selectedTimeRange.dateFilterValue.toDate !== null ?
                         moment(this.selectedTimeRange.dateFilterValue.toDate).format(DEFAULT_TIMESTAMP_FORMAT) :
-                        'now';
+                        DATE_NOW_STR;
       this.fromDateStr = moment(this.selectedTimeRange.dateFilterValue.fromDate).format(DEFAULT_TIMESTAMP_FORMAT);
 
       this.datePickerFromDate = this.fromDateStr;
@@ -145,8 +145,8 @@ export class TimeRangeComponent implements OnChanges {
 
   applyCustomDate() {
     this.hideDatePicker();
-    this.selectedTimeRangeValue = CUSTOMM_DATE_RANGE_LABEL;
-    this.toDateStr = this.datePickerToDate.length > 0  ? moment(this.datePickerToDate).format(DEFAULT_TIMESTAMP_FORMAT) : 'now';
+    this.selectedTimeRangeValue = CUSTOM_DATE_RANGE_LABEL;
+    this.toDateStr = this.datePickerToDate.length > 0  ? moment(this.datePickerToDate).format(DEFAULT_TIMESTAMP_FORMAT) : DATE_NOW_STR;
     this.fromDateStr = moment(this.datePickerFromDate).format(DEFAULT_TIMESTAMP_FORMAT);
 
     let toDate = this.datePickerToDate.length > 0 ? new Date(this.toDateStr).getTime() : null;

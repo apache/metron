@@ -280,13 +280,13 @@ describe('metron-alerts App', function() {
 
   it('should disable date picker when timestamp is present in search', () => {
     page.clickTableText('2017-09-13 18:02:20');
-    expect(page.isDateSeettingDisabled()).toEqual(true);
+    expect(page.isDateSettingDisabled()).toEqual(true);
 
     page.clickClearSearch();
-    expect(page.isDateSeettingDisabled()).toEqual(false);
+    expect(page.isDateSettingDisabled()).toEqual(false);
 
     page.clickTableText('alerts_ui_e2e');
-    expect(page.isDateSeettingDisabled()).toEqual(false);
+    expect(page.isDateSettingDisabled()).toEqual(false);
 
     page.clickClearSearch();
   });

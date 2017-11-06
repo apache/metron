@@ -42,10 +42,10 @@ export class Utils {
   }
 
   public static timeRangeToDateObj(range:string) {
-    let timeRangeToDisplayStr = Utils.timeRangeToDisplayStr(range);
-    if (timeRangeToDisplayStr != null) {
-      let toDate = new Date((timeRangeToDisplayStr.toDate)).getTime();
-      let fromDate = new Date((timeRangeToDisplayStr.fromDate)).getTime();
+    let timeRangeDate = Utils.timeRangeToDisplayStr(range);
+    if (timeRangeDate != null) {
+      let toDate = timeRangeDate.toDate.getTime();
+      let fromDate = timeRangeDate.fromDate.getTime();
 
       return new DateFilterValue(fromDate, toDate);
     }
@@ -56,7 +56,7 @@ export class Utils {
     return null;
   }
 
-  public static parseTimeRange(range:string) {
+  private static parseTimeRange(range:string) {
     let parsed = range.replace(/^\(>=/, '')
     .replace(/\)$/, '')
     .replace(/<=/, '').split('AND');
@@ -70,7 +70,7 @@ export class Utils {
     return null;
   }
 
-  public static timeRangeToDisplayStr(range:string) {
+  private static timeRangeToDisplayStr(range:string): {toDate: Date, fromDate: Date} {
     let toDate = '';
     let fromDate = '';
 
@@ -195,10 +195,7 @@ export class Utils {
         return null;
     }
 
-    toDate = moment(toDate).format(DEFAULT_TIMESTAMP_FORMAT);
-    fromDate = moment(fromDate).format(DEFAULT_TIMESTAMP_FORMAT);
-
-    return {toDate: toDate, fromDate: fromDate};
+    return {toDate: moment(toDate).toDate(), fromDate: moment(fromDate).toDate()};
   }
 
 }
