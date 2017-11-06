@@ -104,8 +104,7 @@ In the core language functions, we support basic functional programming primitiv
 
 ### Stellar Language Match Expression
 
-Stellar provides the capability to write match expressions, which are similar to switch statements commonly found in c like languages, but more like
-Scala's match.
+Stellar provides the capability to write match expressions, which are similar to switch statements commonly found in c like languages.
 
 The syntax is:
 * `match{ logical_expression1 => evaluation expression1, logical_expression2 => evaluation_expression2, default => default_expression}` 
