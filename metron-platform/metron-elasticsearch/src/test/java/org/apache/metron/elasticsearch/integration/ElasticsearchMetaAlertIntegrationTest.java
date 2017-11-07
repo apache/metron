@@ -725,6 +725,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
     // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
     elasticsearchAdd(Collections.singletonList(activeMetaAlertJSON),
         MetaAlertDao.METAALERTS_INDEX, MetaAlertDao.METAALERT_TYPE);
+
     // Wait for updates to persist
     findUpdatedDoc(activeMetaAlertJSON, "active_metaalert", MetaAlertDao.METAALERT_TYPE);
 

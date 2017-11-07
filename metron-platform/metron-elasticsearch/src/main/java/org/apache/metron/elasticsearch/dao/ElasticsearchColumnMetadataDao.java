@@ -31,9 +31,11 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.apache.metron.elasticsearch.utils.ElasticsearchUtils.INDEX_NAME_DELIMITER;
@@ -59,12 +61,22 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
     elasticsearchTypeMap = Collections.unmodifiableMap(fieldTypeMap);
   }
 
+  /**
+   * An Elasticsearch administrative client.
+   */
   private transient AdminClient adminClient;
-  private List<String> ignoredIndices;
 
-  public ElasticsearchColumnMetadataDao(AdminClient adminClient, List<String> ignoredIndices) {
+  /**
+   * A set of indices that will be ignored when retrieving column metadata.
+   */
+  private Set<String> ignoredIndices;
+
+  /**
+   * @param adminClient The Elasticsearch admin client.
+   */
+  public ElasticsearchColumnMetadataDao(AdminClient adminClient) {
     this.adminClient = adminClient;
-    this.ignoredIndices = ignoredIndices;
+    this.ignoredIndices = new HashSet<>();
   }
 
   @SuppressWarnings("unchecked")
@@ -77,6 +89,7 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
             .getMappings(new GetMappingsRequest().indices(latestIndices))
             .actionGet()
             .getMappings();
+
     for(Object key: mappings.keys().toArray()) {
       String indexName = key.toString();
 
@@ -153,7 +166,8 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
    * @param includeIndices
    * @return
    */
-  protected String[] getLatestIndices(List<String> includeIndices) {
+  @Override
+  public String[] getLatestIndices(List<String> includeIndices) {
     LOG.debug("Getting latest indices; indices={}", includeIndices);
     Map<String, String> latestIndices = new HashMap<>();
     String[] indices = adminClient
@@ -188,5 +202,15 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
    */
   private FieldType toFieldType(String type) {
     return elasticsearchTypeMap.getOrDefault(type, FieldType.OTHER);
+  }
+
+
+  /**
+   * @param ignoredIndices  A set of indices that will be ignored when retrieving column metadata.
+   * @return
+   */
+  public ElasticsearchColumnMetadataDao ignoredIndices(Set<String> ignoredIndices) {
+    this.ignoredIndices = ignoredIndices;
+    return this;
   }
 }

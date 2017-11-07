@@ -366,7 +366,8 @@ public class ElasticsearchDao implements IndexDao {
     if(this.client == null) {
       this.client = ElasticsearchUtils.getClient(config.getGlobalConfigSupplier().get(), config.getOptionalSettings());
       this.accessConfig = config;
-      this.columnMetadataDao = new ElasticsearchColumnMetadataDao(this.client.admin(), Collections.singletonList(".kibana"));
+      this.columnMetadataDao = new ElasticsearchColumnMetadataDao(this.client.admin())
+              .ignoredIndices(Collections.singleton(".kibana"));
       this.searchSubmitter = new ElasticsearchSearchSubmitter(this.client);
     }
 
