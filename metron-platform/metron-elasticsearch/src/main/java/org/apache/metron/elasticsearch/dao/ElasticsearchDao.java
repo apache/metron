@@ -67,7 +67,6 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -107,14 +106,15 @@ public class ElasticsearchDao implements IndexDao {
   private ElasticsearchSearchSubmitter searchSubmitter;
 
   private AccessConfig accessConfig;
-  private List<String> ignoredIndices = new ArrayList<>();
 
-  protected ElasticsearchDao(TransportClient client, ColumnMetadataDao columnMetadataDao, ElasticsearchSearchSubmitter searchSubmitter, AccessConfig config) {
+  protected ElasticsearchDao(TransportClient client,
+                             ColumnMetadataDao columnMetadataDao,
+                             ElasticsearchSearchSubmitter searchSubmitter,
+                             AccessConfig config) {
     this.client = client;
     this.columnMetadataDao = columnMetadataDao;
     this.searchSubmitter = searchSubmitter;
     this.accessConfig = config;
-    this.ignoredIndices.add(".kibana");
   }
 
   public ElasticsearchDao() {
@@ -367,7 +367,7 @@ public class ElasticsearchDao implements IndexDao {
       this.client = ElasticsearchUtils.getClient(config.getGlobalConfigSupplier().get(), config.getOptionalSettings());
       this.accessConfig = config;
       this.columnMetadataDao = new ElasticsearchColumnMetadataDao(this.client.admin())
-              .ignoredIndices(Collections.singleton(".kibana"));
+              .ignoredIndices(config.getIndicesToIgnore());
       this.searchSubmitter = new ElasticsearchSearchSubmitter(this.client);
     }
 
@@ -659,11 +659,6 @@ public class ElasticsearchDao implements IndexDao {
 
   public ElasticsearchDao accessConfig(AccessConfig accessConfig) {
     this.accessConfig = accessConfig;
-    return this;
-  }
-
-  public ElasticsearchDao ignoredIndices(List<String> ignoredIndices) {
-    this.ignoredIndices = ignoredIndices;
     return this;
   }
 }

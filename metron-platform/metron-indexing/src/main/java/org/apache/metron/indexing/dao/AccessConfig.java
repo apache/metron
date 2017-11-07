@@ -20,7 +20,9 @@ package org.apache.metron.indexing.dao;
 import org.apache.metron.hbase.TableProvider;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class AccessConfig {
@@ -29,10 +31,10 @@ public class AccessConfig {
   private Supplier<Map<String, Object>> globalConfigSupplier;
   private Map<String, String> optionalSettings = new HashMap<>();
   private TableProvider tableProvider = null;
+  private Set<String> indicesToIgnore = new HashSet<>();
 
   /**
-   * A supplier which will return the current global config.
-   * @return
+   * @return A supplier which will return the current global config.
    */
   public Supplier<Map<String, Object>> getGlobalConfigSupplier() {
     return globalConfigSupplier;
@@ -43,8 +45,7 @@ public class AccessConfig {
   }
 
   /**
-   * The maximum search result.
-   * @return
+   * @return The maximum number of search results.
    */
   public Integer getMaxSearchResults() {
     return maxSearchResults;
@@ -55,8 +56,7 @@ public class AccessConfig {
   }
 
   /**
-   * The maximum search groups.
-   * @return
+   * @return The maximum number of search groups.
    */
   public Integer getMaxSearchGroups() {
     return maxSearchGroups;
@@ -67,8 +67,7 @@ public class AccessConfig {
   }
 
   /**
-   * Get optional settings for initializing indices.
-   * @return
+   * @return Optional settings for initializing indices.
    */
   public Map<String, String> getOptionalSettings() {
     return optionalSettings;
@@ -79,8 +78,7 @@ public class AccessConfig {
   }
 
   /**
-   * Return the table provider to use for NoSql DAOs
-   * @return
+   * @return The table provider to use for NoSql DAOs
    */
   public TableProvider getTableProvider() {
     return tableProvider;
@@ -90,4 +88,14 @@ public class AccessConfig {
     this.tableProvider = tableProvider;
   }
 
+  /**
+   * @return The indices that are ignored.
+   */
+  public Set<String> getIndicesToIgnore() {
+    return indicesToIgnore;
+  }
+
+  public void setIndicesToIgnore(Set<String> indicesToIgnore) {
+    this.indicesToIgnore = indicesToIgnore;
+  }
 }

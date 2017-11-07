@@ -43,6 +43,7 @@ storm:
 search:
   max:
     results: 100
+  indicesToIgnore: .kibana
 
 index:
   dao:
