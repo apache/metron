@@ -160,7 +160,7 @@ public class ElasticsearchDao implements IndexDao {
           SearchRequest searchRequest,
           QueryBuilder queryBuilder) throws InvalidSearchException {
 
-    LOG.debug("Got search request; request={}", ElasticsearchUtils.toJSON(searchRequest));
+    LOG.debug("Got search request; request={}", ElasticsearchUtils.toJSON(searchRequest).orElse("???"));
     SearchSourceBuilder searchBuilder = new SearchSourceBuilder()
             .size(searchRequest.getSize())
             .from(searchRequest.getFrom())
@@ -267,7 +267,7 @@ public class ElasticsearchDao implements IndexDao {
       searchResponse.setFacetCounts(getFacetCounts(facetFields, esResponse.getAggregations(), commonColumnMetadata ));
     }
 
-    LOG.debug("Built search response; response={}", ElasticsearchUtils.toJSON(searchResponse));
+    LOG.debug("Built search response; response={}", ElasticsearchUtils.toJSON(searchResponse).orElse("???"));
     return searchResponse;
   }
 

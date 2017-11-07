@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.lang.String.format;
 
@@ -192,17 +193,18 @@ public class ElasticsearchUtils {
    * @param esRequest The search request.
    * @return The JSON representation of the SearchRequest.
    */
-  public static String toJSON(org.elasticsearch.action.search.SearchRequest esRequest) {
-    String json = "null";
+  public static Optional<String> toJSON(org.elasticsearch.action.search.SearchRequest esRequest) {
+    Optional<String> json = Optional.empty();
+
     if(esRequest != null) {
       try {
-        json = XContentHelper.convertToJson(esRequest.source(), true);
+        json = Optional.of(XContentHelper.convertToJson(esRequest.source(), true));
 
       } catch (Throwable t) {
         LOG.error("Failed to convert search request to JSON", t);
-        json = "JSON conversion failed; request=" + esRequest.toString();
       }
     }
+
     return json;
   }
 
@@ -211,18 +213,19 @@ public class ElasticsearchUtils {
    * @param request The search request.
    * @return The JSON representation of the SearchRequest.
    */
-  public static String toJSON(Object request) {
-    String json = "null";
+  public static Optional<String> toJSON(Object request) {
+    Optional<String> json = Optional.empty();
+
     if(request != null) {
       try {
-        json = new ObjectMapper()
-                .writer()
-                .withDefaultPrettyPrinter()
-                .writeValueAsString(request);
+        json = Optional.of(
+                new ObjectMapper()
+                        .writer()
+                        .withDefaultPrettyPrinter()
+                        .writeValueAsString(request));
 
       } catch (Throwable t) {
-        LOG.error("Failed to convert to JSON", t);
-        json = "JSON conversion failed; request=" + request.toString();
+        LOG.error("Failed to convert request to JSON", t);
       }
     }
 

@@ -138,7 +138,7 @@ public class ElasticsearchDaoTest {
 
     // transform the request to JSON for validation
     JSONParser parser = new JSONParser();
-    JSONObject json = (JSONObject) parser.parse(ElasticsearchUtils.toJSON(request));
+    JSONObject json = (JSONObject) parser.parse(ElasticsearchUtils.toJSON(request).orElse("???"));
 
     // validate the sort fields
     JSONArray sortFields = (JSONArray) json.get("sort");
@@ -203,7 +203,7 @@ public class ElasticsearchDaoTest {
 
     // transform the request to JSON for validation
     JSONParser parser = new JSONParser();
-    JSONObject json = (JSONObject) parser.parse(ElasticsearchUtils.toJSON(request));
+    JSONObject json = (JSONObject) parser.parse(ElasticsearchUtils.toJSON(request).orElse("???"));
 
     // ensure that the index names are 'wildcard-ed'
     String[] expected = { "bro_index*", "snort_index*" };

@@ -55,7 +55,7 @@ public class ElasticsearchSearchSubmitter {
    * @return The search response.
    */
   public SearchResponse submitSearch(SearchRequest request) throws InvalidSearchException {
-    LOG.debug("About to submit a search; request={}", ElasticsearchUtils.toJSON(request));
+    LOG.debug("About to submit a search; request={}", ElasticsearchUtils.toJSON(request).orElse("???"));
 
     // submit the search request
     org.elasticsearch.action.search.SearchResponse esResponse;
@@ -69,7 +69,7 @@ public class ElasticsearchSearchSubmitter {
       String msg = String.format(
               "Failed to execute search; error='%s', search='%s'",
               ExceptionUtils.getRootCauseMessage(e),
-              ElasticsearchUtils.toJSON(request));
+              ElasticsearchUtils.toJSON(request).orElse("???"));
       LOG.error(msg, e);
       throw new InvalidSearchException(msg, e);
     }
@@ -118,7 +118,7 @@ public class ElasticsearchSearchSubmitter {
             response.getFailedShards(),
             response.getTotalShards(),
             errors,
-            ElasticsearchUtils.toJSON(request));
+            ElasticsearchUtils.toJSON(request).orElse("???"));
 
     // log each reported failure
     int failureCount=1;
