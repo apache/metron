@@ -119,8 +119,6 @@ Where:
 
 > Lambda expressions are supported, but they must be no argument lambdas such as `() -> STATEMENT`
 
-> `evaluation_expression` can use ternary expressions, but not IF THEN ELSE
-
 * Only the first clause that evaluates to true will be executed.
 
 ## Stellar Core Functions

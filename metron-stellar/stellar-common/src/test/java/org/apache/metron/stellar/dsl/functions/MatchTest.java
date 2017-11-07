@@ -290,6 +290,13 @@ public class MatchTest {
   }
 
   @Test
+  public void testIfThenElseAction() {
+    Assert.assertEquals(2,run("match{ foo == true => IF bar THEN 1 ELSE 2, default => 0}", new HashMap(){{
+      put("foo",true);
+      put("bar",false);
+    }}));
+  }
+  @Test
   @SuppressWarnings("unchecked")
   public void testVariableOnly() {
     Assert.assertEquals("a", run("match{ foo => 'a', default => null}", new HashMap() {{
