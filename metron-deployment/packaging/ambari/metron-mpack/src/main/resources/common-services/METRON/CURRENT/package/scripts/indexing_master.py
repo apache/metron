@@ -80,14 +80,19 @@ class Indexing(Script):
         from params import params
         env.set_params(params)
         self.configure(env)
+        commands = IndexingCommands(params)
+
         # Install elasticsearch templates
         try:
             if not commands.is_elasticsearch_template_installed():
                 self.elasticsearch_template_install(env)
                 commands.set_elasticsearch_template_installed()
-        except:
-            Logger.warning("WARNING: Elasticsearch templates could not be installed. The Elasticsearch service is probably down.")
-        commands = IndexingCommands(params)
+
+        except Exception as e:
+            msg = "WARNING: Elasticsearch index templates could not be installed.  " \
+                  "Is Elasticsearch running?  Will reattempt install on next start.  error={0}"
+            Logger.warning(msg.format(e))
+
         commands.start_indexing_topology(env)
 
     def stop(self, env, upgrade_type=None):
