@@ -132,9 +132,9 @@ In the core language functions, we support basic functional programming primitiv
 | [ `FILL_RIGHT`](#fill_right)                                                                       |
 | [ `FILTER`](#filter)                                                                               |
 | [ `FLOOR`](#floor)                                                                                 |
+| [ `FORMAT`](#format)                                                                               |
 | [ `FUZZY_LANGS`](#fuzzy_langs)                                                                     |
 | [ `FUZZY_SCORE`](#fuzzy_score)                                                                     |
-| [ `FORMAT`](#format)                                                                               |
 | [ `GEO_GET`](#geo_get)                                                                             |
 | [ `GEOHASH_CENTROID`](#geohash_centroid)                                                           |
 | [ `GEOHASH_DIST`](#geohash_dist)                                                                   |
@@ -147,10 +147,10 @@ In the core language functions, we support basic functional programming primitiv
 | [ `GET_LAST`](#get_last)                                                                           |
 | [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)                                             |
 | [ `HASH`](#hash)                                                                                   |
+| [ `HLLP_ADD`](../../metron-analytics/metron-statistics#hllp_add)                                   |
 | [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality)                   |
 | [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
 | [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)                               |
-| [ `HLLP_OFFER`](../../metron-analytics/metron-statistics#hllp_offer)                               |
 | [ `IN_SUBNET`](#in_subnet)                                                                         |
 | [ `IS_DATE`](#is_date)                                                                             |
 | [ `IS_ENCODING`](#is_encoding)                                                                     |
@@ -159,7 +159,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `IS_EMPTY`](#is_empty)                                                                           |
 | [ `IS_INTEGER`](#is_integer)                                                                       |
 | [ `IS_IP`](#is_ip)                                                                                 |
-| [ `IS_NAN`](#is_nan)                                                             |
+| [ `IS_NAN`](#is_nan)                                                                               |
 | [ `IS_URL`](#is_url)                                                                               |
 | [ `JOIN`](#join)                                                                                   |
 | [ `KAFKA_GET`](#kafka_get)                                                                         |
@@ -175,6 +175,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `MAAS_MODEL_APPLY`](#maas_model_apply)                                                           |
 | [ `MAP`](#map)                                                                                     |
 | [ `MAP_EXISTS`](#map_exists)                                                                       |
+| [ `MAP_GET`](#map_get)                                                                             |
 | [ `MONTH`](#month)                                                                                 |
 | [ `MULTISET_ADD`](#multiset_add)                                                                   |
 | [ `MULTISET_INIT`](#multiset_init)                                                                 |
@@ -194,8 +195,8 @@ In the core language functions, we support basic functional programming primitiv
 | [ `SET_INIT`](#set_init)                                                                           |
 | [ `SET_MERGE`](#set_merge)                                                                         |
 | [ `SET_REMOVE`](#set_remove)                                                                       |
-| [ `SPLIT`](#split)                                                                                 |
 | [ `SIN`](#sin)                                                                                     |
+| [ `SPLIT`](#split)                                                                                 |
 | [ `SQRT`](#sqrt)                                                                                   |
 | [ `STARTS_WITH`](#starts_with)                                                                     |
 | [ `STATS_ADD`](../../metron-analytics/metron-statistics#stats_add)                                 |
@@ -222,12 +223,12 @@ In the core language functions, we support basic functional programming primitiv
 | [ `SYSTEM_ENV_GET`](#system_env_get)                                                               |
 | [ `SYSTEM_PROPERTY_GET`](#system_property_get)                                                     |
 | [ `TAN`](#tan)                                                                                     |
-| [ `TLSH_DIST`](#tlsh_dist)                                                                                     |
+| [ `TLSH_DIST`](#tlsh_dist)                                                                         |
 | [ `TO_DOUBLE`](#to_double)                                                                         |
 | [ `TO_EPOCH_TIMESTAMP`](#to_epoch_timestamp)                                                       |
 | [ `TO_FLOAT`](#to_float)                                                                           |
 | [ `TO_INTEGER`](#to_integer)                                                                       |
-| [ `TO_JSON_LIST`](#to_json_List)                                                                   |
+| [ `TO_JSON_LIST`](#to_json_list)                                                                   |
 | [ `TO_JSON_MAP`](#to_json_map)                                                                     |
 | [ `TO_JSON_OBJECT`](#to_json_object)                                                               |
 | [ `TO_LONG`](#to_long)                                                                             |
@@ -257,7 +258,7 @@ In the core language functions, we support basic functional programming primitiv
   * Description: Adds an element to the bloom filter passed in
   * Input:
     * bloom - The bloom filter
-    * value* - The values to add
+    * value\*? - The values to add
   * Returns: Bloom Filter
   
 ### `BLOOM_EXISTS`
@@ -523,6 +524,10 @@ In the core language functions, we support basic functional programming primitiv
     * input - List
   * Returns: Last element of the list
 
+### `GET_SUPPORTED_ENCODINGS`
+  * Description: Returns a list of the encodings that are currently supported.
+  * Returns: A List of String
+
 ### `HASH`
   * Description: Hashes a given value using the given hashing algorithm and returns a hex encoded string.
   * Input:
@@ -652,31 +657,6 @@ In the core language functions, we support basic functional programming primitiv
     * element - Element to add to list
   * Returns: Resulting list with the item added at the end.
 
-### `GET_SUPPORTED_ENCODINGS`
-  * Description: Returns a list of the encodings that are currently supported.
-  * Returns: A List of String
- 
-### `TO_JSON_LIST`
-  * Description: Accepts JSON string as an input and returns a List object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
-  For e.g. `GET_FIRST( TO_JSON_LIST(  '[ "foo", 2]')` would yield `foo`
-  * Input:
-    * string - The JSON string to be parsed
-  * Returns: A parsed List object
-
-### `TO_JSON_MAP`
-  * Description: Accepts JSON string as an input and returns a Map object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
-  For e.g. `MAP_GET( 'bar', TO_JSON_MAP(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
-  * Input:
-    * string - The JSON string to be parsed
-  * Returns: A parsed Map object
-
-### `TO_JSON_OBJECT`
-  * Description: Accepts JSON string as an input and returns a JSON Object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
-  For e.g. `MAP_GET( 'bar', TO_JSON_OBJECT(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
-  * Input:
-    * string - The JSON string to be parsed
-  * Returns: A parsed JSON object
-
 ### `LOG2`
   * Description: Returns the log (base `2`) of a number.
   * Input:
@@ -748,7 +728,7 @@ In the core language functions, we support basic functional programming primitiv
 ### `MULTISET_INIT`
   * Description: Creates an empty multiset, which is a map associating objects to their instance counts.
   * Input:
-    * input? - An initialization of the multiset
+    * input?? - An initialization of the multiset
   * Returns: A multiset
 
 ### `MULTISET_MERGE`
@@ -849,7 +829,7 @@ In the core language functions, we support basic functional programming primitiv
 ### `SET_INIT`
   * Description: Creates an new set
   * Input:
-    * input? - An initialization of the set
+    * input?? - An initialization of the set
   * Returns: A Set
 
 ### `SET_MERGE`
@@ -871,6 +851,13 @@ In the core language functions, we support basic functional programming primitiv
     * number - The number to take the sine of
   * Returns: The sine of the number passed in.
 
+### `SPLIT`
+  * Description: Splits the string by the delimiter.
+  * Input:
+    * input - String to split
+    * delim - String delimiter
+  * Returns: List of strings
+
 ### `SQRT`
   * Description: Returns the square root of a number.
   * Input:
@@ -882,13 +869,6 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * input - String 
   * Returns: The base-2 shannon entropy of the string (https://en.wikipedia.org/wiki/Entropy_(information_theory)#Definition).  The unit of this is bits.
-
-### `SPLIT`
-  * Description: Splits the string by the delimiter.
-  * Input:
-    * input - String to split
-    * delim - String delimiter
-  * Returns: List of strings
 
 ### `STARTS_WITH`
   * Description: Determines whether a string starts with a prefix
@@ -945,7 +925,7 @@ In the core language functions, we support basic functional programming primitiv
     * timezone - Optional timezone in String format
   * Returns: Epoch timestamp
   
-### `TO_FOAT`
+### `TO_FLOAT`
   * Description: Transforms the first argument to a float
   * Input:
     * input - Object of string or numeric type
@@ -956,6 +936,27 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * input - Object of string or numeric type
   * Returns: Integer version of the first argument
+
+### `TO_JSON_LIST`
+  * Description: Accepts JSON string as an input and returns a List object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `GET_FIRST( TO_JSON_LIST(  '[ "foo", 2]')` would yield `foo`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed List object
+
+### `TO_JSON_MAP`
+  * Description: Accepts JSON string as an input and returns a Map object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `MAP_GET( 'bar', TO_JSON_MAP(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed Map object
+
+### `TO_JSON_OBJECT`
+  * Description: Accepts JSON string as an input and returns a JSON Object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `MAP_GET( 'bar', TO_JSON_OBJECT(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed JSON object
 
 ### `TO_LONG`
   * Description: Transforms the first argument to a long integer
@@ -1034,7 +1035,7 @@ In the core language functions, we support basic functional programming primitiv
   See [python](https://docs.python.org/3/library/functions.html#zip)
   and [wikipedia](https://en.wikipedia.org/wiki/Convolution_(computer_science)) for more context.
   * Input:
-    * list* - Lists to zip.
+    * list\*? - Lists to zip.
   * Returns: The zip of the lists.  The returned list is the min size of all the lists. e.g. `ZIP( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4] ]`
 
 ### `ZIP_LONGEST`
@@ -1042,7 +1043,7 @@ In the core language functions, we support basic functional programming primitiv
   See [python](https://docs.python.org/3/library/itertools.html#itertools.zip_longest)
   and [wikipedia](https://en.wikipedia.org/wiki/Convolution_(computer_science)) for more context.
   * Input:
-    * list* - Lists to zip.
+    * list\*? - Lists to zip.
   * Returns: The zip of the lists.  The returned list is the max size of all the lists.  Empty elements are null e.g. `ZIP_LONGEST( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4], [null, 5] ]`
 
 The following is an example query (i.e. a function which returns a
