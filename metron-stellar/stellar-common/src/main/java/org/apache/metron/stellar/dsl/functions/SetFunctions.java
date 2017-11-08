@@ -27,7 +27,7 @@ public class SetFunctions {
   @Stellar(name="INIT"
           , namespace="SET"
           , description="Creates a new set"
-          , params = { "input? - An initialization of the set"}
+          , params = { "input (optional) - An initialization of the set"}
           , returns = "A Set"
   )
   public static class SetInit extends BaseStellarFunction {
@@ -145,7 +145,7 @@ public class SetFunctions {
   @Stellar(name="INIT"
           , namespace="MULTISET"
           , description="Creates an empty multiset, which is a map associating objects to their instance counts."
-          , params = { "input? - An initialization of the multiset"}
+          , params = { "input (optional) - An initialization of the multiset"}
           , returns = "A multiset"
   )
   public static class MultiSetInit extends BaseStellarFunction {

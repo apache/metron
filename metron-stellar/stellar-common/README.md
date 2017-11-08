@@ -258,7 +258,7 @@ In the core language functions, we support basic functional programming primitiv
   * Description: Adds an element to the bloom filter passed in
   * Input:
     * bloom - The bloom filter
-    * value\*? - The values to add
+    * value(s) - The value(s) to add
   * Returns: Bloom Filter
   
 ### `BLOOM_EXISTS`
@@ -728,7 +728,7 @@ In the core language functions, we support basic functional programming primitiv
 ### `MULTISET_INIT`
   * Description: Creates an empty multiset, which is a map associating objects to their instance counts.
   * Input:
-    * input?? - An initialization of the multiset
+    * input (optional) - An initialization of the multiset
   * Returns: A multiset
 
 ### `MULTISET_MERGE`
@@ -829,7 +829,7 @@ In the core language functions, we support basic functional programming primitiv
 ### `SET_INIT`
   * Description: Creates an new set
   * Input:
-    * input?? - An initialization of the set
+    * input (optional) - An initialization of the set
   * Returns: A Set
 
 ### `SET_MERGE`
@@ -1035,7 +1035,7 @@ In the core language functions, we support basic functional programming primitiv
   See [python](https://docs.python.org/3/library/functions.html#zip)
   and [wikipedia](https://en.wikipedia.org/wiki/Convolution_(computer_science)) for more context.
   * Input:
-    * list\*? - Lists to zip.
+    * list(s) - List(s) to zip.
   * Returns: The zip of the lists.  The returned list is the min size of all the lists. e.g. `ZIP( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4] ]`
 
 ### `ZIP_LONGEST`
@@ -1043,7 +1043,7 @@ In the core language functions, we support basic functional programming primitiv
   See [python](https://docs.python.org/3/library/itertools.html#itertools.zip_longest)
   and [wikipedia](https://en.wikipedia.org/wiki/Convolution_(computer_science)) for more context.
   * Input:
-    * list\*? - Lists to zip.
+    * list(s) - List(s) to zip.
   * Returns: The zip of the lists.  The returned list is the max size of all the lists.  Empty elements are null e.g. `ZIP_LONGEST( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4], [null, 5] ]`
 
 The following is an example query (i.e. a function which returns a
