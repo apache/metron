@@ -219,38 +219,49 @@ And we ran our bro parser topology with the following options. We did not need t
 though you could certainly do so if necessary. Notice that we only needed 1 worker.
 
 ```
-/usr/metron/0.4.0/bin/start_parser_topology.sh -k $BROKERLIST -z $ZOOKEEPER -s bro -ksp SASL_PLAINTEXT
-    -ot enrichments
+/usr/metron/0.4.2/bin/start_parser_topology.sh \
     -e ~metron/.storm/storm-bro.config \
     -esc ~/.storm/spout-bro.config \
-    -sp 24 \
-    -snt 24 \
+    -k $BROKERLIST \
+    -ksp SASL_PLAINTEXT \
     -nw 1 \
+    -ot enrichments \
     -pnt 24 \
     -pp 24 \
+    -s bro \
+    -snt 24 \
+    -sp 24 \
+    -z $ZOOKEEPER \
 ```
 
-From the usage docs, here are the options we've used. The full reference can be found here - https://github.com/apache/metron/blob/master/metron-platform/metron-parsers/README.md
+From the usage docs, here are the options we've used. The full reference can be found [here](../metron-platform/metron-parsers/README.md#Starting_the_Parser_Topology).
 ```
--e,--extra_topology_options <JSON_FILE>        Extra options in the form
-                                               of a JSON file with a map
-                                               for content.
--esc,--extra_kafka_spout_config <JSON_FILE>    Extra spout config options
-                                               in the form of a JSON file
-                                               with a map for content.
-                                               Possible keys are:
-                                               retryDelayMaxMs,retryDelay
-                                               Multiplier,retryInitialDel
-                                               ayMs,stateUpdateIntervalMs
-                                               ,bufferSizeBytes,fetchMaxW
-                                               ait,fetchSizeBytes,maxOffs
-                                               etBehind,metricsTimeBucket
-                                               SizeInSecs,socketTimeoutMs
--sp,--spout_p <SPOUT_PARALLELISM_HINT>         Spout Parallelism Hint
--snt,--spout_num_tasks <NUM_TASKS>             Spout Num Tasks
--nw,--num_workers <NUM_WORKERS>                Number of Workers
--pnt,--parser_num_tasks <NUM_TASKS>            Parser Num Tasks
--pp,--parser_p <PARALLELISM_HINT>              Parser Parallelism Hint
+usage: start_parser_topology.sh
+ -e,--extra_topology_options <JSON_FILE>               Extra options in the form
+                                                       of a JSON file with a map
+                                                       for content.
+ -esc,--extra_kafka_spout_config <JSON_FILE>           Extra spout config options
+                                                       in the form of a JSON file
+                                                       with a map for content.
+                                                       Possible keys are:
+                                                       retryDelayMaxMs,retryDelay
+                                                       Multiplier,retryInitialDel
+                                                       ayMs,stateUpdateIntervalMs
+                                                       ,bufferSizeBytes,fetchMaxW
+                                                       ait,fetchSizeBytes,maxOffs
+                                                       etBehind,metricsTimeBucket
+                                                       SizeInSecs,socketTimeoutMs
+ -k,--kafka <BROKER_URL>                               Kafka Broker URL
+ -ksp,--kafka_security_protocol <SECURITY_PROTOCOL>    Kafka Security Protocol
+ -nw,--num_workers <NUM_WORKERS>                       Number of Workers
+ -ot,--output_topic <KAFKA_TOPIC>                      Output Kafka Topic
+ -pnt,--parser_num_tasks <NUM_TASKS>                   Parser Num Tasks
+ -pp,--parser_p <PARALLELISM_HINT>                     Parser Parallelism Hint
+ -s,--sensor <SENSOR_TYPE>                             Sensor Type
+ -snt,--spout_num_tasks <NUM_TASKS>                    Spout Num Tasks
+ -sp,--spout_p <SPOUT_PARALLELISM_HINT>                Spout Parallelism Hint
+ -z,--zk <ZK_QUORUM>                                   Zookeeper Quroum URL
+                                                       (zk1:2181,zk2:2181,...
 ```
 
 ### Enrichment Tuning
