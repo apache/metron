@@ -244,7 +244,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `WEEK_OF_YEAR`](#week_of_year)                                                                   |
 | [ `YEAR`](#year)                                                                                   |
 | [ `ZIP`](#zip)                                                                                     |
-| [ `ZIP_JAGGED`](#zip_jagged)                                                                       |
+| [ `ZIP_LONGEST`](#zip_longest)                                                                     |
 
 ### `APPEND_IF_MISSING`
   * Description: Appends the suffix to the end of the string if the string does not already end with any of the suffixes.
