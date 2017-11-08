@@ -19,7 +19,7 @@
   git:
     repo: https://github.com/apache/metron-bro-plugin-kafka
     version: master
-    dest: /tmp/
+    dest: /tmp/metron-bro-plugin-kafka
 
 - name: Compile and install the plugin
   shell: "{{ item }}"
