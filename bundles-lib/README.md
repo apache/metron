@@ -38,6 +38,11 @@ This is included by adding the following snippet to the bundle's pom.xml:>
 </build>
 ```
 
+> The `bundles-maven-plugin` may need to be built and installed.  From the Metron src root directory:
+```bash
+$cd bundles-maven-plugin && mvn -q install && cd ..
+```
+
 The bundles-maven-plugin is included in the projects created by Apache Metron Extension maven archetypes.
 
 
