@@ -4,9 +4,12 @@ Bundles testing is a project for testing the basic functionality of the bundle-l
 The idea is that we have an integration test module (bundles-test-integration), that deplends on the interface module
 (bundles-test-integration) but not the implementation.
 
-The implementation (bundles-test-implemenation) is packaged as a bundle (bundles-test-bundle).
+The interface is attributed with `@IndexSubclasses`, from the ClassIndex system.  Any implementing classes
+will be exposed through the bundle system.
 
-The integration test loads the implemenation through the bundle system, by interface, and executes its methods.
+The implementation (bundles-test-implementation) is packaged as a bundle (bundles-test-bundle).
+
+The integration test loads the implementation through the bundle system, by interface, and executes its methods.
 The demonstrates the main use case.
 
 > NOTE: the code for the implementation and bundle are provided, but
