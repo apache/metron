@@ -1,6 +1,6 @@
 # Apache Metron Bundles
 
-Apache Metron Bundles and this documentation are a derivitave of the [Apache Nifi](http://www.nifi.apache.org) [NARs](http://nifi.apache.org/developer-guide.html).
+Apache Metron Bundles and this documentation are a derivative of the [Apache Nifi](http://www.nifi.apache.org) [NARs](http://nifi.apache.org/developer-guide.html).
 
 When software from many different organizations is all hosted within
 the same environment, Java ClassLoaders quickly
@@ -55,6 +55,38 @@ a `Bundle-Dependency-Id` element to the `MANIFEST.MF`
 file of BUNDLE A. This will result in setting the ClassLoader of BUNDLE B as
 the Parent ClassLoader of BUNDLE A. In this case,
 we refer to BUNDLE B as the _Parent_ of BUNDLE A.
+
+## Exposing Classes
+
+Bundles expose classes for loading via the Java Service Provider jar mechanism.  That is to say they
+are listed in the jar's META-INF/services/$INTERFACENAME file.
+
+The [ClassIndex library](https://github.com/atteo/classindex) is used to discover these registrations, and is recommened for use in creating them.
+
+For example.  An interface in ModuleA would be attributed with `@IndexSubclasses` as such:
+
+```java
+
+import org.atteo.classindex.IndexSubclasses;
+
+@IndexSubclasses
+public interface TestInterface {...}
+```
+
+In ModuleB, an implementation class simply implements `TestInterface` and includes a dependency on ClassIndex as such:
+
+```xml
+ <dependency>
+    <groupId>org.atteo.classindex</groupId>
+    <artifactId>classindex</artifactId>
+    <version>${global_classindex_version}</version>
+    <scope>provided</scope>
+ </dependency>
+```
+When ModuleB is packaged, the jar produced will have the services entry automatically created.
+Then ModuleB is bundled using the bundles-maven-plugin.
+
+This exposes the implementation, and allows for it's discovery by the bundles-lib system.
 
 ## Per-Instance ClassLoading
 
