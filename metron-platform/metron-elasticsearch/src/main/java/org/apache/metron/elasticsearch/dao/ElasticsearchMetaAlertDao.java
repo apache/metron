@@ -194,19 +194,23 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       throws IOException {
     Map<Document, Optional<String>> updates = new HashMap<>();
     Document metaAlert = indexDao.getLatest(metaAlertGuid, METAALERT_TYPE);
-    Iterable<Document> alerts = indexDao.getAllLatest(alertGuids, sensorTypes);
-    boolean metaAlertUpdated = addAlertsToMetaAlert(metaAlert, alerts);
-    if (metaAlertUpdated) {
-      calculateMetaScores(metaAlert);
-      updates.put(metaAlert, Optional.of(index));
-      for(Document alert: alerts) {
-        if (addMetaAlertToAlert(metaAlert.getGuid(), alert)) {
-          updates.put(alert, Optional.empty());
+    if (MetaAlertStatus.ACTIVE.getStatusString().equals(metaAlert.getDocument().get(STATUS_FIELD))) {
+      Iterable<Document> alerts = indexDao.getAllLatest(alertGuids, sensorTypes);
+      boolean metaAlertUpdated = addAlertsToMetaAlert(metaAlert, alerts);
+      if (metaAlertUpdated) {
+        calculateMetaScores(metaAlert);
+        updates.put(metaAlert, Optional.of(index));
+        for(Document alert: alerts) {
+          if (addMetaAlertToAlert(metaAlert.getGuid(), alert)) {
+            updates.put(alert, Optional.empty());
+          }
         }
+        indexDaoUpdate(updates);
       }
-      indexDaoUpdate(updates);
+      return metaAlertUpdated;
+    } else {
+      throw new IllegalStateException("Adding alerts to an INACTIVE meta alert is not allowed");
     }
-    return metaAlertUpdated;
   }
 
   protected boolean addAlertsToMetaAlert(Document metaAlert, Iterable<Document> alerts) {
@@ -244,19 +248,24 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       throws IOException {
     Map<Document, Optional<String>> updates = new HashMap<>();
     Document metaAlert = indexDao.getLatest(metaAlertGuid, METAALERT_TYPE);
-    Iterable<Document> alerts = indexDao.getAllLatest(alertGuids, sensorTypes);
-    boolean metaAlertUpdated = removeAlertsFromMetaAlert(metaAlert, alertGuids);
-    if (metaAlertUpdated) {
-      calculateMetaScores(metaAlert);
-      updates.put(metaAlert, Optional.of(index));
-      for(Document alert: alerts) {
-        if (removeMetaAlertFromAlert(metaAlert.getGuid(), alert)) {
-          updates.put(alert, Optional.empty());
+    if (MetaAlertStatus.ACTIVE.getStatusString().equals(metaAlert.getDocument().get(STATUS_FIELD))) {
+      Iterable<Document> alerts = indexDao.getAllLatest(alertGuids, sensorTypes);
+      boolean metaAlertUpdated = removeAlertsFromMetaAlert(metaAlert, alertGuids);
+      if (metaAlertUpdated) {
+        calculateMetaScores(metaAlert);
+        updates.put(metaAlert, Optional.of(index));
+        for(Document alert: alerts) {
+          if (removeMetaAlertFromAlert(metaAlert.getGuid(), alert)) {
+            updates.put(alert, Optional.empty());
+          }
         }
+        indexDaoUpdate(updates);
       }
-      indexDaoUpdate(updates);
+      return metaAlertUpdated;
+    } else {
+      throw new IllegalStateException("Removing alerts from an INACTIVE meta alert is not allowed");
     }
-    return metaAlertUpdated;
+
   }
 
   protected boolean removeAlertsFromMetaAlert(Document metaAlert, Collection<String> alertGuids) {
@@ -487,7 +496,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
    */
   @SuppressWarnings("unchecked")
   protected void calculateMetaScores(Document metaAlert) {
-    MetaScores metaScores = new MetaScores(Collections.singletonList(0d));
+    MetaScores metaScores = new MetaScores(new ArrayList<>());
     List<Object> alertsRaw = ((List<Object>) metaAlert.getDocument().get(ALERT_FIELD));
     if (alertsRaw != null && !alertsRaw.isEmpty()) {
       ArrayList<Double> scores = new ArrayList<>();
