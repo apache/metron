@@ -19,6 +19,7 @@ package org.apache.metron.rest.config;
 
 import static org.apache.metron.rest.MetronRestConstants.INDEX_DAO_IMPL;
 
+import java.util.Optional;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -81,7 +82,7 @@ public class IndexConfig {
 
       // Create the meta alert dao and wrap it around the index dao.
       MetaAlertDao ret = (MetaAlertDao) IndexDaoFactory.create(metaDaoImpl, config).get(0);
-      ret.init(indexDao, metaDaoSort);
+      ret.init(indexDao, Optional.ofNullable(metaDaoSort));
       return ret;
     }
     catch(RuntimeException re) {

@@ -21,6 +21,7 @@ package org.apache.metron.indexing.dao;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -121,7 +122,7 @@ public class HBaseDao implements IndexDao {
   }
 
   @Override
-  public Iterable<Document> getAllLatest(Map<String, String> guidToIndices) throws IOException {
+  public Iterable<Document> getAllLatest(Collection<String> guids, Collection<String> sensorTypes) throws IOException {
     return null;
   }
 

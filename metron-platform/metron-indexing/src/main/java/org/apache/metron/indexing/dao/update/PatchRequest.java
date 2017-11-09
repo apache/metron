@@ -19,7 +19,11 @@ package org.apache.metron.indexing.dao.update;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+import org.apache.metron.common.utils.JSONUtils;
 
 public class PatchRequest {
   JsonNode patch;
@@ -60,6 +64,14 @@ public class PatchRequest {
 
   public void setPatch(JsonNode patch) {
     this.patch = patch;
+  }
+
+  public void setPatch(String op, String path, String value) {
+    Map<String, Object> patch = new HashMap<>();
+    patch.put("op", op);
+    patch.put("path", path);
+    patch.put("value", value);
+    this.patch = JSONUtils.INSTANCE.convert(Collections.singletonList(patch), JsonNode.class);
   }
 
   /**

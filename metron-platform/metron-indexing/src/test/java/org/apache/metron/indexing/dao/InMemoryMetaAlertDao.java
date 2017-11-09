@@ -21,6 +21,7 @@ package org.apache.metron.indexing.dao;
 import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,6 +30,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.metaalert.MetaScores;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
@@ -83,7 +85,7 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public void init(IndexDao indexDao, String threatSort) {
+  public void init(IndexDao indexDao, Optional<String> threatSort) {
     this.indexDao = indexDao;
     // Ignore threatSort for test.
   }
@@ -94,8 +96,8 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public Iterable<Document> getAllLatest(Map<String, String> guidToIndices) throws IOException {
-    return indexDao.getAllLatest(guidToIndices);
+  public Iterable<Document> getAllLatest(Collection<String> guids, Collection<String> sensorTypes) throws IOException {
+    return indexDao.getAllLatest(guids, sensorTypes);
   }
 
   @Override
@@ -205,4 +207,23 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
     createResponse.setCreated(true);
     return createResponse;
   }
+
+  @Override
+  public boolean addAlertsToMetaAlert(String metaAlertGuid, Collection<String> alertGuids,
+      Collection<String> sensorTypes) throws IOException {
+    return true;
+  }
+
+  @Override
+  public boolean removeAlertsFromMetaAlert(String metaAlertGuid, Collection<String> alertGuids,
+      Collection<String> sensorTypes) throws IOException {
+    return false;
+  }
+
+  @Override
+  public boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
+      throws IOException {
+    return false;
+  }
+
 }

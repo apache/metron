@@ -405,7 +405,7 @@ public abstract class SearchIntegrationTest {
     {
       Map<String, String> request = JSONUtils.INSTANCE.load(getAllLatestQuery, new TypeReference<Map<String, String>>() {
       });
-      Iterator<Document> response = dao.getAllLatest(request).iterator();
+      Iterator<Document> response = dao.getAllLatest(Arrays.asList("bro-1", "bro-2"), Collections.singleton("bro")).iterator();
       Document bro2 = response.next();
       Assert.assertEquals("bro_1", bro2.getDocument().get("guid"));
       Assert.assertEquals("bro", bro2.getDocument().get("source:type"));

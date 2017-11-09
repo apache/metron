@@ -20,6 +20,7 @@ package org.apache.metron.indexing.dao;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -65,7 +66,7 @@ public interface IndexDao {
    */
   Document getLatest(String guid, String sensorType) throws IOException;
 
-  Iterable<Document> getAllLatest(Map<String, String> guidToIndices) throws IOException;
+  Iterable<Document> getAllLatest(Collection<String> guids, Collection<String> sensorTypes) throws IOException;
 
   /**
    * Return the latest version of a document given a GetRequest.

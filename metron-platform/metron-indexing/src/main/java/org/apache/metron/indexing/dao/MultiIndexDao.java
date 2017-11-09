@@ -22,6 +22,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -209,12 +210,12 @@ public class MultiIndexDao implements IndexDao {
   }
 
   @Override
-  public Iterable<Document> getAllLatest(Map<String, String> guidToIndices) throws IOException {
+  public Iterable<Document> getAllLatest(Collection<String> guids, Collection<String> sensorTypes) throws IOException {
     Iterable<Document> ret = null;
     List<DocumentIterableContainer> output =
         indices.parallelStream().map(dao -> {
           try {
-            return new DocumentIterableContainer(dao.getAllLatest(guidToIndices));
+            return new DocumentIterableContainer(dao.getAllLatest(guids, sensorTypes));
           } catch (Throwable e) {
             return new DocumentIterableContainer(e);
           }

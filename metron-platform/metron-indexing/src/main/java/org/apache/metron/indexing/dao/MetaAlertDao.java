@@ -18,9 +18,12 @@
 
 package org.apache.metron.indexing.dao;
 
+import java.util.Collection;
+import java.util.Optional;
 import java.io.IOException;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchResponse;
@@ -55,12 +58,21 @@ public interface MetaAlertDao extends IndexDao {
   MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request)
       throws InvalidCreateException, IOException;
 
+
+  boolean addAlertsToMetaAlert(String metaAlertGuid, Collection<String> alertGuids,
+      Collection<String> sensorTypes) throws IOException;
+
+  boolean removeAlertsFromMetaAlert(String metaAlertGuid, Collection<String> alertGuids,
+      Collection<String> sensorTypes) throws IOException;
+
+  boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status) throws IOException;
+
   /**
    * Initializes a Meta Alert DAO with default "sum" meta alert threat sorting.
    * @param indexDao The DAO to wrap for our queries.
    */
   default void init(IndexDao indexDao) {
-    init(indexDao, null);
+    init(indexDao, Optional.empty());
   }
 
   /**
@@ -69,5 +81,5 @@ public interface MetaAlertDao extends IndexDao {
    * @param threatSort The aggregation to use as the threat field. E.g. "sum", "median", etc.
    *     null is "sum"
    */
-  void init(IndexDao indexDao, String threatSort);
+  void init(IndexDao indexDao, Optional<String> threatSort);
 }
