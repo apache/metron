@@ -1,4 +1,5 @@
 {
+  "template": "metaalert_index*",
   "mappings": {
     "metaalert_doc": {
       "_timestamp": {
