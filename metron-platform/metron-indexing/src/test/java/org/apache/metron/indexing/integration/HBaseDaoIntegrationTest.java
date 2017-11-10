@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.apache.hadoop.hbase.HBaseTestingUtility;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
@@ -48,10 +47,6 @@ public class HBaseDaoIntegrationTest {
   private static final String TABLE_NAME = "metron_update";
   private static final String COLUMN_FAMILY = "cf";
   private static final String SENSOR_TYPE = "test";
-
-  private static HBaseTestingUtility util;
-  private static HBaseClient client;
-  private static HTableInterface table;
 
   private static IndexDao hbaseDao;
 
