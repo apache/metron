@@ -53,7 +53,7 @@ def slave():
 
     elastic_site = params.config['configurations']['elastic-site']
     path = "{0}/elasticsearch.yml".format(params.conf_dir)
-    Logger.info("Cre")
+    Logger.info("Creating ES slave configuration.")
     File(path,
          content=Template(
              "elasticsearch.slave.yaml.j2",

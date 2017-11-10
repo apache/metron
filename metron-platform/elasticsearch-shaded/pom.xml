@@ -149,6 +149,7 @@
                             </filter>
                           </filters>  
                           <relocations>
+                                <!-- The REST API has conflicts with these packages -->
                                 <relocation>
                                     <pattern>io.netty</pattern>
                                     <shadedPattern>org.apache.metron.io.netty</shadedPattern>

@@ -31,6 +31,14 @@ import java.util.List;
 import java.util.Map;
 import org.apache.metron.common.utils.JSONUtils;
 
+/**
+ * This is a utility for taking a file of JSON objects that were exported from ES and transforming
+ * it into a bulk import format. This was useful for backing up and restoring the Kibana dashboard
+ * index. The notable gap is that it expects one record per line in the file, which is not how
+ * ES generally returns results. Elasticsearch-dump was used as the intermediary to export data in
+ * the desired format for consumption by this tool.
+ * @see <a href="https://github.com/taskrabbit/elasticsearch-dump">https://github.com/taskrabbit/elasticsearch-dump</a>
+ */
 public class ElasticsearchImportExport {
 
   public static void main(String[] args) {
@@ -48,6 +56,15 @@ public class ElasticsearchImportExport {
     System.exit(0);
   }
 
+  /**
+   * Takes a file of line-delimited JSON objects and converts them to an Elasticsearch bulk import
+   * format.
+   *
+   * @param input input JSON file (note, each line is expected to be a separate complete JSON
+   * object, not the file as a whole.)
+   * @param output Elasticsearch bulk import file.
+   * @throws IOException
+   */
   public void bulkify(Path input, Path output) throws IOException {
     List<String> outRecs = new ArrayList<String>();
     try (BufferedReader br = new BufferedReader(new FileReader(input.toFile()))) {

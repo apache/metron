@@ -22,9 +22,7 @@ kibana_master
 import errno
 import os
 
-from ambari_commons.os_check import OSCheck
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from ansible.modules.extras.packaging import kibana_plugin
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import Execute
