@@ -111,6 +111,13 @@ public interface IndexDao {
   default void patch( PatchRequest request
                     , Optional<Long> timestamp
                     ) throws OriginalNotFoundException, IOException {
+    Document d = getPatchedDocument(request, timestamp);
+    update(d, Optional.ofNullable(request.getIndex()));
+  }
+
+  default Document getPatchedDocument(PatchRequest request
+      , Optional<Long> timestamp
+      ) throws OriginalNotFoundException, IOException {
     Map<String, Object> latest = request.getSource();
     if(latest == null) {
       Document latestDoc = getLatest(request.getGuid(), request.getSensorType());
@@ -124,13 +131,11 @@ public interface IndexDao {
     JsonNode originalNode = JSONUtils.INSTANCE.convert(latest, JsonNode.class);
     JsonNode patched = JSONUtils.INSTANCE.applyPatch(request.getPatch(), originalNode);
     Map<String, Object> updated = JSONUtils.INSTANCE.getMapper()
-                                           .convertValue(patched, new TypeReference<Map<String, Object>>() {});
-    Document d = new Document( updated
-                             , request.getGuid()
-                             , request.getSensorType()
-                             , timestamp.orElse(System.currentTimeMillis())
-                             );
-    update(d, Optional.ofNullable(request.getIndex()));
+        .convertValue(patched, new TypeReference<Map<String, Object>>() {});
+    return new Document( updated
+        , request.getGuid()
+        , request.getSensorType()
+        , timestamp.orElse(System.currentTimeMillis()));
   }
 
   /**

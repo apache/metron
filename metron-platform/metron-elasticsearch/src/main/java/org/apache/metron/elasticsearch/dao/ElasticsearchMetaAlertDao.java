@@ -25,12 +25,14 @@ import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -56,6 +58,9 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
+import org.apache.metron.indexing.dao.update.PatchRequest;
+import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
@@ -64,11 +69,15 @@ import org.elasticsearch.index.query.support.QueryInnerHitBuilder;
 public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
   public static final String SOURCE_TYPE = Constants.SENSOR_TYPE.replace('.', ':');
+  private static final String STATUS_PATH = "/status";
+  private static final String ALERT_PATH = "/alert";
+
   private IndexDao indexDao;
   private ElasticsearchDao elasticsearchDao;
   private String index = METAALERTS_INDEX;
   private String threatTriageField = THREAT_FIELD_DEFAULT;
   private String threatSort = THREAT_SORT_DEFAULT;
+  private int pageSize = 500;
 
   /**
    * Wraps an {@link org.apache.metron.indexing.dao.IndexDao} to handle meta alerts.
@@ -128,20 +137,16 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     if (guid == null || guid.trim().isEmpty()) {
       throw new InvalidSearchException("Guid cannot be empty");
     }
-    org.elasticsearch.action.search.SearchResponse esResponse = getMetaAlertsForAlert(guid.trim());
-    SearchResponse searchResponse = new SearchResponse();
-    searchResponse.setTotal(esResponse.getHits().getTotalHits());
-    searchResponse.setResults(
-        Arrays.stream(esResponse.getHits().getHits()).map(searchHit -> {
-              SearchResult searchResult = new SearchResult();
-              searchResult.setId(searchHit.getId());
-              searchResult.setSource(searchHit.getSource());
-              searchResult.setScore(searchHit.getScore());
-              searchResult.setIndex(searchHit.getIndex());
-              return searchResult;
-            }
-        ).collect(Collectors.toList()));
-    return searchResponse;
+    QueryBuilder qb = boolQuery()
+        .must(
+            nestedQuery(
+                ALERT_FIELD,
+                boolQuery()
+                    .must(termQuery(ALERT_FIELD + "." + GUID, guid))
+            ).innerHit(new QueryInnerHitBuilder())
+        )
+        .must(termQuery(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()));
+    return queryAllResults(qb);
   }
 
   @Override
@@ -367,14 +372,14 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   public void update(Document update, Optional<String> index) throws IOException {
     if (METAALERT_TYPE.equals(update.getSensorType())) {
       // We've been passed an update to the meta alert.
-      throw new UnsupportedOperationException("Meta alerts do not direct update");
+      throw new UnsupportedOperationException("Meta alerts cannot be directly updated");
     } else {
       Map<Document, Optional<String>> updates = new HashMap<>();
       updates.put(update, index);
       // We need to update an alert itself.  Only that portion of the update can be delegated.
       // We still need to get meta alerts potentially associated with it and update.
-      Collection<Document> metaAlerts = Arrays.stream(getMetaAlertsForAlert(update.getGuid()).getHits().getHits())
-          .map(hit -> new Document(hit.getSource(), hit.getId(), METAALERT_TYPE, 0L))
+      Collection<Document> metaAlerts = getMetaAlertsForAlert(update.getGuid()).getResults().stream()
+          .map(searchResult -> new Document(searchResult.getSource(), searchResult.getId(), METAALERT_TYPE, 0L))
           .collect(Collectors.toList());
       // Each metaalert needs to be updated with the new alert
       for (Document metaAlert : metaAlerts) {
@@ -400,12 +405,36 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     throw new UnsupportedOperationException("Meta alerts do not allow for bulk updates");
   }
 
+  @Override
+  public void patch(PatchRequest request, Optional<Long> timestamp)
+      throws OriginalNotFoundException, IOException {
+    if (isPatchAllowed(request)) {
+      Document d = getPatchedDocument(request, timestamp);
+      indexDao.update(d, Optional.ofNullable(request.getIndex()));
+    } else {
+      throw new IllegalArgumentException("Meta alert patches are not allowed for /alert or /status paths.  "
+          + "Please use the add/remove alert or update status functions instead.");
+    }
+  }
+
+  protected boolean isPatchAllowed(PatchRequest request) {
+    Iterator patchIterator = request.getPatch().iterator();
+    while(patchIterator.hasNext()) {
+      JsonNode patch = (JsonNode) patchIterator.next();
+      String path = patch.path("path").asText();
+      if (STATUS_PATH.equals(path) || ALERT_PATH.equals(path)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /**
    * Given an alert GUID, retrieve all associated meta alerts.
    * @param alertGuid The GUID of the child alert
    * @return The Elasticsearch response containing the meta alerts
    */
-  protected org.elasticsearch.action.search.SearchResponse getMetaAlertsForAlert(String alertGuid) {
+  protected SearchResponse getMetaAlertsForAlert(String alertGuid) {
     QueryBuilder qb = boolQuery()
         .must(
             nestedQuery(
@@ -415,18 +444,49 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
             ).innerHit(new QueryInnerHitBuilder())
         )
         .must(termQuery(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()));
-    SearchRequest sr = new SearchRequest();
-    ArrayList<String> indices = new ArrayList<>();
-    indices.add(index);
-    sr.setIndices(indices);
-    return elasticsearchDao
+    return queryAllResults(qb);
+  }
+
+  protected SearchResponse queryAllResults(QueryBuilder qb) {
+    SearchRequestBuilder searchRequestBuilder = elasticsearchDao
         .getClient()
         .prepareSearch(index)
         .addFields("*")
         .setFetchSource(true)
         .setQuery(qb)
+        .setSize(pageSize);
+    org.elasticsearch.action.search.SearchResponse esResponse = searchRequestBuilder
         .execute()
         .actionGet();
+    List<SearchResult> allResults = getSearchResults(esResponse);
+    long total = esResponse.getHits().getTotalHits();
+    if (total > pageSize) {
+      int pages = (int) (total / pageSize) + 1;
+      for (int i = 1; i < pages; i++) {
+        int from = i * pageSize;
+        searchRequestBuilder.setFrom(from);
+        esResponse = searchRequestBuilder
+            .execute()
+            .actionGet();
+        allResults.addAll(getSearchResults(esResponse));
+      }
+    }
+    SearchResponse searchResponse = new SearchResponse();
+    searchResponse.setTotal(total);
+    searchResponse.setResults(allResults);
+    return searchResponse;
+  }
+
+  protected List<SearchResult> getSearchResults(org.elasticsearch.action.search.SearchResponse searchResponse) {
+    return Arrays.stream(searchResponse.getHits().getHits()).map(searchHit -> {
+          SearchResult searchResult = new SearchResult();
+          searchResult.setId(searchHit.getId());
+          searchResult.setSource(searchHit.getSource());
+          searchResult.setScore(searchHit.getScore());
+          searchResult.setIndex(searchHit.getIndex());
+          return searchResult;
+        }
+    ).collect(Collectors.toList());
   }
 
   /**
@@ -521,5 +581,13 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       threat = Double.parseDouble((String) threatRaw);
     }
     return threat;
+  }
+
+  public int getPageSize() {
+    return pageSize;
+  }
+
+  public void setPageSize(int pageSize) {
+    this.pageSize = pageSize;
   }
 }

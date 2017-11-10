@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -106,6 +107,27 @@ public class HBaseDao implements IndexDao {
     Get get = new Get(guid.getBytes());
     get.addFamily(cf);
     Result result = getTableInterface().get(get);
+    return getDocumentFromResult(result);
+  }
+
+  @Override
+  public Iterable<Document> getAllLatest(Collection<String> guids, Collection<String> sensorTypes) throws IOException {
+    Result[] results = getTableInterface().get(guids.stream().map(guid -> {
+      Get get = new Get(guid.getBytes());
+      get.addFamily(cf);
+      return get;
+    }).collect(Collectors.toList()));
+    List<Document> allLatest = new ArrayList<>();
+    for (Result result: results) {
+      Document d = getDocumentFromResult(result);
+      if (d != null) {
+        allLatest.add(d);
+      }
+    }
+    return allLatest;
+  }
+
+  private Document getDocumentFromResult(Result result) throws IOException {
     NavigableMap<byte[], byte[]> columns = result.getFamilyMap( cf);
     if(columns == null || columns.size() == 0) {
       return null;
@@ -114,16 +136,11 @@ public class HBaseDao implements IndexDao {
     Long ts = Bytes.toLong(entry.getKey());
     if(entry.getValue()!= null) {
       String json = new String(entry.getValue());
-      return new Document(json, guid, sensorType, ts);
+      return new Document(json, Bytes.toString(result.getRow()), null, ts);
     }
     else {
       return null;
     }
-  }
-
-  @Override
-  public Iterable<Document> getAllLatest(Collection<String> guids, Collection<String> sensorTypes) throws IOException {
-    return null;
   }
 
   @Override

@@ -304,17 +304,10 @@ public class ElasticsearchDao implements IndexDao {
     SearchRequestBuilder request = client.prepareSearch()
                                          .setQuery(query)
                                          .setSource("message")
+                                         .setSize(guids.size())
                                          ;
     org.elasticsearch.action.search.SearchResponse response = request.get();
     SearchHits hits = response.getHits();
-//    long totalHits = hits.getTotalHits();
-//    if (totalHits > 1) {
-//      LOG.warn("Encountered {} results for guid {} in sensor {}. Returning first hit.",
-//          totalHits,
-//          guid,
-//          sensorType
-//      );
-//    }
     List<T> results = new ArrayList<>();
     for (SearchHit hit : hits) {
       Optional<T> result = callback.apply(hit);
@@ -403,9 +396,6 @@ public class ElasticsearchDao implements IndexDao {
       indexRequest = indexRequest.timestamp(ts.toString());
     }
 
-//    return new UpdateRequest(existingIndex, type, update.getGuid())
-//        .doc(update.getDocument())
-//        .upsert(indexRequest);
     return indexRequest;
   }
 
