@@ -175,13 +175,15 @@ class IndexingCommands:
         Logger.info('Done creating HDFS indexing directory')
 
     def check_elasticsearch_templates(self):
-        commands = IndexingCommands(self.__params)
-        for template_name in commands.get_templates():
+        for template_name in self.get_templates():
 
             # check for the index template
-            cmd = "curl -s -XGET \"http://{0}/_template/{1}\" | grep -o {1}".format(self.__params.es_http_url, template_name)
-            err_msg="Missing Elasticsearch index template: name={0}".format(template_name)
-            metron_service.execute(cmd, user=self.__params.metron_user, err_msg=err_msg)
+            cmd = "curl -s -XGET \"http://{0}/_template/{1}\" | grep -o {1}"
+            err_msg="Missing Elasticsearch index template: name={0}"
+            metron_service.execute(
+              cmd=cmd.format(self.__params.es_http_url, template_name),
+              user=self.__params.metron_user,
+              err_msg=err_msg.format(template_name))
 
     def start_indexing_topology(self, env):
         Logger.info('Starting ' + self.__indexing_topology)

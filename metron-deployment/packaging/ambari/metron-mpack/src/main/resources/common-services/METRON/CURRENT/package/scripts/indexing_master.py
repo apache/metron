@@ -125,11 +125,10 @@ class Indexing(Script):
 
             # install the index template
             File(template_path, mode=0755, content=StaticFile("{0}.template".format(template_name)))
-            cmd = "curl -s -XPOST http://{0}/_template/{1} -d @{2}".format(params.es_http_url, template_name, template_path)
-            Execute(cmd, logoutput=True)
-
-        meta_cmd = ambari_format('curl -s -XPOST http://{es_http_url}/_template/metaalert_index -d @{meta_index_path}')
-        Execute(meta_cmd, logoutput=True)
+            cmd = "curl -s -XPOST http://{0}/_template/{1} -d @{2}"
+            Execute(
+              cmd=cmd.format(params.es_http_url, template_name, template_path),
+              logoutput=True)
 
     def elasticsearch_template_delete(self, env):
         from params import params
@@ -140,11 +139,10 @@ class Indexing(Script):
         for template_name in commands.get_templates():
 
             # delete the index template
-            cmd = "curl -s -XDELETE \"http://{0}/_template/{1}\"".format(params.es_http_url, template_name)
-            Execute(cmd, logoutput=True)
-
-        meta_cmd = ambari_format('curl -s -XDELETE "http://{es_http_url}/_template/metaalert_index"')
-        Execute(meta_cmd, logoutput=True)
+            cmd = "curl -s -XDELETE \"http://{0}/_template/{1}\""
+            Execute(
+              cmd=cmd.format(params.es_http_url, template_name),
+              logoutput=True)
 
     def zeppelin_notebook_import(self, env):
         from params import params
