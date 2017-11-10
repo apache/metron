@@ -31,7 +31,7 @@ config = Script.get_config()
 kibana_home = '/usr/share/kibana/'
 kibana_bin = '/usr/share/kibana/bin/'
 
-conf_dir = "/opt/kibana/config/"
+conf_dir = "/etc/kibana"
 kibana_user = config['configurations']['kibana-env']['kibana_user']
 kibana_group = config['configurations']['kibana-env']['kibana_group']
 log_dir = config['configurations']['kibana-env']['kibana_log_dir']

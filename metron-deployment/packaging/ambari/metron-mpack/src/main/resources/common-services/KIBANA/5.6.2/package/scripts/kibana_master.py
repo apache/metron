@@ -24,6 +24,7 @@ import os
 
 from ambari_commons.os_check import OSCheck
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ansible.modules.extras.packaging import kibana_plugin
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import Execute
@@ -98,8 +99,6 @@ class Kibana(Script):
 
     @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
     def load_template(self, env):
-        from dashboard.dashboardindex import DashboardIndex
-
         import params
         env.set_params(params)
 
@@ -107,21 +106,17 @@ class Kibana(Script):
         port = int(ambari_format("{es_port}"))
 
         Logger.info("Connecting to Elasticsearch on host: %s, port: %s" % (hostname, port))
-        di = DashboardIndex(host=hostname, port=port)
 
-        # Loads Kibana Dashboard definition from disk and replaces .kibana on index
-        templateFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dashboard', 'dashboard.p')
-        if not os.path.isfile(templateFile):
-            raise IOError(
-                errno.ENOENT, os.strerror(errno.ENOENT), templateFile)
+        kibanaDashboardLoad = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dashboard', 'dashboard-bulkload.json')
+        if not os.path.isfile(kibanaDashboardLoad):
+          raise IOError(
+              errno.ENOENT, os.strerror(errno.ENOENT), kibanaDashboardLoad)
 
-        Logger.info("Deleting .kibana index from Elasticsearch")
+        Logger.info("Loading .kibana dashboard from %s" % kibanaDashboardLoad)
 
-        di.es.indices.delete(index='.kibana', ignore=[400, 404])
-
-        Logger.info("Loading .kibana index from %s" % templateFile)
-
-        di.put(data=di.load(filespec=templateFile))
+        kibana_cmd = ambari_format(
+            'curl -s -H "Content-Type: application/x-ndjson" -XPOST http://{es_host}:{es_port}/.kibana/_bulk --data-binary @%s' % kibanaDashboardLoad)
+        Execute(kibana_cmd, logoutput=True)
 
 
 if __name__ == "__main__":

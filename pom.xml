@@ -327,8 +327,6 @@
                         <exclude>**/dependency-reduced-pom.xml</exclude>
                         <exclude>**/target/**</exclude>
                         <exclude>**/bro-plugin-kafka/build/**</exclude>
-                        <!-- pickle file - binary format -->
-                        <exclude>**/src/main/resources/common-services/KIBANA/**/package/scripts/dashboard/dashboard.p</exclude>
                         <!-- Files from Chef/bento -->
                         <exclude>**/packer-build/scripts/**</exclude>
                         <exclude>**/packer-build/bin/**</exclude>

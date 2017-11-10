@@ -40,6 +40,11 @@
     </value-attributes>
   </property>
   <property require-input="true">
+    <name>kibana_server_host</name>
+    <value>0.0.0.0</value>
+    <description>Host name or IP address that Kibana should bind to.</description>
+  </property>
+  <property require-input="true">
     <name>kibana_log_dir</name>
     <value>/var/log/kibana</value>
     <description>Log directory for Kibana</description>

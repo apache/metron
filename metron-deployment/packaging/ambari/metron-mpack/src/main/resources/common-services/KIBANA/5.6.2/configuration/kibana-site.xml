@@ -29,7 +29,8 @@
 server.port: {{ kibana_port }}
 
 # The host to bind the server to.
-# server.host: "0.0.0.0"
+# Kibana (like Elasticsearch) now binds to localhost for security purposes instead of 0.0.0.0 (all addresses). Previous binding to 0.0.0.0 also caused issues for Windows users.
+server.host: {{ kibana_server_host }}
 
 # If you are running kibana behind a proxy, and want to mount it at a path,
 # specify that path here. The basePath can't end in a slash.
