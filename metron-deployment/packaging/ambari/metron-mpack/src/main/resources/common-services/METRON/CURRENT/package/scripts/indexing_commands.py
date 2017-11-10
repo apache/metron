@@ -59,6 +59,11 @@ class IndexingCommands:
         return [self.__indexing_topic]
 
     def get_templates(self):
+        """
+        Defines the Elasticsearch index templates.
+        :return: Dict where key is the name of an index template and the
+          value is a path to file containing the index template definition.
+        """
         from params import params
         return {
             "bro_index": params.bro_index_path,
