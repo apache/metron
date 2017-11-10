@@ -127,7 +127,7 @@ class Indexing(Script):
             File(template_path, mode=0755, content=StaticFile("{0}.template".format(template_name)))
             cmd = "curl -s -XPOST http://{0}/_template/{1} -d @{2}"
             Execute(
-              cmd=cmd.format(params.es_http_url, template_name, template_path),
+              cmd.format(params.es_http_url, template_name, template_path),
               logoutput=True)
 
     def elasticsearch_template_delete(self, env):
@@ -141,7 +141,7 @@ class Indexing(Script):
             # delete the index template
             cmd = "curl -s -XDELETE \"http://{0}/_template/{1}\""
             Execute(
-              cmd=cmd.format(params.es_http_url, template_name),
+              cmd.format(params.es_http_url, template_name),
               logoutput=True)
 
     def zeppelin_notebook_import(self, env):
