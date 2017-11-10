@@ -20,16 +20,10 @@ package org.apache.metron.elasticsearch.dao;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,10 +34,8 @@ import org.apache.metron.common.Constants.Fields;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MetaAlertDao;
-import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
-import org.apache.metron.indexing.dao.metaalert.MetaScores;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
@@ -52,416 +44,189 @@ import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.Document;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.search.SearchHit;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.junit.Test;
 
 public class ElasticsearchMetaAlertDaoTest {
 
-//  @Test
-//  @SuppressWarnings("unchecked")
-//  public void testBuildUpdatedMetaAlertSingleAlert() throws IOException, ParseException {
-//    // Construct the expected result
-//    JSONObject expected = new JSONObject();
-//    expected.put("average", 5.0);
-//    expected.put("min", 5.0);
-//    expected.put("median", 5.0);
-//    expected.put("max", 5.0);
-//    expected.put("count", 1L);
-//    expected.put(Constants.GUID, "m1");
-//    expected.put("sum", 5.0);
-//    expected.put(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
-//    JSONArray expectedAlerts = new JSONArray();
-//    JSONObject expectedAlert = new JSONObject();
-//    expectedAlert.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 5L);
-//    expectedAlert.put("fakekey", "fakevalue");
-//    expectedAlerts.add(expectedAlert);
-//    expected.put(MetaAlertDao.ALERT_FIELD, expectedAlerts);
-//
-//    // Construct the meta alert object
-//    Map<String, Object> metaSource = new HashMap<>();
-//    metaSource.put(Constants.GUID, "m1");
-//    metaSource.put(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
-//    List<Double> alertScores = new ArrayList<>();
-//    alertScores.add(10d);
-//    metaSource.putAll(new MetaScores(alertScores).getMetaScores());
-//    SearchHit metaHit = mock(SearchHit.class);
-//    when(metaHit.getSource()).thenReturn(metaSource);
-//
-//    // Construct the inner alert
-//    HashMap<String, Object> innerAlertSource = new HashMap<>();
-//    innerAlertSource.put(Constants.GUID, "a1");
-//    innerAlertSource.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10d);
-//
-//    Map<String, Object> innerHits = new HashMap<>();
-//    innerHits.put(MetaAlertDao.ALERT_FIELD, Collections.singletonList(innerAlertSource));
-//    when(metaHit.sourceAsMap()).thenReturn(innerHits);
-//
-//    // Construct  the updated Document
-//    Map<String, Object> updateMap = new HashMap<>();
-//    updateMap.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 5);
-//    updateMap.put("fakekey", "fakevalue");
-//    Document update = new Document(updateMap, "a1", "bro_doc", 0L);
-//
-//    ElasticsearchDao esDao = new ElasticsearchDao();
-//    ElasticsearchMetaAlertDao emaDao = new ElasticsearchMetaAlertDao();
-//    emaDao.init(esDao);
-////    XContentBuilder builder = emaDao.buildUpdatedMetaAlert(update, metaHit);
-////    JSONParser parser = new JSONParser();
-////    Object obj = parser.parse(builder.string());
-////    JSONObject actual = (JSONObject) obj;
-////
-////    assertEquals(expected, actual);
-//  }
-//
-//  @Test
-//  @SuppressWarnings("unchecked")
-//  public void testBuildUpdatedMetaAlertMultipleAlerts() throws IOException, ParseException {
-//    // Construct the expected result
-//    JSONObject expected = new JSONObject();
-//    expected.put("average", 7.5);
-//    expected.put("min", 5.0);
-//    expected.put("median", 7.5);
-//    expected.put("max", 10.0);
-//    expected.put("count", 2L);
-//    expected.put(Constants.GUID, "m1");
-//    expected.put("sum", 15.0);
-//    expected.put(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
-//    JSONArray expectedAlerts = new JSONArray();
-//    JSONObject expectedAlertOne = new JSONObject();
-//    expectedAlertOne.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 5d);
-//    expectedAlertOne.put("fakekey", "fakevalue");
-//    expectedAlerts.add(expectedAlertOne);
-//    JSONObject expectedAlertTwo = new JSONObject();
-//    expectedAlertTwo.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10d);
-//    String guidTwo = "a2";
-//    expectedAlertTwo.put(Constants.GUID, guidTwo);
-//    expectedAlerts.add(expectedAlertTwo);
-//    expected.put(MetaAlertDao.ALERT_FIELD, expectedAlerts);
-//
-//    // Construct the meta alert object
-//    Map<String, Object> metaSource = new HashMap<>();
-//    metaSource.put(Constants.GUID, "m1");
-//    metaSource.put(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString());
-//    double threatValueOne = 5d;
-//    double threatValueTwo = 10d;
-//    List<Double> alertScores = new ArrayList<>();
-//    alertScores.add(threatValueOne);
-//    alertScores.add(threatValueTwo);
-//    metaSource.putAll(new MetaScores(alertScores).getMetaScores());
-//    SearchHit metaHit = mock(SearchHit.class);
-//    when(metaHit.getSource()).thenReturn(metaSource);
-//
-//    // Construct the inner alerts
-//    HashMap<String, Object> innerAlertSourceOne = new HashMap<>();
-//    String guidOne = "a1";
-//    innerAlertSourceOne.put(Constants.GUID, guidOne);
-//    innerAlertSourceOne.put(MetaAlertDao.THREAT_FIELD_DEFAULT, threatValueTwo);
-//
-//    HashMap<String, Object> innerAlertSourceTwo = new HashMap<>();
-//    innerAlertSourceTwo.put(Constants.GUID, guidTwo);
-//    innerAlertSourceTwo.put(MetaAlertDao.THREAT_FIELD_DEFAULT, threatValueTwo);
-//
-//    Map<String, Object> innerHits = new HashMap<>();
-//    innerHits
-//        .put(MetaAlertDao.ALERT_FIELD, Arrays.asList(innerAlertSourceOne, innerAlertSourceTwo));
-//    when(metaHit.sourceAsMap()).thenReturn(innerHits);
-//
-//    // Construct  the updated Document
-//    Map<String, Object> updateMap = new HashMap<>();
-//    updateMap.put(MetaAlertDao.THREAT_FIELD_DEFAULT, threatValueOne);
-//    updateMap.put("fakekey", "fakevalue");
-//    Document update = new Document(updateMap, guidOne, "bro_doc", 0L);
-//
-//    ElasticsearchDao esDao = new ElasticsearchDao();
-//    ElasticsearchMetaAlertDao emaDao = new ElasticsearchMetaAlertDao();
-//    MultiIndexDao multiIndexDao = new MultiIndexDao(esDao);
-//    emaDao.init(multiIndexDao);
-////    XContentBuilder builder = emaDao.buildUpdatedMetaAlert(update, metaHit);
-////
-////    JSONParser parser = new JSONParser();
-////    Object obj = parser.parse(builder.string());
-////    JSONObject actual = (JSONObject) obj;
-////
-////    assertEquals(expected, actual);
-//  }
-//
-//  @Test(expected = IllegalArgumentException.class)
-//  public void testInvalidInit() {
-//    IndexDao dao = new IndexDao() {
-//      @Override
-//      public SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
-//        return null;
-//      }
-//
-//      @Override
-//      public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
-//        return null;
-//      }
-//
-//      @Override
-//      public void init(AccessConfig config) {
-//      }
-//
-//      @Override
-//      public Document getLatest(String guid, String sensorType) throws IOException {
-//        return null;
-//      }
-//
-//      @Override
-//      public Iterable<Document> getAllLatest(Collection<String> guids, Collection<String> sensorTypes) throws IOException {
-//        return null;
-//      }
-//
-//      @Override
-//      public void update(Document update, Optional<String> index) throws IOException {
-//      }
-//
-//      @Override
-//      public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
-//      }
-//
-//      @Override
-//      public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices)
-//          throws IOException {
-//        return null;
-//      }
-//
-//      @Override
-//      public Map<String, FieldType> getCommonColumnMetadata(List<String> indices)
-//          throws IOException {
-//        return null;
-//      }
-//    };
-//    ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();
-//    metaAlertDao.init(dao);
-//  }
-//
-//  @Test
-//  public void testBuildCreateDocumentSingleAlert() throws InvalidCreateException, IOException {
-//    ElasticsearchDao esDao = new ElasticsearchDao();
-//    ElasticsearchMetaAlertDao emaDao = new ElasticsearchMetaAlertDao();
-//    emaDao.init(esDao);
-//
-//    List<String> groups = new ArrayList<>();
-//    groups.add("group_one");
-//    groups.add("group_two");
-//
-//    // Build the first response from the multiget
-//    Map<String, Object> alertOne = new HashMap<>();
-//    alertOne.put(Constants.GUID, "alert_one");
-//    alertOne.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
-//    List<Document> alerts = new ArrayList<Document>() {{
-//      add(new Document(alertOne, "", "", 0L));
-//    }};
-//
-//    // Actually build the doc
-//    Document actual = emaDao.buildCreateDocument(alerts, groups);
-//
-//    ArrayList<Map<String, Object>> alertList = new ArrayList<>();
-//    alertList.add(alertOne);
-//
-//    Map<String, Object> actualDocument = actual.getDocument();
-//    assertEquals(
-//        MetaAlertStatus.ACTIVE.getStatusString(),
-//        actualDocument.get(MetaAlertDao.STATUS_FIELD)
-//    );
-//    assertEquals(
-//        alertList,
-//        actualDocument.get(MetaAlertDao.ALERT_FIELD)
-//    );
-//    assertEquals(
-//        groups,
-//        actualDocument.get(MetaAlertDao.GROUPS_FIELD)
-//    );
-//
-//    // Don't care about the result, just that it's a UUID. Exception will be thrown if not.
-//    UUID.fromString((String) actualDocument.get(Constants.GUID));
-//  }
-//
-//  @Test
-//  public void testBuildCreateDocumentMultipleAlerts() throws InvalidCreateException, IOException {
-//    ElasticsearchDao esDao = new ElasticsearchDao();
-//    ElasticsearchMetaAlertDao emaDao = new ElasticsearchMetaAlertDao();
-//    emaDao.init(esDao);
-//
-//    List<String> groups = new ArrayList<>();
-//    groups.add("group_one");
-//    groups.add("group_two");
-//
-//    // Build the first response from the multiget
-//    Map<String, Object> alertOne = new HashMap<>();
-//    alertOne.put(Constants.GUID, "alert_one");
-//    alertOne.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
-//
-//    // Build the second response from the multiget
-//    Map<String, Object> alertTwo = new HashMap<>();
-//    alertTwo.put(Constants.GUID, "alert_one");
-//    alertTwo.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 5.0d);
-//    List<Document> alerts = new ArrayList<Document>() {{
-//      add(new Document(alertOne, "", "", 0L));
-//      add(new Document(alertTwo, "", "", 0L));
-//    }};
-//
-//    // Actually build the doc
-//    Document actual = emaDao.buildCreateDocument(alerts, groups);
-//
-//    ArrayList<Map<String, Object>> alertList = new ArrayList<>();
-//    alertList.add(alertOne);
-//    alertList.add(alertTwo);
-//
-//    Map<String, Object> actualDocument = actual.getDocument();
-//    assertNotNull(actualDocument.get(Fields.TIMESTAMP.getName()));
-//    assertEquals(
-//        alertList,
-//        actualDocument.get(MetaAlertDao.ALERT_FIELD)
-//    );
-//    assertEquals(
-//        groups,
-//        actualDocument.get(MetaAlertDao.GROUPS_FIELD)
-//    );
-//
-//    // Don't care about the result, just that it's a UUID. Exception will be thrown if not.
-//    UUID.fromString((String) actualDocument.get(Constants.GUID));
-//  }
-//
-//  @Test(expected = InvalidCreateException.class)
-//  public void testCreateMetaAlertEmptyGuids() throws InvalidCreateException, IOException {
-//    ElasticsearchDao esDao = new ElasticsearchDao();
-//    ElasticsearchMetaAlertDao emaDao = new ElasticsearchMetaAlertDao();
-//    emaDao.init(esDao);
-//
-//    MetaAlertCreateRequest createRequest = new MetaAlertCreateRequest();
-//    emaDao.createMetaAlert(createRequest);
-//  }
-//
-//  @Test(expected = InvalidCreateException.class)
-//  public void testCreateMetaAlertEmptyGroups() throws InvalidCreateException, IOException {
-//    ElasticsearchDao esDao = new ElasticsearchDao();
-//    ElasticsearchMetaAlertDao emaDao = new ElasticsearchMetaAlertDao();
-//    emaDao.init(esDao);
-//
-//    MetaAlertCreateRequest createRequest = new MetaAlertCreateRequest();
-//    HashMap<String, String> guidsToGroups = new HashMap<>();
-//    guidsToGroups.put("don't", "care");
-//    createRequest.setGuidToIndices(guidsToGroups);
-//    emaDao.createMetaAlert(createRequest);
-//  }
-//
-//  @Test
-//  public void testCalculateMetaScoresList() {
-//    List<Map<String, Object>> alertList = new ArrayList<>();
-//    Map<String, Object> alertMap = new HashMap<>();
-//    alertMap.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
-//    alertList.add(alertMap);
-//    Map<String, Object> docMap = new HashMap<>();
-//    docMap.put(MetaAlertDao.ALERT_FIELD, alertList);
-//
-//    Document doc = new Document(docMap, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
-//
-//    List<Double> scores = new ArrayList<>();
-//    scores.add(10.0d);
-//    MetaScores expected = new MetaScores(scores);
-//
-//    ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();
-//    MetaScores actual = metaAlertDao.calculateMetaScores(doc);
-//    assertEquals(expected.getMetaScores(), actual.getMetaScores());
-//  }
+  @Test(expected = IllegalArgumentException.class)
+  public void testInvalidInit() {
+    IndexDao dao = new IndexDao() {
+      @Override
+      public SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
+        return null;
+      }
 
-//  @Test
-//  public void testHandleMetaUpdateNonAlertNonStatus() throws IOException {
-//    ElasticsearchDao mockEsDao = mock(ElasticsearchDao.class);
-//
-//    Map<String, Object> docMap = new HashMap<>();
-//    docMap.put("test", "value");
-//    Document update = new Document(docMap, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
-//
-//    ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao(mockEsDao);
-//    metaAlertDao.handleMetaUpdate(update);
-//    verify(mockEsDao, times(1))
-//        .update(update, Optional.of(MetaAlertDao.METAALERTS_INDEX));
-//  }
+      @Override
+      public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
+        return null;
+      }
 
-//  @Test
-//  public void testHandleMetaUpdateAlert() throws IOException {
-//    // The child alert of the meta alert
-//    Map<String, Object> alertMapBefore = new HashMap<>();
-//    alertMapBefore.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
-//    String guidAlert = "guid_alert";
-//    alertMapBefore.put(Constants.GUID, guidAlert);
-//    List<Map<String, Object>> alertList = new ArrayList<>();
-//    alertList.add(alertMapBefore);
-//    String alertSensorType = "alert_sensor";
-//    Document alertBefore = new Document(
-//        alertMapBefore,
-//        guidAlert,
-//        alertSensorType,
-//        0L
-//    );
-//
-//    // The original meta alert. It contains the alert we previously constructed.
-//    Map<String, Object> metaMapBefore = new HashMap<>();
-//    String metaGuid = "guid_meta";
-//    metaMapBefore.putAll(alertBefore.getDocument());
-//    metaMapBefore.put(MetaAlertDao.ALERT_FIELD, alertList);
-//    metaMapBefore.put(Constants.GUID, metaGuid);
-//    Document metaBefore = new Document(
-//        metaMapBefore,
-//        metaGuid,
-//        MetaAlertDao.METAALERT_TYPE,
-//        0L
-//    );
-//
-//    // Build the Documents we expect to see from updates
-//    // Build the after alert.  Don't add the original fields: This is only an update.
-//    // The new field is the link to the meta alert.
-//    Map<String, Object> alertMapAfter = new HashMap<>();
-//    List<String> metaAlertField = new ArrayList<>();
-//    metaAlertField.add(metaGuid);
-//    alertMapAfter.put(MetaAlertDao.METAALERT_FIELD, metaAlertField);
-//    Document alertAfter = new Document(
-//        alertMapAfter,
-//        guidAlert,
-//        alertSensorType,
-//        0L
-//    );
-//
-//    // Build the meta alert after. This'll be a replace, so add the original fields plus the
-//    // threat fields
-//    Map<String, Object> metaMapAfter = new HashMap<>();
-//    metaMapAfter.putAll(metaMapBefore);
-//    metaMapAfter.put("average", 10.0d);
-//    metaMapAfter.put("min", 10.0d);
-//    metaMapAfter.put("median", 10.0d);
-//    metaMapAfter.put("max", 10.0d);
-//    metaMapAfter.put("count", 1L);
-//    metaMapAfter.put("sum", 10.0d);
-//    metaMapAfter.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
-//
-//    Document metaAfter = new Document(
-//        metaMapAfter,
-//        metaGuid,
-//        MetaAlertDao.METAALERT_TYPE,
-//        0L
-//    );
-//
-//    // Build the method calls we'd expect to see.
-//    Map<Document, Optional<String>> updates = new HashMap<>();
-//    updates.put(metaAfter, Optional.of(MetaAlertDao.METAALERTS_INDEX));
-//    updates.put(alertAfter, Optional.empty());
-//
-//    // Build a mock ElasticsearchDao to track interactions.  Actual runs are in integration tests
-//    ElasticsearchDao mockEsDao = mock(ElasticsearchDao.class);
-//    ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao(mockEsDao);
-//    when(mockEsDao.getLatest(guidAlert, null)).thenReturn(alertBefore);
-//    //metaAlertDao.handleMetaUpdate(metaBefore);
-//
-//    // Validate we're calling what we need to with what we expect.
-//    verify(mockEsDao, times(1)).getLatest(guidAlert, null);
-//    verify(mockEsDao, times(1)).batchUpdate(updates);
-//  }
+      @Override
+      public void init(AccessConfig config) {
+      }
+
+      @Override
+      public Document getLatest(String guid, String sensorType) throws IOException {
+        return null;
+      }
+
+      @Override
+      public Iterable<Document> getAllLatest(Collection<String> guids,
+          Collection<String> sensorTypes) throws IOException {
+        return null;
+      }
+
+      @Override
+      public void update(Document update, Optional<String> index) throws IOException {
+      }
+
+      @Override
+      public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+      }
+
+      @Override
+      public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices)
+          throws IOException {
+        return null;
+      }
+
+      @Override
+      public Map<String, FieldType> getCommonColumnMetadata(List<String> indices)
+          throws IOException {
+        return null;
+      }
+    };
+    ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();
+    metaAlertDao.init(dao);
+  }
+
+  @Test
+  public void testBuildCreateDocumentSingleAlert() throws InvalidCreateException, IOException {
+    ElasticsearchDao esDao = new ElasticsearchDao();
+    ElasticsearchMetaAlertDao emaDao = new ElasticsearchMetaAlertDao();
+    emaDao.init(esDao);
+
+    List<String> groups = new ArrayList<>();
+    groups.add("group_one");
+    groups.add("group_two");
+
+    // Build the first response from the multiget
+    Map<String, Object> alertOne = new HashMap<>();
+    alertOne.put(Constants.GUID, "alert_one");
+    alertOne.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
+    List<Document> alerts = new ArrayList<Document>() {{
+      add(new Document(alertOne, "", "", 0L));
+    }};
+
+    // Actually build the doc
+    Document actual = emaDao.buildCreateDocument(alerts, groups);
+
+    ArrayList<Map<String, Object>> alertList = new ArrayList<>();
+    alertList.add(alertOne);
+
+    Map<String, Object> actualDocument = actual.getDocument();
+    assertEquals(
+        MetaAlertStatus.ACTIVE.getStatusString(),
+        actualDocument.get(MetaAlertDao.STATUS_FIELD)
+    );
+    assertEquals(
+        alertList,
+        actualDocument.get(MetaAlertDao.ALERT_FIELD)
+    );
+    assertEquals(
+        groups,
+        actualDocument.get(MetaAlertDao.GROUPS_FIELD)
+    );
+
+    // Don't care about the result, just that it's a UUID. Exception will be thrown if not.
+    UUID.fromString((String) actualDocument.get(Constants.GUID));
+  }
+
+  @Test
+  public void testBuildCreateDocumentMultipleAlerts() throws InvalidCreateException, IOException {
+    ElasticsearchDao esDao = new ElasticsearchDao();
+    ElasticsearchMetaAlertDao emaDao = new ElasticsearchMetaAlertDao();
+    emaDao.init(esDao);
+
+    List<String> groups = new ArrayList<>();
+    groups.add("group_one");
+    groups.add("group_two");
+
+    // Build the first response from the multiget
+    Map<String, Object> alertOne = new HashMap<>();
+    alertOne.put(Constants.GUID, "alert_one");
+    alertOne.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
+
+    // Build the second response from the multiget
+    Map<String, Object> alertTwo = new HashMap<>();
+    alertTwo.put(Constants.GUID, "alert_one");
+    alertTwo.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 5.0d);
+    List<Document> alerts = new ArrayList<Document>() {{
+      add(new Document(alertOne, "", "", 0L));
+      add(new Document(alertTwo, "", "", 0L));
+    }};
+
+    // Actually build the doc
+    Document actual = emaDao.buildCreateDocument(alerts, groups);
+
+    ArrayList<Map<String, Object>> alertList = new ArrayList<>();
+    alertList.add(alertOne);
+    alertList.add(alertTwo);
+
+    Map<String, Object> actualDocument = actual.getDocument();
+    assertNotNull(actualDocument.get(Fields.TIMESTAMP.getName()));
+    assertEquals(
+        alertList,
+        actualDocument.get(MetaAlertDao.ALERT_FIELD)
+    );
+    assertEquals(
+        groups,
+        actualDocument.get(MetaAlertDao.GROUPS_FIELD)
+    );
+
+    // Don't care about the result, just that it's a UUID. Exception will be thrown if not.
+    UUID.fromString((String) actualDocument.get(Constants.GUID));
+  }
+
+  @Test(expected = InvalidCreateException.class)
+  public void testCreateMetaAlertEmptyGuids() throws InvalidCreateException, IOException {
+    ElasticsearchDao esDao = new ElasticsearchDao();
+    ElasticsearchMetaAlertDao emaDao = new ElasticsearchMetaAlertDao();
+    emaDao.init(esDao);
+
+    MetaAlertCreateRequest createRequest = new MetaAlertCreateRequest();
+    emaDao.createMetaAlert(createRequest);
+  }
+
+  @Test(expected = InvalidCreateException.class)
+  public void testCreateMetaAlertEmptyGroups() throws InvalidCreateException, IOException {
+    ElasticsearchDao esDao = new ElasticsearchDao();
+    ElasticsearchMetaAlertDao emaDao = new ElasticsearchMetaAlertDao();
+    emaDao.init(esDao);
+
+    MetaAlertCreateRequest createRequest = new MetaAlertCreateRequest();
+    HashMap<String, String> guidsToGroups = new HashMap<>();
+    guidsToGroups.put("don't", "care");
+    createRequest.setGuidToIndices(guidsToGroups);
+    emaDao.createMetaAlert(createRequest);
+  }
+
+  @Test
+  public void testCalculateMetaScoresList() {
+    List<Map<String, Object>> alertList = new ArrayList<>();
+    Map<String, Object> alertMap = new HashMap<>();
+    alertMap.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
+    alertList.add(alertMap);
+    Map<String, Object> docMap = new HashMap<>();
+    docMap.put(MetaAlertDao.ALERT_FIELD, alertList);
+
+    Document doc = new Document(docMap, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
+
+    ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();
+    metaAlertDao.calculateMetaScores(doc);
+    assertEquals(1L, doc.getDocument().get("count"));
+    assertEquals(10.0d,
+        doc.getDocument().get(ElasticsearchMetaAlertDao.THREAT_FIELD_DEFAULT)
+    );
+  }
 }
