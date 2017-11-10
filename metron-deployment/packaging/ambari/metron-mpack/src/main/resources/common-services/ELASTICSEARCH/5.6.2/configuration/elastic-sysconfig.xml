@@ -41,7 +41,7 @@
     </property>
     <property>
         <name>heap_size</name>
-        <value>128m</value>
+        <value>512m</value>
         <description>Heap size</description>
     </property>
     <property>

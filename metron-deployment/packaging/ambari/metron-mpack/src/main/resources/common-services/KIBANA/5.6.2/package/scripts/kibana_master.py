@@ -105,6 +105,16 @@ class Kibana(Script):
 
         Logger.info("Connecting to Elasticsearch on host: %s, port: %s" % (hostname, port))
 
+        kibanaTemplate = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dashboard', 'kibana.template')
+        if not os.path.isfile(kibanaTemplate):
+          raise IOError(
+              errno.ENOENT, os.strerror(errno.ENOENT), kibanaTemplate)
+
+        Logger.info("Loading .kibana index template from %s" % kibanaTemplate)
+        template_cmd = ambari_format(
+            'curl -s -XPOST http://{es_host}:{es_port}/_template/.kibana -d @%s' % kibanaTemplate)
+        Execute(template_cmd, logoutput=True)
+
         kibanaDashboardLoad = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dashboard', 'dashboard-bulkload.json')
         if not os.path.isfile(kibanaDashboardLoad):
           raise IOError(
