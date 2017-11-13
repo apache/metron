@@ -20,10 +20,14 @@ package org.apache.metron.elasticsearch.dao;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,14 +58,26 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.get.MultiGetItemResponse;
 import org.elasticsearch.action.get.MultiGetResponse;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.index.query.IdsQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(QueryBuilders.class)
 public class ElasticsearchMetaAlertDaoTest {
 
   @Test
@@ -488,5 +504,55 @@ public class ElasticsearchMetaAlertDaoTest {
     // Validate we're calling what we need to with what we expect.
     verify(mockEsDao, times(1)).getLatest(guidAlert, null);
     verify(mockEsDao, times(1)).batchUpdate(updates);
+  }
+
+  @Test
+  public void getAllAlertsForMetaAlertShouldReturnAllAlerts() throws Exception {
+    Map<String, Object> alert1 = new HashMap<String, Object>() {{
+      put("guid", "alert1");
+    }};
+    Map<String, Object> alert2 = new HashMap<String, Object>() {{
+      put("guid", "alert2");
+    }};
+    Document document = new Document(new HashMap<String, Object>() {{
+      put(MetaAlertDao.ALERT_FIELD, Arrays.asList(alert1, alert2));
+    }}, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
+
+    ElasticsearchMetaAlertDao elasticsearchMetaAlertDao = new ElasticsearchMetaAlertDao();
+    ElasticsearchDao elasticsearchDao = mock(ElasticsearchDao.class);
+    TransportClient transportClient = mock(TransportClient.class);
+    SearchRequestBuilder searchRequestBuilder = mock(SearchRequestBuilder.class);
+    org.elasticsearch.action.search.SearchResponse response = mock(org.elasticsearch.action.search.SearchResponse.class);
+    SearchHits searchHits = mock(SearchHits.class);
+    SearchHit searchHit1 = mock(SearchHit.class);
+    SearchHit searchHit2 = mock(SearchHit.class);
+
+    when(elasticsearchDao.getLatest("guid", MetaAlertDao.METAALERT_TYPE)).thenReturn(document);
+    when(elasticsearchDao.getClient()).thenReturn(transportClient);
+    when(transportClient.prepareSearch()).thenReturn(searchRequestBuilder);
+    when(searchRequestBuilder.setQuery(any(QueryBuilder.class))).thenReturn(searchRequestBuilder);
+    when(searchRequestBuilder.setSize(anyInt())).thenReturn(searchRequestBuilder);
+    when(searchRequestBuilder.get()).thenReturn(response);
+    when(response.getHits()).thenReturn(searchHits);
+    when(searchHits.getHits()).thenReturn(new SearchHit[]{searchHit1, searchHit2});
+    when(searchHit1.sourceAsMap()).thenReturn(new HashMap<String, Object>() {{
+      put("guid", "alert1");
+    }});
+    when(searchHit2.sourceAsMap()).thenReturn(new HashMap<String, Object>() {{
+      put("guid", "alert2");
+    }});
+
+    IdsQueryBuilder idsQueryBuilder = mock(IdsQueryBuilder.class);
+    mockStatic(QueryBuilders.class);
+    PowerMockito.when(QueryBuilders.idsQuery()).thenReturn(idsQueryBuilder);
+
+    elasticsearchMetaAlertDao.init(elasticsearchDao);
+    elasticsearchMetaAlertDao.getAllAlertsForMetaAlert(document);
+
+    verify(idsQueryBuilder, times(1)).ids(Arrays.asList("alert1", "alert2"));
+    verify(searchRequestBuilder, times(1)).setQuery(any(QueryBuilder.class));
+    verify(searchRequestBuilder, times(1)).setSize(2);
+    verify(searchRequestBuilder, times(1)).get();
+    verifyNoMoreInteractions(searchRequestBuilder);
   }
 }

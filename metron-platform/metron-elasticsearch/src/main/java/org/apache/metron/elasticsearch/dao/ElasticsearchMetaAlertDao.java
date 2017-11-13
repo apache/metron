@@ -507,7 +507,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     List<Map<String, Object>> alerts = new ArrayList<>();
     QueryBuilder query = QueryBuilders.idsQuery().ids(guids);
     SearchRequestBuilder request = elasticsearchDao.getClient().prepareSearch()
-        .setQuery(query);
+        .setQuery(query).setSize(guids.size());
     org.elasticsearch.action.search.SearchResponse response = request.get();
     for (SearchHit hit : response.getHits().getHits()) {
       alerts.add(hit.sourceAsMap());
