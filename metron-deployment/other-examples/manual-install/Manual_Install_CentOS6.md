@@ -638,15 +638,15 @@ Edit crontab with `# crontab -e` and add:
 
 bro-kafka:
 ```
-# cp -r /root/metron/metron-sensors/bro-plugin-kafka /tmp
-# cd /tmp/bro-plugin-kafka
+# git clone https://github.com/apache/metron-bro-plugin-kafka /tmp/metron-bro-plugin-kafka
+# cd /tmp/metron-bro-plugin-kafka
 # rm -rf build/
 # ./configure --bro-dist=/tmp/bro-2.4.2 --install-root=/usr/local/bro/lib/bro/plugins/ --with-librdkafka=/usr/local
 # make -j4
 # make install
 ```
 
-Configure bro-kafka plugin:
+Configure metron-bro-plugin-kafka:
 ```
 # cat << EOF >> /usr/local/bro/share/bro/site/local.bro
 @load Bro/Kafka/logs-to-kafka.bro
