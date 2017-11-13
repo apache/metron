@@ -30,8 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.metron.hbase.client.HBaseClient;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.HBaseDao;
@@ -82,7 +80,6 @@ public class HBaseDaoIntegrationTest {
 
     Document actualDocument = hbaseDao.getLatest("message_1", SENSOR_TYPE);
     Document expectedDocument = alerts.get(1);
-    expectedDocument.setSensorType(null);
     Assert.assertEquals(expectedDocument, actualDocument);
   }
 
@@ -105,7 +102,6 @@ public class HBaseDaoIntegrationTest {
 
     for (int i = 0; i < expectedCount; i++) {
       Document expectedDocument = alerts.get(i + 1);
-      expectedDocument.setSensorType(null);
       Document actualDocument = results.next();
       Assert.assertEquals(expectedDocument, actualDocument);
     }
@@ -117,7 +113,7 @@ public class HBaseDaoIntegrationTest {
     List<Document> alerts = new ArrayList<>();
     for (int i = 0; i < count; ++i) {
       String guid = "message_" + i;
-      String json = "{\"guid\":\"message_" + i + "\"}";
+      String json = "{\"guid\":\"message_" + i + "\", \"source:type\":\"test\"}";
       Document alert = new Document(json, guid, SENSOR_TYPE, System.currentTimeMillis());
       alerts.add(alert);
     }

@@ -19,6 +19,7 @@
 package org.apache.metron.indexing.dao;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,6 +34,7 @@ import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GroupRequest;
@@ -54,6 +56,7 @@ import org.apache.metron.indexing.dao.update.Document;
  *
  */
 public class HBaseDao implements IndexDao {
+  public static final String SOURCE_TYPE = Constants.SENSOR_TYPE.replace('.', ':');
   public static String HBASE_TABLE = "update.hbase.table";
   public static String HBASE_CF = "update.hbase.cf";
   private HTableInterface tableInterface;
@@ -135,8 +138,9 @@ public class HBaseDao implements IndexDao {
     Map.Entry<byte[], byte[]> entry= columns.lastEntry();
     Long ts = Bytes.toLong(entry.getKey());
     if(entry.getValue()!= null) {
-      String json = new String(entry.getValue());
-      return new Document(json, Bytes.toString(result.getRow()), null, ts);
+      Map<String, Object> json = JSONUtils.INSTANCE.load(new String(entry.getValue()), new TypeReference<Map<String, Object>>() {
+      });
+      return new Document(json, Bytes.toString(result.getRow()), (String) json.get(SOURCE_TYPE), ts);
     }
     else {
       return null;
