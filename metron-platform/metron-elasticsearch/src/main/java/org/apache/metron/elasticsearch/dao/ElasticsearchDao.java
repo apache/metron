@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,7 @@ import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.Group;
 import org.apache.metron.indexing.dao.search.GroupOrder;
 import org.apache.metron.indexing.dao.search.GroupOrderType;
@@ -257,7 +259,14 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
-  public Iterable<Document> getAllLatest(final Collection<String> guids, final Collection<String> sensorTypes) throws IOException {
+  public Iterable<Document> getAllLatest(
+      final List<GetRequest> getRequests) throws IOException {
+    Collection<String> guids = new HashSet<>();
+    Collection<String> sensorTypes = new HashSet<>();
+    for (GetRequest getRequest: getRequests) {
+      guids.add(getRequest.getGuid());
+      sensorTypes.add(getRequest.getSensorType());
+    }
     List<Document> documents = searchByGuids(
         guids
         , sensorTypes
@@ -370,20 +379,16 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   protected String getIndexName(Document update, Optional<String> index, String indexPostFix) {
-    if (index.isPresent()) {
-      return index.get();
-    } else {
-      String sensorType = update.getSensorType();
-      String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostFix, null);
-
-      return index.orElse(
-          searchByGuid(update.getGuid(),
-              sensorType,
-              hit -> Optional.ofNullable(hit.getIndex())
-          ).orElse(indexName)
+      return index.orElse(getIndexName(update.getGuid(), update.getSensorType())
+                  .orElse(ElasticsearchUtils.getIndexName(update.getSensorType(), indexPostFix, null))
       );
-    }
+  }
 
+  protected Optional<String> getIndexName(String guid, String sensorType) {
+    return searchByGuid(guid,
+        sensorType,
+        hit -> Optional.ofNullable(hit.getIndex())
+    );
   }
 
   protected IndexRequest buildIndexRequest(Document update, String sensorType, String indexName) {

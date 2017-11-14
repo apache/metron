@@ -105,10 +105,16 @@ public abstract class SearchIntegrationTest {
   public static String findOneGuidQuery;
 
   /**
+   * [
    * {
-   * "bro-1": "bro_index_2017.01.01.01",
-   * "bro-2": "bro_index_2017.01.01.01"
+   * "guid": "bro-1",
+   * "sensorType": "bro"
+   * },
+   * {
+   * "guid": "bro-2",
+   * "sensorType": "bro"
    * }
+   * ]
    */
   @Multiline
   public static String getAllLatestQuery;
@@ -403,9 +409,9 @@ public abstract class SearchIntegrationTest {
     }
     //Get All Latest Guid Testcase
     {
-      Map<String, String> request = JSONUtils.INSTANCE.load(getAllLatestQuery, new TypeReference<Map<String, String>>() {
+      List<GetRequest> request = JSONUtils.INSTANCE.load(getAllLatestQuery, new TypeReference<List<GetRequest>>() {
       });
-      Iterator<Document> response = dao.getAllLatest(Arrays.asList("bro-1", "bro-2"), Collections.singleton("bro")).iterator();
+      Iterator<Document> response = dao.getAllLatest(request).iterator();
       Document bro2 = response.next();
       Assert.assertEquals("bro_1", bro2.getDocument().get("guid"));
       Assert.assertEquals("bro", bro2.getDocument().get("source:type"));

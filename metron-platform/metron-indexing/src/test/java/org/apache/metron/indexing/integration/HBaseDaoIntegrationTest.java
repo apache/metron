@@ -23,7 +23,6 @@ import static org.apache.metron.indexing.dao.HBaseDao.HBASE_TABLE;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -34,6 +33,7 @@ import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.HBaseDao;
 import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.update.Document;
 import org.junit.After;
 import org.junit.Assert;
@@ -73,7 +73,6 @@ public class HBaseDaoIntegrationTest {
   public void shouldGetLatest() throws Exception {
     // Load alerts
     List<Document> alerts = buildAlerts(3);
-    alerts.stream().collect(Collectors.toMap(Document::getGuid, document -> Optional.empty()));
     Map<Document, Optional<String>> updates = alerts.stream()
         .collect(Collectors.toMap(document -> document, document -> Optional.empty()));
     hbaseDao.batchUpdate(updates);
@@ -93,12 +92,11 @@ public class HBaseDaoIntegrationTest {
     hbaseDao.batchUpdate(updates);
 
     int expectedCount = 12;
-    List<String> guids = new ArrayList<>();
+    List<GetRequest> getRequests = new ArrayList<>();
     for(int i = 1; i < expectedCount + 1; i ++) {
-      guids.add("message_" + i);
+      getRequests.add(new GetRequest("message_" + i, SENSOR_TYPE));
     }
-    Iterator<Document> results = hbaseDao.getAllLatest(guids,
-        Collections.singleton(SENSOR_TYPE)).iterator();
+    Iterator<Document> results = hbaseDao.getAllLatest(getRequests).iterator();
 
     for (int i = 0; i < expectedCount; i++) {
       Document expectedDocument = alerts.get(i + 1);

@@ -50,6 +50,7 @@ import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.metaalert.MetaScores;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidCreateException;
@@ -153,16 +154,16 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   @SuppressWarnings("unchecked")
   public MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request)
       throws InvalidCreateException, IOException {
-    if (request.getGuidToIndices().isEmpty()) {
-      throw new InvalidCreateException("MetaAlertCreateRequest must contain alert GUIDs");
+    List<GetRequest> alertRequests = request.getAlerts();
+    if (request.getAlerts().isEmpty()) {
+      throw new InvalidCreateException("MetaAlertCreateRequest must contain alerts");
     }
     if (request.getGroups().isEmpty()) {
       throw new InvalidCreateException("MetaAlertCreateRequest must contain UI groups");
     }
 
     // Retrieve the documents going into the meta alert and build it
-    Map<String, String> guidToIndices = request.getGuidToIndices();
-    Iterable<Document> alerts = indexDao.getAllLatest(guidToIndices.keySet(), null);
+    Iterable<Document> alerts = indexDao.getAllLatest(alertRequests);
 
     Document metaAlert = buildCreateDocument(alerts, request.getGroups());
     calculateMetaScores(metaAlert);
@@ -176,9 +177,20 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     try {
       // We need to update the associated alerts with the new meta alerts, making sure existing
       // links are maintained.
+      Map<String, Optional<String>> guidToIndices = alertRequests.stream().collect(Collectors.toMap(
+          GetRequest::getGuid, GetRequest::getIndex));
+      Map<String, String> guidToSensorTypes = alertRequests.stream().collect(Collectors.toMap(
+          GetRequest::getGuid, GetRequest::getSensorType));
       for (Document alert: alerts) {
         if (addMetaAlertToAlert(metaAlert.getGuid(), alert)) {
-          updates.put(alert, Optional.of(guidToIndices.get(alert.getGuid())));
+          Optional<String> index = guidToIndices.get(alert.getGuid());
+          if (!index.isPresent()) {
+            index = elasticsearchDao.getIndexName(alert.getGuid(), guidToSensorTypes.get(alert.getGuid()));
+            if (!index.isPresent()) {
+              throw new IllegalArgumentException("Could not find index for " + alert.getGuid());
+            }
+          }
+          updates.put(alert, index);
         }
       }
 
@@ -195,12 +207,12 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public boolean addAlertsToMetaAlert(String metaAlertGuid, Collection<String> alertGuids, Collection<String> sensorTypes)
+  public boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
       throws IOException {
     Map<Document, Optional<String>> updates = new HashMap<>();
     Document metaAlert = indexDao.getLatest(metaAlertGuid, METAALERT_TYPE);
     if (MetaAlertStatus.ACTIVE.getStatusString().equals(metaAlert.getDocument().get(STATUS_FIELD))) {
-      Iterable<Document> alerts = indexDao.getAllLatest(alertGuids, sensorTypes);
+      Iterable<Document> alerts = indexDao.getAllLatest(alertRequests);
       boolean metaAlertUpdated = addAlertsToMetaAlert(metaAlert, alerts);
       if (metaAlertUpdated) {
         calculateMetaScores(metaAlert);
@@ -249,12 +261,14 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public boolean removeAlertsFromMetaAlert(String metaAlertGuid, Collection<String> alertGuids, Collection<String> sensorTypes)
+  public boolean removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
       throws IOException {
     Map<Document, Optional<String>> updates = new HashMap<>();
     Document metaAlert = indexDao.getLatest(metaAlertGuid, METAALERT_TYPE);
     if (MetaAlertStatus.ACTIVE.getStatusString().equals(metaAlert.getDocument().get(STATUS_FIELD))) {
-      Iterable<Document> alerts = indexDao.getAllLatest(alertGuids, sensorTypes);
+      Iterable<Document> alerts = indexDao.getAllLatest(alertRequests);
+      Collection<String> alertGuids = alertRequests.stream().map(GetRequest::getGuid).collect(
+          Collectors.toList());
       boolean metaAlertUpdated = removeAlertsFromMetaAlert(metaAlert, alertGuids);
       if (metaAlertUpdated) {
         calculateMetaScores(metaAlert);
@@ -304,15 +318,13 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     if (metaAlertUpdated) {
       metaAlert.getDocument().put(MetaAlertDao.STATUS_FIELD, status.getStatusString());
       updates.put(metaAlert, Optional.of(index));
-      Collection<String> alertGuids = new ArrayList<>();
-      Collection<String> alertSensorTypes = new ArrayList<>();
+      List<GetRequest> getRequests = new ArrayList<>();
       List<Map<String, Object>> currentAlerts = (List<Map<String, Object>>) metaAlert.getDocument()
           .get(MetaAlertDao.ALERT_FIELD);
       currentAlerts.stream().forEach(currentAlert -> {
-        alertGuids.add((String) currentAlert.get(GUID));
-        alertSensorTypes.add((String) currentAlert.get(SOURCE_TYPE));
+        getRequests.add(new GetRequest((String) currentAlert.get(GUID), (String) currentAlert.get(SOURCE_TYPE)));
       });
-      Iterable<Document> alerts = indexDao.getAllLatest(alertGuids, alertSensorTypes);
+      Iterable<Document> alerts = indexDao.getAllLatest(getRequests);
       for (Document alert : alerts) {
         boolean metaAlertAdded = false;
         boolean metaAlertRemoved = false;
@@ -364,8 +376,9 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public Iterable<Document> getAllLatest(Collection<String> guids, Collection<String> sensorTypes) throws IOException {
-    return indexDao.getAllLatest(guids, sensorTypes);
+  public Iterable<Document> getAllLatest(
+      List<GetRequest> getRequests) throws IOException {
+    return indexDao.getAllLatest(getRequests);
   }
 
   @Override

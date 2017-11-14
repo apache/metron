@@ -19,11 +19,13 @@
 package org.apache.metron.indexing.dao;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.io.IOException;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchResponse;
@@ -59,11 +61,9 @@ public interface MetaAlertDao extends IndexDao {
       throws InvalidCreateException, IOException;
 
 
-  boolean addAlertsToMetaAlert(String metaAlertGuid, Collection<String> alertGuids,
-      Collection<String> sensorTypes) throws IOException;
+  boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> getRequests) throws IOException;
 
-  boolean removeAlertsFromMetaAlert(String metaAlertGuid, Collection<String> alertGuids,
-      Collection<String> sensorTypes) throws IOException;
+  boolean removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> getRequests) throws IOException;
 
   boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status) throws IOException;
 

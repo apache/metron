@@ -22,7 +22,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +30,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
@@ -210,12 +210,13 @@ public class MultiIndexDao implements IndexDao {
   }
 
   @Override
-  public Iterable<Document> getAllLatest(Collection<String> guids, Collection<String> sensorTypes) throws IOException {
+  public Iterable<Document> getAllLatest(
+      List<GetRequest> getRequests) throws IOException {
     Iterable<Document> ret = null;
     List<DocumentIterableContainer> output =
         indices.parallelStream().map(dao -> {
           try {
-            return new DocumentIterableContainer(dao.getAllLatest(guids, sensorTypes));
+            return new DocumentIterableContainer(dao.getAllLatest(getRequests));
           } catch (Throwable e) {
             return new DocumentIterableContainer(e);
           }

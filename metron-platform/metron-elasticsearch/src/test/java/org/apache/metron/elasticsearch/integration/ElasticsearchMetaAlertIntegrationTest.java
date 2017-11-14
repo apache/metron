@@ -51,6 +51,7 @@ import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.Group;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
@@ -243,11 +244,15 @@ public class ElasticsearchMetaAlertIntegrationTest {
     elasticsearchAdd(metaAlerts, METAALERTS_INDEX, MetaAlertDao.METAALERT_TYPE);
 
     // Verify load was successful
-    List<String> createdGuids = metaAlerts.stream().map(metaAlert ->
-        (String) metaAlert.get(Constants.GUID)).collect(Collectors.toList());
-    createdGuids.addAll(alerts.stream().map(alert ->
-        (String) alert.get(Constants.GUID)).collect(Collectors.toList()));
-    findCreatedDocs(createdGuids, Arrays.asList(SENSOR_NAME, METAALERT_TYPE));
+    List<GetRequest> createdDocs = metaAlerts.stream().map(metaAlert ->
+        new GetRequest((String) metaAlert.get(Constants.GUID), METAALERT_TYPE))
+        .collect(Collectors.toList());
+    createdDocs.addAll(alerts.stream().map(alert ->
+        new GetRequest((String) alert.get(Constants.GUID), SENSOR_NAME))
+        .collect(Collectors.toList()));
+
+    // Verify load was successful
+    findCreatedDocs(createdDocs);
 
     int previousPageSize = ((ElasticsearchMetaAlertDao) metaDao).getPageSize();
     ((ElasticsearchMetaAlertDao) metaDao).setPageSize(5);
@@ -286,14 +291,16 @@ public class ElasticsearchMetaAlertIntegrationTest {
     elasticsearchAdd(alerts, INDEX, SENSOR_NAME);
 
     // Verify load was successful
-    findCreatedDocs(Arrays.asList("message_0", "message_1", "message_2"),
-        Collections.singletonList(SENSOR_NAME));
+    findCreatedDocs(Arrays.asList(
+        new GetRequest("message_0", SENSOR_NAME),
+        new GetRequest("message_1", SENSOR_NAME),
+        new GetRequest("message_2", SENSOR_NAME)));
 
     {
       MetaAlertCreateRequest metaAlertCreateRequest = new MetaAlertCreateRequest() {{
-        setGuidToIndices(new HashMap<String, String>() {{
-          put("message_1", INDEX);
-          put("message_2", INDEX);
+        setAlerts(new ArrayList<GetRequest>() {{
+          add(new GetRequest("message_1", SENSOR_NAME));
+          add(new GetRequest("message_2", SENSOR_NAME, INDEX));
         }});
         setGroups(Collections.singletonList("group"));
       }};
@@ -338,7 +345,12 @@ public class ElasticsearchMetaAlertIntegrationTest {
     elasticsearchAdd(Collections.singletonList(metaAlert), METAALERTS_INDEX, METAALERT_TYPE);
 
     // Verify load was successful
-    findCreatedDocs(Arrays.asList("message_0", "message_1", "message_2", "message_3","meta_alert"), Arrays.asList(SENSOR_NAME, METAALERT_TYPE));
+    findCreatedDocs(Arrays.asList(
+        new GetRequest("message_0", SENSOR_NAME),
+        new GetRequest("message_1", SENSOR_NAME),
+        new GetRequest("message_2", SENSOR_NAME),
+        new GetRequest("message_3", SENSOR_NAME),
+        new GetRequest("meta_alert", METAALERT_TYPE)));
 
     // Build expected metaAlert after alerts are added
     Map<String, Object> expectedMetaAlert = new HashMap<>(metaAlert);
@@ -365,13 +377,13 @@ public class ElasticsearchMetaAlertIntegrationTest {
 
     // Add a list of new alerts
     {
-      Assert.assertTrue(metaDao.addAlertsToMetaAlert("meta_alert", Arrays.asList("message_1", "message_2"), Collections.singleton(SENSOR_NAME)));
+      Assert.assertTrue(metaDao.addAlertsToMetaAlert("meta_alert", Arrays.asList(new GetRequest("message_1", SENSOR_NAME), new GetRequest("message_2", SENSOR_NAME))));
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
     // Add a list of alerts that are already in the metaAlert
     {
-      Assert.assertFalse(metaDao.addAlertsToMetaAlert("meta_alert", Arrays.asList("message_0", "message_1"), Collections.singleton(SENSOR_NAME)));
+      Assert.assertFalse(metaDao.addAlertsToMetaAlert("meta_alert", Arrays.asList(new GetRequest("message_0", SENSOR_NAME), new GetRequest("message_1", SENSOR_NAME))));
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
@@ -391,7 +403,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
       expectedMetaAlert.put("sum", 6.0d);
       expectedMetaAlert.put("threat:triage:score", 6.0d);
 
-      Assert.assertTrue(metaDao.addAlertsToMetaAlert("meta_alert", Arrays.asList("message_2", "message_3"), Collections.singleton(SENSOR_NAME)));
+      Assert.assertTrue(metaDao.addAlertsToMetaAlert("meta_alert", Arrays.asList(new GetRequest("message_2", SENSOR_NAME), new GetRequest("message_3", SENSOR_NAME))));
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
@@ -413,7 +425,12 @@ public class ElasticsearchMetaAlertIntegrationTest {
     elasticsearchAdd(Collections.singletonList(metaAlert), METAALERTS_INDEX, METAALERT_TYPE);
 
     // Verify load was successful
-    findCreatedDocs(Arrays.asList("message_0", "message_1", "message_2", "message_3", "meta_alert"), Arrays.asList(SENSOR_NAME, METAALERT_TYPE));
+    findCreatedDocs(Arrays.asList(
+        new GetRequest("message_0", SENSOR_NAME),
+        new GetRequest("message_1", SENSOR_NAME),
+        new GetRequest("message_2", SENSOR_NAME),
+        new GetRequest("message_3", SENSOR_NAME),
+        new GetRequest("meta_alert", METAALERT_TYPE)));
 
     // Build expected metaAlert after alerts are added
     Map<String, Object> expectedMetaAlert = new HashMap<>(metaAlert);
@@ -435,13 +452,13 @@ public class ElasticsearchMetaAlertIntegrationTest {
 
     // Remove a list of alerts
     {
-      Assert.assertTrue(metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays.asList("message_0", "message_1"), Collections.singleton(SENSOR_NAME)));
+      Assert.assertTrue(metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays.asList(new GetRequest("message_0", SENSOR_NAME), new GetRequest("message_1", SENSOR_NAME))));
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
     // Remove a list of alerts that are not present in the metaAlert
     {
-      Assert.assertFalse(metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays.asList("message_0", "message_1"), Collections.singleton(SENSOR_NAME)));
+      Assert.assertFalse(metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays.asList(new GetRequest("message_0", SENSOR_NAME), new GetRequest("message_1", SENSOR_NAME))));
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
@@ -459,7 +476,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
       expectedMetaAlert.put("sum", 3.0d);
       expectedMetaAlert.put("threat:triage:score", 3.0d);
 
-      Assert.assertTrue(metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays.asList("message_0", "message_2"), Collections.singleton(SENSOR_NAME)));
+      Assert.assertTrue(metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays.asList(new GetRequest("message_0", SENSOR_NAME), new GetRequest("message_2", SENSOR_NAME))));
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
@@ -478,7 +495,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
       expectedMetaAlert.put("threat:triage:score", 0.0d);
 
       Assert.assertTrue(metaDao.removeAlertsFromMetaAlert("meta_alert",
-          Collections.singletonList("message_3"), Collections.singleton(SENSOR_NAME)));
+          Collections.singletonList(new GetRequest("message_3", SENSOR_NAME))));
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
@@ -497,13 +514,16 @@ public class ElasticsearchMetaAlertIntegrationTest {
     elasticsearchAdd(Collections.singletonList(metaAlert), METAALERTS_INDEX, METAALERT_TYPE);
 
     // Verify load was successful
-    findCreatedDocs(Arrays.asList("message_0", "message_1", "meta_alert"), Arrays.asList(SENSOR_NAME, METAALERT_TYPE));
+    findCreatedDocs(Arrays.asList(
+        new GetRequest("message_0", SENSOR_NAME),
+        new GetRequest("message_1", SENSOR_NAME),
+        new GetRequest("meta_alert", METAALERT_TYPE)));
 
     // Verify alerts cannot be added to an INACTIVE meta alert
     {
       try {
         metaDao.addAlertsToMetaAlert("meta_alert",
-            Collections.singletonList("message_1"), Collections.singletonList(SENSOR_NAME));
+            Collections.singletonList(new GetRequest("message_1", SENSOR_NAME)));
         Assert.fail("Adding alerts to an inactive meta alert should throw an exception");
       } catch (IllegalStateException ise) {
         Assert.assertEquals("Adding alerts to an INACTIVE meta alert is not allowed", ise.getMessage());
@@ -514,7 +534,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
     {
       try {
         metaDao.removeAlertsFromMetaAlert("meta_alert",
-            Collections.singletonList("message_0"), Collections.singletonList(SENSOR_NAME));
+            Collections.singletonList(new GetRequest("message_0", SENSOR_NAME)));
         Assert.fail("Removing alerts from an inactive meta alert should throw an exception");
       } catch (IllegalStateException ise) {
         Assert.assertEquals("Removing alerts from an INACTIVE meta alert is not allowed", ise.getMessage());
@@ -537,8 +557,11 @@ public class ElasticsearchMetaAlertIntegrationTest {
     elasticsearchAdd(Collections.singletonList(metaAlert), METAALERTS_INDEX, MetaAlertDao.METAALERT_TYPE);
 
     // Verify load was successful
-    findCreatedDocs(Arrays.asList("message_0", "message_1", "message_2", "meta_alert"),
-        Arrays.asList(SENSOR_NAME, METAALERT_TYPE));
+    findCreatedDocs(Arrays.asList(
+        new GetRequest("message_0", SENSOR_NAME),
+        new GetRequest("message_1", SENSOR_NAME),
+        new GetRequest("message_2", SENSOR_NAME),
+        new GetRequest("meta_alert", METAALERT_TYPE)));
 
     // Verify status changed to inactive and child alerts are updated
     {
@@ -606,8 +629,9 @@ public class ElasticsearchMetaAlertIntegrationTest {
     elasticsearchAdd(Arrays.asList(activeMetaAlert, inactiveMetaAlert), METAALERTS_INDEX, MetaAlertDao.METAALERT_TYPE);
 
     // Verify load was successful
-    findCreatedDocs(Arrays.asList("meta_active", "meta_inactive"),
-        Collections.singletonList(METAALERT_TYPE));
+    findCreatedDocs(Arrays.asList(
+        new GetRequest("meta_active", METAALERT_TYPE),
+        new GetRequest("meta_inactive", METAALERT_TYPE)));
 
     SearchResponse searchResponse = metaDao.search(new SearchRequest() {
       {
@@ -657,8 +681,13 @@ public class ElasticsearchMetaAlertIntegrationTest {
     elasticsearchAdd(Arrays.asList(activeMetaAlert, inactiveMetaAlert), METAALERTS_INDEX, MetaAlertDao.METAALERT_TYPE);
 
     // Verify load was successful
-    findCreatedDocs(Arrays.asList("message_0", "message_1", "message_2", "message_3", "meta_active", "meta_inactive"),
-        Arrays.asList(SENSOR_NAME, METAALERT_TYPE));
+    findCreatedDocs(Arrays.asList(
+        new GetRequest("message_0", SENSOR_NAME),
+        new GetRequest("message_1", SENSOR_NAME),
+        new GetRequest("message_2", SENSOR_NAME),
+        new GetRequest("message_3", SENSOR_NAME),
+        new GetRequest("meta_active", METAALERT_TYPE),
+        new GetRequest("meta_inactive", METAALERT_TYPE)));
 
 
     SearchResponse searchResponse = metaDao.search(new SearchRequest() {
@@ -746,8 +775,9 @@ public class ElasticsearchMetaAlertIntegrationTest {
     // Don't need any meta alerts to actually exist, since we've populated the field on the alerts.
 
     // Verify load was successful
-    findCreatedDocs(Arrays.asList("message_0", "message_1"),
-        Arrays.asList(SENSOR_NAME, METAALERT_TYPE));
+    findCreatedDocs(Arrays.asList(
+        new GetRequest("message_0", SENSOR_NAME),
+        new GetRequest("message_1", SENSOR_NAME)));
 
     // Build our group request
     Group searchGroup = new Group();
@@ -787,7 +817,11 @@ public class ElasticsearchMetaAlertIntegrationTest {
     elasticsearchAdd(Arrays.asList(activeMetaAlert, inactiveMetaAlert), METAALERTS_INDEX, METAALERT_TYPE);
 
     // Verify load was successful
-    findCreatedDocs(Arrays.asList("message_0", "message_1", "meta_active", "meta_inactive"), Arrays.asList(SENSOR_NAME, METAALERT_TYPE));
+    findCreatedDocs(Arrays.asList(
+        new GetRequest("message_0", SENSOR_NAME),
+        new GetRequest("message_1", SENSOR_NAME),
+        new GetRequest("meta_active", METAALERT_TYPE),
+        new GetRequest("meta_inactive", METAALERT_TYPE)));
 
     {
       //modify the first message and add a new field
@@ -882,7 +916,10 @@ public class ElasticsearchMetaAlertIntegrationTest {
     elasticsearchAdd(Collections.singletonList(metaAlert), METAALERTS_INDEX, MetaAlertDao.METAALERT_TYPE);
 
     // Verify load was successful
-    findCreatedDocs(Arrays.asList("message_0", "message_1", "meta_alert"), Arrays.asList(SENSOR_NAME, METAALERT_TYPE));
+    findCreatedDocs(Arrays.asList(
+        new GetRequest("message_0", SENSOR_NAME),
+        new GetRequest("message_1", SENSOR_NAME),
+        new GetRequest("meta_alert", METAALERT_TYPE)));
 
     // Verify a patch to a field other than "status" or "alert" can be patched
     Map<String, Object> expectedMetaAlert = new HashMap<>(metaAlert);
@@ -986,16 +1023,16 @@ public class ElasticsearchMetaAlertIntegrationTest {
     throw new OriginalNotFoundException("Count not find " + guid + " after " + MAX_RETRIES + "tries");
   }
 
-  protected boolean findCreatedDocs(Collection<String> guids, Collection<String> sensorTypes)
+  protected boolean findCreatedDocs(List<GetRequest> getRequests)
       throws InterruptedException, IOException, OriginalNotFoundException {
     for (int t = 0; t < MAX_RETRIES; ++t, Thread.sleep(SLEEP_MS)) {
-      Iterable<Document> docs = metaDao.getAllLatest(guids, sensorTypes);
+      Iterable<Document> docs = metaDao.getAllLatest(getRequests);
       if (docs != null) {
         int docCount = 0;
         for (Document doc: docs) {
           docCount++;
         }
-        if (guids.size() == docCount) {
+        if (getRequests.size() == docCount) {
           return true;
         }
       }

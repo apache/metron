@@ -23,7 +23,8 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,7 @@ import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidCreateException;
@@ -71,8 +73,8 @@ public class ElasticsearchMetaAlertDaoTest {
       }
 
       @Override
-      public Iterable<Document> getAllLatest(Collection<String> guids,
-          Collection<String> sensorTypes) throws IOException {
+      public Iterable<Document> getAllLatest(
+          List<GetRequest> getRequests) throws IOException {
         return null;
       }
 
@@ -205,9 +207,7 @@ public class ElasticsearchMetaAlertDaoTest {
     emaDao.init(esDao);
 
     MetaAlertCreateRequest createRequest = new MetaAlertCreateRequest();
-    HashMap<String, String> guidsToGroups = new HashMap<>();
-    guidsToGroups.put("don't", "care");
-    createRequest.setGuidToIndices(guidsToGroups);
+    createRequest.setAlerts(Collections.singletonList(new GetRequest("don't", "care")));
     emaDao.createMetaAlert(createRequest);
   }
 

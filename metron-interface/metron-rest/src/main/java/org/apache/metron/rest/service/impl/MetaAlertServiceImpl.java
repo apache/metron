@@ -70,9 +70,7 @@ public class MetaAlertServiceImpl implements MetaAlertService {
   @Override
   public boolean addAlertsToMetaAlert(MetaAlertAddRemoveRequest metaAlertAddRemoveRequest) throws RestException {
     try {
-      return dao.addAlertsToMetaAlert(metaAlertAddRemoveRequest.getMetaAlertGuid(),
-          metaAlertAddRemoveRequest.getAlertGuids(),
-          metaAlertAddRemoveRequest.getSensorTypes());
+      return dao.addAlertsToMetaAlert(metaAlertAddRemoveRequest.getMetaAlertGuid(), metaAlertAddRemoveRequest.getAlerts());
     } catch (IOException ioe) {
       throw new RestException(ioe.getMessage(), ioe);
     }
@@ -81,9 +79,7 @@ public class MetaAlertServiceImpl implements MetaAlertService {
   @Override
   public boolean removeAlertsFromMetaAlert(MetaAlertAddRemoveRequest metaAlertAddRemoveRequest) throws RestException {
     try {
-      return dao.removeAlertsFromMetaAlert(metaAlertAddRemoveRequest.getMetaAlertGuid(),
-          metaAlertAddRemoveRequest.getAlertGuids(),
-          metaAlertAddRemoveRequest.getSensorTypes());
+      return dao.removeAlertsFromMetaAlert(metaAlertAddRemoveRequest.getMetaAlertGuid(), metaAlertAddRemoveRequest.getAlerts());
     } catch (IOException ioe) {
       throw new RestException(ioe.getMessage(), ioe);
     }

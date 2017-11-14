@@ -15,12 +15,13 @@
 package org.apache.metron.indexing.dao.metaalert;
 
 import java.util.Collection;
+import java.util.List;
+import org.apache.metron.indexing.dao.search.GetRequest;
 
 public class MetaAlertAddRemoveRequest {
 
   private String metaAlertGuid;
-  private Collection<String> alertGuids;
-  private Collection<String> sensorTypes;
+  private List<GetRequest> alerts;
 
   public String getMetaAlertGuid() {
     return metaAlertGuid;
@@ -30,19 +31,11 @@ public class MetaAlertAddRemoveRequest {
     this.metaAlertGuid = metaAlertGuid;
   }
 
-  public Collection<String> getAlertGuids() {
-    return alertGuids;
+  public List<GetRequest> getAlerts() {
+    return alerts;
   }
 
-  public void setAlertGuids(Collection<String> alertGuids) {
-    this.alertGuids = alertGuids;
-  }
-
-  public Collection<String> getSensorTypes() {
-    return sensorTypes;
-  }
-
-  public void setSensorTypes(Collection<String> sensorTypes) {
-    this.sensorTypes = sensorTypes;
+  public void setAlerts(List<GetRequest> alerts) {
+    this.alerts = alerts;
   }
 }

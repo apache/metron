@@ -22,23 +22,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.metron.indexing.dao.search.GetRequest;
 
 public class MetaAlertCreateRequest {
-  // A map from the alert GUID to the Document index
-  private Map<String, String> guidToIndices;
+  private List<GetRequest> alerts;
   private List<String> groups;
 
   public MetaAlertCreateRequest() {
-    this.guidToIndices = new HashMap<>();
+    this.alerts = new ArrayList<>();
     this.groups = new ArrayList<>();
   }
 
-  public Map<String, String> getGuidToIndices() {
-    return guidToIndices;
+  public List<GetRequest> getAlerts() {
+    return alerts;
   }
 
-  public void setGuidToIndices(Map<String, String> guidToIndices) {
-    this.guidToIndices = guidToIndices;
+  public void setAlerts(List<GetRequest> alerts) {
+    this.alerts = alerts;
   }
 
   public List<String> getGroups() {

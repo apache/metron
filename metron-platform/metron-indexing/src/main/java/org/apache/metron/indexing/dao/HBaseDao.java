@@ -18,11 +18,13 @@
 
 package org.apache.metron.indexing.dao;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -37,6 +39,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
@@ -107,19 +110,20 @@ public class HBaseDao implements IndexDao {
 
   @Override
   public synchronized Document getLatest(String guid, String sensorType) throws IOException {
-    Get get = new Get(guid.getBytes());
+    Get get = new Get(buildRowKey(guid, sensorType));
     get.addFamily(cf);
     Result result = getTableInterface().get(get);
     return getDocumentFromResult(result);
   }
 
   @Override
-  public Iterable<Document> getAllLatest(Collection<String> guids, Collection<String> sensorTypes) throws IOException {
-    Result[] results = getTableInterface().get(guids.stream().map(guid -> {
-      Get get = new Get(guid.getBytes());
-      get.addFamily(cf);
-      return get;
-    }).collect(Collectors.toList()));
+  public Iterable<Document> getAllLatest(
+      List<GetRequest> getRequests) throws IOException {
+    List<Get> gets = new ArrayList<>();
+    for (GetRequest getRequest: getRequests) {
+      gets.add(buildGet(getRequest));
+    }
+    Result[] results = getTableInterface().get(gets);
     List<Document> allLatest = new ArrayList<>();
     for (Result result: results) {
       Document d = getDocumentFromResult(result);
@@ -138,9 +142,17 @@ public class HBaseDao implements IndexDao {
     Map.Entry<byte[], byte[]> entry= columns.lastEntry();
     Long ts = Bytes.toLong(entry.getKey());
     if(entry.getValue()!= null) {
-      Map<String, Object> json = JSONUtils.INSTANCE.load(new String(entry.getValue()), new TypeReference<Map<String, Object>>() {
-      });
-      return new Document(json, Bytes.toString(result.getRow()), (String) json.get(SOURCE_TYPE), ts);
+      Map<String, Object> json = JSONUtils.INSTANCE.load(new String(entry.getValue()),
+          new TypeReference<Map<String, Object>>() {});
+      ByteArrayInputStream baos = new ByteArrayInputStream(result.getRow());
+      DataInputStream w = new DataInputStream(baos);
+      try {
+        String guid = w.readUTF();
+        String sensorType = w.readUTF();
+        return new Document(json, guid, sensorType, ts);
+      } catch (IOException e) {
+        throw new RuntimeException("Unable to convert row key to a document", e);
+      }
     }
     else {
       return null;
@@ -165,13 +177,28 @@ public class HBaseDao implements IndexDao {
     getTableInterface().put(puts);
   }
 
-  protected Put buildPut(Document update) throws JsonProcessingException {
-    Put put = new Put(update.getGuid().getBytes());
+  protected Get buildGet(GetRequest getRequest) throws IOException {
+    Get get = new Get(buildRowKey(getRequest.getGuid(), getRequest.getSensorType()));
+    get.addFamily(cf);
+    return get;
+  }
+
+  protected Put buildPut(Document update) throws IOException {
+    Put put = new Put(buildRowKey(update.getGuid(), update.getSensorType()));
     long ts = update.getTimestamp() == null ? System.currentTimeMillis() : update.getTimestamp();
     byte[] columnQualifier = Bytes.toBytes(ts);
     byte[] doc = JSONUtils.INSTANCE.toJSONPretty(update.getDocument());
     put.addColumn(cf, columnQualifier, doc);
     return put;
+  }
+
+  public static byte[] buildRowKey(String guid, String sensorType) throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    DataOutputStream w = new DataOutputStream(baos);
+    w.writeUTF(guid);
+    w.writeUTF(sensorType);
+    w.flush();
+    return baos.toByteArray();
   }
 
   @Override
