@@ -732,11 +732,23 @@ In the core language functions, we support basic functional programming primitiv
     * default - Optionally the default value to return if the key is not in the map.
   * Returns: The object associated with the key in the map.  If no value is associated with the key and default is specified, then default is returned. If no value is associated with the key or default, then null is returned.
 
+### `MAX`
+  * Description: Returns the maximum value of a list of input values.
+  * Input:
+    * list - List of arguments. The list arguments should all be of the same type (so only Strings, Integers, Longs etc.). List arguments that have a null value are filtered out first.
+  * Returns: The maximum value of the list, or null of list is empty
+
+### `MIN`
+  * Description: Returns the minimum value of a list of input values.
+  * Input:
+    * list - List of arguments. The list arguments should all be of the same type (so only Strings, Integers, Longs etc.). List arguments that have a null value are filtered out first.
+  * Returns: The minimum value of the list, or null of list is empty
+
 ### `MONTH`
   * Description: The number representing the month.  The first month, January, has a value of 0.
   * Input:
     * dateTime - The datetime as a long representing the milliseconds since unix epoch
-  * Returns: The current month (0-based).
+  * Returns: The current month (0-based)
   
 ### `MULTISET_ADD`
   * Description: Adds to a multiset, which is a map associating objects to their instance counts.
