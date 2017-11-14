@@ -70,6 +70,24 @@ public class HBaseDaoIntegrationTest {
   }
 
   @Test
+  public void testKeySerialization() throws Exception {
+    HBaseDao.Key k = new HBaseDao.Key("guid", "sensorType");
+    Assert.assertEquals(k, HBaseDao.Key.fromBytes(HBaseDao.Key.toBytes(k)));
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testKeySerializationWithInvalidGuid() throws Exception {
+    HBaseDao.Key k = new HBaseDao.Key(null, "sensorType");
+    Assert.assertEquals(k, HBaseDao.Key.fromBytes(HBaseDao.Key.toBytes(k)));
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testKeySerializationWithInvalidSensorType() throws Exception {
+    HBaseDao.Key k = new HBaseDao.Key("guid", null);
+    Assert.assertEquals(k, HBaseDao.Key.fromBytes(HBaseDao.Key.toBytes(k)));
+  }
+
+  @Test
   public void shouldGetLatest() throws Exception {
     // Load alerts
     List<Document> alerts = buildAlerts(3);
