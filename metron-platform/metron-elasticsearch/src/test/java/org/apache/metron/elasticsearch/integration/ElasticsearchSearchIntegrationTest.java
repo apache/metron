@@ -191,10 +191,6 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     if (bulkResponse.hasFailures()) {
       throw new RuntimeException("Failed to index test data");
     }
-//    SearchRequestBuilder metaalerts = es.getClient().prepareSearch("metaalerts")
-//        .setQuery(QueryBuilders.matchAllQuery()).setFetchSource(true);
-//    SearchResponse response = metaalerts.get();
-//    System.out.println("blah");
 
     SearchResponse broDocs = es.getClient()
         .prepareSearch("bro_index_2017.01.01.01")
