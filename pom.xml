@@ -326,7 +326,6 @@
                         <exclude>**/src/main/sample/data/**</exclude>
                         <exclude>**/dependency-reduced-pom.xml</exclude>
                         <exclude>**/target/**</exclude>
-                        <exclude>**/bro-plugin-kafka/build/**</exclude>
                         <!-- Files from Chef/bento -->
                         <exclude>**/packer-build/scripts/**</exclude>
                         <exclude>**/packer-build/bin/**</exclude>
