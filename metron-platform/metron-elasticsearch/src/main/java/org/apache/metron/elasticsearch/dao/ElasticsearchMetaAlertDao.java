@@ -29,12 +29,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.apache.commons.collections4.SetUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -59,17 +62,20 @@ import org.elasticsearch.action.get.MultiGetRequest.Item;
 import org.elasticsearch.action.get.MultiGetRequestBuilder;
 import org.elasticsearch.action.get.MultiGetResponse;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.support.replication.ReplicationResponse.ShardInfo;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.query.InnerHitBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 
 public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
+  private static final String SOURCE_TYPE = Constants.SENSOR_TYPE.replace('.', ':');
   private IndexDao indexDao;
   private ElasticsearchDao elasticsearchDao;
   private String index = METAALERTS_INDEX;
@@ -151,6 +157,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public MetaAlertCreateResponse createMetaAlert(MetaAlertCreateRequest request)
       throws InvalidCreateException, IOException {
     if (request.getGuidToIndices().isEmpty()) {
@@ -160,12 +167,44 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       throw new InvalidCreateException("MetaAlertCreateRequest must contain UI groups");
     }
 
-    // Retrieve the documents going into the meta alert
+    // Retrieve the documents going into the meta alert and build it
     MultiGetResponse multiGetResponse = getDocumentsByGuid(request);
     Document createDoc = buildCreateDocument(multiGetResponse, request.getGroups());
+    MetaScores metaScores = calculateMetaScores(createDoc);
+    createDoc.getDocument().putAll(metaScores.getMetaScores());
+    createDoc.getDocument().put(threatTriageField, metaScores.getMetaScores().get(threatSort));
+    // Add source type to be consistent with other sources and allow filtering
+    createDoc.getDocument().put("source:type", MetaAlertDao.METAALERT_TYPE);
+
+    // Start a list of updates / inserts we need to run
+    Map<Document, Optional<String>> updates = new HashMap<>();
+    updates.put(createDoc, Optional.of(MetaAlertDao.METAALERTS_INDEX));
 
     try {
-      handleMetaUpdate(createDoc, Optional.of(METAALERTS_INDEX));
+      // We need to update the associated alerts with the new meta alerts, making sure existing
+      // links are maintained.
+      List<String> metaAlertField;
+      for (MultiGetItemResponse itemResponse : multiGetResponse) {
+        metaAlertField = new ArrayList<>();
+        GetResponse response = itemResponse.getResponse();
+        if (response.isExists()) {
+          List<String> alertField = (List<String>) response.getSourceAsMap()
+              .get(MetaAlertDao.METAALERT_FIELD);
+          if (alertField != null) {
+            metaAlertField.addAll(alertField);
+          }
+        }
+        metaAlertField.add(createDoc.getGuid());
+
+        Document alertUpdate = buildAlertUpdate(response.getId(),
+            (String) response.getSource().get(SOURCE_TYPE), metaAlertField,
+            (Long) response.getSourceAsMap().get("_timestamp"));
+        updates.put(alertUpdate, Optional.of(itemResponse.getIndex()));
+      }
+
+      // Kick off any updates.
+      indexDaoUpdate(updates);
+
       MetaAlertCreateResponse createResponse = new MetaAlertCreateResponse();
       createResponse.setCreated(true);
       createResponse.setGuid(createDoc.getGuid());
@@ -188,11 +227,13 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
                 )
             )
         )
-        // Ensures that it's a meta alert with active status or that it's an alert (signified by having no status field)
+        // Ensures that it's a meta alert with active status or that it's an alert (signified by
+        // having no status field)
         .must(boolQuery()
             .should(termQuery(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()))
             .should(boolQuery().mustNot(existsQuery(MetaAlertDao.STATUS_FIELD)))
         )
+        .mustNot(existsQuery(MetaAlertDao.METAALERT_FIELD))
     );
     return elasticsearchDao.search(searchRequest, qb);
   }
@@ -206,7 +247,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   public void update(Document update, Optional<String> index) throws IOException {
     if (METAALERT_TYPE.equals(update.getSensorType())) {
       // We've been passed an update to the meta alert.
-      handleMetaUpdate(update, index);
+      handleMetaUpdate(update);
     } else {
       // We need to update an alert itself.  Only that portion of the update can be delegated.
       // We still need to get meta alerts potentially associated with it and update.
@@ -222,6 +263,11 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       // Run the alert's update
       indexDao.update(update, index);
     }
+  }
+
+  @Override
+  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+    throw new UnsupportedOperationException("Meta alerts do not allow for bulk updates");
   }
 
   /**
@@ -298,19 +344,199 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   /**
    * Process an update to a meta alert itself.
    * @param update The update Document to be applied
-   * @param index The optional index to update to
    * @throws IOException If there's a problem running the update
    */
-  protected void handleMetaUpdate(Document update, Optional<String> index) throws IOException {
-    // We have an update to a meta alert itself
-    // If we've updated the alerts field (i.e add/remove), recalculate meta alert scores.
+  protected void handleMetaUpdate(Document update) throws IOException {
+    Map<Document, Optional<String>> updates = new HashMap<>();
+
+    if (update.getDocument().containsKey(MetaAlertDao.STATUS_FIELD)) {
+      // Update all associated alerts to maintain the meta alert link properly
+      updates.putAll(buildStatusAlertUpdates(update));
+    }
     if (update.getDocument().containsKey(MetaAlertDao.ALERT_FIELD)) {
-      MetaScores metaScores = calculateMetaScores(update);
-      update.getDocument().putAll(metaScores.getMetaScores());
-      update.getDocument().put(threatTriageField, metaScores.getMetaScores().get(threatSort));
+      // If the alerts field changes (i.e. add/remove alert), update all affected alerts to
+      // maintain the meta alert link properly.
+      updates.putAll(buildAlertFieldUpdates(update));
     }
 
-    indexDao.update(update, index);
+    // Run meta alert update.
+    updates.put(update, Optional.of(index));
+    indexDaoUpdate(updates);
+  }
+
+  /**
+   * Calls the single update variant if there's only one update, otherwise calls batch.
+   * @param updates The list of updates to run
+   * @throws IOException If there's an update error
+   */
+  protected void indexDaoUpdate(Map<Document, Optional<String>> updates) throws IOException {
+    if (updates.size() == 1) {
+      Entry<Document, Optional<String>> singleUpdate = updates.entrySet().iterator().next();
+      indexDao.update(singleUpdate.getKey(), singleUpdate.getValue());
+    } else if (updates.size() > 1) {
+      indexDao.batchUpdate(updates);
+    } // else we have no updates, so don't do anything
+  }
+
+  protected Map<Document, Optional<String>> buildStatusAlertUpdates(Document update)
+      throws IOException {
+    Map<Document, Optional<String>> updates = new HashMap<>();
+    List<Map<String, Object>> alerts = getAllAlertsForMetaAlert(update);
+    for (Map<String, Object> alert : alerts) {
+      // Retrieve the associated alert, so we can update the array
+      List<String> metaAlertField = new ArrayList<>();
+      @SuppressWarnings("unchecked")
+      List<String> alertField = (List<String>) alert.get(MetaAlertDao.METAALERT_FIELD);
+      if (alertField != null) {
+        metaAlertField.addAll(alertField);
+      }
+      String status = (String) update.getDocument().get(MetaAlertDao.STATUS_FIELD);
+
+      Document alertUpdate = null;
+      String alertGuid = (String) alert.get(Constants.GUID);
+      // If we're making it active add add the meta alert guid for every alert.
+      if (MetaAlertStatus.ACTIVE.getStatusString().equals(status)
+          && !metaAlertField.contains(update.getGuid())) {
+        metaAlertField.add(update.getGuid());
+        alertUpdate = buildAlertUpdate(
+            alertGuid,
+            (String) alert.get(SOURCE_TYPE),
+            metaAlertField,
+            (Long) alert.get("_timestamp")
+        );
+      }
+
+      // If we're making it inactive, remove the meta alert guid from every alert.
+      if (MetaAlertStatus.INACTIVE.getStatusString().equals(status)
+          && metaAlertField.remove(update.getGuid())) {
+        alertUpdate = buildAlertUpdate(
+            alertGuid,
+            (String) alert.get(SOURCE_TYPE),
+            metaAlertField,
+            (Long) alert.get("_timestamp")
+        );
+      }
+
+      // Only run an alert update if we have an actual update.
+      if (alertUpdate != null) {
+        updates.put(alertUpdate, Optional.empty());
+      }
+    }
+    return updates;
+  }
+
+  protected Map<Document, Optional<String>> buildAlertFieldUpdates(Document update)
+      throws IOException {
+    Map<Document, Optional<String>> updates = new HashMap<>();
+    // If we've updated the alerts field (i.e add/remove), recalculate meta alert scores and
+    // the metaalerts fields for updating the children alerts.
+    MetaScores metaScores = calculateMetaScores(update);
+    update.getDocument().putAll(metaScores.getMetaScores());
+    update.getDocument().put(threatTriageField, metaScores.getMetaScores().get(threatSort));
+
+    // Get the set of GUIDs that are in the new version.
+    Set<String> updateGuids = new HashSet<>();
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> updateAlerts = (List<Map<String, Object>>) update.getDocument()
+        .get(MetaAlertDao.ALERT_FIELD);
+    for (Map<String, Object> alert : updateAlerts) {
+      updateGuids.add((String) alert.get(Constants.GUID));
+    }
+
+    // Get the set of GUIDs from the old version
+    List<Map<String, Object>> alerts = getAllAlertsForMetaAlert(update);
+    Set<String> currentGuids = new HashSet<>();
+    for (Map<String, Object> alert : alerts) {
+      currentGuids.add((String) alert.get(Constants.GUID));
+    }
+
+    // Get both set differences, so we know what's been added and removed.
+    Set<String> removedGuids = SetUtils.difference(currentGuids, updateGuids);
+    Set<String> addedGuids = SetUtils.difference(updateGuids, currentGuids);
+
+    Document alertUpdate;
+
+    // Handle any removed GUIDs
+    for (String guid : removedGuids) {
+      // Retrieve the associated alert, so we can update the array
+      Document alert = elasticsearchDao.getLatest(guid, null);
+      List<String> metaAlertField = new ArrayList<>();
+      @SuppressWarnings("unchecked")
+      List<String> alertField = (List<String>) alert.getDocument()
+          .get(MetaAlertDao.METAALERT_FIELD);
+      if (alertField != null) {
+        metaAlertField.addAll(alertField);
+      }
+      if (metaAlertField.remove(update.getGuid())) {
+        alertUpdate = buildAlertUpdate(guid, alert.getSensorType(), metaAlertField,
+            alert.getTimestamp());
+        updates.put(alertUpdate, Optional.empty());
+      }
+    }
+
+    // Handle any added GUIDs
+    for (String guid : addedGuids) {
+      // Retrieve the associated alert, so we can update the array
+      Document alert = elasticsearchDao.getLatest(guid, null);
+      List<String> metaAlertField = new ArrayList<>();
+      @SuppressWarnings("unchecked")
+      List<String> alertField = (List<String>) alert.getDocument()
+          .get(MetaAlertDao.METAALERT_FIELD);
+      if (alertField != null) {
+        metaAlertField.addAll(alertField);
+      }
+      metaAlertField.add(update.getGuid());
+      alertUpdate = buildAlertUpdate(guid, alert.getSensorType(), metaAlertField,
+          alert.getTimestamp());
+      updates.put(alertUpdate, Optional.empty());
+    }
+
+    return updates;
+  }
+
+  @SuppressWarnings("unchecked")
+  protected List<Map<String, Object>> getAllAlertsForMetaAlert(Document update) throws IOException {
+    Document latest = indexDao.getLatest(update.getGuid(), MetaAlertDao.METAALERT_TYPE);
+    if (latest == null) {
+      return new ArrayList<>();
+    }
+    List<String> guids = new ArrayList<>();
+    List<Map<String, Object>> latestAlerts = (List<Map<String, Object>>) latest.getDocument()
+        .get(MetaAlertDao.ALERT_FIELD);
+    for (Map<String, Object> alert : latestAlerts) {
+      guids.add((String) alert.get(Constants.GUID));
+    }
+
+    List<Map<String, Object>> alerts = new ArrayList<>();
+    QueryBuilder query = QueryBuilders.idsQuery().addIds(guids.toArray(new String[0]));
+    SearchRequestBuilder request = elasticsearchDao.getClient().prepareSearch()
+        .setQuery(query);
+    org.elasticsearch.action.search.SearchResponse response = request.get();
+    for (SearchHit hit : response.getHits().getHits()) {
+      alerts.add(hit.sourceAsMap());
+    }
+    return alerts;
+  }
+
+  /**
+   * Builds an update Document for updating the meta alerts list.
+   * @param alertGuid The GUID of the alert to update
+   * @param sensorType The sensor type to update
+   * @param metaAlertField The new metaAlertList to use
+   * @return The update Document
+   */
+  protected Document buildAlertUpdate(String alertGuid, String sensorType,
+      List<String> metaAlertField, Long timestamp) {
+    Document alertUpdate;
+    Map<String, Object> document = new HashMap<>();
+    document.put(MetaAlertDao.METAALERT_FIELD, metaAlertField);
+    alertUpdate = new Document(
+        document,
+        alertGuid,
+        sensorType,
+        timestamp
+    );
+    return alertUpdate;
   }
 
   /**
@@ -363,7 +589,11 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
   @Override
   public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
-    return indexDao.group(groupRequest);
+    // Wrap the query to hide any alerts already contained in meta alerts
+    QueryBuilder qb = QueryBuilders.boolQuery()
+        .must(new QueryStringQueryBuilder(groupRequest.getQuery()))
+        .mustNot(existsQuery(MetaAlertDao.METAALERT_FIELD));
+    return elasticsearchDao.group(groupRequest, qb);
   }
 
   /**
@@ -409,6 +639,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     builder.startArray(ALERT_FIELD);
     Map<String, Object> hitAlerts = hit.sourceAsMap();
 
+    @SuppressWarnings("unchecked")
     List<Map<String, Object>> alertHits = (List<Map<String, Object>>) hitAlerts.get(ALERT_FIELD);
     for (Map<String, Object> alertHit : alertHits) {
       Map<String, Object> docMap = alertHit;

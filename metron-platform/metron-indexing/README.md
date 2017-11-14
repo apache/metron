@@ -46,6 +46,8 @@ If unspecified, or set to `0`, it defaults to a system-determined duration which
 parameter `topology.message.timeout.secs`.  Ignored if batchSize is `1`, since this disables batching.
 * `enabled` : Whether the writer is enabled (default `true`).
 
+### Meta Alerts
+Alerts can be grouped, after appropriate searching, into a set of alerts called a meta alert.  A meta alert is useful for maintaining the context of searching and grouping during further investigations. Standard searches can return meta alerts, but grouping and other aggregation or sorting requests will not, because there's not a clear way to aggregate in many cases if there are multiple alerts contained in the meta alert. All meta alerts will have the source type of metaalert, regardless of the contained alert's origins.
 
 ### Elasticsearch
 Metron comes with built-in templates for the default sensors for Elasticsearch. When adding a new sensor, it will be necessary to add a new template defining the output fields appropriately. In addition, there is a requirement for a field `alert` of type `nested` for Elasticsearch 2.x installs.  This is detailed at [Using Metron with Elasticsearch 2.x](../metron-elasticsearch/README.md#using-metron-with-elasticsearch-2x)

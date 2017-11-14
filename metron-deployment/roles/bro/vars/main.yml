@@ -16,7 +16,7 @@
 #
 ---
 bro_home: /usr/local/bro
-bro_version: 2.4.1
+bro_version: 2.4.2
 bro_daemon_log: /var/log/bro.log
 bro_topic: bro
 
