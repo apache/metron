@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.apache.commons.codec.binary.Hex;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.HBaseDao;
@@ -47,6 +49,14 @@ public class HBaseDaoIntegrationTest {
   private static final String SENSOR_TYPE = "test";
 
   private static IndexDao hbaseDao;
+  private static byte[] expectedKeySerialization = new byte[] {
+          (byte)0xf5,0x53,0x76,(byte)0x96,0x67,0x3a,
+          (byte)0xc1,(byte)0xaf,(byte)0xff,0x41,0x33,(byte)0x9d,
+          (byte)0xac,(byte)0xb9,0x1a,(byte)0xb0,0x00,0x04,
+          0x67,0x75,0x69,0x64,0x00,0x0a,
+          0x73,0x65,0x6e,0x73,0x6f,0x72,
+          0x54,0x79,0x70,0x65
+  };
 
   @BeforeClass
   public static void startHBase() throws Exception {
@@ -67,6 +77,39 @@ public class HBaseDaoIntegrationTest {
   @After
   public void clearTable() throws Exception {
     MockHBaseTableProvider.clear();
+  }
+
+  /**
+   * IF this test fails then you have broken the key serialization in that your change has
+   * caused a key to change serialization, so keys from previous releases will not be able to be found
+   * under your scheme.  Please either provide a migration plan or undo this change.  DO NOT CHANGE THIS
+   * TEST BLITHELY!
+   * @throws Exception
+   */
+  @Test
+  public void testKeySerializationRemainsConstant() throws IOException {
+    HBaseDao.Key k = new HBaseDao.Key("guid", "sensorType");
+    byte[] raw = k.toBytes();
+    Assert.assertArrayEquals(raw, expectedKeySerialization);
+  }
+
+
+  @Test
+  public void testKeySerialization() throws Exception {
+    HBaseDao.Key k = new HBaseDao.Key("guid", "sensorType");
+    Assert.assertEquals(k, HBaseDao.Key.fromBytes(HBaseDao.Key.toBytes(k)));
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testKeySerializationWithInvalidGuid() throws Exception {
+    HBaseDao.Key k = new HBaseDao.Key(null, "sensorType");
+    Assert.assertEquals(k, HBaseDao.Key.fromBytes(HBaseDao.Key.toBytes(k)));
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testKeySerializationWithInvalidSensorType() throws Exception {
+    HBaseDao.Key k = new HBaseDao.Key("guid", null);
+    Assert.assertEquals(k, HBaseDao.Key.fromBytes(HBaseDao.Key.toBytes(k)));
   }
 
   @Test
