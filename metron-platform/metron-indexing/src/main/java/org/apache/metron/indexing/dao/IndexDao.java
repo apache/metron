@@ -36,6 +36,10 @@ import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
 
+/**
+ * The IndexDao provides a common interface for retrieving and storing data in a variety of persistent stores.
+ * Document reads and writes require a GUID and sensor type with an index being optional.
+ */
 public interface IndexDao {
 
   /**
@@ -65,6 +69,13 @@ public interface IndexDao {
    */
   Document getLatest(String guid, String sensorType) throws IOException;
 
+  /**
+   * Return a list of the latest versions of documents given a list of GUIDs and sensor types.
+   *
+   * @param getRequests A list of get requests for documents
+   * @return A list of documents matching or an empty list in not available.
+   * @throws IOException
+   */
   Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException;
 
   /**
@@ -84,7 +95,9 @@ public interface IndexDao {
   }
 
   /**
-   * Update given a Document and optionally the index where the document exists.
+   * Update a given Document and optionally the index where the document exists.  This is a full update,
+   * meaning the current document will be replaced if it exists or a new document will be created if it does
+   * not exist.  Partial updates are not supported in this method.
    *
    * @param update The document to replace from the index.
    * @param index The index where the document lives.
@@ -93,7 +106,7 @@ public interface IndexDao {
   void update(Document update, Optional<String> index) throws IOException;
 
   /**
-   * Update given a Document and optionally the index where the document exists.
+   * Similar to the update method but accepts multiple documents and performs updates in batch.
    *
    * @param updates A map of the documents to update to the index where they live.
    * @throws IOException

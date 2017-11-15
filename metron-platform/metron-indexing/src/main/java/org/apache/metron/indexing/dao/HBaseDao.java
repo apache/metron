@@ -54,7 +54,7 @@ import org.apache.metron.indexing.dao.update.Document;
  * * Get document
  *
  * The mechanism here is that updates to documents will be added to a HBase Table as a write-ahead log.
- * The Key for a row supporting a given document will be the GUID, which should be sufficiently distributed.
+ * The Key for a row supporting a given document will be the GUID plus the sensor type, which should be sufficiently distributed.
  * Every new update will have a column added (column qualifier will be the timestamp of the update).
  * Upon retrieval, the most recent column will be returned.
  *
@@ -66,6 +66,10 @@ public class HBaseDao implements IndexDao {
   private byte[] cf;
   private AccessConfig config;
 
+  /**
+   * Implements the HBaseDao row key and exposes convenience methods for serializing/deserializing the row key.
+   * The row key is made of a GUID and sensor type along with a prefix to ensure data is distributed evenly.
+   */
   public static class Key {
     private String guid;
     private String sensorType;

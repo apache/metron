@@ -104,6 +104,12 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     //uninitialized.
   }
 
+  /**
+   * Initializes this implementation by setting the supplied IndexDao and also setting a separate ElasticsearchDao.
+   * This is needed for some specific Elasticsearch functions (looking up an index from a GUID for example).
+   * @param indexDao The DAO to wrap for our queries
+   * @param threatSort The aggregation to use as the threat field. E.g. "sum", "median", etc.
+   */
   @Override
   public void init(IndexDao indexDao, Optional<String> threatSort) {
     if (indexDao instanceof MultiIndexDao) {
@@ -138,6 +144,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     if (guid == null || guid.trim().isEmpty()) {
       throw new InvalidSearchException("Guid cannot be empty");
     }
+    // Searches for all alerts containing the meta alert guid in it's "metalerts" array
     QueryBuilder qb = boolQuery()
         .must(
             nestedQuery(
@@ -183,8 +190,10 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
           GetRequest::getGuid, GetRequest::getSensorType));
       for (Document alert: alerts) {
         if (addMetaAlertToAlert(metaAlert.getGuid(), alert)) {
+          // Use the index in the request if it exists
           Optional<String> index = guidToIndices.get(alert.getGuid());
           if (!index.isPresent()) {
+            // Look up the index from Elasticsearch if one is not supplied in the request
             index = elasticsearchDao.getIndexName(alert.getGuid(), guidToSensorTypes.get(alert.getGuid()));
             if (!index.isPresent()) {
               throw new IllegalArgumentException("Could not find index for " + alert.getGuid());
@@ -237,6 +246,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
         (String) currentAlert.get(GUID)).collect(Collectors.toSet());
     for (Document alert: alerts) {
       String alertGuid = alert.getGuid();
+      // Only add an alert if it isn't already in the meta alert
       if (!currentAlertGuids.contains(alertGuid)) {
         currentAlerts.add(alert.getDocument());
         alertAdded = true;
@@ -290,6 +300,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   protected boolean removeAlertsFromMetaAlert(Document metaAlert, Collection<String> alertGuids) {
     List<Map<String,Object>> currentAlerts = (List<Map<String, Object>>) metaAlert.getDocument().get(ALERT_FIELD);
     int previousSize = currentAlerts.size();
+    // Only remove an alert if it is in the meta alert
     currentAlerts.removeIf(currentAlert -> alertGuids.contains((String) currentAlert.get(GUID)));
     return currentAlerts.size() != previousSize;
   }
@@ -394,7 +405,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       Collection<Document> metaAlerts = getMetaAlertsForAlert(update.getGuid()).getResults().stream()
           .map(searchResult -> new Document(searchResult.getSource(), searchResult.getId(), METAALERT_TYPE, 0L))
           .collect(Collectors.toList());
-      // Each metaalert needs to be updated with the new alert
+      // Each meta alert needs to be updated with the new alert
       for (Document metaAlert : metaAlerts) {
         replaceAlertInMetaAlert(metaAlert, update);
         updates.put(metaAlert, Optional.of(METAALERTS_INDEX));
@@ -418,6 +429,15 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     throw new UnsupportedOperationException("Meta alerts do not allow for bulk updates");
   }
 
+  /**
+   * Does not allow patches on the "alerts" or "status" fields.  These fields must be updated with their
+   * dedicated methods.
+   *
+   * @param request The patch request
+   * @param timestamp Optionally a timestamp to set. If not specified then current time is used.
+   * @throws OriginalNotFoundException
+   * @throws IOException
+   */
   @Override
   public void patch(PatchRequest request, Optional<Long> timestamp)
       throws OriginalNotFoundException, IOException {
@@ -460,6 +480,13 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     return queryAllResults(qb);
   }
 
+  /**
+   * Elasticsearch queries default to 10 records returned.  Some internal queries require that all
+   * results are returned.  Rather than setting an arbitrarily high size, this method pages through results
+   * and returns them all in a single SearchResponse.
+   * @param qb
+   * @return
+   */
   protected SearchResponse queryAllResults(QueryBuilder qb) {
     SearchRequestBuilder searchRequestBuilder = elasticsearchDao
         .getClient()
@@ -490,6 +517,11 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     return searchResponse;
   }
 
+  /**
+   * Transforms a list of Elasticsearch SearchHits to a list of SearchResults
+   * @param searchResponse
+   * @return
+   */
   protected List<SearchResult> getSearchResults(org.elasticsearch.action.search.SearchResponse searchResponse) {
     return Arrays.stream(searchResponse.getHits().getHits()).map(searchHit -> {
           SearchResult searchResult = new SearchResult();

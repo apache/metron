@@ -250,22 +250,24 @@ public class ElasticsearchMetaAlertIntegrationTest {
     createdDocs.addAll(alerts.stream().map(alert ->
         new GetRequest((String) alert.get(Constants.GUID), SENSOR_NAME))
         .collect(Collectors.toList()));
-
-    // Verify load was successful
     findCreatedDocs(createdDocs);
 
     int previousPageSize = ((ElasticsearchMetaAlertDao) metaDao).getPageSize();
     ((ElasticsearchMetaAlertDao) metaDao).setPageSize(5);
+
     {
+      // Verify searches successfully return more than 10 results
       SearchResponse searchResponse0 = metaDao.getAllMetaAlertsForAlert("message_0");
       List<SearchResult> searchResults0 = searchResponse0.getResults();
       Assert.assertEquals(13, searchResults0.size());
       Assert.assertEquals(metaAlerts.get(0), searchResults0.get(0).getSource());
 
+      // Verify no meta alerts are returned because message_1 was not added to any
       SearchResponse searchResponse1 = metaDao.getAllMetaAlertsForAlert("message_1");
       List<SearchResult> searchResults1 = searchResponse1.getResults();
       Assert.assertEquals(0, searchResults1.size());
 
+      // Verify only the meta alert message_2 was added to is returned
       SearchResponse searchResponse2 = metaDao.getAllMetaAlertsForAlert("message_2");
       List<SearchResult> searchResults2 = searchResponse2.getResults();
       Assert.assertEquals(1, searchResults2.size());
@@ -375,20 +377,20 @@ public class ElasticsearchMetaAlertIntegrationTest {
     expectedMetaAlert.put("sum", 3.0d);
     expectedMetaAlert.put("threat:triage:score", 3.0d);
 
-    // Add a list of new alerts
     {
+      // Verify alerts were successfully added to the meta alert
       Assert.assertTrue(metaDao.addAlertsToMetaAlert("meta_alert", Arrays.asList(new GetRequest("message_1", SENSOR_NAME), new GetRequest("message_2", SENSOR_NAME))));
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
-    // Add a list of alerts that are already in the metaAlert
     {
+      // Verify False when alerts are already in a meta alert and no new alerts are added
       Assert.assertFalse(metaDao.addAlertsToMetaAlert("meta_alert", Arrays.asList(new GetRequest("message_0", SENSOR_NAME), new GetRequest("message_1", SENSOR_NAME))));
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
-    // Add a list of alerts where one item in the list is present in the metaAlert
     {
+      // Verify only 1 alert is added when a list of alerts only contains 1 alert that is not in the meta alert
       metaAlertAlerts = new ArrayList<>((List<Map<String, Object>>) expectedMetaAlert.get(ALERT_FIELD));
       Map<String, Object> expectedAlert3 = alerts.get(3);
       expectedAlert3.put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
@@ -450,20 +452,21 @@ public class ElasticsearchMetaAlertIntegrationTest {
     expectedMetaAlert.put("sum", 5.0d);
     expectedMetaAlert.put("threat:triage:score", 5.0d);
 
-    // Remove a list of alerts
+
     {
+      // Verify a list of alerts are removed from a meta alert
       Assert.assertTrue(metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays.asList(new GetRequest("message_0", SENSOR_NAME), new GetRequest("message_1", SENSOR_NAME))));
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
-    // Remove a list of alerts that are not present in the metaAlert
     {
+      // Verify False when alerts are not present in a meta alert and no alerts are removed
       Assert.assertFalse(metaDao.removeAlertsFromMetaAlert("meta_alert", Arrays.asList(new GetRequest("message_0", SENSOR_NAME), new GetRequest("message_1", SENSOR_NAME))));
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
-    // Remove a list of alerts where one item in the list is not present in the metaAlert
     {
+      // Verify only 1 alert is removed when a list of alerts only contains 1 alert that is in the meta alert
       metaAlertAlerts = new ArrayList<>((List<Map<String, Object>>) expectedMetaAlert.get(ALERT_FIELD));
       metaAlertAlerts.remove(0);
       expectedMetaAlert.put(ALERT_FIELD, metaAlertAlerts);
@@ -480,8 +483,8 @@ public class ElasticsearchMetaAlertIntegrationTest {
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
-    // Remove all alerts from a metaAlert
     {
+      // Verify all alerts are removed from a metaAlert
       metaAlertAlerts = new ArrayList<>((List<Map<String, Object>>) expectedMetaAlert.get(ALERT_FIELD));
       metaAlertAlerts.remove(0);
       expectedMetaAlert.put(ALERT_FIELD, metaAlertAlerts);
@@ -519,8 +522,8 @@ public class ElasticsearchMetaAlertIntegrationTest {
         new GetRequest("message_1", SENSOR_NAME),
         new GetRequest("meta_alert", METAALERT_TYPE)));
 
-    // Verify alerts cannot be added to an INACTIVE meta alert
     {
+      // Verify alerts cannot be added to an INACTIVE meta alert
       try {
         metaDao.addAlertsToMetaAlert("meta_alert",
             Collections.singletonList(new GetRequest("message_1", SENSOR_NAME)));
@@ -530,8 +533,8 @@ public class ElasticsearchMetaAlertIntegrationTest {
       }
     }
 
-    // Verify alerts cannot be removed from an INACTIVE meta alert
     {
+      // Verify alerts cannot be removed from an INACTIVE meta alert
       try {
         metaDao.removeAlertsFromMetaAlert("meta_alert",
             Collections.singletonList(new GetRequest("message_0", SENSOR_NAME)));
@@ -563,8 +566,8 @@ public class ElasticsearchMetaAlertIntegrationTest {
         new GetRequest("message_2", SENSOR_NAME),
         new GetRequest("meta_alert", METAALERT_TYPE)));
 
-    // Verify status changed to inactive and child alerts are updated
     {
+      // Verify status changed to inactive and child alerts are updated
       Assert.assertTrue(metaDao.updateMetaAlertStatus("meta_alert", MetaAlertStatus.INACTIVE));
 
       Map<String, Object> expectedMetaAlert = new HashMap<>(metaAlert);
@@ -584,8 +587,8 @@ public class ElasticsearchMetaAlertIntegrationTest {
       findUpdatedDoc(expectedAlert2, "message_2", SENSOR_NAME);
     }
 
-    // Verify status changed to active and child alerts are updated
     {
+      // Verify status changed to active and child alerts are updated
       Assert.assertTrue(metaDao.updateMetaAlertStatus("meta_alert", MetaAlertStatus.ACTIVE));
 
       Map<String, Object> expectedMetaAlert = new HashMap<>(metaAlert);
@@ -604,8 +607,8 @@ public class ElasticsearchMetaAlertIntegrationTest {
       Map<String, Object> expectedAlert2 = new HashMap<>(alerts.get(2));
       findUpdatedDoc(expectedAlert2, "message_2", SENSOR_NAME);
 
-      // Verify status changed to current status has no effect
       {
+        // Verify status changed to current status has no effect
         Assert.assertFalse(metaDao.updateMetaAlertStatus("meta_alert", MetaAlertStatus.ACTIVE));
 
         findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
@@ -644,6 +647,8 @@ public class ElasticsearchMetaAlertIntegrationTest {
         }}));
       }
     });
+
+    // Verify only active meta alerts are returned
     Assert.assertEquals(1, searchResponse.getTotal());
     Assert.assertEquals(MetaAlertStatus.ACTIVE.getStatusString(),
         searchResponse.getResults().get(0).getSource().get(MetaAlertDao.STATUS_FIELD));
@@ -824,7 +829,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
         new GetRequest("meta_inactive", METAALERT_TYPE)));
 
     {
-      //modify the first message and add a new field
+      // Modify the first message and add a new field
       Map<String, Object> message0 = new HashMap<String, Object>(alerts.get(0)) {
         {
           put(NEW_FIELD, "metron");
@@ -835,7 +840,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
       metaDao.update(new Document(message0, guid, SENSOR_NAME, null), Optional.empty());
 
       {
-        //ensure alerts in ES are up-to-date
+        // Verify alerts in ES are up-to-date
         findUpdatedDoc(message0, guid, SENSOR_NAME);
         long cnt = getMatchingAlertCount(NEW_FIELD, message0.get(NEW_FIELD));
         if (cnt == 0) {
@@ -844,7 +849,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
       }
 
       {
-        //ensure meta alerts in ES are up-to-date
+        // Verify meta alerts in ES are up-to-date
         long cnt = getMatchingMetaAlertCount(NEW_FIELD, "metron");
         if (cnt == 0) {
           Assert.fail("Active metaalert was not updated!");
@@ -865,7 +870,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
       metaDao.update(new Document(message0, guid, SENSOR_NAME, null), Optional.empty());
 
       {
-        //ensure ES is up-to-date
+        // Verify ES is up-to-date
         findUpdatedDoc(message0, guid, SENSOR_NAME);
         long cnt = getMatchingAlertCount(NEW_FIELD, message0.get(NEW_FIELD));
         if (cnt == 0) {
@@ -873,7 +878,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
         }
       }
       {
-        //ensure meta alerts in ES are up-to-date
+        // Verify meta alerts in ES are up-to-date
         long cnt = getMatchingMetaAlertCount(NEW_FIELD, "metron2");
         if (cnt == 0) {
           Assert.fail("Active metaalert was not updated!");
@@ -889,6 +894,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
   public void shouldThrowExceptionOnMetaAlertUpdate() throws Exception {
     Document metaAlert = new Document(new HashMap<>(), "meta_alert", METAALERT_TYPE, 0L);
     try {
+      // Verify a meta alert cannot be updated in the meta alert dao
       metaDao.update(metaAlert, Optional.empty());
       Assert.fail("Direct meta alert update should throw an exception");
     } catch (UnsupportedOperationException uoe) {
@@ -921,18 +927,18 @@ public class ElasticsearchMetaAlertIntegrationTest {
         new GetRequest("message_1", SENSOR_NAME),
         new GetRequest("meta_alert", METAALERT_TYPE)));
 
-    // Verify a patch to a field other than "status" or "alert" can be patched
     Map<String, Object> expectedMetaAlert = new HashMap<>(metaAlert);
     expectedMetaAlert.put(NAME_FIELD, "New Meta Alert");
     {
+      // Verify a patch to a field other than "status" or "alert" can be patched
       PatchRequest patchRequest = JSONUtils.INSTANCE.load(namePatchRequest, PatchRequest.class);
       metaDao.patch(patchRequest, Optional.of(System.currentTimeMillis()));
 
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
-    // Verify a patch to an alert field should throw an exception
     {
+      // Verify a patch to an alert field should throw an exception
       try {
         PatchRequest patchRequest = JSONUtils.INSTANCE.load(alertPatchRequest, PatchRequest.class);
         metaDao.patch(patchRequest, Optional.of(System.currentTimeMillis()));
@@ -947,8 +953,8 @@ public class ElasticsearchMetaAlertIntegrationTest {
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
-    // Verify a patch to a status field should throw an exception
     {
+      // Verify a patch to a status field should throw an exception
       try {
         PatchRequest patchRequest = JSONUtils.INSTANCE.load(statusPatchRequest, PatchRequest.class);
         metaDao.patch(patchRequest, Optional.of(System.currentTimeMillis()));

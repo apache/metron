@@ -44,53 +44,56 @@ public class MetaAlertController {
   @Autowired
   private MetaAlertService metaAlertService;
 
-  @ApiOperation(value = "Get all meta alerts for alert")
+  @ApiOperation(value = "Get all meta alerts that contain an alert.")
   @ApiResponse(message = "Search results", code = 200)
   @RequestMapping(value = "/searchByAlert", method = RequestMethod.POST)
   ResponseEntity<SearchResponse> searchByAlert(
-      @ApiParam(name = "guid", value = "GUID", required = true)
+      @ApiParam(name = "guid", value = "Alert GUID", required = true)
       @RequestBody final String guid
   ) throws RestException {
     return new ResponseEntity<>(metaAlertService.getAllMetaAlertsForAlert(guid), HttpStatus.OK);
   }
 
-  @ApiOperation(value = "Create a meta alert")
-  @ApiResponse(message = "Created meta alert", code = 200)
+  @ApiOperation(value = "Creates a new meta alert from a list of existing alerts.  "
+      + "The meta alert status will initially be set to 'ACTIVE' and summary statistics "
+      + "will be computed from the list of alerts.  A list of groups included in the request are also added to the meta alert.")
+  @ApiResponse(message = "The GUID of the new meta alert", code = 200)
   @RequestMapping(value = "/create", method = RequestMethod.POST)
   ResponseEntity<MetaAlertCreateResponse> create(
-      @ApiParam(name = "request", value = "Meta Alert Create Request", required = true)
+      @ApiParam(name = "createRequest", value = "Meta alert create request which includes a list of alert "
+          + "get requests and a list of custom groups used to annotate a meta alert", required = true)
       @RequestBody  final MetaAlertCreateRequest createRequest
   ) throws RestException {
     return new ResponseEntity<>(metaAlertService.create(createRequest), HttpStatus.OK);
   }
 
-  @ApiOperation(value = "Create a meta alert")
-  @ApiResponse(message = "Created meta alert", code = 200)
+  @ApiOperation(value = "Adds an alert to an existing meta alert.  An alert will not be added if it is already contained in a meta alert.")
+  @ApiResponse(message = "Returns 'true' if the alert was added and 'false' if the meta alert did not change.", code = 200)
   @RequestMapping(value = "/add/alert", method = RequestMethod.POST)
   ResponseEntity<Boolean> addAlertsToMetaAlert(
-      @ApiParam(name = "request", value = "Meta Alert Create Request", required = true)
+      @ApiParam(name = "metaAlertAddRemoveRequest", value = "Meta alert add request which includes a meta alert GUID and list of alert get requests", required = true)
       @RequestBody  final MetaAlertAddRemoveRequest metaAlertAddRemoveRequest
   ) throws RestException {
     return new ResponseEntity<>(metaAlertService.addAlertsToMetaAlert(metaAlertAddRemoveRequest), HttpStatus.OK);
   }
 
-  @ApiOperation(value = "Create a meta alert")
-  @ApiResponse(message = "Created meta alert", code = 200)
+  @ApiOperation(value = "Removes an alert from an existing meta alert.  If the alert to be removed is not in a meta alert, 'false' will be returned.")
+  @ApiResponse(message = "Returns 'true' if the alert was removed and 'false' if the meta alert did not change.", code = 200)
   @RequestMapping(value = "/remove/alert", method = RequestMethod.POST)
   ResponseEntity<Boolean> removeAlertsFromMetaAlert(
-      @ApiParam(name = "request", value = "Meta Alert Create Request", required = true)
+      @ApiParam(name = "metaAlertAddRemoveRequest", value = "Meta alert remove request which includes a meta alert GUID and list of alert get requests", required = true)
       @RequestBody  final MetaAlertAddRemoveRequest metaAlertAddRemoveRequest
   ) throws RestException {
     return new ResponseEntity<>(metaAlertService.removeAlertsFromMetaAlert(metaAlertAddRemoveRequest), HttpStatus.OK);
   }
 
-  @ApiOperation(value = "Create a meta alert")
-  @ApiResponse(message = "Created meta alert", code = 200)
+  @ApiOperation(value = "Updates the status of a meta alert to either 'ACTIVE' or 'INACTIVE'.")
+  @ApiResponse(message = "Returns 'true' if the status changed and 'false' if it did not.", code = 200)
   @RequestMapping(value = "/update/status/{guid}/{status}", method = RequestMethod.POST)
   ResponseEntity<Boolean> updateMetaAlertStatus(
-      final @ApiParam(name = "guid", value = "Kafka topic name", required = true)
+      final @ApiParam(name = "guid", value = "Meta alert GUID", required = true)
       @PathVariable String guid,
-      final @ApiParam(name = "status", value = "Kafka topic name", required = true)
+      final @ApiParam(name = "status", value = "Meta alert status with a value of either 'ACTIVE' or 'INACTIVE'", required = true)
       @PathVariable String status) throws RestException {
     return new ResponseEntity<>(metaAlertService.updateMetaAlertStatus(guid,
         MetaAlertStatus.valueOf(status.toUpperCase())), HttpStatus.OK);
