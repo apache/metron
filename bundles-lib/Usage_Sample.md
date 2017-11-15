@@ -13,7 +13,7 @@ What we will set out to do is create a multi-module maven project with the follo
 
 - simple-interfaces : This module will define the `TestInterface`
 - simple-implementation : This module will define an implementation of `TestInterface` called `TestImplementation`
-- simple-bundle : This module will create a bundle of the bundles-test-implementation jar
+- simple-bundle : This module will create a bundle of the simple-implementation jar
 - simple-integration : This module will use the `BundleSystem` class to load an instance of `TestImplementation` as `TestInterface` and execute it
 
 
