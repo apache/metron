@@ -25,7 +25,6 @@
     <version>0.4.2</version>
   </parent>
   <modules>
-   <!-- The are only built on demand -->
     <module>bundles-test-interfaces</module>
     <module>bundles-test-implementation</module>
     <module>bundles-test-bundle</module>

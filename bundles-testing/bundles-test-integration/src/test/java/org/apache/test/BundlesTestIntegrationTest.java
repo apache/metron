@@ -46,7 +46,6 @@ public class BundlesTestIntegrationTest {
     BundleProperties properties = BundleProperties
         .createBasicBundleProperties("src/test/resources/bundle.properties", null);
 
-    properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY, "src/test/resources/");
     BundleSystem bundleSystem = new BundleSystemBuilder().withBundleProperties(properties)
         .build();
     TestInterface result = bundleSystem.createInstance("org.apache.test.TestImplementation",
