@@ -125,7 +125,7 @@
          * Be careful when modifying this file to not unintentionally affect other logs.
          * For instance, the "version" field exists in the HTTP, SSL, and SSH logs.  If you
          * were to only consider the SSH log, you would set the type to integer, but because
-         * in the SSL and HTTP logs version is a string, we must set the type to string.
+         * in the SSL and HTTP logs version is a string, we must set the type to keyword.
          */
         /*
          * Metron-specific fields
@@ -809,7 +809,7 @@
          *   Notes:     In other bro records, the id field is of type conn_id, so it is
          *              expanded before being logged into 4 fields, all of which are addressed
          *              under the "Widely-used Bro fields" section of this template.  In X509
-         *              logs, however, id is a string to identify the certificate file id.
+         *              logs, however, id is a keyword to identify the certificate file id.
          */
         "id": {
           "type": "keyword"
