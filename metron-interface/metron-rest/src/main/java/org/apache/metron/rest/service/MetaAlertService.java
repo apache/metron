@@ -18,8 +18,12 @@
 
 package org.apache.metron.rest.service;
 
+import java.io.IOException;
+import java.util.Collection;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertAddRemoveRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.rest.RestException;
 
@@ -28,4 +32,10 @@ public interface MetaAlertService {
   MetaAlertCreateResponse create(MetaAlertCreateRequest createRequest) throws RestException;
 
   SearchResponse getAllMetaAlertsForAlert(String guid) throws RestException;
+
+  boolean addAlertsToMetaAlert(MetaAlertAddRemoveRequest metaAlertAddRemoveRequest) throws RestException;
+
+  boolean removeAlertsFromMetaAlert(MetaAlertAddRemoveRequest metaAlertAddRemoveRequest) throws RestException;
+
+  boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status) throws RestException;
 }
