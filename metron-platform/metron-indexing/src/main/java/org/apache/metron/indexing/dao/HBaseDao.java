@@ -29,19 +29,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.common.utils.KeyUtil;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
@@ -70,14 +67,6 @@ public class HBaseDao implements IndexDao {
   private AccessConfig config;
 
   public static class Key {
-    private static final int SEED = 0xDEADBEEF;
-    private static final int HASH_PREFIX_SIZE=16;
-    ThreadLocal<HashFunction> hFunction= new ThreadLocal<HashFunction>() {
-      @Override
-      protected HashFunction initialValue() {
-        return Hashing.murmur3_128(SEED);
-      }
-    };
     private String guid;
     private String sensorType;
     public Key(String guid, String sensorType) {
@@ -96,7 +85,7 @@ public class HBaseDao implements IndexDao {
     public static Key fromBytes(byte[] buffer) throws IOException {
       ByteArrayInputStream baos = new ByteArrayInputStream(buffer);
       DataInputStream w = new DataInputStream(baos);
-      baos.skip(HASH_PREFIX_SIZE);
+      baos.skip(KeyUtil.HASH_PREFIX_SIZE);
       return new Key(w.readUTF(), w.readUTF());
     }
 
@@ -109,17 +98,9 @@ public class HBaseDao implements IndexDao {
       w.writeUTF(getGuid());
       w.writeUTF(getSensorType());
       w.flush();
-      byte[] payload = baos.toByteArray();
-      Hasher hasher = hFunction.get().newHasher();
-
-      hasher.putBytes(Bytes.toBytes(getGuid()));
-      byte[] prefix = hasher.hash().asBytes();
-      byte[] val = new byte[payload.length + prefix.length];
-      int offset = 0;
-      System.arraycopy(prefix, 0, val, offset, prefix.length);
-      offset += prefix.length;
-      System.arraycopy(payload, 0, val, offset, payload.length);
-      return val;
+      byte[] key = baos.toByteArray();
+      byte[] prefix = KeyUtil.INSTANCE.getPrefix(key);
+      return KeyUtil.INSTANCE.merge(prefix, key);
     }
 
     public static byte[] toBytes(Key k) throws IOException {
