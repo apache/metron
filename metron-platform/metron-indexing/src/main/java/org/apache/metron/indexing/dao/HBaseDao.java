@@ -30,6 +30,10 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -66,6 +70,14 @@ public class HBaseDao implements IndexDao {
   private AccessConfig config;
 
   public static class Key {
+    private static final int SEED = 0xDEADBEEF;
+    private static final int HASH_PREFIX_SIZE=16;
+    ThreadLocal<HashFunction> hFunction= new ThreadLocal<HashFunction>() {
+      @Override
+      protected HashFunction initialValue() {
+        return Hashing.murmur3_128(SEED);
+      }
+    };
     private String guid;
     private String sensorType;
     public Key(String guid, String sensorType) {
@@ -84,21 +96,34 @@ public class HBaseDao implements IndexDao {
     public static Key fromBytes(byte[] buffer) throws IOException {
       ByteArrayInputStream baos = new ByteArrayInputStream(buffer);
       DataInputStream w = new DataInputStream(baos);
-      String guid = w.readUTF();
-      String sensorType = w.readUTF();
-      return new Key(guid, sensorType);
+      baos.skip(HASH_PREFIX_SIZE);
+      return new Key(w.readUTF(), w.readUTF());
+    }
+
+    public byte[] toBytes() throws IOException {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      if(getGuid() == null || getSensorType() == null) {
+        throw new IllegalStateException("Guid and sensor type must not be null: guid = " + getGuid() + ", sensorType = " + getSensorType());
+      }
+      DataOutputStream w = new DataOutputStream(baos);
+      w.writeUTF(getGuid());
+      w.writeUTF(getSensorType());
+      w.flush();
+      byte[] payload = baos.toByteArray();
+      Hasher hasher = hFunction.get().newHasher();
+
+      hasher.putBytes(Bytes.toBytes(getGuid()));
+      byte[] prefix = hasher.hash().asBytes();
+      byte[] val = new byte[payload.length + prefix.length];
+      int offset = 0;
+      System.arraycopy(prefix, 0, val, offset, prefix.length);
+      offset += prefix.length;
+      System.arraycopy(payload, 0, val, offset, payload.length);
+      return val;
     }
 
     public static byte[] toBytes(Key k) throws IOException {
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      DataOutputStream w = new DataOutputStream(baos);
-      if(k.getGuid() == null || k.getSensorType() == null) {
-        throw new IllegalStateException("Guid and sensor type must not be null: guid = " + k.getGuid() + ", sensorType = " + k.getSensorType());
-      }
-      w.writeUTF(k.getGuid());
-      w.writeUTF(k.getSensorType());
-      w.flush();
-      return baos.toByteArray();
+      return k.toBytes();
     }
 
     @Override
