@@ -38,6 +38,7 @@
       <groupId>org.apache.test</groupId>
       <artifactId>bundles-test-interfaces</artifactId>
       <version>0.4.2</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.atteo.classindex</groupId>

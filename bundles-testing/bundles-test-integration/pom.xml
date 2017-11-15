@@ -11,7 +11,8 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
   the specific language governing permissions and limitations under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://maven.apache.org/POM/4.0.0"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -19,6 +20,7 @@
     <groupId>org.apache.metron</groupId>
     <artifactId>bundles-testing</artifactId>
     <version>0.4.2</version>
+    <relativePath>..</relativePath>
   </parent>
 
   <groupId>org.apache.test</groupId>
@@ -30,6 +32,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <bundle_dir>${project.parent.relativePath}/bundles-test-bundle/target</bundle_dir>
   </properties>
 
   <dependencies>
@@ -50,4 +53,36 @@
       <version>0.4.2</version>
     </dependency>
   </dependencies>
+  <!-- we could copy in the bundle instead of committing it, but that makes git want to
+  add it all the time -->
+  <!--
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.0.1</version>
+        <executions>
+          <execution>
+            <id>copy-bundles</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.basedir}/src/test/resources</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${bundle_dir}/</directory>
+                  <includes>
+                    <include>*.bundle</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  -->
 </project>
