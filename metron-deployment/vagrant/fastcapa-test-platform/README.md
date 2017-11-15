@@ -12,8 +12,13 @@ Two virtualized nodes are launched with Vagrant that can communicate with one an
 Getting Started
 ---------------
 
-Simply run `vagrant up` to launch the environment.  Automated tests are executed after provisioning completes to ensure that Fastcapa and the rest of the environment is functioning properly.
+The Fastcapa test environment can be executed on different operating systems.  There is a sub-directory for each operating system that Fastcapa can be tested on.  To run, simply execute `vagrant up` within the appropriate directory.  For example, to run the tests on CentOS 7.1 then execute the following commands.
+```
+cd centos-7.1
+vagrant up.
+```
 
+Automated tests are executed after provisioning completes to ensure that Fastcapa and the rest of the environment is functioning properly.  If you see something like the following, then the tests have passed.
 ```
 $ vagrant up
 ==> source: Running provisioner: ansible...
@@ -28,6 +33,20 @@ TASK [debug] *******************************************************************
 ok: [source] => {
     "msg": "Successfully received a Kafka message from fastcapa!"
 }
+```
+
+If the deployment process fails mid-course, running `vagrant provision` will continue the process from where it left off.  This can sometimes occur when the VM reboots as part of the deployment process.  The error might look like the following.
+```
+TASK [fastcapa : Restart for modified kernel params] ***************************
+fatal: [sink]: UNREACHABLE! => {"changed": false, "msg": "Failed to connect to the host via ssh: Shared connection to 127.0.0.1 closed.\r\n", "unreachable": true}
+	to retry, use: --limit @/Users/nallen/Development/metron/metron-deployment/vagrant/fastcapa-test-platform/playbook.retry
+
+PLAY RECAP *********************************************************************
+sink                       : ok=11   changed=9    unreachable=1    failed=0
+source                     : ok=29   changed=25   unreachable=0    failed=0
+
+Ansible failed to complete successfully. Any error output should be
+visible above. Please fix these errors and try again.
 ```
 
 Going Deeper
