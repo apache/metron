@@ -51,6 +51,12 @@ public class HBaseEnrichmentConverterTest {
             }});
     LookupKV<EnrichmentKey, EnrichmentValue> results = new LookupKV(key, value);
 
+    /**
+     * IF this test fails then you have broken the key serialization in that your change has
+     * caused a key to change serialization, so keys from previous releases will not be able to be found
+     * under your scheme.  Please either provide a migration plan or undo this change.  DO NOT CHANGE THIS
+     * TEST BLITHELY!
+     */
     @Test
     public void testKeySerializationRemainsConstant() {
         byte[] raw = key.toBytes();
