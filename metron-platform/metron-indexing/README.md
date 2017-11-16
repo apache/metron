@@ -152,9 +152,12 @@ in parallel.  This enables a flexible strategy for specifying your backing store
 For instance, currently the REST API supports the update functionality and may be configured with a list of
 IndexDao implementations to use to support the updates.
 
+Updates with the IndexDao.update method replace the current object with the new object.  For partial updates,
+use IndexDao.patch instead.
+
 ### The `HBaseDao`
 
-Updates will be written to HBase. The key structure is the GUID and
+Updates will be written to HBase. The key structure includes the GUID and sensor type and
 for each new version, a new column is created with value as the message.
 
 The HBase table and column family are configured via fields in the global configuration.
@@ -169,17 +172,23 @@ The HBase column family to use for message updates.
 
 The goal of meta alerts is to be able to group together a set of alerts while being able to transparently perform actions
 like searches, as if meta alerts were normal alerts.  `org.apache.metron.indexing.dao.MetaAlertDao` extends `IndexDao` and
-enables a couple extra features: creation of a meta alert and the ability to get all meta alerts associated with an alert.
+enables several features: 
+* the ability to get all meta alerts associated with an alert
+* creation of a meta alert
+* adding alerts to a meta alert
+* removing alerts from a meta alert
+* changing a meta alert's status
 
 The implementation of this is to denormalize the relationship between alerts and meta alerts, and store alerts as a nested field within a meta alert.
 The use of nested fields is to avoid the limitations of parent-child relationships (one-to-many) and merely linking by IDs
-(which causes issues with pagination as a result of being unable to join indices).
+(which causes issues with pagination as a result of being unable to join indices).  A list of containing meta alerts is stored 
+on an alert for the purpose of keeping source alerts and alerts contained in meta alerts in sync.
 
 The search functionality of `IndexDao` is wrapped by the `MetaAlertDao` in order to provide both regular and meta alerts side-by-side with sorting.
 The updating capabilities are similarly wrapped, in order to ensure updates are carried through both the alerts and associated meta alerts.
 Both of these functions are handled under the hood.
 
-In addition, an API endpoint is added for the meta alert specific features of creation and going from meta alert to alert.
+In addition, API endpoints have been added to expose the features listed above.
 The denormalization handles the case of going from meta alert to alert automatically.
 
 # Notes on Performance Tuning

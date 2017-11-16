@@ -17,9 +17,27 @@
  */
 package org.apache.metron.indexing.dao.search;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import java.util.Optional;
+
 public class GetRequest {
-  String guid;
-  String sensorType;
+  private String guid;
+  private String sensorType;
+  private String index;
+
+  public GetRequest() {
+  }
+
+  public GetRequest(String guid, String sensorType) {
+    this.guid = guid;
+    this.sensorType = sensorType;
+  }
+
+  public GetRequest(String guid, String sensorType, String index) {
+    this.guid = guid;
+    this.sensorType = sensorType;
+    this.index = index;
+  }
 
   /**
    * The GUID of the document
@@ -43,5 +61,18 @@ public class GetRequest {
 
   public void setSensorType(String sensorType) {
     this.sensorType = sensorType;
+  }
+
+  public Optional<String> getIndex() {
+    return index != null ? Optional.of(this.index) : Optional.empty();
+  }
+
+  @JsonGetter("index")
+  public String getIndexString() {
+    return index;
+  }
+
+  public void setIndex(String index) {
+    this.index = index;
   }
 }

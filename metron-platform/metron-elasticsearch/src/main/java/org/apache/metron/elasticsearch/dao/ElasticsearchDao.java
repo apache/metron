@@ -25,9 +25,11 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +40,7 @@ import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.Group;
 import org.apache.metron.indexing.dao.search.GroupOrder;
 import org.apache.metron.indexing.dao.search.GroupOrderType;
@@ -54,11 +57,10 @@ import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.support.replication.ReplicationResponse.ShardInfo;
-import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
@@ -260,42 +262,79 @@ public class ElasticsearchDao implements IndexDao {
     return ret.orElse(null);
   }
 
+  @Override
+  public Iterable<Document> getAllLatest(
+      final List<GetRequest> getRequests) throws IOException {
+    Collection<String> guids = new HashSet<>();
+    Collection<String> sensorTypes = new HashSet<>();
+    for (GetRequest getRequest: getRequests) {
+      guids.add(getRequest.getGuid());
+      sensorTypes.add(getRequest.getSensorType());
+    }
+    List<Document> documents = searchByGuids(
+        guids
+        , sensorTypes
+        , hit -> {
+          Long ts = 0L;
+          String doc = hit.getSourceAsString();
+          String sourceType = Iterables.getFirst(Splitter.on("_doc").split(hit.getType()), null);
+          try {
+            return Optional.of(new Document(doc, hit.getId(), sourceType, ts));
+          } catch (IOException e) {
+            throw new IllegalStateException("Unable to retrieve latest: " + e.getMessage(), e);
+          }
+        }
+
+    );
+    return documents;
+  }
+
+  <T> Optional<T> searchByGuid(String guid, String sensorType,
+      Function<SearchHit, Optional<T>> callback) {
+    Collection<String> sensorTypes = sensorType != null ? Collections.singleton(sensorType) : null;
+    List<T> results = searchByGuids(Collections.singleton(guid), sensorTypes, callback);
+    if (results.size() > 0) {
+      return Optional.of(results.get(0));
+    } else {
+      return Optional.empty();
+    }
+  }
+
   /**
    * Return the search hit based on the UUID and sensor type.
    * A callback can be specified to transform the hit into a type T.
    * If more than one hit happens, the first one will be returned.
    */
-  <T> Optional<T> searchByGuid(String guid, String sensorType,
+  <T> List<T> searchByGuids(Collection<String> guids, Collection<String> sensorTypes,
       Function<SearchHit, Optional<T>> callback) {
-    if(guid == null) {
-      return Optional.empty();
+    if(guids == null || guids.isEmpty()) {
+      return Collections.EMPTY_LIST;
     }
-    QueryBuilder query;
-    if (sensorType != null) {
-      query = QueryBuilders.idsQuery(sensorType + "_doc").addIds(guid);
+    QueryBuilder query = null;
+    if (sensorTypes != null) {
+      String[] types = sensorTypes.stream().map(sensorType -> sensorType + "_doc").toArray(String[]::new);
+      for(String guid : guids) {
+        query = QueryBuilders.idsQuery(types).addIds(guid);
+      }
     } else {
-      query = QueryBuilders.idsQuery().addIds(guid);
+      for(String guid : guids) {
+        query = QueryBuilders.idsQuery().addIds(guid);
+      }
     }
     SearchRequestBuilder request = client.prepareSearch()
                                          .setQuery(query)
+                                         .setSize(guids.size())
                                          ;
     org.elasticsearch.action.search.SearchResponse response = request.get();
     SearchHits hits = response.getHits();
-    long totalHits = hits.getTotalHits();
-    if (totalHits > 1) {
-      LOG.warn("Encountered {} results for guid {} in sensor {}. Returning first hit.",
-          totalHits,
-          guid,
-          sensorType
-      );
-    }
+    List<T> results = new ArrayList<>();
     for (SearchHit hit : hits) {
-      Optional<T> ret = callback.apply(hit);
-      if (ret.isPresent()) {
-        return ret;
+      Optional<T> result = callback.apply(hit);
+      if (result.isPresent()) {
+        results.add(result.get());
       }
     }
-    return Optional.empty();
+    return results;
   }
 
   @Override
@@ -303,18 +342,17 @@ public class ElasticsearchDao implements IndexDao {
     String indexPostfix = ElasticsearchUtils
         .getIndexFormat(accessConfig.getGlobalConfigSupplier().get()).format(new Date());
     String sensorType = update.getSensorType();
-    String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, null);
-    String existingIndex = calculateExistingIndex(update, index, indexPostfix);
+    String indexName = getIndexName(update, index, indexPostfix);
 
-    UpdateRequest updateRequest = buildUpdateRequest(update, sensorType, indexName, existingIndex);
+    IndexRequest indexRequest = buildIndexRequest(update, sensorType, indexName);
     try {
-      UpdateResponse response = client.update(updateRequest).get();
+      IndexResponse response = client.index(indexRequest).get();
 
       ShardInfo shardInfo = response.getShardInfo();
       int failed = shardInfo.getFailed();
       if (failed > 0) {
         throw new IOException(
-            "ElasticsearchDao upsert failed: " + Arrays.toString(shardInfo.getFailures()));
+            "ElasticsearchDao index failed: " + Arrays.toString(shardInfo.getFailures()));
       }
     } catch (Exception e) {
       throw new IOException(e.getMessage(), e);
@@ -332,16 +370,14 @@ public class ElasticsearchDao implements IndexDao {
     for (Map.Entry<Document, Optional<String>> updateEntry : updates.entrySet()) {
       Document update = updateEntry.getKey();
       String sensorType = update.getSensorType();
-      String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, null);
-      String existingIndex = calculateExistingIndex(update, updateEntry.getValue(), indexPostfix);
-      UpdateRequest updateRequest = buildUpdateRequest(
+      String indexName = getIndexName(update, updateEntry.getValue(), indexPostfix);
+      IndexRequest indexRequest = buildIndexRequest(
           update,
           sensorType,
-          indexName,
-          existingIndex
+          indexName
       );
 
-      bulkRequestBuilder.add(updateRequest);
+      bulkRequestBuilder.add(indexRequest);
     }
 
     BulkResponse bulkResponse = bulkRequestBuilder.get();
@@ -352,21 +388,20 @@ public class ElasticsearchDao implements IndexDao {
     }
   }
 
-  protected String calculateExistingIndex(Document update, Optional<String> index,
-      String indexPostFix) {
-    String sensorType = update.getSensorType();
-    String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostFix, null);
+  protected String getIndexName(Document update, Optional<String> index, String indexPostFix) {
+      return index.orElse(getIndexName(update.getGuid(), update.getSensorType())
+                  .orElse(ElasticsearchUtils.getIndexName(update.getSensorType(), indexPostFix, null))
+      );
+  }
 
-    return index.orElse(
-        searchByGuid(update.getGuid(),
-            sensorType,
-            hit -> Optional.ofNullable(hit.getIndex())
-        ).orElse(indexName)
+  protected Optional<String> getIndexName(String guid, String sensorType) {
+    return searchByGuid(guid,
+        sensorType,
+        hit -> Optional.ofNullable(hit.getIndex())
     );
   }
 
-  protected UpdateRequest buildUpdateRequest(Document update, String sensorType, String indexName,
-      String existingIndex) {
+  protected IndexRequest buildIndexRequest(Document update, String sensorType, String indexName) {
     String type = sensorType + "_doc";
     Object ts = update.getTimestamp();
     IndexRequest indexRequest = new IndexRequest(indexName, type, update.getGuid())
@@ -376,9 +411,7 @@ public class ElasticsearchDao implements IndexDao {
       indexRequest = indexRequest.timestamp(ts.toString());
     }
 
-    return new UpdateRequest(existingIndex, type, update.getGuid())
-        .doc(update.getDocument())
-        .upsert(indexRequest);
+    return indexRequest;
   }
 
   @SuppressWarnings("unchecked")
