@@ -33,12 +33,12 @@
             <artifactId>elasticsearch-shaded</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
-        <dependency><!-- required by elasticsearch -->
+        <!--dependency>
             <groupId>org.elasticsearch.plugin</groupId>
             <artifactId>transport-netty4-client</artifactId>
             <version>${global_elasticsearch_version}</version>
             <scope>test</scope>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-enrichment</artifactId>

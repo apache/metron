@@ -29,16 +29,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
@@ -160,6 +155,29 @@ public class ElasticsearchMetaAlertIntegrationTest {
   @Multiline
   public static String statusPatchRequest;
 
+  /**
+   * {
+       "metaalert_doc" : {
+         "properties" : {
+           "guid" : {
+             "type" : "keyword"
+           },
+           "ip_src_addr" : {
+             "type" : "keyword"
+           },
+           "score" : {
+             "type" : "integer"
+           },
+           "alert" : {
+             "type" : "nested"
+           }
+         }
+       }
+   }
+   */
+  @Multiline
+  public static String templates;
+
   @BeforeClass
   public static void setupBefore() throws Exception {
     // setup the client
@@ -190,7 +208,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
   @Before
   public void setup() throws IOException {
     es.createIndexWithMapping(METAALERTS_INDEX, MetaAlertDao.METAALERT_DOC,
-        buildMetaMappingSource());
+        templates);
   }
 
   @AfterClass
@@ -205,27 +223,6 @@ public class ElasticsearchMetaAlertIntegrationTest {
     es.reset();
   }
 
-  protected static String buildMetaMappingSource() throws IOException {
-    return jsonBuilder().prettyPrint()
-        .startObject()
-        .startObject(MetaAlertDao.METAALERT_DOC)
-        .startObject("properties")
-        .startObject("guid")
-        .field("type", "string")
-        .field("index", "not_analyzed")
-        .endObject()
-        .startObject("score")
-        .field("type", "integer")
-        .field("index", "not_analyzed")
-        .endObject()
-        .startObject("alert")
-        .field("type", "nested")
-        .endObject()
-        .endObject()
-        .endObject()
-        .endObject()
-        .string();
-  }
 
   @Test
   public void shouldGetAllMetaAlertsForAlert() throws Exception {
@@ -260,7 +257,11 @@ public class ElasticsearchMetaAlertIntegrationTest {
       SearchResponse searchResponse0 = metaDao.getAllMetaAlertsForAlert("message_0");
       List<SearchResult> searchResults0 = searchResponse0.getResults();
       Assert.assertEquals(13, searchResults0.size());
-      Assert.assertEquals(metaAlerts.get(0), searchResults0.get(0).getSource());
+      Set<Map<String, Object>> resultSet = new HashSet<>();
+      Iterables.addAll(resultSet, Iterables.transform(searchResults0, r -> r.getSource()));
+      StringBuffer reason = new StringBuffer("Unable to find " + metaAlerts.get(0) + "\n");
+      reason.append(Joiner.on("\n").join(resultSet));
+      Assert.assertTrue(reason.toString(), resultSet.contains(metaAlerts.get(0)));
 
       // Verify no meta alerts are returned because message_1 was not added to any
       SearchResponse searchResponse1 = metaDao.getAllMetaAlertsForAlert("message_1");
@@ -744,7 +745,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
                 + " OR (alert.ip_src_addr:192.168.1.3 AND alert.ip_src_port:8008)");
         setIndices(Collections.singletonList("*"));
         setFrom(0);
-        setSize(5);
+        setSize(1);
         setSort(Collections.singletonList(new SortField() {
           {
             setField(Constants.GUID);

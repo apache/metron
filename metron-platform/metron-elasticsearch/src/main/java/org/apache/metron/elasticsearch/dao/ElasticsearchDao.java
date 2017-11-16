@@ -65,6 +65,7 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.index.mapper.LegacyIpFieldMapper;
+import org.elasticsearch.index.query.IdsQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
@@ -311,16 +312,18 @@ public class ElasticsearchDao implements IndexDao {
       return Collections.EMPTY_LIST;
     }
     QueryBuilder query = null;
+    IdsQueryBuilder idsQuery = null;
     if (sensorTypes != null) {
       String[] types = sensorTypes.stream().map(sensorType -> sensorType + "_doc").toArray(String[]::new);
-      for(String guid : guids) {
-        query = QueryBuilders.idsQuery(types).addIds(guid);
-      }
+      idsQuery = QueryBuilders.idsQuery(types);
     } else {
-      for(String guid : guids) {
-        query = QueryBuilders.idsQuery().addIds(guid);
-      }
+      idsQuery = QueryBuilders.idsQuery();
     }
+
+    for(String guid : guids) {
+        query = idsQuery.addIds(guid);
+    }
+
     SearchRequestBuilder request = client.prepareSearch()
                                          .setQuery(query)
                                          .setSize(guids.size())
