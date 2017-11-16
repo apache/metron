@@ -91,12 +91,6 @@ public class ElasticsearchMetaAlertDaoTest {
           throws IOException {
         return null;
       }
-
-      @Override
-      public Map<String, FieldType> getCommonColumnMetadata(List<String> indices)
-          throws IOException {
-        return null;
-      }
     };
     ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();
     metaAlertDao.init(dao);

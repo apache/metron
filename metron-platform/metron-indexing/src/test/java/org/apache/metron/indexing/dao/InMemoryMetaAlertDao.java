@@ -123,11 +123,6 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException {
-    return indexDao.getCommonColumnMetadata(indices);
-  }
-
-  @Override
   public Optional<Map<String, Object>> getLatestResult(GetRequest request) throws IOException {
     return indexDao.getLatestResult(request);
   }

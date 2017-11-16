@@ -98,17 +98,6 @@ public class MultiIndexDao implements IndexDao {
     return null;
   }
 
-  @Override
-  public Map<String, FieldType> getCommonColumnMetadata(List<String> in) throws IOException {
-    for(IndexDao dao : indices) {
-      Map<String, FieldType> r = dao.getCommonColumnMetadata(in);
-      if(r != null) {
-        return r;
-      }
-    }
-    return null;
-  }
-
   private static class DocumentContainer {
     private Optional<Document> d = Optional.empty();
     private Optional<Throwable> t = Optional.empty();

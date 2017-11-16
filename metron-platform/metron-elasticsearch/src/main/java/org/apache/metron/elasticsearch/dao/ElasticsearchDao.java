@@ -454,30 +454,6 @@ public class ElasticsearchDao implements IndexDao {
     return indexColumnMetadata;
   }
 
-  @SuppressWarnings("unchecked")
-  @Override
-  public Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException {
-    Map<String, FieldType> commonColumnMetadata = null;
-    ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings =
-            client.admin().indices().getMappings(new GetMappingsRequest().indices(getLatestIndices(indices))).actionGet().getMappings();
-    for(Object index: mappings.keys().toArray()) {
-      ImmutableOpenMap<String, MappingMetaData> mapping = mappings.get(index.toString());
-      Iterator<String> mappingIterator = mapping.keysIt();
-      while(mappingIterator.hasNext()) {
-        MappingMetaData mappingMetaData = mapping.get(mappingIterator.next());
-        Map<String, Map<String, String>> map = (Map<String, Map<String, String>>) mappingMetaData.getSourceAsMap().get("properties");
-        Map<String, FieldType> mappingsWithTypes = map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-                e-> elasticsearchSearchTypeMap.getOrDefault(e.getValue().get("type"), FieldType.OTHER)));
-        if (commonColumnMetadata == null) {
-          commonColumnMetadata = mappingsWithTypes;
-        } else {
-          commonColumnMetadata.entrySet().retainAll(mappingsWithTypes.entrySet());
-        }
-      }
-    }
-    return commonColumnMetadata;
-  }
-
   protected String[] getLatestIndices(List<String> includeIndices) {
     Map<String, String> latestIndices = new HashMap<>();
     String[] indices = client.admin().indices().prepareGetIndex().setFeatures().get().getIndices();

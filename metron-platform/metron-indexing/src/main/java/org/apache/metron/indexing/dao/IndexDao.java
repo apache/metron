@@ -168,5 +168,4 @@ public interface IndexDao {
   }
 
   Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException;
-  Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException;
 }

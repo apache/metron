@@ -260,19 +260,6 @@ public class InMemoryDao implements IndexDao {
     return indexColumnMetadata;
   }
 
-  @Override
-  public Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException {
-    Map<String, FieldType> commonColumnMetadata = new HashMap<>();
-    for(String index: indices) {
-      if (commonColumnMetadata.isEmpty()) {
-        commonColumnMetadata = new HashMap<>(COLUMN_METADATA.get(index));
-      } else {
-        commonColumnMetadata.entrySet().retainAll(COLUMN_METADATA.get(index).entrySet());
-      }
-    }
-    return commonColumnMetadata;
-  }
-
   public static void setColumnMetadata(Map<String, Map<String, FieldType>> columnMetadata) {
     Map<String, Map<String, FieldType>> columnMetadataMap = new HashMap<>();
     for (Map.Entry<String, Map<String, FieldType>> e: columnMetadata.entrySet()) {

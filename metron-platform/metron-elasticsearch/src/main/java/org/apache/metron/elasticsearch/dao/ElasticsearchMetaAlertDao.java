@@ -580,12 +580,6 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws
-      IOException {
-    return indexDao.getCommonColumnMetadata(indices);
-  }
-
-  @Override
   public GroupResponse group(GroupRequest groupRequest) throws InvalidSearchException {
     // Wrap the query to hide any alerts already contained in meta alerts
     QueryBuilder qb = QueryBuilders.boolQuery()

@@ -103,16 +103,6 @@ public class SearchServiceImpl implements SearchService {
     }
   }
 
-  @Override
-  public Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws RestException {
-    try {
-      return dao.getCommonColumnMetadata(indices);
-    }
-    catch(IOException ioe) {
-      throw new RestException(ioe.getMessage(), ioe);
-    }
-  }
-
   private List<String> getDefaultIndices() throws RestException {
     // Pull the indices from the cache by default
     List<String> indices = Lists.newArrayList((sensorIndexingConfigService.getAllIndices(environment.getProperty(INDEX_WRITER_NAME))));

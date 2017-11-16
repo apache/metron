@@ -35,6 +35,5 @@ public interface SearchService {
   GroupResponse group(GroupRequest groupRequest) throws RestException;
   Optional<Map<String, Object>> getLatest(GetRequest request) throws RestException;
   Map<String, FieldType> getColumnMetadata(List<String> indices) throws RestException;
-  Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws RestException;
 
 }

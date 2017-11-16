@@ -618,36 +618,6 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(12, fieldTypes.size());
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
     }
-    // getCommonColumnMetadata with multiple Indices
-    {
-      Map<String, FieldType> fieldTypes = dao.getCommonColumnMetadata(Arrays.asList("bro", "snort"));
-      // Should only return fields in both
-      Assert.assertEquals(10, fieldTypes.size());
-      Assert.assertEquals(FieldType.STRING, fieldTypes.get("source:type"));
-      Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
-      Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
-      Assert.assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
-      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
-      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
-      Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-      Assert.assertEquals(FieldType.STRING, fieldTypes.get("guid"));
-    }
-    // getCommonColumnMetadata with only bro
-    {
-      Map<String, FieldType> fieldTypes = dao.getCommonColumnMetadata(Collections.singletonList("bro"));
-      Assert.assertEquals(12, fieldTypes.size());
-      Assert.assertEquals(FieldType.STRING, fieldTypes.get("bro_field"));
-      Assert.assertEquals(FieldType.STRING, fieldTypes.get("duplicate_name_field"));
-    }
-    // getCommonColumnMetadata with only snort
-    {
-      Map<String, FieldType> fieldTypes = dao.getCommonColumnMetadata(Collections.singletonList("snort"));
-      Assert.assertEquals(12, fieldTypes.size());
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
-    }
     //Fields query
     {
       SearchRequest request = JSONUtils.INSTANCE.load(fieldsQuery, SearchRequest.class);
