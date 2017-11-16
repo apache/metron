@@ -89,12 +89,10 @@ public class ElasticsearchDao implements IndexDao {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private transient TransportClient client;
   private AccessConfig accessConfig;
-  private List<String> ignoredIndices = new ArrayList<>();
 
   protected ElasticsearchDao(TransportClient client, AccessConfig config) {
     this.client = client;
     this.accessConfig = config;
-    this.ignoredIndices.add(".kibana");
   }
 
   public ElasticsearchDao() {
@@ -416,36 +414,42 @@ public class ElasticsearchDao implements IndexDao {
     Set<String> fieldBlackList = new HashSet<>();
 
     String[] latestIndices = getLatestIndices(indices);
-    ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings = client
-            .admin()
-            .indices()
-            .getMappings(new GetMappingsRequest().indices(latestIndices))
-            .actionGet()
-            .getMappings();
-    for(Object key: mappings.keys().toArray()) {
-      String indexName = key.toString();
-      ImmutableOpenMap<String, MappingMetaData> mapping = mappings.get(indexName);
-      Iterator<String> mappingIterator = mapping.keysIt();
-      while(mappingIterator.hasNext()) {
-        MappingMetaData mappingMetaData = mapping.get(mappingIterator.next());
-        Map<String, Map<String, String>> map = (Map<String, Map<String, String>>) mappingMetaData.getSourceAsMap().get("properties");
-        for(String field: map.keySet()) {
-          if (!fieldBlackList.contains(field)) {
-            FieldType type = elasticsearchSearchTypeMap.getOrDefault(map.get(field).get("type"), FieldType.OTHER);
-            if (indexColumnMetadata.containsKey(field)) {
-              FieldType previousType = indexColumnMetadata.get(field);
-              if (!type.equals(previousType)) {
-                String previousIndexName = previousIndices.get(field);
-                LOG.error(String.format("Field type mismatch: %s.%s has type %s while %s.%s has type %s.  Defaulting type to %s.",
-                    indexName, field, type.getFieldType(),
-                    previousIndexName, field, previousType.getFieldType(), FieldType.OTHER.getFieldType()));
-                indexColumnMetadata.put(field, FieldType.OTHER);
-                // Detected a type mismatch so ignore the field from now on
-                fieldBlackList.add(field);
+    if (latestIndices.length > 0) {
+      ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings = client
+          .admin()
+          .indices()
+          .getMappings(new GetMappingsRequest().indices(latestIndices))
+          .actionGet()
+          .getMappings();
+      for (Object key : mappings.keys().toArray()) {
+        String indexName = key.toString();
+        ImmutableOpenMap<String, MappingMetaData> mapping = mappings.get(indexName);
+        Iterator<String> mappingIterator = mapping.keysIt();
+        while (mappingIterator.hasNext()) {
+          MappingMetaData mappingMetaData = mapping.get(mappingIterator.next());
+          Map<String, Map<String, String>> map = (Map<String, Map<String, String>>) mappingMetaData
+              .getSourceAsMap().get("properties");
+          for (String field : map.keySet()) {
+            if (!fieldBlackList.contains(field)) {
+              FieldType type = elasticsearchSearchTypeMap
+                  .getOrDefault(map.get(field).get("type"), FieldType.OTHER);
+              if (indexColumnMetadata.containsKey(field)) {
+                FieldType previousType = indexColumnMetadata.get(field);
+                if (!type.equals(previousType)) {
+                  String previousIndexName = previousIndices.get(field);
+                  LOG.error(String.format(
+                      "Field type mismatch: %s.%s has type %s while %s.%s has type %s.  Defaulting type to %s.",
+                      indexName, field, type.getFieldType(),
+                      previousIndexName, field, previousType.getFieldType(),
+                      FieldType.OTHER.getFieldType()));
+                  indexColumnMetadata.put(field, FieldType.OTHER);
+                  // Detected a type mismatch so ignore the field from now on
+                  fieldBlackList.add(field);
+                }
+              } else {
+                indexColumnMetadata.put(field, type);
+                previousIndices.put(field, indexName);
               }
-            } else {
-              indexColumnMetadata.put(field, type);
-              previousIndices.put(field, indexName);
             }
           }
         }
@@ -458,15 +462,13 @@ public class ElasticsearchDao implements IndexDao {
     Map<String, String> latestIndices = new HashMap<>();
     String[] indices = client.admin().indices().prepareGetIndex().setFeatures().get().getIndices();
     for (String index : indices) {
-      if (!ignoredIndices.contains(index)) {
-        int prefixEnd = index.indexOf(INDEX_NAME_DELIMITER);
-        if (prefixEnd != -1) {
-          String prefix = index.substring(0, prefixEnd);
-          if (includeIndices.contains(prefix)) {
-            String latestIndex = latestIndices.get(prefix);
-            if (latestIndex == null || index.compareTo(latestIndex) > 0) {
-              latestIndices.put(prefix, index);
-            }
+      int prefixEnd = index.indexOf(INDEX_NAME_DELIMITER);
+      if (prefixEnd != -1) {
+        String prefix = index.substring(0, prefixEnd);
+        if (includeIndices.contains(prefix)) {
+          String latestIndex = latestIndices.get(prefix);
+          if (latestIndex == null || index.compareTo(latestIndex) > 0) {
+            latestIndices.put(prefix, index);
           }
         }
       }

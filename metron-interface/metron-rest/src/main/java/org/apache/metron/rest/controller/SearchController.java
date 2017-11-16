@@ -81,7 +81,7 @@ public class SearchController {
     }
   }
 
-  @ApiOperation(value = "Get column metadata for the list of indices with duplicates removed.  Columns that exist in multiple indices with different types will be excluded.")
+  @ApiOperation(value = "Get column metadata for the list of indices with duplicates removed.  Columns that exist in multiple indices with different types will default to type 'other'.")
   @ApiResponse(message = "Column Metadata", code = 200)
   @RequestMapping(value = "/column/metadata", method = RequestMethod.POST)
   ResponseEntity<Map<String, FieldType>> getColumnMetadata(final @ApiParam(name = "indices", value = "Indices", required = true) @RequestBody List<String> indices) throws RestException {

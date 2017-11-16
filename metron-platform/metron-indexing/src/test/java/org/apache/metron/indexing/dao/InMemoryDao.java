@@ -244,16 +244,18 @@ public class InMemoryDao implements IndexDao {
   public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
     Map<String, FieldType> indexColumnMetadata = new HashMap<>();
     for(String index: indices) {
-      Map<String, FieldType> columnMetadata = COLUMN_METADATA.get(index);
-      for (Entry entry: columnMetadata.entrySet()) {
-        String field = (String) entry.getKey();
-        FieldType type = (FieldType) entry.getValue();
-        if (indexColumnMetadata.containsKey(field)) {
-          if (!type.equals(indexColumnMetadata.get(field))) {
-            indexColumnMetadata.put(field, FieldType.OTHER);
+      if (COLUMN_METADATA.containsKey(index)) {
+        Map<String, FieldType> columnMetadata = COLUMN_METADATA.get(index);
+        for (Entry entry: columnMetadata.entrySet()) {
+          String field = (String) entry.getKey();
+          FieldType type = (FieldType) entry.getValue();
+          if (indexColumnMetadata.containsKey(field)) {
+            if (!type.equals(indexColumnMetadata.get(field))) {
+              indexColumnMetadata.put(field, FieldType.OTHER);
+            }
+          } else {
+            indexColumnMetadata.put(field, type);
           }
-        } else {
-          indexColumnMetadata.put(field, type);
         }
       }
     }

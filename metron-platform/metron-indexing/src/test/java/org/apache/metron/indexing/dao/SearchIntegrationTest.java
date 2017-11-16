@@ -380,7 +380,7 @@ public abstract class SearchIntegrationTest {
    *     }
    *   }
    * ],
-   * "indices": [],
+   * "indices": ["bro", "snort"],
    * "query": "*"
    * }
    */
@@ -617,6 +617,11 @@ public abstract class SearchIntegrationTest {
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
       Assert.assertEquals(12, fieldTypes.size());
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
+    }
+    // getColumnMetadata with an index that doesn't exist
+    {
+      Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("someindex"));
+      Assert.assertEquals(0, fieldTypes.size());
     }
     //Fields query
     {

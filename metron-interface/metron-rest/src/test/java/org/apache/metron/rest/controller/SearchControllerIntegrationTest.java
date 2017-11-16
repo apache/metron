@@ -262,6 +262,11 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
           .andExpect(jsonPath("$.common_integer_field").value("integer"))
           .andExpect(jsonPath("$.snort_field").value("double"))
           .andExpect(jsonPath("$.duplicate_field").value("long"));
+
+    this.mockMvc.perform(post(searchUrl + "/column/metadata").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[\"someindex\"]"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+        .andExpect(jsonPath("$.*", hasSize(0)));
   }
 
 
