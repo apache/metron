@@ -17,14 +17,9 @@
  */
 package org.apache.metron.indexing.dao;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 import com.fasterxml.jackson.core.type.TypeReference;
-import java.util.Iterator;
-import java.util.Optional;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
@@ -418,14 +413,18 @@ public abstract class SearchIntegrationTest {
     {
       List<GetRequest> request = JSONUtils.INSTANCE.load(getAllLatestQuery, new TypeReference<List<GetRequest>>() {
       });
-      Iterator<Document> response = dao.getAllLatest(request).iterator();
-      Document bro2 = response.next();
-      Assert.assertEquals("bro_1", bro2.getDocument().get("guid"));
-      Assert.assertEquals("bro", bro2.getDocument().get("source:type"));
-      Document snort2 = response.next();
-      Assert.assertEquals("bro_2", snort2.getDocument().get("guid"));
-      Assert.assertEquals("bro", snort2.getDocument().get("source:type"));
-      Assert.assertFalse(response.hasNext());
+      Map<String, Document> docs = new HashMap<>();
+
+      for(Document doc : dao.getAllLatest(request)) {
+        docs.put(doc.getGuid(), doc);
+      }
+      Assert.assertEquals(2, docs.size());
+      Assert.assertTrue(docs.keySet().contains("bro-1"));
+      Assert.assertTrue(docs.keySet().contains("bro-2"));
+      for(Map.Entry<String, Document> kv : docs.entrySet()) {
+        Document d = kv.getValue();
+        Assert.assertEquals("bro", d.getDocument().get("source:type"));
+      }
     }
     //Filter test case
     {
