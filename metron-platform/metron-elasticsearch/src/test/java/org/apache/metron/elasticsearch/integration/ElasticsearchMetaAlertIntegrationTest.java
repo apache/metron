@@ -23,29 +23,36 @@ import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERTS_INDEX;
 import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_FIELD;
 import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_TYPE;
 import static org.apache.metron.indexing.dao.MetaAlertDao.STATUS_FIELD;
-import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.Group;
 import org.apache.metron.indexing.dao.search.GroupRequest;
@@ -157,7 +164,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
 
   /**
    * {
-       "metaalert_doc" : {
+       "%MAPPING_NAME%_doc" : {
          "properties" : {
            "guid" : {
              "type" : "keyword"
@@ -176,7 +183,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
    }
    */
   @Multiline
-  public static String templates;
+  public static String template;
 
   @BeforeClass
   public static void setupBefore() throws Exception {
@@ -207,8 +214,8 @@ public class ElasticsearchMetaAlertIntegrationTest {
 
   @Before
   public void setup() throws IOException {
-    es.createIndexWithMapping(METAALERTS_INDEX, MetaAlertDao.METAALERT_DOC,
-        templates);
+    es.createIndexWithMapping(METAALERTS_INDEX, MetaAlertDao.METAALERT_DOC, template.replace("%MAPPING_NAME%", "metaalert"));
+    es.createIndexWithMapping(INDEX, "index_doc", template.replace("%MAPPING_NAME%", "index"));
   }
 
   @AfterClass
@@ -738,7 +745,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
 
     // Query against all indices. The child alert has no actual attached meta alerts, and should
     // be returned on its own.
-    searchResponse = metaDao.search(new SearchRequest() {
+   searchResponse = metaDao.search(new SearchRequest() {
       {
         setQuery(
             "(ip_src_addr:192.168.1.3 AND ip_src_port:8008)"
