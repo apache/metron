@@ -86,7 +86,7 @@ public class KafkaConfig {
     props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
     props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
     if (environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)) {
-      props.put("security.protocol", "SASL_PLAINTEXT");
+      props.put("security.protocol", environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY));
     }
     return props;
   }
@@ -109,7 +109,7 @@ public class KafkaConfig {
     producerConfig.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
     producerConfig.put("request.required.acks", 1);
     if (environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)) {
-      producerConfig.put("security.protocol", "SASL_PLAINTEXT");
+      producerConfig.put("security.protocol", environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY));
     }
     return producerConfig;
   }

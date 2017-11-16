@@ -49,9 +49,10 @@ public class KafkaConfigTest {
     assertNull(consumerProperties.get("security.protocol"));
 
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(true);
+    when(environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY)).thenReturn("kafka security protocol");
 
     consumerProperties = kafkaConfig.consumerProperties();
-    assertEquals("SASL_PLAINTEXT", consumerProperties.get("security.protocol"));
+    assertEquals("kafka security protocol", consumerProperties.get("security.protocol"));
   }
 
   @Test
@@ -64,9 +65,10 @@ public class KafkaConfigTest {
     assertNull(producerProperties.get("security.protocol"));
 
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(true);
+    when(environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY)).thenReturn("kafka security protocol");
 
     producerProperties = kafkaConfig.consumerProperties();
-    assertEquals("SASL_PLAINTEXT", producerProperties.get("security.protocol"));
+    assertEquals("kafka security protocol", producerProperties.get("security.protocol"));
   }
 
 
