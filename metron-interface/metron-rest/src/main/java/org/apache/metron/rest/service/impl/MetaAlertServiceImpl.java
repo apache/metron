@@ -19,10 +19,13 @@
 package org.apache.metron.rest.service.impl;
 
 import java.io.IOException;
+import java.util.Collection;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MetaAlertDao;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertAddRemoveRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.InvalidCreateException;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
@@ -61,6 +64,34 @@ public class MetaAlertServiceImpl implements MetaAlertService {
       return dao.getAllMetaAlertsForAlert(guid);
     } catch (InvalidSearchException ise) {
       throw new RestException(ise.getMessage(), ise);
+    }
+  }
+
+  @Override
+  public boolean addAlertsToMetaAlert(MetaAlertAddRemoveRequest metaAlertAddRemoveRequest) throws RestException {
+    try {
+      return dao.addAlertsToMetaAlert(metaAlertAddRemoveRequest.getMetaAlertGuid(), metaAlertAddRemoveRequest.getAlerts());
+    } catch (IOException ioe) {
+      throw new RestException(ioe.getMessage(), ioe);
+    }
+  }
+
+  @Override
+  public boolean removeAlertsFromMetaAlert(MetaAlertAddRemoveRequest metaAlertAddRemoveRequest) throws RestException {
+    try {
+      return dao.removeAlertsFromMetaAlert(metaAlertAddRemoveRequest.getMetaAlertGuid(), metaAlertAddRemoveRequest.getAlerts());
+    } catch (IOException ioe) {
+      throw new RestException(ioe.getMessage(), ioe);
+    }
+  }
+
+  @Override
+  public boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
+      throws RestException {
+    try {
+      return dao.updateMetaAlertStatus(metaAlertGuid, status);
+    } catch (IOException ioe) {
+      throw new RestException(ioe.getMessage(), ioe);
     }
   }
 }

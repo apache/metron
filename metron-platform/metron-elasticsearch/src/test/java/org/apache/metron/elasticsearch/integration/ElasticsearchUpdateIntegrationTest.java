@@ -152,7 +152,7 @@ public class ElasticsearchUpdateIntegrationTest {
       Assert.assertEquals(message0, doc.getDocument());
       {
         //ensure hbase is up to date
-        Get g = new Get(guid.getBytes());
+        Get g = new Get(HBaseDao.Key.toBytes(new HBaseDao.Key(guid, SENSOR_NAME)));
         Result r = table.get(g);
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
         Assert.assertEquals(1, columns.size());
@@ -190,7 +190,7 @@ public class ElasticsearchUpdateIntegrationTest {
       Assert.assertEquals(message0, doc.getDocument());
       {
         //ensure hbase is up to date
-        Get g = new Get(guid.getBytes());
+        Get g = new Get(HBaseDao.Key.toBytes(new HBaseDao.Key(guid, SENSOR_NAME)));
         Result r = table.get(g);
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
         Assert.assertEquals(2, columns.size());

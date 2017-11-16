@@ -21,20 +21,12 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.common.utils.KeyUtil;
 import org.apache.metron.enrichment.lookup.LookupKey;
 
 import java.io.*;
 
 public class EnrichmentKey implements LookupKey {
-  private static final int SEED = 0xDEADBEEF;
-  private static final int HASH_PREFIX_SIZE=16;
-  ThreadLocal<HashFunction> hFunction= new ThreadLocal<HashFunction>() {
-    @Override
-    protected HashFunction initialValue() {
-      return Hashing.murmur3_128(SEED);
-    }
-  };
-
   public String indicator;
   public String type;
 
@@ -63,21 +55,14 @@ public class EnrichmentKey implements LookupKey {
     } catch (IOException e) {
       throw new RuntimeException("Unable to convert type and indicator to bytes", e);
     }
-    Hasher hasher = hFunction.get().newHasher();
-    hasher.putBytes(Bytes.toBytes(indicator));
-    byte[] prefix = hasher.hash().asBytes();
-    byte[] val = new byte[indicatorBytes.length + prefix.length];
-    int offset = 0;
-    System.arraycopy(prefix, 0, val, offset, prefix.length);
-    offset += prefix.length;
-    System.arraycopy(indicatorBytes, 0, val, offset, indicatorBytes.length);
-    return val;
+    byte[] prefix = KeyUtil.INSTANCE.getPrefix(Bytes.toBytes(indicator));
+    return KeyUtil.INSTANCE.merge(prefix, indicatorBytes);
   }
 
   @Override
   public void fromBytes(byte[] row) {
     ByteArrayInputStream baos = new ByteArrayInputStream(row);
-    baos.skip(HASH_PREFIX_SIZE);
+    baos.skip(KeyUtil.HASH_PREFIX_SIZE);
     DataInputStream w = new DataInputStream(baos);
     try {
       type = w.readUTF();
