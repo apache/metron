@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -44,13 +43,13 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao;
-import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.Group;
 import org.apache.metron.indexing.dao.search.GroupRequest;
@@ -547,24 +546,34 @@ public class ElasticsearchMetaAlertIntegrationTest {
 
   @Test
   public void shouldUpdateMetaAlertStatus() throws Exception {
+    int numChildAlerts = 25;
+    int numUnrelatedAlerts = 25;
+    int totalAlerts = numChildAlerts + numUnrelatedAlerts;
+
     // Load alerts
-    List<Map<String, Object>> alerts = buildAlerts(3);
-    alerts.get(0).put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
-    alerts.get(1).put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
+    List<Map<String, Object>> alerts = buildAlerts(totalAlerts);
+    List<Map<String, Object>> childAlerts = alerts.subList(0, numChildAlerts);
+    List<Map<String, Object>> unrelatedAlerts = alerts.subList(numChildAlerts, totalAlerts);
+    for (Map<String, Object> alert : childAlerts) {
+      alert.put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
+    }
     elasticsearchAdd(alerts, INDEX, SENSOR_NAME);
 
     // Load metaAlerts
     Map<String, Object> metaAlert = buildMetaAlert("meta_alert", MetaAlertStatus.ACTIVE,
-        Optional.of(Arrays.asList(alerts.get(0), alerts.get(1))));
+        Optional.of(childAlerts));
     // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
-    elasticsearchAdd(Collections.singletonList(metaAlert), METAALERTS_INDEX, MetaAlertDao.METAALERT_TYPE);
+    elasticsearchAdd(Collections.singletonList(metaAlert), METAALERTS_INDEX,
+        MetaAlertDao.METAALERT_TYPE);
+
+    List<GetRequest> requests = new ArrayList<>();
+    for (int i = 0; i < numChildAlerts; ++i) {
+      requests.add(new GetRequest("message_" + i, SENSOR_NAME));
+    }
+    requests.add(new GetRequest("meta_alert", METAALERT_TYPE));
 
     // Verify load was successful
-    findCreatedDocs(Arrays.asList(
-        new GetRequest("message_0", SENSOR_NAME),
-        new GetRequest("message_1", SENSOR_NAME),
-        new GetRequest("message_2", SENSOR_NAME),
-        new GetRequest("meta_alert", METAALERT_TYPE)));
+    findCreatedDocs(requests);
 
     {
       // Verify status changed to inactive and child alerts are updated
@@ -575,16 +584,18 @@ public class ElasticsearchMetaAlertIntegrationTest {
 
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
 
-      Map<String, Object> expectedAlert0 = new HashMap<>(alerts.get(0));
-      expectedAlert0.put("metaalerts", new ArrayList());
-      findUpdatedDoc(expectedAlert0, "message_0", SENSOR_NAME);
+      for (int i = 0; i < numChildAlerts; ++i) {
+        Map<String, Object> expectedAlert = new HashMap<>(childAlerts.get(i));
+        expectedAlert.put("metaalerts", new ArrayList());
+        findUpdatedDoc(expectedAlert, "message_" + i, SENSOR_NAME);
+      }
 
-      Map<String, Object> expectedAlert1 = new HashMap<>(alerts.get(1));
-      expectedAlert1.put("metaalerts", new ArrayList());
-      findUpdatedDoc(expectedAlert1, "message_1", SENSOR_NAME);
-
-      Map<String, Object> expectedAlert2 = new HashMap<>(alerts.get(2));
-      findUpdatedDoc(expectedAlert2, "message_2", SENSOR_NAME);
+      // Ensure unrelated alerts are unaffected
+      for (int i = 0; i < numUnrelatedAlerts; ++i) {
+        Map<String, Object> expectedAlert = new HashMap<>(unrelatedAlerts.get(i));
+        // Make sure to handle the guid offset from creation
+        findUpdatedDoc(expectedAlert, "message_" + (i + numChildAlerts), SENSOR_NAME);
+      }
     }
 
     {
@@ -596,25 +607,37 @@ public class ElasticsearchMetaAlertIntegrationTest {
 
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
 
-      Map<String, Object> expectedAlert0 = new HashMap<>(alerts.get(0));
-      expectedAlert0.put("metaalerts", Collections.singletonList("meta_alert"));
-      findUpdatedDoc(expectedAlert0, "message_0", SENSOR_NAME);
+      for (int i = 0; i < numChildAlerts; ++i) {
+        Map<String, Object> expectedAlert = new HashMap<>(alerts.get(i));
+        expectedAlert.put("metaalerts", Collections.singletonList("meta_alert"));
+        findUpdatedDoc(expectedAlert, "message_" + i, SENSOR_NAME);
+      }
 
-      Map<String, Object> expectedAlert1 = new HashMap<>(alerts.get(1));
-      expectedAlert1.put("metaalerts", Collections.singletonList("meta_alert"));
-      findUpdatedDoc(expectedAlert1, "message_1", SENSOR_NAME);
-
-      Map<String, Object> expectedAlert2 = new HashMap<>(alerts.get(2));
-      findUpdatedDoc(expectedAlert2, "message_2", SENSOR_NAME);
+      // Ensure unrelated alerts are unaffected
+      for (int i = 0; i < numUnrelatedAlerts; ++i) {
+        Map<String, Object> expectedAlert = new HashMap<>(unrelatedAlerts.get(i));
+        // Make sure to handle the guid offset from creation
+        findUpdatedDoc(expectedAlert, "message_" + (i + numChildAlerts), SENSOR_NAME);
+      }
 
       {
         // Verify status changed to current status has no effect
         Assert.assertFalse(metaDao.updateMetaAlertStatus("meta_alert", MetaAlertStatus.ACTIVE));
 
         findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
-        findUpdatedDoc(expectedAlert0, "message_0", SENSOR_NAME);
-        findUpdatedDoc(expectedAlert1, "message_1", SENSOR_NAME);
-        findUpdatedDoc(expectedAlert2, "message_2", SENSOR_NAME);
+
+        for (int i = 0; i < numChildAlerts; ++i) {
+          Map<String, Object> expectedAlert = new HashMap<>(alerts.get(i));
+          expectedAlert.put("metaalerts", Collections.singletonList("meta_alert"));
+          findUpdatedDoc(expectedAlert, "message_" + i, SENSOR_NAME);
+        }
+
+        // Ensure unrelated alerts are unaffected
+        for (int i = 0; i < numUnrelatedAlerts; ++i) {
+          Map<String, Object> expectedAlert = new HashMap<>(unrelatedAlerts.get(i));
+          // Make sure to handle the guid offset from creation
+          findUpdatedDoc(expectedAlert, "message_" + (i + numChildAlerts), SENSOR_NAME);
+        }
       }
     }
   }
@@ -1015,7 +1038,7 @@ public class ElasticsearchMetaAlertIntegrationTest {
         return;
       }
     }
-    throw new OriginalNotFoundException("Count not find " + guid + " after " + MAX_RETRIES + "tries");
+    throw new OriginalNotFoundException("Count not find " + guid + " after " + MAX_RETRIES + " tries");
   }
 
   protected boolean findCreatedDoc(String guid, String sensorType)
