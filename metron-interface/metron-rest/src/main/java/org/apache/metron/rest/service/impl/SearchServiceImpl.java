@@ -58,13 +58,10 @@ public class SearchServiceImpl implements SearchService {
   @Override
   public SearchResponse search(SearchRequest searchRequest) throws RestException {
     try {
-      // Pull the indices from the cache by default
       if (searchRequest.getIndices() == null || searchRequest.getIndices().isEmpty()) {
-        List<String> indices = Lists.newArrayList((sensorIndexingConfigService.getAllIndices(environment.getProperty(INDEX_WRITER_NAME))));
-        // metaalerts should be included by default
+        List<String> indices = getDefaultIndices();
+        // metaalerts should be included by default in search requests
         indices.add(METAALERT_TYPE);
-        // errors should not be included by default
-        indices.remove(ERROR_TYPE);
         searchRequest.setIndices(indices);
       }
       return dao.search(searchRequest);
@@ -77,6 +74,9 @@ public class SearchServiceImpl implements SearchService {
   @Override
   public GroupResponse group(GroupRequest groupRequest) throws RestException {
     try {
+      if (groupRequest.getIndices() == null || groupRequest.getIndices().isEmpty()) {
+        groupRequest.setIndices(getDefaultIndices());
+      }
       return dao.group(groupRequest);
     }
     catch(InvalidSearchException ise) {
@@ -111,5 +111,13 @@ public class SearchServiceImpl implements SearchService {
     catch(IOException ioe) {
       throw new RestException(ioe.getMessage(), ioe);
     }
+  }
+
+  private List<String> getDefaultIndices() throws RestException {
+    // Pull the indices from the cache by default
+    List<String> indices = Lists.newArrayList((sensorIndexingConfigService.getAllIndices(environment.getProperty(INDEX_WRITER_NAME))));
+    // errors should not be included by default
+    indices.remove(ERROR_TYPE);
+    return indices;
   }
 }

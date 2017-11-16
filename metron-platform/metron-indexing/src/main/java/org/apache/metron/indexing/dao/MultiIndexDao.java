@@ -30,6 +30,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
@@ -127,6 +128,25 @@ public class MultiIndexDao implements IndexDao {
 
   }
 
+  private static class DocumentIterableContainer {
+    private Optional<Iterable<Document>> d = Optional.empty();
+    private Optional<Throwable> t = Optional.empty();
+    public DocumentIterableContainer(Iterable<Document> d) {
+      this.d = Optional.ofNullable(d);
+    }
+    public DocumentIterableContainer(Throwable t) {
+      this.t = Optional.ofNullable(t);
+    }
+
+    public Optional<Iterable<Document>> getDocumentIterable() {
+      return d;
+    }
+    public Optional<Throwable> getException() {
+      return t;
+    }
+
+  }
+
   @Override
   public SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
     for(IndexDao dao : indices) {
@@ -179,6 +199,40 @@ public class MultiIndexDao implements IndexDao {
           Document d = dc.getDocument().get();
           if(ret == null || ret.getTimestamp() < d.getTimestamp()) {
             ret = d;
+          }
+        }
+      }
+    }
+    if(error.size() > 0) {
+      throw new IOException(Joiner.on("\n").join(error));
+    }
+    return ret;
+  }
+
+  @Override
+  public Iterable<Document> getAllLatest(
+      List<GetRequest> getRequests) throws IOException {
+    Iterable<Document> ret = null;
+    List<DocumentIterableContainer> output =
+        indices.parallelStream().map(dao -> {
+          try {
+            return new DocumentIterableContainer(dao.getAllLatest(getRequests));
+          } catch (Throwable e) {
+            return new DocumentIterableContainer(e);
+          }
+        }).collect(Collectors.toList());
+
+    List<String> error = new ArrayList<>();
+    for(DocumentIterableContainer dc : output) {
+      if(dc.getException().isPresent()) {
+        Throwable e = dc.getException().get();
+        error.add(e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
+      }
+      else {
+        if(dc.getDocumentIterable().isPresent()) {
+          Iterable<Document> documents = dc.getDocumentIterable().get();
+          if(ret == null) {
+            ret = documents;
           }
         }
       }

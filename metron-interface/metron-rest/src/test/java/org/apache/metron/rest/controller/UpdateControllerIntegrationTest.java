@@ -24,6 +24,7 @@ import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.indexing.dao.HBaseDao;
 import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.rest.service.UpdateService;
@@ -161,7 +162,7 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
     Assert.assertEquals(1,table.size());
     {
         //ensure hbase is up to date
-        Get g = new Get(guid.getBytes());
+        Get g = new Get(new HBaseDao.Key(guid,"bro").toBytes());
         Result r = table.get(g);
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
         Assert.assertEquals(1, columns.size());
@@ -183,7 +184,7 @@ public class UpdateControllerIntegrationTest extends DaoControllerTest {
     Assert.assertEquals(1,table.size());
     {
         //ensure hbase is up to date
-        Get g = new Get(guid.getBytes());
+        Get g = new Get(new HBaseDao.Key(guid, "bro").toBytes());
         Result r = table.get(g);
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
         Assert.assertEquals(2, columns.size());

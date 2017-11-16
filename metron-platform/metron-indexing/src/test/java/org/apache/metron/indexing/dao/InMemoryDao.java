@@ -17,10 +17,13 @@
  */
 package org.apache.metron.indexing.dao;
 
+import static org.apache.metron.common.Constants.SENSOR_TYPE;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Iterables;
+import java.util.stream.Collectors;
 import java.util.Map.Entry;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
@@ -33,7 +36,7 @@ import java.util.*;
 public class InMemoryDao implements IndexDao {
   // Map from index to list of documents as JSON strings
   public static Map<String, List<String>> BACKING_STORE = new HashMap<>();
-  public static Map<String, Map<String, FieldType>> COLUMN_METADATA;
+  public static Map<String, Map<String, FieldType>> COLUMN_METADATA = new HashMap<>();
   private AccessConfig config;
 
   @Override
@@ -170,7 +173,7 @@ public class InMemoryDao implements IndexDao {
     return false;
   }
 
-  private static Map<String, Object> parse(String doc) {
+  public static Map<String, Object> parse(String doc) {
     try {
       return JSONUtils.INSTANCE.load(doc, new TypeReference<Map<String, Object>>() {});
     } catch (IOException e) {
@@ -197,6 +200,24 @@ public class InMemoryDao implements IndexDao {
       }
     }
     return null;
+  }
+
+  @Override
+  public Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException {
+    List<Document> documents = new ArrayList<>();
+    for(Map.Entry<String, List<String>> kv: BACKING_STORE.entrySet()) {
+      for(String doc : kv.getValue()) {
+        Map<String, Object> docParsed = parse(doc);
+        String guid = (String) docParsed.getOrDefault(Constants.GUID, "");
+        for (GetRequest getRequest: getRequests) {
+          if(getRequest.getGuid().equals(guid)) {
+            documents.add(new Document(doc, guid, getRequest.getSensorType(), 0L));
+          }
+        }
+
+      }
+    }
+    return documents;
   }
 
   @Override
