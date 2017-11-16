@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.Iterator;
 import java.util.Optional;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.utils.JSONUtils;
@@ -36,6 +38,9 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.integration.InMemoryComponent;
 import org.junit.AfterClass;
+import org.apache.metron.indexing.dao.search.GroupResult;
+import org.apache.metron.indexing.dao.update.Document;
+import org.apache.metron.integration.InMemoryComponent;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -101,6 +106,21 @@ public abstract class SearchIntegrationTest {
    */
   @Multiline
   public static String findOneGuidQuery;
+
+  /**
+   * [
+   * {
+   * "guid": "bro-1",
+   * "sensorType": "bro"
+   * },
+   * {
+   * "guid": "bro-2",
+   * "sensorType": "bro"
+   * }
+   * ]
+   */
+  @Multiline
+  public static String getAllLatestQuery;
 
   /**
    * {
@@ -380,17 +400,171 @@ public abstract class SearchIntegrationTest {
   @Test
   public void all_query_returns_all_results() throws Exception {
     //All Query Testcase
-    SearchRequest request = JSONUtils.INSTANCE.load(allQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
-    Assert.assertEquals(10, response.getTotal());
-    List<SearchResult> results = response.getResults();
-    for (int i = 0; i < 5; ++i) {
-      Assert.assertEquals("snort", results.get(i).getSource().get("source:type"));
-      Assert.assertEquals(10 - i, results.get(i).getSource().get("timestamp"));
+    {
+      SearchRequest request = JSONUtils.INSTANCE.load(allQuery, SearchRequest.class);
+      SearchResponse response = dao.search(request);
+      Assert.assertEquals(10, response.getTotal());
+      List<SearchResult> results = response.getResults();
+      for (int i = 0; i < 5; ++i) {
+        Assert.assertEquals("snort", results.get(i).getSource().get("source:type"));
+        Assert.assertEquals(10 - i, results.get(i).getSource().get("timestamp"));
+      }
+      for (int i = 5; i < 10; ++i) {
+        Assert.assertEquals("bro", results.get(i).getSource().get("source:type"));
+        Assert.assertEquals(10 - i, results.get(i).getSource().get("timestamp"));
+      }
     }
-    for (int i = 5; i < 10; ++i) {
-      Assert.assertEquals("bro", results.get(i).getSource().get("source:type"));
-      Assert.assertEquals(10 - i, results.get(i).getSource().get("timestamp"));
+    //Get All Latest Guid Testcase
+    {
+      List<GetRequest> request = JSONUtils.INSTANCE.load(getAllLatestQuery, new TypeReference<List<GetRequest>>() {
+      });
+      Iterator<Document> response = dao.getAllLatest(request).iterator();
+      Document bro2 = response.next();
+      Assert.assertEquals("bro_1", bro2.getDocument().get("guid"));
+      Assert.assertEquals("bro", bro2.getDocument().get("source:type"));
+      Document snort2 = response.next();
+      Assert.assertEquals("bro_2", snort2.getDocument().get("guid"));
+      Assert.assertEquals("bro", snort2.getDocument().get("source:type"));
+      Assert.assertFalse(response.hasNext());
+    }
+    //Filter test case
+    {
+      SearchRequest request = JSONUtils.INSTANCE.load(filterQuery, SearchRequest.class);
+      SearchResponse response = dao.search(request);
+      Assert.assertEquals(3, response.getTotal());
+      List<SearchResult> results = response.getResults();
+      Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
+      Assert.assertEquals(9, results.get(0).getSource().get("timestamp"));
+      Assert.assertEquals("snort", results.get(1).getSource().get("source:type"));
+      Assert.assertEquals(7, results.get(1).getSource().get("timestamp"));
+      Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
+      Assert.assertEquals(1, results.get(2).getSource().get("timestamp"));
+    }
+    //Sort test case
+    {
+      SearchRequest request = JSONUtils.INSTANCE.load(sortQuery, SearchRequest.class);
+      SearchResponse response = dao.search(request);
+      Assert.assertEquals(10, response.getTotal());
+      List<SearchResult> results = response.getResults();
+      for(int i = 8001;i < 8011;++i) {
+        Assert.assertEquals(i, results.get(i-8001).getSource().get("ip_src_port"));
+      }
+    }
+    //pagination test case
+    {
+      SearchRequest request = JSONUtils.INSTANCE.load(paginationQuery, SearchRequest.class);
+      SearchResponse response = dao.search(request);
+      Assert.assertEquals(10, response.getTotal());
+      List<SearchResult> results = response.getResults();
+      Assert.assertEquals(3, results.size());
+      Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
+      Assert.assertEquals(6, results.get(0).getSource().get("timestamp"));
+      Assert.assertEquals("bro", results.get(1).getSource().get("source:type"));
+      Assert.assertEquals(5, results.get(1).getSource().get("timestamp"));
+      Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
+      Assert.assertEquals(4, results.get(2).getSource().get("timestamp"));
+    }
+    //Index query
+    {
+      SearchRequest request = JSONUtils.INSTANCE.load(indexQuery, SearchRequest.class);
+      SearchResponse response = dao.search(request);
+      Assert.assertEquals(5, response.getTotal());
+      List<SearchResult> results = response.getResults();
+      for(int i = 5,j=0;i > 0;i--,j++) {
+        Assert.assertEquals("bro", results.get(j).getSource().get("source:type"));
+        Assert.assertEquals(i, results.get(j).getSource().get("timestamp"));
+      }
+    }
+    //Facet query including all field types
+    {
+      SearchRequest request = JSONUtils.INSTANCE.load(facetQuery, SearchRequest.class);
+      SearchResponse response = dao.search(request);
+      Assert.assertEquals(10, response.getTotal());
+      Map<String, Map<String, Long>> facetCounts = response.getFacetCounts();
+      Assert.assertEquals(8, facetCounts.size());
+      Map<String, Long> sourceTypeCounts = facetCounts.get("source:type");
+      Assert.assertEquals(2, sourceTypeCounts.size());
+      Assert.assertEquals(new Long(5), sourceTypeCounts.get("bro"));
+      Assert.assertEquals(new Long(5), sourceTypeCounts.get("snort"));
+      Map<String, Long> ipSrcAddrCounts = facetCounts.get("ip_src_addr");
+      Assert.assertEquals(8, ipSrcAddrCounts.size());
+      Assert.assertEquals(new Long(3), ipSrcAddrCounts.get("192.168.1.1"));
+      Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.2"));
+      Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.3"));
+      Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.4"));
+      Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.5"));
+      Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.6"));
+      Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.7"));
+      Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.8"));
+      Map<String, Long> ipSrcPortCounts = facetCounts.get("ip_src_port");
+      Assert.assertEquals(10, ipSrcPortCounts.size());
+      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8001"));
+      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8002"));
+      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8003"));
+      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8004"));
+      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8005"));
+      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8006"));
+      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8007"));
+      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8008"));
+      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8009"));
+      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8010"));
+      Map<String, Long> longFieldCounts = facetCounts.get("long_field");
+      Assert.assertEquals(2, longFieldCounts.size());
+      Assert.assertEquals(new Long(8), longFieldCounts.get("10000"));
+      Assert.assertEquals(new Long(2), longFieldCounts.get("20000"));
+      Map<String, Long> timestampCounts = facetCounts.get("timestamp");
+      Assert.assertEquals(10, timestampCounts.size());
+      Assert.assertEquals(new Long(1), timestampCounts.get("1"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("2"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("3"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("4"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("5"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("6"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("7"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("8"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("9"));
+      Assert.assertEquals(new Long(1), timestampCounts.get("10"));
+      Map<String, Long> latitudeCounts = facetCounts.get("latitude");
+      Assert.assertEquals(2, latitudeCounts.size());
+      List<String> latitudeKeys = new ArrayList<>(latitudeCounts.keySet());
+      Collections.sort(latitudeKeys);
+      Assert.assertEquals(48.0001, Double.parseDouble(latitudeKeys.get(0)), 0.00001);
+      Assert.assertEquals(48.5839, Double.parseDouble(latitudeKeys.get(1)), 0.00001);
+      Assert.assertEquals(new Long(2), latitudeCounts.get(latitudeKeys.get(0)));
+      Assert.assertEquals(new Long(8), latitudeCounts.get(latitudeKeys.get(1)));
+      Map<String, Long> scoreFieldCounts = facetCounts.get("score");
+      Assert.assertEquals(4, scoreFieldCounts.size());
+      List<String> scoreFieldKeys = new ArrayList<>(scoreFieldCounts.keySet());
+      Collections.sort(scoreFieldKeys);
+      Assert.assertEquals(10.0, Double.parseDouble(scoreFieldKeys.get(0)), 0.00001);
+      Assert.assertEquals(20.0, Double.parseDouble(scoreFieldKeys.get(1)), 0.00001);
+      Assert.assertEquals(50.0, Double.parseDouble(scoreFieldKeys.get(2)), 0.00001);
+      Assert.assertEquals(98.0, Double.parseDouble(scoreFieldKeys.get(3)), 0.00001);
+      Assert.assertEquals(new Long(4), scoreFieldCounts.get(scoreFieldKeys.get(0)));
+      Assert.assertEquals(new Long(2), scoreFieldCounts.get(scoreFieldKeys.get(1)));
+      Assert.assertEquals(new Long(3), scoreFieldCounts.get(scoreFieldKeys.get(2)));
+      Assert.assertEquals(new Long(1), scoreFieldCounts.get(scoreFieldKeys.get(3)));
+      Map<String, Long> isAlertCounts = facetCounts.get("is_alert");
+      Assert.assertEquals(2, isAlertCounts.size());
+      Assert.assertEquals(new Long(6), isAlertCounts.get("true"));
+      Assert.assertEquals(new Long(4), isAlertCounts.get("false"));
+    }
+    //Bad facet query
+    {
+      SearchRequest request = JSONUtils.INSTANCE.load(badFacetQuery, SearchRequest.class);
+      try {
+        dao.search(request);
+        Assert.fail("Exception expected, but did not come.");
+      }
+      catch(InvalidSearchException ise) {
+        Assert.assertEquals("Could not execute search", ise.getMessage());
+      }
+    }
+    //Disabled facet query
+    {
+      SearchRequest request = JSONUtils.INSTANCE.load(disabledFacetQuery, SearchRequest.class);
+      SearchResponse response = dao.search(request);
+      Assert.assertNull(response.getFacetCounts());
     }
   }
 
