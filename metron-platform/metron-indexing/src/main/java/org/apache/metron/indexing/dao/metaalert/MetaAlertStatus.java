@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.elasticsearch.dao;
+package org.apache.metron.indexing.dao.metaalert;
 
 public enum MetaAlertStatus {
   ACTIVE("active"),

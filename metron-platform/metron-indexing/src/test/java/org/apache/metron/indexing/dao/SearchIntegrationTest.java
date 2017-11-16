@@ -17,6 +17,7 @@
  */
 package org.apache.metron.indexing.dao;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
@@ -28,6 +29,7 @@ import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
+import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.integration.InMemoryComponent;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -37,6 +39,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -100,6 +103,21 @@ public abstract class SearchIntegrationTest {
    */
   @Multiline
   public static String findOneGuidQuery;
+
+  /**
+   * [
+   * {
+   * "guid": "bro-1",
+   * "sensorType": "bro"
+   * },
+   * {
+   * "guid": "bro-2",
+   * "sensorType": "bro"
+   * }
+   * ]
+   */
+  @Multiline
+  public static String getAllLatestQuery;
 
   /**
    * {
@@ -429,6 +447,19 @@ public abstract class SearchIntegrationTest {
       Map<String, Object> doc = response.get();
       Assert.assertEquals("bro", doc.get("source:type"));
       Assert.assertEquals(3, doc.get("timestamp"));
+    }
+    //Get All Latest Guid Testcase
+    {
+      List<GetRequest> request = JSONUtils.INSTANCE.load(getAllLatestQuery, new TypeReference<List<GetRequest>>() {
+      });
+      Iterator<Document> response = dao.getAllLatest(request).iterator();
+      Document bro2 = response.next();
+      Assert.assertEquals("bro_1", bro2.getDocument().get("guid"));
+      Assert.assertEquals("bro", bro2.getDocument().get("source:type"));
+      Document snort2 = response.next();
+      Assert.assertEquals("bro_2", snort2.getDocument().get("guid"));
+      Assert.assertEquals("bro", snort2.getDocument().get("source:type"));
+      Assert.assertFalse(response.hasNext());
     }
     //Filter test case
     {

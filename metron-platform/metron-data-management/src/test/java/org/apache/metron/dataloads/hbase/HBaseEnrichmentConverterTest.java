@@ -34,6 +34,15 @@ import java.util.HashMap;
 
 
 public class HBaseEnrichmentConverterTest {
+    public static byte[] keyBytes = new byte[] {
+            0x31,(byte)0xc2,0x49,0x05,0x6b,(byte)0xea,
+            0x0e,0x59,(byte)0xe1,(byte)0xad,(byte)0xa0,0x24,
+            0x55,(byte)0xa9,0x6b,0x63,0x00,0x06,
+            0x64,0x6f,0x6d,0x61,0x69,0x6e,
+            0x00,0x06,0x67,0x6f,0x6f,0x67,
+            0x6c,0x65
+    };
+
     EnrichmentKey key = new EnrichmentKey("domain", "google");
     EnrichmentValue value = new EnrichmentValue(
             new HashMap<String, Object>() {{
@@ -41,6 +50,18 @@ public class HBaseEnrichmentConverterTest {
                 put("grok", "baz");
             }});
     LookupKV<EnrichmentKey, EnrichmentValue> results = new LookupKV(key, value);
+
+    /**
+     * IF this test fails then you have broken the key serialization in that your change has
+     * caused a key to change serialization, so keys from previous releases will not be able to be found
+     * under your scheme.  Please either provide a migration plan or undo this change.  DO NOT CHANGE THIS
+     * TEST BLITHELY!
+     */
+    @Test
+    public void testKeySerializationRemainsConstant() {
+        byte[] raw = key.toBytes();
+        Assert.assertArrayEquals(raw, keyBytes);
+    }
     @Test
     public void testKeySerialization() {
         byte[] serialized = key.toBytes();

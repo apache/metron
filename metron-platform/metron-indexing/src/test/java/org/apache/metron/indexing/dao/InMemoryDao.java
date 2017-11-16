@@ -24,16 +24,35 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.indexing.dao.search.*;
+import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.search.Group;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
+import org.apache.metron.indexing.dao.search.GroupResult;
+import org.apache.metron.indexing.dao.search.InvalidSearchException;
+import org.apache.metron.indexing.dao.search.SearchRequest;
+import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.search.SearchResult;
+import org.apache.metron.indexing.dao.search.SortField;
+import org.apache.metron.indexing.dao.search.SortOrder;
 import org.apache.metron.indexing.dao.update.Document;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 public class InMemoryDao implements IndexDao {
   // Map from index to list of documents as JSON strings
   public static Map<String, List<String>> BACKING_STORE = new HashMap<>();
-  public static Map<String, Map<String, FieldType>> COLUMN_METADATA;
+  public static Map<String, Map<String, FieldType>> COLUMN_METADATA = new HashMap<>();
   private AccessConfig config;
 
   @Override
@@ -171,7 +190,7 @@ public class InMemoryDao implements IndexDao {
     return false;
   }
 
-  private static Map<String, Object> parse(String doc) {
+  public static Map<String, Object> parse(String doc) {
     try {
       return JSONUtils.INSTANCE.load(doc, new TypeReference<Map<String, Object>>() {});
     } catch (IOException e) {
@@ -198,6 +217,24 @@ public class InMemoryDao implements IndexDao {
       }
     }
     return null;
+  }
+
+  @Override
+  public Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException {
+    List<Document> documents = new ArrayList<>();
+    for(Map.Entry<String, List<String>> kv: BACKING_STORE.entrySet()) {
+      for(String doc : kv.getValue()) {
+        Map<String, Object> docParsed = parse(doc);
+        String guid = (String) docParsed.getOrDefault(Constants.GUID, "");
+        for (GetRequest getRequest: getRequests) {
+          if(getRequest.getGuid().equals(guid)) {
+            documents.add(new Document(doc, guid, getRequest.getSensorType(), 0L));
+          }
+        }
+
+      }
+    }
+    return documents;
   }
 
   @Override
