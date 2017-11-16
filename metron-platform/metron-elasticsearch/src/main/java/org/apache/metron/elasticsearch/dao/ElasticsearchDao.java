@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
@@ -408,6 +409,12 @@ public class ElasticsearchDao implements IndexDao {
   @Override
   public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
     Map<String, FieldType> indexColumnMetadata = new HashMap<>();
+
+    // Keep track of the last index used to inspect a field type so we can print a helpful error message on type mismatch
+    Map<String, String> previousIndices = new HashMap<>();
+    // If we have detected a field type mismatch, ignore the field going forward since the type has been set to OTHER
+    Set<String> fieldBlackList = new HashSet<>();
+
     String[] latestIndices = getLatestIndices(indices);
     ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings = client
             .admin()
@@ -423,13 +430,23 @@ public class ElasticsearchDao implements IndexDao {
         MappingMetaData mappingMetaData = mapping.get(mappingIterator.next());
         Map<String, Map<String, String>> map = (Map<String, Map<String, String>>) mappingMetaData.getSourceAsMap().get("properties");
         for(String field: map.keySet()) {
-          FieldType type = elasticsearchSearchTypeMap.getOrDefault(map.get(field).get("type"), FieldType.OTHER);
-          if (indexColumnMetadata.containsKey(field)) {
-            if (!type.equals(indexColumnMetadata.get(field))) {
-              indexColumnMetadata.remove(field);
+          if (!fieldBlackList.contains(field)) {
+            FieldType type = elasticsearchSearchTypeMap.getOrDefault(map.get(field).get("type"), FieldType.OTHER);
+            if (indexColumnMetadata.containsKey(field)) {
+              FieldType previousType = indexColumnMetadata.get(field);
+              if (!type.equals(previousType)) {
+                String previousIndexName = previousIndices.get(field);
+                LOG.error(String.format("Field type mismatch: %s.%s has type %s while %s.%s has type %s.  Defaulting type to %s.",
+                    indexName, field, type.getFieldType(),
+                    previousIndexName, field, previousType.getFieldType(), FieldType.OTHER.getFieldType()));
+                indexColumnMetadata.put(field, FieldType.OTHER);
+                // Detected a type mismatch so ignore the field from now on
+                fieldBlackList.add(field);
+              }
+            } else {
+              indexColumnMetadata.put(field, type);
+              previousIndices.put(field, indexName);
             }
-          } else {
-            indexColumnMetadata.put(field, type);
           }
         }
       }

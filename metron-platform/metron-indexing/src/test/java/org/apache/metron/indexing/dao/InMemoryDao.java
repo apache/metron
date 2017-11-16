@@ -17,13 +17,10 @@
  */
 package org.apache.metron.indexing.dao;
 
-import static org.apache.metron.common.Constants.SENSOR_TYPE;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Iterables;
-import java.util.stream.Collectors;
 import java.util.Map.Entry;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
@@ -253,7 +250,7 @@ public class InMemoryDao implements IndexDao {
         FieldType type = (FieldType) entry.getValue();
         if (indexColumnMetadata.containsKey(field)) {
           if (!type.equals(indexColumnMetadata.get(field))) {
-            indexColumnMetadata.remove(field);
+            indexColumnMetadata.put(field, FieldType.OTHER);
           }
         } else {
           indexColumnMetadata.put(field, type);

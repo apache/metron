@@ -591,7 +591,7 @@ public abstract class SearchIntegrationTest {
     // getColumnMetadata with multiple indices
     {
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("bro", "snort"));
-      Assert.assertEquals(12, fieldTypes.size());
+      Assert.assertEquals(13, fieldTypes.size());
       Assert.assertEquals(FieldType.STRING, fieldTypes.get("guid"));
       Assert.assertEquals(FieldType.STRING, fieldTypes.get("source:type"));
       Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
@@ -604,6 +604,7 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
       Assert.assertEquals(FieldType.STRING, fieldTypes.get("bro_field"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
+      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("duplicate_name_field"));
     }
     // getColumnMetadata with only bro
     {
