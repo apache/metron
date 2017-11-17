@@ -17,13 +17,11 @@
  */
 package org.apache.metron.indexing.dao;
 
-import static org.apache.metron.common.Constants.SENSOR_TYPE;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Iterables;
-import java.util.stream.Collectors;
+import java.util.Map.Entry;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.*;
@@ -242,25 +240,26 @@ public class InMemoryDao implements IndexDao {
     }
   }
 
-  public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException {
-    Map<String, Map<String, FieldType>> columnMetadata = new HashMap<>();
-    for(String index: indices) {
-      columnMetadata.put(index, new HashMap<>(COLUMN_METADATA.get(index)));
-    }
-    return columnMetadata;
-  }
-
   @Override
-  public Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException {
-    Map<String, FieldType> commonColumnMetadata = new HashMap<>();
+  public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
+    Map<String, FieldType> indexColumnMetadata = new HashMap<>();
     for(String index: indices) {
-      if (commonColumnMetadata.isEmpty()) {
-        commonColumnMetadata = new HashMap<>(COLUMN_METADATA.get(index));
-      } else {
-        commonColumnMetadata.entrySet().retainAll(COLUMN_METADATA.get(index).entrySet());
+      if (COLUMN_METADATA.containsKey(index)) {
+        Map<String, FieldType> columnMetadata = COLUMN_METADATA.get(index);
+        for (Entry entry: columnMetadata.entrySet()) {
+          String field = (String) entry.getKey();
+          FieldType type = (FieldType) entry.getValue();
+          if (indexColumnMetadata.containsKey(field)) {
+            if (!type.equals(indexColumnMetadata.get(field))) {
+              indexColumnMetadata.put(field, FieldType.OTHER);
+            }
+          } else {
+            indexColumnMetadata.put(field, type);
+          }
+        }
       }
     }
-    return commonColumnMetadata;
+    return indexColumnMetadata;
   }
 
   public static void setColumnMetadata(Map<String, Map<String, FieldType>> columnMetadata) {
