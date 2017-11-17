@@ -113,12 +113,14 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    *     "max": { "type": "keyword" },
    *     "count": { "type": "keyword" },
    *     "sum": { "type": "keyword" }
+   *     "source:type": { "type": "text" },
    *   }
    * }
    * }
    */
   @Multiline
-  private static String metaalertTypeMappings;
+  private static String metaAlertTypeMappings;
+
 
   @Override
   protected IndexDao createDao() throws Exception {
@@ -161,7 +163,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     es.getClient().admin().indices().prepareCreate("snort_index_2017.01.01.02")
             .addMapping("snort_doc", snortTypeMappings).get();
     es.getClient().admin().indices().prepareCreate(MetaAlertDao.METAALERTS_INDEX)
-        .addMapping(MetaAlertDao.METAALERT_DOC, metaalertTypeMappings).get();
+        .addMapping(MetaAlertDao.METAALERT_DOC, metaAlertTypeMappings).get();
 
     BulkRequestBuilder bulkRequest = es.getClient().prepareBulk().setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
     JSONArray broArray = (JSONArray) new JSONParser().parse(broData);
