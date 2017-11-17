@@ -20,9 +20,7 @@ package org.apache.metron.indexing.dao;
 import org.apache.metron.hbase.TableProvider;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Supplier;
 
 public class AccessConfig {
