@@ -34,6 +34,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 @Configuration
 public class IndexConfig {
 
@@ -57,6 +61,7 @@ public class IndexConfig {
       int searchMaxGroups = environment.getProperty(MetronRestConstants.SEARCH_MAX_GROUPS, Integer.class, 1000);
       String metaDaoImpl = environment.getProperty(MetronRestConstants.META_DAO_IMPL, String.class, null);
       String metaDaoSort = environment.getProperty(MetronRestConstants.META_DAO_SORT, String.class, null);
+
       AccessConfig config = new AccessConfig();
       config.setMaxSearchResults(searchMaxResults);
       config.setMaxSearchGroups(searchMaxGroups);
@@ -84,6 +89,7 @@ public class IndexConfig {
       MetaAlertDao ret = (MetaAlertDao) IndexDaoFactory.create(metaDaoImpl, config).get(0);
       ret.init(indexDao, Optional.ofNullable(metaDaoSort));
       return ret;
+
     }
     catch(RuntimeException re) {
       throw re;
