@@ -575,7 +575,7 @@ public abstract class SearchIntegrationTest {
     {
       SearchRequest request = JSONUtils.INSTANCE.load(facetQuery, SearchRequest.class);
       SearchResponse response = dao.search(request);
-      Assert.assertEquals(10, response.getTotal());
+      Assert.assertEquals(12, response.getTotal());
 
       Map<String, Map<String, Long>> facetCounts = response.getFacetCounts();
       Assert.assertEquals(8, facetCounts.size());
