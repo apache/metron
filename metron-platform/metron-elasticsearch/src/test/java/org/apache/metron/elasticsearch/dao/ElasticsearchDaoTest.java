@@ -149,7 +149,7 @@ public class ElasticsearchDaoTest {
       JSONObject sortBy = (JSONObject) aSortField.get("sortByStringDesc");
       assertEquals("desc", sortBy.get("order"));
       assertEquals("_last", sortBy.get("missing"));
-      assertEquals("string", sortBy.get("unmapped_type"));
+      assertEquals("text", sortBy.get("unmapped_type"));
     }
     {
       // sort by integer ascending
