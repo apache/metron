@@ -112,8 +112,8 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    *     "median" : { "type": "keyword" },
    *     "max": { "type": "keyword" },
    *     "count": { "type": "keyword" },
-   *     "sum": { "type": "keyword" }
-   *     "source:type": { "type": "text" },
+   *     "sum": { "type": "keyword" },
+   *     "source:type": { "type": "text" }
    *   }
    * }
    * }

@@ -755,7 +755,8 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
     Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
     Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
-    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("duplicate_name_field"));
+    //NOTE: This is because the field is in both bro and snort and they have different types.
+    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("duplicate_name_field"));
   }
 
   @Test
