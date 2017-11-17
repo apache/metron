@@ -96,6 +96,11 @@ public class SearchServiceImpl implements SearchService {
   @Override
   public Map<String, FieldType> getColumnMetadata(List<String> indices) throws RestException {
     try {
+      if (indices == null || indices.isEmpty()) {
+        indices = getDefaultIndices();
+        // metaalerts should be included by default in column metadata requests
+        indices.add(METAALERT_TYPE);
+      }
       return dao.getColumnMetadata(indices);
     }
     catch(IOException ioe) {
