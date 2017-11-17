@@ -255,7 +255,6 @@ public class ElasticsearchDao implements IndexDao {
       Map<String, FieldType> commonColumnMetadata;
       try {
         commonColumnMetadata = getColumnMetadata(searchRequest.getIndices());
-
       } catch (IOException e) {
         throw new InvalidSearchException(String.format(
                 "Could not get common column metadata for indices %s",
