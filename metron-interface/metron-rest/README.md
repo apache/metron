@@ -488,9 +488,9 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 404 - Document with UUID and sensor type not found
     
 ### `GET /api/v1/search/column/metadata`
-  * Description: Get column metadata for the list of indices with duplicates removed.  Columns that exist in multiple indices with different types will default to type 'other'.
+  * Description: Get index column metadata for a list of sensor types with duplicates removed.  Column names and types for each sensor are retrieved from the most recent index.  Columns that exist in multiple indices with different types will default to type 'other'.
   * Input:
-      * indices - Indices
+      * sensorTypes - Sensor Types
   * Returns:
     * 200 - Column Metadata
 
