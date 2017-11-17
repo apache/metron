@@ -21,14 +21,34 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Iterables;
-import java.util.Map.Entry;
+import com.google.common.collect.Ordering;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.indexing.dao.search.*;
+import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.search.Group;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
+import org.apache.metron.indexing.dao.search.GroupResult;
+import org.apache.metron.indexing.dao.search.InvalidSearchException;
+import org.apache.metron.indexing.dao.search.SearchRequest;
+import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.search.SearchResult;
+import org.apache.metron.indexing.dao.search.SortField;
+import org.apache.metron.indexing.dao.search.SortOrder;
 import org.apache.metron.indexing.dao.update.Document;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.UUID;
 
 public class InMemoryDao implements IndexDao {
   // Map from index to list of documents as JSON strings
@@ -102,13 +122,14 @@ public class InMemoryDao implements IndexDao {
 
   private static class ComparableComparator implements Comparator<Comparable>  {
     SortOrder order = null;
+
     public ComparableComparator(SortOrder order) {
       this.order = order;
     }
     @Override
     public int compare(Comparable o1, Comparable o2) {
-      int result = ComparisonChain.start().compare(o1, o2).result();
-      return order == SortOrder.ASC?result:-1*result;
+      int result = ComparisonChain.start().compare(o1, o2, Ordering.natural().nullsLast()).result();
+      return order == SortOrder.ASC ? result : -1*result;
     }
   }
 

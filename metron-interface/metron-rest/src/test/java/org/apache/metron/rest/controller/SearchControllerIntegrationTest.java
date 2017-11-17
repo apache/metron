@@ -89,8 +89,8 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
   public void setup() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
     ImmutableMap<String, String> testData = ImmutableMap.of(
-        "bro_index_2017.01.01.01", SearchIntegrationTest.broData,
-        "snort_index_2017.01.01.01", SearchIntegrationTest.snortData
+            "bro_index_2017.01.01.01", SearchIntegrationTest.broData,
+            "snort_index_2017.01.01.01", SearchIntegrationTest.snortData
     );
     loadTestData(testData);
     loadColumnTypes();
@@ -114,19 +114,19 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
     }});
 
     assertEventually(() -> this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(defaultQuery))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-        .andExpect(jsonPath("$.total").value(5))
-        .andExpect(jsonPath("$.results[0].source.source:type").value("bro"))
-        .andExpect(jsonPath("$.results[0].source.timestamp").value(5))
-        .andExpect(jsonPath("$.results[1].source.source:type").value("bro"))
-        .andExpect(jsonPath("$.results[1].source.timestamp").value(4))
-        .andExpect(jsonPath("$.results[2].source.source:type").value("bro"))
-        .andExpect(jsonPath("$.results[2].source.timestamp").value(3))
-        .andExpect(jsonPath("$.results[3].source.source:type").value("bro"))
-        .andExpect(jsonPath("$.results[3].source.timestamp").value(2))
-        .andExpect(jsonPath("$.results[4].source.source:type").value("bro"))
-        .andExpect(jsonPath("$.results[4].source.timestamp").value(1))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.total").value(5))
+            .andExpect(jsonPath("$.results[0].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[0].source.timestamp").value(5))
+            .andExpect(jsonPath("$.results[1].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[1].source.timestamp").value(4))
+            .andExpect(jsonPath("$.results[2].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[2].source.timestamp").value(3))
+            .andExpect(jsonPath("$.results[3].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[3].source.timestamp").value(2))
+            .andExpect(jsonPath("$.results[4].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[4].source.timestamp").value(1))
     );
 
     sensorIndexingConfigService.delete("bro");
