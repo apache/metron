@@ -34,11 +34,11 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ElasticsearchSearchSubmitterTest {
+public class ElasticsearchRequestSubmitterTest {
 
-  private ElasticsearchSearchSubmitter submitter;
+  private ElasticsearchRequestSubmitter submitter;
 
-  public ElasticsearchSearchSubmitter setup(SearchResponse response) {
+  public ElasticsearchRequestSubmitter setup(SearchResponse response) {
 
     // mocks
     TransportClient client = mock(TransportClient.class);
@@ -48,7 +48,7 @@ public class ElasticsearchSearchSubmitterTest {
     when(client.search(any())).thenReturn(future);
     when(future.actionGet()).thenReturn(response);
 
-    return new ElasticsearchSearchSubmitter(client);
+    return new ElasticsearchRequestSubmitter(client);
   }
 
   @Test
@@ -64,7 +64,7 @@ public class ElasticsearchSearchSubmitterTest {
     when(response.getTotalShards()).thenReturn(2);
 
     // search should succeed
-    ElasticsearchSearchSubmitter submitter = setup(response);
+    ElasticsearchRequestSubmitter submitter = setup(response);
     SearchResponse actual = submitter.submitSearch(request);
     assertNotNull(actual);
   }
@@ -82,7 +82,7 @@ public class ElasticsearchSearchSubmitterTest {
     when(response.getTotalShards()).thenReturn(2);
 
     // search should succeed
-    ElasticsearchSearchSubmitter submitter = setup(response);
+    ElasticsearchRequestSubmitter submitter = setup(response);
     submitter.submitSearch(request);
   }
 
@@ -114,7 +114,7 @@ public class ElasticsearchSearchSubmitterTest {
     when(fail.shardId()).thenReturn(1);
 
     // search should succeed, even with failed shards
-    ElasticsearchSearchSubmitter submitter = setup(response);
+    ElasticsearchRequestSubmitter submitter = setup(response);
     SearchResponse actual = submitter.submitSearch(request);
     assertNotNull(actual);
   }

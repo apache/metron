@@ -51,7 +51,7 @@ import static org.mockito.Mockito.when;
 public class ElasticsearchDaoTest {
 
   private ElasticsearchDao dao;
-  private ElasticsearchSearchSubmitter searchSubmitter;
+  private ElasticsearchRequestSubmitter requestSubmitter;
 
   private void setup(RestStatus status, int maxSearchResults, Map<String, FieldType> metadata) throws Exception {
 
@@ -82,8 +82,8 @@ public class ElasticsearchDaoTest {
     when(columnMetadataDao.getColumnMetadata(any())).thenReturn(metadata);
 
     // returns the search response
-    searchSubmitter = mock(ElasticsearchSearchSubmitter.class);
-    when(searchSubmitter.submitSearch(any())).thenReturn(response);
+    requestSubmitter = mock(ElasticsearchRequestSubmitter.class);
+    when(requestSubmitter.submitSearch(any())).thenReturn(response);
 
     TransportClient client = mock(TransportClient.class);
 
@@ -91,7 +91,7 @@ public class ElasticsearchDaoTest {
     AccessConfig config = mock(AccessConfig.class);
     when(config.getMaxSearchResults()).thenReturn(maxSearchResults);
 
-    dao = new ElasticsearchDao(client, columnMetadataDao, searchSubmitter, config);
+    dao = new ElasticsearchDao(client, columnMetadataDao, requestSubmitter, config);
   }
 
   private void setup(RestStatus status, int maxSearchResults) throws Exception {
@@ -131,7 +131,7 @@ public class ElasticsearchDaoTest {
 
     // capture the elasticsearch search request that was created
     ArgumentCaptor<org.elasticsearch.action.search.SearchRequest> argument = ArgumentCaptor.forClass(org.elasticsearch.action.search.SearchRequest.class);
-    verify(searchSubmitter).submitSearch(argument.capture());
+    verify(requestSubmitter).submitSearch(argument.capture());
     org.elasticsearch.action.search.SearchRequest request = argument.getValue();
 
     // transform the request to JSON for validation
@@ -196,7 +196,7 @@ public class ElasticsearchDaoTest {
 
     // capture the elasticsearch search request that was created
     ArgumentCaptor<org.elasticsearch.action.search.SearchRequest> argument = ArgumentCaptor.forClass(org.elasticsearch.action.search.SearchRequest.class);
-    verify(searchSubmitter).submitSearch(argument.capture());
+    verify(requestSubmitter).submitSearch(argument.capture());
     org.elasticsearch.action.search.SearchRequest request = argument.getValue();
 
     // transform the request to JSON for validation

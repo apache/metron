@@ -106,17 +106,17 @@ public class ElasticsearchDao implements IndexDao {
   /**
    * Handles the submission of search requests to Elasticsearch.
    */
-  private ElasticsearchSearchSubmitter searchSubmitter;
+  private ElasticsearchRequestSubmitter requestSubmitter;
 
   private AccessConfig accessConfig;
 
   protected ElasticsearchDao(TransportClient client,
                              ColumnMetadataDao columnMetadataDao,
-                             ElasticsearchSearchSubmitter searchSubmitter,
+                             ElasticsearchRequestSubmitter requestSubmitter,
                              AccessConfig config) {
     this.client = client;
     this.columnMetadataDao = columnMetadataDao;
-    this.searchSubmitter = searchSubmitter;
+    this.requestSubmitter = requestSubmitter;
     this.accessConfig = config;
   }
 
@@ -149,7 +149,7 @@ public class ElasticsearchDao implements IndexDao {
     }
 
     esRequest = buildSearchRequest(request, queryBuilder);
-    esResponse = searchSubmitter.submitSearch(esRequest);
+    esResponse = requestSubmitter.submitSearch(esRequest);
     return buildSearchResponse(request, esResponse);
   }
 
@@ -293,7 +293,7 @@ public class ElasticsearchDao implements IndexDao {
     }
 
     esRequest = buildGroupRequest(groupRequest, queryBuilder);
-    esResponse = searchSubmitter.submitSearch(esRequest);
+    esResponse = requestSubmitter.submitSearch(esRequest);
     GroupResponse response = buildGroupResponse(groupRequest, esResponse);
 
     return response;
@@ -364,15 +364,15 @@ public class ElasticsearchDao implements IndexDao {
       this.client = ElasticsearchUtils.getClient(config.getGlobalConfigSupplier().get(), config.getOptionalSettings());
       this.accessConfig = config;
       this.columnMetadataDao = new ElasticsearchColumnMetadataDao(this.client.admin());
-      this.searchSubmitter = new ElasticsearchSearchSubmitter(this.client);
+      this.requestSubmitter = new ElasticsearchRequestSubmitter(this.client);
     }
 
     if(columnMetadataDao == null) {
       throw new IllegalArgumentException("No ColumnMetadataDao available");
     }
 
-    if(searchSubmitter == null) {
-      throw new IllegalArgumentException("No ElasticsearchSearchSubmitter available");
+    if(requestSubmitter == null) {
+      throw new IllegalArgumentException("No ElasticsearchRequestSubmitter available");
     }
   }
 

@@ -34,9 +34,9 @@ import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
 
 /**
- * Responsible for submitting searches to Elasticsearch.
+ * Responsible for submitting requests to Elasticsearch.
  */
-public class ElasticsearchSearchSubmitter {
+public class ElasticsearchRequestSubmitter {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -45,7 +45,7 @@ public class ElasticsearchSearchSubmitter {
    */
   private TransportClient client;
 
-  public ElasticsearchSearchSubmitter(TransportClient client) {
+  public ElasticsearchRequestSubmitter(TransportClient client) {
     this.client = client;
   }
 
