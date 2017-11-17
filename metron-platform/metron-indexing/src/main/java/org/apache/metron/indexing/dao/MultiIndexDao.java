@@ -88,20 +88,9 @@ public class MultiIndexDao implements IndexDao {
   }
 
   @Override
-  public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> in) throws IOException {
+  public Map<String, FieldType> getColumnMetadata(List<String> in) throws IOException {
     for(IndexDao dao : indices) {
-      Map<String, Map<String, FieldType>> r = dao.getColumnMetadata(in);
-      if(r != null) {
-        return r;
-      }
-    }
-    return null;
-  }
-
-  @Override
-  public Map<String, FieldType> getCommonColumnMetadata(List<String> in) throws IOException {
-    for(IndexDao dao : indices) {
-      Map<String, FieldType> r = dao.getCommonColumnMetadata(in);
+      Map<String, FieldType> r = dao.getColumnMetadata(in);
       if(r != null) {
         return r;
       }
