@@ -17,7 +17,6 @@
  */
 package org.apache.metron.elasticsearch.integration;
 
-
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
@@ -150,6 +149,19 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   @Multiline
   private static String snortTypeMappings;
 
+  /**
+   * {
+   * "metaalert_doc": {
+   *   "properties": {
+   *     "source:type": { "type": "string" },
+   *     "alert": { "type": "nested"}
+   *   }
+   * }
+   * }
+   */
+  @Multiline
+  private static String metaAlertTypeMappings;
+
   @Override
   protected IndexDao createDao() throws Exception {
     AccessConfig config = new AccessConfig();
@@ -187,6 +199,8 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
             .addMapping("bro_doc", broTypeMappings).get();
     es.getClient().admin().indices().prepareCreate("snort_index_2017.01.01.02")
             .addMapping("snort_doc", snortTypeMappings).get();
+    es.getClient().admin().indices().prepareCreate("metaalert_index")
+        .addMapping("metaalert_doc", metaAlertTypeMappings).get();
 
     BulkRequestBuilder bulkRequest = es.getClient().prepareBulk().setRefresh(true);
     JSONArray broArray = (JSONArray) new JSONParser().parse(broData);

@@ -141,29 +141,4 @@ public class ElasticsearchColumnMetadataDaoTest {
     String [] expected = new String[] {};
     assertArrayEquals(expected, actual);
   }
-
-  @Test
-  public void testGetLatestIndicesWithIgnoreIndices() {
-
-    // setup - ignore the latest "snort" index
-    String[] existingIndices = new String[] {
-            "bro_index_2017.10.03.19",
-            "bro_index_2017.10.03.20",
-            "bro_index_2017.10.03.21",
-            "snort_index_2017.10.03.19",
-            "snort_index_2017.10.03.20",
-            "snort_index_2017.10.03.21"
-    };
-    ElasticsearchColumnMetadataDao dao = setup(existingIndices);
-    dao.ignoredIndices(Collections.singleton("snort_index_2017.10.03.21"));
-
-    // get the latest indices
-    List<String> args = Arrays.asList("bro", "snort");
-    String[] actual = dao.getLatestIndices(args);
-
-    // validation - the bro indices should be ignored
-    String [] expected = new String[] { "bro_index_2017.10.03.21", "snort_index_2017.10.03.20" };
-    assertArrayEquals(expected, actual);
-  }
-
 }

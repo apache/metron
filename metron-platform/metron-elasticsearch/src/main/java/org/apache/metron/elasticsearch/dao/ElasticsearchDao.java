@@ -171,7 +171,7 @@ public class ElasticsearchDao implements IndexDao {
             .trackScores(true);
 
     // column metadata needed to understand the type of each sort field
-    Map<String, Map<String, FieldType>> meta;
+    Map<String, FieldType> meta;
     try {
       meta = getColumnMetadata(searchRequest.getIndices());
     } catch(IOException e) {
@@ -182,15 +182,9 @@ public class ElasticsearchDao implements IndexDao {
     for(SortField sortField : searchRequest.getSort()) {
 
       // what type is the sort field?
-      FieldType sortFieldType = meta
-              .values()
-              .stream()
-              .filter(e -> e.containsKey(sortField.getField()))
-              .map(m -> m.get(sortField.getField()))
-              .findFirst()
-              .orElse(FieldType.OTHER);
+      FieldType sortFieldType = meta.getOrDefault(sortField.getField(), FieldType.OTHER);
 
-      // sort order - if ASC, then missing values sorted last.  Otherwise, missing values sorted first
+      // sort order - if ascending missing values sorted last. otherwise, missing values sorted first
       org.elasticsearch.search.sort.SortOrder sortOrder = getElasticsearchSortOrder(sortField.getSortOrder());
       String missingSortOrder;
       if(sortOrder == org.elasticsearch.search.sort.SortOrder.DESC) {
@@ -260,7 +254,7 @@ public class ElasticsearchDao implements IndexDao {
       List<String> facetFields = searchRequest.getFacetFields().get();
       Map<String, FieldType> commonColumnMetadata;
       try {
-        commonColumnMetadata = getCommonColumnMetadata(searchRequest.getIndices());
+        commonColumnMetadata = getColumnMetadata(searchRequest.getIndices());
 
       } catch (IOException e) {
         throw new InvalidSearchException(String.format(
@@ -342,7 +336,7 @@ public class ElasticsearchDao implements IndexDao {
     // build the search response
     Map<String, FieldType> commonColumnMetadata;
     try {
-      commonColumnMetadata = getCommonColumnMetadata(groupRequest.getIndices());
+      commonColumnMetadata = getColumnMetadata(groupRequest.getIndices());
     } catch (IOException e) {
       throw new InvalidSearchException(String.format("Could not get common column metadata for indices %s",
               Arrays.toString(groupRequest.getIndices().toArray())));
@@ -369,8 +363,7 @@ public class ElasticsearchDao implements IndexDao {
     if(this.client == null) {
       this.client = ElasticsearchUtils.getClient(config.getGlobalConfigSupplier().get(), config.getOptionalSettings());
       this.accessConfig = config;
-      this.columnMetadataDao = new ElasticsearchColumnMetadataDao(this.client.admin())
-              .ignoredIndices(config.getIndicesToIgnore());
+      this.columnMetadataDao = new ElasticsearchColumnMetadataDao(this.client.admin());
       this.searchSubmitter = new ElasticsearchSearchSubmitter(this.client);
     }
 
@@ -555,13 +548,8 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
-  public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException {
+  public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
     return columnMetadataDao.getColumnMetadata(indices);
-  }
-
-  @Override
-  public Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException {
-    return columnMetadataDao.getCommonColumnMetadata(indices);
   }
 
   private org.elasticsearch.search.sort.SortOrder getElasticsearchSortOrder(

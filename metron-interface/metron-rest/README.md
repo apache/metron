@@ -226,7 +226,6 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `POST /api/v1/search/group`](#get-apiv1searchgroup)|
 | [ `GET /api/v1/search/findOne`](#get-apiv1searchfindone)|
 | [ `GET /api/v1/search/column/metadata`](#get-apiv1searchcolumnmetadata)|
-| [ `GET /api/v1/search/column/metadata/common`](#get-apiv1searchcolumnmetadatacommon)|
 | [ `GET /api/v1/sensor/enrichment/config`](#get-apiv1sensorenrichmentconfig)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available/enrichments`](#get-apiv1sensorenrichmentconfiglistavailableenrichments)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available/threat/triage/aggregators`](#get-apiv1sensorenrichmentconfiglistavailablethreattriageaggregators)|
@@ -489,18 +488,11 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 404 - Document with UUID and sensor type not found
     
 ### `GET /api/v1/search/column/metadata`
-  * Description: Get column metadata for each index in the list of indicies
+  * Description: Get column metadata for the list of indices with duplicates removed.  Columns that exist in multiple indices with different types will default to type 'other'.
   * Input:
       * indices - Indices
   * Returns:
     * 200 - Column Metadata
-    
-### `GET /api/v1/search/column/metadata/common`
-  * Description: Get metadata for columns shared by the list of indices
-  * Input:
-      * indices - Indices
-  * Returns:
-    * 200 - Common Column Metadata
 
 ### `GET /api/v1/sensor/enrichment/config`
   * Description: Retrieves all SensorEnrichmentConfigs from Zookeeper

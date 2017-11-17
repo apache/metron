@@ -35,15 +35,7 @@ public interface ColumnMetadataDao {
    * @return The column metadata, one set for each search index.
    * @throws IOException
    */
-  Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException;
-
-  /**
-   * Retrieves column metadata that is common across multiple search indices.
-   * @param indices The search indices to retrieve column metadata for.
-   * @return The column metadata that is common across all search indices.
-   * @throws IOException
-   */
-  Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException;
+  Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException;
 
   /**
    * Finds the latest version of a set of base indices.  This can be used to find

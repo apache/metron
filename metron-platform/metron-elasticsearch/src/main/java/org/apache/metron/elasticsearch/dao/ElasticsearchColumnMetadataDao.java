@@ -18,7 +18,6 @@
 
 package org.apache.metron.elasticsearch.dao;
 
-import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
 import org.elasticsearch.client.AdminClient;
@@ -36,7 +35,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.apache.metron.elasticsearch.utils.ElasticsearchUtils.INDEX_NAME_DELIMITER;
 
@@ -67,98 +65,75 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
   private transient AdminClient adminClient;
 
   /**
-   * A set of indices that will be ignored when retrieving column metadata.
-   */
-  private Set<String> ignoredIndices;
-
-  /**
    * @param adminClient The Elasticsearch admin client.
    */
   public ElasticsearchColumnMetadataDao(AdminClient adminClient) {
     this.adminClient = adminClient;
-    this.ignoredIndices = new HashSet<>();
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException {
-    Map<String, Map<String, FieldType>> allColumnMetadata = new HashMap<>();
+  public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
+    Map<String, FieldType> indexColumnMetadata = new HashMap<>();
+    Map<String, String> previousIndices = new HashMap<>();
+    Set<String> fieldBlackList = new HashSet<>();
+
     String[] latestIndices = getLatestIndices(indices);
-    ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings = adminClient
-            .indices()
-            .getMappings(new GetMappingsRequest().indices(latestIndices))
-            .actionGet()
-            .getMappings();
+    if (latestIndices.length > 0) {
+      ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings = adminClient
+              .indices()
+              .getMappings(new GetMappingsRequest().indices(latestIndices))
+              .actionGet()
+              .getMappings();
 
-    for(Object key: mappings.keys().toArray()) {
-      String indexName = key.toString();
+      // for each index
+      for (Object key : mappings.keys().toArray()) {
+        String indexName = key.toString();
+        ImmutableOpenMap<String, MappingMetaData> mapping = mappings.get(indexName);
 
-      Map<String, FieldType> indexColumnMetadata = new HashMap<>();
-      ImmutableOpenMap<String, MappingMetaData> mapping = mappings.get(indexName);
-      Iterator<String> mappingIterator = mapping.keysIt();
-      while(mappingIterator.hasNext()) {
-        MappingMetaData mappingMetaData = mapping.get(mappingIterator.next());
-        Map<String, Map<String, String>> map = (Map<String, Map<String, String>>) mappingMetaData.getSourceAsMap().get("properties");
-        for(String field: map.keySet()) {
-          indexColumnMetadata.put(field, toFieldType(map.get(field).get("type")));
+        // for each mapping in the index
+        Iterator<String> mappingIterator = mapping.keysIt();
+        while (mappingIterator.hasNext()) {
+          MappingMetaData mappingMetaData = mapping.get(mappingIterator.next());
+          Map<String, Map<String, String>> map = (Map<String, Map<String, String>>) mappingMetaData
+                  .getSourceAsMap().get("properties");
+
+          // for each field in the mapping
+          for (String field : map.keySet()) {
+            if (!fieldBlackList.contains(field)) {
+              FieldType type = toFieldType(map.get(field).get("type"));
+
+              if(!indexColumnMetadata.containsKey(field)) {
+                indexColumnMetadata.put(field, type);
+
+                // record the last index in which a field exists, to be able to print helpful error message on type mismatch
+                previousIndices.put(field, indexName);
+
+              } else {
+                FieldType previousType = indexColumnMetadata.get(field);
+                if (!type.equals(previousType)) {
+                  String previousIndexName = previousIndices.get(field);
+                  LOG.error(String.format(
+                          "Field type mismatch: %s.%s has type %s while %s.%s has type %s.  Defaulting type to %s.",
+                          indexName, field, type.getFieldType(),
+                          previousIndexName, field, previousType.getFieldType(),
+                          FieldType.OTHER.getFieldType()));
+                  indexColumnMetadata.put(field, FieldType.OTHER);
+
+                  // the field is defined in multiple indices with different types; ignore the field as type has been set to OTHER
+                  fieldBlackList.add(field);
+                }
+              }
+            }
+          }
         }
       }
-
-      String baseIndexName = ElasticsearchUtils.getBaseIndexName(indexName);
-      allColumnMetadata.put(baseIndexName, indexColumnMetadata);
-    }
-    return allColumnMetadata;
-  }
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException {
-    LOG.debug("Getting common metadata; indices={}", indices);
-    Map<String, FieldType> commonColumnMetadata = null;
-
-    // retrieve the mappings for only the latest version of each index
-    String[] latestIndices = getLatestIndices(indices);
-    ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings;
-    mappings = adminClient
-            .indices()
-            .getMappings(new GetMappingsRequest().indices(latestIndices))
-            .actionGet()
-            .getMappings();
-
-    // did we get all the mappings that we expect?
-    if(mappings.size() < latestIndices.length) {
-      String msg = String.format(
-              "Failed to get required mappings; expected mappings for '%s', but got '%s'",
-              latestIndices, mappings.keys().toArray());
-      throw new IllegalStateException(msg);
+    } else {
+      LOG.info(String.format("Unable to find any latest indices; indices=%s", indices));
     }
 
-    // for each index...
-    for(Object index: mappings.keys().toArray()) {
-      ImmutableOpenMap<String, MappingMetaData> mapping = mappings.get(index.toString());
-      Iterator<String> mappingIterator = mapping.keysIt();
-      while(mappingIterator.hasNext()) {
-        MappingMetaData metadata = mapping.get(mappingIterator.next());
-        Map<String, Map<String, String>> map = (Map<String, Map<String, String>>) metadata.getSourceAsMap().get("properties");
-        Map<String, FieldType> mappingsWithTypes = map
-                .entrySet()
-                .stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        e-> toFieldType(e.getValue().get("type"))));
+    return indexColumnMetadata;
 
-        // keep only the properties in common
-        if (commonColumnMetadata == null) {
-          commonColumnMetadata = mappingsWithTypes;
-        } else {
-          commonColumnMetadata
-                  .entrySet()
-                  .retainAll(mappingsWithTypes.entrySet());
-        }
-      }
-    }
-
-    return commonColumnMetadata;
   }
 
   /**
@@ -178,15 +153,13 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
             .getIndices();
 
     for (String index : indices) {
-      if (!ignoredIndices.contains(index)) {
-        int prefixEnd = index.indexOf(INDEX_NAME_DELIMITER);
-        if (prefixEnd != -1) {
-          String prefix = index.substring(0, prefixEnd);
-          if (includeIndices.contains(prefix)) {
-            String latestIndex = latestIndices.get(prefix);
-            if (latestIndex == null || index.compareTo(latestIndex) > 0) {
-              latestIndices.put(prefix, index);
-            }
+      int prefixEnd = index.indexOf(INDEX_NAME_DELIMITER);
+      if (prefixEnd != -1) {
+        String prefix = index.substring(0, prefixEnd);
+        if (includeIndices.contains(prefix)) {
+          String latestIndex = latestIndices.get(prefix);
+          if (latestIndex == null || index.compareTo(latestIndex) > 0) {
+            latestIndices.put(prefix, index);
           }
         }
       }
@@ -202,15 +175,5 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
    */
   private FieldType toFieldType(String type) {
     return elasticsearchTypeMap.getOrDefault(type, FieldType.OTHER);
-  }
-
-
-  /**
-   * @param ignoredIndices  A set of indices that will be ignored when retrieving column metadata.
-   * @return
-   */
-  public ElasticsearchColumnMetadataDao ignoredIndices(Set<String> ignoredIndices) {
-    this.ignoredIndices = ignoredIndices;
-    return this;
   }
 }

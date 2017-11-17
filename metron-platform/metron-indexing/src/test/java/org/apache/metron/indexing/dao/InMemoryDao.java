@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -260,25 +261,26 @@ public class InMemoryDao implements IndexDao {
     }
   }
 
-  public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException {
-    Map<String, Map<String, FieldType>> columnMetadata = new HashMap<>();
-    for(String index: indices) {
-      columnMetadata.put(index, new HashMap<>(COLUMN_METADATA.get(index)));
-    }
-    return columnMetadata;
-  }
-
   @Override
-  public Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException {
-    Map<String, FieldType> commonColumnMetadata = new HashMap<>();
+  public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
+    Map<String, FieldType> indexColumnMetadata = new HashMap<>();
     for(String index: indices) {
-      if (commonColumnMetadata.isEmpty()) {
-        commonColumnMetadata = new HashMap<>(COLUMN_METADATA.get(index));
-      } else {
-        commonColumnMetadata.entrySet().retainAll(COLUMN_METADATA.get(index).entrySet());
+      if (COLUMN_METADATA.containsKey(index)) {
+        Map<String, FieldType> columnMetadata = COLUMN_METADATA.get(index);
+        for (Entry entry: columnMetadata.entrySet()) {
+          String field = (String) entry.getKey();
+          FieldType type = (FieldType) entry.getValue();
+          if (indexColumnMetadata.containsKey(field)) {
+            if (!type.equals(indexColumnMetadata.get(field))) {
+              indexColumnMetadata.put(field, FieldType.OTHER);
+            }
+          } else {
+            indexColumnMetadata.put(field, type);
+          }
+        }
       }
     }
-    return commonColumnMetadata;
+    return indexColumnMetadata;
   }
 
   public static void setColumnMetadata(Map<String, Map<String, FieldType>> columnMetadata) {

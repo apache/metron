@@ -53,7 +53,7 @@ public class ElasticsearchDaoTest {
   private ElasticsearchDao dao;
   private ElasticsearchSearchSubmitter searchSubmitter;
 
-  private void setup(RestStatus status, int maxSearchResults, Map<String, Map<String, FieldType>> metadata) throws Exception {
+  private void setup(RestStatus status, int maxSearchResults, Map<String, FieldType> metadata) throws Exception {
 
     // setup the mock search hits
     SearchHit hit1 = mock(SearchHit.class);
@@ -102,11 +102,9 @@ public class ElasticsearchDaoTest {
   public void searchShouldSortByGivenFields() throws Exception {
 
     // setup the column metadata
-    Map<String, FieldType> broTypes = new HashMap<>();
-    broTypes.put("sortByStringDesc", FieldType.STRING);
-    broTypes.put("sortByIntAsc", FieldType.INTEGER);
-    Map<String, Map<String, FieldType>> columnMetadata = new HashMap<>();
-    columnMetadata.put("bro", broTypes);
+    Map<String, FieldType> columnMetadata = new HashMap<>();
+    columnMetadata.put("sortByStringDesc", FieldType.STRING);
+    columnMetadata.put("sortByIntAsc", FieldType.INTEGER);
 
     // setup the dao
     setup(RestStatus.OK, 25, columnMetadata);
