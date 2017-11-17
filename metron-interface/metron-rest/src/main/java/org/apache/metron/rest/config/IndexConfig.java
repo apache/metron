@@ -61,10 +61,8 @@ public class IndexConfig {
       int searchMaxGroups = environment.getProperty(MetronRestConstants.SEARCH_MAX_GROUPS, Integer.class, 1000);
       String metaDaoImpl = environment.getProperty(MetronRestConstants.META_DAO_IMPL, String.class, null);
       String metaDaoSort = environment.getProperty(MetronRestConstants.META_DAO_SORT, String.class, null);
-      String indicesToIgnore = environment.getProperty(MetronRestConstants.INDICES_TO_IGNORE, String.class, ".kibana");
 
       AccessConfig config = new AccessConfig();
-      config.setIndicesToIgnore(toSet(indicesToIgnore));
       config.setMaxSearchResults(searchMaxResults);
       config.setMaxSearchGroups(searchMaxGroups);
       config.setGlobalConfigSupplier(() -> {
@@ -99,14 +97,5 @@ public class IndexConfig {
     catch(Exception e) {
       throw new IllegalStateException("Unable to create index DAO: " + e.getMessage(), e);
     }
-  }
-
-  /**
-   * Splits a string of comma-delimited values into a set of strings.
-   * @param value A string containing comma-delimited values.
-   * @return A set of strings.
-   */
-  private Set<String> toSet(String value) {
-    return new HashSet<>(Arrays.asList(value.split(",")));
   }
 }

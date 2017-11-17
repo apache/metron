@@ -31,7 +31,6 @@ public class AccessConfig {
   private Supplier<Map<String, Object>> globalConfigSupplier;
   private Map<String, String> optionalSettings = new HashMap<>();
   private TableProvider tableProvider = null;
-  private Set<String> indicesToIgnore = new HashSet<>();
 
   /**
    * @return A supplier which will return the current global config.
@@ -86,16 +85,5 @@ public class AccessConfig {
 
   public void setTableProvider(TableProvider tableProvider) {
     this.tableProvider = tableProvider;
-  }
-
-  /**
-   * @return The indices that are ignored.
-   */
-  public Set<String> getIndicesToIgnore() {
-    return indicesToIgnore;
-  }
-
-  public void setIndicesToIgnore(Set<String> indicesToIgnore) {
-    this.indicesToIgnore = indicesToIgnore;
   }
 }
