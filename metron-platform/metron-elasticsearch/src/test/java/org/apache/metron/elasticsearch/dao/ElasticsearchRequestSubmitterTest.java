@@ -1,0 +1,121 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.metron.elasticsearch.dao;
+
+import org.apache.metron.indexing.dao.search.InvalidSearchException;
+import org.elasticsearch.action.ActionFuture;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.ShardSearchFailure;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.rest.RestStatus;
+import org.elasticsearch.search.SearchShardTarget;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+public class ElasticsearchRequestSubmitterTest {
+
+  private ElasticsearchRequestSubmitter submitter;
+
+  public ElasticsearchRequestSubmitter setup(SearchResponse response) {
+
+    // mocks
+    TransportClient client = mock(TransportClient.class);
+    ActionFuture future = Mockito.mock(ActionFuture.class);
+
+    // the client should return the given search response
+    when(client.search(any())).thenReturn(future);
+    when(future.actionGet()).thenReturn(response);
+
+    return new ElasticsearchRequestSubmitter(client);
+  }
+
+  @Test
+  public void searchShouldSucceedWhenOK() throws InvalidSearchException {
+
+    // mocks
+    SearchResponse response = mock(SearchResponse.class);
+    SearchRequest request = mock(SearchRequest.class);
+
+    // response will have status of OK and no failed shards
+    when(response.status()).thenReturn(RestStatus.OK);
+    when(response.getFailedShards()).thenReturn(0);
+    when(response.getTotalShards()).thenReturn(2);
+
+    // search should succeed
+    ElasticsearchRequestSubmitter submitter = setup(response);
+    SearchResponse actual = submitter.submitSearch(request);
+    assertNotNull(actual);
+  }
+
+  @Test(expected = InvalidSearchException.class)
+  public void searchShouldFailWhenNotOK() throws InvalidSearchException {
+
+    // mocks
+    SearchResponse response = mock(SearchResponse.class);
+    SearchRequest request = mock(SearchRequest.class);
+
+    // response will have status of OK
+    when(response.status()).thenReturn(RestStatus.PARTIAL_CONTENT);
+    when(response.getFailedShards()).thenReturn(0);
+    when(response.getTotalShards()).thenReturn(2);
+
+    // search should succeed
+    ElasticsearchRequestSubmitter submitter = setup(response);
+    submitter.submitSearch(request);
+  }
+
+  @Test
+  public void searchShouldHandleShardFailure() throws InvalidSearchException {
+    // mocks
+    SearchResponse response = mock(SearchResponse.class);
+    SearchRequest request = mock(SearchRequest.class);
+    ShardSearchFailure fail = mock(ShardSearchFailure.class);
+    SearchShardTarget target = mock(SearchShardTarget.class);
+
+    // response will have status of OK
+    when(response.status()).thenReturn(RestStatus.OK);
+
+    // the response will report shard failures
+    when(response.getFailedShards()).thenReturn(1);
+    when(response.getTotalShards()).thenReturn(2);
+
+    // the response will return the failures
+    ShardSearchFailure[] failures = { fail };
+    when(response.getShardFailures()).thenReturn(failures);
+
+    // shard failure needs to report the node
+    when(fail.shard()).thenReturn(target);
+    when(target.getNodeId()).thenReturn("node1");
+
+    // shard failure needs to report details of failure
+    when(fail.index()).thenReturn("bro_index_2017-10-11");
+    when(fail.shardId()).thenReturn(1);
+
+    // search should succeed, even with failed shards
+    ElasticsearchRequestSubmitter submitter = setup(response);
+    SearchResponse actual = submitter.submitSearch(request);
+    assertNotNull(actual);
+  }
+}

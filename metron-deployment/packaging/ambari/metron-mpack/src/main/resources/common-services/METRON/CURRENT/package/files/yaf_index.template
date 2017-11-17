@@ -90,7 +90,7 @@
           "mapping": {
             "type": "float"
           },
-          "match": "threat.triage.rules:*:score",
+          "match": "threat:triage:*score",
           "match_mapping_type": "*"
         }
       },
@@ -100,7 +100,7 @@
             "type": "text",
             "fielddata": "true"
           },
-          "match": "threat.triage.rules:*:reason",
+          "match": "threat:triage:rules:*:reason",
           "match_mapping_type": "*"
         }
       },
@@ -110,7 +110,7 @@
             "type": "text",
             "fielddata": "true"
           },
-          "match": "threat.triage.rules:*:name",
+          "match": "threat:triage:rules:*:name",
           "match_mapping_type": "*"
         }
       }
