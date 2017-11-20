@@ -55,7 +55,11 @@ export class TreeViewPage {
   }
 
   getSubGroupValues(name: string, rowName: string) {
-    return element(by.css('[data-name="' + name + '"] table tbody tr[data-name="' + rowName + '"]')).getText();
+    return this.getSubGroupValuesByPosition(name, rowName, 0);
+  }
+
+  getSubGroupValuesByPosition(name: string, rowName: string, position: number) {
+    return element.all(by.css('[data-name="' + name + '"] table tbody tr[data-name="' + rowName + '"]')).get(position).getText();
   }
 
   selectGroup(name: string) {
@@ -84,8 +88,12 @@ export class TreeViewPage {
   }
 
   expandSubGroup(groupName: string, rowName: string) {
-    browser.actions().mouseMove(element(by.css('[data-name="' + groupName + '"] tr[data-name="' + rowName + '"]'))).perform();
-    return element(by.css('[data-name="' + groupName + '"] tr[data-name="' + rowName + '"]')).click();
+    return this.expandSubGroupByPosition(groupName, rowName, 0);
+  }
+
+  expandSubGroupByPosition(groupName: string, rowName: string, position: number) {
+    browser.actions().mouseMove(element.all(by.css('[data-name="' + groupName + '"] tr[data-name="' + rowName + '"]')).get(position)).perform();
+    return element.all(by.css('[data-name="' + groupName + '"] tr[data-name="' + rowName + '"]')).get(position).click();
   }
 
   getDashGroupTableValuesForRow(name: string, rowId: number) {

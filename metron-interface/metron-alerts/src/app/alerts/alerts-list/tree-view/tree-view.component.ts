@@ -284,8 +284,12 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
     }
 
     group.groupResults.forEach(subGroup => {
-      index = this.parseSubGroups(subGroup, groupAsArray, parentQueryMap, group.groupedBy, level + 1, index);
+      index = this.parseSubGroups(subGroup, groupAsArray, groupAsArray[index].groupQueryMap, group.groupedBy, level + 1, index);
     });
+
+    // group.groupResults.forEach(subGroup => {
+    //   index = this.parseSubGroups(subGroup, groupAsArray, parentQueryMap, group.groupedBy, level + 1, index);
+    // });
 
     return index;
   }
@@ -369,7 +373,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   getAllAlertsForSlectedGroup(group: TreeGroupData): Observable<SearchResponse> {
     let dashRowKey = Object.keys(group.groupQueryMap);
     let searchRequest = new SearchRequest();
-    searchRequest.fields = [dashRowKey[0], 'guid', 'source:type'];
+    searchRequest.fields = ['guid', 'source:type'];
     searchRequest.from = 0;
     searchRequest.indices = INDEXES;
     searchRequest.query = this.createQuery(group);
