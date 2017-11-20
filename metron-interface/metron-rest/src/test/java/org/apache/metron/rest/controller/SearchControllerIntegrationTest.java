@@ -89,8 +89,8 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
   public void setup() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
     ImmutableMap<String, String> testData = ImmutableMap.of(
-        "bro_index_2017.01.01.01", SearchIntegrationTest.broData,
-        "snort_index_2017.01.01.01", SearchIntegrationTest.snortData
+            "bro_index_2017.01.01.01", SearchIntegrationTest.broData,
+            "snort_index_2017.01.01.01", SearchIntegrationTest.snortData
     );
     loadTestData(testData);
     loadColumnTypes();
@@ -114,19 +114,19 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
     }});
 
     assertEventually(() -> this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(defaultQuery))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-        .andExpect(jsonPath("$.total").value(5))
-        .andExpect(jsonPath("$.results[0].source.source:type").value("bro"))
-        .andExpect(jsonPath("$.results[0].source.timestamp").value(5))
-        .andExpect(jsonPath("$.results[1].source.source:type").value("bro"))
-        .andExpect(jsonPath("$.results[1].source.timestamp").value(4))
-        .andExpect(jsonPath("$.results[2].source.source:type").value("bro"))
-        .andExpect(jsonPath("$.results[2].source.timestamp").value(3))
-        .andExpect(jsonPath("$.results[3].source.source:type").value("bro"))
-        .andExpect(jsonPath("$.results[3].source.timestamp").value(2))
-        .andExpect(jsonPath("$.results[4].source.source:type").value("bro"))
-        .andExpect(jsonPath("$.results[4].source.timestamp").value(1))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.total").value(5))
+            .andExpect(jsonPath("$.results[0].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[0].source.timestamp").value(5))
+            .andExpect(jsonPath("$.results[1].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[1].source.timestamp").value(4))
+            .andExpect(jsonPath("$.results[2].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[2].source.timestamp").value(3))
+            .andExpect(jsonPath("$.results[3].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[3].source.timestamp").value(2))
+            .andExpect(jsonPath("$.results[4].source.source:type").value("bro"))
+            .andExpect(jsonPath("$.results[4].source.timestamp").value(1))
     );
 
     sensorIndexingConfigService.delete("bro");
@@ -236,60 +236,37 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
             .andExpect(jsonPath("$.groupResults[0].groupResults[0].score").value(50));
 
     this.mockMvc.perform(post(searchUrl + "/column/metadata").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[\"bro\",\"snort\"]"))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.*", hasSize(2)))
-            .andExpect(jsonPath("$.bro.common_string_field").value("string"))
-            .andExpect(jsonPath("$.bro.common_integer_field").value("integer"))
-            .andExpect(jsonPath("$.bro.bro_field").value("boolean"))
-            .andExpect(jsonPath("$.bro.duplicate_field").value("date"))
-            .andExpect(jsonPath("$.snort.common_string_field").value("string"))
-            .andExpect(jsonPath("$.snort.common_integer_field").value("integer"))
-            .andExpect(jsonPath("$.snort.snort_field").value("double"))
-            .andExpect(jsonPath("$.snort.duplicate_field").value("long"));
-
-    this.mockMvc.perform(post(searchUrl + "/column/metadata/common").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[\"bro\",\"snort\"]"))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.*", hasSize(2)))
-            .andExpect(jsonPath("$.common_string_field").value("string"))
-            .andExpect(jsonPath("$.common_integer_field").value("integer"));
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+        .andExpect(jsonPath("$.*", hasSize(5)))
+        .andExpect(jsonPath("$.common_string_field").value("string"))
+        .andExpect(jsonPath("$.common_integer_field").value("integer"))
+        .andExpect(jsonPath("$.bro_field").value("boolean"))
+        .andExpect(jsonPath("$.snort_field").value("double"))
+        .andExpect(jsonPath("$.duplicate_field").value("other"));
 
     this.mockMvc.perform(post(searchUrl + "/column/metadata").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[\"bro\"]"))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.*", hasSize(1)))
-            .andExpect(jsonPath("$.bro.common_string_field").value("string"))
-            .andExpect(jsonPath("$.bro.common_integer_field").value("integer"))
-            .andExpect(jsonPath("$.bro.bro_field").value("boolean"))
-            .andExpect(jsonPath("$.bro.duplicate_field").value("date"));
-
-    this.mockMvc.perform(post(searchUrl + "/column/metadata/common").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[\"bro\"]"))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.*", hasSize(4)))
-            .andExpect(jsonPath("$.common_string_field").value("string"))
-            .andExpect(jsonPath("$.common_integer_field").value("integer"))
-            .andExpect(jsonPath("$.bro_field").value("boolean"))
-            .andExpect(jsonPath("$.duplicate_field").value("date"));
+          .andExpect(status().isOk())
+          .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+          .andExpect(jsonPath("$.*", hasSize(4)))
+          .andExpect(jsonPath("$.common_string_field").value("string"))
+          .andExpect(jsonPath("$.common_integer_field").value("integer"))
+          .andExpect(jsonPath("$.bro_field").value("boolean"))
+          .andExpect(jsonPath("$.duplicate_field").value("date"));
 
     this.mockMvc.perform(post(searchUrl + "/column/metadata").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[\"snort\"]"))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.*", hasSize(1)))
-            .andExpect(jsonPath("$.snort.common_string_field").value("string"))
-            .andExpect(jsonPath("$.snort.common_integer_field").value("integer"))
-            .andExpect(jsonPath("$.snort.snort_field").value("double"))
-            .andExpect(jsonPath("$.snort.duplicate_field").value("long"));
+          .andExpect(status().isOk())
+          .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+          .andExpect(jsonPath("$.*", hasSize(4)))
+          .andExpect(jsonPath("$.common_string_field").value("string"))
+          .andExpect(jsonPath("$.common_integer_field").value("integer"))
+          .andExpect(jsonPath("$.snort_field").value("double"))
+          .andExpect(jsonPath("$.duplicate_field").value("long"));
 
-    this.mockMvc.perform(post(searchUrl + "/column/metadata/common").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[\"snort\"]"))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.*", hasSize(4)))
-            .andExpect(jsonPath("$.common_string_field").value("string"))
-            .andExpect(jsonPath("$.common_integer_field").value("integer"))
-            .andExpect(jsonPath("$.snort_field").value("double"))
-            .andExpect(jsonPath("$.duplicate_field").value("long"));
+    this.mockMvc.perform(post(searchUrl + "/column/metadata").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[\"someindex\"]"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+        .andExpect(jsonPath("$.*", hasSize(0)));
   }
 
 

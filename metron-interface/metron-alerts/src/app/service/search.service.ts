@@ -43,13 +43,10 @@ export class SearchService {
     let processedKeys: string[] = [];
     let columnMetadatas: ColumnMetadata[] = [];
 
-    for (let index of Object.keys(response)) {
-      let indexMetaData = response[index];
-      for (let key of Object.keys(indexMetaData)) {
-        if (processedKeys.indexOf(key) === -1) {
-          processedKeys.push(key);
-          columnMetadatas.push(new ColumnMetadata(key, indexMetaData[key]));
-        }
+    for (let key of Object.keys(response)) {
+      if (processedKeys.indexOf(key) === -1) {
+        processedKeys.push(key);
+        columnMetadatas.push(new ColumnMetadata(key, response[key]));
       }
     }
 

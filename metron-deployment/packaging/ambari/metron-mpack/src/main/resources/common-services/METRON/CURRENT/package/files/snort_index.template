@@ -98,28 +98,28 @@
           "mapping": {
             "type": "float"
           },
-          "match": "threat.triage.rules:*:score",
+          "match": "threat:triage:*score",
           "match_mapping_type": "*"
         }
       },
-        {
-          "threat_triage_reason": {
-            "mapping": {
-              "type": "string"
-            },
-            "match": "threat.triage.rules:*:reason",
-            "match_mapping_type": "*"
-          }
-        },
-        {
-          "threat_triage_name": {
-            "mapping": {
-              "type": "string"
-            },
-            "match": "threat.triage.rules:*:name",
-            "match_mapping_type": "*"
-          }
+      {
+        "threat_triage_reason": {
+          "mapping": {
+            "type": "string"
+          },
+          "match": "threat:triage:rules:*:reason",
+          "match_mapping_type": "*"
         }
+      },
+      {
+        "threat_triage_name": {
+          "mapping": {
+            "type": "string"
+          },
+          "match": "threat:triage:rules:*:name",
+          "match_mapping_type": "*"
+        }
+      }
       ],
       "properties": {
         "timestamp": {
@@ -194,9 +194,6 @@
         },
         "tcpwindow": {
           "type": "string"
-        },
-        "threat:triage:level": {
-          "type": "double"
         },
         "tos": {
           "type": "integer"
