@@ -51,6 +51,8 @@ import org.junit.Test;
 
 public class ElasticsearchMetaAlertDaoTest {
 
+
+
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidInit() {
     IndexDao dao = new IndexDao() {
@@ -214,6 +216,7 @@ public class ElasticsearchMetaAlertDaoTest {
 
   @Test
   public void testCalculateMetaScoresList() {
+    final double delta = 0.001;
     List<Map<String, Object>> alertList = new ArrayList<>();
 
     // add an alert with a threat score
@@ -230,21 +233,22 @@ public class ElasticsearchMetaAlertDaoTest {
     docMap.put(MetaAlertDao.ALERT_FIELD, alertList);
     Document metaalert = new Document(docMap, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
 
+    // calculate the threat score for the metaalert
     ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();
     metaAlertDao.calculateMetaScores(metaalert);
     Object threatScore = metaalert.getDocument().get(ElasticsearchMetaAlertDao.THREAT_FIELD_DEFAULT);
 
     // the metaalert must contain a summary of all child threat scores
-    assertEquals(20.0D, metaalert.getDocument().get("max"));
-    assertEquals(10.0D, metaalert.getDocument().get("min"));
-    assertEquals(15.0D, metaalert.getDocument().get("average"));
+    assertEquals(20.0D, (Double) metaalert.getDocument().get("max"), delta);
+    assertEquals(10.0D, (Double) metaalert.getDocument().get("min"), delta);
+    assertEquals(15.0D, (Double) metaalert.getDocument().get("average"), delta);
     assertEquals(2L, metaalert.getDocument().get("count"));
-    assertEquals(30.0D, metaalert.getDocument().get("sum"));
+    assertEquals(30.0D, (Double) metaalert.getDocument().get("sum"), delta);
 
     // it must contain an overall threat score; a float to match the type of the threat score of the other sensor indices
     assertTrue(threatScore instanceof Float);
 
     // by default, the overall threat score is the sum of all child threat scores
-    assertEquals(30.0f, threatScore);
+    assertEquals(30.0F, threatScore);
   }
 }
