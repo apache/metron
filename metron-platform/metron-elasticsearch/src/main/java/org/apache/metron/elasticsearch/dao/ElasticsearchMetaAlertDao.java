@@ -80,11 +80,11 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   private String threatTriageField = THREAT_FIELD_DEFAULT;
 
   /**
-   * Defines which summary value of all the child threat triage scores that is used to represent
+   * Defines which summary aggregation of the child threat triage scores that is used to represent
    * the overall threat triage score for the metaalert.
    *
    * This overall score is primarily used for sorting; hence it is called the 'threatSort'.  This
-   * can be either max, min, average, count, or sum.
+   * can be either max, min, average, count, median, or sum.
    */
   private String threatSort = THREAT_SORT_DEFAULT;
   private int pageSize = 500;
@@ -101,9 +101,9 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
    * Wraps an {@link org.apache.metron.indexing.dao.IndexDao} to handle meta alerts.
    * @param indexDao The Dao to wrap
    * @param triageLevelField The field name to use as the threat scoring field
-   * @param threatSort The summary value of all child threat triage scores used
+   * @param threatSort The summary aggregation of all child threat triage scores used
    *                   as the overall threat triage score for the metaalert. This
-   *                   can be either max, min, average, count, or sum.
+   *                   can be either max, min, average, count, median, or sum.
    */
   public ElasticsearchMetaAlertDao(IndexDao indexDao, String index, String triageLevelField, String threatSort) {
     init(indexDao, Optional.of(threatSort));
@@ -119,7 +119,9 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
    * Initializes this implementation by setting the supplied IndexDao and also setting a separate ElasticsearchDao.
    * This is needed for some specific Elasticsearch functions (looking up an index from a GUID for example).
    * @param indexDao The DAO to wrap for our queries
-   * @param threatSort The aggregation to use as the threat field. E.g. "sum", "median", etc.
+   * @param threatSort The summary aggregation of the child threat triage scores used
+   *                   as the overall threat triage score for the metaalert. This
+   *                   can be either max, min, average, count, median, or sum.
    */
   @Override
   public void init(IndexDao indexDao, Optional<String> threatSort) {
@@ -626,10 +628,10 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       metaScores = new MetaScores(scores);
     }
 
-    // add a summary (max, min, avg, count, sum) of all the threat scores from the child alerts
+    // add a summary (max, min, avg, ...) of all the threat scores from the child alerts
     metaAlert.getDocument().putAll(metaScores.getMetaScores());
 
-    // the overall threat score for the metaalert; either max, min, avg, count or sum of all child scores
+    // add the overall threat score for the metaalert; one of the summary aggregations as defined by `threatSort`
     Object threatScore = metaScores.getMetaScores().get(threatSort);
 
     // add the threat score as a float; type needs to match the threat score field from each of the sensor indices

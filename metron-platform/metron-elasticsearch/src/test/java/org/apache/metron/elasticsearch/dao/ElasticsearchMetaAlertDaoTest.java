@@ -244,6 +244,7 @@ public class ElasticsearchMetaAlertDaoTest {
     assertEquals(15.0D, (Double) metaalert.getDocument().get("average"), delta);
     assertEquals(2L, metaalert.getDocument().get("count"));
     assertEquals(30.0D, (Double) metaalert.getDocument().get("sum"), delta);
+    assertEquals(15.0D, (Double) metaalert.getDocument().get("median"), delta);
 
     // it must contain an overall threat score; a float to match the type of the threat score of the other sensor indices
     assertTrue(threatScore instanceof Float);
