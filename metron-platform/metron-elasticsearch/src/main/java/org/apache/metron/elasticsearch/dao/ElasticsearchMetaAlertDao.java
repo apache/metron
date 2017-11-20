@@ -80,8 +80,8 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   private String threatTriageField = THREAT_FIELD_DEFAULT;
 
   /**
-   * Defines which summary aggregation of the child threat triage scores that is used to represent
-   * the overall threat triage score for the metaalert.
+   * Defines which summary aggregation is used to represent the overall threat triage score for
+   * the metaalert. The summary aggregation is applied to the threat triage score of all child alerts.
    *
    * This overall score is primarily used for sorting; hence it is called the 'threatSort'.  This
    * can be either max, min, average, count, median, or sum.
