@@ -36,6 +36,7 @@ import {MetaAlertService} from '../../../service/meta-alert.service';
 import {INDEXES, MAX_ALERTS_IN_META_ALERTS} from '../../../utils/constants';
 import {UpdateService} from '../../../service/update.service';
 import {PatchRequest} from '../../../model/patch-request';
+import {GetRequest} from '../../../model/get-request';
 
 @Component({
   selector: 'app-tree-view',
@@ -54,8 +55,8 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
               searchService: SearchService,
               metronDialogBox: MetronDialogBox,
               updateService: UpdateService,
-              private metaAlertService: MetaAlertService) {
-    super(router, searchService, metronDialogBox, updateService);
+              metaAlertService: MetaAlertService) {
+    super(router, searchService, metronDialogBox, updateService, metaAlertService);
   }
 
   addAlertChangedListner() {
@@ -352,16 +353,14 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
     return true;
   }
 
-  createGuidToIndexMap(searchResponse: SearchResponse): any {
-    let map = {};
-    searchResponse.results.forEach(alert => map[alert.source.guid] = alert.index);
-    return map;
+  createGetRequestArray(searchResponse: SearchResponse): any {
+    return searchResponse.results.map(alert => new GetRequest(alert.source.guid, alert.source['source:type'], alert.index));
   }
 
   getAllAlertsForSlectedGroup(group: TreeGroupData): Observable<SearchResponse> {
     let dashRowKey = Object.keys(group.groupQueryMap);
     let searchRequest = new SearchRequest();
-    searchRequest.fields = [dashRowKey[0], 'guid'];
+    searchRequest.fields = [dashRowKey[0], 'guid', 'source:type'];
     searchRequest.from = 0;
     searchRequest.indices = INDEXES;
     searchRequest.query = this.createQuery(group);
@@ -373,10 +372,11 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
     this.getAllAlertsForSlectedGroup(group).subscribe((searchResponse: SearchResponse) => {
       if (this.canCreateMetaAlert(searchResponse.total)) {
         let metaAlert = new MetaAlertCreateRequest();
-        metaAlert.guidToIndices = this.createGuidToIndexMap(searchResponse);
+        metaAlert.alerts = this.createGetRequestArray(searchResponse);
         metaAlert.groups = this.queryBuilder.groupRequest.groups.map(grp => grp.field);
+
         this.metaAlertService.create(metaAlert).subscribe(() => {
-          this.onRefreshData.emit(true);
+          setTimeout(() => this.onRefreshData.emit(true), 1000);
           console.log('Meta alert created successfully');
         });
       }

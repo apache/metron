@@ -17,8 +17,7 @@
  */
 import {GetRequest} from './get-request';
 
-export class MetaAlertCreateRequest {
+export class MetaAlertAddRemoveRequest {
+  metaAlertGuid: string;
   alerts: GetRequest[];
-  groups: string[];
 }
-

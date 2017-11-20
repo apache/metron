@@ -92,8 +92,12 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   addAlertChangedListner() {
+    this.metaAlertsService.alertChanged$.subscribe(metaAlertAddRemoveRequest => {
+      this.updateAlert(META_ALERTS_SENSOR_TYPE, metaAlertAddRemoveRequest.metaAlertGuid, (metaAlertAddRemoveRequest.alerts === null));
+    });
+
     this.updateService.alertChanged$.subscribe(patchRequest => {
-      this.updateAlert(patchRequest);
+      this.updateAlert(patchRequest.sensorType, patchRequest.guid, false);
     });
   }
 
@@ -281,7 +285,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   processResolve() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'RESOLVE').subscribe(results => {
+    this.updateService.updateAlertState(this.selectedAlerts, 'RESOLVE', false).subscribe(results => {
       this.updateSelectedAlertStatus('RESOLVE');
     });
   }
@@ -417,9 +421,18 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.searchService.interval = this.refreshInterval;
   }
 
-  updateAlert(patchRequest: PatchRequest) {
-    this.searchService.getAlert(patchRequest.sensorType, patchRequest.guid).subscribe(alertSource => {
-      this.alerts.filter(alert => alert.source.guid === patchRequest.guid)
+  updateAlert(sensorType: string, guid: string, isDelete: boolean) {
+    if (isDelete) {
+      let alertIndex = -1;
+      this.alerts.forEach((alert, index) => {
+        alertIndex = (alert.source.guid === guid) ? index : alertIndex;
+      });
+      this.alerts.splice(alertIndex, 1);
+      return;
+    }
+
+    this.searchService.getAlert(sensorType, guid).subscribe(alertSource => {
+      this.alerts.filter(alert => alert.source.guid === guid)
       .map(alert => alert.source = alertSource);
     });
   }

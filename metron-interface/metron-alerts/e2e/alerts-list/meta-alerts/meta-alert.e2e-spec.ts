@@ -53,6 +53,8 @@ describe('meta-alerts workflow', function() {
   });
 
   it('should have all the steps for meta alerts workflow', () => {
+    let comment1 = 'This is a sample comment';
+    let userNameAndTimestamp = '- admin - a few seconds ago';
     let confirmText = 'Do you wish to create a meta alert with 113 selected alerts?';
     let dashRowValues = {
       'firstDashRow': ['0', '192.168.138.158', 'ALERTS', '113'],
@@ -79,7 +81,7 @@ describe('meta-alerts workflow', function() {
 
     /* Table should have all alerts */
     tablePage.waitForMetaAlert();
-    expect(tablePage.getPaginationText()).toEqualBcoz('1 - 25 of 57', 'pagination text to be present'); /* should be 57 */
+    expect(tablePage.getPaginationText()).toEqualBcoz('1 - 25 of 57', 'pagination text to be present');
     expect(tablePage.getCellValue(0, 2, '(114)')).toContain('(113)', 'number of alerts in a meta alert should be correct');
     expect(tablePage.getNonHiddenRowCount()).toEqualBcoz(25, '25 rows to be visible');
     expect(tablePage.getAllRowsCount()).toEqualBcoz(138, '138 rows to be available');
@@ -107,6 +109,13 @@ describe('meta-alerts workflow', function() {
     detailsPage.renameMetaAlert('e2e-meta-alert');
     detailsPage.saveRename();
     expect(detailsPage.getAlertNameOrId()).toEqual('e2e-meta-alert');
+
+    detailsPage.clickCommentsInSideNav();
+    detailsPage.addCommentAndSave(comment1, 0);
+    expect(detailsPage.getCommentsText()).toEqual([comment1]);
+    expect(detailsPage.getCommentsUserNameAndTimeStamp()).toEqual([userNameAndTimestamp]);
+    expect(detailsPage.getCommentIconCountInListView()).toEqual(1);
+
     detailsPage.closeDetailPane();
 
     /* Add to alert */
@@ -131,7 +140,6 @@ describe('meta-alerts workflow', function() {
     tablePage.removeAlert(0);
     expect(treePage.getConfirmationText()).toEqualBcoz(removeMetaAlertConfirmText, 'confirmation text to remove meta alert');
     treePage.clickYesForConfirmation();
-    // expect(tablePage.getAllRowsCount()).toEqualBcoz(24, '24 rows should be present after removing meta alert');
   });
 
 });
