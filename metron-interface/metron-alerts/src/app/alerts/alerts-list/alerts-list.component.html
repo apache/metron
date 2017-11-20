@@ -76,7 +76,7 @@
       </div>
       <div class="col px-0 ml-4">
         <div class="col-xs-12 pl-0 pb-3">
-          <app-group-by [facets]="searchResponse.facetCounts" (groupsChange)="onGroupsChange($event)"> </app-group-by>
+          <app-group-by [facets]="groupFacets" (groupsChange)="onGroupsChange($event)"> </app-group-by>
         </div>
         <div class="col-xs-12 px-0">
             <app-table-view #dataViewComponent
