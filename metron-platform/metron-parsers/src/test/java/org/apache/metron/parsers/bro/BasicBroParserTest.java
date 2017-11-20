@@ -1133,7 +1133,6 @@ public class BasicBroParserTest {
         }
 
 	/**
-       /**
          * {
          * "rfb": {
          *      "ts":1328634261.675248,
