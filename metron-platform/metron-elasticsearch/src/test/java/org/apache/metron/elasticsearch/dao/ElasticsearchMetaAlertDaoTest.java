@@ -239,12 +239,12 @@ public class ElasticsearchMetaAlertDaoTest {
     Object threatScore = metaalert.getDocument().get(ElasticsearchMetaAlertDao.THREAT_FIELD_DEFAULT);
 
     // the metaalert must contain a summary of all child threat scores
-    assertEquals(20.0D, (Double) metaalert.getDocument().get("max"), delta);
-    assertEquals(10.0D, (Double) metaalert.getDocument().get("min"), delta);
-    assertEquals(15.0D, (Double) metaalert.getDocument().get("average"), delta);
-    assertEquals(2L, metaalert.getDocument().get("count"));
-    assertEquals(30.0D, (Double) metaalert.getDocument().get("sum"), delta);
-    assertEquals(15.0D, (Double) metaalert.getDocument().get("median"), delta);
+    assertEquals(20D, (Double) metaalert.getDocument().get("max"), delta);
+    assertEquals(10D, (Double) metaalert.getDocument().get("min"), delta);
+    assertEquals(15D, (Double) metaalert.getDocument().get("average"), delta);
+    assertEquals(2D, (Double) metaalert.getDocument().get("count"), delta);
+    assertEquals(30D, (Double) metaalert.getDocument().get("sum"), delta);
+    assertEquals(15D, (Double) metaalert.getDocument().get("median"), delta);
 
     // it must contain an overall threat score; a float to match the type of the threat score of the other sensor indices
     assertTrue(threatScore instanceof Float);

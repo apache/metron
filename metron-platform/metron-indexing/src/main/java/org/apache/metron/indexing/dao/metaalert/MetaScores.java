@@ -23,10 +23,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.math3.stat.descriptive.rank.Median;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 
 public class MetaScores {
 
-  protected Map<String, Object> metaScores = new HashMap<>();
+  protected Map<String, Double> metaScores = new HashMap<>();
 
   public MetaScores(List<Double> scores) {
     // A meta alert could be entirely alerts with no values.
@@ -37,7 +38,7 @@ public class MetaScores {
     metaScores.put("max", stats.getMax());
     metaScores.put("min", stats.getMin());
     metaScores.put("average", stats.getAverage());
-    metaScores.put("count", stats.getCount());
+    metaScores.put("count", ConversionUtils.convert(stats.getCount(), Double.class));
     metaScores.put("sum", stats.getSum());
 
     // median isn't in the stats summary
@@ -48,7 +49,7 @@ public class MetaScores {
     metaScores.put("median", new Median().evaluate(arr));
   }
 
-  public Map<String, Object> getMetaScores() {
+  public Map<String, Double> getMetaScores() {
     return metaScores;
   }
 }
