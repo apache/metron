@@ -73,6 +73,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   tableMetaData = new TableMetadata();
   queryBuilder: QueryBuilder = new QueryBuilder();
   pagination: Pagination = new Pagination();
+  alertChangedSubscription: Subscription;
 
   constructor(private router: Router,
               private searchService: SearchService,
@@ -96,7 +97,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       this.updateAlert(META_ALERTS_SENSOR_TYPE, metaAlertAddRemoveRequest.metaAlertGuid, (metaAlertAddRemoveRequest.alerts === null));
     });
 
-    this.updateService.alertChanged$.subscribe(patchRequest => {
+    this.alertChangedSubscription = this.updateService.alertChanged$.subscribe(patchRequest => {
       this.updateAlert(patchRequest.sensorType, patchRequest.guid, false);
     });
   }
@@ -168,6 +169,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.tryStopPolling();
+    this.removeAlertChangedListner();
   }
 
   ngOnInit() {
@@ -445,4 +447,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.resume();
   }
 
+  removeAlertChangedListner() {
+    this.alertChangedSubscription.unsubscribe();
+  }
 }

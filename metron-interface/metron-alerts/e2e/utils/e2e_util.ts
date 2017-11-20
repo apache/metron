@@ -60,7 +60,7 @@ export function deleteTestData() {
 
 export function createMetaAlertsIndex() {
   deleteMetaAlertsIndex();
-  fs.createReadStream('./../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/meta_index.template')
+  fs.createReadStream('./../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/metaalert_index.template')
   .pipe(request.post('http://node1:9200/metaalert_index'));
 }
 

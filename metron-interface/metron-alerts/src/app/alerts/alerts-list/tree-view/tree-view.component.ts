@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { Component, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 import {Router} from '@angular/router';
 import {Subscription, Observable} from 'rxjs/Rx';
 
@@ -44,12 +44,13 @@ import {GetRequest} from '../../../model/get-request';
   styleUrls: ['./tree-view.component.scss']
 })
 
-export class TreeViewComponent extends TableViewComponent implements OnInit, OnChanges {
+export class TreeViewComponent extends TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
   groupByFields: string[] = [];
   topGroups: TreeGroupData[] = [];
   groupResponse: GroupResponse = new GroupResponse();
   treeGroupSubscriptionMap: {[key: string]: TreeAlertsSubscription } = {};
+  alertsChangedSubscription: Subscription;
 
   constructor(router: Router,
               searchService: SearchService,
@@ -60,9 +61,13 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   }
 
   addAlertChangedListner() {
-    this.updateService.alertChanged$.subscribe(patchRequest => {
+    this.alertsChangedSubscription = this.updateService.alertChanged$.subscribe(patchRequest => {
       this.updateAlert(patchRequest);
     });
+  }
+
+  removeAlertChangedLister() {
+    this.alertsChangedSubscription.unsubscribe();
   }
 
   collapseGroup(groupArray: TreeGroupData[], level: number, index: number) {
@@ -177,6 +182,10 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
 
   ngOnInit() {
     this.addAlertChangedListner();
+  }
+
+  ngOnDestroy(): void {
+    this.removeAlertChangedLister();
   }
 
   searchGroup(selectedGroup: TreeGroupData, searchRequest: SearchRequest): Subscription {
