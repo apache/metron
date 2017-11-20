@@ -73,6 +73,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   tableMetaData = new TableMetadata();
   queryBuilder: QueryBuilder = new QueryBuilder();
   pagination: Pagination = new Pagination();
+  alertChangedSubscription: Subscription;
 
   constructor(private router: Router,
               private searchService: SearchService,
@@ -92,8 +93,12 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   addAlertChangedListner() {
-    this.updateService.alertChanged$.subscribe(patchRequest => {
-      this.updateAlert(patchRequest);
+    this.metaAlertsService.alertChanged$.subscribe(metaAlertAddRemoveRequest => {
+      this.updateAlert(META_ALERTS_SENSOR_TYPE, metaAlertAddRemoveRequest.metaAlertGuid, (metaAlertAddRemoveRequest.alerts === null));
+    });
+
+    this.alertChangedSubscription = this.updateService.alertChanged$.subscribe(patchRequest => {
+      this.updateAlert(patchRequest.sensorType, patchRequest.guid, false);
     });
   }
 
@@ -164,6 +169,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.tryStopPolling();
+    this.removeAlertChangedListner();
   }
 
   ngOnInit() {
@@ -281,7 +287,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   processResolve() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'RESOLVE').subscribe(results => {
+    this.updateService.updateAlertState(this.selectedAlerts, 'RESOLVE', false).subscribe(results => {
       this.updateSelectedAlertStatus('RESOLVE');
     });
   }
@@ -417,9 +423,18 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.searchService.interval = this.refreshInterval;
   }
 
-  updateAlert(patchRequest: PatchRequest) {
-    this.searchService.getAlert(patchRequest.sensorType, patchRequest.guid).subscribe(alertSource => {
-      this.alerts.filter(alert => alert.source.guid === patchRequest.guid)
+  updateAlert(sensorType: string, guid: string, isDelete: boolean) {
+    if (isDelete) {
+      let alertIndex = -1;
+      this.alerts.forEach((alert, index) => {
+        alertIndex = (alert.source.guid === guid) ? index : alertIndex;
+      });
+      this.alerts.splice(alertIndex, 1);
+      return;
+    }
+
+    this.searchService.getAlert(sensorType, guid).subscribe(alertSource => {
+      this.alerts.filter(alert => alert.source.guid === guid)
       .map(alert => alert.source = alertSource);
     });
   }
@@ -432,4 +447,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.resume();
   }
 
+  removeAlertChangedListner() {
+    this.alertChangedSubscription.unsubscribe();
+  }
 }

@@ -44,6 +44,7 @@ import {LoginGuard} from './shared/login-guard';
 import {UpdateService} from './service/update.service';
 import {MetaAlertService} from './service/meta-alert.service';
 import {MetaAlertsModule} from './alerts/meta-alerts/meta-alerts.module';
+import {SearchService} from './service/search.service';
 
 
 
@@ -76,6 +77,7 @@ export function initConfig(config: ColumnNamesService) {
               AuthGuard,
               LoginGuard,
               ConfigureTableService,
+              SearchService,
               SaveSearchService,
               MetronDialogBox,
               ColumnNamesService,

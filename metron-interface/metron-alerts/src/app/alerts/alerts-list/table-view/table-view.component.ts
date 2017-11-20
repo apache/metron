@@ -33,6 +33,9 @@ import {PatchRequest} from '../../../model/patch-request';
 import {Patch} from '../../../model/patch';
 import {UpdateService} from '../../../service/update.service';
 import {META_ALERTS_INDEX} from '../../../utils/constants';
+import {MetaAlertService} from '../../../service/meta-alert.service';
+import {MetaAlertAddRemoveRequest} from '../../../model/meta-alert-add-remove-request';
+import {GetRequest} from '../../../model/get-request';
 
 export enum MetronAlertDisplayState {
   COLLAPSE, EXPAND
@@ -53,6 +56,7 @@ export class TableViewComponent implements OnChanges {
   updateService: UpdateService;
   isStatusFieldPresent = false;
   metronDialogBox: MetronDialogBox;
+  metaAlertService: MetaAlertService;
   metaAlertsDisplayState: {[key: string]: MetronAlertDisplayState} = {};
   metronAlertDisplayState = MetronAlertDisplayState;
 
@@ -72,11 +76,13 @@ export class TableViewComponent implements OnChanges {
   constructor(router: Router,
               searchService: SearchService,
               metronDialogBox: MetronDialogBox,
-              updateService: UpdateService) {
+              updateService: UpdateService,
+              metaAlertService: MetaAlertService) {
     this.router = router;
     this.searchService = searchService;
     this.metronDialogBox = metronDialogBox;
     this.updateService = updateService;
+    this.metaAlertService = metaAlertService;
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -227,7 +233,6 @@ export class TableViewComponent implements OnChanges {
         this.doDeleteOneAlertFromMetaAlert(alert, alertIndex, metaAlertIndex);
       }
     });
-
     $event.stopPropagation();
   }
 
@@ -237,36 +242,21 @@ export class TableViewComponent implements OnChanges {
         this.doDeleteMetaAlert(alert, index);
       }
     });
-
     $event.stopPropagation();
   }
 
   doDeleteOneAlertFromMetaAlert(alert, alertIndex, metaAlertIndex) {
-    let metaAlerts = JSON.parse(JSON.stringify(alert.source.alert));
-    metaAlerts.splice(metaAlertIndex, 1);
+    let alertToRemove = alert.source.alert[alertIndex];
+    let metaAlertAddRemoveRequest = new MetaAlertAddRemoveRequest();
+    metaAlertAddRemoveRequest.metaAlertGuid = alert.source.guid;
+    metaAlertAddRemoveRequest.alerts = [new GetRequest(alertToRemove.guid, alertToRemove['source:type'], '')];
 
-    let patchRequest = new PatchRequest();
-    patchRequest.guid = alert.source.guid;
-    patchRequest.sensorType = 'metaalert';
-    patchRequest.index = alert.index;
-    patchRequest.patch = [new Patch('replace', 'alert', metaAlerts)];
-
-
-    this.updateService.patch(patchRequest).subscribe(rep => {
-      alert.source.alert.splice(metaAlertIndex, 1);
+    this.metaAlertService.removeAlertsFromMetaAlert(metaAlertAddRemoveRequest).subscribe(() => {
     });
   }
 
   doDeleteMetaAlert(alert: Alert, index: number) {
-    let patchRequest = new PatchRequest();
-    patchRequest.guid = alert.source.guid;
-    patchRequest.sensorType = 'metaalert';
-    patchRequest.index = alert.index;
-    patchRequest.patch = [new Patch('replace', '/status', 'inactive')];
-
-    this.updateService.patch(patchRequest).subscribe(rep => {
-      this.alerts.splice(index, 1);
+    this.metaAlertService.updateMetaAlertStatus(alert.source.guid, 'inactive').subscribe(() => {
     });
-
   }
 }

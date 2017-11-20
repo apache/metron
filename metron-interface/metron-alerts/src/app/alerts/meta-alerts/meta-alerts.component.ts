@@ -24,14 +24,10 @@ import {SearchRequest} from '../../model/search-request';
 import {SearchService} from '../../service/search.service';
 import {SearchResponse} from '../../model/search-response';
 import {SortField} from '../../model/sort-field';
-import {
-  MAX_ALERTS_IN_META_ALERTS, META_ALERTS_INDEX,
-  META_ALERTS_SENSOR_TYPE
-} from '../../utils/constants';
-import {AlertSource} from '../../model/alert-source';
-import {PatchRequest} from '../../model/patch-request';
-import {Patch} from '../../model/patch';
-import {DialogType, MetronDialogBox} from '../../shared/metron-dialog-box';
+import { META_ALERTS_SENSOR_TYPE } from '../../utils/constants';
+import {MetronDialogBox} from '../../shared/metron-dialog-box';
+import {MetaAlertAddRemoveRequest} from '../../model/meta-alert-add-remove-request';
+import {GetRequest} from '../../model/get-request';
 
 @Component({
   selector: 'app-meta-alerts',
@@ -67,46 +63,17 @@ export class MetaAlertsComponent implements OnInit {
     this.searchService.search(searchRequest).subscribe(resp => this.searchResponse = resp);
   }
 
-  doAddAlertToMetaAlert(alertSources: AlertSource[]) {
-    let patchRequest = new PatchRequest();
-    patchRequest.guid = this.selectedMetaAlert;
-    patchRequest.sensorType = 'metaalert';
-    patchRequest.index = META_ALERTS_INDEX;
-    patchRequest.patch = [new Patch('replace', 'alert', alertSources)];
+  addAlertToMetaAlert() {
+    let getRequest = this.metaAlertService.selectedAlerts.map(alert =>
+          new GetRequest(alert.source.guid, alert.source['source:type'], alert.index));
+    let metaAlertAddRemoveRequest = new MetaAlertAddRemoveRequest();
+    metaAlertAddRemoveRequest.metaAlertGuid = this.selectedMetaAlert;
+    metaAlertAddRemoveRequest.alerts = getRequest;
 
-    this.updateService.patch(patchRequest).subscribe(rep => {
+    this.metaAlertService.addAlertsToMetaAlert(metaAlertAddRemoveRequest).subscribe(() => {
       console.log('Meta alert saved');
       this.goBack();
     });
-  }
-
-  addAlertToMetaAlert() {
-    let searchRequest = new SearchRequest();
-    searchRequest.query = 'guid:"' + this.selectedMetaAlert + '"';
-    searchRequest.from = 0;
-    searchRequest.size = 1;
-    searchRequest.facetFields = [];
-    searchRequest.indices =  [META_ALERTS_SENSOR_TYPE];
-    searchRequest.sort = [];
-    searchRequest.fields = [];
-
-    this.searchService.search(searchRequest).subscribe((searchResponse: SearchResponse) => {
-      if (searchResponse.results.length === 1) {
-        let allAlertsInMetaAlerts = [...searchResponse.results[0].source.alert,
-                                                  ...this.metaAlertService.selectedAlerts.map(alert => alert.source)];
-
-        if (allAlertsInMetaAlerts.length > MAX_ALERTS_IN_META_ALERTS){
-          let errorMessage = 'Meta Alert cannot have more than ' + MAX_ALERTS_IN_META_ALERTS +' alerts within it';
-          this.metronDialogBox.showConfirmationMessage(errorMessage, DialogType.Error);
-          return;
-        }
-
-          this.doAddAlertToMetaAlert(allAlertsInMetaAlerts);
-      } else {
-        console.log('Unable to get a single meta alert');
-      }
-    });
-    console.log(this.selectedMetaAlert);
   }
 
 }

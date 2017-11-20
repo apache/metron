@@ -37,6 +37,6 @@ export let CUSTOMM_DATE_RANGE_LABEL = 'Date Range';
 export let TREE_SUB_GROUP_SIZE = 5;
 export let DEFAULT_FACETS = ['source:type', 'ip_src_addr', 'ip_dst_addr', 'host', 'enrichments:geo:ip_dst_addr:country'];
 export let DEFAULT_GROUPS = ['source:type', 'ip_src_addr', 'ip_dst_addr', 'host', 'enrichments:geo:ip_dst_addr:country'];
-export let INDEXES = environment.indices ? environment.indices.split(',') : ['websphere', 'snort', 'asa', 'bro', 'yaf', 'metaalert'];
+export let INDEXES =  environment.indices ? environment.indices.split(',') : [];
 
 export let MAX_ALERTS_IN_META_ALERTS = 350;

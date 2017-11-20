@@ -60,6 +60,8 @@ exports.config = {
     });
   },
   onPrepare: function() {
+    var createMetaAlertsIndex =  require('./e2e/utils/e2e_util').createMetaAlertsIndex;
+    createMetaAlertsIndex();
     jasmine.getEnv().addReporter(new SpecReporter());
     setTimeout(function() {
       browser.driver.executeScript(function() {
@@ -71,5 +73,9 @@ exports.config = {
         browser.driver.manage().window().setSize(result.width, result.height);
       });
     });
+  },
+  onComplete: function() {
+    var createMetaAlertsIndex =  require('./e2e/utils/e2e_util').createMetaAlertsIndex;
+    createMetaAlertsIndex();
   }
 };

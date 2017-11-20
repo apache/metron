@@ -15,10 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {GetRequest} from './get-request';
+export class GetRequest {
+  guid: string;
+  sensorType: string;
+  index: string;
 
-export class MetaAlertCreateRequest {
-  alerts: GetRequest[];
-  groups: string[];
+  constructor(guid: string, sensorType: string, index: string) {
+    this.guid = guid;
+    this.sensorType = sensorType;
+    this.index = index;
+  }
 }
 

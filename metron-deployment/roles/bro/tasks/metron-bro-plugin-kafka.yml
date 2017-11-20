@@ -15,13 +15,16 @@
 #  limitations under the License.
 #
 ---
-- name: Distribute bro-kafka plugin
-  copy: src=../../../metron-sensors/bro-plugin-kafka dest=/tmp/ mode=0755
+- name: Clone metron-bro-plugin-kafka into /tmp
+  git:
+    repo: https://github.com/apache/metron-bro-plugin-kafka
+    version: master
+    dest: /tmp/metron-bro-plugin-kafka
 
 - name: Compile and install the plugin
   shell: "{{ item }}"
   args:
-    chdir: "/tmp/bro-plugin-kafka"
+    chdir: "/tmp/metron-bro-plugin-kafka"
     creates: "{{ bro_home }}/lib/bro/plugins/BRO_KAFKA"
   with_items:
     - rm -rf build/
