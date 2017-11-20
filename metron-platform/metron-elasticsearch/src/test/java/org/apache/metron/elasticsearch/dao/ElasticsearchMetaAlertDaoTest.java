@@ -236,7 +236,7 @@ public class ElasticsearchMetaAlertDaoTest {
     assertEquals(20D, (Double) metaalert.getDocument().get("max"), delta);
     assertEquals(10D, (Double) metaalert.getDocument().get("min"), delta);
     assertEquals(15D, (Double) metaalert.getDocument().get("average"), delta);
-    assertEquals(2D, (Double) metaalert.getDocument().get("count"), delta);
+    assertEquals(2L, metaalert.getDocument().get("count"));
     assertEquals(30D, (Double) metaalert.getDocument().get("sum"), delta);
     assertEquals(15D, (Double) metaalert.getDocument().get("median"), delta);
 
