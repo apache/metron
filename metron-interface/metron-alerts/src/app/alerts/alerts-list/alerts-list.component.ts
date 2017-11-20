@@ -39,9 +39,9 @@ import {Filter} from '../../model/filter';
 import {THREAT_SCORE_FIELD_NAME, TIMESTAMP_FIELD_NAME, ALL_TIME} from '../../utils/constants';
 import {TableViewComponent} from './table-view/table-view.component';
 import {Pagination} from '../../model/pagination';
-import {PatchRequest} from '../../model/patch-request';
 import {META_ALERTS_SENSOR_TYPE, META_ALERTS_INDEX} from '../../utils/constants';
 import {MetaAlertService} from '../../service/meta-alert.service';
+import {Facets} from '../../model/facets';
 
 @Component({
   selector: 'app-alerts-list',
@@ -74,6 +74,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   queryBuilder: QueryBuilder = new QueryBuilder();
   pagination: Pagination = new Pagination();
   alertChangedSubscription: Subscription;
+  groupFacets: Facets;
 
   constructor(private router: Router,
               private searchService: SearchService,
@@ -361,6 +362,14 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.pagination.total = results.total;
     this.alerts = results.results ? results.results : [];
     this.setSelectedTimeRange(this.queryBuilder.filters);
+    this.createGroupFacets(results);
+  }
+
+  private createGroupFacets(results: SearchResponse) {
+    this.groupFacets = JSON.parse(JSON.stringify(results.facetCounts));
+    if (this.groupFacets['source:type']) {
+      delete this.groupFacets['source:type']['metaalert'];
+    }
   }
 
   showConfigureTable() {
