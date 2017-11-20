@@ -1304,10 +1304,10 @@ public class BasicBroParserTest {
          *      "trans_depth":0,
          *      "method":"REGISTER",
          *      "uri":"sip:t.voncp.com:10000",
-         *      "request_from":"\u002216178766111\u0022 <sip:16178766111@t.voncp.com:10000>",
-         *      "request_to":"\u002216178766111\u0022 <sip:16178766111@t.voncp.com:10000>",
-         *      "response_from":"\u002216178766111\u0022 <sip:16178766111@t.voncp.com:10000>",
-         *      "response_to":"\u002216178766111\u0022 <sip:16178766111@t.voncp.com:10000>",
+         *      "request_from":"\\u002216178766111\\u0022 <sip:16178766111@t.voncp.com:10000>",
+         *      "request_to":"\\u002216178766111\\u0022 <sip:16178766111@t.voncp.com:10000>",
+         *      "response_from":"\\u002216178766111\\u0022 <sip:16178766111@t.voncp.com:10000>",
+         *      "response_to":"\\u002216178766111\\u0022 <sip:16178766111@t.voncp.com:10000>",
          *      "call_id":"7757a70e218b95730dd2daeaac7d20b1@192.168.1.64",
          *      "seq":"1761527952 REGISTER",
          *      "request_path":["SIP/2.0/UDP 192.168.1.64:10000"],
@@ -1357,8 +1357,6 @@ public class BasicBroParserTest {
                 Assert.assertEquals(broJson.get("status_msg").toString(), rawJson.get("status_msg").toString());
                 Assert.assertEquals(broJson.get("request_body_len").toString(), rawJson.get("request_body_len").toString());
                 Assert.assertEquals(broJson.get("response_body_len").toString(), rawJson.get("response_body_len").toString());
-
-                Assert.assertTrue(broJson.get("original_string").toString().startsWith("SIP"));
         }
 
        /**
