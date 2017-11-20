@@ -15,6 +15,15 @@
             "index": "not_analyzed"
           }
         }
+        },
+        {
+          "threat_triage_score": {
+           "mapping": {
+              "type": "float"
+            },
+            "match": "threat:triage:*score",
+            "match_mapping_type": "*"
+          }
         }
       ],
       "properties": {
