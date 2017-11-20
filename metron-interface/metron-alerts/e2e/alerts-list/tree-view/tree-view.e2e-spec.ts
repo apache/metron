@@ -45,93 +45,93 @@ describe('metron-alerts tree view', function () {
     jasmine.addMatchers(customMatchers);
   });
 
-  // it('should have all group by elements', () => {
-  //   let groupByItems = {
-  //     'source:type': '1',
-  //     'ip_dst_addr': '8',
-  //     'host': '9',
-  //     'enrichm...:country': '3',
-  //     'ip_src_addr': '2'
-  //   };
-  //   expect(page.getGroupByCount()).toEqualBcoz(Object.keys(groupByItems).length, '5 Group By Elements should be present');
-  //   expect(page.getGroupByItemNames()).toEqualBcoz(Object.keys(groupByItems), 'Group By Elements names should be present');
-  //   expect(page.getGroupByItemCounts()).toEqualBcoz(Object.keys(groupByItems).map(key => groupByItems[key]),
-  //                                                   '5 Group By Elements values should be present');
-  // });
-  //
-  // it('drag and drop should change group order', () => {
-  //   let before = {
-  //     'firstDashRow': ['0', 'alerts_ui_e2e', 'ALERTS', '169'],
-  //     'firstSubGroup': '0 US (22)',
-  //     'secondSubGroup': '0 RU (44)',
-  //     'thirdSubGroup': '0 FR (25)'
-  //   };
-  //
-  //   let after = {
-  //     'firstDashRow': ['0', 'US', 'ALERTS', '22'],
-  //     'secondDashRow': ['0', 'RU', 'ALERTS', '44'],
-  //     'thirdDashRow': ['0', 'FR', 'ALERTS', '25'],
-  //     'firstDashSubGroup': '0 alerts_ui_e2e (22)',
-  //     'secondDashSubGroup': '0 alerts_ui_e2e (44)',
-  //     'thirdDashSubGroup': '0 alerts_ui_e2e (25)'
-  //   };
-  //
-  //   page.selectGroup('source:type');
-  //   page.selectGroup('enrichments:geo:ip_dst_addr:country');
-  //   page.expandDashGroup('alerts_ui_e2e');
-  //   expect(page.getDashGroupValues('alerts_ui_e2e')).toEqualBcoz(before.firstDashRow, 'First Dash Row should be correct');
-  //   expect(page.getSubGroupValues('alerts_ui_e2e', 'US')).toEqualBcoz(before.firstSubGroup,
-  //       'Dash Group Values should be correct for US');
-  //   expect(page.getSubGroupValues('alerts_ui_e2e', 'RU')).toEqualBcoz(before.secondSubGroup,
-  //       'Dash Group Values should be present for RU');
-  //   expect(page.getSubGroupValues('alerts_ui_e2e', 'FR')).toEqualBcoz(before.thirdSubGroup,
-  //       'Dash Group Values should be present for FR');
-  //
-  //   page.dragGroup('source:type', 'ip_src_addr');
-  //   //page.selectGroup('source:type');
-  //   expect(page.getDashGroupValues('US')).toEqualBcoz(after.firstDashRow, 'First Dash Row after ' +
-  //       'reorder should be correct');
-  //   expect(page.getDashGroupValues('RU')).toEqualBcoz(after.secondDashRow, 'Second Dash Row after ' +
-  //       'reorder should be correct');
-  //   expect(page.getDashGroupValues('FR')).toEqualBcoz(after.thirdDashRow, 'Third Dash Row after ' +
-  //       'reorder should be correct');
-  //
-  //   page.expandDashGroup('US');
-  //   expect(page.getSubGroupValues('US', 'alerts_ui_e2e')).toEqualBcoz(after.firstDashSubGroup,
-  //       'First Dash Group Values should be present for alerts_ui_e2e');
-  //
-  //   page.expandDashGroup('RU');
-  //   expect(page.getSubGroupValues('RU', 'alerts_ui_e2e')).toEqualBcoz(after.secondDashSubGroup,
-  //       'Second Dash Group Values should be present for alerts_ui_e2e');
-  //
-  //   page.expandDashGroup('FR');
-  //   expect(page.getSubGroupValues('FR', 'alerts_ui_e2e')).toEqualBcoz(after.thirdDashSubGroup,
-  //       'Third Dash Group Values should be present for alerts_ui_e2e');
-  //
-  //   page.dragGroup('source:type', 'ip_dst_addr');
-  //   page.unGroup();
-  // });
-  //
-  // it('should have group details for single group by', () => {
-  //   let dashRowValues = ['0', 'alerts_ui_e2e', 'ALERTS', '169'];
-  //   let row1_page1 = ['-', 'dcda4423-7...0962fafc47', '2017-09-13 17:59:32', 'alerts_ui_e2e',
-  //     '192.168.138.158', 'US', '72.34.49.86', 'comarksecurity.com', 'NEW', '', ''];
-  //   let row1_page2 = ['-', '07b29c29-9...ff19eaa888', '2017-09-13 17:59:37', 'alerts_ui_e2e',
-  //     '192.168.138.158', 'FR', '62.75.195.236', '62.75.195.236', 'NEW', '', ''];
-  //
-  //   page.selectGroup('source:type');
-  //   expect(page.getActiveGroups()).toEqualBcoz(['source:type'], 'only source type group should be selected');
-  //   expect(page.getDashGroupValues('alerts_ui_e2e')).toEqualBcoz(dashRowValues, 'Dash Group Values should be present');
-  //
-  //   page.expandDashGroup('alerts_ui_e2e');
-  //   expect(page.getDashGroupTableValuesForRow('alerts_ui_e2e', 0)).toEqualBcoz(row1_page1, 'Dash Group Values should be present');
-  //
-  //   page.clickOnNextPage('alerts_ui_e2e');
-  //   expect(page.getTableValuesByRowId('alerts_ui_e2e', 0, 'FR')).toEqualBcoz(row1_page2, 'Dash Group Values should be present');
-  //
-  //   page.unGroup();
-  //   expect(page.getActiveGroups()).toEqualBcoz([], 'no groups should be selected');
-  // });
+  it('should have all group by elements', () => {
+    let groupByItems = {
+      'source:type': '1',
+      'ip_dst_addr': '8',
+      'host': '9',
+      'enrichm...:country': '3',
+      'ip_src_addr': '2'
+    };
+    expect(page.getGroupByCount()).toEqualBcoz(Object.keys(groupByItems).length, '5 Group By Elements should be present');
+    expect(page.getGroupByItemNames()).toEqualBcoz(Object.keys(groupByItems), 'Group By Elements names should be present');
+    expect(page.getGroupByItemCounts()).toEqualBcoz(Object.keys(groupByItems).map(key => groupByItems[key]),
+                                                    '5 Group By Elements values should be present');
+  });
+
+  it('drag and drop should change group order', () => {
+    let before = {
+      'firstDashRow': ['0', 'alerts_ui_e2e', 'ALERTS', '169'],
+      'firstSubGroup': '0 US (22)',
+      'secondSubGroup': '0 RU (44)',
+      'thirdSubGroup': '0 FR (25)'
+    };
+
+    let after = {
+      'firstDashRow': ['0', 'US', 'ALERTS', '22'],
+      'secondDashRow': ['0', 'RU', 'ALERTS', '44'],
+      'thirdDashRow': ['0', 'FR', 'ALERTS', '25'],
+      'firstDashSubGroup': '0 alerts_ui_e2e (22)',
+      'secondDashSubGroup': '0 alerts_ui_e2e (44)',
+      'thirdDashSubGroup': '0 alerts_ui_e2e (25)'
+    };
+
+    page.selectGroup('source:type');
+    page.selectGroup('enrichments:geo:ip_dst_addr:country');
+    page.expandDashGroup('alerts_ui_e2e');
+    expect(page.getDashGroupValues('alerts_ui_e2e')).toEqualBcoz(before.firstDashRow, 'First Dash Row should be correct');
+    expect(page.getSubGroupValues('alerts_ui_e2e', 'US')).toEqualBcoz(before.firstSubGroup,
+        'Dash Group Values should be correct for US');
+    expect(page.getSubGroupValues('alerts_ui_e2e', 'RU')).toEqualBcoz(before.secondSubGroup,
+        'Dash Group Values should be present for RU');
+    expect(page.getSubGroupValues('alerts_ui_e2e', 'FR')).toEqualBcoz(before.thirdSubGroup,
+        'Dash Group Values should be present for FR');
+
+    page.dragGroup('source:type', 'ip_src_addr');
+    //page.selectGroup('source:type');
+    expect(page.getDashGroupValues('US')).toEqualBcoz(after.firstDashRow, 'First Dash Row after ' +
+        'reorder should be correct');
+    expect(page.getDashGroupValues('RU')).toEqualBcoz(after.secondDashRow, 'Second Dash Row after ' +
+        'reorder should be correct');
+    expect(page.getDashGroupValues('FR')).toEqualBcoz(after.thirdDashRow, 'Third Dash Row after ' +
+        'reorder should be correct');
+
+    page.expandDashGroup('US');
+    expect(page.getSubGroupValues('US', 'alerts_ui_e2e')).toEqualBcoz(after.firstDashSubGroup,
+        'First Dash Group Values should be present for alerts_ui_e2e');
+
+    page.expandDashGroup('RU');
+    expect(page.getSubGroupValues('RU', 'alerts_ui_e2e')).toEqualBcoz(after.secondDashSubGroup,
+        'Second Dash Group Values should be present for alerts_ui_e2e');
+
+    page.expandDashGroup('FR');
+    expect(page.getSubGroupValues('FR', 'alerts_ui_e2e')).toEqualBcoz(after.thirdDashSubGroup,
+        'Third Dash Group Values should be present for alerts_ui_e2e');
+
+    page.dragGroup('source:type', 'ip_dst_addr');
+    page.unGroup();
+  });
+
+  it('should have group details for single group by', () => {
+    let dashRowValues = ['0', 'alerts_ui_e2e', 'ALERTS', '169'];
+    let row1_page1 = ['-', 'dcda4423-7...0962fafc47', '2017-09-13 17:59:32', 'alerts_ui_e2e',
+      '192.168.138.158', 'US', '72.34.49.86', 'comarksecurity.com', 'NEW', '', ''];
+    let row1_page2 = ['-', '07b29c29-9...ff19eaa888', '2017-09-13 17:59:37', 'alerts_ui_e2e',
+      '192.168.138.158', 'FR', '62.75.195.236', '62.75.195.236', 'NEW', '', ''];
+
+    page.selectGroup('source:type');
+    expect(page.getActiveGroups()).toEqualBcoz(['source:type'], 'only source type group should be selected');
+    expect(page.getDashGroupValues('alerts_ui_e2e')).toEqualBcoz(dashRowValues, 'Dash Group Values should be present');
+
+    page.expandDashGroup('alerts_ui_e2e');
+    expect(page.getDashGroupTableValuesForRow('alerts_ui_e2e', 0)).toEqualBcoz(row1_page1, 'Dash Group Values should be present');
+
+    page.clickOnNextPage('alerts_ui_e2e');
+    expect(page.getTableValuesByRowId('alerts_ui_e2e', 0, 'FR')).toEqualBcoz(row1_page2, 'Dash Group Values should be present');
+
+    page.unGroup();
+    expect(page.getActiveGroups()).toEqualBcoz([], 'no groups should be selected');
+  });
 
   it('should have group details for multiple group by', () => {
 
@@ -170,81 +170,66 @@ describe('metron-alerts tree view', function () {
         'Dash Group Values should be present for runlove.us');
     expect(page.getCellValuesFromTable('alerts_ui_e2e', 'id', 'e2883424-f...79bb8b0606')).toEqual(usGroupIds.concat(frGroupIds),
         'id should not be sorted');
-
-    // page.expandDashGroup('runlove.us');
-    // expect(page.getSubGroupValues('runlove.us', 'US')).toEqualBcoz(dashRow_runLoveUs.firstSubGroup,
-    //                                                                 'Dash Group Values should be present for runlove.us');
-    // page.expandSubGroup('runlove.us', 'US');
-    // expect(page.getCellValuesFromTable('runlove.us', 'id', '04a5c3d0-9...af17c06fbc')).toEqual(dashRow_runLoveUs.firstSubGroupIdCol,
-    //                                                                                             'id should not be sorted');
-    //
-    // expect(page.getDashGroupValues('62.75.195.236')).toEqualBcoz(dashRow_62_75_195_236.dashRow, 'Dash Group Values should be present');
-    // page.expandDashGroup('62.75.195.236');
-    // expect(page.getSubGroupValues('62.75.195.236', 'FR')).toEqualBcoz(dashRow_62_75_195_236.firstSubGroup,
-    //                                                                   'Dash Group Values should be present for 62.75.195.236');
-    // page.expandSubGroup('62.75.195.236', 'FR');
-    // expect(page.getCellValuesFromTable('62.75.195.236', 'id', 'e2883424-f...79bb8b0606')).toEqual(dashRow_62_75_195_236.firstSubGroupIdCol,
-    //                                                                                               'id should not be sorted');
-    //
-    // page.unGroup();
-    // expect(page.getActiveGroups()).toEqualBcoz([], 'no groups should be selected');
+    
+    page.unGroup();
+    expect(page.getActiveGroups()).toEqualBcoz([], 'no groups should be selected');
   });
 
 
-  // it('should have sort working for group details for multiple sub groups', () => {
-  //
-  //   let usTSCol = ['2017-09-13 17:59:32', '2017-09-13 17:59:42', '2017-09-13 17:59:53', '2017-09-13 18:00:02', '2017-09-13 18:00:14'];
-  //   let ruTSCol = ['2017-09-13 17:59:33', '2017-09-13 17:59:48', '2017-09-13 17:59:51', '2017-09-13 17:59:54', '2017-09-13 17:59:57'];
-  //   let frTSCol = ['2017-09-13 17:59:37', '2017-09-13 17:59:46', '2017-09-13 18:00:31', '2017-09-13 18:00:33', '2017-09-13 18:00:37'];
-  //
-  //   let usSortedTSCol = ['2017-09-13 18:02:19', '2017-09-13 18:02:16', '2017-09-13 18:02:09', '2017-09-13 18:01:58', '2017-09-13 18:01:52'];
-  //   let ruSortedTSCol = ['2017-09-14 06:29:40', '2017-09-14 06:29:40', '2017-09-14 06:29:40', '2017-09-14 06:29:40', '2017-09-13 18:02:13'];
-  //   let frSortedTSCol = ['2017-09-14 06:29:40', '2017-09-14 04:29:40', '2017-09-13 18:02:20', '2017-09-13 18:02:05', '2017-09-13 18:02:04'];
-  //
-  //   page.selectGroup('source:type');
-  //   page.selectGroup('enrichments:geo:ip_dst_addr:country');
-  //
-  //   page.expandDashGroup('alerts_ui_e2e');
-  //   page.expandSubGroup('alerts_ui_e2e', 'US');
-  //   page.expandSubGroup('alerts_ui_e2e', 'RU');
-  //   page.expandSubGroup('alerts_ui_e2e', 'FR');
-  //
-  //   let unsortedTS = [...usTSCol, ...ruTSCol, ...frTSCol];
-  //   let sortedTS = [...usSortedTSCol, ...ruSortedTSCol, ...frSortedTSCol];
-  //
-  //   page.sortSubGroup('alerts_ui_e2e', 'timestamp');
-  //
-  //   expect(page.getCellValuesFromTable('alerts_ui_e2e', 'timestamp', '2017-09-13 18:00:37')).toEqual(unsortedTS,
-  //                                                                                                     'timestamp should be sorted asc');
-  //
-  //   page.sortSubGroup('alerts_ui_e2e', 'timestamp');
-  //
-  //   expect(page.getCellValuesFromTable('alerts_ui_e2e', 'timestamp', '2017-09-13 18:02:04')).toEqual(sortedTS,
-  //                                                                                                     'timestamp should be sorted dsc');
-  //
-  //   page.unGroup();
-  //   expect(page.getActiveGroups()).toEqualBcoz([], 'no groups should be selected');
-  // });
-  //
-  // it('should have search working for group details for multiple sub groups', () => {
-  //
-  //   page.selectGroup('source:type');
-  //   page.selectGroup('enrichments:geo:ip_dst_addr:country');
-  //
-  //   page.expandDashGroup('alerts_ui_e2e');
-  //   expect(page.getNumOfSubGroups('alerts_ui_e2e')).toEqual(3, 'three sub groups should be present');
-  //
-  //   listPage.setSearchText('enrichments:geo:ip_dst_addr:country:FR');
-  //
-  //   expect(page.getNumOfSubGroups('alerts_ui_e2e')).toEqual(1, 'one sub groups should be present');
-  //   page.expandSubGroup('alerts_ui_e2e', 'FR');
-  //
-  //   let expected = ['FR', 'FR', 'FR', 'FR', 'FR'];
-  //   expect(page.getCellValuesFromTable('alerts_ui_e2e', 'enrichments:geo:ip_dst_addr:country', 'FR')).toEqual(expected,
-  //                                                                                                             'id should be sorted');
-  //
-  //   page.unGroup();
-  //   expect(page.getActiveGroups()).toEqualBcoz([], 'no groups should be selected');
-  // });
+  it('should have sort working for group details for multiple sub groups', () => {
+
+    let usTSCol = ['2017-09-13 17:59:32', '2017-09-13 17:59:42', '2017-09-13 17:59:53', '2017-09-13 18:00:02', '2017-09-13 18:00:14'];
+    let ruTSCol = ['2017-09-13 17:59:33', '2017-09-13 17:59:48', '2017-09-13 17:59:51', '2017-09-13 17:59:54', '2017-09-13 17:59:57'];
+    let frTSCol = ['2017-09-13 17:59:37', '2017-09-13 17:59:46', '2017-09-13 18:00:31', '2017-09-13 18:00:33', '2017-09-13 18:00:37'];
+
+    let usSortedTSCol = ['2017-09-13 18:02:19', '2017-09-13 18:02:16', '2017-09-13 18:02:09', '2017-09-13 18:01:58', '2017-09-13 18:01:52'];
+    let ruSortedTSCol = ['2017-09-14 06:29:40', '2017-09-14 06:29:40', '2017-09-14 06:29:40', '2017-09-14 06:29:40', '2017-09-13 18:02:13'];
+    let frSortedTSCol = ['2017-09-14 06:29:40', '2017-09-14 04:29:40', '2017-09-13 18:02:20', '2017-09-13 18:02:05', '2017-09-13 18:02:04'];
+
+    page.selectGroup('source:type');
+    page.selectGroup('enrichments:geo:ip_dst_addr:country');
+
+    page.expandDashGroup('alerts_ui_e2e');
+    page.expandSubGroup('alerts_ui_e2e', 'US');
+    page.expandSubGroup('alerts_ui_e2e', 'RU');
+    page.expandSubGroup('alerts_ui_e2e', 'FR');
+
+    let unsortedTS = [...usTSCol, ...ruTSCol, ...frTSCol];
+    let sortedTS = [...usSortedTSCol, ...ruSortedTSCol, ...frSortedTSCol];
+
+    page.sortSubGroup('alerts_ui_e2e', 'timestamp');
+
+    expect(page.getCellValuesFromTable('alerts_ui_e2e', 'timestamp', '2017-09-13 18:00:37')).toEqual(unsortedTS,
+                                                                                                      'timestamp should be sorted asc');
+
+    page.sortSubGroup('alerts_ui_e2e', 'timestamp');
+
+    expect(page.getCellValuesFromTable('alerts_ui_e2e', 'timestamp', '2017-09-13 18:02:04')).toEqual(sortedTS,
+                                                                                                      'timestamp should be sorted dsc');
+
+    page.unGroup();
+    expect(page.getActiveGroups()).toEqualBcoz([], 'no groups should be selected');
+  });
+
+  it('should have search working for group details for multiple sub groups', () => {
+
+    page.selectGroup('source:type');
+    page.selectGroup('enrichments:geo:ip_dst_addr:country');
+
+    page.expandDashGroup('alerts_ui_e2e');
+    expect(page.getNumOfSubGroups('alerts_ui_e2e')).toEqual(3, 'three sub groups should be present');
+
+    listPage.setSearchText('enrichments:geo:ip_dst_addr:country:FR');
+
+    expect(page.getNumOfSubGroups('alerts_ui_e2e')).toEqual(1, 'one sub groups should be present');
+    page.expandSubGroup('alerts_ui_e2e', 'FR');
+
+    let expected = ['FR', 'FR', 'FR', 'FR', 'FR'];
+    expect(page.getCellValuesFromTable('alerts_ui_e2e', 'enrichments:geo:ip_dst_addr:country', 'FR')).toEqual(expected,
+                                                                                                              'id should be sorted');
+
+    page.unGroup();
+    expect(page.getActiveGroups()).toEqualBcoz([], 'no groups should be selected');
+  });
 
 });
