@@ -106,11 +106,13 @@ export class MetronAlertDetailsPage {
   }
 
   getCommentIconCountInListView() {
-    return element.all(by.css('app-table-view .fa.fa-comments-o')).count();
+    let commentsElement = element.all(by.css('app-table-view .fa.fa-comments-o'));
+    return waitForElementPresence(commentsElement).then(() => commentsElement.count());
   }
 
   getCommentIconCountInTreeView() {
-    return element.all(by.css('app-tree-view .fa.fa-comments-o')).count();
+    let commentsElement = element.all(by.css('app-tree-view .fa.fa-comments-o'));
+    return waitForElementPresence(commentsElement).then(() => commentsElement.count());
   }
 
   waitForTextChange(element, previousText) {

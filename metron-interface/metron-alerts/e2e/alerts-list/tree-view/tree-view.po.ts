@@ -76,16 +76,18 @@ export class TreeViewPage {
   }
 
   expandDashGroup(name: string) {
-    waitForElementPresence( element(by.css('[data-name="' + name + '"] .card-header'))).then(() => {
-      this.scrollToDashRow(name);
-      element(by.css('[data-name="' + name + '"] .card-header i.down-arrow')).click();
-      browser.sleep(2000);
-    });
+    let dashGroupElement = element(by.css('[data-name="' + name + '"] .card-header i.down-arrow'));
+    return waitForElementPresence(dashGroupElement)
+    .then(() => browser.actions().mouseMove(dashGroupElement).perform())
+    .then(() => dashGroupElement.click())
+    .then(() => browser.sleep(2000));
   }
 
   expandSubGroup(groupName: string, rowName: string) {
-    browser.actions().mouseMove(element(by.css('[data-name="' + groupName + '"] tr[data-name="' + rowName + '"]'))).perform();
-    return element(by.css('[data-name="' + groupName + '"] tr[data-name="' + rowName + '"]')).click();
+    let subGroupElement = element(by.css('[data-name="' + groupName + '"] tr[data-name="' + rowName + '"]'));
+    return waitForElementVisibility(subGroupElement)
+    .then(() => browser.actions().mouseMove(subGroupElement).perform())
+    .then(() => subGroupElement.click());
   }
 
   getDashGroupTableValuesForRow(name: string, rowId: number) {
@@ -165,6 +167,12 @@ export class TreeViewPage {
 
   clickOnMergeAlerts(groupName: string) {
     return element(by.css('[data-name="' + groupName + '"] .fa-link')).click();
+  }
+
+  clickOnMergeAlertsInTable(groupName: string, waitForAnchor: string, rowIndex: number) {
+    let elementFinder = element.all(by.css('[data-name="' + groupName + '"] table tbody tr')).get(rowIndex).element(by.css('.fa-link'));
+    return waitForElementVisibility(elementFinder)
+    .then(() => elementFinder.click());
   }
 
   getConfirmationText() {

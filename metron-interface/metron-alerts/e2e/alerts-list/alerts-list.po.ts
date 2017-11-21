@@ -430,4 +430,8 @@ export class MetronAlertsPage {
     .element(by.css('.input')).sendKeys(value);
   }
 
+  getTableCellValues(cellIndex: number, startRowIndex: number, endRowIndex: number): any {
+    return element.all(by.css('table tbody tr td:nth-child(' + cellIndex + ')')).getText()
+    .then(val => val.slice(startRowIndex, endRowIndex));
+  }
 }
