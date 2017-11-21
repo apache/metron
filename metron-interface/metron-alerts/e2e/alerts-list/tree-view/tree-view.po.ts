@@ -55,7 +55,11 @@ export class TreeViewPage {
   }
 
   getSubGroupValues(name: string, rowName: string) {
-    return element(by.css('[data-name="' + name + '"] table tbody tr[data-name="' + rowName + '"]')).getText();
+    return this.getSubGroupValuesByPosition(name, rowName, 0);
+  }
+
+  getSubGroupValuesByPosition(name: string, rowName: string, position: number) {
+    return element.all(by.css('[data-name="' + name + '"] table tbody tr[data-name="' + rowName + '"]')).get(position).getText();
   }
 
   selectGroup(name: string) {
@@ -84,7 +88,11 @@ export class TreeViewPage {
   }
 
   expandSubGroup(groupName: string, rowName: string) {
-    let subGroupElement = element(by.css('[data-name="' + groupName + '"] tr[data-name="' + rowName + '"]'));
+    return this.expandSubGroupByPosition(groupName, rowName, 0);
+  }
+
+  expandSubGroupByPosition(groupName: string, rowName: string, position: number) {
+    let subGroupElement = element.all(by.css('[data-name="' + groupName + '"] tr[data-name="' + rowName + '"]')).get(position);
     return waitForElementVisibility(subGroupElement)
     .then(() => browser.actions().mouseMove(subGroupElement).perform())
     .then(() => subGroupElement.click());

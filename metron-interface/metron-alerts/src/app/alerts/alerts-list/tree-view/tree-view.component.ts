@@ -284,7 +284,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
     }
 
     group.groupResults.forEach(subGroup => {
-      index = this.parseSubGroups(subGroup, groupAsArray, parentQueryMap, group.groupedBy, level + 1, index);
+      index = this.parseSubGroups(subGroup, groupAsArray, groupAsArray[index].groupQueryMap, group.groupedBy, level + 1, index);
     });
 
     return index;
