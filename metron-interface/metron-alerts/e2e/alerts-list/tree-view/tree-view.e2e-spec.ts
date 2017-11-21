@@ -144,32 +144,30 @@ describe('metron-alerts tree view', function () {
     expect(page.getActiveGroups()).toEqualBcoz(['source:type', 'ip_dst_addr', 'enrichments:geo:ip_dst_addr:country'], '3 groups should be selected');
 
     expect(page.getDashGroupValues('alerts_ui_e2e')).toEqualBcoz(['0', 'alerts_ui_e2e', 'ALERTS', '169'],
-                                                              'Dash Group Values should be present for alerts_ui_e2e');
+                                                              'Top Level Group Values should be present for alerts_ui_e2e');
 
     page.expandDashGroup('alerts_ui_e2e');
     expect(page.getSubGroupValuesByPosition('alerts_ui_e2e', '204.152.254.221', 0)).toEqualBcoz('0 204.152.254.221 (13)',
-                                                                    'Dash Group Values should be present for runlove.us');
+                                                                    'Second Level Group Values should be present for 204.152.254.221');
 
     page.expandSubGroupByPosition('alerts_ui_e2e', '204.152.254.221', 0);
     expect(page.getSubGroupValuesByPosition('alerts_ui_e2e', 'US', 0)).toEqualBcoz('0 US (13)',
-        'Dash Group Values should be present for runlove.us');
+        'Third Level Group Values should be present for US');
 
     page.expandSubGroup('alerts_ui_e2e', 'US');
     expect(page.getSubGroupValuesByPosition('alerts_ui_e2e', 'US', 0)).toEqualBcoz('0 US (13)',
-        'Dash Group Values should be present for runlove.us');
-    expect(page.getCellValuesFromTable('alerts_ui_e2e', 'id', '04a5c3d0-9...af17c06fbc')).toEqual(usGroupIds,
-                                                                                                   'id should not be sorted');
+        'Third Level Group Values should not change when expanded for US');
+    expect(page.getCellValuesFromTable('alerts_ui_e2e', 'id', '04a5c3d0-9...af17c06fbc')).toEqual(usGroupIds, 'rows should be present for US');
 
 
     page.expandSubGroup('alerts_ui_e2e', '62.75.195.236');
     expect(page.getSubGroupValuesByPosition('alerts_ui_e2e', 'FR', 1)).toEqualBcoz('0 FR (23)',
-        'Dash Group Values should be present for runlove.us');
+        'Third Level Group Values should be present for FR');
 
     page.expandSubGroupByPosition('alerts_ui_e2e', 'FR', 1);
     expect(page.getSubGroupValuesByPosition('alerts_ui_e2e', 'FR', 1)).toEqualBcoz('0 FR (23)',
-        'Dash Group Values should be present for runlove.us');
-    expect(page.getCellValuesFromTable('alerts_ui_e2e', 'id', 'e2883424-f...79bb8b0606')).toEqual(usGroupIds.concat(frGroupIds),
-        'id should not be sorted');
+        'Third Level Group Values should not change when expanded for FR');
+    expect(page.getCellValuesFromTable('alerts_ui_e2e', 'id', 'e2883424-f...79bb8b0606')).toEqual(usGroupIds.concat(frGroupIds), 'rows should be present for FR');
     
     page.unGroup();
     expect(page.getActiveGroups()).toEqualBcoz([], 'no groups should be selected');
