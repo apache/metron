@@ -133,6 +133,32 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
   }
 
   @Test
+  public void testColumnMetadataUsingDefaultIndices() throws Exception {
+    // Setup the default indices of bro and snort
+    sensorIndexingConfigService.save("bro", new HashMap<String, Object>() {{
+      put("index", "bro");
+    }});
+    sensorIndexingConfigService.save("snort", new HashMap<String, Object>() {{
+      put("index", "snort");
+    }});
+
+    // Pass in an empty list to trigger using default indices
+    assertEventually(() -> this.mockMvc.perform(post(searchUrl + "/column/metadata").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[]"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+        .andExpect(jsonPath("$.*", hasSize(5)))
+        .andExpect(jsonPath("$.common_string_field").value("string"))
+        .andExpect(jsonPath("$.common_integer_field").value("integer"))
+        .andExpect(jsonPath("$.bro_field").value("boolean"))
+        .andExpect(jsonPath("$.snort_field").value("double"))
+        .andExpect(jsonPath("$.duplicate_field").value("other"))
+    );
+
+    sensorIndexingConfigService.delete("bro");
+    sensorIndexingConfigService.delete("snort");
+  }
+
+  @Test
   public void test() throws Exception {
 
     this.mockMvc.perform(post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(SearchIntegrationTest.allQuery))
