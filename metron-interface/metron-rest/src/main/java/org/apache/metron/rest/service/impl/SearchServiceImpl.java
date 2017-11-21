@@ -94,19 +94,9 @@ public class SearchServiceImpl implements SearchService {
   }
 
   @Override
-  public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws RestException {
+  public Map<String, FieldType> getColumnMetadata(List<String> indices) throws RestException {
     try {
       return dao.getColumnMetadata(indices);
-    }
-    catch(IOException ioe) {
-      throw new RestException(ioe.getMessage(), ioe);
-    }
-  }
-
-  @Override
-  public Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws RestException {
-    try {
-      return dao.getCommonColumnMetadata(indices);
     }
     catch(IOException ioe) {
       throw new RestException(ioe.getMessage(), ioe);

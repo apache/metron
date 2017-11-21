@@ -35,6 +35,8 @@ zookeeper:
       connection: 10000
 
 kafka:
+  security:
+    protocol: SASL_PLAINTEXT
   topics:
     escalation: escalation
 
