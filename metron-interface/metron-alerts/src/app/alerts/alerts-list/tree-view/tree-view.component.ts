@@ -369,11 +369,12 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   getAllAlertsForSlectedGroup(group: TreeGroupData): Observable<SearchResponse> {
     let dashRowKey = Object.keys(group.groupQueryMap);
     let searchRequest = new SearchRequest();
-    searchRequest.fields = [dashRowKey[0], 'guid', 'source:type'];
+    searchRequest.fields = ['guid', 'source:type'];
     searchRequest.from = 0;
     searchRequest.indices = INDEXES;
     searchRequest.query = this.createQuery(group);
     searchRequest.size =  MAX_ALERTS_IN_META_ALERTS;
+    searchRequest.facetFields =  [];
     return this.searchService.search(searchRequest);
   }
 

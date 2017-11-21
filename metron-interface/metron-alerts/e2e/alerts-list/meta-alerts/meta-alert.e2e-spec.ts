@@ -23,6 +23,7 @@ import {loadTestData, deleteTestData} from '../../utils/e2e_util';
 import {TreeViewPage} from '../tree-view/tree-view.po';
 import {MetronAlertDetailsPage} from '../../alert-details/alert-details.po';
 import {MetaAlertPage} from './meta-alert.po';
+import {AlertFacetsPage} from '../alert-filters/alert-filters.po';
 
 describe('meta-alerts workflow', function() {
   let detailsPage: MetronAlertDetailsPage;
@@ -30,12 +31,19 @@ describe('meta-alerts workflow', function() {
   let metaAlertPage: MetaAlertPage;
   let treePage: TreeViewPage;
   let loginPage: LoginPage;
+  let alertFacetsPage: AlertFacetsPage;
 
   beforeAll(() => {
     loadTestData();
 
     loginPage = new LoginPage();
     loginPage.login();
+    tablePage = new MetronAlertsPage();
+    treePage = new TreeViewPage();
+    tablePage = new MetronAlertsPage();
+    metaAlertPage = new MetaAlertPage();
+    detailsPage = new MetronAlertDetailsPage();
+    alertFacetsPage = new AlertFacetsPage();
   });
 
   afterAll(() => {
@@ -44,11 +52,6 @@ describe('meta-alerts workflow', function() {
   });
 
   beforeEach(() => {
-    tablePage = new MetronAlertsPage();
-    treePage = new TreeViewPage();
-    tablePage = new MetronAlertsPage();
-    metaAlertPage = new MetaAlertPage();
-    detailsPage = new MetronAlertDetailsPage();
     jasmine.addMatchers(customMatchers);
   });
 
@@ -116,6 +119,9 @@ describe('meta-alerts workflow', function() {
     expect(detailsPage.getCommentsUserNameAndTimeStamp()).toEqual([userNameAndTimestamp]);
     expect(detailsPage.getCommentIconCountInListView()).toEqual(1);
 
+    detailsPage.deleteComment();
+    detailsPage.clickYesForConfirmation();
+
     detailsPage.closeDetailPane();
 
     /* Add to alert */
@@ -139,6 +145,94 @@ describe('meta-alerts workflow', function() {
     let removeMetaAlertConfirmText = 'Do you wish to remove all the alerts from meta alert?';
     tablePage.removeAlert(0);
     expect(treePage.getConfirmationText()).toEqualBcoz(removeMetaAlertConfirmText, 'confirmation text to remove meta alert');
+    treePage.clickYesForConfirmation();
+  });
+
+  it('should create a meta alert from nesting of more than one level', () => {
+    let groupByItems = {
+      'source:type': '1',
+      'ip_dst_addr': '7',
+      'host': '9',
+      'enrichm...:country': '3',
+      'ip_src_addr': '2'
+    };
+    let alertsInMetaAlerts = [
+      '82f8046d-d...03b17480dd',
+      '5c1825f6-7...da3abe3aec',
+      '9041285e-9...a04a885b53',
+      'ed906df7-2...91cc54c2f3',
+      'c894bbcf-3...74cf0cc1fe',
+      'e63ff7ae-d...cddbe0c0b3',
+      '3c346bf9-b...cb04b43210',
+      'dcc483af-c...7bb802b652',
+      'b71f085d-6...a4904d8fcf',
+      '754b4f63-3...b39678207f',
+      'd9430af3-e...9a18600ab2',
+      '9a943c94-c...3b9046b782',
+      'f39dc401-3...1f9cf02cd9',
+      'd887fe69-c...2fdba06dbc',
+      'e38be207-b...60a43e3378',
+      'eba8eccb-b...0005325a90',
+      'adca96e3-1...979bf0b5f1',
+      '42f4ce28-8...b3d575b507',
+      'aed3d10f-b...8b8a139f25',
+      'a5e95569-a...0e2613b29a'
+    ];
+
+    let alertsAfterDeletedInMetaAlerts = [
+      '82f8046d-d...03b17480dd',
+      '5c1825f6-7...da3abe3aec',
+      '9041285e-9...a04a885b53',
+      'ed906df7-2...91cc54c2f3',
+      'e63ff7ae-d...cddbe0c0b3',
+      '3c346bf9-b...cb04b43210',
+      'dcc483af-c...7bb802b652',
+      'b71f085d-6...a4904d8fcf',
+      '754b4f63-3...b39678207f',
+      'd9430af3-e...9a18600ab2',
+      '9a943c94-c...3b9046b782',
+      'f39dc401-3...1f9cf02cd9',
+      'd887fe69-c...2fdba06dbc',
+      'e38be207-b...60a43e3378',
+      'eba8eccb-b...0005325a90',
+      'adca96e3-1...979bf0b5f1',
+      '42f4ce28-8...b3d575b507',
+      'aed3d10f-b...8b8a139f25',
+      'a5e95569-a...0e2613b29a'
+    ];
+
+    // Create a meta alert from a group that is nested by more than 1 level
+    treePage.selectGroup('source:type');
+    treePage.selectGroup('ip_dst_addr');
+    treePage.expandDashGroup('alerts_ui_e2e');
+
+    treePage.clickOnMergeAlertsInTable('alerts_ui_e2e', '224.0.0.251', 0);
+    treePage.clickYesForConfirmation();
+
+    treePage.unGroup();
+    tablePage.waitForMetaAlert();
+
+    expect(tablePage.getPaginationText()).toEqualBcoz('1 - 25 of 150', 'pagination text to be present');
+
+    // Meta Alert should appear in Filters
+    alertFacetsPage.toggleFacetState(4);
+    expect(alertFacetsPage.getFacetValues(4)).toEqual({'metaalert': '1' }, 'for source:type facet');
+
+    // Meta Alert should not appear in Groups
+    expect(treePage.getGroupByItemNames()).toEqualBcoz(Object.keys(groupByItems), 'Group By Elements names should be present');
+    expect(treePage.getGroupByItemCounts()).toEqualBcoz(Object.keys(groupByItems).map(key => groupByItems[key]),
+        '5 Group By Elements values should be present');
+
+    // Delete a meta alert from the middle and check the data
+    tablePage.expandMetaAlert(0);
+    expect(tablePage.getTableCellValues(3, 1, 21)).toEqual(alertsInMetaAlerts);
+    tablePage.removeAlert(5);
+    treePage.clickYesForConfirmation();
+    expect(tablePage.getCellValue(0, 2, '(20')).toContain('(19)', 'alert count should be decremented');
+    expect(tablePage.getTableCellValues(3, 1, 20)).toEqual(alertsAfterDeletedInMetaAlerts);
+
+    //Remove the meta alert
+    tablePage.removeAlert(0);
     treePage.clickYesForConfirmation();
   });
 

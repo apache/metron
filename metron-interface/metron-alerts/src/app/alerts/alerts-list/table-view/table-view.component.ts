@@ -227,10 +227,10 @@ export class TableViewComponent implements OnChanges {
     return false;
   }
 
-  deleteOneAlertFromMetaAlert($event, alert: Alert, alertIndex: number, metaAlertIndex: number) {
+  deleteOneAlertFromMetaAlert($event, alert: Alert, metaAlertIndex: number) {
     this.metronDialogBox.showConfirmationMessage('Do you wish to remove the alert from the meta alert?').subscribe(response => {
       if (response) {
-        this.doDeleteOneAlertFromMetaAlert(alert, alertIndex, metaAlertIndex);
+        this.doDeleteOneAlertFromMetaAlert(alert, metaAlertIndex);
       }
     });
     $event.stopPropagation();
@@ -245,8 +245,8 @@ export class TableViewComponent implements OnChanges {
     $event.stopPropagation();
   }
 
-  doDeleteOneAlertFromMetaAlert(alert, alertIndex, metaAlertIndex) {
-    let alertToRemove = alert.source.alert[alertIndex];
+  doDeleteOneAlertFromMetaAlert(alert, metaAlertIndex) {
+    let alertToRemove = alert.source.alert[metaAlertIndex];
     let metaAlertAddRemoveRequest = new MetaAlertAddRemoveRequest();
     metaAlertAddRemoveRequest.metaAlertGuid = alert.source.guid;
     metaAlertAddRemoveRequest.alerts = [new GetRequest(alertToRemove.guid, alertToRemove['source:type'], '')];
