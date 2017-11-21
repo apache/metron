@@ -20,7 +20,13 @@ bro_version: 2.5.2
 bro_daemon_log: /var/log/bro.log
 bro_topic: bro
 
-# bro cronjob
+# Bro cronjob
 bro_crontab_minutes: 0-59/5
 bro_crontab_job: "{{ bro_home }}/bin/broctl cron"
 bro_clean_job: "rm -rf {{ bro_home }}/spool/tmp/*"
+
+# Bro kafka plugin
+metron-bro-plugin-kafka_version: "0.1"
+python27_home: /opt/rh/python27/root
+git29_home: /opt/rh/rh-git29/root
+httpd24_home: /opt/rh/httpd24/root

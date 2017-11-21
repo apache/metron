@@ -15,32 +15,36 @@
 #  limitations under the License.
 #
 ---
-- name: Clone metron-bro-plugin-kafka into /tmp
-  git:
-    repo: https://github.com/apache/metron-bro-plugin-kafka
-    version: master
-    dest: /tmp/metron-bro-plugin-kafka
-
-- name: Compile and install the plugin
-  shell: "{{ item }}"
+- name: Install bro-pkg
   environment:
+    LD_LIBRARY_PATH: "{{ python27_home }}/usr/lib64"
+  command: "{{ python27_home }}/usr/bin/pip install bro-pkg"
+
+- name: Configure bro-pkg
+  environment:
+    PATH: "{{ git29_home }}/usr/bin:{{ ansible_env.PATH }}"
+    LD_LIBRARY_PATH: "{{ python27_home }}/usr/lib64"
+  command: "{{ python27_home }}/usr/bin/bro-pkg autoconfig"
+
+# TODO:  Change the command from https://github.com/jonzeolla/ to simply
+# apache/ after testing is complete, and the 0.1 tag has been pushed to
+# apache/metron-bro-plugin-kafka
+- name: Install the metron-bro-plugin-kafka package
+  environment:
+    LD_LIBRARY_PATH: "{{ httpd24_home }}/usr/lib64:{{ python27_home }}/usr/lib64"
     CXX: /opt/rh/devtoolset-4/root/usr/bin/g++
     CC: /opt/rh/devtoolset-4/root/usr/bin/gcc
-  args:
-    chdir: "/tmp/metron-bro-plugin-kafka"
-    creates: "{{ bro_home }}/lib/bro/plugins/BRO_KAFKA"
-  with_items:
-    - rm -rf build/
-    - "./configure --bro-dist=/tmp/bro-{{ bro_version }} --install-root={{ bro_home }}/lib/bro/plugins/ --with-librdkafka={{ librdkafka_home }}"
-    - make
-    - make install
+  command: "{{ python27_home }}/usr/bin/bro-pkg install https://github.com/jonzeolla/metron-bro-plugin-kafka --force --version {{ metron-bro-plugin-kafka_version }}"
+
+- name: Load the metron-bro-plugin-kafka package
+  command: bro-pkg load apache/metron-bro-plugin-kafka
 
 - name: Configure bro-kafka plugin
   lineinfile:
     dest: "{{ bro_home }}/share/bro/site/local.bro"
     line: "{{ item }}"
   with_items:
-    - "@load Bro/Kafka/logs-to-kafka.bro"
+    - "@load metron-bro-plugin-kafka"
     - "redef Kafka::logs_to_send = set(HTTP::LOG, DNS::LOG);"
     - "redef Kafka::topic_name = \"{{ bro_topic }}\";"
     - "redef Kafka::tag_json = T;"
