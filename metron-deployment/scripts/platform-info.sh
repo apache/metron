@@ -62,6 +62,7 @@ mvn --version
 # docker
 echo "--"
 docker --version
+docker info > /dev/null
 
 # node
 echo "--"
