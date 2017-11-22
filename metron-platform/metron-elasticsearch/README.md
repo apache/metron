@@ -52,19 +52,21 @@ string type handling, that may cause issues when upgrading.
 
 Type mappings have changed quite a bit from ES 2.x -> 5.x. Here is a brief rundown of the biggest changes. More detailed references from Elasticsearch
 are provided in the [Type Mapping References](#type-mapping-references) section below.
-* string fields replaced by text/keyword type.
+* string fields replaced by text/keyword type
 * strings have new default mappings as follows
-  ```
-  {
-    "type": "text",
-    "fields": {
-      "keyword": {
-        "type": "keyword",
-        "ignore_above": 256
+
+    ```
+    {
+      "type": "text",
+      "fields": {
+        "keyword": {
+          "type": "keyword",
+          "ignore_above": 256
+        }
       }
     }
-  }
-  ```
+    ```
+
 * There is no longer a `_timestamp` field that you can set "enabled" on. This field now causes an exception on templates.
 Replace with an application-created timestamp of "date" type.
 
@@ -86,16 +88,14 @@ Below is a table depicting the changes to how String types are now handled.
 <tr>
 	<td>no</td>
 	<td>
-<pre><code>
-"my_property" : {
+<pre><code>"my_property" : {
   "type": "string",
   "index": "analyzed"
 }
 </code></pre>
 	</td>
 	<td>
-<pre><code>
-"my_property" : {
+<pre><code>"my_property" : {
   "type": "text"
 }
 </code></pre>
@@ -110,16 +110,14 @@ Below is a table depicting the changes to how String types are now handled.
 	yes
 	</td>
 	<td>
-<pre><code>
-"my_property": {
+<pre><code>"my_property": {
   "type": "string",
   "index": "analyzed"
 }
 </code></pre>
 	</td>
 	<td>
-<pre><code>
-"my_property": {
+<pre><code>"my_property": {
   "type": "text",
   "fielddata": "true"
 }
@@ -134,16 +132,14 @@ Below is a table depicting the changes to how String types are now handled.
 	yes
 	</td>
 	<td>
-<pre><code>
-"my_property": {
+<pre><code>"my_property": {
   "type": "string",
   "index": "not_analyzed"
 }
 </code></pre>
 	</td>
 	<td>
-<pre><code>
-"my_property" : {
+<pre><code>"my_property" : {
   "type": "keyword"
 }
 </code></pre>
@@ -157,16 +153,14 @@ Below is a table depicting the changes to how String types are now handled.
 	yes
 	</td>
 	<td>
-<pre><code>
-"my_property": {
+<pre><code>"my_property": {
   "type": "string",
   "index": "analyzed"
 }
 </code></pre>
 	</td>
 	<td>
-<pre><code>
-"my_property": {
+<pre><code>"my_property": {
   "type": "text",
   "fields": {
     "keyword": {
@@ -184,29 +178,31 @@ Below is a table depicting the changes to how String types are now handled.
 </table>
 
 If you want to set default string behavior for all strings for a given index and type, you can do so with a mapping similar to the following (replace ${your_type_here} accordingly):
+
 ```
 # curl -XPUT 'http://${ES_HOST}:${ES_PORT}/_template/default_string_template' -d '
 {
-    "template": "*",
-    "mappings" : {
-        "${your_type_here}": {
-            "dynamic_templates": [
-                {
-                    "strings": {
-                        "match_mapping_type": "string",
-                        "mapping": {
-                            "type": "text"
-                        }
-                    }
-                }
-            ]
+  "template": "*",
+  "mappings" : {
+    "${your_type_here}": {
+      "dynamic_templates": [
+        {
+          "strings": {
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "text"
+            }
+          }
         }
+      ]
     }
+  }
 }
 '
 ```
 
 By specifying the "template" property with value "*" the template will apply to all indexes that have documents indexed of the specified type (${your_type_here}). This results in the following template.
+
 ```
 # curl -XGET 'http://${ES_HOST}:${ES_PORT}/_template/default_string_template?pretty'
 {
@@ -291,11 +287,11 @@ To update existing indexes, update Elasticsearch mappings with the new field for
 ```
 curl -XPUT "http://${ELASTICSEARCH}:9200/${SENSOR}_index*/_mapping/${SENSOR}_doc" -d '
 {
-        "properties" : {
-          "alert" : {
-            "type" : "nested"
-          }
-        }
+  "properties" : {
+    "alert" : {
+      "type" : "nested"
+    }
+  }
 }
 '
 rm ${SENSOR}.template

@@ -460,16 +460,49 @@ There is currently no mechanism provided for multi-version or backwards compatib
 supported by Ambari via MPack.
 
 The main steps for upgrading a service are split into add-on and common services for each service within the MPack as follows:
+* Update the common services
+    * Change the service directory to use the new product version number
+    * Update metainfo.xml
 * Update the add-on services
     * Change the service directory to use the new product version number
     * Update repoinfo.xml
     * Update metainfo.xml
-* Update the common services
-    * Change the service directory to use the new product version number
-    * Update metainfo.xml
 * Update mpack.json
 
 ### Update Elasticsearch
+
+#### Update Common Services
+
+1. Change service directory names for Elasticsearch to the new desired version
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}
+    ```
+
+    e.g.
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/ELASTICSEARCH/5.6.2
+    ```
+
+1. Update metainfo.xml
+
+   Change the version number and package name in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`, e.g.
+
+   ```
+   <version>5.6.2</version>
+   ...
+   <osSpecifics>
+       <osSpecific>
+           <osFamily>any</osFamily>
+           <packages>
+               <package>
+                   <name>elasticsearch-5.6.2</name>
+               </package>
+           </packages>
+       </osSpecific>
+   </osSpecifics>
+   ```
 
 #### Update Add-on Services
 
@@ -508,39 +541,6 @@ The main steps for upgrading a service are split into add-on and common services
    <extends>common-services/ELASTICSEARCH/5.6.2</extends>
    ```
 
-#### Update Common Services
-
-1. Change service directory names for Elasticsearch to the new desired version
-
-    ```
-    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}
-    ```
-
-    e.g.
-
-    ```
-    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/ELASTICSEARCH/5.6.2
-    ```
-
-1. Update metainfo.xml
-
-   Change the version number and package name in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`, e.g.
-
-   ```
-   <version>5.6.2</version>
-   ...
-   <osSpecifics>
-       <osSpecific>
-           <osFamily>any</osFamily>
-           <packages>
-               <package>
-                   <name>elasticsearch-5.6.2</name>
-               </package>
-           </packages>
-       </osSpecific>
-   </osSpecifics>
-   ```
-
 #### Update mpack.json
 
 1. Update the corresponding service_version in the service_versions_map, e.g.
@@ -563,6 +563,35 @@ The main steps for upgrading a service are split into add-on and common services
 ### Kibana
 
 **Note:** Curator is included with the Kibana service
+
+#### Update Common Services
+
+1. Change service directory names for Kibana to the new desired version
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/${YOUR_VERSION_NUMBER_HERE}
+    ```
+
+    e.g.
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/5.6.2
+    ```
+
+1. Update metainfo.xml
+
+   Change the version number and package name in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`, e.g.
+
+   ```
+   <version>5.6.2</version>
+   ...
+   <packages>
+       ...
+       <package>
+           <name>kibana-5.6.2</name>
+       </package>
+   </packages>
+   ```
 
 #### Update Add-on Services
 
@@ -606,35 +635,6 @@ The main steps for upgrading a service are split into add-on and common services
    <name>KIBANA</name>
    <version>5.6.2</version>
    <extends>common-services/KIBANA/5.6.2</extends>
-   ```
-
-#### Update Common Services
-
-1. Change service directory names for Kibana to the new desired version
-
-    ```
-    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/${YOUR_VERSION_NUMBER_HERE}
-    ```
-
-    e.g.
-
-    ```
-    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/5.6.2
-    ```
-
-1. Update metainfo.xml
-
-   Change the version number and package name in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`, e.g.
-
-   ```
-   <version>5.6.2</version>
-   ...
-   <packages>
-       ...
-       <package>
-           <name>kibana-5.6.2</name>
-       </package>
-   </packages>
    ```
 
 #### Update mpack.json
