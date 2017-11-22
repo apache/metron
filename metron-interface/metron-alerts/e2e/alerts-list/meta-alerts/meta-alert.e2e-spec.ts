@@ -223,6 +223,15 @@ describe('meta-alerts workflow', function() {
     expect(treePage.getGroupByItemCounts()).toEqualBcoz(Object.keys(groupByItems).map(key => groupByItems[key]),
         '5 Group By Elements values should be present');
 
+
+    tablePage.setSearchText('guid:c894bbcf-3195-0708-aebe-0574cf0cc1fe');
+    expect(tablePage.getChangesAlertTableTitle('Alerts (150)')).toEqual('Alerts (1)');
+    tablePage.expandMetaAlert(0);
+    expect(tablePage.getAllRowsCount()).toEqual(21);
+    tablePage.expandMetaAlert(0);
+    tablePage.clickClearSearch();
+    expect(tablePage.getChangesAlertTableTitle('Alerts (1)')).toEqual('Alerts (150)');
+
     // Delete a meta alert from the middle and check the data
     tablePage.expandMetaAlert(0);
     expect(tablePage.getTableCellValues(3, 1, 21)).toEqual(alertsInMetaAlerts);

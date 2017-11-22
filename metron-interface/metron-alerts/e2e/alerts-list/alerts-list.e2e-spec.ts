@@ -301,6 +301,9 @@ describe('metron-alerts App', function() {
   });
   
   it('should have all time-range included while searching', () => {
+    let startDate = new Date(1505325575000);
+    let endDate = new Date(1505325580000);
+
     page.clearLocalStorage();
     page.clickDateSettings();
 
@@ -310,8 +313,10 @@ describe('metron-alerts App', function() {
 
     /* Select custom date for time range */
     page.clickDateSettings();
-    page.setDate(0, '2017', 'September', '13', '23', '29', '35');
-    page.setDate(1, '2017', 'September', '13', '23', '29', '40');
+    page.setDate(0, String(startDate.getFullYear()), startDate.toLocaleString('en-us', { month: "long" }), String(startDate.getDate()),
+                String(startDate.getHours()), String(startDate.getMinutes()), String(startDate.getSeconds()));
+    page.setDate(1, String(endDate.getFullYear()), endDate.toLocaleString('en-us', { month: "long" }), String(endDate.getDate()),
+                String(endDate.getHours()), String(endDate.getMinutes()), String(endDate.getSeconds()));
     page.selectTimeRangeApplyButton();
     expect(page.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (5)');
 

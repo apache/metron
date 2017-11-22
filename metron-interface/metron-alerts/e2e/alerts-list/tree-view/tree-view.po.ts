@@ -80,10 +80,13 @@ export class TreeViewPage {
   }
 
   expandDashGroup(name: string) {
-    let dashGroupElement = element(by.css('[data-name="' + name + '"] .card-header i.down-arrow'));
-    return waitForElementPresence(dashGroupElement)
-    .then(() => browser.actions().mouseMove(dashGroupElement).perform())
-    .then(() => dashGroupElement.click())
+    let cardElement = element(by.css('.card[data-name="' + name +'"]'));
+    let downArrowElement = element(by.css('.card[data-name="' + name + '"] .mrow.top-group'));
+
+    return waitForElementVisibility(cardElement)
+    .then(() => browser.actions().mouseMove(cardElement).perform())
+    .then(() => waitForElementVisibility(downArrowElement))
+    .then(() => downArrowElement.click())
     .then(() => browser.sleep(2000));
   }
 

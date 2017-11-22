@@ -17,6 +17,7 @@
  */
 
 import {browser, element, by, protractor} from 'protractor';
+import * as moment from 'moment/moment';
 import {waitForElementVisibility, waitForElementPresence, waitForElementInVisibility} from '../utils/e2e_util';
 
 export class MetronAlertsPage {
@@ -416,8 +417,8 @@ export class MetronAlertsPage {
         let retArr = [arr[0]];
         for (let i=1; i < arr.length; i++) {
           let dateStr = arr[i].split(' to ');
-          let fromTime = new Date(dateStr[0]).getTime();
-          let toTime = new Date(dateStr[1]).getTime();
+          let fromTime = moment.utc(dateStr[0], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
+          let toTime = moment.utc(dateStr[1], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
           retArr.push((toTime - fromTime) + '');
         }
         return retArr;
