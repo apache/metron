@@ -12,10 +12,12 @@ Two virtualized nodes are launched with Vagrant that can communicate with one an
 Getting Started
 ---------------
 
-The Fastcapa test environment can be executed on different operating systems.  There is a sub-directory for each operating system that Fastcapa can be tested on.  To run, simply execute `vagrant up` within the appropriate directory.  For example, to run the tests on CentOS 7.1 then execute the following commands.
+The Fastcapa test environment can be executed on different operating systems.  There is a sub-directory for each operating system that Fastcapa can be tested on.  
+
+To run, simply execute `vagrant up` within the appropriate directory.  For example, to run the tests on CentOS 7.1 then execute the following commands.
 ```
 cd centos-7.1
-vagrant up.
+vagrant up
 ```
 
 Automated tests are executed after provisioning completes to ensure that Fastcapa and the rest of the environment is functioning properly.  If you see something like the following, then the tests have passed.
@@ -90,3 +92,30 @@ Ensure that the raw network packet data is being received by Kafka.
 ```
 
 Enter 'CTRL-C' to kill the `kafka-console-consumer` process once you are able to see that packets are being sent.  These packets will appear to be gibberish in the console.  This is the raw binary network packet data after all.
+
+FAQ
+---
+
+### Error Message: Timed out while waiting for the machine to boot
+
+```
+Timed out while waiting for the machine to boot. This means that
+Vagrant was unable to communicate with the guest machine within
+the configured ("config.vm.boot_timeout" value) time period.
+If you look above, you should be able to see the error(s) that
+Vagrant had when attempting to connect to the machine. These errors
+are usually good hints as to what may be wrong.
+If you're using a custom box, make sure that networking is properly
+working and you're able to connect to the machine. It is a common
+problem that networking isn't setup properly in these boxes.
+Verify that authentication configurations are also setup properly,
+as well.
+If the box appears to be booting properly, you may want to increase
+the timeout ("config.vm.boot_timeout") value.
+➜  centos-7.4 git:(master) ✗ vagrant status
+Current machine states:
+source                    running (virtualbox)
+sink                      not created (virtualbox)
+```
+
+If you are unable to launch any of the Fastcapa test environments, which results in a message like the one above, then you may need to upgrade your version of Virtualbox.  Success has been reported with versions of VirtualBox 5.1.22+.
