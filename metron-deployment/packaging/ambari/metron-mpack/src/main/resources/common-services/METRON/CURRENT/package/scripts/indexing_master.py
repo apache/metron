@@ -81,6 +81,18 @@ class Indexing(Script):
         env.set_params(params)
         self.configure(env)
         commands = IndexingCommands(params)
+
+        # Install elasticsearch templates
+        try:
+            if not commands.is_elasticsearch_template_installed():
+                self.elasticsearch_template_install(env)
+                commands.set_elasticsearch_template_installed()
+
+        except Exception as e:
+            msg = "WARNING: Elasticsearch index templates could not be installed.  " \
+                  "Is Elasticsearch running?  Will reattempt install on next start.  error={0}"
+            Logger.warning(msg.format(e))
+
         commands.start_indexing_topology(env)
 
     def stop(self, env, upgrade_type=None):
@@ -106,60 +118,31 @@ class Indexing(Script):
     def elasticsearch_template_install(self, env):
         from params import params
         env.set_params(params)
+        Logger.info("Installing Elasticsearch index templates")
 
-        File(params.bro_index_path,
-             mode=0755,
-             content=StaticFile('bro_index.template')
-             )
+        commands = IndexingCommands(params)
+        for template_name, template_path in commands.get_templates().iteritems():
 
-        File(params.snort_index_path,
-             mode=0755,
-             content=StaticFile('snort_index.template')
-             )
-
-        File(params.yaf_index_path,
-             mode=0755,
-             content=StaticFile('yaf_index.template')
-             )
-
-        File(params.error_index_path,
-             mode=0755,
-             content=StaticFile('error_index.template')
-             )
-
-        File(params.meta_index_path,
-             mode=0755,
-             content=StaticFile('meta_index.mapping')
-             )
-
-        bro_cmd = ambari_format(
-            'curl -s -XPOST http://{es_http_url}/_template/bro_index -d @{bro_index_path}')
-        Execute(bro_cmd, logoutput=True)
-        snort_cmd = ambari_format(
-            'curl -s -XPOST http://{es_http_url}/_template/snort_index -d @{snort_index_path}')
-        Execute(snort_cmd, logoutput=True)
-        yaf_cmd = ambari_format(
-            'curl -s -XPOST http://{es_http_url}/_template/yaf_index -d @{yaf_index_path}')
-        Execute(yaf_cmd, logoutput=True)
-        error_cmd = ambari_format(
-            'curl -s -XPOST http://{es_http_url}/_template/error_index -d @{error_index_path}')
-        Execute(error_cmd, logoutput=True)
-        error_cmd = ambari_format(
-            'curl -s -XPOST http://{es_http_url}/metaalert_index -d @{meta_index_path}')
-        Execute(error_cmd, logoutput=True)
+            # install the index template
+            File(template_path, mode=0755, content=StaticFile("{0}.template".format(template_name)))
+            cmd = "curl -s -XPOST http://{0}/_template/{1} -d @{2}"
+            Execute(
+              cmd.format(params.es_http_url, template_name, template_path),
+              logoutput=True)
 
     def elasticsearch_template_delete(self, env):
         from params import params
         env.set_params(params)
+        Logger.info("Deleting Elasticsearch index templates")
 
-        bro_cmd = ambari_format('curl -s -XDELETE "http://{es_http_url}/bro_index*"')
-        Execute(bro_cmd, logoutput=True)
-        snort_cmd = ambari_format('curl -s -XDELETE "http://{es_http_url}/snort_index*"')
-        Execute(snort_cmd, logoutput=True)
-        yaf_cmd = ambari_format('curl -s -XDELETE "http://{es_http_url}/yaf_index*"')
-        Execute(yaf_cmd, logoutput=True)
-        error_cmd = ambari_format('curl -s -XDELETE "http://{es_http_url}/error_index*"')
-        Execute(error_cmd, logoutput=True)
+        commands = IndexingCommands(params)
+        for template_name in commands.get_templates():
+
+            # delete the index template
+            cmd = "curl -s -XDELETE \"http://{0}/_template/{1}\""
+            Execute(
+              cmd.format(params.es_http_url, template_name),
+              logoutput=True)
 
     def zeppelin_notebook_import(self, env):
         from params import params

@@ -30,6 +30,7 @@ import {GroupRequest} from '../model/group-request';
 import {GroupResult} from '../model/group-result';
 import {INDEXES} from '../utils/constants';
 import {ColumnMetadata} from '../model/column-metadata';
+import {QueryBuilder} from '../alerts/alerts-list/query-builder';
 
 @Injectable()
 export class SearchService {
@@ -42,13 +43,10 @@ export class SearchService {
     let processedKeys: string[] = [];
     let columnMetadatas: ColumnMetadata[] = [];
 
-    for (let index of Object.keys(response)) {
-      let indexMetaData = response[index];
-      for (let key of Object.keys(indexMetaData)) {
-        if (processedKeys.indexOf(key) === -1) {
-          processedKeys.push(key);
-          columnMetadatas.push(new ColumnMetadata(key, indexMetaData[key]));
-        }
+    for (let key of Object.keys(response)) {
+      if (processedKeys.indexOf(key) === -1) {
+        processedKeys.push(key);
+        columnMetadatas.push(new ColumnMetadata(key, response[key]));
       }
     }
 
@@ -83,11 +81,11 @@ export class SearchService {
     .catch(HttpUtil.handleError);
   }
 
-  public pollSearch(searchRequest: SearchRequest): Observable<SearchResponse> {
+  public pollSearch(queryBuilder: QueryBuilder): Observable<SearchResponse> {
     return this.ngZone.runOutsideAngular(() => {
       return this.ngZone.run(() => {
         return Observable.interval(this.interval * 1000).switchMap(() => {
-          return this.search(searchRequest);
+          return this.search(queryBuilder.searchRequest);
         });
       });
     });

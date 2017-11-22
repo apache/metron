@@ -49,6 +49,7 @@ $mine-shaft-7: #2C2C2C;
 $mine-shaft-8: #353535;
 $mine-shaft-9: #2B2B2B;
 $mine-shaft-10: #303030;
+$mine-shaft-11: #3A3A3A;
 $dove-grey: #737373;
 $tundora: #4D4D4D;
 $tundora-1: #404040;
@@ -86,6 +87,7 @@ $eastern-blue: #1F91BE;
 $mantis: #80BF4D;
 $sky-blue: #75D2ED;
 $outer-space: #2E3A3F;
+$abbey: #58595B;
 $white: #FFFFFF;
 $iron: #D1D3D4;
 $rolling-stone: #808285;
@@ -109,6 +111,27 @@ $nav-content-nav-width: 200px;
 
 $login-label: #606060;
 $black: #000000;
+
+
+//Pikaday
+$pd-text-color: #999999;
+$pd-title-color: #999999;
+$pd-title-bg: #3D3D3D;
+$pd-picker-bg: #3D3D3D;
+$pd-picker-border: #4D4D4D;
+$pd-picker-border-bottom: #353535;
+$pd-picker-shadow: rgba(0,0,0,.5);
+$pd-th-color: #999;
+$pd-day-color: #999999;
+$pd-day-bg: #2D2D2D;
+$pd-day-hover-color: #FDFEFE;
+$pd-day-hover-bg: #1F91BE;
+$pd-day-today-color: #FFFFFF;
+$pd-day-selected-color: #1E87AF;
+$pd-day-selected-bg: tranparent;
+$pd-day-selected-shadow: tranparent;
+$pd-day-disabled-color: #999;
+$pd-week-color: #999;
 
 @mixin place-holder-text
 {

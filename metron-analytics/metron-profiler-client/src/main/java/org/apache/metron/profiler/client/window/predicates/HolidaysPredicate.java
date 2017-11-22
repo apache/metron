@@ -76,7 +76,7 @@ public class HolidaysPredicate implements Predicate<Long> {
   /**
    * True if the timestamp falls on a holiday as specified or false otherwise.
    * @param ts
-   * @return
+   * @return boolean returns true if the timestamp falls on a holiday or false otherwise
    */
   @Override
   public boolean test(Long ts) {

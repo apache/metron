@@ -20,8 +20,10 @@ package org.apache.metron.rest.controller;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.service.SensorParserConfigService;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -261,7 +263,7 @@ public class SensorParserConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.mergeMetadata").value("true"))
             .andExpect(jsonPath("$.parserConfig").isEmpty());
 
-    this.mockMvc.perform(post(sensorParserConfigUrl).with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
+    assertEventually(() -> this.mockMvc.perform(post(sensorParserConfigUrl).with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.*", hasSize(numFields.get())))
@@ -269,7 +271,7 @@ public class SensorParserConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.sensorTopic").value("broTest"))
             .andExpect(jsonPath("$.readMetadata").value("true"))
             .andExpect(jsonPath("$.mergeMetadata").value("true"))
-            .andExpect(jsonPath("$.parserConfig").isEmpty());
+            .andExpect(jsonPath("$.parserConfig").isEmpty()));
 
     this.mockMvc.perform(get(sensorParserConfigUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
@@ -289,6 +291,11 @@ public class SensorParserConfigControllerIntegrationTest {
 
     this.mockMvc.perform(delete(sensorParserConfigUrl + "/squidTest").with(httpBasic(user,password)).with(csrf()))
             .andExpect(status().isOk());
+
+    {
+      //we must wait for the config to find its way into the config.
+      TestUtils.assertEventually(() -> Assert.assertNull(sensorParserConfigService.findOne("squidTest")));
+    }
 
     this.mockMvc.perform(get(sensorParserConfigUrl + "/squidTest").with(httpBasic(user,password)))
             .andExpect(status().isNotFound());

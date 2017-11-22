@@ -44,7 +44,7 @@ This section will describe the steps necessary to manually install the Profiler 
 
     ```
     [root@node1 ~]# find /localrepo/  -name "metron-profiler*.rpm"
-    /localrepo/metron-profiler-0.4.0-201707112313.noarch.rpm
+    /localrepo/metron-profiler-0.4.1-201707112313.noarch.rpm
     ```
 
 1. Install the RPM.
@@ -58,16 +58,16 @@ This section will describe the steps necessary to manually install the Profiler 
     ```
     [root@node1 ~]# rpm -ql metron-profiler
     /usr/metron
-    /usr/metron/0.4.1
-    /usr/metron/0.4.1/bin
-    /usr/metron/0.4.1/bin/start_profiler_topology.sh
-    /usr/metron/0.4.1/config
-    /usr/metron/0.4.1/config/profiler.properties
-    /usr/metron/0.4.1/flux
-    /usr/metron/0.4.1/flux/profiler
-    /usr/metron/0.4.1/flux/profiler/remote.yaml
-    /usr/metron/0.4.1/lib
-    /usr/metron/0.4.1/lib/metron-profiler-0.4.0-uber.jar
+    /usr/metron/0.4.2
+    /usr/metron/0.4.2/bin
+    /usr/metron/0.4.2/bin/start_profiler_topology.sh
+    /usr/metron/0.4.2/config
+    /usr/metron/0.4.2/config/profiler.properties
+    /usr/metron/0.4.2/flux
+    /usr/metron/0.4.2/flux/profiler
+    /usr/metron/0.4.2/flux/profiler/remote.yaml
+    /usr/metron/0.4.2/lib
+    /usr/metron/0.4.2/lib/metron-profiler-0.4.2-uber.jar
     ```
 
 1. Edit the configuration file located at `$METRON_HOME/config/profiler.properties`.  

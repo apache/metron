@@ -35,8 +35,9 @@ import {MetronDialogBox, DialogType} from '../../shared/metron-dialog-box';
 import {AlertSearchDirective} from '../../shared/directives/alert-search.directive';
 import {SearchResponse} from '../../model/search-response';
 import {ElasticsearchUtils} from '../../utils/elasticsearch-utils';
-import {TableViewComponent} from './table-view/table-view.component';
 import {Filter} from '../../model/filter';
+import {THREAT_SCORE_FIELD_NAME, TIMESTAMP_FIELD_NAME, ALL_TIME} from '../../utils/constants';
+import {TableViewComponent} from './table-view/table-view.component';
 import {Pagination} from '../../model/pagination';
 import {PatchRequest} from '../../model/patch-request';
 
@@ -58,7 +59,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   refreshTimer: Subscription;
   pauseRefresh = false;
   lastPauseRefreshValue = false;
-  threatScoreFieldName = 'threat:triage:score';
+  timeStampfilterPresent = false;
+  selectedTimeRange = new Filter(TIMESTAMP_FIELD_NAME, ALL_TIME, false);
+  threatScoreFieldName = THREAT_SCORE_FIELD_NAME;
 
   @ViewChild('table') table: ElementRef;
   @ViewChild('dataViewComponent') dataViewComponent: TableViewComponent;
@@ -104,9 +107,20 @@ export class AlertsListComponent implements OnInit, OnDestroy {
       let queryBuilder = new QueryBuilder();
       queryBuilder.setGroupby(this.queryBuilder.groupRequest.groups.map(group => group.field));
       queryBuilder.searchRequest = savedSearch.searchRequest;
+      queryBuilder.filters = savedSearch.filters;
       this.queryBuilder = queryBuilder;
+      this.setSelectedTimeRange(savedSearch.filters);
       this.prepareColumnData(savedSearch.tableColumns, []);
+      this.timeStampfilterPresent = this.queryBuilder.isTimeStampFieldPresent();
       this.search(true, savedSearch);
+    });
+  }
+
+  setSelectedTimeRange(filters: Filter[]) {
+    filters.forEach(filter => {
+      if (filter.field === TIMESTAMP_FIELD_NAME && filter.dateFilterValue) {
+        this.selectedTimeRange = JSON.parse(JSON.stringify(filter));
+      }
     });
   }
 
@@ -157,14 +171,16 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   onClear() {
-    this.queryBuilder.displayQuery = '';
+    this.timeStampfilterPresent = false;
+    this.queryBuilder.clearSearch();
+    this.selectedTimeRange = new Filter(TIMESTAMP_FIELD_NAME, ALL_TIME, false);
     this.search();
   }
 
   onSearch($event) {
-    this.queryBuilder.displayQuery = $event;
+    this.queryBuilder.setSearch($event);
+    this.timeStampfilterPresent = this.queryBuilder.isTimeStampFieldPresent();
     this.search();
-
     return false;
   }
 
@@ -186,6 +202,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   onAddFilter(filter: Filter) {
+    this.timeStampfilterPresent = (filter.field === TIMESTAMP_FIELD_NAME);
     this.queryBuilder.addOrUpdateFilter(filter);
     this.search();
   }
@@ -212,6 +229,16 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   onResize() {
     clearTimeout(this.colNumberTimerId);
     this.colNumberTimerId = setTimeout(() => { this.calcColumnsToDisplay(); }, 500);
+  }
+
+  onTimeRangeChange(filter: Filter) {
+    if (filter.value === ALL_TIME) {
+      this.queryBuilder.removeFilter(filter.field);
+    } else {
+      this.queryBuilder.addOrUpdateFilter(filter);
+    }
+
+    this.search();
   }
 
   prepareColumnData(configuredColumns: ColumnMetadata[], defaultColumns: ColumnMetadata[]) {
@@ -255,6 +282,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   removeFilter(field: string) {
+    this.timeStampfilterPresent = (field === TIMESTAMP_FIELD_NAME) ? false : this.timeStampfilterPresent;
     this.queryBuilder.removeFilter(field);
     this.search();
   }
@@ -301,7 +329,9 @@ export class AlertsListComponent implements OnInit, OnDestroy {
         savedSearch = new SaveSearch();
         savedSearch.searchRequest = this.queryBuilder.searchRequest;
         savedSearch.tableColumns = this.alertsColumns;
-        savedSearch.name = savedSearch.getDisplayString();
+        savedSearch.filters = this.queryBuilder.filters;
+        savedSearch.searchRequest.query = '';
+        savedSearch.name = this.queryBuilder.generateNameForSearchRequest();
       }
 
       this.saveSearchService.saveAsRecentSearches(savedSearch).subscribe(() => {
@@ -314,6 +344,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.searchResponse = results;
     this.pagination.total = results.total;
     this.alerts = results.results ? results.results : [];
+    this.setSelectedTimeRange(this.queryBuilder.filters);
   }
 
   showConfigureTable() {
@@ -358,7 +389,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   tryStartPolling() {
     if (!this.pauseRefresh) {
       this.tryStopPolling();
-      this.refreshTimer = this.searchService.pollSearch(this.queryBuilder.searchRequest).subscribe(results => {
+      this.refreshTimer = this.searchService.pollSearch(this.queryBuilder).subscribe(results => {
         this.setData(results);
       });
     }

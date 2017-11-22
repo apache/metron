@@ -18,5 +18,5 @@
 - include: dependencies.yml
 - include: librdkafka.yml
 - include: bro.yml
-- include: bro-plugin-kafka.yml
+- include: metron-bro-plugin-kafka.yml
 - include: nic.yml

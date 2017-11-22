@@ -48,6 +48,7 @@ class IndexingCommands:
         self.__acl_configured = os.path.isfile(self.__params.indexing_acl_configured_flag_file)
         self.__hbase_configured = os.path.isfile(self.__params.indexing_hbase_configured_flag_file)
         self.__hbase_acl_configured = os.path.isfile(self.__params.indexing_hbase_acl_configured_flag_file)
+        self.__elasticsearch_template_installed = os.path.isfile(self.__params.elasticsearch_template_installed_flag_file)
         self.__hdfs_perm_configured = os.path.isfile(self.__params.indexing_hdfs_perm_configured_flag_file)
 
     def __get_topics(self):
@@ -56,6 +57,21 @@ class IndexingCommands:
     def __get_kafka_acl_groups(self):
         # Indexed topic names matches the group
         return [self.__indexing_topic]
+
+    def get_templates(self):
+        """
+        Defines the Elasticsearch index templates.
+        :return: Dict where key is the name of an index template and the
+          value is a path to file containing the index template definition.
+        """
+        from params import params
+        return {
+            "bro_index": params.bro_index_path,
+            "yaf_index": params.yaf_index_path,
+            "snort_index": params.snort_index_path,
+            "error_index": params.error_index_path,
+            "metaalert_index": params.meta_index_path
+        }
 
     def is_configured(self):
         return self.__configured
@@ -72,6 +88,9 @@ class IndexingCommands:
     def is_hbase_acl_configured(self):
         return self.__hbase_acl_configured
 
+    def is_elasticsearch_template_installed(self):
+        return self.__elasticsearch_template_installed
+
     def set_configured(self):
         metron_service.set_configured(self.__params.metron_user, self.__params.indexing_configured_flag_file, "Setting Indexing configured to True")
 
@@ -86,6 +105,9 @@ class IndexingCommands:
 
     def set_hdfs_perm_configured(self):
         metron_service.set_configured(self.__params.metron_user, self.__params.indexing_hdfs_perm_configured_flag_file, "Setting HDFS perm configured to True")
+
+    def set_elasticsearch_template_installed(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.elasticsearch_template_installed_flag_file, "Setting Elasticsearch template installed to True")
 
     def create_hbase_tables(self):
         Logger.info("Creating HBase Tables for indexing")
@@ -151,6 +173,17 @@ class IndexingCommands:
                                    mode=ownership,
                                    )
         Logger.info('Done creating HDFS indexing directory')
+
+    def check_elasticsearch_templates(self):
+        for template_name in self.get_templates():
+
+            # check for the index template
+            cmd = "curl -s -XGET \"http://{0}/_template/{1}\" | grep -o {1}"
+            err_msg="Missing Elasticsearch index template: name={0}"
+            metron_service.execute(
+              cmd=cmd.format(self.__params.es_http_url, template_name),
+              user=self.__params.metron_user,
+              err_msg=err_msg.format(template_name))
 
     def start_indexing_topology(self, env):
         Logger.info('Starting ' + self.__indexing_topology)
@@ -233,6 +266,9 @@ class IndexingCommands:
         Logger.info("Checking HBase for Indexing")
         metron_service.check_hbase_table(self.__params, self.__params.update_hbase_table)
         metron_service.check_hbase_column_family(self.__params, self.__params.update_hbase_table, self.__params.update_hbase_cf)
+
+        Logger.info('Checking Elasticsearch templates for Indexing')
+        self.check_elasticsearch_templates()
 
         if self.__params.security_enabled:
 

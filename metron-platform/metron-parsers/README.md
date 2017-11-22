@@ -373,37 +373,41 @@ The usage for `start_parser_topology.sh` is as follows:
 
 ```
 usage: start_parser_topology.sh
- -e,--extra_topology_options <JSON_FILE>        Extra options in the form
-                                                of a JSON file with a map
-                                                for content.
- -esc,--extra_kafka_spout_config <JSON_FILE>    Extra spout config options
-                                                in the form of a JSON file
-                                                with a map for content.
-                                                Possible keys are:
-                                                retryDelayMaxMs,retryDelay
-                                                Multiplier,retryInitialDel
-                                                ayMs,stateUpdateIntervalMs
-                                                ,bufferSizeBytes,fetchMaxW
-                                                ait,fetchSizeBytes,maxOffs
-                                                etBehind,metricsTimeBucket
-                                                SizeInSecs,socketTimeoutMs
- -ewnt,--error_writer_num_tasks <NUM_TASKS>     Error Writer Num Tasks
- -ewp,--error_writer_p <PARALLELISM_HINT>       Error Writer Parallelism
-                                                Hint
- -h,--help                                      This screen
- -k,--kafka <BROKER_URL>                        Kafka Broker URL
- -mt,--message_timeout <TIMEOUT_IN_SECS>        Message Timeout in Seconds
- -mtp,--max_task_parallelism <MAX_TASK>         Max task parallelism
- -na,--num_ackers <NUM_ACKERS>                  Number of Ackers
- -nw,--num_workers <NUM_WORKERS>                Number of Workers
- -pnt,--parser_num_tasks <NUM_TASKS>            Parser Num Tasks
- -pp,--parser_p <PARALLELISM_HINT>              Parser Parallelism Hint
- -s,--sensor <SENSOR_TYPE>                      Sensor Type
- -snt,--spout_num_tasks <NUM_TASKS>             Spout Num Tasks
- -sp,--spout_p <SPOUT_PARALLELISM_HINT>         Spout Parallelism Hint
- -t,--test <TEST>                               Run in Test Mode
- -z,--zk <ZK_QUORUM>                            Zookeeper Quroum URL
-                                                (zk1:2181,zk2:2181,...
+ -e,--extra_topology_options <JSON_FILE>               Extra options in the form
+                                                       of a JSON file with a map
+                                                       for content.
+ -esc,--extra_kafka_spout_config <JSON_FILE>           Extra spout config options
+                                                       in the form of a JSON file
+                                                       with a map for content.
+                                                       Possible keys are:
+                                                       retryDelayMaxMs,retryDelay
+                                                       Multiplier,retryInitialDel
+                                                       ayMs,stateUpdateIntervalMs
+                                                       ,bufferSizeBytes,fetchMaxW
+                                                       ait,fetchSizeBytes,maxOffs
+                                                       etBehind,metricsTimeBucket
+                                                       SizeInSecs,socketTimeoutMs
+ -ewnt,--error_writer_num_tasks <NUM_TASKS>            Error Writer Num Tasks
+ -ewp,--error_writer_p <PARALLELISM_HINT>              Error Writer Parallelism
+                                                       Hint
+ -h,--help                                             This screen
+ -iwnt,--invalid_writer_num_tasks <NUM_TASKS>          Invalid Writer Num Tasks
+ -iwp,--invalid_writer_p <PARALLELISM_HINT>            Invalid Message Writer Parallelism Hint
+ -k,--kafka <BROKER_URL>                               Kafka Broker URL
+ -ksp,--kafka_security_protocol <SECURITY_PROTOCOL>    Kafka Security Protocol
+ -mt,--message_timeout <TIMEOUT_IN_SECS>               Message Timeout in Seconds
+ -mtp,--max_task_parallelism <MAX_TASK>                Max task parallelism
+ -na,--num_ackers <NUM_ACKERS>                         Number of Ackers
+ -nw,--num_workers <NUM_WORKERS>                       Number of Workers
+ -ot,--output_topic <KAFKA_TOPIC>                      Output Kafka Topic
+ -pnt,--parser_num_tasks <NUM_TASKS>                   Parser Num Tasks
+ -pp,--parser_p <PARALLELISM_HINT>                     Parser Parallelism Hint
+ -s,--sensor <SENSOR_TYPE>                             Sensor Type
+ -snt,--spout_num_tasks <NUM_TASKS>                    Spout Num Tasks
+ -sp,--spout_p <SPOUT_PARALLELISM_HINT>                Spout Parallelism Hint
+ -t,--test <TEST>                                      Run in Test Mode
+ -z,--zk <ZK_QUORUM>                                   Zookeeper Quroum URL
+                                                       (zk1:2181,zk2:2181,...
 ```
 
 ## The `--extra_kafka_spout_config` Option
@@ -453,7 +457,7 @@ are a few knobs to tune to get the most out of your system.
 In order to allow for meta alerts to be queries alongside regular alerts in Elasticsearch 2.x,
 it is necessary to add an additional field to the templates and mapping for existing sensors.
 
-Please see a description of the steps necessary to make this change in the metron-elasticsearch [Using Metron with Elasticsearch 2.x](./metron-platform/metron-elasticsearch#using-metron-with-elasticsearch-2x)
+Please see a description of the steps necessary to make this change in the metron-elasticsearch [Using Metron with Elasticsearch 2.x](../../metron-platform/metron-elasticsearch#using-metron-with-elasticsearch-2x)
 
 ## Kafka Queue
 The kafka queue associated with your parser is a collection point for
