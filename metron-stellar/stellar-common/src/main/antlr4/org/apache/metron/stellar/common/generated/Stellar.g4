@@ -259,9 +259,11 @@ identifier_operand :
   | EXISTS LPAREN IDENTIFIER RPAREN #ExistsFunc
   | LPAREN conditional_expr RPAREN #condExpr_paren
   | functions #func
-  | DEFAULT #Default
   ;
 
+default_operand :
+  DEFAULT #default
+  ;
 
 lambda_without_args:
   LPAREN RPAREN LAMBDA_OP transformation_expr
