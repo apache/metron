@@ -21,7 +21,7 @@
   <name>bundles-testing</name>
   <parent>
     <groupId>org.apache.metron</groupId>
-    <artifactId>Metron</artifactId>
+    <artifactId>metron-bundles</artifactId>
     <version>0.4.2</version>
   </parent>
   <modules>
