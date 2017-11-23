@@ -15,15 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {SortField} from './sort-field';
-import {DEFAULT_FACETS, DEFAULT_GROUPS, INDEXES} from '../utils/constants';
+import {GetRequest} from './get-request';
 
-export class SearchRequest {
-  fields: string[];
-  from: number;
-  indices: string[] = INDEXES;
-  query: string;
-  size: number;
-  sort: SortField[];
-  facetFields: string[] = Array.from(new Set(DEFAULT_FACETS.concat(DEFAULT_GROUPS)));
+export class MetaAlertCreateRequest {
+  alerts: GetRequest[];
+  groups: string[];
 }
+

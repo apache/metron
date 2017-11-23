@@ -15,15 +15,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {SortField} from './sort-field';
-import {DEFAULT_FACETS, DEFAULT_GROUPS, INDEXES} from '../utils/constants';
+@import "../../../variables";
 
-export class SearchRequest {
-  fields: string[];
-  from: number;
-  indices: string[] = INDEXES;
-  query: string;
-  size: number;
-  sort: SortField[];
-  facetFields: string[] = Array.from(new Set(DEFAULT_FACETS.concat(DEFAULT_GROUPS)));
+input {
+  height: 13px;
+}
+
+.radio-container {
+  margin-top: 12px;
+}
+
+.title {
+  font-size: 12px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid $tundora-1;
+}
+
+.meta-alert-row {
+  padding: 4px 0px;
+  border-bottom: 1px solid $tundora-1;
+
+  .severity {
+    height: 20px;
+  }
+
+  .guid-name-container {
+    width: 84%;
+    font-size: 15px;
+    line-height: 1.4;
+    margin-left: 5px;
+    display: inline-block;
+  }
+
+  .sub-text {
+    font-size: 10px;
+  }
+
+  sup, .selected {
+    color: $silver;
+    font-weight: bold;
+  }
 }

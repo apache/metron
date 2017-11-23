@@ -1,0 +1,52 @@
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at
+  http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+<div class="metron-slider-pane-details load-right-to-left dialog1x">
+  <div class="container-fluid my-3">
+
+    <div class="row mb-3">
+      <div class="col-md-10">
+        <div class="form-title">Add to Alert</div>
+      </div>
+      <div class="col-md-2">
+        <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="goBack()"></i>
+      </div>
+    </div>
+
+    <div>
+      <div class="title"> SELECT OPEN ALERT</div>
+      <div class="container-fluid">
+        <div class="row meta-alert-row" *ngFor="let alert of searchResponse.results">
+          <div class="col-1 px-0">
+            <label class="radio-container">
+              <input type="radio" name="radio"><span class="checkmark" (click)="selectedMetaAlert=alert.source.guid"></span>
+            </label>
+          </div>
+          <div class="col-11 px-0">
+            <span class="severity" appAlertSeverity [severity]="alert.source['threat:triage:score']"></span><sup> {{ alert.source['threat:triage:score'] }} </sup>
+            <div class="px-0 guid-name-container">
+              <div [ngClass]="{'selected': selectedMetaAlert===alert.source.guid}"> {{(alert.source.name && alert.source.name.length > 0) ? alert.source.name : alert.source.guid | centerEllipses:20 }} ({{ alert.source.alert.length }})</div>
+              <span class="pull-left sub-text"> {{ (alert.source.alert_status && alert.source.alert_status.length > 0) ? alert.source.alert_status : 'NEW' }} </span>
+              <span class="pull-right sub-text"> {{ alert.source.timestamp | timeLapse }} </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="my-4">
+          <button type="submit" class="btn btn-all_ports" (click)="addAlertToMetaAlert()" [disabled]="selectedMetaAlert.length===0" title="Please select a meta alert">ADD</button>
+          <button class="btn btn-mine_shaft_2" (click)="goBack()">CANCEL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

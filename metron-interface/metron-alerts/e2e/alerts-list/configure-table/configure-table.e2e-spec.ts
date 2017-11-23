@@ -76,8 +76,7 @@ describe('metron-alerts configure table', function() {
     expect(page.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (25)');
     page.clickClearSearch();
 
-    let columnNames = ['Score','id', 'timestamp','source:type','ip_src_addr','Country','ip_dst_addr','host','alert_status','',''];
-    expect(page.getTableColumnNames()).toEqualBcoz(columnNames, 'for renamed column names for alert list table');
+    expect(page.getTableColumnNames()).toContain('Country', 'for renamed column names for alert list table');
 
   });
 
