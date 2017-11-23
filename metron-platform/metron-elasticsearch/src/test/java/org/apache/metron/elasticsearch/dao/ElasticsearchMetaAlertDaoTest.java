@@ -20,6 +20,7 @@ package org.apache.metron.elasticsearch.dao;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -49,6 +50,8 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.junit.Test;
 
 public class ElasticsearchMetaAlertDaoTest {
+
+
 
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidInit() {
@@ -207,20 +210,40 @@ public class ElasticsearchMetaAlertDaoTest {
 
   @Test
   public void testCalculateMetaScoresList() {
+    final double delta = 0.001;
     List<Map<String, Object>> alertList = new ArrayList<>();
-    Map<String, Object> alertMap = new HashMap<>();
-    alertMap.put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
-    alertList.add(alertMap);
+
+    // add an alert with a threat score
+    alertList.add( Collections.singletonMap(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0f));
+
+    // add a second alert with a threat score
+    alertList.add( Collections.singletonMap(MetaAlertDao.THREAT_FIELD_DEFAULT, 20.0f));
+
+    // add a third alert with NO threat score
+    alertList.add( Collections.singletonMap("alert3", "has no threat score"));
+
+    // create the metaalert
     Map<String, Object> docMap = new HashMap<>();
     docMap.put(MetaAlertDao.ALERT_FIELD, alertList);
+    Document metaalert = new Document(docMap, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
 
-    Document doc = new Document(docMap, "guid", MetaAlertDao.METAALERT_TYPE, 0L);
-
+    // calculate the threat score for the metaalert
     ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();
-    metaAlertDao.calculateMetaScores(doc);
-    assertEquals(1L, doc.getDocument().get("count"));
-    assertEquals(10.0d,
-        doc.getDocument().get(ElasticsearchMetaAlertDao.THREAT_FIELD_DEFAULT)
-    );
+    metaAlertDao.calculateMetaScores(metaalert);
+    Object threatScore = metaalert.getDocument().get(ElasticsearchMetaAlertDao.THREAT_FIELD_DEFAULT);
+
+    // the metaalert must contain a summary of all child threat scores
+    assertEquals(20D, (Double) metaalert.getDocument().get("max"), delta);
+    assertEquals(10D, (Double) metaalert.getDocument().get("min"), delta);
+    assertEquals(15D, (Double) metaalert.getDocument().get("average"), delta);
+    assertEquals(2L, metaalert.getDocument().get("count"));
+    assertEquals(30D, (Double) metaalert.getDocument().get("sum"), delta);
+    assertEquals(15D, (Double) metaalert.getDocument().get("median"), delta);
+
+    // it must contain an overall threat score; a float to match the type of the threat score of the other sensor indices
+    assertTrue(threatScore instanceof Float);
+
+    // by default, the overall threat score is the sum of all child threat scores
+    assertEquals(30.0F, threatScore);
   }
 }
