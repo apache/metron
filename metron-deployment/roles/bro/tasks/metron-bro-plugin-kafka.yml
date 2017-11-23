@@ -34,18 +34,11 @@
     CC: /opt/rh/devtoolset-4/root/usr/bin/gcc
   command: "{{ python27_bin }}/bro-pkg install https://github.com/jonzeolla/metron-bro-plugin-kafka --force --version {{ metron_bro_plugin_kafka_version }}"
 
-- name: Load the metron-bro-plugin-kafka package
-  environment:
-    PATH: "{{ git29_bin }}:{{ bro_bin }}:{{ ansible_env.PATH }}"
-    LD_LIBRARY_PATH: "{{ python27_lib }}"
-  command: "{{ python27_bin }}/bro-pkg load jonzeolla/metron-bro-plugin-kafka"
-
 - name: Configure bro-kafka plugin
   lineinfile:
     dest: "{{ bro_home }}/share/bro/site/local.bro"
     line: "{{ item }}"
   with_items:
-    - "@load packages"
     - "redef Kafka::logs_to_send = set(HTTP::LOG, DNS::LOG);"
     - "redef Kafka::topic_name = \"{{ bro_topic }}\";"
     - "redef Kafka::tag_json = T;"
