@@ -114,7 +114,6 @@
             "match_mapping_type": "*"
           }
         }
-      }
       ],
       "properties": {
         "timestamp": {
