@@ -36,14 +36,14 @@ export class MetronDialogBox {
 
   private createDialogBox(message: string, type: DialogType) {
     let cancelButtonHTML = this.getCancelButton(type);
-    let html = `<div class="metron-dialog modal fade"  data-backdrop="static" >
+    let html = `<div class="metron-dialog modal"  data-backdrop="static" >
                   <div class="modal-dialog modal-sm" role="document">
                     <div class="modal-content">
                       <div class="modal-header">
+                        <span class="modal-title"><b>` + MetronDialogBox.dialogType[type] + `</b></span>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"> 
                             <span aria-hidden="true">&times;</span> 
                         </button>
-                        <span class="modal-title"><b>` + MetronDialogBox.dialogType[type] + `</b></span>
                       </div>
                       <div class="modal-body">
                         <p>` +  message + `</p>

@@ -15,15 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {SortField} from './sort-field';
-import {DEFAULT_FACETS, DEFAULT_GROUPS, INDEXES} from '../utils/constants';
+import { Pipe, PipeTransform } from '@angular/core';
 
-export class SearchRequest {
-  fields: string[];
-  from: number;
-  indices: string[] = INDEXES;
-  query: string;
-  size: number;
-  sort: SortField[];
-  facetFields: string[] = Array.from(new Set(DEFAULT_FACETS.concat(DEFAULT_GROUPS)));
+@Pipe({
+  name: 'alertDetailsKeys'
+})
+export class AlertDetailsKeysPipe implements PipeTransform {
+
+  transform(value: any): any {
+    let keys = value ? Object.keys(value) : [];
+    return keys.filter(field => !field.includes(':ts') && field !== 'original_string' && field !== 'comments').sort();
+  }
 }
+
+

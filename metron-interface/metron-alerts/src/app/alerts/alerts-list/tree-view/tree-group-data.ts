@@ -30,6 +30,7 @@ export class TreeGroupData {
   show: boolean;
   expand = false;
   score: number;
+  isLeafNode = false;
 
   // Used by only Dashrow
   sortField: SortField;

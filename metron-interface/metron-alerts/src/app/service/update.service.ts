@@ -27,6 +27,9 @@ import {HttpUtil} from '../utils/httpUtil';
 import {Alert} from '../model/alert';
 import {Http} from '@angular/http';
 import {PatchRequest} from '../model/patch-request';
+import {Utils} from '../utils/utils';
+import {Patch} from '../model/patch';
+import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../utils/constants';
 
 @Injectable()
 export class UpdateService {
@@ -38,27 +41,32 @@ export class UpdateService {
 
   constructor(private http: Http) { }
 
-  public patch(patchRequest: PatchRequest): Observable<{}> {
+  public patch(patchRequest: PatchRequest, fireChangeListener = true): Observable<{}> {
     let url = '/api/v1/update/patch';
     return this.http.patch(url, patchRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
     .catch(HttpUtil.handleError)
     .map(result => {
-      this.alertChangedSource.next(patchRequest);
+      if (fireChangeListener) {
+        this.alertChangedSource.next(patchRequest);
+      }
       return result;
     });
   }
 
-  public updateAlertState(alerts: Alert[], state: string): Observable<{}> {
+  public updateAlertState(alerts: Alert[], state: string, fireChangeListener = true): Observable<{}> {
     let patchRequests: PatchRequest[] = alerts.map(alert => {
       let patchRequest = new PatchRequest();
       patchRequest.guid = alert.source.guid;
-      patchRequest.sensorType = alert.source['source:type'];
-      patchRequest.patch = [{'op': 'add', 'path': '/alert_status', 'value': state}];
+      patchRequest.sensorType = Utils.getAlertSensorType(alert);
+      patchRequest.patch = [new Patch('add', '/alert_status', state)];
+      if (patchRequest.sensorType === META_ALERTS_SENSOR_TYPE) {
+        patchRequest.index = META_ALERTS_INDEX;
+      }
       return patchRequest;
     });
     let patchObservables = [];
     for (let patchRequest of patchRequests) {
-      patchObservables.push(this.patch(patchRequest));
+      patchObservables.push(this.patch(patchRequest, fireChangeListener));
     }
     return Observable.forkJoin(patchObservables);
   }
