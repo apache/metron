@@ -218,7 +218,7 @@ public class ElasticsearchDaoTest {
 
     SearchRequest searchRequest = new SearchRequest();
     searchRequest.setSize(maxSearchResults+1);
-
+    searchRequest.setQuery("");
     dao.search(searchRequest);
     // exception expected - size > max
   }
