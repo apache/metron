@@ -22,8 +22,8 @@ RUN yum install -y wget
 # base development tools required
 RUN yum groupinstall -y "Development tools"
 # newer cpp 11 support required for building node modules
-RUN wget http://people.centos.org/tru/devtools-2/devtools-2.repo -O /etc/yum.repos.d/devtools-2.repo
-RUN yum -y install devtoolset-2-gcc devtoolset-2-binutils devtoolset-2-gcc-c++
+RUN yum install -y centos-release-scl
+RUN yum install -y devtoolset-4-gcc-c++ devtoolset-4-gcc
 RUN yum install -y zlib-dev openssl-devel sqlite-devel bzip2-devel libffi-devel
 # install python 2.7.11 but do not make it the default
 RUN wget https://www.python.org/ftp/python/2.7.11/Python-2.7.11.tgz -O /usr/src/Python-2.7.11.tgz
@@ -57,7 +57,7 @@ RUN ln -s /opt/maven/bin/mvn /usr/bin/mvn
 RUN yum -y install asciidoc rpm-build rpm2cpio tar unzip xmlto zip rpmlint make && yum clean all
 # create a .bashrc for root, enabling the cpp 11 toolset
 RUN touch /root/.bashrc \
- && cat '/opt/rh/devtoolset-2/enable' >> /root/.bashrc
+ && cat '/opt/rh/devtoolset-4/enable' >> /root/.bashrc
 # install node so that the node dependencies can be packaged into the RPMs
 RUN curl --silent --location https://rpm.nodesource.com/setup_6.x | bash -
 RUN yum -y install nodejs

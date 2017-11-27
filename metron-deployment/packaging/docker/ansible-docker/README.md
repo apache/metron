@@ -1,7 +1,7 @@
 # Overview
 The Metron ansible-docker container is provided in an effort reduce the installation burden of building Metron.
 It may also be used to deploy Metron in a live environment.
-It is provisioned with software required to sucessfully build metron run the deployment scripts.
+It is provisioned with software required to sucessfully build metron and run the deployment scripts.
 
 ## Building the Container
 1. Install Docker ( https://www.docker.com/products/overview )
@@ -25,6 +25,12 @@ After running the container:
 2. run build commands, for example:
   - build metron without tests : `mvn clean package -DskipTests`
   - build metron and build the rpms as well : `mvn clean install && cd metron-deployment && mvn package -P build-rpms`
+  
+If you wish to use this build with a vagrant instance, then after building with rpms as above, modify
+your usual vagrant up command to skip the build role, as so:
+
+`vagrant --ansible-skip-tags="build" up`
+
 
 ## Using the Container for deployment
 
