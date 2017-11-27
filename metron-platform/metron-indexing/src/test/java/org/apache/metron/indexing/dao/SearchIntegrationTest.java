@@ -755,7 +755,7 @@ public abstract class SearchIntegrationTest {
   public void facet_query_yields_field_types() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(facetQuery, SearchRequest.class);
     SearchResponse response = dao.search(request);
-    Assert.assertEquals(10, response.getTotal());
+    Assert.assertEquals(12, response.getTotal());
     Map<String, Map<String, Long>> facetCounts = response.getFacetCounts();
     Assert.assertEquals(8, facetCounts.size());
     Map<String, Long> sourceTypeCounts = facetCounts.get("source:type");
@@ -854,7 +854,7 @@ public abstract class SearchIntegrationTest {
     Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("bro", "snort"));
     Assert.assertEquals(15, fieldTypes.size());
     Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
-    Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("source:type"));
+    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
     Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
     Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
     Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
@@ -880,7 +880,7 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("duplicate_name_field"));
       Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
-      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("source:type"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
       Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
       Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
@@ -899,7 +899,7 @@ public abstract class SearchIntegrationTest {
       Assert.assertEquals(14, fieldTypes.size());
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("guid"));
+      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
       Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
