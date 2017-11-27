@@ -2,6 +2,13 @@
 
 ## Table of Contents
 
+* [Overview](#overview)
+* [Simple HBase Enrichments/Threat Intelligence](#simple-hbase-enrichmentsthreat-intelligence)
+* [Extractor Framework](#extractor-framework)
+* [Enrichment Config](#enrichment-config)
+* [Loading Utilities](#loading-utilities)
+* [Pruning Data from Elasticsearch](#pruning-data-from-elasticsearch)
+
 ## Overview
 
 This project is a collection of classes to assist with loading of
@@ -344,8 +351,8 @@ The parameters for the utility are as follows:
 
 ## Pruning Data from Elasticsearch
 
-**Note** - As of the Metron upgrade from Elasticsearch 2.x to 5.x, the included Data Pruner is no longer supported. It is replaced in favor of the Curator utility
-provided by Elasticsearch.
+**Note** - As of the Metron upgrade from Elasticsearch 2.3.3 to 5.6.2, the included Data Pruner is no longer supported. It is replaced in favor of the Curator utility
+provided by Elasticsearch. The current Curator version is 5.4 as of this version of Metron and does not match exactly with ES and Kibana.
 
 Elasticsearch provides tooling to prune index data through [Curator](https://www.elastic.co/guide/en/elasticsearch/client/curator/5.4/index.html).
 

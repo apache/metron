@@ -1,11 +1,12 @@
 # Elasticsearch in Metron
 
-* [Table of Contents](#table-of-contents)
+## Table of Contents
+
 * [Introduction](#introduction)
 * [Properties](#properties)
-* [Upgrading to 5.x](#upgrading-to-5x)
+* [Upgrading to 5.6.2](#upgrading-to-562)
 * [Type Mappings](#type-mappings)
-* [Using Metron with Elasticsearch 2.x](#using-metron-with-elasticsearch-2x)
+* [Using Metron with Elasticsearch 5.x](#using-metron-with-elasticsearch-5x)
 * [Installing Elasticsearch Templates](#installing-elasticsearch-templates)
 
 ## Introduction
@@ -41,9 +42,9 @@ For instance, an `es.date.format` of `yyyy.MM.dd.HH` would have the consequence 
 roll hourly, whereas an `es.date.format` of `yyyy.MM.dd` would have the consequence that the indices would
 roll daily.
 
-## Upgrading to 5.x
+## Upgrading to 5.6.2
 
-Users should be prepared to re-index when migrating from Elasticsearch 2.x to 5.x. There are a number of template changes, most notably around
+Users should be prepared to re-index when migrating from Elasticsearch 2.3.3 to 5.6.2. There are a number of template changes, most notably around
 string type handling, that may cause issues when upgrading.
 
 [https://www.elastic.co/guide/en/elasticsearch/reference/5.6/setup-upgrade.html](https://www.elastic.co/guide/en/elasticsearch/reference/5.6/setup-upgrade.html)
@@ -248,7 +249,7 @@ Notes on other settings for types in ES
 * [https://www.elastic.co/guide/en/elasticsearch/reference/5.6/breaking_50_mapping_changes.html](https://www.elastic.co/guide/en/elasticsearch/reference/5.6/breaking_50_mapping_changes.html)
 * [https://www.elastic.co/blog/strings-are-dead-long-live-strings](https://www.elastic.co/blog/strings-are-dead-long-live-strings)
 
-## Using Metron with Elasticsearch 2.x
+## Using Metron with Elasticsearch 5.6.2
 
 With Elasticsearch 2.x, there is a requirement that all sensors templates have a nested alert field defined.  This field is a dummy field, and will be obsolete in Elasticsearch 5.x.  See [Ignoring Unmapped Fields](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_ignoring_unmapped_fields) for more information
 
