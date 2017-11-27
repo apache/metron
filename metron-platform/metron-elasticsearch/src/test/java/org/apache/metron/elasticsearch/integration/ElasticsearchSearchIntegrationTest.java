@@ -60,11 +60,12 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    * "bro_doc": {
    *   "properties": {
    *     "source:type": {
-   *        "type": "keyword"
+   *        "type": "text",
+   *        "fielddata" : "true"
    *     },
    *     "guid" : {
    *        "type" : "keyword"
-   *     }
+   *     },
    *     "ip_src_addr": {
    *        "type": "ip"
    *     },
@@ -113,11 +114,12 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    *  "snort_doc": {
    *     "properties": {
    *        "source:type": {
-   *          "type": "keyword"
+   *          "type": "text",
+   *          "fielddata" : "true"
    *        },
    *        "guid" : {
    *          "type" : "keyword"
-   *        }
+   *        },
    *        "ip_src_addr": {
    *          "type": "ip"
    *        },
@@ -179,7 +181,10 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    *     "max": { "type": "keyword" },
    *     "count": { "type": "keyword" },
    *     "sum": { "type": "keyword" },
-   *     "source:type": { "type": "text" }
+   *     "source:type": {
+   *       "type": "text",
+   *       "fielddata" : "true"
+   *                    }
    *   }
    * }
    * }

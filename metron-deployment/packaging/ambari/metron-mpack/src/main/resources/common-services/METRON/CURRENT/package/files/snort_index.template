@@ -114,16 +114,6 @@
             "match_mapping_type": "*"
           }
         }
-      },
-      {
-        "threat_triage_name": {
-          "mapping": {
-            "type": "string"
-          },
-          "match": "threat:triage:rules:*:name",
-          "match_mapping_type": "*"
-        }
-      }
       ],
       "properties": {
         "timestamp": {

@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentHelper;
@@ -202,9 +203,10 @@ public class ElasticsearchUtils {
   public static Optional<String> toJSON(org.elasticsearch.action.search.SearchRequest esRequest) {
     Optional<String> json = Optional.empty();
 
-    if(esRequest != null) {
+    if(esRequest != null && esRequest.source() != null) {
       try {
-        json = Optional.of(XContentHelper.convertToJson(esRequest.source().buildAsBytes(), true));
+        BytesReference requestBytes = esRequest.source().buildAsBytes();
+        json = Optional.of(XContentHelper.convertToJson(requestBytes, true));
 
       } catch (Throwable t) {
         LOG.error("Failed to convert search request to JSON", t);

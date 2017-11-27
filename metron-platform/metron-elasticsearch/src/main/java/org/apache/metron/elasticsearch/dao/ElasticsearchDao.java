@@ -147,6 +147,9 @@ public class ElasticsearchDao implements IndexDao {
 
   @Override
   public SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
+    if(searchRequest.getQuery() == null) {
+      throw new InvalidSearchException("Search query is invalid: null");
+    }
     return search(searchRequest, new QueryStringQueryBuilder(searchRequest.getQuery()));
   }
 
