@@ -64,7 +64,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    *     },
    *     "guid" : {
    *        "type" : "keyword"
-   *     }
+   *     },
    *     "ip_src_addr": {
    *        "type": "ip"
    *     },
@@ -117,7 +117,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    *        },
    *        "guid" : {
    *          "type" : "keyword"
-   *        }
+   *        },
    *        "ip_src_addr": {
    *          "type": "ip"
    *        },
@@ -179,7 +179,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    *     "max": { "type": "keyword" },
    *     "count": { "type": "keyword" },
    *     "sum": { "type": "keyword" },
-   *     "source:type": { "type": "text" }
+   *     "source:type": { "type": "keyword" }
    *   }
    * }
    * }
