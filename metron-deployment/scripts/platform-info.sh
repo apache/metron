@@ -80,6 +80,7 @@ g++ --version
 
 # C++11 compliant compiler
 echo "--"
+OBJFILE=/tmp/test
 CPPFILE=/tmp/test.cpp
 cat > $CPPFILE <<- EOM
 #include <iostream>
@@ -89,12 +90,13 @@ int main() {
     return 0;
 }
 EOM
-g++ -std=c++11 $CPPFILE -o /tmp/test
+g++ -std=c++11 $CPPFILE -o $OBJFILE
 if [ $? -eq 0 ]; then
     echo "Compiler is C++11 compliant"
 else
     echo "Warning: Compiler is NOT C++11 compliant"
 fi
+rm -f $CPPFILE $OBJFILE
 
 # operating system
 echo "--"
