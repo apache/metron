@@ -39,6 +39,7 @@
     dest: "{{ bro_home }}/share/bro/site/local.bro"
     line: "{{ item }}"
   with_items:
+    - "@load packages"
     - "redef Kafka::logs_to_send = set(HTTP::LOG, DNS::LOG);"
     - "redef Kafka::topic_name = \"{{ bro_topic }}\";"
     - "redef Kafka::tag_json = T;"
