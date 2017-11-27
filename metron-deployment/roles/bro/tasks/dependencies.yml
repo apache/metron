@@ -33,6 +33,17 @@
     - perl
     - crontabs
     - net-tools
+    - centos-release-scl
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 10
+
+- name: Install additional prerequisites
+  yum: name={{ item }}
+  with_items:
+    - devtoolset-4-gcc
+    - devtoolset-4-gcc-c++
   register: result
   until: result.rc == 0
   retries: 5

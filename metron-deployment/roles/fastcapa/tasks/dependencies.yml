@@ -24,6 +24,7 @@
       - glib2
       - glib2-devel
       - git
+      - numactl-devel
 
   #
   # install prerequisite packages and the latest kernel headers.  need to
