@@ -156,7 +156,7 @@ public class ConfigurationsUtils {
   }
 
   private static String getConfigZKPath(ConfigurationType configType, Optional<String> configName) {
-    String pathSuffix = configName.isPresent() && configType != GLOBAL ? "/" + configName : "";
+    String pathSuffix = configName.isPresent() && configType != GLOBAL ? "/" + configName.get() : "";
     return configType.getZookeeperRoot() + pathSuffix;
   }
 
@@ -353,15 +353,33 @@ public class ConfigurationsUtils {
           writeGlobalConfigToZookeeper(globalConfig, client);
         }
         break;
-      case PARSER: // intentional pass-through
-      case ENRICHMENT: // intentional pass-through
-      case INDEXING:
-        Map<String, byte[]> sensorIndexingConfigs = readSensorConfigsFromFile(rootFilePath, type,
-            configName);
+
+      case PARSER: {
+        Map<String, byte[]> sensorIndexingConfigs = readSensorConfigsFromFile(rootFilePath, type, configName);
         for (String sensorType : sensorIndexingConfigs.keySet()) {
-          writeConfigToZookeeper(type, configName, sensorIndexingConfigs.get(sensorType), client);
+          byte[] configData = sensorIndexingConfigs.get(sensorType);
+          writeSensorParserConfigToZookeeper(sensorType, configData, client);
         }
         break;
+      }
+
+      case ENRICHMENT: {
+        Map<String, byte[]> sensorIndexingConfigs = readSensorConfigsFromFile(rootFilePath, type, configName);
+        for (String sensorType : sensorIndexingConfigs.keySet()) {
+          byte[] configData = sensorIndexingConfigs.get(sensorType);
+          writeSensorEnrichmentConfigToZookeeper(sensorType, configData, client);
+        }
+        break;
+      }
+
+      case INDEXING: {
+        Map<String, byte[]> sensorIndexingConfigs = readSensorConfigsFromFile(rootFilePath, type, configName);
+        for (String sensorType : sensorIndexingConfigs.keySet()) {
+          byte[] configData = sensorIndexingConfigs.get(sensorType);
+          writeSensorIndexingConfigToZookeeper(sensorType, configData, client);
+        }
+        break;
+      }
       default:
         throw new IllegalArgumentException("Configuration type not found: " + type);
     }
@@ -533,7 +551,6 @@ public class ConfigurationsUtils {
    * Starts up curatorclient based on zookeeperUrl.
    *
    * @param configurationType GLOBAL, PARSER, etc.
-   * @param configName e.g. bro, yaf, snort
    * @param patchData a JSON patch in the format specified by RFC 6902
    * @param zookeeperUrl configs are here
    */
@@ -572,15 +589,22 @@ public class ConfigurationsUtils {
    * @param patchData a JSON patch in the format specified by RFC 6902
    * @param client access to zookeeeper
    */
-  public static void applyConfigPatchToZookeeper(ConfigurationType configurationType,
-      Optional<String> configName,
-      byte[] patchData, CuratorFramework client) throws Exception {
+  public static void applyConfigPatchToZookeeper(
+          ConfigurationType configurationType,
+          Optional<String> configName,
+          byte[] patchData, CuratorFramework client) throws Exception {
+
     byte[] configData = readConfigBytesFromZookeeper(configurationType, configName, client);
     JsonNode source = JSONUtils.INSTANCE.readTree(configData);
     JsonNode patch = JSONUtils.INSTANCE.readTree(patchData);
     JsonNode patchedConfig = JSONUtils.INSTANCE.applyPatch(patch, source);
-    writeConfigToZookeeper(configurationType, configName,
-        JSONUtils.INSTANCE.toJSONPretty(patchedConfig), client);
+    byte[] prettyPatchedConfig = JSONUtils.INSTANCE.toJSONPretty(patchedConfig);
+
+    // ensure the patch produces a valid result; otherwise exception thrown during deserialization
+    String prettyPatchedConfigStr = new String(prettyPatchedConfig);
+    configurationType.deserialize(prettyPatchedConfigStr);
+
+    writeConfigToZookeeper(configurationType, configName, prettyPatchedConfig, client);
   }
 
   public interface ConfigurationVisitor{

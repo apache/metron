@@ -96,22 +96,28 @@ public class ConfigurationsUtilsTest {
   private static String someConfig;
 
   @Test
-  public void modifies_global_configuration() throws Exception {
+  public void modifiedGlobalConfiguration() throws Exception {
+
+    // write global configuration
     ConfigurationType type = ConfigurationType.GLOBAL;
-    ConfigurationsUtils
-        .writeConfigToZookeeper(type, JSONUtils.INSTANCE.toJSONPretty(someConfig), zookeeperUrl);
+    ConfigurationsUtils.writeConfigToZookeeper(type, JSONUtils.INSTANCE.toJSONPretty(someConfig), zookeeperUrl);
+
+    // validate the modified global configuration
     byte[] actual = ConfigurationsUtils.readConfigBytesFromZookeeper(type, zookeeperUrl);
     assertThat(actual, equalTo(JSONUtils.INSTANCE.toJSONPretty(someConfig)));
   }
 
   @Test
-  public void modifies_single_parser_configuration() throws Exception {
+  public void modifiesSingleParserConfiguration() throws Exception {
+
+    // write parser configuration
     ConfigurationType type = ConfigurationType.PARSER;
     String parserName = "a-happy-metron-parser";
-    ConfigurationsUtils.writeConfigToZookeeper(type, Optional.of(parserName),
-        JSONUtils.INSTANCE.toJSONPretty(someConfig), zookeeperUrl);
-    byte[] actual = ConfigurationsUtils
-        .readConfigBytesFromZookeeper(type, Optional.of(parserName), zookeeperUrl);
+    byte[] config = JSONUtils.INSTANCE.toJSONPretty(someConfig);
+    ConfigurationsUtils.writeConfigToZookeeper(type, Optional.of(parserName), config, zookeeperUrl);
+
+    // validate the modified parser configuration
+    byte[] actual = ConfigurationsUtils.readConfigBytesFromZookeeper(type, Optional.of(parserName), zookeeperUrl);
     assertThat(actual, equalTo(JSONUtils.INSTANCE.toJSONPretty(someConfig)));
   }
 
@@ -142,23 +148,40 @@ public class ConfigurationsUtilsTest {
    * are stored. The semantics are similar but slightly different.
    */
   @Test
-  public void patches_global_configuration_via_patch_json() throws Exception {
-    ConfigurationType type = ConfigurationType.GLOBAL;
-    String parserName = "patched-metron-global-config";
-    ConfigurationsUtils.writeConfigToZookeeper(type, JSONUtils.INSTANCE.toJSONPretty(someConfig), zookeeperUrl);
-    ConfigurationsUtils.applyConfigPatchToZookeeper(type, JSONUtils.INSTANCE.toJSONPretty(patchSomeConfig), zookeeperUrl);
+  public void patchesGlobalConfigurationViaPatchJSON() throws Exception {
+
+    // setup zookeeper with a configuration
+    final ConfigurationType type = ConfigurationType.GLOBAL;
+    byte[] config = JSONUtils.INSTANCE.toJSONPretty(someConfig);
+    ConfigurationsUtils.writeConfigToZookeeper(type, config, zookeeperUrl);
+
+    // patch the configuration
+    byte[] patch = JSONUtils.INSTANCE.toJSONPretty(patchSomeConfig);
+    ConfigurationsUtils.applyConfigPatchToZookeeper(type, patch, zookeeperUrl);
+
+    // validate the patched configuration
     byte[] actual = ConfigurationsUtils.readConfigBytesFromZookeeper(type, zookeeperUrl);
-    assertThat(actual, equalTo(JSONUtils.INSTANCE.toJSONPretty(modifiedSomeConfig)));
+    byte[] expected = JSONUtils.INSTANCE.toJSONPretty(modifiedSomeConfig);
+    assertThat(actual, equalTo(expected));
   }
 
   @Test
-  public void patches_parser_configuration_via_patch_json() throws Exception {
-    ConfigurationType type = ConfigurationType.PARSER;
-    String parserName = "patched-metron-parser";
-    ConfigurationsUtils.writeConfigToZookeeper(type, Optional.of(parserName), JSONUtils.INSTANCE.toJSONPretty(someConfig), zookeeperUrl);
-    ConfigurationsUtils.applyConfigPatchToZookeeper(type, Optional.of(parserName), JSONUtils.INSTANCE.toJSONPretty(patchSomeConfig), zookeeperUrl);
+  public void patchesParserConfigurationViaPatchJSON() throws Exception {
+
+    // setup zookeeper with a configuration
+    final ConfigurationType type = ConfigurationType.PARSER;
+    final String parserName = "patched-metron-parser";
+    byte[] config = JSONUtils.INSTANCE.toJSONPretty(someConfig);
+    ConfigurationsUtils.writeConfigToZookeeper(type, Optional.of(parserName), config, zookeeperUrl);
+
+    // patch the configuration
+    byte[] patch = JSONUtils.INSTANCE.toJSONPretty(patchSomeConfig);
+    ConfigurationsUtils.applyConfigPatchToZookeeper(type, Optional.of(parserName), patch, zookeeperUrl);
+
+    // validate the patched configuration
     byte[] actual = ConfigurationsUtils.readConfigBytesFromZookeeper(type, Optional.of(parserName), zookeeperUrl);
-    assertThat(actual, equalTo(JSONUtils.INSTANCE.toJSONPretty(modifiedSomeConfig)));
+    byte[] expected = JSONUtils.INSTANCE.toJSONPretty(modifiedSomeConfig);
+    assertThat(actual, equalTo(expected));
   }
 
   @After
