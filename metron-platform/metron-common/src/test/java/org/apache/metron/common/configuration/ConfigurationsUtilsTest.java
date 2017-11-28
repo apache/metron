@@ -88,38 +88,10 @@ public class ConfigurationsUtilsTest {
   }
 
   /**
-   * {
-   *   "foo" : "bar"
-   * }
+   * { "foo": "bar" }
    */
   @Multiline
-  private static String someConfig;
-
-  @Test
-  public void modifiedGlobalConfiguration() throws Exception {
-
-    // write global configuration
-    ConfigurationType type = ConfigurationType.GLOBAL;
-    ConfigurationsUtils.writeConfigToZookeeper(type, JSONUtils.INSTANCE.toJSONPretty(someConfig), zookeeperUrl);
-
-    // validate the modified global configuration
-    byte[] actual = ConfigurationsUtils.readConfigBytesFromZookeeper(type, zookeeperUrl);
-    assertThat(actual, equalTo(JSONUtils.INSTANCE.toJSONPretty(someConfig)));
-  }
-
-  @Test
-  public void modifiesSingleParserConfiguration() throws Exception {
-
-    // write parser configuration
-    ConfigurationType type = ConfigurationType.PARSER;
-    String parserName = "a-happy-metron-parser";
-    byte[] config = JSONUtils.INSTANCE.toJSONPretty(someConfig);
-    ConfigurationsUtils.writeConfigToZookeeper(type, Optional.of(parserName), config, zookeeperUrl);
-
-    // validate the modified parser configuration
-    byte[] actual = ConfigurationsUtils.readConfigBytesFromZookeeper(type, Optional.of(parserName), zookeeperUrl);
-    assertThat(actual, equalTo(JSONUtils.INSTANCE.toJSONPretty(someConfig)));
-  }
+  private static String someGlobalConfig;
 
   /**
    * [
@@ -131,7 +103,7 @@ public class ConfigurationsUtilsTest {
    * ]
    */
   @Multiline
-  private static String patchSomeConfig;
+  private static String patchGlobalConfig;
 
   /**
    * {
@@ -139,7 +111,63 @@ public class ConfigurationsUtilsTest {
    * }
    */
   @Multiline
-  private static String modifiedSomeConfig;
+  private static String modifiedGlobalConfig;
+
+  /**
+   * {
+   *    "parserClassName": "org.apache.metron.parsers.GrokParser",
+   *    "sensorTopic": "squid"
+   * }
+   */
+  @Multiline
+  private static String someParserConfig;
+
+  /**
+   * [
+   *  {
+   *     "op": "replace",
+   *     "path": "/sensorTopic",
+   *     "value": "new-squid-topic"
+   *  }
+   * ]
+   */
+  @Multiline
+  private static String patchParserConfig;
+
+  /**
+   * {
+   *    "parserClassName": "org.apache.metron.parsers.GrokParser",
+   *    "sensorTopic": "new-squid-topic"
+   * }
+   */
+  @Multiline
+  private static String modifiedParserConfig;
+
+  @Test
+  public void modifiedGlobalConfiguration() throws Exception {
+
+    // write global configuration
+    ConfigurationType type = ConfigurationType.GLOBAL;
+    ConfigurationsUtils.writeConfigToZookeeper(type, JSONUtils.INSTANCE.toJSONPretty(someParserConfig), zookeeperUrl);
+
+    // validate the modified global configuration
+    byte[] actual = ConfigurationsUtils.readConfigBytesFromZookeeper(type, zookeeperUrl);
+    assertThat(actual, equalTo(JSONUtils.INSTANCE.toJSONPretty(someParserConfig)));
+  }
+
+  @Test
+  public void modifiesSingleParserConfiguration() throws Exception {
+
+    // write parser configuration
+    ConfigurationType type = ConfigurationType.PARSER;
+    String parserName = "a-happy-metron-parser";
+    byte[] config = JSONUtils.INSTANCE.toJSONPretty(someParserConfig);
+    ConfigurationsUtils.writeConfigToZookeeper(type, Optional.of(parserName), config, zookeeperUrl);
+
+    // validate the modified parser configuration
+    byte[] actual = ConfigurationsUtils.readConfigBytesFromZookeeper(type, Optional.of(parserName), zookeeperUrl);
+    assertThat(actual, equalTo(JSONUtils.INSTANCE.toJSONPretty(someParserConfig)));
+  }
 
   /**
    * Note: the current configuration structure mixes abstractions based on the configuration type
@@ -152,16 +180,16 @@ public class ConfigurationsUtilsTest {
 
     // setup zookeeper with a configuration
     final ConfigurationType type = ConfigurationType.GLOBAL;
-    byte[] config = JSONUtils.INSTANCE.toJSONPretty(someConfig);
+    byte[] config = JSONUtils.INSTANCE.toJSONPretty(someGlobalConfig);
     ConfigurationsUtils.writeConfigToZookeeper(type, config, zookeeperUrl);
 
     // patch the configuration
-    byte[] patch = JSONUtils.INSTANCE.toJSONPretty(patchSomeConfig);
+    byte[] patch = JSONUtils.INSTANCE.toJSONPretty(patchGlobalConfig);
     ConfigurationsUtils.applyConfigPatchToZookeeper(type, patch, zookeeperUrl);
 
     // validate the patched configuration
     byte[] actual = ConfigurationsUtils.readConfigBytesFromZookeeper(type, zookeeperUrl);
-    byte[] expected = JSONUtils.INSTANCE.toJSONPretty(modifiedSomeConfig);
+    byte[] expected = JSONUtils.INSTANCE.toJSONPretty(modifiedGlobalConfig);
     assertThat(actual, equalTo(expected));
   }
 
@@ -171,16 +199,16 @@ public class ConfigurationsUtilsTest {
     // setup zookeeper with a configuration
     final ConfigurationType type = ConfigurationType.PARSER;
     final String parserName = "patched-metron-parser";
-    byte[] config = JSONUtils.INSTANCE.toJSONPretty(someConfig);
+    byte[] config = JSONUtils.INSTANCE.toJSONPretty(someParserConfig);
     ConfigurationsUtils.writeConfigToZookeeper(type, Optional.of(parserName), config, zookeeperUrl);
 
     // patch the configuration
-    byte[] patch = JSONUtils.INSTANCE.toJSONPretty(patchSomeConfig);
+    byte[] patch = JSONUtils.INSTANCE.toJSONPretty(patchParserConfig);
     ConfigurationsUtils.applyConfigPatchToZookeeper(type, Optional.of(parserName), patch, zookeeperUrl);
 
     // validate the patched configuration
     byte[] actual = ConfigurationsUtils.readConfigBytesFromZookeeper(type, Optional.of(parserName), zookeeperUrl);
-    byte[] expected = JSONUtils.INSTANCE.toJSONPretty(modifiedSomeConfig);
+    byte[] expected = JSONUtils.INSTANCE.toJSONPretty(modifiedParserConfig);
     assertThat(actual, equalTo(expected));
   }
 
