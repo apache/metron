@@ -17,6 +17,7 @@
  */
 
 import {browser, element, by, protractor} from 'protractor';
+import * as moment from 'moment/moment';
 import {waitForElementVisibility, waitForElementPresence, waitForElementInVisibility} from '../utils/e2e_util';
 
 export class MetronAlertsPage {
@@ -172,7 +173,7 @@ export class MetronAlertsPage {
   }
 
   clickTableText(name: string) {
-    waitForElementPresence(element.all(by.css('app-table-view tbody tr a'))).then(() => element.all(by.linkText(name)).get(0).click());
+    waitForElementPresence(element.all(by.linkText(name))).then(() => element.all(by.linkText(name)).get(0).click());
   }
 
   clickClearSearch() {
@@ -278,12 +279,18 @@ export class MetronAlertsPage {
     });
   }
 
-  getAlertStatus(rowIndex: number, previousText) {
+  getAlertStatus(rowIndex: number, previousText: string, colIndex = 8) {
     let row = element.all(by.css('app-alerts-list tbody tr')).get(rowIndex);
-    let column = row.all(by.css('td a')).get(8);
+    let column = row.all(by.css('td a')).get(colIndex);
     return this.waitForTextChange(column, previousText).then(() => {
       return column.getText();
     });
+  }
+
+  waitForMetaAlert() {
+    browser.sleep(2000);
+    return element(by.css('button[data-name="search"]')).click()
+    .then(() => waitForElementPresence(element(by.css('.icon-cell.dropdown-cell'))));
   }
 
   isDateSeettingDisabled() {
@@ -298,7 +305,7 @@ export class MetronAlertsPage {
   getTimeRangeTitles() {
     return element.all(by.css('app-time-range .title')).getText();
   }
-  
+
   getQuickTimeRanges() {
     return element.all(by.css('app-time-range .quick-ranges span')).getText();
   }
@@ -315,7 +322,7 @@ export class MetronAlertsPage {
     element.all(by.cssContainingText('.quick-ranges span', quickRange)).get(0).click();
     browser.sleep(2000);
   }
-  
+
   getTimeRangeButtonText() {
     return element.all(by.css('app-time-range button.btn-search span')).get(0).getText();
   }
@@ -351,8 +358,42 @@ export class MetronAlertsPage {
   }
 
   getAlertStatusById(id: string) {
-    return element(by.css('a[title="' + id +'"]'))
+    return element(by.css('a[title="' + id + '"]'))
           .element(by.xpath('../..')).all(by.css('td a')).get(8).getText();
+  }
+
+  sortTable(colName: string) {
+    element.all(by.css('table thead th')).all(by.linkText(colName)).get(0).click();
+  }
+
+  getCellValue(rowIndex: number, colIndex: number, previousText: string) {
+    let cellElement = element.all(by.css('table tbody tr')).get(rowIndex).all(by.css('td')).get(colIndex);
+    return this.waitForTextChange(cellElement, previousText).then(() => cellElement.getText());
+  }
+
+  expandMetaAlert(rowIndex: number) {
+    element.all(by.css('table tbody tr')).get(rowIndex).element(by.css('.icon-cell.dropdown-cell')).click();
+  }
+
+  getHiddenRowCount() {
+    return element.all(by.css('table tbody tr.d-none')).count();
+  }
+
+  getNonHiddenRowCount() {
+    return element.all(by.css('table tbody tr:not(.d-none)')).count();
+  }
+
+  getAllRowsCount() {
+    return element.all(by.css('table tbody tr')).count();
+  }
+
+  clickOnMetaAlertRow(rowIndex: number) {
+    element.all(by.css('table tbody tr')).get(rowIndex).all(by.css('td')).get(5).click();
+    browser.sleep(2000);
+  }
+
+  removeAlert(rowIndex: number) {
+    return element.all(by.css('app-table-view .fa-chain-broken')).get(rowIndex).click();
   }
 
   loadSavedSearch(name: string) {
@@ -376,18 +417,22 @@ export class MetronAlertsPage {
         let retArr = [arr[0]];
         for (let i=1; i < arr.length; i++) {
           let dateStr = arr[i].split(' to ');
-          let fromTime = new Date(dateStr[0]).getTime();
-          let toTime = new Date(dateStr[1]).getTime();
+          let fromTime = moment.utc(dateStr[0], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
+          let toTime = moment.utc(dateStr[1], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
           retArr.push((toTime - fromTime) + '');
         }
         return retArr;
     });
   }
-  
+
   renameColumn(name: string, value: string) {
     element(by.cssContainingText('app-configure-table span', name))
     .element(by.xpath('../..'))
     .element(by.css('.input')).sendKeys(value);
   }
 
+  getTableCellValues(cellIndex: number, startRowIndex: number, endRowIndex: number): any {
+    return element.all(by.css('table tbody tr td:nth-child(' + cellIndex + ')')).getText()
+    .then(val => val.slice(startRowIndex, endRowIndex));
+  }
 }

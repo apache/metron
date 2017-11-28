@@ -15,9 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ElasticsearchUtils} from '../utils/elasticsearch-utils';
-import {TIMESTAMP_FIELD_NAME} from '../utils/constants';
 import {Utils} from '../utils/utils';
+import {TIMESTAMP_FIELD_NAME} from '../utils/constants';
 import {DateFilterValue} from './date-filter-value';
 
 export class Filter {
@@ -43,16 +42,33 @@ export class Filter {
   }
 
   getQueryString(): string {
+    if (this.field === 'guid') {
+      let valueWithQuote = '\"' + this.value + '\"';
+      return this.createNestedQueryWithoutValueEscaping(this.field, valueWithQuote);
+    }
+
     if (this.field === TIMESTAMP_FIELD_NAME && !this.display) {
       this.dateFilterValue = Utils.timeRangeToDateObj(this.value);
       if (this.dateFilterValue !== null && this.dateFilterValue.toDate !== null) {
-        return ElasticsearchUtils.escapeESField(this.field) + ':' +
-            '(>=' + this.dateFilterValue.fromDate + ' AND ' + ' <=' + this.dateFilterValue.toDate + ')';
+        return this.createNestedQueryWithoutValueEscaping(this.field,
+            '(>=' + this.dateFilterValue.fromDate + ' AND ' + ' <=' + this.dateFilterValue.toDate + ')');
       } else {
-        return ElasticsearchUtils.escapeESField(this.field) + ':' + this.value;
+        return this.createNestedQueryWithoutValueEscaping(this.field,  this.value);
       }
     }
 
-    return ElasticsearchUtils.escapeESField(this.field) + ':' +  ElasticsearchUtils.escapeESValue(this.value);
+    return this.createNestedQuery(this.field, this.value);
+  }
+
+  private createNestedQuery(field: string, value: string): string {
+
+    return '(' + Utils.escapeESField(field) + ':' +  Utils.escapeESValue(value)  + ' OR ' +
+                Utils.escapeESField('alert.' + field) + ':' +  Utils.escapeESValue(value) + ')';
+  }
+
+  private createNestedQueryWithoutValueEscaping(field: string, value: string): string {
+
+    return '(' + Utils.escapeESField(field) + ':' +  value  + ' OR ' +
+        Utils.escapeESField('alert.' + field) + ':' +  value + ')';
   }
 }
