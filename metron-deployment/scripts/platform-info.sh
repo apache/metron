@@ -62,6 +62,10 @@ mvn --version
 # docker
 echo "--"
 docker --version
+if docker info 2>&1  | grep -q 'Cannot connect to the Docker daemon'
+then
+  echo "WARNING: Docker daemon is not running"
+fi
 
 # node
 echo "--"
