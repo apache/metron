@@ -343,9 +343,14 @@ public class ConfigurationsUtils {
    * @param type config type to upload configs for
    * @param configName specific config under the specified config type
    */
-  public static void uploadConfigsToZookeeper(String rootFilePath, CuratorFramework client,
-      ConfigurationType type, Optional<String> configName) throws Exception {
+  public static void uploadConfigsToZookeeper(
+          String rootFilePath,
+          CuratorFramework client,
+          ConfigurationType type,
+          Optional<String> configName) throws Exception {
+
     switch (type) {
+
       case GLOBAL:
         final byte[] globalConfig = readGlobalConfigFromFile(rootFilePath);
         if (globalConfig.length > 0) {
@@ -355,31 +360,40 @@ public class ConfigurationsUtils {
         break;
 
       case PARSER: {
-        Map<String, byte[]> sensorIndexingConfigs = readSensorConfigsFromFile(rootFilePath, type, configName);
-        for (String sensorType : sensorIndexingConfigs.keySet()) {
-          byte[] configData = sensorIndexingConfigs.get(sensorType);
+        Map<String, byte[]> configs = readSensorConfigsFromFile(rootFilePath, PARSER, configName);
+        for (String sensorType : configs.keySet()) {
+          byte[] configData = configs.get(sensorType);
           writeSensorParserConfigToZookeeper(sensorType, configData, client);
         }
         break;
       }
 
       case ENRICHMENT: {
-        Map<String, byte[]> sensorIndexingConfigs = readSensorConfigsFromFile(rootFilePath, type, configName);
-        for (String sensorType : sensorIndexingConfigs.keySet()) {
-          byte[] configData = sensorIndexingConfigs.get(sensorType);
+        Map<String, byte[]> configs = readSensorConfigsFromFile(rootFilePath, ENRICHMENT, configName);
+        for (String sensorType : configs.keySet()) {
+          byte[] configData = configs.get(sensorType);
           writeSensorEnrichmentConfigToZookeeper(sensorType, configData, client);
         }
         break;
       }
 
       case INDEXING: {
-        Map<String, byte[]> sensorIndexingConfigs = readSensorConfigsFromFile(rootFilePath, type, configName);
-        for (String sensorType : sensorIndexingConfigs.keySet()) {
-          byte[] configData = sensorIndexingConfigs.get(sensorType);
+        Map<String, byte[]> configs = readSensorConfigsFromFile(rootFilePath, INDEXING, configName);
+        for (String sensorType : configs.keySet()) {
+          byte[] configData = configs.get(sensorType);
           writeSensorIndexingConfigToZookeeper(sensorType, configData, client);
         }
         break;
       }
+
+      case PROFILER: {
+        byte[] configData = readProfilerConfigFromFile(rootFilePath);
+        if (configData.length > 0) {
+          ConfigurationsUtils.writeProfilerConfigToZookeeper(configData, client);
+        }
+        break;
+      }
+
       default:
         throw new IllegalArgumentException("Configuration type not found: " + type);
     }
@@ -455,14 +469,16 @@ public class ConfigurationsUtils {
       In order to validate stellar functions, the function resolver must be initialized.  Otherwise,
       those utilities that require validation cannot validate the stellar expressions necessarily.
     */
-    Context.Builder builder = new Context.Builder().with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
-            ;
+    Context.Builder builder = new Context.Builder()
+            .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client);
+
     if(globalConfig.isPresent()) {
-      builder = builder.with(Context.Capabilities.GLOBAL_CONFIG, () -> GLOBAL.deserialize(globalConfig.get()))
+      builder = builder
+              .with(Context.Capabilities.GLOBAL_CONFIG, () -> GLOBAL.deserialize(globalConfig.get()))
               .with(Context.Capabilities.STELLAR_CONFIG, () -> GLOBAL.deserialize(globalConfig.get()));
-    }
-    else {
-      builder = builder.with(Context.Capabilities.STELLAR_CONFIG, () -> new HashMap<>());
+    } else {
+      builder = builder
+              .with(Context.Capabilities.STELLAR_CONFIG, () -> new HashMap<>());
     }
     Context stellarContext = builder.build();
     StellarFunctions.FUNCTION_RESOLVER().initialize(stellarContext);
