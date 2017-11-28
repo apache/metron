@@ -29,7 +29,7 @@ After running the container:
 If you wish to use this build with a vagrant instance, then after building with rpms as above, modify
 your usual vagrant up command to skip the build role, as so:
 
-`vagrant --ansible-skip-tags="build" up`
+`vagrant --ansible-skip-tags="build,quick_dev" up`
 
 
 ## Using the Container for deployment
