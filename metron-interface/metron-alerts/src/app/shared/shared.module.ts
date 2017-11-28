@@ -26,6 +26,7 @@ import { AlertSearchDirective } from './directives/alert-search.directive';
 import { ColumnNameTranslatePipe } from './pipes/column-name-translate.pipe';
 import { MapKeysPipe } from './pipes/map-keys.pipe';
 import { AlertSeverityHexagonDirective } from './directives/alert-severity-hexagon.directive';
+import { TimeLapsePipe } from './pipes/time-lapse.pipe';
 
 @NgModule({
   imports:  [
@@ -38,8 +39,9 @@ import { AlertSeverityHexagonDirective } from './directives/alert-severity-hexag
     CenterEllipsesPipe,
     AlertSearchDirective,
     ColumnNameTranslatePipe,
+    AlertSeverityHexagonDirective,
+    TimeLapsePipe,
     MapKeysPipe,
-    AlertSeverityHexagonDirective
   ],
   exports:  [
     CommonModule,
@@ -50,8 +52,9 @@ import { AlertSeverityHexagonDirective } from './directives/alert-severity-hexag
     CenterEllipsesPipe,
     AlertSearchDirective,
     ColumnNameTranslatePipe,
+    AlertSeverityHexagonDirective,
+    TimeLapsePipe,
     MapKeysPipe,
-    AlertSeverityHexagonDirective
   ]
 })
 export class SharedModule { }
