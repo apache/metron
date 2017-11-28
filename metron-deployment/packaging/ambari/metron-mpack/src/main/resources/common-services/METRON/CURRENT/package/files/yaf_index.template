@@ -210,6 +210,9 @@
         },
         "alert": {
           "type": "nested"
+        },
+        "guid": {
+          "type": "keyword"
         }
       }
     }
