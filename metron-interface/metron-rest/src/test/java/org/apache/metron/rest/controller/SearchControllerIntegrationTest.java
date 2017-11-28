@@ -18,10 +18,14 @@
 package org.apache.metron.rest.controller;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.Arrays;
+import java.util.Collections;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.indexing.dao.InMemoryDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.rest.model.AlertProfile;
+import org.apache.metron.rest.service.AlertService;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
 import org.json.simple.parser.ParseException;
 import org.junit.After;
@@ -73,8 +77,19 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
   @Multiline
   public static String defaultQuery;
 
+  /**
+   * {
+   *   "facetFields": ["ip_src_port"]
+   * }
+   */
+  @Multiline
+  public static String alertProfile;
+
   @Autowired
   private SensorIndexingConfigService sensorIndexingConfigService;
+
+  @Autowired
+  private AlertService alertService;
 
   @Autowired
   private WebApplicationContext wac;
@@ -94,6 +109,7 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
     );
     loadTestData(testData);
     loadColumnTypes();
+    loadFacetCounts();
   }
 
   @After
@@ -108,7 +124,7 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
   }
 
   @Test
-  public void testDefaultQuery() throws Exception {
+  public void testSearchWithDefaults() throws Exception {
     sensorIndexingConfigService.save("bro", new HashMap<String, Object>() {{
       put("index", "bro");
     }});
@@ -127,9 +143,37 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
             .andExpect(jsonPath("$.results[3].source.timestamp").value(2))
             .andExpect(jsonPath("$.results[4].source.source:type").value("bro"))
             .andExpect(jsonPath("$.results[4].source.timestamp").value(1))
+            .andExpect(jsonPath("$.facetCounts.*", hasSize(1)))
+            .andExpect(jsonPath("$.facetCounts.ip_src_addr.*", hasSize(2)))
+            .andExpect(jsonPath("$.facetCounts.ip_src_addr['192.168.1.1']").value(3))
+            .andExpect(jsonPath("$.facetCounts.ip_src_addr['192.168.1.2']").value(1))
     );
 
     sensorIndexingConfigService.delete("bro");
+  }
+
+  @Test
+  public void testSearchWithAlertProfileFacetFields() throws Exception {
+    assertEventually(() -> this.mockMvc.perform(
+        post("/api/v1/alert/profile").with(httpBasic(user, password)).with(csrf())
+            .contentType(MediaType.parseMediaType("application/json;charset=UTF-8"))
+            .content(alertProfile))
+        .andExpect(status().isOk())
+    );
+
+    assertEventually(() -> this.mockMvc.perform(
+        post(searchUrl + "/search").with(httpBasic(user, password)).with(csrf())
+            .contentType(MediaType.parseMediaType("application/json;charset=UTF-8"))
+            .content(defaultQuery))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+        .andExpect(jsonPath("$.facetCounts.*", hasSize(1)))
+        .andExpect(jsonPath("$.facetCounts.ip_src_port.*", hasSize(2)))
+        .andExpect(jsonPath("$.facetCounts.ip_src_port['8010']").value(1))
+        .andExpect(jsonPath("$.facetCounts.ip_src_port['8009']").value(2))
+    );
+
+    alertService.deleteProfile(user);
   }
 
   @Test
@@ -314,4 +358,18 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
     columnTypes.put("snort", snortTypes);
     InMemoryDao.setColumnMetadata(columnTypes);
   }
+
+  private void loadFacetCounts() {
+    Map<String, Map<String, Long>> facetCounts = new HashMap<>();
+    Map<String, Long> ipSrcAddrCounts = new HashMap<>();
+    ipSrcAddrCounts.put("192.168.1.1", 3L);
+    ipSrcAddrCounts.put("192.168.1.2", 1L);
+    Map<String, Long> ipSrcPortCounts = new HashMap<>();
+    ipSrcPortCounts.put("8010", 1L);
+    ipSrcPortCounts.put("8009", 2L);
+    facetCounts.put("ip_src_addr", ipSrcAddrCounts);
+    facetCounts.put("ip_src_port", ipSrcPortCounts);
+    InMemoryDao.setFacetCounts(facetCounts);
+  }
+
 }

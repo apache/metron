@@ -38,6 +38,9 @@ public class AlertProfile {
   @Convert(converter = JsonConverter.class)
   private List<SavedSearch> savedSearches;
 
+  @Convert(converter = JsonConverter.class)
+  private List<String> facetFields;
+
   public String getId() {
     return id;
   }
@@ -62,6 +65,14 @@ public class AlertProfile {
     this.savedSearches = savedSearches;
   }
 
+  public List<String> getFacetFields() {
+    return facetFields;
+  }
+
+  public void setFacetFields(List<String> facetFields) {
+    this.facetFields = facetFields;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -74,8 +85,9 @@ public class AlertProfile {
     AlertProfile that = (AlertProfile) o;
 
     return id != null ? id.equals(that.id) : that.id == null &&
-        (tableColumns != null ? tableColumns.equals(that.tableColumns) : that.tableColumns == null &&
-        (savedSearches != null ? savedSearches.equals(that.savedSearches) : that.savedSearches == null));
+        (tableColumns != null ? tableColumns.equals(that.tableColumns) : that.tableColumns == null) &&
+        (savedSearches != null ? savedSearches.equals(that.savedSearches) : that.savedSearches == null) &&
+        (facetFields != null ? facetFields.equals(that.facetFields) : that.facetFields == null);
   }
 
   @Override
@@ -83,6 +95,7 @@ public class AlertProfile {
     int result = id != null ? id.hashCode() : 0;
     result = 31 * result + (tableColumns != null ? tableColumns.hashCode() : 0);
     result = 31 * result + (savedSearches != null ? savedSearches.hashCode() : 0);
+    result = 31 * result + (facetFields != null ? facetFields.hashCode() : 0);
     return result;
   }
 }

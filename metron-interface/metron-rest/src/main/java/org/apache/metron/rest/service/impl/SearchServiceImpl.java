@@ -20,9 +20,12 @@ package org.apache.metron.rest.service.impl;
 import static org.apache.metron.common.Constants.ERROR_TYPE;
 import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_TYPE;
 import static org.apache.metron.rest.MetronRestConstants.INDEX_WRITER_NAME;
+import static org.apache.metron.rest.MetronRestConstants.SEARCH_FACET_FIELDS_SPRING_PROPERTY;
 
 import com.google.common.collect.Lists;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.Arrays;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
@@ -32,6 +35,8 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.model.AlertProfile;
+import org.apache.metron.rest.service.AlertService;
 import org.apache.metron.rest.service.SearchService;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
 import org.slf4j.Logger;
@@ -53,12 +58,15 @@ public class SearchServiceImpl implements SearchService {
   private IndexDao dao;
   private Environment environment;
   private SensorIndexingConfigService sensorIndexingConfigService;
+  private AlertService alertService;
 
   @Autowired
-  public SearchServiceImpl(IndexDao dao, Environment environment, SensorIndexingConfigService sensorIndexingConfigService) {
+  public SearchServiceImpl(IndexDao dao, Environment environment,
+      SensorIndexingConfigService sensorIndexingConfigService, AlertService alertService) {
     this.dao = dao;
     this.environment = environment;
     this.sensorIndexingConfigService = sensorIndexingConfigService;
+    this.alertService = alertService;
   }
 
   @Override
@@ -69,6 +77,9 @@ public class SearchServiceImpl implements SearchService {
         // metaalerts should be included by default in search requests
         indices.add(METAALERT_TYPE);
         searchRequest.setIndices(indices);
+      }
+      if (searchRequest.getFacetFieldsValue() == null) {
+        searchRequest.setFacetFields(getDefaultFacetFields());
       }
       return dao.search(searchRequest);
     }
@@ -121,5 +132,15 @@ public class SearchServiceImpl implements SearchService {
     // errors should not be included by default
     indices.remove(ERROR_TYPE);
     return indices;
+  }
+
+  private List<String> getDefaultFacetFields() {
+    AlertProfile alertProfile = alertService.getProfile();
+    if (alertProfile == null || alertProfile.getFacetFields() == null) {
+      String facetFieldsProperty = environment.getProperty(SEARCH_FACET_FIELDS_SPRING_PROPERTY, String.class, "");
+      return Arrays.asList(facetFieldsProperty.split(","));
+    } else {
+      return alertProfile.getFacetFields();
+    }
   }
 }

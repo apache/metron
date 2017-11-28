@@ -18,6 +18,7 @@
 
 package org.apache.metron.indexing.dao.search;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +39,6 @@ public class SearchRequest {
     defaultSortField.setSortOrder(SortOrder.DESC.toString());
     sort = new ArrayList<>();
     sort.add(defaultSortField);
-    facetFields = new ArrayList<>();
   }
 
   /**
@@ -110,7 +110,12 @@ public class SearchRequest {
   }
 
   public Optional<List<String>> getFacetFields() {
-    return facetFields == null || facetFields.size() == 0 ? Optional.empty() : Optional.of(facetFields);
+    return facetFields == null ? Optional.empty() : Optional.of(facetFields);
+  }
+
+  @JsonGetter("facetFields")
+  public List<String> getFacetFieldsValue() {
+    return facetFields;
   }
 
   public void setFacetFields(List<String> facetFields) {

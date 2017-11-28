@@ -45,16 +45,12 @@ export class GroupByComponent implements OnInit, OnChanges {
   }
 
   prepareData() {
+    this.data = [];
     for (let key of Object.keys(this.facets)) {
       let facet = this.facets[key];
       let count = Object.keys(facet).length;
-      let groupByItem = this.data.filter(groupByData => groupByData.name === key)[0];
-      if (!groupByItem) {
-        groupByItem = new GroupByComponentData(key, count);
-        this.data.push(groupByItem);
-      } else {
-        groupByItem.count = count;
-      }
+      let groupByItem = new GroupByComponentData(key, count);
+      this.data.push(groupByItem);
     }
   }
 
