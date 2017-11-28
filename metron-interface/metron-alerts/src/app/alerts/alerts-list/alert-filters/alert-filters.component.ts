@@ -24,9 +24,11 @@ export class AlertFiltersComponent implements OnChanges {
   }
 
   prepareData() {
-    this.data = [];
+    let facetFields = Object.keys(this.facets);
+    this.data = this.data.filter(collapsableData => facetFields.includes(collapsableData.groupName));
+    this.data.map(collapsableData => collapsableData.groupItems = []);
 
-    for (let key of Object.keys(this.facets)) {
+    for (let key of facetFields) {
       let facet = this.facets[key];
       let facetItems: CollapseComponentDataItems[] = [];
 
@@ -34,12 +36,16 @@ export class AlertFiltersComponent implements OnChanges {
         facetItems.push(new CollapseComponentDataItems(facetVal, facet[facetVal]));
       }
 
-      let collapseComponentData = new CollapseComponentData();
-      collapseComponentData.groupName = key;
+      let collapseComponentData = this.data.find(collapsableData => collapsableData.groupName === key);
+      if (!collapseComponentData) {
+        collapseComponentData = new CollapseComponentData();
+        collapseComponentData.groupName = key;
+        collapseComponentData.collapsed = true;
+        this.data.push(collapseComponentData);
+        this.data = this.data.sort((obj1, obj2) => obj1.groupName.localeCompare(obj2.groupName));
+      }
+
       collapseComponentData.groupItems = facetItems;
-      collapseComponentData.collapsed = true;
-      this.data.push(collapseComponentData);
-      this.data = this.data.sort((obj1, obj2) => obj1.groupName.localeCompare(obj2.groupName));
     }
   }
 
