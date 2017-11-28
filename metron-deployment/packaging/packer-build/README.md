@@ -6,7 +6,6 @@ Based on the fantastic [Bento](https://github.com/chef/bento) project developed 
 Images Provided
 ---------------------
 - base-centos-6.7: Centos 6.7 + HDP. Used in the full-dev-platform Vagrant image
-- quick-dev-centos-6.7: Centos 6.7 + HDP + Metron. Used for the quick-dev-platform Vagrant image.
 
 Prerequisites
 ---------------------
@@ -30,7 +29,7 @@ bin/bento build base-centos-6.7.json
 
 Using Your New Box File
 ----------------------
-Modify the relevant Vagrantfile (full-dev-platform or quick-dev-platform) replacing the lines:
+Modify the relevant Vagrantfile (full-dev-platform) replacing the lines:
 ```
 <pre><code>config.vm.box = "<i>box_name</i>"
 config.ssh.insert_key = true</code></pre>
