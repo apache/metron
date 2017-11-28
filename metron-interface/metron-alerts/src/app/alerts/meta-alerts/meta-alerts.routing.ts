@@ -15,12 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class SortField {
-  field: string;
-  sortOrder: string;
+import { ModuleWithProviders }  from '@angular/core';
+import { RouterModule } from '@angular/router';
+import { MetaAlertsComponent } from './meta-alerts.component';
 
-  constructor(field: string, sortOrder: string) {
-    this.field = field;
-    this.sortOrder = sortOrder;
-  }
-}
+export const routing: ModuleWithProviders = RouterModule.forChild([
+    { path: 'add-to-meta-alert', component: MetaAlertsComponent, outlet: 'dialog'}
+]);

@@ -15,12 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class SortField {
-  field: string;
-  sortOrder: string;
 
-  constructor(field: string, sortOrder: string) {
-    this.field = field;
-    this.sortOrder = sortOrder;
-  }
+export class ReplaceRequest {
+  replacement: {[key: string]: any};
+  guid: string;
+  sensorType: string;
+  index: string;
 }

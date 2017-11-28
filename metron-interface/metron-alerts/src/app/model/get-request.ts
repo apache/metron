@@ -15,12 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class SortField {
-  field: string;
-  sortOrder: string;
+export class GetRequest {
+  guid: string;
+  sensorType: string;
+  index: string;
 
-  constructor(field: string, sortOrder: string) {
-    this.field = field;
-    this.sortOrder = sortOrder;
+  constructor(guid: string, sensorType: string, index: string) {
+    this.guid = guid;
+    this.sensorType = sensorType;
+    this.index = index;
   }
 }
+

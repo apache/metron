@@ -15,12 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class SortField {
-  field: string;
-  sortOrder: string;
+import {GetRequest} from './get-request';
 
-  constructor(field: string, sortOrder: string) {
-    this.field = field;
-    this.sortOrder = sortOrder;
-  }
+export class MetaAlertAddRemoveRequest {
+  metaAlertGuid: string;
+  alerts: GetRequest[];
 }

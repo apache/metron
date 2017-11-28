@@ -19,7 +19,7 @@ import {SortField} from './sort-field';
 import {DEFAULT_FACETS, DEFAULT_GROUPS, INDEXES} from '../utils/constants';
 
 export class SearchRequest {
-  // _source: string[]; //TODO: This needs to be removed
+  fields: string[];
   from: number;
   indices: string[] = INDEXES;
   query: string;

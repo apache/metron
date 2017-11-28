@@ -15,12 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class SortField {
-  field: string;
-  sortOrder: string;
 
-  constructor(field: string, sortOrder: string) {
-    this.field = field;
-    this.sortOrder = sortOrder;
+import {browser, element, by} from 'protractor';
+
+export class MetaAlertPage {
+
+  getPageTitle() {
+    return element(by.css('app-meta-alerts .form-title')).getText();
+  }
+
+  getMetaAlertsTitle() {
+    return element(by.css('app-meta-alerts .title')).getText();
+  }
+
+  getAvailableMetaAlerts() {
+    return element(by.css('app-meta-alerts .guid-name-container div')).getText();
+  }
+
+  selectRadio() {
+    return element.all(by.css('app-meta-alerts .checkmark')).click();
+  }
+
+  addToMetaAlert() {
+    element.all(by.css('app-meta-alerts')).get(0).element(by.buttonText('ADD')).click();
+    browser.sleep(2000);
   }
 }

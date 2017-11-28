@@ -15,12 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class SortField {
-  field: string;
-  sortOrder: string;
+import { Pipe, PipeTransform } from '@angular/core';
 
-  constructor(field: string, sortOrder: string) {
-    this.field = field;
-    this.sortOrder = sortOrder;
+@Pipe({
+  name: 'alertDetailsKeys'
+})
+export class AlertDetailsKeysPipe implements PipeTransform {
+
+  transform(value: any): any {
+    let keys = value ? Object.keys(value) : [];
+    return keys.filter(field => !field.includes(':ts') && field !== 'original_string' && field !== 'comments').sort();
   }
 }
+
+
