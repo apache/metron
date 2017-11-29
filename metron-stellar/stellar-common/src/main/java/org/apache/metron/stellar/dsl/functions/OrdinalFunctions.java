@@ -38,8 +38,8 @@ public class OrdinalFunctions {
    */
   @Stellar(name = "MAX"
           , description = "Returns the maximum value of a list of input values"
-          , params = {"list_of_values - Stellar list of values to evaluate. The list may only contain 1 type of object (only strings or only numbers)" +
-          " and the objects must be comparable / ordinal"}
+          , params = {"list_of_values - Stellar list of values to evaluate. The list may only contain" +
+          " objects that are mutually comparable / ordinal"}
           , returns = "The highest value in the list, null if the list is empty or the input values were not comparable")
   public static class Max extends BaseStellarFunction {
 
@@ -60,8 +60,8 @@ public class OrdinalFunctions {
    */
   @Stellar(name = "MIN"
           , description = "Returns the minimum value of a list of input values"
-          , params = {"list_of_values - Stellar list of values to evaluate. The list may only contain 1 type of object (only strings or only numbers)" +
-          " and the objects must be comparable / ordinal"}
+          , params = {"list_of_values - Stellar list of values to evaluate. The list may only contain" +
+          " objects that are mutually comparable / ordinal"}
           , returns = "The lowest value in the list, null if the list is empty or the input values were not comparable")
   public static class Min extends BaseStellarFunction {
     @Override
