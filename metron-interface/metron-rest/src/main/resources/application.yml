@@ -35,6 +35,8 @@ zookeeper:
       connection: 10000
 
 kafka:
+  security:
+    protocol: SASL_PLAINTEXT
   topics:
     escalation: escalation
 
@@ -53,6 +55,9 @@ index:
   dao:
   # By default, we use the ElasticsearchDao and HBaseDao for backing updates.
      impl: org.apache.metron.elasticsearch.dao.ElasticsearchDao,org.apache.metron.indexing.dao.HBaseDao
+  writer:
+  # Used to retrieve the index names from the sensor index configurations.  Should be either 'elasticsearch' or 'solr'.
+    name: elasticsearch
 
 meta:
   dao:

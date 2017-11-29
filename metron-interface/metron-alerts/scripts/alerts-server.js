@@ -68,7 +68,7 @@ app.use(serveStatic(path.join(__dirname, '../alerts-ui'), {
 }));
 
 app.get('*', function(req, res){
-  res.sendFile(path.join('../alerts-ui/index.html'));
+  res.sendFile(path.join(__dirname, '../alerts-ui/index.html'));
 });
 
 app.listen(uiConfig.port, function(){

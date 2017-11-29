@@ -24,8 +24,8 @@ import { loadTestData, deleteTestData } from '../utils/e2e_util';
 describe('metron-alerts App', function() {
   let page: MetronAlertsPage;
   let loginPage: LoginPage;
-  let columnNames = [ 'Score', 'id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichm...:country',
-                      'ip_dst_addr', 'host', 'alert_status', '', ''];
+  let columnNames = [ '', 'Score', 'id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichm...:country',
+                      'ip_dst_addr', 'host', 'alert_status', '', '', ''];
   let colNamesColumnConfig = [ 'score', 'id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
                                 'ip_dst_addr', 'host', 'alert_status' ];
 
@@ -58,8 +58,9 @@ describe('metron-alerts App', function() {
     expect(page.isPausePlayRefreshButtonPresent()).toEqualBcoz(true, 'for pause/play button');
     expect(page.isConfigureTableColumnsPresent()).toEqualBcoz(true, 'for alerts table column configure button');
 
-    expect(page.getAlertTableTitle()).toEqualBcoz('Alerts (169)', 'for alerts title');
-    expect(page.getActionDropdownItems()).toEqualBcoz([ 'Open', 'Dismiss', 'Escalate', 'Resolve' ], 'for default dropdown actions');
+    expect(page.getChangesAlertTableTitle('Alerts (0)')).toEqualBcoz('Alerts (169)', 'for alerts title');
+    expect(page.getActionDropdownItems()).toEqualBcoz([ 'Open', 'Dismiss', 'Escalate', 'Resolve', 'Add to Alert' ],
+                                                        'for default dropdown actions');
     expect(page.getTableColumnNames()).toEqualBcoz(columnNames, 'for default column names for alert list table');
   });
 
@@ -300,6 +301,9 @@ describe('metron-alerts App', function() {
   });
   
   it('should have all time-range included while searching', () => {
+    let startDate = new Date(1505325575000);
+    let endDate = new Date(1505325580000);
+
     page.clearLocalStorage();
     page.clickDateSettings();
 
@@ -309,8 +313,10 @@ describe('metron-alerts App', function() {
 
     /* Select custom date for time range */
     page.clickDateSettings();
-    page.setDate(0, '2017', 'September', '13', '23', '29', '35');
-    page.setDate(1, '2017', 'September', '13', '23', '29', '40');
+    page.setDate(0, String(startDate.getFullYear()), startDate.toLocaleString('en-us', { month: "long" }), String(startDate.getDate()),
+                String(startDate.getHours()), String(startDate.getMinutes()), String(startDate.getSeconds()));
+    page.setDate(1, String(endDate.getFullYear()), endDate.toLocaleString('en-us', { month: "long" }), String(endDate.getDate()),
+                String(endDate.getHours()), String(endDate.getMinutes()), String(endDate.getSeconds()));
     page.selectTimeRangeApplyButton();
     expect(page.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (5)');
 

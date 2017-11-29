@@ -36,6 +36,10 @@ import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
 
+/**
+ * The IndexDao provides a common interface for retrieving and storing data in a variety of persistent stores.
+ * Document reads and writes require a GUID and sensor type with an index being optional.
+ */
 public interface IndexDao {
 
   /**
@@ -66,6 +70,15 @@ public interface IndexDao {
   Document getLatest(String guid, String sensorType) throws IOException;
 
   /**
+   * Return a list of the latest versions of documents given a list of GUIDs and sensor types.
+   *
+   * @param getRequests A list of get requests for documents
+   * @return A list of documents matching or an empty list in not available.
+   * @throws IOException
+   */
+  Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException;
+
+  /**
    * Return the latest version of a document given a GetRequest.
    * @param request The GetRequest which indicates the GUID and sensor type.
    * @return Optionally the document (dependent upon existence in the index).
@@ -82,7 +95,9 @@ public interface IndexDao {
   }
 
   /**
-   * Update given a Document and optionally the index where the document exists.
+   * Update a given Document and optionally the index where the document exists.  This is a full update,
+   * meaning the current document will be replaced if it exists or a new document will be created if it does
+   * not exist.  Partial updates are not supported in this method.
    *
    * @param update The document to replace from the index.
    * @param index The index where the document lives.
@@ -91,7 +106,7 @@ public interface IndexDao {
   void update(Document update, Optional<String> index) throws IOException;
 
   /**
-   * Update given a Document and optionally the index where the document exists.
+   * Similar to the update method but accepts multiple documents and performs updates in batch.
    *
    * @param updates A map of the documents to update to the index where they live.
    * @throws IOException
@@ -108,6 +123,13 @@ public interface IndexDao {
   default void patch( PatchRequest request
                     , Optional<Long> timestamp
                     ) throws OriginalNotFoundException, IOException {
+    Document d = getPatchedDocument(request, timestamp);
+    update(d, Optional.ofNullable(request.getIndex()));
+  }
+
+  default Document getPatchedDocument(PatchRequest request
+      , Optional<Long> timestamp
+      ) throws OriginalNotFoundException, IOException {
     Map<String, Object> latest = request.getSource();
     if(latest == null) {
       Document latestDoc = getLatest(request.getGuid(), request.getSensorType());
@@ -121,13 +143,11 @@ public interface IndexDao {
     JsonNode originalNode = JSONUtils.INSTANCE.convert(latest, JsonNode.class);
     JsonNode patched = JSONUtils.INSTANCE.applyPatch(request.getPatch(), originalNode);
     Map<String, Object> updated = JSONUtils.INSTANCE.getMapper()
-                                           .convertValue(patched, new TypeReference<Map<String, Object>>() {});
-    Document d = new Document( updated
-                             , request.getGuid()
-                             , request.getSensorType()
-                             , timestamp.orElse(System.currentTimeMillis())
-                             );
-    update(d, Optional.ofNullable(request.getIndex()));
+        .convertValue(patched, new TypeReference<Map<String, Object>>() {});
+    return new Document( updated
+        , request.getGuid()
+        , request.getSensorType()
+        , timestamp.orElse(System.currentTimeMillis()));
   }
 
   /**
@@ -147,6 +167,5 @@ public interface IndexDao {
     update(d, Optional.ofNullable(request.getIndex()));
   }
 
-  Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException;
-  Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException;
+  Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException;
 }
