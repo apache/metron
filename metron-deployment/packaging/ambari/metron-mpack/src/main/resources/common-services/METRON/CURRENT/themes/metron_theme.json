@@ -183,7 +183,7 @@
                   "subsections": [
                     {
                       "name": "subsection-indexing-storm",
-                      "display-name": "Index Writer - Random Access",
+                      "display-name": "Index Writer - Elasticsearch",
                       "row-index": "0",
                       "column-index": "0",
                       "row-span": "1",
@@ -202,7 +202,7 @@
                   "subsections": [
                     {
                       "name": "subsection-indexing-hdfs",
-                      "display-name": "Index Writer - Batch",
+                      "display-name": "Index Writer - HDFS",
                       "row-index": "0",
                       "column-index": "0",
                       "row-span": "1",
