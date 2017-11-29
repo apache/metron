@@ -30,6 +30,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
@@ -87,20 +88,9 @@ public class MultiIndexDao implements IndexDao {
   }
 
   @Override
-  public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> in) throws IOException {
+  public Map<String, FieldType> getColumnMetadata(List<String> in) throws IOException {
     for(IndexDao dao : indices) {
-      Map<String, Map<String, FieldType>> r = dao.getColumnMetadata(in);
-      if(r != null) {
-        return r;
-      }
-    }
-    return null;
-  }
-
-  @Override
-  public Map<String, FieldType> getCommonColumnMetadata(List<String> in) throws IOException {
-    for(IndexDao dao : indices) {
-      Map<String, FieldType> r = dao.getCommonColumnMetadata(in);
+      Map<String, FieldType> r = dao.getColumnMetadata(in);
       if(r != null) {
         return r;
       }
@@ -119,6 +109,25 @@ public class MultiIndexDao implements IndexDao {
     }
 
     public Optional<Document> getDocument() {
+      return d;
+    }
+    public Optional<Throwable> getException() {
+      return t;
+    }
+
+  }
+
+  private static class DocumentIterableContainer {
+    private Optional<Iterable<Document>> d = Optional.empty();
+    private Optional<Throwable> t = Optional.empty();
+    public DocumentIterableContainer(Iterable<Document> d) {
+      this.d = Optional.ofNullable(d);
+    }
+    public DocumentIterableContainer(Throwable t) {
+      this.t = Optional.ofNullable(t);
+    }
+
+    public Optional<Iterable<Document>> getDocumentIterable() {
       return d;
     }
     public Optional<Throwable> getException() {
@@ -179,6 +188,40 @@ public class MultiIndexDao implements IndexDao {
           Document d = dc.getDocument().get();
           if(ret == null || ret.getTimestamp() < d.getTimestamp()) {
             ret = d;
+          }
+        }
+      }
+    }
+    if(error.size() > 0) {
+      throw new IOException(Joiner.on("\n").join(error));
+    }
+    return ret;
+  }
+
+  @Override
+  public Iterable<Document> getAllLatest(
+      List<GetRequest> getRequests) throws IOException {
+    Iterable<Document> ret = null;
+    List<DocumentIterableContainer> output =
+        indices.parallelStream().map(dao -> {
+          try {
+            return new DocumentIterableContainer(dao.getAllLatest(getRequests));
+          } catch (Throwable e) {
+            return new DocumentIterableContainer(e);
+          }
+        }).collect(Collectors.toList());
+
+    List<String> error = new ArrayList<>();
+    for(DocumentIterableContainer dc : output) {
+      if(dc.getException().isPresent()) {
+        Throwable e = dc.getException().get();
+        error.add(e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
+      }
+      else {
+        if(dc.getDocumentIterable().isPresent()) {
+          Iterable<Document> documents = dc.getDocumentIterable().get();
+          if(ret == null) {
+            ret = documents;
           }
         }
       }

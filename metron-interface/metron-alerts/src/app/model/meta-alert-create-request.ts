@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,20 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {GetRequest} from './get-request';
 
-package org.apache.metron.elasticsearch.dao;
-
-public enum MetaAlertStatus {
-  ACTIVE("active"),
-  INACTIVE("inactive");
-
-  private String statusString;
-
-  MetaAlertStatus(String statusString) {
-    this.statusString = statusString;
-  }
-
-  public String getStatusString() {
-    return statusString;
-  }
+export class MetaAlertCreateRequest {
+  alerts: GetRequest[];
+  groups: string[];
 }
+

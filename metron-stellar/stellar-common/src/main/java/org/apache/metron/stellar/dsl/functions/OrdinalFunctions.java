@@ -40,7 +40,7 @@ public class OrdinalFunctions {
           , description = "Returns the maximum value of a list of input values"
           , params = {"list_of_values - Stellar list of values to evaluate. The list may only contain 1 type of object (only strings or only numbers)" +
           " and the objects must be comparable / ordinal"}
-          , returns = "The highest value in the list, null if the list is empty or the input values could not be ordered")
+          , returns = "The highest value in the list, null if the list is empty or the input values were not comparable")
   public static class Max extends BaseStellarFunction {
 
     @Override
@@ -62,7 +62,7 @@ public class OrdinalFunctions {
           , description = "Returns the minimum value of a list of input values"
           , params = {"list_of_values - Stellar list of values to evaluate. The list may only contain 1 type of object (only strings or only numbers)" +
           " and the objects must be comparable / ordinal"}
-          , returns = "The lowest value in the list, null if the list is empty or the input values could not be ordered")
+          , returns = "The lowest value in the list, null if the list is empty or the input values were not comparable")
   public static class Min extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
@@ -71,6 +71,7 @@ public class OrdinalFunctions {
       }
       Iterable<Comparable> list = (Iterable<Comparable>) args.get(0);
       return orderList(list, (ret, val) -> ret.compareTo(val) > 0, "MIN");
+
     }
   }
 
@@ -78,16 +79,25 @@ public class OrdinalFunctions {
     if (Iterables.isEmpty(list)) {
       return null;
     }
+    Object o = Iterables.getFirst(list, null);
     Comparable ret = null;
-    for(Comparable<?> value : list) {
-      if(value == null) {
+    for(Object valueVal : list) {
+      if(valueVal == null) {
         continue;
+      }
+      Comparable value = null;
+      if(!(valueVal instanceof Comparable)) {
+        throw new IllegalStateException("Noncomparable object type " + valueVal.getClass().getName()
+                + " submitted to " + funcName);
+      }
+      else {
+        value = (Comparable)valueVal;
       }
       try {
         Comparable convertedRet = ConversionUtils.convert(ret, value.getClass());
         if(convertedRet == null && ret != null) {
-         throw new IllegalStateException("Incomparable objects were submitted to " + funcName
-                + ": " + ret.getClass() + " is incomparable to " + value.getClass());
+          throw new IllegalStateException("Incomparable objects were submitted to " + funcName
+                  + ": " + ret.getClass() + " is incomparable to " + value.getClass());
         }
         if(ret == null || eval.apply(convertedRet, value) ) {
           ret = value;

@@ -30,7 +30,7 @@ import {DateFilterValue} from '../../model/date-filter-value';
   templateUrl: './time-range.component.html',
   styleUrls: ['./time-range.component.scss']
 })
-export class TimeRangeComponent implements OnInit, OnChanges {
+export class TimeRangeComponent implements OnChanges {
   toDateStr = '';
   fromDateStr = '';
   datePickerFromDate = '';
@@ -86,9 +86,6 @@ export class TimeRangeComponent implements OnInit, OnChanges {
     if (changes && changes['selectedTimeRange']) {
       this.onSelectedTimeRangeChange();
     }
-  }
-
-  ngOnInit() {
   }
 
   onSelectedTimeRangeChange() {
@@ -149,7 +146,7 @@ export class TimeRangeComponent implements OnInit, OnChanges {
   applyCustomDate() {
     this.hideDatePicker();
     this.selectedTimeRangeValue = CUSTOMM_DATE_RANGE_LABEL;
-    this.toDateStr = this.datePickerToDate.length > 0  ? moment(this.datePickerToDate).format(DEFAULT_TIMESTAMP_FORMAT) : 'NOW';
+    this.toDateStr = this.datePickerToDate.length > 0  ? moment(this.datePickerToDate).format(DEFAULT_TIMESTAMP_FORMAT) : 'now';
     this.fromDateStr = moment(this.datePickerFromDate).format(DEFAULT_TIMESTAMP_FORMAT);
 
     let toDate = this.datePickerToDate.length > 0 ? new Date(this.toDateStr).getTime() : null;
