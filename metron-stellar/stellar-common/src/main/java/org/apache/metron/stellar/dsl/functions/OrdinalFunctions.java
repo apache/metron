@@ -69,7 +69,7 @@ public class OrdinalFunctions {
       if (args.size() < 1 || args.get(0) == null) {
         throw new IllegalStateException("MIN function requires at least a Stellar list of values");
       }
-      List<Comparable> list = (List<Comparable>) args.get(0);
+      Iterable<Comparable> list = (Iterable<Comparable>) args.get(0);
       return orderList(list, (ret, val) -> ret.compareTo(val) > 0, "MIN");
     }
   }
