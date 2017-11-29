@@ -137,7 +137,7 @@ public class OrdinalFunctionsTest {
 
     Object res = run("MAX(input_list)", ImmutableMap.of("input_list", inputList));
     Assert.assertNotNull(res);
-    Assert.assertTrue(res.equals(457L));
+    Assert.assertEquals(res, 457L);
   }
 
   @Test
@@ -146,12 +146,12 @@ public class OrdinalFunctionsTest {
     List<Object> inputList = new ArrayList<Object>(){{
       add(12L);
       add(56.0);
-      add(457L);
+      add(56.3);
     }};
 
     Object res = run("MAX(input_list)", ImmutableMap.of("input_list", inputList));
     Assert.assertNotNull(res);
-    Assert.assertTrue(res.equals(457L));
+    Assert.assertEquals(56.3, res);
   }
 
   @Test
@@ -165,7 +165,7 @@ public class OrdinalFunctionsTest {
 
     Object res = run("MIN(input_list)", ImmutableMap.of("input_list", inputList));
     Assert.assertNotNull(res);
-    Assert.assertTrue(res.equals(12L));
+    Assert.assertEquals(res, 12L);
   }
 
   @Test(expected = IllegalStateException.class)

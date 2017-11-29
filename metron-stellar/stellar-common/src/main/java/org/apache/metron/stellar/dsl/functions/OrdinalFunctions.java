@@ -79,22 +79,18 @@ public class OrdinalFunctions {
       return null;
     }
     Comparable ret = null;
-    Class<? extends Comparable> clazz = null;
     for(Comparable<?> value : list) {
       if(value == null) {
         continue;
       }
-      if(clazz == null) {
-        clazz = value.getClass();
-      }
       try {
-        Comparable v = ConversionUtils.convert(value, clazz);
-        if(v == null && value != null) {
-          throw new IllegalStateException("Incomparable objects were submitted to " + funcName + ": "
-                  + clazz.getName() + " != " + value.getClass().getName());
+        Comparable convertedRet = ConversionUtils.convert(ret, value.getClass());
+        if(convertedRet == null && ret != null) {
+         throw new IllegalStateException("Incomparable objects were submitted to " + funcName
+                + ": " + ret.getClass() + " is incomparable to " + value.getClass());
         }
-        if(ret == null || eval.apply(ret, v) ) {
-          ret = v;
+        if(ret == null || eval.apply(convertedRet, value) ) {
+          ret = value;
         }
       }
       catch(ClassCastException cce) {
