@@ -40,6 +40,9 @@ script:
 before_cache:
   - rm -rf $HOME/.m2/repository/org/apache/metron
 
+matrix:
+  fast_finish: true
+
 cache:
   timeout: 1000
   directories:
