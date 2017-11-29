@@ -18,9 +18,9 @@ dist: trusty
 sudo: required
 
 env:
-  - SCRIPT="./mvn -q -T 2C surefire:test@unit-tests"
-  - SCRIPT="./mvn -q surefire:test@integration-tests"
-  - SCRIPT="./mvn -q test --projects metron-interface/metron-config"
+  - SCRIPT="./mvnw surefire:test@unit-tests -T 2C -q -B -V"
+  - SCRIPT="./mvnw surefire:test@integration-tests -q -B -V"
+  - SCRIPT="./mvnw test --projects metron-interface/metron-config -q -B -V"
   - SCRIPT="build_utils/verify_licenses.sh"
 
 install: true
@@ -32,7 +32,7 @@ before_install:
   - npm config set prefix $HOME/.npm-prefix --global
 
 install:
-  - time ./mvnw -q -T 2C -DskipTests clean install
+  - time ./mvnw install -T 2C -q -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 
 script:
   - time $SCRIPT
