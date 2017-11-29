@@ -18,75 +18,97 @@
 
 package org.apache.metron.stellar.dsl.functions;
 
+import com.google.common.collect.Iterables;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.BaseStellarFunction;
 import org.apache.metron.stellar.dsl.Stellar;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class OrdinalFunctions {
 
-    /**
-     * Stellar Function: MAX
-     * <p>
-     * Return the maximum value of a list of input values in a Stellar list
-     */
-    @Stellar(name = "MAX"
-            , description = "Returns the maximum value of a list of input values"
-            , params = {"list_of_values - Stellar list of values to evaluate. The list may only contain 1 type of object (only strings or only numbers)" +
-                        " and the objects must be comparable / ordinal"}
-            , returns = "The highest value in the list, null if the list is empty or the input values were not comparable")
-    public static class Max extends BaseStellarFunction {
+  /**
+   * Stellar Function: MAX
+   * <p>
+   * Return the maximum value of a list of input values in a Stellar list
+   */
+  @Stellar(name = "MAX"
+          , description = "Returns the maximum value of a list of input values"
+          , params = {"list_of_values - Stellar list of values to evaluate. The list may only contain 1 type of object (only strings or only numbers)" +
+          " and the objects must be comparable / ordinal"}
+          , returns = "The highest value in the list, null if the list is empty or the input values were not comparable")
+  public static class Max extends BaseStellarFunction {
 
-        @Override
-        public Object apply(List<Object> args) {
-            if (args.size() < 1 || args.get(0) == null) {
-                throw new IllegalStateException("MAX function requires at least a Stellar list of values");
-            }
-            List list = (List<Object>) args.get(0);
-            return orderList(list, true);
-        }
+    @Override
+    public Object apply(List<Object> args) {
+      if (args.size() < 1 || args.get(0) == null) {
+        throw new IllegalStateException("MAX function requires at least a Stellar list of values");
+      }
+      Iterable list = (Iterable<Object>) args.get(0);
+      return orderList(list, (ret, val) -> ret.compareTo(val) < 0, "MAX");
     }
+  }
 
-    /**
-     * Stellar Function: MIN
-     * <p>
-     * Return the minimum value of a list of input values in a Stellar list
-     */
-    @Stellar(name = "MIN"
-            , description = "Returns the minimum value of a list of input values"
-            , params = {"list_of_values - Stellar list of values to evaluate. The list may only contain 1 type of object (only strings or only numbers)" +
-            " and the objects must be comparable / ordinal"}
-            , returns = "The lowest value in the list, null if the list is empty or the input values were not comparable")
-    public static class Min extends BaseStellarFunction {
-        @Override
-        public Object apply(List<Object> args) {
-            if (args.size() < 1 || args.get(0) == null) {
-                throw new IllegalStateException("MIN function requires at least a Stellar list of values");
-            }
-            List list = (List<Object>) args.get(0);
-            return orderList(list, false);
-        }
-    }
+  /**
+   * Stellar Function: MIN
+   * <p>
+   * Return the minimum value of a list of input values in a Stellar list
+   */
+  @Stellar(name = "MIN"
+          , description = "Returns the minimum value of a list of input values"
+          , params = {"list_of_values - Stellar list of values to evaluate. The list may only contain 1 type of object (only strings or only numbers)" +
+          " and the objects must be comparable / ordinal"}
+          , returns = "The lowest value in the list, null if the list is empty or the input values were not comparable")
+  public static class Min extends BaseStellarFunction {
+    @Override
+    public Object apply(List<Object> args) {
+      if (args.size() < 1 || args.get(0) == null) {
+        throw new IllegalStateException("MIN function requires at least a Stellar list of values");
+      }
+      Iterable<Comparable> list = (Iterable<Comparable>) args.get(0);
+      return orderList(list, (ret, val) -> ret.compareTo(val) > 0, "MIN");
 
-    private static Object orderList(List<Object> list, Boolean max) {
-        if (list.isEmpty()) {
-            return null;
-        }
-        List filteredList = list.stream().filter(index -> !(index == null)).collect(Collectors.toList());
-        if (filteredList.isEmpty()) {
-            return null;
-        }
-        try {
-            if (max) {
-                return Collections.max(filteredList);
-            }
-            else {
-                return Collections.min(filteredList);
-            }
-        } catch (ClassCastException e) {
-            throw new IllegalStateException("Mixed objects were submitted to MAX/MIN function or objects were not comparable. The Stellar list can only contain comparable objects of 1 type");
-        }
     }
+  }
+
+  private static Comparable orderList(Iterable<Comparable> list, BiFunction<Comparable, Comparable, Boolean> eval, String funcName) {
+    if (Iterables.isEmpty(list)) {
+      return null;
+    }
+    Object o = Iterables.getFirst(list, null);
+    Comparable ret = null;
+    for(Object valueVal : list) {
+      if(valueVal == null) {
+        continue;
+      }
+      Comparable value = null;
+      if(!(valueVal instanceof Comparable)) {
+        throw new IllegalStateException("Noncomparable object type " + valueVal.getClass().getName()
+                + " submitted to " + funcName);
+      }
+      else {
+        value = (Comparable)valueVal;
+      }
+      try {
+        Comparable convertedRet = ConversionUtils.convert(ret, value.getClass());
+        if(convertedRet == null && ret != null) {
+          throw new IllegalStateException("Incomparable objects were submitted to " + funcName
+                  + ": " + ret.getClass() + " is incomparable to " + value.getClass());
+        }
+        if(ret == null || eval.apply(convertedRet, value) ) {
+          ret = value;
+        }
+      }
+      catch(ClassCastException cce) {
+        throw new IllegalStateException("Incomparable objects were submitted to " + funcName
+                + ": " + cce.getMessage(), cce);
+      }
+    }
+    return ret;
+  }
+
 }
