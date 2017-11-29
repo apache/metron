@@ -36,7 +36,7 @@ public class OrdinalFunctions {
             , description = "Returns the maximum value of a list of input values"
             , params = {"list_of_values - Stellar list of values to evaluate. The list may only contain 1 type of object (only strings or only numbers)" +
                         " and the objects must be comparable / ordinal"}
-            , returns = "The highest value in the list, null if the list is empty or the input values could not be ordered")
+            , returns = "The highest value in the list, null if the list is empty or the input values were not comparable")
     public static class Max extends BaseStellarFunction {
 
         @Override
@@ -58,7 +58,7 @@ public class OrdinalFunctions {
             , description = "Returns the minimum value of a list of input values"
             , params = {"list_of_values - Stellar list of values to evaluate. The list may only contain 1 type of object (only strings or only numbers)" +
             " and the objects must be comparable / ordinal"}
-            , returns = "The lowest value in the list, null if the list is empty or the input values could not be ordered")
+            , returns = "The lowest value in the list, null if the list is empty or the input values were not comparable")
     public static class Min extends BaseStellarFunction {
         @Override
         public Object apply(List<Object> args) {
@@ -74,20 +74,19 @@ public class OrdinalFunctions {
         if (list.isEmpty()) {
             return null;
         }
-        List filteredList = (List<Object>) list.stream().filter(index -> !(index == null)).collect(Collectors.toList());
+        List filteredList = list.stream().filter(index -> !(index == null)).collect(Collectors.toList());
         if (filteredList.isEmpty()) {
             return null;
         }
         try {
             if (max) {
-                Collections.sort(filteredList,Collections.reverseOrder());
+                return Collections.max(filteredList);
             }
             else {
-                Collections.sort(filteredList);
+                return Collections.min(filteredList);
             }
         } catch (ClassCastException e) {
-            throw new IllegalStateException("Mixed objects were submitted to MAX/MIN function. The Stellar list can only contain comparable objects of 1 type");
+            throw new IllegalStateException("Mixed objects were submitted to MAX/MIN function or objects were not comparable. The Stellar list can only contain comparable objects of 1 type");
         }
-        return filteredList.get(0);
     }
 }
