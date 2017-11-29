@@ -19,6 +19,7 @@ package org.apache.metron.rest.config;
 
 import static org.apache.metron.rest.MetronRestConstants.INDEX_DAO_IMPL;
 
+import java.util.Optional;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -32,6 +33,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 @Configuration
 public class IndexConfig {
@@ -56,6 +61,7 @@ public class IndexConfig {
       int searchMaxGroups = environment.getProperty(MetronRestConstants.SEARCH_MAX_GROUPS, Integer.class, 1000);
       String metaDaoImpl = environment.getProperty(MetronRestConstants.META_DAO_IMPL, String.class, null);
       String metaDaoSort = environment.getProperty(MetronRestConstants.META_DAO_SORT, String.class, null);
+
       AccessConfig config = new AccessConfig();
       config.setMaxSearchResults(searchMaxResults);
       config.setMaxSearchGroups(searchMaxGroups);
@@ -81,8 +87,9 @@ public class IndexConfig {
 
       // Create the meta alert dao and wrap it around the index dao.
       MetaAlertDao ret = (MetaAlertDao) IndexDaoFactory.create(metaDaoImpl, config).get(0);
-      ret.init(indexDao, metaDaoSort);
+      ret.init(indexDao, Optional.ofNullable(metaDaoSort));
       return ret;
+
     }
     catch(RuntimeException re) {
       throw re;

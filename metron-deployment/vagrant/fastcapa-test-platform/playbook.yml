@@ -20,8 +20,6 @@
 #
 - hosts: source
   become: yes
-  vars_files:
-    - vars/main.yml
   roles:
     - role: kafka-broker
     - role: pcap_replay
@@ -35,8 +33,6 @@
 #
 - hosts: sink
   become: yes
-  vars_files:
-    - vars/main.yml
   roles:
     - role: librdkafka
     - role: fastcapa
@@ -48,8 +44,6 @@
 #
 - hosts: source
   become: yes
-  vars_files:
-    - vars/main.yml
   tasks:
     - include: tasks/validate-packets-sent.yml
     - include: tasks/validate-messages-received.yml

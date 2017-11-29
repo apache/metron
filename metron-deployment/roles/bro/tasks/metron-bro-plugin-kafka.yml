@@ -23,6 +23,9 @@
 
 - name: Compile and install the plugin
   shell: "{{ item }}"
+  environment:
+    CXX: /opt/rh/devtoolset-4/root/usr/bin/g++
+    CC: /opt/rh/devtoolset-4/root/usr/bin/gcc
   args:
     chdir: "/tmp/metron-bro-plugin-kafka"
     creates: "{{ bro_home }}/lib/bro/plugins/BRO_KAFKA"

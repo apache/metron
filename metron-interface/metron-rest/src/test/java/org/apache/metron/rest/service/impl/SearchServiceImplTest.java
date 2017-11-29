@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
@@ -94,5 +95,17 @@ public class SearchServiceImplTest {
     SearchRequest searchRequest = new SearchRequest();
     searchRequest.setIndices(Arrays.asList("bro"));
     searchService.search(searchRequest);
+  }
+
+  @Test
+  public void getColumnMetadataShouldProperlyGetDefaultIndices() throws Exception {
+    when(environment.getProperty(INDEX_WRITER_NAME)).thenReturn("elasticsearch");
+    when(sensorIndexingConfigService.getAllIndices("elasticsearch")).thenReturn(Arrays.asList("bro", "snort", "error"));
+
+    searchService.getColumnMetadata(new ArrayList<>());
+
+    verify(dao).getColumnMetadata(eq(Arrays.asList("bro", "snort", "metaalert")));
+
+    verifyNoMoreInteractions(dao);
   }
 }

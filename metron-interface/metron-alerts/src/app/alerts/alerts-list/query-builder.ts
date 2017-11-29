@@ -147,10 +147,7 @@ export class QueryBuilder {
   }
 
   setSort(sortBy: string, order: string) {
-    let sortField = new SortField();
-    sortField.field = sortBy;
-    sortField.sortOrder = order;
-
+    let sortField = new SortField(sortBy, order);
     this.searchRequest.sort = [sortField];
   }
 

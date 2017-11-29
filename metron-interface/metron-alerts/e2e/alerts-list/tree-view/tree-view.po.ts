@@ -16,8 +16,11 @@
  * limitations under the License.
  */
 
-import {browser, element, by, protractor} from 'protractor';
-import {waitForElementPresence, waitForTextChange} from '../../utils/e2e_util';
+import {browser, element, by} from 'protractor';
+import {
+  waitForElementPresence, waitForTextChange, waitForElementVisibility,
+  waitForElementInVisibility
+} from '../../utils/e2e_util';
 
 export class TreeViewPage {
   navigateToAlertsList() {
@@ -52,7 +55,11 @@ export class TreeViewPage {
   }
 
   getSubGroupValues(name: string, rowName: string) {
-    return element(by.css('[data-name="' + name + '"] table tbody tr[data-name="' + rowName + '"]')).getText();
+    return this.getSubGroupValuesByPosition(name, rowName, 0);
+  }
+
+  getSubGroupValuesByPosition(name: string, rowName: string, position: number) {
+    return element.all(by.css('[data-name="' + name + '"] table tbody tr[data-name="' + rowName + '"]')).get(position).getText();
   }
 
   selectGroup(name: string) {
@@ -73,16 +80,25 @@ export class TreeViewPage {
   }
 
   expandDashGroup(name: string) {
-    waitForElementPresence( element(by.css('[data-name="' + name + '"] .card-header'))).then(() => {
-      this.scrollToDashRow(name);
-      element(by.css('[data-name="' + name + '"] .card-header i')).click();
-      browser.sleep(2000);
-    });
+    let cardElement = element(by.css('.card[data-name="' + name +'"]'));
+    let downArrowElement = element(by.css('.card[data-name="' + name + '"] .mrow.top-group'));
+
+    return waitForElementVisibility(cardElement)
+    .then(() => browser.actions().mouseMove(cardElement).perform())
+    .then(() => waitForElementVisibility(downArrowElement))
+    .then(() => downArrowElement.click())
+    .then(() => browser.sleep(2000));
   }
 
   expandSubGroup(groupName: string, rowName: string) {
-    browser.actions().mouseMove(element(by.css('[data-name="' + groupName + '"] tr[data-name="' + rowName + '"]'))).perform();
-    return element(by.css('[data-name="' + groupName + '"] tr[data-name="' + rowName + '"]')).click();
+    return this.expandSubGroupByPosition(groupName, rowName, 0);
+  }
+
+  expandSubGroupByPosition(groupName: string, rowName: string, position: number) {
+    let subGroupElement = element.all(by.css('[data-name="' + groupName + '"] tr[data-name="' + rowName + '"]')).get(position);
+    return waitForElementVisibility(subGroupElement)
+    .then(() => browser.actions().mouseMove(subGroupElement).perform())
+    .then(() => subGroupElement.click());
   }
 
   getDashGroupTableValuesForRow(name: string, rowId: number) {
@@ -130,7 +146,7 @@ export class TreeViewPage {
   }
 
   getCellValuesFromTable(groupName: string, cellName: string, waitForAnchor: string) {
-    return waitForElementPresence(element(by. cssContainingText('[data-name="' + cellName + '"] a', waitForAnchor))).then(() => {
+    return waitForElementPresence(element(by.cssContainingText('[data-name="' + cellName + '"] a', waitForAnchor))).then(() => {
       return element.all(by.css('[data-name="' + groupName + '"] table tbody [data-name="' + cellName + '"]')).map(element => {
         browser.actions().mouseMove(element).perform();
         return (element.getText());
@@ -158,5 +174,41 @@ export class TreeViewPage {
     return waitForTextChange(column, previousText).then(() => {
       return column.getText();
     });
+  }
+
+  clickOnMergeAlerts(groupName: string) {
+    return element(by.css('[data-name="' + groupName + '"] .fa-link')).click();
+  }
+
+  clickOnMergeAlertsInTable(groupName: string, waitForAnchor: string, rowIndex: number) {
+    let elementFinder = element.all(by.css('[data-name="' + groupName + '"] table tbody tr')).get(rowIndex).element(by.css('.fa-link'));
+    return waitForElementVisibility(elementFinder)
+    .then(() => elementFinder.click());
+  }
+
+  getConfirmationText() {
+    let maskElement = element(by.className('modal-backdrop'));
+    return waitForElementVisibility(maskElement)
+    .then(() =>  element(by.css('.metron-dialog .modal-body')).getText());
+  }
+
+  clickNoForConfirmation() {
+    let maskElement = element(by.className('modal-backdrop'));
+    let closeButton = element(by.css('.metron-dialog')).element(by.buttonText('Cancel'));
+    waitForElementVisibility(maskElement)
+    .then(() => closeButton.click())
+    .then(() => waitForElementInVisibility(maskElement));
+  }
+
+  clickYesForConfirmation() {
+    let okButton = element(by.css('.metron-dialog')).element(by.buttonText('OK'));
+    let maskElement = element(by.className('modal-backdrop'));
+    waitForElementVisibility(maskElement)
+    .then(() => okButton.click())
+    .then(() => waitForElementInVisibility(maskElement));
+  }
+
+  waitForElementToDisappear(groupName: string) {
+    return waitForElementInVisibility(element.all(by.css('[data-name="' + groupName + '"]')));
   }
 }

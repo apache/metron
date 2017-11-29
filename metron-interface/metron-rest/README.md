@@ -218,12 +218,14 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/kafka/topic/{name}/sample`](#get-apiv1kafkatopicnamesample)|
 | [ `GET /api/v1/metaalert/searchByAlert`](#get-apiv1metaalertsearchbyalert)|
 | [ `GET /api/v1/metaalert/create`](#get-apiv1metaalertcreate)|
+| [ `GET /api/v1/metaalert/add/alert`](#get-apiv1metaalertaddalert)|
+| [ `GET /api/v1/metaalert/remove/alert`](#get-apiv1metaalertremovealert)|
+| [ `GET /api/v1/metaalert/update/status/{guid}/{status}`](#get-apiv1metaalertupdatestatusguidstatus)|
 | [ `GET /api/v1/search/search`](#get-apiv1searchsearch)|
 | [ `POST /api/v1/search/search`](#get-apiv1searchsearch)|
 | [ `POST /api/v1/search/group`](#get-apiv1searchgroup)|
 | [ `GET /api/v1/search/findOne`](#get-apiv1searchfindone)|
 | [ `GET /api/v1/search/column/metadata`](#get-apiv1searchcolumnmetadata)|
-| [ `GET /api/v1/search/column/metadata/common`](#get-apiv1searchcolumnmetadatacommon)|
 | [ `GET /api/v1/sensor/enrichment/config`](#get-apiv1sensorenrichmentconfig)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available/enrichments`](#get-apiv1sensorenrichmentconfiglistavailableenrichments)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available/threat/triage/aggregators`](#get-apiv1sensorenrichmentconfiglistavailablethreattriageaggregators)|
@@ -415,19 +417,40 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 404 - Either Kafka topic is missing or contains no messages
 
 ### `POST /api/v1/metaalert/searchByAlert`
-  * Description: Searches meta alerts to find any containing an alert for the provided GUID
+  * Description: Get all meta alerts that contain an alert.
   * Input:
     * guid - GUID of the alert
   * Returns:
-    * 200 - Returns the meta alerts associated with this alert
-    * 404 - The child alert isn't found
+    * 200 - Search results
 
 ### `POST /api/v1/metaalert/create`
-  * Description: Creates a meta alert containing the provide alerts
+  * Description: Creates a new meta alert from a list of existing alerts.  The meta alert status will initially be set to 'ACTIVE' and summary statistics will be computed from the list of alerts.  A list of groups included in the request are also added to the meta alert.
   * Input:
-    * request - Meta Alert Create Request
+    * request - Meta alert create request which includes a list of alert get requests and a list of custom groups used to annotate a meta alert.
   * Returns:
-    * 200 - The meta alert was created
+    * 200 - The GUID of the new meta alert
+    
+### `POST /api/v1/metaalert/add/alert`
+  * Description: Adds an alert to an existing meta alert.  An alert will not be added if it is already contained in a meta alert.
+  * Input:
+    * request - Meta alert add request which includes a meta alert GUID and list of alert get requests
+  * Returns:
+    * 200 - Returns 'true' if the alert was added and 'false' if the meta alert did not change.
+        
+### `POST /api/v1/metaalert/remove/alert`
+  * Description: Removes an alert from an existing meta alert.  If the alert to be removed is not in a meta alert, 'false' will be returned.
+  * Input:
+    * request - Meta alert remove request which includes a meta alert GUID and list of alert get requests
+  * Returns:
+    * 200 - Returns 'true' if the alert was removed and 'false' if the meta alert did not change.
+            
+### `POST /api/v1/metaalert/update/status/{guid}/{status}`
+  * Description: Updates the status of a meta alert to either 'ACTIVE' or 'INACTIVE'.
+  * Input:
+    * guid - Meta alert GUID
+    * status - Meta alert status with a value of either 'ACTIVE' or 'INACTIVE'
+  * Returns:
+    * 200 - Returns 'true' if the status changed and 'false' if it did not.
 
 ### `POST /api/v1/search/search`
   * Description: Searches the indexing store. GUIDs must be quoted to ensure correct results.
@@ -465,18 +488,11 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 404 - Document with UUID and sensor type not found
     
 ### `GET /api/v1/search/column/metadata`
-  * Description: Get column metadata for each index in the list of indicies
+  * Description: Get index column metadata for a list of sensor types with duplicates removed.  Column names and types for each sensor are retrieved from the most recent index.  Columns that exist in multiple indices with different types will default to type 'other'.
   * Input:
-      * indices - Indices
+      * sensorTypes - Sensor Types
   * Returns:
     * 200 - Column Metadata
-    
-### `GET /api/v1/search/column/metadata/common`
-  * Description: Get metadata for columns shared by the list of indices
-  * Input:
-      * indices - Indices
-  * Returns:
-    * 200 - Common Column Metadata
 
 ### `GET /api/v1/sensor/enrichment/config`
   * Description: Retrieves all SensorEnrichmentConfigs from Zookeeper
