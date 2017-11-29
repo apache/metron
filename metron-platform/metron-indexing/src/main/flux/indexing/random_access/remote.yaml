@@ -64,7 +64,7 @@ components:
             -   name: "put"
                 args:
                     - "group.id"
-                    - "indexing"
+                    - "indexing-ra"
             -   name: "put"
                 args:
                     - "security.protocol"

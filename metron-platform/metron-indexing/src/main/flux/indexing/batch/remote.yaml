@@ -91,7 +91,7 @@ components:
             -   name: "put"
                 args:
                     - "group.id"
-                    - "indexing"
+                    - "indexing-batch"
             -   name: "put"
                 args:
                     - "security.protocol"

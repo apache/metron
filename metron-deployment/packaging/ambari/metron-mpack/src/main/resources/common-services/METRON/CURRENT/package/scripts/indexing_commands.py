@@ -58,7 +58,7 @@ class IndexingCommands:
 
     def __get_kafka_acl_groups(self):
         # Indexed topic names matches the group
-        return [self.__indexing_topic]
+        return ['indexing-batch', 'indexing-ra']
 
     def get_templates(self):
         """
