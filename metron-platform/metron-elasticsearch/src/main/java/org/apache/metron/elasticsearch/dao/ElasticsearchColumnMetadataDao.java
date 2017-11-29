@@ -114,7 +114,7 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
                 FieldType previousType = indexColumnMetadata.get(field);
                 if (!type.equals(previousType)) {
                   String previousIndexName = previousIndices.get(field);
-                  LOG.error(String.format(
+                  LOG.warn(String.format(
                           "Field type mismatch: %s.%s has type %s while %s.%s has type %s.  Defaulting type to %s.",
                           indexName, field, type.getFieldType(),
                           previousIndexName, field, previousType.getFieldType(),

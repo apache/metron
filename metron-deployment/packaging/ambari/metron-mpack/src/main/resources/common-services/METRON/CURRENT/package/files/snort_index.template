@@ -195,6 +195,9 @@
         "ttl": {
           "type": "integer"
         },
+        "guid": {
+          "type": "keyword"
+        },
         "alert": {
           "type": "nested"
         }
