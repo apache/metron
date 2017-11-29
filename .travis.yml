@@ -18,9 +18,9 @@ dist: trusty
 sudo: required
 
 env:
-  - SCRIPT="mvn -q -T 2C surefire:test@unit-tests"
-  - SCRIPT="mvn -q surefire:test@integration-tests"
-  - SCRIPT="mvn -q test --projects metron-interface/metron-config"
+  - SCRIPT="./mvn -q -T 2C surefire:test@unit-tests"
+  - SCRIPT="./mvn -q surefire:test@integration-tests"
+  - SCRIPT="./mvn -q test --projects metron-interface/metron-config"
   - SCRIPT="build_utils/verify_licenses.sh"
 
 install: true
@@ -28,15 +28,11 @@ language: java
 jdk:
   - oraclejdk8
 before_install:
-  - wget https://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip
-  - unzip -qq apache-maven-3.3.9-bin.zip
-  - export M2_HOME=$PWD/apache-maven-3.3.9
-  - export PATH=$M2_HOME/bin:$PATH
   - npm config set cache $HOME/.npm-cache --global
   - npm config set prefix $HOME/.npm-prefix --global
 
 install:
-  - time mvn -q -T 2C -DskipTests clean install
+  - time ./mvnw -q -T 2C -DskipTests clean install
 
 script:
   - time $SCRIPT
