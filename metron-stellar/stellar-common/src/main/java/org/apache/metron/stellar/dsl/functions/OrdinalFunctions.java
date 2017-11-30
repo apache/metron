@@ -38,9 +38,9 @@ public class OrdinalFunctions {
    */
   @Stellar(name = "MAX"
           , description = "Returns the maximum value of a list of input values"
-          , params = {"list_of_values - Stellar list of values to evaluate. The list may only contain" +
-          " objects that are mutually comparable / ordinal"}
-          , returns = "The highest value in the list, null if the list is empty or the input values were not comparable")
+          , params = {"list - List of arguments. The list may only contain objects that are mutually comparable / ordinal (implement java.lang.Comparable interface)" +
+          " Multi type numeric comparisons are supported: MAX([10,15L,15.3]) would return 15.3, but MAX(['23',25]) will fail and return null as strings and numbers can't be compared."}
+          , returns = "The maximum value in the list, or null if the list is empty or the input values were not comparable.")
   public static class Max extends BaseStellarFunction {
 
     @Override
@@ -60,9 +60,9 @@ public class OrdinalFunctions {
    */
   @Stellar(name = "MIN"
           , description = "Returns the minimum value of a list of input values"
-          , params = {"list_of_values - Stellar list of values to evaluate. The list may only contain" +
-          " objects that are mutually comparable / ordinal"}
-          , returns = "The lowest value in the list, null if the list is empty or the input values were not comparable")
+          , params = {"list - List of arguments. The list may only contain objects that are mutually comparable / ordinal (implement java.lang.Comparable interface)" +
+          " Multi type numeric comparisons are supported: MIN([10,15L,15.3]) would return 10, but MIN(['23',25]) will fail and return null as strings and numbers can't be compared."}
+          , returns = "The minimum value in the list, or null if the list is empty or the input values were not comparable.")
   public static class Min extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {

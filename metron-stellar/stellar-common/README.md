@@ -715,16 +715,16 @@ In the core language functions, we support basic functional programming primitiv
   * Returns: The object associated with the key in the map.  If no value is associated with the key and default is specified, then default is returned. If no value is associated with the key or default, then null is returned.
 
 ### `MAX`
- * Description: Returns the maximum value of a list of input values.
- * Input:
-    * list - List of arguments. The list may only contain objects that are mutually comparable / ordinal.
- * Returns: The maximum value of the list, or null of list is empty or the input values were not comparable
+  * Description: Returns the maximum value of a list of input values.
+    * Input:
+    * "list - List of arguments. The list may only contain objects that are mutually comparable / ordinal (implement java.lang.Comparable interface). Multi type numeric comparisons are supported: MAX([10,15L,15.3]) would return 15.3, but MAX(['23',25]) will fail and return null as strings and numbers can't be compared.
+  * Returns: The maximum value of the list, or null if the list is empty or the input values were not comparable.
 
 ### `MIN`
- * Description: Returns the minimum value of a list of input values.
- * Input:
-    * list - List of arguments. The list may only contain objects that are mutually comparable / ordinal.
- * Returns: The minimum value of the list, or null of list is empty or the input values were not comparable
+  * Description: Returns the minimum value of a list of input values.
+    * Input:
+    * "list - List of arguments. The list may only contain objects that are mutually comparable / ordinal (implement java.lang.Comparable interface). Multi type numeric comparisons are supported: MIN([10,15L,15.3]) would return 10, but MIN(['23',25]) will fail and return null as strings and numbers can't be compared.
+  * Returns: The minimum value of the list, or null if the list is empty or the input values were not comparable.
 
 ### `MONTH`
   * Description: The number representing the month.  The first month, January, has a value of 0.
