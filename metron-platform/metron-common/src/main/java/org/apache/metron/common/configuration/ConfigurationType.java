@@ -43,13 +43,9 @@ public enum ConfigurationType implements Function<String, Object>, Configuration
     }
 
     @Override
-    public Object deserialize(String s) {
-      try {
-        return JSONUtils.INSTANCE.load(s, new TypeReference<Map<String, Object>>() {
-        });
-      } catch (IOException e) {
-        throw new RuntimeException("Unable to load " + s, e);
-      }
+    public Object deserialize(String s) throws IOException {
+     return JSONUtils.INSTANCE.load(s, new TypeReference<Map<String, Object>>() { });
+
     }
 
     @Override
@@ -66,17 +62,8 @@ public enum ConfigurationType implements Function<String, Object>, Configuration
     }
 
     @Override
-    public String getDirectory() {
-      return "parsers";
-    }
-
-    @Override
-    public Object deserialize(String s) {
-      try {
-        return JSONUtils.INSTANCE.load(s, SensorParserConfig.class);
-      } catch (IOException e) {
-        throw new RuntimeException("Unable to load " + s, e);
-      }
+    public Object deserialize(String s) throws IOException {
+      return JSONUtils.INSTANCE.load(s, SensorParserConfig.class);
     }
 
     @Override
@@ -93,17 +80,8 @@ public enum ConfigurationType implements Function<String, Object>, Configuration
     }
 
     @Override
-    public String getDirectory() {
-      return "enrichments";
-    }
-
-    @Override
-    public Object deserialize(String s) {
-      try {
-        return JSONUtils.INSTANCE.load(s, SensorEnrichmentConfig.class);
-      } catch (IOException e) {
-        throw new RuntimeException("Unable to load " + s, e);
-      }
+    public Object deserialize(String s) throws IOException {
+      return JSONUtils.INSTANCE.load(s, SensorEnrichmentConfig.class);
     }
 
     @Override
@@ -119,17 +97,8 @@ public enum ConfigurationType implements Function<String, Object>, Configuration
     }
 
     @Override
-    public String getDirectory() {
-      return "indexing";
-    }
-
-    @Override
-    public Object deserialize(String s) {
-      try {
-        return JSONUtils.INSTANCE.load(s, new TypeReference<Map<String, Object>>() { });
-      } catch (IOException e) {
-        throw new RuntimeException("Unable to load " + s, e);
-      }
+    public Object deserialize(String s) throws IOException {
+      return JSONUtils.INSTANCE.load(s, new TypeReference<Map<String, Object>>() { });
     }
 
     @Override
@@ -151,12 +120,8 @@ public enum ConfigurationType implements Function<String, Object>, Configuration
     }
 
     @Override
-    public Object deserialize(String s) {
-      try {
-        return JSONUtils.INSTANCE.load(s, ProfilerConfig.class);
-      } catch (IOException e) {
-        throw new RuntimeException("Unable to load " + s, e);
-      }
+    public Object deserialize(String s) throws IOException {
+      return JSONUtils.INSTANCE.load(s, ProfilerConfig.class);
     }
 
     @Override
@@ -180,7 +145,11 @@ public enum ConfigurationType implements Function<String, Object>, Configuration
   }
 
   public Object deserialize(String s) {
-    return ops.deserialize(s);
+    try {
+      return ops.deserialize(s);
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to load " + s, e);
+    }
   }
 
   @Override

@@ -20,12 +20,16 @@ package org.apache.metron.common.configuration;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.Constants;
 
+import java.io.IOException;
+
 public interface ConfigurationOperations {
   String getTypeName();
-  String getDirectory();
+  default String getDirectory() {
+    return getTypeName();
+  }
   default String getZookeeperRoot() {
     return Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + getTypeName();
   }
-  Object deserialize(String s);
+  Object deserialize(String s) throws IOException;
   void writeSensorConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception;
 }
