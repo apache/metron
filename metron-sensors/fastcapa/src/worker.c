@@ -138,7 +138,7 @@ static int receive_worker(rx_worker_params* params)
 
         // add each packet to the ring buffer
         if(likely(nb_in) > 0) {
-          const uint16_t nb_out = rte_ring_enqueue_burst(ring, (void *) pkts, nb_in);
+          const uint16_t nb_out = rte_ring_enqueue_burst(ring, (void *) pkts, nb_in, NULL);
           params->stats.out += nb_out;
           params->stats.drops += (nb_in - nb_out);
         }
@@ -174,7 +174,7 @@ static int transmit_worker(tx_worker_params *params)
 
         // dequeue packets from the ring
         struct rte_mbuf* pkts[params->tx_ring_size];
-        nb_in = rte_ring_dequeue_burst(ring, (void*) pkts, tx_burst_size);
+        nb_in = rte_ring_dequeue_burst(ring, (void*) pkts, tx_burst_size, NULL);
 
         if(likely(nb_in > 0)) {
             params->stats.in += nb_in;

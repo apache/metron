@@ -31,8 +31,7 @@ public class AccessConfig {
   private TableProvider tableProvider = null;
 
   /**
-   * A supplier which will return the current global config.
-   * @return
+   * @return A supplier which will return the current global config.
    */
   public Supplier<Map<String, Object>> getGlobalConfigSupplier() {
     return globalConfigSupplier;
@@ -43,8 +42,7 @@ public class AccessConfig {
   }
 
   /**
-   * The maximum search result.
-   * @return
+   * @return The maximum number of search results.
    */
   public Integer getMaxSearchResults() {
     return maxSearchResults;
@@ -55,8 +53,7 @@ public class AccessConfig {
   }
 
   /**
-   * The maximum search groups.
-   * @return
+   * @return The maximum number of search groups.
    */
   public Integer getMaxSearchGroups() {
     return maxSearchGroups;
@@ -67,8 +64,7 @@ public class AccessConfig {
   }
 
   /**
-   * Get optional settings for initializing indices.
-   * @return
+   * @return Optional settings for initializing indices.
    */
   public Map<String, String> getOptionalSettings() {
     return optionalSettings;
@@ -79,8 +75,7 @@ public class AccessConfig {
   }
 
   /**
-   * Return the table provider to use for NoSql DAOs
-   * @return
+   * @return The table provider to use for NoSql DAOs
    */
   public TableProvider getTableProvider() {
     return tableProvider;
@@ -89,5 +84,4 @@ public class AccessConfig {
   public void setTableProvider(TableProvider tableProvider) {
     this.tableProvider = tableProvider;
   }
-
 }

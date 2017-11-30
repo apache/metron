@@ -50,9 +50,10 @@ describe('metron-alerts alert status', function() {
 
   it('should change alert statuses', () => {
     let alertId = 'c4c5e418-3938-099e-bb0d-37028a98dca8';
-    
+
     page.navigateTo(alertId);
     page.clickNew();
+    expect(page.getAlertStatus('ANY')).toEqual('NEW');
     page.clickOpen();
     expect(page.getAlertStatus('NEW')).toEqual('OPEN');
     expect(listPage.getAlertStatusById(alertId)).toEqual('OPEN');

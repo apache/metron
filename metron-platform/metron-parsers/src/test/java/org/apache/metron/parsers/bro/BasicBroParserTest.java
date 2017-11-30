@@ -1133,6 +1133,232 @@ public class BasicBroParserTest {
         }
 
 	/**
+         * {
+         * "rfb": {
+         *      "ts":1328634261.675248,
+         *      "uid":"CGhHbC1P1kuJYtR4Ul",
+         *      "id.orig_h":"192.168.1.10",
+         *      "id.orig_p":10254,
+         *      "id.resp_h":"192.168.1.114",
+         *      "id.resp_p":5900,
+         *      "client_major_version":"003",
+         *      "client_minor_version":"007",
+         *      "server_major_version":"003",
+         *      "server_minor_version":"007",
+         *      "authentication_method":"VNC",
+         *      "auth":true,
+         *      "share_flag":false,
+         *      "desktop_name":"aneagles@localhost.localdomain",
+         *      "width":1280,
+         *      "height":800
+         *      }
+         * }
+         */
+        @Multiline
+        public final static String rfbBroMessage;
+
+        @SuppressWarnings("rawtypes")
+        @Test
+        public void testRfbBroMessage() throws ParseException {
+                Map rawMessageMap = (Map) jsonParser.parse(rfbBroMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(rfbBroMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1328634261.675248";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1328634261675";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("uid").toString(), rawJson.get("uid").toString());
+                Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("id.orig_h").toString());
+                Assert.assertEquals(broJson.get("ip_dst_addr").toString(), rawJson.get("id.resp_h").toString());
+                Assert.assertEquals(broJson.get("ip_src_port").toString(), rawJson.get("id.orig_p").toString());
+                Assert.assertEquals(broJson.get("ip_dst_port").toString(), rawJson.get("id.resp_p").toString());
+                Assert.assertEquals(broJson.get("client_major_version").toString(), rawJson.get("client_major_version").toString());
+                Assert.assertEquals(broJson.get("client_minor_version").toString(), rawJson.get("client_minor_version").toString());
+                Assert.assertEquals(broJson.get("server_major_version").toString(), rawJson.get("server_major_version").toString());
+                Assert.assertEquals(broJson.get("server_minor_version").toString(), rawJson.get("server_minor_version").toString());
+                Assert.assertEquals(broJson.get("authentication_method").toString(), rawJson.get("authentication_method").toString());
+                Assert.assertEquals(broJson.get("auth").toString(), rawJson.get("auth").toString());
+                Assert.assertEquals(broJson.get("share_flag").toString(), rawJson.get("share_flag").toString());
+                Assert.assertEquals(broJson.get("desktop_name").toString(), rawJson.get("desktop_name").toString());
+                Assert.assertEquals(broJson.get("width").toString(), rawJson.get("width").toString());
+                Assert.assertEquals(broJson.get("height").toString(), rawJson.get("height").toString());
+        }
+
+       /**
+         * {
+         * "stats": {
+         *      "ts":1440447766.440305
+         *      "peer":"bro",
+         *      "mem":55,
+         *      "pkts_proc":1,
+         *      "bytes_recv":119,
+         *      "events_proc":392,
+         *      "events_queued":15,
+         *      "active_tcp_conns":0,
+         *      "active_udp_conns":1,
+         *      "active_icmp_conns":0,
+         *      "tcp_conns":0,
+         *      "udp_conns":1,
+         *      "icmp_conns":0,
+         *      "timers":34,
+         *      "active_timers":31,
+         *      "files":0,
+         *      "active_files":0,
+         *      "dns_requests":0,
+         *      "active_dns_requests":0,
+         *      "reassem_tcp_size":0,
+         *      "reassem_file_size":0,
+         *      "reassem_frag_size":0,
+         *      "reassem_unknown_size":0
+         *      }
+         * }
+         */
+        @Multiline
+        public final static String statsBroMessage;
+
+        @SuppressWarnings("rawtypes")
+        @Test
+        public void testStatsBroMessage() throws ParseException {
+                Map rawMessageMap = (Map) jsonParser.parse(statsBroMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(statsBroMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1440447766.440305";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1440447766440";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("peer").toString(), rawJson.get("peer").toString());
+                Assert.assertEquals(broJson.get("mem").toString(), rawJson.get("mem").toString());
+                Assert.assertEquals(broJson.get("pkts_proc").toString(), rawJson.get("pkts_proc").toString());
+                Assert.assertEquals(broJson.get("bytes_recv").toString(), rawJson.get("bytes_recv").toString());
+                Assert.assertEquals(broJson.get("events_proc").toString(), rawJson.get("events_proc").toString());
+                Assert.assertEquals(broJson.get("events_queued").toString(), rawJson.get("events_queued").toString());
+                Assert.assertEquals(broJson.get("active_tcp_conns").toString(), rawJson.get("active_tcp_conns").toString());
+                Assert.assertEquals(broJson.get("active_udp_conns").toString(), rawJson.get("active_udp_conns").toString());
+                Assert.assertEquals(broJson.get("active_icmp_conns").toString(), rawJson.get("active_icmp_conns").toString());
+                Assert.assertEquals(broJson.get("tcp_conns").toString(), rawJson.get("tcp_conns").toString());
+                Assert.assertEquals(broJson.get("udp_conns").toString(), rawJson.get("udp_conns").toString());
+                Assert.assertEquals(broJson.get("icmp_conns").toString(), rawJson.get("icmp_conns").toString());
+                Assert.assertEquals(broJson.get("timers").toString(), rawJson.get("timers").toString());
+                Assert.assertEquals(broJson.get("active_timers").toString(), rawJson.get("active_timers").toString());
+                Assert.assertEquals(broJson.get("files").toString(), rawJson.get("files").toString());
+                Assert.assertEquals(broJson.get("active_files").toString(), rawJson.get("active_files").toString());
+                Assert.assertEquals(broJson.get("dns_requests").toString(), rawJson.get("dns_requests").toString());
+                Assert.assertEquals(broJson.get("active_dns_requests").toString(), rawJson.get("active_dns_requests").toString());
+                Assert.assertEquals(broJson.get("reassem_tcp_size").toString(), rawJson.get("reassem_tcp_size").toString());
+                Assert.assertEquals(broJson.get("reassem_file_size").toString(), rawJson.get("reassem_file_size").toString());
+                Assert.assertEquals(broJson.get("reassem_frag_size").toString(), rawJson.get("reassem_frag_size").toString());
+                Assert.assertEquals(broJson.get("reassem_unknown_size").toString(), rawJson.get("reassem_unknown_size").toString());
+        }
+
+       /**
+         * {
+         * "capture_loss": {
+         *      "ts":1320435958.419451,
+         *      "ts_delta":493.659207,
+         *      "peer":"bro",
+         *      "gaps":2,
+         *      "acks":4854,
+         *      "percent_lost":0.041203
+         *      }
+         * }
+         */
+        @Multiline
+        public final static String captureLossBroMessage;
+
+        @SuppressWarnings("rawtypes")
+        @Test
+        public void testCaptureLossBroMessage() throws ParseException {
+                Map rawMessageMap = (Map) jsonParser.parse(captureLossBroMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(captureLossBroMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1320435958.419451";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1320435958419";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("ts_delta").toString(), rawJson.get("ts_delta").toString());
+                Assert.assertEquals(broJson.get("peer").toString(), rawJson.get("peer").toString());
+                Assert.assertEquals(broJson.get("gaps").toString(), rawJson.get("gaps").toString());
+                Assert.assertEquals(broJson.get("acks").toString(), rawJson.get("acks").toString());
+                Assert.assertEquals(broJson.get("percent_lost").toString(), rawJson.get("percent_lost").toString());
+        }
+
+       /**
+         * {
+         * "sip": {
+         *      "ts":1216698441.346819,
+         *      "uid":"Cf3LPS10DMyCqJMDv9",
+         *      "id.orig_h":"192.168.1.64",
+         *      "id.orig_p":1032,
+         *      "id.resp_h":"216.115.20.143",
+         *      "id.resp_p":10000,
+         *      "trans_depth":0,
+         *      "method":"REGISTER",
+         *      "uri":"sip:t.voncp.com:10000",
+         *      "request_from":"\\u002216178766111\\u0022 <sip:16178766111@t.voncp.com:10000>",
+         *      "request_to":"\\u002216178766111\\u0022 <sip:16178766111@t.voncp.com:10000>",
+         *      "response_from":"\\u002216178766111\\u0022 <sip:16178766111@t.voncp.com:10000>",
+         *      "response_to":"\\u002216178766111\\u0022 <sip:16178766111@t.voncp.com:10000>",
+         *      "call_id":"7757a70e218b95730dd2daeaac7d20b1@192.168.1.64",
+         *      "seq":"1761527952 REGISTER",
+         *      "request_path":["SIP/2.0/UDP 192.168.1.64:10000"],
+         *      "response_path":["SIP/2.0/UDP 192.168.1.64:10000"],
+         *      "user_agent":"VDV21 001DD92E4F61 2.8.1_1.4.7 LwooEk3GCD/bcm001DD92E4F61.xml",
+         *      "status_code":200,
+         *      "status_msg":"OK",
+         *      "request_body_len":0,
+         *      "response_body_len":0
+         *      }
+         * }
+         */
+        @Multiline
+        public final static String sipBroMessage;
+
+        @SuppressWarnings("rawtypes")
+        @Test
+        public void testSipBroMessage() throws ParseException {
+                Map rawMessageMap = (Map) jsonParser.parse(sipBroMessage);
+                JSONObject rawJson = (JSONObject) rawMessageMap.get(rawMessageMap.keySet().iterator().next());
+
+                JSONObject broJson = broParser.parse(sipBroMessage.getBytes()).get(0);
+                String expectedBroTimestamp = "1216698441.346819";
+                Assert.assertEquals(broJson.get("bro_timestamp"), expectedBroTimestamp);
+                String expectedTimestamp = "1216698441346";
+                Assert.assertEquals(broJson.get("timestamp").toString(), expectedTimestamp);
+                Assert.assertTrue(broJson.get("original_string").toString().startsWith(rawMessageMap.keySet().iterator().next().toString().toUpperCase()));
+
+                Assert.assertEquals(broJson.get("uid").toString(), rawJson.get("uid").toString());
+                Assert.assertEquals(broJson.get("ip_src_addr").toString(), rawJson.get("id.orig_h").toString());
+                Assert.assertEquals(broJson.get("ip_dst_addr").toString(), rawJson.get("id.resp_h").toString());
+                Assert.assertEquals(broJson.get("ip_src_port").toString(), rawJson.get("id.orig_p").toString());
+                Assert.assertEquals(broJson.get("ip_dst_port").toString(), rawJson.get("id.resp_p").toString());
+                Assert.assertEquals(broJson.get("trans_depth").toString(), rawJson.get("trans_depth").toString());
+                Assert.assertEquals(broJson.get("method").toString(), rawJson.get("method").toString());
+                Assert.assertEquals(broJson.get("uri").toString(), rawJson.get("uri").toString());
+                Assert.assertEquals(broJson.get("request_from").toString(), rawJson.get("request_from").toString());
+                Assert.assertEquals(broJson.get("request_to").toString(), rawJson.get("request_to").toString());
+                Assert.assertEquals(broJson.get("response_from").toString(), rawJson.get("response_from").toString());
+                Assert.assertEquals(broJson.get("response_to").toString(), rawJson.get("response_to").toString());
+                Assert.assertEquals(broJson.get("call_id").toString(), rawJson.get("call_id").toString());
+                Assert.assertEquals(broJson.get("seq").toString(), rawJson.get("seq").toString());
+                Assert.assertEquals(broJson.get("request_path").toString(), rawJson.get("request_path").toString());
+                Assert.assertEquals(broJson.get("response_path").toString(), rawJson.get("response_path").toString());
+                Assert.assertEquals(broJson.get("user_agent").toString(), rawJson.get("user_agent").toString());
+                Assert.assertEquals(broJson.get("status_code").toString(), rawJson.get("status_code").toString());
+                Assert.assertEquals(broJson.get("status_msg").toString(), rawJson.get("status_msg").toString());
+                Assert.assertEquals(broJson.get("request_body_len").toString(), rawJson.get("request_body_len").toString());
+                Assert.assertEquals(broJson.get("response_body_len").toString(), rawJson.get("response_body_len").toString());
+        }
+
+       /**
 	 * {
 	 * "ht*tp": {
 	 *	"ts":1402307733.473,
