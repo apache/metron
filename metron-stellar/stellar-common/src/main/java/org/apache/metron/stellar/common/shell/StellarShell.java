@@ -24,12 +24,20 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import java.io.PrintStream;
+import java.util.HashSet;
+import java.util.Set;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.metron.stellar.common.StellarAssignment;
+import org.apache.metron.stellar.common.StellarConfiguredStatementReporter;
+import org.apache.metron.stellar.common.StellarProcessor;
+import org.apache.metron.stellar.common.configuration.ConfigurationsUtils;
 import org.apache.metron.stellar.common.utils.JSONUtils;
 import org.apache.metron.stellar.dsl.StellarFunctionInfo;
+import org.atteo.classindex.ClassIndex;
 import org.jboss.aesh.complete.CompleteOperation;
 import org.jboss.aesh.complete.Completion;
 import org.jboss.aesh.console.AeshConsoleCallback;
@@ -94,6 +102,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
   public static final String MAGIC_GLOBALS = MAGIC_PREFIX + "globals";
   public static final String MAGIC_DEFINE = MAGIC_PREFIX + "define";
   public static final String MAGIC_UNDEFINE = MAGIC_PREFIX + "undefine";
+  public static final String MAGIC_VALIDATE_CONFIGURED = MAGIC_PREFIX + "validate_configured_expressions";
 
   private StellarExecutor executor;
 
@@ -318,7 +327,8 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
 
     } else if(MAGIC_UNDEFINE.equals(command)) {
       handleMagicUndefine(expression);
-
+    } else if(MAGIC_VALIDATE_CONFIGURED.equals(command)) {
+      handleValidateConfigured();
     } else {
       writeLine(ERROR_PROMPT + "undefined magic command: " + rawExpression);
     }
@@ -401,6 +411,84 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
       Map<String, Object> globals = getOrCreateGlobalConfig(executor);
       globals.remove(expression[1]);
     }
+  }
+
+  /**
+   * Handle a magic '%validate_configured_expressions'.
+   * This command will attempt to locate and validate through compilation
+   * all deployed stellar statements in the system.
+   */
+  private void handleValidateConfigured() {
+
+    Optional<CuratorFramework> client = executor.getClient();
+    if (!client.isPresent()) {
+      writeLine(ERROR_PROMPT + "Zookeeper is required to validate deployed stellar statements!");
+      writeLine(ERROR_PROMPT + "Please restart the Stellar Shell with the -z parameter!");
+      return;
+    }
+
+    // discover all the StellarConfiguredStatementReporters
+    Set<StellarConfiguredStatementReporter> reporterSet = new HashSet<>();
+
+    for (Class<?> c : ClassIndex.getSubclasses(StellarConfiguredStatementReporter.class,
+        Thread.currentThread().getContextClassLoader())) {
+      boolean isAssignable = StellarConfiguredStatementReporter.class.isAssignableFrom(c);
+      if (isAssignable) {
+        try {
+          StellarConfiguredStatementReporter reporter = StellarConfiguredStatementReporter.class
+              .cast(c.getConstructor().newInstance());
+          reporterSet.add(reporter);
+        } catch (Exception e) {
+          writeLine(ERROR_PROMPT + " Reporter: " + c.getCanonicalName() + " not valid, skipping");
+        }
+      }
+    }
+
+    writeLine(String.format("Discovered %d reporters", reporterSet.size()));
+
+    writeLine("Visiting all configurations.  ThreatTriage rules are checked when loading the "
+        + "configuration, thus an invalid ThreatTriage rule will fail the entire Enrichement Configuration.");
+    if (reporterSet.size() > 0) {
+      reporterSet.forEach((r) -> write(r.getName() + " "));
+      writeLine("");
+    } else {
+      return;
+    }
+
+    reporterSet.forEach((r) -> {
+      writeLine("Visiting " + r.getName());
+      try {
+        r.vist(client.get(), ((contextNames, statement) -> {
+          // the names taken together are the identifier for this
+          // statement
+          String name = String.join("->", contextNames);
+
+          writeLine("\n\n==================================================\n\n");
+          writeLine("validating " + name);
+          try {
+            if (StellarProcessor.compile(statement) == null) {
+              writeLine(
+                  ERROR_PROMPT + String.format("Statement: %s is not valid, please review", name));
+              writeLine(ERROR_PROMPT + String.format("Statement: %s ", statement));
+            }
+          } catch (RuntimeException e) {
+            writeLine(ERROR_PROMPT + "Error Visiting " + name);
+            writeLine(e.getMessage());
+            writeLine("--");
+            writeLine(ERROR_PROMPT + ": " + statement);
+          }
+          writeLine("\n\n==================================================");
+        }), (contextNames, exception) -> {
+          String name = String.join("->", contextNames);
+          writeLine(
+              ERROR_PROMPT + String.format("Configuration %s is not valid, please review", name));
+        });
+      } catch (Exception e) {
+        writeLine(ERROR_PROMPT + "Error Visiting " + r.getName());
+        writeLine(e.getMessage());
+      }
+    });
+    writeLine("\nDone validation");
   }
 
   /**
@@ -487,7 +575,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
   }
 
   private void write(String out) {
-    System.out.print(out);
+    console.getShell().out().print(out);
   }
 
   private void writeLine(String out) {

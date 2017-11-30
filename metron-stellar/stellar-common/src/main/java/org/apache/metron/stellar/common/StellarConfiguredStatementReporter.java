@@ -15,33 +15,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.stellar.dsl.functions.resolver;
+
+package org.apache.metron.stellar.common;
 
 import java.util.List;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.StellarFunction;
-import org.apache.metron.stellar.dsl.StellarFunctionInfo;
-
-import java.util.function.Function;
+import org.apache.curator.framework.CuratorFramework;
+import org.atteo.classindex.IndexSubclasses;
 
 /**
- * Responsible for function resolution in Stellar.
+ * StellarConfiguredStatementProviders are used provide stellar statements
+ * and the context around those statements to the caller
  */
-public interface FunctionResolver extends Function<String, StellarFunction> {
+@IndexSubclasses
+public interface StellarConfiguredStatementReporter {
 
   /**
-   * Provides metadata about each Stellar function that is resolvable.
+   * The Name of this reporter
+   * @return String
    */
-  Iterable<StellarFunctionInfo> getFunctionInfo();
+  String getName();
 
-  /**
-   * The names of all Stellar functions that are resolvable.
-   */
-  Iterable<String> getFunctions();
+  public interface StatementReportVisitor{
+    void visit(List<String> contextNames, String statement);
+  }
 
-  /**
-   * Initialize the function resolver.
-   * @param context Context used to initialize.
-   */
-  void initialize(Context context);
+  public interface ConfigReportErrorConsumer {
+    void consume(List<String> contextNames, Exception e);
+  }
+
+  void vist(CuratorFramework client, StatementReportVisitor visitor, ConfigReportErrorConsumer errorConsumer) throws Exception;
+
 }

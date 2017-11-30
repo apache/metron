@@ -208,6 +208,7 @@ public class StellarExecutor {
     index.put(StellarShell.MAGIC_GLOBALS, AutoCompleteType.FUNCTION);
     index.put(StellarShell.MAGIC_DEFINE, AutoCompleteType.FUNCTION);
     index.put(StellarShell.MAGIC_UNDEFINE, AutoCompleteType.FUNCTION);
+    index.put(StellarShell.MAGIC_VALIDATE_CONFIGURED, AutoCompleteType.FUNCTION);
     return new PatriciaTrie<>(index);
   }
 
@@ -322,6 +323,10 @@ public class StellarExecutor {
 
   public Context getContext() {
     return context;
+  }
+
+  public Optional<CuratorFramework> getClient() {
+    return client;
   }
 }
 
