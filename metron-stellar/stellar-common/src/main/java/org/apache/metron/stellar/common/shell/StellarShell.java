@@ -463,7 +463,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
           // statement
           String name = String.join("->", contextNames);
 
-          writeLine("\n\n==================================================\n\n");
+          writeLine("==================================================");
           writeLine("validating " + name);
           try {
             if (StellarProcessor.compile(statement) == null) {
@@ -477,7 +477,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
             writeLine("--");
             writeLine(ERROR_PROMPT + ": " + statement);
           }
-          writeLine("\n\n==================================================");
+          writeLine("==================================================");
         }), (contextNames, exception) -> {
           String name = String.join("->", contextNames);
           writeLine(
