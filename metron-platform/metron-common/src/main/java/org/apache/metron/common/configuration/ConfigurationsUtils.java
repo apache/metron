@@ -359,29 +359,14 @@ public class ConfigurationsUtils {
         }
         break;
 
-      case PARSER: {
-        Map<String, byte[]> configs = readSensorConfigsFromFile(rootFilePath, PARSER, configName);
+      case PARSER: //pass through intentional
+      case ENRICHMENT: //pass through intentional
+      case INDEXING: //pass through intentional
+      {
+        Map<String, byte[]> configs = readSensorConfigsFromFile(rootFilePath, type, configName);
         for (String sensorType : configs.keySet()) {
           byte[] configData = configs.get(sensorType);
-          writeSensorParserConfigToZookeeper(sensorType, configData, client);
-        }
-        break;
-      }
-
-      case ENRICHMENT: {
-        Map<String, byte[]> configs = readSensorConfigsFromFile(rootFilePath, ENRICHMENT, configName);
-        for (String sensorType : configs.keySet()) {
-          byte[] configData = configs.get(sensorType);
-          writeSensorEnrichmentConfigToZookeeper(sensorType, configData, client);
-        }
-        break;
-      }
-
-      case INDEXING: {
-        Map<String, byte[]> configs = readSensorConfigsFromFile(rootFilePath, INDEXING, configName);
-        for (String sensorType : configs.keySet()) {
-          byte[] configData = configs.get(sensorType);
-          writeSensorIndexingConfigToZookeeper(sensorType, configData, client);
+          type.writeSensorConfigToZookeeper(sensorType, configData, client);
         }
         break;
       }

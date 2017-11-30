@@ -20,6 +20,7 @@ package org.apache.metron.common.configuration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
@@ -28,69 +29,158 @@ import org.apache.metron.common.utils.JSONUtils;
 import java.io.IOException;
 import java.util.Map;
 
-public enum ConfigurationType implements Function<String, Object> {
+public enum ConfigurationType implements Function<String, Object>, ConfigurationOperations {
 
-  GLOBAL("global",".", s -> {
-    try {
-      return JSONUtils.INSTANCE.load(s, new TypeReference<Map<String, Object>>() {
-      });
-    } catch (IOException e) {
-      throw new RuntimeException("Unable to load " + s, e);
+  GLOBAL(new ConfigurationOperations() {
+    @Override
+    public String getTypeName() {
+      return "global";
     }
-  }),
 
-  PARSER("parsers","parsers", s -> {
-    try {
-      return JSONUtils.INSTANCE.load(s, SensorParserConfig.class);
-    } catch (IOException e) {
-      throw new RuntimeException("Unable to load " + s, e);
+    @Override
+    public String getDirectory() {
+      return ".";
     }
-  }),
 
-  ENRICHMENT("enrichments","enrichments", s -> {
-    try {
-      return JSONUtils.INSTANCE.load(s, SensorEnrichmentConfig.class);
-    } catch (IOException e) {
-      throw new RuntimeException("Unable to load " + s, e);
+    @Override
+    public Object deserialize(String s) {
+      try {
+        return JSONUtils.INSTANCE.load(s, new TypeReference<Map<String, Object>>() {
+        });
+      } catch (IOException e) {
+        throw new RuntimeException("Unable to load " + s, e);
+      }
     }
-  }),
-  INDEXING("indexing","indexing", s -> {
-    try {
-      return JSONUtils.INSTANCE.load(s, new TypeReference<Map<String, Object>>() { });
-    } catch (IOException e) {
-      throw new RuntimeException("Unable to load " + s, e);
+
+    @Override
+    public void writeSensorConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) {
+      throw new UnsupportedOperationException("Global configs are not per-sensor");
     }
-  }),
-  PROFILER("profiler",".", s -> {
-    try {
-      return JSONUtils.INSTANCE.load(s, ProfilerConfig.class);
-    } catch (IOException e) {
-      throw new RuntimeException("Unable to load " + s, e);
+  })
+  ,
+
+  PARSER(new ConfigurationOperations() {
+    @Override
+    public String getTypeName() {
+      return "parsers";
+    }
+
+    @Override
+    public String getDirectory() {
+      return "parsers";
+    }
+
+    @Override
+    public Object deserialize(String s) {
+      try {
+        return JSONUtils.INSTANCE.load(s, SensorParserConfig.class);
+      } catch (IOException e) {
+        throw new RuntimeException("Unable to load " + s, e);
+      }
+    }
+
+    @Override
+    public void writeSensorConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
+      ConfigurationsUtils.writeSensorParserConfigToZookeeper(sensorType, configData, client);
+    }
+  }
+  ),
+
+  ENRICHMENT(new ConfigurationOperations() {
+    @Override
+    public String getTypeName() {
+      return "enrichments";
+    }
+
+    @Override
+    public String getDirectory() {
+      return "enrichments";
+    }
+
+    @Override
+    public Object deserialize(String s) {
+      try {
+        return JSONUtils.INSTANCE.load(s, SensorEnrichmentConfig.class);
+      } catch (IOException e) {
+        throw new RuntimeException("Unable to load " + s, e);
+      }
+    }
+
+    @Override
+    public void writeSensorConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
+      ConfigurationsUtils.writeSensorEnrichmentConfigToZookeeper(sensorType, configData, client);
+    }
+  }
+          ),
+  INDEXING(new ConfigurationOperations() {
+    @Override
+    public String getTypeName() {
+      return "indexing";
+    }
+
+    @Override
+    public String getDirectory() {
+      return "indexing";
+    }
+
+    @Override
+    public Object deserialize(String s) {
+      try {
+        return JSONUtils.INSTANCE.load(s, new TypeReference<Map<String, Object>>() { });
+      } catch (IOException e) {
+        throw new RuntimeException("Unable to load " + s, e);
+      }
+    }
+
+    @Override
+    public void writeSensorConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
+      ConfigurationsUtils.writeSensorIndexingConfigToZookeeper(sensorType, configData, client);
+    }
+  }
+          ),
+  PROFILER(new ConfigurationOperations() {
+
+    @Override
+    public String getTypeName() {
+      return "profiler";
+    }
+
+    @Override
+    public String getDirectory() {
+      return ".";
+    }
+
+    @Override
+    public Object deserialize(String s) {
+      try {
+        return JSONUtils.INSTANCE.load(s, ProfilerConfig.class);
+      } catch (IOException e) {
+        throw new RuntimeException("Unable to load " + s, e);
+      }
+    }
+
+    @Override
+    public void writeSensorConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
+      throw new UnsupportedOperationException("Profiler configs are not per-sensor");
     }
   });
 
-  String typeName;
-  String directory;
-  String zookeeperRoot;
-  Function<String,?> deserializer;
+  ConfigurationOperations ops;
 
-  ConfigurationType(String typeName, String directory, Function<String, ?> deserializer) {
-    this.typeName = typeName;
-    this.directory = directory;
-    this.zookeeperRoot = Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + typeName;
-    this.deserializer = deserializer;
+  ConfigurationType(ConfigurationOperations ops) {
+    this.ops = ops;
   }
 
   public String getTypeName() {
-    return typeName;
+    return ops.getTypeName();
   }
 
   public String getDirectory() {
-    return directory;
+    return ops.getDirectory();
   }
 
   public Object deserialize(String s) {
-    return deserializer.apply(s);
+    return ops.deserialize(s);
   }
 
   @Override
@@ -98,8 +188,12 @@ public enum ConfigurationType implements Function<String, Object> {
     return deserialize(s);
   }
 
+  @Override
+  public void writeSensorConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception {
+    ops.writeSensorConfigToZookeeper(sensorType, configData, client);
+  }
   public String getZookeeperRoot() {
-    return zookeeperRoot;
+    return ops.getZookeeperRoot();
   }
 
 }
