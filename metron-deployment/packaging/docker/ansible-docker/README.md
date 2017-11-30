@@ -25,11 +25,11 @@ After running the container:
 2. run build commands, for example:
   - build metron without tests : `mvn clean package -DskipTests`
   - build metron and build the rpms as well : `mvn clean install && cd metron-deployment && mvn package -P build-rpms`
-  
+
 If you wish to use this build with a vagrant instance, then after building with rpms as above, modify
 your usual vagrant up command to skip the build role, as so:
 
-`vagrant --ansible-skip-tags="build,quick_dev" up`
+`vagrant --ansible-skip-tags="build" up`
 
 
 ## Using the Container for deployment
@@ -37,4 +37,3 @@ your usual vagrant up command to skip the build role, as so:
 > Note these instructions are outdated
 
 Full instructions are found on the wiki at https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=65144361
-

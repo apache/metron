@@ -15,7 +15,7 @@ Alert GUIDs must be double-quoted when being searched on to ensure correctness o
 ### Search for Comments
 Users cannot search for the contents of the comment's in the Alerts-UI
 
-### Meta alerts 
+### Meta alerts
 Grouping/faceting requests and other aggregations do not return meta alerts.  This is because it's not clear what the intended results should be when there are multiple matching items.
 
 Sorting has a similar caveat, in that if we are matching on multiple alerts, there is no well defined sort.
@@ -25,7 +25,7 @@ Alerts that are contained in a a meta alert are generally excluded from search r
 ## Prerequisites
 * The Metron REST application should be up and running and Elasticsearch should have some alerts populated by Metron topologies
 * The Management UI should be installed (which includes [Express](https://expressjs.com/))
-* The alerts can be populated using Quick Dev, Full Dev  or any other setup
+* The alerts can be populated using Full Dev or any other setup
 * UI is developed using angular4 and uses angular-cli
 * node.JS >= 7.8.0
 
