@@ -184,7 +184,7 @@ You can modify dashboards in Kibana and bring those changes into the core MPack 
 2. Convert the data into the ES bulk load format
 3. Replace the dashboard-bulkload.json file in the Kibana MPack.
 
-You can export the .kibana index using a tool like [https://github.com/taskrabbit/elasticsearch-dump] (https://github.com/taskrabbit/elasticsearch-dump). The important
+You can export the .kibana index using a tool like [https://github.com/taskrabbit/elasticsearch-dump](https://github.com/taskrabbit/elasticsearch-dump). The important
 feature is to have one document per line. Here's an exmaple export using elasticsearch-dump
 
 ```
@@ -201,7 +201,14 @@ as follows
 ```
 java -cp $METRON_HOME/lib/metron-elasticsearch-0.4.2-uber.jar org.apache.metron.elasticsearch.bulk.ElasticsearchImportExport \
   ~/dashboard-data.json \
-  ~/dashbaord-bulkload.json
+  ~/dashboard-bulkload.json
+```
+
+Locate the "create" command for setting the default index by searching for "5.6.2". Change "create" to "index" so that it modifies the existing value. It should look similar to line 1 below.
+
+```
+{ "index" : { "_id": "5.6.2", "_type": "config" } }
+{"defaultIndex":"AV-S2e81hKs1cXXnFMqN"}
 ```
 
 Now copy this file to the Kibana MPack, overwriting the existing bulk load file. That should be everything needed to backup the dashboard.

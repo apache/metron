@@ -49,6 +49,9 @@ string type handling, that may cause issues when upgrading.
 
 [https://www.elastic.co/guide/en/elasticsearch/reference/5.6/setup-upgrade.html](https://www.elastic.co/guide/en/elasticsearch/reference/5.6/setup-upgrade.html)
 
+Be aware that if you add a new string value and want to be able to filter and search on this value from the Alerts UI, you **must** add a mapping for that type to
+the appropriate Elasticsearch template. Below is more detail on how to choose the appropriate mapping type for your string value.
+
 ## Type Mappings
 
 Type mappings have changed quite a bit from ES 2.x -> 5.x. Here is a brief rundown of the biggest changes. More detailed references from Elasticsearch
