@@ -749,7 +749,7 @@ public class StellarCompiler extends StellarBaseListener {
     expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
       Token<?> token = popDeque(tokenDeque);
       Object value = token.getValue();
-      if (LambdaExpression.class.isAssignableFrom(value.getClass())) {
+      if (value != null && LambdaExpression.class.isAssignableFrom(value.getClass())) {
         LambdaExpression expr = (LambdaExpression) value;
         // at this time we don't support lambdas with arguments
         // there is no context for it as such here

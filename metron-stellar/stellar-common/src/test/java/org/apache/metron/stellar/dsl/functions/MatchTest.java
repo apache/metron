@@ -328,6 +328,17 @@ public class MatchTest {
     }}));
   }
 
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testNullInCheckedReturnNull() {
+    Assert.assertNull(
+        run(
+            "match{ foo == null => null, foo == true => 'not that null', default => 'really not that null'}",
+            new HashMap(){{
+              put("foo",null);
+            }}));
+  }
+
   // SYNTAX ERRORS
 
   @Test(expected = ParseException.class)
