@@ -90,6 +90,42 @@
                         </configuration>
                     </execution>
                     <execution>
+                      <id>copy-common-to-rest</id>
+                      <phase>prepare-package</phase>
+                      <goals>
+                        <goal>copy-resources</goal>
+                      </goals>
+                      <configuration>
+                        <outputDirectory>${project.basedir}/compose/metron-rest/packages</outputDirectory>
+                        <resources>
+                          <resource>
+                            <directory>${project.parent.parent.basedir}/metron-platform/metron-common/target/</directory>
+                            <includes>
+                              <include>*.tar.gz</include>
+                            </includes>
+                          </resource>
+                        </resources>
+                      </configuration>
+                    </execution>
+                    <execution>
+                      <id>copy-parsers-to-rest</id>
+                      <phase>prepare-package</phase>
+                      <goals>
+                        <goal>copy-resources</goal>
+                      </goals>
+                      <configuration>
+                        <outputDirectory>${project.basedir}/compose/metron-rest/packages</outputDirectory>
+                        <resources>
+                          <resource>
+                            <directory>${project.parent.parent.basedir}/metron-platform/metron-parsers/target/</directory>
+                            <includes>
+                              <include>*.tar.gz</include>
+                            </includes>
+                          </resource>
+                        </resources>
+                      </configuration>
+                    </execution>
+                    <execution>
                       <id>copy-rest</id>
                       <phase>prepare-package</phase>
                       <goals>

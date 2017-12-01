@@ -53,25 +53,13 @@ script:
 #  - time mvn -q -T 2C surefire:test@unit-tests && time mvn -q surefire:test@integration-tests && time mvn -q test --projects metron-interface/metron-config && time build_utils/verify_licenses.sh
 
 before_cache:
- # - rm -rf $HOME/.m2/repository/org/apache/metron
+  - rm -rf $HOME/.m2/repository/org/apache/metron
 
 cache:
   timeout: 1000
   directories:
   - $HOME/.npm-cache
   - $HOME/.npm-prefix
-#  - metron-interface/metron-config/node_modules
+  - metron-interface/metron-config/node_modules
   - $HOME/.m2
   - $HOME/.npm
-#  - $DOCKER_CACHE
-#  - metron-platform/metron-common/target
-#  - metron-platform/metron-parsers/target
-#  - metron-platform/metron-elasticsearch/target
-#  - metron-platform/metron-enrichment/target
-#  - metron-platform/metron-indexing/target
-#  - metron-platform/metron-data-management/target
-#  - metron-interface/metron-rest/target
-#  - metron-interface/metron-config/target
-#  - metron-interface/metron-alerts/target
-#  - metron-contrib/metron-docker/target
-#  - metron-contrib/metron-docker-e2e/target
