@@ -33,7 +33,6 @@ language: java
 jdk:
   - oraclejdk8
 before_install:
-  - ls -la metron-platform/metron-common/target
   - wget https://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip
   - unzip -qq apache-maven-3.3.9-bin.zip
   - export M2_HOME=$PWD/apache-maven-3.3.9
@@ -61,10 +60,10 @@ cache:
   directories:
   - $HOME/.npm-cache
   - $HOME/.npm-prefix
-  - metron-interface/metron-config/node_modules
+#  - metron-interface/metron-config/node_modules
   - $HOME/.m2
   - $HOME/.npm
-  - $DOCKER_CACHE
+#  - $DOCKER_CACHE
 #  - metron-platform/metron-common/target
 #  - metron-platform/metron-parsers/target
 #  - metron-platform/metron-elasticsearch/target
