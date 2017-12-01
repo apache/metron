@@ -21,8 +21,8 @@ services:
   - docker
 
 env:
-  - TEST_TYPE=default
   global:
+    - TEST_TYPE=default
     - DOCKER_CACHE=~/docker-cache
     - DOCKER_METRON_CENTOS=$DOCKER_CACHE/metron_centos.tar.gz
     - DOCKER_KAFKA=$DOCKER_CACHE/kafka.tar.gz
