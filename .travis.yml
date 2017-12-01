@@ -45,7 +45,7 @@ before_install:
 install:
   #- time mvn -q -T 2C -DskipTests clean install --projects=metron-platform/metron-common,metron-platform/metron-parsers,metron-platform/metron-elasticsearch,metron-platform/metron-enrichment,metron-platform/metron-indexing,metron-platform/metron-data-management,metron-interface/metron-rest,metron-interface/metron-config,metron-interface/metron-alerts,metron-contrib/metron-docker,metron-contrib/metron-docker-e2e
   - time mvn -q -T 2C -DskipTests clean install
-  - cd $E2E_COMPOSE_HOME && docker-compose up -d
+  - cd $E2E_COMPOSE_HOME && docker-compose up
   - if [ ! -f ${DOCKER_METRON_CENTOS} ]; then docker save metron-centos | gzip > ${DOCKER_METRON_CENTOS}; fi
 #  - time mvn -q -T 2C -DskipTests clean install
 
@@ -65,14 +65,14 @@ cache:
   - $HOME/.m2
   - $HOME/.npm
   - $DOCKER_CACHE
-  - metron-platform/metron-common/target
-  - metron-platform/metron-parsers/target
-  - metron-platform/metron-elasticsearch/target
-  - metron-platform/metron-enrichment/target
-  - metron-platform/metron-indexing/target
-  - metron-platform/metron-data-management/target
-  - metron-interface/metron-rest/target
-  - metron-interface/metron-config/target
-  - metron-interface/metron-alerts/target
-  - metron-contrib/metron-docker/target
-  - metron-contrib/metron-docker-e2e/target
+#  - metron-platform/metron-common/target
+#  - metron-platform/metron-parsers/target
+#  - metron-platform/metron-elasticsearch/target
+#  - metron-platform/metron-enrichment/target
+#  - metron-platform/metron-indexing/target
+#  - metron-platform/metron-data-management/target
+#  - metron-interface/metron-rest/target
+#  - metron-interface/metron-config/target
+#  - metron-interface/metron-alerts/target
+#  - metron-contrib/metron-docker/target
+#  - metron-contrib/metron-docker-e2e/target
