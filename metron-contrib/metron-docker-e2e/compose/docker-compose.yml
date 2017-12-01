@@ -23,7 +23,7 @@ services:
   kafka:
     image: wurstmeister/kafka:0.10.0.0
     environment:
-      KAFKA_ADVERTISED_HOST_NAME: 192.168.99.100
+      KAFKA_ADVERTISED_HOST_NAME: localhost
       KAFKA_ADVERTISED_PORT: 9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     ports:
@@ -48,10 +48,10 @@ services:
       - "8082:8082"
     volumes_from:
       - hbase
-  metron-ui:
-    build:
-      context: ./metron-ui
-      args:
-        METRON_VERSION: $METRON_VERSION
-    ports:
-      - "4201:4201"
+#  metron-ui:
+#    build:
+#      context: ./metron-ui
+#      args:
+#        METRON_VERSION: $METRON_VERSION
+#    ports:
+#      - "4201:4201"
