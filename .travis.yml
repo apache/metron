@@ -63,3 +63,4 @@ cache:
   - metron-interface/metron-config/node_modules
   - $HOME/.m2
   - $HOME/.npm
+  - $DOCKER_CACHE
