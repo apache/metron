@@ -22,6 +22,17 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+/**
+ * {@code StellarConfiguration} marks a field or class has a container
+ * for some stellar configuration or expression.
+ *
+ * That expression may be in a field such as a String, or a Map, or list or other complex type.
+ * Each of those types in turn should be annotated with the appropriate annotation.
+ *
+ * Other complex types that are fields of a {@code StellarConfiguration} , should likewise be annotated as
+ * {@code StellarConfiguration}.
+ *
+ */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 public @interface StellarConfiguration {

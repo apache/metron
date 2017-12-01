@@ -22,9 +22,18 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+/**
+ * {@code StellarExpressionList} is applied to a field
+ * that is an {@code Iterable} of objects that are Stellar expressions,
+ * Such that calling toString() on that object yields a string of a Stellar expression
+ */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 public @interface StellarExpressionList {
+  /**
+   * The Name to be applied to this field.
+   * @return the Name
+   */
   String name();
 
 }

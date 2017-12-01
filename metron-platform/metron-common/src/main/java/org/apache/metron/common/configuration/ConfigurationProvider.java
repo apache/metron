@@ -39,12 +39,12 @@ import org.apache.metron.stellar.common.utils.validation.StellarConfiguredStatem
 import org.apache.zookeeper.KeeperException.NoNodeException;
 
 /**
- * StellarStatementReporter is used to report all of the configured / deployed Stellar statements in
+ * {@code ConfigurationProvider} is used to report all of the configured / deployed Stellar statements in
  * the system.
  */
-public class StellarStatementReporter implements StellarConfigurationProvider {
+public class ConfigurationProvider implements StellarConfigurationProvider {
 
-  public StellarStatementReporter() {
+  public ConfigurationProvider() {
   }
 
   @Override
@@ -117,16 +117,6 @@ public class StellarStatementReporter implements StellarConfigurationProvider {
             String.format("%s/%s", getName(), ENRICHMENT.toString()), child,
             sensorEnrichmentConfig);
         holders.add(holder);
-        /*
-        EnrichmentConfig enrichmentConfig;
-        enrichmentConfig = sensorEnrichmentConfig.getEnrichment();
-        visitEnrichmentConfig(child, Type.ENRICHMENT, enrichmentConfig, visitor, errorConsumer);
-        enrichmentConfig = sensorEnrichmentConfig.getThreatIntel();
-        visitEnrichmentConfig(child, Type.THREAT_INTEL, enrichmentConfig, visitor, errorConsumer);
-        final ThreatTriageConfig threatTriageConfig = sensorEnrichmentConfig.getThreatIntel()
-            .getTriageConfig();
-        visitEnrichmentThreatTriageConfigs(child, threatTriageConfig, visitor, errorConsumer);
-        */
       } catch (Exception e) {
         errorConsumer
             .consume(String.format("%s/%s/%s", getName(), ENRICHMENT.toString(), child), e);

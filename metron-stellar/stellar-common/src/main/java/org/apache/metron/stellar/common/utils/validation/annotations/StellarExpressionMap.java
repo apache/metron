@@ -22,6 +22,18 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+/**
+ * {@code StellarExpressionMap} is applied to
+ * a {@code Map} which contains Stellar expressions as the values, such
+ * that calling .toString() on a value of this map yields a Stellar expression.
+ *
+ * The key is used as the of the expression.
+ *
+ * It is possible for a {@code Map} to contain other maps or complex objects,
+ * thus this annotation contains properties that give information on evaluation of the {@code Map}
+ * should it be complex and contain nested maps.
+ *
+ */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 public @interface StellarExpressionMap {

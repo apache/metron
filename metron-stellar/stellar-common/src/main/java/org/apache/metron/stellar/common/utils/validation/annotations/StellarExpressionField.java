@@ -22,8 +22,19 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+/**
+ * {@code StellarExpressionField} marks a field
+ * as being a Stellar expression.
+ *
+ * It's toString() method will be called to provide this String.
+ */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 public @interface StellarExpressionField {
+
+  /**
+   * The Name to be applied to this field.
+   * @return the Name
+   */
   String name();
 }

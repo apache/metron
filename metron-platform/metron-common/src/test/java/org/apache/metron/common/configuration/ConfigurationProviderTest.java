@@ -29,7 +29,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class StellarStatementReporterTest {
+public class ConfigurationProviderTest {
 
   private TestingServer testZkServer;
   private String zookeeperUrl;
@@ -259,8 +259,8 @@ public class StellarStatementReporterTest {
             zookeeperUrl);
     ConfigurationsUtils.writeProfilerConfigToZookeeper(profilerConfig.getBytes(), client);
 
-    StellarStatementReporter stellarStatementReporter = new StellarStatementReporter();
-    List<ExpressionConfigurationHolder> holders = stellarStatementReporter
+    ConfigurationProvider configurationProvider = new ConfigurationProvider();
+    List<ExpressionConfigurationHolder> holders = configurationProvider
         .provideConfigurations(client,
             (names, error) -> Assert.assertTrue("Should not get errors", false));
     holders.forEach((h) -> {
@@ -289,8 +289,8 @@ public class StellarStatementReporterTest {
     ConfigurationsUtils
         .writeToZookeeper(ConfigurationType.PARSER.getZookeeperRoot() + "/" + "squid",
             badParserConfig.getBytes(), client);
-    StellarStatementReporter stellarStatementReporter = new StellarStatementReporter();
-    stellarStatementReporter.provideConfigurations(client, (names, error) -> {
+    ConfigurationProvider configurationProvider = new ConfigurationProvider();
+    configurationProvider.provideConfigurations(client, (names, error) -> {
       Assert.assertTrue("Should  get errors", true);
     });
   }
@@ -300,8 +300,8 @@ public class StellarStatementReporterTest {
     ConfigurationsUtils
         .writeSensorEnrichmentConfigToZookeeper("snort", badEnrichmentConfig.getBytes(),
             zookeeperUrl);
-    StellarStatementReporter stellarStatementReporter = new StellarStatementReporter();
-    stellarStatementReporter.provideConfigurations(client,
+    ConfigurationProvider configurationProvider = new ConfigurationProvider();
+    configurationProvider.provideConfigurations(client,
         (names, error) -> Assert.assertTrue("Should not get errors", false));
   }
 }

@@ -22,8 +22,16 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+/**
+ * {@code StellarConfigurationList} marks a field as being a list
+ * of objects that represent {@code StellarConfiguration} annotated objects.
+ */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 public @interface StellarConfigurationList {
+  /**
+   * The Name to be applied to this field.
+   * @return the Name
+   */
   String name();
 }

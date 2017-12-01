@@ -18,7 +18,6 @@
 
 package org.apache.metron.stellar.common.utils.validation;
 
-import java.lang.annotation.AnnotationTypeMismatchException;
 import java.lang.annotation.IncompleteAnnotationException;
 import java.lang.reflect.Field;
 import java.util.LinkedList;
@@ -33,6 +32,22 @@ import org.apache.metron.stellar.common.utils.validation.annotations.StellarExpr
 import org.apache.metron.stellar.common.utils.validation.annotations.StellarExpressionList;
 import org.apache.metron.stellar.common.utils.validation.annotations.StellarExpressionMap;
 
+/**
+ * {@code ExpressionConfigurationHolder}  is a wrapper class for Objects that represent configurations
+ * that have been annotated with the annotations from the validation.annotations package.
+ *
+ * Holders understand how to discover the stellar expressions contained in them by understanding how
+ * to evaluate thier own annotated fields.
+ *
+ * No knowledge of the implementation of the configuration
+ * Object itself is required by this class.  Instead it evaluates it's own member fields for
+ * {@code StellarExpressionField}, {@code StellarExpressionList}, {@code StellarExpressionMap} instances.
+ *
+ * Complex types annotated by {@code StellarConfiguration} or {@code StellarConfigurationList} are
+ * treated as children of this class.
+ *
+ *
+ */
 public class ExpressionConfigurationHolder implements StellarConfiguredStatementVisitor {
 
   private Object holderObject;

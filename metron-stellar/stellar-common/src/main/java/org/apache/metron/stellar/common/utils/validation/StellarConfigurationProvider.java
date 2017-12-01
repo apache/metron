@@ -24,7 +24,7 @@ import org.apache.metron.stellar.common.utils.validation.StellarConfiguredStatem
 import org.atteo.classindex.IndexSubclasses;
 
 /**
- * StellarConfigurationProvider are used provide stellar statements
+ * {@code StellarConfigurationProvider} are used provide Stellar statements
  * and the context around those statements to the caller.
  */
 @IndexSubclasses
