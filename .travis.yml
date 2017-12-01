@@ -45,6 +45,7 @@ install:
   #- time mvn -q -T 2C -DskipTests clean install --projects=metron-platform/metron-common,metron-platform/metron-parsers,metron-platform/metron-elasticsearch,metron-platform/metron-enrichment,metron-platform/metron-indexing,metron-platform/metron-data-management,metron-interface/metron-rest,metron-interface/metron-config,metron-interface/metron-alerts,metron-contrib/metron-docker,metron-contrib/metron-docker-e2e
   #- time mvn -q -T 2C -DskipTests clean install
   #- cd $E2E_COMPOSE_HOME && docker-compose up -d
+  mvn clean install -DskipTests --projects=metron-platform/metron-zookeeper
   - if [ ! -f ${DOCKER_METRON_CENTOS} ]; then docker save metron-centos | gzip > ${DOCKER_METRON_CENTOS}; fi
 #  - time mvn -q -T 2C -DskipTests clean install
 
@@ -65,3 +66,4 @@ cache:
   - $HOME/.m2
   - $HOME/.npm
   - $DOCKER_CACHE
+  - metron-platform/metron-zookeeper/target
