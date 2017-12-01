@@ -24,7 +24,6 @@ ENV METRON_REST_PORT 8082
 
 RUN mkdir -p $METRON_HOME
 ADD ./bin $METRON_HOME/bin
-RUN chmod 755 $METRON_HOME/bin/wait-for-it.sh
 COPY ./packages/* /packages/
 RUN find /packages -type f -name '*.tar.gz' -exec tar -xzf {} -C /usr/metron/$METRON_VERSION/ \;
 ADD ./config $METRON_HOME/config

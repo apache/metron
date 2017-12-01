@@ -143,24 +143,6 @@
                             </resources>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>copy-wait-for-it-to-rest</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                          <outputDirectory>${project.basedir}/compose/metron-rest/bin</outputDirectory>
-                          <resources>
-                            <resource>
-                              <directory>./scripts</directory>
-                              <includes>
-                                <include>wait-for-it.sh</include>
-                              </includes>
-                            </resource>
-                          </resources>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -172,7 +154,6 @@
                             <directory>compose</directory>
                             <includes>
                                 <include>**/*.tar.gz</include>
-                                <include>**/wait-for-it.sh</include>
                                 <include>.env</include>
                                 <include>**/*.template</include>
                             </includes>
