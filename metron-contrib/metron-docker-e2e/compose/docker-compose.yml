@@ -43,7 +43,7 @@ services:
     build:
       context: ./metron-rest
       args:
-        METRON_VERSION: $METRON_VERSION
+        METRON_VERSION: 0.4.2
     ports:
       - "8082:8082"
 #    volumes_from:
