@@ -16,12 +16,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#$METRON_HOME/bin/zk_load_configs.sh -z zookeeper:2181 -m PUSH -i $METRON_HOME/config/zookeeper
-#
-#METRON_REST_CLASSPATH="$METRON_HOME/lib/metron-rest-$METRON_VERSION.jar"
-#METRON_REST_CLASSPATH+=":/hbase/conf"
-#METRON_REST_CLASSPATH+=":$METRON_HOME/lib/metron-elasticsearch-$METRON_VERSION-uber.jar"
-#
-#java -cp $METRON_REST_CLASSPATH org.apache.metron.rest.MetronRestApplication --spring.config.location=$METRON_HOME/config/application-docker.yml --spring.profiles.active=dev --server.port=8082
+$METRON_HOME/bin/zk_load_configs.sh -z zookeeper:2181 -m PUSH -i $METRON_HOME/config/zookeeper
 
-ping kafka
+METRON_REST_CLASSPATH="$METRON_HOME/lib/metron-rest-$METRON_VERSION.jar"
+METRON_REST_CLASSPATH+=":/hbase/conf"
+METRON_REST_CLASSPATH+=":$METRON_HOME/lib/metron-elasticsearch-$METRON_VERSION-uber.jar"
+
+java -cp $METRON_REST_CLASSPATH org.apache.metron.rest.MetronRestApplication --spring.config.location=$METRON_HOME/config/application-docker.yml --spring.profiles.active=dev --server.port=8082
