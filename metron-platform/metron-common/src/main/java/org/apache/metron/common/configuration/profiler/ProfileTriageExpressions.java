@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarConfiguration;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarExpressionMap;
 
 /**
  * A set of Stellar expressions that are executed to produce a single
@@ -30,6 +32,7 @@ import java.util.Map;
  * The result of evaluating each expression are made available, keyed
  * by the given name, to the threat triage process.
  */
+@StellarConfiguration
 public class ProfileTriageExpressions {
 
   /**
@@ -40,6 +43,7 @@ public class ProfileTriageExpressions {
    * or map of basic data types that can be serialized.
    */
   @JsonIgnore
+  @StellarExpressionMap(name = "expressions")
   private Map<String, String> expressions;
 
   @JsonCreator

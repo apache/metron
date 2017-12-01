@@ -20,6 +20,9 @@ package org.apache.metron.common.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.ImmutableList;
+import org.apache.metron.common.field.transformation.StellarTransformation;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarConfigurationList;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarExpressionMap;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.common.field.transformation.FieldTransformation;
 import org.apache.metron.common.field.transformation.FieldTransformations;
@@ -28,11 +31,14 @@ import org.json.simple.JSONObject;
 import java.io.Serializable;
 import java.util.*;
 
+@StellarConfigurationList(name = "FieldTransformer")
 public class FieldTransformer implements Serializable {
   private List<String> input = new ArrayList<>();
   private List<String> output;
   private FieldTransformation transformation;
   private String transformationName;
+  @StellarExpressionMap(name = "Field Mapping",
+  qualify_with_field = "transformation", qualify_with_field_type = StellarTransformation.class)
   private LinkedHashMap<String, Object> config = new LinkedHashMap<>();
   private boolean initialized = false;
   public FieldTransformer() {

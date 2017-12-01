@@ -23,6 +23,7 @@ import java.util.List;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.test.TestingServer;
+import org.apache.metron.stellar.common.utils.validation.ExpressionConfigurationHolder;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,30 +35,43 @@ public class StellarStatementReporterTest {
   private String zookeeperUrl;
   private CuratorFramework client;
   private List<String> expected;
-
+  private List<String> expectedStatements;
+  private List<String> foundStatements;
   @Before
   public void setUp() throws Exception {
     testZkServer = new TestingServer(true);
     zookeeperUrl = testZkServer.getConnectString();
     client = ConfigurationsUtils.getClient(zookeeperUrl);
     expected = new LinkedList<>();
-    expected.add("Apache Metron->PARSER->squid->full_hostname");
-    expected.add("Apache Metron->PARSER->squid->domain_without_subdomains");
-    expected.add("Apache Metron->ENRICHMENT->snort->THREAT_TRIAGE->(default)->rule");
-    expected.add("Apache Metron->PROFILER->example2->only_if");
-    expected.add("Apache Metron->PROFILER->example2->init->num_dns");
-    expected.add("Apache Metron->PROFILER->example2->init->num_http");
-    expected.add("Apache Metron->PROFILER->example2->update->num_dns");
-    expected.add("Apache Metron->PROFILER->example2->update->num_http");
-    expected.add("Apache Metron->PROFILER->example2->profile_result->profile_expression");
-    expected.add("Apache Metron->PROFILER->example1->only_if");
-    expected.add("Apache Metron->PROFILER->example1->init->total_bytes");
-    expected.add("Apache Metron->PROFILER->example1->update->total_bytes");
-    expected.add("Apache Metron->PROFILER->example1->profile_result->profile_expression");
-    expected.add("Apache Metron->PROFILER->percentiles->only_if");
-    expected.add("Apache Metron->PROFILER->percentiles->init->s");
-    expected.add("Apache Metron->PROFILER->percentiles->update->s");
-    expected.add("Apache Metron->PROFILER->percentiles->profile_result->profile_expression");
+    expected.add("Apache Metron/PARSER/squid");
+    expected.add("Apache Metron/ENRICHMENT/snort");
+    expected.add("Apache Metron/PROFILER/example2");
+    expected.add("Apache Metron/PROFILER/example1");
+    expected.add("Apache Metron/PROFILER/percentiles");
+
+    expectedStatements = new LinkedList<>();
+    expectedStatements.add("Apache Metron/PARSER/squid/fieldTransformations/0/Field Mapping/full_hostname");
+    expectedStatements.add("Apache Metron/PARSER/squid/fieldTransformations/0/Field Mapping/domain_without_subdomains");
+    expectedStatements.add("Apache Metron/ENRICHMENT/snort/enrichment/default/foo");
+    expectedStatements.add("Apache Metron/ENRICHMENT/snort/enrichment/default/ALL_CAPS");
+    expectedStatements.add("Apache Metron/ENRICHMENT/snort/threatIntel/triageConfig/riskLevelRules/0/rule");
+    expectedStatements.add("Apache Metron/PROFILER/example2/onlyif");
+    expectedStatements.add("Apache Metron/PROFILER/example2/init/num_dns");
+    expectedStatements.add("Apache Metron/PROFILER/example2/init/num_http");
+    expectedStatements.add("Apache Metron/PROFILER/example2/update/num_dns");
+    expectedStatements.add("Apache Metron/PROFILER/example2/update/num_http");
+    expectedStatements.add("Apache Metron/PROFILER/example2/result/profileExpressions/expression");
+    expectedStatements.add("Apache Metron/PROFILER/example1/onlyif");
+    expectedStatements.add("Apache Metron/PROFILER/example1/init/total_bytes");
+    expectedStatements.add("Apache Metron/PROFILER/example1/update/total_bytes");
+    expectedStatements.add("Apache Metron/PROFILER/example1/result/profileExpressions/expression");
+    expectedStatements.add("Apache Metron/PROFILER/percentiles/onlyif");
+    expectedStatements.add("Apache Metron/PROFILER/percentiles/init/s");
+    expectedStatements.add("Apache Metron/PROFILER/percentiles/update/s");
+    expectedStatements.add("Apache Metron/PROFILER/percentiles/result/profileExpressions/expression");
+
+    foundStatements = new LinkedList<>();
+
     client.start();
   }
 
@@ -122,7 +136,14 @@ public class StellarStatementReporterTest {
    * "fieldMap":
    * {
    * "geo": ["ip_dst_addr", "ip_src_addr"],
-   * "host": ["host"]
+   * "host": ["host"],
+   * "stellar" : {
+   *    "type" : "STELLAR",
+   *     "config" : {
+   *        "foo" : "1 + 1",
+   *        "ALL_CAPS" : "TO_UPPER(source.type)"
+   *      }
+   *  }
    * }
    * },
    * "threatIntel" : {
@@ -229,8 +250,7 @@ public class StellarStatementReporterTest {
   public static String profilerConfig;
 
   @Test
-  public void testVistVisitsAllConfiguredNodes() throws Exception {
-
+  public void testProvideAllConfiguredNodes() throws Exception {
     ConfigurationsUtils
         .writeSensorParserConfigToZookeeper("squid", squidParserConfig.getBytes(), zookeeperUrl);
 
@@ -240,35 +260,48 @@ public class StellarStatementReporterTest {
     ConfigurationsUtils.writeProfilerConfigToZookeeper(profilerConfig.getBytes(), client);
 
     StellarStatementReporter stellarStatementReporter = new StellarStatementReporter();
-    stellarStatementReporter.vist(client, (names, statement) -> {
-      String name = String.join("->", names);
-      Assert.assertTrue(expected.contains(name));
-      expected.remove(name);
-    }, (names, error) -> Assert.assertTrue("Should not get errors", false));
+    List<ExpressionConfigurationHolder> holders = stellarStatementReporter
+        .provideConfigurations(client,
+            (names, error) -> Assert.assertTrue("Should not get errors", false));
+    holders.forEach((h) -> {
+      try {
+        h.discover();
+        h.visit((p,s) -> {
+          foundStatements.add(p);
+        },(s,e) -> {
+          Assert.assertTrue(e.getMessage(),false);
+        });
+      } catch (IllegalAccessException e) {
+        Assert.assertTrue(e.getMessage(), false);
+      }
+    });
 
+    holders.forEach((h) -> expected.remove(h.getFullName()));
     Assert.assertTrue(expected.isEmpty());
+
+    foundStatements.removeAll(expectedStatements);
+    Assert.assertTrue(foundStatements.isEmpty());
   }
 
   @Test
   public void testErrorCalledWithBadParserConfig() throws Exception {
     // calling this way to avoid getting the serialize error in ConfigurationUtils instead of visit
-    ConfigurationsUtils.writeToZookeeper(ConfigurationType.PARSER.getZookeeperRoot() + "/" + "squid", badParserConfig.getBytes(),client);
+    ConfigurationsUtils
+        .writeToZookeeper(ConfigurationType.PARSER.getZookeeperRoot() + "/" + "squid",
+            badParserConfig.getBytes(), client);
     StellarStatementReporter stellarStatementReporter = new StellarStatementReporter();
-    stellarStatementReporter.vist(client, (names, statement) -> {
-      Assert.assertTrue("This should have failed", false);
-    }, (names, error) -> {
+    stellarStatementReporter.provideConfigurations(client, (names, error) -> {
       Assert.assertTrue("Should  get errors", true);
     });
   }
 
   @Test(expected = RuntimeException.class)
-  public void testExceptionThrownGetsBadThreatConfig() throws Exception{
+  public void testExceptionThrownGetsBadThreatConfig() throws Exception {
     ConfigurationsUtils
         .writeSensorEnrichmentConfigToZookeeper("snort", badEnrichmentConfig.getBytes(),
             zookeeperUrl);
     StellarStatementReporter stellarStatementReporter = new StellarStatementReporter();
-    stellarStatementReporter.vist(client, (names, statement) -> {
-      Assert.assertTrue("This should have failed", false);
-    }, (names, error) -> Assert.assertTrue("Should not get errors", false));
+    stellarStatementReporter.provideConfigurations(client,
+        (names, error) -> Assert.assertTrue("Should not get errors", false));
   }
 }

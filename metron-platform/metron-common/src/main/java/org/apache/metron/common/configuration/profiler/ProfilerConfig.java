@@ -20,15 +20,19 @@ package org.apache.metron.common.configuration.profiler;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarConfiguration;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarConfigurationList;
 
 /**
  * The definition for entire Profiler, which may contain many Profile definitions.
  */
+@StellarConfiguration
 public class ProfilerConfig implements Serializable {
 
   /**
    * One or more profile definitions.
    */
+  @StellarConfigurationList(name = "profiles")
   private List<ProfileConfig> profiles = new ArrayList<>();
 
   public List<ProfileConfig> getProfiles() {

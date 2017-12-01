@@ -29,9 +29,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarConfigurationList;
 
 public class ThreatTriageConfig {
 
+  @StellarConfigurationList(name = "riskLevelRules")
   private List<RiskLevelRule> riskLevelRules = new ArrayList<>();
   private Aggregators aggregator = Aggregators.MAX;
   private Map<String, Object> aggregationConfig = new HashMap<>();

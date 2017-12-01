@@ -26,7 +26,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarConfiguration;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarConfigurationList;
 
+@StellarConfiguration
 public class SensorParserConfig implements Serializable {
 
   private String parserClassName;
@@ -229,6 +232,7 @@ public class SensorParserConfig implements Serializable {
     this.writerClassName = classNames;
   }
   private Map<String, Object> parserConfig = new HashMap<>();
+  @StellarConfigurationList(name = "fieldTransformations")
   private List<FieldTransformer> fieldTransformations = new ArrayList<>();
 
   public List<FieldTransformer> getFieldTransformations() {

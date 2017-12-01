@@ -16,33 +16,13 @@
  * limitations under the License.
  */
 
-package org.apache.metron.stellar.common;
+package org.apache.metron.stellar.common.utils.validation.annotations;
 
-import java.util.List;
-import org.apache.curator.framework.CuratorFramework;
-import org.atteo.classindex.IndexSubclasses;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-/**
- * StellarConfiguredStatementProviders are used provide stellar statements
- * and the context around those statements to the caller
- */
-@IndexSubclasses
-public interface StellarConfiguredStatementReporter {
-
-  /**
-   * The Name of this reporter
-   * @return String
-   */
-  String getName();
-
-  public interface StatementReportVisitor{
-    void visit(List<String> contextNames, String statement);
-  }
-
-  public interface ConfigReportErrorConsumer {
-    void consume(List<String> contextNames, Exception e);
-  }
-
-  void vist(CuratorFramework client, StatementReportVisitor visitor, ConfigReportErrorConsumer errorConsumer) throws Exception;
-
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+public @interface StellarConfiguration {
 }

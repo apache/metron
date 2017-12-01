@@ -23,19 +23,20 @@ package org.apache.metron.stellar.common.utils.validation;
 import static org.apache.metron.stellar.common.shell.StellarShell.ERROR_PROMPT;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang.NullArgumentException;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.metron.stellar.common.StellarConfiguredStatementReporter;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.atteo.classindex.ClassIndex;
 
-public class StellarZookeeperBasedValidator implements StellarValidator{
+public class StellarZookeeperBasedValidator implements StellarValidator {
 
   private CuratorFramework client;
 
   public StellarZookeeperBasedValidator(CuratorFramework client) throws NullArgumentException {
-    if(client == null) {
+    if (client == null) {
       throw new NullArgumentException("client");
     }
     this.client = client;
@@ -44,61 +45,71 @@ public class StellarZookeeperBasedValidator implements StellarValidator{
 
   @Override
   public void validate(LineWriter writer) {
-    // discover all the StellarConfiguredStatementReporters
-    Set<StellarConfiguredStatementReporter> reporterSet = new HashSet<>();
+    // discover all the StellarConfigurationProvider
+    Set<StellarConfigurationProvider> providerSet = new HashSet<>();
 
-    for (Class<?> c : ClassIndex.getSubclasses(StellarConfiguredStatementReporter.class,
+    for (Class<?> c : ClassIndex.getSubclasses(StellarConfigurationProvider.class,
         Thread.currentThread().getContextClassLoader())) {
-      boolean isAssignable = StellarConfiguredStatementReporter.class.isAssignableFrom(c);
+      boolean isAssignable = StellarConfigurationProvider.class.isAssignableFrom(c);
       if (isAssignable) {
         try {
-          StellarConfiguredStatementReporter reporter = StellarConfiguredStatementReporter.class
+          StellarConfigurationProvider reporter = StellarConfigurationProvider.class
               .cast(c.getConstructor().newInstance());
-          reporterSet.add(reporter);
+          providerSet.add(reporter);
         } catch (Exception e) {
-          writer.write(ERROR_PROMPT + " Reporter: " + c.getCanonicalName() + " not valid, skipping");
+          writer
+              .write(ERROR_PROMPT + " Provider: " + c.getCanonicalName() + " not valid, skipping");
         }
       }
     }
 
-    writer.write(String.format("Discovered %d reporters", reporterSet.size()));
+    writer.write(String.format("Discovered %d providers", providerSet.size()));
 
     writer.write("Visiting all configurations.  ThreatTriage rules are checked when loading the "
-        + "configuration, thus an invalid ThreatTriage rule will fail the entire Enrichement Configuration.");
-    if (reporterSet.size() > 0) {
-      reporterSet.forEach((r) ->  writer.write(r.getName() + " "));
+        + "configuration, thus an invalid ThreatTriage rule will fail the entire Enrichment Configuration.");
+    if (providerSet.size() > 0) {
+      providerSet.forEach((r) -> writer.write(r.getName() + " "));
       writer.write("");
     } else {
       return;
     }
 
-    reporterSet.forEach((r) -> {
-      writer.write("Visiting " + r.getName());
+    providerSet.forEach((r) -> {
+      writer.write("Requesting configurations from " + r.getName());
       try {
-        r.vist(client, ((contextNames, statement) -> {
-          // the names taken together are the identifier for this
-          // statement
-          String name = String.join("->", contextNames);
+        List<ExpressionConfigurationHolder> holders = r
+            .provideConfigurations(client, (pathName, exception) -> {
+              writer.write(ERROR_PROMPT + String
+                  .format("Configuration %s is not valid, please review", pathName));
+            });
 
-          writer.write("==================================================");
-          writer.write("validating " + name);
+        writer.write(String.format("%s provided %d configurations", r.getName(), holders.size()));
+        holders.forEach((h) -> {
           try {
-            if (StellarProcessor.compile(statement) == null) {
-              writer.write(
-                  ERROR_PROMPT + String.format("Statement: %s is not valid, please review", name));
-              writer.write(ERROR_PROMPT + String.format("Statement: %s ", statement));
-            }
-          } catch (RuntimeException e) {
-            writer.write(ERROR_PROMPT + "Error Visiting " + name);
-            writer.write(e.getMessage());
-            writer.write("--");
-            writer.write(ERROR_PROMPT + ": " + statement);
+            h.discover();
+            h.visit((path, statement) -> {
+              writer.write("==================================================");
+              writer.write(String.format("validating %s", path));
+              try {
+                if (StellarProcessor.compile(statement) == null) {
+                  writer.write(ERROR_PROMPT + String
+                      .format("Statement: %s is not valid, please review", path));
+                  writer.write(ERROR_PROMPT + String.format("Statement: %s ", statement));
+                }
+              } catch (RuntimeException e) {
+                writer.write(ERROR_PROMPT + "Error Visiting " + path);
+                writer.write(e.getMessage());
+                writer.write("--");
+                writer.write(ERROR_PROMPT + ": " + statement);
+              }
+              writer.write("==================================================");
+            }, (path, error) -> {
+              writer.write(ERROR_PROMPT + String
+                  .format("Configuration %s is not valid, please review", path));
+            });
+          } catch (Exception e) {
+            writer.write(ERROR_PROMPT + " " + e.getMessage());
           }
-          writer.write("==================================================");
-        }), (contextNames, exception) -> {
-          String name = String.join("->", contextNames);
-          writer.write(
-              ERROR_PROMPT + String.format("Configuration %s is not valid, please review", name));
         });
       } catch (Exception e) {
         writer.write(ERROR_PROMPT + "Error Visiting " + r.getName());

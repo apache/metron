@@ -24,10 +24,14 @@ import org.apache.metron.common.utils.JSONUtils;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarConfiguration;
 
+@StellarConfiguration
 public class SensorEnrichmentConfig {
 
+  @StellarConfiguration
   private EnrichmentConfig enrichment = new EnrichmentConfig();
+  @StellarConfiguration
   private ThreatIntelConfig threatIntel = new ThreatIntelConfig();
   private Map<String, Object> configuration = new HashMap<>();
 

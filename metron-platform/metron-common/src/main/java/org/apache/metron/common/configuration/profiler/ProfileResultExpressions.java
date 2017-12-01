@@ -19,14 +19,18 @@ package org.apache.metron.common.configuration.profiler;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarConfiguration;
+import org.apache.metron.stellar.common.utils.validation.annotations.StellarExpressionField;
 
 /**
  * A Stellar expression that is executed to produce a single
  * measurement that is persisted within the profile store.
  */
+@StellarConfiguration
 public class ProfileResultExpressions {
 
   @JsonIgnore
+  @StellarExpressionField(name = "expression")
   private String expression;
 
   @JsonCreator
