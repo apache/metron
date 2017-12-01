@@ -36,6 +36,7 @@ import org.apache.metron.stellar.common.StellarConfiguredStatementReporter;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.common.configuration.ConfigurationsUtils;
 import org.apache.metron.stellar.common.utils.JSONUtils;
+import org.apache.metron.stellar.common.utils.validation.StellarZookeeperBasedValidator;
 import org.apache.metron.stellar.dsl.StellarFunctionInfo;
 import org.atteo.classindex.ClassIndex;
 import org.jboss.aesh.complete.CompleteOperation;
@@ -427,68 +428,8 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
       return;
     }
 
-    // discover all the StellarConfiguredStatementReporters
-    Set<StellarConfiguredStatementReporter> reporterSet = new HashSet<>();
-
-    for (Class<?> c : ClassIndex.getSubclasses(StellarConfiguredStatementReporter.class,
-        Thread.currentThread().getContextClassLoader())) {
-      boolean isAssignable = StellarConfiguredStatementReporter.class.isAssignableFrom(c);
-      if (isAssignable) {
-        try {
-          StellarConfiguredStatementReporter reporter = StellarConfiguredStatementReporter.class
-              .cast(c.getConstructor().newInstance());
-          reporterSet.add(reporter);
-        } catch (Exception e) {
-          writeLine(ERROR_PROMPT + " Reporter: " + c.getCanonicalName() + " not valid, skipping");
-        }
-      }
-    }
-
-    writeLine(String.format("Discovered %d reporters", reporterSet.size()));
-
-    writeLine("Visiting all configurations.  ThreatTriage rules are checked when loading the "
-        + "configuration, thus an invalid ThreatTriage rule will fail the entire Enrichement Configuration.");
-    if (reporterSet.size() > 0) {
-      reporterSet.forEach((r) -> write(r.getName() + " "));
-      writeLine("");
-    } else {
-      return;
-    }
-
-    reporterSet.forEach((r) -> {
-      writeLine("Visiting " + r.getName());
-      try {
-        r.vist(client.get(), ((contextNames, statement) -> {
-          // the names taken together are the identifier for this
-          // statement
-          String name = String.join("->", contextNames);
-
-          writeLine("==================================================");
-          writeLine("validating " + name);
-          try {
-            if (StellarProcessor.compile(statement) == null) {
-              writeLine(
-                  ERROR_PROMPT + String.format("Statement: %s is not valid, please review", name));
-              writeLine(ERROR_PROMPT + String.format("Statement: %s ", statement));
-            }
-          } catch (RuntimeException e) {
-            writeLine(ERROR_PROMPT + "Error Visiting " + name);
-            writeLine(e.getMessage());
-            writeLine("--");
-            writeLine(ERROR_PROMPT + ": " + statement);
-          }
-          writeLine("==================================================");
-        }), (contextNames, exception) -> {
-          String name = String.join("->", contextNames);
-          writeLine(
-              ERROR_PROMPT + String.format("Configuration %s is not valid, please review", name));
-        });
-      } catch (Exception e) {
-        writeLine(ERROR_PROMPT + "Error Visiting " + r.getName());
-        writeLine(e.getMessage());
-      }
-    });
-    writeLine("\nDone validation");
+    StellarZookeeperBasedValidator validator = new StellarZookeeperBasedValidator(client.get());
+    validator.validate(this::writeLine);
   }
 
   /**
