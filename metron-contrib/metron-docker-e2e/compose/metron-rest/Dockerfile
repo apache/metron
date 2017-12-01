@@ -24,8 +24,8 @@ ENV METRON_REST_PORT 8082
 
 RUN mkdir -p $METRON_HOME
 ADD ./bin $METRON_HOME/bin
-#COPY ./packages/* /packages/
-#RUN find /packages -type f -name '*.tar.gz' -exec tar -xzf {} -C /usr/metron/$METRON_VERSION/ \;
+COPY ./packages/* /packages/
+RUN find /packages -type f -name '*.tar.gz' -exec tar -xzf {} -C /usr/metron/$METRON_VERSION/ \;
 ADD ./config $METRON_HOME/config
 
 EXPOSE 8082 8082
