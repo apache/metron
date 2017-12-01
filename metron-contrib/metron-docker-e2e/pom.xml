@@ -29,6 +29,23 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.metron</groupId>
+        <artifactId>metron-rest</artifactId>
+        <version>${project.parent.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.metron</groupId>
+        <artifactId>metron-alerts</artifactId>
+        <version>${project.parent.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.metron</groupId>
+        <artifactId>metron-config</artifactId>
+        <version>${project.parent.version}</version>
+      </dependency>
+    </dependencies>
     <build>
         <plugins>
             <plugin>
