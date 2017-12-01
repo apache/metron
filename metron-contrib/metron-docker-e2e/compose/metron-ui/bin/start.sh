@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -15,9 +16,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-create 'access_tracker', 'cf'
-create 'ip', 'cf'
-create 'enrichment', 'cf'
-create 'threatintel', 'cf'
-create 'metron_update', 't'
-exit
+node $METRON_HOME/web/expressjs/alerts-server.js -c $METRON_HOME/config/alerts_ui.yml
+tail -f /dev/null

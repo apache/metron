@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+	Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>metron-docker-e2e</artifactId>
+    <packaging>pom</packaging>
+    <name>metron-docker-e2e</name>
+    <parent>
+        <groupId>org.apache.metron</groupId>
+        <artifactId>metron-contrib</artifactId>
+        <version>0.4.2</version>
+    </parent>
+    <description>Metron Docker</description>
+    <url>https://metron.apache.org/</url>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>filter-docker-env</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/compose</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>./conf</directory>
+                                    <filtering>true</filtering>
+                                    <includes>
+                                        <include>.env</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-elasticsearch-to-rest</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/compose/metron-rest/packages</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.parent.parent.basedir}/metron-platform/metron-elasticsearch/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                      <id>copy-rest</id>
+                      <phase>prepare-package</phase>
+                      <goals>
+                        <goal>copy-resources</goal>
+                      </goals>
+                      <configuration>
+                        <outputDirectory>${project.basedir}/compose/metron-rest/packages</outputDirectory>
+                        <resources>
+                          <resource>
+                            <directory>${project.parent.parent.basedir}/metron-interface/metron-rest/target/</directory>
+                            <includes>
+                              <include>*.tar.gz</include>
+                            </includes>
+                          </resource>
+                        </resources>
+                      </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-alerts</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/compose/metron-ui/packages</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.parent.parent.basedir}/metron-interface/metron-alerts/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-management-ui</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/compose/metron-ui/packages</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.parent.parent.basedir}/metron-interface/metron-config/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                  </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-wait-for-it-to-rest</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                          <outputDirectory>${project.basedir}/compose/metron-rest/bin</outputDirectory>
+                          <resources>
+                            <resource>
+                              <directory>./scripts</directory>
+                              <includes>
+                                <include>wait-for-it.sh</include>
+                              </includes>
+                            </resource>
+                          </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>compose</directory>
+                            <includes>
+                                <include>**/*.tar.gz</include>
+                                <include>**/wait-for-it.sh</include>
+                                <include>.env</include>
+                                <include>**/*.template</include>
+                            </includes>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

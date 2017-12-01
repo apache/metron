@@ -35,7 +35,7 @@ export class LoginPage {
         browser.waitForAngularEnabled(false);
         element.all(by.css('.alert .close')).click();
         element.all(by.css('.logout-link')).click();
-        waitForURL('http://localhost:4200/login');
+        waitForURL('http://192.168.99.100:4201/login');
     }
 
     setUserNameAndPassword(userName: string, password: string) {

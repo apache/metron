@@ -1,0 +1,6 @@
+/compose/.env
+/compose/metron-rest/packages/
+/compose/metron-ui/packages/
+/compose/zookeeper/packages/
+wait-for-it.sh
+!/scripts/wait-for-it.sh

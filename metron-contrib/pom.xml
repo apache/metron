@@ -40,5 +40,6 @@
     </licenses>
     <modules>
         <module>metron-docker</module>
+        <module>metron-docker-e2e</module>
     </modules>
 </project>

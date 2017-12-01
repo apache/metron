@@ -15,6 +15,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-#ES_HOST=node1
-ES_HOST=192.168.99.100
-curl -s -XDELETE "http://$ES_HOST:9200/alerts_ui_e2e_index"
+#./bin/zookeeper-server-start.sh config/zookeeper.properties &
+#./bin/wait-for-it.sh localhost:2181
+#$METRON_HOME/bin/zk_load_configs.sh -z zookeeper:2181 -m PUSH -i $METRON_HOME/config/zookeeper
+tail -f /dev/null

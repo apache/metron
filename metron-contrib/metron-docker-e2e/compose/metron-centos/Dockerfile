@@ -1,4 +1,3 @@
-#!/bin/bash
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -15,6 +14,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-#ES_HOST=node1
-ES_HOST=192.168.99.100
-curl -s -XDELETE "http://$ES_HOST:9200/alerts_ui_e2e_index"
+FROM centos
+
+RUN yum install -y java-1.8.0-openjdk lsof

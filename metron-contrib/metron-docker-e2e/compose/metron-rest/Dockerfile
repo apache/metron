@@ -1,4 +1,3 @@
-#!/bin/bash
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -15,6 +14,22 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-#ES_HOST=node1
-ES_HOST=192.168.99.100
-curl -s -XDELETE "http://$ES_HOST:9200/alerts_ui_e2e_index"
+FROM metron-centos
+
+ARG METRON_VERSION
+
+ENV METRON_VERSION $METRON_VERSION
+ENV METRON_HOME /usr/metron/$METRON_VERSION
+ENV METRON_REST_PORT 8082
+
+RUN mkdir -p $METRON_HOME
+ADD ./bin $METRON_HOME/bin
+RUN chmod 755 $METRON_HOME/bin/wait-for-it.sh
+COPY ./packages/* /packages/
+RUN find /packages -type f -name '*.tar.gz' -exec tar -xzf {} -C /usr/metron/$METRON_VERSION/ \;
+ADD ./config $METRON_HOME/config
+
+EXPOSE 8082 8082
+
+WORKDIR $METRON_HOME
+CMD ./bin/start.sh

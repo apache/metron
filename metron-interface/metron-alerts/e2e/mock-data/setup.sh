@@ -15,5 +15,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-curl -s -XPOST http://node1:9200/_template/alerts_ui_e2e_index -d @alerts_ui_e2e_index.template
-curl -s -XPOST http://node1:9200/alerts_ui_e2e_index/alerts_ui_e2e_doc/_bulk --data-binary @alerts_ui_e2e_index.data
+#ES_HOST=node1
+ES_HOST=192.168.99.100
+curl -s -XPOST http://$ES_HOST:9200/_template/alerts_ui_e2e_index -d @alerts_ui_e2e_index.template
+curl -s -XPOST http://$ES_HOST:9200/alerts_ui_e2e_index/alerts_ui_e2e_doc/_bulk --data-binary @alerts_ui_e2e_index.data

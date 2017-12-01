@@ -1,0 +1,68 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+docker:
+  host:
+    address: 192.168.99.100
+  compose:
+    path: ../../metron-docker/compose/docker-compose.yml
+
+spring:
+  datasource:
+      driverClassName: org.h2.Driver
+      url: jdbc:h2:file:./metrondb
+      username: root
+      password: root
+      platform: h2
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+zookeeper:
+  url:  zookeeper:2181
+
+kafka:
+  broker:
+    url: kafka:9092
+  security:
+    protocol: PLAINTEXT
+
+hdfs:
+  namenode:
+    url: file:///
+
+grok:
+  path:
+    temp: target/patterns/temp
+
+storm:
+  ui:
+    url: storm:8080
+  parser:
+    script.path: /usr/metron/${metron.version}/bin/start_parser_topology.sh
+    topology.options: ${PARSER_TOPOLOGY_OPTIONS}
+  enrichment:
+    script.path: /usr/metron/${metron.version}/bin/start_enrichment_topology.sh
+  indexing:
+    script.path: /usr/metron/${metron.version}/bin/start_elasticsearch_topology.sh
+
+kerberos:
+  enabled: false
+  principal: metron@EXAMPLE.COM
+  keytab: /etc/security/keytabs/metron.headless.keytab
+
+index:
+  dao:
+    impl: org.apache.metron.elasticsearch.dao.ElasticsearchDao

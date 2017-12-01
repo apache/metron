@@ -298,7 +298,7 @@ describe('metron-alerts App', function() {
 
     page.clickClearSearch();
   });
-  
+
   it('should have all time-range included while searching', () => {
     page.clearLocalStorage();
     page.clickDateSettings();
