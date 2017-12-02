@@ -37,6 +37,7 @@ exports.config = {
   capabilities: {
     'browserName': 'chrome',
     'chromeOptions': {
+      args: [ "--headless", "--disable-gpu", "--window-size=1435,850" ],
       'prefs': {
         'credentials_enable_service': false,
         'profile': { 'password_manager_enabled': false}
