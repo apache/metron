@@ -52,10 +52,10 @@ services:
       - kafka
       - zookeeper
       - elasticsearch
-#  metron-ui:
-#    build:
-#      context: ./metron-ui
-#      args:
-#        METRON_VERSION: $METRON_VERSION
-#    ports:
-#      - "4201:4201"
+  metron-ui:
+    build:
+      context: ./metron-ui
+      args:
+        METRON_VERSION: $METRON_VERSION
+    ports:
+      - "4201:4201"
