@@ -2,7 +2,7 @@ import { browser, protractor } from 'protractor';
 import request = require('request');
 import fs = require('fs');
 
-let host = '192.168.99.100';
+let host = 'localhost';
 
 export function changeURL(url: string) {
     return browser.get(url).then(() => {
@@ -50,7 +50,7 @@ export function waitForStalenessOf (_element ) {
 export function loadTestData() {
   //deleteTestData();
   request.delete('http://user:password@' + host + ':8082/api/v1/sensor/indexing/config/alerts_ui_e2e', function (e, response, body) {
-    console.log('rest delete response code: ' + response.statusCode)
+    console.log('rest delete response code: ' + response.statusCode);
     request.post({url:'http://user:password@' + host + ':8082/api/v1/sensor/indexing/config/alerts_ui_e2e', json:
     {
       "hdfs": {
@@ -76,7 +76,7 @@ export function loadTestData() {
   });
 
   request.delete('http://' + host + ':9200/alerts_ui_e2e_index*', function (e, response, body) {
-    console.log('ES index delete response code: ' + response.statusCode)
+    console.log('ES index delete response code: ' + response.statusCode);
     fs.createReadStream('e2e/mock-data/alerts_ui_e2e_index.template')
     .pipe(request.post('http://' + host + ':9200/_template/alerts_ui_e2e_index', function (e, response, body) {
       console.log('ES template load response code: ' + response.statusCode);

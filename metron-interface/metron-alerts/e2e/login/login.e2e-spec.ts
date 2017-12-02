@@ -39,6 +39,6 @@ describe('login to application', function() {
 
     it('should logout', () => {
         page.logout();
-        expect(page.getLocation()).toEqual('http://192.168.99.100:4201/login');
+        expect(page.getLocation()).toEqual('http://localhost:4201/login');
     });
 });
