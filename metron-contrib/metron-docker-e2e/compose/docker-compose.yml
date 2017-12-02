@@ -56,6 +56,6 @@ services:
     build:
       context: ./metron-ui
       args:
-        METRON_VERSION: $METRON_VERSION
+        METRON_VERSION: 0.4.2
     ports:
       - "4201:4201"
