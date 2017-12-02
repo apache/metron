@@ -27,12 +27,17 @@ env:
     - DOCKER_METRON_CENTOS=$DOCKER_CACHE/metron_centos.tar.gz
     - DOCKER_KAFKA=$DOCKER_CACHE/kafka.tar.gz
     - E2E_COMPOSE_HOME=metron-contrib/metron-docker-e2e/compose
+    - DOCKER_COMPOSE_VERSION=1.8.0
 
 install: true
 language: java
 jdk:
   - oraclejdk8
 before_install:
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
   - wget https://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip
   - unzip -qq apache-maven-3.3.9-bin.zip
   - export M2_HOME=$PWD/apache-maven-3.3.9
