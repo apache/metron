@@ -19,15 +19,17 @@
 package org.apache.metron.stellar.common.utils.validation.annotations;
 
 import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * {@code StellarExpressionMap} is applied to
  * a {@code Map} which contains Stellar expressions as the values, such
  * that calling .toString() on a value of this map yields a Stellar expression.
  *
- * The key is used as the of the expression.
+ * The key is used as the name the expression.
  *
  * It is possible for a {@code Map} to contain other maps or complex objects,
  * thus this annotation contains properties that give information on evaluation of the {@code Map}
@@ -36,6 +38,7 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD,ElementType.TYPE})
 public @interface StellarExpressionMap {
 
   /**
@@ -47,7 +50,9 @@ public @interface StellarExpressionMap {
 
   /**
    * A map may be a StellarExpressionMap based on the type
-   * of another field, this is that field's name
+   * of another field, this is that field's name.
+   *
+   * {@code} qualify_with_field_type} is the type of that field
    *
    * @return Field Name or empty String
    */
@@ -55,7 +60,9 @@ public @interface StellarExpressionMap {
 
   /**
    * A map may be a StellarExpressionMap based on the type
-   * of another field, this is that type
+   * of another field, this is that type of that field.
+   *
+   * {@code qualify_with_field} is the name of the field.
    *
    * @return Class
    */
@@ -63,7 +70,8 @@ public @interface StellarExpressionMap {
 
 
   /**
-   * Some maps, may 'hold' the real map,
+   * Some maps, may 'hold' the real map as a value.  In that case the outer map should still be
+   * annotated, and this property used to define the 'key route' needed to obtain the map.
    * These are the key to get that map.
    * There are multiple in case there are multiple nested level
    * This does not support multiple nested 'peer' maps
@@ -71,4 +79,5 @@ public @interface StellarExpressionMap {
    * @return String key
    */
   String[] inner_map_keys() default {};
+
 }

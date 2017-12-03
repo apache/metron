@@ -33,20 +33,24 @@ import org.apache.metron.stellar.common.utils.validation.annotations.StellarExpr
 import org.apache.metron.stellar.common.utils.validation.annotations.StellarExpressionMap;
 
 /**
- * {@code ExpressionConfigurationHolder}  is a wrapper class for Objects that represent configurations
- * that have been annotated with the annotations from the validation.annotations package.
- *
+ * <p>
+ * {@code ExpressionConfigurationHolder}  is a wrapper class for Objects that represent
+ * configurations that have been annotated with the annotations from the validation.annotations
+ * package.
+ * </p>
+ * <p>
  * Holders understand how to discover the stellar expressions contained in them by understanding how
  * to evaluate thier own annotated fields.
- *
+ * </p>
+ * <p>
  * No knowledge of the implementation of the configuration
  * Object itself is required by this class.  Instead it evaluates it's own member fields for
  * {@code StellarExpressionField}, {@code StellarExpressionList}, {@code StellarExpressionMap} instances.
- *
+ * </p>
+ * <p>
  * Complex types annotated by {@code StellarConfiguration} or {@code StellarConfigurationList} are
  * treated as children of this class.
- *
- *
+ * </p>
  */
 public class ExpressionConfigurationHolder implements StellarConfiguredStatementVisitor {
 
@@ -57,8 +61,15 @@ public class ExpressionConfigurationHolder implements StellarConfiguredStatement
   private List<ExpressionConfigurationHolder> children = new LinkedList<>();
   private List<Field> expressionList;
   private List<Field> expressionListList;
-  private List<Field> expresionMapList;
+  private List<Field> expressionMapList;
 
+  /**
+   * Constructs a new {@code ExpressionConfigurationHolder}.
+   *
+   * @param parentName the name of the parent object of this holder
+   * @param name the name of to be used for this holder
+   * @param holderObject the object being held
+   */
   public ExpressionConfigurationHolder(String parentName, String name, Object holderObject) {
     if (holderObject == null) {
       throw new NullArgumentException("holderObject");
@@ -75,18 +86,39 @@ public class ExpressionConfigurationHolder implements StellarConfiguredStatement
     this.holderObject = holderObject;
   }
 
+  /**
+   * Returns the {@code Object} being held.
+   *
+   * @return {@code Object}
+   */
   public Object getHolderObject() {
     return holderObject;
   }
 
+  /**
+   * Returns the name for this {@code ExpressionConfigurationHolder}.
+   *
+   * @return String value of the name
+   */
   public String getName() {
     return name;
   }
 
+  /**
+   * Returns the name of the parent of this {@code ExpressionConfigurationHolder}.
+   *
+   * @return String value of the name
+   */
   public String getParentName() {
     return parentName;
   }
 
+  /**
+   * Returns the full name of this {@code ExpressionConfigurationHolder}.
+   * This represents the name taken together with the parentName, path delimeted by a "/"
+   *
+   * @return String value of the name
+   */
   public String getFullName() {
     return fullName;
   }
@@ -99,26 +131,24 @@ public class ExpressionConfigurationHolder implements StellarConfiguredStatement
     visitChilden(visitor, errorConsumer);
   }
 
-  private void visitExpressions(StatementVisitor visitor,
-      ErrorConsumer errorConsumer) {
+  private void visitExpressions(StatementVisitor visitor, ErrorConsumer errorConsumer) {
     expressionList.forEach((f) -> {
       String thisFullName = String
           .format("%s/%s", getFullName(), f.getAnnotation(StellarExpressionField.class).name());
       try {
-        Object thisExpressionObject =  FieldUtils.readField(f, holderObject, true);
+        Object thisExpressionObject = FieldUtils.readField(f, holderObject, true);
         if (thisExpressionObject == null || StringUtils.isEmpty(thisExpressionObject.toString())) {
           return;
         }
-        visitExpression(thisFullName,thisExpressionObject.toString(), visitor,
-            errorConsumer);
+        visitExpression(thisFullName, thisExpressionObject.toString(), visitor, errorConsumer);
       } catch (IllegalAccessException e) {
         errorConsumer.consume(thisFullName, e);
       }
     });
   }
 
-  private void visitExpression(String expressionName, String expression,
-      StatementVisitor visitor, ErrorConsumer errorConsumer) {
+  private void visitExpression(String expressionName, String expression, StatementVisitor visitor,
+      ErrorConsumer errorConsumer) {
     if (StringUtils.isEmpty(expression)) {
       return;
     }
@@ -138,7 +168,7 @@ public class ExpressionConfigurationHolder implements StellarConfiguredStatement
         if (possibleIterable == null) {
           return;
         }
-        Iterable it = (Iterable)possibleIterable;
+        Iterable it = (Iterable) possibleIterable;
         int index = 0;
         for (Object expressionObject : it) {
           String expressionFullName = String.format("%s/%s", thisFullName, index);
@@ -152,19 +182,21 @@ public class ExpressionConfigurationHolder implements StellarConfiguredStatement
 
   @SuppressWarnings("unchecked")
   private void visitMaps(StatementVisitor visitor, ErrorConsumer errorConsumer) {
-    expresionMapList.forEach((f) -> {
+    expressionMapList.forEach((f) -> {
       String thisFullName = String
           .format("%s/%s", getFullName(), f.getAnnotation(StellarExpressionMap.class).name());
       try {
         // if we have configured a qualifying field as a type of flag we need to check it
         // for example, if StellarFoo.class.isAssignableFrom(this.foo.getClass()) then
         // bar is a StellarExpressionMap
-        if (!StringUtils.isEmpty(f.getAnnotation(StellarExpressionMap.class).qualify_with_field())) {
+        if (!StringUtils
+            .isEmpty(f.getAnnotation(StellarExpressionMap.class).qualify_with_field())) {
           String fieldName = f.getAnnotation(StellarExpressionMap.class).qualify_with_field();
           Class type = f.getAnnotation(StellarExpressionMap.class).qualify_with_field_type();
           Object theObject = FieldUtils.readField(holderObject, fieldName, true);
           if (theObject == null) {
-            errorConsumer.consume(thisFullName, new IncompleteAnnotationException(StellarExpressionMap.class,"fieldName"));
+            errorConsumer.consume(thisFullName,
+                new IncompleteAnnotationException(StellarExpressionMap.class, "fieldName"));
             return;
           }
           if (!type.isAssignableFrom(theObject.getClass())) {
@@ -185,23 +217,25 @@ public class ExpressionConfigurationHolder implements StellarConfiguredStatement
             if (innerObject == null) {
               return;
             }
-            fullName = String.format("%s/%s",fullName,key);
-            if(!Map.class.isAssignableFrom(innerObject.getClass())) {
-              errorConsumer.consume(fullName, new Exception("The annotation specified an inner map that was not a map"));
+            fullName = String.format("%s/%s", fullName, key);
+            if (!Map.class.isAssignableFrom(innerObject.getClass())) {
+              errorConsumer.consume(fullName,
+                  new Exception("The annotation specified an inner map that was not a map"));
             }
-            map = (Map)innerObject;
+            map = (Map) innerObject;
           }
         }
 
         map.forEach((k, v) -> {
           String mapKeyFullName = String.format("%s/%s", thisFullName, k.toString());
           if (Map.class.isAssignableFrom(v.getClass())) {
-            Map innerMap = (Map)v;
-            innerMap.forEach((ik,iv) -> {
+            Map innerMap = (Map) v;
+            innerMap.forEach((ik, iv) -> {
               if (iv == null) {
                 return;
               }
-              visitExpression(String.format("%s/%s",mapKeyFullName,ik.toString()),iv.toString(), visitor, errorConsumer);
+              visitExpression(String.format("%s/%s", mapKeyFullName, ik.toString()), iv.toString(),
+                  visitor, errorConsumer);
             });
             return;
           }
@@ -213,17 +247,33 @@ public class ExpressionConfigurationHolder implements StellarConfiguredStatement
     });
   }
 
-  private void visitChilden(StatementVisitor visitor,
-      ErrorConsumer errorConsumer) {
-    children.forEach((c) -> c.visit(visitor,errorConsumer));
+  private void visitChilden(StatementVisitor visitor, ErrorConsumer errorConsumer) {
+    children.forEach((c) -> c.visit(visitor, errorConsumer));
   }
 
+  /**
+   * When {@code discover} is called, the {@code ExpressionConfigurationHolder} evaluates it's
+   * members such that it discovers the fields annotated with any of the validation.annotations.
+   * <p>
+   * The annotated objects found are grouped by annotation type.  Any objects annotated as
+   * {@code StellarConfiguration} will have new {@code ExpressionConfigurationHolder} objects
+   * created for them, and these objects will be added as children of this
+   * {@code ExpressionConfigurationHolder}.
+   * </p>
+   * <p>
+   *   Discovery uses the {@code org.apache.commons.lang3.reflect.FieldUtils} classes for finding
+   *   and reading the values of annotated fields.
+   *   This class uses fields as opposed to methods to avoid an possible mutation or side effects
+   *   from the discovery operation.
+   * </p>
+   * The same for the contents of an object annotated as a {@code StellarConfigurationList}.
+   */
   public void discover() throws IllegalAccessException {
     expressionList = FieldUtils
         .getFieldsListWithAnnotation(holderObject.getClass(), StellarExpressionField.class);
     expressionListList = FieldUtils
         .getFieldsListWithAnnotation(holderObject.getClass(), StellarExpressionList.class);
-    expresionMapList = FieldUtils
+    expressionMapList = FieldUtils
         .getFieldsListWithAnnotation(holderObject.getClass(), StellarExpressionMap.class);
     List<Field> holderList = FieldUtils
         .getFieldsListWithAnnotation(holderObject.getClass(), StellarConfiguration.class);
@@ -231,20 +281,22 @@ public class ExpressionConfigurationHolder implements StellarConfiguredStatement
         .getFieldsListWithAnnotation(holderObject.getClass(), StellarConfigurationList.class);
 
     for (Field f : holderList) {
-      Object potentialChild = FieldUtils.readField(f, holderObject,true);
+      Object potentialChild = FieldUtils.readField(f, holderObject, true);
       if (potentialChild == null) {
         break;
       }
-      ExpressionConfigurationHolder child = new ExpressionConfigurationHolder(getFullName(), f.getName(),
-          potentialChild);
+
+      ExpressionConfigurationHolder child = new ExpressionConfigurationHolder(getFullName(),
+          f.getName(), potentialChild);
 
       child.discover();
       children.add(child);
     }
+
     for (Field f : holderListList) {
       String thisFullName = String
           .format("%s/%s", getFullName(), f.getAnnotation(StellarConfigurationList.class).name());
-      Object potentialChild = FieldUtils.readField(f, holderObject,true);
+      Object potentialChild = FieldUtils.readField(f, holderObject, true);
       if (potentialChild == null) {
         break;
       }
@@ -257,8 +309,8 @@ public class ExpressionConfigurationHolder implements StellarConfiguredStatement
         if (thisHolderObject == null) {
           break;
         }
-        ExpressionConfigurationHolder child = new ExpressionConfigurationHolder(thisFullName, String.valueOf(index),
-            thisHolderObject);
+        ExpressionConfigurationHolder child = new ExpressionConfigurationHolder(thisFullName,
+            String.valueOf(index), thisHolderObject);
         index++;
         child.discover();
         children.add(child);

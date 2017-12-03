@@ -44,6 +44,9 @@ import org.apache.zookeeper.KeeperException.NoNodeException;
  */
 public class ConfigurationProvider implements StellarConfigurationProvider {
 
+  /**
+   * Default constructor.
+   */
   public ConfigurationProvider() {
   }
 
@@ -102,7 +105,7 @@ public class ConfigurationProvider implements StellarConfigurationProvider {
         byte[] data = client.getData().forPath(ENRICHMENT.getZookeeperRoot() + "/" + child);
         // Certain parts of the SensorEnrichmentConfig do Stellar Verification on their
         // own as part of deserialization, where the bean spec will call the setter, which has
-        // been wired with stellar verification calls.
+        // been wired with stellar verification calls.  There is no avoiding this.
         //
         // In cases where those parts of the config are in fact the parts that have invalid
         // Stellar statements, we will fail during the JSON load before we get to ANY config
