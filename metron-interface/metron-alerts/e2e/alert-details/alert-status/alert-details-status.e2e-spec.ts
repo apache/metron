@@ -23,24 +23,26 @@ import {loadTestData, deleteTestData} from '../../utils/e2e_util';
 import { MetronAlertsPage } from '../../alerts-list/alerts-list.po';
 import {TreeViewPage} from '../../alerts-list/tree-view/tree-view.po';
 
-describe('metron-alerts alert status', function() {
+describe('Test spec for metron details page', function() {
   let page: MetronAlertDetailsPage;
   let listPage: MetronAlertsPage;
   let treePage: TreeViewPage;
   let loginPage: LoginPage;
 
-  beforeAll(() => {
-    loadTestData();
+  beforeAll(async function() : Promise<any> {
+
     loginPage = new LoginPage();
     listPage = new MetronAlertsPage();
     treePage = new TreeViewPage();
     loginPage.login();
+
+    await loadTestData();
   });
 
-  afterAll(() => {
+  afterAll(async function() : Promise<any> {
     new MetronAlertsPage().navigateTo();
     loginPage.logout();
-    deleteTestData();
+    await deleteTestData();
   });
 
   beforeEach(() => {
@@ -48,39 +50,38 @@ describe('metron-alerts alert status', function() {
     jasmine.addMatchers(customMatchers);
   });
 
-  it('should change alert statuses', () => {
-    let alertId = 'c4c5e418-3938-099e-bb0d-37028a98dca8';
+  it('should change alert statuses', async function() : Promise<any> {
+    let alertId = '2cc174d7-c049-aaf4-d0d6-138073777309';
 
-    page.navigateTo(alertId);
-    page.clickNew();
+    await page.navigateTo(alertId);
     expect(page.getAlertStatus('ANY')).toEqual('NEW');
-    page.clickOpen();
+    await page.clickOpen();
     expect(page.getAlertStatus('NEW')).toEqual('OPEN');
     expect(listPage.getAlertStatusById(alertId)).toEqual('OPEN');
-    page.clickDismiss();
+    await page.clickDismiss();
     expect(page.getAlertStatus('OPEN')).toEqual('DISMISS');
     expect(listPage.getAlertStatusById(alertId)).toEqual('DISMISS');
-    page.clickEscalate();
+    await page.clickEscalate();
     expect(page.getAlertStatus('DISMISS')).toEqual('ESCALATE');
     expect(listPage.getAlertStatusById(alertId)).toEqual('ESCALATE');
-    page.clickResolve();
+    await page.clickResolve();
     expect(page.getAlertStatus('ESCALATE')).toEqual('RESOLVE');
     expect(listPage.getAlertStatusById(alertId)).toEqual('RESOLVE');
-    page.clickNew();
+    await page.clickNew();
   });
 
-  it('should add comments for table view', () => {
+  it('should add comments for table view', async function() : Promise<any> {
     let comment1 = 'This is a sample comment';
     let comment2 = 'This is a sample comment again';
     let userNameAndTimestamp = '- admin - a few seconds ago';
 
-    page.clickCommentsInSideNav();
+    await page.clickCommentsInSideNav();
     page.addCommentAndSave(comment1, 0);
 
     expect(page.getCommentsText()).toEqual([comment1]);
     expect(page.getCommentsUserNameAndTimeStamp()).toEqual([userNameAndTimestamp]);
 
-    page.addCommentAndSave(comment2, 1);
+    await page.addCommentAndSave(comment2, 1);
     expect(page.getCommentsText()).toEqual([comment2, comment1]);
     expect(page.getCommentsUserNameAndTimeStamp()).toEqual([userNameAndTimestamp, userNameAndTimestamp]);
 

@@ -20,8 +20,9 @@ import { MetronAlertsPage } from './alerts-list.po';
 import { customMatchers } from  '../matchers/custom-matchers';
 import { LoginPage } from '../login/login.po';
 import { loadTestData, deleteTestData } from '../utils/e2e_util';
+import {browser} from "protractor/built";
 
-describe('metron-alerts App', function() {
+describe('Test spec for all ui elements & list view', function() {
   let page: MetronAlertsPage;
   let loginPage: LoginPage;
   let columnNames = [ '', 'Score', 'id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichm...:country',
@@ -29,15 +30,16 @@ describe('metron-alerts App', function() {
   let colNamesColumnConfig = [ 'score', 'id', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
                                 'ip_dst_addr', 'host', 'alert_status' ];
 
-  beforeAll(() => {
-    loadTestData();
+  beforeAll(async function() : Promise<any> {
     loginPage = new LoginPage();
     loginPage.login();
+
+    await loadTestData();
   });
 
-  afterAll(() => {
+  afterAll(async function() : Promise<any> {
     loginPage.logout();
-    deleteTestData();
+    await deleteTestData();
   });
 
   beforeEach(() => {
@@ -49,6 +51,8 @@ describe('metron-alerts App', function() {
     page.navigateTo();
     page.clearLocalStorage();
 
+    expect(page.getChangesAlertTableTitle('Alerts (0)')).toEqualBcoz('Alerts (169)', 'for alerts title');
+
     expect(page.isMetronLogoPresent()).toEqualBcoz(true, 'for Metron Logo');
     expect(page.isSavedSearchButtonPresent()).toEqualBcoz(true, 'for SavedSearch Button');
     expect(page.isClearSearchPresent()).toEqualBcoz(true, 'for Clear Search');
@@ -58,81 +62,78 @@ describe('metron-alerts App', function() {
     expect(page.isPausePlayRefreshButtonPresent()).toEqualBcoz(true, 'for pause/play button');
     expect(page.isConfigureTableColumnsPresent()).toEqualBcoz(true, 'for alerts table column configure button');
 
-    expect(page.getChangesAlertTableTitle('Alerts (0)')).toEqualBcoz('Alerts (169)', 'for alerts title');
     expect(page.getActionDropdownItems()).toEqualBcoz([ 'Open', 'Dismiss', 'Escalate', 'Resolve', 'Add to Alert' ],
                                                         'for default dropdown actions');
     expect(page.getTableColumnNames()).toEqualBcoz(columnNames, 'for default column names for alert list table');
   });
 
-  it('should have all pagination controls and they should be working', () => {
+  it('should have all pagination controls and they should be working', async function() : Promise<any> {
+
+    await page.clickSettings();
+    await page.clickPageSize('100');
+
+    expect(page.getChangedPaginationText('1 - 25 of 169')).toEqualBcoz('1 - 100 of 169', 'for pagination text');
     expect(page.isChevronLeftEnabled()).toEqualBcoz(false, 'for left chevron to be disabled for first page');
-    expect(page.getPaginationText()).toEqualBcoz('1 - 25 of 169', 'for pagination text');
     expect(page.isChevronRightEnabled()).toEqualBcoz(true, 'for right chevron to be enabled for first page');
 
-    page.clickChevronRight();
+    await page.clickChevronRight();
+    expect(page.getChangedPaginationText('1 - 100 of 169')).toEqualBcoz('101 - 169 of 169', 'for pagination text');
+    expect(page.isChevronLeftEnabled()).toEqualBcoz(true, 'for left chevron to be disabled for first page');
+    expect(page.isChevronRightEnabled()).toEqualBcoz(false, 'for right chevron to be enabled for first page');
 
-    expect(page.isChevronLeftEnabled()).toEqualBcoz(true, 'for left chevron to be enabled for second page');
-    expect(page.getPaginationText()).toEqualBcoz('26 - 50 of 169', 'for pagination text');
-    expect(page.isChevronRightEnabled()).toEqualBcoz(true, 'for right chevron to be enabled for second page');
+    await page.clickChevronLeft();
+    expect(page.getChangedPaginationText('101 - 169 of 169')).toEqualBcoz('1 - 100 of 169', 'for pagination text');
+    expect(page.isChevronLeftEnabled()).toEqualBcoz(false, 'for left chevron to be disabled for first page');
+    expect(page.isChevronRightEnabled()).toEqualBcoz(true, 'for right chevron to be enabled for first page');
 
-    page.clickChevronRight();
+    await page.clickSettings();
+    await page.clickPageSize('25');
+    expect(page.getChangedPaginationText('1 - 100 of 169')).toEqualBcoz('1 - 25 of 169', 'for pagination text');
 
-    expect(page.isChevronLeftEnabled()).toEqualBcoz(true, 'for left chevron to be enabled for third page');
-    expect(page.getPaginationText()).toEqualBcoz('51 - 75 of 169', 'for pagination text');
-    expect(page.isChevronRightEnabled()).toEqualBcoz(true, 'for right chevron to be enabled for third page');
-
-    page.clickChevronRight(4);
-
-    expect(page.isChevronLeftEnabled()).toEqualBcoz(true, 'for left chevron to be enabled for last page');
-    expect(page.getPaginationText()).toEqualBcoz('151 - 169 of 169', 'for pagination text');
-    expect(page.isChevronRightEnabled()).toEqualBcoz(false, 'for right chevron to be disabled for last page');
-
-    page.clickChevronLeft(7);
-
-    expect(page.isChevronLeftEnabled()).toEqualBcoz(false, 'for left chevron to be disabled for first page again');
-    expect(page.getPaginationText()).toEqualBcoz('1 - 25 of 169', 'for pagination text');
-    expect(page.isChevronRightEnabled()).toEqualBcoz(true, 'for right chevron to be enabled for first page again');
-
+    await page.clickSettings();
   });
 
-  it('should have all settings controls and they should be working', () => {
+  it('should have all settings controls and they should be working', async function() : Promise<any> {
     let settingsPaneLbelNames = [ 'REFRESH RATE', 'ROWS PER PAGE', 'HIDE Resolved Alerts', 'HIDE Dismissed Alerts' ];
     let settingPaneRefreshIntervals = [ '5s', '10s', '15s', '30s', '1m', '10m', '1h' ];
     let settingsPanePageSize = [ '10', '25', '50', '100', '250', '500', '1000' ];
 
-    page.clickSettings();
+    await page.clickSettings();
 
     expect(page.getSettingsLabels()).toEqualBcoz(settingsPaneLbelNames, 'for table settings labels');
 
     expect(page.getRefreshRateOptions()).toEqualBcoz(settingPaneRefreshIntervals, 'for table settings refresh rate labels');
     expect(page.getRefreshRateSelectedOption()).toEqualBcoz([ '1m' ], 'for table settings default refresh rate');
 
-    page.clickRefreshInterval('10s');
+    await  page.clickRefreshInterval('10s');
     expect(page.getRefreshRateSelectedOption()).toEqualBcoz([ '10s' ], 'for refresh interval 10s');
 
-    page.clickRefreshInterval('1h');
+    await page.clickRefreshInterval('1h');
     expect(page.getRefreshRateSelectedOption()).toEqualBcoz([ '1h' ], 'for refresh interval 1h');
 
     expect(page.getPageSizeOptions()).toEqualBcoz(settingsPanePageSize, 'for table settings refresh rate labels');
     expect(page.getPageSizeSelectedOption()).toEqualBcoz([ '25' ], 'for table settings default page size');
 
-    page.clickPageSize('10');
-    expect(page.getPageSizeSelectedOption()).toEqualBcoz([ '10' ], 'for page size 10');
+    await page.clickPageSize('50');
+    expect(page.getPageSizeSelectedOption()).toEqualBcoz([ '50' ], 'for page size 50');
 
-    page.clickPageSize('100');
+    await page.clickPageSize('100');
     expect(page.getPageSizeSelectedOption()).toEqualBcoz([ '100' ], 'for page size 100');
 
-    page.clickSettings();
+    await page.clickPageSize('25');
+    expect(page.getPageSizeSelectedOption()).toEqualBcoz([ '25' ], 'for page size 100');
+
+    await page.clickSettings();
   });
 
-  it('play pause should start polling and stop polling ', () => {
-    expect(page.getPlayPauseState()).toEqual('fa fa-pause', 'for default pause option');
-
-    page.clickPlayPause();
+  it('play pause should start polling and stop polling ', async function() : Promise<any> {
     expect(page.getPlayPauseState()).toEqual('fa fa-play', 'for default pause option');
 
-    page.clickPlayPause();
+    await page.clickPlayPause('fa-pause');
     expect(page.getPlayPauseState()).toEqual('fa fa-pause', 'for default pause option');
+
+    await page.clickPlayPause('fa-play');
+    expect(page.getPlayPauseState()).toEqual('fa fa-play', 'for default pause option');
   });
 
   it('should select columns from table configuration', () => {
@@ -162,44 +163,33 @@ describe('metron-alerts App', function() {
     expect(page.getValueForManualTimeRange()).toEqual([ 'now', 'now' ]);
     expect(page.isManulaTimeRangeApplyButtonPresent()).toEqual(true);
     expect(page.getTimeRangeButtonText()).toEqual('All time');
-    page.clickDateSettings();
+    page.hideDateSettings();
 
   });
 
   it('should have all time range values populated - 1', () => {
     let secInADay = (24 * 60 * 60 * 1000);
 
-    page.clickClearSearch();
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz(['All time'], 'for all-time');
+    page.clickDateSettings();
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 7 days')).toEqualBcoz(['Last 7 days', String(secInADay * 7)], 'for last 7 days');
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('Last 7 days');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz(['Last 7 days', String(secInADay * 7)], 'for last 7 days');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 30 days')).toEqualBcoz(['Last 30 days', String(secInADay * 30)], 'for last 30 days');
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('Last 30 days');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz(['Last 30 days', String(secInADay * 30)], 'for last 30 days');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 60 days')).toEqualBcoz(['Last 60 days', String(secInADay * 60)], 'for last 60 days');
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('Last 60 days');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz(['Last 60 days', String(secInADay * 60)], 'for last 60 days');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 90 days')).toEqualBcoz(['Last 90 days', String(secInADay * 90)], 'for last 90 days');
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('Last 90 days');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz(['Last 90 days', String(secInADay * 90)], 'for last 90 days');
-
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 1 year')).toEqualBcoz(['Last 1 year', String(secInADay * 365)], 'for last 1 year');
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('Last 1 year');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz(['Last 1 year', String(secInADay * 365)], 'for last 1 year');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 2 years')).toEqualBcoz(['Last 2 years', String((secInADay * 365 * 2) + secInADay)], 'for last 2 years');
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('Last 2 years');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz(['Last 2 years', String((secInADay * 365 * 2) + secInADay)], 'for last 2 years');
-
-    page.clickDateSettings();
-    page.selectQuickTimeRange('Last 5 years');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz(['Last 5 years', String((secInADay * 365 * 5) + secInADay)], 'for last 5 years');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 5 years')).toEqualBcoz(['Last 5 years', String((secInADay * 365 * 5) + secInADay)], 'for last 5 years');
 
     page.clickClearSearch();
   });
@@ -208,20 +198,16 @@ describe('metron-alerts App', function() {
     let secInADay = (24*60*60*1000);
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('Yesterday');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz([ 'Yesterday', String(secInADay - 1000)], 'yesterday');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Yesterday')).toEqualBcoz([ 'Yesterday', String(secInADay - 1000)], 'yesterday');
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('Day before yesterday');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz([ 'Day before yesterday', String(secInADay - 1000)], 'day before yesterday');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Day before yesterday')).toEqualBcoz([ 'Day before yesterday', String(secInADay - 1000)], 'day before yesterday');
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('This day last week');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz([ 'This day last week', String(secInADay - 1000)], 'this day last week');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('This day last week')).toEqualBcoz([ 'This day last week', String(secInADay - 1000)], 'this day last week');
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('Previous week');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz([ 'Previous week', String((secInADay * 7) - (1000))], 'for previous week');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Previous week')).toEqualBcoz([ 'Previous week', String((secInADay * 7) - (1000))], 'for previous week');
 
     page.clickClearSearch();
   });
@@ -230,12 +216,10 @@ describe('metron-alerts App', function() {
     let secInADay = (24*60*60*1000);
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('Today');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz([ 'Today', String(secInADay - 1000)], 'for today');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Today')).toEqualBcoz([ 'Today', String(secInADay - 1000)], 'for today');
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('This week');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz([ 'This week', String((secInADay*7) - 1000)], 'for this week');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('This week')).toEqualBcoz([ 'This week', String((secInADay*7) - 1000)], 'for this week');
 
     page.clickClearSearch();
   });
@@ -244,51 +228,47 @@ describe('metron-alerts App', function() {
     let secInADay = (24*60*60*1000);
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('Last 5 minutes');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz([ 'Last 5 minutes', String(5 * 60 * 1000)], 'for last 5 minutes');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 5 minutes')).toEqualBcoz([ 'Last 5 minutes', String(5 * 60 * 1000)], 'for last 5 minutes');
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('Last 15 minutes');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz([ 'Last 15 minutes', String(15 * 60 * 1000)], 'for last 15 minutes');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 15 minutes')).toEqualBcoz([ 'Last 15 minutes', String(15 * 60 * 1000)], 'for last 15 minutes');
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('Last 30 minutes');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz([ 'Last 30 minutes', String(30 * 60 * 1000)], 'for last 30 minutes');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 30 minutes')).toEqualBcoz([ 'Last 30 minutes', String(30 * 60 * 1000)], 'for last 30 minutes');
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('Last 1 hour');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz([ 'Last 1 hour', String(60 * 60 * 1000)], 'for last 1 hour');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 1 hour')).toEqualBcoz([ 'Last 1 hour', String(60 * 60 * 1000)], 'for last 1 hour');
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('Last 3 hours');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz([ 'Last 3 hours', String(3 * 60 * 60 * 1000)], 'for last 3 hours');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 3 hours')).toEqualBcoz([ 'Last 3 hours', String(3 * 60 * 60 * 1000)], 'for last 3 hours');
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('Last 6 hours');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz([ 'Last 6 hours', String(6 * 60 * 60 * 1000)], 'for last 6 hours');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 6 hours')).toEqualBcoz([ 'Last 6 hours', String(6 * 60 * 60 * 1000)], 'for last 6 hours');
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('Last 12 hours');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz([ 'Last 12 hours', String(12 * 60 * 60 * 1000)], 'for last 12 hours');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 12 hours')).toEqualBcoz([ 'Last 12 hours', String(12 * 60 * 60 * 1000)], 'for last 12 hours');
 
     page.clickDateSettings();
-    page.selectQuickTimeRange('Last 24 hours');
-    expect(page.getTimeRangeButtonAndSubText()).toEqualBcoz([ 'Last 24 hours', String(24 * 60 * 60 * 1000)], 'for last 24 hours');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeAndTimeText('Last 24 hours')).toEqualBcoz([ 'Last 24 hours', String(24 * 60 * 60 * 1000)], 'for last 24 hours');
 
     page.clickClearSearch();
   });
 
   it('should disable date picker when timestamp is present in search', () => {
-    page.clickTableText('2017-09-13 18:02:20');
+    page.setSearchText('timestamp:1505325740512');
+    expect(page.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (1)');
     expect(page.isDateSeettingDisabled()).toEqual(true);
 
     page.clickClearSearch();
+    expect(page.getChangesAlertTableTitle('Alerts (1)')).toEqual('Alerts (169)');
     expect(page.isDateSeettingDisabled()).toEqual(false);
 
-    page.clickTableText('alerts_ui_e2e');
+    expect(page.clickTableTextAndGetSearchText('FR', 'enrichments:geo:ip_dst_addr:country:FR')).toEqual('enrichments:geo:ip_dst_addr:country:FR');
+    expect(page.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (25)');
     expect(page.isDateSeettingDisabled()).toEqual(false);
 
     page.clickClearSearch();
+    expect(page.getChangesAlertTableTitle('Alerts (25)')).toEqual('Alerts (169)');
   });
 
   it('should have now included when to date is empty', () => {
@@ -308,8 +288,7 @@ describe('metron-alerts App', function() {
     page.clickDateSettings();
 
     /* Select Last 5years for time range */
-    page.selectQuickTimeRange('Last 5 years');
-    expect(page.getTimeRangeButtonText()).toEqual('Last 5 years');
+    expect(page.selectQuickTimeRangeAndGetTimeRangeText('Last 5 years')).toEqual('Last 5 years');
 
     /* Select custom date for time range */
     page.clickDateSettings();

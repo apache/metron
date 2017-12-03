@@ -18,9 +18,14 @@
 
 import {browser, element, by, protractor} from 'protractor';
 import * as moment from 'moment/moment';
-import {waitForElementVisibility, waitForElementPresence, waitForElementInVisibility} from '../utils/e2e_util';
+import {
+  waitForElementVisibility, waitForElementPresence, waitForElementInVisibility,
+  waitForText, waitForCssClass, waitForCssClassNotToBePresent, waitForTextChange, waitForStalenessOf
+} from '../utils/e2e_util';
 
 export class MetronAlertsPage {
+  private EC = protractor.ExpectedConditions;
+
   navigateTo() {
     browser.waitForAngularEnabled(false);
     return browser.get('/alerts-list');
@@ -91,6 +96,12 @@ export class MetronAlertsPage {
     return element.all(by.css('app-alerts-list .table th')).getText();
   }
 
+  getChangedPaginationText(previousText: string) {
+    let paginationElement = element(by.css('metron-table-pagination span'));
+    return waitForTextChange(paginationElement, previousText)
+    .then(() => paginationElement.getText());
+  }
+
   getPaginationText() {
     return element(by.css('metron-table-pagination span')).getText();
   }
@@ -107,16 +118,18 @@ export class MetronAlertsPage {
     });
   }
 
-  clickChevronRight(times = 1) {
-    for (let i = 0; i < times; i++) {
-      element(by.css('metron-table-pagination .fa.fa-chevron-right')).click();
-    }
+  clickChevronRight() {
+    let paginationEle = element(by.css('metron-table-pagination .fa.fa-chevron-right'));
+    return waitForElementVisibility(paginationEle)
+    .then(() => browser.actions().mouseMove(paginationEle).perform())
+    .then(() => paginationEle.click())
   }
 
   clickChevronLeft(times = 1) {
-    for (let i = 0; i < times; i++) {
-      element(by.css('metron-table-pagination .fa.fa-chevron-left')).click();
-    }
+    let paginationEle = element(by.css('metron-table-pagination .fa.fa-chevron-left'));
+    return waitForElementVisibility(paginationEle)
+    .then(() => browser.actions().mouseMove(paginationEle).perform())
+    .then(() => paginationEle.click());
   }
 
   clickSettings() {
@@ -159,25 +172,39 @@ export class MetronAlertsPage {
   }
 
   clickCloseSavedSearch() {
-    element(by.css('app-saved-searches .close-button')).click();
-    browser.sleep(2000);
+    return element(by.css('app-saved-searches .close-button')).click()
+    .then(() => waitForStalenessOf(element(by.css('app-saved-searches'))));
   }
 
   clickSavedSearch() {
-    element(by.buttonText('Searches')).click();
-    browser.sleep(1000);
+    return element(by.buttonText('Searches')).click()
+    .then(() => waitForElementVisibility(element(by.css('app-saved-searches'))))
+    .then(() => browser.sleep(1000));
   }
 
-  clickPlayPause() {
-    element(by.css('.btn.pause-play')).click();
+  clickPlayPause(waitForPreviousClass: string) {
+    let playPauseButton = element(by.css('.btn.pause-play'));
+    return browser.actions().mouseMove(playPauseButton).perform()
+          .then(() => playPauseButton.click())
+          .then(() => waitForCssClass(element(by.css('.btn.pause-play i')), waitForPreviousClass));
   }
 
-  clickTableText(name: string) {
-    waitForElementPresence(element.all(by.linkText(name))).then(() => element.all(by.linkText(name)).get(0).click());
+  clickTableTextAndGetSearchText(name: string, textToWaitFor: string) {
+    browser.sleep(500);
+    return waitForElementVisibility(element.all(by.cssContainingText('table tr td a', name)).get(0))
+          .then(() => element.all(by.cssContainingText('table tr td a', name)).get(0).click())
+          .then(() => waitForText('.ace_line', textToWaitFor))
+          .then(() => element(by.css('.ace_line')).getText())
   }
 
-  clickClearSearch() {
-    element(by.css('.btn-search-clear')).click();
+  private clickTableText(name: string) {
+    waitForElementVisibility(element.all(by.linkText(name))).then(() => element.all(by.linkText(name)).get(0).click());
+  }
+
+  clickClearSearch(alertCount = '169') {
+    element(by.css('.btn-search-clear')).click()
+    .then(() => waitForText('.ace_line', '*'))
+    .then(() => waitForText('.col-form-label-lg', `Alerts (${alertCount})`));
   }
 
   getSavedSearchTitle() {
@@ -197,22 +224,18 @@ export class MetronAlertsPage {
   }
 
   getRecentSearchOptions() {
-    browser.sleep(1000);
     return element(by.linkText('Recent Searches')).element(by.xpath('..')).all(by.css('li')).getText();
   }
 
   getDefaultRecentSearchValue() {
-    browser.sleep(1000);
     return element(by.linkText('Recent Searches')).element(by.xpath('..')).all(by.css('i')).getText();
   }
 
   getSavedSearchOptions() {
-    browser.sleep(1000);
     return element(by.linkText('Saved Searches')).element(by.xpath('..')).all(by.css('li')).getText();
   }
 
   getDefaultSavedSearchValue() {
-    browser.sleep(1000);
     return element(by.linkText('Saved Searches')).element(by.xpath('..')).all(by.css('i')).getText();
   }
 
@@ -238,25 +261,30 @@ export class MetronAlertsPage {
     element(by.css('app-configure-table')).element(by.buttonText('SAVE')).click();
   }
 
-  clickRemoveSearchChip() {
+  clickRemoveSearchChipAndGetSearchText(expectedSearchText: string) {
+    return this.clickRemoveSearchChip()
+    .then(() => waitForText('.ace_line', expectedSearchText))
+    .then(() => element(by.css('.ace_line')).getText())
+  }
+
+  private clickRemoveSearchChip(): any {
     let aceLine = element.all(by.css('.ace_keyword')).get(0);
     /* - Focus on the search text box by sending a empty string
        - move the mouse to the text in search bos so that delete buttons become visible
        - wait for delete buttons become visible
        - click on delete button
     */
-    element(by.css('app-alerts-list .ace_text-input')).sendKeys('')
+    return element(by.css('app-alerts-list .ace_text-input')).sendKeys('')
     .then(() => browser.actions().mouseMove(aceLine).perform())
     .then(() => this.waitForElementPresence(element(by.css('.ace_value i'))))
     .then(() => element.all(by.css('.ace_value i')).get(0).click());
   }
 
-  setSearchText(search: string) {
-    this.clickClearSearch();
+  setSearchText(search: string,  alertCount = '169') {
+    this.clickClearSearch(alertCount);
     element(by.css('app-alerts-list .ace_text-input')).sendKeys(protractor.Key.BACK_SPACE);
     element(by.css('app-alerts-list .ace_text-input')).sendKeys(search);
     element(by.css('app-alerts-list .ace_text-input')).sendKeys(protractor.Key.ENTER);
-    browser.sleep(2000);
   }
 
   waitForElementPresence (element ) {
@@ -288,7 +316,7 @@ export class MetronAlertsPage {
   }
 
   waitForMetaAlert() {
-    browser.sleep(2000);
+    browser.sleep(3000);
     return element(by.css('button[data-name="search"]')).click()
     .then(() => waitForElementPresence(element(by.css('.icon-cell.dropdown-cell'))));
   }
@@ -298,8 +326,14 @@ export class MetronAlertsPage {
   }
 
   clickDateSettings() {
-    element(by.css('app-time-range button.btn-search')).click();
-    browser.sleep(2000);
+    element(by.css('app-time-range button.btn-search')).click()
+    .then(() => waitForCssClass(element(by.css('app-time-range #time-range')), 'show'));
+  }
+
+  hideDateSettings() {
+    element(by.css('app-time-range button.btn-search')).click()
+    .then(() => waitForCssClassNotToBePresent(element(by.css('app-time-range #time-range')), 'show'))
+    .then(() => waitForElementInVisibility(element(by.css('app-time-range #time-range'))));
   }
 
   getTimeRangeTitles() {
@@ -318,13 +352,35 @@ export class MetronAlertsPage {
     return element.all(by.css('app-time-range')).all(by.buttonText('APPLY')).count().then(count => count === 1);
   }
 
+  waitForTextAndSubTextInTimeRange(currentTimeRangeVal) {
+    return waitForTextChange(element(by.css('app-time-range .time-range-value')), currentTimeRangeVal[1])
+    .then(() => waitForTextChange(element(by.css('app-time-range .time-range-text')), currentTimeRangeVal[0]))
+  }
+
+  selectQuickTimeRangeAndGetTimeRangeAndTimeText(quickRange: string) {
+    let currentTimeRangeVal: any = [];
+    return element.all(by.css('app-time-range button span')).getText()
+          .then(text => currentTimeRangeVal = text)
+          .then(() => this.selectQuickTimeRange(quickRange))
+          .then(() => waitForCssClassNotToBePresent(element(by.css('app-time-range #time-range')), 'show'))
+          .then(() => waitForTextChange(element(by.css('app-time-range .time-range-value')), currentTimeRangeVal[1]))
+          .then(() => waitForTextChange(element(by.css('app-time-range .time-range-text')), currentTimeRangeVal[0]))
+          .then(() => this.getTimeRangeButtonAndSubText());
+  }
+
+  selectQuickTimeRangeAndGetTimeRangeText(quickRange: string) {
+    return this.selectQuickTimeRange(quickRange)
+    .then(() => waitForElementInVisibility(element(by.css('#time-range'))))
+    .then(() => browser.wait(this.EC.textToBePresentInElement(element(by.css('app-time-range .time-range-text')), quickRange)))
+    .then(() => element.all(by.css('app-time-range button span')).get(0).getText());
+  }
+
   selectQuickTimeRange(quickRange: string) {
-    element.all(by.cssContainingText('.quick-ranges span', quickRange)).get(0).click();
-    browser.sleep(2000);
+    return element.all(by.cssContainingText('.quick-ranges span', quickRange)).get(0).click();
   }
 
   getTimeRangeButtonText() {
-    return element.all(by.css('app-time-range button.btn-search span')).get(0).getText();
+    return element(by.css('app-time-range .time-range-text')).getText();
   }
 
   setDate(index: number, year: string, month: string, day: string, hour: string, min: string, sec: string) {
@@ -350,9 +406,8 @@ export class MetronAlertsPage {
   }
 
   getChangesAlertTableTitle(previousText: string) {
-    // browser.pause();
     let title = element(by.css('.col-form-label-lg'));
-    return this.waitForTextChange(title, previousText).then(() => {
+    return waitForTextChange(title, previousText).then(() => {
       return title.getText();
     });
   }
@@ -411,17 +466,19 @@ export class MetronAlertsPage {
   }
 
   getTimeRangeButtonAndSubText() {
-    return waitForElementInVisibility(element(by.css('#time-range')))
-    .then(() => element.all(by.css('app-time-range button span')).getText())
-    .then(arr => {
-        let retArr = [arr[0]];
-        for (let i=1; i < arr.length; i++) {
-          let dateStr = arr[i].split(' to ');
-          let fromTime = moment.utc(dateStr[0], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
-          let toTime = moment.utc(dateStr[1], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
-          retArr.push((toTime - fromTime) + '');
-        }
-        return retArr;
+    let timeRangetext = '', timeRangeValue = '';
+    browser.sleep(500);
+    return element(by.css('app-time-range .time-range-text')).getText()
+    .then(text => timeRangetext = text)
+    .then(() => element(by.css('app-time-range .time-range-value')).getText())
+    .then(text => timeRangeValue = text)
+    .then(() => {
+      let retArr = [timeRangetext];
+      let dateStr = timeRangeValue.split(' to ');
+      let fromTime = moment.utc(dateStr[0], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
+      let toTime = moment.utc(dateStr[1], 'YYYY-MM-DD HH:mm:ss Z').unix() * 1000;
+      retArr.push((toTime - fromTime) + '');
+      return retArr;
     });
   }
 

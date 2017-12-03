@@ -22,20 +22,21 @@ import {LoginPage} from '../../login/login.po';
 import {loadTestData, deleteTestData} from '../../utils/e2e_util';
 import {TreeViewPage} from '../tree-view/tree-view.po';
 
-describe('metron-alerts alert status', function() {
+describe('Test spec for changing alert status in list view & tree view', function() {
   let page: MetronAlertsPage;
   let treePage: TreeViewPage;
   let loginPage: LoginPage;
 
-  beforeAll(() => {
-    loadTestData();
+  beforeAll(async function() : Promise<any> {
     loginPage = new LoginPage();
     loginPage.login();
+
+    await loadTestData();
   });
 
-  afterAll(() => {
+  afterAll(async function() : Promise<any> {
     loginPage.logout();
-    deleteTestData();
+    await deleteTestData();
   });
 
   beforeEach(() => {

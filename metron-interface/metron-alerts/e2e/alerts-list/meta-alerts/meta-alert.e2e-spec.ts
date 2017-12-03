@@ -19,13 +19,13 @@
 import { MetronAlertsPage } from '../alerts-list.po';
 import {customMatchers} from '../../matchers/custom-matchers';
 import {LoginPage} from '../../login/login.po';
-import {loadTestData, deleteTestData} from '../../utils/e2e_util';
+import {loadTestData, deleteTestData, createMetaAlertsIndex} from '../../utils/e2e_util';
 import {TreeViewPage} from '../tree-view/tree-view.po';
 import {MetronAlertDetailsPage} from '../../alert-details/alert-details.po';
 import {MetaAlertPage} from './meta-alert.po';
 import {AlertFacetsPage} from '../alert-filters/alert-filters.po';
 
-describe('meta-alerts workflow', function() {
+describe('Test spec for meta alerts workflow', function() {
   let detailsPage: MetronAlertDetailsPage;
   let tablePage: MetronAlertsPage;
   let metaAlertPage: MetaAlertPage;
@@ -33,9 +33,7 @@ describe('meta-alerts workflow', function() {
   let loginPage: LoginPage;
   let alertFacetsPage: AlertFacetsPage;
 
-  beforeAll(() => {
-    loadTestData();
-
+  beforeAll(async function() : Promise<any> {
     loginPage = new LoginPage();
     loginPage.login();
     tablePage = new MetronAlertsPage();
@@ -44,54 +42,56 @@ describe('meta-alerts workflow', function() {
     metaAlertPage = new MetaAlertPage();
     detailsPage = new MetronAlertDetailsPage();
     alertFacetsPage = new AlertFacetsPage();
+
+    await createMetaAlertsIndex();
+    await loadTestData();
   });
 
-  afterAll(() => {
+  afterAll(async function() : Promise<any> {
     loginPage.logout();
-    deleteTestData();
+    await deleteTestData();
   });
 
   beforeEach(() => {
     jasmine.addMatchers(customMatchers);
   });
 
-  it('should have all the steps for meta alerts workflow', () => {
+  it('should have all the steps for meta alerts workflow', async function() : Promise<any> {
     let comment1 = 'This is a sample comment';
     let userNameAndTimestamp = '- admin - a few seconds ago';
-    let confirmText = 'Do you wish to create a meta alert with 113 selected alerts?';
+    let confirmText = 'Do you wish to create a meta alert with 13 selected alerts?';
     let dashRowValues = {
-      'firstDashRow': ['0', '192.168.138.158', 'ALERTS', '113'],
-      'secondDashRow': ['0', '192.168.66.1', 'ALERTS', '56']
+      'firstDashRow': ['0', 'runlove.us', 'ALERTS', '13']
     };
 
     tablePage.navigateTo();
+    expect(tablePage.getChangesAlertTableTitle('Alerts (0)')).toEqual('Alerts (169)');
 
     /* Create Meta Alert */
-    treePage.selectGroup('ip_src_addr');
-    expect(treePage.getDashGroupValues('192.168.138.158')).toEqualBcoz(dashRowValues.firstDashRow, 'First Dashrow to be present');
-    expect(treePage.getDashGroupValues('192.168.66.1')).toEqualBcoz(dashRowValues.secondDashRow, 'Second Dashrow to be present');
+    treePage.selectGroup('host');
+    expect(treePage.getDashGroupValues('runlove.us')).toEqualBcoz(dashRowValues.firstDashRow, 'First Dashrow to be present');
 
-    treePage.clickOnMergeAlerts('192.168.138.158');
+    treePage.clickOnMergeAlerts('runlove.us');
     expect(treePage.getConfirmationText()).toEqualBcoz(confirmText, 'confirmation text to be present');
     treePage.clickNoForConfirmation();
 
-    treePage.clickOnMergeAlerts('192.168.138.158');
-    treePage.clickYesForConfirmation();
+    treePage.clickOnMergeAlerts('runlove.us');
+     treePage.clickYesForConfirmation();
 
-    treePage.waitForElementToDisappear('192.168.138.158');
+    treePage.waitForElementToDisappear('runlove.us');
 
     treePage.unGroup();
 
     /* Table should have all alerts */
     tablePage.waitForMetaAlert();
-    expect(tablePage.getPaginationText()).toEqualBcoz('1 - 25 of 57', 'pagination text to be present');
-    expect(tablePage.getCellValue(0, 2, '(114)')).toContain('(113)', 'number of alerts in a meta alert should be correct');
+    expect(tablePage.getChangedPaginationText('1 - 25 of 169')).toEqualBcoz('1 - 25 of 157', 'pagination text to be present');
+    expect(tablePage.getCellValue(0, 2, '(14)')).toContain('(13)', 'number of alerts in a meta alert should be correct');
     expect(tablePage.getNonHiddenRowCount()).toEqualBcoz(25, '25 rows to be visible');
-    expect(tablePage.getAllRowsCount()).toEqualBcoz(138, '138 rows to be available');
-    expect(tablePage.getHiddenRowCount()).toEqualBcoz(113, '113 rows to be hidden');
+    expect(tablePage.getAllRowsCount()).toEqualBcoz(38, '38 rows to be available');
+    expect(tablePage.getHiddenRowCount()).toEqualBcoz(13, '13 rows to be hidden');
     tablePage.expandMetaAlert(0);
-    expect(tablePage.getNonHiddenRowCount()).toEqualBcoz(138, '138 rows to be visible after group expand');
-    expect(tablePage.getAllRowsCount()).toEqualBcoz(138, '138 rows to be available after group expand');
+    expect(tablePage.getNonHiddenRowCount()).toEqualBcoz(38, '38 rows to be visible after group expand');
+    expect(tablePage.getAllRowsCount()).toEqualBcoz(38, '38 rows to be available after group expand');
     expect(tablePage.getHiddenRowCount()).toEqualBcoz(0, '0 rows to be hidden after group expand');
 
     /* Meta Alert Status Change */
@@ -103,7 +103,7 @@ describe('meta-alerts workflow', function() {
 
     /* Details Edit Should work - add comments - remove comments - multiple alerts */
     tablePage.clickOnMetaAlertRow(0);
-    expect(detailsPage.getAlertDetailsCount()).toEqualBcoz(113, '113 alert details should be present');
+    expect(detailsPage.getAlertDetailsCount()).toEqualBcoz(13, '13 alert details should be present');
     detailsPage.clickRenameMetaAlert();
     detailsPage.renameMetaAlert('e2e-meta-alert');
     detailsPage.cancelRename();
@@ -129,26 +129,26 @@ describe('meta-alerts workflow', function() {
     tablePage.clickActionDropdownOption('Add to Alert');
     expect(metaAlertPage.getPageTitle()).toEqualBcoz('Add to Alert', 'Add Alert Title should be present');
     expect(metaAlertPage.getMetaAlertsTitle()).toEqualBcoz('SELECT OPEN ALERT', 'select open alert title should be present');
-    expect(metaAlertPage.getAvailableMetaAlerts()).toEqualBcoz('e2e-meta-alert (113)', 'Meta alert should be present');
+    expect(metaAlertPage.getAvailableMetaAlerts()).toEqualBcoz('e2e-meta-alert (13)', 'Meta alert should be present');
     metaAlertPage.selectRadio();
     metaAlertPage.addToMetaAlert();
-    expect(tablePage.getCellValue(0, 2, '(113')).toContain('(114)', 'alert count should be incremented');
+    expect(tablePage.getCellValue(0, 2, '(13')).toContain('(14)', 'alert count should be incremented');
 
     /* Remove from alert */
     let removAlertConfirmText = 'Do you wish to remove the alert from the meta alert?';
     tablePage.removeAlert(2);
     expect(treePage.getConfirmationText()).toEqualBcoz(removAlertConfirmText, 'confirmation text to remove alert from meta alert');
-    treePage.clickYesForConfirmation();
-    expect(tablePage.getCellValue(0, 2, '(114')).toContain('(113)', 'alert count should be decremented');
+     treePage.clickYesForConfirmation();
+    expect(tablePage.getCellValue(0, 2, '(14')).toContain('(13)', 'alert count should be decremented');
 
     /* Delete Meta Alert */
     let removeMetaAlertConfirmText = 'Do you wish to remove all the alerts from meta alert?';
     tablePage.removeAlert(0);
     expect(treePage.getConfirmationText()).toEqualBcoz(removeMetaAlertConfirmText, 'confirmation text to remove meta alert');
-    treePage.clickYesForConfirmation();
+     treePage.clickYesForConfirmation();
   });
 
-  it('should create a meta alert from nesting of more than one level', () => {
+  it('should create a meta alert from nesting of more than one level', async function() : Promise<any> {
     let groupByItems = {
       'source:type': '1',
       'ip_dst_addr': '7',
@@ -207,12 +207,12 @@ describe('meta-alerts workflow', function() {
     treePage.expandDashGroup('alerts_ui_e2e');
 
     treePage.clickOnMergeAlertsInTable('alerts_ui_e2e', '224.0.0.251', 0);
-    treePage.clickYesForConfirmation();
+     treePage.clickYesForConfirmation();
 
     treePage.unGroup();
     tablePage.waitForMetaAlert();
 
-    expect(tablePage.getPaginationText()).toEqualBcoz('1 - 25 of 150', 'pagination text to be present');
+    expect(tablePage.getChangedPaginationText('1 - 25 of 169')).toEqualBcoz('1 - 25 of 150', 'pagination text to be present');
 
     // Meta Alert should appear in Filters
     alertFacetsPage.toggleFacetState(4);
@@ -224,12 +224,12 @@ describe('meta-alerts workflow', function() {
         '5 Group By Elements values should be present');
 
 
-    tablePage.setSearchText('guid:c894bbcf-3195-0708-aebe-0574cf0cc1fe');
+    tablePage.setSearchText('guid:c894bbcf-3195-0708-aebe-0574cf0cc1fe', '150');
     expect(tablePage.getChangesAlertTableTitle('Alerts (150)')).toEqual('Alerts (1)');
     tablePage.expandMetaAlert(0);
     expect(tablePage.getAllRowsCount()).toEqual(21);
     tablePage.expandMetaAlert(0);
-    tablePage.clickClearSearch();
+    tablePage.clickClearSearch('150');
     expect(tablePage.getChangesAlertTableTitle('Alerts (1)')).toEqual('Alerts (150)');
 
     // Delete a meta alert from the middle and check the data

@@ -12,8 +12,8 @@
   the specific language governing permissions and limitations under the License.
   -->
 <button class="btn btn-secondary btn-search" [disabled]="disabled" type="button" data-animation="false"  data-toggle="collapse" data-target="#time-range" aria-expanded="false" aria-controls="time-range">
-  <span> {{selectedTimeRangeValue}} </span>
-  <br/> <span style="font-size: 8px;" *ngIf="selectedTimeRangeValue !== 'All time'"> {{fromDateStr}} to {{toDateStr}}</span>
+  <span class="time-range-text"> {{selectedTimeRangeValue}} </span>
+  <br/> <span class="time-range-value"> {{ selectedTimeRangeValue === 'All time' ? '' : fromDateStr +' to ' + toDateStr }}</span>
 </button>
 
 <div #datePicker class="collapse" id="time-range">

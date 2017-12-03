@@ -17,28 +17,28 @@
  */
 import { LoginPage } from './login.po';
 
-describe('login to application', function() {
+describe('Test spec for login page', function() {
     let page: LoginPage;
 
     beforeEach(() => {
         page = new LoginPage();
     });
 
-    it('should display error message for invalid credentials', () => {
-        page.navigateToLogin();
-        page.setUserNameAndPassword('admin', 'admin');
-        page.submitLoginForm();
-        expect(page.getErrorMessage()).toEqual('Login failed for admin');
+    it('should display error message for invalid credentials', async function() : Promise<any> {
+        await page.navigateToLogin();
+        await page.setUserNameAndPassword('admin', 'admin');
+        await page.submitLoginForm();
+        expect(await page.getErrorMessage()).toEqual('Login failed for admin');
     });
 
-    it('should login for valid credentials', () => {
-        page.navigateToLogin();
-        page.setUserNameAndPassword('admin', 'password');
-        page.submitLoginForm();
+    it('should login for valid credentials', async function() : Promise<any> {
+        await page.navigateToLogin();
+        await page.setUserNameAndPassword('admin', 'password');
+        await page.submitLoginForm();
     });
 
-    it('should logout', () => {
-        page.logout();
-        expect(page.getLocation()).toEqual('http://localhost:4200/login');
+    it('should logout', async function() : Promise<any> {
+        await page.logout();
+        expect(await page.getLocation()).toEqual('http://localhost:4200/login');
     });
 });

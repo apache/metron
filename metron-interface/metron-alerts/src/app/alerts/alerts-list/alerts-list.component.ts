@@ -36,7 +36,10 @@ import {AlertSearchDirective} from '../../shared/directives/alert-search.directi
 import {SearchResponse} from '../../model/search-response';
 import {ElasticsearchUtils} from '../../utils/elasticsearch-utils';
 import {Filter} from '../../model/filter';
-import {THREAT_SCORE_FIELD_NAME, TIMESTAMP_FIELD_NAME, ALL_TIME} from '../../utils/constants';
+import {
+  THREAT_SCORE_FIELD_NAME, TIMESTAMP_FIELD_NAME, ALL_TIME,
+  POLLING_DEFAULT_STATE
+} from '../../utils/constants';
 import {TableViewComponent} from './table-view/table-view.component';
 import {Pagination} from '../../model/pagination';
 import {META_ALERTS_SENSOR_TYPE, META_ALERTS_INDEX} from '../../utils/constants';
@@ -59,7 +62,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   colNumberTimerId: number;
   refreshInterval = RefreshInterval.ONE_MIN;
   refreshTimer: Subscription;
-  pauseRefresh = false;
+  pauseRefresh = POLLING_DEFAULT_STATE;
   lastPauseRefreshValue = false;
   isMetaAlertPresentInSelectedAlerts = false;
   timeStampfilterPresent = false;

@@ -21,19 +21,20 @@ import {MetronAlertsPage} from '../alerts-list.po';
 import {LoginPage} from '../../login/login.po';
 import {loadTestData, deleteTestData} from '../../utils/e2e_util';
 
-describe('metron-alerts Search', function() {
+describe('Test spec for search and save search', function() {
   let page: MetronAlertsPage;
   let loginPage: LoginPage;
 
-  beforeAll(() => {
-    loadTestData();
+  beforeAll(async function() : Promise<any> {
     loginPage = new LoginPage();
     loginPage.login();
+
+    await loadTestData();
   });
 
-  afterAll(() => {
+  afterAll(async function() : Promise<any> {
     loginPage.logout();
-    deleteTestData();
+    await deleteTestData();
   });
 
   beforeEach(() => {
@@ -55,42 +56,42 @@ describe('metron-alerts Search', function() {
 
   });
 
-  it('should have all save search controls and they save search should be working', () => {
+  it('should have all save search controls and they save search should be working', async function() : Promise<any> {
     page.saveSearch('e2e-1');
-    page.clickSavedSearch();
+    await page.clickSavedSearch();
     expect(page.getSavedSearchOptions()).toEqualBcoz([ 'e2e-1' ], 'for saved search options e2e-1');
     page.clickCloseSavedSearch();
   });
 
-  it('should populate search items when selected on table', () => {
-    page.clickTableText('US');
-    expect(page.getSearchText()).toEqualBcoz('enrichments:geo:ip_dst_addr:country:US', 'for search text ip_dst_addr_country US');
-    page.clickClearSearch();
-    expect(page.getSearchText()).toEqualBcoz('*', 'for clear search');
-  });
-
   it('should delete search items from search box', () => {
-    page.clickTableText('US');
-    expect(page.getSearchText()).toEqualBcoz('enrichments:geo:ip_dst_addr:country:US', 'for search text ip_dst_addr_country US');
-    page.clickRemoveSearchChip();
-    expect(page.getSearchText()).toEqualBcoz('*', 'for search chip remove');
+    page.clickClearSearch();
+    expect(page.getSearchText()).toEqual('*');
+    expect(page.getChangesAlertTableTitle('')).toEqual('Alerts (169)');
+
+    expect(page.clickTableTextAndGetSearchText('FR', 'enrichments:geo:ip_dst_addr:country:FR')).toEqualBcoz('enrichments:geo:ip_dst_addr:country:FR', 'for search text ip_dst_addr_country FR');
+    expect(page.clickRemoveSearchChipAndGetSearchText('*')).toEqualBcoz('*', 'for search chip remove');
   });
 
   it('should delete first search items from search box having multiple search fields', () => {
-    page.clickTableText('US');
-    page.clickTableText('alerts_ui_e2e');
-    expect(page.getSearchText()).toEqual('enrichments:geo:ip_dst_addr:country:US AND source:type:alerts_ui_e2e', 'for search text US and alerts_ui_e2e');
-    page.clickRemoveSearchChip();
-    expect(page.getSearchText()).toEqual('source:type:alerts_ui_e2e', 'for search text alerts_ui_e2e after US is removed');
-    page.clickRemoveSearchChip();
-    expect(page.getSearchText()).toEqualBcoz('*', 'for search chip remove for two search texts');
+    page.clickClearSearch();
+    expect(page.getSearchText()).toEqual('*');
+    expect(page.getChangesAlertTableTitle('')).toEqual('Alerts (169)');
+
+    expect(page.clickTableTextAndGetSearchText('FR', 'enrichments:geo:ip_dst_addr:country:FR')).toEqual('enrichments:geo:ip_dst_addr:country:FR');
+    expect(page.clickTableTextAndGetSearchText('alerts_ui_e2e', 'enrichments:geo:ip_dst_addr:country:FR AND source:type:alerts_ui_e2e')).toEqual('enrichments:geo:ip_dst_addr:country:FR AND source:type:alerts_ui_e2e');
+
+    expect(page.clickRemoveSearchChipAndGetSearchText('source:type:alerts_ui_e2e')).toEqual('source:type:alerts_ui_e2e');
+    expect(page.clickRemoveSearchChipAndGetSearchText('*')).toEqual('*');
   });
 
   it('manually entering search queries to search box and pressing enter key should search', () => {
     page.setSearchText('enrichments:geo:ip_dst_addr:country:US');
+    expect(page.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (22)');
     expect(page.getPaginationText()).toEqualBcoz('1 - 22 of 22',
                                                 'for pagination text with search text enrichments:geo:ip_dst_addr:country:US');
+
     page.setSearchText('enrichments:geo:ip_dst_addr:country:RU');
+    expect(page.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (44)');
     expect(page.getPaginationText()).toEqualBcoz('1 - 25 of 44',
                                                   'for pagination text with search text enrichments:geo:ip_dst_addr:country:RU as text');
   });

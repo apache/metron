@@ -23,7 +23,7 @@
 var SpecReporter = require('jasmine-spec-reporter').SpecReporter;
 
 exports.config = {
-  allScriptsTimeout: 25000,
+  allScriptsTimeout: 15000,
   specs: [
     './e2e/login/login.e2e-spec.ts',
     './e2e/alerts-list/alerts-list.e2e-spec.ts',
@@ -38,6 +38,7 @@ exports.config = {
   capabilities: {
     'browserName': 'chrome',
     'chromeOptions': {
+      args: [ "--headless", "--disable-gpu", "--window-size=1435,850" ],
       'prefs': {
         'credentials_enable_service': false,
         'profile': { 'password_manager_enabled': false}
@@ -49,8 +50,7 @@ exports.config = {
   framework: 'jasmine',
   jasmineNodeOpts: {
     showColors: true,
-    defaultTimeoutInterval: 50000,
-    print: function() {}
+    defaultTimeoutInterval: 50000
   },
   useAllAngular2AppRoots: true,
   rootElement: 'metron-alerts-root',
@@ -60,19 +60,22 @@ exports.config = {
     });
   },
   onPrepare: function() {
-    var createMetaAlertsIndex =  require('./e2e/utils/e2e_util').createMetaAlertsIndex;
-    createMetaAlertsIndex();
-    jasmine.getEnv().addReporter(new SpecReporter());
-    setTimeout(function() {
-      browser.driver.executeScript(function() {
-        return {
-          width: window.screen.availWidth,
-          height: window.screen.availHeight
-        };
-      }).then(function(result) {
-        browser.driver.manage().window().setSize(result.width, result.height);
-      });
+    var defer = protractor.promise.defer();
+    var cleanMetronUpdateTable = require('./e2e/utils/clean_metron_update_table').cleanMetronUpdateTable;
+    var createMetaAlertsIndex = require('./e2e/utils/e2e_util').createMetaAlertsIndex;
+    var checkNodeVersion = require('./e2e/utils/e2e_util').checkNodeVersion;
+    cleanMetronUpdateTable()
+    .then(function() {
+      jasmine.getEnv().addReporter(new SpecReporter({displayStacktrace: 'specs'}));
+      checkNodeVersion();
+      createMetaAlertsIndex();
+      defer.fulfill();
+    })
+    .catch(function (error) {
+      defer.reject();
     });
+
+    return defer.promise;
   },
   onComplete: function() {
     var createMetaAlertsIndex =  require('./e2e/utils/e2e_util').createMetaAlertsIndex;

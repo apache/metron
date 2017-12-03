@@ -32,15 +32,17 @@ export class LoginPage {
     }
 
     logout() {
-        browser.waitForAngularEnabled(false);
-        element.all(by.css('.alert .close')).click();
-        element.all(by.css('.logout-link')).click();
-        waitForURL('http://localhost:4200/login');
+        return browser.waitForAngularEnabled(false)
+        .then(() => element.all(by.css('.alert .close')).click())
+        .then(() => element.all(by.css('.logout-link')).click())
+        .then(() => waitForURL('http://localhost:4200/login'));
     }
 
     setUserNameAndPassword(userName: string, password: string) {
-        element.all(by.css('input.form-control')).get(0).sendKeys(userName);
-        element.all(by.css('input.form-control')).get(1).sendKeys(password);
+        return waitForElementVisibility(element(by.css('[name=user]')))
+        .then(() => waitForElementVisibility(element(by.css('[name=password]'))))
+        .then(() => element(by.css('[name=user]')).sendKeys(userName))
+        .then(() => element(by.css('[name=password]')).sendKeys(password));
     }
 
     submitLoginForm() {
@@ -48,12 +50,13 @@ export class LoginPage {
     }
 
     getErrorMessage() {
-        browser.waitForAngularEnabled(false);
         let errElement = element(by.css('.login-failed-msg'));
-        return waitForElementVisibility(errElement).then(() => {
-            browser.sleep(1000);
-            return errElement.getText().then((message) => {
-                return message.replace(/\n/, '').replace(/LOG\ IN$/, '');
+        return browser.waitForAngularEnabled(false)
+                .then(() => waitForElementVisibility(errElement))
+                .then(() => {
+                        browser.sleep(1000);
+                    return errElement.getText().then((message) => {
+                        return message.replace(/\n/, '').replace(/LOG\ IN$/, '');
             });
         });
     }
