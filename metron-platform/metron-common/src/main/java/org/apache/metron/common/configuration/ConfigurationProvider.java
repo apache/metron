@@ -19,23 +19,16 @@ import static org.apache.metron.common.configuration.ConfigurationType.ENRICHMEN
 import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
 import static org.apache.metron.common.configuration.ConfigurationType.PROFILER;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriageConfig;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
-import org.apache.metron.common.configuration.profiler.ProfileResult;
-import org.apache.metron.common.configuration.profiler.ProfileResultExpressions;
-import org.apache.metron.common.configuration.profiler.ProfileTriageExpressions;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
-import org.apache.metron.common.field.transformation.StellarTransformation;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.stellar.common.utils.validation.ExpressionConfigurationHolder;
 import org.apache.metron.stellar.common.utils.validation.StellarConfigurationProvider;
-import org.apache.metron.stellar.common.utils.validation.StellarConfiguredStatementVisitor.ErrorConsumer;
+import org.apache.metron.stellar.common.utils.validation.StellarConfiguredStatementContainer.ErrorConsumer;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 
 /**

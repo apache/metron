@@ -22,7 +22,7 @@ package org.apache.metron.stellar.common.utils.validation;
  * StellarConfiguredStatementProviders are used provide stellar statements
  * and the context around those statements to the caller
  */
-public interface StellarConfiguredStatementVisitor {
+public interface StellarConfiguredStatementContainer {
 
   public interface StatementVisitor {
     void visit(String path, String statement);
@@ -33,5 +33,6 @@ public interface StellarConfiguredStatementVisitor {
   }
 
   void visit(StatementVisitor visitor, ErrorConsumer errorConsumer) throws Exception;
+  void discover() throws Exception;
 
 }

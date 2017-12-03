@@ -52,7 +52,7 @@ import org.apache.metron.stellar.common.utils.validation.annotations.StellarExpr
  * treated as children of this class.
  * </p>
  */
-public class ExpressionConfigurationHolder implements StellarConfiguredStatementVisitor {
+public class ExpressionConfigurationHolder implements StellarConfiguredStatementContainer {
 
   private Object holderObject;
   private String name;
@@ -173,6 +173,7 @@ public class ExpressionConfigurationHolder implements StellarConfiguredStatement
         for (Object expressionObject : it) {
           String expressionFullName = String.format("%s/%s", thisFullName, index);
           visitExpression(expressionFullName, expressionObject.toString(), visitor, errorConsumer);
+          index++;
         }
       } catch (IllegalAccessException e) {
         errorConsumer.consume(thisFullName, e);
@@ -217,17 +218,18 @@ public class ExpressionConfigurationHolder implements StellarConfiguredStatement
             if (innerObject == null) {
               return;
             }
-            fullName = String.format("%s/%s", fullName, key);
+            thisFullName = String.format("%s/%s", thisFullName, key);
             if (!Map.class.isAssignableFrom(innerObject.getClass())) {
-              errorConsumer.consume(fullName,
+              errorConsumer.consume(thisFullName,
                   new Exception("The annotation specified an inner map that was not a map"));
             }
             map = (Map) innerObject;
           }
         }
 
+        final String finalName = thisFullName;
         map.forEach((k, v) -> {
-          String mapKeyFullName = String.format("%s/%s", thisFullName, k.toString());
+          String mapKeyFullName = String.format("%s/%s", finalName, k.toString());
           if (Map.class.isAssignableFrom(v.getClass())) {
             Map innerMap = (Map) v;
             innerMap.forEach((ik, iv) -> {
@@ -268,7 +270,8 @@ public class ExpressionConfigurationHolder implements StellarConfiguredStatement
    * </p>
    * The same for the contents of an object annotated as a {@code StellarConfigurationList}.
    */
-  public void discover() throws IllegalAccessException {
+  @Override
+  public void discover() throws Exception {
     expressionList = FieldUtils
         .getFieldsListWithAnnotation(holderObject.getClass(), StellarExpressionField.class);
     expressionListList = FieldUtils

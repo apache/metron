@@ -20,7 +20,7 @@ package org.apache.metron.stellar.common.utils.validation;
 
 import java.util.List;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.metron.stellar.common.utils.validation.StellarConfiguredStatementVisitor.ErrorConsumer;
+import org.apache.metron.stellar.common.utils.validation.StellarConfiguredStatementContainer.ErrorConsumer;
 import org.atteo.classindex.IndexSubclasses;
 
 /**
