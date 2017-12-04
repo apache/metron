@@ -47,24 +47,17 @@ before_install:
   - if [ -f ${DOCKER_METRON_CENTOS} ]; then gunzip -c ${DOCKER_METRON_CENTOS} | docker load; else docker build metron-contrib/metron-docker-e2e/compose/metron-centos/ -t "metron-centos"; fi
 
 install:
-  #- time mvn -q -T 2C -DskipTests clean install --projects=metron-platform/metron-common,metron-platform/metron-parsers,metron-platform/metron-elasticsearch,metron-platform/metron-enrichment,metron-platform/metron-indexing,metron-platform/metron-data-management,metron-interface/metron-rest,metron-interface/metron-config,metron-interface/metron-alerts,metron-contrib/metron-docker,metron-contrib/metron-docker-e2e
   - time mvn -q -T 2C -DskipTests clean install
-  #- mvn clean install -DskipTests --projects=metron-interface/metron-alerts,metron-interface/metron-config,metron-contrib/metron-docker-e2e
   - cd $E2E_COMPOSE_HOME && docker-compose up -d
   - if [ ! -f ${DOCKER_METRON_CENTOS} ]; then ls -la $DOCKER_METRON_CENTOS; fi
   - if [ ! -f ${DOCKER_METRON_CENTOS} ]; then docker save metron-centos | gzip > ${DOCKER_METRON_CENTOS}; fi
-#  - time mvn -q -T 2C -DskipTests clean install
 
 script:
-#  - mvn -v
    - cd ../../../
-   #- mvn clean install -DskipTests --projects=metron-interface/metron-alerts
+   - echo $TRAVIS_BUILD_DIR
    - metron-interface/metron-rest/src/main/scripts/wait_for_rest.sh localhost 8082
    - cd $E2E_COMPOSE_HOME && docker-compose logs metron-rest && cd ../../../
-   - curl -XGET localhost:9200/_cat/indices?v
-   - curl -XGET http://user:password@localhost:8082/api/v1/global/config
    - mvn test -Pe2e --projects=metron-interface/metron-alerts
-   - cd $E2E_COMPOSE_HOME && docker-compose run metron-rest
 #  - time mvn -q -T 2C surefire:test@unit-tests && time mvn -q surefire:test@integration-tests && time mvn -q test --projects metron-interface/metron-config && time build_utils/verify_licenses.sh
 
 before_cache:
@@ -77,7 +70,5 @@ cache:
   - $HOME/.npm-prefix
   - metron-interface/metron-config/node_modules
   - $HOME/.m2
-  #- $HOME/.npm
+  - $HOME/.npm
   - $DOCKER_CACHE
-  #- metron-contrib/metron-docker-e2e/compose/metron-rest/packages
-  #- metron-contrib/metron-docker-e2e/compose/metron-ui/packages
