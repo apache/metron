@@ -28,12 +28,6 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     ports:
       - "9092:9092"
-#  hbase:
-#    image: harisekhon/hbase:1.1
-#    ports:
-#      - "16010:16010"
-#    volumes:
-#      - "/hbase"
   elasticsearch:
     image: elasticsearch:2.3
     ports:
@@ -46,8 +40,6 @@ services:
         METRON_VERSION: $METRON_VERSION
     ports:
       - "8082:8082"
-#    volumes_from:
-#      - hbase
     depends_on:
       - kafka
       - zookeeper
