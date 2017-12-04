@@ -59,7 +59,7 @@ script:
 #  - mvn -v
    - cd ../../../
    #- mvn clean install -DskipTests --projects=metron-interface/metron-alerts
-   - metron-contrib/metron-docker/scripts/wait-for-it.sh localhost:8082 -t 60
+   - metron-interface/metron-rest/src/main/scripts/wait_for_rest.sh localhost 8082
    - curl -XGET localhost:9200/_cat/indices?v
    - curl -XGET http://user:password@localhost:8082/api/v1/global/config
    - mvn test -Pe2e --projects=metron-interface/metron-alerts
