@@ -47,7 +47,7 @@ describe('metron-alerts configure table', function() {
     let newColNamesColumnConfig = [ 'score', 'timestamp', 'source:type', 'ip_src_addr', 'enrichments:geo:ip_dst_addr:country',
       'ip_dst_addr', 'host', 'alert_status', 'guid' ];
 
-    page.clearLocalStorage();
+    //page.clearLocalStorage();
     page.navigateTo();
 
     page.clickConfigureTable();
@@ -58,26 +58,26 @@ describe('metron-alerts configure table', function() {
     page.saveConfigureColumns();
   });
 
-  it('should rename columns from table configuration', () => {
-    page.clearLocalStorage();
-    page.navigateTo();
-
-    page.clickConfigureTable();
-    page.renameColumn('enrichments:geo:ip_dst_addr:country', 'Country');
-    page.saveConfigureColumns();
-
-    page.clickTableText('FR');
-    expect(page.getSearchText()).toEqual('Country:FR');
-    expect(page.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (25)');
-    page.clickClearSearch();
-
-    expect(page.getChangesAlertTableTitle('Alerts (25)')).toEqual('Alerts (169)');
-    page.setSearchText('Country:FR');
-    expect(page.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (25)');
-    page.clickClearSearch();
-
-    expect(page.getTableColumnNames()).toContain('Country', 'for renamed column names for alert list table');
-
-  });
+  // it('should rename columns from table configuration', () => {
+  //   page.clearLocalStorage();
+  //   page.navigateTo();
+  //
+  //   page.clickConfigureTable();
+  //   page.renameColumn('enrichments:geo:ip_dst_addr:country', 'Country');
+  //   page.saveConfigureColumns();
+  //
+  //   page.clickTableText('FR');
+  //   expect(page.getSearchText()).toEqual('Country:FR');
+  //   expect(page.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (25)');
+  //   page.clickClearSearch();
+  //
+  //   expect(page.getChangesAlertTableTitle('Alerts (25)')).toEqual('Alerts (169)');
+  //   page.setSearchText('Country:FR');
+  //   expect(page.getChangesAlertTableTitle('Alerts (169)')).toEqual('Alerts (25)');
+  //   page.clickClearSearch();
+  //
+  //   expect(page.getTableColumnNames()).toContain('Country', 'for renamed column names for alert list table');
+  //
+  // });
 
 });

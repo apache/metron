@@ -97,10 +97,10 @@ export function deleteTestData() {
 export function createMetaAlertsIndex() {
   deleteMetaAlertsIndex();
   fs.createReadStream('./../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/metaalert_index.template')
-  .pipe(request.post('http://node1:9200/metaalert_index'));
+  .pipe(request.post('http://' + host + ':9200/metaalert_index'));
 }
 
 export function deleteMetaAlertsIndex() {
-  request.delete('http://node1:9200/metaalert_index*');
+  request.delete('http://' + host + ':9200/metaalert_index*');
 }
 
