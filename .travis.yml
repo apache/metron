@@ -26,6 +26,9 @@ env:
     - DOCKER_CACHE=~/docker-cache
     - DOCKER_METRON_CENTOS=$DOCKER_CACHE/metron_centos.tar.gz
     - DOCKER_KAFKA=$DOCKER_CACHE/kafka.tar.gz
+    - DOCKER_ZOOKEEPER=$DOCKER_CACHE/zookeeper.tar.gz
+    - DOCKER_ELASTICSEARCH=$DOCKER_CACHE/elasticsearch.tar.gz
+    - DOCKER_NODE=$DOCKER_CACHE/node.tar.gz
     - E2E_COMPOSE_HOME=metron-contrib/metron-docker-e2e/compose
     - DOCKER_COMPOSE_VERSION=1.8.0
 
@@ -45,12 +48,19 @@ before_install:
   - npm config set cache $HOME/.npm-cache --global
   - npm config set prefix $HOME/.npm-prefix --global
   - if [ -f ${DOCKER_METRON_CENTOS} ]; then gunzip -c ${DOCKER_METRON_CENTOS} | docker load; else docker build metron-contrib/metron-docker-e2e/compose/metron-centos/ -t "metron-centos"; fi
+  - if [ -f ${DOCKER_KAFKA} ]; then gunzip -c ${DOCKER_KAFKA} | docker load; fi
+  - if [ -f ${DOCKER_ZOOKEEPER} ]; then gunzip -c ${DOCKER_ZOOKEEPER} | docker load; fi
+  - if [ -f ${DOCKER_ELASTICSEARCH} ]; then gunzip -c ${DOCKER_ELASTICSEARCH} | docker load; fi
+  - if [ -f ${DOCKER_NODE} ]; then gunzip -c ${DOCKER_NODE} | docker load; fi
 
 install:
   - time mvn -q -T 2C -DskipTests clean install
   - cd $E2E_COMPOSE_HOME && docker-compose up -d
   - if [ ! -f ${DOCKER_METRON_CENTOS} ]; then ls -la $DOCKER_METRON_CENTOS; fi
-  - if [ ! -f ${DOCKER_METRON_CENTOS} ]; then docker save metron-centos | gzip > ${DOCKER_METRON_CENTOS}; fi
+  - if [ ! -f ${DOCKER_KAFKA} ]; then docker save kafka | gzip > ${DOCKER_KAFKA}; fi
+  - if [ ! -f ${DOCKER_ZOOKEEPER} ]; then docker save zookeeper | gzip > ${DOCKER_ZOOKEEPER}; fi
+  - if [ ! -f ${DOCKER_ELASTICSEARCH} ]; then docker save elasticsearch | gzip > ${DOCKER_ELASTICSEARCH}; fi
+  - if [ ! -f ${DOCKER_NODE} ]; then docker save node | gzip > ${DOCKER_NODE}; fi
 
 script:
    - cd ../../../
