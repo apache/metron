@@ -37,6 +37,21 @@
       </dependency>
       <dependency>
         <groupId>org.apache.metron</groupId>
+        <artifactId>metron-elasticsearch</artifactId>
+        <version>${project.parent.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.metron</groupId>
+        <artifactId>metron-common</artifactId>
+        <version>${project.parent.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.metron</groupId>
+        <artifactId>metron-parsers</artifactId>
+        <version>${project.parent.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.metron</groupId>
         <artifactId>metron-alerts</artifactId>
         <version>${project.parent.version}</version>
       </dependency>
