@@ -196,6 +196,9 @@ Where:
 | [ `MAAS_MODEL_APPLY`](#maas_model_apply)                                                           |
 | [ `MAP`](#map)                                                                                     |
 | [ `MAP_EXISTS`](#map_exists)                                                                       |
+| [ `MAP_GET`](#MAP_GET)                                                                             |
+| [ `MAX`](#MAX)                                                                                     |
+| [ `MIN`](#MIN)                                                                                     |
 | [ `MONTH`](#month)                                                                                 |
 | [ `MULTISET_ADD`](#multiset_add)                                                                   |
 | [ `MULTISET_INIT`](#multiset_init)                                                                 |
@@ -544,6 +547,10 @@ Where:
     * input - List
   * Returns: Last element of the list
 
+### `GET_SUPPORTED_ENCODINGS`
+  * Description: Returns a list of the encodings that are currently supported.
+  * Returns: A List of String
+
 ### `HASH`
   * Description: Hashes a given value using the given hashing algorithm and returns a hex encoded string.
   * Input:
@@ -673,31 +680,6 @@ Where:
     * element - Element to add to list
   * Returns: Resulting list with the item added at the end.
 
-### `GET_SUPPORTED_ENCODINGS`
-  * Description: Returns a list of the encodings that are currently supported.
-  * Returns: A List of String
- 
-### `TO_JSON_LIST`
-  * Description: Accepts JSON string as an input and returns a List object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
-  For e.g. `GET_FIRST( TO_JSON_LIST(  '[ "foo", 2]')` would yield `foo`
-  * Input:
-    * string - The JSON string to be parsed
-  * Returns: A parsed List object
-
-### `TO_JSON_MAP`
-  * Description: Accepts JSON string as an input and returns a Map object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
-  For e.g. `MAP_GET( 'bar', TO_JSON_MAP(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
-  * Input:
-    * string - The JSON string to be parsed
-  * Returns: A parsed Map object
-
-### `TO_JSON_OBJECT`
-  * Description: Accepts JSON string as an input and returns a JSON Object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
-  For e.g. `MAP_GET( 'bar', TO_JSON_OBJECT(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
-  * Input:
-    * string - The JSON string to be parsed
-  * Returns: A parsed JSON object
-
 ### `LOG2`
   * Description: Returns the log (base `2`) of a number.
   * Input:
@@ -753,11 +735,23 @@ Where:
     * default - Optionally the default value to return if the key is not in the map.
   * Returns: The object associated with the key in the map.  If no value is associated with the key and default is specified, then default is returned. If no value is associated with the key or default, then null is returned.
 
+### `MAX`
+  * Description: Returns the maximum value of a list of input values.
+    * Input:
+    * "list - List of arguments. The list may only contain objects that are mutually comparable / ordinal (implement java.lang.Comparable interface). Multi type numeric comparisons are supported: MAX([10,15L,15.3]) would return 15.3, but MAX(['23',25]) will fail and return null as strings and numbers can't be compared.
+  * Returns: The maximum value of the list, or null if the list is empty or the input values were not comparable.
+
+### `MIN`
+  * Description: Returns the minimum value of a list of input values.
+    * Input:
+    * "list - List of arguments. The list may only contain objects that are mutually comparable / ordinal (implement java.lang.Comparable interface). Multi type numeric comparisons are supported: MIN([10,15L,15.3]) would return 10, but MIN(['23',25]) will fail and return null as strings and numbers can't be compared.
+  * Returns: The minimum value of the list, or null if the list is empty or the input values were not comparable.
+
 ### `MONTH`
   * Description: The number representing the month.  The first month, January, has a value of 0.
   * Input:
     * dateTime - The datetime as a long representing the milliseconds since unix epoch
-  * Returns: The current month (0-based).
+  * Returns: The current month (0-based)
   
 ### `MULTISET_ADD`
   * Description: Adds to a multiset, which is a map associating objects to their instance counts.
@@ -977,6 +971,27 @@ Where:
   * Input:
     * input - Object of string or numeric type
   * Returns: Integer version of the first argument
+
+### `TO_JSON_LIST`
+  * Description: Accepts JSON string as an input and returns a List object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `GET_FIRST( TO_JSON_LIST(  '[ "foo", 2]')` would yield `foo`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed List object
+
+### `TO_JSON_MAP`
+  * Description: Accepts JSON string as an input and returns a Map object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `MAP_GET( 'bar', TO_JSON_MAP(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed Map object
+
+### `TO_JSON_OBJECT`
+  * Description: Accepts JSON string as an input and returns a JSON Object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `MAP_GET( 'bar', TO_JSON_OBJECT(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed JSON object
 
 ### `TO_LONG`
   * Description: Transforms the first argument to a long integer
