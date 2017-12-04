@@ -28,6 +28,7 @@ import org.elasticsearch.action.admin.cluster.health.ClusterHealthAction;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -232,5 +233,10 @@ public class ElasticSearchComponent implements InMemoryComponent {
         node.close();
         node = null;
         client = null;
+    }
+
+    @Override
+    public void reset() {
+        client.admin().indices().delete(new DeleteIndexRequest("*")).actionGet();
     }
 }

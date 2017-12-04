@@ -31,6 +31,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import static org.apache.metron.integration.utils.TestUtils.assertEventually;
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
@@ -90,16 +91,18 @@ public class GlobalConfigControllerIntegrationTest {
     public void test() throws Exception {
         this.globalConfigService.delete();
 
-        this.mockMvc.perform(get(globalConfigUrl).with(httpBasic(user,password)))
-                .andExpect(status().isNotFound());
+        assertEventually(() -> this.mockMvc.perform(get(globalConfigUrl).with(httpBasic(user,password)))
+                .andExpect(status().isNotFound())
+        );
 
         this.mockMvc.perform(post(globalConfigUrl).with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(globalJson))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")));
 
-        this.mockMvc.perform(post(globalConfigUrl).with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(globalJson))
+        assertEventually(() -> this.mockMvc.perform(post(globalConfigUrl).with(httpBasic(user,password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(globalJson))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")));
+                .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+        );
 
         this.mockMvc.perform(get(globalConfigUrl).with(httpBasic(user,password)))
                 .andExpect(status().isOk());
@@ -107,8 +110,9 @@ public class GlobalConfigControllerIntegrationTest {
         this.mockMvc.perform(delete(globalConfigUrl).with(httpBasic(user,password)).with(csrf()))
                 .andExpect(status().isOk());
 
-        this.mockMvc.perform(delete(globalConfigUrl).with(httpBasic(user,password)).with(csrf()))
-                .andExpect(status().isNotFound());
+        assertEventually(() -> this.mockMvc.perform(delete(globalConfigUrl).with(httpBasic(user,password)).with(csrf()))
+                .andExpect(status().isNotFound())
+        );
 
         this.globalConfigService.delete();
     }

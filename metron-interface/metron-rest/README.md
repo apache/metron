@@ -14,19 +14,19 @@ This module provides a RESTful API for interacting with Metron.
 ### From Source
 
 1. Package the application with Maven:
-  ```
-mvn clean package
-  ```
+    ```
+    mvn clean package
+    ```
 
 1. Untar the archive in the $METRON_HOME directory.  The directory structure will look like:
-  ```
-config
-  rest_application.yml
-bin
-  metron-rest
-lib
-  metron-rest-$METRON_VERSION.jar
-  ```
+    ```
+    config
+      rest_application.yml
+    bin
+      metron-rest
+    lib
+      metron-rest-$METRON_VERSION.jar
+    ```
 
 1. Copy the `$METRON_HOME/bin/metron-rest` script to `/etc/init.d/metron-rest`
 
@@ -35,9 +35,9 @@ lib
 1. Deploy the RPM at `/metron/metron-deployment/packaging/docker/rpm-docker/target/RPMS/noarch/metron-rest-$METRON_VERSION-*.noarch.rpm`
 
 1. Install the RPM with:
-  ```
-rpm -ih metron-rest-$METRON_VERSION-*.noarch.rpm
-  ```
+    ```
+    rpm -ih metron-rest-$METRON_VERSION-*.noarch.rpm
+    ```
 
 ## Configuration
 
@@ -76,7 +76,7 @@ No optional parameter has a default.
 | METRON_PRINCIPAL_NAME                 | Kerberos principal for the metron user                            | Optional
 | METRON_SERVICE_KEYTAB                 | Path to the Kerberos keytab for the metron user                   | Optional
 
-These are set in the `/etc/sysconfig/metron` file.
+These are set in the `/etc/default/metron` file.
 
 ## Database setup
 
@@ -87,7 +87,7 @@ Spring uses Hibernate as the default ORM framework but another framework is need
 
 The REST application comes with [embedded database support](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html#boot-features-embedded-database-support) for development purposes.
 
-For example, edit these variables in `/etc/sysconfig/metron` before starting the application to configure H2:
+For example, edit these variables in `/etc/default/metron` before starting the application to configure H2:
 ```
 METRON_JDBC_DRIVER="org.h2.Driver"
 METRON_JDBC_URL="jdbc:h2:file:~/metrondb"
@@ -112,42 +112,42 @@ The following configures the application for MySQL:
 1. Install MySQL if not already available (this example uses version 5.7, installation instructions can be found [here](https://dev.mysql.com/doc/refman/5.7/en/linux-installation-yum-repo.html))
 
 1. Create a metron user and REST database and permission the user for that database:
-  ```
-CREATE USER 'metron'@'node1' IDENTIFIED BY 'Myp@ssw0rd';
-CREATE DATABASE IF NOT EXISTS metronrest;
-GRANT ALL PRIVILEGES ON metronrest.* TO 'metron'@'node1';
-  ```
+    ```
+    CREATE USER 'metron'@'node1' IDENTIFIED BY 'Myp@ssw0rd';
+    CREATE DATABASE IF NOT EXISTS metronrest;
+    GRANT ALL PRIVILEGES ON metronrest.* TO 'metron'@'node1';
+    ```
 
 1. Install the MySQL JDBC client onto the REST application host and configurate the METRON_JDBC_CLIENT_PATH variable:
-  ```
-cd $METRON_HOME/lib
-wget https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.41.tar.gz
-tar xf mysql-connector-java-5.1.41.tar.gz
-  ```
+    ```
+    cd $METRON_HOME/lib
+    wget https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.41.tar.gz
+    tar xf mysql-connector-java-5.1.41.tar.gz
+    ```
 
-1. Edit these variables in `/etc/sysconfig/metron` to configure the REST application for MySQL:
-  ```
-METRON_JDBC_DRIVER="com.mysql.jdbc.Driver"
-METRON_JDBC_URL="jdbc:mysql://mysql_host:3306/metronrest"
-METRON_JDBC_USERNAME="metron"
-METRON_JDBC_PLATFORM="mysql"
-METRON_JDBC_CLIENT_PATH=$METRON_HOME/lib/mysql-connector-java-5.1.41/mysql-connector-java-5.1.41-bin.jar
-  ```
+1. Edit these variables in `/etc/default/metron` to configure the REST application for MySQL:
+    ```
+    METRON_JDBC_DRIVER="com.mysql.jdbc.Driver"
+    METRON_JDBC_URL="jdbc:mysql://mysql_host:3306/metronrest"
+    METRON_JDBC_USERNAME="metron"
+    METRON_JDBC_PLATFORM="mysql"
+    METRON_JDBC_CLIENT_PATH=$METRON_HOME/lib/mysql-connector-java-5.1.41/mysql-connector-java-5.1.41-bin.jar
+    ```
 
 1. Switch to the metron user
-  ```
-sudo su - metron
-  ```
+    ```
+    sudo su - metron
+    ```
 
 1. Start the REST API. Adjust the password as necessary.
-  ```
-set -o allexport;
-source /etc/metron/sysconfig;
-set +o allexport;
-export METRON_JDBC_PASSWORD='Myp@ssw0rd';
-$METRON_HOME/bin/metron-rest.sh
-unset METRON_JDBC_PASSWORD;
-  ```
+    ```
+    set -o allexport;
+    source /etc/default/metron;
+    set +o allexport;
+    export METRON_JDBC_PASSWORD='Myp@ssw0rd';
+    $METRON_HOME/bin/metron-rest.sh
+    unset METRON_JDBC_PASSWORD;
+    ```
 
 ## Usage
 
@@ -166,7 +166,7 @@ insert into authorities (username, authority) values ('your_username', 'ROLE_USE
 
 ### Kerberos
 
-Metron REST can be configured for a cluster with Kerberos enabled.  A client JAAS file is required for Kafka and Zookeeper and a Kerberos keytab for the metron user principal is required for all other services.  Configure these settings in the `/etc/sysconfig/metron` file:
+Metron REST can be configured for a cluster with Kerberos enabled.  A client JAAS file is required for Kafka and Zookeeper and a Kerberos keytab for the metron user principal is required for all other services.  Configure these settings in the `/etc/default/metron` file:
 ```
 SECURITY_ENABLED=true
 METRON_JVMFLAGS="-Djava.security.auth.login.config=$METRON_HOME/client_jaas.conf"
@@ -185,7 +185,7 @@ The REST application comes with a few [Spring Profiles](http://docs.spring.io/au
 | vagrant                  | sets configuration variables to match the Metron vagrant environment    |
 | docker                   | sets configuration variables to match the Metron docker environment     |
 
-Setting active profiles is done with the METRON_SPRING_PROFILES_ACTIVE variable.  For example, set this variable in `/etc/sysconfig/metron` to configure the REST application for the Vagrant environment and add a test user:
+Setting active profiles is done with the METRON_SPRING_PROFILES_ACTIVE variable.  For example, set this variable in `/etc/default/metron` to configure the REST application for the Vagrant environment and add a test user:
 ```
 METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
 ```
@@ -218,12 +218,14 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/kafka/topic/{name}/sample`](#get-apiv1kafkatopicnamesample)|
 | [ `GET /api/v1/metaalert/searchByAlert`](#get-apiv1metaalertsearchbyalert)|
 | [ `GET /api/v1/metaalert/create`](#get-apiv1metaalertcreate)|
+| [ `GET /api/v1/metaalert/add/alert`](#get-apiv1metaalertaddalert)|
+| [ `GET /api/v1/metaalert/remove/alert`](#get-apiv1metaalertremovealert)|
+| [ `GET /api/v1/metaalert/update/status/{guid}/{status}`](#get-apiv1metaalertupdatestatusguidstatus)|
 | [ `GET /api/v1/search/search`](#get-apiv1searchsearch)|
 | [ `POST /api/v1/search/search`](#get-apiv1searchsearch)|
 | [ `POST /api/v1/search/group`](#get-apiv1searchgroup)|
 | [ `GET /api/v1/search/findOne`](#get-apiv1searchfindone)|
 | [ `GET /api/v1/search/column/metadata`](#get-apiv1searchcolumnmetadata)|
-| [ `GET /api/v1/search/column/metadata/common`](#get-apiv1searchcolumnmetadatacommon)|
 | [ `GET /api/v1/sensor/enrichment/config`](#get-apiv1sensorenrichmentconfig)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available/enrichments`](#get-apiv1sensorenrichmentconfiglistavailableenrichments)|
 | [ `GET /api/v1/sensor/enrichment/config/list/available/threat/triage/aggregators`](#get-apiv1sensorenrichmentconfiglistavailablethreattriageaggregators)|
@@ -274,13 +276,13 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * alerts - The alerts to be escalated
   * Returns:
     * 200 - Alerts were escalated
-    
+
 ### `GET /api/v1/alert/profile`
   * Description: Retrieves the current user's alerts profile
   * Returns:
     * 200 - Alerts profile
     * 404 - The current user does not have an alerts profile
-    
+
 ### `GET /api/v1/alert/profile/all`
   * Description: Retrieves all users' alerts profiles.  Only users that are part of the "ROLE_ADMIN" role are allowed to get all alerts profiles.
   * Returns:
@@ -415,38 +417,59 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 404 - Either Kafka topic is missing or contains no messages
 
 ### `POST /api/v1/metaalert/searchByAlert`
-  * Description: Searches meta alerts to find any containing an alert for the provided GUID
+  * Description: Get all meta alerts that contain an alert.
   * Input:
     * guid - GUID of the alert
   * Returns:
-    * 200 - Returns the meta alerts associated with this alert
-    * 404 - The child alert isn't found
+    * 200 - Search results
 
 ### `POST /api/v1/metaalert/create`
-  * Description: Creates a meta alert containing the provide alerts
+  * Description: Creates a new meta alert from a list of existing alerts.  The meta alert status will initially be set to 'ACTIVE' and summary statistics will be computed from the list of alerts.  A list of groups included in the request are also added to the meta alert.
   * Input:
-    * request - Meta Alert Create Request
+    * request - Meta alert create request which includes a list of alert get requests and a list of custom groups used to annotate a meta alert.
   * Returns:
-    * 200 - The meta alert was created
+    * 200 - The GUID of the new meta alert
+
+### `POST /api/v1/metaalert/add/alert`
+  * Description: Adds an alert to an existing meta alert.  An alert will not be added if it is already contained in a meta alert.
+  * Input:
+    * request - Meta alert add request which includes a meta alert GUID and list of alert get requests
+  * Returns:
+    * 200 - Returns 'true' if the alert was added and 'false' if the meta alert did not change.
+
+### `POST /api/v1/metaalert/remove/alert`
+  * Description: Removes an alert from an existing meta alert.  If the alert to be removed is not in a meta alert, 'false' will be returned.
+  * Input:
+    * request - Meta alert remove request which includes a meta alert GUID and list of alert get requests
+  * Returns:
+    * 200 - Returns 'true' if the alert was removed and 'false' if the meta alert did not change.
+
+### `POST /api/v1/metaalert/update/status/{guid}/{status}`
+  * Description: Updates the status of a meta alert to either 'ACTIVE' or 'INACTIVE'.
+  * Input:
+    * guid - Meta alert GUID
+    * status - Meta alert status with a value of either 'ACTIVE' or 'INACTIVE'
+  * Returns:
+    * 200 - Returns 'true' if the status changed and 'false' if it did not.
 
 ### `POST /api/v1/search/search`
-  * Description: Searches the indexing store
+  * Description: Searches the indexing store. GUIDs must be quoted to ensure correct results.
   * Input:
       * searchRequest - Search request
   * Returns:
     * 200 - Search response
-    
+
 ### `POST /api/v1/search/group`
-  * Description: Searches the indexing store and returns field groups. Groups are hierarchical and nested in the order the fields appear in the 'groups' request parameter. The default sorting within groups is by count descending.  A groupOrder type of count will sort based on then number of documents in a group while a groupType of term will sort by the groupBy term.
+  * Description: Searches the indexing store and returns field groups. GUIDs must be quoted to ensure correct results. Groups are hierarchical and nested in the order the fields appear in the 'groups' request parameter. The default sorting within groups is by count descending.  A groupOrder type of count will sort based on then number of documents in a group while a groupType of term will sort by the groupBy term.
   * Input:
       * groupRequest - Group request
         * indices - list of indices to search
         * query - lucene query
         * scoreField - field used to compute a total score for each group
-        * groups - List of groups (field name and sort order) 
+        * groups - List of groups (field name and sort order)
   * Returns:
     * 200 - Group response
-    
+
 ### `GET /api/v1/search/findOne`
   * Description: Returns latest document for a guid and sensor
   * Input:
@@ -463,20 +486,13 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Document representing the output
     * 404 - Document with UUID and sensor type not found
-    
+
 ### `GET /api/v1/search/column/metadata`
-  * Description: Get column metadata for each index in the list of indicies
+  * Description: Get index column metadata for a list of sensor types with duplicates removed.  Column names and types for each sensor are retrieved from the most recent index.  Columns that exist in multiple indices with different types will default to type 'other'.
   * Input:
-      * indices - Indices
+      * sensorTypes - Sensor Types
   * Returns:
     * 200 - Column Metadata
-    
-### `GET /api/v1/search/column/metadata/common`
-  * Description: Get metadata for columns shared by the list of indices
-  * Input:
-      * indices - Indices
-  * Returns:
-    * 200 - Common Column Metadata
 
 ### `GET /api/v1/sensor/enrichment/config`
   * Description: Retrieves all SensorEnrichmentConfigs from Zookeeper
@@ -729,7 +745,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 ### `GET /api/v1/storm/supervisors`
   * Description: Retrieves the status of all Storm Supervisors
   * Returns:
-    * 200 - Returns a list of the status of all Storm Supervisors 
+    * 200 - Returns a list of the status of all Storm Supervisors
 
 ### `PATCH /api/v1/update/patch`
   * Description: Update a document with a patch
@@ -788,7 +804,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 
 ## Testing
 
-Profiles are includes for both the metron-docker and Quick Dev environments.
+Profiles are includes for both the metron-docker and Full Dev environments.
 
 ### metron-docker
 
@@ -800,9 +816,9 @@ mvn spring-boot:run -Drun.profiles=docker,dev
 
 The metron-rest application will be available at http://localhost:8080/swagger-ui.html#/.
 
-### Quick Dev
+### Full Dev
 
-Start the [Quick Dev](../../metron-deployment/vagrant/quick-dev-platform) environment.  Build the metron-rest module and start it with the Spring Boot Maven plugin:
+Start the [Full Dev](../../metron-deployment/vagrant/full-dev-platform) environment.  Build the metron-rest module and start it with the Spring Boot Maven plugin:
 ```
 mvn clean package
 mvn spring-boot:run -Drun.profiles=vagrant,dev
@@ -810,7 +826,7 @@ mvn spring-boot:run -Drun.profiles=vagrant,dev
 
 The metron-rest application will be available at http://localhost:8080/swagger-ui.html#/.
 
-To run the application locally on the Quick Dev host (node1), follow the [Installation](#installation) instructions above.  Then set the METRON_SPRING_PROFILES_ACTIVE variable in `/etc/sysconfig/metron`:
+To run the application locally on the Full Dev host (node1), follow the [Installation](#installation) instructions above.  Then set the METRON_SPRING_PROFILES_ACTIVE variable in `/etc/default/metron`:
 ```
 METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
 ```
@@ -820,7 +836,7 @@ and start the application:
 service metron-rest start
 ```
 
-In a cluster with Kerberos enabled, update the security settings in `/etc/sysconfig/metron`.  Security is disabled by default in the `vagrant` Spring profile so that setting must be overriden with the METRON_SPRING_OPTIONS variable:
+In a cluster with Kerberos enabled, update the security settings in `/etc/default/metron`.  Security is disabled by default in the `vagrant` Spring profile so that setting must be overriden with the METRON_SPRING_OPTIONS variable:
 ```
 METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
 METRON_JVMFLAGS="-Djava.security.auth.login.config=$METRON_HOME/client_jaas.conf"

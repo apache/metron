@@ -18,4 +18,9 @@
 export class SortField {
   field: string;
   sortOrder: string;
+
+  constructor(field: string, sortOrder: string) {
+    this.field = field;
+    this.sortOrder = sortOrder;
+  }
 }

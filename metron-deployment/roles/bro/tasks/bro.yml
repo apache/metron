@@ -17,7 +17,7 @@
 ---
 - name: Download bro
   get_url:
-    url: "https://www.bro.org/downloads/release/bro-{{ bro_version }}.tar.gz"
+    url: "https://www.bro.org/downloads/bro-{{ bro_version }}.tar.gz"
     dest: "/tmp/bro-{{ bro_version }}.tar.gz"
 
 - name: Extract bro tarball
@@ -29,6 +29,9 @@
 
 - name: Compile and Install bro
   shell: "{{ item }}"
+  environment:
+    CXX: /opt/rh/devtoolset-4/root/usr/bin/g++
+    CC: /opt/rh/devtoolset-4/root/usr/bin/gcc
   args:
     chdir: "/tmp/bro-{{ bro_version }}"
     creates: "{{ bro_home }}/bin/bro"

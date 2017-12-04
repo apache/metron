@@ -18,11 +18,12 @@
 
 package org.apache.metron.indexing.dao.metaalert;
 
+import org.apache.commons.math3.stat.descriptive.rank.Median;
+
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.math3.stat.descriptive.rank.Median;
 
 public class MetaScores {
 

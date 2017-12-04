@@ -32,9 +32,7 @@ The Ambari playbook will install a Hadoop cluster including the Metron Services 
 Currently, the playbooks supports building a local development cluster running on one node or deploying to a 10 node cluster on AWS EC2.
 
 ## Vagrant
-There are current two Vagrant modes, full-dev and quick-dev. Full-dev installs the entire Ambari/Metron stack. This is useful in testing out changes to the installation procedure.
-Quick-dev re-installs the core Metron Services (Parsing, Enrichment, and Indexing)on a pre-built instance.
-Use quick-dev for testing out changes to core Metron services.
+There is a development environment based on Vagrant that is referred to as "Full Dev".  This installs the entire Ambari/Metron stack. This is useful in testing out changes to the installation procedure.
 
 ### Prerequsities
 - Install [Vagrant](https://www.vagrantup.com/) (5.0.16+)
@@ -43,9 +41,6 @@ installed
 
 ### Full-Dev
 Navigate to `metron/metron-deployment/vagrant/full-dev-platform` and run `vagrant up`.
-
-### Quick-Dev
-Navigate to `metron/metron-deployment/vagrant/quick-dev-platform` and run `vagrant up`.
 
 ## Ambari Management Pack
 An Ambari Management Pack can be built in order to make the Metron service available on top of an existing stack, rather than needing a direct stack update.
@@ -148,7 +143,7 @@ rpm -i <package>
 
 The dashboards installed by the Kibana custom action are managed by the dashboard.p file.  This file is created by exporting existing dashboards from a running Kibana instance.
 
-To create a new version of the file, make any necessary changes to Kibana (e.g. on quick-dev), and export with the appropriate script.
+To create a new version of the file, make any necessary changes to Kibana (e.g. on full-dev), and export with the appropriate script.
 
 ```
 python packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/4.5.1/package/scripts/dashboard/dashboardindex.py \

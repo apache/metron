@@ -56,7 +56,7 @@ public class WindowProcessor extends WindowBaseListener {
 
   /**
    * Retrieve the window constructed from the window selector statement.
-   * @return
+   * @return window returns the window constructed from the window selector statement
    */
   public Window getWindow() {
     return window;
@@ -387,7 +387,8 @@ public class WindowProcessor extends WindowBaseListener {
    * conforming to the Window grammar.
    *
    * @param statement
-   * @return
+   * @return Window returns a Window object (parameterized by time) from a statement specifying the window
+   * intervals conforming to the Window grammar.
    * @throws ParseException
    */
   public static Window process(String statement) throws ParseException {

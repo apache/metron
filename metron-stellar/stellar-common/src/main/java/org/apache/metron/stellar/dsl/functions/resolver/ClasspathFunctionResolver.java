@@ -234,7 +234,9 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
     else {
       cls = new ClassLoader[this.classLoaders.size()];
       for (int i = 0; i < this.classLoaders.size(); ++i) {
-        cls[i] = this.classLoaders.get(i);
+        ClassLoader cl = this.classLoaders.get(i);
+        LOG.debug("Using classloader: "+ cl.getClass().getCanonicalName());
+        cls[i] = cl;
       }
     }
 
@@ -253,9 +255,13 @@ public class ClasspathFunctionResolver extends BaseFunctionResolver {
     Set<Class<? extends StellarFunction>> ret = new HashSet<>();
     for(ClassLoader cl : cls) {
       for(Class<?> c : ClassIndex.getAnnotated(Stellar.class, cl)) {
-        if(StellarFunction.class.isAssignableFrom(c) && filterBuilder.apply(c.getCanonicalName())) {
+        LOG.debug("{}: Found class: {}", cl.getClass().getCanonicalName(), c.getCanonicalName());
+        boolean isAssignable = StellarFunction.class.isAssignableFrom(c);
+        boolean isFiltered = filterBuilder.apply(c.getCanonicalName());
+        if( isAssignable && isFiltered ) {
           String className = c.getName();
           if(!classes.contains(className)) {
+            LOG.debug("{}: Added class: {}", cl.getClass().getCanonicalName(), className);
             ret.add((Class<? extends StellarFunction>) c);
             classes.add(className);
           }

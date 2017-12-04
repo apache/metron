@@ -17,11 +17,8 @@
  */
 package org.apache.metron.maas.discovery;
 
-import com.google.common.base.Splitter;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.collect.Iterables;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.curator.framework.CuratorFramework;
@@ -35,10 +32,8 @@ import org.apache.zookeeper.data.Stat;
 
 import java.io.Closeable;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -116,7 +111,7 @@ public class ServiceDiscoverer implements Closeable{
 
   /**
    * Get the underlying Curator ServiceDiscovery implementation.
-   * @return
+   * @return serviceDiscovery
    */
   public ServiceDiscovery<ModelEndpoint> getServiceDiscovery() {
     return serviceDiscovery;
@@ -219,7 +214,7 @@ public class ServiceDiscoverer implements Closeable{
    * Retrieve the endpoints for a given model.  A model may or may not have a version associated with it.
    * If the version is missing, then all endpoints are returned associated with that model name.
    * @param model
-   * @return
+   * @return endpoints for a given model
    */
   public List<ModelEndpoint> getEndpoints(Model model) {
     rwLock.readLock().lock();
@@ -281,7 +276,7 @@ public class ServiceDiscoverer implements Closeable{
    * This will retrieve one endpoint at random for a given model.
    * @param modelName
    * @param modelVersion can be null
-   * @return
+   * @return ModelEndpoint
    */
   public ModelEndpoint getEndpoint(String modelName, String modelVersion) {
     return getEndpoint(new Model(modelName, modelVersion));
@@ -290,7 +285,7 @@ public class ServiceDiscoverer implements Closeable{
   /**
    * Retrieve an endpoint at random of a given model
    * @param model
-   * @return
+   * @return ModelEndpoint
    */
   public ModelEndpoint getEndpoint(Model model) {
     rwLock.readLock().lock();
@@ -329,7 +324,7 @@ public class ServiceDiscoverer implements Closeable{
    * List all endpoints for a given model.
    *
    * @param model
-   * @return
+   * @return ret a mapping of models for a given model
    */
   public Map<Model, List<ModelEndpoint>> listEndpoints(Model model) {
     Map<Model, List<ModelEndpoint>> ret = new HashMap<>();

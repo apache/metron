@@ -56,10 +56,10 @@ export class ElasticsearchUtils {
 
   public static extractAlertsData(res: Response): SearchResponse {
     let response: any = res || {};
-    let alertsSearchResponse: SearchResponse = new SearchResponse();
-    alertsSearchResponse.total = response['hits']['total'];
-    alertsSearchResponse.results = response['hits']['hits'];
-    return alertsSearchResponse;
+    let searchResponse: SearchResponse = new SearchResponse();
+    searchResponse.total = response['hits']['total'];
+    searchResponse.results = response['hits']['hits'];
+    return searchResponse;
   }
 
   public static extractESErrorMessage(error: any): any {
@@ -69,6 +69,18 @@ export class ElasticsearchUtils {
     });
 
     return message;
+  }
+
+
+  public static escapeESField(field: string) {
+    return field.replace(/:/g, '\\:');
+  }
+
+  public static escapeESValue(value: string) {
+    return String(value)
+    .replace(/[\*\+\-=~><\"\?^\${}\(\)\:\!\/[\]\\\s]/g, '\\$&') // replace single  special characters
+    .replace(/\|\|/g, '\\||') // replace ||
+    .replace(/\&\&/g, '\\&&'); // replace &&
   }
 
 }

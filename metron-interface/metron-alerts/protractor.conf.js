@@ -29,8 +29,11 @@ exports.config = {
     './e2e/alerts-list/alerts-list.e2e-spec.ts',
     './e2e/alerts-list/configure-table/configure-table.e2e-spec.ts',
     './e2e/alerts-list/save-search/save-search.e2e-spec.ts',
+    './e2e/alerts-list/tree-view/tree-view.e2e-spec.ts',
+    './e2e/alerts-list/alert-filters/alert-filters.e2e-spec.ts',
     './e2e/alerts-list/alert-status/alerts-list-status.e2e-spec.ts',
-    './e2e/alert-details/alert-status/alert-details-status.e2e-spec.ts'
+    './e2e/alert-details/alert-status/alert-details-status.e2e-spec.ts',
+    './e2e/alerts-list/meta-alerts/meta-alert.e2e-spec.ts'
   ],
   capabilities: {
     'browserName': 'chrome',
@@ -57,6 +60,8 @@ exports.config = {
     });
   },
   onPrepare: function() {
+    var createMetaAlertsIndex =  require('./e2e/utils/e2e_util').createMetaAlertsIndex;
+    createMetaAlertsIndex();
     jasmine.getEnv().addReporter(new SpecReporter());
     setTimeout(function() {
       browser.driver.executeScript(function() {
@@ -68,5 +73,9 @@ exports.config = {
         browser.driver.manage().window().setSize(result.width, result.height);
       });
     });
+  },
+  onComplete: function() {
+    var createMetaAlertsIndex =  require('./e2e/utils/e2e_util').createMetaAlertsIndex;
+    createMetaAlertsIndex();
   }
 };

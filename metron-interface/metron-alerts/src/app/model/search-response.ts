@@ -16,8 +16,14 @@
  * limitations under the License.
  */
 import {Alert} from './alert';
+import {Facets} from './facets';
+import {SearchResultGroup} from './search-result-group';
 
 export class SearchResponse {
   total = 0;
+  groupedBy: string;
   results: Alert[] = [];
+  facetCounts: Facets;
+  groups: SearchResultGroup[];
 }
+

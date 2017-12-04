@@ -87,6 +87,7 @@ $ mvn clean install -PHDP-2.5.0.0
 
 You can swap "install" for "package" in the commands above if you don't want to deploy the artifacts to your local .m2 repo.
 
+
 # Build Metron Reporting
 
 To build and run reporting with code coverage:
@@ -101,6 +102,11 @@ $ mvn clean install -DskipTests site site:stage-deploy site:deploy
 ```
 
 The staged site is deployed to /tmp/metron/site/index.html, and can be viewed by opening the file in a browser.
+
+## Building with Docker
+
+A Docker container with all the required software, with the proper versions, is available to be used as well.
+see [ansible-docker](metron-deployment/packaging/docker/ansible-docker)
 
 # Navigating the Architecture
 
@@ -118,3 +124,9 @@ Some useful utilities that cross all of these parts of the architecture:
 * [Model as a Service](metron-analytics/metron-maas-service) : A Yarn application which can deploy machine learning and statistical models onto the cluster along with the associated Stellar functions to be able to call out to them in a scalable manner.
 * [Data management](metron-platform/metron-data-management) : A set of data management utilities aimed at getting data into HBase in a format which will allow data flowing through metron to be enriched with the results.  Contains integrations with threat intelligence feeds exposed via TAXII as well as simple flat file structures.
 * [Profiler](metron-analytics/metron-profiler) : A feature extraction mechanism that can generate a profile describing the behavior of an entity. An entity might be a server, user, subnet or application. Once a profile has been generated defining what normal behavior looks-like, models can be built that identify anomalous behavior.
+
+# Notes on Adding a New Sensor
+In order to allow for meta alerts to be queries alongside regular alerts in Elasticsearch 2.x,
+it is necessary to add an additional field to the templates and mapping for existing sensors.
+
+Please see a description of the steps necessary to make this change in the metron-elasticsearch [Using Metron with Elasticsearch 2.x](./metron-platform/metron-elasticsearch#using-metron-with-elasticsearch-2x)

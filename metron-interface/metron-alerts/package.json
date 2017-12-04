@@ -1,6 +1,6 @@
 {
   "name": "metron-alerts",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "license": "Apache-2.0",
   "angular-cli": {},
   "scripts": {
@@ -21,10 +21,14 @@
     "@angular/platform-browser": "^4.0.0",
     "@angular/platform-browser-dynamic": "^4.0.0",
     "@angular/router": "^4.0.0",
+    "@types/moment": "^2.13.0",
     "ace-builds": "^1.2.6",
     "bootstrap": "4.0.0-alpha.6",
     "core-js": "^2.4.1",
     "font-awesome": "^4.7.0",
+    "moment": "^2.18.1",
+    "pikaday-time": "^1.6.1",
+    "ng2-dragula": "^1.5.0",
     "rxjs": "^5.1.0",
     "web-animations-js": "^2.2.2",
     "zone.js": "^0.8.4"
@@ -34,7 +38,9 @@
     "@angular/compiler-cli": "^4.0.0",
     "@types/ace": "0.0.32",
     "@types/jasmine": "2.5.38",
+    "@types/moment": "^2.13.0",
     "@types/node": "~6.0.60",
+    "@types/pikaday-time": "^1.4.2",
     "codelyzer": "~2.0.0",
     "compression": "1.6.2",
     "elementor": "^2.1.0",

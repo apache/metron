@@ -18,10 +18,23 @@
 @import "../../../../variables.scss";
 
 .table-wrapper {
-  min-height: calc(100vh - 250px);
+  min-height: calc(100vh - 320px);
 }
 
 .configure-table-icon {
   font-size: 16px;
   cursor: pointer;
 }
+
+.fa-chain-broken {
+  color: $piction-blue;
+}
+
+.dropdown-cell {
+  padding-left: 0.6rem;
+}
+
+.icon-cell {
+  padding: 0.3rem 3px;
+}
+

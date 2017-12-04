@@ -157,7 +157,7 @@ public class ThreatIntelJoinBoltTest extends BaseEnrichmentBoltTest {
 
     ThreatIntelJoinBolt threatIntelJoinBolt = new ThreatIntelJoinBolt("zookeeperUrl");
     threatIntelJoinBolt.setCuratorFramework(client);
-    threatIntelJoinBolt.setTreeCache(cache);
+    threatIntelJoinBolt.setZKCache(cache);
 
     SensorEnrichmentConfig enrichmentConfig = JSONUtils.INSTANCE.load(
             new FileInputStream(sampleSensorEnrichmentConfigPath), SensorEnrichmentConfig.class);
