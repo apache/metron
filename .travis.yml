@@ -59,7 +59,7 @@ before_install:
 install:
   - time mvn -q -T 2C -DskipTests clean install
   - cd $E2E_COMPOSE_HOME && docker-compose up -d
-  - if [ ! -f ${DOCKER_METRON_CENTOS} ]; then ls -la $DOCKER_METRON_CENTOS; fi
+  - if [ ! -f ${DOCKER_METRON_CENTOS} ]; then docker save metron-centos | gzip > ${DOCKER_METRON_CENTOS}; fi
   - if [ ! -f ${DOCKER_KAFKA} ]; then docker save wurstmeister/kafka:0.10.0.0 | gzip > ${DOCKER_KAFKA}; fi
   - if [ ! -f ${DOCKER_ZOOKEEPER} ]; then docker save zookeeper | gzip > ${DOCKER_ZOOKEEPER}; fi
   - if [ ! -f ${DOCKER_ELASTICSEARCH} ]; then docker save elasticsearch:2.3 | gzip > ${DOCKER_ELASTICSEARCH}; fi
