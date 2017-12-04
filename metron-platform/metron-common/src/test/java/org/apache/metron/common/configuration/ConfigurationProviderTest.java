@@ -271,7 +271,7 @@ public class ConfigurationProviderTest {
         },(s,e) -> {
           Assert.assertTrue(e.getMessage(),false);
         });
-      } catch (IllegalAccessException e) {
+      } catch (Exception e) {
         Assert.assertTrue(e.getMessage(), false);
       }
     });
