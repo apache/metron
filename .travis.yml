@@ -48,8 +48,8 @@ before_install:
   - npm config set cache $HOME/.npm-cache --global
   - npm config set prefix $HOME/.npm-prefix --global
   - ls -la $DOCKER_CACHE
-  - rm -r $DOCKER_CACHE/*
-  - ls -la $DOCKER_CACHE
+#  - rm -r $DOCKER_CACHE/*
+#  - ls -la $DOCKER_CACHE
   - if [ -f ${DOCKER_METRON_CENTOS} ]; then gunzip -c ${DOCKER_METRON_CENTOS} | docker load; else docker build metron-contrib/metron-docker-e2e/compose/metron-centos/ -t "metron-centos"; fi
   - if [ -f ${DOCKER_KAFKA} ]; then gunzip -c ${DOCKER_KAFKA} | docker load; fi
   - if [ -f ${DOCKER_ZOOKEEPER} ]; then gunzip -c ${DOCKER_ZOOKEEPER} | docker load; fi
