@@ -18,13 +18,10 @@
 - hosts: metron
   become: true
   roles:
-    - role: ambari_slave
-    - { role: metron-builder,    tags: ['build'] }
-    - role: metron-rpms
-    - role: quick_dev
-  tags:
-    - quick_dev
-    -
+    - { role: ambari_slave }
+    - { role: metron-builder, tags: ['build'] }
+    - { role: metron-rpms }
+
 - hosts: ec2
   become: true
   tasks:
