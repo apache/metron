@@ -52,8 +52,8 @@ public class ConfigurationProviderTest {
     expectedStatements = new LinkedList<>();
     expectedStatements.add("Apache Metron/PARSER/squid/fieldTransformations/0/Field Mapping/full_hostname");
     expectedStatements.add("Apache Metron/PARSER/squid/fieldTransformations/0/Field Mapping/domain_without_subdomains");
-    expectedStatements.add("Apache Metron/ENRICHMENT/snort/enrichment/default/foo");
-    expectedStatements.add("Apache Metron/ENRICHMENT/snort/enrichment/default/ALL_CAPS");
+    expectedStatements.add("Apache Metron/ENRICHMENT/snort/enrichment/default/stellar/config/foo");
+    expectedStatements.add("Apache Metron/ENRICHMENT/snort/enrichment/default/stellar/config/ALL_CAPS");
     expectedStatements.add("Apache Metron/ENRICHMENT/snort/threatIntel/triageConfig/riskLevelRules/0/rule");
     expectedStatements.add("Apache Metron/PROFILER/example2/onlyif");
     expectedStatements.add("Apache Metron/PROFILER/example2/init/num_dns");
