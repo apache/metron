@@ -93,3 +93,14 @@ export function deleteTestData() {
   request.delete('http://user:password@' + host + ':8082/api/v1/sensor/indexing/config/alerts_ui_e2e', function (e, response, body) {
   });
 }
+
+export function createMetaAlertsIndex() {
+  deleteMetaAlertsIndex();
+  fs.createReadStream('./../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/metaalert_index.template')
+  .pipe(request.post('http://node1:9200/metaalert_index'));
+}
+
+export function deleteMetaAlertsIndex() {
+  request.delete('http://node1:9200/metaalert_index*');
+}
+

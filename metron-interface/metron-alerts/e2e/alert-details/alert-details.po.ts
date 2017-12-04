@@ -106,11 +106,13 @@ export class MetronAlertDetailsPage {
   }
 
   getCommentIconCountInListView() {
-    return element.all(by.css('app-table-view .fa.fa-comments-o')).count();
+    let commentsElement = element.all(by.css('app-table-view .fa.fa-comments-o'));
+    return waitForElementPresence(commentsElement).then(() => commentsElement.count());
   }
 
   getCommentIconCountInTreeView() {
-    return element.all(by.css('app-tree-view .fa.fa-comments-o')).count();
+    let commentsElement = element.all(by.css('app-tree-view .fa.fa-comments-o'));
+    return waitForElementPresence(commentsElement).then(() => commentsElement.count());
   }
 
   waitForTextChange(element, previousText) {
@@ -118,4 +120,29 @@ export class MetronAlertDetailsPage {
     return browser.wait(EC.not(EC.textToBePresentInElement(element, previousText)));
   }
 
+  getAlertNameOrId() {
+    let nameSelector = element(by.css('app-alert-details .editable-text'));
+    return waitForElementVisibility(nameSelector).then(() => nameSelector.getText());
+  }
+
+  clickRenameMetaAlert() {
+    element(by.css('app-alert-details .editable-text')).click();
+  }
+
+  renameMetaAlert(name: string) {
+    element(by.css('app-alert-details input.form-control')).sendKeys(name);
+  }
+
+  cancelRename() {
+    element(by.css('app-alert-details .input-group .fa.fa-times')).click();
+  }
+
+  saveRename() {
+    element(by.css('app-alert-details .fa.fa-check')).click();
+  }
+
+  getAlertDetailsCount() {
+    let titleElement = element.all(by.css('app-alert-details .alert-details-title')).get(0);
+    return waitForElementVisibility(titleElement).then(() => element.all(by.css('app-alert-details .alert-details-title')).count());
+  }
 }

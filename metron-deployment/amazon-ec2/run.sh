@@ -62,6 +62,6 @@ $DEPLOYDIR/../scripts/platform-info.sh >> $LOGFILE
 cd $DEPLOYDIR
 export EC2_INI_PATH=conf/ec2.ini
 ansible-playbook -i ec2.py playbook.yml \
-  --skip-tags="quick_dev,sensor-stubs" \
+  --skip-tags="sensor-stubs" \
   --extra-vars="env=$ENV" \
   $EXTRA_ARGS

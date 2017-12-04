@@ -67,6 +67,10 @@ ELSE : 'ELSE' | 'else';
 NULL : 'null' | 'NULL';
 NAN : 'NaN';
 
+MATCH : 'match' | 'MATCH';
+DEFAULT : 'default' | 'DEFAULT';
+MATCH_ACTION : '=>';
+
 MINUS : '-';
 PLUS : '+';
 DIV : '/';
@@ -138,6 +142,7 @@ transformation_expr:
   | comparison_expr # ComparisonExpression
   | logical_expr #LogicalExpression
   | in_expr #InExpression
+  | match_expr #MatchExpr
   ;
 
 if_expr:
@@ -256,6 +261,9 @@ identifier_operand :
   | functions #func
   ;
 
+default_operand :
+  DEFAULT #default
+  ;
 
 lambda_without_args:
   LPAREN RPAREN LAMBDA_OP transformation_expr
@@ -277,4 +285,23 @@ lambda_variable:
   IDENTIFIER
   ;
 
+match_expr :
+  MATCH LBRACE match_clauses COMMA DEFAULT MATCH_ACTION match_clause_action RBRACE #MatchClauses
+  ;
 
+match_clauses :
+  match_clause (COMMA match_clause)*
+  ;
+
+match_clause :
+  match_clause_check MATCH_ACTION  match_clause_action
+  ;
+
+match_clause_action :
+  transformation_expr #MatchClauseAction
+  ;
+  
+match_clause_check :
+  logical_expr #MatchClauseCheckExpr
+  | conditional_expr #MatchClauseCheckExpr
+  ;
