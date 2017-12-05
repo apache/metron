@@ -299,7 +299,7 @@ describe('metron-alerts App', function() {
 
     page.clickClearSearch();
   });
-
+  
   it('should have all time-range included while searching', () => {
     let startDate = new Date(1505325575000);
     let endDate = new Date(1505325580000);
