@@ -18,13 +18,19 @@
 
 package org.apache.metron.indexing.dao;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
+
+import com.google.common.hash.Hasher;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -32,7 +38,9 @@ import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.common.utils.KeyUtil;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
@@ -46,7 +54,7 @@ import org.apache.metron.indexing.dao.update.Document;
  * * Get document
  *
  * The mechanism here is that updates to documents will be added to a HBase Table as a write-ahead log.
- * The Key for a row supporting a given document will be the GUID, which should be sufficiently distributed.
+ * The Key for a row supporting a given document will be the GUID plus the sensor type, which should be sufficiently distributed.
  * Every new update will have a column added (column qualifier will be the timestamp of the update).
  * Upon retrieval, the most recent column will be returned.
  *
@@ -57,6 +65,72 @@ public class HBaseDao implements IndexDao {
   private HTableInterface tableInterface;
   private byte[] cf;
   private AccessConfig config;
+
+  /**
+   * Implements the HBaseDao row key and exposes convenience methods for serializing/deserializing the row key.
+   * The row key is made of a GUID and sensor type along with a prefix to ensure data is distributed evenly.
+   */
+  public static class Key {
+    private String guid;
+    private String sensorType;
+    public Key(String guid, String sensorType) {
+      this.guid = guid;
+      this.sensorType = sensorType;
+    }
+
+    public String getGuid() {
+      return guid;
+    }
+
+    public String getSensorType() {
+      return sensorType;
+    }
+
+    public static Key fromBytes(byte[] buffer) throws IOException {
+      ByteArrayInputStream baos = new ByteArrayInputStream(buffer);
+      DataInputStream w = new DataInputStream(baos);
+      baos.skip(KeyUtil.HASH_PREFIX_SIZE);
+      return new Key(w.readUTF(), w.readUTF());
+    }
+
+    public byte[] toBytes() throws IOException {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      if(getGuid() == null || getSensorType() == null) {
+        throw new IllegalStateException("Guid and sensor type must not be null: guid = " + getGuid() + ", sensorType = " + getSensorType());
+      }
+      DataOutputStream w = new DataOutputStream(baos);
+      w.writeUTF(getGuid());
+      w.writeUTF(getSensorType());
+      w.flush();
+      byte[] key = baos.toByteArray();
+      byte[] prefix = KeyUtil.INSTANCE.getPrefix(key);
+      return KeyUtil.INSTANCE.merge(prefix, key);
+    }
+
+    public static byte[] toBytes(Key k) throws IOException {
+      return k.toBytes();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      Key key = (Key) o;
+
+      if (getGuid() != null ? !getGuid().equals(key.getGuid()) : key.getGuid() != null) return false;
+      return getSensorType() != null ? getSensorType().equals(key.getSensorType()) : key.getSensorType() == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+      int result = getGuid() != null ? getGuid().hashCode() : 0;
+      result = 31 * result + (getSensorType() != null ? getSensorType().hashCode() : 0);
+      return result;
+    }
+  }
+
   public HBaseDao() {
 
   }
@@ -102,9 +176,32 @@ public class HBaseDao implements IndexDao {
 
   @Override
   public synchronized Document getLatest(String guid, String sensorType) throws IOException {
-    Get get = new Get(guid.getBytes());
+    Key k = new Key(guid, sensorType);
+    Get get = new Get(Key.toBytes(k));
     get.addFamily(cf);
     Result result = getTableInterface().get(get);
+    return getDocumentFromResult(result);
+  }
+
+  @Override
+  public Iterable<Document> getAllLatest(
+      List<GetRequest> getRequests) throws IOException {
+    List<Get> gets = new ArrayList<>();
+    for (GetRequest getRequest: getRequests) {
+      gets.add(buildGet(getRequest));
+    }
+    Result[] results = getTableInterface().get(gets);
+    List<Document> allLatest = new ArrayList<>();
+    for (Result result: results) {
+      Document d = getDocumentFromResult(result);
+      if (d != null) {
+        allLatest.add(d);
+      }
+    }
+    return allLatest;
+  }
+
+  private Document getDocumentFromResult(Result result) throws IOException {
     NavigableMap<byte[], byte[]> columns = result.getFamilyMap( cf);
     if(columns == null || columns.size() == 0) {
       return null;
@@ -112,8 +209,14 @@ public class HBaseDao implements IndexDao {
     Map.Entry<byte[], byte[]> entry= columns.lastEntry();
     Long ts = Bytes.toLong(entry.getKey());
     if(entry.getValue()!= null) {
-      String json = new String(entry.getValue());
-      return new Document(json, guid, sensorType, ts);
+      Map<String, Object> json = JSONUtils.INSTANCE.load(new String(entry.getValue()),
+          new TypeReference<Map<String, Object>>() {});
+      try {
+        Key k = Key.fromBytes(result.getRow());
+        return new Document(json, k.getGuid(), k.getSensorType(), ts);
+      } catch (IOException e) {
+        throw new RuntimeException("Unable to convert row key to a document", e);
+      }
     }
     else {
       return null;
@@ -125,8 +228,6 @@ public class HBaseDao implements IndexDao {
     Put put = buildPut(update);
     getTableInterface().put(put);
   }
-
-
 
   @Override
   public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
@@ -140,8 +241,16 @@ public class HBaseDao implements IndexDao {
     getTableInterface().put(puts);
   }
 
-  protected Put buildPut(Document update) throws JsonProcessingException {
-    Put put = new Put(update.getGuid().getBytes());
+  protected Get buildGet(GetRequest getRequest) throws IOException {
+    Key k = new Key(getRequest.getGuid(), getRequest.getSensorType());
+    Get get = new Get(Key.toBytes(k));
+    get.addFamily(cf);
+    return get;
+  }
+
+  protected Put buildPut(Document update) throws IOException {
+    Key k = new Key(update.getGuid(), update.getSensorType());
+    Put put = new Put(Key.toBytes(k));
     long ts = update.getTimestamp() == null ? System.currentTimeMillis() : update.getTimestamp();
     byte[] columnQualifier = Bytes.toBytes(ts);
     byte[] doc = JSONUtils.INSTANCE.toJSONPretty(update.getDocument());
@@ -149,13 +258,9 @@ public class HBaseDao implements IndexDao {
     return put;
   }
 
-  @Override
-  public Map<String, Map<String, FieldType>> getColumnMetadata(List<String> indices) throws IOException {
-    return null;
-  }
 
   @Override
-  public Map<String, FieldType> getCommonColumnMetadata(List<String> indices) throws IOException {
+  public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
     return null;
   }
 }

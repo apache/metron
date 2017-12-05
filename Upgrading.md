@@ -4,6 +4,19 @@ configuration which are non-backwards compatible.
 
 ## 0.4.1 to 0.4.2
 
+### [METRON-1277: STELLAR Add Match functionality to language](https://issues.apache.org/jira/browse/METRON-1277)
+As we continue to evolve the Stellar language, it is possible that new keywords
+will be added to the language.  This may cause compatablity issues where these
+reserved words and symbols are used in existing scripts.
+
+Adding `match` to the Stellar lanaguage has introduced the following new
+reserved keywords and symbols:
+
+`match`, `default`, `{`, `}`, '=>'
+
+Any stellar expressions which use these keywords not in quotes will need to be
+modified.
+
 ### [METRON-1158: Build backend for grouping alerts into meta alerts](https://issues.apache.org/jira/browse/METRON-1158)
 In order to allow for meta alerts to be queries alongside regular alerts in Elasticsearch 2.x,
 it is necessary to add an additional field to the templates and mapping for existing sensors.

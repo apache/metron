@@ -30,6 +30,7 @@ The Stellar language supports the following:
 * Simple comparison operations `<`, `>`, `<=`, `>=`
 * Simple equality comparison operations `==`, `!=`
 * if/then/else comparisons (i.e. `if var1 < 10 then 'less than 10' else '10 or more'`)
+* Simple match evaluations (i.e. `match{ var1 < 10 => 'warn', var1 >= 10 => 'critical', default => 'info'}`
 * Determining whether a field exists (via `exists`)
 * An `in` operator that works like the `in` in Python
 * The ability to have parenthesis to make order of operations explicit
@@ -41,10 +42,11 @@ The following keywords need to be single quote escaped in order to be used in St
 |               |               |             |             |             |
 | :-----------: | :-----------: | :---------: | :---------: | :---------: |
 | not           | else          | exists      | if          | then        |
-| and           | or            | in          | NaN         | ==          |
-| !=            | \<=           | \>          | \>=         | \+          |
-| \-            | \<            | ?           | \*          | /           |
-| ,             |               |             |             |             |
+| and           | or            | in          | NaN         | match       |
+| default       | ==            | !=          | \<=         | \>          | 
+| \>=           | \+            | \-          | \<          | ?           | 
+| \*            | /             | ,           | \{          | \}          |
+| \=>           |               |             |             |             |
 
 Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 
@@ -99,6 +101,25 @@ In the core language functions, we support basic functional programming primitiv
 * `MAP` - Applies a lambda expression over a list of input.  For instance `MAP([ 'foo', 'bar'], (x) -> TO_UPPER(x) )` returns `[ 'FOO', 'BAR' ]`
 * `FILTER` - Filters a list by a predicate in the form of a lambda expression.  For instance `FILTER([ 'foo', 'bar'], (x ) -> x == 'foo' )` returns `[ 'foo' ]`
 * `REDUCE` - Applies a function over a list of input.  For instance `REDUCE([ 1, 2, 3], (sum, x) -> sum + x, 0 )` returns `6`
+
+### Stellar Language Match Expression
+
+Stellar provides the capability to write match expressions, which are similar to switch statements commonly found in c like languages.
+
+The syntax is:
+* `match{ logical_expression1 => evaluation expression1, logical_expression2 => evaluation_expression2, default => default_expression}` 
+
+Where:
+
+* `logical_expression` is a Stellar expression that evaluates to true or false.  For instance `var > 0` or `var > 0 AND var2 == 'foo'` or `IF ... THEN ... ELSE` 
+* `evaluation_expression` is a Stellar Expression
+* `default` is a required default return value, should no logical expression match
+
+> default is required 
+
+> Lambda expressions are supported, but they must be no argument lambdas such as `() -> STATEMENT`
+
+* Only the first clause that evaluates to true will be executed.
 
 ## Stellar Core Functions
 
@@ -176,6 +197,8 @@ In the core language functions, we support basic functional programming primitiv
 | [ `MAP`](#map)                                                                                     |
 | [ `MAP_EXISTS`](#map_exists)                                                                       |
 | [ `MAP_GET`](#map_get)                                                                             |
+| [ `MAX`](#MAX)                                                                                     |
+| [ `MIN`](#MIN)                                                                                     |
 | [ `MONTH`](#month)                                                                                 |
 | [ `MULTISET_ADD`](#multiset_add)                                                                   |
 | [ `MULTISET_INIT`](#multiset_init)                                                                 |
@@ -712,11 +735,23 @@ In the core language functions, we support basic functional programming primitiv
     * default - Optionally the default value to return if the key is not in the map.
   * Returns: The object associated with the key in the map.  If no value is associated with the key and default is specified, then default is returned. If no value is associated with the key or default, then null is returned.
 
+### `MAX`
+  * Description: Returns the maximum value of a list of input values.
+    * Input:
+    * "list - List of arguments. The list may only contain objects that are mutually comparable / ordinal (implement java.lang.Comparable interface). Multi type numeric comparisons are supported: MAX([10,15L,15.3]) would return 15.3, but MAX(['23',25]) will fail and return null as strings and numbers can't be compared.
+  * Returns: The maximum value of the list, or null if the list is empty or the input values were not comparable.
+
+### `MIN`
+  * Description: Returns the minimum value of a list of input values.
+    * Input:
+    * "list - List of arguments. The list may only contain objects that are mutually comparable / ordinal (implement java.lang.Comparable interface). Multi type numeric comparisons are supported: MIN([10,15L,15.3]) would return 10, but MIN(['23',25]) will fail and return null as strings and numbers can't be compared.
+  * Returns: The minimum value of the list, or null if the list is empty or the input values were not comparable.
+
 ### `MONTH`
   * Description: The number representing the month.  The first month, January, has a value of 0.
   * Input:
     * dateTime - The datetime as a long representing the milliseconds since unix epoch
-  * Returns: The current month (0-based).
+  * Returns: The current month (0-based)
   
 ### `MULTISET_ADD`
   * Description: Adds to a multiset, which is a map associating objects to their instance counts.

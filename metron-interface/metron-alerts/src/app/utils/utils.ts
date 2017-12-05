@@ -17,10 +17,29 @@
  */
 import * as moment from 'moment/moment';
 
-import {DEFAULT_TIMESTAMP_FORMAT, TIMESTAMP_FIELD_NAME} from './constants';
+import {DEFAULT_TIMESTAMP_FORMAT, META_ALERTS_SENSOR_TYPE} from './constants';
+import {Alert} from '../model/alert';
 import {DateFilterValue} from '../model/date-filter-value';
 
 export class Utils {
+  public static escapeESField(field: string): string {
+    return field.replace(/:/g, '\\:');
+  }
+
+  public static escapeESValue(value: string): string {
+    return String(value)
+    .replace(/[\*\+\-=~><\"\?^\${}\(\)\:\!\/[\]\\\s]/g, '\\$&') // replace single  special characters
+    .replace(/\|\|/g, '\\||') // replace ||
+    .replace(/\&\&/g, '\\&&'); // replace &&
+  }
+
+  public static getAlertSensorType(alert: Alert): string {
+    if (alert.source['source:type'] && alert.source['source:type'].length > 0) {
+      return alert.source['source:type'];
+    } else {
+      return META_ALERTS_SENSOR_TYPE;
+    }
+  }
 
   public static timeRangeToDateObj(range:string) {
     let timeRangeToDisplayStr = Utils.timeRangeToDisplayStr(range);
@@ -181,4 +200,5 @@ export class Utils {
 
     return {toDate: toDate, fromDate: fromDate};
   }
+
 }

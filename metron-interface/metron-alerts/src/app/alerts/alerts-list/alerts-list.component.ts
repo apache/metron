@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit, ViewChild, ElementRef, OnDestroy, ChangeDetectorRef} from '@angular/core';
+import {Component, OnInit, ViewChild, ElementRef, OnDestroy} from '@angular/core';
 import {Router, NavigationStart} from '@angular/router';
 import {Observable, Subscription} from 'rxjs/Rx';
 
@@ -39,7 +39,9 @@ import {Filter} from '../../model/filter';
 import {THREAT_SCORE_FIELD_NAME, TIMESTAMP_FIELD_NAME, ALL_TIME} from '../../utils/constants';
 import {TableViewComponent} from './table-view/table-view.component';
 import {Pagination} from '../../model/pagination';
-import {PatchRequest} from '../../model/patch-request';
+import {META_ALERTS_SENSOR_TYPE, META_ALERTS_INDEX} from '../../utils/constants';
+import {MetaAlertService} from '../../service/meta-alert.service';
+import {Facets} from '../../model/facets';
 
 @Component({
   selector: 'app-alerts-list',
@@ -59,6 +61,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   refreshTimer: Subscription;
   pauseRefresh = false;
   lastPauseRefreshValue = false;
+  isMetaAlertPresentInSelectedAlerts = false;
   timeStampfilterPresent = false;
   selectedTimeRange = new Filter(TIMESTAMP_FIELD_NAME, ALL_TIME, false);
   threatScoreFieldName = THREAT_SCORE_FIELD_NAME;
@@ -70,6 +73,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   tableMetaData = new TableMetadata();
   queryBuilder: QueryBuilder = new QueryBuilder();
   pagination: Pagination = new Pagination();
+  alertChangedSubscription: Subscription;
+  groupFacets: Facets;
 
   constructor(private router: Router,
               private searchService: SearchService,
@@ -79,7 +84,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
               private clusterMetaDataService: ClusterMetaDataService,
               private saveSearchService: SaveSearchService,
               private metronDialogBox: MetronDialogBox,
-              private changeDetector: ChangeDetectorRef) {
+              private metaAlertsService: MetaAlertService) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/alerts-list') {
         this.selectedAlerts = [];
@@ -89,8 +94,12 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   addAlertChangedListner() {
-    this.updateService.alertChanged$.subscribe(patchRequest => {
-      this.updateAlert(patchRequest);
+    this.metaAlertsService.alertChanged$.subscribe(metaAlertAddRemoveRequest => {
+      this.updateAlert(META_ALERTS_SENSOR_TYPE, metaAlertAddRemoveRequest.metaAlertGuid, (metaAlertAddRemoveRequest.alerts === null));
+    });
+
+    this.alertChangedSubscription = this.updateService.alertChanged$.subscribe(patchRequest => {
+      this.updateAlert(patchRequest.sensorType, patchRequest.guid, false);
     });
   }
 
@@ -125,8 +134,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   calcColumnsToDisplay() {
-    let availableWidth = document.documentElement.clientWidth - (200 + (15 * 4)); /* screenwidth - (navPaneWidth + (paddings))*/
-    availableWidth = availableWidth - (55 + 25 + 25); /* availableWidth - (score + colunSelectIcon +selectCheckbox )*/
+    let availableWidth = document.documentElement.clientWidth - (200 + (15 + 15 + 25)); /* screenwidth - (navPaneWidth + (paddings))*/
+    availableWidth = availableWidth - ((20 * 3) + 55 + 25); /* availableWidth - (score + colunSelectIcon +selectCheckbox )*/
     let tWidth = 0;
     this.alertsColumnsToDisplay =  this.alertsColumns.filter(colMetaData => {
       if (colMetaData.type.toUpperCase() === 'DATE') {
@@ -145,8 +154,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   getAlertColumnNames(resetPaginationForSearch: boolean) {
     Observable.forkJoin(
-      this.configureTableService.getTableMetadata(),
-      this.clusterMetaDataService.getDefaultColumns()
+        this.configureTableService.getTableMetadata(),
+        this.clusterMetaDataService.getDefaultColumns()
     ).subscribe((response: any) => {
       this.prepareData(response[0], response[1], resetPaginationForSearch);
     });
@@ -161,6 +170,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.tryStopPolling();
+    this.removeAlertChangedListner();
   }
 
   ngOnInit() {
@@ -194,6 +204,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   onSelectedAlertsChange(selectedAlerts) {
     this.selectedAlerts = selectedAlerts;
+    this.isMetaAlertPresentInSelectedAlerts = this.selectedAlerts.some(alert => (alert.source.alert && alert.source.alert.length > 0));
+
     if (selectedAlerts.length > 0) {
       this.pause();
     } else {
@@ -258,27 +270,32 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   processEscalate() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE').subscribe(results => {
+    this.updateService.updateAlertState(this.selectedAlerts, 'ESCALATE', false).subscribe(results => {
       this.updateSelectedAlertStatus('ESCALATE');
     });
   }
 
   processDismiss() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'DISMISS').subscribe(results => {
+    this.updateService.updateAlertState(this.selectedAlerts, 'DISMISS', false).subscribe(results => {
       this.updateSelectedAlertStatus('DISMISS');
     });
   }
 
   processOpen() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'OPEN').subscribe(results => {
+    this.updateService.updateAlertState(this.selectedAlerts, 'OPEN', false).subscribe(results => {
       this.updateSelectedAlertStatus('OPEN');
     });
   }
 
   processResolve() {
-    this.updateService.updateAlertState(this.selectedAlerts, 'RESOLVE').subscribe(results => {
+    this.updateService.updateAlertState(this.selectedAlerts, 'RESOLVE', false).subscribe(results => {
       this.updateSelectedAlertStatus('RESOLVE');
     });
+  }
+
+  processAddToAlert() {
+    this.metaAlertsService.selectedAlerts = this.selectedAlerts;
+    this.router.navigateByUrl('/alerts-list(dialog:add-to-meta-alert)');
   }
 
   removeFilter(field: string) {
@@ -311,7 +328,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   setSearchRequestSize() {
-    if (this.queryBuilder.groupRequest.groups.length == 0) {
+    if (this.queryBuilder.groupRequest.groups.length === 0) {
       this.queryBuilder.searchRequest.from = this.pagination.from;
       if (this.tableMetaData.size) {
         this.pagination.size = this.tableMetaData.size;
@@ -345,6 +362,14 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.pagination.total = results.total;
     this.alerts = results.results ? results.results : [];
     this.setSelectedTimeRange(this.queryBuilder.filters);
+    this.createGroupFacets(results);
+  }
+
+  private createGroupFacets(results: SearchResponse) {
+    this.groupFacets = JSON.parse(JSON.stringify(results.facetCounts));
+    if (this.groupFacets['source:type']) {
+      delete this.groupFacets['source:type']['metaalert'];
+    }
   }
 
   showConfigureTable() {
@@ -353,10 +378,12 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   }
 
   showDetails(alert: Alert) {
-    let url = '/alerts-list(dialog:details/' + alert.source['source:type'] + '/' + alert.source.guid + '/' + alert.index + ')';
     this.selectedAlerts = [];
     this.selectedAlerts = [alert];
     this.saveRefreshState();
+    let sourceType = (alert.index === META_ALERTS_INDEX && !alert.source['source:type'])
+        ? META_ALERTS_SENSOR_TYPE : alert.source['source:type'];
+    let url = '/alerts-list(dialog:details/' + sourceType + '/' + alert.source.guid + '/' + alert.index + ')';
     this.router.navigateByUrl(url);
   }
 
@@ -405,13 +432,22 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.searchService.interval = this.refreshInterval;
   }
 
-  updateAlert(patchRequest: PatchRequest) {
-    this.searchService.getAlert(patchRequest.sensorType, patchRequest.guid).subscribe(alertSource => {
-      this.alerts.filter(alert => alert.source.guid === patchRequest.guid)
+  updateAlert(sensorType: string, guid: string, isDelete: boolean) {
+    if (isDelete) {
+      let alertIndex = -1;
+      this.alerts.forEach((alert, index) => {
+        alertIndex = (alert.source.guid === guid) ? index : alertIndex;
+      });
+      this.alerts.splice(alertIndex, 1);
+      return;
+    }
+
+    this.searchService.getAlert(sensorType, guid).subscribe(alertSource => {
+      this.alerts.filter(alert => alert.source.guid === guid)
       .map(alert => alert.source = alertSource);
     });
   }
-  
+
   updateSelectedAlertStatus(status: string) {
     for (let selectedAlert of this.selectedAlerts) {
       selectedAlert.source['alert_status'] = status;
@@ -420,4 +456,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.resume();
   }
 
+  removeAlertChangedListner() {
+    this.alertChangedSubscription.unsubscribe();
+  }
 }

@@ -5,7 +5,7 @@ This module provides a user interface for management functions in Metron.
 ## Prerequisites
 
 * A network accessible Metron REST application
-* nodejs v6.9+ (nodejs can be installed on quick dev with `curl --silent --location https://rpm.nodesource.com/setup_6.x | bash - && yum install -y nodejs`)
+* nodejs v6.9+ (nodejs can be installed on Full Dev with `curl --silent --location https://rpm.nodesource.com/setup_6.x | bash - && yum install -y nodejs`)
 
 ## Installation
 
