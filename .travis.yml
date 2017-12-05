@@ -52,12 +52,14 @@ install:
   - cd $TRAVIS_BUILD_DIR
 
 script:
+   - ls -la
    - metron-contrib/metron-docker-e2e/scripts/wait_for_rest.sh localhost 8082
-   - mvn -q -T 2C surefire:test@unit-tests
-   - mvn -q surefire:test@integration-tests
-   - mvn -q test --projects metron-interface/metron-config
+   - cd $E2E_COMPOSE_HOME && docker-compose logs metron-rest && cd ../../../
+#   - mvn -q -T 2C surefire:test@unit-tests
+#   - mvn -q surefire:test@integration-tests
+#   - mvn -q test --projects metron-interface/metron-config
    - mvn -q test -Pe2e --projects=metron-interface/metron-alerts
-   - build_utils/verify_licenses.sh
+#   - build_utils/verify_licenses.sh
 
 before_cache:
   - rm -rf $HOME/.m2/repository/org/apache/metron
