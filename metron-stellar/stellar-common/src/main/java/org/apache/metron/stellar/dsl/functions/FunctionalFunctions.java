@@ -119,7 +119,7 @@ public class FunctionalFunctions {
           "See [python](https://docs.python.org/3/library/itertools.html#itertools.zip_longest) " +
           "and [wikipedia](https://en.wikipedia.org/wiki/Convolution_(computer_science)) for more context."
           , params = {
-                      "list* - Lists to zip."
+                      "list(s) - List(s) to zip."
                      }
           , returns = "The zip of the lists.  The returned list is the max size of all the lists.  " +
           "Empty elements are null " +
@@ -140,7 +140,7 @@ public class FunctionalFunctions {
           , description="Zips lists into a single list where the ith element is an list containing the ith items from the constituent lists. " +
           "See [python](https://docs.python.org/3/library/functions.html#zip) and [wikipedia](https://en.wikipedia.org/wiki/Convolution_(computer_science)) for more context."
           , params = {
-                      "list* - Lists to zip."
+                      "list(s) - List(s) to zip."
                      }
           ,returns = "The zip of the lists.  The returned list is the min size of all the lists.  " +
           "e.g. ZIP( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4] ]"
