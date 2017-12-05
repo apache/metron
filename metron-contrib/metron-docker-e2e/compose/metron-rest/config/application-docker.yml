@@ -13,12 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-docker:
-  host:
-    address: 192.168.99.100
-  compose:
-    path: ../../metron-docker/compose/docker-compose.yml
-
 spring:
   datasource:
       driverClassName: org.h2.Driver

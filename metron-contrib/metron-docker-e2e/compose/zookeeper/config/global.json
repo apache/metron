@@ -1,8 +1,0 @@
-{
-  "es.clustername": "elasticsearch",
-  "es.ip": "elasticsearch",
-  "es.port": "9300",
-  "es.date.format": "yyyy.MM.dd.HH",
-  "update.hbase.table": "metron_update",
-  "update.hbase.cf": "t"
-}

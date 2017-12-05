@@ -19,5 +19,4 @@ create 'access_tracker', 'cf'
 create 'ip', 'cf'
 create 'enrichment', 'cf'
 create 'threatintel', 'cf'
-create 'metron_update', 't'
 exit

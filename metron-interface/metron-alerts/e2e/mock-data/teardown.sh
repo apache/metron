@@ -15,6 +15,4 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-#ES_HOST=node1
-ES_HOST=192.168.99.100
-curl -s -XDELETE "http://$ES_HOST:9200/alerts_ui_e2e_index"
+curl -s -XDELETE "http://node1:9200/alerts_ui_e2e_index"

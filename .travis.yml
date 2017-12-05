@@ -50,11 +50,10 @@ install:
   - time mvn -q -T 2C -DskipTests clean install
   - cd $E2E_COMPOSE_HOME && docker-compose up -d
   - if [ ! -f ${DOCKER_METRON_CENTOS} ]; then docker save metron-centos | gzip > ${DOCKER_METRON_CENTOS}; fi
+  - cd $TRAVIS_BUILD_DIR
 
 script:
-   - cd ../../../
-   - echo $TRAVIS_BUILD_DIR
-   - metron-interface/metron-rest/src/main/scripts/wait_for_rest.sh localhost 8082
+   - metron-contrib/metron-docker-e2e/scripts/wait_for_rest.sh localhost 8082
    - cd $E2E_COMPOSE_HOME && docker-compose logs metron-rest && cd ../../../
    - mvn test -Pe2e --projects=metron-interface/metron-alerts
 #  - time mvn -q -T 2C surefire:test@unit-tests

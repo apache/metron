@@ -19,8 +19,6 @@ import { browser, element, by } from 'protractor';
 import {waitForElementVisibility, waitForURL} from '../utils/e2e_util';
 
 export class LoginPage {
-  host = 'localhost';
-  
     navigateToLogin() {
         return browser.get('/');
     }
@@ -37,7 +35,7 @@ export class LoginPage {
         browser.waitForAngularEnabled(false);
         element.all(by.css('.alert .close')).click();
         element.all(by.css('.logout-link')).click();
-        waitForURL('http://' + this.host + ':4201/login');
+        waitForURL('http://localhost:4201/login');
     }
 
     setUserNameAndPassword(userName: string, password: string) {

@@ -34,7 +34,7 @@
 
     <property>
         <name>hbase.zookeeper.quorum</name>
-        <value>zookeeper</value>
+        <value>kafkazk</value>
         <description>Comma separated list of servers in the ZooKeeper Quorum.</description>
     </property>
 
