@@ -35,7 +35,7 @@ public class DataStructureFunctions {
           , namespace="BLOOM"
           , description="Adds an element to the bloom filter passed in"
           , params = { "bloom - The bloom filter"
-                     , "value* - The values to add"
+                     , "value(s) - The value(s) to add"
                      }
           , returns = "Bloom Filter"
           )
