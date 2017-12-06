@@ -31,8 +31,8 @@ services:
   elasticsearch:
     image: elasticsearch:2.3
     ports:
-      - "9200:9200"
-      - "9300:9300"
+      - "9210:9200"
+      - "9310:9300"
   metron-rest:
     build:
       context: ./metron-rest
