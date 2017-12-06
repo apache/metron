@@ -71,30 +71,30 @@ export function loadTestData() {
     });
   });
 
-  request.delete('http://' + host + ':9200/alerts_ui_e2e_index*', function (e, response, body) {
+  request.delete('http://' + host + ':9210/alerts_ui_e2e_index*', function (e, response, body) {
     fs.createReadStream('e2e/mock-data/alerts_ui_e2e_index.template')
-    .pipe(request.post('http://' + host + ':9200/_template/alerts_ui_e2e_index', function (e, response, body) {
+    .pipe(request.post('http://' + host + ':9210/_template/alerts_ui_e2e_index', function (e, response, body) {
       fs.createReadStream('e2e/mock-data/alerts_ui_e2e_index.data')
-      .pipe(request.post('http://' + host + ':9200/alerts_ui_e2e_index/alerts_ui_e2e_doc/_bulk', function (e, response, body) {
+      .pipe(request.post('http://' + host + ':9210/alerts_ui_e2e_index/alerts_ui_e2e_doc/_bulk', function (e, response, body) {
       }));
     }));
   });
 }
 
 export function deleteTestData() {
-  request.delete('http://' + host + ':9200/alerts_ui_e2e_index*');
+  request.delete('http://' + host + ':9210/alerts_ui_e2e_index*');
   request.delete('http://user:password@' + host + ':8082/api/v1/sensor/indexing/config/alerts_ui_e2e', function (e, response, body) {
   });
 }
 
 export function createMetaAlertsIndex() {
-  request.delete('http://' + host + ':9200/metaalert_index*', function (e, response, body) {
+  request.delete('http://' + host + ':9210/metaalert_index*', function (e, response, body) {
     fs.createReadStream('./../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/metaalert_index.template')
-    .pipe(request.post('http://' + host + ':9200/metaalert_index'));
+    .pipe(request.post('http://' + host + ':9210/metaalert_index'));
   });
 }
 
 export function deleteMetaAlertsIndex() {
-  request.delete('http://' + host + ':9200/metaalert_index*');
+  request.delete('http://' + host + ':9210/metaalert_index*');
 }
 
