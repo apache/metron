@@ -153,9 +153,9 @@ Where:
 | [ `FILL_RIGHT`](#fill_right)                                                                       |
 | [ `FILTER`](#filter)                                                                               |
 | [ `FLOOR`](#floor)                                                                                 |
+| [ `FORMAT`](#format)                                                                               |
 | [ `FUZZY_LANGS`](#fuzzy_langs)                                                                     |
 | [ `FUZZY_SCORE`](#fuzzy_score)                                                                     |
-| [ `FORMAT`](#format)                                                                               |
 | [ `GEO_GET`](#geo_get)                                                                             |
 | [ `GEOHASH_CENTROID`](#geohash_centroid)                                                           |
 | [ `GEOHASH_DIST`](#geohash_dist)                                                                   |
@@ -168,10 +168,10 @@ Where:
 | [ `GET_LAST`](#get_last)                                                                           |
 | [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)                                             |
 | [ `HASH`](#hash)                                                                                   |
+| [ `HLLP_ADD`](../../metron-analytics/metron-statistics#hllp_add)                                   |
 | [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality)                   |
 | [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
 | [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)                               |
-| [ `HLLP_OFFER`](../../metron-analytics/metron-statistics#hllp_offer)                               |
 | [ `IN_SUBNET`](#in_subnet)                                                                         |
 | [ `IS_DATE`](#is_date)                                                                             |
 | [ `IS_ENCODING`](#is_encoding)                                                                     |
@@ -180,7 +180,7 @@ Where:
 | [ `IS_EMPTY`](#is_empty)                                                                           |
 | [ `IS_INTEGER`](#is_integer)                                                                       |
 | [ `IS_IP`](#is_ip)                                                                                 |
-| [ `IS_NAN`](#is_nan)                                                             |
+| [ `IS_NAN`](#is_nan)                                                                               |
 | [ `IS_URL`](#is_url)                                                                               |
 | [ `JOIN`](#join)                                                                                   |
 | [ `KAFKA_GET`](#kafka_get)                                                                         |
@@ -196,7 +196,7 @@ Where:
 | [ `MAAS_MODEL_APPLY`](#maas_model_apply)                                                           |
 | [ `MAP`](#map)                                                                                     |
 | [ `MAP_EXISTS`](#map_exists)                                                                       |
-| [ `MAP_GET`](#MAP_GET)                                                                             |
+| [ `MAP_GET`](#map_get)                                                                             |
 | [ `MAX`](#MAX)                                                                                     |
 | [ `MIN`](#MIN)                                                                                     |
 | [ `MONTH`](#month)                                                                                 |
@@ -218,8 +218,8 @@ Where:
 | [ `SET_INIT`](#set_init)                                                                           |
 | [ `SET_MERGE`](#set_merge)                                                                         |
 | [ `SET_REMOVE`](#set_remove)                                                                       |
-| [ `SPLIT`](#split)                                                                                 |
 | [ `SIN`](#sin)                                                                                     |
+| [ `SPLIT`](#split)                                                                                 |
 | [ `SQRT`](#sqrt)                                                                                   |
 | [ `STARTS_WITH`](#starts_with)                                                                     |
 | [ `STATS_ADD`](../../metron-analytics/metron-statistics#stats_add)                                 |
@@ -246,12 +246,12 @@ Where:
 | [ `SYSTEM_ENV_GET`](#system_env_get)                                                               |
 | [ `SYSTEM_PROPERTY_GET`](#system_property_get)                                                     |
 | [ `TAN`](#tan)                                                                                     |
-| [ `TLSH_DIST`](#tlsh_dist)                                                                                     |
+| [ `TLSH_DIST`](#tlsh_dist)                                                                         |
 | [ `TO_DOUBLE`](#to_double)                                                                         |
 | [ `TO_EPOCH_TIMESTAMP`](#to_epoch_timestamp)                                                       |
 | [ `TO_FLOAT`](#to_float)                                                                           |
 | [ `TO_INTEGER`](#to_integer)                                                                       |
-| [ `TO_JSON_LIST`](#to_json_List)                                                                   |
+| [ `TO_JSON_LIST`](#to_json_list)                                                                   |
 | [ `TO_JSON_MAP`](#to_json_map)                                                                     |
 | [ `TO_JSON_OBJECT`](#to_json_object)                                                               |
 | [ `TO_LONG`](#to_long)                                                                             |
@@ -267,7 +267,7 @@ Where:
 | [ `WEEK_OF_YEAR`](#week_of_year)                                                                   |
 | [ `YEAR`](#year)                                                                                   |
 | [ `ZIP`](#zip)                                                                                     |
-| [ `ZIP_JAGGED`](#zip_jagged)                                                                       |
+| [ `ZIP_LONGEST`](#zip_longest)                                                                     |
 
 ### `APPEND_IF_MISSING`
   * Description: Appends the suffix to the end of the string if the string does not already end with any of the suffixes.
@@ -281,7 +281,7 @@ Where:
   * Description: Adds an element to the bloom filter passed in
   * Input:
     * bloom - The bloom filter
-    * value* - The values to add
+    * value(s) - The value(s) to add
   * Returns: Bloom Filter
   
 ### `BLOOM_EXISTS`
@@ -763,7 +763,7 @@ Where:
 ### `MULTISET_INIT`
   * Description: Creates an empty multiset, which is a map associating objects to their instance counts.
   * Input:
-    * input? - An initialization of the multiset
+    * input (optional) - An initialization of the multiset
   * Returns: A multiset
 
 ### `MULTISET_MERGE`
@@ -864,7 +864,7 @@ Where:
 ### `SET_INIT`
   * Description: Creates an new set
   * Input:
-    * input? - An initialization of the set
+    * input (optional) - An initialization of the set
   * Returns: A Set
 
 ### `SET_MERGE`
@@ -886,6 +886,13 @@ Where:
     * number - The number to take the sine of
   * Returns: The sine of the number passed in.
 
+### `SPLIT`
+  * Description: Splits the string by the delimiter.
+  * Input:
+    * input - String to split
+    * delim - String delimiter
+  * Returns: List of strings
+
 ### `SQRT`
   * Description: Returns the square root of a number.
   * Input:
@@ -897,13 +904,6 @@ Where:
   * Input:
     * input - String 
   * Returns: The base-2 shannon entropy of the string (https://en.wikipedia.org/wiki/Entropy_(information_theory)#Definition).  The unit of this is bits.
-
-### `SPLIT`
-  * Description: Splits the string by the delimiter.
-  * Input:
-    * input - String to split
-    * delim - String delimiter
-  * Returns: List of strings
 
 ### `STARTS_WITH`
   * Description: Determines whether a string starts with a prefix
@@ -960,7 +960,7 @@ Where:
     * timezone - Optional timezone in String format
   * Returns: Epoch timestamp
   
-### `TO_FOAT`
+### `TO_FLOAT`
   * Description: Transforms the first argument to a float
   * Input:
     * input - Object of string or numeric type
@@ -1070,7 +1070,7 @@ Where:
   See [python](https://docs.python.org/3/library/functions.html#zip)
   and [wikipedia](https://en.wikipedia.org/wiki/Convolution_(computer_science)) for more context.
   * Input:
-    * list* - Lists to zip.
+    * list(s) - List(s) to zip.
   * Returns: The zip of the lists.  The returned list is the min size of all the lists. e.g. `ZIP( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4] ]`
 
 ### `ZIP_LONGEST`
@@ -1078,7 +1078,7 @@ Where:
   See [python](https://docs.python.org/3/library/itertools.html#itertools.zip_longest)
   and [wikipedia](https://en.wikipedia.org/wiki/Convolution_(computer_science)) for more context.
   * Input:
-    * list* - Lists to zip.
+    * list(s) - List(s) to zip.
   * Returns: The zip of the lists.  The returned list is the max size of all the lists.  Empty elements are null e.g. `ZIP_LONGEST( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4], [null, 5] ]`
 
 The following is an example query (i.e. a function which returns a
