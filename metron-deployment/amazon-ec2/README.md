@@ -120,10 +120,10 @@ env: metron-test
 
 ### Selective Provisioning
 
-To provision only subsets of the entire Metron deployment, Ansible tags can be specified.  For example, to only deploy the sensors on an Amazon EC2 environment, run the following command.
+To provision only subsets of the entire Metron deployment, Ansible tags can be specified.  For example, to only deploy the sensors on an Amazon EC2 environment, run the following command:
 
 ```
-ansible-playbook -i ec2.py playbook.yml --tags "ec2,sensors"
+./run.sh --tags="ec2,sensors"
 ```
 
 ### Custom SSH Key
