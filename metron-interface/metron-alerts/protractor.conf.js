@@ -78,5 +78,13 @@ exports.config = {
   onComplete: function() {
     var createMetaAlertsIndex =  require('./e2e/utils/e2e_util').createMetaAlertsIndex;
     createMetaAlertsIndex();
+  },
+  params: {
+    rest: {
+      url: 'localhost:8082'
+    },
+    elasticsearch: {
+      url: 'localhost:9210'
+    }
   }
 };
