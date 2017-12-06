@@ -17,8 +17,13 @@
  */
 
 import {browser, element, by} from 'protractor';
+import {waitForElementVisibility} from '../../utils/e2e_util';
 
 export class MetaAlertPage {
+
+  waitForDialog() {
+    browser.sleep(2000); // We need to figure out a a better way to wait for dialog to load
+  }
 
   getPageTitle() {
     return element(by.css('app-meta-alerts .form-title')).getText();
@@ -29,7 +34,8 @@ export class MetaAlertPage {
   }
 
   getAvailableMetaAlerts() {
-    return element(by.css('app-meta-alerts .guid-name-container div')).getText();
+    return waitForElementVisibility(element(by.css('app-meta-alerts .guid-name-container div')))
+    .then(() => element(by.css('app-meta-alerts .guid-name-container div')).getText());
   }
 
   selectRadio() {

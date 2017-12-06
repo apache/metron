@@ -64,5 +64,8 @@ export class AlertFacetsPage {
     });
   }
 
+  selectFilter(filterTitle: string) {
+    return element(by.css(`li[title="${filterTitle}"]`)).click();
+  }
 }
 

@@ -1,6 +1,5 @@
 import { browser, protractor, by, element } from 'protractor';
 import request = require('request');
-import chalk = require('chalk');
 import fs = require('fs');
 
 export function changeURL(url: string) {
@@ -83,13 +82,6 @@ export function waitForNonEmptyText(elementFinder) {
     }
   }
   return browser.wait(waitForNonEmptyText$(elementFinder));
-}
-
-export function checkNodeVersion() {
-  let installedVersion = Number(process.version.match(/^v(\d+\.\d+)/)[1]);
-  if (installedVersion < 8.9) {
-    console.log(chalk.red.bgBlack.bold('E2E tests are written using node version > 8.9 you are running tests using node version ' + installedVersion + '. This might cause some tests to fail'));
-  }
 }
 
 function promiseHandler(resolve, reject) {

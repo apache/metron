@@ -82,10 +82,9 @@ export class MetronAlertsPage {
   }
 
   clickActionDropdownOption(option: string) {
-    this.clickActionDropdown().then(() => {
-      element(by.cssContainingText('.dropdown-menu span', option)).click();
-      browser.sleep(2000);
-    });
+    this.clickActionDropdown()
+    .then(() => element(by.cssContainingText('.dropdown-menu span', option)).click())
+    .then(() => waitForCssClassNotToBePresent(element(by.css('#table-actions')), 'show'));
   }
 
   getActionDropdownItems() {
@@ -311,6 +310,7 @@ export class MetronAlertsPage {
     let row = element.all(by.css('app-alerts-list tbody tr')).get(rowIndex);
     let column = row.all(by.css('td a')).get(colIndex);
     return this.waitForTextChange(column, previousText).then(() => {
+      browser.sleep(500);
       return column.getText();
     });
   }
@@ -407,9 +407,8 @@ export class MetronAlertsPage {
 
   getChangesAlertTableTitle(previousText: string) {
     let title = element(by.css('.col-form-label-lg'));
-    return waitForTextChange(title, previousText).then(() => {
-      return title.getText();
-    });
+    return waitForTextChange(title, previousText)
+    .then(() => {return title.getText()});
   }
 
   getAlertStatusById(id: string) {

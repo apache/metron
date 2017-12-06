@@ -127,6 +127,7 @@ describe('Test spec for meta alerts workflow', function() {
     /* Add to alert */
     tablePage.toggleAlertInList(3);
     tablePage.clickActionDropdownOption('Add to Alert');
+    metaAlertPage.waitForDialog();
     expect(metaAlertPage.getPageTitle()).toEqualBcoz('Add to Alert', 'Add Alert Title should be present');
     expect(metaAlertPage.getMetaAlertsTitle()).toEqualBcoz('SELECT OPEN ALERT', 'select open alert title should be present');
     expect(metaAlertPage.getAvailableMetaAlerts()).toEqualBcoz('e2e-meta-alert (13)', 'Meta alert should be present');

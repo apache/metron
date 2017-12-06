@@ -63,11 +63,9 @@ exports.config = {
     var defer = protractor.promise.defer();
     var cleanMetronUpdateTable = require('./e2e/utils/clean_metron_update_table').cleanMetronUpdateTable;
     var createMetaAlertsIndex = require('./e2e/utils/e2e_util').createMetaAlertsIndex;
-    var checkNodeVersion = require('./e2e/utils/e2e_util').checkNodeVersion;
     cleanMetronUpdateTable()
     .then(function() {
       jasmine.getEnv().addReporter(new SpecReporter({displayStacktrace: 'specs'}));
-      checkNodeVersion();
       createMetaAlertsIndex();
       defer.fulfill();
     })
