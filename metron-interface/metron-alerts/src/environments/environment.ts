@@ -23,5 +23,5 @@
 export const environment = {
   production: false,
   indices: null,
-  defaultPollingState: false
+  disablePolling: false
 };
