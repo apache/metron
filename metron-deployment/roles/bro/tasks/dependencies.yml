@@ -15,6 +15,11 @@
 #  limitations under the License.
 #
 ---
+- name: Install yum repositories
+  yum: name={{ item }} update_cache=yes
+  with_items:
+    - centos-release-scl
+
 - name: Install prerequisites
   yum: name={{ item }}
   with_items:
@@ -33,17 +38,10 @@
     - perl
     - crontabs
     - net-tools
-    - centos-release-scl
-  register: result
-  until: result.rc == 0
-  retries: 5
-  delay: 10
-
-- name: Install additional prerequisites
-  yum: name={{ item }}
-  with_items:
     - devtoolset-4-gcc
     - devtoolset-4-gcc-c++
+    - python27
+    - rh-git29
   register: result
   until: result.rc == 0
   retries: 5
