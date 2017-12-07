@@ -18,6 +18,7 @@
 
 package org.apache.metron.common.field.transformation;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,6 +29,8 @@ import org.apache.metron.stellar.dsl.Context;
 
 public class SelectTransformation implements FieldTransformation {
 
+	private static final List<String> systemFields = Arrays.asList("timestamp", "original_string");
+
 	@Override
 	public Map<String, Object> map(Map<String, Object> input, List<String> outputField,
 			LinkedHashMap<String, Object> fieldMappingConfig, Context context, Map<String, Object>... sensorConfig) {
@@ -37,13 +40,15 @@ public class SelectTransformation implements FieldTransformation {
 
 		// note, this cannot be implemented with streams because HashMap merge guards
 		// against null values
-		
-		HashMap<String, Object> output = new HashMap<String,Object>();
+
+		HashMap<String, Object> output = new HashMap<String, Object>();
 		for (Entry<String, Object> e : input.entrySet()) {
 			if (outputField.contains(e.getKey())) {
 				output.put(e.getKey(), e.getValue());
 			} else {
-				output.put(e.getKey(), null);
+				if (!systemFields.contains(e.getKey())) {
+					output.put(e.getKey(), null);
+				}
 			}
 		}
 		return output;

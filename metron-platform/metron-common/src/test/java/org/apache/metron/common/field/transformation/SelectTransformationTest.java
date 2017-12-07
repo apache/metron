@@ -90,7 +90,7 @@ public class SelectTransformationTest {
 		Assert.assertTrue(input.containsKey("original_string"));
 		Assert.assertTrue(input.containsKey("field1"));
 		Assert.assertFalse(input.containsKey("field2"));
-		Assert.assertEquals(1, input.size());
+		Assert.assertEquals(3, input.size());
 	}
 
 }
