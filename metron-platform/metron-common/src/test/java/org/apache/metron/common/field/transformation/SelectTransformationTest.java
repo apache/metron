@@ -71,5 +71,26 @@ public class SelectTransformationTest {
 		Assert.assertFalse(input.containsKey("field3"));
 		Assert.assertEquals(2, input.size());
 	}
+	
+	@Test
+	public void testPreserveSystemFields() throws Exception { 
+		SensorParserConfig sensorConfig = SensorParserConfig.fromBytes(Bytes.toBytes(selectSingleFieldConfig));
+		FieldTransformer handler = Iterables.getFirst(sensorConfig.getFieldTransformations(), null);
+		JSONObject input = new JSONObject(new HashMap<String, Object>() {
+			{
+				put("timestamp", 12345);
+				put("original_string", "foo,bar");
+				put("field1", "foo");
+				put("field2", "bar");
+			}
+		});
+		handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
+		
+		Assert.assertTrue(input.containsKey("timestamp"));
+		Assert.assertTrue(input.containsKey("original_string"));
+		Assert.assertTrue(input.containsKey("field1"));
+		Assert.assertFalse(input.containsKey("field2"));
+		Assert.assertEquals(1, input.size());
+	}
 
 }
