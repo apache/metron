@@ -66,6 +66,9 @@ public class StellarCompiler extends StellarBaseListener {
   public static class ThenExpr implements ShortCircuitOp {}
   public static class ElseExpr implements ShortCircuitOp {}
   public static class EndConditional implements ShortCircuitOp {}
+  public static class MatchClauseCheckExpr implements ShortCircuitOp {}
+  public static class MatchClauseEnd implements ShortCircuitOp {}
+  public static class MatchClausesEnd implements ShortCircuitOp {}
 
   public static class ExpressionState {
     Context context;
@@ -105,59 +108,77 @@ public class StellarCompiler extends StellarBaseListener {
       Deque<Token<?>> instanceDeque = new ArrayDeque<>();
       {
         boolean skipElse = false;
+        boolean skipMatchClauses = false;
         Token<?> token = null;
         for (Iterator<Token<?>> it = getTokenDeque().descendingIterator(); it.hasNext(); ) {
           token = it.next();
           //if we've skipped an else previously, then we need to skip the deferred tokens associated with the else.
-          if(skipElse && token.getUnderlyingType() == ElseExpr.class) {
-            while(it.hasNext()) {
+          if (skipElse && token.getUnderlyingType() == ElseExpr.class) {
+            while (it.hasNext()) {
               token = it.next();
-              if(token.getUnderlyingType() == EndConditional.class) {
+              if (token.getUnderlyingType() == EndConditional.class) {
                 break;
               }
             }
             skipElse = false;
+          }
+          if (skipMatchClauses && (token.getUnderlyingType() == MatchClauseEnd.class
+              || token.getUnderlyingType() == MatchClauseCheckExpr.class)) {
+            while (it.hasNext()) {
+              token = it.next();
+              if (token.getUnderlyingType() == MatchClausesEnd.class) {
+                break;
+              }
+            }
+            skipMatchClauses = false;
           }
           /*
           curr is the current value on the stack.  This is the non-deferred actual evaluation for this expression
           and with the current context.
            */
           Token<?> curr = instanceDeque.peek();
-          if( curr != null
-           && curr.getValue() != null && curr.getValue() instanceof Boolean
-           && ShortCircuitOp.class.isAssignableFrom(token.getUnderlyingType())
-                  ) {
+          if (curr != null && curr.getValue() != null && curr.getValue() instanceof Boolean
+              && ShortCircuitOp.class.isAssignableFrom(token.getUnderlyingType())) {
             //if we have a boolean as the current value and the next non-contextual token is a short circuit op
             //then we need to short circuit possibly
-            if(token.getUnderlyingType() == BooleanArg.class) {
+            if (token.getUnderlyingType() == BooleanArg.class) {
               if (token.getMultiArgContext() != null
-                      && token.getMultiArgContext().getVariety() == FrameContext.BOOLEAN_OR
-                      && (Boolean) (curr.getValue())
-                      ) {
+                  && token.getMultiArgContext().getVariety() == FrameContext.BOOLEAN_OR
+                  && (Boolean) (curr.getValue())) {
                 //short circuit the or
                 FrameContext.Context context = curr.getMultiArgContext();
                 shortCircuit(it, context);
               } else if (token.getMultiArgContext() != null
-                      && token.getMultiArgContext().getVariety() == FrameContext.BOOLEAN_AND
-                      && !(Boolean) (curr.getValue())
-                      ) {
+                  && token.getMultiArgContext().getVariety() == FrameContext.BOOLEAN_AND
+                  && !(Boolean) (curr.getValue())) {
                 //short circuit the and
                 FrameContext.Context context = curr.getMultiArgContext();
                 shortCircuit(it, context);
               }
-            }
-            else if(token.getUnderlyingType() == IfExpr.class) {
+            } else if (token.getUnderlyingType() == IfExpr.class) {
               //short circuit the if/then/else
               instanceDeque.pop();
               if((Boolean)curr.getValue()) {
                 //choose then
                 skipElse = true;
-              }
-              else {
+              } else {
                 //choose else
-                while(it.hasNext()) {
+                while (it.hasNext()) {
                   Token<?> t = it.next();
-                  if(t.getUnderlyingType() == ElseExpr.class) {
+                  if (t.getUnderlyingType() == ElseExpr.class) {
+                    break;
+                  }
+                }
+              }
+            } else if (token.getUnderlyingType() == MatchClauseCheckExpr.class) {
+              instanceDeque.pop();
+              if ((Boolean) curr.getValue()) {
+                //skip everything else after lambda
+                skipMatchClauses = true;
+              } else {
+                while (it.hasNext()) {
+                  Token<?> t = it.next();
+                  if (t.getUnderlyingType() == MatchClauseEnd.class) {
                     break;
                   }
                 }
@@ -697,7 +718,62 @@ public class StellarCompiler extends StellarBaseListener {
     }, DeferredFunction.class, context));
   }
 
+  @Override
+  public void exitDefault(StellarParser.DefaultContext ctx) {
+    expression.tokenDeque.push(new Token<>(true, Boolean.class, getArgContext()));
+  }
 
+  @Override
+  public void exitMatchClauseCheckExpr(StellarParser.MatchClauseCheckExprContext ctx) {
+    final FrameContext.Context context = getArgContext();
+    // if we are validating, and we have a single variable then we will get
+    // a null and we need to protect against that
+    if(ctx.getStart() == ctx.getStop()) {
+      expression.tokenDeque.push(new Token<>((tokenDeque, state) -> {
+        if (state.context.getActivityType().equals(ActivityType.VALIDATION_ACTIVITY)) {
+          if (tokenDeque.size() == 1 && (tokenDeque.peek().getValue() == null
+              || tokenDeque.peek().getUnderlyingType() == Boolean.class)) {
+            tokenDeque.pop();
+            tokenDeque.add(new Token<>(true, Boolean.class, getArgContext()));
+          }
+
+        }
+      }, DeferredFunction.class, context));
+    }
+    expression.tokenDeque.push(new Token<>(new MatchClauseCheckExpr(), MatchClauseCheckExpr.class, getArgContext()));
+  }
+
+  @Override
+  public void exitMatchClauseAction(StellarParser.MatchClauseActionContext ctx) {
+    final FrameContext.Context context = getArgContext();
+    expression.tokenDeque.push(new Token<>( (tokenDeque, state) -> {
+      Token<?> token = popDeque(tokenDeque);
+      Object value = token.getValue();
+      if (value != null && LambdaExpression.class.isAssignableFrom(value.getClass())) {
+        LambdaExpression expr = (LambdaExpression) value;
+        // at this time we don't support lambdas with arguments
+        // there is no context for it as such here
+        // it is possible that we add match variables, and use those
+        // as the context, but that could also be done with plain variables
+        // so it remains to be determined
+        Object result = expr.apply(new ArrayList<>());
+        tokenDeque.push(new Token<>(result, Object.class, context));
+      } else {
+        tokenDeque.push(new Token<>(value, Object.class, context));
+      }
+
+    }, DeferredFunction.class, context));
+  }
+
+  @Override
+  public void exitMatch_clause(StellarParser.Match_clauseContext ctx) {
+    expression.tokenDeque.push(new Token<>(new MatchClauseEnd(), MatchClauseEnd.class, getArgContext()));
+  }
+
+  @Override
+  public void exitMatchClauses(StellarParser.MatchClausesContext ctx) {
+    expression.tokenDeque.push(new Token<>(new MatchClausesEnd(),MatchClausesEnd.class, getArgContext()));
+  }
 
   @Override
   public void exitComparisonExpressionWithOperator(StellarParser.ComparisonExpressionWithOperatorContext ctx) {
@@ -723,7 +799,7 @@ public class StellarCompiler extends StellarBaseListener {
   }
 
   private FrameContext.Context getArgContext() {
-    return expression.multiArgumentState.isEmpty()?null:expression.multiArgumentState.peek();
+    return expression.multiArgumentState.isEmpty() ? null : expression.multiArgumentState.peek();
   }
 
   private Token<?> popDeque(Deque<Token<?>> tokenDeque) {
@@ -733,6 +809,8 @@ public class StellarCompiler extends StellarBaseListener {
     return tokenDeque.pop();
   }
 
-  public Expression getExpression() {return expression;}
+  public Expression getExpression() {
+    return expression;
+  }
 
 }

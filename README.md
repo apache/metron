@@ -87,6 +87,7 @@ $ mvn clean install -PHDP-2.5.0.0
 
 You can swap "install" for "package" in the commands above if you don't want to deploy the artifacts to your local .m2 repo.
 
+
 # Build Metron Reporting
 
 To build and run reporting with code coverage:
@@ -101,6 +102,11 @@ $ mvn clean install -DskipTests site site:stage-deploy site:deploy
 ```
 
 The staged site is deployed to /tmp/metron/site/index.html, and can be viewed by opening the file in a browser.
+
+## Building with Docker
+
+A Docker container with all the required software, with the proper versions, is available to be used as well.
+see [ansible-docker](metron-deployment/packaging/docker/ansible-docker)
 
 # Navigating the Architecture
 

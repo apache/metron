@@ -20,7 +20,10 @@
       </div>
       <div class="mrow top-group" (click)="toggleTopLevelGroup(group)">
         <div class="col-5 text-light severity-padding"> <span class="title"> {{ group.key | centerEllipses:45 }} </span> </div>
-        <div class="col-6 text-light two-line"> <span class="text-dark"> ALERTS </span> <br> <span class="title"> {{ group.total | number }} </span> </div>
+        <div class="col-5 text-light two-line"> <span class="text-dark"> ALERTS </span> <br> <span class="title"> {{ group.total | number }} </span> </div>
+        <div class="col-1 text-right pr-4">
+          <i class="fa fa-link top-group-link" aria-hidden="true" (click)="createMetaAlert($event, group, i)" data-animation="false" data-toggle="tooltip" data-placement="left"  title="Merge Alerts"></i>
+        </div>
         <div class="col-1 text-right pr-4">
             <i class="down-arrow" data-animation="false" data-toggle="tooltip" data-placement="left" title="Open Group"
                    aria-expanded="false" [attr.href]="'#body-' + i" [attr.aria-controls]="'body-' + i"> </i>
@@ -73,13 +76,17 @@
               <ng-container *ngFor="let subGroup of group.treeSubGroups;let i = index">
 
                 <tr class="table-group-row" [ngClass]="{'d-none': !subGroup.show}" (click)="toggleSubGroups(group, subGroup, i)" [attr.data-name]="subGroup.key">
-                  <td [attr.colspan]="alertsColumnsToDisplay.length + 4" [ngStyle]="{'padding-left.px': (16 * (subGroup.level -1))}">
+                  <td [attr.colspan]="alertsColumnsToDisplay.length + 2" [ngStyle]="{'padding-left.px': (16 * (subGroup.level -1))}">
                     <span class="table-group-icon-col" data-animation="false" data-toggle="tooltip" data-placement="bottom" title="Open Group">
                       <i class="fa" aria-hidden="true" [ngClass]="{'fa-caret-down': subGroup.expand, 'fa-caret-right': !subGroup.expand}"></i>
                     </span>
                     <span class="score" appAlertSeverity [severity]="subGroup.score"> {{ subGroup.score }} </span>
                     <span class="group-value"> <span class="text-light"> {{ subGroup.key }} </span> ({{ subGroup.total}})</span>
                   </td>
+                  <td>
+                    <i style="color: #32ABDF;" class="fa fa-link" aria-hidden="true" (click)="createMetaAlert($event, subGroup, i)" data-animation="false" data-toggle="tooltip" data-placement="left"  title="Merge Alerts"></i>
+                  </td>
+                  <td> </td>
                 </tr>
 
                 <tr *ngFor="let alert of subGroup.response.results" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1, 'd-none': !subGroup.expand || !subGroup.show}" (click)="showDetails($event, alert)">

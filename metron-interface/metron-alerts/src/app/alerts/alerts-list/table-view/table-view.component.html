@@ -15,23 +15,98 @@
   <table class="table table-sm" metron-config-table [data]="alerts" [cellSelectable]="true" (onSort)="onSort($event)" style="white-space: nowrap;" (window:resize)="resize()" #table>
     <thead>
     <tr>
-      <th style="width:55px"> <metron-config-sorter [type]="'number'" [sortBy]="threatScoreFieldName"> Score </metron-config-sorter> </th>
+      <th width="15" class="dropdown-cell"> </th>
+      <th width="55"> <metron-config-sorter [type]="'number'" [sortBy]="threatScoreFieldName"> Score </metron-config-sorter> </th>
       <th *ngFor="let column of alertsColumnsToDisplay" [id]="column.name"> <metron-config-sorter [type]="column.type" [sortBy]="column.name" title="{{column.name}}"> {{ column.name | columnNameTranslate | centerEllipses:15 }}</metron-config-sorter> </th>
-      <th></th>
-      <th style="width:25px"><input id="select-deselect-all" class="fontawesome-checkbox" type="checkbox" (click)="selectAllRows($event)"><label for="select-deselect-all"></label></th>
+      <th width="20" class="icon-cell"></th>
+      <th width="20" class="icon-cell"></th>
+      <th width="25"><input id="select-deselect-all" class="fontawesome-checkbox" type="checkbox" (click)="selectAllRows($event)"><label for="select-deselect-all"></label></th>
     </tr>
     </thead>
     <tbody>
-    <tr *ngFor="let alert of alerts" (click)="showDetails($event, alert)" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1}">
-      <td (click)="addFilter(threatScoreFieldName, alert.source[threatScoreFieldName])">
-        <div appAlertSeverity [severity]="alert.source[threatScoreFieldName]"> <a> {{ alert.source[threatScoreFieldName] ? alert.source[threatScoreFieldName] : '-' }} </a> </div>
-      </td>
-      <td *ngFor="let column of alertsColumnsToDisplay" #cell>
-        <a (click)="addFilter(column.name, getValue(alert, column, false))" title="{{getValue(alert, column, true)}}" style="color:#689AA9">{{ getValue(alert, column, true) | centerEllipses:20:cell }}</a>
-      </td>
-      <td> <i class="fa fa-comments-o" aria-hidden="true" *ngIf="alert.source.comments && alert.source.comments.length > 0"></i> </td>
-      <td><input id="{{ alert.id }}" class="fontawesome-checkbox" type="checkbox" name="{{alert.id}}" (click)="selectRow($event, alert)" [checked]="selectedAlerts.indexOf(alert) != -1"><label attr.for="{{ alert.id }}"></label></td>
-    </tr>
+    <ng-container *ngFor="let alert of alerts; let alertIndex = index;">
+
+      <ng-container *ngIf="!alert.source.alert || alert.source.alert.length === 0">
+        <tr (click)="showDetails($event, alert)" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1}">
+          <td width="15" class="icon-cell"></td>
+          <td (click)="addFilter(threatScoreFieldName, alert.source[threatScoreFieldName])">
+            <div appAlertSeverity [severity]="alert.source[threatScoreFieldName]">
+              <a> {{ alert.source[threatScoreFieldName] ? alert.source[threatScoreFieldName] : '-' }} </a>
+            </div>
+          </td>
+          <td *ngFor="let column of alertsColumnsToDisplay" #cell>
+            <a (click)="addFilter(column.name, getValue(alert, column, false))" title="{{getValue(alert, column, true)}}" style="color:#689AA9">
+              {{ getValue(alert,column, true) | centerEllipses:20:cell }}
+            </a>
+          </td>
+          <td width="20" class="icon-cell"></td>
+          <td width="20" class="icon-cell">
+            <i class="fa fa-comments-o" aria-hidden="true" *ngIf="alert.source.comments && alert.source.comments.length > 0"></i>
+          </td>
+          <td>
+            <input id="{{ alert.id }}" class="fontawesome-checkbox" type="checkbox" name="{{alert.id}}" (click)="selectRow($event, alert)" [checked]="selectedAlerts.indexOf(alert) != -1">
+            <label attr.for="{{ alert.id }}"></label>
+          </td>
+        </tr>
+      </ng-container>
+
+      <ng-container *ngIf="alert.source.alert && alert.source.alert.length > 0">
+        <tr (click)="showDetails($event, alert)" [ngClass]="{'selected' : selectedAlerts.indexOf(alert) != -1}">
+          <td width="15" class="icon-cell dropdown-cell" (click)="toggleExpandCollapse($event, alert)">
+            <i class="fa" aria-hidden="true"
+               [ngClass]="{'fa-caret-right': metaAlertsDisplayState[alert.id] === metronAlertDisplayState.COLLAPSE, 'fa-caret-down': metaAlertsDisplayState[alert.id] === metronAlertDisplayState.EXPAND}">
+            </i>
+          </td>
+          <td (click)="addFilter(threatScoreFieldName, alert.source[threatScoreFieldName])">
+            <span appAlertSeverity [severity]="alert.source[threatScoreFieldName]"> <a> {{ alert.source[threatScoreFieldName] ? alert.source[threatScoreFieldName] : '-' }} </a> </span>
+          </td>
+          <td [attr.colspan]="alertsColumnsToDisplay.length - 1">
+            <a (click)="addFilter('guid', alert.id)" [attr.title]="alert.id" style="color:#689AA9"> {{ alert.source['name'] ? alert.source['name'] : alert.id | centerEllipses:20:cell }}</a>
+              <span> ({{ alert.source.alert.length }})</span>
+          </td>
+          <td>
+            <a *ngIf="isStatusFieldPresent" (click)="addFilter('alert_status', alert.source['alert_status'])" style="color:#689AA9">
+              {{ alert.source['alert_status'] ?alert.source['alert_status'] : 'New' | centerEllipses:20:cell }}
+            </a>
+          </td>
+          <td width="20" class="icon-cell" (click)="deleteMetaAlert($event, alert, alertIndex)">
+            <i class="fa fa-chain-broken" aria-hidden="true"></i>
+          </td>
+          <td width="20" class="icon-cell">
+            <i class="fa fa-comments-o" aria-hidden="true" *ngIf="alert.source.comments && alert.source.comments.length > 0"></i>
+          </td>
+          <td>
+            <input id="{{ alert.id }}" class="fontawesome-checkbox" type="checkbox" name="{{alert.id}}" (click)="selectRow($event, alert)" [checked]="selectedAlerts.indexOf(alert) != -1">
+            <label attr.for="{{ alert.id }}"></label>
+          </td>
+        </tr>
+        <tr *ngFor="let metaAlerts of alert.source.alert; let metaAlertIndex = index;" (click)="showMetaAlertDetails($event, metaAlerts)"
+            [ngClass]="{'selected' : selectedAlerts.indexOf(metaAlerts) != -1 , 'd-none': metaAlertsDisplayState[alert.id] === metronAlertDisplayState.COLLAPSE}">
+          <td width="15" class="icon-cell" class="dropdown-cell"></td>
+          <td (click)="addFilter(threatScoreFieldName, alert.source[threatScoreFieldName])" style="padding-left: 15px">
+            <div appAlertSeverity [severity]="metaAlerts[threatScoreFieldName]">
+              <a> {{ metaAlerts[threatScoreFieldName] ? metaAlerts[threatScoreFieldName] : '-' }} </a>
+            </div>
+          </td>
+          <td *ngFor="let column of alertsColumnsToDisplay">
+            <a *ngIf="column.name !== 'alert_status'" (click)="addFilter(column.name, getValueFromSource(metaAlerts, column, false))" title="{{ getValueFromSource(metaAlerts, column, true) }}" style="color:#689AA9">
+              {{ getValueFromSource(metaAlerts, column, true) | centerEllipses:20:cell }}
+            </a>
+            <a *ngIf="column.name === 'alert_status'" (click)="addFilter(column.name, getValue(alert, column, false))" title="{{getValue(alert, column, true)}}" style="color:#689AA9">
+              {{ getValue(alert,column, true) | centerEllipses:20:cell }}
+            </a>
+          </td>
+          <td width="20" class="icon-cell" (click)="deleteOneAlertFromMetaAlert($event, alert, metaAlertIndex)">
+            <i class="fa fa-chain-broken" aria-hidden="true"></i>
+          </td>
+          <td width="20" class="icon-cell">
+            <i class="fa fa-comments-o" aria-hidden="true" *ngIf="metaAlerts.comments && metaAlerts.comments.length > 0"></i>
+          </td>
+          <td></td>
+        </tr>
+      </ng-container>
+
+    </ng-container>
     </tbody>
   </table>
 </div>
