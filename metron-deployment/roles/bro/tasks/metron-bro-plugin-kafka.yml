@@ -32,7 +32,7 @@
     LD_LIBRARY_PATH: "{{ httpd24_lib }}:{{ python27_lib }}"
     CXX: /opt/rh/devtoolset-4/root/usr/bin/g++
     CC: /opt/rh/devtoolset-4/root/usr/bin/gcc
-  command: "{{ python27_bin }}/bro-pkg install https://github.com/jonzeolla/metron-bro-plugin-kafka --force --version {{ metron_bro_plugin_kafka_version }}"
+  command: "{{ python27_bin }}/bro-pkg install apache/metron-bro-plugin-kafka --force --version {{ metron_bro_plugin_kafka_version }}"
 
 - name: Configure bro-kafka plugin
   lineinfile:
