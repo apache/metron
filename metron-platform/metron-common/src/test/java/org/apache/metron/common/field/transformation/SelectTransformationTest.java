@@ -80,6 +80,7 @@ public class SelectTransformationTest {
 			{
 				put("timestamp", 12345);
 				put("original_string", "foo,bar");
+				put("source.type", "test");
 				put("field1", "foo");
 				put("field2", "bar");
 			}
@@ -88,9 +89,10 @@ public class SelectTransformationTest {
 		
 		Assert.assertTrue(input.containsKey("timestamp"));
 		Assert.assertTrue(input.containsKey("original_string"));
+		Assert.assertTrue(input.containsKey("source.type"));
 		Assert.assertTrue(input.containsKey("field1"));
 		Assert.assertFalse(input.containsKey("field2"));
-		Assert.assertEquals(3, input.size());
+		Assert.assertEquals(4, input.size());
 	}
 
 }

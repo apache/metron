@@ -29,7 +29,7 @@ import org.apache.metron.stellar.dsl.Context;
 
 public class SelectTransformation implements FieldTransformation {
 
-	private static final List<String> systemFields = Arrays.asList("timestamp", "original_string");
+	private static final List<String> systemFields = Arrays.asList("timestamp", "original_string", "source.type");
 
 	@Override
 	public Map<String, Object> map(Map<String, Object> input, List<String> outputField,
