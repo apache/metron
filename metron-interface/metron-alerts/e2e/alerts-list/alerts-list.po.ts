@@ -66,6 +66,10 @@ export class MetronAlertsPage {
     return element(by.css('.fa.fa-cog.configure-table-icon')).isPresent();
   }
 
+  getAlertTableTitle() {
+    return element(by.css('.col-form-label-lg')).getText();
+  }
+
   clickActionDropdown() {
     let actionsDropDown = element(by.buttonText('ACTIONS'));
     browser.actions().mouseMove(actionsDropDown).perform();
@@ -289,7 +293,7 @@ export class MetronAlertsPage {
     .then(() => waitForElementPresence(element(by.css('.icon-cell.dropdown-cell'))));
   }
 
-  isDateSeettingDisabled() {
+  isDateSettingDisabled() {
     return element.all(by.css('app-time-range button.btn.btn-search[disabled=""]')).count().then((count) => { return (count === 1); });
   }
 
