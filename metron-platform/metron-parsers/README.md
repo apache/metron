@@ -231,7 +231,7 @@ For example:
 }
 ```
 
-when applied to a message containing keys field1, field2 and field3, will only output the first two.
+when applied to a message containing keys field1, field2 and field3, will only output the first two. It is also worth noting that two standard fields - timestamp and original_source - will always be passed along whether they are listed in output or not, since they are considered core required fields.
 
 * `IP_PROTOCOL` : This transformation maps IANA protocol numbers to consistent string representations.
 
