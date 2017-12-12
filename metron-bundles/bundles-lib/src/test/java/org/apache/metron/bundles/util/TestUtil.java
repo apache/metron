@@ -48,6 +48,8 @@ public class TestUtil {
       FileObject fileObject = fileSystemManager.resolveFile(libUri);
       if(fileObject.exists()){
         libFileObjects.add(fileObject);
+      } else {
+        throw new FileSystemException(String.format("%s does not exist!", libUri.toString()));
       }
     }
     return libFileObjects;
