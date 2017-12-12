@@ -61,9 +61,9 @@ public class BundleSystemTest {
   @Test
   public void createInstance() throws Exception {
     BundleProperties properties = BundleProperties
-        .createBasicBundleProperties("target/bundle.properties", null);
+        .createBasicBundleProperties("src/test/resources/bundle.properties", null);
 
-    properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY, "target/BundleMapper/lib");
+    properties.setProperty(BundleProperties.BUNDLE_LIBRARY_DIRECTORY, "src/test/resources/BundleMapper/lib");
     BundleSystem bundleSystem = new BundleSystemBuilder().withBundleProperties(properties)
         .withExtensionClasses(
             Arrays.asList(AbstractFoo.class)).build();
