@@ -59,9 +59,9 @@ public class BundleClassLoadersContextTest {
     BundleProperties properties = loadSpecifiedProperties("/BundleMapper/conf/bundle.properties",
         EMPTY_MAP);
 
-    assertEquals("target/BundleMapper/lib/",
+    assertEquals("src/test/resources/BundleMapper/lib/",
         properties.getProperty("bundle.library.directory"));
-    assertEquals("target/BundleMapper/lib2/",
+    assertEquals("src/test/resources/BundleMapper/lib2/",
         properties.getProperty("bundle.library.directory.alt"));
 
     String altLib = properties.getProperty("bundle.library.directory.alt");
