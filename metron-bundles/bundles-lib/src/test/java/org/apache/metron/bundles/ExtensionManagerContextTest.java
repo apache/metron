@@ -48,9 +48,9 @@ public class ExtensionManagerContextTest {
     BundleProperties properties = loadSpecifiedProperties("/BundleMapper/conf/bundle.properties",
         EMPTY_MAP);
 
-    assertEquals("./target/BundleMapper/lib/",
+    assertEquals("target/BundleMapper/lib/",
         properties.getProperty("bundle.library.directory"));
-    assertEquals("./target/BundleMapper/lib2/",
+    assertEquals("target/BundleMapper/lib2/",
         properties.getProperty("bundle.library.directory.alt"));
 
     FileSystemManager fileSystemManager = FileSystemManagerFactory
