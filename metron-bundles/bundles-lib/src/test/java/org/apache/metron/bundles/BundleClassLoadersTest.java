@@ -45,11 +45,6 @@ public class BundleClassLoadersTest {
     BundleClassLoaders.reset();
   }
 
-  @BeforeClass
-  public static void copyResources() throws IOException {
-    ResourceCopier.copyResources(Paths.get("./src/test/resources"), Paths.get("./target"));
-  }
-
   @Test
   public void testReset() throws Exception {
     // this test is to ensure that we can

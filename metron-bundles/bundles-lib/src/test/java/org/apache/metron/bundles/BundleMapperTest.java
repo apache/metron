@@ -63,11 +63,6 @@ public class BundleMapperTest {
     BundleClassLoaders.reset();
   }
 
-  @BeforeClass
-  public static void copyResources() throws IOException {
-    ResourceCopier.copyResources(Paths.get("./src/test/resources"),Paths.get("./target"));
-  }
-
   @Test
   public void testUnpackBundles()
       throws FileSystemException, URISyntaxException, NotInitializedException {

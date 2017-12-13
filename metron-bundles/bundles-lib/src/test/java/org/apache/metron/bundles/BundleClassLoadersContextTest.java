@@ -49,11 +49,6 @@ public class BundleClassLoadersContextTest {
     BundleClassLoaders.reset();
   }
 
-  @BeforeClass
-  public static void copyResources() throws IOException {
-    ResourceCopier.copyResources(Paths.get("./src/test/resources"), Paths.get("./target"));
-  }
-
   @Test
   public void merge() throws Exception {
     BundleProperties properties = loadSpecifiedProperties("/BundleMapper/conf/bundle.properties",
