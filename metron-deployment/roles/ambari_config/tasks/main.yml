@@ -26,16 +26,15 @@
   retries: 5
   delay: 10
 
-- name : check if ambari-server is up on {{ ambari_host }}:{{ambari_port}}
+- name : Wait for Ambari to start; http://{{ ambari_host }}:{{ ambari_port }}
   wait_for :
     host: "{{ ambari_host }}"
     port: "{{ ambari_port }}"
-    delay: 120
-    timeout: 300
+    timeout: 600
 
-- name: Deploy cluster with Ambari; http://{{ groups.ambari_master[0] }}:{{ ambari_port }}
+- name: Deploy cluster with Ambari; http://{{ ambari_host }}:{{ ambari_port }}
   ambari_cluster_state:
-    host: "{{ groups.ambari_master[0] }}"
+    host: "{{ ambari_host }}"
     port: "{{ ambari_port }}"
     username: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
@@ -45,5 +44,3 @@
     configurations: "{{ configurations }}"
     wait_for_complete: True
     blueprint_var: "{{ blueprint }}"
-
-
