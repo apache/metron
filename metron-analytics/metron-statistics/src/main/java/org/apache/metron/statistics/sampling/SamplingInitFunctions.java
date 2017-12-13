@@ -33,7 +33,7 @@ public class SamplingInitFunctions {
 
   @Stellar(namespace="SAMPLE"
           ,name="INIT"
-          ,description="Create a uniform reservoir sampler of a specific size or, if unspecified, size " + Sampler.DEFAULT_SIZE
+          ,description="Create a [reservoir sampler](https://en.wikipedia.org/wiki/Reservoir_sampling) of a specific size or, if unspecified, size " + Sampler.DEFAULT_SIZE + ".  Elements sampled by the reservoir sampler will be included in the final sample with equal probability."
           ,params = {
             "size? - The size of the reservoir sampler.  If unspecified, the size is " + Sampler.DEFAULT_SIZE
           }
@@ -78,12 +78,7 @@ public class SamplingInitFunctions {
                                        + ", but was " + obj
                                        );
       }
-      else {
-        return Optional.empty();
-      }
     }
-    else {
-      return Optional.ofNullable(ret);
-    }
+    return Optional.ofNullable(ret);
   }
 }

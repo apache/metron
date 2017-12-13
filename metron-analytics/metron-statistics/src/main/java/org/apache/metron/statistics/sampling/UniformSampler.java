@@ -21,6 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * This is a reservoir sampler without replacement where each element sampled will be included
+ * with equal probability in the reservoir.
+ */
 public class UniformSampler implements Sampler {
   private List<Object> reservoir;
   private int seen = 0;

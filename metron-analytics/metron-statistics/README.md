@@ -69,7 +69,7 @@ functions can be used from everywhere where Stellar is used.
 * Returns: The resulting sample.
 
 #### `SAMPLE_INIT`
-* Description: Create a uniform reservoir sampler of a specific size or, if unspecified, size 1024.
+* Description: Create a [reservoir sampler](https://en.wikipedia.org/wiki/Reservoir_sampling) of a specific size or, if unspecified, size 1024.  Elements sampled by the reservoir sampler will be included in the final sample with equal probability.
 * Input:
   * size? - The size of the reservoir sampler.  If unspecified, the size is 1024.
 * Returns: The sampler object.
