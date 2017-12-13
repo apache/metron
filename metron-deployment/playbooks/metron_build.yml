@@ -19,3 +19,5 @@
   become: false
   roles:
     - role: metron-builder
+  tags:
+    - build
