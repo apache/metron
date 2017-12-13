@@ -70,6 +70,12 @@ To start exploring the capabilities of Apache Metron [follow these instructions 
 
 # Building Metron
 
+Build the maven plugin required for Metron ( this should only have to be one once )
+
+```
+$cd bundles-maven-plugin && mvn -q install && cd ..
+```
+
 Build the full project and run tests:
 ```
 $ mvn clean install

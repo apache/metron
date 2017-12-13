@@ -29,6 +29,7 @@
         <url>https://www.apache.org</url>
     </organization>
     <modules>
+        <module>metron-bundles</module>
         <module>metron-analytics</module>
         <module>metron-platform</module>
         <module>metron-deployment</module>
