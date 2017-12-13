@@ -38,6 +38,12 @@
             </modules>
         </profile>
         <profile>
+            <id>build-debs</id>
+            <modules>
+                <module>packaging/docker/deb-docker</module>
+            </modules>
+        </profile>
+        <profile>
             <id>mpack</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
