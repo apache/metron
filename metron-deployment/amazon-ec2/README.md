@@ -126,6 +126,10 @@ To provision only subsets of the entire Metron deployment, Ansible tags can be s
 ./run.sh --tags="ec2,sensors"
 ```
 
+### Setting REST API Profile
+
+Change the value of `metron_spring_profiles_active` in `metron-deployment/roles/ambari_config/vars/small_cluster.yml`. For more detail on setting the profile, go [here](../../metron-interface/metron-rest/README.md#spring-profiles).
+
 ### Custom SSH Key
 
 
