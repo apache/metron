@@ -20,7 +20,7 @@ Apache Metron Bundles Maven Plugin helps to build Bundles Archives to support th
 
 - [Requirements](#requirements)
 - [Building](#building)
-- [Getting Stared](#getting-started)
+- [Getting Started](#getting-started)
 - [Quickstart](#quickstart)
 - [Settings and configuration](#settings-and-configuration)
 - [Getting Help](#getting-help)
