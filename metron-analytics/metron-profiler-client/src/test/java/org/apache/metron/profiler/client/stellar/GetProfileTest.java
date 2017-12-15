@@ -326,7 +326,7 @@ public class GetProfileTest {
   }
 
   private void testOverride(String overrides, Object defaultVal) {
-      String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS', " + overrides + "), [], " + overrides + ")"
+      String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), [], " + overrides + ")"
       ;
       List<Object> result = run(expr, List.class);
 
