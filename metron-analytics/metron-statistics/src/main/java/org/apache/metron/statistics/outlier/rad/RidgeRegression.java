@@ -17,12 +17,19 @@
  *  limitations under the License.
  *
  */
-package org.apache.metron.statistics.outlier.rpca;
+package org.apache.metron.statistics.outlier.rad;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 
+/**
+ * Ridge regression implementation taken from Netflix's Surus Pig library
+ * https://github.com/Netflix/Surus/blob/master/src/main/java/org/surus/math/RidgeRegression.java
+ *
+ * Ridge Regression is covered at https://onlinecourses.science.psu.edu/stat857/node/155 and is used here
+ * over a least squares regression because it is likely that our matrix X may be ill conditioned.
+ */
 public class RidgeRegression {
 
   private RealMatrix X;

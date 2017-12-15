@@ -205,6 +205,10 @@ Where:
 | [ `MULTISET_MERGE`](#multiset_merge)                                                               |
 | [ `MULTISET_REMOVE`](#multiset_remove)                                                             |
 | [ `MULTISET_TO_SET`](#multiset_to_set)                                                             |
+| [ `OUTLIER_MAD_ADD`](../../metron-analytics/metron-statistics#outlier_mad_add)                     |
+| [ `OUTLIER_MAD_SCORE`](../../metron-analytics/metron-statistics#outlier_mad_score)                 |
+| [ `OUTLIER_MAD_STATE_MERGE`](../../metron-analytics/metron-statistics#outlier_mad_state_merge)     |
+| [ `OUTLIER_RPCA_SCORE`](../../metron-analytics/metron-statistics#outlier_rpca_score)               |
 | [ `PREPEND_IF_MISSING`](#prepend_if_missing)                                                       |
 | [ `PROFILE_GET`](#profile_get)                                                                     |
 | [ `PROFILE_FIXED`](#profile_fixed)                                                                 |

@@ -17,7 +17,7 @@
  *  limitations under the License.
  *
  */
-package org.apache.metron.statistics.outlier.rpca;
+package org.apache.metron.statistics.outlier.rad;
 
 
 import org.apache.commons.math3.linear.MatrixUtils;
@@ -25,6 +25,16 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
+/**
+ * This is a RPCA implementation pulled from Netflix's Surus project.
+ * See https://github.com/Netflix/Surus/blob/master/src/main/java/org/surus/math/RPCA.java
+ *
+ * For a more in-depth treatment of RPCA, see Candes, Li, et al at http://statweb.stanford.edu/~candes/papers/RobustPCA.pdf
+ *
+ * Robust Principal Component Pursuit is a matrix decomposition algorithm that seeks
+ * to separate a matrix X into the sum of three parts X = L + S + E. L is a low rank matrix representing
+ * a smooth X, S is a sparse matrix containing corrupted data, and E is noise.
+ */
 public class RPCA {
 
   private RealMatrix X;

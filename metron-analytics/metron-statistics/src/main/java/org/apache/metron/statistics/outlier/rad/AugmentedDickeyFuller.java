@@ -17,7 +17,7 @@
  *  limitations under the License.
  *
  */
-package org.apache.metron.statistics.outlier.rpca;
+package org.apache.metron.statistics.outlier.rad;
 
 
 import org.apache.commons.math3.linear.MatrixUtils;

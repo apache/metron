@@ -17,7 +17,7 @@
  *  limitations under the License.
  *
  */
-package org.apache.metron.statistics.outlier.rpca;
+package org.apache.metron.statistics.outlier.rad;
 
 import com.google.common.base.Joiner;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
@@ -34,7 +34,7 @@ import java.util.function.BiFunction;
 public class RPCAOutlierFunctions {
   public enum Config {
      L_PENALTY("lpenalty", (o, outlier) -> outlier.withLPenalty(get("lpenalty", o, Double.class)))
-    ,S_PENALTY("rpenalty", (o, outlier) -> outlier.withSPenalty(get("spenalty", o, Double.class)))
+    ,S_PENALTY("spenalty", (o, outlier) -> outlier.withSPenalty(get("spenalty", o, Double.class)))
     ,MIN_NONZERO("minNonZero", (o, outlier) -> outlier.withMinRecords(get("minNonZero", o, Integer.class)))
     ,FORCE_DIFF("forceDiff", (o, outlier) -> outlier.withForceDiff(get("forceDiff", o, Boolean.class)))
     ;
@@ -53,14 +53,14 @@ public class RPCAOutlierFunctions {
       return v;
     }
 
-    public static RPCAOutlier configure(RPCAOutlier rpcaOutlier, Map<String, Object> config) {
+    public static RPCAOutlier configure(RPCAOutlier RPCAOutlier, Map<String, Object> config) {
       for(Config c : values()) {
         Object o = config.get(c.key);
         if(o != null) {
-          rpcaOutlier = c.configure.apply(o, rpcaOutlier);
+          RPCAOutlier = c.configure.apply(o, RPCAOutlier);
         }
       }
-      return rpcaOutlier;
+      return RPCAOutlier;
     }
 
     public static Iterable<String> getKeys() {
@@ -74,12 +74,20 @@ public class RPCAOutlierFunctions {
   @Stellar(namespace="OUTLIER"
           ,name="RPCA_SCORE"
           ,params = {
-             "data - The data to consider"
-          , "value - The value to compare"
-          , "config? - The config"
+             "ts - The time series data to consider (an iterable of doubles).  Please ensure that it is largely time ordered."
+          , "value - The value to score."
+          , "config? - The config for the outlier analyzer in the form of a Map.  All of these have sensible defaults."
+                     + "  Possible configs keys are "
+                     + "\"lpenalty\", \"spenalty\" (see Zhou for more detail, defaults are sensible)"
+                     + ", \"minNonZero\" (minimum number of non-zero elements, default is 0.)"
+                     + ", \"forceDiff\" (force data to be stationary by differencing it.  See [here](https://people.duke.edu/~rnau/411diff.htm))."
            }
-          ,description="RPCA"
-          ,returns="The RPCA score."
+          ,description= "This is an outlier detector based on Netflix's Surus' implementation of the Robust PCA-based Outlier Detector."
+                      + "See [here](https://medium.com/netflix-techblog/rad-outlier-detection-on-big-data-d6b0494371cc)"
+                      + " and [here](https://metamarkets.com/2012/algorithmic-trendspotting-the-meaning-of-interesting/) for a high level"
+                      + " treatment of this approach.  A more formal treatment can be found at [Candes, Li, et al](http://statweb.stanford.edu/~candes/papers/RobustPCA.pdf)"
+                      + " and [Zhou](http://arxiv.org/abs/1001.2363)."
+          ,returns="The residual error for the value.  Generally if > 0, then an there's an indication that it's an outlier."
   )
   public static class Score implements StellarFunction {
 
@@ -89,6 +97,9 @@ public class RPCAOutlierFunctions {
         throw new IllegalStateException("Expected at minimum data series and value to score.");
       }
       Object dataObj = args.get(0);
+      if(dataObj == null) {
+        return Double.NaN;
+      }
       Iterable<? extends Object> data = null;
       if(dataObj instanceof Iterable) {
         data = (Iterable<? extends Object>) dataObj;

@@ -23,9 +23,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.apache.commons.math3.distribution.*;
 import org.apache.commons.math3.random.JDKRandomGenerator;
-import org.apache.metron.statistics.outlier.rpca.RPCAOutlier;
+import org.apache.metron.statistics.outlier.rad.RPCAOutlier;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -170,16 +169,20 @@ public class RPCAOutlierTest {
   }
 
   public void testSimpleOutlier(List<? extends Object> sample) {
-    RPCAOutlier outlier = new RPCAOutlier();
     for(Double o : s.getOutlier()) {
-      double scoreOutlier = outlier.outlierScore(sample, o);
+      double scoreOutlier = score(sample, o);
       Assert.assertTrue("RPCA(" + o + ") = |" + scoreOutlier + "| <= 1.0", Math.abs(scoreOutlier) > 1.0);
     }
 
     for(Double i : s.getInlier()) {
-      double scoreInlier = outlier.outlierScore(sample, i);
+      double scoreInlier = score(sample, i);
       Assert.assertEquals("RPCA(" + i + ") = |" + scoreInlier + "| != 0.0", 0, scoreInlier, 1e-5);
     }
+  }
+
+  protected double score(List<? extends Object> sample, Double x) {
+    RPCAOutlier outlier = new RPCAOutlier();
+    return outlier.outlierScore(sample, x);
   }
 
   public List<Double> resample(int size) {
