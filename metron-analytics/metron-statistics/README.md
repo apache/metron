@@ -204,7 +204,9 @@ functions can be used from everywhere where Stellar is used.
                  See [here](https://medium.com/netflix-techblog/rad-outlier-detection-on-big-data-d6b0494371cc)
                  and [here](https://metamarkets.com/2012/algorithmic-trendspotting-the-meaning-of-interesting/) for a high level
                  treatment of this approach.  A more formal treatment can be found at [Candes, Li, et al](http://statweb.stanford.edu/~candes/papers/RobustPCA.pdf)
-                 and [Zhou](http://arxiv.org/abs/1001.2363).
+                 and [Zhou](http://arxiv.org/abs/1001.2363).  Note: This is a computationally intense outlier detector, so
+                 it should be run if a less computationally intense detector has indicated a potential outlier (e.g. statistical baselining).
+                 Further note that the data input is presumed to be dense.
   * Input:
     * ts - The time series data to consider (an iterable of doubles).  Please ensure that it is largely time ordered.
     * value - The value to score.
