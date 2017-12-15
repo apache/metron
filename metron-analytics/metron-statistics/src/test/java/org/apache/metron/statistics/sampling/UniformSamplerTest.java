@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 public class UniformSamplerTest {
@@ -77,15 +78,23 @@ public class UniformSamplerTest {
   @Test
   public void testMergeUniform() {
     Iterable<Sampler> subsamples = getSubsamples(uniformSample);
-    Sampler s = SamplerUtil.INSTANCE.merge(subsamples);
+    Sampler s = SamplerUtil.INSTANCE.merge(subsamples, Optional.empty());
     validateDistribution(s, uniformStats);
+  }
+
+  @Test
+  public void testMerge() {
+    UniformSampler sampler = new UniformSampler(10);
+    Iterable<Sampler> subsamples = getSubsamples(uniformSample);
+    Sampler s = SamplerUtil.INSTANCE.merge(subsamples, Optional.of(sampler));
+    Assert.assertEquals(s.getSize(), 10);
   }
 
 
   @Test
   public void testMergeGaussian() {
     Iterable<Sampler> subsamples = getSubsamples(gaussianSample);
-    Sampler s = SamplerUtil.INSTANCE.merge(subsamples);
+    Sampler s = SamplerUtil.INSTANCE.merge(subsamples, Optional.empty());
     validateDistribution(s, gaussianStats);
   }
 

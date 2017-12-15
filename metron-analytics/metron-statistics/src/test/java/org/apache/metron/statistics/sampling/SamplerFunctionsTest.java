@@ -120,5 +120,11 @@ public class SamplerFunctionsTest {
       mergedSampleMean = (Double) StellarProcessorUtils.run(stmt, ImmutableMap.of("samples", samplers));
     }
     Assert.assertEquals(sampleMean, mergedSampleMean, .1);
+    {
+      //Merge the sample with a simpler sampler
+      String stmt = "SAMPLE_MERGE(samples, SAMPLE_INIT(10))";
+      Sampler s = (Sampler) StellarProcessorUtils.run(stmt, ImmutableMap.of("samples", samplers));
+      Assert.assertEquals(10, s.getSize());
+    }
   }
 }

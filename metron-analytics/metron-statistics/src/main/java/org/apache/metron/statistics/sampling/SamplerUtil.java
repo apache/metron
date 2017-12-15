@@ -21,14 +21,16 @@ package org.apache.metron.statistics.sampling;
 
 import com.google.common.collect.Iterables;
 
+import java.util.Optional;
+
 public enum SamplerUtil {
   INSTANCE;
 
-  public Sampler merge(Iterable<Sampler> samplers) {
+  public Sampler merge(Iterable<Sampler> samplers, Optional<Sampler> baseSampler) {
     if(Iterables.isEmpty(samplers)) {
       return null;
     }
-    Sampler ret = Iterables.getFirst(samplers, null).cloneEmpty();
+    Sampler ret = baseSampler.orElse(Iterables.getFirst(samplers, null).cloneEmpty());
     for(Sampler s : samplers) {
       ret.addAll(s.get());
     }

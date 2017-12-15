@@ -26,6 +26,7 @@ import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.dsl.StellarFunction;
 
 import java.util.List;
+import java.util.Optional;
 
 public class SamplingOpsFunctions {
 
@@ -130,6 +131,7 @@ public class SamplingOpsFunctions {
           ,description="Merge and resample a collection of samples."
           ,params = {
             "samplers - A list of samplers to merge."
+          , "baseSampler? - A base sampler to merge into.  If unspecified the first of the list of samplers will be cloned."
           }
           ,returns = "A sampler which represents the resampled merger of the samplers."
   )
@@ -148,7 +150,19 @@ public class SamplingOpsFunctions {
         throw new IllegalStateException("Expected a collection of Samplers");
       }
       Iterable<Sampler> reservoirs = (Iterable<Sampler>)reservoirsObj;
-      return SamplerUtil.INSTANCE.merge(reservoirs);
+
+      Sampler baseSampler = null;
+      if(args.size() > 1) {
+        Object baseSamplerObj = args.get(1);
+        if (baseSamplerObj != null) {
+          if (!(baseSamplerObj instanceof Sampler)) {
+            throw new IllegalStateException("Expected baseSampler to be a Sampler");
+          } else {
+            baseSampler = (Sampler) baseSamplerObj;
+          }
+        }
+      }
+      return SamplerUtil.INSTANCE.merge(reservoirs, Optional.ofNullable(baseSampler));
     }
 
     @Override
