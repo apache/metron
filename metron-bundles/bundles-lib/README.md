@@ -1,6 +1,6 @@
 # Apache Metron Bundles
 
-Apache Metron Bundles and this documentation are a derivative of the [Apache Nifi](http://www.nifi.apache.org) [NARs](http://nifi.apache.org/developer-guide.html).
+> Apache Metron Bundles and this documentation are a derivative of the [Apache Nifi](https://nifi.apache.org) [NARs](https://nifi.apache.org/developer-guide.html).
 
 When software from many different organizations is all hosted within
 the same environment, Java ClassLoaders quickly

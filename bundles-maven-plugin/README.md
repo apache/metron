@@ -5,7 +5,7 @@
   The ASF licenses this file to You under the Apache License, Version 2.0
   (the "License"); you may not use this file except in compliance with
   the License.  You may obtain a copy of the License at
-      http://www.apache.org/licenses/LICENSE-2.0
+      https://www.apache.org/licenses/LICENSE-2.0
   Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,7 +20,9 @@ Apache Metron Bundles Maven Plugin helps to build Bundles Archives to support th
 
 - [Requirements](#requirements)
 - [Building](#building)
-- [Getting Stared](#getting_started)
+- [Getting Stared](#getting-started)
+- [Quickstart](#quickstart)
+- [Settings and configuration](#settings-and-configuration)
 - [Getting Help](#getting-help)
 - [License](#license)
 
@@ -208,13 +210,13 @@ Bundle to bundle
 ## Getting Help
 If you have questions, you can reach out to our mailing list: dev@metron.apache.org
 We're also often available in IRC: #apache-metron on
-[irc.freenode.net](http://webchat.freenode.net/?channels=#apache-metron).
+[irc.freenode.net](https://webchat.freenode.net/?channels=#apache-metron).
 
 
 ## License
 
 Except as otherwise noted this software is licensed under the
-[Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
+[Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0.html)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
