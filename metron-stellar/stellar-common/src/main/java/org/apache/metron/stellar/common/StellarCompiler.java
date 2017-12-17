@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -37,8 +38,10 @@ import org.apache.metron.stellar.common.evaluators.ComparisonExpressionWithOpera
 import org.apache.metron.stellar.common.evaluators.NumberLiteralEvaluator;
 import org.apache.metron.stellar.common.generated.StellarBaseListener;
 import org.apache.metron.stellar.common.generated.StellarParser;
+import org.apache.metron.stellar.common.timing.StackWatch;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.Context.Capability;
 import org.apache.metron.stellar.dsl.FunctionMarker;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunction;
@@ -588,7 +591,10 @@ public class StellarCompiler extends StellarBaseListener {
 
       // fetch the args, execute, and push result onto the stack
       List<Object> args = getFunctionArguments(popDeque(tokenDeque));
+      Optional<StackWatch> watchOptional = state.context.getWatch();
+      watchOptional.ifPresent((sw) -> sw.startTime(functionName));
       Object result = function.apply(args, state.context);
+      watchOptional.ifPresent(StackWatch::stopTime);
       tokenDeque.push(new Token<>(result, Object.class, context));
     }, DeferredFunction.class, context));
   }

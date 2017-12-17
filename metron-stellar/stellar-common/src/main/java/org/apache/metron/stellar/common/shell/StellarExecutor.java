@@ -38,6 +38,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.common.configuration.ConfigurationsUtils;
+import org.apache.metron.stellar.common.timing.StackWatch;
 import org.apache.metron.stellar.common.utils.JSONUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.MapVariableResolver;
@@ -110,6 +111,8 @@ public class StellarExecutor {
    * A Zookeeper client. Only defined if given a valid Zookeeper URL.
    */
   private Optional<CuratorFramework> client;
+
+  private Optional<String> lastTiming;
 
   /**
    * The Stellar execution context.
@@ -208,6 +211,7 @@ public class StellarExecutor {
     index.put(StellarShell.MAGIC_GLOBALS, AutoCompleteType.FUNCTION);
     index.put(StellarShell.MAGIC_DEFINE, AutoCompleteType.FUNCTION);
     index.put(StellarShell.MAGIC_UNDEFINE, AutoCompleteType.FUNCTION);
+    index.put(StellarShell.MAGIC_TIMING, AutoCompleteType.FUNCTION);
     return new PatriciaTrie<>(index);
   }
 
@@ -289,7 +293,25 @@ public class StellarExecutor {
     VariableResolver variableResolver = new MapVariableResolver(Maps.transformValues(variables, result -> result.getResult())
                                                                , Collections.emptyMap());
     StellarProcessor processor = new StellarProcessor();
-    return processor.parse(expression, variableResolver, functionResolver, context);
+    StackWatch watch = new StackWatch("execute");
+    watch.startTime(expression);
+    context.setWatch(watch);
+    try {
+      return processor.parse(expression, variableResolver, functionResolver, context);
+    } finally {
+      watch.stopTime();
+      final StringBuffer buff = new StringBuffer();
+      watch.visit(((level, node) -> {
+        for (int i = 0; i < level; i++) {
+          buff.append("-");
+        }
+        buff.append("->");
+        buff.append(node.getName()).append(" : ").append(node.getTime()).append("ms : ").
+            append(node.getNanoTime()).append("ns").append("\n");
+      }));
+      lastTiming = Optional.of(buff.toString());
+      context.clearWatch();
+    }
   }
 
   /**
@@ -322,6 +344,10 @@ public class StellarExecutor {
 
   public Context getContext() {
     return context;
+  }
+
+  public Optional<String> getLastTiming() {
+    return lastTiming;
   }
 }
 

@@ -109,6 +109,16 @@ public class TimeRecordNode {
   }
 
   /**
+   * Returns the runtime of the node in nanoseconds.
+   *
+   * @return the runtime in nanoseconds
+   */
+  public long getNanoTime() {
+    return stopWatch.getNanoTime();
+  }
+
+
+  /**
    * Returns the node's path, made up by combining it's parent's name and the node's name.
    * The path is '/' delimited.
    * <p>

@@ -39,7 +39,6 @@ public class StackWatchTest {
     final ArrayList<Integer> levels = new ArrayList<>();
     watch.visit((l, n) -> {
       levels.add(l);
-      System.out.println(String.format("%d -> %s : %d", l, n.getPath(), n.getTime()));
     });
 
     // validate that we have the right number of 'timings'
@@ -58,7 +57,6 @@ public class StackWatchTest {
     final ArrayList<Integer> levels = new ArrayList<>();
     watch.visit((l, n) -> {
       levels.add(l);
-      System.out.println(String.format("%d -> %s : %d", l, n.getPath(), n.getTime()));
     });
     assertEquals(levels.size(), 8);
   }
@@ -77,7 +75,6 @@ public class StackWatchTest {
     final ArrayList<Integer> levels = new ArrayList<>();
     watch.visit((l, n) -> {
       levels.add(l);
-      System.out.println(String.format("%d -> %s : %d", l, n.getPath(), n.getTime()));
     });
 
     assertEquals(levels.size(), 10);

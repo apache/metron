@@ -94,6 +94,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
   public static final String MAGIC_GLOBALS = MAGIC_PREFIX + "globals";
   public static final String MAGIC_DEFINE = MAGIC_PREFIX + "define";
   public static final String MAGIC_UNDEFINE = MAGIC_PREFIX + "undefine";
+  public static final String MAGIC_TIMING = MAGIC_PREFIX + "timing";
 
   private StellarExecutor executor;
 
@@ -318,7 +319,8 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
 
     } else if(MAGIC_UNDEFINE.equals(command)) {
       handleMagicUndefine(expression);
-
+    } else if(MAGIC_TIMING.equals(command)) {
+      handleMagicTiming();
     } else {
       writeLine(ERROR_PROMPT + "undefined magic command: " + rawExpression);
     }
@@ -344,6 +346,18 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
             .sorted()
             .collect(Collectors.joining(", "));
     writeLine(functions);
+  }
+
+  /**
+   * Handle a magice %timing. Returns the results of the last timing operation
+   */
+  private void handleMagicTiming() {
+    Optional<String> lastTiming = executor.getLastTiming();
+    if(lastTiming.isPresent()) {
+      writeLine(lastTiming.get());
+    } else {
+      writeLine("No timing recorded");
+    }
   }
 
   /**
