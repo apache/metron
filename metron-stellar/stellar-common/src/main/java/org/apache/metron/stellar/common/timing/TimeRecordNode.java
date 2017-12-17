@@ -27,6 +27,7 @@ import org.apache.commons.lang3.time.StopWatch;
  * The tree node to track time and children.
  * {@code StopWatch} class from the Apache Commons is used
  * for time tracking.
+ * http://commons.apache.org/proper/commons-lang/javadocs/api-release/org/apache/commons/lang3/time/StopWatch.html
  */
 public class TimeRecordNode {
 
