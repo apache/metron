@@ -1352,6 +1352,29 @@ IS_EMAIL
 [Stellar]>>> 
 ```
 
+#### %timing
+
+Prints out timing information from the last stellar statement executed. The information has the total
+execution time, and also a break down of execution time by stellar function
+
+```
+Stellar, Go!
+Please note that functions are loading lazily in the background and will be unavailable until loaded fully.
+[Stellar]>>> Functions loaded, you may refer to functions now...
+
+[Stellar]>>> hex:="91IMOR3F41BMUSJCCG======"
+[Stellar]>>> if( STARTS_WITH(TO_UPPER(DECODE(hex,'BASE32HEX')), "HELLO")) THEN TO_LOWER("OK") ELSE TO_LOWER("FFFF")
+ok
+[Stellar]>>> %timing
+->execute : 113ms : 113017132
+-->if( STARTS_WITH(TO_UPPER(DECODE(hex,'BASE32HEX')), "HELLO")) THEN TO_LOWER("OK") ELSE TO_LOWER("FFFF") : 112ms : 112998881
+--->DECODE : 8ms : 8572968 ns
+--->TO_UPPER : 0ms : 20018 ns
+--->STARTS_WITH : 0ms : 30586 ns
+--->TO_LOWER : 0ms : 19085 ns
+
+```
+
 ### Advanced Usage
 
 To run the Stellar Shell directly from the Metron source code, run a command like the following.  Ensure that Metron has already been built and installed with `mvn clean install -DskipTests`.
