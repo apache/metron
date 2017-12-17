@@ -349,7 +349,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
   }
 
   /**
-   * Handle a magice %timing. Returns the results of the last timing operation
+   * Handle a magic %timing. Returns the results of the last timing operation
    */
   private void handleMagicTiming() {
     Optional<String> lastTiming = executor.getLastTiming();
