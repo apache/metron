@@ -90,6 +90,8 @@ The RPM packages will land in `metron-deployment/packaging/docker/rpm-docker/RPM
 
 ## How do I build DEB packages?
 
+**WARNING**: The DEB packages are a recent addition to Metron.  These packages have not undergone the same level of testing as the RPM packages.  Improvements and more rigerous testing of these packages is underway and will improve in future releases.  Until then, use these at your own risk.
+
 #### Who is this for?
 If you want to manually install Metron on a APT-based system like Ubuntu or if you want a guided installation process using the Ambari Mpack on an APT-based system, then this is the right option for you.
 
@@ -110,12 +112,12 @@ The DEB packages will land in `metron-deployment/packaging/docker/deb-docker/tar
 
 ## How do I deploy Metron within AWS?
 
-#### Who is this for?
-If you are a developer wanting to test Metron at-scale on a multi-node cluster, then this is the right option for you.  If you want to run Metron in AWS with real data for either testing or production, then this is NOT the right option for you.
-
-**Warning** This is only intended for short-lived testing and developed.  This deployment method has the following severe limitations.
+**WARNING**: This is only intended for short-lived testing and development.  This deployment method has the following severe limitations.
 * The cluster is not secured in any way. It is up to you to manually secure it.  
 * The cluster will not survive a reboot.
+
+#### Who is this for?
+If you are a developer wanting to test Metron at-scale on a multi-node cluster, then this is the right option for you.  If you want to run Metron in AWS with real data for either testing or production, then this is NOT the right option for you.
 
 #### What does this do?
 This deploys Metron on an automatically provisioned 10-node cluster.  This installs real sources of telemetry like Bro, Snort, and YAF, but feeds those sensors with canned pcap data.
