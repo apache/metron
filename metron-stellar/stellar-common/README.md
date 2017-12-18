@@ -1357,7 +1357,7 @@ IS_EMAIL
 To run the Stellar Shell directly from the Metron source code, run a command like the following.  Ensure that Metron has already been built and installed with `mvn clean install -DskipTests`.
 ```
 $ mvn exec:java \
-   -Dexec.mainClass="org.apache.metron.stellar.common.shell.StellarShell" \
+   -Dexec.mainClass="org.apache.metron.stellar.common.shell.cli.StellarShell" \
    -pl metron-platform/metron-enrichment
 ...
 Stellar, Go!
@@ -1373,7 +1373,7 @@ This can be useful for troubleshooting function resolution problems.  The previo
 
 ```
  $ mvn exec:java \
-   -Dexec.mainClass="org.apache.metron.stellar.common.shell.StellarShell" \
+   -Dexec.mainClass="org.apache.metron.stellar.common.shell.cli.StellarShell" \
    -pl metron-analytics/metron-profiler
 ...
 Stellar, Go!

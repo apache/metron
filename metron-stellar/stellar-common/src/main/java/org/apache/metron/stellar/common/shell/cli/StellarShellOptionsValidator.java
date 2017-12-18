@@ -18,7 +18,7 @@
  *
  */
 
-package org.apache.metron.stellar.common.shell;
+package org.apache.metron.stellar.common.shell.cli;
 
 import java.io.File;
 import java.net.InetAddress;
