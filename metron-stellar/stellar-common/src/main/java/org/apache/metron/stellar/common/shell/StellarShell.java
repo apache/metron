@@ -28,6 +28,7 @@ import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.metron.stellar.common.StellarAssignment;
+import org.apache.metron.stellar.common.timing.StackWatch;
 import org.apache.metron.stellar.common.utils.JSONUtils;
 import org.apache.metron.stellar.dsl.StellarFunctionInfo;
 import org.jboss.aesh.complete.CompleteOperation;
@@ -352,9 +353,9 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
    * Handle a magic %timing. Returns the results of the last timing operation
    */
   private void handleMagicTiming() {
-    Optional<String> lastTiming = executor.getLastTiming();
-    if(lastTiming.isPresent()) {
-      writeLine(lastTiming.get());
+    Optional<StackWatch> lastWatch = executor.getLastWatch();
+    if(lastWatch.isPresent()) {
+      writeLine(formatWatchOutput(lastWatch.get()));
     } else {
       writeLine("No timing recorded");
     }
@@ -483,6 +484,20 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
 
     return ret.toString();
   }
+
+  private String formatWatchOutput(StackWatch watch) {
+    final StringBuffer buff = new StringBuffer();
+    watch.visit(((level, node) -> {
+      for (int i = 0; i < level; i++) {
+        buff.append("-");
+      }
+      buff.append("->");
+      buff.append(node.getName()).append(" : ").append(node.getTime()).append("ms : ").
+          append(node.getNanoTime()).append("ns").append("\n");
+    }));
+    return buff.toString();
+  }
+
 
   /**
    * Is a given expression a built-in magic?

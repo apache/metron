@@ -112,7 +112,7 @@ public class StellarExecutor {
    */
   private Optional<CuratorFramework> client;
 
-  private Optional<String> lastTiming;
+  private Optional<StackWatch> lastWatch;
 
   /**
    * The Stellar execution context.
@@ -300,16 +300,7 @@ public class StellarExecutor {
       return processor.parse(expression, variableResolver, functionResolver, context);
     } finally {
       watch.stopTime();
-      final StringBuffer buff = new StringBuffer();
-      watch.visit(((level, node) -> {
-        for (int i = 0; i < level; i++) {
-          buff.append("-");
-        }
-        buff.append("->");
-        buff.append(node.getName()).append(" : ").append(node.getTime()).append("ms : ").
-            append(node.getNanoTime()).append("ns").append("\n");
-      }));
-      lastTiming = Optional.of(buff.toString());
+      lastWatch = Optional.of(watch);
       context.clearWatch();
     }
   }
@@ -346,8 +337,8 @@ public class StellarExecutor {
     return context;
   }
 
-  public Optional<String> getLastTiming() {
-    return lastTiming;
+  public Optional<StackWatch> getLastWatch() {
+    return lastWatch;
   }
 }
 

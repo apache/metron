@@ -143,7 +143,6 @@ public class Context implements Serializable {
 
   public void clearWatch() {
     if (_watch.get().isPresent()) {
-      _watch.get().get().close();
       _watch.set(Optional.empty());
     }
   }
