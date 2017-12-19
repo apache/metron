@@ -410,6 +410,9 @@
             <package>
               <name>metron-alerts</name>
             </package>
+            <package>
+              <name>metron-maas-service</name>
+            </package>
           </packages>
         </osSpecific>
         <osSpecific>

@@ -156,7 +156,7 @@ public class ConfigurationsUtils {
   }
 
   private static String getConfigZKPath(ConfigurationType configType, Optional<String> configName) {
-    String pathSuffix = configName.isPresent() && configType != GLOBAL ? "/" + configName : "";
+    String pathSuffix = configName.isPresent() && configType != GLOBAL ? "/" + configName.get() : "";
     return configType.getZookeeperRoot() + pathSuffix;
   }
 
@@ -343,9 +343,14 @@ public class ConfigurationsUtils {
    * @param type config type to upload configs for
    * @param configName specific config under the specified config type
    */
-  public static void uploadConfigsToZookeeper(String rootFilePath, CuratorFramework client,
-      ConfigurationType type, Optional<String> configName) throws Exception {
+  public static void uploadConfigsToZookeeper(
+          String rootFilePath,
+          CuratorFramework client,
+          ConfigurationType type,
+          Optional<String> configName) throws Exception {
+
     switch (type) {
+
       case GLOBAL:
         final byte[] globalConfig = readGlobalConfigFromFile(rootFilePath);
         if (globalConfig.length > 0) {
@@ -353,15 +358,27 @@ public class ConfigurationsUtils {
           writeGlobalConfigToZookeeper(globalConfig, client);
         }
         break;
-      case PARSER: // intentional pass-through
-      case ENRICHMENT: // intentional pass-through
-      case INDEXING:
-        Map<String, byte[]> sensorIndexingConfigs = readSensorConfigsFromFile(rootFilePath, type,
-            configName);
-        for (String sensorType : sensorIndexingConfigs.keySet()) {
-          writeConfigToZookeeper(type, configName, sensorIndexingConfigs.get(sensorType), client);
+
+      case PARSER: //pass through intentional
+      case ENRICHMENT: //pass through intentional
+      case INDEXING: //pass through intentional
+      {
+        Map<String, byte[]> configs = readSensorConfigsFromFile(rootFilePath, type, configName);
+        for (String sensorType : configs.keySet()) {
+          byte[] configData = configs.get(sensorType);
+          type.writeSensorConfigToZookeeper(sensorType, configData, client);
         }
         break;
+      }
+
+      case PROFILER: {
+        byte[] configData = readProfilerConfigFromFile(rootFilePath);
+        if (configData.length > 0) {
+          ConfigurationsUtils.writeProfilerConfigToZookeeper(configData, client);
+        }
+        break;
+      }
+
       default:
         throw new IllegalArgumentException("Configuration type not found: " + type);
     }
@@ -437,14 +454,16 @@ public class ConfigurationsUtils {
       In order to validate stellar functions, the function resolver must be initialized.  Otherwise,
       those utilities that require validation cannot validate the stellar expressions necessarily.
     */
-    Context.Builder builder = new Context.Builder().with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
-            ;
+    Context.Builder builder = new Context.Builder()
+            .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client);
+
     if(globalConfig.isPresent()) {
-      builder = builder.with(Context.Capabilities.GLOBAL_CONFIG, () -> GLOBAL.deserialize(globalConfig.get()))
+      builder = builder
+              .with(Context.Capabilities.GLOBAL_CONFIG, () -> GLOBAL.deserialize(globalConfig.get()))
               .with(Context.Capabilities.STELLAR_CONFIG, () -> GLOBAL.deserialize(globalConfig.get()));
-    }
-    else {
-      builder = builder.with(Context.Capabilities.STELLAR_CONFIG, () -> new HashMap<>());
+    } else {
+      builder = builder
+              .with(Context.Capabilities.STELLAR_CONFIG, () -> new HashMap<>());
     }
     Context stellarContext = builder.build();
     StellarFunctions.FUNCTION_RESOLVER().initialize(stellarContext);
@@ -533,7 +552,6 @@ public class ConfigurationsUtils {
    * Starts up curatorclient based on zookeeperUrl.
    *
    * @param configurationType GLOBAL, PARSER, etc.
-   * @param configName e.g. bro, yaf, snort
    * @param patchData a JSON patch in the format specified by RFC 6902
    * @param zookeeperUrl configs are here
    */
@@ -572,15 +590,22 @@ public class ConfigurationsUtils {
    * @param patchData a JSON patch in the format specified by RFC 6902
    * @param client access to zookeeeper
    */
-  public static void applyConfigPatchToZookeeper(ConfigurationType configurationType,
-      Optional<String> configName,
-      byte[] patchData, CuratorFramework client) throws Exception {
+  public static void applyConfigPatchToZookeeper(
+          ConfigurationType configurationType,
+          Optional<String> configName,
+          byte[] patchData, CuratorFramework client) throws Exception {
+
     byte[] configData = readConfigBytesFromZookeeper(configurationType, configName, client);
     JsonNode source = JSONUtils.INSTANCE.readTree(configData);
     JsonNode patch = JSONUtils.INSTANCE.readTree(patchData);
     JsonNode patchedConfig = JSONUtils.INSTANCE.applyPatch(patch, source);
-    writeConfigToZookeeper(configurationType, configName,
-        JSONUtils.INSTANCE.toJSONPretty(patchedConfig), client);
+    byte[] prettyPatchedConfig = JSONUtils.INSTANCE.toJSONPretty(patchedConfig);
+
+    // ensure the patch produces a valid result; otherwise exception thrown during deserialization
+    String prettyPatchedConfigStr = new String(prettyPatchedConfig);
+    configurationType.deserialize(prettyPatchedConfigStr);
+
+    writeConfigToZookeeper(configurationType, configName, prettyPatchedConfig, client);
   }
 
   public interface ConfigurationVisitor{

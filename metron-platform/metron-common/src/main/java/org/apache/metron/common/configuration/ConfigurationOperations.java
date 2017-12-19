@@ -15,23 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.controller;
+package org.apache.metron.common.configuration;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.metron.common.Constants;
 
-import java.security.Principal;
+import java.io.IOException;
 
-@RestController
-public class UserController {
-
-  @ApiOperation(value = "Retrieves the current user")
-  @ApiResponse(message = "Current user", code = 200)
-  @RequestMapping(value = "/api/v1/user", method = RequestMethod.GET)
-    public String user(Principal user) {
-        return user.getName();
-    }
+public interface ConfigurationOperations {
+  String getTypeName();
+  default String getDirectory() {
+    return getTypeName();
+  }
+  default String getZookeeperRoot() {
+    return Constants.ZOOKEEPER_TOPOLOGY_ROOT + "/" + getTypeName();
+  }
+  Object deserialize(String s) throws IOException;
+  void writeSensorConfigToZookeeper(String sensorType, byte[] configData, CuratorFramework client) throws Exception;
 }

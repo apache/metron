@@ -120,11 +120,17 @@ env: metron-test
 
 ### Selective Provisioning
 
-To provision only subsets of the entire Metron deployment, Ansible tags can be specified.  For example, to only deploy the sensors on an Amazon EC2 environment, run the following command.
+To provision only subsets of the entire Metron deployment, Ansible tags can be specified.  For example, to only deploy the sensors on an Amazon EC2 environment, run the following command:
 
 ```
-ansible-playbook -i ec2.py playbook.yml --tags "ec2,sensors"
+./run.sh --tags="ec2,sensors"
 ```
+
+### Setting REST API Profile
+
+By default, EC2 is deployed with the `dev` Spring profile. This simply instructs the REST API to automatically setup default test users `[user, user1, user2, admin]` with password "`password`" as opposed to requiring the user to manually
+ create users in the REST database. You can change this default functionality by removing the `metron_spring_profiles_active` setting in `metron-deployment/roles/ambari_config/vars/small_cluster.yml`.
+ You can view more detail on the REST Spring profiles [here](../../metron-interface/metron-rest/README.md#spring-profiles).
 
 ### Custom SSH Key
 

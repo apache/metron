@@ -18,53 +18,29 @@
 
 package org.apache.metron.common.configuration;
 
-import com.google.common.base.Function;
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.IOException;
+import java.util.Map;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.metron.common.utils.JSONUtils;
 
-public enum ConfigurationType implements Function<String, Object>, ConfigurationOperations {
+public class IndexingConfigurationOperations implements ConfigurationOperations {
 
-  GLOBAL(new GlobalConfigurationOperations()),
-  PARSER(new ParserConfigurationOperations()),
-  ENRICHMENT(new EnrichmentConfigurationOperations()),
-  INDEXING(new IndexingConfigurationOperations()),
-  PROFILER(new ProfilerConfigurationOperations());
-
-  ConfigurationOperations ops;
-
-  ConfigurationType(ConfigurationOperations ops) {
-    this.ops = ops;
-  }
-
+  @Override
   public String getTypeName() {
-    return ops.getTypeName();
-  }
-
-  public String getDirectory() {
-    return ops.getDirectory();
-  }
-
-  public Object deserialize(String s) {
-    try {
-      return ops.deserialize(s);
-    } catch (IOException e) {
-      throw new RuntimeException("Unable to load " + s, e);
-    }
+    return "indexing";
   }
 
   @Override
-  public Object apply(String s) {
-    return deserialize(s);
+  public Object deserialize(String s) throws IOException {
+    return JSONUtils.INSTANCE.load(s, new TypeReference<Map<String, Object>>() {
+    });
   }
 
   @Override
   public void writeSensorConfigToZookeeper(String sensorType, byte[] configData,
       CuratorFramework client) throws Exception {
-    ops.writeSensorConfigToZookeeper(sensorType, configData, client);
-  }
-
-  public String getZookeeperRoot() {
-    return ops.getZookeeperRoot();
+    ConfigurationsUtils.writeSensorIndexingConfigToZookeeper(sensorType, configData, client);
   }
 
 }
