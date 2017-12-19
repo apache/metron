@@ -349,6 +349,7 @@
                              metron-interface/metron-config README and NOTICE files -->
                         <exclude>dist/*.svg</exclude>
                         <exclude>dist/styles.a0b6b99c10d9a13dc67e.bundle.css</exclude>
+                        <exclude>dist/styles.f56deed131e58bd7ee04.bundle.css</exclude>
                         <!-- 3rdpartylicenses.txt is an empty file carried along by imported libraries -->
                         <exclude>dist/3rdpartylicenses.txt</exclude>
                         <exclude>e2e/*.js.map</exclude>
