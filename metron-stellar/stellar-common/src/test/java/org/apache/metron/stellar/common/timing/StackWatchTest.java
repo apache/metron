@@ -18,7 +18,7 @@
 
 package org.apache.metron.stellar.common.timing;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,8 +60,9 @@ public class StackWatchTest {
     watch.stopTime();
     final ArrayList<Integer> levels = new ArrayList<>();
     watch.visit((l, n) -> {
-    n.getTags().ifPresent((tags) -> {
-        if (Arrays.stream(tags).anyMatch((s)-> Arrays.asList(s).containsAll(Arrays.asList(filter)))) {
+      n.getTags().ifPresent((tags) -> {
+        if (Arrays.stream(tags)
+            .anyMatch((s) -> Arrays.asList(s).containsAll(Arrays.asList(filter)))) {
           levels.add(l);
         }
       });
@@ -155,7 +156,7 @@ public class StackWatchTest {
   }
 
   private void functionThree(StackWatch watch) throws Exception {
-    watch.startTime("Three","ThreeFunc");
+    watch.startTime("Three", "ThreeFunc");
     Thread.sleep(500);
     watch.stopTime();
   }

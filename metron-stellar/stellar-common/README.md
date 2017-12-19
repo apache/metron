@@ -1358,7 +1358,7 @@ Prints out timing information from the last stellar statement executed. The info
 execution time, and also a break down of execution time by stellar function.
 
 %timing supports filter on the timing output.  If you pass one or more strings to %timing, only
-execution times those each of those tags will show.  Any functions that do not have ALL the tags passed will not display
+execution times with each of those tags will show.  Any functions that do not have ALL the tags passed will not display
 
 To see the tags in your timing, you can run %timing without any filters.
 
