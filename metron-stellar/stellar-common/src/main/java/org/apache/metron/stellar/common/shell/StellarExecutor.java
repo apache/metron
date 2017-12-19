@@ -300,6 +300,7 @@ public class StellarExecutor {
       return processor.parse(expression, variableResolver, functionResolver, context);
     } finally {
       watch.stopTime();
+      watch.stopWatch();
       lastWatch = Optional.of(watch);
       context.clearWatch();
     }

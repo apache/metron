@@ -117,6 +117,13 @@ public class StackWatch {
   }
 
   /**
+   * Stops all current timings
+   */
+  public void stopWatch() {
+    deque.forEach(TimeRecordNode::stop);
+  }
+
+  /**
    * Clears the queue and the root node.
    */
   public void close() {

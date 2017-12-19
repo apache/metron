@@ -37,6 +37,7 @@ public class StackWatchTest {
     functionTwo(watch);
     functionThree(watch);
     watch.stopTime();
+    watch.stopWatch();
     final ArrayList<Integer> levels = new ArrayList<>();
     watch.visit((l, n) -> {
       levels.add(l);
@@ -58,6 +59,7 @@ public class StackWatchTest {
     functionTwo(watch);
     functionThree(watch);
     watch.stopTime();
+    watch.stopWatch();
     final ArrayList<Integer> levels = new ArrayList<>();
     watch.visit((l, n) -> {
       n.getTags().ifPresent((tags) -> {
@@ -81,6 +83,7 @@ public class StackWatchTest {
     functionTwo(watch);
     functionThree(watch);
     watch.stopTime();
+    watch.stopWatch();
 
     final ArrayList<Integer> levels = new ArrayList<>();
     watch.visit((l, n) -> {
