@@ -1,0 +1,197 @@
+#!/bin/bash
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+# Finds all commits since the last release tag, then ensures that each
+# is marked 'Done' and that the fix version is set to the next release.
+#
+# For example, to validate JIRA for the 0.4.2 release, you would run the
+# following command.
+#
+#     validate-jira-for-release --version=0.4.2 --start=tags/apache-metron-0.4.1-release
+#
+# This will output a table containing each JIRA that was inspected along with
+# the fix version, status, and assignee.  If the fix version or status is incorrect
+# a link will be printed so that the JIRA can be manually fixed.  The JIRA
+# only needs to be fixed if a URL is shown.
+#
+#            JIRA    STATUS     FIX VERSION     ASSIGNEE              FIX
+#     METRON-1345      Done           0.4.2     Michael Miklavcic
+#     METRON-1349      Done        Next + 1     Nick Allen            https://issues.apache.org/jira/browse/METRON-1349
+#     METRON-1343      Done                     Mohan                 https://issues.apache.org/jira/browse/METRON-1343
+#    ...
+#
+
+function help {
+  echo " "
+  echo "usage: ${0}"
+  echo "    -v/--version=<version>   The version of the next release. [Required]"
+  echo "    -s/--start=<start>       Defines the first commit to inspect. [Required]"
+  echo "    -e/--end=<end>           Defines the last commit to inspect. "
+  echo "    -r/--repo=<repo>         The Git repo to work from."
+  echo "    -b/--branch=<branch>     The branch to work from."
+  echo "    -h/--help                Usage information."
+  echo " "
+  echo "example: "
+  echo "    validate-jira-for-release --version=0.4.2 --start=tags/apache-metron-0.4.1-release"
+  echo " "
+}
+
+# define default values
+END="HEAD"
+REPO="https://git-wip-us.apache.org/repos/asf/metron.git"
+BRANCH="master"
+
+# print help, if the user just runs this without any args
+if [ "$#" -eq 0 ]; then
+    help
+    exit 1
+fi
+
+# handle command line options
+for i in "$@"; do
+  case $i in
+    #
+    # VERSION: The release version to validate; the 'next' release.
+    #
+    #
+    -v=*|--version=*)
+    VERSION="${i#*=}"
+    shift # past argument=value
+    ;;
+
+    #
+    # START: Defines the first commit to inspect
+    #
+    #   -s=tags/apache-metron-0.4.1-release
+    #   --start=tags/apache-metron-0.4.1-release
+    #
+    -s=*|--start=*)
+    START="${i#*=}"
+    shift # past argument=value
+    ;;
+
+    #
+    # END: Defines the last commit to inspect
+    #
+    #   -e=HEAD
+    #   --end=HEAD
+    #
+    -e=*|--end=*)
+    END="${i#*=}"
+    shift # past argument=value
+    ;;
+
+    #
+    # REPO: Define the Git repo to work from
+    #
+    #  -r=https://git-wip-us.apache.org/repos/asf/metron.git
+    #  --repo=<repo-url>
+    #
+    -r=*|--repo=*)
+    REPO="${i#*=}"
+    shift # past argument=value
+    ;;
+
+    #
+    # BRANCH: The branch to work from.
+    #
+    #  -b=master
+    #  --branch=master
+    #
+    -b=*|--branch=*)
+    BRANCH="${i#*=}"
+    shift # past argument with no value
+    ;;
+
+    #
+    # -h/--help
+    #
+    -h|--help)
+    help
+    exit 0
+    shift # past argument with no value
+    ;;
+
+    #
+    # Unknown option
+    #
+    *)
+    UNKNOWN_OPTION="${i#*=}"
+    echo "Error: unknown option: $UNKNOWN_OPTION"
+    help
+    ;;
+  esac
+done
+
+WORKDIR="~/tmp"
+
+# ensure all required values are set
+if [ -z "$VERSION" ]; then
+	echo "Missing -v/--version is is required"
+	exit 1
+fi
+if [ -z "$START" ]; then
+	echo "Missing -s/--start which is required"
+	exit 1
+fi
+if [ -z "$END" ]; then
+	echo "Missing -e/--end which is required"
+	exit 1
+fi
+if [ -z "$REPO" ]; then
+	echo "Missing -r/--repo which is required"
+	exit 1
+fi
+if [ -z "$BRANCH" ]; then
+	echo "Missing -b/--branch which is required"
+	exit 1
+fi
+
+# clone the metron repo and fetch all tags
+git clone $REPO "metron-$VERSION"
+git checkout $BRANCH
+cd "$WORKDIR/metron-$VERSION"
+git fetch --all --tags
+
+# find all JIRAs that have been committed since the last release
+GET_JIRAS="git log $START..$END --oneline | grep -E -o 'METRON[- ]*[0-9]+'"
+
+# print the header
+FORMAT_STR="%15s %15s %15s %30s %50s\n"
+printf "$FORMAT_STR" "JIRA" "STATUS" "FIX VERSION" "ASSIGNEE" "FIX"
+
+# for each JIRA since the last release tag...
+eval $GET_JIRAS | while read JIRA ; do
+
+	# fetch the JIRA content
+	URL="https://issues.apache.org/jira/si/jira.issueviews:issue-xml/$JIRA/$JIRA.xml"
+        CONTENT=`curl -s $URL`
+
+	# painfully extract some fields
+	STATUS=`echo "$CONTENT" | grep "<status[^>]*>" | sed 's/^.*<status[^>]*>//' | sed 's/<.status>.*$//'`
+	ASSIGNEE=`echo "$CONTENT" | grep "<assignee[^>]*>" | sed 's/^.*<assignee[^>]*>//' | sed 's/<.assignee>.*$//'`
+	FIXV=`echo "$CONTENT" | grep "<fixVersion[^>]*>" | sed 's/^.*<fixVersion[^>]*>//' | sed 's/<.fixVersion>.*$//'`
+
+	# the link is only populated, if there is something to fix
+	LINK=""
+	if [ "$FIXV" != "$VERSION" ] || [ "$STATUS" != "Done" ]; then
+		LINK="https://issues.apache.org/jira/browse/$JIRA"
+	fi
+
+	# show the JIRA
+      	printf "$FORMAT_STR" "$JIRA" "$STATUS" "$FIXV" "$ASSIGNEE" "$LINK"
+done
