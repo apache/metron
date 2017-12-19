@@ -1355,8 +1355,14 @@ IS_EMAIL
 #### %timing
 
 Prints out timing information from the last stellar statement executed. The information has the total
-execution time, and also a break down of execution time by stellar function
+execution time, and also a break down of execution time by stellar function.
 
+%timing supports filter on the timing output.  If you pass one or more strings to %timing, only
+execution times with those tags will show.
+
+To see the tags in your timing, you can run %timing without any filters.
+
+A simple example :
 ```
 Stellar, Go!
 Please note that functions are loading lazily in the background and will be unavailable until loaded fully.
@@ -1373,6 +1379,32 @@ ok
 --->STARTS_WITH : 0ms : 30586 ns
 --->TO_LOWER : 0ms : 19085 ns
 
+```
+
+A more complex example with filters:
+
+> Note: if the calls are nested when executed in stellar, then you will see them nested in the output,
+> as shown by the LAMBDA FUNCTION combination below.
+
+```
+[Stellar]>>> foo:=1
+[Stellar]>>> match { foo == 0 => ()-> false, foo == 1 => ()-> TO_UPPER("true"), default => ()-> false }
+TRUE
+[Stellar]>>> %timing
+->execute[] : 4242ms : 4242237640ns
+-->match { foo == 0 => ()-> false, foo == 1 => ()-> TO_UPPER("true"), default => ()-> false }[] : 84ms : 84362570ns
+--->lambda[LAMBDA] : 1ms : 1265895ns
+---->TO_UPPER[FUNCTION] : 0ms : 570672ns
+
+[Stellar]>>> %timing FUNCTION
+->execute[] : 7594ms : 7594583655ns
+-->match { foo == 0 => ()-> false, foo == 1 => ()-> TO_UPPER("true"), default => ()-> false }[] : 84ms : 84362570ns
+---->TO_UPPER[FUNCTION] : 0ms : 570672ns
+
+[Stellar]>>> %timing LAMBDA
+->execute[] : 14374ms : 14374556116ns
+-->match { foo == 0 => ()-> false, foo == 1 => ()-> TO_UPPER("true"), default => ()-> false }[] : 84ms : 84362570ns
+--->lambda[LAMBDA] : 1ms : 1265895ns
 ```
 
 ### Advanced Usage

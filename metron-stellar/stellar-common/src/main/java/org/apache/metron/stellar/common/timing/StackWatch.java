@@ -77,7 +77,7 @@ public class StackWatch {
    * This may be called multiple times, before a stopTime() call is made, if calls are nested
    * @param name the name of this timing
    */
-  public void startTime(String name) {
+  public void startTime(String name, String... tags) {
     // if the deque is empty, then this is a child of root
     TimeRecordNode parentNode = null;
     if (deque.isEmpty()) {
@@ -98,7 +98,7 @@ public class StackWatch {
     }
 
     // request the current node to create a new child with this timing name and start it
-    TimeRecordNode node = parentNode.createChild(name);
+    TimeRecordNode node = parentNode.createChild(name, tags);
     node.start();
     // this node is now top of the stack
     deque.push(node);

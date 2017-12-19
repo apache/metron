@@ -20,6 +20,7 @@ package org.apache.metron.stellar.common.timing;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 
@@ -37,7 +38,8 @@ public class TimeRecordNode {
   private String parentName;
   // the name of this node
   private String name;
-
+  // the tags for this node
+  private String[] tags;
 
   // the children of this node
   private List<TimeRecordNode> children = new LinkedList<>();
@@ -48,10 +50,11 @@ public class TimeRecordNode {
    * Constructor.
    * Creates a new TimeRecordNode for a given parent name, with a given name.
    * @param parentName name of the parent, may be null
+   * @param tags the tags to associate with this timing
    * @param name the name of the node
    * @throws IllegalArgumentException if the node name is null or empty.
    */
-  public TimeRecordNode(String parentName, String name) {
+  public TimeRecordNode(String parentName, String name, String... tags) {
     if (StringUtils.isEmpty(name)) {
       throw new IllegalArgumentException("Argument name is missing");
     }
@@ -60,6 +63,8 @@ public class TimeRecordNode {
     if (StringUtils.isNotEmpty(parentName)) {
       this.parentName = parentName;
     }
+
+    this.tags = tags;
   }
 
   /**
@@ -118,6 +123,14 @@ public class TimeRecordNode {
     return stopWatch.getNanoTime();
   }
 
+  /**
+   * The tags to associate with this timing.
+   * @return tags array, may be null
+   */
+  public Optional<String[]> getTags() {
+    return Optional.ofNullable(tags);
+  }
+
 
   /**
    * Returns the node's path, made up by combining it's parent's name and the node's name.
@@ -147,15 +160,16 @@ public class TimeRecordNode {
    * If the current node is not started, then this operation results in an
    * {@code IllegalStateException}
    * @param childName the name of the child
+   * @param tags the tags for this timing
    * @return the child node created
    * @throws IllegalStateException if the current node is not started.
    * @throws IllegalArgumentException if the node name is null or empty.
    */
-  public TimeRecordNode createChild(String childName) throws IllegalStateException {
+  public TimeRecordNode createChild(String childName, String... tags) throws IllegalStateException {
     if (!stopWatch.isStarted()) {
       throw new IllegalStateException("Adding a child to a non-started parent");
     }
-    TimeRecordNode child = new TimeRecordNode(this.getPath(), childName);
+    TimeRecordNode child = new TimeRecordNode(this.getPath(), childName, tags);
     children.add(child);
     return child;
   }

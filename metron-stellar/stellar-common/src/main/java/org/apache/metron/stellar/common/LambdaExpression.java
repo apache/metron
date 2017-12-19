@@ -18,6 +18,8 @@
 
 package org.apache.metron.stellar.common;
 
+import java.util.Optional;
+import org.apache.metron.stellar.common.timing.StackWatch;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.Token;
 import org.apache.metron.stellar.dsl.VariableResolver;
@@ -64,6 +66,10 @@ public class LambdaExpression extends StellarCompiler.Expression {
             state.context
           , state.functionResolver
           , variableResolver);
-    return apply(localState);
+    Optional<StackWatch> watchOptional = state.context.getWatch();
+    watchOptional.ifPresent((sw) -> sw.startTime("lambda", "LAMBDA"));
+    Object result = apply(localState);
+    watchOptional.ifPresent(StackWatch::stopTime);
+    return result;
   }
 }

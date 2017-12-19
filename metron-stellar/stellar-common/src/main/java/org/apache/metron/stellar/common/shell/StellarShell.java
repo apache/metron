@@ -24,6 +24,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import java.util.Arrays;
+import java.util.LinkedList;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.PropertyConfigurator;
@@ -321,7 +323,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     } else if(MAGIC_UNDEFINE.equals(command)) {
       handleMagicUndefine(expression);
     } else if(MAGIC_TIMING.equals(command)) {
-      handleMagicTiming();
+      handleMagicTiming(expression);
     } else {
       writeLine(ERROR_PROMPT + "undefined magic command: " + rawExpression);
     }
@@ -352,10 +354,16 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
   /**
    * Handle a magic %timing. Returns the results of the last timing operation
    */
-  private void handleMagicTiming() {
+  private void handleMagicTiming(String[] expression ) {
+    List<String> filter = new ArrayList<>();
+    if (expression.length > 1) {
+      for (int i = 1; i < expression.length; i++) {
+        filter.add(expression[i]);
+      }
+    }
     Optional<StackWatch> lastWatch = executor.getLastWatch();
-    if(lastWatch.isPresent()) {
-      writeLine(formatWatchOutput(lastWatch.get()));
+    if (lastWatch.isPresent()) {
+      writeLine(formatWatchOutput(lastWatch.get(), filter));
     } else {
       writeLine("No timing recorded");
     }
@@ -485,15 +493,24 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     return ret.toString();
   }
 
-  private String formatWatchOutput(StackWatch watch) {
+  private String formatWatchOutput(StackWatch watch, final List<String> filterList) {
     final StringBuffer buff = new StringBuffer();
     watch.visit(((level, node) -> {
+      if (node.getTags().isPresent() && node.getTags().get().length > 0) {
+        if (!Arrays.asList(node.getTags().get()).containsAll(filterList)) {
+          return;
+        }
+      }
       for (int i = 0; i < level; i++) {
         buff.append("-");
       }
       buff.append("->");
-      buff.append(node.getName()).append(" : ").append(node.getTime()).append("ms : ").
-          append(node.getNanoTime()).append("ns").append("\n");
+      buff.append(node.getName());
+      node.getTags().ifPresent((tags) -> {
+        buff.append("[").append(String.join(",",tags)).append("]");
+      });
+      buff.append(" : ").append(node.getTime()).append("ms : ")
+          .append(node.getNanoTime()).append("ns").append("\n");
     }));
     return buff.toString();
   }
