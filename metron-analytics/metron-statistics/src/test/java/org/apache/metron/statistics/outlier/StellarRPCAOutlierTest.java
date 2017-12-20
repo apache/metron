@@ -34,7 +34,7 @@ public class StellarRPCAOutlierTest extends RPCAOutlierTest {
   }
 
   @Override
-  protected double score(List<? extends Object> sample, Double x) {
+  protected double score(Iterable<? extends Object> sample, Double x) {
     String stmt = "OUTLIER_RPCA_SCORE(sample, x)";
     return (Double) StellarProcessorUtils.run(stmt, ImmutableMap.of("sample", sample, "x", x));
   }
@@ -45,6 +45,7 @@ public class StellarRPCAOutlierTest extends RPCAOutlierTest {
     RPCAOutlierFunctions.Config.configure(outlier
             , ImmutableMap.of("lpenalty", 15.0, "spenalty", 12, "forceDiff", true, "minNonZero", 5));
     Assert.assertTrue(outlier.getForceDiff());
+    Assert.assertTrue(outlier.getTrim());
     Assert.assertEquals(15.0, outlier.getLpenalty(), 1e-5);
     Assert.assertEquals(12.0, outlier.getSpenalty(), 1e-5);
     Assert.assertEquals(5, outlier.getMinRecords());

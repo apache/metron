@@ -20,7 +20,13 @@
 package org.apache.metron.statistics.outlier.rad;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 
 /**
@@ -70,9 +76,17 @@ public class RPCAOutlier {
    */
   private Boolean isForceDiff = false;
   private int minRecords = 0;
+  /**
+   * Trim the data of leading and trailing 0's.
+   */
+  private Boolean trim = true;
 
   public RPCAOutlier() {
 
+  }
+
+  public Boolean getTrim() {
+    return trim;
   }
 
   public Double getLpenalty() {
@@ -89,6 +103,11 @@ public class RPCAOutlier {
 
   public int getMinRecords() {
     return minRecords;
+  }
+
+  public RPCAOutlier withTrim(boolean trim) {
+    this.trim = trim;
+    return this;
   }
 
   public RPCAOutlier withLPenalty(double lPenalty) {
@@ -120,38 +139,64 @@ public class RPCAOutlier {
     return input2DArray;
   }
 
-  private class AnalyzedData {
-    double[] inputData;
-    public AnalyzedData(double[] inputData, int numNonZero) {
-      this.inputData = numNonZero >= minRecords?inputData:null;
+  private double[] transform(Iterable<? extends Object> dataPoints, Object value) {
+    List<Double>  tempList = new ArrayList<>();
+    int numZero = 0;
+    Double valueD = ConversionUtils.convert(value, Double.class);
+    if(valueD == null) {
+      throw new IllegalStateException("Nulls are not accepted as data points.");
     }
-  }
-
-  private AnalyzedData transform(Iterable<? extends Object> dataPoints, Object value ) {
-    int size = Iterables.size(dataPoints);
-    double[] inputData = new double[size + 1];
-    Double val = ConversionUtils.convert(value, Double.class);
-    if(val == null) {
-        throw new IllegalStateException("Nulls are not accepted as data points.");
-      }
-    int numNonZero = 0;
-    int i = 0;
     for(Object dpo : dataPoints) {
       Double dp = ConversionUtils.convert(dpo, Double.class);
       if(dp == null) {
         throw new IllegalStateException("Nulls are not accepted as data points.");
       }
-      inputData[i++] = dp;
-      numNonZero += dp > EPSILON ? 1 : 0;
+      numZero += isZero(dp) ? 1 : 0;
+      tempList.add(dp);
     }
-    inputData[i] = val;
-    return new AnalyzedData(inputData, numNonZero);
+    int from = 0;
+    int to = tempList.size() - 1;
+    if(getTrim()) {
+      int leadingZeros = numLeadingZeros(tempList);
+      int trailingZeros = numLeadingZeros(Lists.reverse(tempList));
+      from += leadingZeros;
+      to -= trailingZeros;
+      numZero -= leadingZeros + trailingZeros;
+    }
+    int size = to - from + 1;
+    int numNonZero = size - numZero;
+    if(numNonZero < getMinRecords()) {
+      return null;
+    }
+    double[] inputData = new double[size + 1];
+    int j = 0;
+    for(int i = from;i <= to;i++,j++) {
+      inputData[j] = tempList.get(i);
+    }
+    inputData[j] = valueD;
+    return inputData;
+  }
+
+  private boolean isZero(Double d) {
+    return d <= EPSILON;
+  }
+
+  private int numLeadingZeros(List<Double> list) {
+    int numZeros = 0;
+    for(Double d : list) {
+      if(!isZero(d)) {
+        break;
+      }
+      else {
+        numZeros++;
+      }
+    }
+    return numZeros;
   }
 
 
   public double outlierScore(Iterable<? extends Object> dataPoints, Object value) {
-    AnalyzedData dps = transform(dataPoints, value);
-    double[] inputData = dps.inputData;
+    double[] inputData = transform(dataPoints, value);
     if(inputData == null) {
       return Double.NaN;
     }

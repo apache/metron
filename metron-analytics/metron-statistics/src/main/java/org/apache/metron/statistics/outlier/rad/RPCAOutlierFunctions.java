@@ -37,6 +37,7 @@ public class RPCAOutlierFunctions {
     ,S_PENALTY("spenalty", (o, outlier) -> outlier.withSPenalty(get("spenalty", o, Double.class)))
     ,MIN_NONZERO("minNonZero", (o, outlier) -> outlier.withMinRecords(get("minNonZero", o, Integer.class)))
     ,FORCE_DIFF("forceDiff", (o, outlier) -> outlier.withForceDiff(get("forceDiff", o, Boolean.class)))
+    ,TRIM("trim", (o, outlier) -> outlier.withTrim(get("trim", o, Boolean.class)))
     ;
     String key;
     BiFunction<Object, RPCAOutlier, RPCAOutlier> configure;
@@ -81,6 +82,7 @@ public class RPCAOutlierFunctions {
                      + "\"lpenalty\", \"spenalty\" (see Zhou for more detail, defaults are sensible)"
                      + ", \"minNonZero\" (minimum number of non-zero elements, default is 0.)"
                      + ", \"forceDiff\" (force data to be stationary by differencing it.  See [here](https://people.duke.edu/~rnau/411diff.htm))."
+                     + ", \"trim\" Trim data of leading and trailing 0s."
            }
           ,description= "This is an outlier detector based on Netflix's Surus' implementation of the Robust PCA-based Outlier Detector."
                       + "See [here](https://medium.com/netflix-techblog/rad-outlier-detection-on-big-data-d6b0494371cc)"
