@@ -39,8 +39,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Collections;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.*;
 
@@ -326,8 +331,7 @@ public class GetProfileTest {
   }
 
   private void testOverride(String overrides, Object defaultVal) {
-      String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), [], " + overrides + ")"
-      ;
+      String expr = "PROFILE_GET('profile1', 'entity1', PROFILE_FIXED(4, 'HOURS'), [], " + overrides + ")";
       List<Object> result = run(expr, List.class);
 
       // validate - expect to read all values from the past 4 hours (16 or 17 values depending on start time)
