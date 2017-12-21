@@ -19,11 +19,17 @@ package org.apache.metron.common.typosquat;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
 import java.net.IDN;
 import java.util.*;
 
-public class HomoglyphStrategy implements TyposquattingStrategy{ public static final Map<Character, List<String>> glyphs = new HashMap<Character, List<String>>()
+public class HomoglyphStrategy implements TyposquattingStrategy{
+
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  public static final Map<Character, List<String>> glyphs = new HashMap<Character, List<String>>()
   {{
     put('a', ImmutableList.of("à", "á", "â", "ã", "ä", "å", "ɑ", "а", "ạ", "ǎ", "ă", "ȧ", "ӓ"));
     put('b', ImmutableList.of("d", "lb", "ib", "ʙ", "Ь", "b̔", "ɓ", "Б"));
@@ -75,9 +81,14 @@ public class HomoglyphStrategy implements TyposquattingStrategy{ public static f
               String d = domain.substring(0, i) + winNew + domain.substring(i + ws);
               result.add(d);
               if(!isAce(d)) {
-                String dAscii = IDN.toASCII(d, IDN.ALLOW_UNASSIGNED);
-                if (!d.equals(dAscii)) {
-                  result.add(dAscii);
+                try {
+                  String dAscii = IDN.toASCII(d, IDN.ALLOW_UNASSIGNED);
+                  if (!d.equals(dAscii)) {
+                    result.add(dAscii);
+                  }
+                }
+                catch(IllegalArgumentException iae) {
+                  LOG.debug("Unable to parse " + d + ": " + iae.getMessage(), iae);
                 }
               }
             }
@@ -88,8 +99,9 @@ public class HomoglyphStrategy implements TyposquattingStrategy{ public static f
     return result;
   }
 
-  public static boolean isAce(String domain) {
-    return domain.startsWith("xn--");
+  public static boolean isAce(String domainRaw) {
+    String domain = domainRaw.toLowerCase();
+    return domain.startsWith("xn--") || domain.contains(".xn--");
   }
 
   @Override
