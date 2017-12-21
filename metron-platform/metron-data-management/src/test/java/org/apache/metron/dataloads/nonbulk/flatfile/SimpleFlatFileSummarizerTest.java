@@ -41,7 +41,7 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class SimpleFlatFileSummarizerIntegrationTest {
+public class SimpleFlatFileSummarizerTest {
   /**
    {
    "config" : {
