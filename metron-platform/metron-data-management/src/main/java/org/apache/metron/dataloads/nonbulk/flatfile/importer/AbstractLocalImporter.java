@@ -78,6 +78,10 @@ public abstract class AbstractLocalImporter<OPTIONS_T extends Enum<OPTIONS_T> & 
                                  , String line
                                  ) throws IOException;
 
+  protected Location resolveLocation(String input, FileSystem fs) {
+    return LocationStrategy.getLocation(input, fs);
+  }
+
   public void extractLineByLine( List<String> inputs
                                , FileSystem fs
                                , ThreadLocal<STATE_T> state
@@ -85,7 +89,7 @@ public abstract class AbstractLocalImporter<OPTIONS_T extends Enum<OPTIONS_T> & 
                                , int numThreads
                                , boolean quiet
                                ) throws IOException {
-    inputs.stream().map(input -> LocationStrategy.getLocation(input, fs))
+    inputs.stream().map(input -> resolveLocation(input, fs))
                    .forEach( loc -> {
                       final Progress progress = new Progress();
                       if(!quiet) {
@@ -116,8 +120,7 @@ public abstract class AbstractLocalImporter<OPTIONS_T extends Enum<OPTIONS_T> & 
 
   public void extractWholeFiles(List<String> inputs, FileSystem fs, ThreadLocal<STATE_T> state, boolean quiet) throws IOException {
     final Progress progress = new Progress();
-    final List<Location> locations = new ArrayList<>();
-    Location.fileVisitor(inputs, loc -> locations.add(loc), fs);
+    final List<Location> locations = getLocationsRecursive(inputs, fs);
     locations.parallelStream().forEach(loc -> {
       try(BufferedReader br = loc.openReader()) {
         String s = br.lines().collect(Collectors.joining());
@@ -129,6 +132,12 @@ public abstract class AbstractLocalImporter<OPTIONS_T extends Enum<OPTIONS_T> & 
         throw new IllegalStateException("Unable to read " + loc + ": " + e.getMessage(), e);
       }
     });
+  }
+
+  protected List<Location> getLocationsRecursive(List<String> inputs, FileSystem fs) throws IOException {
+    final List<Location> locations = new ArrayList<>();
+    Location.fileVisitor(inputs, loc -> locations.add(loc), fs);
+    return locations;
   }
 
   public static class Progress {

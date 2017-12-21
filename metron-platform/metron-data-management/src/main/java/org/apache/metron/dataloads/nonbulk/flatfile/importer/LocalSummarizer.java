@@ -17,6 +17,7 @@
  */
 package org.apache.metron.dataloads.nonbulk.flatfile.importer;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -64,12 +65,12 @@ public class LocalSummarizer extends AbstractLocalImporter<SummarizeOptions, Loc
 
   @Override
   protected boolean isQuiet(EnumMap<SummarizeOptions, Optional<Object>> config) {
-    return (boolean) config.get(SummarizeOptions.QUIET).get();
+    return (boolean) config.getOrDefault(SummarizeOptions.QUIET, Optional.of(false)).get();
   }
 
   @Override
   protected int batchSize(EnumMap<SummarizeOptions, Optional<Object>> config) {
-    return (int) config.get(SummarizeOptions.BATCH_SIZE).get();
+    return (int) config.getOrDefault(SummarizeOptions.BATCH_SIZE, Optional.of(1)).get();
   }
 
   @Override
@@ -131,14 +132,18 @@ public class LocalSummarizer extends AbstractLocalImporter<SummarizeOptions, Loc
       }
       finalState = extractor.mergeStates(states);
     }
-    if(finalState != null) {
-      byte[] serializedState = SerDeUtils.toBytes(finalState);
-      writer.write(serializedState, (String)config.get(SummarizeOptions.OUTPUT).get(), hadoopConfig);
-    }
+    writer.write(finalState, (String)config.get(SummarizeOptions.OUTPUT).get(), hadoopConfig);
   }
 
   @Override
   protected List<String> getInputs(EnumMap<SummarizeOptions, Optional<Object>> config) {
+    Object o = config.get(SummarizeOptions.INPUT).get();
+    if(o == null) {
+      return new ArrayList<>();
+    }
+    if(o instanceof String) {
+      return ImmutableList.of((String)o);
+    }
     return (List<String>) config.get(SummarizeOptions.INPUT).get();
   }
 }

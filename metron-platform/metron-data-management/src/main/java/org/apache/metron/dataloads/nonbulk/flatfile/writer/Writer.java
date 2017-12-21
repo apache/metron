@@ -18,10 +18,16 @@
 package org.apache.metron.dataloads.nonbulk.flatfile.writer;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.metron.common.utils.SerDeUtils;
 
 import java.io.IOException;
 
 public interface Writer {
   void validate(String output, Configuration hadoopConfig);
+  default void write(Object obj, String output, Configuration hadoopConfig) throws IOException {
+    if(obj != null) {
+      write(SerDeUtils.toBytes(obj), output, hadoopConfig);
+    }
+  }
   void write(byte[] obj, String output, Configuration hadoopConfig) throws IOException;
 }
