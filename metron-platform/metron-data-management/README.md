@@ -412,6 +412,8 @@ To configure this, `extractor.json` would look like:
 }
 ```
 
+#### Parameters
+
 The parameters for the utility are as follows:
 
 | Short Code | Long Code           | Is Required? | Description                                                                                                                                                                         |
