@@ -43,6 +43,7 @@ public class TyposquattingStrategiesTest {
    */
   static Set<String> typesToSkip = new HashSet<String>() {{
     add("Various");
+    add("Original*");
   }};
 
   //These are the output from DNS Twist (  https://github.com/elceef/dnstwist ).  We want to ensure we match their output at minimum

@@ -38,7 +38,6 @@ public enum TyposquattingStrategies implements TyposquattingStrategy {
   SUBDOMAIN(new SubdomainStrategy()),
   TRANSPOSITION(new TranspositionStrategy()),
   VOWELSWAP(new VowelSwapStrategy()),
-  ORIGINAL(new OriginalStrategy())
   ;
   TyposquattingStrategy strategy;
   TyposquattingStrategies(TyposquattingStrategy strategy) {
