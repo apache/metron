@@ -15,20 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.dataloads.nonbulk.flatfile.writer;
 
-package org.apache.metron.dataloads.nonbulk.flatfile.importer;
-
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.metron.dataloads.extractor.ExtractorHandler;
-import org.apache.metron.dataloads.nonbulk.flatfile.LoadOptions;
-import org.apache.metron.enrichment.converter.EnrichmentConverter;
+import org.apache.hadoop.fs.Path;
 
 import java.io.IOException;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Optional;
 
-public interface Importer<OPTIONS_T extends Enum<OPTIONS_T>> {
-  void importData(EnumMap<OPTIONS_T, Optional<Object>> config, ExtractorHandler handler , final Configuration hadoopConfig) throws IOException;
+public class HDFSWriter implements Writer {
+  @Override
+  public void validate(String fileName, Configuration hadoopConfig) {
+    if(StringUtils.isEmpty(fileName) || fileName.trim().equals(".") || fileName.trim().equals("..") || fileName.trim().endsWith("/")) {
+      throw new IllegalStateException("Filename is empty or otherwise invalid.");
+    }
+  }
+
+  @Override
+  public void write(byte[] obj, String output, Configuration hadoopConfig) throws IOException {
+    FileSystem fs = FileSystem.get(hadoopConfig);
+    try(FSDataOutputStream stream = fs.create(new Path(output))) {
+      IOUtils.write(obj, stream);
+      stream.flush();
+    }
+  }
 }

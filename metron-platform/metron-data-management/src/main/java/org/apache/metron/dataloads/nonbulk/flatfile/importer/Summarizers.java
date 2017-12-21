@@ -19,25 +19,24 @@ package org.apache.metron.dataloads.nonbulk.flatfile.importer;
 
 import java.util.Optional;
 
-public enum ImportStrategy {
-  LOCAL(new LocalImporter()),
-  MR(MapReduceImporter.INSTANCE)
-  ;
+public enum Summarizers {
+  LOCAL(new LocalSummarizer());
+
   private Importer importer;
 
-  ImportStrategy(Importer importer) {
+  Summarizers(Importer importer) {
     this.importer = importer;
   }
 
-  public Importer getImporter() {
+  public Importer getSummarizer() {
     return importer;
   }
 
-  public static Optional<ImportStrategy> getStrategy(String strategyName) {
+  public static Optional<Summarizers> getStrategy(String strategyName) {
     if(strategyName == null) {
       return Optional.empty();
     }
-    for(ImportStrategy strategy : values()) {
+    for(Summarizers strategy : values()) {
       if(strategy.name().equalsIgnoreCase(strategyName.trim())) {
         return Optional.of(strategy);
       }

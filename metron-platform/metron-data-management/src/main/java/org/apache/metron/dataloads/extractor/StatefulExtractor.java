@@ -15,33 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.dataloads.nonbulk.flatfile.importer;
+package org.apache.metron.dataloads.extractor;
 
-import java.util.Optional;
+import org.apache.metron.enrichment.lookup.LookupKV;
 
-public enum ImportStrategy {
-  LOCAL(new LocalImporter()),
-  MR(MapReduceImporter.INSTANCE)
-  ;
-  private Importer importer;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
-  ImportStrategy(Importer importer) {
-    this.importer = importer;
-  }
-
-  public Importer getImporter() {
-    return importer;
-  }
-
-  public static Optional<ImportStrategy> getStrategy(String strategyName) {
-    if(strategyName == null) {
-      return Optional.empty();
-    }
-    for(ImportStrategy strategy : values()) {
-      if(strategy.name().equalsIgnoreCase(strategyName.trim())) {
-        return Optional.of(strategy);
-      }
-    }
-    return Optional.empty();
-  }
+public interface StatefulExtractor extends Extractor {
+  Object initializeState(Map<String, Object> config);
+  Object mergeStates(List<? extends Object> states);
+  Iterable<LookupKV> extract(String line, AtomicReference<Object> state) throws IOException;
 }
