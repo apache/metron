@@ -25,6 +25,7 @@ import org.apache.metron.dataloads.extractor.ExtractorCapabilities;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.dataloads.extractor.StatefulExtractor;
 import org.apache.metron.dataloads.nonbulk.flatfile.SummarizeOptions;
+import org.apache.metron.dataloads.nonbulk.flatfile.writer.Writer;
 import org.apache.metron.dataloads.nonbulk.flatfile.writer.Writers;
 
 import java.io.File;
@@ -114,7 +115,7 @@ public class LocalSummarizer extends AbstractLocalImporter<SummarizeOptions, Loc
 
   @Override
   public void importData(EnumMap<SummarizeOptions, Optional<Object>> config, ExtractorHandler handler, Configuration hadoopConfig) throws IOException {
-    Writers writer = (Writers) config.get(SummarizeOptions.OUTPUT_MODE).get();
+    Writer writer = (Writer) config.get(SummarizeOptions.OUTPUT_MODE).get();
     String fileName = (String)config.get(SummarizeOptions.OUTPUT).get();
     writer.validate(fileName, hadoopConfig);
     super.importData(config, handler, hadoopConfig);
