@@ -60,7 +60,7 @@ public class HomoglyphStrategy implements TyposquattingStrategy{ public static f
     if(StringUtils.isEmpty(domain)) {
       return result;
     }
-    if(domain.startsWith("xn--")) {
+    if(isAce(domain)) {
       //this is an ace domain.
       domain = IDN.toUnicode(domain);
     }
@@ -73,10 +73,12 @@ public class HomoglyphStrategy implements TyposquattingStrategy{ public static f
             for( String g : glyphs.get(c)) {
               String winNew = win.replaceAll("" + c, g);
               String d = domain.substring(0, i) + winNew + domain.substring(i + ws);
-              String dAscii = IDN.toASCII(d, IDN.ALLOW_UNASSIGNED);
               result.add(d);
-              if(!d.equals(dAscii)) {
-                result.add(dAscii);
+              if(!isAce(d)) {
+                String dAscii = IDN.toASCII(d, IDN.ALLOW_UNASSIGNED);
+                if (!d.equals(dAscii)) {
+                  result.add(dAscii);
+                }
               }
             }
           }
@@ -84,6 +86,10 @@ public class HomoglyphStrategy implements TyposquattingStrategy{ public static f
       }
     }
     return result;
+  }
+
+  public static boolean isAce(String domain) {
+    return domain.startsWith("xn--");
   }
 
   @Override
