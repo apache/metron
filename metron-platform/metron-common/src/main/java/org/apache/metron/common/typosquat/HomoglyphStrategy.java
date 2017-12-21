@@ -18,6 +18,7 @@
 package org.apache.metron.common.typosquat;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.StringUtils;
 
 import java.net.IDN;
 import java.util.*;
@@ -55,15 +56,23 @@ public class HomoglyphStrategy implements TyposquattingStrategy{ public static f
   @Override
   public Set<String> generateCandidates(String originalString) {
     Set<String> result = new HashSet<>();
-    for(int ws = 0;ws < originalString.length();ws++) {
-      for(int i = 0;i < originalString.length() - ws + 1;++i) {
-        String win = originalString.substring(i, i+ws);
+    String domain = originalString;
+    if(StringUtils.isEmpty(domain)) {
+      return result;
+    }
+    if(domain.startsWith("xn--")) {
+      //this is an ace domain.
+      domain = IDN.toUnicode(domain);
+    }
+    for(int ws = 0;ws < domain.length();ws++) {
+      for(int i = 0;i < domain.length() - ws + 1;++i) {
+        String win = domain.substring(i, i+ws);
         for(int j = 0;j < ws;j++) {
           char c = win.charAt(j);
           if( glyphs.containsKey(c)) {
             for( String g : glyphs.get(c)) {
               String winNew = win.replaceAll("" + c, g);
-              String d = originalString.substring(0, i) + winNew + originalString.substring(i + ws);
+              String d = domain.substring(0, i) + winNew + domain.substring(i + ws);
               String dAscii = IDN.toASCII(d, IDN.ALLOW_UNASSIGNED);
               result.add(d);
               if(!d.equals(dAscii)) {
