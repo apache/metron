@@ -95,7 +95,6 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
   public static final String MAGIC_GLOBALS = MAGIC_PREFIX + "globals";
   public static final String MAGIC_DEFINE = MAGIC_PREFIX + "define";
   public static final String MAGIC_UNDEFINE = MAGIC_PREFIX + "undefine";
-  public static final String MAGIC_VALIDATE_CONFIGURED = MAGIC_PREFIX + "validate_configured_expressions";
 
   private StellarExecutor executor;
 
@@ -320,8 +319,6 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
 
     } else if(MAGIC_UNDEFINE.equals(command)) {
       handleMagicUndefine(expression);
-    } else if(MAGIC_VALIDATE_CONFIGURED.equals(command)) {
-      handleValidateConfigured();
     } else {
       writeLine(ERROR_PROMPT + "undefined magic command: " + rawExpression);
     }
@@ -404,24 +401,6 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
       Map<String, Object> globals = getOrCreateGlobalConfig(executor);
       globals.remove(expression[1]);
     }
-  }
-
-  /**
-   * Handle a magic '%validate_configured_expressions'.
-   * This command will attempt to locate and validate through compilation
-   * all deployed stellar statements in the system.
-   */
-  private void handleValidateConfigured() {
-
-    Optional<CuratorFramework> client = executor.getClient();
-    if (!client.isPresent()) {
-      writeLine(ERROR_PROMPT + "Zookeeper is required to validate deployed stellar statements!");
-      writeLine(ERROR_PROMPT + "Please restart the Stellar Shell with the -z parameter!");
-      return;
-    }
-
-    StellarZookeeperBasedValidator validator = new StellarZookeeperBasedValidator(client.get());
-    validator.validate(this::writeLine);
   }
 
   /**

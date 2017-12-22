@@ -22,17 +22,24 @@ package org.apache.metron.stellar.common.utils.validation;
 
 import static org.apache.metron.stellar.common.shell.StellarShell.ERROR_PROMPT;
 
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.lang.NullArgumentException;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.atteo.classindex.ClassIndex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StellarZookeeperBasedValidator implements StellarValidator {
 
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final String FAILED_COMPILE = "Failed to compile";
   private CuratorFramework client;
 
   public StellarZookeeperBasedValidator(CuratorFramework client) throws NullArgumentException {
@@ -44,7 +51,7 @@ public class StellarZookeeperBasedValidator implements StellarValidator {
 
 
   @Override
-  public void validate(LineWriter writer) {
+  public Iterable<ValidationResult> validate(Optional<LineWriter> writer) {
     // discover all the StellarConfigurationProvider
     Set<StellarConfigurationProvider> providerSet = new HashSet<>();
 
@@ -57,65 +64,43 @@ public class StellarZookeeperBasedValidator implements StellarValidator {
               .cast(c.getConstructor().newInstance());
           providerSet.add(reporter);
         } catch (Exception e) {
-          writer
-              .write(ERROR_PROMPT + " Provider: " + c.getCanonicalName() + " not valid, skipping");
+          LOG.error("Provider: " + c.getCanonicalName() + " not valid, skipping", e);
         }
       }
     }
 
-    writer.write(String.format("Discovered %d providers", providerSet.size()));
-
-    writer.write("Visiting all configurations.  ThreatTriage rules are checked when loading the "
-        + "configuration, thus an invalid ThreatTriage rule will fail the entire Enrichment Configuration.");
-    if (providerSet.size() > 0) {
-      providerSet.forEach((r) -> writer.write(r.getName() + " "));
-      writer.write("");
-    } else {
-      return;
-    }
-
+    ArrayList<ValidationResult> results = new ArrayList<>();
     providerSet.forEach((r) -> {
-      writer.write("Requesting configurations from " + r.getName());
       try {
         List<ExpressionConfigurationHolder> holders = r
             .provideConfigurations(client, (pathName, exception) -> {
-              writer.write(ERROR_PROMPT + String
-                  .format("Configuration %s is not valid, please review", pathName));
+              results.add(new ValidationResult(pathName, null, exception.getMessage(), false));
             });
 
-        writer.write(String.format("%s provided %d configurations", r.getName(), holders.size()));
         holders.forEach((h) -> {
           try {
             h.discover();
             h.visit((path, statement) -> {
-              writer.write("==================================================");
-              writer.write(String.format("validating %s", path));
               try {
                 if (StellarProcessor.compile(statement) == null) {
-                  writer.write(ERROR_PROMPT + String
-                      .format("Statement: %s is not valid, please review", path));
-                  writer.write(ERROR_PROMPT + String.format("Statement: %s ", statement));
+                  results.add(new ValidationResult(path, statement, FAILED_COMPILE, false));
+                } else {
+                  results.add(new ValidationResult(path, statement, null, true));
                 }
               } catch (RuntimeException e) {
-                writer.write(ERROR_PROMPT + "Error Visiting " + path);
-                writer.write(e.getMessage());
-                writer.write("--");
-                writer.write(ERROR_PROMPT + ": " + statement);
+                results.add(new ValidationResult(path, statement, e.getMessage(), false));
               }
-              writer.write("==================================================");
             }, (path, error) -> {
-              writer.write(ERROR_PROMPT + String
-                  .format("Configuration %s is not valid, please review", path));
+              results.add(new ValidationResult(path, null, error.getMessage(), false));
             });
           } catch (Exception e) {
-            writer.write(ERROR_PROMPT + " " + e.getMessage());
+            LOG.error(e.getMessage(), e);
           }
         });
       } catch (Exception e) {
-        writer.write(ERROR_PROMPT + "Error Visiting " + r.getName());
-        writer.write(e.getMessage());
+        LOG.error(e.getMessage(), e);
       }
     });
-    writer.write("\nDone validation");
+    return results;
   }
 }

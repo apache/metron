@@ -24,6 +24,7 @@ project.
     * [Indexing Functions](#indexing-functions)
     * [Enrichment Functions](#enrichment-functions)
     * [Threat Triage Functions](#threat-triage-functions)
+    * [Validation Functions](#validation-functions)
 * [Examples](#examples)
     *  [Iterate to Find a Valid Grok Pattern](#iterate-to-find-a-valid-grok-pattern)
     * [Manage Stellar Field Transformations](#manage-stellar-field-transformations)
@@ -41,6 +42,7 @@ The functions are split roughly into a few sections:
 * Parser functions - Functions surrounding adding, viewing, and removing Parser functions.
 * Enrichment functions - Functions surrounding adding, viewing and removing Stellar enrichments as well as managing batch size, batch timeout, and index names for the enrichment topology configuration
 * Threat Triage functions - Functions surrounding adding, viewing and removing threat triage functions.
+* Validation functions - Functions to validate stellar rules contained in configurations.
 
 ### Grok Functions
 
@@ -275,6 +277,13 @@ The functions are split roughly into a few sections:
     * aggregator - Aggregator to use.  One of MIN, MAX, MEAN, SUM, POSITIVE_MEAN
     * aggregatorConfig - Optional config for aggregator
   * Returns: The String representation of the enrichment config
+
+### Validation Functions
+* `VALIDATE_STELLAR_RULE_CONFIGS`
+  * Description: Attempts to validate deployed Stellar expressions by ensuring they compile. This is useful when expressions may have been valid when deployed, but may have been invalidated by a language change after that
+  * Input:
+    * wrap - Optional.  The Length of the string to wrap the columns
+  * Returns: A table of validation results
 
 ## Deployment Instructions
 * Clusters installed via Ambari Management Pack (default)

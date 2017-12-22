@@ -1351,11 +1351,6 @@ IS_EMAIL
   ret: True if the string is a valid email address and false otherwise.
 [Stellar]>>> 
 ```
-
-#### `%validate_configured_expressions`
-
-Attempts to validate deployed Stellar expressions by ensuring they compile.  This is useful when expressions may have been valid when deployed, but may have been invalidated by a language change after that.
-
 ### Advanced Usage
 
 To run the Stellar Shell directly from the Metron source code, run a command like the following.  Ensure that Metron has already been built and installed with `mvn clean install -DskipTests`.

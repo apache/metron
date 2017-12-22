@@ -20,9 +20,11 @@
 
 package org.apache.metron.stellar.common.utils.validation;
 
+import java.util.Optional;
+
 public interface StellarValidator {
   public interface LineWriter {
     void write(String line);
   }
-  void validate(LineWriter writer);
+  Iterable<ValidationResult> validate(Optional<LineWriter> writer);
 }
