@@ -46,7 +46,9 @@ public enum TyposquattingStrategies implements TyposquattingStrategy {
 
   @Override
   public Set<String> generateCandidates(String originalString) {
-    return strategy.generateCandidates(originalString);
+    Set<String> candidates = strategy.generateCandidates(originalString);
+    candidates.remove(originalString);
+    return candidates;
   }
 
   public static Set<String> generateAllCandidates(String originalString) {

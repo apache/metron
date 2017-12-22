@@ -100,6 +100,7 @@ public class TyposquattingStrategiesTest {
   public void assertExpected(String domain, TyposquattingStrategies strategy) {
     Set<String> expectedValues = expected.get(domain).get(strategy);
     Set<String> actualValues = strategy.generateCandidates(domain);
+    Assert.assertFalse(actualValues.contains(domain));
     {
       Sets.SetView<String> vals = Sets.difference(expectedValues, actualValues);
       String diff = Joiner.on(",").join(vals);
