@@ -58,6 +58,7 @@ public abstract class AbstractLocalImporter<OPTIONS_T extends Enum<OPTIONS_T> & 
       int numThreads = numThreads(config, handler);
       extractLineByLine(inputs, fs, state, batchSize, numThreads, quiet);
     }
+    System.out.println();
   }
 
   protected abstract List<String> getInputs(final EnumMap<OPTIONS_T, Optional<Object>> config);
