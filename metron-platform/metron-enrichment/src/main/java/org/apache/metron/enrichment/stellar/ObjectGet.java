@@ -50,7 +50,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Stellar(namespace="OBJECT"
         ,name="GET"
-        ,description="Retrieve and deserialize a serialized object from HDFS"
+        ,description="Retrieve and deserialize a serialized object from HDFS.  " +
+        "The cache can be specified via two properties in the global config: " +
+        "\"" + ObjectGet.OBJECT_CACHE_SIZE_KEY + "\" (default " + ObjectGet.OBJECT_CACHE_SIZE_DEFAULT + ")," +
+        "\"" + ObjectGet.OBJECT_CACHE_EXPIRATION_KEY+ "\" (default 1440).  Note, if these are changed in global config, " +
+        "topology restart is required."
         , params = {
             "path - The path in HDFS to the serialized object"
           }

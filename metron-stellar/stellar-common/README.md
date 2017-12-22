@@ -791,7 +791,9 @@ Where:
   * Returns: The set of objects in the multiset ignoring multiplicity
 
 ### `OBJECT_GET`
-  * Description: Retrieve and deserialize a serialized object from HDFS
+  * Description: Retrieve and deserialize a serialized object from HDFS.  The cache can be specified via two properties
+  in the global config: "object.cache.size" (default 1000), "object.cache.expiration.minutes" (default 1440).  Note, if
+  these are changed in global config, topology restart is required.
   * Input:
     * path - The path in HDFS to the serialized object
   * Returns: The deserialized object.
