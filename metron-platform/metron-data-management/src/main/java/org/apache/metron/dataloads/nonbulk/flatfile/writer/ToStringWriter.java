@@ -18,39 +18,23 @@
 package org.apache.metron.dataloads.nonbulk.flatfile.writer;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.metron.common.utils.SerDeUtils;
 
 import java.io.IOException;
-import java.util.Optional;
 
-public enum Writers implements Writer {
-  LOCAL(new LocalWriter()),
-  HDFS(new HDFSWriter()),
-  TO_STRING(new ToStringWriter())
-  ;
-  private Writer writer;
+public class ToStringWriter implements Writer{
+  @Override
+  public void validate(String output, Configuration hadoopConfig) {
 
-  Writers(Writer writer) {
-    this.writer = writer;
-  }
-  public static Optional<Writers> getStrategy(String strategyName) {
-    if(strategyName == null) {
-      return Optional.empty();
-    }
-    for(Writers strategy : values()) {
-      if(strategy.name().equalsIgnoreCase(strategyName.trim())) {
-        return Optional.of(strategy);
-      }
-    }
-    return Optional.empty();
   }
 
   @Override
-  public void validate(String output, Configuration hadoopConf) {
-    writer.validate(output, hadoopConf);
+  public void write(Object obj, String output, Configuration hadoopConfig) throws IOException {
+    System.out.println(obj);
   }
 
   @Override
-  public void write(byte[] obj, String output, Configuration hadoopConf) throws IOException {
-    writer.write(obj, output, hadoopConf);
+  public void write(byte[] obj, String output, Configuration hadoopConfig) throws IOException {
+    System.out.println(SerDeUtils.fromBytes(obj, Object.class));
   }
 }
