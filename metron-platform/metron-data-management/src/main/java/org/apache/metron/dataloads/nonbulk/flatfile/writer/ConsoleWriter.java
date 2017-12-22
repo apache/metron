@@ -22,7 +22,7 @@ import org.apache.metron.common.utils.SerDeUtils;
 
 import java.io.IOException;
 
-public class ToStringWriter implements Writer{
+public class ConsoleWriter implements Writer{
   @Override
   public void validate(String output, Configuration hadoopConfig) {
 

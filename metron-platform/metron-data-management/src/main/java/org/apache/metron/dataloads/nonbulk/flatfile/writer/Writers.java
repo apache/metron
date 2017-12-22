@@ -25,7 +25,7 @@ import java.util.Optional;
 public enum Writers implements Writer {
   LOCAL(new LocalWriter()),
   HDFS(new HDFSWriter()),
-  TO_STRING(new ToStringWriter())
+  CONSOLE(new ConsoleWriter())
   ;
   private Writer writer;
 
