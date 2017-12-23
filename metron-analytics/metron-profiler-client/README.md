@@ -58,6 +58,7 @@ want to change the global Client configuration so as not to disrupt the work of 
 | profiler.client.hbase.table           | The name of the HBase table used to store profile data.                                                                            | Optional | profiler |
 | profiler.client.hbase.column.family   | The name of the HBase column family used to store profile data.                                                                    | Optional | P        |
 | profiler.client.salt.divisor          | The salt divisor used to store profile data.                                                                                       | Optional | 1000     |
+| profiler.default.value                | The default value to be returned if a profile is not written for a given period for a profile and entity.                          | Optional | null     |
 | hbase.provider.impl                   | The name of the HBaseTableProvider implementation class.                                                                           | Optional |          |
 
 ### Profile Selectors
