@@ -19,6 +19,7 @@ import static org.apache.metron.common.configuration.ConfigurationType.ENRICHMEN
 import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
 import static org.apache.metron.common.configuration.ConfigurationType.PROFILER;
 
+import java.lang.invoke.MethodHandles;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.curator.framework.CuratorFramework;
@@ -27,20 +28,23 @@ import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.configuration.profiler.ProfilerConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.stellar.common.utils.validation.ExpressionConfigurationHolder;
-import org.apache.metron.stellar.common.utils.validation.StellarConfigurationProvider;
+import org.apache.metron.stellar.common.utils.validation.StellarZookeeperConfigurationProvider;
+import org.apache.metron.stellar.common.utils.validation.StellarConfiguredStatementContainer;
 import org.apache.metron.stellar.common.utils.validation.StellarConfiguredStatementContainer.ErrorConsumer;
 import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * {@code ConfigurationProvider} is used to report all of the configured / deployed Stellar statements in
+ * {@code ZookeeperConfigurationProvider} is used to report all of the configured / deployed Stellar statements in
  * the system.
  */
-public class ConfigurationProvider implements StellarConfigurationProvider {
-
+public class ZookeeperConfigurationProvider implements StellarZookeeperConfigurationProvider {
+  protected static final Logger LOG =  LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   /**
    * Default constructor.
    */
-  public ConfigurationProvider() {
+  public ZookeeperConfigurationProvider() {
   }
 
   @Override
@@ -49,9 +53,9 @@ public class ConfigurationProvider implements StellarConfigurationProvider {
   }
 
   @Override
-  public List<ExpressionConfigurationHolder> provideConfigurations(CuratorFramework client,
+  public List<StellarConfiguredStatementContainer> provideContainers(CuratorFramework client,
       ErrorConsumer errorConsumer) {
-    List<ExpressionConfigurationHolder> holders = new LinkedList<>();
+    List<StellarConfiguredStatementContainer> holders = new LinkedList<>();
     visitParserConfigs(client, holders, errorConsumer);
     visitEnrichmentConfigs(client, holders, errorConsumer);
     visitProfilerConfigs(client, holders, errorConsumer);
@@ -59,12 +63,13 @@ public class ConfigurationProvider implements StellarConfigurationProvider {
   }
 
   private void visitParserConfigs(CuratorFramework client,
-      List<ExpressionConfigurationHolder> holders, ErrorConsumer errorConsumer) {
+      List<StellarConfiguredStatementContainer> holders, ErrorConsumer errorConsumer) {
     List<String> children = null;
 
     try {
       children = client.getChildren().forPath(PARSER.getZookeeperRoot());
-    } catch (Exception nne) {
+    } catch (Exception e) {
+      LOG.error("Exception getting parser configurations", e);
       return;
     }
     for (String child : children) {
@@ -83,12 +88,13 @@ public class ConfigurationProvider implements StellarConfigurationProvider {
 
   @SuppressWarnings("unchecked")
   private void visitEnrichmentConfigs(CuratorFramework client,
-      List<ExpressionConfigurationHolder> holders, ErrorConsumer errorConsumer) {
+      List<StellarConfiguredStatementContainer> holders, ErrorConsumer errorConsumer) {
     List<String> children = null;
 
     try {
       children = client.getChildren().forPath(ENRICHMENT.getZookeeperRoot());
-    } catch (Exception nne) {
+    } catch (Exception e) {
+      LOG.error("Exception getting enrichment configurations", e);
       return;
     }
 
@@ -121,12 +127,13 @@ public class ConfigurationProvider implements StellarConfigurationProvider {
   }
 
   private void visitProfilerConfigs(CuratorFramework client,
-      List<ExpressionConfigurationHolder> holders, ErrorConsumer errorConsumer) {
+      List<StellarConfiguredStatementContainer> holders, ErrorConsumer errorConsumer) {
     try {
       byte[] profilerConfigData = null;
       try {
         profilerConfigData = client.getData().forPath(PROFILER.getZookeeperRoot());
-      } catch (NoNodeException nne) {
+      } catch (NoNodeException e) {
+        LOG.error("Exception getting profiler configurations", e);
         return;
       }
 

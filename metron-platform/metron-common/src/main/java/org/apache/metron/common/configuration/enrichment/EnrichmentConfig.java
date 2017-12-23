@@ -29,7 +29,7 @@ import org.apache.metron.stellar.common.utils.validation.annotations.StellarExpr
 
 @StellarConfiguration
 public class EnrichmentConfig {
-  @StellarExpressionMap(inner_map_keys = {"stellar","config"})
+  @StellarExpressionMap(innerMapKeys = {"stellar","config"})
   private Map<String, Object> fieldMap = new HashMap<>();
   private Map<String, ConfigHandler> enrichmentConfigs = new HashMap<>();
   private Map<String, List<String>> fieldToTypeMap = new HashMap<>();

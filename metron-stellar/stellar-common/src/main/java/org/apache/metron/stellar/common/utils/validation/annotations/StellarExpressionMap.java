@@ -52,21 +52,21 @@ public @interface StellarExpressionMap {
    * A map may be a StellarExpressionMap based on the type
    * of another field, this is that field's name.
    *
-   * {@code} qualify_with_field_type} is the type of that field
+   * {@code} qualifyWithFieldType} is the type of that field
    *
    * @return Field Name or empty String
    */
-  String qualify_with_field() default "";
+  String qualifyWithField() default "";
 
   /**
    * A map may be a StellarExpressionMap based on the type
    * of another field, this is that type of that field.
    *
-   * {@code qualify_with_field} is the name of the field.
+   * {@code qualifyWithField} is the name of the field.
    *
    * @return Class
    */
-  Class qualify_with_field_type() default Error.class;
+  Class qualifyWithFieldType() default Error.class;
 
 
   /**
@@ -78,6 +78,6 @@ public @interface StellarExpressionMap {
    *
    * @return String key
    */
-  String[] inner_map_keys() default {};
+  String[] innerMapKeys() default {};
 
 }

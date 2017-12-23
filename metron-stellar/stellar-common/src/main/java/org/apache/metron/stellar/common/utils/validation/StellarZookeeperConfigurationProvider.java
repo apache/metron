@@ -19,15 +19,17 @@
 package org.apache.metron.stellar.common.utils.validation;
 
 import java.util.List;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.stellar.common.utils.validation.StellarConfiguredStatementContainer.ErrorConsumer;
 import org.atteo.classindex.IndexSubclasses;
 
 /**
- * {@code StellarConfigurationProvider} are used provide Stellar statements
+ * {@code StellarZookeeperConfigurationProvider} are used provide Stellar statements
  * and the context around those statements to the caller.
  */
 @IndexSubclasses
-public interface StellarConfigurationProvider {
+public interface StellarZookeeperConfigurationProvider {
+
   /**
    * The Name of this reporter.
    * @return String
@@ -36,8 +38,9 @@ public interface StellarConfigurationProvider {
 
   /**
    * Returns a list of all known StellarConfiguredStatementContainer.
+   * @param client The Zookeeper client
    * @return List of StellarConfiguredStatementContainer
    */
-  List<StellarConfiguredStatementContainer> provideContainers(ErrorConsumer errorConsumer);
+  List<StellarConfiguredStatementContainer> provideContainers(CuratorFramework client, ErrorConsumer errorConsumer);
 
 }

@@ -38,7 +38,7 @@ public class FieldTransformer implements Serializable {
   private FieldTransformation transformation;
   private String transformationName;
   @StellarExpressionMap(name = "Field Mapping",
-  qualify_with_field = "transformation", qualify_with_field_type = StellarTransformation.class)
+  qualifyWithField = "transformation", qualifyWithFieldType = StellarTransformation.class)
   private LinkedHashMap<String, Object> config = new LinkedHashMap<>();
   private boolean initialized = false;
   public FieldTransformer() {

@@ -52,7 +52,7 @@ public class TestConfigObject {
 
 
   // a map with the 'real' map burried 2 layers in
-  @StellarExpressionMap(name = "map two deep", inner_map_keys = {"level1", "level2"})
+  @StellarExpressionMap(name = "map two deep", innerMapKeys = {"level1", "level2"})
   private Map<String, Object> mapTwoDeep = new HashMap(){{
     put("level1",new HashMap(){{
       put("level2",new HashMap(){{
@@ -61,12 +61,12 @@ public class TestConfigObject {
     }});
   }};
 
-  @StellarExpressionMap(name = "map depending on field type", qualify_with_field = "qualifier_field", qualify_with_field_type = java.lang.Integer.class)
+  @StellarExpressionMap(name = "map depending on field type", qualifyWithField = "qualifier_field", qualifyWithFieldType = java.lang.Integer.class)
   private Map<String, Object> dependsMap = new HashMap(){{
     put("stellar_key", "TO_UPPER('it was int')");
   }};
 
-  @StellarExpressionMap(name = "map depending on field type but wrong", qualify_with_field = "qualifier_field", qualify_with_field_type = java.lang.String.class)
+  @StellarExpressionMap(name = "map depending on field type but wrong", qualifyWithField = "qualifier_field", qualifyWithFieldType = java.lang.String.class)
   private Map<String, Object> dependsButNotMap = new HashMap(){{
     put("stellar_key", "TO_UPPER('it was not int')");
   }};

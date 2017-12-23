@@ -24,12 +24,13 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.test.TestingServer;
 import org.apache.metron.stellar.common.utils.validation.ExpressionConfigurationHolder;
+import org.apache.metron.stellar.common.utils.validation.StellarConfiguredStatementContainer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ConfigurationProviderTest {
+public class ZookeeperConfigurationProviderTest {
 
   private TestingServer testZkServer;
   private String zookeeperUrl;
@@ -259,9 +260,9 @@ public class ConfigurationProviderTest {
             zookeeperUrl);
     ConfigurationsUtils.writeProfilerConfigToZookeeper(profilerConfig.getBytes(), client);
 
-    ConfigurationProvider configurationProvider = new ConfigurationProvider();
-    List<ExpressionConfigurationHolder> holders = configurationProvider
-        .provideConfigurations(client,
+    ZookeeperConfigurationProvider zookeeperConfigurationProvider = new ZookeeperConfigurationProvider();
+    List<StellarConfiguredStatementContainer> holders = zookeeperConfigurationProvider
+        .provideContainers(client,
             (names, error) -> Assert.assertTrue("Should not get errors", false));
     holders.forEach((h) -> {
       try {
@@ -276,7 +277,7 @@ public class ConfigurationProviderTest {
       }
     });
 
-    holders.forEach((h) -> expected.remove(h.getFullName()));
+    holders.forEach((h) -> expected.remove((h.getFullName())));
     Assert.assertTrue(expected.isEmpty());
 
     foundStatements.removeAll(expectedStatements);
@@ -289,8 +290,8 @@ public class ConfigurationProviderTest {
     ConfigurationsUtils
         .writeToZookeeper(ConfigurationType.PARSER.getZookeeperRoot() + "/" + "squid",
             badParserConfig.getBytes(), client);
-    ConfigurationProvider configurationProvider = new ConfigurationProvider();
-    configurationProvider.provideConfigurations(client, (names, error) -> {
+    ZookeeperConfigurationProvider zookeeperConfigurationProvider = new ZookeeperConfigurationProvider();
+    zookeeperConfigurationProvider.provideContainers(client, (names, error) -> {
       Assert.assertTrue("Should  get errors", true);
     });
   }
@@ -300,8 +301,8 @@ public class ConfigurationProviderTest {
     ConfigurationsUtils
         .writeSensorEnrichmentConfigToZookeeper("snort", badEnrichmentConfig.getBytes(),
             zookeeperUrl);
-    ConfigurationProvider configurationProvider = new ConfigurationProvider();
-    configurationProvider.provideConfigurations(client,
+    ZookeeperConfigurationProvider zookeeperConfigurationProvider = new ZookeeperConfigurationProvider();
+    zookeeperConfigurationProvider.provideContainers(client,
         (names, error) -> Assert.assertTrue("Should not get errors", false));
   }
 }

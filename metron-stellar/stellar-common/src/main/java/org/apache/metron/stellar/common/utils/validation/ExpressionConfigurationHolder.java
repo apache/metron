@@ -100,6 +100,7 @@ public class ExpressionConfigurationHolder implements StellarConfiguredStatement
    *
    * @return String value of the name
    */
+  @Override
   public String getName() {
     return name;
   }
@@ -119,6 +120,7 @@ public class ExpressionConfigurationHolder implements StellarConfiguredStatement
    *
    * @return String value of the name
    */
+  @Override
   public String getFullName() {
     return fullName;
   }
@@ -191,9 +193,9 @@ public class ExpressionConfigurationHolder implements StellarConfiguredStatement
         // for example, if StellarFoo.class.isAssignableFrom(this.foo.getClass()) then
         // bar is a StellarExpressionMap
         if (!StringUtils
-            .isEmpty(f.getAnnotation(StellarExpressionMap.class).qualify_with_field())) {
-          String fieldName = f.getAnnotation(StellarExpressionMap.class).qualify_with_field();
-          Class type = f.getAnnotation(StellarExpressionMap.class).qualify_with_field_type();
+            .isEmpty(f.getAnnotation(StellarExpressionMap.class).qualifyWithField())) {
+          String fieldName = f.getAnnotation(StellarExpressionMap.class).qualifyWithField();
+          Class type = f.getAnnotation(StellarExpressionMap.class).qualifyWithFieldType();
           Object theObject = FieldUtils.readField(holderObject, fieldName, true);
           if (theObject == null) {
             errorConsumer.consume(thisFullName,
@@ -208,7 +210,7 @@ public class ExpressionConfigurationHolder implements StellarConfiguredStatement
         Map map = (Map) FieldUtils.readField(f, holderObject, true);
 
         // some maps actually nest the config, so check and dig to get the real map
-        String[] innerKeys = f.getAnnotation(StellarExpressionMap.class).inner_map_keys();
+        String[] innerKeys = f.getAnnotation(StellarExpressionMap.class).innerMapKeys();
         if (innerKeys.length != 0) {
           for (String key : innerKeys) {
             if (StringUtils.isEmpty(key)) {

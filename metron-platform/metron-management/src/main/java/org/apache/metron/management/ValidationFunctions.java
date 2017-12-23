@@ -22,7 +22,9 @@ import java.util.Optional;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
-import org.apache.metron.stellar.common.utils.validation.StellarZookeeperBasedValidator;
+import org.apache.metron.stellar.common.utils.validation.StellarValidator;
+import org.apache.metron.stellar.common.utils.validation.validators.StellarSimpleValidator;
+import org.apache.metron.stellar.common.utils.validation.validators.StellarZookeeperBasedValidator;
 import org.apache.metron.stellar.common.utils.validation.ValidationResult;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.Stellar;
@@ -39,15 +41,14 @@ public class ValidationFunctions {
       "Attempts to validate deployed Stellar expressions by ensuring they compile."
           + "This is useful when expressions may have been valid when deployed, but may have been"
           + "invalidated by a language change after that", params = {
-      "wrap : Optional. The Length of string to wrap the columns"
-  }, returns = "A table of validation results")
+      "wrap : Optional. The Length of string to wrap the columns"}, returns = "A table of validation results")
   public static class DiscoverAndValidateStellarRules implements StellarFunction {
 
     @Override
     public Object apply(List<Object> args, Context context) {
 
       int wordWrap = -1;
-      if(args.size() > 0) {
+      if (args.size() > 0) {
         wordWrap = ConversionUtils.convert(args.get(0), Integer.class);
       }
 
@@ -58,19 +59,12 @@ public class ValidationFunctions {
             "VALIDATE_STELLAR_RULE_CONFIGS requires zookeeper.  Please connect to zookeeper.");
       }
       CuratorFramework client = (CuratorFramework) clientOpt.get();
-
-      StellarZookeeperBasedValidator validator = new StellarZookeeperBasedValidator(client);
-      Iterable<ValidationResult> result = validator.validate(Optional.empty());
-
       final ArrayList<String[]> dataList = new ArrayList<>();
-      result.forEach((v) -> {
-        dataList.add(new String[]{
-            toWrappedString(v.getRulePath(),wrapSize),
-            toWrappedString(v.getRule(),wrapSize),
-            toWrappedString(v.getError(),wrapSize),
-            toWrappedString(String.valueOf(v.isValid()),wrapSize)
-        });
-      });
+
+      // validate the zookeeper configurations
+      // when we support other validators, we will call them as well
+      validate(new StellarZookeeperBasedValidator(client), dataList, wrapSize);
+      validate(new StellarSimpleValidator(), dataList, wrapSize);
 
       if (dataList.isEmpty()) {
         return FlipTable.of(headers, new String[][]{});
@@ -93,6 +87,29 @@ public class ValidationFunctions {
       }
       return WordUtils.wrap(s, wrap);
     }
+
+    private void validate(StellarValidator validator, ArrayList<String[]> dataList, int wrapSize) {
+      Iterable<ValidationResult> result = validator.validate();
+
+      result.forEach((v) -> {
+        dataList.add(new String[]{toWrappedString(v.getRulePath(), wrapSize),
+            toWrappedString(v.getRule(), wrapSize), toWrappedString(v.getError(), wrapSize),
+            toWrappedString(String.valueOf(v.isValid()), wrapSize)});
+      });
+
+      validator = new StellarSimpleValidator();
+      result = validator.validate();
+
+      if (dataList.isEmpty()) {
+        return;
+      }
+
+      String[][] data = new String[dataList.size()][headers.length];
+      for (int i = 0; i < dataList.size(); ++i) {
+        data[i] = dataList.get(i);
+      }
+    }
+
     @Override
     public void initialize(Context context) {
 

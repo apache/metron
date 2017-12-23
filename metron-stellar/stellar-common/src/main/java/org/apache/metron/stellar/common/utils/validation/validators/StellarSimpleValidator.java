@@ -18,44 +18,35 @@
  *
  */
 
-package org.apache.metron.stellar.common.utils.validation;
-
-import static org.apache.metron.stellar.common.shell.StellarShell.ERROR_PROMPT;
+package org.apache.metron.stellar.common.utils.validation.validators;
 
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-import org.apache.commons.lang.NullArgumentException;
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.stellar.common.StellarProcessor;
+import org.apache.metron.stellar.common.utils.validation.StellarConfigurationProvider;
+import org.apache.metron.stellar.common.utils.validation.StellarConfiguredStatementContainer;
+import org.apache.metron.stellar.common.utils.validation.StellarValidator;
+import org.apache.metron.stellar.common.utils.validation.StellarZookeeperConfigurationProvider;
+import org.apache.metron.stellar.common.utils.validation.ValidationResult;
 import org.atteo.classindex.ClassIndex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class StellarZookeeperBasedValidator implements StellarValidator {
-
+public class StellarSimpleValidator extends BaseValidator {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String FAILED_COMPILE = "Failed to compile";
-  private CuratorFramework client;
 
-  public StellarZookeeperBasedValidator(CuratorFramework client) throws NullArgumentException {
-    if (client == null) {
-      throw new NullArgumentException("client");
-    }
-    this.client = client;
-  }
-
+  public StellarSimpleValidator(){}
 
   @Override
-  public Iterable<ValidationResult> validate(Optional<LineWriter> writer) {
+  public Iterable<ValidationResult> validate() {
     // discover all the StellarConfigurationProvider
     Set<StellarConfigurationProvider> providerSet = new HashSet<>();
 
-    for (Class<?> c : ClassIndex.getSubclasses(StellarConfigurationProvider.class,
+    for (Class<?> c : ClassIndex.getSubclasses(StellarZookeeperConfigurationProvider.class,
         Thread.currentThread().getContextClassLoader())) {
       boolean isAssignable = StellarConfigurationProvider.class.isAssignableFrom(c);
       if (isAssignable) {
@@ -72,31 +63,11 @@ public class StellarZookeeperBasedValidator implements StellarValidator {
     ArrayList<ValidationResult> results = new ArrayList<>();
     providerSet.forEach((r) -> {
       try {
-        List<ExpressionConfigurationHolder> holders = r
-            .provideConfigurations(client, (pathName, exception) -> {
+        List<StellarConfiguredStatementContainer> containers = r
+            .provideContainers((pathName, exception) -> {
               results.add(new ValidationResult(pathName, null, exception.getMessage(), false));
             });
-
-        holders.forEach((h) -> {
-          try {
-            h.discover();
-            h.visit((path, statement) -> {
-              try {
-                if (StellarProcessor.compile(statement) == null) {
-                  results.add(new ValidationResult(path, statement, FAILED_COMPILE, false));
-                } else {
-                  results.add(new ValidationResult(path, statement, null, true));
-                }
-              } catch (RuntimeException e) {
-                results.add(new ValidationResult(path, statement, e.getMessage(), false));
-              }
-            }, (path, error) -> {
-              results.add(new ValidationResult(path, null, error.getMessage(), false));
-            });
-          } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-          }
-        });
+          results.addAll(handleContainers(containers));
       } catch (Exception e) {
         LOG.error(e.getMessage(), e);
       }
