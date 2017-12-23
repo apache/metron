@@ -45,12 +45,12 @@ public enum Writers implements Writer {
   }
 
   @Override
-  public void validate(String output, Configuration hadoopConf) {
+  public void validate(Optional<String> output, Configuration hadoopConf) {
     writer.validate(output, hadoopConf);
   }
 
   @Override
-  public void write(byte[] obj, String output, Configuration hadoopConf) throws IOException {
+  public void write(byte[] obj, Optional<String> output, Configuration hadoopConf) throws IOException {
     writer.write(obj, output, hadoopConf);
   }
 }
