@@ -3,8 +3,8 @@ As an open source project, Metron welcomes contributions of all forms. There are
 
 * [Contributing a Code Change](#contributing-a-code-change)
 * Reviewing pull requests on our GitHub page. Check out current open [Pull Requests](https://github.com/apache/metron/pulls)
-* Improve our documentation. Our docs are self contained in the project in README files. Doc changes is the same process as a code change. See [Contributing a Code Change](#contributing-a-code-change)
-* Contributing to or starting discussions on the mailing lists. Both the user and dev lists are great places to give and receive help, or provide feedback.
+* Improve our documentation. Our docs are self contained in the project in README files. Doc changes are the same process as a code change. See [Contributing a Code Change](#contributing-a-code-change)
+* Contributing to or starting discussions on the mailing lists. Both the user and dev lists are great places to give and receive help, or provide feedback. See [Mailing Lists](http://metron.apache.org/community/#mailinglist)
 * Filing tickets for features, enhancements, and bugs to our JIRA. Take a look at [Reporting Issues](https://cwiki.apache.org/confluence/display/METRON/Reporting+Issues) and the [Metron JIRA](https://issues.apache.org/jira/projects/METRON)
 
 ##  Contributing A Code Change
