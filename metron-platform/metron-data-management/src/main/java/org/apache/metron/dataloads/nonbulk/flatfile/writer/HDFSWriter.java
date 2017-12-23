@@ -25,19 +25,24 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class HDFSWriter implements Writer {
   @Override
-  public void validate(String fileName, Configuration hadoopConfig) {
+  public void validate(Optional<String> fileNameOptional, Configuration hadoopConfig) {
+    if(!fileNameOptional.isPresent()) {
+      throw new IllegalStateException("Filename is not present.");
+    }
+    String fileName = fileNameOptional.get();
     if(StringUtils.isEmpty(fileName) || fileName.trim().equals(".") || fileName.trim().equals("..") || fileName.trim().endsWith("/")) {
       throw new IllegalStateException("Filename is empty or otherwise invalid.");
     }
   }
 
   @Override
-  public void write(byte[] obj, String output, Configuration hadoopConfig) throws IOException {
+  public void write(byte[] obj, Optional<String> output, Configuration hadoopConfig) throws IOException {
     FileSystem fs = FileSystem.get(hadoopConfig);
-    try(FSDataOutputStream stream = fs.create(new Path(output))) {
+    try(FSDataOutputStream stream = fs.create(new Path(output.get()))) {
       IOUtils.write(obj, stream);
       stream.flush();
     }

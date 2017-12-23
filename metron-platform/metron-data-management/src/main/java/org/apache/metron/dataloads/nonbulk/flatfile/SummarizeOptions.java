@@ -74,7 +74,7 @@ public enum SummarizeOptions implements CLIOptions<SummarizeOptions> {
     public Option apply(@Nullable String s) {
       Option o = new Option(s, "output", true, "The output file to write");
       o.setArgName("FILE");
-      o.setRequired(true);
+      o.setRequired(false);
       return o;
     }
 

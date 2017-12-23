@@ -21,13 +21,14 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.metron.common.utils.SerDeUtils;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public interface Writer {
-  void validate(String output, Configuration hadoopConfig);
-  default void write(Object obj, String output, Configuration hadoopConfig) throws IOException {
+  void validate(Optional<String> output, Configuration hadoopConfig);
+  default void write(Object obj, Optional<String> output, Configuration hadoopConfig) throws IOException {
     if(obj != null) {
       write(SerDeUtils.toBytes(obj), output, hadoopConfig);
     }
   }
-  void write(byte[] obj, String output, Configuration hadoopConfig) throws IOException;
+  void write(byte[] obj, Optional<String> output, Configuration hadoopConfig) throws IOException;
 }

@@ -21,20 +21,21 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.metron.common.utils.SerDeUtils;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class ConsoleWriter implements Writer{
   @Override
-  public void validate(String output, Configuration hadoopConfig) {
+  public void validate(Optional<String> output, Configuration hadoopConfig) {
 
   }
 
   @Override
-  public void write(Object obj, String output, Configuration hadoopConfig) throws IOException {
+  public void write(Object obj, Optional<String> output, Configuration hadoopConfig) throws IOException {
     System.out.println(obj);
   }
 
   @Override
-  public void write(byte[] obj, String output, Configuration hadoopConfig) throws IOException {
+  public void write(byte[] obj, Optional<String> output, Configuration hadoopConfig) throws IOException {
     System.out.println(SerDeUtils.fromBytes(obj, Object.class));
   }
 }
