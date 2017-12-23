@@ -180,7 +180,7 @@ In this extractor config we are using the CSV extractor with the following confi
 
 We can run this via:
 ```
-$METRON_HOME/bin/flatfile_summarizer.sh -i ~/top-10k.csv -o dummy -e ~/extractor_count.json -p 5 -om CONSOLE
+$METRON_HOME/bin/flatfile_summarizer.sh -i ~/top-10k.csv -e ~/extractor_count.json -p 5 -om CONSOLE
 ```
 
 The output should be something like:
