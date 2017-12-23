@@ -215,16 +215,16 @@ public class SimpleFlatFileSummarizerTest {
     }
 
     @Override
-    public void validate(String output, Configuration hadoopConfig) {
+    public void validate(Optional<String> output, Configuration hadoopConfig) {
 
     }
     @Override
-    public void write(Object obj, String output, Configuration hadoopConfig) throws IOException {
+    public void write(Object obj, Optional<String> output, Configuration hadoopConfig) throws IOException {
       ref.set(obj);
     }
 
     @Override
-    public void write(byte[] obj, String output, Configuration hadoopConfig) throws IOException {
+    public void write(byte[] obj, Optional<String> output, Configuration hadoopConfig) throws IOException {
 
     }
   }
