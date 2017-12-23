@@ -117,7 +117,7 @@ public class LocalSummarizer extends AbstractLocalImporter<SummarizeOptions, Loc
   @Override
   public void importData(EnumMap<SummarizeOptions, Optional<Object>> config, ExtractorHandler handler, Configuration hadoopConfig) throws IOException {
     Writer writer = (Writer) config.get(SummarizeOptions.OUTPUT_MODE).get();
-    String fileName = (String)config.get(SummarizeOptions.OUTPUT).get();
+    Optional<String> fileName = Optional.ofNullable((String)config.get(SummarizeOptions.OUTPUT).orElse(null));
     writer.validate(fileName, hadoopConfig);
     super.importData(config, handler, hadoopConfig);
     StatefulExtractor extractor = (StatefulExtractor) handler.getExtractor();
@@ -132,7 +132,7 @@ public class LocalSummarizer extends AbstractLocalImporter<SummarizeOptions, Loc
       }
       finalState = extractor.mergeStates(states);
     }
-    writer.write(finalState, (String)config.get(SummarizeOptions.OUTPUT).get(), hadoopConfig);
+    writer.write(finalState, fileName, hadoopConfig);
   }
 
   @Override

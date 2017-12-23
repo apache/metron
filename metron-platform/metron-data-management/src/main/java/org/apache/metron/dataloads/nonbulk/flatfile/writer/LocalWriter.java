@@ -24,18 +24,24 @@ import org.apache.hadoop.conf.Configuration;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Optional;
 
 public class LocalWriter implements Writer {
+
   @Override
-  public void validate(String fileName, Configuration hadoopConfig) {
+  public void validate(Optional<String> fileNameOptional, Configuration hadoopConfig) {
+    if(!fileNameOptional.isPresent()) {
+      throw new IllegalStateException("Filename is not present.");
+    }
+    String fileName = fileNameOptional.get();
     if(StringUtils.isEmpty(fileName) || fileName.trim().equals(".") || fileName.trim().equals("..") || fileName.trim().endsWith("/")) {
       throw new IllegalStateException("Filename is empty or otherwise invalid.");
     }
   }
 
   @Override
-  public void write(byte[] obj, String output, Configuration hadoopConfig) throws IOException {
-    File outFile = new File(output);
+  public void write(byte[] obj, Optional<String> output, Configuration hadoopConfig) throws IOException {
+    File outFile = new File(output.get());
     if(!outFile.getParentFile().exists()) {
       outFile.getParentFile().mkdirs();
     }
