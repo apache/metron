@@ -17,45 +17,129 @@
 #
 shopt -s nocasematch
 
-METRON_DIST="https://dist.apache.org/repos/dist/dev/metron/"
+function help {
+  echo " "
+  echo "usage: ${0}"
+  echo "    -v/--version=<version>   The version of the metron release. [Required]"
+  echo "    -c/--candidate=<RC#>      Defines the Release Candidate. [Required]"
+  echo "    -b/--bro=<bro version>   The version of the bro kafka plugin. [Required]"
+  echo "    -h/--help                Usage information."
+  echo " "
+  echo "example: "
+  echo "    metron-rc-check --version=0.4.2 --canidate=RC2 --bro=0.1.0"
+  echo " "
+}
 
-if [ "$#" -ne 3 ]; then
-    echo "error: missing arguments"
-    echo "$0 [METRON VERSION][RC#][METRON BRO PLUGIN VERSION]"
+METRON_DIST="https://dist.apache.org/repos/dist/dev/metron/"
+# print help, if the user just runs this without any args
+if [ "$#" -eq 0 ]; then
+    help
     exit 1
+fi
+
+# handle command line options
+for i in "$@"; do
+  case $i in
+    #
+    # VERSION: The release version of Metron to validate.
+    #
+    #
+    -v=*|--version=*)
+    VERSION="${i#*=}"
+    shift # past argument=value
+    ;;
+
+    #
+    # RC: Defines the RC# to use
+    #
+    #   -c=RC2
+    #   --candidate=RC2
+    #
+    -c=*|--candidate=*)
+    CANDIDATE="${i#*=}"
+    shift # past argument=value
+    ;;
+
+    #
+    # END: Defines the last commit to inspect
+    #
+    #   -b=0.1.0
+    #   --bro=0.1.0
+    #
+    -b=*|--bro=*)
+    BRO="${i#*=}"
+    shift # past argument=value
+    ;;
+
+    #
+    # -h/--help
+    #
+    -h|--help)
+    help
+    exit 0
+    shift # past argument with no value
+    ;;
+
+    #
+    # Unknown option
+    #
+    *)
+    UNKNOWN_OPTION="${i#*=}"
+    echo "Error: unknown option: $UNKNOWN_OPTION"
+    help
+    ;;
+  esac
+done
+
+# validation
+if [ -z "$VERSION" ]; then
+	echo "Missing -v/--version is is required"
+	exit 1
+fi
+if [[ "$VERSION" =~ ^[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2} ]]; then
+  METRON_VERSION="$VERSION"
 else
-    if [[ "$1" =~ ^[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2} ]]; then
-       METRON_VERSION="$1"
-    else
-       echo "[ERROR] $1 may not be a valid version number"
-       exit 1
-    fi
-    if [[ "$2" =~ ^RC[0-9]+ ]]; then
-      RC=$(echo "$2" | tr '[:upper:]' '[:lower:]')
-      UPPER_RC=$(echo "$2" | tr '[:lower:]' '[:upper:]')
-    elif [[ "$2" =~ ^[0-9]+ ]]; then
-      RC=rc"$2"
-      UPPER_RC=RC"$2"
-    else
-      echo "[ERROR] invalid RC, valid is RC# or just #"
-      exit 1
-    fi
-    if [[ "$3" =~ ^[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2} ]]; then
-       BRO_VERSION="$3"
-    else
-       echo "[ERROR] $3 may not be a valid version number"
-       exit 1
-    fi
+  echo "[ERROR] "$VERSION" may not be a valid version number"
+  exit 1
+fi
+
+if [ -z "$CANDIDATE" ]; then
+	echo "Missing -c/--candidate which is required"
+	exit 1
+fi
+
+if [[ "$CANDIDATE" =~ ^RC[0-9]+ ]]; then
+  RC=$(echo "$CANDIDATE" | tr '[:upper:]' '[:lower:]')
+  UPPER_RC=$(echo "$CANDIDATE" | tr '[:lower:]' '[:upper:]')
+elif [[ "$CANDIDATE" =~ ^[0-9]+ ]]; then
+  RC=rc"$CANDIDATE"
+  UPPER_RC=RC"$CANDIDATE"
+else
+  echo "[ERROR] invalid RC, valid is RC# or just #"
+  exit 1
+fi
+
+if [ -z "$BRO" ]; then
+	echo "Missing -b/--bro which is required"
+	exit 1
+fi
+
+if [[ "$BRO" =~ ^[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2} ]]; then
+  BRO_VERSION="$BRO"
+else
+  echo "[ERROR] $BRO may not be a valid version number"
+  exit 1
 fi
 
 echo "Metron Version $METRON_VERSION"
 echo "Release Candidate $RC"
+echo "Bro Plugin Version $BRO_VERSION"
 
 METRON_RC_DIST="$METRON_DIST$METRON_VERSION-$UPPER_RC"
 echo "Metron RC Distribution Root is $METRON_RC_DIST"
 
 # working directory
-WORK="~/tmp/metron-$METRON_VERSION-$RC"
+WORK="$HOME/tmp/metron-$METRON_VERSION-$RC"
 
 # handle tilde expansion
 WORK="${WORK/#\~/$HOME}"
