@@ -1,6 +1,8 @@
 
 This project builds DEB packages for installing Apache Metron on Ubuntu.
 
+**WARNING**: The DEB packages are a recent addition to Metron.  These packages have not undergone the same level of testing as the RPM packages.  Improvements and more rigerous testing of these packages is underway and will improve in future releases.  Until then, use these at your own risk.
+
 ### Prerequisites
 
 Building these packages requires Docker.  Please ensure that Docker is installed and that the daemon is running.
