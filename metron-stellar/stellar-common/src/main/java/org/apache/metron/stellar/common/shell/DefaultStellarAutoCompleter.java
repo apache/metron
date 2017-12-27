@@ -83,21 +83,6 @@ public class DefaultStellarAutoCompleter implements StellarAutoCompleter {
 
   public DefaultStellarAutoCompleter() {
     this.autocompleteIndex = initializeIndex();
-
-    // TODO is this needed?  FunctionResolver functionResolver
-//    // asynchronously update the index with function names found from a classpath scan.
-//    new Thread( () -> {
-//      Iterable<StellarFunctionInfo> functions = functionResolver.getFunctionInfo();
-//      indexLock.writeLock().lock();
-//      try {
-//        for(StellarFunctionInfo info: functions) {
-//          String functionName = info.getName();
-//          autocompleteIndex.put(functionName, AutoCompleteType.FUNCTION);
-//        }
-//      } finally {
-//        indexLock.writeLock().unlock();
-//      }
-//    }).start();
   }
 
   @Override

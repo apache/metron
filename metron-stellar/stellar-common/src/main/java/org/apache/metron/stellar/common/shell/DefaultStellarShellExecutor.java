@@ -95,7 +95,7 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
    *
    * Maps the special command (like '%globals') to the command implementing it.
    */
-  private List<SpecialCommand> commandRegistry;
+  private List<SpecialCommand> specials;
 
   /**
    * The Stellar execution context.
@@ -117,10 +117,12 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
    */
   private List<SpecialDefinedListener> specialListeners;
 
+
   public DefaultStellarShellExecutor(
           FunctionResolver functionResolver,
           Properties properties,
-          Optional<String> zookeeperUrl) throws Exception {
+          Optional<String> zookeeperUrl,
+          List<SpecialCommand> specials) throws Exception {
 
     this.functionListeners = new ArrayList<>();
     this.variableListeners = new ArrayList<>();
@@ -129,6 +131,15 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
     this.zkClient = createZookeeperClient(zookeeperUrl);
     this.context = createContext(properties, this.zkClient);
     this.functionResolver = functionResolver;
+    this.specials = specials;
+  }
+
+  public DefaultStellarShellExecutor(
+          FunctionResolver functionResolver,
+          Properties properties,
+          Optional<String> zookeeperUrl) throws Exception {
+
+    this(functionResolver, properties, zookeeperUrl, defaultSpecials());
   }
 
   public DefaultStellarShellExecutor(
@@ -138,13 +149,34 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
     this(StellarFunctions.FUNCTION_RESOLVER(), properties, zookeeperUrl);
   }
 
+  /**
+   * The default specials that will be made available, if none are specified otherwise.
+   * @return The default special commands.
+   */
+  public static List<SpecialCommand> defaultSpecials() {
+    return Arrays.asList(
+            new AssignmentCommand(),
+            new DocCommand(),
+            new QuitCommand(),
+            new Comment(),
+            new MagicListFunctions(),
+            new MagicListVariables(),
+            new MagicDefineGlobal(),
+            new MagicUndefineGlobal(),
+            new MagicListGlobals()
+    );
+  }
+
   @Override
   public void init() {
     StellarFunctions.initialize(this.context);
-    this.commandRegistry = registerSpecialCommands();
 
-    // TODO this wont really work as functions are probably not defined yet
-    // but the auto-complete reaches out to the function resolver separately
+    // notify listeners about the available specials
+    for(SpecialCommand command : specials) {
+      notifySpecialListeners(command);
+    }
+
+    // notify listeners about the available functions
     for(StellarFunctionInfo fn : functionResolver.getFunctionInfo()) {
       notifyFunctionListeners(fn);
     }
@@ -218,7 +250,7 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
     }
 
     // is this a special command?
-    for(SpecialCommand command : commandRegistry) {
+    for(SpecialCommand command : specials) {
       if(command.getMatcher().apply(expression)) {
         return command.execute(expression, this);
       }
@@ -353,6 +385,7 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
             new MagicListGlobals()
     );
 
+    // notify listeners about the specials
     for(SpecialCommand command : specials) {
       notifySpecialListeners(command);
     }

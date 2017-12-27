@@ -151,8 +151,8 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
 
     console = createConsole(commandLine);
     autoCompleter = new DefaultStellarAutoCompleter();
-    executor = createExecutor(commandLine, console, getStellarProperties(commandLine), autoCompleter);
-
+    Properties props = getStellarProperties(commandLine);
+    executor = createExecutor(commandLine, console, props, autoCompleter);
     loadVariables(commandLine, executor);
     console.setPrompt(new Prompt(EXPRESSION_PROMPT));
     console.addCompletion(this);
@@ -247,6 +247,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
           Properties properties,
           StellarAutoCompleter autoCompleter) throws Exception {
 
+    // setup zookeeper client
     Optional<String> zookeeperUrl = Optional.empty();
     if(commandLine.hasOption("z")) {
       zookeeperUrl = Optional.of(commandLine.getOptionValue("z"));
@@ -254,15 +255,15 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
 
     StellarShellExecutor executor = new DefaultStellarShellExecutor(properties, zookeeperUrl);
 
-    // the CONSOLE capability is only available with the Aesh-driven REPL
+    // the 'CONSOLE' capability is only available with the CLI REPL
     executor.getContext().addCapability(CONSOLE, () -> console);
 
     // allows some Stellar functions to access Stellar internals; should probably use %magics instead
     executor.getContext().addCapability(SHELL_VARIABLES, () -> executor.getState());
 
     // register the auto-completer to be notified when needed
-    executor.addSpecialListener((magic) -> autoCompleter.addCandidateFunction(magic.getCommand()));
-    executor.addFunctionListener((fn) -> autoCompleter.addCandidateFunction(fn.getName()));
+    executor.addSpecialListener(   (special) -> autoCompleter.addCandidateFunction(special.getCommand()));
+    executor.addFunctionListener( (function) -> autoCompleter.addCandidateFunction(function.getName()));
     executor.addVariableListener((name, val) -> autoCompleter.addCandidateVariable(name));
 
     executor.init();
