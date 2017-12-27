@@ -216,6 +216,23 @@ whenever `field2` exists and whose corresponding equal to 'foo':
 }
 ```
 
+* `SELECT`: This transformation filters the fields in the message to include only the configured output fields, and drops any not explicitly included. 
+
+For example: 
+```
+{
+...
+    "fieldTransformations" : [
+          {
+            "output" : ["field1", "field2" ] 
+          , "transformation" : "SELECT"
+          }
+                      ]
+}
+```
+
+when applied to a message containing keys field1, field2 and field3, will only output the first two. It is also worth noting that two standard fields - timestamp and original_source - will always be passed along whether they are listed in output or not, since they are considered core required fields.
+
 * `IP_PROTOCOL` : This transformation maps IANA protocol numbers to consistent string representations.
 
 Consider the following sensor parser config to map the `protocol` field
