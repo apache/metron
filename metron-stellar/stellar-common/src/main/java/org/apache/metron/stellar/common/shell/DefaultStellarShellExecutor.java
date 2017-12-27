@@ -253,7 +253,7 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
 
   @Override
   public void assign(String variableName, Object value, Optional<String> expression) {
-    VariableResult varResult = new VariableResult(expression, value);
+    VariableResult varResult = VariableResult.withExpression(value, expression);
     this.variables.put(variableName, varResult);
     notifyVariableListeners(variableName, varResult);
   }

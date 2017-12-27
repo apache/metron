@@ -33,10 +33,10 @@ import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 public class ShellFunctionsTest {
 
   Map<String, VariableResult> variables = ImmutableMap.of(
-          "var1" , new VariableResult("TO_UPPER('casey')", "CASEY"),
-          "var2" , new VariableResult(Optional.empty(), "foo"),
-          "var3" , new VariableResult(Optional.empty(), null),
-          "var4" , new VariableResult("blah", null)
+          "var1" , VariableResult.withExpression("CASEY", "TO_UPPER('casey')"),
+          "var2" , VariableResult.withValue("foo"),
+          "var3" , VariableResult.withValue(null),
+          "var4" , VariableResult.withExpression(null, "blah")
   );
 
   Context context = new Context.Builder()
@@ -54,7 +54,8 @@ public class ShellFunctionsTest {
 
   @Test
   public void testListVarsWithVars() {
-    Map<String, VariableResult> variables = ImmutableMap.of("foo", new VariableResult("1 + 1", 2.0));
+    Map<String, VariableResult> variables = ImmutableMap.of(
+            "foo", VariableResult.withExpression(2.0, "1 + 1"));
 
     Context context = new Context.Builder()
             .with(Context.Capabilities.SHELL_VARIABLES , () -> variables)

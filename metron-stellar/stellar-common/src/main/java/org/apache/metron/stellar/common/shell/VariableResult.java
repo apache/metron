@@ -40,21 +40,44 @@ public class VariableResult {
   private Object result;
 
   /**
-   * Create a new variable result for when the expression is known.
-   * @param expression The expression that was executed.
-   * @param result The value resulting from executing the expression.
+   * Create a new VariableResult when the expression that resulted in a value is known.
+   *
+   * @param value The value.
+   * @param expression The expression that resulted in the given value.
+   * @return A VariableResult.
    */
-  public VariableResult(String expression, Object result) {
-    this.expression = Optional.of(expression);
-    this.result = result;
+  public static VariableResult withExpression(Object value, String expression) {
+    return new VariableResult(Optional.of(expression), value);
   }
 
   /**
-   * Create a new variable result.  Use when the expression is not known or not applicable.
-   * @param expression Optionally the expression that resulted in the given value.
+   * Create a new VariableResult when the expression that resulted in a value is known.
+   *
+   * @param value The value.
+   * @param expression The expression that resulted in the given value.
+   * @return A VariableResult.
+   */
+  public static VariableResult withExpression(Object value, Optional<String> expression) {
+    return new VariableResult(expression, value);
+  }
+
+  /**
+   * Create a new VariableResult when only the value is known.
+   *
+   * @param value The value.
+   * @return A VariableResult.
+   */
+  public static VariableResult withValue(Object value) {
+    return new VariableResult(Optional.empty(), value);
+  }
+
+  /**
+   * Private constructor.  Use the static method 'withExpression' and 'withValue'.
+   *
+   * @param expression The expression that resulted in the given value.
    * @param result The value assigned to the variable.
    */
-  public VariableResult(Optional<String> expression, Object result) {
+  private VariableResult(Optional<String> expression, Object result) {
     this.expression = expression;
     this.result = result;
   }

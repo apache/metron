@@ -50,8 +50,8 @@ public class ThreatTriageFunctionsTest {
  @Before
   public void setup() {
     variables = ImmutableMap.of(
-            "less", new VariableResult("1 < 2", true),
-            "greater", new VariableResult("1 > 2", false)
+            "less", VariableResult.withExpression(true, "1 < 2"),
+            "greater", VariableResult.withExpression(false, "1 > 2")
     );
 
     context = new Context.Builder()

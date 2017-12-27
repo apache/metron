@@ -44,7 +44,7 @@ import static org.powermock.api.mockito.PowerMockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({Deque.class, ArithmeticEvaluator.class, NumberLiteralEvaluator.class, ComparisonExpressionWithOperatorEvaluator.class})
-public class StellarInterpreterTest {
+public class StellarCompilerTest {
   VariableResolver variableResolver;
   FunctionResolver functionResolver;
   Context context;

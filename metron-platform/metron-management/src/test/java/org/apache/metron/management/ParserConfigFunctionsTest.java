@@ -45,8 +45,8 @@ public class ParserConfigFunctionsTest {
   @Before
   public void setup() {
     variables = ImmutableMap.of(
-            "upper" , new VariableResult("TO_UPPER('foo')", "FOO"),
-            "lower" , new VariableResult("TO_LOWER('FOO')", "foo")
+            "upper" , VariableResult.withExpression("FOO", "TO_UPPER('foo')"),
+            "lower" , VariableResult.withExpression("foo", "TO_LOWER('FOO'")
     );
 
     context = new Context.Builder()
