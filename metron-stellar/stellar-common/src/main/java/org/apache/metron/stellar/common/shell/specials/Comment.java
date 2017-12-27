@@ -29,6 +29,8 @@ import static org.apache.metron.stellar.common.shell.StellarResult.noop;
 
 /**
  * A special command that handles comments.
+ *
+ *    # this is a comment
  */
 public class Comment implements SpecialCommand {
 

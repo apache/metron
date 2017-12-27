@@ -33,6 +33,8 @@ import static org.apache.metron.stellar.common.shell.StellarResult.success;
 /**
  * A MagicCommand that lists the variables available within
  * the Stellar execution environment.
+ *
+ *    %vars
  */
 public class MagicListVariables implements SpecialCommand {
 

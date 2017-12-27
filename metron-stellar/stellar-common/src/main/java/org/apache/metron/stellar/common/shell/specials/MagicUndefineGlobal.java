@@ -32,6 +32,8 @@ import static org.apache.metron.stellar.common.shell.StellarResult.error;
 
 /**
  * Allows a variable to be removed from the global configuration.
+ *
+ *    %undefine varName
  */
 public class MagicUndefineGlobal implements SpecialCommand {
 

@@ -27,6 +27,8 @@ import static org.apache.metron.stellar.common.shell.StellarResult.terminate;
 
 /**
  * A special command that allows the user to 'quit' their REPL session.
+ *
+ *    quit
  */
 public class QuitCommand implements SpecialCommand {
 

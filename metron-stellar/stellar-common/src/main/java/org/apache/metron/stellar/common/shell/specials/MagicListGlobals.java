@@ -29,6 +29,8 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 /**
  * Displays all currently defined global configuration variables.
+ *
+ *    %globals
  */
 public class MagicListGlobals implements SpecialCommand {
 

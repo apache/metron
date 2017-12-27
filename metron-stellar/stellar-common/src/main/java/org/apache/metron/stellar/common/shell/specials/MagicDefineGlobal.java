@@ -33,7 +33,7 @@ import static org.apache.metron.stellar.common.shell.StellarResult.success;
 /**
  * Allows a variable to be defined (or redefined) a within the global configuration.
  *
- *   %define newVar=newValue
+ *   %define newVar := newValue
  */
 public class MagicDefineGlobal implements SpecialCommand {
 

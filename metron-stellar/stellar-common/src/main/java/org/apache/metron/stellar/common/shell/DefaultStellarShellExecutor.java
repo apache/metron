@@ -92,8 +92,6 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
 
   /**
    * A registry of all special commands; like %magic, ?doc, and quit.
-   *
-   * Maps the special command (like '%globals') to the command implementing it.
    */
   private List<SpecialCommand> specials;
 
@@ -242,9 +240,9 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
 
   @Override
   public StellarResult execute(String expression) {
-    expression = expression.trim();
 
-    // if whitespace, there is nothing much to do
+    // if only whitespace, there is nothing to do
+    expression = StringUtils.trimToEmpty(expression);
     if(StringUtils.isBlank(expression)) {
       return noop();
     }
@@ -285,8 +283,12 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
 
   @Override
   public void assign(String variableName, Object value, Optional<String> expression) {
+
+    // perform the variable assignment
     VariableResult varResult = VariableResult.withExpression(value, expression);
     this.variables.put(variableName, varResult);
+
+    // notify any listeners
     notifyVariableListeners(variableName, varResult);
   }
 
@@ -300,6 +302,12 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
     return UnmodifiableMap.decorate(variables);
   }
 
+  /**
+   * Returns all variables that have been defined.  Unlike 'getState' this unwraps
+   * the VariableResult so that we have the actual value.
+   *
+   * @return All variables that have been defined.
+   */
   public Map<String, Object> getVariables() {
     return Maps.transformValues(variables, (v) -> v.getResult());
   }
@@ -365,32 +373,6 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
     return JSONUtils.INSTANCE.load(
             new ByteArrayInputStream(raw),
             new TypeReference<Map<String, Object>>() {});
-  }
-
-  /**
-   * Register all magic commands that will be available in the Stellar
-   * execution environment.
-   * @return A registry of magic commands.
-   */
-  private List<SpecialCommand> registerSpecialCommands() {
-    List<SpecialCommand> specials = Arrays.asList(
-            new AssignmentCommand(),
-            new DocCommand(),
-            new QuitCommand(),
-            new Comment(),
-            new MagicListFunctions(),
-            new MagicListVariables(),
-            new MagicDefineGlobal(),
-            new MagicUndefineGlobal(),
-            new MagicListGlobals()
-    );
-
-    // notify listeners about the specials
-    for(SpecialCommand command : specials) {
-      notifySpecialListeners(command);
-    }
-
-    return specials;
   }
 
   /**

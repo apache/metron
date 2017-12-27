@@ -32,6 +32,8 @@ import static org.apache.commons.lang3.StringUtils.*;
 /**
  * A MagicCommand that lists the functions available within
  * a Stellar execution environment.
+ *
+ *    %functions
  */
 public class MagicListFunctions implements SpecialCommand {
 

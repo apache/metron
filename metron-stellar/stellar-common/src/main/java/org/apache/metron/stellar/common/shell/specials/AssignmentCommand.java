@@ -30,6 +30,8 @@ import static org.apache.metron.stellar.common.shell.StellarResult.error;
 /**
  * A special command that allows for variable assignment.  Variable
  * assignment is not implemented directly within Stellar.
+ *
+ *    x := 2 + 2
  */
 public class AssignmentCommand implements SpecialCommand {
 

@@ -351,24 +351,28 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
   @Override
   public int execute(ConsoleOperation output) throws InterruptedException {
 
-    // grab the expression
-    String expression = output.getBuffer().trim();
+    // grab the user the input
+    String expression = StringUtils.trimToEmpty(output.getBuffer());
     if(StringUtils.isNotBlank(expression) ) {
 
       // execute the expression
       StellarResult result = executor.execute(expression);
 
       if(result.isSuccess()) {
+        // on success
         result.getValue().ifPresent(v -> writeLine(ConversionUtils.convert(v, String.class)));
 
       } else if (result.isError()) {
+        // on error
         result.getException().ifPresent(e -> writeLine(ERROR_PROMPT + e.getMessage()));
         result.getException().ifPresent(e -> e.printStackTrace());
 
       } else if(result.isTerminate()) {
+        // on quit
         handleQuit();
 
       } else {
+        // should never happen
         throw new IllegalStateException("An execution result is neither a success nor a failure. Please file a bug report.");
       }
     }
