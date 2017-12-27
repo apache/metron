@@ -3,4 +3,4 @@ BUILDROOT/
 RPMS/
 SOURCES/
 SRPMS/
-.npm
+.*
