@@ -19,33 +19,26 @@
  */
 package org.apache.metron.stellar.common.shell;
 
-import org.apache.metron.stellar.common.shell.specials.SpecialCommand;
-import org.apache.metron.stellar.dsl.StellarFunctionInfo;
-
 /**
- * A listener will be notified about events that occur during the
- * execution of Stellar expressions.
+ * Notifies listeners when events occur during the execution of Stellar expressions.
  */
-public class StellarExecutionListeners {
+public interface StellarExecutionNotifier {
 
   /**
-   * A listener that is notified when a function is defined.
+   * Add a listener that will be notified when a magic command is defined.
+   * @param listener The listener to notify.
    */
-  public interface FunctionDefinedListener {
-    void whenFunctionDefined(StellarFunctionInfo functionInfo);
-  }
+  void addSpecialListener(StellarExecutionListeners.SpecialDefinedListener listener);
 
   /**
-   * A listener that is notified when a variable is defined or redefined.
+   * Add a listener that will be notified when a function is defined.
+   * @param listener The listener to notify.
    */
-  public interface VariableDefinedListener {
-    void whenVariableDefined(String variableName, VariableResult result);
-  }
+  void addFunctionListener(StellarExecutionListeners.FunctionDefinedListener listener);
 
   /**
-   * A listener that is notified when a special command is defined.
+   * Add a listener that will be notified when a variable is defined.
+   * @param listener The listener to notify.
    */
-  public interface SpecialDefinedListener {
-    void whenSpecialDefined(SpecialCommand magic);
-  }
+  void addVariableListener(StellarExecutionListeners.VariableDefinedListener listener);
 }

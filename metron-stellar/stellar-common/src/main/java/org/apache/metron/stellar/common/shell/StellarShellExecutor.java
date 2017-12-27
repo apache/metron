@@ -19,9 +19,6 @@
  */
 package org.apache.metron.stellar.common.shell;
 
-import org.apache.metron.stellar.common.shell.StellarExecutionListeners.FunctionDefinedListener;
-import org.apache.metron.stellar.common.shell.StellarExecutionListeners.SpecialDefinedListener;
-import org.apache.metron.stellar.common.shell.StellarExecutionListeners.VariableDefinedListener;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 
@@ -35,7 +32,7 @@ import java.util.Optional;
  * in a shell-like environment including maintaining state, variable assignment,
  * magic commands, doc strings, and comments.
  */
-public interface StellarShellExecutor {
+public interface StellarShellExecutor extends StellarExecutionNotifier {
 
   /**
    * Initialize the Stellar executor.
@@ -79,22 +76,4 @@ public interface StellarShellExecutor {
    * @return The function resolver.
    */
   FunctionResolver getFunctionResolver();
-
-  /**
-   * Add a listener that will be notified when a magic command is defined.
-   * @param listener The listener to notify.
-   */
-  void addSpecialListener(SpecialDefinedListener listener);
-
-  /**
-   * Add a listener that will be notified when a function is defined.
-   * @param listener The listener to notify.
-   */
-  void addFunctionListener(FunctionDefinedListener listener);
-
-  /**
-   * Add a listener that will be notified when a variable is defined.
-   * @param listener The listener to notify.
-   */
-  void addVariableListener(VariableDefinedListener listener);
 }

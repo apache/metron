@@ -53,8 +53,7 @@ public class StellarInterpreter extends Interpreter {
    * Executes the Stellar expressions.
    *
    * Zeppelin will handle isolation and how the same executor is or is not used across
-   * multiple notebooks.  This is configurable by the user, based on my understanding
-   * of the Zeppelin docs.
+   * multiple notebooks.  This is configurable by the user.
    *
    * See https://zeppelin.apache.org/docs/latest/manual/interpreters.html#interpreter-binding-mode.
    */
@@ -75,7 +74,7 @@ public class StellarInterpreter extends Interpreter {
       executor = createExecutor();
 
     } catch (Exception e) {
-      LOG.error("Unable to create a StellarShellExecutor");
+      LOG.error("Unable to create a StellarShellExecutor", e);
     }
   }
 
@@ -84,8 +83,6 @@ public class StellarInterpreter extends Interpreter {
   }
 
   public StellarShellExecutor createExecutor() throws Exception {
-
-    // TODO set zookeeper URL?
 
     Properties props = getProperty();
     StellarShellExecutor executor = new DefaultStellarShellExecutor(props, Optional.empty());
@@ -103,20 +100,23 @@ public class StellarInterpreter extends Interpreter {
     InterpreterResult result;
 
     try {
-      // execute the input using the notebook's executor
+      // execute the input
       StellarResult stellarResult = executor.execute(input);
 
       if(stellarResult.isSuccess()) {
+        // on success
         String text = ConversionUtils.convert(stellarResult.getValue().get(), String.class);
         result = new InterpreterResult(SUCCESS, TEXT, text);
 
       } else if(stellarResult.isError()) {
+        // on error
         Throwable e = stellarResult.getException().get();
         String error = ExceptionUtils.getRootCauseMessage(e);
         String stack = ExceptionUtils.getStackTrace(e);
         result = new InterpreterResult(ERROR, TEXT, error + "\n" + stack);
 
       } else {
+        // should not happen
         throw new IllegalStateException("Unexpected Stellar result status. Please file a bug report.");
       }
 
