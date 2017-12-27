@@ -21,7 +21,7 @@ package org.apache.metron.stellar.common.shell.specials;
 
 import org.apache.metron.stellar.common.shell.DefaultStellarShellExecutor;
 import org.apache.metron.stellar.common.shell.StellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
+import org.apache.metron.stellar.common.shell.StellarResult;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -86,7 +86,7 @@ public class AssignmentCommandTest {
 
   @Test
   public void testAssignment() {
-    StellarShellResult result = command.execute("x := 2 + 2", executor);
+    StellarResult result = command.execute("x := 2 + 2", executor);
 
     // validate the result
     assertTrue(result.isSuccess());
@@ -126,7 +126,7 @@ public class AssignmentCommandTest {
   public void testAssignmentOfEmptyVar() {
 
     // z is not defined
-    StellarShellResult result = command.execute("x := z", executor);
+    StellarResult result = command.execute("x := z", executor);
 
     // validate the result
     assertTrue(result.isSuccess());
@@ -139,7 +139,7 @@ public class AssignmentCommandTest {
 
   @Test
   public void testBadAssignmentExpr() {
-    StellarShellResult result = command.execute("x := 2 + ", executor);
+    StellarResult result = command.execute("x := 2 + ", executor);
 
     // validate the result
     assertTrue(result.isError());
@@ -151,7 +151,7 @@ public class AssignmentCommandTest {
 
   @Test
   public void testAssignNull() {
-    StellarShellResult result = command.execute("x := NULL", executor);
+    StellarResult result = command.execute("x := NULL", executor);
 
     // validate the result
     assertTrue(result.isSuccess());
@@ -167,7 +167,7 @@ public class AssignmentCommandTest {
    */
   @Test
   public void testNoAssignmentExpr() {
-    StellarShellResult result = command.execute("x := ", executor);
+    StellarResult result = command.execute("x := ", executor);
 
     // validate the result
     assertTrue(result.isSuccess());
@@ -184,7 +184,7 @@ public class AssignmentCommandTest {
     executor.assign("x", 10, Optional.empty());
 
     // execute the assignment expression
-    StellarShellResult result = command.execute("y := x + 2", executor);
+    StellarResult result = command.execute("y := x + 2", executor);
 
     // validate the result
     assertTrue(result.isSuccess());
@@ -199,7 +199,7 @@ public class AssignmentCommandTest {
   @Test
   public void testAssignmentWithOddWhitespace() {
 
-    StellarShellResult result = command.execute("        x   :=    2 +      2", executor);
+    StellarResult result = command.execute("        x   :=    2 +      2", executor);
 
     // validate the result
     assertTrue(result.isSuccess());

@@ -20,8 +20,7 @@
 package org.apache.metron.stellar.common.shell.specials;
 
 import org.apache.metron.stellar.common.shell.DefaultStellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
-import org.apache.metron.stellar.common.shell.specials.MagicListGlobals;
+import org.apache.metron.stellar.common.shell.StellarResult;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -89,7 +88,7 @@ public class MagicListGlobalsTest {
     executor.getGlobalConfig().put("x", 2);
 
     // get all globals
-    StellarShellResult result = executor.execute("%globals");
+    StellarResult result = executor.execute("%globals");
 
     // validate the result
     assertTrue(result.isSuccess());
@@ -102,7 +101,7 @@ public class MagicListGlobalsTest {
   @Test
   public void testWithNoGlobals() {
     // get all globals
-    StellarShellResult result = executor.execute("%globals");
+    StellarResult result = executor.execute("%globals");
 
     // validate the result
     assertTrue(result.isSuccess());

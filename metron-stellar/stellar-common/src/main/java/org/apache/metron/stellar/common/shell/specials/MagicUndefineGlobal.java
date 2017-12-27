@@ -20,15 +20,15 @@ package org.apache.metron.stellar.common.shell.specials;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.stellar.common.shell.StellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
+import org.apache.metron.stellar.common.shell.StellarResult;
 
 import java.util.Map;
 import java.util.function.Function;
 
 import static org.apache.commons.lang3.StringUtils.startsWith;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.apache.metron.stellar.common.shell.StellarShellResult.noop;
-import static org.apache.metron.stellar.common.shell.StellarShellResult.error;
+import static org.apache.metron.stellar.common.shell.StellarResult.noop;
+import static org.apache.metron.stellar.common.shell.StellarResult.error;
 
 /**
  * Allows a variable to be removed from the global configuration.
@@ -48,8 +48,8 @@ public class MagicUndefineGlobal implements SpecialCommand {
   }
 
   @Override
-  public StellarShellResult execute(String command, StellarShellExecutor executor) {
-    StellarShellResult result;
+  public StellarResult execute(String command, StellarShellExecutor executor) {
+    StellarResult result;
 
     String variable = StringUtils.trimToEmpty(command.substring(MAGIC_UNDEFINE.length()));
     if(StringUtils.isNotBlank(variable)) {

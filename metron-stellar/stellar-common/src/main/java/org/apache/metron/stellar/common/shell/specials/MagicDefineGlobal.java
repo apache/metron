@@ -21,14 +21,14 @@ package org.apache.metron.stellar.common.shell.specials;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.stellar.common.StellarAssignment;
 import org.apache.metron.stellar.common.shell.StellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
+import org.apache.metron.stellar.common.shell.StellarResult;
 
 import java.util.function.Function;
 
 import static org.apache.commons.lang3.StringUtils.startsWith;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.apache.metron.stellar.common.shell.StellarShellResult.error;
-import static org.apache.metron.stellar.common.shell.StellarShellResult.success;
+import static org.apache.metron.stellar.common.shell.StellarResult.error;
+import static org.apache.metron.stellar.common.shell.StellarResult.success;
 
 /**
  * Allows a variable to be defined (or redefined) a within the global configuration.
@@ -50,7 +50,7 @@ public class MagicDefineGlobal implements SpecialCommand {
   }
 
   @Override
-  public StellarShellResult execute(String command, StellarShellExecutor executor) {
+  public StellarResult execute(String command, StellarShellExecutor executor) {
 
     // grab the expression in '%define <assign-expression>'
     String assignExpr = StringUtils.trimToEmpty(command.substring(MAGIC_DEFINE.length()));
@@ -65,7 +65,7 @@ public class MagicDefineGlobal implements SpecialCommand {
 
     // execute the expression
     StellarAssignment expr = StellarAssignment.from(assignExpr);
-    StellarShellResult result = executor.execute(expr.getStatement());
+    StellarResult result = executor.execute(expr.getStatement());
 
     // execution must be successful
     if(!result.isSuccess()) {

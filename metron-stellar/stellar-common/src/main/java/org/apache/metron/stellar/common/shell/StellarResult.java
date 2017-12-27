@@ -24,7 +24,7 @@ import java.util.Optional;
 /**
  * The result of executing a Stellar expression within a StellarShellExecutor.
  */
-public class StellarShellResult {
+public class StellarResult {
 
   /**
    * Indicates that a Stellar expression resulted in either
@@ -65,7 +65,7 @@ public class StellarShellResult {
    * @param status Indicates success or failure.
    * @param value The value of executing the expression.
    */
-  private StellarShellResult(Status status, Object value) {
+  private StellarResult(Status status, Object value) {
     this.status = status;
     this.value = Optional.ofNullable(value);
     this.exception = Optional.empty();
@@ -78,7 +78,7 @@ public class StellarShellResult {
    * @param status Indicates success or failure.
    * @param exception The exception that occurred when executing the expression.
    */
-  private StellarShellResult(Status status, Throwable exception) {
+  private StellarResult(Status status, Throwable exception) {
     this.status = status;
     this.value = Optional.empty();
     this.exception = Optional.of(exception);
@@ -91,8 +91,8 @@ public class StellarShellResult {
    * @param value The result of executing the expression.
    * @return A Result indicating success.
    */
-  public static StellarShellResult success(Object value) {
-    return new StellarShellResult(Status.SUCCESS, value);
+  public static StellarResult success(Object value) {
+    return new StellarResult(Status.SUCCESS, value);
   }
 
   /**
@@ -101,8 +101,8 @@ public class StellarShellResult {
    * @param exception The exception that occurred while executing the expression.
    * @return A Result indicating that an error occurred.
    */
-  public static StellarShellResult error(Throwable exception) {
-    return new StellarShellResult(Status.ERROR, exception);
+  public static StellarResult error(Throwable exception) {
+    return new StellarResult(Status.ERROR, exception);
   }
 
   /**
@@ -111,8 +111,8 @@ public class StellarShellResult {
    * @param errorMessage An error message.
    * @return A Result indicating that an error occurred.
    */
-  public static StellarShellResult error(String errorMessage) {
-    return new StellarShellResult(Status.ERROR, new IllegalArgumentException(errorMessage));
+  public static StellarResult error(String errorMessage) {
+    return new StellarResult(Status.ERROR, new IllegalArgumentException(errorMessage));
   }
 
   /**
@@ -121,8 +121,8 @@ public class StellarShellResult {
    *
    * @return An empty result.
    */
-  public static StellarShellResult noop() {
-    return new StellarShellResult(Status.SUCCESS, "");
+  public static StellarResult noop() {
+    return new StellarResult(Status.SUCCESS, "");
   }
 
   /**
@@ -130,8 +130,8 @@ public class StellarShellResult {
    *
    * @return A result indicating that the session should be terminated.
    */
-  public static StellarShellResult terminate() {
-    return new StellarShellResult(Status.TERMINATE, "");
+  public static StellarResult terminate() {
+    return new StellarResult(Status.TERMINATE, "");
   }
 
   /**

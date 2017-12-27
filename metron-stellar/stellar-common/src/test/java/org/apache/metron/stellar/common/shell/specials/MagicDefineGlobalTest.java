@@ -21,7 +21,7 @@
 package org.apache.metron.stellar.common.shell.specials;
 
 import org.apache.metron.stellar.common.shell.DefaultStellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
+import org.apache.metron.stellar.common.shell.StellarResult;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -87,7 +87,7 @@ public class MagicDefineGlobalTest {
     final int expected = 4;
 
     {
-      StellarShellResult result = magic.execute("%define global := 2 + 2", executor);
+      StellarResult result = magic.execute("%define global := 2 + 2", executor);
 
       // validate the result
       assertTrue(result.isSuccess());
@@ -101,7 +101,7 @@ public class MagicDefineGlobalTest {
     //
     {
       // get all globals
-      StellarShellResult result = executor.execute("%globals");
+      StellarResult result = executor.execute("%globals");
 
       // validate the result
       assertTrue(result.isSuccess());
@@ -114,7 +114,7 @@ public class MagicDefineGlobalTest {
 
   @Test
   public void testNotAssignmentExpression() {
-    StellarShellResult result = magic.execute("%define 2 + 2", executor);
+    StellarResult result = magic.execute("%define 2 + 2", executor);
 
     // validate the result
     assertTrue(result.isError());
@@ -127,7 +127,7 @@ public class MagicDefineGlobalTest {
 
   @Test
   public void testMissingExpression() {
-    StellarShellResult result = magic.execute("%define", executor);
+    StellarResult result = magic.execute("%define", executor);
 
     // validate the result
     assertTrue(result.isError());

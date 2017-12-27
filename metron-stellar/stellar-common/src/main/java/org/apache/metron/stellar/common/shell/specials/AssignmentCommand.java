@@ -20,13 +20,12 @@ package org.apache.metron.stellar.common.shell.specials;
 
 import org.apache.metron.stellar.common.StellarAssignment;
 import org.apache.metron.stellar.common.shell.StellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
-import org.apache.metron.stellar.common.shell.VariableResult;
+import org.apache.metron.stellar.common.shell.StellarResult;
 
 import java.util.Optional;
 import java.util.function.Function;
 
-import static org.apache.metron.stellar.common.shell.StellarShellResult.error;
+import static org.apache.metron.stellar.common.shell.StellarResult.error;
 
 /**
  * A special command that allows for variable assignment.  Variable
@@ -53,7 +52,7 @@ public class AssignmentCommand implements SpecialCommand {
    * @return
    */
   @Override
-  public StellarShellResult execute(String input, StellarShellExecutor executor) {
+  public StellarResult execute(String input, StellarShellExecutor executor) {
     assert StellarAssignment.isAssignment(input);
 
     // extract the variable and assignment expression
@@ -62,7 +61,7 @@ public class AssignmentCommand implements SpecialCommand {
     String varExpr = assignment.getStatement();
 
     // execute the stellar expression
-    StellarShellResult result = executor.execute(varExpr);
+    StellarResult result = executor.execute(varExpr);
     if(result.isSuccess()) {
 
       Object value = null;

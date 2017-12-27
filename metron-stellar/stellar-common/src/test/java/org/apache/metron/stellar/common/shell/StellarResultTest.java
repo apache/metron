@@ -26,7 +26,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
-public class StellarShellResultTest {
+public class StellarResultTest {
 
   /**
    * Tests the 'success' method which is used to retrieve a StellarShellResult
@@ -37,7 +37,7 @@ public class StellarShellResultTest {
     final int expected = 2;
 
     // retrieve a result that indicates success
-    StellarShellResult result = StellarShellResult.success(expected);
+    StellarResult result = StellarResult.success(expected);
     assertNotNull(result);
 
     // validate the value
@@ -48,7 +48,7 @@ public class StellarShellResultTest {
     assertFalse(result.getException().isPresent());
 
     // validate status
-    assertEquals(StellarShellResult.Status.SUCCESS, result.getStatus());
+    assertEquals(StellarResult.Status.SUCCESS, result.getStatus());
     assertTrue(result.isSuccess());
     assertFalse(result.isError());
     assertFalse(result.isTerminate());
@@ -63,7 +63,7 @@ public class StellarShellResultTest {
     final String expected = "my error message";
 
     // retrieve a result that indicates success
-    StellarShellResult result = StellarShellResult.error(expected);
+    StellarResult result = StellarResult.error(expected);
     assertNotNull(result);
 
     // validate the value
@@ -74,7 +74,7 @@ public class StellarShellResultTest {
     assertEquals(expected, result.getException().get().getMessage());
 
     // validate status
-    assertEquals(StellarShellResult.Status.ERROR, result.getStatus());
+    assertEquals(StellarResult.Status.ERROR, result.getStatus());
     assertFalse(result.isSuccess());
     assertTrue(result.isError());
     assertFalse(result.isTerminate());
@@ -88,7 +88,7 @@ public class StellarShellResultTest {
   public void testTerminate() {
 
     // retrieve a result that indicates success
-    StellarShellResult result = StellarShellResult.terminate();
+    StellarResult result = StellarResult.terminate();
     assertNotNull(result);
 
     // validate the value
@@ -98,7 +98,7 @@ public class StellarShellResultTest {
     assertFalse(result.getException().isPresent());
 
     // validate status
-    assertEquals(StellarShellResult.Status.TERMINATE, result.getStatus());
+    assertEquals(StellarResult.Status.TERMINATE, result.getStatus());
     assertFalse(result.isSuccess());
     assertFalse(result.isError());
     assertTrue(result.isTerminate());
@@ -112,7 +112,7 @@ public class StellarShellResultTest {
   public void testNoop() {
 
     // retrieve a result that indicates success
-    StellarShellResult result = StellarShellResult.noop();
+    StellarResult result = StellarResult.noop();
     assertNotNull(result);
 
     // validate the value
@@ -122,7 +122,7 @@ public class StellarShellResultTest {
     assertFalse(result.getException().isPresent());
 
     // validate status
-    assertEquals(StellarShellResult.Status.SUCCESS, result.getStatus());
+    assertEquals(StellarResult.Status.SUCCESS, result.getStatus());
     assertTrue(result.isSuccess());
     assertFalse(result.isError());
     assertFalse(result.isTerminate());
@@ -136,7 +136,7 @@ public class StellarShellResultTest {
     final Object expected = null;
 
     // retrieve a result that indicates success
-    StellarShellResult result = StellarShellResult.success(expected);
+    StellarResult result = StellarResult.success(expected);
     assertNotNull(result);
 
     // validate the value
@@ -146,7 +146,7 @@ public class StellarShellResultTest {
     assertFalse(result.getException().isPresent());
 
     // validate status
-    assertEquals(StellarShellResult.Status.SUCCESS, result.getStatus());
+    assertEquals(StellarResult.Status.SUCCESS, result.getStatus());
     assertTrue(result.isSuccess());
     assertFalse(result.isError());
     assertFalse(result.isTerminate());

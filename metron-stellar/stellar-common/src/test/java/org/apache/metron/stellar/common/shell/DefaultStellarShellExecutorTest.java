@@ -50,7 +50,7 @@ public class DefaultStellarShellExecutorTest {
 
     // x = 2 + 2
     {
-      StellarShellResult result = executor.execute("x := 2 + 2");
+      StellarResult result = executor.execute("x := 2 + 2");
       assertTrue(result.isSuccess());
       assertTrue(result.getValue().isPresent());
       assertEquals(4, result.getValue().get());
@@ -59,7 +59,7 @@ public class DefaultStellarShellExecutorTest {
 
     // y = x + 2
     {
-      StellarShellResult result = executor.execute("y := x + 2");
+      StellarResult result = executor.execute("y := x + 2");
       assertTrue(result.isSuccess());
       assertTrue(result.getValue().isPresent());
       assertEquals(6, result.getValue().get());
@@ -68,7 +68,7 @@ public class DefaultStellarShellExecutorTest {
 
     // z = x + y
     {
-      StellarShellResult result = executor.execute("z := x + y");
+      StellarResult result = executor.execute("z := x + y");
       assertTrue(result.isSuccess());
       assertTrue(result.getValue().isPresent());
       assertEquals(10, result.getValue().get());
@@ -78,7 +78,7 @@ public class DefaultStellarShellExecutorTest {
 
   @Test
   public void testAssignmentWithOddWhitespace() {
-    StellarShellResult result = executor.execute("   x   :=    2 +      2      ");
+    StellarResult result = executor.execute("   x   :=    2 +      2      ");
     assertTrue(result.isSuccess());
     assertTrue(result.getValue().isPresent());
     assertEquals(4, result.getValue().get());
@@ -87,14 +87,14 @@ public class DefaultStellarShellExecutorTest {
 
   @Test
   public void testBadAssignment() {
-    StellarShellResult result = executor.execute("x := 2 + ");
+    StellarResult result = executor.execute("x := 2 + ");
     assertTrue(result.isError());
     assertTrue(result.getException().isPresent());
   }
 
   @Test
   public void testExpression() {
-    StellarShellResult result = executor.execute("2 + 2");
+    StellarResult result = executor.execute("2 + 2");
     assertTrue(result.isSuccess());
     assertTrue(result.getValue().isPresent());
     assertEquals(4, result.getValue().get());
@@ -102,7 +102,7 @@ public class DefaultStellarShellExecutorTest {
 
   @Test
   public void testExpressionWithOddWhitespace() {
-    StellarShellResult result = executor.execute("    2    +    2");
+    StellarResult result = executor.execute("    2    +    2");
     assertTrue(result.isSuccess());
     assertTrue(result.getValue().isPresent());
     assertEquals(4, result.getValue().get());
@@ -110,7 +110,7 @@ public class DefaultStellarShellExecutorTest {
 
   @Test
   public void testBadExpression() {
-    StellarShellResult result = executor.execute("2 + ");
+    StellarResult result = executor.execute("2 + ");
     assertTrue(result.isError());
     assertTrue(result.getException().isPresent());
   }
@@ -121,7 +121,7 @@ public class DefaultStellarShellExecutorTest {
     executor.execute("x := 2 + 2");
 
     // just testing that we can execute the magic, not the actual result
-    StellarShellResult result = executor.execute("%vars");
+    StellarResult result = executor.execute("%vars");
     assertTrue(result.isSuccess());
     assertTrue(result.getValue().isPresent());
     assertNotNull(result.getValue().get());
@@ -141,7 +141,7 @@ public class DefaultStellarShellExecutorTest {
 
   @Test
   public void testBadMagicCommand() {
-    StellarShellResult result = executor.execute("%invalid");
+    StellarResult result = executor.execute("%invalid");
     assertTrue(result.isError());
     assertTrue(result.getException().isPresent());
   }
@@ -149,7 +149,7 @@ public class DefaultStellarShellExecutorTest {
   @Test
   public void testDocCommand() {
     // just testing that we can execute the doc, not the actual result
-    StellarShellResult result = executor.execute("?TO_STRING");
+    StellarResult result = executor.execute("?TO_STRING");
     assertTrue(result.isSuccess());
     assertTrue(result.getValue().isPresent());
     assertNotNull(result.getValue().get());
@@ -157,14 +157,14 @@ public class DefaultStellarShellExecutorTest {
 
   @Test
   public void testBadDocCommand() {
-    StellarShellResult result = executor.execute("?INVALID");
+    StellarResult result = executor.execute("?INVALID");
     assertTrue(result.isError());
     assertTrue(result.getException().isPresent());
   }
 
   @Test
   public void testQuit() {
-    StellarShellResult result = executor.execute("quit");
+    StellarResult result = executor.execute("quit");
     assertTrue(result.isTerminate());
   }
 
@@ -175,7 +175,7 @@ public class DefaultStellarShellExecutorTest {
       executor.assign("x", 10, Optional.empty());
     }
     {
-      StellarShellResult result = executor.execute("x + 2");
+      StellarResult result = executor.execute("x + 2");
       assertTrue(result.isSuccess());
       assertTrue(result.getValue().isPresent());
       assertEquals(12, result.getValue().get());
@@ -239,7 +239,7 @@ public class DefaultStellarShellExecutorTest {
 
   @Test
   public void testEmptyInput() {
-    StellarShellResult result = executor.execute("");
+    StellarResult result = executor.execute("");
     assertTrue(result.isSuccess());
     assertTrue(result.getValue().isPresent());
     assertEquals("", result.getValue().get());
@@ -247,7 +247,7 @@ public class DefaultStellarShellExecutorTest {
 
   @Test
   public void testComment() {
-    StellarShellResult result = executor.execute("# this is a comment");
+    StellarResult result = executor.execute("# this is a comment");
     assertTrue(result.isSuccess());
     assertTrue(result.getValue().isPresent());
     assertEquals("", result.getValue().get());

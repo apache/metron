@@ -19,7 +19,7 @@
 package org.apache.metron.stellar.common.shell.specials;
 
 import org.apache.metron.stellar.common.shell.StellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
+import org.apache.metron.stellar.common.shell.StellarResult;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -45,8 +45,8 @@ public class MagicListGlobals implements SpecialCommand {
   }
 
   @Override
-  public StellarShellResult execute(String command, StellarShellExecutor executor) {
+  public StellarResult execute(String command, StellarShellExecutor executor) {
     Map<String, Object> globals = executor.getGlobalConfig();
-    return StellarShellResult.success(globals.toString());
+    return StellarResult.success(globals.toString());
   }
 }

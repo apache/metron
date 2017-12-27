@@ -19,11 +19,11 @@
 package org.apache.metron.stellar.common.shell.specials;
 
 import org.apache.metron.stellar.common.shell.StellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
+import org.apache.metron.stellar.common.shell.StellarResult;
 
 import java.util.function.Function;
 
-import static org.apache.metron.stellar.common.shell.StellarShellResult.terminate;
+import static org.apache.metron.stellar.common.shell.StellarResult.terminate;
 
 /**
  * A special command that allows the user to 'quit' their REPL session.
@@ -43,7 +43,7 @@ public class QuitCommand implements SpecialCommand {
   }
 
   @Override
-  public StellarShellResult execute(String command, StellarShellExecutor executor) {
+  public StellarResult execute(String command, StellarShellExecutor executor) {
     return terminate();
   }
 }

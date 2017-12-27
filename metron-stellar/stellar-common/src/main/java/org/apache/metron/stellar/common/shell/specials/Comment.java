@@ -19,13 +19,13 @@
 package org.apache.metron.stellar.common.shell.specials;
 
 import org.apache.metron.stellar.common.shell.StellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
+import org.apache.metron.stellar.common.shell.StellarResult;
 
 import java.util.function.Function;
 
 import static org.apache.commons.lang3.StringUtils.startsWith;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.apache.metron.stellar.common.shell.StellarShellResult.noop;
+import static org.apache.metron.stellar.common.shell.StellarResult.noop;
 
 /**
  * A special command that handles comments.
@@ -45,7 +45,7 @@ public class Comment implements SpecialCommand {
   }
 
   @Override
-  public StellarShellResult execute(String expression, StellarShellExecutor executor) {
+  public StellarResult execute(String expression, StellarShellExecutor executor) {
     return noop();
   }
 }

@@ -20,7 +20,7 @@ package org.apache.metron.stellar.common.shell.specials;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.stellar.common.shell.StellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
+import org.apache.metron.stellar.common.shell.StellarResult;
 import org.apache.metron.stellar.dsl.StellarFunctionInfo;
 
 import java.util.Optional;
@@ -28,8 +28,8 @@ import java.util.Spliterator;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
-import static org.apache.metron.stellar.common.shell.StellarShellResult.error;
-import static org.apache.metron.stellar.common.shell.StellarShellResult.success;
+import static org.apache.metron.stellar.common.shell.StellarResult.error;
+import static org.apache.metron.stellar.common.shell.StellarResult.success;
 
 /**
  * A special command that allows a user to request doc string
@@ -52,8 +52,8 @@ public class DocCommand implements SpecialCommand {
   }
 
   @Override
-  public StellarShellResult execute(String command, StellarShellExecutor executor) {
-    StellarShellResult result;
+  public StellarResult execute(String command, StellarShellExecutor executor) {
+    StellarResult result;
 
     // expect ?functionName
     String functionName = StringUtils.substring(command, 1);

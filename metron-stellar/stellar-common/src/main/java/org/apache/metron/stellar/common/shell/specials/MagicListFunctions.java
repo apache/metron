@@ -20,7 +20,7 @@ package org.apache.metron.stellar.common.shell.specials;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.stellar.common.shell.StellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
+import org.apache.metron.stellar.common.shell.StellarResult;
 
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -48,7 +48,7 @@ public class MagicListFunctions implements SpecialCommand {
   }
 
   @Override
-  public StellarShellResult execute(String command, StellarShellExecutor executor) {
+  public StellarResult execute(String command, StellarShellExecutor executor) {
 
     // if '%functions FOO' then show only functions that contain 'FOO'
     String startsWith = StringUtils.trimToEmpty(command.substring(MAGIC_FUNCTIONS.length()));
@@ -65,6 +65,6 @@ public class MagicListFunctions implements SpecialCommand {
             .sorted()
             .collect(Collectors.joining(", "));
 
-    return StellarShellResult.success(functions);
+    return StellarResult.success(functions);
   }
 }

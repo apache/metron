@@ -35,7 +35,7 @@ import org.apache.metron.stellar.common.shell.DefaultStellarAutoCompleter;
 import org.apache.metron.stellar.common.shell.DefaultStellarShellExecutor;
 import org.apache.metron.stellar.common.shell.StellarAutoCompleter;
 import org.apache.metron.stellar.common.shell.StellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
+import org.apache.metron.stellar.common.shell.StellarResult;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.common.utils.JSONUtils;
 import org.jboss.aesh.complete.CompleteOperation;
@@ -355,7 +355,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
     if(StringUtils.isNotBlank(expression) ) {
 
       // execute the expression
-      StellarShellResult result = executor.execute(expression);
+      StellarResult result = executor.execute(expression);
 
       if(result.isSuccess()) {
         result.getValue().ifPresent(v -> writeLine(ConversionUtils.convert(v, String.class)));

@@ -20,8 +20,7 @@
 package org.apache.metron.stellar.common.shell.specials;
 
 import org.apache.metron.stellar.common.shell.DefaultStellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
-import org.apache.metron.stellar.common.shell.specials.MagicListFunctions;
+import org.apache.metron.stellar.common.shell.StellarResult;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.functions.StringFunctions;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
@@ -93,7 +92,7 @@ public class MagicListFunctionsTest {
 
   @Test
   public void testFunctions() {
-    StellarShellResult result = magic.execute("%functions", executor);
+    StellarResult result = magic.execute("%functions", executor);
 
     // validate the result
     assertTrue(result.isSuccess());
@@ -107,7 +106,7 @@ public class MagicListFunctionsTest {
 
   @Test
   public void testFunctionsWithMatch() {
-    StellarShellResult result = magic.execute("%functions UPPER", executor);
+    StellarResult result = magic.execute("%functions UPPER", executor);
 
     // validate the result
     assertTrue(result.isSuccess());
@@ -122,7 +121,7 @@ public class MagicListFunctionsTest {
 
   @Test
   public void testFunctionsWithNoMatch() {
-    StellarShellResult result = magic.execute("%functions NOMATCH", executor);
+    StellarResult result = magic.execute("%functions NOMATCH", executor);
 
     // validate the result
     assertTrue(result.isSuccess());

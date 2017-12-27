@@ -20,8 +20,7 @@
 package org.apache.metron.stellar.common.shell.specials;
 
 import org.apache.metron.stellar.common.shell.DefaultStellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
-import org.apache.metron.stellar.common.shell.specials.Comment;
+import org.apache.metron.stellar.common.shell.StellarResult;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -82,7 +81,7 @@ public class CommentTest {
 
   @Test
   public void testComment() {
-    StellarShellResult result = magic.execute("#  this is a comment ", executor);
+    StellarResult result = magic.execute("#  this is a comment ", executor);
 
     // validate the result
     assertTrue(result.isSuccess());

@@ -20,8 +20,7 @@
 package org.apache.metron.stellar.common.shell.specials;
 
 import org.apache.metron.stellar.common.shell.DefaultStellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
-import org.apache.metron.stellar.common.shell.specials.MagicUndefineGlobal;
+import org.apache.metron.stellar.common.shell.StellarResult;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -89,7 +88,7 @@ public class MagicUndefineGlobalTest {
     assertEquals(1, executor.getGlobalConfig().size());
 
     // use the magic to undefine the global variable
-    StellarShellResult result = magic.execute("%undefine global", executor);
+    StellarResult result = magic.execute("%undefine global", executor);
 
     // validate the result
     assertTrue(result.isSuccess());
@@ -106,7 +105,7 @@ public class MagicUndefineGlobalTest {
     assertEquals(1, executor.getGlobalConfig().size());
 
     // no arg specifying the var to undefine
-    StellarShellResult result = magic.execute("%undefine", executor);
+    StellarResult result = magic.execute("%undefine", executor);
 
     // validate the result
     assertTrue(result.isError());

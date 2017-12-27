@@ -60,9 +60,9 @@ import java.util.Optional;
 import java.util.Properties;
 
 import static org.apache.metron.stellar.common.configuration.ConfigurationsUtils.readGlobalConfigBytesFromZookeeper;
-import static org.apache.metron.stellar.common.shell.StellarShellResult.noop;
-import static org.apache.metron.stellar.common.shell.StellarShellResult.error;
-import static org.apache.metron.stellar.common.shell.StellarShellResult.success;
+import static org.apache.metron.stellar.common.shell.StellarResult.noop;
+import static org.apache.metron.stellar.common.shell.StellarResult.error;
+import static org.apache.metron.stellar.common.shell.StellarResult.success;
 import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
 import static org.apache.metron.stellar.dsl.Context.Capabilities.STELLAR_CONFIG;
 import static org.apache.metron.stellar.dsl.Context.Capabilities.ZOOKEEPER_CLIENT;
@@ -209,7 +209,7 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
   }
 
   @Override
-  public StellarShellResult execute(String expression) {
+  public StellarResult execute(String expression) {
     expression = expression.trim();
 
     // if whitespace, there is nothing much to do
@@ -380,8 +380,8 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
    * Executes Stellar expressions.
    * @param expression The expression to execute.
    */
-  private StellarShellResult executeStellar(String expression) {
-    StellarShellResult result;
+  private StellarResult executeStellar(String expression) {
+    StellarResult result;
 
     try {
       // execute the stellar expression

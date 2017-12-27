@@ -47,7 +47,7 @@ public interface StellarShellExecutor {
    * @param expression The Stellar expression to execute.
    * @return The result of executing the Stellar expression.
    */
-  StellarShellResult execute(String expression);
+  StellarResult execute(String expression);
 
   /**
    * Update the state of the executor by assign a value to a variable.

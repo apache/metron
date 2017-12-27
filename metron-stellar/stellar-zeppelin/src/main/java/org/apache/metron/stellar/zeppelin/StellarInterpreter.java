@@ -18,14 +18,12 @@
 
 package org.apache.metron.stellar.zeppelin;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.metron.stellar.common.shell.DefaultStellarAutoCompleter;
 import org.apache.metron.stellar.common.shell.DefaultStellarShellExecutor;
 import org.apache.metron.stellar.common.shell.StellarAutoCompleter;
 import org.apache.metron.stellar.common.shell.StellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
+import org.apache.metron.stellar.common.shell.StellarResult;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.zeppelin.interpreter.Interpreter;
 import org.apache.zeppelin.interpreter.InterpreterContext;
@@ -106,7 +104,7 @@ public class StellarInterpreter extends Interpreter {
 
     try {
       // execute the input using the notebook's executor
-      StellarShellResult stellarResult = executor.execute(input);
+      StellarResult stellarResult = executor.execute(input);
 
       if(stellarResult.isSuccess()) {
         String text = ConversionUtils.convert(stellarResult.getValue().get(), String.class);

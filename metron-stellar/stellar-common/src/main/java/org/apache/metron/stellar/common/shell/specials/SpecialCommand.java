@@ -21,7 +21,7 @@
 package org.apache.metron.stellar.common.shell.specials;
 
 import org.apache.metron.stellar.common.shell.StellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
+import org.apache.metron.stellar.common.shell.StellarResult;
 
 import java.util.function.Function;
 
@@ -56,5 +56,5 @@ public interface SpecialCommand {
    * @param executor A stellar execution environment.
    * @return The result of executing the magic command.
    */
-  StellarShellResult execute(String expression, StellarShellExecutor executor);
+  StellarResult execute(String expression, StellarShellExecutor executor);
 }

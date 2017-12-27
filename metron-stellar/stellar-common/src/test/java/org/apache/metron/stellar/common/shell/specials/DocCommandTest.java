@@ -20,8 +20,7 @@
 package org.apache.metron.stellar.common.shell.specials;
 
 import org.apache.metron.stellar.common.shell.DefaultStellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
-import org.apache.metron.stellar.common.shell.specials.DocCommand;
+import org.apache.metron.stellar.common.shell.StellarResult;
 import org.apache.metron.stellar.dsl.functions.StringFunctions;
 import org.apache.metron.stellar.dsl.functions.resolver.SimpleFunctionResolver;
 import org.junit.Before;
@@ -57,7 +56,7 @@ public class DocCommandTest {
 
   @Test
   public void testWithFunction() {
-    StellarShellResult result = command.execute("?TO_STRING", executor);
+    StellarResult result = command.execute("?TO_STRING", executor);
 
     // validate the result
     assertTrue(result.isSuccess());
@@ -69,7 +68,7 @@ public class DocCommandTest {
 
   @Test
   public void testFunctionNotDefined() {
-    StellarShellResult result = command.execute("?INVALID", executor);
+    StellarResult result = command.execute("?INVALID", executor);
 
     // validate the result
     assertTrue(result.isError());
@@ -78,7 +77,7 @@ public class DocCommandTest {
 
   @Test
   public void testNoFunction() {
-    StellarShellResult result = command.execute("?", executor);
+    StellarResult result = command.execute("?", executor);
 
     // validate the result
     assertTrue(result.isError());

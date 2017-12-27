@@ -19,7 +19,7 @@
 package org.apache.metron.stellar.common.shell.specials;
 
 import org.apache.metron.stellar.common.shell.StellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
+import org.apache.metron.stellar.common.shell.StellarResult;
 import org.apache.metron.stellar.common.shell.VariableResult;
 
 import java.util.Map;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.startsWith;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.apache.metron.stellar.common.shell.StellarShellResult.success;
+import static org.apache.metron.stellar.common.shell.StellarResult.success;
 
 /**
  * A MagicCommand that lists the variables available within
@@ -58,7 +58,7 @@ public class MagicListVariables implements SpecialCommand {
    * @return
    */
   @Override
-  public StellarShellResult execute(String command, StellarShellExecutor executor) {
+  public StellarResult execute(String command, StellarShellExecutor executor) {
 
     // format a string containing each variable and it's value
     String vars = executor

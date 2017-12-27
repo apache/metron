@@ -20,8 +20,7 @@
 package org.apache.metron.stellar.common.shell.specials;
 
 import org.apache.metron.stellar.common.shell.DefaultStellarShellExecutor;
-import org.apache.metron.stellar.common.shell.StellarShellResult;
-import org.apache.metron.stellar.common.shell.specials.MagicListVariables;
+import org.apache.metron.stellar.common.shell.StellarResult;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -87,7 +86,7 @@ public class MagicListVariablesTest {
   public void test() {
     // define some vars
     executor.execute("x := 2 + 2");
-    StellarShellResult result = executor.execute("%vars");
+    StellarResult result = executor.execute("%vars");
 
     // validate the result
     assertTrue(result.isSuccess());
@@ -101,7 +100,7 @@ public class MagicListVariablesTest {
   @Test
   public void testWithNoVars() {
     // there are no vars defined
-    StellarShellResult result = executor.execute("%vars");
+    StellarResult result = executor.execute("%vars");
 
     // validate the result
     assertTrue(result.isSuccess());
