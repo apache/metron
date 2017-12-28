@@ -104,8 +104,9 @@ public class StellarInterpreter extends Interpreter {
       StellarResult stellarResult = executor.execute(input);
 
       if(stellarResult.isSuccess()) {
-        // on success
-        String text = ConversionUtils.convert(stellarResult.getValue().get(), String.class);
+        // on success - if no result, use a blank value
+        Object value = stellarResult.getValue().orElse("");
+        String text = ConversionUtils.convert(value, String.class);
         result = new InterpreterResult(SUCCESS, TEXT, text);
 
       } else if(stellarResult.isError()) {

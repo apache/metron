@@ -80,4 +80,24 @@ public class StellarInterpreterTest {
     assertEquals(InterpreterResult.Type.TEXT, message.getType());
   }
 
+  /**
+   * The interpreter should handle if no value is returned.  Some Stellar expressions
+   * will result in no value.
+   */
+  @Test
+  public void testExecuteNoop() {
+
+    // x is undefined and will have no result
+    InterpreterResult result = interpreter.interpret("x", context);
+
+    // validate the result
+    assertEquals(InterpreterResult.Code.SUCCESS, result.code());
+    assertEquals(1, result.message().size());
+
+    // validate the message
+    InterpreterResultMessage message = result.message().get(0);
+    assertEquals(0, message.getData().length());
+    assertEquals(InterpreterResult.Type.TEXT, message.getType());
+  }
+
 }
