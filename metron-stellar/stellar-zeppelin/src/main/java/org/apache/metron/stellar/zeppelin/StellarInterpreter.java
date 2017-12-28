@@ -114,7 +114,7 @@ public class StellarInterpreter extends Interpreter {
         Throwable e = stellarResult.getException().get();
         String error = ExceptionUtils.getRootCauseMessage(e);
         String stack = ExceptionUtils.getStackTrace(e);
-        result = new InterpreterResult(ERROR, TEXT, error + "\n" + stack);
+        result = new InterpreterResult(ERROR, TEXT, error + System.lineSeparator() + stack);
 
       } else {
         // should not happen
@@ -125,7 +125,7 @@ public class StellarInterpreter extends Interpreter {
       // unexpected exception
       String message = ExceptionUtils.getRootCauseMessage(t);
       String stack = ExceptionUtils.getStackTrace(t);
-      result = new InterpreterResult(ERROR, TEXT, message + "\n" + stack);
+      result = new InterpreterResult(ERROR, TEXT, message + System.lineSeparator() + stack);
     }
 
     return result;
