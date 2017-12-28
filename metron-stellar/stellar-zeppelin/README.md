@@ -6,16 +6,34 @@
 
 Currently, you need to manually install the Stellar Interpreter in Zeppelin. In the future this step could be automated by the Metron Mpack.
 
-To install the Stellar Interpreter in your Apache Zeppelin installation, follow these instructions.  This is excerpted directly from the [Zeppelin docs](https://zeppelin.apache.org/docs/latest/development/writingzeppelininterpreter.html#install-your-interpreter-binary).
+To install the Stellar Interpreter in your Apache Zeppelin installation, follow these instructions.  This is paraphrased from the [Zeppelin docs](https://zeppelin.apache.org/docs/latest/development/writingzeppelininterpreter.html#install-your-interpreter-binary).
+
+1. Build and install Metron. Metron and its dependencies will be retrieved from your local Maven repository.
+
+    ```
+    cd $METRON_HOME
+    mvn clean install -DskipTests
+    ```
 
 1. If you do not already have Zeppelin installed, [download and unpack Apache Zeppelin](https://zeppelin.apache.org/download.html).  The directory in which you unpack Zeppelin will be referred to as `$ZEPPELIN_HOME`.
 
 1. If Zeppelin was already installed, make sure that it is not running.
 
-1. Create a directory for the Stellar interpreter.
+1. Create a settings directory for the Stellar interpreter.
 
     ```
     mkdir $ZEPPELIN_HOME/interpreter/stellar
+    cat <<EOF > $ZEPPELIN_HOME/interpreter/stellar/interpreter-setting.json
+    [
+      {
+        "group": "Metron",
+        "name": "Stellar",
+        "className": "org.apache.metron.stellar.zeppelin.StellarInterpreter",
+        "properties": {
+        }
+      }
+    ]
+    EOF
     ```
 
 1. Create a Zeppelin Site file.
@@ -32,54 +50,60 @@ To install the Stellar Interpreter in your Apache Zeppelin installation, follow 
         <value>org.apache.metron.stellar.zeppelin.StellarInterpreter</value>
     </property>
     ```
-    
-1. Copy all necessary Stellar dependencies along with the jar of this project to `$ZEPPELIN_HOME/interpreter/stellar`.  This can be done by executing the following starting from Metron's top-level directory.  
 
-    Of course, this process is a bit of a kludge and is only intended to get you up and running in Zeppelin as quickly as possible.
-
-    ```
-    mvn clean install -DskipTests
-    cd metron-stellar/stellar-zeppelin/
-    mvn install dependency:copy-dependencies
-    cp -r target/dependency/ $ZEPPELIN_HOME/interpreter/stellar/
-    cp target/stellar-zeppelin-0.4.2.jar $ZEPPELIN_HOME/interpreter/stellar
-    ```
-    
 1. Start Zeppelin.  
 
     ```
     $ZEPPELIN_HOME/bin/zeppelin-daemon.sh start
     ```
-   
+
 1. Navigate to Zeppelin running at [http://localhost:8080/](http://localhost:8080/).
-    
-1. Click on the top-right menu item labelled "Anonymous" then choose "Interpreter" in the drop-down that opens.    
+
+1. Register the Stellar interpreter in Zeppelin.
+
+    1. Click on the top-right menu item labelled "Anonymous" then choose "Interpreter" in the drop-down that opens.    
 
 1. Configure the Stellar interpreter.
 
-    1. On the "Interpreters" page, click on "+ Create" near the top-right.
-    1. Set "Interpreter Name" to "stellar".
-    1. Set "Interpreter Group" to "Metron".
+    1. Click on '**+ Create**' near the top-right.
+
+    1. Define the following values.
+        * **Interpreter Name** = `stellar`
+        * **Interpreter Group** = `Metron`
+
+    1. Under **Options**, set the following values.
+        * The interpreter will be instantiated **Per Note**  in **isolated** process.
+
+    1. Under **Dependencies**, define the following fields, then click the "+" icon.
+        * **Artifact** = `org.apache.metron:stellar-zeppelin:0.4.2`
+
     1. Click "Save"
+
+1. Wait for the intrepreter to start.
+
+    1. Near the title '**stellar**', will be a status icon.  This will indicate that it is downloading the dependencies.  
+
+    1. Once the icon is shown as green, the interpreter is ready to work.
 
 1. Create a new notebook.  
 
-    1. Click on "Notebook" > "Create new note".
-    1. Set the default Interpreter to Stellar.
+    1. Click on "Notebook" > "Create new note".  Set the default Interpreter to Stellar.
 
 1. Execute Stellar in your notebook.
 
     1. In the first block, add the following Stellar, then click Run.
-    
+
         ```
         %stellar
-        
+
         2 in [2,3,4]
         ```
-    1. The execution should result in a value of true.
-    
-1. Try out auto-completion.
+    1. In the next block, check which functions are available to you.
 
-    1. In another block type 'TO_' then press CTRL+. which will trigger the auto-complete mechanism in Stellar.
-    
-    
+        ```
+        %stellar
+
+        %functions
+        ```
+
+    1. Try out auto-completion.  In another block, type 'TO_' then press CTRL+. which will trigger the auto-complete mechanism in Stellar.
