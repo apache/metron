@@ -151,6 +151,23 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
   /**
    * {
+   * "bro_doc_default": {
+   *   "dynamic_templates": [{
+   *     "strings": {
+   *       "match_mapping_type": "string",
+   *       "mapping": {
+   *         "type": "text"
+   *       }
+   *     }
+   *   }]
+   *  }
+   * }
+   */
+  @Multiline
+  private static String broDefaultStringMappings;
+
+  /**
+   * {
    * "metaalert_doc": {
    *   "properties": {
    *     "source:type": { "type": "string" },
@@ -196,7 +213,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
       throws ParseException, IOException, ExecutionException, InterruptedException {
     ElasticSearchComponent es = (ElasticSearchComponent)indexComponent;
     es.getClient().admin().indices().prepareCreate("bro_index_2017.01.01.01")
-            .addMapping("bro_doc", broTypeMappings).get();
+            .addMapping("bro_doc", broTypeMappings).addMapping("bro_doc_default", broDefaultStringMappings).get();
     es.getClient().admin().indices().prepareCreate("snort_index_2017.01.01.02")
             .addMapping("snort_doc", snortTypeMappings).get();
     es.getClient().admin().indices().prepareCreate("metaalert_index")
