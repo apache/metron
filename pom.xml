@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.metron</groupId>
     <artifactId>Metron</artifactId>
-    <version>0.4.2</version>
+    <version>0.4.3</version>
     <packaging>pom</packaging>
     <name>Metron</name>
     <description>Metron Top Level Project</description>

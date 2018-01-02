@@ -26,7 +26,7 @@ function help {
   echo "    -h/--help                Usage information."
   echo " "
   echo "example: "
-  echo "    metron-rc-check --version=0.4.2 --canidate=RC2 --bro=0.1.0"
+  echo "    metron-rc-check --version=0.4.2 --candidate=RC2 --bro=0.1.0"
   echo " "
 }
 

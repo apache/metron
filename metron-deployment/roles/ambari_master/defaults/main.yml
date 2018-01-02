@@ -16,4 +16,4 @@
 #
 ---
 ambari_server_mem: 2048
-ambari_mpack_version: 0.4.2.0
+ambari_mpack_version: 0.4.3.0
