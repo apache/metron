@@ -16,13 +16,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-This project contains tools for deploying Apache Metron.  Please refer to the following sections for more information on how to get Apache Metron running in your environment.
+This project contains tools for building, packaging, and deploying Apache Metron.  Please refer to the following sections for more information on how to get Apache Metron running in your environment.
 
  * [How do I deploy Metron with Ambari?](#how-do-i-deploy-metron-with-ambari)
  * [How do I deploy Metron on a single VM?](#how-do-i-deploy-metron-on-a-single-vm)
  * [How do I build RPM packages?](#how-do-i-build-rpm-packages)
  * [How do I build DEB packages?](#how-do-i-build-deb-packages)
  * [How do I deploy Metron within AWS?](#how-do-i-deploy-metron-within-aws)
+ * [How do I build Metron with Docker?](#how-do-i-build-metron-with-docker)
 
 
 How do I deploy Metron with Ambari?
@@ -110,7 +111,7 @@ To build the DEB packages, follow the instructions at [packaging/docker/deb-dock
 
 
 How do I deploy Metron within AWS?
--------------------------------------
+----------------------------------
 
 This deploys Apache Metron on an automatically provisioned 10-node cluster running in Amazon Web Service's EC2 platform.  
 
@@ -131,3 +132,17 @@ This installs real sources of telemetry like Bro, Snort, and YAF, but feeds thos
 #### How?
 
 Follow the instructions available at [amazon-ec2](amazon-ec2).  
+
+
+How do I build Metron with Docker?
+----------------------------------
+
+This provides a Docker containing all of the prerequisites required to build Metron.  This allows you to easily build Metron without installing all of the build dependencies manually.
+
+#### What is this good for?
+
+* If you want to build Metron, but do not want to manually install all of the build dependencies, then this is a good option.
+
+#### How?
+
+Follow the instructions available at [packaging/docker/ansible-docker](packaging/docker/ansible-docker).
