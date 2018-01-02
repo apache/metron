@@ -28,11 +28,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.indexing.dao.InMemoryMetaAlertDao;
 import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertAddRemoveRequest;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.rest.service.MetaAlertService;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,10 +78,18 @@ public class MetaAlertControllerIntegrationTest extends DaoControllerTest {
 
   /**
    {
-   "guidToIndices" : {
-   "bro_1":"bro_index_2017.01.01.01",
-   "snort_2":"snort_index_2017.01.01.01"
+   "alerts" : [
+   {
+   "guid": "bro_1",
+   "sensorType": "bro",
+   "index": "bro_index_2017.01.01.01"
    },
+   {
+   "guid": "snort_2",
+   "sensorType": "snort",
+   "index": "snort_index_2017.01.01.01"
+   }
+   ],
    "groups" : ["group_one", "group_two"]
    }
    */
@@ -86,6 +105,11 @@ public class MetaAlertControllerIntegrationTest extends DaoControllerTest {
         MetaAlertDao.METAALERTS_INDEX, SearchIntegrationTest.metaAlertData
     );
     loadTestData(testData);
+  }
+
+  @After
+  public void cleanup() {
+    InMemoryMetaAlertDao.clear();
   }
 
   @Test
@@ -171,4 +195,94 @@ public class MetaAlertControllerIntegrationTest extends DaoControllerTest {
         .andExpect(jsonPath("$.results[0].source.guid").value("meta_3"))
         .andExpect(jsonPath("$.results[0].source.count").value(2.0));
   }
+
+  @Test
+  public void shouldAddRemoveAlerts() throws Exception {
+    MetaAlertCreateRequest metaAlertCreateRequest = new MetaAlertCreateRequest();
+    metaAlertCreateRequest.setGroups(Arrays.asList("group_one", "group_two"));
+    metaAlertCreateRequest.setAlerts(new ArrayList<GetRequest>() {{
+      add(new GetRequest("bro_1", "bro", "bro_index_2017.01.01.01"));
+      add(new GetRequest("snort_2", "snort", "snort_index_2017.01.01.01"));
+    }});
+    MetaAlertCreateResponse metaAlertCreateResponse = metaAlertService.create(metaAlertCreateRequest);
+
+    MetaAlertAddRemoveRequest addRequest = new MetaAlertAddRemoveRequest();
+    addRequest.setMetaAlertGuid(metaAlertCreateResponse.getGuid());
+    addRequest.setAlerts(new ArrayList<GetRequest>() {{
+      add(new GetRequest("bro_2", "bro", "bro_index_2017.01.01.01"));
+      add(new GetRequest("bro_3", "bro", "bro_index_2017.01.01.01"));
+    }});
+
+    ResultActions result = this.mockMvc.perform(
+        post(metaalertUrl + "/add/alert")
+            .with(httpBasic(user, password)).with(csrf())
+            .contentType(MediaType.parseMediaType("application/json;charset=UTF-8"))
+            .content(JSONUtils.INSTANCE.toJSON(addRequest, false)));
+    result.andExpect(status().isOk()).andExpect(content().string("true"));
+
+    MetaAlertAddRemoveRequest addDuplicateRequest = new MetaAlertAddRemoveRequest();
+    addDuplicateRequest.setMetaAlertGuid(metaAlertCreateResponse.getGuid());
+    addDuplicateRequest.setAlerts(new ArrayList<GetRequest>() {{
+      add(new GetRequest("bro_1", "bro"));
+    }});
+
+    result = this.mockMvc.perform(
+        post(metaalertUrl + "/add/alert")
+            .with(httpBasic(user, password)).with(csrf())
+            .contentType(MediaType.parseMediaType("application/json;charset=UTF-8"))
+            .content(JSONUtils.INSTANCE.toJSON(addDuplicateRequest, false)));
+    result.andExpect(status().isOk()).andExpect(content().string("false"));
+
+    MetaAlertAddRemoveRequest removeRequest = new MetaAlertAddRemoveRequest();
+    removeRequest.setMetaAlertGuid(metaAlertCreateResponse.getGuid());
+    removeRequest.setAlerts(new ArrayList<GetRequest>() {{
+      add(new GetRequest("bro_2", "bro"));
+      add(new GetRequest("bro_3", "bro"));
+    }});
+
+    result = this.mockMvc.perform(
+        post(metaalertUrl + "/remove/alert")
+            .with(httpBasic(user, password)).with(csrf())
+            .contentType(MediaType.parseMediaType("application/json;charset=UTF-8"))
+            .content(JSONUtils.INSTANCE.toJSON(removeRequest, false)));
+    result.andExpect(status().isOk()).andExpect(content().string("true"));
+
+    MetaAlertAddRemoveRequest removeMissingRequest = new MetaAlertAddRemoveRequest();
+    addRequest.setMetaAlertGuid(metaAlertCreateResponse.getGuid());
+    removeMissingRequest.setAlerts(new ArrayList<GetRequest>() {{
+      add(new GetRequest("bro_1", "bro"));
+    }});
+
+    result = this.mockMvc.perform(
+        post(metaalertUrl + "/remove/alert")
+            .with(httpBasic(user, password)).with(csrf())
+            .contentType(MediaType.parseMediaType("application/json;charset=UTF-8"))
+            .content(JSONUtils.INSTANCE.toJSON(removeMissingRequest, false)));
+    result.andExpect(status().isOk()).andExpect(content().string("false"));
+  }
+
+  @Test
+  public void shouldUpdateStatus() throws Exception {
+    MetaAlertCreateRequest metaAlertCreateRequest = new MetaAlertCreateRequest();
+    metaAlertCreateRequest.setGroups(Arrays.asList("group_one", "group_two"));
+    metaAlertCreateRequest.setAlerts(new ArrayList<GetRequest>() {{
+      add(new GetRequest("bro_1", "bro", "bro_index_2017.01.01.01"));
+      add(new GetRequest("snort_2", "snort", "snort_index_2017.01.01.01"));
+    }});
+
+    MetaAlertCreateResponse metaAlertCreateResponse = metaAlertService.create(metaAlertCreateRequest);
+
+    ResultActions result = this.mockMvc.perform(
+        post(metaalertUrl + "/update/status/" + metaAlertCreateResponse.getGuid() + "/inactive")
+            .with(httpBasic(user, password)).with(csrf())
+            .contentType(MediaType.parseMediaType("application/json;charset=UTF-8")));
+    result.andExpect(status().isOk()).andExpect(content().string("true"));
+
+    result = this.mockMvc.perform(
+        post(metaalertUrl + "/update/status/" + metaAlertCreateResponse.getGuid() + "/inactive")
+            .with(httpBasic(user, password)).with(csrf())
+            .contentType(MediaType.parseMediaType("application/json;charset=UTF-8")));
+    result.andExpect(status().isOk()).andExpect(content().string("false"));
+  }
+
 }

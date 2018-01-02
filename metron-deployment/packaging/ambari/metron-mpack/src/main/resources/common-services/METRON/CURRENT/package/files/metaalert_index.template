@@ -1,0 +1,56 @@
+{
+  "template": "metaalert_index*",
+  "mappings": {
+    "metaalert_doc": {
+      "_timestamp": {
+        "enabled": true
+      },
+      "dynamic_templates": [
+        {
+          "alert_template": {
+          "path_match": "alert.*",
+          "match_mapping_type": "string",
+          "mapping": {
+            "type": "string",
+            "index": "not_analyzed"
+          }
+        }
+        },
+        {
+          "threat_triage_score": {
+           "mapping": {
+              "type": "float"
+            },
+            "match": "threat:triage:*score",
+            "match_mapping_type": "*"
+          }
+        }
+      ],
+      "properties": {
+        "guid": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "score": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "status": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "timestamp": {
+          "type": "date",
+          "format": "epoch_millis"
+        },
+        "alert": {
+          "type": "nested"
+        },
+        "source:type": {
+          "type": "string",
+          "index": "not_analyzed"
+        }
+      }
+    }
+  }
+}

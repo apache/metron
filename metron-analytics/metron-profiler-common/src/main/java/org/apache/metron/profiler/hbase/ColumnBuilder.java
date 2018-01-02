@@ -38,7 +38,7 @@ public interface ColumnBuilder extends Serializable {
 
   /**
    * Returns the column family used to store the ProfileMeasurement values.
-   * @return
+   * @return String returns the column family used to store the ProfileMeasurement values
    */
   String getColumnFamily();
 

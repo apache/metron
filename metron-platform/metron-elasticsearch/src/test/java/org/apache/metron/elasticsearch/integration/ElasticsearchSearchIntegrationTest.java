@@ -17,48 +17,81 @@
  */
 package org.apache.metron.elasticsearch.integration;
 
-
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
-import org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
-import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.integration.InMemoryComponent;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
 
 public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
+
   private static String indexDir = "target/elasticsearch_search";
   private static String dateFormat = "yyyy.MM.dd.HH";
+  private static final int MAX_RETRIES = 10;
+  private static final int SLEEP_MS = 500;
 
   /**
    * {
    * "bro_doc": {
    *   "properties": {
-   *     "source:type": { "type": "string" },
-   *     "ip_src_addr": { "type": "ip" },
-   *     "ip_src_port": { "type": "integer" },
-   *     "long_field": { "type": "long" },
-   *     "timestamp" : { "type": "date" },
-   *     "latitude" : { "type": "float" },
-   *     "score": { "type": "double" },
-   *     "is_alert": { "type": "boolean" },
-   *     "location_point": { "type": "geo_point" },
-   *     "bro_field": { "type": "string" },
-   *     "duplicate_name_field": { "type": "string" }
+   *     "source:type": {
+   *        "type": "string",
+   *        "index": "not_analyzed"
+   *     },
+   *     "ip_src_addr": {
+   *        "type": "ip"
+   *     },
+   *     "ip_src_port": {
+   *        "type": "integer"
+   *     },
+   *     "long_field": {
+   *        "type": "long"
+   *     },
+   *     "timestamp": {
+   *        "type": "date",
+   *        "format": "epoch_millis"
+   *      },
+   *     "latitude" : {
+   *        "type": "float"
+   *      },
+   *     "score": {
+   *        "type": "double"
+   *     },
+   *     "is_alert": {
+   *        "type": "boolean"
+   *     },
+   *     "location_point": {
+   *        "type": "geo_point"
+   *     },
+   *     "bro_field": {
+   *        "type": "string"
+   *     },
+   *     "duplicate_name_field": {
+   *        "type": "string"
+   *     },
+   *     "alert": {
+   *         "type": "nested"
+   *     }
    *   }
-   * }
+   *  }
    * }
    */
   @Multiline
@@ -66,47 +99,86 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
   /**
    * {
-   * "snort_doc": {
-   *   "properties": {
-   *     "source:type": { "type": "string" },
-   *     "ip_src_addr": { "type": "ip" },
-   *     "ip_src_port": { "type": "integer" },
-   *     "long_field": { "type": "long" },
-   *     "timestamp" : { "type": "date" },
-   *     "latitude" : { "type": "float" },
-   *     "score": { "type": "double" },
-   *     "is_alert": { "type": "boolean" },
-   *     "location_point": { "type": "geo_point" },
-   *     "snort_field": { "type": "integer" },
-   *     "duplicate_name_field": { "type": "integer" }
-   *   }
-   * }
+   *  "snort_doc": {
+   *     "properties": {
+   *        "source:type": {
+   *          "type": "string",
+   *          "index": "not_analyzed"
+   *        },
+   *        "ip_src_addr": {
+   *          "type": "ip"
+   *        },
+   *        "ip_src_port": {
+   *          "type": "integer"
+   *        },
+   *        "long_field": {
+   *          "type": "long"
+   *        },
+   *        "timestamp": {
+   *          "type": "date",
+   *          "format": "epoch_millis"
+   *        },
+   *        "latitude" : {
+   *          "type": "float"
+   *        },
+   *        "score": {
+   *          "type": "double"
+   *        },
+   *        "is_alert": {
+   *          "type": "boolean"
+   *        },
+   *        "location_point": {
+   *          "type": "geo_point"
+   *        },
+   *        "snort_field": {
+   *          "type": "integer"
+   *        },
+   *        "duplicate_name_field": {
+   *          "type": "integer"
+   *        },
+   *        "alert": {
+   *           "type": "nested"
+   *        },
+   *        "threat:triage:score": {
+   *           "type": "float"
+   *        }
+   *      }
+   *    }
    * }
    */
   @Multiline
   private static String snortTypeMappings;
 
+  /**
+   * {
+   * "metaalert_doc": {
+   *   "properties": {
+   *     "source:type": { "type": "string" },
+   *     "alert": { "type": "nested"}
+   *   }
+   * }
+   * }
+   */
+  @Multiline
+  private static String metaAlertTypeMappings;
 
   @Override
   protected IndexDao createDao() throws Exception {
-    IndexDao elasticsearchDao = new ElasticsearchDao();
-    elasticsearchDao.init(
-            new AccessConfig() {{
-              setMaxSearchResults(100);
-              setMaxSearchGroups(100);
-              setGlobalConfigSupplier( () ->
-                new HashMap<String, Object>() {{
-                  put("es.clustername", "metron");
-                  put("es.port", "9300");
-                  put("es.ip", "localhost");
-                  put("es.date.format", dateFormat);
-                  }}
-              );
+    AccessConfig config = new AccessConfig();
+    config.setMaxSearchResults(100);
+    config.setMaxSearchGroups(100);
+    config.setGlobalConfigSupplier( () ->
+            new HashMap<String, Object>() {{
+              put("es.clustername", "metron");
+              put("es.port", "9300");
+              put("es.ip", "localhost");
+              put("es.date.format", dateFormat);
             }}
     );
-    MetaAlertDao ret = new ElasticsearchMetaAlertDao();
-    ret.init(elasticsearchDao);
-    return elasticsearchDao;
+
+    IndexDao dao = new ElasticsearchDao();
+    dao.init(config);
+    return dao;
   }
 
   @Override
@@ -120,12 +192,15 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   }
 
   @Override
-  protected void loadTestData() throws ParseException {
+  protected void loadTestData()
+      throws ParseException, IOException, ExecutionException, InterruptedException {
     ElasticSearchComponent es = (ElasticSearchComponent)indexComponent;
     es.getClient().admin().indices().prepareCreate("bro_index_2017.01.01.01")
             .addMapping("bro_doc", broTypeMappings).get();
     es.getClient().admin().indices().prepareCreate("snort_index_2017.01.01.02")
             .addMapping("snort_doc", snortTypeMappings).get();
+    es.getClient().admin().indices().prepareCreate("metaalert_index")
+        .addMapping("metaalert_doc", metaAlertTypeMappings).get();
 
     BulkRequestBuilder bulkRequest = es.getClient().prepareBulk().setRefresh(true);
     JSONArray broArray = (JSONArray) new JSONParser().parse(broData);
@@ -147,14 +222,61 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     JSONArray metaAlertArray = (JSONArray) new JSONParser().parse(metaAlertData);
     for(Object o: metaAlertArray) {
       JSONObject jsonObject = (JSONObject) o;
-      IndexRequestBuilder indexRequestBuilder = es.getClient().prepareIndex("metaalerts", "metaalert_doc");
+      IndexRequestBuilder indexRequestBuilder = es.getClient().prepareIndex("metaalert_index", "metaalert_doc");
       indexRequestBuilder = indexRequestBuilder.setSource(jsonObject.toJSONString());
-//      indexRequestBuilder = indexRequestBuilder.setTimestamp(jsonObject.get("timestamp").toString());
       bulkRequest.add(indexRequestBuilder);
     }
     BulkResponse bulkResponse = bulkRequest.execute().actionGet();
     if (bulkResponse.hasFailures()) {
       throw new RuntimeException("Failed to index test data");
+    }
+
+    SearchResponse broDocs = es.getClient()
+        .prepareSearch("bro_index_2017.01.01.01")
+        .setTypes("bro_doc")
+        .setQuery(QueryBuilders.matchAllQuery())
+        .get();
+    // We're changing the _id field, we need to create a copy and delete the original.
+    for (SearchHit hit : broDocs.getHits()) {
+      // Bro GUIDs to collide while using the standard analyzer
+      // Use timestamp as part of guid because query may not return in order each time
+      IndexRequest indexRequest = new IndexRequest()
+          .index("bro_index_2017.01.01.01")
+          .type("bro_doc")
+          .id("bro-" + hit.getSource().get("timestamp"))
+          .source(hit.getSource());
+      es.getClient().index(indexRequest).get();
+
+      // Delete the original
+      es.getClient()
+          .prepareDelete("bro_index_2017.01.01.01", "bro_doc", hit.getId())
+          .get();
+    }
+
+    // Wait until everything is updated
+    // Assume true until proven otherwise.
+    boolean allUpdated = true;
+    for (int t = 0; t < MAX_RETRIES; ++t, Thread.sleep(SLEEP_MS)) {
+      allUpdated = true;
+      SearchResponse response = es.getClient()
+          .prepareSearch("bro_index_2017.01.01.01")
+          .setTypes("bro_doc")
+          .setQuery(QueryBuilders.matchAllQuery())
+          .get();
+      if (response.getHits().getTotalHits() == 0) {
+        throw new IllegalStateException("Bro index is empty. No docs to validate were updated");
+      }
+      for (SearchHit hit : response.getHits()) {
+        if (!hit.getId().startsWith("bro-")) {
+          allUpdated = false;
+        }
+      }
+      if (allUpdated) {
+        break;
+      }
+    }
+    if (!allUpdated) {
+      throw new IllegalStateException("Unable to update Elasticsearch ids properly");
     }
   }
 }

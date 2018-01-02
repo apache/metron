@@ -36,11 +36,19 @@ import org.slf4j.LoggerFactory;
 public class Configurations implements Serializable {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private List<FieldValidator> validations = new ArrayList<>();
-  protected ConcurrentMap<String, Object> configurations = new ConcurrentHashMap<>();
+  protected Map<String, Object> configurations = new ConcurrentHashMap<>();
+
+  public Map<String, Object> getConfigurations() {
+    return configurations;
+  }
 
   @SuppressWarnings("unchecked")
   public Map<String, Object> getGlobalConfig() {
-    return (Map<String, Object>) configurations.getOrDefault(ConfigurationType.GLOBAL.getTypeName(), new HashMap());
+    return getGlobalConfig(true);
+  }
+
+  public Map<String, Object> getGlobalConfig(boolean emptyMapOnNonExistent) {
+    return (Map<String, Object>) getConfigurations().getOrDefault(ConfigurationType.GLOBAL.getTypeName(), emptyMapOnNonExistent?new HashMap():null);
   }
 
   public List<FieldValidator> getFieldValidations() {
@@ -59,10 +67,15 @@ public class Configurations implements Serializable {
   }
 
   public void updateGlobalConfig(Map<String, Object> globalConfig) {
-    configurations.put(ConfigurationType.GLOBAL.getTypeName(), globalConfig);
-    validations = FieldValidator.readValidations(getGlobalConfig());
+    if(globalConfig != null) {
+      getConfigurations().put(ConfigurationType.GLOBAL.getTypeName(), globalConfig);
+      validations = FieldValidator.readValidations(getGlobalConfig());
+    }
   }
 
+  public void deleteGlobalConfig() {
+    getConfigurations().remove(ConfigurationType.GLOBAL.getTypeName());
+  }
 
   @Override
   public boolean equals(Object o) {
@@ -72,14 +85,14 @@ public class Configurations implements Serializable {
     Configurations that = (Configurations) o;
 
     if (validations != null ? !validations.equals(that.validations) : that.validations != null) return false;
-    return configurations != null ? configurations.equals(that.configurations) : that.configurations == null;
+    return getConfigurations() != null ? getConfigurations().equals(that.getConfigurations()) : that.getConfigurations() == null;
 
   }
 
   @Override
   public int hashCode() {
     int result = validations != null ? validations.hashCode() : 0;
-    result = 31 * result + (configurations != null ? configurations.hashCode() : 0);
+    result = 31 * result + (getConfigurations() != null ? getConfigurations().hashCode() : 0);
     return result;
   }
 
@@ -87,7 +100,7 @@ public class Configurations implements Serializable {
   public String toString() {
     return "Configurations{" +
             "validations=" + validations +
-            ", configurations=" + configurations +
+            ", configurations=" + getConfigurations()+
             '}';
   }
 }

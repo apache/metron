@@ -22,6 +22,8 @@ import java.lang.invoke.MethodHandles;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.IndexingConfigurations;
+import org.apache.metron.common.zookeeper.configurations.ConfigurationsUpdater;
+import org.apache.metron.common.zookeeper.configurations.IndexingUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,30 +35,8 @@ public abstract class ConfiguredIndexingBolt extends ConfiguredBolt<IndexingConf
   }
 
   @Override
-  protected IndexingConfigurations defaultConfigurations() {
-    return new IndexingConfigurations();
+  protected ConfigurationsUpdater<IndexingConfigurations> createUpdater() {
+    return new IndexingUpdater(this, this::getConfigurations);
   }
 
-  @Override
-  public void loadConfig() {
-    try {
-      ConfigurationsUtils.updateSensorIndexingConfigsFromZookeeper(getConfigurations(), client);
-    } catch (Exception e) {
-      LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...");
-    }
-  }
-
-  @Override
-  public void updateConfig(String path, byte[] data) throws IOException {
-    if (data.length != 0) {
-      String name = path.substring(path.lastIndexOf("/") + 1);
-      if (path.startsWith(ConfigurationType.INDEXING.getZookeeperRoot())) {
-        getConfigurations().updateSensorIndexingConfig(name, data);
-        reloadCallback(name, ConfigurationType.INDEXING);
-      } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
-        getConfigurations().updateGlobalConfig(data);
-        reloadCallback(name, ConfigurationType.GLOBAL);
-      }
-    }
-  }
 }

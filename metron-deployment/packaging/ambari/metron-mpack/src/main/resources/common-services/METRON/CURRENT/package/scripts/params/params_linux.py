@@ -49,8 +49,11 @@ metron_user = status_params.metron_user
 metron_group = config['configurations']['metron-env']['metron_group']
 metron_log_dir = config['configurations']['metron-env']['metron_log_dir']
 metron_pid_dir = config['configurations']['metron-env']['metron_pid_dir']
+
 metron_rest_port = status_params.metron_rest_port
+metron_management_ui_host = status_params.metron_management_ui_host
 metron_management_ui_port = status_params.metron_management_ui_port
+metron_alerts_ui_host = status_params.metron_alerts_ui_host
 metron_alerts_ui_port = status_params.metron_alerts_ui_port
 metron_jvm_flags = config['configurations']['metron-rest-env']['metron_jvm_flags']
 metron_spring_profiles_active = config['configurations']['metron-rest-env']['metron_spring_profiles_active']
@@ -80,6 +83,7 @@ indexing_acl_configured_flag_file = status_params.indexing_acl_configured_flag_f
 indexing_hbase_configured_flag_file = status_params.indexing_hbase_configured_flag_file
 indexing_hbase_acl_configured_flag_file = status_params.indexing_hbase_acl_configured_flag_file
 indexing_hdfs_perm_configured_flag_file = status_params.indexing_hdfs_perm_configured_flag_file
+elasticsearch_template_installed_flag_file = status_params.elasticsearch_template_installed_flag_file
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 
 # Elasticsearch hosts and port management
@@ -194,7 +198,7 @@ bro_index_path = tmp_dir + "/bro_index.template"
 snort_index_path = tmp_dir + "/snort_index.template"
 yaf_index_path = tmp_dir + "/yaf_index.template"
 error_index_path = tmp_dir + "/error_index.template"
-meta_index_path = tmp_dir + "/meta_index.mapping"
+meta_index_path = tmp_dir + "/metaalert_index.template"
 
 # Zeppelin Notebooks
 metron_config_zeppelin_path = format("{metron_config_path}/zeppelin")
@@ -236,7 +240,7 @@ if security_enabled:
     nimbus_seeds = config['configurations']['storm-site']['nimbus.seeds']
 
 # Management UI
-metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", ['localhost'])[0]
+metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", [hostname])[0]
 
 # REST
 metron_rest_pid_dir = config['configurations']['metron-rest-env']['metron_rest_pid_dir']

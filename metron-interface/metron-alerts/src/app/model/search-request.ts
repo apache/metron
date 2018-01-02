@@ -1,5 +1,3 @@
-import {SortField} from './sort-field';
-import {INDEXES} from '../utils/constants';
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,11 +15,15 @@ import {INDEXES} from '../utils/constants';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {SortField} from './sort-field';
+import {DEFAULT_FACETS, DEFAULT_GROUPS, INDEXES} from '../utils/constants';
+
 export class SearchRequest {
-  // _source: string[]; //TODO: This needs to be removed
+  fields: string[];
   from: number;
   indices: string[] = INDEXES;
   query: string;
   size: number;
   sort: SortField[];
+  facetFields: string[] = Array.from(new Set(DEFAULT_FACETS.concat(DEFAULT_GROUPS)));
 }

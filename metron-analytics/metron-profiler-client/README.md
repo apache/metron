@@ -58,6 +58,7 @@ want to change the global Client configuration so as not to disrupt the work of 
 | profiler.client.hbase.table           | The name of the HBase table used to store profile data.                                                                            | Optional | profiler |
 | profiler.client.hbase.column.family   | The name of the HBase column family used to store profile data.                                                                    | Optional | P        |
 | profiler.client.salt.divisor          | The salt divisor used to store profile data.                                                                                       | Optional | 1000     |
+| profiler.default.value                | The default value to be returned if a profile is not written for a given period for a profile and entity.                          | Optional | null     |
 | hbase.provider.impl                   | The name of the HBaseTableProvider implementation class.                                                                           | Optional |          |
 
 ### Profile Selectors
@@ -361,7 +362,7 @@ These instructions step through the process of using the Stellar Client API on a
 To validate that everything is working, login to the server hosting Metron.  We will use the Stellar Shell to replicate the execution environment of Stellar running in a Storm topology, like Metron's Parser or Enrichment topology.  Replace 'node1:2181' with the URL to a Zookeeper Broker.  
 
 ```
-[root@node1 0.4.1]# bin/stellar -z node1:2181
+[root@node1 0.4.2]# bin/stellar -z node1:2181
 Stellar, Go!
 Please note that functions are loading lazily in the background and will be unavailable until loaded fully.
 {es.clustername=metron, es.ip=node1, es.port=9300, es.date.format=yyyy.MM.dd.HH}

@@ -1,0 +1,132 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@import "../../../variables";
+
+.groups-container {
+  width: 100%;
+  display: flex;
+}
+
+.container .group-by-items {
+  flex: 1;
+  margin: 0 4px 4px 4px;
+  padding: 5px 10px;
+  background: $mine-shaft-6;
+  border: 1px solid $mine-shaft-7;
+  border-radius: 5px;
+  transition: opacity 0.4s ease-in-out;
+
+  &.active:hover {
+    background: $picton-blue-1;
+  }
+
+  &:hover {
+    background: $mine-shaft;
+    border: 1px solid $tundora;
+  }
+
+  &.gu-transit {
+    background: $eden-1;
+    border: 1px solid $blue-mine;
+  }
+
+  .count {
+    line-height: 1;
+    color: $silver;
+    font-size: 24px;
+    font-weight: 200;
+    font-family: Roboto;
+  }
+
+  .name {
+    font-size: 12px;
+    color: $gothic;
+    font-family: Roboto;
+  }
+}
+
+.container .group-by-items.active {
+  background: $piction-blue;
+  color: $white;
+
+  .count {
+    color: $white
+  }
+
+  .name {
+    color: $white
+  }
+}
+
+
+.container .group-by-items {
+  cursor: move;
+  cursor: grab;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+
+  &:hover {
+    background: $mine-shaft;
+    border: 1px solid $tundora-2;
+  }
+}
+
+.gu-mirror {
+  border-radius: 5px;
+}
+
+.container {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+.group {
+  line-height: 3;
+  color: $dove-grey-2;
+}
+
+.ungroup {
+  cursor: pointer;
+  line-height: 4;
+  font-size: 12px;
+  color: $curious-blue;
+
+  &.disabled {
+    opacity: 0.5;
+    color: $dusty-grey;
+    cursor: not-allowed;
+
+    .ungroup-button:hover {
+      background-color: transparent;
+      border-color: transparent;
+    }
+  }
+
+  .ungroup-button {
+    padding: 3px;
+    border: 2px solid transparent;
+
+    &:hover {
+      background: $eden-1;
+      border: 2px solid $blue-mine;
+    }
+  }
+}
+
