@@ -18,9 +18,7 @@ limitations under the License.
 
 This project builds packages that allow you to install Apache Metron on an APT-based operating system like Ubuntu.
 
-If you are installing Metron using Ambari, these packages are necessary prerequisites when installing on an APT-based platform like Ubuntu.
-
-Installing Metron using **only** these packages still leaves a considerable amount of configuration necessary to get Metron running.  Installing with Ambari automates these additional steps.
+If you are installing Metron using Ambari, these packages are necessary prerequisites when installing on an APT-based platform like Ubuntu.  Installing Metron using **only** these packages still leaves a considerable amount of configuration necessary to get Metron running.  Installing with Ambari automates these additional steps.
 
 **WARNING**: These packages are a recent addition to Metron.  These have not undergone the same level of testing as the RPM packages.  Improvements and more rigorous testing of these packages is underway and will improve in future releases.  Until then, use these at your own risk.
 
@@ -39,6 +37,8 @@ Installing Metron using **only** these packages still leaves a considerable amou
     ```
     metron-deployment/packaging/docker/deb-docker/target
     ```
+
+### Build Packages
 
 If Metron has already been built, just the DEB packages can be built by executing the following commands.
     ```

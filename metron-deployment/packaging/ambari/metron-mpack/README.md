@@ -49,16 +49,18 @@ This allows you to easily install Metron using a simple, guided process.  This a
     ambari-server install-mpack --mpack=metron_mpack-x.y.z.0.tar.gz --verbose
     ```
 
-1. Install the Metron packages (RPMs or DEBs) in a local repository on each host where a Metron component is installed.  
+1. Install the Metron packages (RPMs or DEBs) in a local repository on each host where a Metron component is installed.  By default, the repository is expected to exist at `/localrepo`.
 
     On hosts where only a Metron client is installed, the local repository must exist, but it does not need to contain Metron packages.  For example to create an empty repository for an RPM-based system, run the following commands.
-```
-yum install createrepo
-mkdir /localrepo
 
-```
+    ```
+    yum install createrepo
+    mkdir /localrepo
+    cd /localrepo
+    createrepo
+    ```
 
-1. Metron swill now be available as an installable service within Ambari.  
+1. Metron will now be available as an installable service within Ambari.  
 
 ### Installation Notes
 
@@ -100,7 +102,7 @@ A custom action is available in Ambari to import Zeppelin dashboards. See the [m
 
 The dashboards installed by the Kibana custom action are managed by the `dashboard.p` file.  This file is created by exporting existing dashboards from a running Kibana instance.		
 
-To create a new version of the file, make any necessary changes to Kibana and run the following commands to export your changes.	
+To create a new version of the file, make any necessary changes to Kibana and run the following commands to export your changes.
   ```
   cd packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/4.5.1/package/scripts/dashboard
   python dashboardindex.py $ES_HOST 9200 dashboard.p -s		

@@ -18,9 +18,7 @@ limitations under the License.
 
 This project provides RPM packages that allow you to install Metron on an RPM-based operating system like CentOS.
 
-If you are installing Metron using Ambari, these packages are necessary prerequisites when installing on an RPM-based platform like CentOS.
-
-Installing Metron using **only** these packages still leaves a considerable amount of configuration necessary to get Metron running.  Installing with Ambari automates these additional steps.
+If you are installing Metron using Ambari, these packages are necessary prerequisites when installing on an RPM-based platform like CentOS.  Installing Metron using **only** these packages still leaves a considerable amount of configuration necessary to get Metron running.  Installing with Ambari automates these additional steps.
 
 ### Prerequisites
 
@@ -37,6 +35,8 @@ Installing Metron using **only** these packages still leaves a considerable amou
     ```
     metron-deployment/packaging/docker/rpm-docker/RPMS/noarch
     ```   
+
+### Build Packages
 
 If Metron has already been built, just the RPM packages can be built by executing the following commands.
   ```
