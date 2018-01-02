@@ -39,7 +39,7 @@ import org.apache.commons.lang3.StringUtils;
  * Each start provides a name, thus providing context to the timing.
  * </p>
  * At the end of a timing 'run', a visitor interface provides the ability to visit all the timing
- * 'nodes' and capture thier output.
+ * 'nodes' and capture their output.
  * <p>
  * The {@code TimeRecordNodes} provide a tree structure in support of nesting.
  * A {@code Deque} is use to track the current time node.
