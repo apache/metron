@@ -42,7 +42,7 @@
     dest: /tmp
 
 - name: Install MPack on Ambari Host
-  shell: ambari-server install-mpack --mpack=/tmp/metron_mpack-0.4.2.0.tar.gz
+  shell: ambari-server install-mpack --mpack=/tmp/metron_mpack-0.4.3.0.tar.gz
   args:
     creates: /var/lib/ambari-server/resources/mpacks/metron-ambari.mpack-{{ ambari_mpack_version }}/addon-services
 
