@@ -73,7 +73,7 @@ Using the MPack is preferred, but instructions for manually Kerberizing a cluste
 
 #### Zeppelin Import
 
-A custom action is available in Ambari to import Zeppelin dashboards. See the [metron-indexing documentation](../metron-platform/metron-indexing) for more information.
+A custom action is available in Ambari to import Zeppelin dashboards. See the [metron-indexing documentation](../../../../metron-platform/metron-indexing) for more information.
 
 #### Offline Installation
 
