@@ -49,6 +49,15 @@ This allows you to easily install Metron using a simple, guided process.  This a
     ambari-server install-mpack --mpack=metron_mpack-x.y.z.0.tar.gz --verbose
     ```
 
+1. Install the Metron packages (RPMs or DEBs) in a local repository on each host where a Metron component is installed.  
+
+    On hosts where only a Metron client is installed, the local repository must exist, but it does not need to contain Metron packages.  For example to create an empty repository for an RPM-based system, run the following commands.
+```
+yum install createrepo
+mkdir /localrepo
+
+```
+
 1. Metron swill now be available as an installable service within Ambari.  
 
 ### Installation Notes
@@ -71,9 +80,31 @@ The MPack allows Metron to be automatically kerberized in two different ways.
 
 Using the MPack is preferred, but instructions for manually Kerberizing a cluster with Metron can be found at [Kerberos-manual-setup.md](../../Kerberos-manual-setup.md).
 
+##### Metron Client
+
+A "Metron Client" must be installed on each supervisor node in a kerberized cluster.  This client ensures that the Metron keytab and `client_jaas.conf` get distributed to each node in order to allow reading and writing from Kafka.		
+* When Metron is already installed on the cluster, installation of the "Metron Client" should be done before Kerberizing.
+* When adding Metron to an already Kerberized cluster, ensure that all supervisor nodes receive a Metron client.
+
+##### Restarts
+
+Storm (and the Metron topologies) must be restarted after Metron is installed on an already Kerberized cluster.  The restart triggers several Storm configurations to get updated and Metron will be unable to write to Kafka without a restart.		
+
+Kerberizing a cluster with a pre-existing Metron, automatically restarts all services during Kerberization.  No additional manual restart is needed in this case.
+
 #### Zeppelin Import
 
 A custom action is available in Ambari to import Zeppelin dashboards. See the [metron-indexing documentation](../../../../metron-platform/metron-indexing) for more information.
+
+#### Kibana Dashboards
+
+The dashboards installed by the Kibana custom action are managed by the `dashboard.p` file.  This file is created by exporting existing dashboards from a running Kibana instance.		
+
+To create a new version of the file, make any necessary changes to Kibana and run the following commands to export your changes.	
+  ```
+  cd packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/4.5.1/package/scripts/dashboard
+  python dashboardindex.py $ES_HOST 9200 dashboard.p -s		
+  ```
 
 #### Offline Installation
 
