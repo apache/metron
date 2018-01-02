@@ -14,6 +14,20 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-- name: Install EPEL repository
-  yum: name=epel-release
+
+FROM ubuntu:trusty
+
+# install prerequisites
+RUN apt-get update && apt-get install -y \
+  build-essential \
+  openjdk-7-jdk \
+  wget \
+  curl \
+  dpkg-dev \
+  gettext
+
+# install nodejs so that the node dependencies can be packaged into the DEBs
+RUN curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+RUN apt-get install -y nodejs
+
+WORKDIR /root

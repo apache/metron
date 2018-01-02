@@ -14,6 +14,15 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-- name: Install EPEL repository
-  yum: name=epel-release
+
+Source: metron
+Section: misc
+Priority: extra
+Maintainer: Apache Metron <dev@metron.apache.org>
+Homepage: https://metron.apache.org/
+Package: $PACKAGE
+Architecture: all
+Version: $FULL_VERSION
+Depends:
+Description: Apache Metron
+  Apache Metron provides a scalable advanced security analytics framework.

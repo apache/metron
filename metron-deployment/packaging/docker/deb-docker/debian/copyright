@@ -14,6 +14,22 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-- name: Install EPEL repository
-  yum: name=epel-release
+
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: $PACKAGE
+Upstream-Contact: Apache Metron <dev@metron.apache.org>
+
+Files: *
+License: ASL-2
+Copyright:
+Apache Metron
+Copyright 2015-2016 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+This product includes software developed by Cisco Systems (http://www.cisco.com)
+Copyright (c) 2014 Cisco Systems.
+
+This product includes software developed by Chef Software (https://www.chef.io)
+Copyright (c) 2012-2015, Chef Software, Inc.

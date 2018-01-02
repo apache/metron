@@ -214,6 +214,10 @@ Where:
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
 | [ `REGEXP_GROUP_VAL`](#regexp_group_val)                                                           |
 | [ `ROUND`](#round)                                                                                 |
+| [ `SAMPLE_ADD`](../../metron-analytics/metron-statistics#sample_add)                               |
+| [ `SAMPLE_GET`](../../metron-analytics/metron-statistics#sample_get)                               |
+| [ `SAMPLE_INIT`](../../metron-analytics/metron-statistics#sample_init)                             |
+| [ `SAMPLE_MERGE`](../../metron-analytics/metron-statistics#sample_merge)                           |
 | [ `SET_ADD`](#set_add)                                                                             |
 | [ `SET_INIT`](#set_init)                                                                           |
 | [ `SET_MERGE`](#set_merge)                                                                         |

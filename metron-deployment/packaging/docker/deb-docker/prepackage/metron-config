@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -14,6 +15,18 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-- name: Install EPEL repository
-  yum: name=epel-release
+
+#
+# this script will be executed before packaging 'metron-config'
+#
+# this is called by the main `build.sh` script right after it has
+# prepared all of the necessary files and configuration, but before
+# packaging.  this lets us perform any package-specific actions prior to
+# final packaging.
+#
+# the working directory containing all of the files to
+# be packaged will be passed as the only argument to this script.
+#
+
+# package the 'production' node dependencies
+npm install --prefix="${PACKAGE_WORKDIR}/${METRON_HOME}/web/expressjs" --only=production

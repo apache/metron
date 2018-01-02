@@ -14,6 +14,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
----
-- name: Install EPEL repository
-  yum: name=epel-release
+
+$PACKAGE ($FULL_VERSION) $DISTRIBUTION; urgency=medium
+
+  * Initial release. (Closes: METRON-1351)
+
+ -- Apache Metron <dev@metron.apache.org>  Wed, 13 Dec 2017 21:19:45 +0000
