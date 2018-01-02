@@ -47,7 +47,7 @@ Setup
     export BROKERLIST=node1:6667
     export HDP_HOME="/usr/hdp/current"
     export KAFKA_HOME="${HDP_HOME}/kafka-broker"
-    export METRON_VERSION="0.4.2"
+    export METRON_VERSION="${METRON_VERSION}"
     export METRON_HOME="/usr/metron/${METRON_VERSION}"
     ```
 
