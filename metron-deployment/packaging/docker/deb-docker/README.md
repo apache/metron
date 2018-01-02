@@ -31,21 +31,20 @@ Installing Metron using **only** these packages still leaves a considerable amou
 ### Quick Start
 
 1. Execute the following command from the project's root directory.
-  ```
-  mvn clean package -DskipTests -Pbuild-debs
-  ```
+    ```
+    mvn clean package -DskipTests -Pbuild-debs
+    ```
 
 1. The packages will be accessible from the following location once the build process completes.
-  ```
-  metron-deployment/packaging/docker/deb-docker/target
-  ```
+    ```
+    metron-deployment/packaging/docker/deb-docker/target
+    ```
 
 If Metron has already been built, just the DEB packages can be built by executing the following commands.
-
-  ```
-  cd metron-deployment
-  mvn clean package -Pbuild-debs
-  ```
+    ```
+    cd metron-deployment
+    mvn clean package -Pbuild-debs
+    ```
 
 ### How does this work?
 
@@ -54,13 +53,11 @@ Using the `build-debs` profile as shown above effectively automates the followin
 1. Copy the tarball for each Metron sub-project to the `target` working directory.
 
 1. Build a Docker image of a Ubuntu Trusty host called `docker-deb` that contains all of the tools needed to build the packages.
-
     ```
     docker build -t deb-docker .
     ```
 
 1. Execute the `build.sh` script within a Docker container.  The argument passed to the build script is the current version of Metron.
-
     ```
     docker run -v `pwd`:/root deb-docker:latest /bin/bash -c ./build.sh <metron-version>
     ```
