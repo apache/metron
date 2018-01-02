@@ -24,7 +24,7 @@ This allows you to easily install Metron using a simple, guided process.  This a
 
 * Ambari 2.4.2+
 
-* Installable Metron packages (either RPMs or DEBs) located in a repository located on each host located at `/localrepo`.
+* Installable Metron packages (either RPMs or DEBs) located in a repository on each host at `/localrepo`.
 
 * A [Node.js](https://nodejs.org/en/download/package-manager/) repository installed on the host running the Management and Alarm UI.
 
