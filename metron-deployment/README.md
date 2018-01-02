@@ -63,7 +63,7 @@ This will deploy Metron and all of its dependencies on a virtual machine running
 
 * This VM should **not** be used to run a proof-of-concept for Apache Metron within your organization.
 
-Running Metron within the resource constraints of a single VM is incredibly challenging. Failing to respect this warning, will cause various services to fail mysteriously as the system runs into memory and processing limits.  It can be an incredibly frustrating experience for new users.  Do not try this at home.  
+Running Metron within the resource constraints of a single VM is incredibly challenging. Failing to respect this warning, will cause various services to fail mysteriously as the system runs into memory and processing limits. 
 
 #### How?
 
