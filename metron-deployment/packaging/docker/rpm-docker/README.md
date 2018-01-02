@@ -28,7 +28,7 @@ Installing Metron using **only** these packages still leaves a considerable amou
 
 ### Quick Start
 
-1. Execute the following command.
+1. Execute the following command from the project's root directory.
   ```
   mvn clean package -DskipTests -Pbuild-rpms
   ```

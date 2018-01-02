@@ -30,9 +30,8 @@ This allows you to easily install Metron using a simple, guided process.  This a
 
 ### Quick Start
 
-1. Build the Metron MPack.
+1. Build the Metron MPack. Execute the following command from the project's root directory.
     ```
-    cd metron-deployment
     mvn clean package -Pmpack -DskipTests
     ```
 
@@ -70,7 +69,7 @@ The MPack allows Metron to be automatically kerberized in two different ways.
 * Metron can be installed on a non-kerberized cluster and then the entire cluster can be kerberized using Ambari.  
 * Alternatively, Metron can be installed on top of an already kerberized cluster.  
 
-Using the MPack is preferred, but instructions for manually Kerberizing a cluster with Metron can be found at [../../Kerberos-manual-setup.md](Kerberos-manual-setup.md).
+Using the MPack is preferred, but instructions for manually Kerberizing a cluster with Metron can be found at [Kerberos-manual-setup.md](../../Kerberos-manual-setup.md).
 
 #### Zeppelin Import
 

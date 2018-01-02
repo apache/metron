@@ -77,7 +77,7 @@ This provides RPM packages that allow you to install Metron on an RPM-based oper
 
 #### What is this good for?
 
-* If you want to manually install Apache Metron on an RPM-based system like CentOS then installation can be simplified by using these packages.  
+* If you want to manually install Apache Metron on an RPM-based system like CentOS, installation can be simplified by using these packages.  
 
 * If you want a guided installation process using Ambari on an RPM-based system, then these RPMs are a necessary prerequisite.
 
@@ -97,7 +97,7 @@ This builds installable DEB packages that allow you to install Metron on an APT-
 
 #### What is this good for?
 
-* If you want to manually install Metron on a APT-based system like Ubuntu then installation can be simplified by using these packages.
+* If you want to manually install Metron on a APT-based system like Ubuntu, installation can be simplified by using these packages.
 
 * If you want a guided installation process using Ambari on an APT-based system, then these RPMs are a necessary prerequisite.
 
