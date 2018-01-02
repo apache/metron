@@ -31,24 +31,24 @@ This allows you to easily install Metron using a simple, guided process.  This a
 ### Quick Start
 
 1. Build the Metron MPack.
-  ```
-  cd metron-deployment
-  mvn clean package -Pmpack -DskipTests
-  ```
+    ```
+    cd metron-deployment
+    mvn clean package -Pmpack -DskipTests
+    ```
 
 1. This results in the Mpack being produced at the following location.
-  ```
-  metron-deployment/packaging/ambari/metron-mpack/target/metron_mpack-x.y.z.0.tar.gz
-  ```
+    ```
+    metron-deployment/packaging/ambari/metron-mpack/target/metron_mpack-x.y.z.0.tar.gz
+    ```
 
 1. Copy the tarball to the host where Ambari Server is installed.
 
 1. Ensure that Ambari Server is stopped.
 
 1. Install the MPack.
-  ```
-  ambari-server install-mpack --mpack=metron_mpack-x.y.z.0.tar.gz --verbose
-  ```
+    ```
+    ambari-server install-mpack --mpack=metron_mpack-x.y.z.0.tar.gz --verbose
+    ```
 
 1. Metron swill now be available as an installable service within Ambari.  
 
