@@ -53,7 +53,7 @@ Using the `build-debs` profile as shown above effectively automates the followin
 1. Execute the `build.sh` script within a Docker container.  The argument passed to the build script is the current version of Metron.
 
     ```
-    docker run -v `pwd`:/root deb-docker:latest /bin/bash -c ./build.sh 0.4.2
+    docker run -v `pwd`:/root deb-docker:latest /bin/bash -c ./build.sh 0.4.3
     ```
 
 1. This results in the DEBs being generated within the `target` directory.
