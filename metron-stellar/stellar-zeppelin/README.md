@@ -92,8 +92,8 @@ To install the Stellar Interpreter in your Apache Zeppelin installation, follow 
     1. Under **Options**, set the following values.
         * The interpreter will be instantiated **Per Note**  in **isolated** process.
 
-    1. Under **Dependencies**, define the following fields, then click the "+" icon.
-        * **Artifact** = `org.apache.metron:stellar-zeppelin:0.4.2`
+    1. Under **Dependencies**, define the following fields, then click the "+" icon.  Replace the Metron version as required.
+        * **Artifact** = `org.apache.metron:stellar-zeppelin:0.4.3`
 
     1. Click "Save"
 
