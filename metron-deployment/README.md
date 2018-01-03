@@ -15,178 +15,134 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-# Overview
-This set of playbooks can be used to deploy an Ambari-managed Hadoop cluster containing Metron services using Ansible. These playbooks target RHEL/CentOS 6.x operating
-systems.
 
-Installation consists of -
-- Building Metron tarballs, RPMs and the Ambari MPack
-- Deploying Ambari
-- Leveraging Ambari to install:
-  * The required Hadoop Components
-  * Core Metron (Parsing, Enrichment, Indexing)
-  * Elasticsearch
-  * Kibana
-- Starting All Services
+This project contains tools for building, packaging, and deploying Apache Metron.  Please refer to the following sections for more information on how to get Apache Metron running in your environment.
 
-## Prerequisites
-The following tools are required to run these scripts:
+ * [How do I deploy Metron with Ambari?](#how-do-i-deploy-metron-with-ambari)
+ * [How do I deploy Metron on a single VM?](#how-do-i-deploy-metron-on-a-single-vm)
+ * [How do I build RPM packages?](#how-do-i-build-rpm-packages)
+ * [How do I build DEB packages?](#how-do-i-build-deb-packages)
+ * [How do I deploy Metron within AWS?](#how-do-i-deploy-metron-within-aws)
+ * [How do I build Metron with Docker?](#how-do-i-build-metron-with-docker)
 
-- [Maven](https://maven.apache.org/)
-- [Git](https://git-scm.com/)
-- [Ansible](http://www.ansible.com/) (2.0.0.2 or 2.2.2.0)
-- [Docker](https://www.docker.com/) (Docker for Mac on OSX)
 
-These scripts depend on two files for configuration:
+How do I deploy Metron with Ambari?
+-----------------------------------
 
-- hosts - declares which Ansible roles will be run on which hosts
-- group_vars/all - various configuration settings needed to install Metron
+This provides a Management Pack (MPack) extension for [Apache Ambari](https://ambari.apache.org/) that simplifies the provisioning, management and monitoring of Metron on clusters of any size.  
 
-For production use, it is recommended that Metron be installed on an existing cluster managed by Ambari as described in the Installing Management Pack section below.
-## Ambari
-The Ambari playbook will install a Hadoop cluster including the Metron Services (Parsing, Enrichment, Indexing). Ambari will also install Elasticsearch and Kibana.
+This allows you to easily install Metron using a simple, guided process.  This also allows you to monitor cluster health and even secure your cluster with kerberos.
 
-Currently, the playbooks supports building a local development cluster running on one node or deploying to a 10 node cluster on AWS EC2.
+#### What is this good for?
 
-## Vagrant
-There is a development environment based on Vagrant that is referred to as "Full Dev".  This installs the entire Ambari/Metron stack. This is useful in testing out changes to the installation procedure.
+* If you want to see how Metron can really scale by deploying it on your own hardware, or even in the cloud, this is the best option for you.
 
-### Prerequsities
-- Install [Vagrant](https://www.vagrantup.com/) (5.0.16+)
-- Install the Hostmanager plugin for vagrant - Run `vagrant plugin install vagrant-hostmanager` on the machine where Vagrant is
-installed
+* If you want to run a proof-of-concept to see how Apache Metron can benefit your organization, then this is the way to do it.
 
-### Full-Dev
-Navigate to `metron/metron-deployment/vagrant/full-dev-platform` and run `vagrant up`.
+#### How?
 
-## Ambari Management Pack
-An Ambari Management Pack can be built in order to make the Metron service available on top of an existing stack, rather than needing a direct stack update.
+To deploy Apache Metron using Ambari, follow the instructions at [packaging/ambari/metron-mpack](packaging/ambari/metron-mpack).
 
-This will set up
-- Metron Parsers
-- Enrichment
-- Indexing
-- GeoIP data
-- Optional Elasticsearch
-- Optional Kibana
 
-### Prerequisites
-- A cluster managed by Ambari 2.4.2+
-- Metron RPMs available on the cluster in the /localrepo directory.  See [RPMs](#rpms) for further information.
-- [Node.js](https://nodejs.org/en/download/package-manager/) repository installed on the Management UI host
+How do I deploy Metron on a single VM?
+--------------------------------------
 
-### Building Management Pack
-From `metron-deployment` run
-```
-mvn clean package
-```
+This will deploy Metron and all of its dependencies on a virtual machine running on your computer.  
 
-A tar.gz that can be used with Ambari can be found at `metron-deployment/packaging/ambari/metron-mpack/target/`
+#### What is this good for?
 
-### Installing Management Pack
-Before installing the mpack, update Storm's topology.classpath in Ambari to include '/etc/hbase/conf:/etc/hadoop/conf'. Restart Storm service.
+* If you are new to Metron and want to explore the functionality that it offers, this is good place to start.  
 
-Place the mpack's tar.gz onto the node running Ambari Server. From the command line on this node, run
-```
-ambari-server install-mpack --mpack=<mpack_location> --verbose
-```
+* If you are a developer contributing to the Apache Metron project, this is also a great way to test your changes.  
 
-This will make the services available in Ambari in the same manner as any services in a stack, e.g. through Add Services or during cluster install.
-The Indexing / Parsers/ Enrichment masters should be colocated with a Kafka Broker (to create topics) and HBase client (to create the enrichment and theatintel tables).
-This colocation is currently not enforced by Ambari, and should be managed by either a Service or Stack advisor as an enhancement.
+#### What is this **not** good for?
 
-Several configuration parameters will need to be filled in, and should be pretty self explanatory (primarily a couple of Elasticsearch configs, and the Storm REST URL).  Examples are provided in the descriptions on Ambari.
-Notably, the URL for the GeoIP database that is preloaded (and is prefilled by default) can be set to use a `file:///` location
+* This VM is **not** intended for processing anything beyond the most basic, low volume work loads.
 
-After installation, a custom action is available in Ambari (where stop / start services are) to install Elasticsearch templates.  Similar to this, a custom Kibana action to Load Template is available.
+* Additional services should **not** be installed along side Metron in this VM.
 
-Another custom action is available in Ambari to import Zeppelin dashboards. See the [metron-indexing documentation](../metron-platform/metron-indexing)
+* This VM should **not** be used to run a proof-of-concept for Apache Metron within your organization.
 
-#### Offline installation
-Currently there is only one point that would reach out to the internet during an install.  This is the URL for the GeoIP database information.
+Running Metron within the resource constraints of a single VM is incredibly challenging. Failing to respect this warning, will cause various services to fail mysteriously as the system runs into memory and processing limits.
 
-The RPMs DO NOT reach out to the internet (because there is currently no hosting for them).  They look on the local filesystem in `/localrepo`.
+#### How?
 
-### Current Limitations
-There are a set of limitations that should be addressed based to improve the current state of the mpacks.
+To deploy Metron in a VM running on your computer, follow the instructions at [vagrant/full-dev-platform](vagrant/full-dev-platform)
 
-- There is currently no hosting for RPMs remotely.  They will have to be built locally.
-- Colocation of appropriate services should be enforced by Ambari.  See [#Installing Management Pack] for more details.
-- Storm's topology.classpath is not updated with the Metron service install and needs to be updated separately.
-- Several configuration parameters used when installing the Metron service could (and should) be grabbed from Ambari.  Install will require them to be manually entered.
-- Need to handle upgrading Metron
 
-## RPMs
-RPMs can be built to install the components in metron-platform. These RPMs are built in a Docker container and placed into `target`.
+How do I build RPM packages?
+----------------------------
 
-Components in the RPMs:
-- metron-common
-- metron-data-management
-- metron-elasticsearch
-- metron-enrichment
-- metron-parsers
-- metron-pcap
-- metron-solr
-- stellar-common
+This provides RPM packages that allow you to install Metron on an RPM-based operating system like CentOS.
 
-### Prerequisites
-- Docker.  The image detailed in: `metron-deployment/packaging/docker/rpm-docker/README.md` will automatically be built (or rebuilt if necessary).
-- Artifacts for metron-platform have been produced.  E.g. `mvn clean package -DskipTests` in `metron-platform`
+#### What is this good for?
 
-The artifacts are required because there is a dependency on modules not expressed via Maven (we grab the resulting assemblies, but don't need the jars).  These are
-- metron-common
-- metron-data-management
-- metron-elasticsearch
-- metron-enrichment
-- metron-indexing
-- metron-parsers
-- metron-pcap-backend
-- metron-solr
-- metron-profiler
-- metron-config
+* If you want to manually install Apache Metron on an RPM-based system like CentOS, installation can be simplified by using these packages.  
 
-### Building RPMs
-```
-cd metron-deployment
-mvn clean package -Pbuild-rpms
-```
+* If you want a guided installation process using Ambari on an RPM-based system, then these RPMs are a necessary prerequisite.
 
-The output RPM files will land in `target/RPMS/noarch`.  They can be installed with the standard
-```
-rpm -i <package>
-```
+#### What is this **not** good for?
 
-## Kibana Dashboards
+* If you want a complete, guided installation process, use Ambari rather than just these packages.  Installing Metron using **only** these RPMs still leaves a considerable amount of configuration necessary to get Metron running.  Installing with Ambari automates these additional steps.
 
-The dashboards installed by the Kibana custom action are managed by the dashboard.p file.  This file is created by exporting existing dashboards from a running Kibana instance.
+#### How?
 
-To create a new version of the file, make any necessary changes to Kibana (e.g. on full-dev), and export with the appropriate script.
+To build the RPM packages, follow the instructions at [packaging/docker/rpm-docker](packaging/docker/rpm-docker).
 
-```
-python packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/4.5.1/package/scripts/dashboard/dashboardindex.py \
-$ES_HOST 9200 \
-packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/4.5.1/package/scripts/dashboard/dashboard.p -s
-```
 
-Build the Ambari Mpack to get the dashboard updated appropriately.
+How do I build DEB packages?
+-------------------------------
 
-Once the MPack is installed, run the Kibana service's action "Load Template" to install dashboards.  This will completely overwrite the .kibana in Elasticsearch, so use with caution.
+This builds installable DEB packages that allow you to install Metron on an APT-based operating system like Ubuntu.
 
-## Kerberos
-The MPack can allow Metron to be installed and then Kerberized, or installed on top of an already Kerberized cluster.  This is done through Ambari's standard Kerberization setup.
+#### What is this good for?
 
-### Caveats
-* For nodes using a Metron client and a local repo, the repo must exist on all nodes (e.g via createrepo). This repo can be empty; only the main Metron services need the RPMs.
-* A Metron client must be installed on each supervisor node in a secured cluster.  This is to ensure that the Metron keytab and client_jaas.conf get distributed in order to allow reading and writing from Kafka.
-  * When Metron is already installed on the cluster, this should be done before Kerberizing.
-  * When addding Metron to an already Kerberized cluster, ensure that all supervisor nodes receive a Metron client.
-* Storm (and Metron) must be restarted after Metron is installed on an already Kerberized cluster.  Several Storm configs get updated, and Metron will be unable to write to Kafka without a restart.
-  * Kerberizing a cluster with an existing Metron already has restarts of all services during Kerberization, so it's unneeded.
+* If you want to manually install Metron on a APT-based system like Ubuntu, installation can be simplified by using these packages.
 
-Instructions for setup on Full Dev can be found at [Kerberos-ambari-setup.md](Kerberos-ambari-setup.md).  These instructions reference the manual install instructions.
+* If you want a guided installation process using Ambari on an APT-based system, then these DEBs are a necessary prerequisite.
 
-### Kerberos Without an MPack
-Using the MPack is preferred, but instructions for Kerberizing manually can be found at [Kerberos-manual-setup.md](Kerberos-manual-setup.md). These instructions are reference by the Ambari Kerberos install instructions and include commands for setting up a KDC.
+#### What is this **not** good for?
 
-## TODO
-- Support Ubuntu deployments
+* If you want a complete, guided installation process, use Ambari rather than just these packages.  Installing Metron using **only** these RPMs still leaves a considerable amount of configuration necessary to get Metron running.  Installing with Ambari automates these additional steps.
+
+#### How?
+
+To build the DEB packages, follow the instructions at [packaging/docker/deb-docker](packaging/docker/deb-docker).
+
+
+How do I deploy Metron within AWS?
+----------------------------------
+
+This deploys Apache Metron on an automatically provisioned 10-node cluster running in Amazon Web Service's EC2 platform.  
+
+This installs real sources of telemetry like Bro, Snort, and YAF, but feeds those sensors with canned pcap data.
+
+#### What is this good for?
+
+* If you are a Metron developer wanting to test at-scale on a multi-node cluster, then this is the right option for you.  
+
+#### What is this **not** good for?
+
+* If you want to run Metron in AWS with real data for either testing or production, then this is NOT the right option for you.
+
+* **WARNING** This is only intended for creating an ephemeral cluster for brief periods of testing.  This deployment method has the following severe limitations.
+    * The cluster is not secured in any way. It is up to you to manually secure it.  
+    * The cluster will not survive a reboot.
+
+#### How?
+
+Follow the instructions available at [amazon-ec2](amazon-ec2).  
+
+
+How do I build Metron with Docker?
+----------------------------------
+
+This provides a Docker containing all of the prerequisites required to build Metron.  This allows you to easily build Metron without installing all of the build dependencies manually.
+
+#### What is this good for?
+
+* If you want to build Metron, but do not want to manually install all of the build dependencies, then this is a good option.
+
+#### How?
+
+Follow the instructions available at [packaging/docker/ansible-docker](packaging/docker/ansible-docker).
