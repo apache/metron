@@ -1,0 +1,36 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+- name: Install Ambari Server on CentOS
+  yum: name=ambari-server
+  when: ansible_distribution == "CentOS"
+
+- name: Install Ambari Server on Ubuntu
+  apt: name=ambari-server force=yes
+  when: ansible_distribution == "Ubuntu"
+
+- name: Set Ambari Server Max Memory
+  replace:
+    dest: /var/lib/ambari-server/ambari-env.sh
+    regexp:  "\ -Xmx2048m\ "
+    replace: " -Xmx{{ ambari_server_mem }}m "
+    backup: no
+
+- name: Setup Ambari Server
+  shell: ambari-server setup -s && touch /etc/ambari-server/configured creates=/etc/ambari-server/configured
+  register: ambari_server_setup
+  failed_when: "(ambari_server_setup.stderr is defined and ambari_server_setup.stderr != '') or 'FATAL' in ambari_server_setup.stdout"

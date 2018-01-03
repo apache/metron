@@ -55,10 +55,10 @@
         <description>Maximum number of memory map areas for process</description>
     </property>
 
-    <!--/etc/sysconfig/elasticsearch-->
+    <!-- Elasticsearch sysconfig -->
     <property>
         <name>content</name>
-        <description>This is the jinja template for elastic sysconfig file (/etc/sysconfig/elasticsearch)</description>
+        <description>This is the jinja template for elastic sysconfig file</description>
         <value>
 # Directory where the Elasticsearch binary distribution resides
 ES_HOME={{elastic_home}}
@@ -97,6 +97,9 @@ ES_JAVA_OPTS="-verbose:gc -Xloggc:{{log_dir}}/elasticsearch_gc.log -XX:-CMSConcu
 -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
 -XX:ErrorFile={{log_dir}}/elasticsearch_err.log -XX:ParallelGCThreads=8 \
 -Xms{{heap_size}} -Xmx{{heap_size}}"
+
+# https://www.elastic.co/guide/en/elasticsearch/reference/5.6/_memory_lock_check.html
+MAX_LOCKED_MEMORY=unlimited
         </value>
     </property>
 </configuration>

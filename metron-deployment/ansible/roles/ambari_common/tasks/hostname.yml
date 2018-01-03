@@ -1,0 +1,32 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+#
+# ambari uses socket.getfqdn() to find the hostname. with 'localhost.localdomain'
+# in '/etc/hosts' this function will report the hostname as 'localhost.localdomain'
+# rather than 'node1' as would be expected.  other functions like socket.gethostname()
+# will always return 'node1' as expected.  ambari needs to see 'node1' to be able to
+# communicate between the master and agents.
+
+- name: Remove ipv4 'localhost.localdomain' from /etc/hosts
+  lineinfile: dest=/etc/hosts state=absent regexp="^127.0.0.1(.*)localdomain(.*)$"
+
+- name: Remove ipv6 'localhost.localdomain' from /etc/hosts
+  lineinfile: dest=/etc/hosts state=absent regexp="^::1(.*)localdomain(.*)$"
+
+- name: Add localhost to /etc/hosts
+  lineinfile: dest=/etc/hosts line="127.0.0.1   localhost"

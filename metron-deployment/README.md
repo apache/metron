@@ -67,7 +67,7 @@ Running Metron within the resource constraints of a single VM is incredibly chal
 
 #### How?
 
-To deploy Metron in a VM running on your computer, follow the instructions at [vagrant/full-dev-platform](vagrant/full-dev-platform)
+To deploy Metron in a VM running on your computer, follow the instructions at [vagrant/metron-on-centos](vagrant/metron-on-centos)
 
 
 How do I build RPM packages?
