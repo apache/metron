@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="Date-Revision-yyyymmdd" content="20180103" />
     <meta http-equiv="Content-Language" content="en" />
-    <title>Metron &#x2013; Parser Contribution and Testing</title>
+    <title>Metron &#x2013; Elasticsearch in Metron</title>
     <link rel="stylesheet" href="../../css/apache-maven-fluido-1.3.0.min.css" />
     <link rel="stylesheet" href="../../css/site.css" />
     <link rel="stylesheet" href="../../css/print.css" media="print" />
@@ -57,7 +57,7 @@
         Documentation</a>
         </li>
       <li class="divider ">/</li>
-        <li class="">Parser Contribution and Testing</li>
+        <li class="">Elasticsearch in Metron</li>
         
                 
                     
@@ -167,12 +167,10 @@
         Data-management</a>
             </li>
                       
-      <li>
+      <li class="active">
     
-                          <a href="../../metron-platform/metron-elasticsearch/index.html" title="Elasticsearch">
-          <i class="none"></i>
-        Elasticsearch</a>
-            </li>
+            <a href="#"><i class="none"></i>Elasticsearch</a>
+          </li>
                       
       <li>
     
@@ -194,20 +192,13 @@
           <i class="none"></i>
         Management</a>
             </li>
-                                                                                  
+                                                                        
       <li>
     
                           <a href="../../metron-platform/metron-parsers/index.html" title="Parsers">
-          <i class="icon-chevron-down"></i>
+          <i class="icon-chevron-right"></i>
         Parsers</a>
-                    <ul class="nav nav-list">
-                      
-      <li class="active">
-    
-            <a href="#"><i class="none"></i>parser-testing</a>
-          </li>
-              </ul>
-        </li>
+                  </li>
                       
       <li>
     
@@ -274,96 +265,99 @@
                 
         <div id="bodyColumn"  class="span9" >
                                   
-            <h1>Parser Contribution and Testing</h1>
-<p><a name="Parser_Contribution_and_Testing"></a></p>
-<p>So you want to contribute a parser to Apache Metron. First off, on behalf of the community, thank you very much! Now that you have implemented a parser by writing a java class which implements <tt>org.apache.metron.parsers.interfaces.MessageParser</tt> what are the testing expectations for a new parser?</p>
-<p>It is expected that a new parser have two tests:</p>
+            <h1>Elasticsearch in Metron</h1>
+<p><a name="Elasticsearch_in_Metron"></a></p>
+<div class="section">
+<h2><a name="Introduction"></a>Introduction</h2>
+<p>Elasticsearch can be used as the real-time portion of the datastore resulting from <a href="../metron-indexing/index.html">metron-indexing</a>.</p></div>
+<div class="section">
+<h2><a name="Properties"></a>Properties</h2>
+<div class="section">
+<h3><a name="es.clustername"></a><tt>es.clustername</tt></h3>
+<p>The name of the elasticsearch Cluster. See <a class="externalLink" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/important-settings.html#cluster.name">here</a></p></div>
+<div class="section">
+<h3><a name="es.ip"></a><tt>es.ip</tt></h3>
+<p>Specifies the nodes in the elasticsearch cluster to use for writing. The format is one of the following:</p>
 
 <ul>
   
-<li>A JUnit test directly testing your parser class.</li>
+<li>A hostname or IP address with a port (e.g. <tt>hostname1:1234</tt>), in which case <tt>es.port</tt> is ignored.</li>
   
-<li>An Integration test validating that your parser class can parse messages inside the <tt>ParserBolt</tt>.</li>
-</ul>
+<li>A hostname or IP address without a port (e.g. <tt>hostname1</tt>), in which case <tt>es.port</tt> is used.</li>
+  
+<li>A string containing a CSV of hostnames without ports (e.g. <tt>hostname1,hostname2,hostname3</tt>) without spaces between. <tt>es.port</tt> is assumed to be the port for each host.</li>
+  
+<li>A string containing a CSV of hostnames with ports (e.g. <tt>hostname1:1234,hostname2:1234,hostname3:1234</tt>) without spaces between. <tt>es.port</tt> is ignored.</li>
+  
+<li>A list of hostnames with ports (e.g. <tt>[ &quot;hostname1:1234&quot;, &quot;hostname2:1234&quot;]</tt>). Note, <tt>es.port</tt> is NOT used in this construction.</li>
+</ul></div>
 <div class="section">
-<h2><a name="The_JUnit_Test"></a>The JUnit Test</h2>
-<p>The JUnit Test should be focused on testing your Parser directly. You should feel free to use mocks or stubs or whatever else you need to completely test that unit of functionality.</p></div>
+<h3><a name="es.port"></a><tt>es.port</tt></h3>
+<p>The port for the elasticsearch hosts. This will be used in accordance with the discussion of <tt>es.ip</tt>.</p></div>
 <div class="section">
-<h2><a name="The_Integration_Test"></a>The Integration Test</h2>
-<p>Integration tests are more structured. The intent is that the parser that you have implemented can be driven successfully from <tt>org.apache.metron.parsers.bolt.ParserBolt</tt>.</p>
-<p>The procedure for creating a new test is as follows:</p>
-
-<ul>
-  
-<li>Create an integration test that extends <tt>org.apache.metron.parsers.integration.ParserIntegrationTest</tt>
-  
-<ul>
-    
-<li>Override <tt>getSensorType()</tt> to return the sensor type to be used in the test (referred to as <tt>${sensor_type}</tt> at times)</li>
-    
-<li>Override <tt>getValidations()</tt> to indicate how you want the output of the parser to be validated (more on validations later)</li>
-    
-<li>Optionally <tt>readSensorConfig(String sensorType)</tt> to read the sensor config
-    
-<ul>
-      
-<li>By default, we will pull this from <tt>metron-parsers/src/main/config/zookeeper/parsers/${sensor_type}</tt>. Override if you want to provide your own</li>
-    </ul></li>
-    
-<li>Optionally <tt>readGlobalConfig()</tt> to return the global config
-    
-<ul>
-      
-<li>By default, we will pull this from <tt>metron-integration-test/src/main/config/zookeeper/global.json)</tt>. Override if you want to provide your own</li>
-    </ul></li>
-  </ul></li>
-  
-<li>Place sample input data in <tt>metron-integration-test/src/main/sample/data/${sensor_type}/raw</tt>
-  
-<ul>
-    
-<li>It should be one line per input record.</li>
-  </ul></li>
-  
-<li>Place expected output based on sample data in <tt>metron-integration-test/src/main/sample/data/${sensor_type}/parsed</tt>
-  
-<ul>
-    
-<li>Line <tt>k</tt> in the expected data should match with line <tt>k</tt></li>
-  </ul></li>
-</ul>
-<p>The way these tests function is by creating a <tt>ParserBolt</tt> instance with your specified global configuration and sensor configuration. It will then send your specified sample input data in line-by-line. It will then perform some basic sanity validation:</p>
-
-<ul>
-  
-<li>Ensure no errors were logged</li>
-  
-<li>Execute your specified validation methods</li>
-</ul>
+<h3><a name="es.date.format"></a><tt>es.date.format</tt></h3>
+<p>The date format to use when constructing the indices. For every message, the date format will be applied to the current time and that will become the last part of the index name where the message is written to.</p>
+<p>For instance, an <tt>es.date.format</tt> of <tt>yyyy.MM.dd.HH</tt> would have the consequence that the indices would roll hourly, whereas an <tt>es.date.format</tt> of <tt>yyyy.MM.dd</tt> would have the consequence that the indices would roll daily.</p></div></div>
 <div class="section">
-<h3><a name="Validations"></a>Validations</h3>
-<p>Validations are functions which indicate how one should validate the parsed messages. The basic one which is sufficient for most cases is <tt>org.apache.metron.parsers.integration.validation.SampleDataValidation</tt>. This will read the expected results from <tt>metron-integration-test/src/main/sample/data/${sensor_type}/parsed</tt> and validate that the actual parsed message conforms (excluding timestamp).</p>
-<p>If you have special validations required, you may implement your own and return an instance of that in the <tt>getValidations()</tt> method of your Integration Test.</p></div>
-<div class="section">
-<h3><a name="Sample_Integration_Test"></a>Sample Integration Test</h3>
-<p>A sample integration test for the <tt>snort</tt> parser is as follows:</p>
+<h2><a name="Using_Metron_with_Elasticsearch_2.x"></a>Using Metron with Elasticsearch 2.x</h2>
+<p>With Elasticsearch 2.x, there is a requirement that all sensors templates have a nested alert field defined. This field is a dummy field, and will be obsolete in Elasticsearch 5.x. See <a class="externalLink" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_ignoring_unmapped_fields">Ignoring Unmapped Fields</a> for more information</p>
+<p>Without this field, an error will be thrown during ALL searches (including from UIs, resulting in no alerts being found for any sensor). This error will be found in the REST service&#x2019;s logs.</p>
+<p>Exception seen:</p>
 
 <div class="source">
 <div class="source">
-<pre>public class SnortIntegrationTest extends ParserIntegrationTest {
-  @Override
-  String getSensorType() {
-    return &quot;snort&quot;;
-  }
+<pre>QueryParsingException[[nested] failed to find nested object under path [alert]];
+</pre></div></div>
+<p>There are two steps to resolve this issue. First is to update the Elasticsearch template for each sensor, so any new indices have the field. This requires retrieving the template, removing an extraneous JSON field so we can put it back later, and adding our new field.</p>
+<p>Make sure to set the ELASTICSEARCH variable appropriately. $SENSOR can contain wildcards, so if rollover has occurred, it&#x2019;s not necessary to do each index individually. The example here appends <tt>index*</tt> to get all indexes for a the provided sensor.</p>
 
-  @Override
-  List&lt;ParserValidation&gt; getValidations() {
-    return new ArrayList&lt;ParserValidation&gt;() {{
-      add(new SampleDataValidation());
-    }};
-  }
+<div class="source">
+<div class="source">
+<pre>export ELASTICSEARCH=&quot;node1&quot;
+export SENSOR=&quot;bro&quot;
+curl -XGET &quot;http://${ELASTICSEARCH}:9200/_template/${SENSOR}_index*?pretty=true&quot; -o &quot;${SENSOR}.template&quot;
+sed -i '' '2d;$d' ./${SENSOR}.template
+sed -i '' '/&quot;properties&quot; : {/ a\
+&quot;alert&quot;: { &quot;type&quot;: &quot;nested&quot;},' ${SENSOR}.template
+</pre></div></div>
+<p>To manually verify this, you can optionally pretty print it again with:</p>
+
+<div class="source">
+<div class="source">
+<pre>python -m json.tool bro.template
+</pre></div></div>
+<p>We&#x2019;ll want to put the template back into Elasticsearch:</p>
+
+<div class="source">
+<div class="source">
+<pre>curl -XPUT &quot;http://${ELASTICSEARCH}:9200/_template/${SENSOR}_index&quot; -d @${SENSOR}.template
+</pre></div></div>
+<p>To update existing indexes, update Elasticsearch mappings with the new field for each sensor. </p>
+
+<div class="source">
+<div class="source">
+<pre>curl -XPUT &quot;http://${ELASTICSEARCH}:9200/${SENSOR}_index*/_mapping/${SENSOR}_doc&quot; -d '
+{
+        &quot;properties&quot; : {
+          &quot;alert&quot; : {
+            &quot;type&quot; : &quot;nested&quot;
+          }
+        }
 }
-</pre></div></div></div></div>
+'
+rm ${SENSOR}.template
+</pre></div></div></div>
+<div class="section">
+<h2><a name="Installing_Elasticsearch_Templates"></a>Installing Elasticsearch Templates</h2>
+<p>The stock set of Elasticsearch templates for bro, snort, yaf, error index and meta index are installed automatically during the first time install and startup of Metron Indexing service.</p>
+<p>It is possible that Elasticsearch service is not available when the Metron Indexing Service startup, in that case the Elasticsearch template will not be installed. </p>
+<p>For such a scenario, an Admin can have the template installed in two ways:</p>
+<p><i>Method 1</i> - Manually from the Ambari UI by following the flow: Ambari UI -&gt; Services -&gt; Metron -&gt; Service Actions -&gt; Elasticsearch Template Install</p>
+<p><i>Method 2</i> - Stop the Metron Indexing service, and start it again from Ambari UI. Note that the Metron Indexing service tracks if it has successfully installed the Elasticsearch templates, and will attempt to do so each time it is Started until successful.</p>
+
+<blockquote>
+<p>Note: If you have made any customization to your index templates, then installing Elasticsearch templates afresh will lead to overwriting your existing changes. Please exercise caution.</p>
+</blockquote></div>
                   </div>
             </div>
           </div>
