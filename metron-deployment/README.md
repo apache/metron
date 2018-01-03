@@ -63,7 +63,7 @@ This will deploy Metron and all of its dependencies on a virtual machine running
 
 * This VM should **not** be used to run a proof-of-concept for Apache Metron within your organization.
 
-Running Metron within the resource constraints of a single VM is incredibly challenging. Failing to respect this warning, will cause various services to fail mysteriously as the system runs into memory and processing limits. 
+Running Metron within the resource constraints of a single VM is incredibly challenging. Failing to respect this warning, will cause various services to fail mysteriously as the system runs into memory and processing limits.
 
 #### How?
 
@@ -99,7 +99,7 @@ This builds installable DEB packages that allow you to install Metron on an APT-
 
 * If you want to manually install Metron on a APT-based system like Ubuntu, installation can be simplified by using these packages.
 
-* If you want a guided installation process using Ambari on an APT-based system, then these RPMs are a necessary prerequisite.
+* If you want a guided installation process using Ambari on an APT-based system, then these DEBs are a necessary prerequisite.
 
 #### What is this **not** good for?
 
