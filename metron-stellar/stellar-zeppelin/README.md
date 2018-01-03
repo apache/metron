@@ -16,11 +16,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-# Stellar Interpreter for Apache Zeppelin
+Stellar Interpreter for Apache Zeppelin
+=======================================
 
 [Apache Zeppelin](https://zeppelin.apache.org/) is a web-based notebook that enables data-driven, interactive data analytics and collaborative documents with SQL, Scala and more.  This project provides a means to run the Stellar REPL directly within a Zeppelin Notebook.
 
-## Installation
+* [Installation](#installation)
+* [Usage](#usage)
+
+
+Installation
+------------
 
 Currently, you need to manually install the Stellar Interpreter in Zeppelin. In the future this step could be automated by the Metron Mpack.
 
@@ -44,8 +50,8 @@ To install the Stellar Interpreter in your Apache Zeppelin installation, follow 
     cat <<EOF > $ZEPPELIN_HOME/interpreter/stellar/interpreter-setting.json
     [
       {
-        "group": "Metron",
-        "name": "Stellar",
+        "group": "stellar",
+        "name": "stellar",
         "className": "org.apache.metron.stellar.zeppelin.StellarInterpreter",
         "properties": {
         }
@@ -87,7 +93,7 @@ To install the Stellar Interpreter in your Apache Zeppelin installation, follow 
 
     1. Define the following values.
         * **Interpreter Name** = `stellar`
-        * **Interpreter Group** = `Metron`
+        * **Interpreter Group** = `stellar`
 
     1. Under **Options**, set the following values.
         * The interpreter will be instantiated **Per Note**  in **isolated** process.
@@ -103,25 +109,41 @@ To install the Stellar Interpreter in your Apache Zeppelin installation, follow 
 
     1. Once the icon is shown as green, the interpreter is ready to work.
 
+Usage
+-----
+
 1. Create a new notebook.  
 
-    1. Click on "Notebook" > "Create new note".  Set the default Interpreter to Stellar.
+    1. Click on "Notebook" > "Create new note".
 
-1. Execute Stellar in your notebook.
+    1. Set the default Interpreter to `stellar`.
 
-    1. In the first block, add the following Stellar, then click Run.
+        When creating the notebook, if you define `stellar` as the default interpreter, then there is no need to enter `%stellar` at the top of each code block.
+        
+        If `stellar` is not the default interpreter, then you must enter `%stellar` at the top of a code block containing Stellar code.
 
-        ```
-        %stellar
+1. In the first block, add the following Stellar, then click Run.
 
-        2 in [2,3,4]
-        ```
-    1. In the next block, check which functions are available to you.
+    ```
+    2 in [2,3,4]
+    ```
+        
+1. In the next block, check which functions are available to you.
 
-        ```
-        %stellar
+    ```
+    %functions
+    ```
+        
+    You will **only** 'see' the functions defined within `stellar-common` since that is the only library that we added to the interpreter.  
+    
+1. To see how additional functions can be added, go back to the Stellar interpreter configuration and add another dependency as follows.
+    
+    ```
+    org.apache.metron:metron-statistics:0.4.3
+    ```
+    
+    Reload the Stellar interpreter and run `%functions` again.  You will see the additional functions defined within the `metron-statistics` project.
+    
+1. Auto-completion is also available for Stellar expressions.  
 
-        %functions
-        ```
-
-    1. Try out auto-completion.  In another block, type 'TO_' then press CTRL+. which will trigger the auto-complete mechanism in Stellar.
+    In another block, type 'TO_' then press 'CTRL' and '.' (control key and period key). This will trigger the auto-complete mechanism in Stellar and display a list of matching functions or variables.
