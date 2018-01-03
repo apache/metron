@@ -66,14 +66,6 @@ This allows you to easily install Metron using a simple, guided process.  This a
 
 The MPack will make all Metron services available in Ambari in the same manner as any other services in a stack.  These can be installed using Ambari's user interface using "Add Services" or during an initial cluster install.
 
-#### Co-Location
-
-1. The Parsers, Enrichment, Indexing, and Profiler masters should be colocated on a host with a Kafka Broker.  This is necessary so that the correct Kafka topics can be created.
-
-1. The Enrichment and Profiler masters should be colocated on a host with an HBase client.  This is necessary so that the Enrichment, Threat Intel, and Profile tables can be created.
-
-This colocation is currently not enforced by Ambari and should be managed by either a Service or Stack advisor as an enhancement.
-
 #### Kerberization
 
 The MPack allows Metron to be automatically kerberized in two different ways.  
@@ -119,8 +111,6 @@ The RPMs DO NOT reach out to the internet (because there is currently no hosting
 There are a few limitations that should be addressed to improve the Metron MPack installation.
 
 * There is no external hosting for Metron packages (either RPMs or DEBs).  These have to be built locally and installed on each host in a repository located at `/localrepo`.
-
-* Colocation of services should be enforced by Ambari.  
 
 * Several configuration parameters used when installing Metron could retrieved from Ambari rather than requiring user input.  
 
