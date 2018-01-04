@@ -17,17 +17,23 @@
  */
 package org.apache.metron.stellar.common.shell.cli;
 
+import com.google.common.collect.Iterables;
+import org.jboss.aesh.complete.CompleteOperation;
+import org.jboss.aesh.console.AeshContext;
 import org.jboss.aesh.console.ConsoleOperation;
 import org.jboss.aesh.console.operator.ControlOperator;
+import org.jboss.aesh.console.settings.DefaultAeshContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 /**
  * Tests the StellarShell class.
@@ -59,11 +65,19 @@ public class StellarShellTest {
   }
 
   /**
-   * @return The data written to stdout during the test.
+   * @return The data written to stdout during the test (with newlines stripped out to simplify comparisons.)
    */
   private String stdout() {
     return out.toString().replace(System.lineSeparator(), "");
   }
+
+  /**
+   * @return The data written to stdout during the test.
+   */
+  private String stdoutWithNewlines() {
+    return out.toString();
+  }
+
 
   /**
    * @return The data written to stderr during the test.
@@ -122,5 +136,64 @@ public class StellarShellTest {
   public void testExecuteNoop() throws Exception {
     stellarShell.execute(createOp("x"));
     assertEquals("", stdout());
+  }
+
+  /**
+   * The REPL should handle if the user chooses to quit.
+   */
+  @Test
+  public void testQuit() throws Exception {
+    stellarShell.execute(createOp("quit"));
+
+    // the console should not be running
+    assertFalse(stellarShell.getConsole().isRunning());
+  }
+
+  /**
+   * The REPL should handle if the user chooses to quit.
+   */
+  @Test
+  public void testStart() throws Exception {
+
+    StellarShell.main(new String[0]);
+
+    // we should see the welcome prompt
+    assertTrue(stdoutWithNewlines().contains(StellarShell.WELCOME));
+  }
+
+  /**
+   * The REPL should support auto-completion.
+   */
+  @Test
+  public void testAutoComplete() throws Exception {
+
+    // the user's input that needs auto-completed
+    final String buffer = "TO_";
+
+    // the cursor is at the end of the buffer
+    int cursor = buffer.length();
+
+    // ask the shell to auto-complete
+    AeshContext context = new DefaultAeshContext();
+    CompleteOperation op = new CompleteOperation(context, buffer, cursor);
+    stellarShell.complete(op);
+
+    // we should have some auto-complete candidates
+    List<String> candidates = op.getFormattedCompletionCandidates();
+    assertTrue(candidates.size() > 0);
+
+    // validate each candidate
+    for(String candidate: candidates) {
+      String completion = buffer + candidate;
+
+      // the auto-complete should include an open paren
+      assertEquals("(", completion.substring(completion.length() - 1));
+
+      // the candidate should be a valid, defined function
+      String function = completion.substring(0, completion.length() - 1);
+      Iterable<String> allFunctions = stellarShell.getExecutor().getFunctionResolver().getFunctions();
+      String definedFunction = Iterables.find(allFunctions, (fn) -> fn.equals(function));
+      assertEquals(function, definedFunction);
+    }
   }
 }

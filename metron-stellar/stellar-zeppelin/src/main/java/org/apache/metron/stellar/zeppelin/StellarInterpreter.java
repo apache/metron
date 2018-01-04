@@ -154,4 +154,11 @@ public class StellarInterpreter extends Interpreter {
 
     return completes;
   }
+
+  /**
+   * @return The executor of Stellar expressions.
+   */
+  public StellarShellExecutor getExecutor() {
+    return executor;
+  }
 }

@@ -17,12 +17,15 @@
  */
 package org.apache.metron.stellar.zeppelin;
 
+import com.google.common.collect.Iterables;
 import org.apache.zeppelin.interpreter.InterpreterContext;
 import org.apache.zeppelin.interpreter.InterpreterResult;
 import org.apache.zeppelin.interpreter.InterpreterResultMessage;
+import org.apache.zeppelin.interpreter.thrift.InterpreterCompletion;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
@@ -134,6 +137,37 @@ public class StellarInterpreterTest {
     InterpreterResultMessage message = result.message().get(0);
     assertEquals(0, message.getData().length());
     assertEquals(InterpreterResult.Type.TEXT, message.getType());
+  }
+
+  /**
+   * The interpreter should support auto-completion.
+   */
+  @Test
+  public void testAutoCompletion() {
+
+    // the user's input that needs auto-completed
+    final String buffer = "TO_";
+
+    // the cursor is at the end of the buffer
+    int cursor = buffer.length();
+
+    List<InterpreterCompletion> completions = interpreter.completion(buffer, cursor);
+
+    // expect some completions to be offered
+    assertTrue(completions.size() > 0);
+
+    for(InterpreterCompletion iCompletion: completions) {
+      String completion = iCompletion.getValue();
+
+      // the auto-complete should include an open paren
+      assertEquals("(", completion.substring(completion.length() - 1));
+
+      // the candidate should be a valid, defined function
+      String function = completion.substring(0, completion.length() - 1);
+      Iterable<String> allFunctions = interpreter.getExecutor().getFunctionResolver().getFunctions();
+      String definedFunction = Iterables.find(allFunctions, (fn) -> fn.equals(function));
+      assertEquals(function, definedFunction);
+    }
   }
 
 }

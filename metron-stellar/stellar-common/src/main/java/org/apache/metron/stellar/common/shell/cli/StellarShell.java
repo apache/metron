@@ -70,7 +70,7 @@ import static org.apache.metron.stellar.dsl.Context.Capabilities.SHELL_VARIABLES
  */
 public class StellarShell extends AeshConsoleCallback implements Completion {
 
-  private static final String WELCOME = "Stellar, Go!\n" +
+  static final String WELCOME = "Stellar, Go!\n" +
           "Functions are loading lazily in the background and will be unavailable until loaded fully.";
 
   private List<TerminalCharacter> EXPRESSION_PROMPT = new ArrayList<TerminalCharacter>()
