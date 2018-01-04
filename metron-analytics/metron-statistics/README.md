@@ -235,12 +235,30 @@ functions can be used from everywhere where Stellar is used.
   * Returns: The MAD state
 
 #### `OUTLIER_MAD_SCORE`
-  * Description: Get the modified z-score normalized by the MAD: scale * | x_i - median(X) | / MAD.  See the first page of http://web.ipac.caltech.edu/staff/fmasci/home/astro_refs/BetterThanMAD.pdf
+  * Description: Get the modified z-score normalized by the MAD: scale * | x_i - median(X) | / MAD.  See the first page of [this](http://web.ipac.caltech.edu/staff/fmasci/home/astro_refs/BetterThanMAD.pdf)
   * Input:
     * state - The MAD state
     * value - The numeric value to score
-    * scale? - Optionally the scale to use when computing the modified z-score.  Default is `0.6745`, see the first page of http://web.ipac.caltech.edu/staff/fmasci/home/astro_refs/BetterThanMAD.pdf
-  * Returns: The modified z-score 
+    * scale? - Optionally the scale to use when computing the modified z-score.  Default is `0.6745`, see the first page of [this](http://web.ipac.caltech.edu/staff/fmasci/home/astro_refs/BetterThanMAD.pdf)
+  * Returns: The modified z-score
+
+#### `OUTLIER_RPCA_SCORE`
+  * Description: This is an outlier detector based on Netflix's Surus' implementation of the Robust PCA-based Outlier Detector.
+                 See [here](https://medium.com/netflix-techblog/rad-outlier-detection-on-big-data-d6b0494371cc)
+                 and [here](https://metamarkets.com/2012/algorithmic-trendspotting-the-meaning-of-interesting/) for a high level
+                 treatment of this approach.  A more formal treatment can be found at [Candes, Li, et al](http://statweb.stanford.edu/~candes/papers/RobustPCA.pdf)
+                 and [Zhou](http://arxiv.org/abs/1001.2363).  Note: This is a computationally intense outlier detector, so
+                 it should be run if a less computationally intense detector has indicated a potential outlier (e.g. statistical baselining).
+                 Further note that the data input is presumed to be dense.
+  * Input:
+    * ts - The time series data to consider (an iterable of doubles).  Please ensure that it is largely time ordered.
+    * value - The value to score.
+    * config? - The config for the outlier analyzer in the form of a Map.  All of these have sensible defaults.
+                  Possible configs keys are
+                  "lpenalty", "spenalty" (see Zhou for more detail, defaults are sensible)
+                  , "minNonZero" (minimum number of non-zero elements, default is 0.)
+                  , "forceDiff" (force data to be stationary by differencing it.  See [here](https://people.duke.edu/~rnau/411diff.htm)).
+  * Returns: The residual error for the value.  Generally if `> 0`, then an there's an indication that it's an outlier.
 
 # Outlier Analysis
 
