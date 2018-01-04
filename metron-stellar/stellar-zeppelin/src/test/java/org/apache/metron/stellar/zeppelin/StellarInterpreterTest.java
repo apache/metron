@@ -23,6 +23,8 @@ import org.apache.zeppelin.interpreter.InterpreterResultMessage;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
@@ -60,6 +62,42 @@ public class StellarInterpreterTest {
     // validate the message
     InterpreterResultMessage message = result.message().get(0);
     assertEquals("4", message.getData());
+    assertEquals(InterpreterResult.Type.TEXT, message.getType());
+  }
+
+  /**
+   * Ensure that Stellar lists are displayed correctly in Zeppelin.
+   */
+  @Test
+  public void testExecuteWithStellarList() {
+    final String expected = "[1, 2, 3, 4, 5]";
+    InterpreterResult result = interpreter.interpret("[1,2,3,4,5]", context);
+
+    // validate the result
+    assertEquals(InterpreterResult.Code.SUCCESS, result.code());
+    assertEquals(1, result.message().size());
+
+    // validate the message
+    InterpreterResultMessage message = result.message().get(0);
+    assertEquals(expected, message.getData());
+    assertEquals(InterpreterResult.Type.TEXT, message.getType());
+  }
+
+  /**
+   * Ensure that Stellar maps are displayed correctly in Zeppelin.
+   */
+  @Test
+  public void testExecuteWithStellarMap() {
+    final String expected = "{foo=2, key=val}";
+    InterpreterResult result = interpreter.interpret("{ 'foo':2, 'key':'val' }", context);
+
+    // validate the result
+    assertEquals(InterpreterResult.Code.SUCCESS, result.code());
+    assertEquals(1, result.message().size());
+
+    // validate the message
+    InterpreterResultMessage message = result.message().get(0);
+    assertEquals(expected, message.getData());
     assertEquals(InterpreterResult.Type.TEXT, message.getType());
   }
 

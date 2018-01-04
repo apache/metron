@@ -19,9 +19,13 @@
  */
 package org.apache.metron.stellar.common.shell;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -74,6 +78,45 @@ public class DefaultStellarShellExecutorTest {
       assertEquals(10, result.getValue().get());
       assertEquals(10, executor.getVariables().get("z"));
     }
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testAssignmentOfLists() {
+    List<Integer> expected = Arrays.asList(1,2,3,4,5);
+
+    // assign a list to a variable
+    StellarResult result = executor.execute("x := [1,2,3,4,5]");
+
+    // the result should be a list
+    assertTrue(result.isSuccess());
+    assertTrue(result.getValue().isPresent());
+    assertEquals(expected, result.getValue().get());
+
+    // the variable should also be the same list
+    List<Integer> variable = (List<Integer>) executor.getVariables().get("x");
+    assertEquals(expected, variable);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testAssignmentOfMaps() {
+    Map<String, Integer> expected = ImmutableMap.<String, Integer>builder()
+            .put("a", 10)
+            .put("b", 20)
+            .build();
+
+    // assign a list to a variable
+    StellarResult result = executor.execute("x := {'a':10, 'b':20}");
+
+    // the result should be a map
+    assertTrue(result.isSuccess());
+    assertTrue(result.getValue().isPresent());
+    assertEquals(expected, result.getValue().get());
+
+    // the variable should also be the same list
+    Map<String, Integer> variable = (Map<String, Integer>) executor.getVariables().get("x");
+    assertEquals(expected, variable);
   }
 
   @Test

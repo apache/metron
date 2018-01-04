@@ -34,9 +34,8 @@ import org.apache.log4j.PropertyConfigurator;
 import org.apache.metron.stellar.common.shell.DefaultStellarAutoCompleter;
 import org.apache.metron.stellar.common.shell.DefaultStellarShellExecutor;
 import org.apache.metron.stellar.common.shell.StellarAutoCompleter;
-import org.apache.metron.stellar.common.shell.StellarShellExecutor;
 import org.apache.metron.stellar.common.shell.StellarResult;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.metron.stellar.common.shell.StellarShellExecutor;
 import org.apache.metron.stellar.common.utils.JSONUtils;
 import org.jboss.aesh.complete.CompleteOperation;
 import org.jboss.aesh.complete.Completion;
@@ -360,7 +359,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
 
       if(result.isSuccess()) {
         // on success
-        result.getValue().ifPresent(v -> writeLine(ConversionUtils.convert(v, String.class)));
+        result.getValue().ifPresent(v -> writeLine(v.toString()));
 
       } else if (result.isError()) {
         // on error
@@ -410,5 +409,19 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
       return baseString;
     }
     return baseString.substring(0, index);
+  }
+
+  /**
+   * @return The executor of Stellar expressions.
+   */
+  public StellarShellExecutor getExecutor() {
+    return executor;
+  }
+
+  /**
+   * @return The console.
+   */
+  public Console getConsole() {
+    return console;
   }
 }

@@ -22,9 +22,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.metron.stellar.common.shell.DefaultStellarAutoCompleter;
 import org.apache.metron.stellar.common.shell.DefaultStellarShellExecutor;
 import org.apache.metron.stellar.common.shell.StellarAutoCompleter;
-import org.apache.metron.stellar.common.shell.StellarShellExecutor;
 import org.apache.metron.stellar.common.shell.StellarResult;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.metron.stellar.common.shell.StellarShellExecutor;
 import org.apache.zeppelin.interpreter.Interpreter;
 import org.apache.zeppelin.interpreter.InterpreterContext;
 import org.apache.zeppelin.interpreter.InterpreterResult;
@@ -106,7 +105,7 @@ public class StellarInterpreter extends Interpreter {
       if(stellarResult.isSuccess()) {
         // on success - if no result, use a blank value
         Object value = stellarResult.getValue().orElse("");
-        String text = ConversionUtils.convert(value, String.class);
+        String text = value.toString();
         result = new InterpreterResult(SUCCESS, TEXT, text);
 
       } else if(stellarResult.isError()) {
