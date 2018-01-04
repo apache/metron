@@ -95,33 +95,35 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
         Iterator<String> mappingIterator = mapping.keysIt();
         while (mappingIterator.hasNext()) {
           MappingMetaData mappingMetaData = mapping.get(mappingIterator.next());
-          Map<String, Map<String, String>> map = (Map<String, Map<String, String>>) mappingMetaData
-                  .getSourceAsMap().get("properties");
+          Map<String, Object> sourceAsMap = mappingMetaData.getSourceAsMap();
+          if (sourceAsMap.containsKey("properties")) {
+            Map<String, Map<String, String>> map = (Map<String, Map<String, String>>) sourceAsMap.get("properties");
 
-          // for each field in the mapping
-          for (String field : map.keySet()) {
-            if (!fieldBlackList.contains(field)) {
-              FieldType type = toFieldType(map.get(field).get("type"));
+            // for each field in the mapping
+            for (String field : map.keySet()) {
+              if (!fieldBlackList.contains(field)) {
+                FieldType type = toFieldType(map.get(field).get("type"));
 
-              if(!indexColumnMetadata.containsKey(field)) {
-                indexColumnMetadata.put(field, type);
+                if(!indexColumnMetadata.containsKey(field)) {
+                  indexColumnMetadata.put(field, type);
 
-                // record the last index in which a field exists, to be able to print helpful error message on type mismatch
-                previousIndices.put(field, indexName);
+                  // record the last index in which a field exists, to be able to print helpful error message on type mismatch
+                  previousIndices.put(field, indexName);
 
-              } else {
-                FieldType previousType = indexColumnMetadata.get(field);
-                if (!type.equals(previousType)) {
-                  String previousIndexName = previousIndices.get(field);
-                  LOG.error(String.format(
-                          "Field type mismatch: %s.%s has type %s while %s.%s has type %s.  Defaulting type to %s.",
-                          indexName, field, type.getFieldType(),
-                          previousIndexName, field, previousType.getFieldType(),
-                          FieldType.OTHER.getFieldType()));
-                  indexColumnMetadata.put(field, FieldType.OTHER);
+                } else {
+                  FieldType previousType = indexColumnMetadata.get(field);
+                  if (!type.equals(previousType)) {
+                    String previousIndexName = previousIndices.get(field);
+                    LOG.error(String.format(
+                        "Field type mismatch: %s.%s has type %s while %s.%s has type %s.  Defaulting type to %s.",
+                        indexName, field, type.getFieldType(),
+                        previousIndexName, field, previousType.getFieldType(),
+                        FieldType.OTHER.getFieldType()));
+                    indexColumnMetadata.put(field, FieldType.OTHER);
 
-                  // the field is defined in multiple indices with different types; ignore the field as type has been set to OTHER
-                  fieldBlackList.add(field);
+                    // the field is defined in multiple indices with different types; ignore the field as type has been set to OTHER
+                    fieldBlackList.add(field);
+                  }
                 }
               }
             }
