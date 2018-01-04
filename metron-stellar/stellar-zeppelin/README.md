@@ -146,4 +146,4 @@ Usage
     
 1. Auto-completion is also available for Stellar expressions.  
 
-    In another block, type 'TO_' then press 'CTRL' and '.' (control key and period key). This will trigger the auto-complete mechanism in Stellar and display a list of matching functions or variables.
+    In another block, type 'TO_' then press the <kbd>CTRL</kbd> + <kbd>PERIOD</kbd> keys. This will trigger the auto-complete mechanism in Stellar and display a list of matching functions or variables.
