@@ -23,7 +23,7 @@ limitations under the License.
 * [Properties](#properties)
 * [Upgrading to 5.6.2](#upgrading-to-562)
 * [Type Mappings](#type-mappings)
-* [Using Metron with Elasticsearch 5.x](#using-metron-with-elasticsearch-5x)
+* [Using Metron with Elasticsearch 5.6.2](#using-metron-with-elasticsearch-562)
 * [Installing Elasticsearch Templates](#installing-elasticsearch-templates)
 
 ## Introduction
@@ -271,7 +271,7 @@ Notes on other settings for types in ES
 
 ## Using Metron with Elasticsearch 5.6.2
 
-With Elasticsearch 2.x, there is a requirement that all sensors templates have a nested alert field defined.  This field is a dummy field, and will be obsolete in Elasticsearch 5.x.  See [Ignoring Unmapped Fields](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_ignoring_unmapped_fields) for more information
+There is a requirement that all sensors templates have a nested alert field defined.  This field is a dummy field.  See [Ignoring Unmapped Fields](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_ignoring_unmapped_fields) for more information
 
 Without this field, an error will be thrown during ALL searches (including from UIs, resulting in no alerts being found for any sensor). This error will be found in the REST service's logs.
 
@@ -282,7 +282,7 @@ QueryParsingException[[nested] failed to find nested object under path [alert]];
 
 There are two steps to resolve this issue.  First is to update the Elasticsearch template for each sensor, so any new indices have the field. This requires retrieving the template, removing an extraneous JSON field so we can put it back later, and adding our new field.
 
-Make sure to set the ELASTICSEARCH variable appropriately. $SENSOR can contain wildcards, so if rollover has occurred, it's not necessary to do each index individually. The example here appends `index*` to get all indexes for a the provided sensor.
+Make sure to set the ELASTICSEARCH variable appropriately. $SENSOR can contain wildcards, so if rollover has occurred, it's not necessary to do each index individually. The example here appends `index*` to get all indexes for the provided sensor.
 
 ```
 export ELASTICSEARCH="node1"
