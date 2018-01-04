@@ -34,9 +34,11 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the HBaseProfilerClient.
@@ -99,12 +101,15 @@ public class HBaseProfilerClientTest {
     profileWriter.write(m, count, Arrays.asList("weekdays"), val -> expectedValue);
     profileWriter.write(m, count, Arrays.asList("weekends"), val -> 0);
 
-    // execute
-    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", Arrays.asList("weekdays"), hours, TimeUnit.HOURS);
+    //valid results
+    {
+      // execute
+      List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", Arrays.asList("weekdays"), hours, TimeUnit.HOURS, Optional.empty());
 
-    // validate
-    assertEquals(count, results.size());
-    results.forEach(actual -> assertEquals(expectedValue, (int) actual));
+      // validate
+      assertEquals(count, results.size());
+      results.forEach(actual -> assertEquals(expectedValue, (int) actual));
+    }
   }
 
   /**
@@ -128,10 +133,19 @@ public class HBaseProfilerClientTest {
 
     // execute
     List<Object> doesNotExist = Arrays.asList("does-not-exist");
-    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", doesNotExist, hours, TimeUnit.HOURS);
+    {
+      List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", doesNotExist, hours, TimeUnit.HOURS, Optional.empty());
 
-    // validate
-    assertEquals(0, results.size());
+      // validate
+      assertEquals(0, results.size());
+    }
+    {
+      //with a default value, we'd expect a bunch of 0's
+      List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", doesNotExist, hours, TimeUnit.HOURS, Optional.of(0));
+      //8 or 9 15 minute periods in 2 hours depending on when you start
+      assertTrue(results.size() == 8 || results.size() == 9);
+      results.forEach(actual -> assertEquals(0, (int) actual));
+    }
   }
 
   /**
@@ -152,7 +166,7 @@ public class HBaseProfilerClientTest {
     profileWriter.write(m, hours * periodsPerHour, group, val -> 1000);
 
     // execute
-    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", group, 2, TimeUnit.MILLISECONDS);
+    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", group, 2, TimeUnit.MILLISECONDS, Optional.empty());
 
     // validate - there should NOT be any results from just 2 milliseconds ago
     assertEquals(0, results.size());
@@ -179,7 +193,7 @@ public class HBaseProfilerClientTest {
     profileWriter.write(m, count, Arrays.asList("weekends"), val -> 0);
 
     // execute
-    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", Arrays.asList("weekdays"), startTime, endTime);
+    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", Arrays.asList("weekdays"), startTime, endTime, Optional.empty());
 
     // validate
     assertEquals(count, results.size());
@@ -210,7 +224,7 @@ public class HBaseProfilerClientTest {
 
     // execute
     List<Object> doesNotExist = Arrays.asList("does-not-exist");
-    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", doesNotExist, startTime, endTime);
+    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", doesNotExist, startTime, endTime, Optional.empty());
 
     // validate
     assertEquals(0, results.size());
@@ -238,7 +252,7 @@ public class HBaseProfilerClientTest {
     // execute
     final long endFetchAt = System.currentTimeMillis();
     final long startFetchAt = endFetchAt - TimeUnit.MILLISECONDS.toMillis(30);
-    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", group, startFetchAt, endFetchAt);
+    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", group, startFetchAt, endFetchAt, Optional.empty());
 
     // validate - there should NOT be any results from just 2 milliseconds ago
     assertEquals(0, results.size());
