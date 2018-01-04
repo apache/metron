@@ -23,24 +23,26 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-
+/**
+ * Tests the StellarShell class.
+ */
 public class StellarShellTest {
 
-  StellarShell stellarShell;
-  ByteArrayOutputStream out = new ByteArrayOutputStream();
-  ByteArrayOutputStream err = new ByteArrayOutputStream();
+  private StellarShell stellarShell;
+  private ByteArrayOutputStream out;
+  private ByteArrayOutputStream err;
 
   @Before
   public void setup() throws Exception {
+
+    out = new ByteArrayOutputStream();
+    err = new ByteArrayOutputStream();
 
     // setup streams so that we can capture stdout
     System.setOut(new PrintStream(out));
