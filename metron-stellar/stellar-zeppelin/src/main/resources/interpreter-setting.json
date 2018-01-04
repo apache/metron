@@ -1,7 +1,7 @@
 [
   {
-    "group": "Metron",
-    "name": "Stellar",
+    "group": "stellar",
+    "name": "stellar",
     "className": "org.apache.metron.stellar.zeppelin.StellarInterpreter",
     "properties": {
     },
