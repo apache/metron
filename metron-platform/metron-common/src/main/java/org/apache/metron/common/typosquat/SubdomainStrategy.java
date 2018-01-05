@@ -20,6 +20,9 @@ package org.apache.metron.common.typosquat;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * A typo strategy around random subdomains (e.g. am.azon.com vs amazon.com)
+ */
 public class SubdomainStrategy implements TyposquattingStrategy{
 
   @Override

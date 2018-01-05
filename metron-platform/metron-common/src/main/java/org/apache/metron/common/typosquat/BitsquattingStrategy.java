@@ -20,6 +20,9 @@ package org.apache.metron.common.typosquat;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * See http://dinaburg.org/bitsquatting.html for more
+ */
 public class BitsquattingStrategy implements TyposquattingStrategy {
   public static int[] MASK = new int[] { 1, 2, 4, 8, 16, 32, 64, 128};
   @Override

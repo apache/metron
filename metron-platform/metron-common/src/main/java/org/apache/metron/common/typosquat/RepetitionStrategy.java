@@ -20,6 +20,9 @@ package org.apache.metron.common.typosquat;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Typo strategy around repeating existing characters.
+ */
 public class RepetitionStrategy implements TyposquattingStrategy {
   @Override
   public Set<String> generateCandidates(String domain) {

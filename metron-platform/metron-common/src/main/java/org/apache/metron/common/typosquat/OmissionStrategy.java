@@ -20,6 +20,9 @@ package org.apache.metron.common.typosquat;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * A typo strategy based on omitting characters.
+ */
 public class OmissionStrategy implements TyposquattingStrategy {
 
   @Override

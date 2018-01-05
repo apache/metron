@@ -20,6 +20,9 @@ package org.apache.metron.common.typosquat;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * A typo strategy around swapping vowels (e.g. omazon.com vs amazon.com)
+ */
 public class VowelSwapStrategy implements TyposquattingStrategy {
   private static Set<Character> VOWELS = new HashSet<Character>() {{
     add('a');

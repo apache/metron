@@ -20,6 +20,9 @@ package org.apache.metron.common.typosquat;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Typo strategy based on random insertion of common typos based on keyboard layout proximity.
+ */
 public class InsertionStrategy implements TyposquattingStrategy {
   @Override
   public Set<String> generateCandidates(String domain) {
