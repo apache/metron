@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="Date-Revision-yyyymmdd" content="20180103" />
     <meta http-equiv="Content-Language" content="en" />
-    <title>Metron &#x2013; Parser Contribution and Testing</title>
+    <title>Metron &#x2013; Introduction</title>
     <link rel="stylesheet" href="../../css/apache-maven-fluido-1.3.0.min.css" />
     <link rel="stylesheet" href="../../css/site.css" />
     <link rel="stylesheet" href="../../css/print.css" media="print" />
@@ -57,7 +57,7 @@
         Documentation</a>
         </li>
       <li class="divider ">/</li>
-        <li class="">Parser Contribution and Testing</li>
+        <li class="">Introduction</li>
         
                 
                     
@@ -131,99 +131,13 @@
           <i class="none"></i>
         Rest</a>
             </li>
-                                                                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                                                    
       <li>
     
                           <a href="../../metron-platform/index.html" title="Platform">
-          <i class="icon-chevron-down"></i>
+          <i class="icon-chevron-right"></i>
         Platform</a>
-                    <ul class="nav nav-list">
-                      
-      <li>
-    
-                          <a href="../../metron-platform/Performance-tuning-guide.html" title="Performance-tuning-guide">
-          <i class="none"></i>
-        Performance-tuning-guide</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-platform/metron-api/index.html" title="Api">
-          <i class="none"></i>
-        Api</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-platform/metron-common/index.html" title="Common">
-          <i class="none"></i>
-        Common</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-platform/metron-data-management/index.html" title="Data-management">
-          <i class="none"></i>
-        Data-management</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-platform/metron-elasticsearch/index.html" title="Elasticsearch">
-          <i class="none"></i>
-        Elasticsearch</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-platform/metron-enrichment/index.html" title="Enrichment">
-          <i class="none"></i>
-        Enrichment</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-platform/metron-indexing/index.html" title="Indexing">
-          <i class="none"></i>
-        Indexing</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-platform/metron-management/index.html" title="Management">
-          <i class="none"></i>
-        Management</a>
-            </li>
-                                                                                  
-      <li>
-    
-                          <a href="../../metron-platform/metron-parsers/index.html" title="Parsers">
-          <i class="icon-chevron-down"></i>
-        Parsers</a>
-                    <ul class="nav nav-list">
-                      
-      <li class="active">
-    
-            <a href="#"><i class="none"></i>parser-testing</a>
-          </li>
-              </ul>
-        </li>
-                      
-      <li>
-    
-                          <a href="../../metron-platform/metron-pcap-backend/index.html" title="Pcap-backend">
-          <i class="none"></i>
-        Pcap-backend</a>
-            </li>
-                      
-      <li>
-    
-                          <a href="../../metron-platform/metron-writer/index.html" title="Writer">
-          <i class="none"></i>
-        Writer</a>
-            </li>
-              </ul>
-        </li>
+                  </li>
                                                                                           
       <li>
     
@@ -232,12 +146,10 @@
         Sensors</a>
                   </li>
                       
-      <li>
+      <li class="active">
     
-                          <a href="../../metron-stellar/stellar-3rd-party-example/index.html" title="Stellar-3rd-party-example">
-          <i class="none"></i>
-        Stellar-3rd-party-example</a>
-            </li>
+            <a href="#"><i class="none"></i>Stellar-3rd-party-example</a>
+          </li>
                                                                         
       <li>
     
@@ -274,96 +186,9 @@
                 
         <div id="bodyColumn"  class="span9" >
                                   
-            <h1>Parser Contribution and Testing</h1>
-<p><a name="Parser_Contribution_and_Testing"></a></p>
-<p>So you want to contribute a parser to Apache Metron. First off, on behalf of the community, thank you very much! Now that you have implemented a parser by writing a java class which implements <tt>org.apache.metron.parsers.interfaces.MessageParser</tt> what are the testing expectations for a new parser?</p>
-<p>It is expected that a new parser have two tests:</p>
-
-<ul>
-  
-<li>A JUnit test directly testing your parser class.</li>
-  
-<li>An Integration test validating that your parser class can parse messages inside the <tt>ParserBolt</tt>.</li>
-</ul>
-<div class="section">
-<h2><a name="The_JUnit_Test"></a>The JUnit Test</h2>
-<p>The JUnit Test should be focused on testing your Parser directly. You should feel free to use mocks or stubs or whatever else you need to completely test that unit of functionality.</p></div>
-<div class="section">
-<h2><a name="The_Integration_Test"></a>The Integration Test</h2>
-<p>Integration tests are more structured. The intent is that the parser that you have implemented can be driven successfully from <tt>org.apache.metron.parsers.bolt.ParserBolt</tt>.</p>
-<p>The procedure for creating a new test is as follows:</p>
-
-<ul>
-  
-<li>Create an integration test that extends <tt>org.apache.metron.parsers.integration.ParserIntegrationTest</tt>
-  
-<ul>
-    
-<li>Override <tt>getSensorType()</tt> to return the sensor type to be used in the test (referred to as <tt>${sensor_type}</tt> at times)</li>
-    
-<li>Override <tt>getValidations()</tt> to indicate how you want the output of the parser to be validated (more on validations later)</li>
-    
-<li>Optionally <tt>readSensorConfig(String sensorType)</tt> to read the sensor config
-    
-<ul>
-      
-<li>By default, we will pull this from <tt>metron-parsers/src/main/config/zookeeper/parsers/${sensor_type}</tt>. Override if you want to provide your own</li>
-    </ul></li>
-    
-<li>Optionally <tt>readGlobalConfig()</tt> to return the global config
-    
-<ul>
-      
-<li>By default, we will pull this from <tt>metron-integration-test/src/main/config/zookeeper/global.json)</tt>. Override if you want to provide your own</li>
-    </ul></li>
-  </ul></li>
-  
-<li>Place sample input data in <tt>metron-integration-test/src/main/sample/data/${sensor_type}/raw</tt>
-  
-<ul>
-    
-<li>It should be one line per input record.</li>
-  </ul></li>
-  
-<li>Place expected output based on sample data in <tt>metron-integration-test/src/main/sample/data/${sensor_type}/parsed</tt>
-  
-<ul>
-    
-<li>Line <tt>k</tt> in the expected data should match with line <tt>k</tt></li>
-  </ul></li>
-</ul>
-<p>The way these tests function is by creating a <tt>ParserBolt</tt> instance with your specified global configuration and sensor configuration. It will then send your specified sample input data in line-by-line. It will then perform some basic sanity validation:</p>
-
-<ul>
-  
-<li>Ensure no errors were logged</li>
-  
-<li>Execute your specified validation methods</li>
-</ul>
-<div class="section">
-<h3><a name="Validations"></a>Validations</h3>
-<p>Validations are functions which indicate how one should validate the parsed messages. The basic one which is sufficient for most cases is <tt>org.apache.metron.parsers.integration.validation.SampleDataValidation</tt>. This will read the expected results from <tt>metron-integration-test/src/main/sample/data/${sensor_type}/parsed</tt> and validate that the actual parsed message conforms (excluding timestamp).</p>
-<p>If you have special validations required, you may implement your own and return an instance of that in the <tt>getValidations()</tt> method of your Integration Test.</p></div>
-<div class="section">
-<h3><a name="Sample_Integration_Test"></a>Sample Integration Test</h3>
-<p>A sample integration test for the <tt>snort</tt> parser is as follows:</p>
-
-<div class="source">
-<div class="source">
-<pre>public class SnortIntegrationTest extends ParserIntegrationTest {
-  @Override
-  String getSensorType() {
-    return &quot;snort&quot;;
-  }
-
-  @Override
-  List&lt;ParserValidation&gt; getValidations() {
-    return new ArrayList&lt;ParserValidation&gt;() {{
-      add(new SampleDataValidation());
-    }};
-  }
-}
-</pre></div></div></div></div>
+            <h1>Introduction</h1>
+<p><a name="Introduction"></a></p>
+<p>This is just a sample 3rd party stellar function (which is used in our unit testing). If Stellar changes its API (e.g. the annotation changes classes), then this will need to be built and the output jar of this (in <tt>target</tt>) will need to be placed in <tt>../stellar-common/src/test/classpath-resources/</tt>.</p>
                   </div>
             </div>
           </div>
