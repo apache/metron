@@ -20,6 +20,9 @@ package org.apache.metron.common.typosquat;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * A typo strategy based on adding characters between ascii 97 and 123.
+ */
 public class AdditionStrategy implements TyposquattingStrategy {
   @Override
   public Set<String> generateCandidates(String domain) {

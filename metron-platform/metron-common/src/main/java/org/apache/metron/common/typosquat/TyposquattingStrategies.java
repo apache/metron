@@ -26,6 +26,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * This is a set of strategies for generating likely typos from domains.
+ */
 public enum TyposquattingStrategies implements TyposquattingStrategy {
   ADDITION(new AdditionStrategy()),
   BITSQUATTING(new BitsquattingStrategy()),

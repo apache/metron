@@ -20,6 +20,10 @@ package org.apache.metron.common.typosquat;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This provides a mapping of nearby keys for a variety of keyboard layouts.  This is useful in determining likely
+ * typos.
+ */
 public enum Keyboards {
   QWERTY(new HashMap<Character, String>()
   {{

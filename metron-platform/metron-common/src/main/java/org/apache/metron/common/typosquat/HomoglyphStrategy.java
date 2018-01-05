@@ -26,6 +26,10 @@ import java.lang.invoke.MethodHandles;
 import java.net.IDN;
 import java.util.*;
 
+/**
+ *  Substituting characters for ascii or unicode analogues which are visually similar (e.g. latlmes.com for latimes.com)
+ *
+ */
 public class HomoglyphStrategy implements TyposquattingStrategy{
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());

@@ -20,6 +20,9 @@ package org.apache.metron.common.typosquat;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Typos based on random hyphenation (e.g. am-azon.com vs amazon.com)
+ */
 public class HyphenationStrategy implements TyposquattingStrategy {
   @Override
   public Set<String> generateCandidates(String originalString) {
