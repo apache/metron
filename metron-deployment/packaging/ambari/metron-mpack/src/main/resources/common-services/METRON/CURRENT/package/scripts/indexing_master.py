@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import os
+import requests
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
@@ -150,12 +151,36 @@ class Indexing(Script):
         env.set_params(params)
 
         Logger.info(ambari_format('Searching for Zeppelin Notebooks in {metron_config_zeppelin_path}'))
+
+        # With Ambari 2.5+, Zeppelin server is enabled to work with Shiro authentication, which requires user/password
+        # for authentication (see https://zeppelin.apache.org/docs/0.6.0/security/shiroauthentication.html for details).
+        ses = requests.session()
+
+        # Check if authentication is enabled on the Zeppelin server
+        try:
+            conn = ses.get(ambari_format('http://{zeppelin_server_url}/api/login'))
+
+            # Establish connection if authentication is enabled
+            try:
+                # The following credentials are created at install time by Ambari at /etc/zeppelin/conf/shiro.ini
+                # when Shiro auth is enabled on the Zeppelin server
+                zeppelin_payload = {'userName': 'admin', 'password' : 'admin'}
+                conn = ses.post(ambari_format('http://{zeppelin_server_url}/api/login'), data=zeppelin_payload)
+            except:
+                pass
+
+        # If authentication is not enabled, fall back to default method of imporing notebooks
+        except requests.exceptions.RequestException:
+            conn = ses.get(ambari_format('http://{zeppelin_server_url}/api/notebook'))
+
         for dirName, subdirList, files in os.walk(params.metron_config_zeppelin_path):
             for fileName in files:
                 if fileName.endswith(".json"):
-                    zeppelin_cmd = ambari_format(
-                        'curl -s -XPOST http://{zeppelin_server_url}/api/notebook/import -d "@' + os.path.join(dirName, fileName) + '"')
-                    Execute(zeppelin_cmd, logoutput=True)
+                    Logger.info("Importing notebook: " + fileName)
+                    zeppelin_import_url = ambari_format('http://{zeppelin_server_url}/api/notebook/import')
+                    zeppelin_notebook = {'file' : open(os.path.join(dirName, fileName), 'rb')}
+                    res = ses.post(zeppelin_import_url, files=zeppelin_notebook)
+                    Logger.info("Result: " + res.text)
 
 if __name__ == "__main__":
     Indexing().execute()
