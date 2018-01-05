@@ -67,6 +67,7 @@ export class SensorParserConfigComponent implements OnInit {
 
   configValid = false;
   sensorNameValid = false;
+  sensorNameUnique = true;
   kafkaTopicValid = false;
   parserClassValid = false;
   grokStatementValid = false;
@@ -74,6 +75,7 @@ export class SensorParserConfigComponent implements OnInit {
   availableParserNames = [];
   grokStatement = '';
   patternLabel = '';
+  currentSensors = [];
 
   editMode: boolean = false;
 
@@ -147,6 +149,9 @@ export class SensorParserConfigComponent implements OnInit {
     } else {
       this.sensorParserConfig = new SensorParserConfig();
       this.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
+      this.sensorParserConfigService.getAll().subscribe((results: {}) => {
+        this.currentSensors = Object.keys(results);
+      });
     }
   }
 
@@ -213,8 +218,9 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   onSetSensorName(): void {
+    this.sensorNameUnique = this.currentSensors.indexOf(this.sensorName) === -1;
     this.sensorNameValid = this.sensorName !== undefined &&
-        this.sensorName.length > 0;
+        this.sensorName.length > 0 && this.sensorNameUnique;
     this.isConfigValid();
   }
 
