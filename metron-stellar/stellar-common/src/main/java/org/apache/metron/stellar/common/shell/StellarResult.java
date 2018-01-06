@@ -69,7 +69,7 @@ public class StellarResult {
     this.status = status;
     this.value = Optional.ofNullable(value);
     this.exception = Optional.empty();
-    this.isValueNull = (value == null);
+    this.isValueNull = (value == null) && (status == Status.SUCCESS);
   }
 
   /**

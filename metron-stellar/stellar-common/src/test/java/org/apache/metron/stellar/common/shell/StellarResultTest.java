@@ -151,4 +151,15 @@ public class StellarResultTest {
     assertFalse(result.isError());
     assertFalse(result.isTerminate());
   }
+
+  /**
+   * Tests the behavior of isValueNull() with error, noop and terminate conditions.
+   */
+  @Test
+  public void testNonSuccessWithNull() {
+    assertFalse(StellarResult.error(new Exception()).isValueNull());
+    assertFalse(StellarResult.error("error msg").isValueNull());
+    assertFalse(StellarResult.noop().isValueNull());
+    assertFalse(StellarResult.terminate().isValueNull());
+  }
 }
