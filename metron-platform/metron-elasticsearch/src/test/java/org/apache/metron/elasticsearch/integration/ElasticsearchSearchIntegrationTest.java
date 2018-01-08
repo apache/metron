@@ -17,17 +17,24 @@
  */
 package org.apache.metron.elasticsearch.integration;
 
+
+import java.io.File;
+import java.util.HashMap;
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.integration.InMemoryComponent;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexRequestBuilder;
+import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -53,8 +60,11 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    * "bro_doc": {
    *   "properties": {
    *     "source:type": {
-   *        "type": "string",
-   *        "index": "not_analyzed"
+   *        "type": "text",
+   *        "fielddata" : "true"
+   *     },
+   *     "guid" : {
+   *        "type" : "keyword"
    *     },
    *     "ip_src_addr": {
    *        "type": "ip"
@@ -82,10 +92,12 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    *        "type": "geo_point"
    *     },
    *     "bro_field": {
-   *        "type": "string"
+   *        "type": "text",
+   *        "fielddata" : "true"
    *     },
    *     "duplicate_name_field": {
-   *        "type": "string"
+   *        "type": "text",
+   *        "fielddata" : "true"
    *     },
    *     "alert": {
    *         "type": "nested"
@@ -102,8 +114,11 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    *  "snort_doc": {
    *     "properties": {
    *        "source:type": {
-   *          "type": "string",
-   *          "index": "not_analyzed"
+   *          "type": "text",
+   *          "fielddata" : "true"
+   *        },
+   *        "guid" : {
+   *          "type" : "keyword"
    *        },
    *        "ip_src_addr": {
    *          "type": "ip"
@@ -170,8 +185,23 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
    * {
    * "metaalert_doc": {
    *   "properties": {
-   *     "source:type": { "type": "string" },
-   *     "alert": { "type": "nested"}
+   *     "guid": { "type": "keyword" },
+   *     "alert": {
+   *        "type": "nested",
+   *        "properties": {
+   *          "guid": { "type": "keyword" }
+   *        }
+   *     },
+   *     "average": { "type": "keyword" },
+   *     "min" : { "type": "keyword" },
+   *     "median" : { "type": "keyword" },
+   *     "max": { "type": "keyword" },
+   *     "count": { "type": "keyword" },
+   *     "sum": { "type": "keyword" },
+   *     "source:type": {
+   *       "type": "text",
+   *       "fielddata" : "true"
+   *                    }
    *   }
    * }
    * }
@@ -216,10 +246,10 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
             .addMapping("bro_doc", broTypeMappings).addMapping("bro_doc_default", broDefaultStringMappings).get();
     es.getClient().admin().indices().prepareCreate("snort_index_2017.01.01.02")
             .addMapping("snort_doc", snortTypeMappings).get();
-    es.getClient().admin().indices().prepareCreate("metaalert_index")
-        .addMapping("metaalert_doc", metaAlertTypeMappings).get();
+    es.getClient().admin().indices().prepareCreate(MetaAlertDao.METAALERTS_INDEX)
+        .addMapping(MetaAlertDao.METAALERT_DOC, metaAlertTypeMappings).get();
 
-    BulkRequestBuilder bulkRequest = es.getClient().prepareBulk().setRefresh(true);
+    BulkRequestBuilder bulkRequest = es.getClient().prepareBulk().setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
     JSONArray broArray = (JSONArray) new JSONParser().parse(broData);
     for(Object o: broArray) {
       JSONObject jsonObject = (JSONObject) o;

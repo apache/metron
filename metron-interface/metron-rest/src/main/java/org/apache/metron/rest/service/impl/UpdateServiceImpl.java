@@ -23,15 +23,18 @@ import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.UpdateService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Optional;
 
 @Service
 public class UpdateServiceImpl implements UpdateService {
   private IndexDao dao;
-
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @Autowired
   public UpdateServiceImpl(IndexDao dao) {
     this.dao = dao;
@@ -43,6 +46,7 @@ public class UpdateServiceImpl implements UpdateService {
     try {
       dao.patch(request, Optional.of(System.currentTimeMillis()));
     } catch (Exception e) {
+
       throw new RestException(e.getMessage(), e);
     }
   }

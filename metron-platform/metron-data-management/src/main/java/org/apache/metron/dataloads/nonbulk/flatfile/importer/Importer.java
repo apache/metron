@@ -22,6 +22,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.dataloads.nonbulk.flatfile.LoadOptions;
+import org.apache.metron.dataloads.nonbulk.flatfile.writer.InvalidWriterOutput;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 
 import java.io.IOException;
@@ -30,5 +31,5 @@ import java.util.List;
 import java.util.Optional;
 
 public interface Importer<OPTIONS_T extends Enum<OPTIONS_T>> {
-  void importData(EnumMap<OPTIONS_T, Optional<Object>> config, ExtractorHandler handler , final Configuration hadoopConfig) throws IOException;
+  void importData(EnumMap<OPTIONS_T, Optional<Object>> config, ExtractorHandler handler , final Configuration hadoopConfig) throws IOException, InvalidWriterOutput;
 }

@@ -458,7 +458,7 @@ Client
 
 - Kibana:
     * Set "kibana_es_url" to `http://<replace_with_elasticsearch_master_hostname>:9200`. "replace_with_elasticsearch_master_hostname" is the IP of the node where you assigned ElasticSearch Master on the Assign Master tab.
-    * Change kibana_default_application to "dashboard/Metron-Dashboard"
+    * Change kibana_default_application to "dashboard/AV-YpDmwdXwc6Ua9Muh9"
 
 - Metron:
     Set "Elasticsearch Hosts" to the IP of the node where you assigned ElasticSearch Master on the Assign Master tab.

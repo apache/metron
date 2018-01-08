@@ -26,6 +26,7 @@ import org.apache.metron.common.utils.cli.CLIOptions;
 import org.apache.metron.dataloads.nonbulk.flatfile.LoadOptions;
 import org.apache.metron.dataloads.nonbulk.flatfile.location.Location;
 import org.apache.metron.dataloads.nonbulk.flatfile.location.LocationStrategy;
+import org.apache.metron.dataloads.nonbulk.flatfile.writer.InvalidWriterOutput;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -43,7 +44,7 @@ public abstract class AbstractLocalImporter<OPTIONS_T extends Enum<OPTIONS_T> & 
   public void importData( final EnumMap<OPTIONS_T, Optional<Object>> config
                         , final ExtractorHandler handler
                         , final Configuration hadoopConfig
-                         ) throws IOException {
+                         ) throws IOException, InvalidWriterOutput {
     validateState(config, handler);
     ThreadLocal<STATE_T> state = createState(config, hadoopConfig, handler);
     boolean quiet = isQuiet(config);
