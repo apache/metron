@@ -343,13 +343,13 @@ do that via the following:
 curl -XPUT "http://$ES_HOST/squid*/_mapping/squid_doc" -d '{
         "properties" : {
           "action" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "adapter:stellaradapter:begin:ts" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "adapter:stellaradapter:end:ts" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "bytes" : {
             "type" : "long"
@@ -358,76 +358,76 @@ curl -XPUT "http://$ES_HOST/squid*/_mapping/squid_doc" -d '{
             "type" : "long"
           },
           "domain_without_subdomains" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "elapsed" : {
             "type" : "long"
           },
           "enrichmentjoinbolt:joiner:ts" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "enrichmentsplitterbolt:splitter:begin:ts" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "enrichmentsplitterbolt:splitter:end:ts" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "full_hostname" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "guid" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "ip_dst_addr" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "ip_src_addr" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "is_alert" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "is_potential_typosquat" : {
             "type" : "boolean"
           },
           "method" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
-          "original_string" : {
-            "type" : "string"
+          "original_text" : {
+            "type" : "text","fielddata" : true
           },
           "source:type" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "threat:triage:rules:0:comment" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "threat:triage:rules:0:name" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "threat:triage:rules:0:reason" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "threat:triage:rules:0:score" : {
             "type" : "long"
           },
           "threat:triage:score" : {
-            "type" : "double"
+            "type" : "float"
           },
           "threatinteljoinbolt:joiner:ts" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "threatintelsplitterbolt:splitter:begin:ts" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "threatintelsplitterbolt:splitter:end:ts" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "timestamp" : {
             "type" : "long"
           },
           "url" : {
-            "type" : "string"
+            "type" : "text","fielddata" : true
           },
           "alert" : {
             "type" : "nested"
