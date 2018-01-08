@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 public interface Writer {
-  void validate(Optional<String> output, Configuration hadoopConfig);
+  void validate(Optional<String> output, Configuration hadoopConfig) throws InvalidWriterOutput;
   default void write(Object obj, Optional<String> output, Configuration hadoopConfig) throws IOException {
     if(obj != null) {
       write(SerDeUtils.toBytes(obj), output, hadoopConfig);

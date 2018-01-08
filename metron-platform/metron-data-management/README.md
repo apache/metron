@@ -441,7 +441,7 @@ The parameters for the utility are as follows:
 | -m         | --import_mode       | No           | The Import mode to use: LOCAL, MR.  Default: LOCAL                                                                                                                                  |
 | -om        | --output_mode       | No           | The Output mode to use: LOCAL, HDFS.  Default: LOCAL                                                                                                                                  |
 | -i         | --input             | Yes          | The input data location on local disk.  If this is a file, then that file will be loaded.  If this is a directory, then the files will be loaded recursively under that directory.  |
-| -i         | --output            | Yes          | The output data location.    |
+| -o         | --output            | Yes          | The output data location.    |
 | -l         | --log4j             | No           | The log4j properties file to load                                                                                                                                                   |
 | -p         | --threads           | No           | The number of threads to use when extracting data.  The default is the number of cores.                                                                                             |
 | -b         | --batchSize         | No           | The batch size to use for HBase puts                                                                                                                                                |

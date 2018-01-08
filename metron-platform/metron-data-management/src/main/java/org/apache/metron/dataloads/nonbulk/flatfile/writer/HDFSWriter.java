@@ -29,13 +29,13 @@ import java.util.Optional;
 
 public class HDFSWriter implements Writer {
   @Override
-  public void validate(Optional<String> fileNameOptional, Configuration hadoopConfig) {
+  public void validate(Optional<String> fileNameOptional, Configuration hadoopConfig) throws InvalidWriterOutput {
     if(!fileNameOptional.isPresent()) {
-      throw new IllegalStateException("Filename is not present.");
+      throw new InvalidWriterOutput("Filename is not present.");
     }
     String fileName = fileNameOptional.get();
     if(StringUtils.isEmpty(fileName) || fileName.trim().equals(".") || fileName.trim().equals("..") || fileName.trim().endsWith("/")) {
-      throw new IllegalStateException("Filename is empty or otherwise invalid.");
+      throw new InvalidWriterOutput("Filename is empty or otherwise invalid.");
     }
   }
 

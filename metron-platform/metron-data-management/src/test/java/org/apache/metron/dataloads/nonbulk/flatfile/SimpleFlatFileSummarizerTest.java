@@ -30,6 +30,7 @@ import org.apache.metron.dataloads.extractor.ExtractorHandler;
 import org.apache.metron.dataloads.nonbulk.flatfile.importer.LocalSummarizer;
 import org.apache.metron.dataloads.nonbulk.flatfile.location.Location;
 import org.apache.metron.dataloads.nonbulk.flatfile.location.RawLocation;
+import org.apache.metron.dataloads.nonbulk.flatfile.writer.InvalidWriterOutput;
 import org.apache.metron.dataloads.nonbulk.flatfile.writer.Writer;
 import org.apache.metron.stellar.common.utils.StellarProcessorUtils;
 import org.junit.Assert;
@@ -230,12 +231,12 @@ public class SimpleFlatFileSummarizerTest {
   }
 
   @Test
-  public void testLineByLine() throws IOException {
+  public void testLineByLine() throws IOException, InvalidWriterOutput {
     testLineByLine(5);
     testLineByLine(1);
   }
 
-  public void testLineByLine(final int numThreads) throws IOException {
+  public void testLineByLine(final int numThreads) throws IOException, InvalidWriterOutput {
     ExtractorHandler handler = ExtractorHandler.load(stellarExtractorConfigLineByLine);
     LocalSummarizer summarizer = new MockSummarizer(
             ImmutableMap.of("input.csv", generateData())
@@ -263,7 +264,7 @@ public class SimpleFlatFileSummarizerTest {
     testWholeFile(1);
   }
 
-  public void testWholeFile(final int numThreads) throws IOException {
+  public void testWholeFile(final int numThreads) throws IOException, InvalidWriterOutput {
     ExtractorHandler handler = ExtractorHandler.load(stellarExtractorConfigWholeFile);
     LocalSummarizer summarizer = new MockSummarizer(
             new HashMap<String, String>() {{

@@ -45,7 +45,7 @@ public enum Writers implements Writer {
   }
 
   @Override
-  public void validate(Optional<String> output, Configuration hadoopConf) {
+  public void validate(Optional<String> output, Configuration hadoopConf) throws InvalidWriterOutput {
     writer.validate(output, hadoopConf);
   }
 
