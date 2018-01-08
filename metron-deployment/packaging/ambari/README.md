@@ -27,6 +27,7 @@ limitations under the License.
 * [Configuration involving dependency services](#configuration-involving-dependency-services)
 * [Kerberos](#kerberos)
 * [Best practices](#best-practices)
+* [Upgrading MPack Services](#upgrading-mpack-services)
 
 ## Overview
 Typically, Ambari Management Pack development will be done in the Vagrant environments. These instructions are specific to Vagrant, but can be adapted for other environemnts (e.g. make sure to be on the correct nodes for server vs agent files)
@@ -464,3 +465,211 @@ This is checked in the indexing master
   * Make sure to `kinit` as the correct user for setting up ACLs in a secured cluster. This is usually kafka for Kafka and hbase for HBase.
   * See `set_hbase_acls` in `METRON.CURRENT/package/scripts/enrichment_commands.py` for an HBase example
   * See `init_kafka_acls` in `METRON.CURRENT/package/scripts/enrichment_commands.py` and  `METRON.CURRENT/package/scripts/metron_service.py` for an Kafka example
+
+## Upgrading MPack Services
+
+Apache Metron currently provides three services as part of its MPack
+* Elasticsearch
+* Kibana
+* Metron
+
+There is currently no mechanism provided for multi-version or backwards compatibility. If you upgrade a service, e.g. Elasticsearch 2.x to 5.x, that is the only version that will be
+supported by Ambari via MPack.
+
+The main steps for upgrading a service are split into add-on and common services for each service within the MPack as follows:
+* Update the common services
+    * Change the service directory to use the new product version number
+    * Update metainfo.xml
+* Update the add-on services
+    * Change the service directory to use the new product version number
+    * Update repoinfo.xml
+    * Update metainfo.xml
+* Update mpack.json
+
+### Update Elasticsearch
+
+#### Update Common Services
+
+1. Change service directory names for Elasticsearch to the new desired version
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}
+    ```
+
+    e.g.
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/ELASTICSEARCH/5.6.2
+    ```
+
+1. Update metainfo.xml
+
+   Change the version number and package name in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`, e.g.
+
+   ```
+   <version>5.6.2</version>
+   ...
+   <osSpecifics>
+       <osSpecific>
+           <osFamily>any</osFamily>
+           <packages>
+               <package>
+                   <name>elasticsearch-5.6.2</name>
+               </package>
+           </packages>
+       </osSpecific>
+   </osSpecifics>
+   ```
+
+#### Update Add-on Services
+
+1. Change service directory names for Elasticsearch to the new desired version
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}
+    ```
+
+    e.g.
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/ELASTICSEARCH/5.6.2
+    ```
+
+1. Update repoinfo.xml
+
+    See [https://www.elastic.co/guide/en/elasticsearch/reference/current/rpm.html](https://www.elastic.co/guide/en/elasticsearch/reference/current/rpm.html) for the latest info.
+
+    Modify the baseurl and repoid in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}/repos/repoinfo.xml`, e.g.
+
+    ```
+    <baseurl>https://artifacts.elastic.co/packages/5.x/yum</baseurl>
+    <repoid>elasticsearch-5.x</repoid>
+    <reponame>ELASTICSEARCH</reponame>
+     ```
+
+1. Update metainfo.xml
+
+   Change the version number in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/ELASTICSEARCH/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`.
+   Also make sure to update the "extends" version to point to the updated common-services version, e.g.
+
+   ```
+   <name>ELASTICSEARCH</name>
+   <version>5.6.2</version>
+   <extends>common-services/ELASTICSEARCH/5.6.2</extends>
+   ```
+
+#### Update mpack.json
+
+1. Update the corresponding service_version in the service_versions_map, e.g.
+
+    ```
+    ...
+    "service_versions_map": [
+      {
+        "service_name" : "ELASTICSEARCH",
+        "service_version" : "5.6.2",
+        "applicable_stacks" : [
+            ...
+        ]
+      },
+      ...
+     ]
+    ...
+    ```
+
+### Kibana
+
+**Note:** Curator is included with the Kibana service
+
+#### Update Common Services
+
+1. Change service directory names for Kibana to the new desired version
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/${YOUR_VERSION_NUMBER_HERE}
+    ```
+
+    e.g.
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/5.6.2
+    ```
+
+1. Update metainfo.xml
+
+   Change the version number and package name in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/KIBANA/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`, e.g.
+
+   ```
+   <version>5.6.2</version>
+   ...
+   <packages>
+       ...
+       <package>
+           <name>kibana-5.6.2</name>
+       </package>
+   </packages>
+   ```
+
+#### Update Add-on Services
+
+1. Change service directory names for Kibana to the new desired version
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/KIBANA/${YOUR_VERSION_NUMBER_HERE}
+    ```
+
+    e.g.
+
+    ```
+    metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/KIBANA/5.6.2
+    ```
+
+1. Update repoinfo.xml
+
+    **Note:** for Curator, there is a different repo for rhel 6 vs rhel 7
+
+    See the following links for current repo information for Kibana and Curator.
+    * [https://www.elastic.co/guide/en/kibana/current/rpm.html](https://www.elastic.co/guide/en/kibana/current/rpm.html)
+    * [https://www.elastic.co/guide/en/elasticsearch/client/curator/current/yum-repository.html](https://www.elastic.co/guide/en/elasticsearch/client/curator/current/yum-repository.html)
+
+    Modify the baseurl's and repoid's in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/KIBANA/${YOUR_VERSION_NUMBER_HERE}/repos/repoinfo.xml`, e.g.
+
+    ```
+    <baseurl>https://artifacts.elastic.co/packages/5.x/yum</baseurl>
+    <repoid>kibana-5.x</repoid>
+    <reponame>KIBANA</reponame>
+    ...
+    <baseurl>http://packages.elastic.co/curator/5/centos/6</baseurl>
+    <repoid>ES-Curator-5.x</repoid>
+    <reponame>CURATOR</reponame>
+    ```
+
+1. Update metainfo.xml
+
+   Change the version number in `metron/metron-deployment/packaging/ambari/metron-mpack/src/main/resources/addon-services/KIBANA/${YOUR_VERSION_NUMBER_HERE}/metainfo.xml`.
+   Also make sure to update the "extends" version to point to the updated common-services version, e.g.
+   ```
+   <name>KIBANA</name>
+   <version>5.6.2</version>
+   <extends>common-services/KIBANA/5.6.2</extends>
+   ```
+
+#### Update mpack.json
+
+1. Update the corresponding service_version in the service_versions_map, e.g.
+
+    ```
+    ...
+    "service_versions_map": [
+      {
+        "service_name" : "KIBANA",
+        "service_version" : "5.6.2",
+        "applicable_stacks" : [
+            ...
+        ]
+      },
+      ...
+     ]
+    ...
+    ```
+

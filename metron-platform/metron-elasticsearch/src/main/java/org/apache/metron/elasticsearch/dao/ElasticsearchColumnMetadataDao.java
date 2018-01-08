@@ -48,7 +48,8 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
   private static Map<String, FieldType> elasticsearchTypeMap;
   static {
     Map<String, FieldType> fieldTypeMap = new HashMap<>();
-    fieldTypeMap.put("string", FieldType.STRING);
+    fieldTypeMap.put("text", FieldType.TEXT);
+    fieldTypeMap.put("keyword", FieldType.KEYWORD);
     fieldTypeMap.put("ip", FieldType.IP);
     fieldTypeMap.put("integer", FieldType.INTEGER);
     fieldTypeMap.put("long", FieldType.LONG);

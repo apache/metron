@@ -17,6 +17,7 @@
  */
 package org.apache.metron.elasticsearch.integration;
 
+import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.interfaces.FieldNameConverter;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.elasticsearch.writer.ElasticsearchFieldNameConverter;
@@ -35,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTest {
 
@@ -42,6 +44,20 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
   private String dateFormat = "yyyy.MM.dd.HH";
   private String index = "yaf_index_" + new SimpleDateFormat(dateFormat).format(new Date());
   private FieldNameConverter fieldNameConverter = new ElasticsearchFieldNameConverter();
+  /**
+   * {
+   * "yaf_doc": {
+   *   "properties": {
+   *     "source:type": { "type": "keyword" },
+   *     "guid": { "type": "keyword" },
+   *     "isn": { "type": "text" }
+   *   }
+   * }
+   * }
+   */
+  @Multiline
+  private static String mapping;
+
 
   @Override
   public FieldNameConverter getFieldNameConverter() {
@@ -53,6 +69,7 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
     return new ElasticSearchComponent.Builder()
             .withHttpPort(9211)
             .withIndexDir(new File(indexDir))
+            .withMapping(index, "yaf_doc", mapping)
             .build();
   }
 
@@ -61,6 +78,7 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
     return new Processor<List<Map<String, Object>>>() {
       List<Map<String, Object>> docs = null;
       List<byte[]> errors = null;
+      final AtomicInteger missCount = new AtomicInteger(0);
       @Override
       public ReadinessState process(ComponentRunner runner) {
         ElasticSearchComponent elasticSearchComponent = runner.getComponent("search", ElasticSearchComponent.class);
@@ -70,7 +88,9 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
           try {
             docs = elasticSearchComponent.getAllIndexedDocs(index, testSensorType + "_doc");
             docsFromDisk = readDocsFromDisk(hdfsDir);
-            System.out.println(docs.size() + " vs " + inputMessages.size() + " vs " + docsFromDisk.size());
+            if(missCount.incrementAndGet() >= NUM_RETRIES/2) {
+              System.out.println(missCount.get() + ": " + docs.size() + " vs " + inputMessages.size() + " vs " + docsFromDisk.size());
+            }
           } catch (IOException e) {
             throw new IllegalStateException("Unable to retrieve indexed documents.", e);
           }
@@ -84,7 +104,6 @@ public class ElasticsearchIndexingIntegrationTest extends IndexingIntegrationTes
             return ReadinessState.READY;
           }
         } else {
-          System.out.println("Missed index...");
           return ReadinessState.NOT_READY;
         }
       }

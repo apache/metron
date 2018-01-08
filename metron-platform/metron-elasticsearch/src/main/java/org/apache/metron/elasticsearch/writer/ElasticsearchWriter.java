@@ -17,6 +17,12 @@
  */
 package org.apache.metron.elasticsearch.writer;
 
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.interfaces.FieldNameConverter;
@@ -33,13 +39,6 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Serializable {
 

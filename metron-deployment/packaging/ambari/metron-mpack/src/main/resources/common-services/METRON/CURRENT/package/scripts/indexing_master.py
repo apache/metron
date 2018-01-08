@@ -138,7 +138,6 @@ class Indexing(Script):
 
         commands = IndexingCommands(params)
         for template_name in commands.get_templates():
-
             # delete the index template
             cmd = "curl -s -XDELETE \"http://{0}/_template/{1}\""
             Execute(
