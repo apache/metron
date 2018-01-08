@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>org.apache.metron</groupId>
 		<artifactId>Metron</artifactId>
-		<version>0.4.2</version>
+		<version>0.4.3</version>
 	</parent>
 	<description>User Documentation for Metron</description>
 	<url>https://metron.apache.org/</url>
