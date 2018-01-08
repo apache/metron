@@ -221,6 +221,7 @@ Where:
 | [ `MULTISET_MERGE`](#multiset_merge)                                                               |
 | [ `MULTISET_REMOVE`](#multiset_remove)                                                             |
 | [ `MULTISET_TO_SET`](#multiset_to_set)                                                             |
+| [ `OBJECT_GET`](#object_get)                                                                       |
 | [ `PREPEND_IF_MISSING`](#prepend_if_missing)                                                       |
 | [ `PROFILE_GET`](#profile_get)                                                                     |
 | [ `PROFILE_FIXED`](#profile_fixed)                                                                 |
@@ -804,6 +805,14 @@ Where:
   * Input:
     * multiset - The multiset to convert.
   * Returns: The set of objects in the multiset ignoring multiplicity
+
+### `OBJECT_GET`
+  * Description: Retrieve and deserialize a serialized object from HDFS.  The cache can be specified via two properties
+  in the global config: "object.cache.size" (default 1000), "object.cache.expiration.minutes" (default 1440).  Note, if
+  these are changed in global config, topology restart is required.
+  * Input:
+    * path - The path in HDFS to the serialized object
+  * Returns: The deserialized object.
 
 ### `PREPEND_IF_MISSING`
   * Description: Prepends the prefix to the start of the string if the string does not already start with any of the prefixes.
