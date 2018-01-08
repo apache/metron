@@ -255,6 +255,12 @@ Copy the jar file located in `extra-parsers/target/extra-parsers-1.0-SNAPSHOT-ub
 
 In order for new parsers to be picked up, the REST service must be restarted.  You can do that from within Ambari by restarting the `Metron REST` service.
 
+### Push the Zookeeper Configs
+
+Now push the config to Zookeeper with the following command:
+`$METRON_HOME/bin/zk_load_configs.sh -m PUSH -i $METRON_HOME/config/zookeeper/ -z $ZOOKEEPER`
+
+
 ### Create a Kafka Topic
 
 Create a kafka topic, let's call it `test` via:
