@@ -17,6 +17,17 @@ limitations under the License.
 -->
 # Resource Data Management
 
+## Table of Contents
+
+* [Overview](#overview)
+* [Simple HBase Enrichments/Threat Intelligence](#simple-hbase-enrichmentsthreat-intelligence)
+* [Extractor Framework](#extractor-framework)
+* [Enrichment Config](#enrichment-config)
+* [Loading Utilities](#loading-utilities)
+* [Pruning Data from Elasticsearch](#pruning-data-from-elasticsearch)
+
+## Overview
+
 This project is a collection of classes to assist with loading of
 various enrichment and threat intelligence sources into Metron.
 
@@ -354,3 +365,39 @@ The parameters for the utility are as follows:
 | -r         | --remote_dir        | No           | HDFS directory to land formatted GeoIP file - defaults to /apps/metron/geo/\<epoch millis\>/     |
 | -t         | --tmp_dir           | No           | Directory for landing the temporary GeoIP data - defaults to /tmp                                |
 | -z         | --zk_quorum         | Yes          | Zookeeper Quorum URL (zk1:port,zk2:port,...)                                                     |
+
+## Pruning Data from Elasticsearch
+
+**Note** - As of the Metron upgrade from Elasticsearch 2.3.3 to 5.6.2, the included Data Pruner is no longer supported. It is replaced in favor of the Curator utility
+provided by Elasticsearch. The current Curator version is 5.4 as of this version of Metron and does not match exactly with ES and Kibana.
+
+Elasticsearch provides tooling to prune index data through [Curator](https://www.elastic.co/guide/en/elasticsearch/client/curator/5.4/index.html).
+
+Here is a sample invocation that you can configure through Cron to prune indexes based on timestamp in the index name.
+
+```
+/opt/elasticsearch-curator/curator_cli --host localhost delete_indices --filter_list '
+    {
+      "filtertype": "age",
+      "source": "name",
+      "timestring": "%Y.%m.%d",
+      "unit": "days",
+      "unit_count": 10,
+      "direction": "older”
+    }'
+```
+
+From the ES documentation:
+> Using name as the source tells Curator to look for a timestring within the index or snapshot name, and convert that into an epoch timestamp (epoch implies UTC).
+
+You can also provide multiple filters as an array of JSON objects to filter_list if you want finer-grained control over the indexes that will be pruned.
+There is an implicit logical AND when chaining multiple filters.
+
+```
+--filter_list '[{"filtertype":"age","source":"creation_date","direction":"older","unit":"days","unit_count":13},{"filtertype":"pattern","kind":"prefix","value":"logstash"}]'
+```
+
+### Reference
+* [https://www.elastic.co/guide/en/elasticsearch/client/curator/5.4/index.html](https://www.elastic.co/guide/en/elasticsearch/client/curator/5.4/index.html)
+* [https://www.elastic.co/guide/en/elasticsearch/client/curator/5.4/filtertype_age.html](https://www.elastic.co/guide/en/elasticsearch/client/curator/5.4/filtertype_age.html)
+* [https://www.elastic.co/guide/en/elasticsearch/client/curator/5.4/singleton-cli.html](https://www.elastic.co/guide/en/elasticsearch/client/curator/5.4/singleton-cli.html)

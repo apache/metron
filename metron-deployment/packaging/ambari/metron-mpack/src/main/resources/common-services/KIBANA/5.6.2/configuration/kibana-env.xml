@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+  <property>
+    <name>kibana_user</name>
+    <value>kibana</value>
+    <property-type>USER</property-type>
+    <description>Service User for Kibana</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
+  <property>
+    <name>kabana_group</name>
+    <value>kibana</value>
+    <property-type>GROUP</property-type>
+    <description>Service Group for Kibana</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
+  <property require-input="true">
+    <name>kibana_server_host</name>
+    <value>0.0.0.0</value>
+    <description>Host name or IP address that Kibana should bind to.</description>
+  </property>
+  <property require-input="true">
+    <name>kibana_log_dir</name>
+    <value>/var/log/kibana</value>
+    <description>Log directory for Kibana</description>
+  </property>
+  <property require-input="true">
+    <name>kibana_pid_dir</name>
+    <value>/var/run/kibana</value>
+    <description>PID directory for Kibana</description>
+  </property>
+  <property require-input="true">
+    <name>kibana_es_url</name>
+    <value></value>
+    <description>The Elasticsearch instance to use for all your queries. (http://eshost:9200)</description>
+  </property>
+  <property require-input="true">
+    <name>kibana_server_port</name>
+    <value>5000</value>
+    <description>Kibana back end server port to use.</description>
+  </property>
+  <property require-input="true">
+    <name>kibana_default_application</name>
+    <value>default</value>
+    <description>The default application to load.</description>
+  </property>
+</configuration>

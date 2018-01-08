@@ -2,17 +2,13 @@
   "template": "metaalert_index*",
   "mappings": {
     "metaalert_doc": {
-      "_timestamp": {
-        "enabled": true
-      },
       "dynamic_templates": [
         {
           "alert_template": {
           "path_match": "alert.*",
           "match_mapping_type": "string",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
         },
@@ -28,16 +24,13 @@
       ],
       "properties": {
         "guid": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "score": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "status": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "timestamp": {
           "type": "date",
@@ -47,8 +40,7 @@
           "type": "nested"
         },
         "source:type": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         }
       }
     }
