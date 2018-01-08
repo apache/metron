@@ -62,7 +62,6 @@ public class ObjectGetTest {
   public void assertDataIsReadCorrectly(String filename) throws IOException {
     try(BufferedOutputStream bos = new BufferedOutputStream(fs.create(new Path(filename), true))) {
       IOUtils.write(SerDeUtils.toBytes(data), bos);
-      bos.flush();
     }
     List<String> readData = (List<String>) StellarProcessorUtils.run("OBJECT_GET(loc)", ImmutableMap.of("loc", filename));
     Assert.assertEquals(readData, data);
