@@ -37,27 +37,32 @@ import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.search.SortField;
 import org.apache.metron.indexing.dao.search.SortOrder;
 import org.apache.metron.indexing.dao.update.Document;
-import org.elasticsearch.action.ActionWriteResponse.ShardInfo;
+import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.support.replication.ReplicationResponse.ShardInfo;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.index.mapper.ip.IpFieldMapper;
+import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.common.collect.ImmutableOpenMap;
+import org.elasticsearch.index.mapper.LegacyIpFieldMapper;
+import org.elasticsearch.index.query.IdsQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Order;
-import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.sum.Sum;
-import org.elasticsearch.search.aggregations.metrics.sum.SumBuilder;
+import org.elasticsearch.search.aggregations.metrics.sum.SumAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.slf4j.Logger;
@@ -124,8 +129,27 @@ public class ElasticsearchDao implements IndexDao {
     //uninitialized.
   }
 
+  private static Map<String, FieldType> elasticsearchSearchTypeMap;
+
+  static {
+    Map<String, FieldType> fieldTypeMap = new HashMap<>();
+    fieldTypeMap.put("text", FieldType.TEXT);
+    fieldTypeMap.put("keyword", FieldType.KEYWORD);
+    fieldTypeMap.put("ip", FieldType.IP);
+    fieldTypeMap.put("integer", FieldType.INTEGER);
+    fieldTypeMap.put("long", FieldType.LONG);
+    fieldTypeMap.put("date", FieldType.DATE);
+    fieldTypeMap.put("float", FieldType.FLOAT);
+    fieldTypeMap.put("double", FieldType.DOUBLE);
+    fieldTypeMap.put("boolean", FieldType.BOOLEAN);
+    elasticsearchSearchTypeMap = Collections.unmodifiableMap(fieldTypeMap);
+  }
+
   @Override
   public SearchResponse search(SearchRequest searchRequest) throws InvalidSearchException {
+    if(searchRequest.getQuery() == null) {
+      throw new InvalidSearchException("Search query is invalid: null");
+    }
     return search(searchRequest, new QueryStringQueryBuilder(searchRequest.getQuery()));
   }
 
@@ -162,14 +186,15 @@ public class ElasticsearchDao implements IndexDao {
   private org.elasticsearch.action.search.SearchRequest buildSearchRequest(
           SearchRequest searchRequest,
           QueryBuilder queryBuilder) throws InvalidSearchException {
-
-    LOG.debug("Got search request; request={}", ElasticsearchUtils.toJSON(searchRequest).orElse("???"));
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Got search request; request={}", ElasticsearchUtils.toJSON(searchRequest).orElse("???"));
+    }
     SearchSourceBuilder searchBuilder = new SearchSourceBuilder()
             .size(searchRequest.getSize())
             .from(searchRequest.getFrom())
             .query(queryBuilder)
             .trackScores(true);
-
+    Optional<List<String>> fields = searchRequest.getFields();
     // column metadata needed to understand the type of each sort field
     Map<String, FieldType> meta;
     try {
@@ -202,24 +227,30 @@ public class ElasticsearchDao implements IndexDao {
     }
 
     // handle search fields
-    if (searchRequest.getFields().isPresent()) {
-      searchBuilder.fields(searchRequest.getFields().get());
+    if (fields.isPresent()) {
+      searchBuilder.fetchSource("*", null);
     } else {
       searchBuilder.fetchSource(true);
     }
 
+    Optional<List<String>> facetFields = searchRequest.getFacetFields();
+
     // handle facet fields
     if (searchRequest.getFacetFields().isPresent()) {
+      // https://www.elastic.co/guide/en/elasticsearch/client/java-api/current/_bucket_aggregations.html
       for(String field : searchRequest.getFacetFields().get()) {
-        String name = getFacentAggregationName(field);
-        TermsBuilder terms = new TermsBuilder(name).field(field);
+        String name = getFacetAggregationName(field);
+        TermsAggregationBuilder terms = AggregationBuilders.terms( name).field(field);
+               // new TermsBuilder(name).field(field);
         searchBuilder.aggregation(terms);
       }
     }
 
     // return the search request
     String[] indices = wildcardIndices(searchRequest.getIndices());
-    LOG.debug("Built Elasticsearch request; indices={}, request={}", indices, searchBuilder.toString());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Built Elasticsearch request; indices={}, request={}", indices, searchBuilder.toString());
+    }
     return new org.elasticsearch.action.search.SearchRequest()
             .indices(indices)
             .source(searchBuilder);
@@ -240,12 +271,13 @@ public class ElasticsearchDao implements IndexDao {
           org.elasticsearch.action.search.SearchResponse esResponse) throws InvalidSearchException {
 
     SearchResponse searchResponse = new SearchResponse();
+
     searchResponse.setTotal(esResponse.getHits().getTotalHits());
 
     // search hits --> search results
     List<SearchResult> results = new ArrayList<>();
     for(SearchHit hit: esResponse.getHits().getHits()) {
-      results.add(getSearchResult(hit, searchRequest.getFields().isPresent()));
+      results.add(getSearchResult(hit, searchRequest.getFields()));
     }
     searchResponse.setResults(results);
 
@@ -263,7 +295,9 @@ public class ElasticsearchDao implements IndexDao {
       searchResponse.setFacetCounts(getFacetCounts(facetFields, esResponse.getAggregations(), commonColumnMetadata ));
     }
 
-    LOG.debug("Built search response; response={}", ElasticsearchUtils.toJSON(searchResponse).orElse("???"));
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Built search response; response={}", ElasticsearchUtils.toJSON(searchResponse).orElse("???"));
+    }
     return searchResponse;
   }
 
@@ -309,7 +343,7 @@ public class ElasticsearchDao implements IndexDao {
           QueryBuilder queryBuilder) {
 
     // handle groups
-    TermsBuilder groups = getGroupsTermBuilder(groupRequest, 0);
+    TermsAggregationBuilder groups = getGroupsTermBuilder(groupRequest, 0);
     final SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
             .query(queryBuilder)
             .aggregation(groups);
@@ -446,16 +480,24 @@ public class ElasticsearchDao implements IndexDao {
    */
   <T> List<T> searchByGuids(Collection<String> guids, Collection<String> sensorTypes,
       Function<SearchHit, Optional<T>> callback) {
-    QueryBuilder query;
+    if(guids == null || guids.isEmpty()) {
+      return Collections.EMPTY_LIST;
+    }
+    QueryBuilder query = null;
+    IdsQueryBuilder idsQuery = null;
     if (sensorTypes != null) {
       String[] types = sensorTypes.stream().map(sensorType -> sensorType + "_doc").toArray(String[]::new);
-      query = QueryBuilders.idsQuery(types).ids(guids);
+      idsQuery = QueryBuilders.idsQuery(types);
     } else {
-      query = QueryBuilders.idsQuery().ids(guids);
+      idsQuery = QueryBuilders.idsQuery();
     }
+
+    for(String guid : guids) {
+        query = idsQuery.addIds(guid);
+    }
+
     SearchRequestBuilder request = client.prepareSearch()
                                          .setQuery(query)
-                                         .setSource("message")
                                          .setSize(guids.size())
                                          ;
     org.elasticsearch.action.search.SearchResponse response = request.get();
@@ -569,7 +611,7 @@ public class ElasticsearchDao implements IndexDao {
     Map<String, Map<String, Long>> fieldCounts = new HashMap<>();
     for (String field: fields) {
       Map<String, Long> valueCounts = new HashMap<>();
-      Aggregation aggregation = aggregations.get(getFacentAggregationName(field));
+      Aggregation aggregation = aggregations.get(getFacetAggregationName(field));
       if (aggregation instanceof Terms) {
         Terms terms = (Terms) aggregation;
         terms.getBuckets().stream().forEach(bucket -> valueCounts.put(formatKey(bucket.getKey(), commonColumnMetadata.get(field)), bucket.getDocCount()));
@@ -580,8 +622,8 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   private String formatKey(Object key, FieldType type) {
-    if (FieldType.IP.equals(type)) {
-      return IpFieldMapper.longToIp((Long) key);
+    if (FieldType.IP.equals(type) && key instanceof Long) {
+      return LegacyIpFieldMapper.longToIp((Long) key);
     } else if (FieldType.BOOLEAN.equals(type)) {
       return (Long) key == 1 ? "true" : "false";
     } else {
@@ -589,11 +631,12 @@ public class ElasticsearchDao implements IndexDao {
     }
   }
 
-  private TermsBuilder getGroupsTermBuilder(GroupRequest groupRequest, int index) {
+  private TermsAggregationBuilder getGroupsTermBuilder(GroupRequest groupRequest, int index) {
     List<Group> groups = groupRequest.getGroups();
     Group group = groups.get(index);
     String aggregationName = getGroupByAggregationName(group.getField());
-    TermsBuilder termsBuilder = new TermsBuilder(aggregationName)
+    TermsAggregationBuilder termsBuilder = AggregationBuilders.terms(aggregationName);
+    termsBuilder
         .field(group.getField())
         .size(accessConfig.getMaxSearchGroups())
         .order(getElasticsearchGroupOrder(group.getOrder()));
@@ -602,7 +645,8 @@ public class ElasticsearchDao implements IndexDao {
     }
     Optional<String> scoreField = groupRequest.getScoreField();
     if (scoreField.isPresent()) {
-      termsBuilder.subAggregation(new SumBuilder(getSumAggregationName(scoreField.get())).field(scoreField.get()).missing(0));
+      SumAggregationBuilder scoreSumAggregationBuilder = AggregationBuilders.sum(getSumAggregationName(scoreField.get())).field(scoreField.get()).missing(0);
+      termsBuilder.subAggregation(scoreSumAggregationBuilder);
     }
     return termsBuilder;
   }
@@ -630,14 +674,15 @@ public class ElasticsearchDao implements IndexDao {
     return searchResultGroups;
   }
 
-  private SearchResult getSearchResult(SearchHit searchHit, boolean fieldsPresent) {
+  private SearchResult getSearchResult(SearchHit searchHit, Optional<List<String>> fields) {
     SearchResult searchResult = new SearchResult();
     searchResult.setId(searchHit.getId());
     Map<String, Object> source;
-    if (fieldsPresent) {
+    if (fields.isPresent()) {
+      Map<String, Object> resultSourceAsMap = searchHit.getSourceAsMap();
       source = new HashMap<>();
-      searchHit.getFields().forEach((key, value) -> {
-        source.put(key, value.getValues().size() == 1 ? value.getValue() : value.getValues());
+      fields.get().forEach(field -> {
+        source.put(field, resultSourceAsMap.get(field));
       });
     } else {
       source = searchHit.getSource();
@@ -648,7 +693,7 @@ public class ElasticsearchDao implements IndexDao {
     return searchResult;
   }
 
-  private String getFacentAggregationName(String field) {
+  private String getFacetAggregationName(String field) {
     return String.format("%s_count", field);
   }
 

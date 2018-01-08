@@ -66,7 +66,7 @@ class AlertsUICommands:
         """
         Logger.info('Status check the Alerts UI')
         metron_service.check_http(
-          self.__params.hostname,
+          self.__params.metron_alerts_ui_host,
           self.__params.metron_alerts_ui_port,
           self.__params.metron_user)
 
@@ -77,7 +77,7 @@ class AlertsUICommands:
         """
         Logger.info('Checking connectivity to Alerts UI')
         metron_service.check_http(
-          self.__params.hostname,
+          self.__params.metron_alerts_ui_host,
           self.__params.metron_alerts_ui_port,
           self.__params.metron_user)
 

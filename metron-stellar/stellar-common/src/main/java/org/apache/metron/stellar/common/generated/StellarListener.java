@@ -29,12 +29,14 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
  */
 public interface StellarListener extends ParseTreeListener {
 	/**
-	 * Enter a parse tree produced by {@link StellarParser#transformation}.
+	 * Enter a parse tree produced by the {@code transformation}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void enterTransformation(StellarParser.TransformationContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link StellarParser#transformation}.
+	 * Exit a parse tree produced by the {@code transformation}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void exitTransformation(StellarParser.TransformationContext ctx);
@@ -123,32 +125,50 @@ public interface StellarListener extends ParseTreeListener {
 	 */
 	void exitInExpression(StellarParser.InExpressionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link StellarParser#if_expr}.
+	 * Enter a parse tree produced by the {@code MatchExpr}
+	 * labeled alternative in {@link StellarParser#transformation_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterMatchExpr(StellarParser.MatchExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code MatchExpr}
+	 * labeled alternative in {@link StellarParser#transformation_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitMatchExpr(StellarParser.MatchExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code if_expr}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void enterIf_expr(StellarParser.If_exprContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link StellarParser#if_expr}.
+	 * Exit a parse tree produced by the {@code if_expr}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void exitIf_expr(StellarParser.If_exprContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link StellarParser#then_expr}.
+	 * Enter a parse tree produced by the {@code then_expr}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void enterThen_expr(StellarParser.Then_exprContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link StellarParser#then_expr}.
+	 * Exit a parse tree produced by the {@code then_expr}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void exitThen_expr(StellarParser.Then_exprContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link StellarParser#else_expr}.
+	 * Enter a parse tree produced by the {@code else_expr}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void enterElse_expr(StellarParser.Else_exprContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link StellarParser#else_expr}.
+	 * Exit a parse tree produced by the {@code else_expr}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void exitElse_expr(StellarParser.Else_exprContext ctx);
@@ -213,12 +233,14 @@ public interface StellarListener extends ParseTreeListener {
 	 */
 	void exitBoleanExpression(StellarParser.BoleanExpressionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link StellarParser#b_expr}.
+	 * Enter a parse tree produced by the {@code b_expr}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void enterB_expr(StellarParser.B_exprContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link StellarParser#b_expr}.
+	 * Exit a parse tree produced by the {@code b_expr}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void exitB_expr(StellarParser.B_exprContext ctx);
@@ -295,12 +317,14 @@ public interface StellarListener extends ParseTreeListener {
 	 */
 	void exitOperand(StellarParser.OperandContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link StellarParser#transformation_entity}.
+	 * Enter a parse tree produced by the {@code transformation_entity}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void enterTransformation_entity(StellarParser.Transformation_entityContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link StellarParser#transformation_entity}.
+	 * Exit a parse tree produced by the {@code transformation_entity}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void exitTransformation_entity(StellarParser.Transformation_entityContext ctx);
@@ -317,52 +341,62 @@ public interface StellarListener extends ParseTreeListener {
 	 */
 	void exitComparisonOp(StellarParser.ComparisonOpContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link StellarParser#func_args}.
+	 * Enter a parse tree produced by the {@code func_args}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void enterFunc_args(StellarParser.Func_argsContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link StellarParser#func_args}.
+	 * Exit a parse tree produced by the {@code func_args}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void exitFunc_args(StellarParser.Func_argsContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link StellarParser#op_list}.
+	 * Enter a parse tree produced by the {@code op_list}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void enterOp_list(StellarParser.Op_listContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link StellarParser#op_list}.
+	 * Exit a parse tree produced by the {@code op_list}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void exitOp_list(StellarParser.Op_listContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link StellarParser#list_entity}.
+	 * Enter a parse tree produced by the {@code list_entity}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void enterList_entity(StellarParser.List_entityContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link StellarParser#list_entity}.
+	 * Exit a parse tree produced by the {@code list_entity}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void exitList_entity(StellarParser.List_entityContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link StellarParser#kv_list}.
+	 * Enter a parse tree produced by the {@code kv_list}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void enterKv_list(StellarParser.Kv_listContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link StellarParser#kv_list}.
+	 * Exit a parse tree produced by the {@code kv_list}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void exitKv_list(StellarParser.Kv_listContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link StellarParser#map_entity}.
+	 * Enter a parse tree produced by the {@code map_entity}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void enterMap_entity(StellarParser.Map_entityContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link StellarParser#map_entity}.
+	 * Exit a parse tree produced by the {@code map_entity}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void exitMap_entity(StellarParser.Map_entityContext ctx);
@@ -691,53 +725,135 @@ public interface StellarListener extends ParseTreeListener {
 	 */
 	void exitFunc(StellarParser.FuncContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link StellarParser#lambda_without_args}.
+	 * Enter a parse tree produced by the {@code default}
+	 * labeled alternative in {@link StellarParser#default_operand}.
+	 * @param ctx the parse tree
+	 */
+	void enterDefault(StellarParser.DefaultContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code default}
+	 * labeled alternative in {@link StellarParser#default_operand}.
+	 * @param ctx the parse tree
+	 */
+	void exitDefault(StellarParser.DefaultContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code lambda_without_args}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void enterLambda_without_args(StellarParser.Lambda_without_argsContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link StellarParser#lambda_without_args}.
+	 * Exit a parse tree produced by the {@code lambda_without_args}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void exitLambda_without_args(StellarParser.Lambda_without_argsContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link StellarParser#lambda_with_args}.
+	 * Enter a parse tree produced by the {@code lambda_with_args}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void enterLambda_with_args(StellarParser.Lambda_with_argsContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link StellarParser#lambda_with_args}.
+	 * Exit a parse tree produced by the {@code lambda_with_args}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void exitLambda_with_args(StellarParser.Lambda_with_argsContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link StellarParser#lambda_variables}.
+	 * Enter a parse tree produced by the {@code lambda_variables}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void enterLambda_variables(StellarParser.Lambda_variablesContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link StellarParser#lambda_variables}.
+	 * Exit a parse tree produced by the {@code lambda_variables}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void exitLambda_variables(StellarParser.Lambda_variablesContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link StellarParser#single_lambda_variable}.
+	 * Enter a parse tree produced by the {@code single_lambda_variable}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void enterSingle_lambda_variable(StellarParser.Single_lambda_variableContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link StellarParser#single_lambda_variable}.
+	 * Exit a parse tree produced by the {@code single_lambda_variable}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void exitSingle_lambda_variable(StellarParser.Single_lambda_variableContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link StellarParser#lambda_variable}.
+	 * Enter a parse tree produced by the {@code lambda_variable}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void enterLambda_variable(StellarParser.Lambda_variableContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link StellarParser#lambda_variable}.
+	 * Exit a parse tree produced by the {@code lambda_variable}
+	 * labeled alternative in {@link StellarParser#default_operand}.
 	 * @param ctx the parse tree
 	 */
 	void exitLambda_variable(StellarParser.Lambda_variableContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code MatchClauses}
+	 * labeled alternative in {@link StellarParser#match_expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterMatchClauses(StellarParser.MatchClausesContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code MatchClauses}
+	 * labeled alternative in {@link StellarParser#match_expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitMatchClauses(StellarParser.MatchClausesContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code match_clauses}
+	 * labeled alternative in {@link StellarParser#default_operand}.
+	 * @param ctx the parse tree
+	 */
+	void enterMatch_clauses(StellarParser.Match_clausesContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code match_clauses}
+	 * labeled alternative in {@link StellarParser#default_operand}.
+	 * @param ctx the parse tree
+	 */
+	void exitMatch_clauses(StellarParser.Match_clausesContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code match_clause}
+	 * labeled alternative in {@link StellarParser#default_operand}.
+	 * @param ctx the parse tree
+	 */
+	void enterMatch_clause(StellarParser.Match_clauseContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code match_clause}
+	 * labeled alternative in {@link StellarParser#default_operand}.
+	 * @param ctx the parse tree
+	 */
+	void exitMatch_clause(StellarParser.Match_clauseContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code MatchClauseAction}
+	 * labeled alternative in {@link StellarParser#match_clause_action}.
+	 * @param ctx the parse tree
+	 */
+	void enterMatchClauseAction(StellarParser.MatchClauseActionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code MatchClauseAction}
+	 * labeled alternative in {@link StellarParser#match_clause_action}.
+	 * @param ctx the parse tree
+	 */
+	void exitMatchClauseAction(StellarParser.MatchClauseActionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code MatchClauseCheckExpr}
+	 * labeled alternative in {@link StellarParser#match_clause_check}.
+	 * @param ctx the parse tree
+	 */
+	void enterMatchClauseCheckExpr(StellarParser.MatchClauseCheckExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code MatchClauseCheckExpr}
+	 * labeled alternative in {@link StellarParser#match_clause_check}.
+	 * @param ctx the parse tree
+	 */
+	void exitMatchClauseCheckExpr(StellarParser.MatchClauseCheckExprContext ctx);
 }

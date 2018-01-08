@@ -49,8 +49,11 @@ metron_user = status_params.metron_user
 metron_group = config['configurations']['metron-env']['metron_group']
 metron_log_dir = config['configurations']['metron-env']['metron_log_dir']
 metron_pid_dir = config['configurations']['metron-env']['metron_pid_dir']
+
 metron_rest_port = status_params.metron_rest_port
+metron_management_ui_host = status_params.metron_management_ui_host
 metron_management_ui_port = status_params.metron_management_ui_port
+metron_alerts_ui_host = status_params.metron_alerts_ui_host
 metron_alerts_ui_port = status_params.metron_alerts_ui_port
 metron_jvm_flags = config['configurations']['metron-rest-env']['metron_jvm_flags']
 metron_spring_profiles_active = config['configurations']['metron-rest-env']['metron_spring_profiles_active']
@@ -237,7 +240,7 @@ if security_enabled:
     nimbus_seeds = config['configurations']['storm-site']['nimbus.seeds']
 
 # Management UI
-metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", ['localhost'])[0]
+metron_rest_host = default("/clusterHostInfo/metron_rest_hosts", [hostname])[0]
 
 # REST
 metron_rest_pid_dir = config['configurations']['metron-rest-env']['metron_rest_pid_dir']

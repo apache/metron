@@ -23,6 +23,7 @@ import static org.apache.metron.common.configuration.ConfigurationType.ENRICHMEN
 import static org.apache.metron.common.configuration.ConfigurationType.GLOBAL;
 import static org.apache.metron.common.configuration.ConfigurationType.INDEXING;
 import static org.apache.metron.common.configuration.ConfigurationType.PARSER;
+import static org.apache.metron.common.configuration.ConfigurationType.PROFILER;
 import static org.apache.metron.common.utils.StringUtils.stripLines;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.fail;
@@ -96,28 +97,30 @@ public class ConfigurationManagerIntegrationTest {
     File sensorDir = new File(new File(TestConstants.SAMPLE_CONFIG_PATH), ENRICHMENT.getDirectory());
     sensors.addAll(Collections2.transform(
              Arrays.asList(sensorDir.list())
-            ,s -> Iterables.getFirst(Splitter.on('.').split(s), "null")
-                                         )
-                  );
+            , s -> Iterables.getFirst(Splitter.on('.').split(s), "null")));
     tmpDir = TestUtils.createTempDir(this.getClass().getName());
     configDir = TestUtils.createDir(tmpDir, "config");
     parsersDir = TestUtils.createDir(configDir, "parsers");
     enrichmentsDir = TestUtils.createDir(configDir, "enrichments");
     indexingDir = TestUtils.createDir(configDir, "indexing");
-    pushConfigs();
+    pushAllConfigs();
   }
 
-  private void pushConfigs() throws Exception {
+  private void pushAllConfigs() throws Exception {
+    pushAllConfigs(TestConstants.SAMPLE_CONFIG_PATH);
+  }
+
+  private void pushAllConfigs(String inputDir) throws Exception {
     String[] args = new String[]{
             "-z", zookeeperUrl
             , "--mode", "PUSH"
-            , "--input_dir", TestConstants.SAMPLE_CONFIG_PATH
+            , "--input_dir", inputDir
     };
     ConfigurationManager manager = new ConfigurationManager();
     manager.run(ConfigurationManager.ConfigurationOptions.parse(new PosixParser(), args));
   }
 
-  public void pullConfigs(boolean force) throws Exception {
+  private void pullConfigs(boolean force) throws Exception {
     String[] args = null;
     if(force) {
       args = new String[]{
@@ -126,8 +129,8 @@ public class ConfigurationManagerIntegrationTest {
               , "--output_dir", outDir
               , "--force"
       };
-    }
-    else {
+
+    } else {
       args = new String[]{
               "-z", zookeeperUrl
               , "--mode", "PULL"
@@ -138,7 +141,7 @@ public class ConfigurationManagerIntegrationTest {
     manager.run(ConfigurationManager.ConfigurationOptions.parse(new PosixParser(), args));
   }
 
-  public void validateConfigsOnDisk(File configDir) throws IOException {
+  private void validateConfigsOnDisk(File configDir) throws IOException {
     File globalConfigFile = new File(configDir, "global.json");
     Assert.assertTrue("Global config does not exist", globalConfigFile.exists());
     validateConfig("global", GLOBAL, new String(Files.readAllBytes(Paths.get(globalConfigFile.toURI()))));
@@ -158,25 +161,30 @@ public class ConfigurationManagerIntegrationTest {
       //second time without force should
       pullConfigs(false);
       fail("Should have failed to pull configs in a directory structure that already exists.");
-    }
-    catch(IllegalStateException t) {
+
+    } catch(IllegalStateException t) {
       //make sure we didn't bork anything
       validateConfigsOnDisk(new File(outDir));
     }
     pullConfigs(true);
     validateConfigsOnDisk(new File(outDir));
   }
-  public void validateConfig(String name, ConfigurationType type, String data)
-  {
+
+  private void validateConfig(String name, ConfigurationType type, String data) {
       try {
         type.deserialize(data);
       } catch (Exception e) {
         fail("Unable to load config " + name + ": " + data);
       }
   }
+
   @Test
-  public void testPush() throws Exception {
-    pushConfigs();
+  public void testPushAll() throws Exception {
+
+    // push all configs; parser, enrichment, indexing, etc
+    pushAllConfigs();
+
+    // validate
     final Set<String> sensorsInZookeeper = new HashSet<>();
     final BooleanWritable foundGlobal = new BooleanWritable(false);
     ConfigurationsUtils.visitConfigs(client, new ConfigurationsUtils.ConfigurationVisitor() {
@@ -197,20 +205,61 @@ public class ConfigurationManagerIntegrationTest {
     Assert.assertEquals(sensorsInZookeeper, sensors);
   }
 
+  @Test(expected = RuntimeException.class)
+  public void testPushAllWithBadConfig() throws Exception {
+
+    // create a bad global config
+    File globalConfigFile = new File(configDir, "global.json");
+    TestUtils.write(globalConfigFile, badGlobalConfig);
+
+    // create a parser config
+    File squidConfigFile = new File(parsersDir, "squid.json");
+    TestUtils.write(squidConfigFile, badParserConfig);
+
+    pushAllConfigs(configDir.getAbsolutePath());
+
+    // exception expected as the global and parser config is invalid
+  }
+
   /**
    * { "a": "b" }
    */
   @Multiline
-  private static String someConfig;
+  private static String globalConfig;
 
   @Test
-  public void writes_global_config_to_zookeeper() throws Exception {
+  public void testPushGlobal() throws Exception {
+
+    // create the config
     File configFile = new File(configDir, "global.json");
-    TestUtils.write(configFile, someConfig);
+    TestUtils.write(configFile, globalConfig);
+
+    // push the global config
     pushConfigs(GLOBAL, configDir);
-    byte[] expected = JSONUtils.INSTANCE.toJSONPretty(someConfig);
+
+    // validate
+    byte[] expected = JSONUtils.INSTANCE.toJSONPretty(globalConfig);
     byte[] actual = JSONUtils.INSTANCE.toJSONPretty(stripLines(dumpConfigs(GLOBAL), 1));
     Assert.assertThat(actual, equalTo(expected));
+  }
+
+  /**
+   * { "invalid as needs to be key/values" }
+   */
+  @Multiline
+  private static String badGlobalConfig;
+
+  @Test(expected = RuntimeException.class)
+  public void testPushGlobalWithBadConfig() throws Exception {
+
+    // create the config
+    File configFile = new File(configDir, "global.json");
+    TestUtils.write(configFile, badGlobalConfig);
+
+    // push the global config
+    pushConfigs(GLOBAL, configDir);
+
+    // exception expected as the global config is invalid
   }
 
   private void pushConfigs(ConfigurationType type, File configPath) throws Exception {
@@ -251,86 +300,118 @@ public class ConfigurationManagerIntegrationTest {
   }
 
   public interface RedirectCallback {
-
     void call(String[] args) throws Exception;
   }
 
-  private String redirectSystemOut(final String[] args, RedirectCallback callback)
-      throws Exception {
+  private String redirectSystemOut(final String[] args, RedirectCallback callback) throws Exception {
     PrintStream os = System.out;
-    try (OutputStream baos = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(baos)) {
+    try (OutputStream baos = new ByteArrayOutputStream(); PrintStream ps = new PrintStream(baos)) {
       System.setOut(ps);
       callback.call(args);
       System.out.flush();
       System.setOut(os);
       return baos.toString();
+
     } finally {
       System.setOut(os);
     }
   }
 
   /**
-   *{
-   "parserClassName": "org.apache.metron.parsers.GrokParser",
-   "sensorTopic": "squid",
-   "parserConfig": {
-   "grokPath": "/patterns/squid",
-   "patternLabel": "SQUID_DELIMITED",
-   "timestampField": "timestamp"
-   },
-   "fieldTransformations" : [
-   {
-   "transformation" : "STELLAR"
-   ,"output" : [ "full_hostname", "domain_without_subdomains" ]
-   ,"config" : {
-   "full_hostname" : "URL_TO_HOST(url)"
-   ,"domain_without_subdomains" : "DOMAIN_REMOVE_SUBDOMAINS(full_hostname)"
-   }
-   }
-   ]
-   }
+   *  {
+   *    "parserClassName": "org.apache.metron.parsers.GrokParser",
+   *    "sensorTopic": "squid",
+   *    "parserConfig": {
+   *      "grokPath": "/patterns/squid",
+   *      "patternLabel": "SQUID_DELIMITED",
+   *      "timestampField": "timestamp"
+   *    },
+   *    "fieldTransformations" : [
+   *      {
+   *        "transformation" : "STELLAR",
+   *        "output" : [ "full_hostname", "domain_without_subdomains" ],
+   *        "config" : {
+   *          "full_hostname" : "URL_TO_HOST(url)",
+   *          "domain_without_subdomains" : "DOMAIN_REMOVE_SUBDOMAINS(full_hostname)"
+   *        }
+   *      }
+   *    ]
+   *  }
    */
   @Multiline
   private static String squidParserConfig;
 
   @Test
-  public void writes_single_parser_config_to_zookeeper() throws Exception {
+  public void testPushParser() throws Exception {
+
+    // create a parser config
     File configFile = new File(parsersDir, "myparser.json");
     TestUtils.write(configFile, squidParserConfig);
+
+    // push the parser config
     pushConfigs(PARSER, configDir, Optional.of("myparser"));
+
+    // validate
     byte[] expected = JSONUtils.INSTANCE.toJSONPretty(squidParserConfig);
     byte[] actual = JSONUtils.INSTANCE.toJSONPretty(stripLines(dumpConfigs(PARSER, Optional.of("myparser")), 1));
     Assert.assertThat(actual, equalTo(expected));
   }
 
   /**
+   *  {
+   *    "parserClassName": "org.apache.metron.parsers.GrokParser",
+   *    "invalidFieldForParserConfig": "22"
+   *  }
+   */
+  @Multiline
+  private static String badParserConfig;
+
+  @Test(expected = RuntimeException.class)
+  public void testPushParserWithBadConfig() throws Exception {
+
+    // create a parser config
+    File configFile = new File(parsersDir, "badparser.json");
+    TestUtils.write(configFile, badParserConfig);
+
+    // push the parser config
+    pushConfigs(PARSER, configDir, Optional.of("badparser"));
+
+    // exception expected as the parser config is invalid
+  }
+
+  /**
    * {
-   "enrichment" : {
-   "fieldMap": {
-   "geo": ["ip_dst_addr", "ip_src_addr"],
-   "host": ["host"]
-   }
-   },
-   "threatIntel": {
-   "fieldMap": {
-   "hbaseThreatIntel": ["ip_src_addr", "ip_dst_addr"]
-   },
-   "fieldToTypeMap": {
-   "ip_src_addr" : ["malicious_ip"],
-   "ip_dst_addr" : ["malicious_ip"]
-   }
-   }
-   }
+   *  "enrichment" : {
+   *    "fieldMap": {
+   *      "geo": ["ip_dst_addr", "ip_src_addr"],
+   *      "host": ["host"]
+   *    }
+   *  },
+   *  "threatIntel": {
+   *    "fieldMap": {
+   *      "hbaseThreatIntel": ["ip_src_addr", "ip_dst_addr"]
+   *    },
+   *    "fieldToTypeMap": {
+   *      "ip_src_addr" : ["malicious_ip"],
+   *      "ip_dst_addr" : ["malicious_ip"]
+   *    }
+   *   }
+   * }
    */
   @Multiline
   private static String someEnrichmentConfig;
 
   @Test
-  public void writes_single_enrichment_config_to_zookeeper() throws Exception {
+  public void testPushEnrichment() throws Exception {
+
+    // create enrichment config
     File configFile = new File(enrichmentsDir, "myenrichment.json");
     TestUtils.write(configFile, someEnrichmentConfig);
+
+    // push enrichment config
     pushConfigs(ENRICHMENT, configDir, Optional.of("myenrichment"));
+
+    // validate
     byte[] expected = JSONUtils.INSTANCE.toJSONPretty(someEnrichmentConfig);
     byte[] actual = JSONUtils.INSTANCE.toJSONPretty(stripLines(dumpConfigs(ENRICHMENT, Optional.of("myenrichment")), 1));
     Assert.assertThat(actual, equalTo(expected));
@@ -338,34 +419,150 @@ public class ConfigurationManagerIntegrationTest {
 
   /**
    * {
-   "hdfs" : {
-   "index": "myindex",
-   "batchSize": 5,
-   "enabled" : true
-   },
-   "elasticsearch" : {
-   "index": "myindex",
-   "batchSize": 5,
-   "enabled" : true
-   },
-   "solr" : {
-   "index": "myindex",
-   "batchSize": 5,
-   "enabled" : true
-   }
-   }
+   *  "enrichment" : {
+   *    "fieldMap": {
+   *      "geo": ["ip_dst_addr", "ip_src_addr"],
+   *      "host": ["host"]
+   *    }
+   *  },
+   *  "invalidField": {
+   *
+   *  }
+   * }
+   */
+  @Multiline
+  private static String badEnrichmentConfig;
+
+  @Test(expected = RuntimeException.class)
+  public void testPushEnrichmentWithBadConfig() throws Exception {
+
+    // create enrichment config
+    File configFile = new File(enrichmentsDir, "badenrichment.json");
+    TestUtils.write(configFile, badEnrichmentConfig);
+
+    // push enrichment config
+    pushConfigs(ENRICHMENT, configDir, Optional.of("badenrichment"));
+
+    // exception expected as the enrichment config is invalid
+  }
+
+  /**
+   * {
+   *  "hdfs" : {
+   *      "index": "myindex",
+   *      "batchSize": 5,
+   *      "enabled" : true
+   *   },
+   *   "elasticsearch" : {
+   *      "index": "myindex",
+   *      "batchSize": 5,
+   *      "enabled" : true
+   *   },
+   *   "solr" : {
+   *      "index": "myindex",
+   *      "batchSize": 5,
+   *      "enabled" : true
+   *   }
+   * }
    */
   @Multiline
   private static String someIndexingConfig;
 
   @Test
-  public void writes_single_indexing_config_to_zookeeper() throws Exception {
+  public void testPushIndexing() throws Exception {
+
+    // write the indexing config
     File configFile = new File(indexingDir, "myindex.json");
     TestUtils.write(configFile, someIndexingConfig);
+
+    // push the index config
     pushConfigs(INDEXING, configDir, Optional.of("myindex"));
+
+    // validate
     byte[] expected = JSONUtils.INSTANCE.toJSONPretty(someIndexingConfig);
     byte[] actual = JSONUtils.INSTANCE.toJSONPretty(stripLines(dumpConfigs(INDEXING, Optional.of("myindex")), 1));
     Assert.assertThat(actual, equalTo(expected));
+  }
+
+  /**
+   * {
+   *  "hdfs"
+   * }
+   */
+  @Multiline
+  private static String badIndexingConfig;
+
+  @Test(expected = RuntimeException.class)
+  public void testPushIndexingWithBadConfig() throws Exception {
+
+    // write the indexing config
+    File configFile = new File(indexingDir, "myindex.json");
+    TestUtils.write(configFile, badIndexingConfig);
+
+    // push the index config
+    pushConfigs(INDEXING, configDir, Optional.of("myindex"));
+
+    // exception expected as the indexing config is invalid
+  }
+
+  /**
+   * {
+   *  "profiles": [
+   *    {
+   *      "profile": "hello-world",
+   *      "onlyif":  "exists(ip_src_addr)",
+   *      "foreach": "ip_src_addr",
+   *      "init":    { "count": "0" },
+   *      "update":  { "count": "count + 1" },
+   *      "result":  "count"
+   *    }
+   *  ]
+   * }
+   */
+  @Multiline
+  private static String someProfilerConfig;
+
+  @Test
+  public void testPushProfiler() throws Exception {
+
+    // create the profiler config
+    File configFile = new File(configDir, "profiler.json");
+    TestUtils.write(configFile, someProfilerConfig);
+
+    // push the profiler config
+    Optional<String> configName = Optional.empty();
+    pushConfigs(PROFILER, configDir, configName);
+
+    // validate
+    byte[] expected = JSONUtils.INSTANCE.toJSONPretty(someProfilerConfig);
+    byte[] actual = JSONUtils.INSTANCE.toJSONPretty(stripLines(dumpConfigs(PROFILER, configName), 1));
+    Assert.assertThat(actual, equalTo(expected));
+  }
+
+  /**
+   * {
+   *  "profiles": [
+   *    {
+   *      "profile": "invalid; missing foreach, result, etc"
+   *    }
+   *  ]
+   * }
+   */
+  @Multiline
+  private static String badProfilerConfig;
+
+  @Test(expected = RuntimeException.class)
+  public void testPushProfilerWithBadConfig() throws Exception {
+
+    // write the indexing config
+    File configFile = new File(configDir, "profiler.json");
+    TestUtils.write(configFile, badProfilerConfig);
+
+    // push the index config
+    Optional<String> configName = Optional.empty();
+    pushConfigs(PROFILER, configDir, configName);
+
+    // exception expected as the profiler config is invalid
   }
 
   /**
@@ -381,13 +578,21 @@ public class ConfigurationManagerIntegrationTest {
   private static String expectedSomeConfig;
 
   @Test
-  public void patches_global_config_from_file() throws Exception {
+  public void testPatchGlobalFromFile() throws Exception {
+
+    // create a patch file
     File patchFile = new File(tmpDir, "global-config-patch.json");
     TestUtils.write(patchFile, somePatchConfig);
+
+    // create the global config
     File configFile = new File(configDir, "global.json");
-    TestUtils.write(configFile, someConfig);
+    TestUtils.write(configFile, globalConfig);
     pushConfigs(GLOBAL, configDir, Optional.of("global"));
+
+    // patch the global config
     patchConfigs(GLOBAL, Optional.of(patchFile), Optional.of("global"), Optional.empty(), Optional.empty(), Optional.empty());
+
+    // validate the patch
     byte[] expected = JSONUtils.INSTANCE.toJSONPretty(expectedSomeConfig);
     byte[] actual = JSONUtils.INSTANCE.toJSONPretty(stripLines(dumpConfigs(GLOBAL, Optional.of("global")), 1));
     Assert.assertThat(actual, equalTo(expected));
@@ -417,57 +622,105 @@ public class ConfigurationManagerIntegrationTest {
   }
 
   /**
-   * [ { "op": "replace", "path": "/parserConfig/timestampField", "value": "heyjoe" } ]
+   * [
+   *   {
+   *    "op": "replace",
+   *    "path": "/parserConfig/timestampField",
+   *    "value": "heyjoe"
+   *   }
+   * ]
    */
   @Multiline
   public static String someParserPatch;
 
   /**
-   *{
-   "parserClassName": "org.apache.metron.parsers.GrokParser",
-   "sensorTopic": "squid",
-   "parserConfig": {
-   "grokPath": "/patterns/squid",
-   "patternLabel": "SQUID_DELIMITED",
-   "timestampField": "heyjoe"
-   },
-   "fieldTransformations" : [
-   {
-   "transformation" : "STELLAR"
-   ,"output" : [ "full_hostname", "domain_without_subdomains" ]
-   ,"config" : {
-   "full_hostname" : "URL_TO_HOST(url)"
-   ,"domain_without_subdomains" : "DOMAIN_REMOVE_SUBDOMAINS(full_hostname)"
-   }
-   }
-   ]
-   }
+   * {
+   *    "parserClassName": "org.apache.metron.parsers.GrokParser",
+   *    "sensorTopic": "squid",
+   *    "parserConfig": {
+   *       "grokPath": "/patterns/squid",
+   *       "patternLabel": "SQUID_DELIMITED",
+   *       "timestampField": "heyjoe"
+   *    },
+   *    "fieldTransformations" : [
+   *      {
+   *        "transformation" : "STELLAR",
+   *        "output" : [ "full_hostname", "domain_without_subdomains" ],
+   *        "config" : {
+   *          "full_hostname" : "URL_TO_HOST(url)",
+   *          "domain_without_subdomains" : "DOMAIN_REMOVE_SUBDOMAINS(full_hostname)"
+   *        }
+   *      }
+   *    ]
+   * }
    */
   @Multiline
   public static String expectedPatchedParser;
 
   @Test
-  public void patches_parser_config_from_file() throws Exception {
+  public void testPatchParserFromFile() throws Exception {
+
+    // create a patch file
     File patchFile = new File(tmpDir, "parser-patch.json");
     TestUtils.write(patchFile, someParserPatch);
+
+    // create a parser configuration
     File configFile = new File(parsersDir, "myparser.json");
     TestUtils.write(configFile, squidParserConfig);
     pushConfigs(PARSER, configDir, Optional.of("myparser"));
+
+    // patch the configuration
     patchConfigs(PARSER, Optional.of(patchFile), Optional.of("myparser"), Optional.empty(), Optional.empty(), Optional.empty());
+
+    // validate the patch
     byte[] expected = JSONUtils.INSTANCE.toJSONPretty(expectedPatchedParser);
     byte[] actual = JSONUtils.INSTANCE.toJSONPretty(stripLines(dumpConfigs(PARSER, Optional.of("myparser")), 1));
     Assert.assertThat(actual, equalTo(expected));
   }
 
   @Test
-  public void patches_parser_config_from_key_value() throws Exception {
+  public void testPatchParserFromKeyValue() throws Exception {
+
+    // push the parser config
     File configFile = new File(parsersDir, "myparser.json");
     TestUtils.write(configFile, squidParserConfig);
     pushConfigs(PARSER, configDir, Optional.of("myparser"));
+
+    // patch the parser configuration
     patchConfigs(PARSER, Optional.empty(), Optional.of("myparser"), Optional.of(ADD), Optional.of("/parserConfig/timestampField"), Optional.of("\"\"heyjoe\"\""));
+
+    // validate the patch
     byte[] expected = JSONUtils.INSTANCE.toJSONPretty(expectedPatchedParser);
     byte[] actual = JSONUtils.INSTANCE.toJSONPretty(stripLines(dumpConfigs(PARSER, Optional.of("myparser")), 1));
     Assert.assertThat(actual, equalTo(expected));
+  }
+
+  /**
+   * [
+   *   {
+   *    "op": "add",
+   *    "path": "/invalidFieldForParserConfig",
+   *    "value": "22"
+   *   }
+   * ]
+   */
+  @Multiline
+  public static String badParserPatch;
+
+  @Test(expected = RuntimeException.class)
+  public void testPatchParserWithBadConfig() throws Exception {
+
+    // create a patch file that when applied makes the parser config invalid
+    File patchFile = new File(tmpDir, "parser-patch.json");
+    TestUtils.write(patchFile, badParserPatch);
+
+    // create a parser configuration
+    File configFile = new File(parsersDir, "myparser.json");
+    TestUtils.write(configFile, squidParserConfig);
+    pushConfigs(PARSER, configDir, Optional.of("myparser"));
+
+    // patch the configuration
+    patchConfigs(PARSER, Optional.of(patchFile), Optional.of("myparser"), Optional.empty(), Optional.empty(), Optional.empty());
   }
 
   /**
@@ -484,15 +737,52 @@ public class ConfigurationManagerIntegrationTest {
   private static String expectedComplexConfig;
 
   @Test
-  public void patches_global_config_from_complex_key_value() throws Exception {
+  public void testPatchGlobalFromComplexKeyValue() throws Exception {
+
+    // write a global configuration
     File configFile = new File(configDir, "global.json");
-    TestUtils.write(configFile, someConfig);
+    TestUtils.write(configFile, globalConfig);
     pushConfigs(GLOBAL, configDir, Optional.of("global"));
+
+    // patch the global configuration
     patchConfigs(GLOBAL, Optional.empty(), Optional.of("global"), Optional.of(ADD), Optional.of("/foo"), Optional.of("{ \"bar\" : { \"baz\" : [ \"bazval1\", \"bazval2\" ] } }"));
+
+    // validate the patch
     byte[] expected = JSONUtils.INSTANCE.toJSONPretty(expectedComplexConfig);
     byte[] actual = JSONUtils.INSTANCE.toJSONPretty(stripLines(dumpConfigs(GLOBAL, Optional.of("global")), 1));
     Assert.assertThat(actual, equalTo(expected));
   }
+
+  /**
+   * [
+   *   {
+   *    "op": "add",
+   *    "path": "/invalidFieldForProfilerConfig",
+   *    "value": "22"
+   *   }
+   * ]
+   */
+  @Multiline
+  public static String badProfilerPatch;
+
+  @Test(expected = RuntimeException.class)
+  public void testPatchProfilerWithBadConfig() throws Exception {
+
+    // create a patch file that when applied makes the profiler config invalid
+    File patchFile = new File(tmpDir, "patch.json");
+    TestUtils.write(patchFile, badProfilerPatch);
+
+    // create the profiler config
+    File configFile = new File(configDir, "profiler.json");
+    TestUtils.write(configFile, someProfilerConfig);
+
+    // push the profiler config
+    pushConfigs(PROFILER, configDir, Optional.empty());
+
+    // patch the profiler config
+    patchConfigs(PROFILER, Optional.of(patchFile), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+  }
+
 
   @After
   public void tearDown() throws IOException {

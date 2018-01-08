@@ -50,8 +50,11 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
   protected static final String ERROR_TOPIC = "indexing_error";
   protected String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
   protected String testSensorType = "test";
+  protected final int NUM_RETRIES = 100;
+  protected final long TOTAL_TIME_MS = 150000L;
 
   protected void preTest() {}
+
 
   @Test
   public void test() throws Exception {
@@ -114,8 +117,8 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
                                        .withComponent("config", configUploadComponent)
                                        .withComponent("storm", fluxComponent)
                                        .withMillisecondsBetweenAttempts(1500)
-                                       .withNumRetries(100)
-                                       .withMaxTimeMS(150000);
+                                       .withNumRetries(NUM_RETRIES)
+                                       .withMaxTimeMS(TOTAL_TIME_MS);
 
     if(searchComponent != null) {
      componentBuilder = componentBuilder.withComponent("search", getSearchComponent(topologyProperties))

@@ -163,7 +163,7 @@ public class GetProfile implements StellarFunction {
     }
 
     Map<String, Object> effectiveConfig = getEffectiveConfig(context, configOverridesMap);
-
+    Object defaultValue = null;
     //lazily create new profiler client if needed
     if (client == null || !cachedConfigMap.equals(effectiveConfig)) {
       RowKeyBuilder rowKeyBuilder = getRowKeyBuilder(effectiveConfig);
@@ -172,8 +172,10 @@ public class GetProfile implements StellarFunction {
       client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder);
       cachedConfigMap = effectiveConfig;
     }
-
-    return client.fetch(Object.class, profile, entity, groups, periods.orElse(new ArrayList<>(0)));
+    if(cachedConfigMap != null) {
+      defaultValue = ProfilerClientConfig.PROFILER_DEFAULT_VALUE.get(cachedConfigMap);
+    }
+    return client.fetch(Object.class, profile, entity, groups, periods.orElse(new ArrayList<>(0)), Optional.ofNullable(defaultValue));
   }
 
 

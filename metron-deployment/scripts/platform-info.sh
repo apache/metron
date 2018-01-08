@@ -77,6 +77,35 @@ echo "--"
 echo "npm"
 npm --version
 
+# C++ compiler
+echo "--"
+if [[ $(command -v g++) && $(g++ --version 2>/dev/null) ]]; then
+  g++ --version
+
+  # check C++11 compliance
+  echo "--"
+  OBJFILE=/tmp/test
+  CPPFILE=/tmp/test.cpp
+  cat > $CPPFILE <<- EOM
+#include <iostream>
+using namespace std;
+int main() {
+    cout << "Hello World!" << endl;
+    return 0;
+}
+EOM
+  g++ -std=c++11 $CPPFILE -o $OBJFILE &>/dev/null
+  if [ $? -eq 0 ]; then
+      echo "Compiler is C++11 compliant"
+  else
+      echo "Warning: Compiler is NOT C++11 compliant"
+  fi
+  rm -f $CPPFILE $OBJFILE
+elif [[ $(command -v g++) ]]; then
+  echo "Warning: g++ not properly configured"
+else
+  echo "Warning: g++ not found"
+fi
 
 # operating system
 echo "--"

@@ -1,7 +1,24 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 Kerberos Setup
 ==============
 
-This document provides instructions for kerberizing Metron's Vagrant-based development environments; "Quick Dev" and "Full Dev".  These instructions do not cover the Ambari MPack or sensors.  General Kerberization notes can be found in the metron-deployment [README.md](../README.md).
+This document provides instructions for kerberizing Metron's Vagrant-based development environments.  These instructions do not cover the Ambari MPack or sensors.  General Kerberization notes can be found in the metron-deployment [README.md](../README.md).
 
 * [Setup](#setup)
 * [Setup a KDC](#setup-a-kdc)
@@ -17,7 +34,7 @@ This document provides instructions for kerberizing Metron's Vagrant-based devel
 Setup
 -----
 
-1. Deploy a Vagrant development environment; either [Full Dev](vagrant/full-dev-platform/README.md) or [Quick Dev](vagrant/quick-dev-platform/README.md).
+1. Deploy the [development environment.](vagrant/full-dev-platform/README.md).
 
 1. Export the following environment variables.  These need to be set for the remainder of the instructions. Replace `node1` with the appropriate hosts, if you are running Metron anywhere other than Vagrant.
 
@@ -30,7 +47,7 @@ Setup
     export BROKERLIST=node1:6667
     export HDP_HOME="/usr/hdp/current"
     export KAFKA_HOME="${HDP_HOME}/kafka-broker"
-    export METRON_VERSION="0.4.2"
+    export METRON_VERSION="${METRON_VERSION}"
     export METRON_HOME="/usr/metron/${METRON_VERSION}"
     ```
 
@@ -73,7 +90,7 @@ Setup a KDC
     cp -f /etc/krb5.conf /var/lib/ambari-server/resources/scripts
     ```
 
-1. Ensure that the KDC can issue renewable tickets. This may be necessary on a real cluster, but should not be on [Full Dev](vagrant/full-dev-platform/README.md). 
+1. Ensure that the KDC can issue renewable tickets. This may be necessary on a real cluster, but should not be on [Full Dev](vagrant/full-dev-platform/README.md).
 
     Edit `/var/kerberos/krb5kdc/kdc.conf` and ensure the following is added to the `realm` section
 
@@ -93,9 +110,9 @@ Setup a KDC
     /etc/rc.d/init.d/krb5kdc start
     chkconfig krb5kdc on    
     ```
-    
+
 1. Start the Kerberos Admin service and ensure that it starts on boot.    
-    
+
     ```
     /etc/rc.d/init.d/kadmin start
     chkconfig kadmin on
@@ -106,9 +123,9 @@ Setup a KDC
     ```
     kadmin.local -q "addprinc admin/admin"
     ```
-   
+
 1. Setup the `metron` principal. You will `kinit` as the `metron` principal when running topologies. You will be prompted for a password; do not forget it.
-    
+
     ```
     kadmin.local -q "addprinc metron"
     ```
@@ -120,7 +137,7 @@ Verify KDC
 1. Ticket renewal is disallowed by default in many Linux distributions. If the KDC cannot issue renewable tickets, an error will be thrown when starting Metron's Storm topologies:
 
     ```
-    Exception in thread "main" java.lang.RuntimeException: 
+    Exception in thread "main" java.lang.RuntimeException:
     java.lang.RuntimeException: The TGT found is not renewable
     ```
 
@@ -132,8 +149,8 @@ Verify KDC
 
     * If the 'R' flags are present, you may skip to next section.
     * If the 'R' flags are absent, you will need to follow the below steps:
-    
-1. If the KDC is already setup, then editing `max_life` and `max_renewable_life` in `/var/kerberos/krb5kdc/kdc.conf`, then restarting `kadmin` and `krb5kdc` services will not change the policies for existing users. 
+
+1. If the KDC is already setup, then editing `max_life` and `max_renewable_life` in `/var/kerberos/krb5kdc/kdc.conf`, then restarting `kadmin` and `krb5kdc` services will not change the policies for existing users.
 
     You need to set the renew lifetime for existing users and the `krbtgt` realm. Modify the appropriate principals to allow renewable tickets using the following commands. Adjust the parameters to match your desired KDC parameters:
 

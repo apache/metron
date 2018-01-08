@@ -15,36 +15,35 @@
 #  limitations under the License.
 #
 ---
-- name: Clone metron-bro-plugin-kafka into /tmp
-  git:
-    repo: https://github.com/apache/metron-bro-plugin-kafka
-    version: master
-    dest: /tmp/metron-bro-plugin-kafka
-
-- name: Compile and install the plugin
-  shell: "{{ item }}"
+- name: Install bro-pkg
   environment:
+    LD_LIBRARY_PATH: "{{ python27_lib }}"
+  command: "{{ python27_bin }}/pip install bro-pkg"
+
+- name: Configure bro-pkg
+  environment:
+    PATH: "{{ git29_bin }}:{{ bro_bin }}:{{ ansible_env.PATH }}"
+    LD_LIBRARY_PATH: "{{ python27_lib }}"
+  command: "{{ python27_bin }}/bro-pkg autoconfig"
+
+- name: Install the metron-bro-plugin-kafka package
+  environment:
+    PATH: "{{ git29_bin }}:{{ bro_bin }}:{{ ansible_env.PATH }}"
+    LD_LIBRARY_PATH: "{{ httpd24_lib }}:{{ python27_lib }}"
     CXX: /opt/rh/devtoolset-4/root/usr/bin/g++
     CC: /opt/rh/devtoolset-4/root/usr/bin/gcc
-  args:
-    chdir: "/tmp/metron-bro-plugin-kafka"
-    creates: "{{ bro_home }}/lib/bro/plugins/BRO_KAFKA"
-  with_items:
-    - rm -rf build/
-    - "./configure --bro-dist=/tmp/bro-{{ bro_version }} --install-root={{ bro_home }}/lib/bro/plugins/ --with-librdkafka={{ librdkafka_home }}"
-    - make
-    - make install
+  command: "{{ python27_bin }}/bro-pkg install apache/metron-bro-plugin-kafka --force --version {{ metron_bro_plugin_kafka_version }}"
 
 - name: Configure bro-kafka plugin
   lineinfile:
     dest: "{{ bro_home }}/share/bro/site/local.bro"
     line: "{{ item }}"
   with_items:
-    - "@load Bro/Kafka/logs-to-kafka.bro"
+    - "@load packages"
     - "redef Kafka::logs_to_send = set(HTTP::LOG, DNS::LOG);"
     - "redef Kafka::topic_name = \"{{ bro_topic }}\";"
     - "redef Kafka::tag_json = T;"
     - "redef Kafka::kafka_conf = table([\"metadata.broker.list\"] = \"{{ kafka_broker_url }}\");"
 
 - name: Deploy bro configuration changes
-  shell: "{{ bro_home }}/bin/broctl deploy"
+  shell: "{{ bro_bin }}/broctl deploy"
