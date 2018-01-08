@@ -175,7 +175,7 @@ class RestCommands:
         """
         Logger.info('Status check the REST application')
         metron_service.check_http(
-            self.__params.hostname,
+            self.__params.metron_rest_host,
             self.__params.metron_rest_port,
             self.__params.metron_user)
 
@@ -186,7 +186,7 @@ class RestCommands:
         """
         Logger.info('Checking connectivity to REST application')
         metron_service.check_http(
-            self.__params.hostname,
+            self.__params.metron_rest_host,
             self.__params.metron_rest_port,
             self.__params.metron_user)
 

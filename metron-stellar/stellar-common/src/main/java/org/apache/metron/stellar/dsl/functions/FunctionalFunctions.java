@@ -41,7 +41,7 @@ public class FunctionalFunctions {
 
     @Override
     public Object apply(List<Object> args) {
-      List<Object> input = (List<Object>) args.get(0);
+      Iterable<Object> input = (Iterable<Object>) args.get(0);
       LambdaExpression expression = (LambdaExpression)args.get(1);
       if(input == null || expression == null) {
         return input;
@@ -66,7 +66,7 @@ public class FunctionalFunctions {
 
     @Override
     public Object apply(List<Object> args) {
-      List<Object> input = (List<Object>) args.get(0);
+      Iterable<Object> input = (Iterable<Object>) args.get(0);
       LambdaExpression expression = (LambdaExpression) args.get(1);
       if(input == null || expression == null) {
         return input;
@@ -95,7 +95,7 @@ public class FunctionalFunctions {
 
     @Override
     public Object apply(List<Object> args) {
-      List<Object> input = (List<Object>) args.get(0);
+      Iterable<Object> input = (Iterable<Object>) args.get(0);
       if(input == null || args.size() < 3) {
         return null;
       }
@@ -105,8 +105,7 @@ public class FunctionalFunctions {
       if(expression == null || runningResult == null) {
         return null;
       }
-      for(int i = 0;i < input.size();++i) {
-        Object rhs = input.get(i);
+      for(Object rhs : input) {
         runningResult = expression.apply(listOf(runningResult, rhs));
       }
       return runningResult;
