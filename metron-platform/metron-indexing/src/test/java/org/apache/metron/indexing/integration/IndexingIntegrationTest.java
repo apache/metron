@@ -140,7 +140,6 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
       //assert that our input docs are equivalent to the output docs, converting the input docs keys based
       // on the field name converter
       assertInputDocsMatchOutputs(inputDocs, docs, getFieldNameConverter());
-      //assertInputDocsMatchOutputs(inputDocs, readDocsFromDisk(hdfsDir), x -> x);
     }
     finally {
       if(runner != null) {
