@@ -21,10 +21,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -32,6 +34,7 @@ import java.util.List;
 
 public class TestUtils {
   public static long MAX_ASSERT_WAIT_MS = 30000L;
+
   public interface Assertion {
     void apply() throws Exception;
   }
@@ -85,6 +88,30 @@ public class TestUtils {
     com.google.common.io.Files.createParentDirs(file);
     com.google.common.io.Files.write(contents, file, StandardCharsets.UTF_8);
     return file;
+  }
+
+  /**
+   * Reads file contents into a String. Uses UTF-8 as default charset.
+   *
+   * @param in Input file
+   * @return contents of input file
+   * @throws IOException
+   */
+  public static String read(File in) throws IOException {
+    return read(in, StandardCharsets.UTF_8);
+  }
+
+  /**
+   * Reads file contents into a String
+   *
+   * @param in Input file
+   * @param charset charset to use for reading
+   * @return contents of input file
+   * @throws IOException
+   */
+  public static String read(File in, Charset charset) throws IOException {
+    byte[] bytes = Files.readAllBytes(Paths.get(in.getPath()));
+    return new String(bytes, charset);
   }
 
   /**

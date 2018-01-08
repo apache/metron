@@ -2,9 +2,6 @@
   "template": "alerts_ui_e2e_index",
   "mappings": {
     "alerts_ui_e2e_doc": {
-      "_timestamp": {
-        "enabled": true
-      },
       "dynamic_templates": [
       {
         "geo_location_point": {
@@ -20,8 +17,7 @@
           "match": "enrichments:geo:*:country",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
@@ -30,8 +26,7 @@
           "match": "enrichments:geo:*:city",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
@@ -40,8 +35,7 @@
           "match": "enrichments:geo:*:locID",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
@@ -50,8 +44,7 @@
           "match": "enrichments:geo:*:dmaCode",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
@@ -60,8 +53,7 @@
           "match": "enrichments:geo:*:postalCode",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
@@ -98,25 +90,27 @@
           "mapping": {
             "type": "float"
           },
-          "match": "threat.triage.rules:*:score",
+          "match": "threat:triage:*score",
           "match_mapping_type": "*"
         }
       },
       {
         "threat_triage_reason": {
           "mapping": {
-            "type": "string"
+            "type": "text",
+            "fielddata": "true"
           },
-          "match": "threat.triage.rules:*:reason",
+          "match": "threat:triage:rules:*:reason",
           "match_mapping_type": "*"
         }
       },
       {
         "threat_triage_name": {
           "mapping": {
-            "type": "string"
+            "type": "text",
+            "fielddata": "true"
           },
-          "match": "threat.triage.rules:*:name",
+          "match": "threat:triage:rules:*:name",
           "match_mapping_type": "*"
         }
       }
@@ -131,14 +125,13 @@
          * Be careful when modifying this file to not unintentionally affect other logs.
          * For instance, the "version" field exists in the HTTP, SSL, and SSH logs.  If you
          * were to only consider the SSH log, you would set the type to integer, but because
-         * in the SSL and HTTP logs version is a string, we must set the type to string.
+         * in the SSL and HTTP logs version is a string, we must set the type to keyword.
          */
         /*
          * Metron-specific fields
          */
         "source:type": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         /*
          * Widely-used Bro fields (potentially renamed during Metron ingest)
@@ -148,8 +141,7 @@
           "format": "epoch_millis"
         },
         "uid": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "alert": {
           "type": "nested"
@@ -171,6 +163,12 @@
          * https://www.bro.org/sphinx/scripts/base/protocols/http/main.bro.html#type-HTTP::Info
          *
          * Notable Fields
+         *   Field:     method
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     uri
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
          *   Field:     password
          *   Notes:     Field exists in the HTTP and FTP logs
          *
@@ -178,46 +176,54 @@
          *   Notes:     Field exists in the HTTP and FTP logs
          *
          *   Field:     trans_depth
-         *   Notes:     Field exists in the HTTP and SMTP logs
+         *   Notes:     Field exists in the HTTP, SMTP, and SIP logs
          *
          *   Field:     user_agent
-         *   Notes:     Field exists in the HTTP and SMTP logs
+         *   Notes:     Field exists in the HTTP, SMTP, and SIP logs
          *
          *   Field:     version
          *   Notes:     Field exists in the HTTP, SSL, and SSH logs
          *
          *   Field:     host
-         *   Notes:     Field exists in the HTTP and Software logs
+         *   Notes:     Field exists in the HTTP, KnownCerts, and Software logs
          *
          *   Field:     username
          *   Notes:     Field exists in the HTTP and RADIUS logs
+         *
+         *   Field:     status_code
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     status_msg
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     request_body_len
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     response_body_len
+         *   Notes:     Field exists in the HTTP and SIP logs
          */
         "trans_depth": {
           "type": "integer"
         },
         "method": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "host": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "uri": {
-          "type": "string",
-          "index": "not_analyzed",
+          "type": "keyword",
           "ignore_above": 8191
         },
         "referrer": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "version": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "user_agent": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "request_body_len": {
           "type": "long"
@@ -229,19 +235,46 @@
           "type": "integer"
         },
         "status_msg": {
+          "type": "keyword"
+        },
+        "info_code": {
+          "type": "integer"
+        },
+        "info_msg": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "tags": {
           "type": "string",
           "index": "not_analyzed"
         },
         "username": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "password": {
+          "type": "keyword"
+        },
+        "proxied": {
           "type": "string",
           "index": "not_analyzed"
         },
-        "capture_password": {
-          "type": "boolean"
+        "orig_fuids": {
+          "type": "string"
+        },
+        "orig_filenames": {
+          "type": "string"
+        },
+        "orig_mime_types": {
+          "type": "string"
+        },
+        "resp_fuids": {
+          "type": "string"
+        },
+        "resp_filenames": {
+          "type": "string"
+        },
+        "resp_mime_types": {
+          "type": "string"
         },
         /*
          * DNS log support
@@ -253,38 +286,41 @@
          *
          *   Field:     trans_id
          *   Notes:     Field exists in the DNS and DHCP logs
+         *
+         *   Field:     rtt
+         *   Notes:     This field uses the "interval" type, which may need handled differently.
+         *              https://www.bro.org/sphinx-git/script-reference/types.html#type-interval
          */
         "proto": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "trans_id": {
           "type": "long"
         },
-        "query": {
+        "rtt": {
           "type": "string",
           "index": "not_analyzed"
+        },
+        "query": {
+          "type": "keyword"
         },
         "qclass": {
           "type": "integer"
         },
         "qclass_name": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "qtype": {
           "type": "integer"
         },
         "qtype_name": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "rcode": {
           "type": "integer"
         },
         "rcode_name": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "AA": {
           "type": "boolean"
@@ -302,6 +338,10 @@
           "type": "integer"
         },
         "answers": {
+          "type": "text",
+          "fielddata": "true"
+        },
+        "TTLs": {
           "type": "string"
         },
         "rejected": {
@@ -322,58 +362,46 @@
          *   Notes:     Field exists in the Conn and Files logs
          */
         "service": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "duration": {
           "type": "float"
         },
         "orig_bytes": {
-          "type": "long",
-          "index": "not_analyzed"
+          "type": "long"
         },
         "resp_bytes": {
-          "type": "long",
-          "index": "not_analyzed"
+          "type": "long"
         },
         "conn_state": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "local_orig": {
           "type": "boolean"
         },
         "local_resp": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "missed_bytes": {
-          "type": "long",
-          "index": "not_analyzed"
+          "type": "long"
         },
         "history": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "orig_pkts": {
-          "type": "long",
-          "index": "not_analyzed"
+          "type": "long"
         },
         "orig_ip_bytes": {
-          "type": "long",
-          "index": "not_analyzed"
+          "type": "long"
         },
         "resp_pkts": {
-          "type": "long",
-          "index": "not_analyzed"
+          "type": "long"
         },
         "resp_ip_bytes": {
-          "type": "long",
-          "index": "not_analyzed"
+          "type": "long"
         },
         "tunnel_parents": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         /*
          * DPD log support
@@ -384,12 +412,10 @@
          *   Notes:     Field exists in the DNS, Conn, DPD, and Notice logs
          */
         "analyzer": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "failure_reason": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         /*
          * FTP log support
@@ -406,22 +432,22 @@
          *   Notes:     Field exists in the FTP and Files logs
          *
          *   Field:     fuid
-         *   Notes:     Field exists in the FTP and Notice logs
+         *   Notes:     Field exists in the FTP, Files, and Notice logs
          */
         "user": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "command": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "arg": {
-          "type": "string",
+          "type": "text",
+          "fielddata": "true",
           "analyzer": "simple"
         },
         "mime_type": {
-          "type": "string",
+          "type": "text",
+          "fielddata": "true",
           "analyzer": "simple"
         },
         "file_size": {
@@ -431,8 +457,7 @@
           "type": "integer"
         },
         "reply_msg": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "data_channel:passive": {
           "type": "boolean"
@@ -447,15 +472,15 @@
           "type": "integer"
         },
         "cwd": {
-          "type": "string",
+          "type": "text",
+          "fielddata": "true",
           "analyzer": "simple"
         },
         "passive": {
           "type": "boolean"
         },
         "fuid": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         /*
          * Files log support
@@ -470,25 +495,34 @@
          *
          *   Field:     mime_type
          *   Notes:     Field exists in the FTP and Files logs
+         *
+         *   Field:     duration
+         *   Notes:     Field exists in the Conn and Files logs
+         *
+         *   Field:     local_orig
+         *   Notes:     Field exists in the Conn and Files logs
+         *
+         *   Field:     fuid
+         *   Notes:     Field exists in the FTP, Files, and Notice logs
          */
         "conn_uids": {
-          "type": "string",
+          "type": "text",
+          "fielddata": "true",
           "analyzer": "simple"
         },
         "source": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "depth": {
           "type": "integer"
         },
         "analyzers": {
-          "type": "string",
+          "type": "text",
+          "fielddata": "true",
           "analyzer": "simple"
         },
         "filename": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "is_orig": {
           "type": "boolean"
@@ -509,113 +543,143 @@
           "type": "boolean"
         },
         "parent_fuid": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "md5": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "sha1": {
+          "type": "keyword"
+        },
+        "sha256": {
+          "type": "keyword"
+        },
+        "extracted": {
           "type": "string",
           "index": "not_analyzed"
         },
-        "sha256": {
-          "type": "string",
-          "index": "not_analyzed"
+        "extracted_cutoff": {
+          "type": "boolean"
+        },
+        "extracted_size": {
+          "type": "long"
         },
         /*
          * Known::CertInfo log support
          * https://www.bro.org/sphinx/scripts/policy/protocols/ssl/known-certs.bro.html#type-Known::CertsInfo
          *
          * Notable Fields
+         *   Field:     host
+         *   Notes:     Field exists in the HTTP, KnownCerts, and Software logs
+         *
          *   Field:     subject
-         *   Notes:     Field exists in the Known::CertInfo and SMTP logs
+         *   Notes:     Field exists in the KnownCerts, SMTP, SIP, and SSL logs
          */
         "port_num": {
           "type": "integer"
         },
         "subject": {
-          "type": "string",
+          "type": "text",
+          "fielddata": "true",
           "analyzer": "simple"
         },
         "issuer_subject": {
-          "type": "string",
+          "type": "text",
+          "fielddata": "true",
           "analyzer": "simple"
         },
         "serial": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         /*
          * SMTP log support
          * https://www.bro.org/sphinx/scripts/base/protocols/smtp/main.bro.html#type-SMTP::Info
          *
          * Notable Fields
+         *   Field:     trans_depth
+         *   Notes:     Field exists in the HTTP, SMTP, and SIP logs
+         *
+         *   Field:     date
+         *   Notes:     Field exists in the SMTP and SIP logs
+         *
          *   Field:     subject
-         *   Notes:     Field exists in the Known::CertInfo and SMTP logs
+         *   Notes:     Field exists in the KnownCerts, SMTP, SIP, and SSL logs
+         *
+         *   Field:     reply_to
+         *   Notes:     Field exists in the SMTP and SIP logs
+         *
+         *   Field:     user_agent
+         *   Notes:     Field exists in the HTTP, SMTP, and SIP logs
          */
         "helo": {
-          "type": "string",
+          "type": "text",
+          "fielddata": "true",
           "analyzer": "simple"
         },
         "mailfrom": {
-          "type": "string",
+          "type": "text",
+          "fielddata": "true",
           "analyzer": "simple"
         },
         "rcptto": {
-          "type": "string",
+          "type": "text",
+          "fielddata": "true",
           "analyzer": "simple"
         },
         "date": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "from": {
-          "type": "string",
+          "type": "text",
+          "fielddata": "true",
           "analyzer": "simple"
         },
         "to": {
+          "type": "text",
+          "fielddata": "true",
+          "analyzer": "simple"
+        },
+        "cc": {
           "type": "string",
           "analyzer": "simple"
         },
         "reply_to": {
-          "type": "string",
+          "type": "text",
+          "fielddata": "true",
           "analyzer": "simple"
         },
         "msg_id": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "in_reply_to": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "x_originating_ip": {
           "type": "ip"
         },
         "first_received": {
-          "type": "string",
+          "type": "text",
+          "fielddata": "true",
           "analyzer": "simple"
         },
         "second_received": {
-          "type": "string",
+          "type": "text",
+          "fielddata": "true",
           "analyzer": "simple"
         },
         "last_reply": {
-          "type": "string",
+          "type": "text",
+          "fielddata": "true",
           "analyzer": "simple"
         },
         "path": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "tls": {
           "type": "boolean"
         },
         "fuids": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "is_webmail": {
           "type": "boolean"
@@ -627,51 +691,82 @@
          * Notable Fields
          *   Field:     version
          *   Notes:     Field exists in the HTTP, SSL, and SSH logs
+         *
+         *   Field:     subject
+         *   Notes:     Field exists in the KnownCerts, SMTP, SIP, and SSL logs
          */
         "cipher": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "curve": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "server_name": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "resumed": {
           "type": "boolean"
         },
-        "last_alert": {
+        "server_appdata": {
           "type": "string",
           "index": "not_analyzed"
         },
+        "client_appdata": {
+          "type": "boolean"
+        },
+        "last_alert": {
+          "type": "keyword"
+        },
         "next_protocol": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "established": {
           "type": "boolean"
         },
-        /*
-         * Weird log support
-         * https://www.bro.org/sphinx/scripts/base/frameworks/notice/weird.bro.html#type-Weird::Info
-         */
-        "name": {
+        "cert_chain_fuids": {
+          "type": "string"
+        },
+        "client_cert_chain_fuids": {
+          "type": "string"
+        },
+        "issuer": {
           "type": "string",
           "index": "not_analyzed"
         },
-        "addl": {
+        "client_subject": {
           "type": "string",
           "index": "not_analyzed"
+        },
+        "client_issuer": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "validation_status": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        /*
+         * Weird log support
+         * https://www.bro.org/sphinx/scripts/base/frameworks/notice/weird.bro.html#type-Weird::Info
+         *
+         * Notable Fields
+         *   Field:     peer
+         *   Notes:     Field exists in the Weird, CaptureLoss, and Stats logs
+         *
+         *   Field:     name
+         *   Notes:     Field exists in the Weird and LoadedScripts logs
+         */
+        "name": {
+          "type": "keyword"
+        },
+        "addl": {
+          "type": "keyword"
         },
         "notice": {
           "type": "boolean"
         },
         "peer": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         /*
          * Notice log support
@@ -679,30 +774,40 @@
          *
          * Notable Fields
          *   Field:     fuid
-         *   Notes:     Field exists in the FTP and Notice logs
+         *   Notes:     Field exists in the FTP, Files, and Notice logs
          *
          *   Field:     proto
          *   Notes:     Field exists in the DNS, Conn, DPD, and Notice logs
+         *
+         *   Field:     remote_location:country_code
+         *   Notes:     Field exists in the Notice and SSH logs
+         *
+         *   Field:     remote_location:region
+         *   Notes:     Field exists in the Notice and SSH logs
+         *
+         *   Field:     remote_location:city
+         *   Notes:     Field exists in the Notice and SSH logs
+         *
+         *   Field:     remote_location:latitude
+         *   Notes:     Field exists in the Notice and SSH logs
+         *
+         *   Field:     remote_location:longitude
+         *   Notes:     Field exists in the Notice and SSH logs
          */
         "file_mime_type": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "file_desc": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "note": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "msg": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "sub": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "src": {
           "type": "ip"
@@ -711,52 +816,60 @@
           "type": "ip"
         },
         "p": {
-          "type": "integer",
-          "index": "not_analyzed"
+          "type": "integer"
         },
         "n": {
-          "type": "integer",
-          "index": "not_analyzed"
+          "type": "integer"
         },
         "src_peer": {
           "type": "ip"
         },
         "peer_descr": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "actions": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "suppress_for": {
-          "type": "double",
-          "index": "not_analyzed"
+          "type": "double"
         },
         "dropped": {
           "type": "boolean"
+        },
+        "remote_location:country_code": {
+          "type": "string"
+        },
+        "remote_location:region": {
+          "type": "string"
+        },
+        "remote_location:city": {
+          "type": "string"
+        },
+        "remote_location:latitude": {
+          "type": "double"
+        },
+        "remote_location:longitude": {
+          "type": "double"
         },
         /*
          * DHCP log support
          * https://www.bro.org/sphinx/scripts/base/protocols/dhcp/main.bro.html#type-DHCP::Info
          *
          * Notable Fields
+         *   Field:     mac
+         *   Notes:     Field exists in the DHCP, RADIUS, and KnownDevices logs
+         *
          *   Field:     trans_id
          *   Notes:     Field exists in the DNS and DHCP logs
-         *
-         *   Field:     mac
-         *   Notes:     Field exists in the DHCP, RADIUS, and Known::DevicesInfo logs
          */
         "mac": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "assigned_ip": {
           "type": "ip"
         },
         "lease_time": {
-          "type": "float",
-          "index": "not_analyzed"
+          "type": "float"
         },
         /*
          * SSH log support
@@ -765,49 +878,54 @@
          * Notable Fields
          *   Field:     version
          *   Notes:     Field exists in the HTTP, SSL, and SSH logs
+         *
+         *   Field:     remote_location:country_code
+         *   Notes:     Field exists in the Notice and SSH logs
+         *
+         *   Field:     remote_location:region
+         *   Notes:     Field exists in the Notice and SSH logs
+         *
+         *   Field:     remote_location:city
+         *   Notes:     Field exists in the Notice and SSH logs
+         *
+         *   Field:     remote_location:latitude
+         *   Notes:     Field exists in the Notice and SSH logs
+         *
+         *   Field:     remote_location:longitude
+         *   Notes:     Field exists in the Notice and SSH logs
          */
         "auth_success": {
           "type": "boolean"
         },
         "auth_attempts": {
-          "type": "integer",
-          "index": "not_analyzed"
+          "type": "integer"
         },
         "direction": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "client": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "server": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "cipher_alg": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "mac_alg": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "compression_alg": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "kex_alg": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "host_key_alg": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "host_key": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         /*
          * Software log support
@@ -815,38 +933,32 @@
          *
          * Notable Fields
          *   Field:     host
-         *   Notes:     Field exists in the HTTP and Software logs
+         *   Notes:     Field exists in the HTTP, KnownCerts, and Software logs
          */
         "host_p": {
-          "type": "integer",
-          "index": "not_analyzed"
+          "type": "integer"
         },
         "software_type": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "version:major": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "version:minor": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "version:minor2": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "version:minor3": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "version:addl": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "unparsed_version": {
-          "type": "string",
+          "type": "text",
+          "fielddata": "true",
           "analyzer": "simple"
         },
         /*
@@ -858,16 +970,29 @@
          *   Notes:     Field exists in the HTTP and RADIUS logs
          *
          *   Field:     mac
-         *   Notes:     Field exists in the DHCP, RADIUS, and Known::DevicesInfo logs
+         *   Notes:     Field exists in the DHCP, RADIUS, and KnownDevices logs
+         *
+         *   Field:     ttl
+         *   Notes:     This field uses the "interval" type, which may need handled differently.
+         *              https://www.bro.org/sphinx-git/script-reference/types.html#type-interval
          */
+        "framed_addr": {
+          "type": "ip"
+        },
         "remote_ip": {
           "type": "ip"
         },
         "connect_info": {
+          "type": "keyword"
+        },
+        "reply_msg": {
           "type": "string",
           "index": "not_analyzed"
         },
         "result": {
+          "type": "keyword"
+        },
+        "ttl": {
           "type": "string",
           "index": "not_analyzed"
         },
@@ -880,82 +1005,64 @@
          *   Notes:     In other bro records, the id field is of type conn_id, so it is
          *              expanded before being logged into 4 fields, all of which are addressed
          *              under the "Widely-used Bro fields" section of this template.  In X509
-         *              logs, however, id is a string to identify the certificate file id.
+         *              logs, however, id is a keyword to identify the certificate file id.
          */
         "id": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "certificate:version": {
-          "type": "integer",
-          "index": "not_analyzed"
+          "type": "integer"
         },
         "certificate:serial": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "certificate:subject": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "certificate:issuer": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "certificate:not_valid_before": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "certificate:not_valid_after": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "certificate:key_alg": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "certificate:sig_alg": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "certificate:key_type": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "certificate:key_length": {
-          "type": "integer",
-          "index": "not_analyzed"
+          "type": "integer"
         },
         "certificate:exponent": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "certificate:curve": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "san:dns": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "san:uri": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "san:email": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "san:ip": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "basic_constraints:ca": {
           "type": "boolean"
         },
         "basic_constraints:path_len": {
-          "type": "integer",
-          "index": "not_analyzed"
+          "type": "integer"
         },
         /*
          * Known::DevicesInfo log support
@@ -963,11 +1070,245 @@
          *
          * Notable Fields
          *   Field:     mac
-         *   Notes:     Field exists in the DHCP, RADIUS, and Known::DevicesInfo logs
+         *   Notes:     Field exists in the DHCP, RADIUS, and KnownDevices logs
          */
         "dhcp_host_name": {
-          "type": "string",
+          "type": "keyword"
+        },
+        /*
+         * RFB::Info log support
+         * https://www.bro.org/sphinx-git/scripts/base/protocols/rfb/main.bro.html#type-RFB::Info
+         */
+        "client_major_version": {
+          "type": "keyword"
+        },
+        "client_minor_version": {
+          "type": "keyword"
+        },
+        "server_major_version": {
+          "type": "keyword"
+        },
+        "server_minor_version": {
+          "type": "keyword"
+        },
+        "authentication_method": {
+          "type": "keyword"
+        },
+        "auth": {
+          "type": "boolean"
+        },
+        "share_flag": {
+          "type": "boolean"
+        },
+        "desktop_name": {
+          "type": "keyword"
+        },
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
+        },
+        /*
+         * Stats::Info log support
+         * https://www.bro.org/sphinx/scripts/policy/misc/stats.bro.html#type-Stats::Info
+         *
+         * Notable Fields
+         *   Field:     peer
+         *   Notes:     Field exists in the Weird, CaptureLoss, and Stats logs
+         *
+         *   Field:     pkt_lag
+         *   Notes:     This field uses the "interval" type, which may need handled differently.
+         *              https://www.bro.org/sphinx-git/script-reference/types.html#type-interval
+         */
+        "mem": {
+          "type": "integer"
+        },
+        "pkts_proc": {
+          "type": "integer"
+        },
+        "bytes_recv": {
+          "type": "integer"
+        },
+        "pkts_dropped": {
+          "type": "integer"
+        },
+        "pkts_link": {
+          "type": "integer"
+        },
+        "pkt_lag": {
+          "type": "keyword"
+        },
+        "events_proc": {
+          "type": "integer"
+        },
+        "events_queued": {
+          "type": "integer"
+        },
+        "active_tcp_conns": {
+          "type": "integer"
+        },
+        "active_udp_conns": {
+          "type": "integer"
+        },
+        "active_icmp_conns": {
+          "type": "integer"
+        },
+        "tcp_conns": {
+          "type": "integer"
+        },
+        "udp_conns": {
+          "type": "integer"
+        },
+        "icmp_conns": {
+          "type": "integer"
+        },
+        "timers": {
+          "type": "integer"
+        },
+        "active_timers": {
+          "type": "integer"
+        },
+        "files": {
+          "type": "integer"
+        },
+        "active_files": {
+          "type": "integer"
+        },
+        "dns_requests": {
+          "type": "integer"
+        },
+        "active_dns_requests": {
+          "type": "integer"
+        },
+        "reassem_tcp_size": {
+          "type": "integer"
+        },
+        "reassem_file_size": {
+          "type": "integer"
+        },
+        "reassem_frag_size": {
+          "type": "integer"
+        },
+        "reassem_unknown_size": {
+          "type": "integer"
+        },
+        /*
+         * CaptureLoss::Info log support
+         * https://www.bro.org/sphinx/scripts/policy/misc/capture-loss.bro.html#type-CaptureLoss::Info
+         *
+         * Notable Fields
+         *   Field:     ts_delta
+         *   Notes:     This field uses the "interval" type, which may need handled differently.
+         *              https://www.bro.org/sphinx-git/script-reference/types.html#type-interval
+         *
+         *   Field:     peer
+         *   Notes:     Field exists in the Weird, CaptureLoss, and Stats logs
+         */
+        "ts_delta": {
+          "type": "keyword"
+        },
+        "gaps": {
+          "type": "integer",
           "index": "not_analyzed"
+        },
+        "acks": {
+          "type": "integer",
+          "index": "not_analyzed"
+        },
+        "percent_lost": {
+          "type": "double",
+          "index": "not_analyzed"
+        },
+        /*
+         * Reporter::Info log support
+         * https://www.bro.org/sphinx/scripts/base/frameworks/reporter/main.bro.html#type-Reporter::Info
+         */
+        "level": {
+          "type": "text",
+          "fielddata": "true",
+          "analyzer": "simple"
+        },
+        "message": {
+          "type": "keyword"
+        },
+        "location": {
+          "type": "keyword"
+        },
+        /*
+         * SIP::Info log support
+         * https://www.bro.org/sphinx/scripts/base/protocols/sip/main.bro.html#type-SIP::Info
+         *
+         * Notable Fields
+         *   Field:     trans_depth
+         *   Notes:     Field exists in the HTTP, SMTP, and SIP logs
+         *
+         *   Field:     method
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     uri
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     date
+         *   Notes:     Field exists in the SMTP and SIP logs
+         *
+         *   Field:     reply_to
+         *   Notes:     Field exists in the SMTP and SIP logs
+         *
+         *   Field:     subject
+         *   Notes:     Field exists in the KnownCerts, SMTP, SIP, and SSL logs
+         *
+         *   Field:     user_agent
+         *   Notes:     Field exists in the HTTP, SMTP, and SIP logs
+         *
+         *   Field:     status_code
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     status_msg
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     request_body_len
+         *   Notes:     Field exists in the HTTP and SIP logs
+         *
+         *   Field:     response_body_len
+         *   Notes:     Field exists in the HTTP and SIP logs
+         */
+        "request_from": {
+          "type": "keyword"
+        },
+        "request_to": {
+          "type": "keyword"
+        },
+        "response_from": {
+          "type": "keyword"
+        },
+        "response_to": {
+          "type": "keyword"
+        },
+        "call_id": {
+          "type": "keyword"
+        },
+        "seq": {
+          "type": "keyword"
+        },
+        "request_path": {
+          "type": "text",
+          "fielddata": "true",
+          "analyzer": "simple"
+        },
+        "response_path": {
+          "type": "text",
+          "fielddata": "true",
+          "analyzer": "simple"
+        },
+        "warning": {
+          "type": "keyword"
+        },
+        "content_type": {
+          "type": "keyword"
+        },
+        "guid": {
+          "type": "keyword"
         }
       }
     }
