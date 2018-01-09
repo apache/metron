@@ -45,12 +45,12 @@
     <dependency>
       <groupId>org.apache.test</groupId>
       <artifactId>bundles-test-interfaces</artifactId>
-      <version>0.4.2</version>
+      <version>0.4.3</version>
     </dependency>
     <dependency>
       <groupId>org.apache.metron</groupId>
       <artifactId>bundles-lib</artifactId>
-      <version>0.4.2</version>
+      <version>0.4.3</version>
     </dependency>
   </dependencies>
   <!-- we could copy in the bundle instead of committing it, but that makes git want to
