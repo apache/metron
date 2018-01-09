@@ -19,7 +19,7 @@
   <artifactId>bundles-testing</artifactId>
   <packaging>pom</packaging>
   <name>bundles-testing</name>
-  <version>${project.parent.version}</version>
+  <version>0.4.3</version>
   <parent>
     <groupId>org.apache.metron</groupId>
     <artifactId>metron-bundles</artifactId>

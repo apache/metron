@@ -15,15 +15,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>metron-bundles</artifactId>
-  <packaging>pom</packaging>
-  <name>metron-bundles</name>
-  <version>${project.parent.version}</version>
   <parent>
     <groupId>org.apache.metron</groupId>
     <artifactId>Metron</artifactId>
     <version>0.4.3</version>
   </parent>
+  <artifactId>metron-bundles</artifactId>
+  <packaging>pom</packaging>
+  <name>metron-bundles</name>
+  <version>0.4.3</version>
   <description>Metron Bundles System</description>
   <url>https://metron.apache.org/</url>
   <scm>

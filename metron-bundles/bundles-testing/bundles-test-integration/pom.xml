@@ -25,7 +25,7 @@
 
   <groupId>org.apache.test</groupId>
   <artifactId>bundles-test-integration</artifactId>
-  <version>${project.parent.version}</version>
+  <version>0.4.3</version>
   <packaging>jar</packaging>
 
   <name>bundles-test-integration</name>
