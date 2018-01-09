@@ -21,8 +21,17 @@ Stellar Interpreter for Apache Zeppelin
 
 [Apache Zeppelin](https://zeppelin.apache.org/) is a web-based notebook that enables data-driven, interactive data analytics and collaborative documents with SQL, Scala and more.  This project provides a means to run the Stellar REPL directly within a Zeppelin Notebook.
 
+* [Prerequisites](#prerequisites)
 * [Installation](#installation)
 * [Usage](#usage)
+
+
+Prerequisites
+-------------
+
+* [Apache Zeppelin](https://zeppelin.apache.org/) 0.7.3
+
+   This is tested with version 0.7.3.  Other versions may work, but are not supported.
 
 
 Installation
