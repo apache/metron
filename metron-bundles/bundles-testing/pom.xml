@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.apache.metron</groupId>
     <artifactId>metron-bundles</artifactId>
-    <version>0.4.2</version>
+    <version>0.4.3</version>
   </parent>
   <modules>
     <module>bundles-test-interfaces</module>
@@ -36,7 +36,7 @@
         <plugin>
           <groupId>org.apache.metron</groupId>
           <artifactId>bundles-maven-plugin</artifactId>
-          <version>0.4.2</version>
+          <version>0.4.3</version>
           <extensions>true</extensions>
           <configuration>
           </configuration>
@@ -47,7 +47,7 @@
       <plugin>
         <groupId>org.apache.metron</groupId>
         <artifactId>bundles-maven-plugin</artifactId>
-        <version>0.4.2</version>
+        <version>0.4.3</version>
         <extensions>true</extensions>
       </plugin>
     </plugins>

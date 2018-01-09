@@ -19,12 +19,12 @@
   <parent>
     <groupId>org.apache.metron</groupId>
     <artifactId>bundles-testing</artifactId>
-    <version>0.4.2</version>
+    <version>0.4.3</version>
   </parent>
 
 
   <artifactId>bundles-test</artifactId>
-  <version>0.4.2</version>
+  <version>0.4.3</version>
   <name>bundles-test-bundle</name>
   <packaging>bundle</packaging>
   <properties>
@@ -36,7 +36,7 @@
     <dependency>
       <groupId>org.apache.test</groupId>
       <artifactId>bundles-test-implementation</artifactId>
-      <version>0.4.2</version>
+      <version>0.4.3</version>
     </dependency>
   </dependencies>
 

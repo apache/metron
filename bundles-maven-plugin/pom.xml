@@ -23,7 +23,7 @@
     </parent>
     <groupId>org.apache.metron</groupId>
     <artifactId>bundles-maven-plugin</artifactId>
-    <version>0.4.2</version>
+    <version>0.4.3</version>
     <packaging>maven-plugin</packaging>
     <description>Apache Metron Bundles Maven Plugin</description>
     <url>https://metron.apache.org</url>

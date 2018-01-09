@@ -18,12 +18,12 @@
   <parent>
     <groupId>org.apache.metron</groupId>
     <artifactId>bundles-testing</artifactId>
-    <version>0.4.2</version>
+    <version>0.4.3</version>
   </parent>
 
   <groupId>org.apache.test</groupId>
   <artifactId>bundles-test-interfaces</artifactId>
-  <version>0.4.2</version>
+  <version>0.4.3</version>
   <packaging>jar</packaging>
 
   <name>bundles-test-interfaces</name>
