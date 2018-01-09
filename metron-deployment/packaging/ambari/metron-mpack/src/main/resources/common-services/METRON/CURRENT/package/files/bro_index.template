@@ -241,12 +241,10 @@
           "type": "integer"
         },
         "info_msg": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "tags": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "username": {
           "type": "keyword"
@@ -255,26 +253,31 @@
           "type": "keyword"
         },
         "proxied": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "orig_fuids": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "orig_filenames": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "orig_mime_types": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "resp_fuids": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "resp_filenames": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "resp_mime_types": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         /*
          * DNS log support
@@ -298,8 +301,7 @@
           "type": "long"
         },
         "rtt": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "query": {
           "type": "keyword"
@@ -342,7 +344,8 @@
           "fielddata": "true"
         },
         "TTLs": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "rejected": {
           "type": "boolean"
@@ -555,8 +558,7 @@
           "type": "keyword"
         },
         "extracted": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "extracted_cutoff": {
           "type": "boolean"
@@ -640,7 +642,8 @@
           "analyzer": "simple"
         },
         "cc": {
-          "type": "string",
+          "type": "text",
+          "fielddata": "true",
           "analyzer": "simple"
         },
         "reply_to": {
@@ -708,8 +711,7 @@
           "type": "boolean"
         },
         "server_appdata": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "client_appdata": {
           "type": "boolean"
@@ -724,26 +726,24 @@
           "type": "boolean"
         },
         "cert_chain_fuids": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "client_cert_chain_fuids": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "issuer": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "client_subject": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "client_issuer": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "validation_status": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         /*
          * Weird log support
@@ -837,13 +837,16 @@
           "type": "boolean"
         },
         "remote_location:country_code": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "remote_location:region": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "remote_location:city": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "remote_location:latitude": {
           "type": "double"
@@ -986,15 +989,13 @@
           "type": "keyword"
         },
         "reply_msg": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "result": {
           "type": "keyword"
         },
         "ttl": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         /*
          * X509 log support
