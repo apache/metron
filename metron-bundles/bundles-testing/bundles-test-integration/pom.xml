@@ -25,7 +25,7 @@
 
   <groupId>org.apache.test</groupId>
   <artifactId>bundles-test-integration</artifactId>
-  <version>0.4.3</version>
+  <version>${project.parent.version}</version>
   <packaging>jar</packaging>
 
   <name>bundles-test-integration</name>
@@ -45,12 +45,12 @@
     <dependency>
       <groupId>org.apache.test</groupId>
       <artifactId>bundles-test-interfaces</artifactId>
-      <version>0.4.3</version>
+      <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.metron</groupId>
       <artifactId>bundles-lib</artifactId>
-      <version>0.4.3</version>
+      <version>${project.parent.version}</version>
     </dependency>
   </dependencies>
   <!-- we could copy in the bundle instead of committing it, but that makes git want to

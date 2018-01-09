@@ -18,6 +18,7 @@
   <artifactId>metron-bundles</artifactId>
   <packaging>pom</packaging>
   <name>metron-bundles</name>
+  <version>${project.parent.version}</version>
   <parent>
     <groupId>org.apache.metron</groupId>
     <artifactId>Metron</artifactId>

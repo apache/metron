@@ -19,6 +19,7 @@
   <artifactId>bundles-testing</artifactId>
   <packaging>pom</packaging>
   <name>bundles-testing</name>
+  <version>${project.parent.version}</version>
   <parent>
     <groupId>org.apache.metron</groupId>
     <artifactId>metron-bundles</artifactId>
@@ -36,7 +37,7 @@
         <plugin>
           <groupId>org.apache.metron</groupId>
           <artifactId>bundles-maven-plugin</artifactId>
-          <version>0.4.3</version>
+          <version>${project.parent.version}</version>
           <extensions>true</extensions>
           <configuration>
           </configuration>
@@ -47,7 +48,7 @@
       <plugin>
         <groupId>org.apache.metron</groupId>
         <artifactId>bundles-maven-plugin</artifactId>
-        <version>0.4.3</version>
+        <version>${project.parent.version}</version>
         <extensions>true</extensions>
       </plugin>
     </plugins>
