@@ -69,18 +69,20 @@ To install the Stellar Interpreter in your Apache Zeppelin installation, follow 
     EOF
     ```
 
-1. Create a Zeppelin Site file.
+1. Create a Zeppelin Site file (`$ZEPPELIN_HOME/conf/zeppelin-site.xml`).
 
     ```
     cp $ZEPPELIN_HOME/conf/zeppelin-site.xml.template $ZEPPELIN_HOME/conf/zeppelin-site.xml
     ```
 
-1. Add the following to the bottom of your Zeppelin Site file (yet still above the closing `</configuration>` tag) located at `$ZEPPELIN_HOME/conf/zeppelin-site.xml`.
+1. In the Zeppelin site file, add `org.apache.metron.stellar.zeppelin.StellarInterpreter` to the comma-separated list of Zeppelin interpreters under the `zeppelin.interpreters` property.
 
+    The property will likely look-like the following.
     ```
     <property>
-        <name>zeppelin.interpreters</name>
-        <value>org.apache.metron.stellar.zeppelin.StellarInterpreter</value>
+      <name>zeppelin.interpreters</name>
+      <value>org.apache.zeppelin.spark.SparkInterpreter,org.apache.zeppelin.spark.PySparkInterpreter,org.apache.zeppelin.rinterpreter.RRepl,org.apache.zeppelin.rinterpreter.KnitR,org.apache.zeppelin.spark.SparkRInterpreter,org.apache.zeppelin.spark.SparkSqlInterpreter,org.apache.zeppelin.spark.DepInterpreter,org.apache.zeppelin.markdown.Markdown,org.apache.zeppelin.angular.AngularInterpreter,org.apache.zeppelin.shell.ShellInterpreter,org.apache.zeppelin.file.HDFSFileInterpreter,org.apache.zeppelin.flink.FlinkInterpreter,,org.apache.zeppelin.python.PythonInterpreter,org.apache.zeppelin.python.PythonInterpreterPandasSql,org.apache.zeppelin.python.PythonCondaInterpreter,org.apache.zeppelin.python.PythonDockerInterpreter,org.apache.zeppelin.lens.LensInterpreter,org.apache.zeppelin.ignite.IgniteInterpreter,org.apache.zeppelin.ignite.IgniteSqlInterpreter,org.apache.zeppelin.cassandra.CassandraInterpreter,org.apache.zeppelin.geode.GeodeOqlInterpreter,org.apache.zeppelin.postgresql.PostgreSqlInterpreter,org.apache.zeppelin.jdbc.JDBCInterpreter,org.apache.zeppelin.kylin.KylinInterpreter,org.apache.zeppelin.elasticsearch.ElasticsearchInterpreter,org.apache.zeppelin.scalding.ScaldingInterpreter,org.apache.zeppelin.alluxio.AlluxioInterpreter,org.apache.zeppelin.hbase.HbaseInterpreter,org.apache.zeppelin.livy.LivySparkInterpreter,org.apache.zeppelin.livy.LivyPySparkInterpreter,org.apache.zeppelin.livy.LivyPySpark3Interpreter,org.apache.zeppelin.livy.LivySparkRInterpreter,org.apache.zeppelin.livy.LivySparkSQLInterpreter,org.apache.zeppelin.bigquery.BigQueryInterpreter,org.apache.zeppelin.beam.BeamInterpreter,org.apache.zeppelin.pig.PigInterpreter,org.apache.zeppelin.pig.PigQueryInterpreter,org.apache.zeppelin.scio.ScioInterpreter,org.apache.metron.stellar.zeppelin.StellarInterpreter</value>
+      <description>Comma separated interpreter configurations. First interpreter become a default</description>
     </property>
     ```
 
@@ -128,7 +130,7 @@ Usage
     1. Set the default Interpreter to `stellar`.
 
         When creating the notebook, if you define `stellar` as the default interpreter, then there is no need to enter `%stellar` at the top of each code block.
-        
+
         If `stellar` is not the default interpreter, then you must enter `%stellar` at the top of a code block containing Stellar code.
 
 1. In the first block, add the following Stellar, then click Run.
@@ -136,23 +138,23 @@ Usage
     ```
     2 in [2,3,4]
     ```
-        
+
 1. In the next block, check which functions are available to you.
 
     ```
     %functions
     ```
-        
+
     You will **only** 'see' the functions defined within `stellar-common` since that is the only library that we added to the interpreter.  
-    
+
 1. To see how additional functions can be added, go back to the Stellar interpreter configuration and add another dependency as follows.
-    
+
     ```
     org.apache.metron:metron-statistics:0.4.3
     ```
-    
+
     Reload the Stellar interpreter and run `%functions` again.  You will see the additional functions defined within the `metron-statistics` project.
-    
+
 1. Auto-completion is also available for Stellar expressions.  
 
     In another block, type 'TO_' then press the <kbd>CTRL</kbd> + <kbd>PERIOD</kbd> keys. This will trigger the auto-complete mechanism in Stellar and display a list of matching functions or variables.
