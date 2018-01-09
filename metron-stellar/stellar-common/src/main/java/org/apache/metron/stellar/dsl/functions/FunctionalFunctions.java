@@ -41,7 +41,7 @@ public class FunctionalFunctions {
 
     @Override
     public Object apply(List<Object> args) {
-      List<Object> input = (List<Object>) args.get(0);
+      Iterable<Object> input = (Iterable<Object>) args.get(0);
       LambdaExpression expression = (LambdaExpression)args.get(1);
       if(input == null || expression == null) {
         return input;
@@ -66,7 +66,7 @@ public class FunctionalFunctions {
 
     @Override
     public Object apply(List<Object> args) {
-      List<Object> input = (List<Object>) args.get(0);
+      Iterable<Object> input = (Iterable<Object>) args.get(0);
       LambdaExpression expression = (LambdaExpression) args.get(1);
       if(input == null || expression == null) {
         return input;
@@ -95,7 +95,7 @@ public class FunctionalFunctions {
 
     @Override
     public Object apply(List<Object> args) {
-      List<Object> input = (List<Object>) args.get(0);
+      Iterable<Object> input = (Iterable<Object>) args.get(0);
       if(input == null || args.size() < 3) {
         return null;
       }
@@ -105,8 +105,7 @@ public class FunctionalFunctions {
       if(expression == null || runningResult == null) {
         return null;
       }
-      for(int i = 0;i < input.size();++i) {
-        Object rhs = input.get(i);
+      for(Object rhs : input) {
         runningResult = expression.apply(listOf(runningResult, rhs));
       }
       return runningResult;
@@ -119,7 +118,7 @@ public class FunctionalFunctions {
           "See [python](https://docs.python.org/3/library/itertools.html#itertools.zip_longest) " +
           "and [wikipedia](https://en.wikipedia.org/wiki/Convolution_(computer_science)) for more context."
           , params = {
-                      "list* - Lists to zip."
+                      "list(s) - List(s) to zip."
                      }
           , returns = "The zip of the lists.  The returned list is the max size of all the lists.  " +
           "Empty elements are null " +
@@ -140,7 +139,7 @@ public class FunctionalFunctions {
           , description="Zips lists into a single list where the ith element is an list containing the ith items from the constituent lists. " +
           "See [python](https://docs.python.org/3/library/functions.html#zip) and [wikipedia](https://en.wikipedia.org/wiki/Convolution_(computer_science)) for more context."
           , params = {
-                      "list* - Lists to zip."
+                      "list(s) - List(s) to zip."
                      }
           ,returns = "The zip of the lists.  The returned list is the min size of all the lists.  " +
           "e.g. ZIP( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4] ]"

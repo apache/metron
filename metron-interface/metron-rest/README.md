@@ -1,3 +1,20 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 # Metron REST
 
 This module provides a RESTful API for interacting with Metron.
@@ -180,10 +197,10 @@ The REST application comes with a few [Spring Profiles](http://docs.spring.io/au
 
 | Profile                  | Description                                   |
 | ------------------------ | --------------------------------------------- |
-| test                     | sets variables to in-memory services, only used for integration testing |
-| dev                      | adds a test user to the database with credentials `user/password`       |
-| vagrant                  | sets configuration variables to match the Metron vagrant environment    |
-| docker                   | sets configuration variables to match the Metron docker environment     |
+| test                     | adds test users `[user, user1, user2, admin]` to the database with password "`password`". sets variables to in-memory services, only used for integration testing |
+| dev                      | adds test users `[user, user1, user2, admin]` to the database with password "`password`" |
+| vagrant                  | sets configuration variables to match the Metron vagrant environment |
+| docker                   | sets configuration variables to match the Metron docker environment |
 
 Setting active profiles is done with the METRON_SPRING_PROFILES_ACTIVE variable.  For example, set this variable in `/etc/default/metron` to configure the REST application for the Vagrant environment and add a test user:
 ```
@@ -276,13 +293,13 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * alerts - The alerts to be escalated
   * Returns:
     * 200 - Alerts were escalated
-    
+
 ### `GET /api/v1/alert/profile`
   * Description: Retrieves the current user's alerts profile
   * Returns:
     * 200 - Alerts profile
     * 404 - The current user does not have an alerts profile
-    
+
 ### `GET /api/v1/alert/profile/all`
   * Description: Retrieves all users' alerts profiles.  Only users that are part of the "ROLE_ADMIN" role are allowed to get all alerts profiles.
   * Returns:
@@ -429,21 +446,21 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * request - Meta alert create request which includes a list of alert get requests and a list of custom groups used to annotate a meta alert.
   * Returns:
     * 200 - The GUID of the new meta alert
-    
+
 ### `POST /api/v1/metaalert/add/alert`
   * Description: Adds an alert to an existing meta alert.  An alert will not be added if it is already contained in a meta alert.
   * Input:
     * request - Meta alert add request which includes a meta alert GUID and list of alert get requests
   * Returns:
     * 200 - Returns 'true' if the alert was added and 'false' if the meta alert did not change.
-        
+
 ### `POST /api/v1/metaalert/remove/alert`
   * Description: Removes an alert from an existing meta alert.  If the alert to be removed is not in a meta alert, 'false' will be returned.
   * Input:
     * request - Meta alert remove request which includes a meta alert GUID and list of alert get requests
   * Returns:
     * 200 - Returns 'true' if the alert was removed and 'false' if the meta alert did not change.
-            
+
 ### `POST /api/v1/metaalert/update/status/{guid}/{status}`
   * Description: Updates the status of a meta alert to either 'ACTIVE' or 'INACTIVE'.
   * Input:
@@ -458,7 +475,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
       * searchRequest - Search request
   * Returns:
     * 200 - Search response
-    
+
 ### `POST /api/v1/search/group`
   * Description: Searches the indexing store and returns field groups. GUIDs must be quoted to ensure correct results. Groups are hierarchical and nested in the order the fields appear in the 'groups' request parameter. The default sorting within groups is by count descending.  A groupOrder type of count will sort based on then number of documents in a group while a groupType of term will sort by the groupBy term.
   * Input:
@@ -466,10 +483,10 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
         * indices - list of indices to search
         * query - lucene query
         * scoreField - field used to compute a total score for each group
-        * groups - List of groups (field name and sort order) 
+        * groups - List of groups (field name and sort order)
   * Returns:
     * 200 - Group response
-    
+
 ### `GET /api/v1/search/findOne`
   * Description: Returns latest document for a guid and sensor
   * Input:
@@ -486,7 +503,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Document representing the output
     * 404 - Document with UUID and sensor type not found
-    
+
 ### `GET /api/v1/search/column/metadata`
   * Description: Get index column metadata for a list of sensor types with duplicates removed.  Column names and types for each sensor are retrieved from the most recent index.  Columns that exist in multiple indices with different types will default to type 'other'.
   * Input:
@@ -745,7 +762,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 ### `GET /api/v1/storm/supervisors`
   * Description: Retrieves the status of all Storm Supervisors
   * Returns:
-    * 200 - Returns a list of the status of all Storm Supervisors 
+    * 200 - Returns a list of the status of all Storm Supervisors
 
 ### `PATCH /api/v1/update/patch`
   * Description: Update a document with a patch
@@ -804,7 +821,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 
 ## Testing
 
-Profiles are includes for both the metron-docker and Quick Dev environments.
+Profiles are includes for both the metron-docker and Full Dev environments.
 
 ### metron-docker
 
@@ -816,9 +833,9 @@ mvn spring-boot:run -Drun.profiles=docker,dev
 
 The metron-rest application will be available at http://localhost:8080/swagger-ui.html#/.
 
-### Quick Dev
+### Full Dev
 
-Start the [Quick Dev](../../metron-deployment/vagrant/quick-dev-platform) environment.  Build the metron-rest module and start it with the Spring Boot Maven plugin:
+Start the [Full Dev](../../metron-deployment/vagrant/full-dev-platform) environment.  Build the metron-rest module and start it with the Spring Boot Maven plugin:
 ```
 mvn clean package
 mvn spring-boot:run -Drun.profiles=vagrant,dev
@@ -826,7 +843,7 @@ mvn spring-boot:run -Drun.profiles=vagrant,dev
 
 The metron-rest application will be available at http://localhost:8080/swagger-ui.html#/.
 
-To run the application locally on the Quick Dev host (node1), follow the [Installation](#installation) instructions above.  Then set the METRON_SPRING_PROFILES_ACTIVE variable in `/etc/default/metron`:
+To run the application locally on the Full Dev host (node1), follow the [Installation](#installation) instructions above.  Then set the METRON_SPRING_PROFILES_ACTIVE variable in `/etc/default/metron`:
 ```
 METRON_SPRING_PROFILES_ACTIVE="vagrant,dev"
 ```

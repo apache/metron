@@ -27,19 +27,11 @@ import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
+import org.apache.commons.collections4.SetUtils;
+import org.apache.lucene.search.join.ScoreMode;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -59,6 +51,22 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.update.Document;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.get.MultiGetItemResponse;
+import org.elasticsearch.action.get.MultiGetRequest.Item;
+import org.elasticsearch.action.get.MultiGetRequestBuilder;
+import org.elasticsearch.action.get.MultiGetResponse;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.support.replication.ReplicationResponse.ShardInfo;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.index.query.InnerHitBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.QueryStringQueryBuilder;
+import org.elasticsearch.search.SearchHit;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
@@ -66,7 +74,6 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
-import org.elasticsearch.index.query.support.QueryInnerHitBuilder;
 
 public class ElasticsearchMetaAlertDao implements MetaAlertDao {
 
@@ -163,8 +170,9 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
             nestedQuery(
                 ALERT_FIELD,
                 boolQuery()
-                    .must(termQuery(ALERT_FIELD + "." + GUID, guid))
-            ).innerHit(new QueryInnerHitBuilder())
+                    .must(termQuery(ALERT_FIELD + "." + GUID, guid)),
+                    ScoreMode.None
+            ).innerHit(new InnerHitBuilder())
         )
         .must(termQuery(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()));
     return queryAllResults(qb);
@@ -379,7 +387,8 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
             .should(new QueryStringQueryBuilder(searchRequest.getQuery()))
             .should(nestedQuery(
                 ALERT_FIELD,
-                new QueryStringQueryBuilder(searchRequest.getQuery())
+                new QueryStringQueryBuilder(searchRequest.getQuery()),
+                ScoreMode.None
                 )
             )
         )
@@ -486,8 +495,9 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
             nestedQuery(
                 ALERT_FIELD,
                 boolQuery()
-                    .must(termQuery(ALERT_FIELD + "." + GUID, alertGuid))
-            ).innerHit(new QueryInnerHitBuilder())
+                    .must(termQuery(ALERT_FIELD + "." + Constants.GUID, alertGuid)),
+                ScoreMode.None
+            ).innerHit(new InnerHitBuilder())
         )
         .must(termQuery(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()));
     return queryAllResults(qb);
@@ -504,7 +514,7 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
     SearchRequestBuilder searchRequestBuilder = elasticsearchDao
         .getClient()
         .prepareSearch(index)
-        .addFields("*")
+        .addStoredField("*")
         .setFetchSource(true)
         .setQuery(qb)
         .setSize(pageSize);
@@ -585,6 +595,54 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
       indexDao.batchUpdate(updates);
     } // else we have no updates, so don't do anything
   }
+
+
+
+  @SuppressWarnings("unchecked")
+  protected List<Map<String, Object>> getAllAlertsForMetaAlert(Document update) throws IOException {
+    Document latest = indexDao.getLatest(update.getGuid(), MetaAlertDao.METAALERT_TYPE);
+    if (latest == null) {
+      return new ArrayList<>();
+    }
+    List<String> guids = new ArrayList<>();
+    List<Map<String, Object>> latestAlerts = (List<Map<String, Object>>) latest.getDocument()
+        .get(MetaAlertDao.ALERT_FIELD);
+    for (Map<String, Object> alert : latestAlerts) {
+      guids.add((String) alert.get(Constants.GUID));
+    }
+
+    List<Map<String, Object>> alerts = new ArrayList<>();
+    QueryBuilder query = QueryBuilders.idsQuery().addIds(guids.toArray(new String[0]));
+    SearchRequestBuilder request = elasticsearchDao.getClient().prepareSearch()
+        .setQuery(query);
+    org.elasticsearch.action.search.SearchResponse response = request.get();
+    for (SearchHit hit : response.getHits().getHits()) {
+      alerts.add(hit.sourceAsMap());
+    }
+    return alerts;
+  }
+
+  /**
+   * Builds an update Document for updating the meta alerts list.
+   * @param alertGuid The GUID of the alert to update
+   * @param sensorType The sensor type to update
+   * @param metaAlertField The new metaAlertList to use
+   * @return The update Document
+   */
+  protected Document buildAlertUpdate(String alertGuid, String sensorType,
+      List<String> metaAlertField, Long timestamp) {
+    Document alertUpdate;
+    Map<String, Object> document = new HashMap<>();
+    document.put(MetaAlertDao.METAALERT_FIELD, metaAlertField);
+    alertUpdate = new Document(
+        document,
+        alertGuid,
+        sensorType,
+        timestamp
+    );
+    return alertUpdate;
+  }
+
 
   @Override
   public Map<String, FieldType> getColumnMetadata(List<String> indices)

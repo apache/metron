@@ -122,6 +122,7 @@ public class ConfigurationManager {
     ;
     Option option;
     String shortCode;
+
     ConfigurationOptions(String shortCode, Function<String, Option> optionHandler) {
       this.shortCode = shortCode;
       this.option = optionHandler.apply(shortCode);
@@ -295,19 +296,23 @@ public class ConfigurationManager {
 
   private void patch(CuratorFramework client, ConfigurationType configType,
       Optional<String> configName, Optional<String> patchMode, Optional<String> patchPath,
-      Optional<String> patchKey, Optional<String> patchValue) {
+      Optional<String> patchKey, Optional<String> patchValue) throws Exception {
     try {
-      byte[] patchData =  null;
+      byte[] patchData;
       if (patchKey.isPresent()) {
         patchData = buildPatch(patchMode, patchKey, patchValue).getBytes(StandardCharsets.UTF_8);
       } else {
         patchData = java.nio.file.Files.readAllBytes(Paths.get(patchPath.get()));
       }
       ConfigurationsUtils.applyConfigPatchToZookeeper(configType, configName, patchData, client);
+
     } catch (IOException e) {
       LOG.error("Unable to load patch file '%s'", patchPath, e);
+      throw e;
+
     } catch (Exception e) {
       LOG.error("Unable to apply patch to Zookeeper config", e);
+      throw e;
     }
   }
 
