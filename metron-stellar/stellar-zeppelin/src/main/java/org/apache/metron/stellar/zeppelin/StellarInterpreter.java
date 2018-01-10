@@ -162,7 +162,7 @@ public class StellarInterpreter extends Interpreter {
       // base the error message on the exception
       String error = ExceptionUtils.getRootCauseMessage(e.get());
       String trace = ExceptionUtils.getStackTrace(e.get());
-      message =  trace + System.lineSeparator() + error;
+      message = error + System.lineSeparator() + trace;
 
     } else {
       // no exception provided; create generic error message
