@@ -182,4 +182,14 @@ public class StellarResult {
   public Optional<Throwable> getException() {
     return exception;
   }
+
+  @Override
+  public String toString() {
+    return "StellarResult{" +
+            "status=" + status +
+            ", value=" + value +
+            ", exception=" + exception +
+            ", isValueNull=" + isValueNull +
+            '}';
+  }
 }

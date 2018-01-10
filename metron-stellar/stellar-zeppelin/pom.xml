@@ -22,7 +22,6 @@
     </parent>
     <name>stellar-zeppelin</name>
     <description>Stellar Interpreter for Apache Zeppelin</description>
-    <groupId>org.apache.metron</groupId>
     <artifactId>stellar-zeppelin</artifactId>
     <dependencies>
         <dependency>

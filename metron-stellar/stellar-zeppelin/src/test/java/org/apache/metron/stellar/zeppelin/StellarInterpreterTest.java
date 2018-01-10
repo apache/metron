@@ -17,7 +17,12 @@
  */
 package org.apache.metron.stellar.zeppelin;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+
 import com.google.common.collect.Iterables;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.zeppelin.interpreter.InterpreterContext;
 import org.apache.zeppelin.interpreter.InterpreterResult;
 import org.apache.zeppelin.interpreter.InterpreterResultMessage;
@@ -28,17 +33,13 @@ import org.junit.Test;
 import java.util.List;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-
 /**
  * Tests the StellarInterpreter.
  */
 public class StellarInterpreterTest {
 
-  StellarInterpreter interpreter;
-  InterpreterContext context;
+  private StellarInterpreter interpreter;
+  private InterpreterContext context;
 
   @Before
   public void setup() {
@@ -165,9 +166,27 @@ public class StellarInterpreterTest {
       // the candidate should be a valid, defined function
       String function = completion.substring(0, completion.length() - 1);
       Iterable<String> allFunctions = interpreter.getExecutor().getFunctionResolver().getFunctions();
-      String definedFunction = Iterables.find(allFunctions, (fn) -> fn.equals(function));
+      String definedFunction = Iterables.find(allFunctions, (fn) -> StringUtils.equals(fn, function));
       assertEquals(function, definedFunction);
     }
   }
 
+  /**
+   * What happens when we have nothing useful to auto-complete?
+   */
+  @Test
+  public void testAutoCompletionWithNoCompletions() {
+
+    // the user's input that needs auto-completed
+    final String buffer = "NOTHING_AUTOCOMPLETES_THIS_";
+
+    // the cursor is at the end of the buffer
+    int cursor = buffer.length();
+
+    // perform auto-completion
+    List<InterpreterCompletion> completions = interpreter.completion(buffer, cursor);
+
+    // expect no completions
+    assertEquals(0, completions.size());
+  }
 }
