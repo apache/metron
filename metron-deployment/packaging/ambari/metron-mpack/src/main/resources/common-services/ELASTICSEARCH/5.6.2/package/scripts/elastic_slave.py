@@ -17,9 +17,12 @@ limitations under the License.
 
 """
 
-from resource_management.core.resources.system import Execute
-from resource_management.libraries.script import Script
+from resource_management.core.exceptions import ExecutionFailed
+from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute
+from resource_management.libraries.functions.get_user_call_output import get_user_call_output
+from resource_management.libraries.script import Script
 
 from slave import slave
 
@@ -56,8 +59,27 @@ class Elasticsearch(Script):
         import params
         env.set_params(params)
         Logger.info('Check status of Elasticsearch data node')
-        status_cmd = "service elasticsearch status"
-        Execute(status_cmd)
+
+        # return codes defined by LSB
+        # http://refspecs.linuxbase.org/LSB_3.0.0/LSB-PDA/LSB-PDA/iniscrptact.html
+        cmd = "service elasticsearch status"
+        rc, out, err = get_user_call_output(cmd, params.elastic_user, is_checked_call=False)
+
+        if rc == 3:
+          # if return code = 3, then 'program is not running'
+          # Ambari's resource_management/libraries/script/script.py handles
+          # this specific exception as OK
+          Logger.info("Elasticsearch master is not running")
+          raise ComponentIsNotRunning()
+
+        elif rc == 0:
+          # if return code = 0, then 'program is running or service is OK'
+          Logger.info("Elasticsearch master is running")
+
+        else:
+          # else, program is dead or service state is unknown
+          err_msg = "Execution of '{0}' returned {1}".format(cmd, rc)
+          raise ExecutionFailed(err_msg, rc, out, err)
 
     def restart(self, env):
         import params
