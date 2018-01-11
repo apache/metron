@@ -189,6 +189,7 @@ Where:
 | [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
 | [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)                               |
 | [ `IN_SUBNET`](#in_subnet)                                                                         |
+| [ `IT_ENTROPY`](../../metron-analytics/metron-statistics#it_entropy)                               |
 | [ `IS_DATE`](#is_date)                                                                             |
 | [ `IS_ENCODING`](#is_encoding)                                                                     |
 | [ `IS_DOMAIN`](#is_domain)                                                                         |
