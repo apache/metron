@@ -17,7 +17,7 @@ These configs are variable by sensor type.
 
 ## Minimal Assumptions for Message Structure
 
-At minimum, a message should have a `sensor.type` field.
+At minimum, a message should have a `source.type` field.
 Without this field, the message tuple will be failed and not written
 with an appropriate error indicated in the Storm UI and logs.
 
