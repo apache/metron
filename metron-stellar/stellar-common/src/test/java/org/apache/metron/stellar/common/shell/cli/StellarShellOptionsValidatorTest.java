@@ -18,7 +18,7 @@
  *
  */
 
-package org.apache.metron.stellar.common.shell;
+package org.apache.metron.stellar.common.shell.cli;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -28,9 +28,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.regex.Pattern;
-
-import static org.junit.Assert.*;
 
 public class StellarShellOptionsValidatorTest {
 
