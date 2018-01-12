@@ -29,6 +29,7 @@ For a variety of components (threat intelligence triage and field transformation
     * [Variable Assignment](#variable-assignment)
     * [Magic Commands](#magic-commands)
     * [Advanced Usage](#advanced-usage)
+    * [Implementation](#implementation)
 * [Stellar Configuration](#stellar-configuration)
 
 
@@ -1387,7 +1388,7 @@ IS_EMAIL
 To run the Stellar Shell directly from the Metron source code, run a command like the following.  Ensure that Metron has already been built and installed with `mvn clean install -DskipTests`.
 ```
 $ mvn exec:java \
-   -Dexec.mainClass="org.apache.metron.stellar.common.shell.StellarShell" \
+   -Dexec.mainClass="org.apache.metron.stellar.common.shell.cli.StellarShell" \
    -pl metron-platform/metron-enrichment
 ...
 Stellar, Go!
@@ -1403,7 +1404,7 @@ This can be useful for troubleshooting function resolution problems.  The previo
 
 ```
  $ mvn exec:java \
-   -Dexec.mainClass="org.apache.metron.stellar.common.shell.StellarShell" \
+   -Dexec.mainClass="org.apache.metron.stellar.common.shell.cli.StellarShell" \
    -pl metron-analytics/metron-profiler
 ...
 Stellar, Go!
@@ -1412,6 +1413,36 @@ Please note that functions are loading lazily in the background and will be unav
 %functions
 ABS, APPEND_IF_MISSING, BIN, BLOOM_ADD, BLOOM_EXISTS, BLOOM_INIT, BLOOM_MERGE, CHOMP, CHOP, COUNT_MATCHES, DAY_OF_MONTH, DAY_OF_WEEK, DAY_OF_YEAR, DOMAIN_REMOVE_SUBDOMAINS, DOMAIN_REMOVE_TLD, DOMAIN_TO_TLD, ENDS_WITH, FILL_LEFT, FILL_RIGHT, FILTER, FORMAT, GET, GET_FIRST, GET_LAST, HLLP_ADD, HLLP_CARDINALITY, HLLP_INIT, HLLP_MERGE, IN_SUBNET, IS_DATE, IS_DOMAIN, IS_EMAIL, IS_EMPTY, IS_INTEGER, IS_IP, IS_URL, JOIN, LENGTH, LIST_ADD, MAAS_GET_ENDPOINT, MAAS_MODEL_APPLY, MAP, MAP_EXISTS, MAP_GET, MONTH, OUTLIER_MAD_ADD, OUTLIER_MAD_SCORE, OUTLIER_MAD_STATE_MERGE, PREPEND_IF_MISSING, PROFILE_FIXED, PROFILE_GET, PROFILE_WINDOW, PROTOCOL_TO_NAME, REDUCE, REGEXP_MATCH, SPLIT, STARTS_WITH, STATS_ADD, STATS_BIN, STATS_COUNT, STATS_GEOMETRIC_MEAN, STATS_INIT, STATS_KURTOSIS, STATS_MAX, STATS_MEAN, STATS_MERGE, STATS_MIN, STATS_PERCENTILE, STATS_POPULATION_VARIANCE, STATS_QUADRATIC_MEAN, STATS_SD, STATS_SKEWNESS, STATS_SUM, STATS_SUM_LOGS, STATS_SUM_SQUARES, STATS_VARIANCE, STRING_ENTROPY, SYSTEM_ENV_GET, SYSTEM_PROPERTY_GET, TO_DOUBLE, TO_EPOCH_TIMESTAMP, TO_FLOAT, TO_INTEGER, TO_LONG, TO_LOWER, TO_STRING, TO_UPPER, TRIM, URL_TO_HOST, URL_TO_PATH, URL_TO_PORT, URL_TO_PROTOCOL, WEEK_OF_MONTH, WEEK_OF_YEAR, YEAR 
 ```
+
+### Implementation
+
+The Stellar Shell can be executed both from the command line and from within a Stellar Notebook.  The behavior and underlying implementation of the behavior is exactly the same across these two environments.
+
+#### `org.apache.metron.stellar.common.shell`  
+
+This package contains classes that are reused across both the CLI and Zeppelin shell environments.
+
+* `StellarShellExecutor` Executes Stellar in a shell-like environment.  Provides the Stellar language extensions like variable assignment, comments, magics, and doc strings that are only accessible in the shell.
+
+* `StellarAutoCompleter` Handles auto-completion for Stellar.
+
+* `StellarExecutorListeners` An event listener that can be notified when variables, functions, and specials are defined.  This is how a `StellarAutoCompleter` is notified throughout the life of a shell session.
+
+#### `org.apache.metron.stellar.common.shell.specials`
+
+All Stellar language extensions are contained within this package.
+
+* `SpecialCommand` The interface for all special commands.  A 'special command' is anything that is not directly provided by the Stellar language itself.  That includes variable assignment, comments, doc strings, magics, and quit. 
+
+#### `org.apache.metron.stellar.common.shell.cli`
+
+This package contains classes that are specific to the CLI-driven REPL.
+
+* `StellarShell`  This is the main class that drives the CLI REPL.  All functionality not related to the command line interface is performed by the shared logic in `org.apache.metron.stellar.common.shell`.
+ 
+#### `org.apache.metron.stellar.zeppelin`
+
+This package is contained within the `stellar-zeppelin` project and performs all logic for interfacing with Zeppelin.  Again, all functionality not related to Zeppelin is performed by the shared logic in `org.apache.metron.stellar.common.shell`.
 
 ## Stellar Configuration
 

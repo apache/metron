@@ -1,0 +1,12 @@
+[
+  {
+    "group": "stellar",
+    "name": "stellar",
+    "className": "org.apache.metron.stellar.zeppelin.StellarInterpreter",
+    "properties": {
+    },
+    "editor": {
+      "completionKey": "TAB"
+    }
+  }
+]
