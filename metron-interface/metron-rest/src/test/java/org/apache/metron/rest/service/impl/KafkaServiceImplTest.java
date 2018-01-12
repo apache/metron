@@ -58,11 +58,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.core.env.Environment;
 import org.springframework.kafka.core.ConsumerFactory;
 
 
@@ -81,7 +79,7 @@ public class KafkaServiceImplTest {
   private AdminUtils$ adminUtils;
 
   private KafkaService kafkaService;
-  private Environment environment;
+
 
   private static final KafkaTopic VALID_KAFKA_TOPIC = new KafkaTopic() {{
     setReplicationFactor(2);
@@ -98,7 +96,6 @@ public class KafkaServiceImplTest {
     kafkaConsumer = mock(KafkaConsumer.class);
     kafkaProducer = mock(KafkaProducer.class);
     adminUtils = mock(AdminUtils$.class);
-    environment = Mockito.mock(Environment.class);
 
     when(kafkaConsumerFactory.createConsumer()).thenReturn(kafkaConsumer);
 
