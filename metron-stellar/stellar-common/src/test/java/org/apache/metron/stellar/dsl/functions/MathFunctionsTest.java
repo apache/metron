@@ -23,16 +23,22 @@ import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.runPr
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.stellar.dsl.functions.MathFunctions.BoyerMooreAdd;
+import org.apache.metron.stellar.dsl.functions.MathFunctions.BoyerMooreMerge;
+import org.apache.metron.stellar.dsl.functions.MathFunctions.BoyerMoorePlurality;
+import org.apache.metron.stellar.dsl.functions.MathFunctions.BoyerMooreState;
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class MathFunctionsTest {
 
@@ -186,6 +192,40 @@ public class MathFunctionsTest {
   @Test(expected= ParseException.class)
   public void testIsNanWithNoArgs() {
     runPredicate("IS_NAN()", new HashMap<>());
+  }
+
+  @Test
+  public void boyerMoore_calculates_plurality_from_list_of_values() throws Exception {
+    List<Integer> items = Arrays.asList(1, 1, 1, 2, 2);
+    BoyerMooreState state = null;
+    for (Integer item : items) {
+      state = (BoyerMooreState) new BoyerMooreAdd().apply(Arrays.asList(state, item));
+    }
+    Assert.assertThat(new BoyerMoorePlurality().apply(ImmutableList.of(state)), CoreMatchers.equalTo(1));
+  }
+
+  @Test
+  public void boyerMoore_calculates_plurality_from_list_of_mixed_objects() throws Exception {
+    List<Object> items = Arrays.asList(1, 1, "orange", "orange", "jello", "jello", "jello");
+    BoyerMooreState state = (BoyerMooreState) new BoyerMooreAdd().apply(Arrays.asList(null, items));
+    Assert.assertThat(new BoyerMoorePlurality().apply(ImmutableList.of(state)), CoreMatchers.equalTo("jello"));
+  }
+
+  @Test
+  public void boyerMoore_merges_states() throws Exception {
+    List<Object> items1 = Arrays.asList(1, 1, "orange", "orange", "jello", "jello", "jello");
+    List<Object> items2 = Arrays.asList(2, 2, "apple", "apple", "jello", "jello", "jello");
+    List<Object> items3 = Arrays.asList(3, 3, "orange", "orange", "jello", "jello", "jello");
+    BoyerMooreState state1 = (BoyerMooreState) new BoyerMooreAdd()
+        .apply(Arrays.asList(null, items1));
+    BoyerMooreState state2 = (BoyerMooreState) new BoyerMooreAdd()
+        .apply(Arrays.asList(null, items2));
+    BoyerMooreState state3 = (BoyerMooreState) new BoyerMooreAdd()
+        .apply(Arrays.asList(null, items3));
+    BoyerMooreState merged = (BoyerMooreState) new BoyerMooreMerge()
+        .apply(ImmutableList.of(ImmutableList.of(state1, state2), state3));
+    Assert.assertThat(new BoyerMoorePlurality().apply(ImmutableList.of(merged)),
+        CoreMatchers.equalTo("jello"));
   }
 
   public void assertValues(String func, Map<Double, Double> expected) {
