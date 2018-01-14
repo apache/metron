@@ -185,7 +185,7 @@ public class StormControllerIntegrationTest {
     SensorParserConfig sensorParserConfig = new SensorParserConfig();
     sensorParserConfig.setParserClassName("org.apache.metron.parsers.bro.BasicBroParser");
     sensorParserConfig.setSensorTopic("broTest");
-    sensorParserConfigService.save(sensorParserConfig);
+    sensorParserConfigService.save("broTest", sensorParserConfig);
     {
       final SensorParserConfig expectedSensorParserConfig = sensorParserConfig;
       //we must wait for the config to find its way into the config.
