@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import os
+import re
 import requests
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
@@ -162,9 +163,21 @@ class Indexing(Script):
 
             # Establish connection if authentication is enabled
             try:
-                # The following credentials are created at install time by Ambari at /etc/zeppelin/conf/shiro.ini
-                # when Shiro auth is enabled on the Zeppelin server
-                zeppelin_payload = {'userName': 'admin', 'password' : 'admin'}
+                Logger.info("Shiro authentication is found to be enabled on the Zeppelin server.")
+                # Read the Shiro admin user credentials from Zeppelin config in Ambari
+                seen_users = False
+                username = None
+                password = None
+                if re.search(r'^\[users\]', params.zeppelin_shiro_ini_content, re.MULTILINE):
+                    seen_users = True
+                    tokens = re.search(r'^admin\ =.*', params.zeppelin_shiro_ini_content, re.MULTILINE).group()
+                    userpassword = tokens.split(',')[0].strip()
+                    username = userpassword.split('=')[0].strip()
+                    password = userpassword.split('=')[1].strip()
+                else:
+                    Logger.error("ERROR: Admin credentials config was not found in shiro.ini. Notebook import may fail.")
+
+                zeppelin_payload = {'userName': username, 'password' : password}
                 conn = ses.post(ambari_format('http://{zeppelin_server_url}/api/login'), data=zeppelin_payload)
             except:
                 pass

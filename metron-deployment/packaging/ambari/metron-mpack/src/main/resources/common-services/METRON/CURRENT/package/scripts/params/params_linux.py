@@ -202,6 +202,7 @@ meta_index_path = tmp_dir + "/metaalert_index.template"
 
 # Zeppelin Notebooks
 metron_config_zeppelin_path = format("{metron_config_path}/zeppelin")
+zeppelin_shiro_ini_content = status_params.zeppelin_shiro_ini_content
 
 # kafka_security
 kafka_security_protocol = config['configurations']['kafka-broker'].get('security.inter.broker.protocol', 'PLAINTEXT')
