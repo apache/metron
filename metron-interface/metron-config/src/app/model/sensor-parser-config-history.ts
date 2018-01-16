@@ -17,6 +17,7 @@
  */
 import {SensorParserConfig} from './sensor-parser-config';
 export class SensorParserConfigHistory {
+  sensorName: string;
   createdBy: string;
   modifiedBy: string;
   createdDate: string;

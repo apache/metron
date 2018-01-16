@@ -341,3 +341,19 @@ org.eclipse.persistence:org.eclipse.persistence.asm:jar:2.6.4:compile,EPL 1.0,ht
 org.eclipse.persistence:org.eclipse.persistence.core:jar:2.6.4:compile,EPL 1.0,http://www.eclipse.org/eclipselink
 org.eclipse.persistence:org.eclipse.persistence.jpa.jpql:jar:2.6.4:compile,EPL 1.0,http://www.eclipse.org/eclipselink
 org.eclipse.persistence:org.eclipse.persistence.jpa:jar:2.6.4:compile,EPL 1.0,http://www.eclipse.org/eclipselink
+
+com.google.code.gson:gson:jar:2.2:compile
+  org.codehaus.plexus:plexus-classworlds:jar:2.4:compile
+  org.codehaus.plexus:plexus-component-annotations:jar:1.5.5:compile
+  org.codehaus.plexus:plexus-interpolation:jar:1.14:compile
+  org.codehaus.plexus:plexus-utils:jar:2.0.7:compile
+  org.jsoup:jsoup:jar:1.6.1:compile
+  org.sonatype.aether:aether-api:jar:1.12:compile
+  org.sonatype.aether:aether-connector-file:jar:1.12:compile
+  org.sonatype.aether:aether-connector-wagon:jar:1.12:compile
+  org.sonatype.aether:aether-impl:jar:1.12:compile
+  org.sonatype.aether:aether-spi:jar:1.12:compile
+  org.sonatype.aether:aether-util:jar:1.12:compile
+  org.sonatype.sisu:sisu-guice:jar:no_aop:3.0.2:compile
+  org.sonatype.sisu:sisu-inject-bean:jar:2.2.2:compile
+  org.sonatype.sisu:sisu-inject-plexus:jar:2.2.2:compile
