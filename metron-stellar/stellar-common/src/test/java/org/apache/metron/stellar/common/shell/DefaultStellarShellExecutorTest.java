@@ -295,4 +295,15 @@ public class DefaultStellarShellExecutorTest {
     assertTrue(result.getValue().isPresent());
     assertEquals("", result.getValue().get());
   }
+
+  /**
+   * If the executor is initialized without a connection to Zookeeper, the globals should be
+   * defined, but empty.  This allows a user to '%define' their own with magic commands even
+   * without Zookeeper.
+   */
+  @Test
+  public void testEmptyGlobalsWithNoZookeeper() {
+    assertNotNull(executor.getGlobalConfig());
+    assertEquals(0, executor.getGlobalConfig().size());
+  }
 }
