@@ -15,21 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.common.utils.cli;
 
-package org.apache.metron.dataloads.nonbulk.flatfile.importer;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.metron.dataloads.extractor.ExtractorHandler;
-import org.apache.metron.dataloads.nonbulk.flatfile.LoadOptions;
-import org.apache.metron.dataloads.nonbulk.flatfile.writer.InvalidWriterOutput;
-import org.apache.metron.enrichment.converter.EnrichmentConverter;
+public interface CLIOptions<OPT_T extends Enum<OPT_T> & CLIOptions<OPT_T>> {
+  Option getOption();
 
-import java.io.IOException;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Optional;
+  boolean has(CommandLine cli);
 
-public interface Importer<OPTIONS_T extends Enum<OPTIONS_T>> {
-  void importData(EnumMap<OPTIONS_T, Optional<Object>> config, ExtractorHandler handler , final Configuration hadoopConfig) throws IOException, InvalidWriterOutput;
+  String get(CommandLine cli);
+
+  OptionHandler<OPT_T> getHandler();
 }

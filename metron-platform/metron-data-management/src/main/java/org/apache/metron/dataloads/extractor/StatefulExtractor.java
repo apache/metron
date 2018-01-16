@@ -15,21 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.dataloads.extractor;
 
-package org.apache.metron.dataloads.nonbulk.flatfile.importer;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.metron.dataloads.extractor.ExtractorHandler;
-import org.apache.metron.dataloads.nonbulk.flatfile.LoadOptions;
-import org.apache.metron.dataloads.nonbulk.flatfile.writer.InvalidWriterOutput;
-import org.apache.metron.enrichment.converter.EnrichmentConverter;
+import org.apache.metron.enrichment.lookup.LookupKV;
 
 import java.io.IOException;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
-public interface Importer<OPTIONS_T extends Enum<OPTIONS_T>> {
-  void importData(EnumMap<OPTIONS_T, Optional<Object>> config, ExtractorHandler handler , final Configuration hadoopConfig) throws IOException, InvalidWriterOutput;
+public interface StatefulExtractor extends Extractor {
+  Object initializeState(Map<String, Object> config);
+  Object mergeStates(List<? extends Object> states);
+  Iterable<LookupKV> extract(String line, AtomicReference<Object> state) throws IOException;
 }

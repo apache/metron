@@ -15,21 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.metron.dataloads.nonbulk.flatfile.importer;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.metron.dataloads.extractor.ExtractorHandler;
-import org.apache.metron.dataloads.nonbulk.flatfile.LoadOptions;
-import org.apache.metron.dataloads.nonbulk.flatfile.writer.InvalidWriterOutput;
-import org.apache.metron.enrichment.converter.EnrichmentConverter;
-
-import java.io.IOException;
-import java.util.EnumMap;
-import java.util.List;
 import java.util.Optional;
 
-public interface Importer<OPTIONS_T extends Enum<OPTIONS_T>> {
-  void importData(EnumMap<OPTIONS_T, Optional<Object>> config, ExtractorHandler handler , final Configuration hadoopConfig) throws IOException, InvalidWriterOutput;
+public enum Summarizers {
+  LOCAL(new LocalSummarizer());
+
+  private Importer importer;
+
+  Summarizers(Importer importer) {
+    this.importer = importer;
+  }
+
+  public Importer getSummarizer() {
+    return importer;
+  }
+
+  public static Optional<Summarizers> getStrategy(String strategyName) {
+    if(strategyName == null) {
+      return Optional.empty();
+    }
+    for(Summarizers strategy : values()) {
+      if(strategy.name().equalsIgnoreCase(strategyName.trim())) {
+        return Optional.of(strategy);
+      }
+    }
+    return Optional.empty();
+  }
 }
