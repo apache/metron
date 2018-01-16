@@ -21,8 +21,8 @@ import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.stellar.common.shell.VariableResult;
 import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.common.shell.StellarExecutor;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
@@ -40,17 +40,17 @@ public class ParserConfigFunctionsTest {
 
   String emptyTransformationsConfig = slurp(PARSER_CONFIGS_PATH + "/parsers/bro.json");
   String existingTransformationsConfig = slurp(PARSER_CONFIGS_PATH + "/parsers/squid.json");
-  Map<String, StellarExecutor.VariableResult> variables ;
+  Map<String, VariableResult> variables ;
   Context context = null;
   @Before
   public void setup() {
     variables = ImmutableMap.of(
-            "upper" , new StellarExecutor.VariableResult("TO_UPPER('foo')", "FOO"),
-            "lower" , new StellarExecutor.VariableResult("TO_LOWER('FOO')", "foo")
+            "upper" , VariableResult.withExpression("FOO", "TO_UPPER('foo')"),
+            "lower" , VariableResult.withExpression("foo", "TO_LOWER('FOO'")
     );
 
     context = new Context.Builder()
-            .with(StellarExecutor.SHELL_VARIABLES , () -> variables)
+            .with(Context.Capabilities.SHELL_VARIABLES, () -> variables)
             .build();
   }
 

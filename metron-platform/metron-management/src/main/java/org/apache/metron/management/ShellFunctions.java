@@ -17,9 +17,20 @@
  */
 package org.apache.metron.management;
 
-import static org.apache.metron.stellar.common.shell.StellarExecutor.CONSOLE;
-
 import com.jakewharton.fliptables.FlipTable;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.text.WordUtils;
+import org.apache.metron.stellar.common.shell.VariableResult;
+import org.apache.metron.stellar.common.shell.cli.PausableInput;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.metron.stellar.dsl.BaseStellarFunction;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.dsl.StellarFunction;
+import org.jboss.aesh.console.Console;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -31,21 +42,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.text.WordUtils;
-import org.apache.metron.stellar.common.shell.PausableInput;
-import org.apache.metron.stellar.common.shell.StellarExecutor;
-import org.apache.metron.stellar.common.utils.ConversionUtils;
-import org.apache.metron.stellar.dsl.BaseStellarFunction;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.ParseException;
-import org.apache.metron.stellar.dsl.Stellar;
-import org.apache.metron.stellar.dsl.StellarFunction;
-import org.jboss.aesh.console.Console;
-import org.slf4j.LoggerFactory;
+
+import static org.apache.metron.stellar.dsl.Context.Capabilities.CONSOLE;
 
 public class ShellFunctions {
   private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  private static Map<String, VariableResult> getVariables(Context context) {
+    return (Map<String, VariableResult>) context.getCapability(Context.Capabilities.SHELL_VARIABLES).get();
+  }
 
   @Stellar(
            namespace = "SHELL"
@@ -90,7 +95,7 @@ public class ShellFunctions {
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
 
-      Map<String, StellarExecutor.VariableResult> variables = (Map<String, StellarExecutor.VariableResult>) context.getCapability(StellarExecutor.SHELL_VARIABLES).get();
+      Map<String, VariableResult> variables = getVariables(context);
       String[] headers = {"VARIABLE", "VALUE", "EXPRESSION"};
       String[][] data = new String[variables.size()][3];
       int wordWrap = -1;
@@ -98,11 +103,11 @@ public class ShellFunctions {
         wordWrap = ConversionUtils.convert(args.get(0), Integer.class);
       }
       int i = 0;
-      for(Map.Entry<String, StellarExecutor.VariableResult> kv : variables.entrySet()) {
-        StellarExecutor.VariableResult result = kv.getValue();
+      for(Map.Entry<String, VariableResult> kv : variables.entrySet()) {
+        VariableResult result = kv.getValue();
         data[i++] = new String[] { toWrappedString(kv.getKey().toString(), wordWrap)
                                  , toWrappedString(result.getResult(), wordWrap)
-                                 , toWrappedString(result.getExpression(), wordWrap)
+                                 , toWrappedString(result.getExpression().get(), wordWrap)
                                  };
       }
       return FlipTable.of(headers, data);
@@ -139,16 +144,16 @@ public class ShellFunctions {
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
-      Map<String, StellarExecutor.VariableResult> variables = (Map<String, StellarExecutor.VariableResult>) context.getCapability(StellarExecutor.SHELL_VARIABLES).get();
+      Map<String, VariableResult> variables = getVariables(context);
       LinkedHashMap<String, String> ret = new LinkedHashMap<>();
       for(Object arg : args) {
         if(arg == null) {
           continue;
         }
         String variable = (String)arg;
-        StellarExecutor.VariableResult result = variables.get(variable);
-        if(result != null && result.getExpression() != null) {
-          ret.put(variable, result.getExpression());
+        VariableResult result = variables.get(variable);
+        if(result != null && result.getExpression().isPresent()) {
+          ret.put(variable, result.getExpression().orElseGet(() -> ""));
         }
       }
       return ret;
@@ -177,7 +182,7 @@ public class ShellFunctions {
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
-      Map<String, StellarExecutor.VariableResult> variables = (Map<String, StellarExecutor.VariableResult>) context.getCapability(StellarExecutor.SHELL_VARIABLES).get();
+      Map<String, VariableResult> variables = getVariables(context);
       if(args.size() == 0) {
         return null;
       }
@@ -185,9 +190,9 @@ public class ShellFunctions {
       if(variable == null) {
         return null;
       }
-      StellarExecutor.VariableResult result = variables.get(variable);
-      if(result != null && result.getExpression() != null) {
-        return result.getExpression();
+      VariableResult result = variables.get(variable);
+      if(result != null && result.getExpression().isPresent()) {
+        return result.getExpression().get();
       }
       return null;
     }
