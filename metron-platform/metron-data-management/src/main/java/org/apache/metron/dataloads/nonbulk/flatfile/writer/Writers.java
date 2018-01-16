@@ -15,33 +15,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.dataloads.nonbulk.flatfile.importer;
+package org.apache.metron.dataloads.nonbulk.flatfile.writer;
 
+import org.apache.hadoop.conf.Configuration;
+
+import java.io.IOException;
 import java.util.Optional;
 
-public enum ImportStrategy {
-  LOCAL(new LocalImporter()),
-  MR(MapReduceImporter.INSTANCE)
+public enum Writers implements Writer {
+  LOCAL(new LocalWriter()),
+  HDFS(new HDFSWriter()),
+  CONSOLE(new ConsoleWriter())
   ;
-  private Importer importer;
+  private Writer writer;
 
-  ImportStrategy(Importer importer) {
-    this.importer = importer;
+  Writers(Writer writer) {
+    this.writer = writer;
   }
-
-  public Importer getImporter() {
-    return importer;
-  }
-
-  public static Optional<ImportStrategy> getStrategy(String strategyName) {
+  public static Optional<Writers> getStrategy(String strategyName) {
     if(strategyName == null) {
       return Optional.empty();
     }
-    for(ImportStrategy strategy : values()) {
+    for(Writers strategy : values()) {
       if(strategy.name().equalsIgnoreCase(strategyName.trim())) {
         return Optional.of(strategy);
       }
     }
     return Optional.empty();
+  }
+
+  @Override
+  public void validate(Optional<String> output, Configuration hadoopConf) throws InvalidWriterOutput {
+    writer.validate(output, hadoopConf);
+  }
+
+  @Override
+  public void write(byte[] obj, Optional<String> output, Configuration hadoopConf) throws IOException {
+    writer.write(obj, output, hadoopConf);
   }
 }

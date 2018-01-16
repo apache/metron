@@ -21,6 +21,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
+import org.apache.metron.common.utils.cli.CLIOptions;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.cli.OptionHandler;
 import org.apache.metron.dataloads.nonbulk.flatfile.importer.ImportStrategy;
@@ -33,48 +34,14 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Optional;
 
-public enum LoadOptions {
-  HELP("h", new OptionHandler<LoadOptions>() {
-
-    @Nullable
-    @Override
-    public Option apply(@Nullable String s) {
-      return new Option(s, "help", false, "Generate Help screen");
-    }
-  })
-  ,QUIET("q", new OptionHandler<LoadOptions>() {
-
-    @Nullable
-    @Override
-    public Option apply(@Nullable String s) {
-      return new Option(s, "quiet", false, "Do not update progress");
-    }
-
-    @Override
-    public Optional<Object> getValue(LoadOptions option, CommandLine cli) {
-      return Optional.of(option.has(cli));
-    }
-  })
-  , IMPORT_MODE("m", new OptionHandler<LoadOptions>() {
-    @Nullable
-    @Override
-    public Option apply(@Nullable String s) {
-      Option o = new Option(s, "import_mode", true
-                           , "The Import mode to use: " + Joiner.on(",").join(ImportStrategy.values())
-                           + ".  Default: " + ImportStrategy.LOCAL
-                           );
-      o.setArgName("MODE");
-      o.setRequired(false);
-      return o;
-    }
-
-    @Override
-    public Optional<Object> getValue(LoadOptions option, CommandLine cli) {
-      String mode = option.get(cli);
-      return Optional.of(ImportStrategy.getStrategy(mode).orElse(ImportStrategy.LOCAL));
-    }
-  })
-  ,HBASE_TABLE("t", new OptionHandler<LoadOptions>() {
+public enum LoadOptions implements CLIOptions<LoadOptions> {
+  HELP(new CommonOptions.Help<> ())
+  ,QUIET(new CommonOptions.Quiet<>())
+  , IMPORT_MODE(new CommonOptions.ImportMode<>( ImportStrategy.values()
+                                              , ImportStrategy.LOCAL
+                                              , mode -> Optional.ofNullable(ImportStrategy.getStrategy(mode).orElse(ImportStrategy.LOCAL)))
+               )
+  ,HBASE_TABLE(new OptionHandler<LoadOptions>() {
     @Nullable
     @Override
     public Option apply(@Nullable String s) {
@@ -88,8 +55,13 @@ public enum LoadOptions {
     public Optional<Object> getValue(LoadOptions option, CommandLine cli) {
       return Optional.ofNullable(option.get(cli).trim());
     }
+
+    @Override
+    public String getShortCode() {
+      return "t";
+    }
   })
-  ,HBASE_CF("c", new OptionHandler<LoadOptions>() {
+  ,HBASE_CF(new OptionHandler<LoadOptions>() {
     @Nullable
     @Override
     public Option apply(@Nullable String s) {
@@ -103,27 +75,19 @@ public enum LoadOptions {
     public Optional<Object> getValue(LoadOptions option, CommandLine cli) {
       return Optional.ofNullable(option.get(cli).trim());
     }
-  })
-  ,EXTRACTOR_CONFIG("e", new OptionHandler<LoadOptions>() {
-    @Nullable
-    @Override
-    public Option apply(@Nullable String s) {
-      Option o = new Option(s, "extractor_config", true, "JSON Document describing the extractor for this input data source");
-      o.setArgName("JSON_FILE");
-      o.setRequired(true);
-      return o;
-    }
 
     @Override
-    public Optional<Object> getValue(LoadOptions option, CommandLine cli) {
-      try {
-        return Optional.ofNullable(FileUtils.readFileToString(new File(option.get(cli).trim())));
-      } catch (IOException e) {
-        throw new IllegalStateException("Unable to retrieve extractor config from " + option.get(cli) + ": " + e.getMessage(), e);
-      }
+    public String getShortCode() {
+      return "c";
     }
   })
-  ,ENRICHMENT_CONFIG("n", new OptionHandler<LoadOptions>() {
+  ,EXTRACTOR_CONFIG(new CommonOptions.ExtractorConfig<>())
+  ,ENRICHMENT_CONFIG(new OptionHandler<LoadOptions>() {
+    @Override
+    public String getShortCode() {
+      return "n";
+    }
+
     @Nullable
     @Override
     public Option apply(@Nullable String s) {
@@ -136,126 +100,46 @@ public enum LoadOptions {
       return o;
     }
   })
-  ,LOG4J_PROPERTIES("l", new OptionHandler<LoadOptions>() {
-    @Nullable
-    @Override
-    public Option apply(@Nullable String s) {
-      Option o = new Option(s, "log4j", true, "The log4j properties file to load");
-      o.setArgName("FILE");
-      o.setRequired(false);
-      return o;
-    }
-  })
-  ,NUM_THREADS("p", new OptionHandler<LoadOptions>() {
-    @Nullable
-    @Override
-    public Option apply(@Nullable String s) {
-      Option o = new Option(s, "threads", true, "The number of threads to use when extracting data.  The default is the number of cores of your machine.");
-      o.setArgName("NUM_THREADS");
-      o.setRequired(false);
-      return o;
-    }
-
-    @Override
-    public Optional<Object> getValue(LoadOptions option, CommandLine cli) {
-      int numThreads = Runtime.getRuntime().availableProcessors();
-      if(option.has(cli)) {
-        numThreads = ConversionUtils.convert(option.get(cli), Integer.class);
-      }
-      return Optional.of(numThreads);
-    }
-  })
-  ,BATCH_SIZE("b", new OptionHandler<LoadOptions>() {
-    @Nullable
-    @Override
-    public Option apply(@Nullable String s) {
-      Option o = new Option(s, "batchSize", true, "The batch size to use for HBase puts");
-      o.setArgName("SIZE");
-      o.setRequired(false);
-      return o;
-    }
-
-    @Override
-    public Optional<Object> getValue(LoadOptions option, CommandLine cli) {
-      int batchSize = 128;
-      if(option.has(cli)) {
-        batchSize = ConversionUtils.convert(option.get(cli), Integer.class);
-      }
-      return Optional.of(batchSize);
-    }
-  })
-  ,INPUT("i", new OptionHandler<LoadOptions>() {
-    @Nullable
-    @Override
-    public Option apply(@Nullable String s) {
-      Option o = new Option(s, "input", true, "The CSV File to load");
-      o.setArgName("FILE");
-      o.setRequired(true);
-      return o;
-    }
-
-    @Override
-    public Optional<Object> getValue(LoadOptions option, CommandLine cli) {
-      List<String> inputs = new ArrayList<>();
-      for(String input : Splitter.on(",").split(Optional.ofNullable(option.get(cli)).orElse(""))) {
-        inputs.add(input.trim());
-      }
-      return Optional.of(inputs);
-    }
-  })
+  ,LOG4J_PROPERTIES(new CommonOptions.Log4jProperties<>())
+  ,NUM_THREADS(new CommonOptions.NumThreads<>())
+  ,BATCH_SIZE(new CommonOptions.BatchSize<>())
+  ,INPUT(new CommonOptions.Input<>())
   ;
   Option option;
   String shortCode;
   OptionHandler<LoadOptions> handler;
-  LoadOptions(String shortCode, OptionHandler<LoadOptions> optionHandler) {
-    this.shortCode = shortCode;
+  LoadOptions(OptionHandler<LoadOptions> optionHandler) {
+    this.shortCode = optionHandler.getShortCode();
     this.handler = optionHandler;
     this.option = optionHandler.apply(shortCode);
   }
 
+  @Override
+  public OptionHandler<LoadOptions> getHandler() {
+    return handler;
+  }
+
+
+  @Override
+  public Option getOption() {
+    return option;
+  }
+
+  @Override
   public boolean has(CommandLine cli) {
     return cli.hasOption(shortCode);
   }
 
+  @Override
   public String get(CommandLine cli) {
     return cli.getOptionValue(shortCode);
   }
 
   public static CommandLine parse(CommandLineParser parser, String[] args) {
-    try {
-      CommandLine cli = parser.parse(getOptions(), args);
-      if(HELP.has(cli)) {
-        printHelp();
-        System.exit(0);
-      }
-      return cli;
-    } catch (ParseException e) {
-      System.err.println("Unable to parse args: " + Joiner.on(' ').join(args));
-      e.printStackTrace(System.err);
-      printHelp();
-      System.exit(-1);
-      return null;
-    }
+    return OptionHandler.parse("SimpleEnrichmentFlatFileLoader", parser, args, values(), HELP);
   }
 
   public static EnumMap<LoadOptions, Optional<Object> > createConfig(CommandLine cli) {
-    EnumMap<LoadOptions, Optional<Object> > ret = new EnumMap<>(LoadOptions.class);
-    for(LoadOptions option : values()) {
-      ret.put(option, option.handler.getValue(option, cli));
-    }
-    return ret;
-  }
-
-  public static void printHelp() {
-    HelpFormatter formatter = new HelpFormatter();
-    formatter.printHelp( "SimpleEnrichmentFlatFileLoader", getOptions());
-  }
-
-  public static Options getOptions() {
-    Options ret = new Options();
-    for(LoadOptions o : LoadOptions.values()) {
-      ret.addOption(o.option);
-    }
-    return ret;
+    return OptionHandler.createConfig(cli, values(), LoadOptions.class);
   }
 }

@@ -25,21 +25,27 @@ import org.apache.metron.enrichment.converter.HbaseConverter;
 
 import java.io.IOException;
 
-public class ExtractorState {
+public class HBaseExtractorState {
   private HTableInterface table;
   private Extractor extractor;
   private HbaseConverter converter;
   private FileSystem fs;
+  private String cf;
 
-  public ExtractorState(HTableInterface table, Extractor extractor, HbaseConverter converter, Configuration config) {
+  public HBaseExtractorState(HTableInterface table, String cf, Extractor extractor, HbaseConverter converter, Configuration config) {
     this.table = table;
     this.extractor = extractor;
     this.converter = converter;
+    this.cf = cf;
     try {
       this.fs = FileSystem.get(config);
     } catch (IOException e) {
       throw new IllegalStateException("Unable to retrieve hadoop file system: " + e.getMessage(), e);
     }
+  }
+
+  public String getCf() {
+    return cf;
   }
 
   public HTableInterface getTable() {
