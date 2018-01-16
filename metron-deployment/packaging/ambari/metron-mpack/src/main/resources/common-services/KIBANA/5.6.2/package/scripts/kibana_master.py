@@ -98,11 +98,11 @@ class Kibana(Script):
 
         # return codes defined by LSB
         # http://refspecs.linuxbase.org/LSB_3.0.0/LSB-PDA/LSB-PDA/iniscrptact.html
-	cmd = ('service', 'kibana', 'status')
-	rc, out = shell.call(cmd, sudo=True, quiet=False)
+        cmd = ('service', 'kibana', 'status')
+        rc, out = shell.call(cmd, sudo=True, quiet=False)
 
-        if rc == 3:
-          # if return code = 3, then 'program is not running'
+        if rc in [1, 2, 3]:
+          # if return code = 1, 2, or 3, then 'program is not running' or 'dead'
           # Ambari's resource_management/libraries/script/script.py handles
           # this specific exception as OK
           Logger.info("Kibana is not running")

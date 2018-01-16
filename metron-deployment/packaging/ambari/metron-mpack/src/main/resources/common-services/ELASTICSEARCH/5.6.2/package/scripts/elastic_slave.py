@@ -65,8 +65,8 @@ class Elasticsearch(Script):
         cmd = ('service', 'elasticsearch', 'status')
         rc, out = shell.call(cmd, sudo=True, quiet=False)
 
-        if rc == 3:
-          # if return code = 3, then 'program is not running'
+        if rc in [1, 2, 3]:
+          # if return code = 1, 2, or 3, then 'program is not running' or 'dead'
           # Ambari's resource_management/libraries/script/script.py handles
           # this specific exception as OK
           Logger.info("Elasticsearch slave is not running")
