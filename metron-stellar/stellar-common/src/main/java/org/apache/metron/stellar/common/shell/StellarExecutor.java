@@ -294,13 +294,13 @@ public class StellarExecutor {
                                                                , Collections.emptyMap());
     StellarProcessor processor = new StellarProcessor();
     StackWatch watch = new StackWatch("execute");
-    watch.startTime(expression);
+    watch.startTiming(expression);
     context.setWatch(watch);
     try {
       return processor.parse(expression, variableResolver, functionResolver, context);
     } finally {
-      watch.stopTime();
-      watch.stopWatch();
+      watch.stopTiming();
+      watch.stop();
       lastWatch = Optional.of(watch);
       context.clearWatch();
     }

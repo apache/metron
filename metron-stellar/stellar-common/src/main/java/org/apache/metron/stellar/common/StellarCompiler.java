@@ -592,9 +592,9 @@ public class StellarCompiler extends StellarBaseListener {
       // fetch the args, execute, and push result onto the stack
       List<Object> args = getFunctionArguments(popDeque(tokenDeque));
       Optional<StackWatch> watchOptional = state.context.getWatch();
-      watchOptional.ifPresent((sw) -> sw.startTime(functionName, "FUNCTION"));
+      watchOptional.ifPresent((sw) -> sw.startTiming(functionName, "FUNCTION"));
       Object result = function.apply(args, state.context);
-      watchOptional.ifPresent(StackWatch::stopTime);
+      watchOptional.ifPresent(StackWatch::stopTiming);
       tokenDeque.push(new Token<>(result, Object.class, context));
     }, DeferredFunction.class, context));
   }

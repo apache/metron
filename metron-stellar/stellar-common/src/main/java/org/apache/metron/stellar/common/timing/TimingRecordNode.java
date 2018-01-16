@@ -20,68 +20,86 @@ package org.apache.metron.stellar.common.timing;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 
 /**
  * The tree node to track time and children.
- * {@code StopWatch} class from the Apache Commons is used
- * for time tracking.
- * http://commons.apache.org/proper/commons-lang/javadocs/api-release/org/apache/commons/lang3/time/StopWatch.html
+ * The {@code StopWatch} class is used for timings
  */
-public class TimeRecordNode {
+public class TimingRecordNode {
 
-  private static final String pathFmt = "%s/%s";
+  /**
+   * The format String for creating paths.
+   */
+  private static final String PATH_FMT = "%s/%s";
 
-  // the name of our parent node
-  private String parentName;
-  // the name of this node
-  private String name;
-  // the tags for this node
+  /**
+   * This nodes parent's path.
+   */
+  private String parentTimingPath;
+
+  /**
+   * The name of this node.
+   */
+  private String timingName;
+
+  /**
+   * The tags associated with this timing.
+   */
   private String[] tags;
 
-  // the children of this node
-  private List<TimeRecordNode> children = new LinkedList<>();
-  // this node's StopWatch
+  /**
+   * The child nodes of this node.
+   */
+  private List<TimingRecordNode> children = new LinkedList<>();
+
+  /**
+   * The {@code StopWatch} for this node.
+   */
   private StopWatch stopWatch = new StopWatch();
 
   /**
+   * <p>
    * Constructor.
-   * Creates a new TimeRecordNode for a given parent name, with a given name.
-   * @param parentName name of the parent, may be null
+   * </p>
+   * <p>
+   * Creates a new TimingRecordNode for a given parent name, with a given name.
+   * </p>
+   * @param parentTimingPath the path of the parent, may be null
+   * @param timingName the name of the timing
    * @param tags the tags to associate with this timing
-   * @param name the name of the node
-   * @throws IllegalArgumentException if the node name is null or empty.
+   * @throws IllegalArgumentException if the timingName is null or empty.
    */
-  public TimeRecordNode(String parentName, String name, String... tags) {
-    if (StringUtils.isEmpty(name)) {
+  public TimingRecordNode(String parentTimingPath, String timingName, String... tags) {
+    if (StringUtils.isEmpty(timingName)) {
       throw new IllegalArgumentException("Argument name is missing");
     }
-    this.name = name;
+    this.timingName = timingName;
 
-    if (StringUtils.isNotEmpty(parentName)) {
-      this.parentName = parentName;
+    if (StringUtils.isNotEmpty(parentTimingPath)) {
+      this.parentTimingPath = parentTimingPath;
     }
 
     this.tags = tags;
   }
 
   /**
-   * Returns the node's parent's name.
-   * The parent node name may be null
-   * @return the parent node name
+   * Returns the node's parent's path.
+   * The parent node path may be null
+   * @return the parent node path
    */
-  public String getParentName() {
-    return parentName;
+  public String getParentPath() {
+    return parentTimingPath;
   }
 
   /**
-   * Returns the node's name.
-   * @return the node name
+   * Returns the node's timing name.
+   * @return the node timing name
    */
-  public String getName() {
-    return name;
+  public String getTimingName() {
+    return timingName;
   }
 
   /**
@@ -96,39 +114,43 @@ public class TimeRecordNode {
    * Starts the StopWatch.
    */
   public void start() {
-    stopWatch.start();
+    if(!stopWatch.isStarted()) {
+      stopWatch.start();
+    }
   }
 
   /**
-   * Stops the StopWatch.
+   * <p>
+   *  Stops the StopWatch.
+   * </p>
+   * <p>
+   *  If this node has running children, an {@code IllegalStateException} will result.
+   * </p>
+   * @throws IllegalStateException if stop is called on a node with running children
    */
   public void stop() {
+    for (TimingRecordNode child : children) {
+      if (child.isRunning()) {
+        throw new IllegalStateException("Cannot stop a timing with running children");
+      }
+    }
     stopWatch.stop();
   }
 
   /**
-   * Returns the runtime of the node.
-   * @return the runtime in milliseconds
+   * Returns the {@code StopWatch} for this node.
+   * @return {@code StopWatch}
    */
-  public long getTime() {
-    return stopWatch.getTime();
+  public StopWatch getStopWatch() {
+    return stopWatch;
   }
 
   /**
-   * Returns the runtime of the node in nanoseconds.
-   *
-   * @return the runtime in nanoseconds
+   * The tags associated with this timing.
+   * @return tags array
    */
-  public long getNanoTime() {
-    return stopWatch.getNanoTime();
-  }
-
-  /**
-   * The tags to associate with this timing.
-   * @return tags array, may be null
-   */
-  public Optional<String[]> getTags() {
-    return Optional.ofNullable(tags);
+  public String[] getTags() {
+    return tags == null? new String[]{} : ArrayUtils.clone(tags);
   }
 
 
@@ -141,17 +163,17 @@ public class TimeRecordNode {
    * @return the path as String
    */
   public String getPath() {
-    if (parentName == null) {
-      return name;
+    if (parentTimingPath == null) {
+      return timingName;
     }
-    return String.format(pathFmt, parentName, name);
+    return String.format(PATH_FMT, parentTimingPath, timingName);
   }
 
   /**
    * Returns the child nodes of this node.
    * @return Iterable of the child nodes.
    */
-  public Iterable<TimeRecordNode> getChildren() {
+  public Iterable<TimingRecordNode> getChildren() {
     return children;
   }
 
@@ -165,24 +187,26 @@ public class TimeRecordNode {
    * @throws IllegalStateException if the current node is not started.
    * @throws IllegalArgumentException if the node name is null or empty.
    */
-  public TimeRecordNode createChild(String childName, String... tags) throws IllegalStateException {
+  public TimingRecordNode createChild(String childName, String... tags) throws IllegalStateException {
     if (!stopWatch.isStarted()) {
       throw new IllegalStateException("Adding a child to a non-started parent");
     }
-    TimeRecordNode child = new TimeRecordNode(this.getPath(), childName, tags);
+    TimingRecordNode child = new TimingRecordNode(this.getPath(), childName, tags);
     children.add(child);
     return child;
   }
 
   /**
    * Visits the current node and each of it's children in turn.
-   * The provided {@code TimeRecordNodeVisitor} will be called this node, and passed to each
+   * The provided {@code TimingRecordNodeVisitor} will be called this node, and passed to each
    * child node in descent.
    * @param level The level of this node.
    * @param visitor the visitor callback
    */
-  protected void visit(int level, TimeRecordNodeVisitor visitor) {
+  protected void visit(int level, TimingRecordNodeVisitor visitor) {
     visitor.visitRecord(level, this);
-    children.forEach((n) -> n.visit(level + 1, visitor));
+    for (TimingRecordNode child : children) {
+      child.visit(level + 1, visitor);
+    }
   }
 }

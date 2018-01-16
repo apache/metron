@@ -19,15 +19,15 @@
 package org.apache.metron.stellar.common.timing;
 
 /**
- * Visitor for decent through a TimeRecordNode tree.
+ * Visitor for decent through a TimingRecordNode tree.
  */
-public interface TimeRecordNodeVisitor {
+public interface TimingRecordNodeVisitor {
 
   /**
-   * Visit a {@code TimeRecordNode}.
+   * Visit a {@code TimingRecordNode}.
    *
    * @param level the depth level of this node
-   * @param node the {@code TimeRecordNode}
+   * @param node the {@code TimingRecordNode}
    */
-  void visitRecord(int level, TimeRecordNode node);
+  void visitRecord(int level, TimingRecordNode node);
 }

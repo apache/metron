@@ -31,43 +31,67 @@ public class StackWatchTest {
     // General test, call three top level functions, the first of two having
     // nested calls
     StackWatch watch = new StackWatch("testStackWatch");
+    watch.start();
     // root timing
-    watch.startTime("Test");
+    watch.startTiming("Test");
     functionOne(watch);
     functionTwo(watch);
     functionThree(watch);
-    watch.stopTime();
-    watch.stopWatch();
+    watch.stopTiming();
+    watch.stop();
     final ArrayList<Integer> levels = new ArrayList<>();
-    watch.visit((l, n) -> {
-      levels.add(l);
+    watch.visit(new TimingRecordNodeVisitor() {
+      @Override
+      public void visitRecord(int level, TimingRecordNode node) {
+        levels.add(level);
+      }
     });
+    // validate that we have the right number of 'timings'
+    assertEquals(levels.size(), 9);
+  }
 
+  @Test
+  public void testStackWatchWithoutStarting() throws Exception {
+    // General test, call three top level functions, the first of two having
+    // nested calls
+    StackWatch watch = new StackWatch("testStackWatch");
+    // root timing
+    watch.startTiming("Test");
+    functionOne(watch);
+    functionTwo(watch);
+    functionThree(watch);
+    watch.stopTiming();
+    watch.stop();
+    final ArrayList<Integer> levels = new ArrayList<>();
+    watch.visit(new TimingRecordNodeVisitor() {
+      @Override
+      public void visitRecord(int level, TimingRecordNode node) {
+        levels.add(level);
+      }
+    });
     // validate that we have the right number of 'timings'
     assertEquals(levels.size(), 9);
   }
 
   @Test
   public void testStackWatchFiltered() throws Exception {
-    // General test, call three top level functions, the first of two having
-    // nested calls
     StackWatch watch = new StackWatch("testStackWatch");
-    // root timing
     final String[] filter = new String[]{"ThreeFunc"};
-    watch.startTime("Test");
+    watch.startTiming("Test");
     functionOne(watch);
     functionTwo(watch);
     functionThree(watch);
-    watch.stopTime();
-    watch.stopWatch();
+    watch.stopTiming();
+    watch.stop();
     final ArrayList<Integer> levels = new ArrayList<>();
-    watch.visit((l, n) -> {
-      n.getTags().ifPresent((tags) -> {
-        if (Arrays.stream(tags)
-            .anyMatch((s) -> Arrays.asList(s).containsAll(Arrays.asList(filter)))) {
-          levels.add(l);
+    watch.visit(new TimingRecordNodeVisitor() {
+      @Override
+      public void visitRecord(int level, TimingRecordNode node) {
+        String[] tags = node.getTags();
+        if (Arrays.asList(tags).containsAll(Arrays.asList(filter))) {
+          levels.add(level);
         }
-      });
+      }
     });
 
     // validate that we have the right number of 'timings'
@@ -82,91 +106,135 @@ public class StackWatchTest {
     functionOne(watch);
     functionTwo(watch);
     functionThree(watch);
-    watch.stopTime();
-    watch.stopWatch();
+    watch.stop();
 
     final ArrayList<Integer> levels = new ArrayList<>();
-    watch.visit((l, n) -> {
-      levels.add(l);
+    watch.visit(new TimingRecordNodeVisitor() {
+      @Override
+      public void visitRecord(int level, TimingRecordNode node) {
+        levels.add(level);
+      }
     });
     assertEquals(levels.size(), 8);
   }
 
+  @Test(expected = IllegalStateException.class)
+  public void testMissMatchedStopThrowsException() throws Exception {
+    StackWatch watch = new StackWatch("testStackWatch");
+    functionOne(watch);
+    functionTwo(watch);
+    functionThree(watch);
+    // we are stopping when we didn't explicitly start, so this will stop the root
+    // and empty the queue
+    watch.stopTiming();
+    // exception
+    watch.stop();
+  }
+
   @Test
   public void testDidNotStopAll() throws Exception {
-    // Test that we can handle not having stop called on all the
-    // timings started in a run
     StackWatch watch = new StackWatch("testStackWatch");
-    watch.startTime("Test");
+    watch.startTiming("Test");
     functionOne(watch);
     functionTwo(watch);
     functionThree(watch);
     functionNoStop(watch);
-    watch.stopTime();
+    watch.stopTiming();
     final ArrayList<Integer> levels = new ArrayList<>();
-    watch.visit((l, n) -> {
-      levels.add(l);
+    watch.visit(new TimingRecordNodeVisitor() {
+      @Override
+      public void visitRecord(int level, TimingRecordNode node) {
+        levels.add(level);
+      }
     });
 
     assertEquals(levels.size(), 10);
   }
 
   @Test(expected = IllegalArgumentException.class)
-  public void testNullNameException() {
+  public void testNullNameThrowsException() {
     StackWatch watch = new StackWatch("testStackWatch");
-    watch.startTime(null);
+    watch.startTiming(null);
   }
 
-  private void functionOne(StackWatch watch) throws Exception {
-    watch.startTime("One", "OneFunc");
-    Thread.sleep(500);
+  @Test(expected = IllegalStateException.class)
+  public void testParentNotRunningThrowsException() throws Exception {
+    StackWatch watch = new StackWatch("testStackWatch");
+    watch.startTiming("test");
+    functionOneCloseParent(watch);
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testStartingSecondSetOfTimingsThrowsException() throws Exception{
+    StackWatch watch = new StackWatch("testStackWatch");
+    watch.startTiming("Test");
+    functionOne(watch);
+    watch.stopTiming();
+    watch.stop();
+    watch.startTiming("More Test");
+  }
+
+  private void functionOne(StackWatch watch) throws Exception{
+    watch.startTiming("One", "OneFunc");
+    Thread.sleep(50);
     functionOneOne(watch);
-    watch.stopTime();
+    watch.stopTiming();
+  }
+
+  private void functionOneCloseParent(StackWatch watch) throws Exception{
+    watch.startTiming("One", "OneFunc");
+    Thread.sleep(50);
+    watch.visit(new TimingRecordNodeVisitor() {
+      @Override
+      public void visitRecord(int level, TimingRecordNode node) {
+        node.getStopWatch().stop();
+      }
+    });
+    functionOneOne(watch);
   }
 
   private void functionOneOne(StackWatch watch) throws Exception {
-    watch.startTime("OneOne", "OneFunc");
-    Thread.sleep(500);
+    watch.startTiming("OneOne", "OneFunc");
+    Thread.sleep(50);
     functionOneTwo(watch);
-    watch.stopTime();
+    watch.stopTiming();
 
   }
 
   private void functionOneTwo(StackWatch watch) throws Exception {
-    watch.startTime("OneTwo", "OneFunc");
-    Thread.sleep(500);
-    watch.stopTime();
+    watch.startTiming("OneTwo", "OneFunc");
+    Thread.sleep(50);
+    watch.stopTiming();
   }
 
   private void functionTwo(StackWatch watch) throws Exception {
-    watch.startTime("Two", "TwoFunc");
-    Thread.sleep(500);
+    watch.startTiming("Two", "TwoFunc");
+    Thread.sleep(50);
     functionTwoOne(watch);
-    watch.stopTime();
+    watch.stopTiming();
   }
 
   private void functionTwoOne(StackWatch watch) throws Exception {
-    watch.startTime("TwoOne", "TwoFunc");
-    Thread.sleep(500);
+    watch.startTiming("TwoOne", "TwoFunc");
+    Thread.sleep(50);
     functionTwoTwo(watch);
-    watch.stopTime();
+    watch.stopTiming();
   }
 
   private void functionTwoTwo(StackWatch watch) throws Exception {
-    watch.startTime("TwoTwo", "TwoFunc");
-    Thread.sleep(500);
-    watch.stopTime();
+    watch.startTiming("TwoTwo", "TwoFunc");
+    Thread.sleep(50);
+    watch.stopTiming();
   }
 
   private void functionThree(StackWatch watch) throws Exception {
-    watch.startTime("Three", "ThreeFunc");
-    Thread.sleep(500);
-    watch.stopTime();
+    watch.startTiming("Three", "ThreeFunc");
+    Thread.sleep(50);
+    watch.stopTiming();
   }
 
   private void functionNoStop(StackWatch watch) throws Exception {
-    watch.startTime("NoStop");
-    Thread.sleep(500);
+    watch.startTiming("NoStop");
+    Thread.sleep(50);
   }
-
 }

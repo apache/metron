@@ -496,8 +496,8 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
   private String formatWatchOutput(StackWatch watch, final List<String> filterList) {
     final StringBuffer buff = new StringBuffer();
     watch.visit(((level, node) -> {
-      if (node.getTags().isPresent() && node.getTags().get().length > 0) {
-        if (!Arrays.asList(node.getTags().get()).containsAll(filterList)) {
+      if (node.getTags() != null && node.getTags().length > 0) {
+        if (!Arrays.asList(node.getTags()).containsAll(filterList)) {
           return;
         }
       }
@@ -505,12 +505,12 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
         buff.append("-");
       }
       buff.append("->");
-      buff.append(node.getName());
-      node.getTags().ifPresent((tags) -> {
-        buff.append("[").append(String.join(",",tags)).append("]");
-      });
-      buff.append(" : ").append(node.getTime()).append("ms : ")
-          .append(node.getNanoTime()).append("ns").append("\n");
+      buff.append(node.getPath());
+      if (node.getTags() != null) {
+        buff.append("[").append(String.join(",",node.getTags())).append("]");
+      }
+      buff.append(" : ").append(node.getStopWatch().getTime()).append("ms : ")
+          .append(node.getStopWatch().getNanoTime()).append("ns").append("\n");
     }));
     return buff.toString();
   }

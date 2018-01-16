@@ -67,9 +67,9 @@ public class LambdaExpression extends StellarCompiler.Expression {
           , state.functionResolver
           , variableResolver);
     Optional<StackWatch> watchOptional = state.context.getWatch();
-    watchOptional.ifPresent((sw) -> sw.startTime("lambda", "LAMBDA"));
+    watchOptional.ifPresent((sw) -> sw.startTiming("lambda", "LAMBDA"));
     Object result = apply(localState);
-    watchOptional.ifPresent(StackWatch::stopTime);
+    watchOptional.ifPresent(StackWatch::stopTiming);
     return result;
   }
 }
