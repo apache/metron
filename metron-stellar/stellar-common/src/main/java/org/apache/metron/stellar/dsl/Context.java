@@ -35,6 +35,8 @@ public class Context implements Serializable {
     , ZOOKEEPER_CLIENT
     , SERVICE_DISCOVERER
     , STELLAR_CONFIG
+    , CONSOLE
+    , SHELL_VARIABLES
   }
 
   public enum ActivityType {
@@ -76,15 +78,8 @@ public class Context implements Serializable {
   }
 
   public static Context EMPTY_CONTEXT() {
-    return
-            new Context(new HashMap<>()){
-              @Override
-              public Optional<Object> getCapability(String capability) {
-                return Optional.empty();
-              }
-            };
+    return new Context(new HashMap<>()){};
   }
-
 
   private Map<String, Capability> capabilities;
 
@@ -97,7 +92,6 @@ public class Context implements Serializable {
   }
 
   public Optional<Object> getCapability(Enum<?> capability, boolean errorIfNotThere) {
-
     return getCapability(capability.toString(), errorIfNotThere);
   }
 

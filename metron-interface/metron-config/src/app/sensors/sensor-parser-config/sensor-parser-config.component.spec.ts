@@ -64,6 +64,7 @@ class MockActivatedRoute {
 }
 
 class MockSensorParserConfigService extends SensorParserConfigService {
+  private name: string;
   private sensorParserConfig: SensorParserConfig;
   private parsedMessage: any;
   private postedSensorParserConfig: SensorParserConfig;
@@ -73,7 +74,7 @@ class MockSensorParserConfigService extends SensorParserConfigService {
     super(http2, config2);
   }
 
-  public post(sensorParserConfig: SensorParserConfig): Observable<SensorParserConfig> {
+  public post(name: string, sensorParserConfig: SensorParserConfig): Observable<SensorParserConfig> {
     if (this.throwError) {
       let error = new RestError();
       error.message = 'SensorParserConfig post error';
@@ -89,6 +90,15 @@ class MockSensorParserConfigService extends SensorParserConfigService {
   public get(name: string): Observable<SensorParserConfig> {
     return Observable.create(observer => {
       observer.next(this.sensorParserConfig);
+      observer.complete();
+    });
+  }
+
+  public getAll(): Observable<{}> {
+    return Observable.create(observer => {
+      let results = {};
+      results[this.name] = this.sensorParserConfig;
+      observer.next(results);
       observer.complete();
     });
   }
@@ -110,8 +120,9 @@ class MockSensorParserConfigService extends SensorParserConfigService {
     });
   }
 
-  public setSensorParserConfig(result: any) {
-    this.sensorParserConfig = result;
+  public setSensorParserConfig(name: string, sensorParserConfig: SensorParserConfig) {
+    this.name = name;
+    this.sensorParserConfig = sensorParserConfig;
   }
 
   public setParsedMessage(parsedMessage: any) {
@@ -570,7 +581,7 @@ describe('Component: SensorParserConfig', () => {
     component.sensorParserConfig = Object.assign(new SensorParserConfig(), squidSensorParserConfig);
     component.createForms();
 
-    expect(Object.keys(component.sensorConfigForm.controls).length).toEqual(15);
+    expect(Object.keys(component.sensorConfigForm.controls).length).toEqual(16);
     expect(Object.keys(component.transformsValidationForm.controls).length).toEqual(2);
     expect(component.showAdvancedParserConfiguration).toEqual(true);
 
@@ -594,6 +605,7 @@ describe('Component: SensorParserConfig', () => {
   }));
 
   it('should init', async(() => {
+    sensorParserConfigService.setSensorParserConfig('squid', squidSensorParserConfig);
     component.init('new');
 
     let expectedSensorParserConfig = new SensorParserConfig();
@@ -602,10 +614,11 @@ describe('Component: SensorParserConfig', () => {
     expect(component.sensorEnrichmentConfig).toEqual(new SensorEnrichmentConfig());
     expect(component.indexingConfigurations).toEqual(new IndexingConfigurations());
     expect(component.editMode).toEqual(false);
+    expect(component.currentSensors).toEqual(['squid']);
 
     spyOn(component, 'getKafkaStatus');
     let sensorParserConfig = Object.assign(new SensorParserConfig(), squidSensorParserConfig);
-    sensorParserConfigService.setSensorParserConfig(sensorParserConfig);
+    sensorParserConfigService.setSensorParserConfig('squid', sensorParserConfig);
     sensorEnrichmentConfigService.setSensorEnrichmentConfig('squid',
         Object.assign(new SensorEnrichmentConfig(), squidSensorEnrichmentConfig));
     sensorIndexingConfigService.setSensorIndexingConfig('squid',
@@ -646,7 +659,7 @@ describe('Component: SensorParserConfig', () => {
 
     sensorParserConfig = new SensorParserConfig();
     sensorParserConfig.sensorTopic = 'bro';
-    sensorParserConfigService.setSensorParserConfig(sensorParserConfig);
+    sensorParserConfigService.setSensorParserConfig('bro', sensorParserConfig);
     component.showAdvancedParserConfiguration = false;
 
     component.init('bro');
@@ -664,18 +677,39 @@ describe('Component: SensorParserConfig', () => {
     fixture.destroy();
   }));
 
-  it('should handle onSetSensorName', async(() => {
+  it('should handle onSetKafkaTopic', async(() => {
     spyOn(component, 'getKafkaStatus');
     spyOn(component, 'isConfigValid');
 
-    component.onSetSensorName();
+    component.onSetKafkaTopic();
     expect(component.getKafkaStatus).not.toHaveBeenCalled();
     expect(component.isConfigValid).toHaveBeenCalled();
 
     component.sensorParserConfig.sensorTopic = 'bro';
-    component.onSetSensorName();
-    expect(component.sensorNameValid).toEqual(true);
+    component.onSetKafkaTopic();
+    expect(component.kafkaTopicValid).toEqual(true);
     expect(component.getKafkaStatus).toHaveBeenCalled();
+
+    fixture.destroy();
+  }));
+
+  it('should handle onSetSensorName', async(() => {
+    spyOn(component, 'isConfigValid');
+
+    component.onSetSensorName();
+    expect(component.isConfigValid).toHaveBeenCalled();
+    expect(component.sensorNameValid).toEqual(false);
+
+    component.sensorName = 'squid';
+    component.currentSensors = ['squid'];
+    component.onSetSensorName();
+    expect(component.sensorNameUnique).toEqual(false);
+    expect(component.sensorNameValid).toEqual(false);
+
+    component.sensorName = 'squidUnique';
+    component.onSetSensorName();
+    expect(component.sensorNameUnique).toEqual(true);
+    expect(component.sensorNameValid).toEqual(true);
 
     fixture.destroy();
   }));
@@ -719,6 +753,7 @@ describe('Component: SensorParserConfig', () => {
     expect(component.configValid).toEqual(false);
 
     component.sensorNameValid = true;
+    component.kafkaTopicValid = true;
     component.parserClassValid = true;
 
     component.isConfigValid();
@@ -770,7 +805,7 @@ describe('Component: SensorParserConfig', () => {
   }));
 
   it('should handle onSaveGrokStatement', async(() => {
-    component.sensorParserConfig.sensorTopic = 'squid';
+    component.sensorName = 'squid';
 
     component.onSaveGrokStatement('grok statement');
     expect(component.grokStatement).toEqual('grok statement');
@@ -979,7 +1014,7 @@ describe('Component: SensorParserConfig', () => {
 
   it('should handle onShowGrokPane', async(() => {
     spyOn(component, 'showPane');
-    component.sensorParserConfig.sensorTopic = 'squid';
+    component.sensorName = 'squid';
 
     component.onShowGrokPane();
     expect(component.patternLabel).toEqual('SQUID');

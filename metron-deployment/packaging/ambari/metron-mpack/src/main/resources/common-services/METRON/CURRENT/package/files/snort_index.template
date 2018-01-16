@@ -2,9 +2,6 @@
   "template": "snort_index*",
   "mappings": {
     "snort_doc": {
-      "_timestamp": {
-        "enabled": true
-      },
       "dynamic_templates": [
       {
         "geo_location_point": {
@@ -20,8 +17,7 @@
           "match": "enrichments:geo:*:country",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
@@ -30,8 +26,7 @@
           "match": "enrichments:geo:*:city",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
@@ -40,8 +35,7 @@
           "match": "enrichments:geo:*:locID",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
@@ -50,8 +44,7 @@
           "match": "enrichments:geo:*:dmaCode",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
@@ -60,8 +53,7 @@
           "match": "enrichments:geo:*:postalCode",
           "match_mapping_type": "*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
@@ -102,24 +94,26 @@
           "match_mapping_type": "*"
         }
       },
-      {
-        "threat_triage_reason": {
-          "mapping": {
-            "type": "string"
-          },
-          "match": "threat:triage:rules:*:reason",
-          "match_mapping_type": "*"
+        {
+          "threat_triage_reason": {
+            "mapping": {
+              "type": "text",
+              "fielddata": "true"
+            },
+            "match": "threat.triage.rules:*:reason",
+            "match_mapping_type": "*"
+          }
+        },
+        {
+          "threat_triage_name": {
+            "mapping": {
+              "type": "text",
+              "fielddata": "true"
+            },
+            "match": "threat.triage.rules:*:name",
+            "match_mapping_type": "*"
+          }
         }
-      },
-      {
-        "threat_triage_name": {
-          "mapping": {
-            "type": "string"
-          },
-          "match": "threat:triage:rules:*:name",
-          "match_mapping_type": "*"
-        }
-      }
       ],
       "properties": {
         "timestamp": {
@@ -127,8 +121,7 @@
           "format": "epoch_millis"
         },
         "source:type": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "ip_dst_addr": {
           "type": "ip"
@@ -146,16 +139,13 @@
           "type": "integer"
         },
         "ethdst": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "ethlen": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "ethsrc": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "id": {
           "type": "integer"
@@ -167,39 +157,46 @@
           "type": "boolean"
         },
         "msg": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "protocol": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "sig_generator": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "sig_id": {
           "type": "integer"
         },
         "sig_rev": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "tcpack": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "tcpflags": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "tcpseq": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "tcpwindow": {
-          "type": "string"
+          "type": "text",
+          "fielddata": "true"
         },
         "tos": {
           "type": "integer"
         },
         "ttl": {
           "type": "integer"
+        },
+        "guid": {
+          "type": "keyword"
         },
         "alert": {
           "type": "nested"
