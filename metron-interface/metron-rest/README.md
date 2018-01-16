@@ -581,10 +581,11 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - Returns SensorIndexingConfig
     * 404 - SensorIndexingConfig is missing
 
-### `POST /api/v1/sensor/parser/config`
+### `POST /api/v1/sensor/parser/config/{name}`
   * Description: Updates or creates a SensorParserConfig in Zookeeper
   * Input:
     * sensorParserConfig - SensorParserConfig
+    * name - SensorEnrichmentConfig name
   * Returns:
     * 200 - SensorParserConfig updated. Returns saved SensorParserConfig
     * 201 - SensorParserConfig created. Returns saved SensorParserConfig

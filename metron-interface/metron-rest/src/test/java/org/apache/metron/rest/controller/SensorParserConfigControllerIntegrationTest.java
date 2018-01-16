@@ -208,7 +208,7 @@ public class SensorParserConfigControllerIntegrationTest {
         numFields.set(numFields.get() + 1);
       }
     }
-    this.mockMvc.perform(post(sensorParserConfigUrl).with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(squidJson))
+    this.mockMvc.perform(post(sensorParserConfigUrl + "/squidTest").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(squidJson))
             .andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.*", hasSize(numFields.get())))
@@ -242,18 +242,19 @@ public class SensorParserConfigControllerIntegrationTest {
     this.mockMvc.perform(get(sensorParserConfigUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$[?(@.parserClassName == 'org.apache.metron.parsers.GrokParser' &&" +
-                    "@.sensorTopic == 'squidTest' &&" +
-                    "@.parserConfig.grokPath == 'target/patterns/squidTest' &&" +
-                    "@.parserConfig.patternLabel == 'SQUIDTEST' &&" +
-                    "@.parserConfig.timestampField == 'timestamp' &&" +
-                    "@.fieldTransformations[0].transformation == 'STELLAR' &&" +
-                    "@.fieldTransformations[0].output[0] == 'full_hostname' &&" +
-                    "@.fieldTransformations[0].output[1] == 'domain_without_subdomains' &&" +
-                    "@.fieldTransformations[0].config.full_hostname == 'URL_TO_HOST(url)' &&" +
-                    "@.fieldTransformations[0].config.domain_without_subdomains == 'DOMAIN_REMOVE_SUBDOMAINS(full_hostname)')]").exists());
+            .andExpect(jsonPath("$.squidTest.*", hasSize(numFields.get())))
+            .andExpect(jsonPath("$.squidTest.parserClassName").value("org.apache.metron.parsers.GrokParser"))
+            .andExpect(jsonPath("$.squidTest.sensorTopic").value("squidTest"))
+            .andExpect(jsonPath("$.squidTest.parserConfig.grokPath").value("target/patterns/squidTest"))
+            .andExpect(jsonPath("$.squidTest.parserConfig.patternLabel").value("SQUIDTEST"))
+            .andExpect(jsonPath("$.squidTest.parserConfig.timestampField").value("timestamp"))
+            .andExpect(jsonPath("$.squidTest.fieldTransformations[0].transformation").value("STELLAR"))
+            .andExpect(jsonPath("$.squidTest.fieldTransformations[0].output[0]").value("full_hostname"))
+            .andExpect(jsonPath("$.squidTest.fieldTransformations[0].output[1]").value("domain_without_subdomains"))
+            .andExpect(jsonPath("$.squidTest.fieldTransformations[0].config.full_hostname").value("URL_TO_HOST(url)"))
+            .andExpect(jsonPath("$.squidTest.fieldTransformations[0].config.domain_without_subdomains").value("DOMAIN_REMOVE_SUBDOMAINS(full_hostname)"));
 
-    this.mockMvc.perform(post(sensorParserConfigUrl).with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
+    this.mockMvc.perform(post(sensorParserConfigUrl + "/broTest").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
             .andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.*", hasSize(numFields.get())))
@@ -263,7 +264,7 @@ public class SensorParserConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.mergeMetadata").value("true"))
             .andExpect(jsonPath("$.parserConfig").isEmpty());
 
-    assertEventually(() -> this.mockMvc.perform(post(sensorParserConfigUrl).with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
+    assertEventually(() -> this.mockMvc.perform(post(sensorParserConfigUrl + "/broTest").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
             .andExpect(jsonPath("$.*", hasSize(numFields.get())))
@@ -276,18 +277,24 @@ public class SensorParserConfigControllerIntegrationTest {
     this.mockMvc.perform(get(sensorParserConfigUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$[?(@.parserClassName == 'org.apache.metron.parsers.GrokParser' &&" +
-                    "@.sensorTopic == 'squidTest' &&" +
-                    "@.parserConfig.grokPath == 'target/patterns/squidTest' &&" +
-                    "@.parserConfig.patternLabel == 'SQUIDTEST' &&" +
-                    "@.parserConfig.timestampField == 'timestamp' &&" +
-                    "@.fieldTransformations[0].transformation == 'STELLAR' &&" +
-                    "@.fieldTransformations[0].output[0] == 'full_hostname' &&" +
-                    "@.fieldTransformations[0].output[1] == 'domain_without_subdomains' &&" +
-                    "@.fieldTransformations[0].config.full_hostname == 'URL_TO_HOST(url)' &&" +
-                    "@.fieldTransformations[0].config.domain_without_subdomains == 'DOMAIN_REMOVE_SUBDOMAINS(full_hostname)')]").exists())
-            .andExpect(jsonPath("$[?(@.parserClassName == 'org.apache.metron.parsers.bro.BasicBroParser' && " +
-                    "@.sensorTopic == 'broTest')]").exists());
+            .andExpect(jsonPath("$.*", hasSize(2)))
+            .andExpect(jsonPath("$.squidTest.*", hasSize(numFields.get())))
+            .andExpect(jsonPath("$.squidTest.parserClassName").value("org.apache.metron.parsers.GrokParser"))
+            .andExpect(jsonPath("$.squidTest.sensorTopic").value("squidTest"))
+            .andExpect(jsonPath("$.squidTest.parserConfig.grokPath").value("target/patterns/squidTest"))
+            .andExpect(jsonPath("$.squidTest.parserConfig.patternLabel").value("SQUIDTEST"))
+            .andExpect(jsonPath("$.squidTest.parserConfig.timestampField").value("timestamp"))
+            .andExpect(jsonPath("$.squidTest.fieldTransformations[0].transformation").value("STELLAR"))
+            .andExpect(jsonPath("$.squidTest.fieldTransformations[0].output[0]").value("full_hostname"))
+            .andExpect(jsonPath("$.squidTest.fieldTransformations[0].output[1]").value("domain_without_subdomains"))
+            .andExpect(jsonPath("$.squidTest.fieldTransformations[0].config.full_hostname").value("URL_TO_HOST(url)"))
+            .andExpect(jsonPath("$.squidTest.fieldTransformations[0].config.domain_without_subdomains").value("DOMAIN_REMOVE_SUBDOMAINS(full_hostname)"))
+            .andExpect(jsonPath("$.broTest.parserClassName").value("org.apache.metron.parsers.bro.BasicBroParser"))
+            .andExpect(jsonPath("$.broTest.*", hasSize(numFields.get())))
+            .andExpect(jsonPath("$.broTest.sensorTopic").value("broTest"))
+            .andExpect(jsonPath("$.broTest.readMetadata").value("true"))
+            .andExpect(jsonPath("$.broTest.mergeMetadata").value("true"))
+            .andExpect(jsonPath("$.broTest.parserConfig").isEmpty());
 
     this.mockMvc.perform(delete(sensorParserConfigUrl + "/squidTest").with(httpBasic(user,password)).with(csrf()))
             .andExpect(status().isOk());
@@ -306,8 +313,8 @@ public class SensorParserConfigControllerIntegrationTest {
     this.mockMvc.perform(get(sensorParserConfigUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$[?(@.sensorTopic == 'squidTest')]").doesNotExist())
-            .andExpect(jsonPath("$[?(@.sensorTopic == 'broTest')]").exists());
+            .andExpect(jsonPath("$.squidTest").doesNotExist())
+            .andExpect(jsonPath("$.broTest").exists());
 
     this.mockMvc.perform(delete(sensorParserConfigUrl + "/broTest").with(httpBasic(user,password)).with(csrf()))
             .andExpect(status().isOk());
@@ -318,8 +325,8 @@ public class SensorParserConfigControllerIntegrationTest {
     this.mockMvc.perform(get(sensorParserConfigUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$[?(@.sensorTopic == 'squidTest')]").doesNotExist())
-            .andExpect(jsonPath("$[?(@.sensorTopic == 'broTest')]").doesNotExist());
+            .andExpect(jsonPath("$.squidTest").doesNotExist())
+            .andExpect(jsonPath("$.broTest").doesNotExist());
 
     this.mockMvc.perform(get(sensorParserConfigUrl + "/list/available").with(httpBasic(user,password)))
             .andExpect(status().isOk())
