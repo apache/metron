@@ -41,16 +41,25 @@
 
     <div class="metron-slider-pane-edit fill load-right-to-left dialog1x" style="overflow: auto" >
         <div style="height:100%">
-            <div class="form-title">{{sensorParserConfig.sensorTopic}} </div>
+            <div class="form-title">{{sensorName}} </div>
             <i class="fa fa-times pull-right main close-button" aria-hidden="true" (click)="goBack()"></i>
 
             <form role="form" [formGroup]="sensorConfigForm">
                 <div class="form-group">
-                    <label attr.for="sensorTopic">NAME * </label>
-                    <input type="text" class="form-control" name="sensorTopic" formControlName="sensorTopic"  [(ngModel)]="sensorParserConfig.sensorTopic" (ngModelChange)="onSetSensorName()" [readonly]="editMode">
-                    <label *ngIf="currentKafkaStatus !== null && currentKafkaStatus === kafkaStatus.NO_TOPIC"><span class="warning-text"> No Matching Kafka Topic </span></label>
-                    <label *ngIf="currentKafkaStatus !== null && currentKafkaStatus === kafkaStatus.EMITTING" ><span class="success-text-color"> Kafka Topic Exists. Emitting </span></label>
-                    <label *ngIf="currentKafkaStatus !== null && currentKafkaStatus === kafkaStatus.NOT_EMITTING"><span class="success-text-color"> Kafka Topic Exists. </span><span  class="warning-text" > Not Emitting </span></label>
+                    <label attr.for="sensorName">NAME * </label>
+                    <input type="text" class="form-control" name="sensorName" formControlName="sensorName"  [(ngModel)]="sensorName" (ngModelChange)="onSetSensorName()" [readonly]="editMode">
+                    <div *ngIf="!sensorNameUnique"><label ><span class="warning-text"> Sensor already exists </span></label></div>
+                </div>
+
+                <div class="form-group">
+                    <label attr.for="sensorTopic">KAFKA TOPIC </label>
+                    <input type="text" class="form-control" name="sensorTopic" formControlName="sensorTopic"  [(ngModel)]="sensorParserConfig.sensorTopic" (ngModelChange)="onSetKafkaTopic()">
+                    <div *ngIf="!kafkaTopicValid"><label ><span class="warning-text"> Kafka Topic Name Is Invalid </span></label></div>
+                    <div *ngIf="kafkaTopicValid">
+                        <label *ngIf="currentKafkaStatus !== null && currentKafkaStatus === kafkaStatus.NO_TOPIC"><span class="warning-text"> No Matching Kafka Topic </span></label>
+                        <label *ngIf="currentKafkaStatus !== null && currentKafkaStatus === kafkaStatus.EMITTING" ><span class="success-text-color"> Kafka Topic Exists. Emitting </span></label>
+                        <label *ngIf="currentKafkaStatus !== null && currentKafkaStatus === kafkaStatus.NOT_EMITTING"><span class="success-text-color"> Kafka Topic Exists. </span><span  class="warning-text" > Not Emitting </span></label>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -187,7 +196,7 @@
                 <div class="form-group">
                     <div class="form-seperator-edit"></div>
                     <div class="button-row">
-                        <button type="submit" class="btn save-button" [ngClass]="{'disabled':!configValid}"  (click)="onSave()">SAVE</button>
+                        <button type="submit" class="btn save-button" [ngClass]="{'disabled':!configValid}" [disabled]="!configValid" (click)="onSave()">SAVE</button>
                         <button class="btn form-enable-disable-button" (click)="goBack()" >CANCEL</button>
                         <span class="advanced-link" [hidden]="showAdvancedParserConfiguration" (click)="showAdvancedParserConfiguration = true">Advanced</span>
                     </div>

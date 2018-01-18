@@ -17,7 +17,20 @@
  */
 package org.apache.metron.rest.controller;
 
+import static org.apache.metron.integration.utils.TestUtils.assertEventually;
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.google.common.collect.ImmutableMap;
+import java.util.HashMap;
+import java.util.Map;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.indexing.dao.InMemoryDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
@@ -36,20 +49,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.apache.metron.integration.utils.TestUtils.assertEventually;
-import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
-import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -147,7 +146,7 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
         .andExpect(jsonPath("$.*", hasSize(5)))
-        .andExpect(jsonPath("$.common_string_field").value("string"))
+        .andExpect(jsonPath("$.common_string_field").value("text"))
         .andExpect(jsonPath("$.common_integer_field").value("integer"))
         .andExpect(jsonPath("$.bro_field").value("boolean"))
         .andExpect(jsonPath("$.snort_field").value("double"))
@@ -262,10 +261,11 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
             .andExpect(jsonPath("$.groupResults[0].groupResults[0].score").value(50));
 
     this.mockMvc.perform(post(searchUrl + "/column/metadata").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content("[\"bro\",\"snort\"]"))
+
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
         .andExpect(jsonPath("$.*", hasSize(5)))
-        .andExpect(jsonPath("$.common_string_field").value("string"))
+        .andExpect(jsonPath("$.common_string_field").value("text"))
         .andExpect(jsonPath("$.common_integer_field").value("integer"))
         .andExpect(jsonPath("$.bro_field").value("boolean"))
         .andExpect(jsonPath("$.snort_field").value("double"))
@@ -275,7 +275,7 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
           .andExpect(status().isOk())
           .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
           .andExpect(jsonPath("$.*", hasSize(4)))
-          .andExpect(jsonPath("$.common_string_field").value("string"))
+          .andExpect(jsonPath("$.common_string_field").value("text"))
           .andExpect(jsonPath("$.common_integer_field").value("integer"))
           .andExpect(jsonPath("$.bro_field").value("boolean"))
           .andExpect(jsonPath("$.duplicate_field").value("date"));
@@ -284,7 +284,7 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
           .andExpect(status().isOk())
           .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
           .andExpect(jsonPath("$.*", hasSize(4)))
-          .andExpect(jsonPath("$.common_string_field").value("string"))
+          .andExpect(jsonPath("$.common_string_field").value("text"))
           .andExpect(jsonPath("$.common_integer_field").value("integer"))
           .andExpect(jsonPath("$.snort_field").value("double"))
           .andExpect(jsonPath("$.duplicate_field").value("long"));
@@ -301,12 +301,12 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
   private void loadColumnTypes() throws ParseException {
     Map<String, Map<String, FieldType>> columnTypes = new HashMap<>();
     Map<String, FieldType> broTypes = new HashMap<>();
-    broTypes.put("common_string_field", FieldType.STRING);
+    broTypes.put("common_string_field", FieldType.TEXT);
     broTypes.put("common_integer_field", FieldType.INTEGER);
     broTypes.put("bro_field", FieldType.BOOLEAN);
     broTypes.put("duplicate_field", FieldType.DATE);
     Map<String, FieldType> snortTypes = new HashMap<>();
-    snortTypes.put("common_string_field", FieldType.STRING);
+    snortTypes.put("common_string_field", FieldType.TEXT);
     snortTypes.put("common_integer_field", FieldType.INTEGER);
     snortTypes.put("snort_field", FieldType.DOUBLE);
     snortTypes.put("duplicate_field", FieldType.LONG);
