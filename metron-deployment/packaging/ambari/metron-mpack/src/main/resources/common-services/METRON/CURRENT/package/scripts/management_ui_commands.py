@@ -68,7 +68,7 @@ class ManagementUICommands:
         """
         Logger.info('Status check the Management UI')
         metron_service.check_http(
-          self.__params.hostname,
+          self.__params.metron_management_ui_host,
           self.__params.metron_management_ui_port,
           self.__params.metron_user)
 
@@ -79,7 +79,7 @@ class ManagementUICommands:
         """
         Logger.info('Checking connectivity to Management UI')
         metron_service.check_http(
-          self.__params.hostname,
+          self.__params.metron_management_ui_host,
           self.__params.metron_management_ui_port,
           self.__params.metron_user)
 

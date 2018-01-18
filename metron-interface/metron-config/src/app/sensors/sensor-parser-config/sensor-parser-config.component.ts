@@ -52,6 +52,7 @@ export class SensorParserConfigComponent implements OnInit {
   sensorConfigForm: FormGroup;
   transformsValidationForm: FormGroup;
 
+  sensorName: string = '';
   sensorParserConfig: SensorParserConfig = new SensorParserConfig();
   sensorEnrichmentConfig: SensorEnrichmentConfig = new SensorEnrichmentConfig();
   indexingConfigurations: IndexingConfigurations = new IndexingConfigurations();
@@ -66,12 +67,15 @@ export class SensorParserConfigComponent implements OnInit {
 
   configValid = false;
   sensorNameValid = false;
+  sensorNameUnique = true;
+  kafkaTopicValid = false;
   parserClassValid = false;
   grokStatementValid = false;
   availableParsers = {};
   availableParserNames = [];
   grokStatement = '';
   patternLabel = '';
+  currentSensors = [];
 
   editMode: boolean = false;
 
@@ -100,6 +104,7 @@ export class SensorParserConfigComponent implements OnInit {
   init(id: string): void {
     if (id !== 'new') {
       this.editMode = true;
+      this.sensorName = id;
       this.sensorParserConfigService.get(id).subscribe((results: SensorParserConfig) => {
         this.sensorParserConfig = results;
         this.sensorNameValid = true;
@@ -144,6 +149,9 @@ export class SensorParserConfigComponent implements OnInit {
     } else {
       this.sensorParserConfig = new SensorParserConfig();
       this.sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
+      this.sensorParserConfigService.getAll().subscribe((results: {}) => {
+        this.currentSensors = Object.keys(results);
+      });
     }
   }
 
@@ -159,6 +167,7 @@ export class SensorParserConfigComponent implements OnInit {
   createSensorConfigForm(): FormGroup {
     let group: any = {};
 
+    group['sensorName'] = new FormControl(this.sensorName, Validators.required);
     group['sensorTopic'] = new FormControl(this.sensorParserConfig.sensorTopic, Validators.required);
     group['parserClassName'] = new FormControl(this.sensorParserConfig.parserClassName, Validators.required);
     group['grokStatement'] = new FormControl(this.grokStatement);
@@ -209,9 +218,16 @@ export class SensorParserConfigComponent implements OnInit {
   }
 
   onSetSensorName(): void {
-    this.sensorNameValid = this.sensorParserConfig.sensorTopic !== undefined &&
-        this.sensorParserConfig.sensorTopic.length > 0;
-    if (this.sensorNameValid) {
+    this.sensorNameUnique = this.currentSensors.indexOf(this.sensorName) === -1;
+    this.sensorNameValid = this.sensorName !== undefined &&
+        this.sensorName.length > 0 && this.sensorNameUnique;
+    this.isConfigValid();
+  }
+
+  onSetKafkaTopic(): void {
+    this.kafkaTopicValid = this.sensorParserConfig.sensorTopic !== undefined &&
+        /[a-zA-Z0-9._-]+$/.test(this.sensorParserConfig.sensorTopic);
+    if (this.kafkaTopicValid) {
       this.getKafkaStatus();
     }
     this.isConfigValid();
@@ -237,7 +253,7 @@ export class SensorParserConfigComponent implements OnInit {
 
   isConfigValid() {
     let isGrokParser = this.isGrokParser(this.sensorParserConfig);
-    this.configValid = this.sensorNameValid && this.parserClassValid && (!isGrokParser || this.grokStatementValid);
+    this.configValid = this.sensorNameValid && this.kafkaTopicValid && this.parserClassValid && (!isGrokParser || this.grokStatementValid);
   }
 
   getKafkaStatus() {
@@ -282,7 +298,7 @@ export class SensorParserConfigComponent implements OnInit {
     this.grokStatement = grokStatement;
     let grokPath = this.sensorParserConfig.parserConfig['grokPath'];
     if (!grokPath || grokPath.indexOf('/patterns') === 0) {
-      this.sensorParserConfig.parserConfig['grokPath'] = '/apps/metron/patterns/' + this.sensorParserConfig.sensorTopic;
+      this.sensorParserConfig.parserConfig['grokPath'] = '/apps/metron/patterns/' + this.sensorName;
     }
   }
 
@@ -293,34 +309,34 @@ export class SensorParserConfigComponent implements OnInit {
 
   onSave() {
     if (!this.indexingConfigurations.hdfs.index) {
-      this.indexingConfigurations.hdfs.index = this.sensorParserConfig.sensorTopic;
+      this.indexingConfigurations.hdfs.index = this.sensorName;
     }
     if (!this.indexingConfigurations.elasticsearch.index) {
-      this.indexingConfigurations.elasticsearch.index = this.sensorParserConfig.sensorTopic;
+      this.indexingConfigurations.elasticsearch.index = this.sensorName;
     }
     if (!this.indexingConfigurations.solr.index) {
-      this.indexingConfigurations.solr.index = this.sensorParserConfig.sensorTopic;
+      this.indexingConfigurations.solr.index = this.sensorName;
     }
-    this.sensorParserConfigService.post(this.sensorParserConfig).subscribe(
+    this.sensorParserConfigService.post(this.sensorName, this.sensorParserConfig).subscribe(
       sensorParserConfig => {
         if (this.isGrokParser(sensorParserConfig)) {
             this.hdfsService.post(this.sensorParserConfig.parserConfig['grokPath'], this.grokStatement).subscribe(
                 response => {}, (error: RestError) => this.metronAlerts.showErrorMessage(error.message));
         }
-        this.sensorEnrichmentConfigService.post(sensorParserConfig.sensorTopic, this.sensorEnrichmentConfig).subscribe(
+        this.sensorEnrichmentConfigService.post(this.sensorName, this.sensorEnrichmentConfig).subscribe(
             (sensorEnrichmentConfig: SensorEnrichmentConfig) => {
         }, (error: RestError) => {
               let msg = ' Sensor parser config but unable to save enrichment configuration: ';
               this.metronAlerts.showErrorMessage(this.getMessagePrefix() + msg + error.message);
         });
-        this.sensorIndexingConfigService.post(sensorParserConfig.sensorTopic, this.indexingConfigurations).subscribe(
+        this.sensorIndexingConfigService.post(this.sensorName, this.indexingConfigurations).subscribe(
             (indexingConfigurations: IndexingConfigurations) => {
         }, (error: RestError) => {
               let msg = ' Sensor parser config but unable to save indexing configuration: ';
               this.metronAlerts.showErrorMessage(this.getMessagePrefix() + msg + error.message);
         });
-        this.metronAlerts.showSuccessMessage(this.getMessagePrefix() + ' Sensor ' + sensorParserConfig.sensorTopic);
-        this.sensorParserConfigService.dataChangedSource.next([this.sensorParserConfig]);
+        this.metronAlerts.showSuccessMessage(this.getMessagePrefix() + ' Sensor ' + this.sensorName);
+        this.sensorParserConfigService.dataChangedSource.next([this.sensorName]);
         this.goBack();
       }, (error: RestError) => {
         this.metronAlerts.showErrorMessage('Unable to save sensor config: ' + error.message);
@@ -385,7 +401,7 @@ export class SensorParserConfigComponent implements OnInit {
 
   onShowGrokPane() {
     if (!this.patternLabel) {
-      this.patternLabel = this.sensorParserConfig.sensorTopic.toUpperCase();
+      this.patternLabel = this.sensorName.toUpperCase();
     }
     this.showPane(this.pane.GROK);
   }

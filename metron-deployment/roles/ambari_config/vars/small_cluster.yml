@@ -87,6 +87,8 @@ configurations:
       topology.classpath: '{{ topology_classpath }}'
   - kafka-broker:
       log.dirs: '{{ kafka_log_dirs | default("/kafka-log") }}'
+  - metron-rest-env:
+      metron_spring_profiles_active: "dev"
   - metron-env:
       parsers: "bro,snort,yaf"
   - elastic-site:
@@ -112,7 +114,8 @@ required_configurations:
       kibana_es_url: http://{{ groups.web[0] }}:9200
       kibana_log_dir: /var/log/kibana
       kibana_server_port: 5000
-      kibana_default_application: "dashboard/Metron-Dashboard"
+      kibana_default_application: "dashboard/AV-YpDmwdXwc6Ua9Muh9"
+      kibana_server_host: 0.0.0.0
 
 blueprint:
   stack_name: HDP

@@ -17,14 +17,23 @@
  */
 package org.apache.metron.elasticsearch.dao;
 
-import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import org.apache.metron.indexing.dao.AccessConfig;
-import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SortField;
 import org.apache.metron.indexing.dao.search.SortOrder;
+import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
+import org.apache.metron.indexing.dao.search.FieldType;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
@@ -35,18 +44,10 @@ import org.json.simple.parser.JSONParser;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class ElasticsearchDaoTest {
 
@@ -103,7 +104,7 @@ public class ElasticsearchDaoTest {
 
     // setup the column metadata
     Map<String, FieldType> columnMetadata = new HashMap<>();
-    columnMetadata.put("sortByStringDesc", FieldType.STRING);
+    columnMetadata.put("sortByStringDesc", FieldType.TEXT);
     columnMetadata.put("sortByIntAsc", FieldType.INTEGER);
 
     // setup the dao
@@ -148,7 +149,7 @@ public class ElasticsearchDaoTest {
       JSONObject sortBy = (JSONObject) aSortField.get("sortByStringDesc");
       assertEquals("desc", sortBy.get("order"));
       assertEquals("_last", sortBy.get("missing"));
-      assertEquals("string", sortBy.get("unmapped_type"));
+      assertEquals("text", sortBy.get("unmapped_type"));
     }
     {
       // sort by integer ascending
@@ -217,7 +218,7 @@ public class ElasticsearchDaoTest {
 
     SearchRequest searchRequest = new SearchRequest();
     searchRequest.setSize(maxSearchResults+1);
-
+    searchRequest.setQuery("");
     dao.search(searchRequest);
     // exception expected - size > max
   }

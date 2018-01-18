@@ -1,4 +1,20 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
 
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 # Stellar Language
 
 For a variety of components (threat intelligence triage and field transformations) we have the need to do simple computation and transformation using the data from messages as variables.  For those purposes, there exists a simple, scaled down DSL created to do simple computation and transformation.
@@ -13,6 +29,7 @@ For a variety of components (threat intelligence triage and field transformation
     * [Variable Assignment](#variable-assignment)
     * [Magic Commands](#magic-commands)
     * [Advanced Usage](#advanced-usage)
+    * [Implementation](#implementation)
 * [Stellar Configuration](#stellar-configuration)
 
 
@@ -30,6 +47,7 @@ The Stellar language supports the following:
 * Simple comparison operations `<`, `>`, `<=`, `>=`
 * Simple equality comparison operations `==`, `!=`
 * if/then/else comparisons (i.e. `if var1 < 10 then 'less than 10' else '10 or more'`)
+* Simple match evaluations (i.e. `match{ var1 < 10 => 'warn', var1 >= 10 => 'critical', default => 'info'}`
 * Determining whether a field exists (via `exists`)
 * An `in` operator that works like the `in` in Python
 * The ability to have parenthesis to make order of operations explicit
@@ -41,10 +59,11 @@ The following keywords need to be single quote escaped in order to be used in St
 |               |               |             |             |             |
 | :-----------: | :-----------: | :---------: | :---------: | :---------: |
 | not           | else          | exists      | if          | then        |
-| and           | or            | in          | NaN         | ==          |
-| !=            | \<=           | \>          | \>=         | \+          |
-| \-            | \<            | ?           | \*          | /           |
-| ,             |               |             |             |             |
+| and           | or            | in          | NaN         | match       |
+| default       | ==            | !=          | \<=         | \>          | 
+| \>=           | \+            | \-          | \<          | ?           | 
+| \*            | /             | ,           | \{          | \}          |
+| \=>           |               |             |             |             |
 
 Using parens such as: "foo" : "\<ok\>" requires escaping; "foo": "\'\<ok\>\'"
 
@@ -100,6 +119,25 @@ In the core language functions, we support basic functional programming primitiv
 * `FILTER` - Filters a list by a predicate in the form of a lambda expression.  For instance `FILTER([ 'foo', 'bar'], (x ) -> x == 'foo' )` returns `[ 'foo' ]`
 * `REDUCE` - Applies a function over a list of input.  For instance `REDUCE([ 1, 2, 3], (sum, x) -> sum + x, 0 )` returns `6`
 
+### Stellar Language Match Expression
+
+Stellar provides the capability to write match expressions, which are similar to switch statements commonly found in c like languages.
+
+The syntax is:
+* `match{ logical_expression1 => evaluation expression1, logical_expression2 => evaluation_expression2, default => default_expression}` 
+
+Where:
+
+* `logical_expression` is a Stellar expression that evaluates to true or false.  For instance `var > 0` or `var > 0 AND var2 == 'foo'` or `IF ... THEN ... ELSE` 
+* `evaluation_expression` is a Stellar Expression
+* `default` is a required default return value, should no logical expression match
+
+> default is required 
+
+> Lambda expressions are supported, but they must be no argument lambdas such as `() -> STATEMENT`
+
+* Only the first clause that evaluates to true will be executed.
+
 ## Stellar Core Functions
 
 |                                                                                                    |
@@ -132,9 +170,9 @@ In the core language functions, we support basic functional programming primitiv
 | [ `FILL_RIGHT`](#fill_right)                                                                       |
 | [ `FILTER`](#filter)                                                                               |
 | [ `FLOOR`](#floor)                                                                                 |
+| [ `FORMAT`](#format)                                                                               |
 | [ `FUZZY_LANGS`](#fuzzy_langs)                                                                     |
 | [ `FUZZY_SCORE`](#fuzzy_score)                                                                     |
-| [ `FORMAT`](#format)                                                                               |
 | [ `GEO_GET`](#geo_get)                                                                             |
 | [ `GEOHASH_CENTROID`](#geohash_centroid)                                                           |
 | [ `GEOHASH_DIST`](#geohash_dist)                                                                   |
@@ -147,11 +185,12 @@ In the core language functions, we support basic functional programming primitiv
 | [ `GET_LAST`](#get_last)                                                                           |
 | [ `GET_SUPPORTED_ENCODINGS`](#get_supported_encodings)                                             |
 | [ `HASH`](#hash)                                                                                   |
+| [ `HLLP_ADD`](../../metron-analytics/metron-statistics#hllp_add)                                   |
 | [ `HLLP_CARDINALITY`](../../metron-analytics/metron-statistics#hllp_cardinality)                   |
 | [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
 | [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)                               |
-| [ `HLLP_OFFER`](../../metron-analytics/metron-statistics#hllp_offer)                               |
 | [ `IN_SUBNET`](#in_subnet)                                                                         |
+| [ `IT_ENTROPY`](../../metron-analytics/metron-statistics#it_entropy)                               |
 | [ `IS_DATE`](#is_date)                                                                             |
 | [ `IS_ENCODING`](#is_encoding)                                                                     |
 | [ `IS_DOMAIN`](#is_domain)                                                                         |
@@ -159,7 +198,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `IS_EMPTY`](#is_empty)                                                                           |
 | [ `IS_INTEGER`](#is_integer)                                                                       |
 | [ `IS_IP`](#is_ip)                                                                                 |
-| [ `IS_NAN`](#is_nan)                                                             |
+| [ `IS_NAN`](#is_nan)                                                                               |
 | [ `IS_URL`](#is_url)                                                                               |
 | [ `JOIN`](#join)                                                                                   |
 | [ `KAFKA_GET`](#kafka_get)                                                                         |
@@ -175,12 +214,16 @@ In the core language functions, we support basic functional programming primitiv
 | [ `MAAS_MODEL_APPLY`](#maas_model_apply)                                                           |
 | [ `MAP`](#map)                                                                                     |
 | [ `MAP_EXISTS`](#map_exists)                                                                       |
+| [ `MAP_GET`](#map_get)                                                                             |
+| [ `MAX`](#MAX)                                                                                     |
+| [ `MIN`](#MIN)                                                                                     |
 | [ `MONTH`](#month)                                                                                 |
 | [ `MULTISET_ADD`](#multiset_add)                                                                   |
 | [ `MULTISET_INIT`](#multiset_init)                                                                 |
 | [ `MULTISET_MERGE`](#multiset_merge)                                                               |
 | [ `MULTISET_REMOVE`](#multiset_remove)                                                             |
 | [ `MULTISET_TO_SET`](#multiset_to_set)                                                             |
+| [ `OBJECT_GET`](#object_get)                                                                       |
 | [ `PREPEND_IF_MISSING`](#prepend_if_missing)                                                       |
 | [ `PROFILE_GET`](#profile_get)                                                                     |
 | [ `PROFILE_FIXED`](#profile_fixed)                                                                 |
@@ -190,12 +233,16 @@ In the core language functions, we support basic functional programming primitiv
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
 | [ `REGEXP_GROUP_VAL`](#regexp_group_val)                                                           |
 | [ `ROUND`](#round)                                                                                 |
+| [ `SAMPLE_ADD`](../../metron-analytics/metron-statistics#sample_add)                               |
+| [ `SAMPLE_GET`](../../metron-analytics/metron-statistics#sample_get)                               |
+| [ `SAMPLE_INIT`](../../metron-analytics/metron-statistics#sample_init)                             |
+| [ `SAMPLE_MERGE`](../../metron-analytics/metron-statistics#sample_merge)                           |
 | [ `SET_ADD`](#set_add)                                                                             |
 | [ `SET_INIT`](#set_init)                                                                           |
 | [ `SET_MERGE`](#set_merge)                                                                         |
 | [ `SET_REMOVE`](#set_remove)                                                                       |
-| [ `SPLIT`](#split)                                                                                 |
 | [ `SIN`](#sin)                                                                                     |
+| [ `SPLIT`](#split)                                                                                 |
 | [ `SQRT`](#sqrt)                                                                                   |
 | [ `STARTS_WITH`](#starts_with)                                                                     |
 | [ `STATS_ADD`](../../metron-analytics/metron-statistics#stats_add)                                 |
@@ -222,12 +269,12 @@ In the core language functions, we support basic functional programming primitiv
 | [ `SYSTEM_ENV_GET`](#system_env_get)                                                               |
 | [ `SYSTEM_PROPERTY_GET`](#system_property_get)                                                     |
 | [ `TAN`](#tan)                                                                                     |
-| [ `TLSH_DIST`](#tlsh_dist)                                                                                     |
+| [ `TLSH_DIST`](#tlsh_dist)                                                                         |
 | [ `TO_DOUBLE`](#to_double)                                                                         |
 | [ `TO_EPOCH_TIMESTAMP`](#to_epoch_timestamp)                                                       |
 | [ `TO_FLOAT`](#to_float)                                                                           |
 | [ `TO_INTEGER`](#to_integer)                                                                       |
-| [ `TO_JSON_LIST`](#to_json_List)                                                                   |
+| [ `TO_JSON_LIST`](#to_json_list)                                                                   |
 | [ `TO_JSON_MAP`](#to_json_map)                                                                     |
 | [ `TO_JSON_OBJECT`](#to_json_object)                                                               |
 | [ `TO_LONG`](#to_long)                                                                             |
@@ -243,7 +290,7 @@ In the core language functions, we support basic functional programming primitiv
 | [ `WEEK_OF_YEAR`](#week_of_year)                                                                   |
 | [ `YEAR`](#year)                                                                                   |
 | [ `ZIP`](#zip)                                                                                     |
-| [ `ZIP_JAGGED`](#zip_jagged)                                                                       |
+| [ `ZIP_LONGEST`](#zip_longest)                                                                     |
 
 ### `APPEND_IF_MISSING`
   * Description: Appends the suffix to the end of the string if the string does not already end with any of the suffixes.
@@ -257,7 +304,7 @@ In the core language functions, we support basic functional programming primitiv
   * Description: Adds an element to the bloom filter passed in
   * Input:
     * bloom - The bloom filter
-    * value* - The values to add
+    * value(s) - The value(s) to add
   * Returns: Bloom Filter
   
 ### `BLOOM_EXISTS`
@@ -523,6 +570,10 @@ In the core language functions, we support basic functional programming primitiv
     * input - List
   * Returns: Last element of the list
 
+### `GET_SUPPORTED_ENCODINGS`
+  * Description: Returns a list of the encodings that are currently supported.
+  * Returns: A List of String
+
 ### `HASH`
   * Description: Hashes a given value using the given hashing algorithm and returns a hex encoded string.
   * Input:
@@ -652,31 +703,6 @@ In the core language functions, we support basic functional programming primitiv
     * element - Element to add to list
   * Returns: Resulting list with the item added at the end.
 
-### `GET_SUPPORTED_ENCODINGS`
-  * Description: Returns a list of the encodings that are currently supported.
-  * Returns: A List of String
- 
-### `TO_JSON_LIST`
-  * Description: Accepts JSON string as an input and returns a List object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
-  For e.g. `GET_FIRST( TO_JSON_LIST(  '[ "foo", 2]')` would yield `foo`
-  * Input:
-    * string - The JSON string to be parsed
-  * Returns: A parsed List object
-
-### `TO_JSON_MAP`
-  * Description: Accepts JSON string as an input and returns a Map object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
-  For e.g. `MAP_GET( 'bar', TO_JSON_MAP(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
-  * Input:
-    * string - The JSON string to be parsed
-  * Returns: A parsed Map object
-
-### `TO_JSON_OBJECT`
-  * Description: Accepts JSON string as an input and returns a JSON Object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
-  For e.g. `MAP_GET( 'bar', TO_JSON_OBJECT(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
-  * Input:
-    * string - The JSON string to be parsed
-  * Returns: A parsed JSON object
-
 ### `LOG2`
   * Description: Returns the log (base `2`) of a number.
   * Input:
@@ -732,11 +758,23 @@ In the core language functions, we support basic functional programming primitiv
     * default - Optionally the default value to return if the key is not in the map.
   * Returns: The object associated with the key in the map.  If no value is associated with the key and default is specified, then default is returned. If no value is associated with the key or default, then null is returned.
 
+### `MAX`
+  * Description: Returns the maximum value of a list of input values.
+    * Input:
+    * "list - List of arguments. The list may only contain objects that are mutually comparable / ordinal (implement java.lang.Comparable interface). Multi type numeric comparisons are supported: MAX([10,15L,15.3]) would return 15.3, but MAX(['23',25]) will fail and return null as strings and numbers can't be compared.
+  * Returns: The maximum value of the list, or null if the list is empty or the input values were not comparable.
+
+### `MIN`
+  * Description: Returns the minimum value of a list of input values.
+    * Input:
+    * "list - List of arguments. The list may only contain objects that are mutually comparable / ordinal (implement java.lang.Comparable interface). Multi type numeric comparisons are supported: MIN([10,15L,15.3]) would return 10, but MIN(['23',25]) will fail and return null as strings and numbers can't be compared.
+  * Returns: The minimum value of the list, or null if the list is empty or the input values were not comparable.
+
 ### `MONTH`
   * Description: The number representing the month.  The first month, January, has a value of 0.
   * Input:
     * dateTime - The datetime as a long representing the milliseconds since unix epoch
-  * Returns: The current month (0-based).
+  * Returns: The current month (0-based)
   
 ### `MULTISET_ADD`
   * Description: Adds to a multiset, which is a map associating objects to their instance counts.
@@ -748,7 +786,7 @@ In the core language functions, we support basic functional programming primitiv
 ### `MULTISET_INIT`
   * Description: Creates an empty multiset, which is a map associating objects to their instance counts.
   * Input:
-    * input? - An initialization of the multiset
+    * input (optional) - An initialization of the multiset
   * Returns: A multiset
 
 ### `MULTISET_MERGE`
@@ -769,6 +807,14 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * multiset - The multiset to convert.
   * Returns: The set of objects in the multiset ignoring multiplicity
+
+### `OBJECT_GET`
+  * Description: Retrieve and deserialize a serialized object from HDFS.  The cache can be specified via two properties
+  in the global config: "object.cache.size" (default 1000), "object.cache.expiration.minutes" (default 1440).  Note, if
+  these are changed in global config, topology restart is required.
+  * Input:
+    * path - The path in HDFS to the serialized object
+  * Returns: The deserialized object.
 
 ### `PREPEND_IF_MISSING`
   * Description: Prepends the prefix to the start of the string if the string does not already start with any of the prefixes.
@@ -849,7 +895,7 @@ In the core language functions, we support basic functional programming primitiv
 ### `SET_INIT`
   * Description: Creates an new set
   * Input:
-    * input? - An initialization of the set
+    * input (optional) - An initialization of the set
   * Returns: A Set
 
 ### `SET_MERGE`
@@ -871,6 +917,13 @@ In the core language functions, we support basic functional programming primitiv
     * number - The number to take the sine of
   * Returns: The sine of the number passed in.
 
+### `SPLIT`
+  * Description: Splits the string by the delimiter.
+  * Input:
+    * input - String to split
+    * delim - String delimiter
+  * Returns: List of strings
+
 ### `SQRT`
   * Description: Returns the square root of a number.
   * Input:
@@ -882,13 +935,6 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * input - String 
   * Returns: The base-2 shannon entropy of the string (https://en.wikipedia.org/wiki/Entropy_(information_theory)#Definition).  The unit of this is bits.
-
-### `SPLIT`
-  * Description: Splits the string by the delimiter.
-  * Input:
-    * input - String to split
-    * delim - String delimiter
-  * Returns: List of strings
 
 ### `STARTS_WITH`
   * Description: Determines whether a string starts with a prefix
@@ -945,7 +991,7 @@ In the core language functions, we support basic functional programming primitiv
     * timezone - Optional timezone in String format
   * Returns: Epoch timestamp
   
-### `TO_FOAT`
+### `TO_FLOAT`
   * Description: Transforms the first argument to a float
   * Input:
     * input - Object of string or numeric type
@@ -956,6 +1002,27 @@ In the core language functions, we support basic functional programming primitiv
   * Input:
     * input - Object of string or numeric type
   * Returns: Integer version of the first argument
+
+### `TO_JSON_LIST`
+  * Description: Accepts JSON string as an input and returns a List object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `GET_FIRST( TO_JSON_LIST(  '[ "foo", 2]')` would yield `foo`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed List object
+
+### `TO_JSON_MAP`
+  * Description: Accepts JSON string as an input and returns a Map object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `MAP_GET( 'bar', TO_JSON_MAP(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed Map object
+
+### `TO_JSON_OBJECT`
+  * Description: Accepts JSON string as an input and returns a JSON Object parsed by Jackson. You need to be aware of content of JSON string that is to be parsed.
+  For e.g. `MAP_GET( 'bar', TO_JSON_OBJECT(  '{ "foo" : 1, "bar" : 2}' )` would yield `2`
+  * Input:
+    * string - The JSON string to be parsed
+  * Returns: A parsed JSON object
 
 ### `TO_LONG`
   * Description: Transforms the first argument to a long integer
@@ -1034,7 +1101,7 @@ In the core language functions, we support basic functional programming primitiv
   See [python](https://docs.python.org/3/library/functions.html#zip)
   and [wikipedia](https://en.wikipedia.org/wiki/Convolution_(computer_science)) for more context.
   * Input:
-    * list* - Lists to zip.
+    * list(s) - List(s) to zip.
   * Returns: The zip of the lists.  The returned list is the min size of all the lists. e.g. `ZIP( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4] ]`
 
 ### `ZIP_LONGEST`
@@ -1042,7 +1109,7 @@ In the core language functions, we support basic functional programming primitiv
   See [python](https://docs.python.org/3/library/itertools.html#itertools.zip_longest)
   and [wikipedia](https://en.wikipedia.org/wiki/Convolution_(computer_science)) for more context.
   * Input:
-    * list* - Lists to zip.
+    * list(s) - List(s) to zip.
   * Returns: The zip of the lists.  The returned list is the max size of all the lists.  Empty elements are null e.g. `ZIP_LONGEST( [ 1, 2 ], [ 3, 4, 5] ) == [ [1, 3], [2, 4], [null, 5] ]`
 
 The following is an example query (i.e. a function which returns a
@@ -1321,7 +1388,7 @@ IS_EMAIL
 To run the Stellar Shell directly from the Metron source code, run a command like the following.  Ensure that Metron has already been built and installed with `mvn clean install -DskipTests`.
 ```
 $ mvn exec:java \
-   -Dexec.mainClass="org.apache.metron.stellar.common.shell.StellarShell" \
+   -Dexec.mainClass="org.apache.metron.stellar.common.shell.cli.StellarShell" \
    -pl metron-platform/metron-enrichment
 ...
 Stellar, Go!
@@ -1337,7 +1404,7 @@ This can be useful for troubleshooting function resolution problems.  The previo
 
 ```
  $ mvn exec:java \
-   -Dexec.mainClass="org.apache.metron.stellar.common.shell.StellarShell" \
+   -Dexec.mainClass="org.apache.metron.stellar.common.shell.cli.StellarShell" \
    -pl metron-analytics/metron-profiler
 ...
 Stellar, Go!
@@ -1386,6 +1453,36 @@ By default the shell will have the base Stellar Language commands available.  An
 that contain Stellar functions will also be loaded, and their commands will be available to shell, as long
 as their dependencies are satisfied.
 
+
+### Implementation
+
+The Stellar Shell can be executed both from the command line and from within a Stellar Notebook.  The behavior and underlying implementation of the behavior is exactly the same across these two environments.
+
+#### `org.apache.metron.stellar.common.shell`  
+
+This package contains classes that are reused across both the CLI and Zeppelin shell environments.
+
+* `StellarShellExecutor` Executes Stellar in a shell-like environment.  Provides the Stellar language extensions like variable assignment, comments, magics, and doc strings that are only accessible in the shell.
+
+* `StellarAutoCompleter` Handles auto-completion for Stellar.
+
+* `StellarExecutorListeners` An event listener that can be notified when variables, functions, and specials are defined.  This is how a `StellarAutoCompleter` is notified throughout the life of a shell session.
+
+#### `org.apache.metron.stellar.common.shell.specials`
+
+All Stellar language extensions are contained within this package.
+
+* `SpecialCommand` The interface for all special commands.  A 'special command' is anything that is not directly provided by the Stellar language itself.  That includes variable assignment, comments, doc strings, magics, and quit. 
+
+#### `org.apache.metron.stellar.common.shell.cli`
+
+This package contains classes that are specific to the CLI-driven REPL.
+
+* `StellarShell`  This is the main class that drives the CLI REPL.  All functionality not related to the command line interface is performed by the shared logic in `org.apache.metron.stellar.common.shell`.
+ 
+#### `org.apache.metron.stellar.zeppelin`
+
+This package is contained within the `stellar-zeppelin` project and performs all logic for interfacing with Zeppelin.  Again, all functionality not related to Zeppelin is performed by the shared logic in `org.apache.metron.stellar.common.shell`.
 
 ## Stellar Configuration
 

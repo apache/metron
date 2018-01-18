@@ -47,12 +47,44 @@ export function waitForStalenessOf (_element ) {
 
 export function loadTestData() {
   deleteTestData();
-  fs.createReadStream('e2e/mock-data/alerts_ui_e2e_index.template')
-    .pipe(request.post('http://node1:9200/_template/alerts_ui_e2e_index'));
-  fs.createReadStream('e2e/mock-data/alerts_ui_e2e_index.data')
-    .pipe(request.post('http://node1:9200/alerts_ui_e2e_index/alerts_ui_e2e_doc/_bulk'));
+
+  let template = fs.readFileSync('e2e/mock-data/alerts_ui_e2e_index.template', 'utf8');
+  request({
+    url: 'http://node1:9200/_template/alerts_ui_e2e_index',
+    method: 'POST',
+    body: template
+  }, function(error, response, body) {
+    // add logging if desired
+  });
+
+  let data = fs.readFileSync('e2e/mock-data/alerts_ui_e2e_index.data', 'utf8');
+  request({
+    url: 'http://node1:9200/alerts_ui_e2e_index/alerts_ui_e2e_doc/_bulk',
+    method: 'POST',
+    body: data
+  }, function(error, response, body) {
+    // add logging if desired
+  });
 }
 
 export function deleteTestData() {
   request.delete('http://node1:9200/alerts_ui_e2e_index*');
 }
+
+export function createMetaAlertsIndex() {
+  deleteMetaAlertsIndex();
+
+  let template = fs.readFileSync('./../../metron-deployment/packaging/ambari/metron-mpack/src/main/resources/common-services/METRON/CURRENT/package/files/metaalert_index.template', 'utf8');
+  request({
+    url: 'http://node1:9200/_template/metaalert_index',
+    method: 'POST',
+    body: template
+  }, function(error, response, body) {
+    // add logging if desired
+  });
+}
+
+export function deleteMetaAlertsIndex() {
+  request.delete('http://node1:9200/metaalert_index*');
+}
+

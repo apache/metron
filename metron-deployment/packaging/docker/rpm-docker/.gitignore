@@ -3,4 +3,5 @@ BUILDROOT/
 RPMS/
 SOURCES/
 SRPMS/
-.npm
+.*
+!/.gitignore

@@ -90,8 +90,9 @@ class Indexing(Script):
 
         except Exception as e:
             msg = "WARNING: Elasticsearch index templates could not be installed.  " \
-                  "Is Elasticsearch running?  Will reattempt install on next start.  error={0}"
+                  "Is Elasticsearch running?  error={0}"
             Logger.warning(msg.format(e))
+            raise
 
         commands.start_indexing_topology(env)
 
@@ -137,7 +138,6 @@ class Indexing(Script):
 
         commands = IndexingCommands(params)
         for template_name in commands.get_templates():
-
             # delete the index template
             cmd = "curl -s -XDELETE \"http://{0}/_template/{1}\""
             Execute(

@@ -55,6 +55,17 @@ $group-height: 70px;
     background: $mine-shaft-8;
   }
 
+  .fa-link, .fa-chain-broken {
+
+    color: $piction-blue;
+    border: 2px solid transparent;
+
+    &:hover {
+      background: $eden-1;
+      border: 2px solid $blue-mine;
+    }
+  }
+
   .down-arrow {
     padding: 10px 20px;
 
@@ -150,4 +161,10 @@ sup {
 
 .top-group {
   cursor: pointer;
+}
+
+.top-group-link {
+  padding: 10px;
+  font-size: 22px;
+  margin-top: 12px;
 }

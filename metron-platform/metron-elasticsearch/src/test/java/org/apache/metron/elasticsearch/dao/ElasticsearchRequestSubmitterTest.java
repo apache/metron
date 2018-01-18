@@ -24,6 +24,7 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.ShardSearchFailure;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.index.Index;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchShardTarget;
 import org.junit.Test;
@@ -56,7 +57,7 @@ public class ElasticsearchRequestSubmitterTest {
 
     // mocks
     SearchResponse response = mock(SearchResponse.class);
-    SearchRequest request = mock(SearchRequest.class);
+    SearchRequest request = new SearchRequest();
 
     // response will have status of OK and no failed shards
     when(response.status()).thenReturn(RestStatus.OK);
@@ -74,7 +75,7 @@ public class ElasticsearchRequestSubmitterTest {
 
     // mocks
     SearchResponse response = mock(SearchResponse.class);
-    SearchRequest request = mock(SearchRequest.class);
+    SearchRequest request = new SearchRequest();
 
     // response will have status of OK
     when(response.status()).thenReturn(RestStatus.PARTIAL_CONTENT);
@@ -90,9 +91,9 @@ public class ElasticsearchRequestSubmitterTest {
   public void searchShouldHandleShardFailure() throws InvalidSearchException {
     // mocks
     SearchResponse response = mock(SearchResponse.class);
-    SearchRequest request = mock(SearchRequest.class);
+    SearchRequest request = new SearchRequest();
     ShardSearchFailure fail = mock(ShardSearchFailure.class);
-    SearchShardTarget target = mock(SearchShardTarget.class);
+    SearchShardTarget target = new SearchShardTarget("node1", mock(Index.class), 1, "metron");
 
     // response will have status of OK
     when(response.status()).thenReturn(RestStatus.OK);
@@ -107,7 +108,6 @@ public class ElasticsearchRequestSubmitterTest {
 
     // shard failure needs to report the node
     when(fail.shard()).thenReturn(target);
-    when(target.getNodeId()).thenReturn("node1");
 
     // shard failure needs to report details of failure
     when(fail.index()).thenReturn("bro_index_2017-10-11");
