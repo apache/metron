@@ -149,6 +149,9 @@ Where:
 | [ `BLOOM_EXISTS`](#bloom_exists)                                                                   |
 | [ `BLOOM_INIT`](#bloom_init)                                                                       |
 | [ `BLOOM_MERGE`](#bloom_merge)                                                                     |
+| [ `BOYERMOORE_ADD`](#boyermoore_add)                                                               |
+| [ `BOYERMOORE_PLURALITY`](#boyermoore_plurality)                                                   |
+| [ `BOYERMOORE_MERGE`](#boyermoore_merge)                                                           |
 | [ `CEILING`](#ceiling)                                                                             |
 | [ `COS`](#cos)                                                                                     |
 | [ `CHOP`](#chop)                                                                                   |
@@ -326,6 +329,26 @@ Where:
   * Input:
     * bloomfilters - A list of bloom filters to merge
   * Returns: Bloom Filter or null if the list is empty
+
+### `BOYERMOORE_ADD`
+  * Description: Adds value to a Boyer-Moore list. [Boyer-Moore](https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_majority_vote_algorithm)
+  * Input:
+    * state - state holder for list of values. If null, add will initialize a new state value.
+    * value(s) - single object or list of values to add to the state object.
+  * Returns: Current state of the Boyer-Moore algorithm representing the current value that holds a plurality across all values added thus far.
+
+### `BOYERMOORE_PLURALITY`
+  * Description: Calculates the item with current plurality in a Boyer-Moore list. [Boyer-Moore](https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_majority_vote_algorithm)
+  * Input:
+    * state - state holder for list of values. If null, add will initialize a new state value.
+  * Returns: The value that holds a plurality across all values added thus far.
+
+### `BOYERMOORE_MERGE`
+  * Description: Merges states for multiple Boyer-Moore states. [Boyer-Moore](https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_majority_vote_algorithm)
+  * Input:
+    * state - a list of Boyer-Moore states to merge.
+    * currentState? - The current state (optional)
+  * Returns: New single merged state.
 
 ### `CEILING`
   * Description: Returns the ceiling of a number.

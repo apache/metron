@@ -19,16 +19,15 @@
  */
 package org.apache.metron.stellar.dsl.functions;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.common.utils.math.MathOperations;
 import org.apache.metron.stellar.common.utils.math.StellarMathFunction;
 import org.apache.metron.stellar.dsl.BaseStellarFunction;
-import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.stellar.dsl.Stellar;
-import org.apache.metron.stellar.dsl.StellarFunction;
-
-import java.util.List;
-import java.util.function.Function;
 
 public class MathFunctions {
 
@@ -220,4 +219,156 @@ public class MathFunctions {
       }
     }
   }
+
+  @Stellar(namespace = "BOYERMOORE"
+      , name = "ADD"
+      , description = "Adds value to a Boyer-Moore list. [Boyer-Moore](https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_majority_vote_algorithm)"
+      , params = {
+        "state - state holder for list of values. If null, add will initialize a new state value.",
+        "value(s) - single object or list of values to add to the state object."
+      }
+      , returns = "Current state of the Boyer-Moore algorithm representing the current value that"
+      + "holds a plurality across all values added thus far."
+  )
+  public static class BoyerMooreAdd extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> args) {
+      if (args.size() < 2) {
+        throw new IllegalArgumentException(
+            "Must pass an initial state (may be null) and at least one value to add to the list");
+      } else {
+        BoyerMooreState state = ConversionUtils.convert(args.get(0), BoyerMooreState.class);
+        if (state == null) {
+          state = new BoyerMooreState();
+        }
+        Object secondArg = args.get(1);
+        if (secondArg instanceof List) {
+          state.addAll((List) secondArg);
+        } else {
+          state.add(secondArg);
+        }
+        return state;
+      }
+    }
+  }
+
+  public static class BoyerMooreState {
+    private Long counter;
+    private Object m;
+
+    public BoyerMooreState() {
+      counter = 0L;
+    }
+
+    public BoyerMooreState(Optional<List<BoyerMooreState>> previousStates, Optional<BoyerMooreState> currentState) {
+      this();
+      currentState.ifPresent(boyerMooreState -> {
+        m = boyerMooreState.getPlurality();
+        counter = boyerMooreState.getCounter();
+      });
+      for (BoyerMooreState state : previousStates.orElse(new ArrayList<>())) {
+        Object plurality = state.getPlurality();
+        Long pluralityCount = state.getCounter();
+        add(plurality, pluralityCount);
+      }
+    }
+
+    public Object add(Object item) {
+      if (item != null) {
+        if (counter == 0) {
+          m = item;
+          counter = 1L;
+        } else if (item.equals(m)) {
+          counter++;
+        } else {
+          counter--;
+        }
+      }
+      return m;
+    }
+
+    public Object add(Object item, Long counter) {
+      if (item != null) {
+        if (this.counter == 0) {
+          m = item;
+          this.counter = counter;
+        } else if (item.equals(m)) {
+          this.counter += counter;
+        } else if (counter > this.counter) {
+          m = item;
+          this.counter = counter - this.counter;
+        } else {
+          this.counter = 0L;
+        }
+      }
+      return m;
+    }
+
+    public Object getPlurality() {
+      return m;
+    }
+
+    public Object addAll(List<Object> items) {
+      for (Object item : items) {
+        add(item);
+      }
+      return m;
+    }
+
+    public Long getCounter() {
+      return counter;
+    }
+  }
+
+  @Stellar(namespace = "BOYERMOORE"
+      , name = "PLURALITY"
+      , description = "Calculates the item with current plurality in a Boyer-Moore list. [Boyer-Moore](https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_majority_vote_algorithm)"
+      , params = {
+      "state - state holder for list of values. If null, add will initialize a new state value."
+  }
+      , returns = "The value that holds a plurality across all values added thus far."
+  )
+  public static class BoyerMoorePlurality extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> args) {
+      if (args.size() != 1) {
+        throw new IllegalArgumentException("Must pass a state object to return plurality for.");
+      } else {
+        BoyerMooreState state = ConversionUtils.convert(args.get(0), BoyerMooreState.class);
+        if (state == null) {
+          return null;
+        } else {
+          return state.getPlurality();
+        }
+      }
+    }
+  }
+
+  @Stellar(namespace = "BOYERMOORE"
+      , name = "MERGE"
+      , description = "Merges states for multiple Boyer-Moore states. [Boyer-Moore](https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_majority_vote_algorithm)"
+      , params = {
+      "state - a list of Boyer-Moore states to merge.",
+      "currentState? - The current state (optional)"
+  }
+      , returns = "New single merged state."
+  )
+  public static class BoyerMooreMerge extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> args) {
+      BoyerMooreState state = null;
+      @SuppressWarnings("unchecked")
+      List<BoyerMooreState> states = (List<BoyerMooreState>) args.get(0);
+      BoyerMooreState currentState = null;
+      if (args.size() > 1) {
+        currentState = (BoyerMooreState) args.get(1);
+      }
+      state = new BoyerMooreState(Optional.ofNullable(states), Optional.ofNullable(currentState));
+      return state;
+    }
+  }
+
 }
