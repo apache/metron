@@ -18,4 +18,4 @@
 #
 
 binDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-java $JVMFLAGS -cp "${binDir}/../lib/*" org.apache.metron.stellar.common.shell.StellarShell "$@"
+java $JVMFLAGS -cp "${binDir}/../lib/*" org.apache.metron.stellar.common.shell.cli.StellarShell "$@"
