@@ -31,7 +31,6 @@ import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

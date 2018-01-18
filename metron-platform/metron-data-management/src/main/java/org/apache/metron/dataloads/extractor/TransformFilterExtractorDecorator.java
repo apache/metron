@@ -17,22 +17,15 @@
  */
 package org.apache.metron.dataloads.extractor;
 
-import static org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator.ExtractorOptions.INDICATOR;
-import static org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator.ExtractorOptions.INDICATOR_FILTER;
-import static org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator.ExtractorOptions.INDICATOR_TRANSFORM;
-import static org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator.ExtractorOptions.VALUE_FILTER;
-import static org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator.ExtractorOptions.VALUE_TRANSFORM;
-import static org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator.ExtractorOptions.ZK_QUORUM;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.lang.ref.Reference;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
@@ -47,8 +40,13 @@ import org.apache.metron.enrichment.lookup.LookupKV;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TransformFilterExtractorDecorator extends ExtractorDecorator {
+import static org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator.ExtractorOptions.*;
+
+public class TransformFilterExtractorDecorator extends ExtractorDecorator implements StatefulExtractor {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  public static final String STATE_KEY = "state";
+  public static final String STATES_KEY = "states";
+
 
   protected enum ExtractorOptions {
     VALUE_TRANSFORM("value_transform"),
@@ -56,7 +54,10 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
     INDICATOR_TRANSFORM("indicator_transform"),
     INDICATOR_FILTER("indicator_filter"),
     ZK_QUORUM("zk_quorum"),
-    INDICATOR("indicator");
+    INDICATOR("indicator"),
+    STATE_INIT("state_init"),
+    STATE_UPDATE("state_update"),
+    STATE_MERGE("state_merge");
 
     private String key;
 
@@ -83,6 +84,9 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
   private StellarProcessor transformProcessor;
   private StellarPredicateProcessor filterProcessor;
   private Map<String, Object> globalConfig;
+  private Map<String, String> stateUpdate;
+  private String stateMerge;
+  private Set<ExtractorCapabilities> capabilities;
 
   public TransformFilterExtractorDecorator(Extractor decoratedExtractor) {
     super(decoratedExtractor);
@@ -91,8 +95,11 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
     this.indicatorTransforms = new LinkedHashMap<>();
     this.valueFilter = "";
     this.indicatorFilter = "";
+    this.stateUpdate = new LinkedHashMap<>();
+    this.stateMerge = "";
     this.transformProcessor = new StellarProcessor();
     this.filterProcessor = new StellarPredicateProcessor();
+    this.capabilities = EnumSet.noneOf(ExtractorCapabilities.class);
   }
 
   @Override
@@ -110,6 +117,17 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
     if (INDICATOR_FILTER.existsIn(config)) {
       this.indicatorFilter = getFilter(config, INDICATOR_FILTER.toString());
     }
+    if (STATE_UPDATE.existsIn(config)) {
+      capabilities.add(ExtractorCapabilities.STATEFUL);
+      this.stateUpdate = getTransforms(config, STATE_UPDATE.toString());
+    }
+    if(STATE_INIT.existsIn(config)) {
+      capabilities.add(ExtractorCapabilities.STATEFUL);
+    }
+    if (STATE_MERGE.existsIn(config)) {
+      capabilities.add(ExtractorCapabilities.MERGEABLE);
+      this.stateMerge = getFilter(config, STATE_MERGE.toString());
+    }
     String zkClientUrl = "";
     if (ZK_QUORUM.existsIn(config)) {
       zkClientUrl = ConversionUtils.convert(config.get(ZK_QUORUM.toString()), String.class);
@@ -120,6 +138,29 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
     StellarFunctions.initialize(stellarContext);
     this.transformProcessor = new StellarProcessor();
     this.filterProcessor = new StellarPredicateProcessor();
+
+  }
+
+  @Override
+  public Object initializeState(Map<String, Object> config) {
+    if(STATE_INIT.existsIn(config)) {
+      MapVariableResolver resolver = new MapVariableResolver(globalConfig);
+      return transformProcessor.parse( config.get(STATE_INIT.toString()).toString()
+                                      , resolver
+                                      , StellarFunctions.FUNCTION_RESOLVER()
+                                      , stellarContext
+                                      );
+    }
+    return null;
+  }
+
+  @Override
+  public Object mergeStates(List<? extends Object> states) {
+    return transformProcessor.parse( stateMerge
+                            , new MapVariableResolver(new HashMap<String, Object>() {{ put(STATES_KEY, states); }}, globalConfig)
+                            , StellarFunctions.FUNCTION_RESOLVER()
+                            , stellarContext
+                            );
   }
 
   private String getFilter(Map<String, Object> config, String valueFilter) {
@@ -187,10 +228,20 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
   }
 
   @Override
+  public Set<ExtractorCapabilities> getCapabilities() {
+    return capabilities;
+  }
+
+  @Override
   public Iterable<LookupKV> extract(String line) throws IOException {
+    return extract(line, new AtomicReference<>(null));
+  }
+
+  @Override
+  public Iterable<LookupKV> extract(String line, AtomicReference<Object> state) throws IOException {
     List<LookupKV> lkvs = new ArrayList<>();
     for (LookupKV lkv : super.extract(line)) {
-      if (updateLookupKV(lkv)) {
+      if (updateLookupKV(lkv, state)) {
         lkvs.add(lkv);
       }
     }
@@ -202,23 +253,30 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
    * @param lkv LookupKV to transform and filter
    * @return true if lkv is not null after transform/filter
    */
-  private boolean updateLookupKV(LookupKV lkv) {
+  private boolean updateLookupKV(LookupKV lkv, AtomicReference<Object> state) {
     Map<String, Object> ret = lkv.getValue().getMetadata();
     Map<String, Object> ind = new LinkedHashMap<>();
     String indicator = lkv.getKey().getIndicator();
     // add indicator as a resolvable variable. Also enable using resolved/transformed variables and values from operating on the value metadata
     ind.put(INDICATOR.toString(), indicator);
-    MapVariableResolver resolver = new MapVariableResolver(ret, ind, globalConfig);
+    Map<String, Object> stateMap = new LinkedHashMap<>();
+    stateMap.put(STATE_KEY, state.get());
+    MapVariableResolver resolver = new MapVariableResolver(ret, ind, globalConfig, stateMap);
     transform(valueTransforms, ret, resolver);
     transform(indicatorTransforms, ind, resolver);
     // update indicator
     Object updatedIndicator = ind.get(INDICATOR.toString());
-    if (updatedIndicator != null) {
+    if (updatedIndicator != null || getCapabilities().contains(ExtractorCapabilities.STATEFUL)) {
       if (!(updatedIndicator instanceof String)) {
         throw new UnsupportedOperationException("Indicator transform must return String type");
       }
       lkv.getKey().setIndicator((String) updatedIndicator);
-      return filter(indicatorFilter, resolver) && filter(valueFilter, resolver);
+      boolean update = filter(indicatorFilter, resolver) && filter(valueFilter, resolver);
+      if(update && !stateUpdate.isEmpty()) {
+        transform(stateUpdate, stateMap, resolver);
+        state.set(stateMap.get(STATE_KEY));
+      }
+      return update;
     } else {
       return false;
     }
@@ -236,6 +294,9 @@ public class TransformFilterExtractorDecorator extends ExtractorDecorator {
   }
 
   private Boolean filter(String filterPredicate, MapVariableResolver variableResolver) {
+    if(StringUtils.isEmpty(filterPredicate)) {
+      return true;
+    }
     return filterProcessor.parse(filterPredicate, variableResolver, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
   }
 

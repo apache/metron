@@ -189,6 +189,7 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-parsers</artifactId>
             <version>${project.parent.version}</version>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.hbase</groupId>
@@ -317,6 +318,7 @@
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-indexing</artifactId>
             <version>${project.parent.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.metron</groupId>
@@ -417,6 +419,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                                     <resource>META-INF/spring.handlers</resource>

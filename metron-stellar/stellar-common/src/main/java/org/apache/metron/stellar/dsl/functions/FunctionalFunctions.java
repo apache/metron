@@ -18,6 +18,7 @@
 
 package org.apache.metron.stellar.dsl.functions;
 
+import com.google.common.collect.Lists;
 import org.apache.metron.stellar.dsl.BaseStellarFunction;
 import org.apache.metron.stellar.dsl.Stellar;
 import org.apache.metron.stellar.common.LambdaExpression;
@@ -41,7 +42,7 @@ public class FunctionalFunctions {
 
     @Override
     public Object apply(List<Object> args) {
-      Iterable<Object> input = (Iterable<Object>) args.get(0);
+      Iterable<? extends Object> input = getIterable(args.get(0));
       LambdaExpression expression = (LambdaExpression)args.get(1);
       if(input == null || expression == null) {
         return input;
@@ -66,7 +67,7 @@ public class FunctionalFunctions {
 
     @Override
     public Object apply(List<Object> args) {
-      Iterable<Object> input = (Iterable<Object>) args.get(0);
+      Iterable<? extends Object> input = getIterable(args.get(0));
       LambdaExpression expression = (LambdaExpression) args.get(1);
       if(input == null || expression == null) {
         return input;
@@ -95,7 +96,7 @@ public class FunctionalFunctions {
 
     @Override
     public Object apply(List<Object> args) {
-      Iterable<Object> input = (Iterable<Object>) args.get(0);
+      Iterable<? extends Object> input = getIterable(args.get(0));
       if(input == null || args.size() < 3) {
         return null;
       }
@@ -109,6 +110,21 @@ public class FunctionalFunctions {
         runningResult = expression.apply(listOf(runningResult, rhs));
       }
       return runningResult;
+    }
+  }
+
+  private static Iterable<? extends Object> getIterable(Object o) {
+    if(o == null) {
+      return null;
+    }
+    if(o instanceof String) {
+      return Lists.charactersOf((String)o);
+    }
+    else if(o instanceof Iterable) {
+      return (Iterable<Object>)o;
+    }
+    else {
+      throw new IllegalArgumentException(o.getClass() + " is not an iterable, and therefore cannot be used.");
     }
   }
 

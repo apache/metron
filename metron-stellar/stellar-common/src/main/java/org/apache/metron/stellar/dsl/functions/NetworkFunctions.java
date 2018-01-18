@@ -18,6 +18,7 @@
 
 package org.apache.metron.stellar.dsl.functions;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.net.InternetDomainName;
@@ -229,7 +230,13 @@ public class NetworkFunctions {
   private static String extractTld(InternetDomainName idn, String dn) {
 
     if(idn != null && idn.hasPublicSuffix()) {
-      return idn.publicSuffix().toString();
+      String ret = idn.publicSuffix().toString();
+      if(ret.startsWith("InternetDomainName")) {
+        return Joiner.on(".").join(idn.publicSuffix().parts());
+      }
+      else {
+        return ret;
+      }
     }
     else if(dn != null) {
       StringBuffer tld = new StringBuffer("");

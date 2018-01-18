@@ -33,4 +33,4 @@ export METRON_VERSION=${project.version}
 export METRON_HOME=/usr/metron/$METRON_VERSION
 export STELLAR_LIB=$(find $METRON_HOME/lib/ -name metron-parsers*.jar)
 export MANAGEMENT_LIB=$(find $METRON_HOME/lib/ -name metron-management*.jar)
-java $JVMFLAGS -cp "${CONTRIB:-$METRON_HOME/contrib/*}:$STELLAR_LIB:$MANAGEMENT_LIB:$HBASE_CONFIGS" org.apache.metron.stellar.common.shell.StellarShell "$@"
+java $JVMFLAGS -cp "${CONTRIB:-$METRON_HOME/contrib/*}:$STELLAR_LIB:$MANAGEMENT_LIB:$HBASE_CONFIGS" org.apache.metron.stellar.common.shell.cli.StellarShell "$@"

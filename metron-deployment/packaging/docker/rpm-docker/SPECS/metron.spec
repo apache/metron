@@ -201,6 +201,7 @@ This package installs the Metron Parser files
 %{metron_home}/bin/Whois_CSV_to_JSON.py
 %{metron_home}/bin/geo_enrichment_load.sh
 %{metron_home}/bin/flatfile_loader.sh
+%{metron_home}/bin/flatfile_summarizer.sh
 %{metron_home}/bin/prune_elasticsearch_indices.sh
 %{metron_home}/bin/prune_hdfs_files.sh
 %{metron_home}/bin/threatintel_bulk_prune.sh

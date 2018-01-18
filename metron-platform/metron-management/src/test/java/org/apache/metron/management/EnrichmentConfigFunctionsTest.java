@@ -23,7 +23,7 @@ import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.stellar.common.StellarProcessor;
-import org.apache.metron.stellar.common.shell.StellarExecutor;
+import org.apache.metron.stellar.common.shell.VariableResult;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
 import org.apache.metron.stellar.dsl.StellarFunctions;
@@ -44,7 +44,7 @@ import static org.apache.metron.common.configuration.ConfigurationType.ENRICHMEN
 public class EnrichmentConfigFunctionsTest {
 
   String configStr = emptyTransformationsConfig();
-  Map<String, StellarExecutor.VariableResult> variables;
+  Map<String, VariableResult> variables;
   Context context = null;
   String enrichmentType = null;
   String group = null;
@@ -73,17 +73,15 @@ public class EnrichmentConfigFunctionsTest {
     });
   }
 
-
-
   @Before
   public void setup() {
     variables = ImmutableMap.of(
-            "upper", new StellarExecutor.VariableResult("TO_UPPER('foo')", "FOO"),
-            "lower", new StellarExecutor.VariableResult("TO_LOWER('FOO')", "foo")
+            "upper", VariableResult.withExpression("FOO", "TO_UPPER('foo')"),
+            "lower", VariableResult.withExpression("foo", "TO_LOWER('FOO')")
     );
 
     context = new Context.Builder()
-            .with(StellarExecutor.SHELL_VARIABLES, () -> variables)
+            .with(Context.Capabilities.SHELL_VARIABLES, () -> variables)
             .build();
   }
 
@@ -151,7 +149,7 @@ public class EnrichmentConfigFunctionsTest {
     );
     Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig));
     Assert.assertEquals(1, size(stellarFunctions));
-    Assert.assertEquals(variables.get("upper").getExpression(), get(stellarFunctions,"upper"));
+    Assert.assertEquals(variables.get("upper").getExpression().get(), get(stellarFunctions,"upper"));
   }
 
   @Test
@@ -173,8 +171,8 @@ public class EnrichmentConfigFunctionsTest {
     );
     Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig));
     Assert.assertEquals(2, size(stellarFunctions));
-    Assert.assertEquals(variables.get("upper").getExpression(), get(stellarFunctions,"upper"));
-    Assert.assertEquals(variables.get("lower").getExpression(), get(stellarFunctions,"lower"));
+    Assert.assertEquals(variables.get("upper").getExpression().get(), get(stellarFunctions,"upper"));
+    Assert.assertEquals(variables.get("lower").getExpression().get(), get(stellarFunctions,"lower"));
   }
 
   @Test
@@ -208,7 +206,7 @@ public class EnrichmentConfigFunctionsTest {
     );
     Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig));
     Assert.assertEquals(1, size(stellarFunctions));
-    Assert.assertEquals(variables.get("upper").getExpression(), get(stellarFunctions,"upper"));
+    Assert.assertEquals(variables.get("upper").getExpression().get(), get(stellarFunctions,"upper"));
   }
 
   @Test
@@ -229,7 +227,7 @@ public class EnrichmentConfigFunctionsTest {
     );
     Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig));
     Assert.assertEquals(1, size(stellarFunctions));
-    Assert.assertEquals(variables.get("lower").getExpression(), get(stellarFunctions,"lower"));
+    Assert.assertEquals(variables.get("lower").getExpression().get(), get(stellarFunctions,"lower"));
   }
 
   @Test
@@ -270,7 +268,7 @@ public class EnrichmentConfigFunctionsTest {
     );
     Map<String, Object> stellarFunctions = getStellarMappings(getEnrichmentConfig(newConfig));
     Assert.assertEquals(1, size(stellarFunctions));
-    Assert.assertEquals(variables.get("lower").getExpression(), get(stellarFunctions,"lower"));
+    Assert.assertEquals(variables.get("lower").getExpression().get(), get(stellarFunctions,"lower"));
   }
 
   /**
