@@ -16,4 +16,4 @@
 #  limitations under the License.
 #
 
-build_utils/list_dependencies.sh | python build_utils/verify_license.py ./dependencies_with_url.csv
+dev-utilities/build-utils/list_dependencies.sh | python dev-utilities/build-utils/verify_license.py ./dependencies_with_url.csv

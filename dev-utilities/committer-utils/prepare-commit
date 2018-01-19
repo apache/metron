@@ -31,7 +31,7 @@ fi
 if [ -z "$GITHUB_NAME" ]; then
   read -p "  your github username [$GITHUB_NAME]: " INPUT
   [ -n "$INPUT" ] && GITHUB_NAME=$INPUT
-  
+
   # write setting to config file
   echo "GITHUB_NAME=$GITHUB_NAME" >> $CONFIG_FILE
 fi
@@ -206,7 +206,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     mvn -q -T 2C surefire:test@unit-tests &&
     mvn -q surefire:test@integration-tests &&
     mvn -q test --projects metron-interface/metron-config &&
-    build_utils/verify_licenses.sh
+    dev-utilities/build-utils/verify_licenses.sh
 fi
 
 echo ""
@@ -214,4 +214,3 @@ echo "Review commit carefully then run..."
 echo "    cd $WORK"
 echo "    git push upstream master"
 echo ""
-
