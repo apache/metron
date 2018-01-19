@@ -85,7 +85,7 @@ class ProfilerCommands:
                   self.__params.hbase_keytab_path,
                   self.__params.hbase_principal_name,
                   execute_user=self.__params.hbase_user)
-        cmd = "echo \"create '{0}','{1}'\" | hbase shell -n"
+        cmd = "if [[ $(echo \"exists '{0}'\" | hbase shell | grep 'not exist') ]]; then echo \"create '{0}','{1}'\" | hbase shell -n; fi"
         add_table_cmd = cmd.format(self.__params.profiler_hbase_table, self.__params.profiler_hbase_cf)
         Execute(add_table_cmd,
                 tries=3,

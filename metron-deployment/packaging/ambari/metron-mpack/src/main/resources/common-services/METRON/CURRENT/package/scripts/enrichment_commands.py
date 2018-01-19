@@ -190,7 +190,7 @@ class EnrichmentCommands:
                   self.__params.hbase_principal_name,
                   execute_user=self.__params.hbase_user)
 
-        cmd = "echo \"create '{0}','{1}'\" | hbase shell -n"
+        cmd = "if [[ $(echo \"exists '{0}'\" | hbase shell | grep 'not exist') ]]; then echo \"create '{0}','{1}'\" | hbase shell -n; fi"
         add_enrichment_cmd = cmd.format(self.__params.enrichment_hbase_table, self.__params.enrichment_hbase_cf)
         Execute(add_enrichment_cmd,
                 tries=3,
