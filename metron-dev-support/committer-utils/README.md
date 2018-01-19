@@ -26,7 +26,7 @@ This script automates the process of merging a pull request into `apache/master`
 
 When prompted the `[value in brackets]` is used by default.  To accept the default, simply press `enter`.  If you would like to change the default, type it in and hit `enter` when done.
 
-In the following example, I enter the pull request number (`80`) when prompted.   Using the pull request number, the script can extract most of the remaining required information.
+In the following example, I enter the pull request number when prompted.   Using the pull request number, the script can extract most of the remaining required information.
 
 1. Execute the script.  
 
