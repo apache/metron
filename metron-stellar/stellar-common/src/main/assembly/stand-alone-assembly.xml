@@ -38,5 +38,20 @@
       <outputDirectory>lib</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
     </fileSet>
+    <fileSet>
+      <directory>${project.basedir}</directory>
+      <includes>
+        <include>README.md</include>
+        <include>NOTICE</include>
+      </includes>
+      <outputDirectory></outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/../..</directory>
+      <includes>
+        <include>LICENSE</include>
+      </includes>
+      <outputDirectory></outputDirectory>
+    </fileSet>
   </fileSets>
 </assembly>
