@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 import os
-import re
 import requests
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
@@ -150,42 +149,13 @@ class Indexing(Script):
     def zeppelin_notebook_import(self, env):
         from params import params
         env.set_params(params)
+        commands = IndexingCommands(params)
 
         Logger.info(ambari_format('Searching for Zeppelin Notebooks in {metron_config_zeppelin_path}'))
 
-        # With Ambari 2.5+, Zeppelin server is enabled to work with Shiro authentication, which requires user/password
-        # for authentication (see https://zeppelin.apache.org/docs/0.6.0/security/shiroauthentication.html for details).
+        # Check if authentication is configured on Zeppelin server, and fetch details if enabled.
         ses = requests.session()
-
-        # Check if authentication is enabled on the Zeppelin server
-        try:
-            conn = ses.get(ambari_format('http://{zeppelin_server_url}/api/login'))
-
-            # Establish connection if authentication is enabled
-            try:
-                Logger.info("Shiro authentication is found to be enabled on the Zeppelin server.")
-                # Read the Shiro admin user credentials from Zeppelin config in Ambari
-                seen_users = False
-                username = None
-                password = None
-                if re.search(r'^\[users\]', params.zeppelin_shiro_ini_content, re.MULTILINE):
-                    seen_users = True
-                    tokens = re.search(r'^admin\ =.*', params.zeppelin_shiro_ini_content, re.MULTILINE).group()
-                    userpassword = tokens.split(',')[0].strip()
-                    username = userpassword.split('=')[0].strip()
-                    password = userpassword.split('=')[1].strip()
-                else:
-                    Logger.error("ERROR: Admin credentials config was not found in shiro.ini. Notebook import may fail.")
-
-                zeppelin_payload = {'userName': username, 'password' : password}
-                conn = ses.post(ambari_format('http://{zeppelin_server_url}/api/login'), data=zeppelin_payload)
-            except:
-                pass
-
-        # If authentication is not enabled, fall back to default method of imporing notebooks
-        except requests.exceptions.RequestException:
-            conn = ses.get(ambari_format('http://{zeppelin_server_url}/api/notebook'))
-
+        ses = commands.get_zeppelin_auth_details(ses, params.zeppelin_server_url, env)
         for dirName, subdirList, files in os.walk(params.metron_config_zeppelin_path):
             for fileName in files:
                 if fileName.endswith(".json"):
