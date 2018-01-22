@@ -42,14 +42,14 @@
       <directory>${project.basedir}</directory>
       <includes>
         <include>README.md</include>
-        <include>NOTICE</include>
       </includes>
       <outputDirectory></outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>${project.basedir}/../..</directory>
+      <directory>${project.basedir}/src/main/resources/META-INF</directory>
       <includes>
         <include>LICENSE</include>
+        <include>NOTICE</include>
       </includes>
       <outputDirectory></outputDirectory>
     </fileSet>
