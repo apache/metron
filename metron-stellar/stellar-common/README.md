@@ -1383,15 +1383,15 @@ IS_EMAIL
 [Stellar]>>> 
 ```
 
-#### %timing
+#### %time
 
 Prints out timing information from the last stellar statement executed. The information has the total
 execution time, and also a break down of execution time by stellar function.
 
-%timing supports filter on the timing output.  If you pass one or more strings to %timing, only
+%time supports filter on the timing output.  If you pass one or more strings to %time, only
 execution times with each of those tags will show.  Any functions that do not have ALL the tags passed will not display
 
-To see the tags in your timing, you can run %timing without any filters.
+To see the tags in your timing, you can run %time without any filters.
 
 A simple example :
 ```
@@ -1402,7 +1402,7 @@ Please note that functions are loading lazily in the background and will be unav
 [Stellar]>>> hex:="91IMOR3F41BMUSJCCG======"
 [Stellar]>>> if( STARTS_WITH(TO_UPPER(DECODE(hex,'BASE32HEX')), "HELLO")) THEN TO_LOWER("OK") ELSE TO_LOWER("FFFF")
 ok
-[Stellar]>>> %timing
+[Stellar]>>> %time
 ->execute : 113ms : 113017132
 -->if( STARTS_WITH(TO_UPPER(DECODE(hex,'BASE32HEX')), "HELLO")) THEN TO_LOWER("OK") ELSE TO_LOWER("FFFF") : 112ms : 112998881
 --->DECODE : 8ms : 8572968 ns
@@ -1421,18 +1421,18 @@ A more complex example with filters:
 [Stellar]>>> foo:=1
 [Stellar]>>> match { foo == 0 => ()-> false, foo == 1 => ()-> TO_UPPER("true"), default => ()-> false }
 TRUE
-[Stellar]>>> %timing
+[Stellar]>>> %time
 ->execute[] : 4242ms : 4242237640ns
 -->match { foo == 0 => ()-> false, foo == 1 => ()-> TO_UPPER("true"), default => ()-> false }[] : 84ms : 84362570ns
 --->lambda[LAMBDA] : 1ms : 1265895ns
 ---->TO_UPPER[FUNCTION] : 0ms : 570672ns
 
-[Stellar]>>> %timing FUNCTION
+[Stellar]>>> %time FUNCTION
 ->execute[] : 7594ms : 7594583655ns
 -->match { foo == 0 => ()-> false, foo == 1 => ()-> TO_UPPER("true"), default => ()-> false }[] : 84ms : 84362570ns
 ---->TO_UPPER[FUNCTION] : 0ms : 570672ns
 
-[Stellar]>>> %timing LAMBDA
+[Stellar]>>> %time LAMBDA
 ->execute[] : 14374ms : 14374556116ns
 -->match { foo == 0 => ()-> false, foo == 1 => ()-> TO_UPPER("true"), default => ()-> false }[] : 84ms : 84362570ns
 --->lambda[LAMBDA] : 1ms : 1265895ns

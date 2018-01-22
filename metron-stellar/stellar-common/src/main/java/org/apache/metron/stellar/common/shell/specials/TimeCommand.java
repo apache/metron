@@ -27,23 +27,22 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.stellar.common.shell.StellarResult;
 import org.apache.metron.stellar.common.shell.StellarShellExecutor;
 import org.apache.metron.stellar.common.timing.StackWatch;
 
-public class TimingCommand implements SpecialCommand {
-  public static final String MAGIC_TIMING = "%timing";
+public class TimeCommand implements SpecialCommand {
+  public static final String MAGIC_TIME = "%time";
 
   @Override
   public Function<String, Boolean> getMatcher() {
-    return (input) -> startsWith(trimToEmpty(input), MAGIC_TIMING);
+    return (input) -> startsWith(trimToEmpty(input), MAGIC_TIME);
   }
 
   @Override
   public String getCommand() {
-    return MAGIC_TIMING;
+    return MAGIC_TIME;
   }
 
   @Override
@@ -52,7 +51,7 @@ public class TimingCommand implements SpecialCommand {
     List<String> filter = new ArrayList<>();
 
     // if '%functions FOO' then show only functions that contain 'FOO'
-    String startsWith = StringUtils.trimToEmpty(command.substring(MAGIC_TIMING.length()));
+    String startsWith = StringUtils.trimToEmpty(command.substring(MAGIC_TIME.length()));
 
     if (StringUtils.isNotBlank(startsWith)) {
       filter.addAll(Arrays.asList(startsWith.trim().split("\\s+")));

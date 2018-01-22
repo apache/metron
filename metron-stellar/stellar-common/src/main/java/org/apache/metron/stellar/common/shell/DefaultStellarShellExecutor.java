@@ -39,7 +39,7 @@ import org.apache.metron.stellar.common.shell.specials.MagicListVariables;
 import org.apache.metron.stellar.common.shell.specials.MagicUndefineGlobal;
 import org.apache.metron.stellar.common.shell.specials.QuitCommand;
 import org.apache.metron.stellar.common.shell.specials.SpecialCommand;
-import org.apache.metron.stellar.common.shell.specials.TimingCommand;
+import org.apache.metron.stellar.common.shell.specials.TimeCommand;
 import org.apache.metron.stellar.common.timing.StackWatch;
 import org.apache.metron.stellar.common.utils.JSONUtils;
 import org.apache.metron.stellar.dsl.Context;
@@ -169,7 +169,7 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
             new MagicDefineGlobal(),
             new MagicUndefineGlobal(),
             new MagicListGlobals(),
-            new TimingCommand()
+            new TimeCommand()
     );
   }
 
