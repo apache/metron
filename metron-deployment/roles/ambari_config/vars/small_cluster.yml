@@ -85,6 +85,11 @@ configurations:
       supervisor.slots.ports: "[6700, 6701, 6702, 6703, 6704, 6705]"
       storm.local.dir: '{{ storm_local_dir | default("/hadoop/storm") }}'
       topology.classpath: '{{ topology_classpath }}'
+      storm.cluster.metrics.consumer.register: '[{"class": "org.apache.storm.metric.LoggingMetricsConsumer"}]'
+      topology.metrics.consumer.register: '[{"class": "org.apache.storm.metric.LoggingMetricsConsumer", "parallelism.hint": 1, "whitelist": ["kafkaOffset\\..+/", "__complete-latency", "__process-latency", "__receive\\.population$", "__sendqueue\\.population$", "__execute-count", "__emit-count", "__ack-count", "__fail-count", "memory/heap\\.usedBytes$", "memory/nonHeap\\.usedBytes$", "GC/.+\\.count$", "GC/.+\\.timeMs$"]}]'
+      nimbus.childopts: '-Xmx1024m _JAAS_PLACEHOLDER'
+      supervisor.childopts: '-Xmx256m _JAAS_PLACEHOLDER'
+      worker.childopts: "-Xmx768m _JAAS_PLACEHOLDER"
   - kafka-broker:
       log.dirs: '{{ kafka_log_dirs | default("/kafka-log") }}'
   - metron-rest-env:
