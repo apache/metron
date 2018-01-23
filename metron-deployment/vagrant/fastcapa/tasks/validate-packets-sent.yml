@@ -30,7 +30,7 @@
   async_status: jid={{ sniffer.ansible_job_id }}
   register: job
   until: job.finished
-  retries: 30
+  retries: 60
 
 - fail:
     msg: "No packets received from pcap-replay within timeout: {{ sniff_cmd }}"
