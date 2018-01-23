@@ -32,7 +32,7 @@ class ServiceCheck(Script):
         doc = '{"name": "Ambari Smoke test"}'
         index = "ambari_smoke_test"
 
-        Logger.info("Running Elastic search service check", file=sys.stdout)
+        Logger.info("Running Elastic search service check")
 
         # Make sure the service is actually up.  We can live without everything allocated.
         # Need both the retry and ES timeout.  Can hit the URL before ES is ready at all and get no response, but can
