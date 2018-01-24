@@ -35,4 +35,4 @@
 
 - include: sensor_install.yml
   tags:
-    - metron
+    - sensors
