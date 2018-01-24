@@ -15,9 +15,6 @@
 #  limitations under the License.
 #
 ---
-- name: Sanity check Metron Alerts
-  local_action: wait_for host="{{ metron_alerts_host }}" port="{{ metron_alerts_port }}" timeout="{{ timeout_secs }}"
-
 - name: Sanity check Ambari web
   local_action: wait_for host="{{ ambari_host }}" port="{{ ambari_port }}" timeout="{{ timeout_secs }}"
 
@@ -27,7 +24,6 @@
 - set_fact:
     success:
       - "Apache Metron deployed successfully"
-      - "   Metron Alerts   @ http://{{ metron_alerts_host }}:{{ metron_alerts_port }}"
       - "   Ambari          @ http://{{ ambari_host }}:{{ ambari_port }}"
       - "   Zookeeper       @ {{ zookeeper_url }}"
       - "   Kafka           @ {{ kafka_broker_url }}"

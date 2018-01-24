@@ -17,5 +17,3 @@
 ---
 timeout_secs: 120
 ambari_host: "{{ groups.ambari_master[0] }}"
-metron_alerts_host: "{{ groups.web[0] }}"
-metron_alerts_port: 4201
