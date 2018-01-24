@@ -193,12 +193,15 @@ As an example, we will be providing a CSV list of top domains as an enrichment a
 
 There are 2 property maps that work with full Stellar expressions, and 2 properties that will work with Stellar predicates.
 
-| Property            | Description
-|---------------------|---
-| value_transform     | Transform fields defined in the "columns" mapping with Stellar transformations. New keys introduced in the transform will be added to the key metadata.
-| value_filter        | Allows additional filtering with Stellar predicates based on results from the value transformations. In this example, records whose domain property is empty after removing the TLD will be omitted.
-| indicator_transform | Transform the indicator column independent of the value transformations. You can refer to the original indicator value by using "indicator" as the variable name, as shown in the example above. In addition, if you prefer to piggyback your transformations, you can refer to the variable "domain", which will allow your indicator transforms to inherit transformations done to this value during the value transformations.
-| indicator_filter    | Allows additional filtering with Stellar predicates based on results from the value transformations. In this example, records whose indicator value is empty after removing the TLD will be omitted. 
+| Property             | Description
+|----------------------|---
+| `value_transform`    | Transform fields defined in the "columns" mapping with Stellar transformations. New keys introduced in the transform will be added to the key metadata.
+| `value_filter`       | Allows additional filtering with Stellar predicates based on results from the value transformations. In this example, records whose domain property is empty after removing the TLD will be omitted.
+| `indicator_transform`| Transform the indicator column independent of the value transformations. You can refer to the original indicator value by using "indicator" as the variable name, as shown in the example above. In addition, if you prefer to piggyback your transformations, you can refer to the variable "domain", which will allow your indicator transforms to inherit transformations done to this value during the value transformations.
+| `indicator_filter`   | Allows additional filtering with Stellar predicates based on results from the value transformations. In this example, records whose indicator value is empty after removing the TLD will be omitted.
+| `state_init`         | Allows a state object to be initialized.  This is a string, so a single expression is created.  The output of this expression will be available as the `state` variable.  This is to be used with the `flatfile_summarizer.sh` rather than the loader.
+| `state_update`       | Allows a state object to be updated.  This is a map, so you can have temporary variables here.  Note that you can reference the `state` variable from this.  This is to be used with the `flatfile_summarizer.sh` rather than the loader.
+| `state_merge`        | Allows a list of states to be merged. This is a string, so a single expression.  There is a special field called `states` available, which is a list of the states (one per thread).  This is to be used with the `flatfile_summarizer.sh` rather than the loader.
 
 top-list.csv
 ```
@@ -365,6 +368,94 @@ The parameters for the utility are as follows:
 | -r         | --remote_dir        | No           | HDFS directory to land formatted GeoIP file - defaults to /apps/metron/geo/\<epoch millis\>/     |
 | -t         | --tmp_dir           | No           | Directory for landing the temporary GeoIP data - defaults to /tmp                                |
 | -z         | --zk_quorum         | Yes          | Zookeeper Quorum URL (zk1:port,zk2:port,...)                                                     |
+
+### Flatfile Summarizer
+
+The shell script `$METRON_HOME/bin/flatfile_summarizer.sh` will read data from local disk, HDFS or URLs and generate a summary object.
+The object will be serialized and written to disk, either HDFS or local disk depending on the output mode specified.
+
+It should be noted that this utility uses the same extractor config as the `flatfile_loader.sh`,
+but as the output target is not a key value store (but rather a summary object), it is not necessary
+to specify certain configs:
+* `indicator`, `indicator_filter` and `indicator_transform` are not required, but will be executed if present.
+As in the loader, there will be an indicator field available if you so specify it (by using `indicator` in the config).
+* `type` is neither required nor used
+
+Indeed, some new configs are expected:
+* `state_init` : Executed once to initialize the state object (the object written out).
+* `state_update`: Called once per message.  The fields available are the fields for the row as well as
+  * `indicator` - the indicator value if you've specified it in the config
+  * `state` - the current state.  Useful for adding to the state (e.g. `BLOOM_ADD(state, val)` where `val` is the name of a field).
+* `state_merge` : If you are running this multi-threaded and your objects can be merged, this is the statement that will
+merge the state objects created per thread.  There is a special field available to this config:
+  * `states` - a list of the state objects
+
+One special thing to note here is that there is a special configuration
+parameter to the Extractor config that is only considered during this
+loader:
+* inputFormat : This specifies how to consider the data.  The two implementations are `BY_LINE` and `WHOLE_FILE`.
+
+The default is `BY_LINE`, which makes sense for a list of CSVs where
+each line indicates a unit of information which can be imported.
+However, if you are importing a set of STIX documents, then you want
+each document to be considered as input to the Extractor.
+
+#### Example
+
+Consider the possibility that you want to generate a bloom filter with all of the domains in a CSV structured similarly to
+the Alexa top 1M domains, so the columns are:
+* rank
+* domain name
+
+You want to generate a bloom filter with just the domains, not considering the TLD.
+You would execute the following to:
+* read data from `./top-1m.csv`
+* write data to `./filter.ser`
+* use 5 threads
+
+```
+$METRON_HOME/bin/flatfile_summarizer.sh -i ./top-1m.csv -o ./filter.ser -e ./extractor.json -p 5 -b 128
+```
+
+To configure this, `extractor.json` would look like:
+```
+{
+  "config" : {
+    "columns" : {
+      "rank" : 0,
+      "domain" : 1
+    },
+    "value_transform" : {
+      "domain" : "DOMAIN_REMOVE_TLD(domain)"
+    },
+    "value_filter" : "LENGTH(domain) > 0",
+    "state_init" : "BLOOM_INIT()",
+    "state_update" : {
+      "state" : "BLOOM_ADD(state, domain)"
+    },
+    "state_merge" : "BLOOM_MERGE(states)",
+    "separator" : ","
+  },
+  "extractor" : "CSV"
+}
+```
+
+#### Parameters
+
+The parameters for the utility are as follows:
+
+| Short Code | Long Code           | Is Required? | Description                                                                                                                                                                         |
+|------------|---------------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| -h         |                     | No           | Generate the help screen/set of options                                                                                                                                             |
+| -q         | --quiet             | No           | Do not update progress                                                                                                                                                              |
+| -e         | --extractor_config  | Yes          | JSON Document describing the extractor for this input data source                                                                                                                   |
+| -m         | --import_mode       | No           | The Import mode to use: LOCAL, MR.  Default: LOCAL                                                                                                                                  |
+| -om        | --output_mode       | No           | The Output mode to use: LOCAL, HDFS.  Default: LOCAL                                                                                                                                  |
+| -i         | --input             | Yes          | The input data location on local disk.  If this is a file, then that file will be loaded.  If this is a directory, then the files will be loaded recursively under that directory.  |
+| -o         | --output            | Yes          | The output data location.    |
+| -l         | --log4j             | No           | The log4j properties file to load                                                                                                                                                   |
+| -p         | --threads           | No           | The number of threads to use when extracting data.  The default is the number of cores.                                                                                             |
+| -b         | --batchSize         | No           | The batch size to use for HBase puts                                                                                                                                                |
 
 ## Pruning Data from Elasticsearch
 

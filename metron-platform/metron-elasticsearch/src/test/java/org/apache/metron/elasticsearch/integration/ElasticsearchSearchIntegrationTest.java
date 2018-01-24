@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.common.utils.JSONUtils;
@@ -237,8 +238,8 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     for(Object o: broArray) {
       JSONObject jsonObject = (JSONObject) o;
       IndexRequestBuilder indexRequestBuilder = es.getClient().prepareIndex("bro_index_2017.01.01.01", "bro_doc");
+      indexRequestBuilder = indexRequestBuilder.setId((String) jsonObject.get("guid"));
       indexRequestBuilder = indexRequestBuilder.setSource(jsonObject.toJSONString());
-      indexRequestBuilder.setId((String) jsonObject.get("guid"));
       indexRequestBuilder = indexRequestBuilder.setTimestamp(jsonObject.get("timestamp").toString());
       bulkRequest.add(indexRequestBuilder);
     }
@@ -246,8 +247,8 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     for(Object o: snortArray) {
       JSONObject jsonObject = (JSONObject) o;
       IndexRequestBuilder indexRequestBuilder = es.getClient().prepareIndex("snort_index_2017.01.01.02", "snort_doc");
+      indexRequestBuilder = indexRequestBuilder.setId((String) jsonObject.get("guid"));
       indexRequestBuilder = indexRequestBuilder.setSource(jsonObject.toJSONString());
-      indexRequestBuilder.setId((String) jsonObject.get("guid"));
       indexRequestBuilder = indexRequestBuilder.setTimestamp(jsonObject.get("timestamp").toString());
       bulkRequest.add(indexRequestBuilder);
     }

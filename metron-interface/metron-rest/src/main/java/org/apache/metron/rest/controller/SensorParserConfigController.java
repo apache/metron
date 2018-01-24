@@ -47,13 +47,13 @@ public class SensorParserConfigController {
   @ApiOperation(value = "Updates or creates a SensorParserConfig in Zookeeper")
   @ApiResponses(value = { @ApiResponse(message = "SensorParserConfig updated. Returns saved SensorParserConfig", code = 200),
           @ApiResponse(message = "SensorParserConfig created. Returns saved SensorParserConfig", code = 201) })
-  @RequestMapping(method = RequestMethod.POST)
-  ResponseEntity<SensorParserConfig> save(@ApiParam(name="sensorParserConfig", value="SensorParserConfig", required=true)@RequestBody SensorParserConfig sensorParserConfig) throws RestException {
-    String name = sensorParserConfig.getSensorTopic();
+  @RequestMapping(value = "/{name}", method = RequestMethod.POST)
+  ResponseEntity<SensorParserConfig> save(@ApiParam(name="name", value="SensorParserConfig name", required=true)@PathVariable String name,
+      @ApiParam(name="sensorParserConfig", value="SensorParserConfig", required=true)@RequestBody SensorParserConfig sensorParserConfig) throws RestException {
     if (sensorParserConfigService.findOne(name) == null) {
-      return new ResponseEntity<>(sensorParserConfigService.save(sensorParserConfig), HttpStatus.CREATED);
+      return new ResponseEntity<>(sensorParserConfigService.save(name, sensorParserConfig), HttpStatus.CREATED);
     } else {
-      return new ResponseEntity<>(sensorParserConfigService.save(sensorParserConfig), HttpStatus.OK);
+      return new ResponseEntity<>(sensorParserConfigService.save(name, sensorParserConfig), HttpStatus.OK);
     }
   }
 
@@ -73,7 +73,7 @@ public class SensorParserConfigController {
   @ApiOperation(value = "Retrieves all SensorParserConfigs from Zookeeper")
   @ApiResponse(message = "Returns all SensorParserConfigs", code = 200)
   @RequestMapping(method = RequestMethod.GET)
-  ResponseEntity<Iterable<SensorParserConfig>> findAll() throws RestException {
+  ResponseEntity<Map<String, SensorParserConfig>> findAll() throws RestException {
     return new ResponseEntity<>(sensorParserConfigService.getAll(), HttpStatus.OK);
   }
 

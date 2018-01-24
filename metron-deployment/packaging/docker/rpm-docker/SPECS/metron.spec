@@ -201,6 +201,7 @@ This package installs the Metron Parser files
 %{metron_home}/bin/Whois_CSV_to_JSON.py
 %{metron_home}/bin/geo_enrichment_load.sh
 %{metron_home}/bin/flatfile_loader.sh
+%{metron_home}/bin/flatfile_summarizer.sh
 %{metron_home}/bin/prune_elasticsearch_indices.sh
 %{metron_home}/bin/prune_hdfs_files.sh
 %{metron_home}/bin/threatintel_bulk_prune.sh
@@ -273,9 +274,12 @@ This package installs the Metron Indexing files
 %defattr(-,root,root,755)
 %dir %{metron_root}
 %dir %{metron_home}
+%dir %{metron_home}/bin
 %dir %{metron_home}/flux
 %dir %{metron_home}/flux/indexing
-%{metron_home}/flux/indexing/remote.yaml
+%{metron_home}/bin/start_hdfs_topology.sh
+%{metron_home}/flux/indexing/batch/remote.yaml
+%{metron_home}/flux/indexing/random_access/remote.yaml
 %{metron_home}/config/zookeeper/indexing/bro.json
 %{metron_home}/config/zookeeper/indexing/snort.json
 %{metron_home}/config/zookeeper/indexing/websphere.json
