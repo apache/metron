@@ -446,11 +446,11 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(10, results.size());
     for(int i = 0;i < 5;++i) {
       Assert.assertEquals("snort", results.get(i).getSource().get("source:type"));
-      Assert.assertEquals(10 - i, results.get(i).getSource().get("timestamp"));
+      Assert.assertEquals(10 - i + "", results.get(i).getSource().get("timestamp").toString());
     }
     for (int i = 5; i < 10; ++i) {
       Assert.assertEquals("bro", results.get(i).getSource().get("source:type"));
-      Assert.assertEquals(10 - i, results.get(i).getSource().get("timestamp"));
+      Assert.assertEquals(10 - i + "", results.get(i).getSource().get("timestamp").toString());
     }
   }
 
@@ -461,7 +461,7 @@ public abstract class SearchIntegrationTest {
     Assert.assertTrue(response.isPresent());
     Map<String, Object> doc = response.get();
     Assert.assertEquals("bro", doc.get("source:type"));
-    Assert.assertEquals(3, doc.get("timestamp"));
+    Assert.assertEquals("3", doc.get("timestamp").toString());
   }
 
   @Test
@@ -487,11 +487,11 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(3, response.getTotal());
     List<SearchResult> results = response.getResults();
     Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
-    Assert.assertEquals(9, results.get(0).getSource().get("timestamp"));
+    Assert.assertEquals("9", results.get(0).getSource().get("timestamp").toString());
     Assert.assertEquals("snort", results.get(1).getSource().get("source:type"));
-    Assert.assertEquals(7, results.get(1).getSource().get("timestamp"));
+    Assert.assertEquals("7", results.get(1).getSource().get("timestamp").toString());
     Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
-    Assert.assertEquals(1, results.get(2).getSource().get("timestamp"));
+    Assert.assertEquals("1", results.get(2).getSource().get("timestamp").toString());
   }
 
   @Test
@@ -524,8 +524,8 @@ public abstract class SearchIntegrationTest {
     Assert.assertFalse(results.get(7).getSource().containsKey("threat:triage:score"));
 
     // validate sorted order - there are only 2 with a 'threat:triage:score'
-    Assert.assertEquals("10", results.get(8).getSource().get("threat:triage:score"));
-    Assert.assertEquals("20", results.get(9).getSource().get("threat:triage:score"));
+    Assert.assertEquals("10.0", results.get(8).getSource().get("threat:triage:score").toString());
+    Assert.assertEquals("20.0", results.get(9).getSource().get("threat:triage:score").toString());
   }
 
   @Test
@@ -537,8 +537,8 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(10, results.size());
 
     // validate sorted order - there are only 2 with a 'threat:triage:score'
-    Assert.assertEquals("20", results.get(0).getSource().get("threat:triage:score"));
-    Assert.assertEquals("10", results.get(1).getSource().get("threat:triage:score"));
+    Assert.assertEquals("20.0", results.get(0).getSource().get("threat:triage:score").toString());
+    Assert.assertEquals("10.0", results.get(1).getSource().get("threat:triage:score").toString());
 
     // the remaining are missing the 'threat:triage:score' and should be sorted last
     Assert.assertFalse(results.get(2).getSource().containsKey("threat:triage:score"));
