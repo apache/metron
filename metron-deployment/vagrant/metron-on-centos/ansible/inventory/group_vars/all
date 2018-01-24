@@ -20,7 +20,6 @@ metron_build_packages_cmd: "shell cd {{ metron_build_dir }}/metron-deployment &&
 
 # which services should be started?
 services_to_start:
-  - pcap-service
   - snort
   - snort-logs
   - bro

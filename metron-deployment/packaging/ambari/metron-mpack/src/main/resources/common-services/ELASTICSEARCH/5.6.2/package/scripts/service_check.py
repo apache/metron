@@ -21,6 +21,7 @@ from __future__ import print_function
 
 import subprocess
 import sys
+import re
 
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.script import Script
@@ -35,9 +36,45 @@ class ServiceCheck(Script):
 
         port = self.get_port_from_range(params.http_port)
         self.check_cluster_health(params.hostname, port)
+        self.index_document(params.hostname, port)
 
         Logger.info("Elasticsearch service check successful")
         exit(0)
+
+    def index_document(self, host, port, doc='{"name": "Ambari Service Check"}', index="ambari_service_check"):
+        """
+        Tests the health of Elasticsearch by indexing a document.
+
+        :param host: The name of a host running Elasticsearch.
+        :param port: The Elasticsearch HTTP port.
+        :param doc: The test document to put.
+        :param index: The name of the test index.
+        """
+        # put a document into a new index
+        Execute("curl -XPUT 'http://%s:%s/%s/test/1' -d '%s'" % (host, port, index, doc), logoutput=True)
+
+        # retrieve the document...  use subprocess because we actually need the results here.
+        cmd_retrieve = "curl -XGET 'http://%s:%s/%s/test/1'" % (host, port, index)
+        proc = subprocess.Popen(cmd_retrieve, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        (stdout, stderr) = proc.communicate()
+        response_retrieve = stdout
+        Logger.info("Retrieval response is: %s" % response_retrieve)
+        expected_retrieve = '{"_index":"%s","_type":"test","_id":"1","_version":1,"found":true,"_source":%s}' \
+            % (index, doc)
+
+        # delete the test index
+        cmd_delete = "curl -XDELETE 'http://%s:%s/%s'" % (host, port, index)
+        proc = subprocess.Popen(cmd_delete, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        (stdout, stderr) = proc.communicate()
+        response_delete = stdout
+        Logger.info("Delete index response is: %s" % response_retrieve)
+        expected_delete = '{"acknowledged":true}'
+
+        if (expected_retrieve == response_retrieve) and (expected_delete == response_delete):
+            Logger.info("Successfully indexed document in Elasticsearch")
+        else:
+            Logger.info("Unable to retrieve document from Elasticsearch")
+            sys.exit(1)
 
     def check_cluster_health(self, host, port, status="green", timeout="120s"):
         """
