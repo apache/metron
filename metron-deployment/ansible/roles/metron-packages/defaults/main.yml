@@ -18,3 +18,4 @@
 repo_path: "/localrepo"
 metron_rpm_glob: "{{ playbook_dir }}/../../packaging/docker/rpm-docker/target/RPMS/noarch/*.rpm"
 metron_deb_glob: "{{ playbook_dir }}/../../packaging/docker/deb-docker/target/*.deb"
+packages_required: true

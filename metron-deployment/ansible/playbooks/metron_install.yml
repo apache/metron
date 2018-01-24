@@ -18,7 +18,7 @@
 - hosts: ec2
   become: true
   tasks:
-    - include_vars: ../amazon-ec2/conf/defaults.yml
+    - include_vars: ../../amazon-ec2/conf/defaults.yml
   tags:
     - ec2
 
@@ -30,14 +30,24 @@
     - packer
 
 #
-# push the packages (RPM or DEB) to the host(s)
+# all ambari slaves need the local repo setup, but most don't need the metron packages
+#
+- hosts: ambari_slave
+  become: true
+  roles:
+    - { role: metron-packages, packages_required: false }
+  tags:
+    - packages
+
+#
+# push the metron packages (RPM or DEB) to the metron host(s) only
 #
 - hosts: metron
   become: true
   roles:
-    - role: metron-packages
+    - { role: metron-packages, packages_required: true }
   tags:
-    - metron-packages
+    - packages
 
 #
 # start installation of components in Ambari

@@ -20,7 +20,6 @@
     path: "{{ repo_path }}/dists/METRON/main/binary-amd64"
     state: directory
     mode: 0755
-  when: ansible_distribution == "Ubuntu"
 
 - name: Copy Metron DEBs
   copy:
@@ -30,4 +29,3 @@
     mode: 0755
   with_fileglob:
     - "{{ metron_deb_glob }}"
-  when: ansible_distribution == "Ubuntu"

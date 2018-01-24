@@ -19,22 +19,33 @@
 - include: create_directory.yml
 
 #
-# CentOS specific...
+# copy metron packages to the remote host
+#
+# the repository on the remote host containing the Metron packages (by default
+# located at /localrepo) MUST BE defined on every Ambari slave host.  in most
+# cases, this local repository can be empty.  only the local repository hosting
+# metron needs to contain the metron packages (either RPMs or DEBs)
+#
+# 'packages_required'
+#
+# this variable defines whether the Metron packages need to be copied to the
+# repository or whether it can be left empty.  copying the packages can be a
+# time consuming operation on a large cluster, so it avoided unless required.
 #
 - include: copy_packages_centos.yml
   static: no
-  when: ansible_distribution == "CentOS"
+  when: ansible_distribution == "CentOS" and packages_required == true
 
+- include: copy_packages_ubuntu.yml
+  static: no
+  when: ansible_distribution == "Ubuntu" and packages_required == true
+
+#
+# create the local repository
+#
 - include: create_repo_centos.yml
   static: no
   when: ansible_distribution == "CentOS"
-
-#
-# Ubuntu specific...
-#
-- include: copy_packages_ubuntu.yml
-  static: no
-  when: ansible_distribution == "Ubuntu"
 
 - include: create_repo_ubuntu.yml
   static: no
