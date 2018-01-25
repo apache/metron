@@ -17,7 +17,6 @@
 
 # which services should be started?
 services_to_start:
-  - pcap-service
   - snort
   - snort-logs
   - bro

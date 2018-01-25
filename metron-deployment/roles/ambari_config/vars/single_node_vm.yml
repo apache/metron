@@ -84,7 +84,7 @@ configurations:
       yarn.nodemanager.log-dirs: '{{ nodemanager_log_dirs }}'
       yarn.nodemanager.resource.memory-mb : '{{ nodemanager_mem_mb }}'
   - storm-site:
-      supervisor.slots.ports: "[6700, 6701, 6702, 6703, 6704]"
+      supervisor.slots.ports: "[6700, 6701, 6702, 6703, 6704, 6705]"
       storm.local.dir: '{{ storm_local_dir }}'
       topology.classpath: '{{ topology_classpath }}'
   - kafka-env:

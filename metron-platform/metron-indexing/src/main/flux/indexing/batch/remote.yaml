@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "indexing"
+name: "batch_indexing"
 
 config:
     topology.workers: ${indexing.workers}
@@ -74,8 +74,6 @@ components:
             -   name: "withProducerConfigs"
                 args: [ref: "kafkaWriterProps"]
 
-    -   id: "indexWriter"
-        className: "${indexing.writer.class.name}"
 
 #kafka/zookeeper
 # Any kafka props for the producer go here.
@@ -93,7 +91,7 @@ components:
             -   name: "put"
                 args:
                     - "group.id"
-                    - "indexing"
+                    - "indexing-batch"
             -   name: "put"
                 args:
                     - "security.protocol"
@@ -131,18 +129,6 @@ spouts:
 bolts:
 
 # Indexing Bolts
-    -   id: "indexingBolt"
-        className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
-        constructorArgs:
-            - "${kafka.zk}"
-        configMethods:
-            -   name: "withBulkMessageWriter"
-                args:
-                    - ref: "indexWriter"
-            -   name: "withMessageGetter"
-                args:
-                    - "DEFAULT_JSON_FROM_POSITION"
-        parallelism: ${indexing.writer.parallelism}
 
     -   id: "hdfsIndexingBolt"
         className: "org.apache.metron.writer.bolt.BulkMessageWriterBolt"
@@ -168,24 +154,12 @@ bolts:
 
 streams:
 
-    -   name: "spout -> indexing"
-        from: "kafkaSpout"
-        to: "indexingBolt"
-        grouping:
-            type: SHUFFLE
-
     -   name: "spout -> hdfs"
         from: "kafkaSpout"
         to: "hdfsIndexingBolt"
         grouping:
             type: SHUFFLE
 
-    -   name: "indexingBolt -> errorIndexingBolt"
-        from: "indexingBolt"
-        to: "indexingErrorBolt"
-        grouping:
-            streamId: "error"
-            type: SHUFFLE
 
     -   name: "hdfsBolt -> errorIndexingBolt"
         from: "hdfsIndexingBolt"

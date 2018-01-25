@@ -233,6 +233,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/kafka/topic/{name}`](#get-apiv1kafkatopicname)|
 | [ `DELETE /api/v1/kafka/topic/{name}`](#delete-apiv1kafkatopicname)|
 | [ `GET /api/v1/kafka/topic/{name}/sample`](#get-apiv1kafkatopicnamesample)|
+| [ `POST /api/v1/kafka/topic/{name}/produce`](#post-apiv1kafkatopicnameproduce)|
 | [ `GET /api/v1/metaalert/searchByAlert`](#get-apiv1metaalertsearchbyalert)|
 | [ `GET /api/v1/metaalert/create`](#get-apiv1metaalertcreate)|
 | [ `GET /api/v1/metaalert/add/alert`](#get-apiv1metaalertaddalert)|
@@ -432,7 +433,16 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns sample message
     * 404 - Either Kafka topic is missing or contains no messages
-
+    
+### `POST /api/v1/kafka/topic/{name}/produce`
+  * Description: Produces a message to a Kafka topic
+  * Input:
+    * name - Kafka topic name
+    * message - message to be published
+  * Returns:
+    * 200 - Published
+    * 404 - Kafka topic is missing
+     
 ### `POST /api/v1/metaalert/searchByAlert`
   * Description: Get all meta alerts that contain an alert.
   * Input:
