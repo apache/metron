@@ -17,6 +17,18 @@
  */
 package org.apache.metron.rest.controller;
 
+import static org.apache.metron.integration.utils.TestUtils.assertEventually;
+import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
 import org.junit.Before;
@@ -30,18 +42,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
-import static org.apache.metron.integration.utils.TestUtils.assertEventually;
-import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -79,14 +79,17 @@ public class SensorIndexingConfigControllerIntegrationTest {
     this.mockMvc.perform(post(sensorIndexingConfigUrl).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
             .andExpect(status().isUnauthorized());
 
-    this.mockMvc.perform(get(sensorIndexingConfigUrl + "/broTest"))
-            .andExpect(status().isUnauthorized());
+    assertEventually(() -> this.mockMvc.perform(get(sensorIndexingConfigUrl + "/broTest"))
+            .andExpect(status().isUnauthorized())
+    );
 
-    this.mockMvc.perform(get(sensorIndexingConfigUrl))
-            .andExpect(status().isUnauthorized());
+    assertEventually(() -> this.mockMvc.perform(get(sensorIndexingConfigUrl))
+            .andExpect(status().isUnauthorized())
+    );
 
-    this.mockMvc.perform(delete(sensorIndexingConfigUrl + "/broTest").with(csrf()))
-            .andExpect(status().isUnauthorized());
+    assertEventually(() -> this.mockMvc.perform(delete(sensorIndexingConfigUrl + "/broTest").with(csrf()))
+            .andExpect(status().isUnauthorized())
+    );
   }
 
   @Test
@@ -114,10 +117,11 @@ public class SensorIndexingConfigControllerIntegrationTest {
             .andExpect(jsonPath("$.index").value("broTest"))
             .andExpect(jsonPath("$.batchSize").value(1));
 
-    this.mockMvc.perform(get(sensorIndexingConfigUrl + "/list/indices/elasticsearch").with(httpBasic(user,password)))
+    assertEventually(() -> this.mockMvc.perform(get(sensorIndexingConfigUrl + "/list/indices/elasticsearch").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(content().bytes("[\"broTest\"]".getBytes()));
+            .andExpect(content().bytes("[\"broTest\"]".getBytes()))
+    );
 
     assertEventually(() -> this.mockMvc.perform(post(sensorIndexingConfigUrl + "/broTest").with(httpBasic(user, password)).with(csrf()).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(broJson))
             .andExpect(status().isOk())
@@ -142,16 +146,18 @@ public class SensorIndexingConfigControllerIntegrationTest {
     this.mockMvc.perform(delete(sensorIndexingConfigUrl + "/broTest").with(httpBasic(user,password)).with(csrf()))
             .andExpect(status().isOk());
 
-    this.mockMvc.perform(get(sensorIndexingConfigUrl + "/broTest").with(httpBasic(user,password)))
-            .andExpect(status().isNotFound());
+    assertEventually(() -> this.mockMvc.perform(get(sensorIndexingConfigUrl + "/broTest").with(httpBasic(user,password)))
+            .andExpect(status().isNotFound())
+    );
 
     this.mockMvc.perform(delete(sensorIndexingConfigUrl + "/broTest").with(httpBasic(user,password)).with(csrf()))
             .andExpect(status().isNotFound());
 
-    this.mockMvc.perform(get(sensorIndexingConfigUrl).with(httpBasic(user,password)))
+    assertEventually(() -> this.mockMvc.perform(get(sensorIndexingConfigUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$[?(@.sensorTopic == 'broTest')]").doesNotExist());
+            .andExpect(jsonPath("$[?(@.sensorTopic == 'broTest')]").doesNotExist())
+    );
 
     sensorIndexingConfigService.delete("broTest");
   }
