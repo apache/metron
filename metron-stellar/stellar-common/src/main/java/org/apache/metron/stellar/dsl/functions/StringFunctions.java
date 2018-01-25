@@ -612,12 +612,12 @@ public class StringFunctions {
         try {
           return (List) JSONUtils.INSTANCE.load(in, JSONUtils.LIST_SUPPLIER);
         } catch (JsonProcessingException ex) {
-          throw new ParseException(String.format("{} is not a valid JSON string", in), ex);
+          throw new ParseException(String.format("%s is not a valid JSON string", in), ex);
         } catch (IOException ex) {
-          throw new ParseException(String.format("{} is not a valid JSON string", in), ex);
+          throw new ParseException(String.format("%s is not a valid JSON string", in), ex);
         }
         catch (ClassCastException ex) {
-          throw new ParseException(String.format("{} is not a valid JSON string, expected a list", in), ex);
+          throw new ParseException(String.format("%s is not a valid JSON string, expected a list", in), ex);
         }
       }
     }
