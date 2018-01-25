@@ -667,7 +667,7 @@ public class StringFunctionsTest {
       run("TO_JSON_MAP('{\"foo\" : 2')", new HashedMap<>());
     } catch (ParseException pe) {
       thrown = true;
-      Assert.assertTrue(pe.getMessage().contains("Valid JSON string not supplied"));
+      Assert.assertTrue(pe.getMessage().contains("is not a valid JSON string"));
     }
     Assert.assertTrue(thrown);
     thrown = false;
