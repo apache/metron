@@ -21,13 +21,16 @@ package org.apache.metron.elasticsearch.integration;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
+import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.integration.InMemoryComponent;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -37,6 +40,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.junit.Test;
 
 public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
@@ -233,4 +237,6 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
       throw new RuntimeException("Failed to index test data");
     }
   }
+
+
 }
