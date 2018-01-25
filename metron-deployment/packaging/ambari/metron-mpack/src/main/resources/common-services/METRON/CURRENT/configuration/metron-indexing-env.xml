@@ -19,10 +19,35 @@
 -->
 <configuration supports_final="true">
     <property>
-        <name>indexing_kafka_start</name>
+        <name>ra_indexing_kafka_start</name>
         <description>Indexing Topology Spout Offset</description>
         <value>UNCOMMITTED_EARLIEST</value>
-        <display-name>Indexing Offset</display-name>
+        <display-name>Elasticsearch Indexing Offset</display-name>
+        <value-attributes>
+            <type>value-list</type>
+            <entries>
+                <entry>
+                    <value>EARLIEST</value>
+                </entry>
+                <entry>
+                    <value>LATEST</value>
+                </entry>
+                <entry>
+                    <value>UNCOMMITTED_EARLIEST</value>
+                </entry>
+                <entry>
+                    <value>UNCOMMITTED_LATEST</value>
+                </entry>
+            </entries>
+            <selection-cardinality>1</selection-cardinality>
+        </value-attributes>
+    </property>
+
+    <property>
+        <name>batch_indexing_kafka_start</name>
+        <description>Indexing Topology Spout Offset</description>
+        <value>UNCOMMITTED_EARLIEST</value>
+        <display-name>HDFS Indexing Offset</display-name>
         <value-attributes>
             <type>value-list</type>
             <entries>
@@ -55,7 +80,7 @@
         <display-name>Indexing Error Topic</display-name>
     </property>
     <property>
-        <name>indexing_writer_class_name</name>
+        <name>ra_indexing_writer_class_name</name>
         <description>Indexing Writer Class Name</description>
         <value>org.apache.metron.elasticsearch.writer.ElasticsearchWriter</value>
         <display-name>Indexing Writer Class Name</display-name>
@@ -73,17 +98,30 @@
         <display-name>Indexing Update Column Family</display-name>
     </property>
     <property>
-        <name>indexing_workers</name>
+        <name>ra_indexing_workers</name>
         <description>Number of Indexing Topology Workers</description>
         <value>1</value>
-        <display-name>Indexing Workers</display-name>
+        <display-name>Indexing Workers for Elasticsearch</display-name>
     </property>
     <property>
-        <name>indexing_acker_executors</name>
+        <name>batch_indexing_workers</name>
+        <description>Number of Indexing Topology Workers</description>
+        <value>1</value>
+        <display-name>Indexing Workers for HDFS</display-name>
+    </property>
+    <property>
+        <name>ra_indexing_acker_executors</name>
         <description>Number of Indexing Topology Ackers</description>
         <value>1</value>
-        <display-name>Enrichment Ackers</display-name>
+        <display-name>Enrichment Ackers for Elasticsearch</display-name>
     </property>
+    <property>
+        <name>batch_indexing_acker_executors</name>
+        <description>Number of Indexing Topology Ackers</description>
+        <value>1</value>
+        <display-name>Enrichment Ackers for HDFS</display-name>
+    </property>
+
     <property>
         <name>indexing_topology_worker_childopts</name>
         <description>Indexing Topology JVM Options</description>
@@ -94,23 +132,39 @@
         </value-attributes>
     </property>
     <property>
-        <name>indexing_topology_max_spout_pending</name>
+        <name>ra_indexing_topology_max_spout_pending</name>
         <description>Indexing Topology Spout Max Pending Tuples</description>
         <value/>
-        <display-name>Indexing Max Pending</display-name>
+        <display-name>Indexing Max Pending for Elasticsearch</display-name>
+        <value-attributes>
+            <empty-value-valid>true</empty-value-valid>
+        </value-attributes>
+     </property>
+     <property>
+        <name>batch_indexing_topology_max_spout_pending</name>
+        <description>Indexing Topology Spout Max Pending Tuples</description>
+        <value/>
+        <display-name>Indexing Max Pending for HDFS</display-name>
         <value-attributes>
             <empty-value-valid>true</empty-value-valid>
         </value-attributes>
     </property>
+
     <property>
-        <name>indexing_kafka_spout_parallelism</name>
-        <description>Indexing Topology Kafka Spout Parallelism</description>
+        <name>ra_indexing_kafka_spout_parallelism</name>
+        <description>Indexing Topology Kafka Spout Parallelism for Elasticsearch</description>
         <value>1</value>
         <display-name>Indexing Spout Parallelism</display-name>
     </property>
     <property>
-        <name>indexing_writer_parallelism</name>
-        <description>Indexing Topology Writer Bolt Parallelism</description>
+        <name>batch_indexing_kafka_spout_parallelism</name>
+        <description>Indexing Topology Kafka Spout Parallelism for HDFS</description>
+        <value>1</value>
+        <display-name>Indexing Spout Parallelism</display-name>
+    </property>
+    <property>
+        <name>ra_indexing_writer_parallelism</name>
+        <description>Indexing Topology Writer Bolt Parallelism for Elasticsearch</description>
         <value>1</value>
         <display-name>Indexing Writer Parallelism</display-name>
     </property>

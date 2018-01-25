@@ -17,11 +17,11 @@
 #}
 
 ##### Storm #####
-indexing.workers={{indexing_workers}}
-indexing.acker.executors={{indexing_acker_executors}}
+indexing.workers={{ra_indexing_workers}}
+indexing.acker.executors={{ra_indexing_acker_executors}}
 topology.worker.childopts={{indexing_topology_worker_childopts}}
 topology.auto-credentials={{topology_auto_credentials}}
-topology.max.spout.pending={{indexing_topology_max_spout_pending}}
+topology.max.spout.pending={{ra_indexing_topology_max_spout_pending}}
 
 ##### Kafka #####
 kafka.zk={{zookeeper_quorum}}
@@ -29,21 +29,14 @@ kafka.broker={{kafka_brokers}}
 kafka.security.protocol={{kafka_security_protocol}}
 
 # One of EARLIEST, LATEST, UNCOMMITTED_EARLIEST, UNCOMMITTED_LATEST
-kafka.start={{indexing_kafka_start}}
+kafka.start={{ra_indexing_kafka_start}}
 
 indexing.input.topic={{indexing_input_topic}}
 indexing.error.topic={{indexing_error_topic}}
 
 ##### Indexing #####
-indexing.writer.class.name={{indexing_writer_class_name}}
-
-##### HDFS #####
-bolt.hdfs.rotation.policy={{bolt_hdfs_rotation_policy}}
-bolt.hdfs.rotation.policy.units={{bolt_hdfs_rotation_policy_units}}
-bolt.hdfs.rotation.policy.count={{bolt_hdfs_rotation_policy_count}}
-indexing.hdfs.output={{metron_apps_indexed_hdfs_dir}}
+indexing.writer.class.name={{ra_indexing_writer_class_name}}
 
 ##### Parallelism #####
-kafka.spout.parallelism={{indexing_kafka_spout_parallelism}}
-indexing.writer.parallelism={{indexing_writer_parallelism}}
-hdfs.writer.parallelism={{hdfs_writer_parallelism}}
+kafka.spout.parallelism={{ra_indexing_kafka_spout_parallelism}}
+indexing.writer.parallelism={{ra_indexing_writer_parallelism}}

@@ -31,7 +31,8 @@ import metron_security
 class IndexingCommands:
     __params = None
     __indexing_topic = None
-    __indexing_topology = None
+    __random_access_indexing_topology = None
+    __batch_indexing_topology = None
     __configured = False
     __acl_configured = False
     __hdfs_perm_configured = False
@@ -42,7 +43,8 @@ class IndexingCommands:
         if params is None:
             raise ValueError("params argument is required for initialization")
         self.__params = params
-        self.__indexing_topology = params.metron_indexing_topology
+        self.__random_access_indexing_topology = params.metron_random_access_indexing_topology
+        self.__batch_indexing_topology = params.metron_batch_indexing_topology
         self.__indexing_topic = params.indexing_input_topic
         self.__configured = os.path.isfile(self.__params.indexing_configured_flag_file)
         self.__acl_configured = os.path.isfile(self.__params.indexing_acl_configured_flag_file)
@@ -56,7 +58,7 @@ class IndexingCommands:
 
     def __get_kafka_acl_groups(self):
         # Indexed topic names matches the group
-        return [self.__indexing_topic]
+        return ['indexing-batch', 'indexing-ra']
 
     def get_templates(self):
         """
@@ -185,8 +187,8 @@ class IndexingCommands:
               user=self.__params.metron_user,
               err_msg=err_msg.format(template_name))
 
-    def start_indexing_topology(self, env):
-        Logger.info('Starting ' + self.__indexing_topology)
+    def start_batch_indexing_topology(self, env):
+        Logger.info('Starting ' + self.__batch_indexing_topology)
 
         if not self.is_topology_active(env):
             if self.__params.security_enabled:
@@ -195,34 +197,77 @@ class IndexingCommands:
                                       self.__params.metron_principal_name,
                                       execute_user=self.__params.metron_user)
 
-            start_cmd_template = """{0}/bin/start_elasticsearch_topology.sh \
-                                        -s {1} \
-                                        -z {2}"""
-            start_cmd = start_cmd_template.format(self.__params.metron_home,
-                                                  self.__indexing_topology,
-                                                  self.__params.zookeeper_quorum)
+            start_cmd_template = """{0}/bin/start_hdfs_topology.sh"""
+            start_cmd = start_cmd_template.format(self.__params.metron_home)
             Execute(start_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
 
         else:
-            Logger.info('Indexing topology already running')
+            Logger.info('Batch Indexing topology already running')
 
-        Logger.info('Finished starting indexing topology')
+        Logger.info('Finished starting batch indexing topology')
 
-    def stop_indexing_topology(self, env):
-        Logger.info('Stopping ' + self.__indexing_topology)
+    def start_random_access_indexing_topology(self, env):
+        Logger.info('Starting ' + self.__random_access_indexing_topology)
 
-        if self.is_topology_active(env):
+        if not self.is_topology_active(env):
             if self.__params.security_enabled:
                 metron_security.kinit(self.__params.kinit_path_local,
                                       self.__params.metron_keytab_path,
                                       self.__params.metron_principal_name,
                                       execute_user=self.__params.metron_user)
-            stop_cmd = 'storm kill ' + self.__indexing_topology
+
+            start_cmd_template = """{0}/bin/start_elasticsearch_topology.sh"""
+            start_cmd = start_cmd_template.format(self.__params.metron_home)
+            Execute(start_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
+
+        else:
+            Logger.info('Random Access Indexing topology already running')
+
+        Logger.info('Finished starting random access indexing topology')
+
+
+    def start_indexing_topology(self, env):
+        self.start_batch_indexing_topology(env)
+        self.start_random_access_indexing_topology(env)
+        Logger.info('Finished starting indexing topologies')
+
+    def stop_batch_indexing_topology(self, env):
+        Logger.info('Stopping ' + self.__batch_indexing_topology)
+
+        if self.is_batch_topology_active(env):
+            if self.__params.security_enabled:
+                metron_security.kinit(self.__params.kinit_path_local,
+                                      self.__params.metron_keytab_path,
+                                      self.__params.metron_principal_name,
+                                      execute_user=self.__params.metron_user)
+            stop_cmd = 'storm kill ' + self.__batch_indexing_topology
             Execute(stop_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
 
         else:
-            Logger.info("Indexing topology already stopped")
+            Logger.info("Batch Indexing topology already stopped")
 
+        Logger.info('Done stopping batch indexing topologies')
+
+    def stop_random_access_indexing_topology(self, env):
+        Logger.info('Stopping ' + self.__random_access_indexing_topology)
+
+        if self.is_random_access_topology_active(env):
+            if self.__params.security_enabled:
+                metron_security.kinit(self.__params.kinit_path_local,
+                                      self.__params.metron_keytab_path,
+                                      self.__params.metron_principal_name,
+                                      execute_user=self.__params.metron_user)
+            stop_cmd = 'storm kill ' + self.__random_access_indexing_topology
+            Execute(stop_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
+
+        else:
+            Logger.info("Random Access Indexing topology already stopped")
+
+        Logger.info('Done stopping random access indexing topologies')
+
+    def stop_indexing_topology(self, env):
+        self.stop_batch_indexing_topology(env)
+        self.stop_random_access_indexing_topology(env)
         Logger.info('Done stopping indexing topologies')
 
     def restart_indexing_topology(self, env):
@@ -245,15 +290,25 @@ class IndexingCommands:
         else:
             Logger.warning('Retries exhausted. Existing topology not cleaned up.  Aborting topology start.')
 
-    def is_topology_active(self, env):
+    def is_batch_topology_active(self, env):
         env.set_params(self.__params)
-        active = True
         topologies = metron_service.get_running_topologies(self.__params)
-        is_running = False
-        if self.__indexing_topology in topologies:
-            is_running = topologies[self.__indexing_topology] in ['ACTIVE', 'REBALANCING']
-        active &= is_running
-        return active
+        is_batch_running = False
+        if self.__batch_indexing_topology in topologies:
+            is_batch_running = topologies[self.__batch_indexing_topology] in ['ACTIVE', 'REBALANCING']
+        return is_batch_running
+
+    def is_random_access_topology_active(self, env):
+        env.set_params(self.__params)
+        topologies = metron_service.get_running_topologies(self.__params)
+        is_random_access_running = False
+        if self.__random_access_indexing_topology in topologies:
+            is_random_access_running = topologies[self.__random_access_indexing_topology] in ['ACTIVE', 'REBALANCING']
+        return is_random_access_running
+
+
+    def is_topology_active(self, env):
+        return self.is_batch_topology_active(env) and self.is_random_access_topology_active(env)
 
     def service_check(self, env):
         """

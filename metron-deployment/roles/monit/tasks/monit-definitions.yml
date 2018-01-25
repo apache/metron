@@ -20,8 +20,3 @@
   template: src=monit/pcap-replay.monit dest={{ monit_config_home }}/pcap-replay.monit
   when: ("sensors" in group_names) and (install_pcap_replay | default(False))
   tags: sensors
-  
-- name: Create monit definition for pcap-service
-  template: src=monit/pcap-service.monit dest={{ monit_config_home }}/pcap-service.monit
-  when: ("pcap_server" in group_names)
-
