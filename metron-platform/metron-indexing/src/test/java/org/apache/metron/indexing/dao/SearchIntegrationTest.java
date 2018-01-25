@@ -514,14 +514,9 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(10, results.size());
 
     // the remaining are missing the 'threat:triage:score' and should be sorted last
-    Assert.assertFalse(results.get(0).getSource().containsKey("threat:triage:score"));
-    Assert.assertFalse(results.get(1).getSource().containsKey("threat:triage:score"));
-    Assert.assertFalse(results.get(2).getSource().containsKey("threat:triage:score"));
-    Assert.assertFalse(results.get(3).getSource().containsKey("threat:triage:score"));
-    Assert.assertFalse(results.get(4).getSource().containsKey("threat:triage:score"));
-    Assert.assertFalse(results.get(5).getSource().containsKey("threat:triage:score"));
-    Assert.assertFalse(results.get(6).getSource().containsKey("threat:triage:score"));
-    Assert.assertFalse(results.get(7).getSource().containsKey("threat:triage:score"));
+    for (int i = 0; i < 8; i++) {
+      Assert.assertFalse(results.get(i).getSource().containsKey("threat:triage:score"));
+    }
 
     // validate sorted order - there are only 2 with a 'threat:triage:score'
     Assert.assertEquals("10.0", results.get(8).getSource().get("threat:triage:score").toString());
@@ -541,14 +536,9 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals("10.0", results.get(1).getSource().get("threat:triage:score").toString());
 
     // the remaining are missing the 'threat:triage:score' and should be sorted last
-    Assert.assertFalse(results.get(2).getSource().containsKey("threat:triage:score"));
-    Assert.assertFalse(results.get(3).getSource().containsKey("threat:triage:score"));
-    Assert.assertFalse(results.get(4).getSource().containsKey("threat:triage:score"));
-    Assert.assertFalse(results.get(5).getSource().containsKey("threat:triage:score"));
-    Assert.assertFalse(results.get(6).getSource().containsKey("threat:triage:score"));
-    Assert.assertFalse(results.get(7).getSource().containsKey("threat:triage:score"));
-    Assert.assertFalse(results.get(8).getSource().containsKey("threat:triage:score"));
-    Assert.assertFalse(results.get(9).getSource().containsKey("threat:triage:score"));
+    for (int i = 2; i < 10; i++) {
+      Assert.assertFalse(results.get(i).getSource().containsKey("threat:triage:score"));
+    }
   }
 
   @Test
