@@ -34,5 +34,13 @@
     - metron
 
 - include: sensor_install.yml
+
+#
+# deployment report
+#
+- hosts: metron
+  become: false
+  roles:
+    - { role: deployment-report }
   tags:
-    - sensors
+    - report

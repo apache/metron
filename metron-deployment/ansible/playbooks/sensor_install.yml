@@ -57,11 +57,3 @@
     - { role: sensor-stubs }
   tags:
     - sensor-stubs
-
-#
-# deployment report
-#
-- hosts: sensors
-  become: false
-  roles:
-    - { role: deployment-report,      tags: ['report'] }
