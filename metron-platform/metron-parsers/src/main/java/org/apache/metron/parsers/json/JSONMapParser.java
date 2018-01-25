@@ -17,7 +17,6 @@
  */
 package org.apache.metron.parsers.json;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.utils.JSONUtils;
@@ -96,8 +95,7 @@ public class JSONMapParser extends BasicParser {
     try {
       String originalString = new String(rawMessage);
       //convert the JSON blob into a String -> Object map
-      Map<String, Object> rawMap = JSONUtils.INSTANCE.load(originalString, new TypeReference<Map<String, Object>>() {
-      });
+      Map<String, Object> rawMap = JSONUtils.INSTANCE.load(originalString, JSONUtils.MAP_SUPPLIER);
       JSONObject ret = normalizeJSON(rawMap);
       ret.put("original_string", originalString );
       if(!ret.containsKey("timestamp")) {

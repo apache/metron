@@ -17,7 +17,6 @@
  */
 package org.apache.metron.common.configuration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.JSONUtils;
 
@@ -77,8 +76,7 @@ public class IndexingConfigurations extends Configurations {
   }
 
   public void updateSensorIndexingConfig(String sensorType, InputStream io) throws IOException {
-    Map<String, Object> sensorIndexingConfig = JSONUtils.INSTANCE.load(io, new TypeReference<Map<String, Object>>() {
-    });
+    Map<String, Object> sensorIndexingConfig = JSONUtils.INSTANCE.load(io, JSONUtils.MAP_SUPPLIER);
     updateSensorIndexingConfig(sensorType, sensorIndexingConfig);
   }
 

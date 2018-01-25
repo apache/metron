@@ -18,7 +18,6 @@
 
 package org.apache.metron.common.utils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
@@ -50,8 +49,7 @@ public enum KafkaUtils {
     for(String id : client.getChildren().forPath("/brokers/ids")) {
       byte[] data = client.getData().forPath("/brokers/ids/" + id);
       String brokerInfoStr = new String(data);
-      Map<String, Object> brokerInfo = JSONUtils.INSTANCE.load(brokerInfoStr, new TypeReference<Map<String, Object>>() {
-      });
+      Map<String, Object> brokerInfo = JSONUtils.INSTANCE.load(brokerInfoStr, JSONUtils.MAP_SUPPLIER);
       String host = (String) brokerInfo.get("host");
       if(host != null) {
         ret.add(host + ":" + brokerInfo.get("port"));

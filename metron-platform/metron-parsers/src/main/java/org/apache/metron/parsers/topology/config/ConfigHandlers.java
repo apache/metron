@@ -19,7 +19,6 @@
 package org.apache.metron.parsers.topology.config;
 
 import org.apache.storm.Config;
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.io.FileUtils;
 import org.apache.metron.common.utils.JSONUtils;
 
@@ -81,8 +80,7 @@ public class ConfigHandlers {
           json = arg.getArg();
         }
         try {
-          arg.getConfig().putAll(JSONUtils.INSTANCE.load(json, new TypeReference<Map<String, Object>>() {
-          }));
+          arg.getConfig().putAll(JSONUtils.INSTANCE.load(json, JSONUtils.MAP_SUPPLIER));
         } catch (IOException e) {
           throw new IllegalStateException("Unable to process JSON snippet.", e);
         }

@@ -17,7 +17,6 @@
  */
 package org.apache.metron.common.configuration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,8 +60,7 @@ public class Configurations implements Serializable {
   }
 
   public void updateGlobalConfig(InputStream io) throws IOException {
-    Map<String, Object> globalConfig = JSONUtils.INSTANCE.load(io, new TypeReference<Map<String, Object>>() {
-    });
+    Map<String, Object> globalConfig = JSONUtils.INSTANCE.load(io, JSONUtils.MAP_SUPPLIER);
     updateGlobalConfig(globalConfig);
   }
 

@@ -20,7 +20,6 @@ package org.apache.metron.stellar.dsl.functions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
@@ -570,7 +569,7 @@ public class StringFunctions {
         }
         // Return parsed JSON Object as a HashMap
         try {
-          return JSONUtils.INSTANCE.load((String) strings.get(0), new TypeReference<Map<String, Object>>(){});
+          return JSONUtils.INSTANCE.load((String) strings.get(0), JSONUtils.MAP_SUPPLIER);
         } catch (JsonProcessingException ex) {
           throw new ParseException("Valid JSON string not supplied", ex);
         } catch (IOException e) {
@@ -607,7 +606,7 @@ public class StringFunctions {
         }
         // Return parsed JSON Object as a List
         try {
-          return (List) JSONUtils.INSTANCE.load((String) strings.get(0), new TypeReference<List<Object>>(){});
+          return (List) JSONUtils.INSTANCE.load((String) strings.get(0), JSONUtils.LIST_SUPPLIER);
         } catch (JsonProcessingException ex) {
           throw new ParseException("Valid JSON string not supplied", ex);
         } catch (IOException e) {

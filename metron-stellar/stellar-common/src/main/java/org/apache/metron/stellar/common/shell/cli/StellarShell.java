@@ -20,7 +20,6 @@
 
 package org.apache.metron.stellar.common.shell.cli;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.commons.cli.CommandLine;
@@ -221,7 +220,7 @@ public class StellarShell extends AeshConsoleCallback implements Completion {
       String variablePath = commandLine.getOptionValue("v");
       Map<String, Object> variables = JSONUtils.INSTANCE.load(
               new File(variablePath),
-              new TypeReference<Map<String, Object>>() {});
+              JSONUtils.MAP_SUPPLIER);
 
       // for each variable...
       for(Map.Entry<String, Object> kv : variables.entrySet()) {
