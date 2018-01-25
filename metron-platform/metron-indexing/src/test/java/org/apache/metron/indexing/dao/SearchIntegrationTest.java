@@ -46,14 +46,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 public abstract class SearchIntegrationTest {
   /**
    * [
@@ -80,15 +72,6 @@ public abstract class SearchIntegrationTest {
   public static String snortData;
 
   /**
-   * [
-   *{"guid":"meta_1","alert":[{"guid":"bro_1"}],"average":"5.0","min":"5.0","median":"5.0","max":"5.0","count":"1.0","sum":"5.0"},
-   *{"guid":"meta_2","alert":[{"guid":"bro_1"},{"guid":"bro_2"},{"guid":"snort_1"}],"average":"5.0","min":"0.0","median":"5.0","max":"10.0","count":"3.0","sum":"15.0"}
-   * ]
-   */
-  @Multiline
-  public static String metaAlertData;
-
-  /**
    * {
    * "indices": ["bro", "snort"],
    * "query": "*",
@@ -107,7 +90,7 @@ public abstract class SearchIntegrationTest {
 
   /**
    * {
-   * "guid": "bro-3",
+   * "guid": "bro_3",
    * "sensorType": "bro"
    * }
    */
@@ -117,12 +100,12 @@ public abstract class SearchIntegrationTest {
   /**
    * [
    * {
-   * "guid": "bro-1",
+   * "guid": "bro_1",
    * "sensorType": "bro"
    * },
    * {
-   * "guid": "bro-2",
-   * "sensorType": "bro"
+   * "guid": "snort_2",
+   * "sensorType": "snort"
    * }
    * ]
    */
@@ -240,7 +223,7 @@ public abstract class SearchIntegrationTest {
   /**
    * {
    * "facetFields": ["source:type", "ip_src_addr", "ip_src_port", "long_field", "timestamp", "latitude", "score", "is_alert"],
-   * "indices": ["bro", "snort", "metaalert"],
+   * "indices": ["bro", "snort"],
    * "query": "*",
    * "from": 0,
    * "size": 10,
@@ -346,7 +329,7 @@ public abstract class SearchIntegrationTest {
   /**
    * {
    * "fields": ["guid"],
-   * "indices": ["metaalert"],
+   * "indices": ["bro"],
    * "query": "*",
    * "from": 0,
    * "size": 10,
@@ -360,7 +343,7 @@ public abstract class SearchIntegrationTest {
    * }
    */
   @Multiline
-  public static String metaAlertsFieldQuery;
+  public static String sortByGuidQuery;
 
   /**
    * {
@@ -373,7 +356,7 @@ public abstract class SearchIntegrationTest {
    *   }
    * ],
    * "scoreField":"score",
-   * "indices": ["bro", "snort", "metaalert"],
+   * "indices": ["bro", "snort"],
    * "query": "*"
    * }
    */
@@ -398,7 +381,7 @@ public abstract class SearchIntegrationTest {
    *     }
    *   }
    * ],
-   * "indices": ["bro", "snort", "metaalert"],
+   * "indices": ["bro", "snort"],
    * "query": "*"
    * }
    */
@@ -453,6 +436,23 @@ public abstract class SearchIntegrationTest {
   public ExpectedException thrown = ExpectedException.none();
 
   @Test
+  public void all_query_returns_all_results() throws Exception {
+    SearchRequest request = JSONUtils.INSTANCE.load(allQuery, SearchRequest.class);
+    SearchResponse response = dao.search(request);
+    Assert.assertEquals(10, response.getTotal());
+    List<SearchResult> results = response.getResults();
+    Assert.assertEquals(10, results.size());
+    for(int i = 0;i < 5;++i) {
+      Assert.assertEquals("snort", results.get(i).getSource().get("source:type"));
+      Assert.assertEquals(10 - i, results.get(i).getSource().get("timestamp"));
+    }
+    for (int i = 5; i < 10; ++i) {
+      Assert.assertEquals("bro", results.get(i).getSource().get("source:type"));
+      Assert.assertEquals(10 - i, results.get(i).getSource().get("timestamp"));
+    }
+  }
+
+  @Test
   public void find_one_guid() throws Exception {
     GetRequest request = JSONUtils.INSTANCE.load(findOneGuidQuery, GetRequest.class);
     Optional<Map<String, Object>> response = dao.getLatestResult(request);
@@ -463,240 +463,19 @@ public abstract class SearchIntegrationTest {
   }
 
   @Test
-  public void all_query_returns_all_results() throws Exception {
-    //All Query Testcase
-    {
-      SearchRequest request = JSONUtils.INSTANCE.load(allQuery, SearchRequest.class);
-      SearchResponse response = dao.search(request);
-      Assert.assertEquals(10, response.getTotal());
-      List<SearchResult> results = response.getResults();
-      Assert.assertEquals(10, results.size());
-      for(int i = 0;i < 5;++i) {
-        Assert.assertEquals("snort", results.get(i).getSource().get("source:type"));
-        Assert.assertEquals(10 - i, results.get(i).getSource().get("timestamp"));
-      }
-      for (int i = 5; i < 10; ++i) {
-        Assert.assertEquals("bro", results.get(i).getSource().get("source:type"));
-        Assert.assertEquals(10 - i, results.get(i).getSource().get("timestamp"));
-      }
+  public void get_all_latest_guid() throws Exception {
+    List<GetRequest> request = JSONUtils.INSTANCE.load(getAllLatestQuery, new TypeReference<List<GetRequest>>() {
+    });
+    Map<String, Document> docs = new HashMap<>();
+
+    for(Document doc : dao.getAllLatest(request)) {
+      docs.put(doc.getGuid(), doc);
     }
-    //Get All Latest Guid Testcase
-    {
-      List<GetRequest> request = JSONUtils.INSTANCE.load(getAllLatestQuery, new TypeReference<List<GetRequest>>() {
-      });
-      Map<String, Document> docs = new HashMap<>();
-
-      for(Document doc : dao.getAllLatest(request)) {
-        docs.put(doc.getGuid(), doc);
-      }
-      Assert.assertEquals(2, docs.size());
-      Assert.assertTrue(docs.keySet().contains("bro-1"));
-      Assert.assertTrue(docs.keySet().contains("bro-2"));
-      for(Map.Entry<String, Document> kv : docs.entrySet()) {
-        Document d = kv.getValue();
-        Assert.assertEquals("bro", d.getDocument().get("source:type"));
-      }
-    }
-    //Filter test case
-    {
-      SearchRequest request = JSONUtils.INSTANCE.load(filterQuery, SearchRequest.class);
-      SearchResponse response = dao.search(request);
-      Assert.assertEquals(3, response.getTotal());
-      List<SearchResult> results = response.getResults();
-      Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
-      Assert.assertEquals(9, results.get(0).getSource().get("timestamp"));
-      Assert.assertEquals("snort", results.get(1).getSource().get("source:type"));
-      Assert.assertEquals(7, results.get(1).getSource().get("timestamp"));
-      Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
-      Assert.assertEquals(1, results.get(2).getSource().get("timestamp"));
-    }
-    //Sort test case
-    {
-      SearchRequest request = JSONUtils.INSTANCE.load(sortQuery, SearchRequest.class);
-      SearchResponse response = dao.search(request);
-      Assert.assertEquals(10, response.getTotal());
-      List<SearchResult> results = response.getResults();
-      for(int i = 8001;i < 8011;++i) {
-        Assert.assertEquals(i, results.get(i-8001).getSource().get("ip_src_port"));
-      }
-    }
-    //Sort descending with missing fields
-    {
-      SearchRequest request = JSONUtils.INSTANCE.load(sortDescendingWithMissingFields, SearchRequest.class);
-      SearchResponse response = dao.search(request);
-      Assert.assertEquals(10, response.getTotal());
-      List<SearchResult> results = response.getResults();
-      Assert.assertEquals(10, results.size());
-
-      // validate sorted order - there are only 2 with a 'threat:triage:score'
-      Assert.assertEquals("20", results.get(0).getSource().get("threat:triage:score"));
-      Assert.assertEquals("10", results.get(1).getSource().get("threat:triage:score"));
-
-      // the remaining are missing the 'threat:triage:score' and should be sorted last
-      Assert.assertFalse(results.get(2).getSource().containsKey("threat:triage:score"));
-      Assert.assertFalse(results.get(3).getSource().containsKey("threat:triage:score"));
-      Assert.assertFalse(results.get(4).getSource().containsKey("threat:triage:score"));
-      Assert.assertFalse(results.get(5).getSource().containsKey("threat:triage:score"));
-      Assert.assertFalse(results.get(6).getSource().containsKey("threat:triage:score"));
-      Assert.assertFalse(results.get(7).getSource().containsKey("threat:triage:score"));
-      Assert.assertFalse(results.get(8).getSource().containsKey("threat:triage:score"));
-      Assert.assertFalse(results.get(9).getSource().containsKey("threat:triage:score"));
-    }
-    //Sort ascending with missing fields
-    {
-      SearchRequest request = JSONUtils.INSTANCE.load(sortAscendingWithMissingFields, SearchRequest.class);
-      SearchResponse response = dao.search(request);
-      Assert.assertEquals(10, response.getTotal());
-      List<SearchResult> results = response.getResults();
-      Assert.assertEquals(10, results.size());
-
-      // the remaining are missing the 'threat:triage:score' and should be sorted last
-      Assert.assertFalse(results.get(0).getSource().containsKey("threat:triage:score"));
-      Assert.assertFalse(results.get(1).getSource().containsKey("threat:triage:score"));
-      Assert.assertFalse(results.get(2).getSource().containsKey("threat:triage:score"));
-      Assert.assertFalse(results.get(3).getSource().containsKey("threat:triage:score"));
-      Assert.assertFalse(results.get(4).getSource().containsKey("threat:triage:score"));
-      Assert.assertFalse(results.get(5).getSource().containsKey("threat:triage:score"));
-      Assert.assertFalse(results.get(6).getSource().containsKey("threat:triage:score"));
-      Assert.assertFalse(results.get(7).getSource().containsKey("threat:triage:score"));
-
-      // validate sorted order - there are only 2 with a 'threat:triage:score'
-      Assert.assertEquals("10", results.get(8).getSource().get("threat:triage:score"));
-      Assert.assertEquals("20", results.get(9).getSource().get("threat:triage:score"));
-    }
-    //pagination test case
-    {
-      SearchRequest request = JSONUtils.INSTANCE.load(paginationQuery, SearchRequest.class);
-      SearchResponse response = dao.search(request);
-      Assert.assertEquals(10, response.getTotal());
-      List<SearchResult> results = response.getResults();
-      Assert.assertEquals(3, results.size());
-      Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
-      Assert.assertEquals(6, results.get(0).getSource().get("timestamp"));
-      Assert.assertEquals("bro", results.get(1).getSource().get("source:type"));
-      Assert.assertEquals(5, results.get(1).getSource().get("timestamp"));
-      Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
-      Assert.assertEquals(4, results.get(2).getSource().get("timestamp"));
-    }
-    //Index query
-    {
-      SearchRequest request = JSONUtils.INSTANCE.load(indexQuery, SearchRequest.class);
-      SearchResponse response = dao.search(request);
-      Assert.assertEquals(5, response.getTotal());
-      List<SearchResult> results = response.getResults();
-      for(int i = 5,j=0;i > 0;i--,j++) {
-        Assert.assertEquals("bro", results.get(j).getSource().get("source:type"));
-        Assert.assertEquals(i, results.get(j).getSource().get("timestamp"));
-      }
-    }
-    //Facet query including all field types
-    {
-      SearchRequest request = JSONUtils.INSTANCE.load(facetQuery, SearchRequest.class);
-      SearchResponse response = dao.search(request);
-      Assert.assertEquals(12, response.getTotal());
-
-      Map<String, Map<String, Long>> facetCounts = response.getFacetCounts();
-      Assert.assertEquals(8, facetCounts.size());
-
-      // source:type
-      Map<String, Long> sourceTypeCounts = facetCounts.get("source:type");
-      Assert.assertEquals(2, sourceTypeCounts.size());
-      Assert.assertEquals(new Long(5), sourceTypeCounts.get("bro"));
-      Assert.assertEquals(new Long(5), sourceTypeCounts.get("snort"));
-
-      // ip_src_addr
-      Map<String, Long> ipSrcAddrCounts = facetCounts.get("ip_src_addr");
-      Assert.assertEquals(8, ipSrcAddrCounts.size());
-      Assert.assertEquals(new Long(3), ipSrcAddrCounts.get("192.168.1.1"));
-      Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.2"));
-      Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.3"));
-      Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.4"));
-      Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.5"));
-      Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.6"));
-      Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.7"));
-      Assert.assertEquals(new Long(1), ipSrcAddrCounts.get("192.168.1.8"));
-
-      // ip_src_port
-      Map<String, Long> ipSrcPortCounts = facetCounts.get("ip_src_port");
-      Assert.assertEquals(10, ipSrcPortCounts.size());
-      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8001"));
-      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8002"));
-      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8003"));
-      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8004"));
-      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8005"));
-      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8006"));
-      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8007"));
-      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8008"));
-      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8009"));
-      Assert.assertEquals(new Long(1), ipSrcPortCounts.get("8010"));
-
-      // long_field
-      Map<String, Long> longFieldCounts = facetCounts.get("long_field");
-      Assert.assertEquals(2, longFieldCounts.size());
-      Assert.assertEquals(new Long(8), longFieldCounts.get("10000"));
-      Assert.assertEquals(new Long(2), longFieldCounts.get("20000"));
-
-      // timestamp
-      Map<String, Long> timestampCounts = facetCounts.get("timestamp");
-      Assert.assertEquals(10, timestampCounts.size());
-      Assert.assertEquals(new Long(1), timestampCounts.get("1"));
-      Assert.assertEquals(new Long(1), timestampCounts.get("2"));
-      Assert.assertEquals(new Long(1), timestampCounts.get("3"));
-      Assert.assertEquals(new Long(1), timestampCounts.get("4"));
-      Assert.assertEquals(new Long(1), timestampCounts.get("5"));
-      Assert.assertEquals(new Long(1), timestampCounts.get("6"));
-      Assert.assertEquals(new Long(1), timestampCounts.get("7"));
-      Assert.assertEquals(new Long(1), timestampCounts.get("8"));
-      Assert.assertEquals(new Long(1), timestampCounts.get("9"));
-      Assert.assertEquals(new Long(1), timestampCounts.get("10"));
-
-      // latitude
-      Map<String, Long> latitudeCounts = facetCounts.get("latitude");
-      Assert.assertEquals(2, latitudeCounts.size());
-      List<String> latitudeKeys = new ArrayList<>(latitudeCounts.keySet());
-      Collections.sort(latitudeKeys);
-      Assert.assertEquals(48.0001, Double.parseDouble(latitudeKeys.get(0)), 0.00001);
-      Assert.assertEquals(48.5839, Double.parseDouble(latitudeKeys.get(1)), 0.00001);
-      Assert.assertEquals(new Long(2), latitudeCounts.get(latitudeKeys.get(0)));
-      Assert.assertEquals(new Long(8), latitudeCounts.get(latitudeKeys.get(1)));
-
-      // score
-      Map<String, Long> scoreFieldCounts = facetCounts.get("score");
-      Assert.assertEquals(4, scoreFieldCounts.size());
-      List<String> scoreFieldKeys = new ArrayList<>(scoreFieldCounts.keySet());
-      Collections.sort(scoreFieldKeys);
-      Assert.assertEquals(10.0, Double.parseDouble(scoreFieldKeys.get(0)), 0.00001);
-      Assert.assertEquals(20.0, Double.parseDouble(scoreFieldKeys.get(1)), 0.00001);
-      Assert.assertEquals(50.0, Double.parseDouble(scoreFieldKeys.get(2)), 0.00001);
-      Assert.assertEquals(98.0, Double.parseDouble(scoreFieldKeys.get(3)), 0.00001);
-      Assert.assertEquals(new Long(4), scoreFieldCounts.get(scoreFieldKeys.get(0)));
-      Assert.assertEquals(new Long(2), scoreFieldCounts.get(scoreFieldKeys.get(1)));
-      Assert.assertEquals(new Long(3), scoreFieldCounts.get(scoreFieldKeys.get(2)));
-      Assert.assertEquals(new Long(1), scoreFieldCounts.get(scoreFieldKeys.get(3)));
-
-      // is_alert
-      Map<String, Long> isAlertCounts = facetCounts.get("is_alert");
-      Assert.assertEquals(2, isAlertCounts.size());
-      Assert.assertEquals(new Long(6), isAlertCounts.get("true"));
-      Assert.assertEquals(new Long(4), isAlertCounts.get("false"));
-    }
-    //Bad facet query
-    {
-      SearchRequest request = JSONUtils.INSTANCE.load(badFacetQuery, SearchRequest.class);
-      try {
-        dao.search(request);
-        Assert.fail("Exception expected, but did not come.");
-      }
-      catch(InvalidSearchException ise) {
-        // success
-      }
-    }
-    //Disabled facet query
-    {
-      SearchRequest request = JSONUtils.INSTANCE.load(disabledFacetQuery, SearchRequest.class);
-      SearchResponse response = dao.search(request);
-      Assert.assertNull(response.getFacetCounts());
-    }
+    Assert.assertEquals(2, docs.size());
+    Assert.assertTrue(docs.keySet().contains("bro_1"));
+    Assert.assertTrue(docs.keySet().contains("snort_2"));
+    Assert.assertEquals("bro", docs.get("bro_1").getDocument().get("source:type"));
+    Assert.assertEquals("snort", docs.get("snort_2").getDocument().get("source:type"));
   }
 
   @Test
@@ -721,6 +500,42 @@ public abstract class SearchIntegrationTest {
     List<SearchResult> results = response.getResults();
     for (int i = 8001; i < 8011; ++i) {
       Assert.assertEquals(i, results.get(i - 8001).getSource().get("ip_src_port"));
+    }
+  }
+
+  @Test
+  public void sort_ascending_with_missing_fields() throws Exception {
+    SearchRequest request = JSONUtils.INSTANCE.load(sortAscendingWithMissingFields, SearchRequest.class);
+    SearchResponse response = dao.search(request);
+    Assert.assertEquals(10, response.getTotal());
+    List<SearchResult> results = response.getResults();
+    Assert.assertEquals(10, results.size());
+
+    // the remaining are missing the 'threat:triage:score' and should be sorted last
+    for (int i = 0; i < 8; i++) {
+      Assert.assertFalse(results.get(i).getSource().containsKey("threat:triage:score"));
+    }
+
+    // validate sorted order - there are only 2 with a 'threat:triage:score'
+    Assert.assertEquals("10", results.get(8).getSource().get("threat:triage:score"));
+    Assert.assertEquals("20", results.get(9).getSource().get("threat:triage:score"));
+  }
+
+  @Test
+  public void sort_descending_with_missing_fields() throws Exception {
+    SearchRequest request = JSONUtils.INSTANCE.load(sortDescendingWithMissingFields, SearchRequest.class);
+    SearchResponse response = dao.search(request);
+    Assert.assertEquals(10, response.getTotal());
+    List<SearchResult> results = response.getResults();
+    Assert.assertEquals(10, results.size());
+
+    // validate sorted order - there are only 2 with a 'threat:triage:score'
+    Assert.assertEquals("20", results.get(0).getSource().get("threat:triage:score"));
+    Assert.assertEquals("10", results.get(1).getSource().get("threat:triage:score"));
+
+    // the remaining are missing the 'threat:triage:score' and should be sorted last
+    for (int i = 2; i < 10; i++) {
+      Assert.assertFalse(results.get(i).getSource().containsKey("threat:triage:score"));
     }
   }
 
@@ -755,7 +570,7 @@ public abstract class SearchIntegrationTest {
   public void facet_query_yields_field_types() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(facetQuery, SearchRequest.class);
     SearchResponse response = dao.search(request);
-    Assert.assertEquals(12, response.getTotal());
+    Assert.assertEquals(10, response.getTotal());
     Map<String, Map<String, Long>> facetCounts = response.getFacetCounts();
     Assert.assertEquals(8, facetCounts.size());
     Map<String, Long> sourceTypeCounts = facetCounts.get("source:type");
@@ -1110,15 +925,15 @@ public abstract class SearchIntegrationTest {
   }
 
   @Test
-  public void searches_metaalerts_fields() throws Exception {
-    SearchRequest request = JSONUtils.INSTANCE.load(metaAlertsFieldQuery, SearchRequest.class);
+  public void sort_by_guid() throws Exception {
+    SearchRequest request = JSONUtils.INSTANCE.load(sortByGuidQuery, SearchRequest.class);
     SearchResponse response = dao.search(request);
-    Assert.assertEquals(2, response.getTotal());
+    Assert.assertEquals(5, response.getTotal());
     List<SearchResult> results = response.getResults();
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 5; ++i) {
       Map<String, Object> source = results.get(i).getSource();
       Assert.assertEquals(1, source.size());
-      Assert.assertEquals(source.get("guid"), "meta_" + (i + 1));
+      Assert.assertEquals(source.get("guid"), "bro_" + (i + 1));
     }
   }
 

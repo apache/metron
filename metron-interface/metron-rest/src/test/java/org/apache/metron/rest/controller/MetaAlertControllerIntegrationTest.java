@@ -96,13 +96,22 @@ public class MetaAlertControllerIntegrationTest extends DaoControllerTest {
   @Multiline
   public static String create;
 
+  /**
+   * [
+   *{"guid":"meta_1","alert":[{"guid":"bro_1"}],"average":"5.0","min":"5.0","median":"5.0","max":"5.0","count":"1.0","sum":"5.0"},
+   *{"guid":"meta_2","alert":[{"guid":"bro_1"},{"guid":"bro_2"},{"guid":"snort_1"}],"average":"5.0","min":"0.0","median":"5.0","max":"10.0","count":"3.0","sum":"15.0"}
+   * ]
+   */
+  @Multiline
+  public static String metaAlertData;
+
   @Before
   public void setup() throws Exception {
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
     ImmutableMap<String, String> testData = ImmutableMap.of(
         "bro_index_2017.01.01.01", SearchIntegrationTest.broData,
         "snort_index_2017.01.01.01", SearchIntegrationTest.snortData,
-        MetaAlertDao.METAALERTS_INDEX, SearchIntegrationTest.metaAlertData
+        MetaAlertDao.METAALERTS_INDEX, metaAlertData
     );
     loadTestData(testData);
   }
