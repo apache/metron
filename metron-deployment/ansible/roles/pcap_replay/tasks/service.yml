@@ -20,3 +20,6 @@
 
 - name: Install init.d service script
   template: src=pcap-replay dest=/etc/init.d/pcap-replay mode=0755
+
+- name: Start pcap replay
+  service: name=pcap-replay state=restarted

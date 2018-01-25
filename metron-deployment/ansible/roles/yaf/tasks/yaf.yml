@@ -48,3 +48,6 @@
 
 - name: Install init.d service script
   template: src=yaf dest=/etc/init.d/yaf mode=0755
+
+- name: Start yaf
+  service: name=yaf state=restarted
