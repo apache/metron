@@ -36,14 +36,18 @@ List all of the transitive dependencies for the project rooted at cwd.
 
 This script, as run by our travis build infrastructure, will look at the
 dependencies and verify that we know about them. Travis will use this
-script which takes the transitive dependency list and check against the 
+script which takes the transitive dependency list and check against the
 `dependencies_with_url.csv` file to ensure that it's listed. This will
 make sure we track dependencies and do not have any unacceptable
 dependencies.
 
 If you want to dump all of the dependencies that it doesn't know about,
 from the top level directory:
-`build_utils/list_dependencies.sh | python build_utils/verify_license.py ./dependencies_with_url.csv dump`
+
+```
+dev-utilities/build-utils/list_dependencies.sh | python dev-utilities/build-utils/verify_license.py ./dependencies_with_url.csv dump
+```
+
 
 ## `create_bundled_licenses.sh`
 
@@ -54,4 +58,7 @@ shaded jar, we
 licensed dependencies notated as per [here](http://www.apache.org/dev/licensing-howto.html#permissive-deps)
 
 Example command to regenerate licenses (run from top level directory):
-`for i in $(find . -name LICENSE | grep src | grep META-INF | awk -Fsrc '{print $1}');do build_utils/create_bundled_licenses.sh $i;done`
+
+```
+for i in $(find . -name LICENSE | grep src | grep META-INF | awk -Fsrc '{print $1}');do dev-utilities/build-utils/create_bundled_licenses.sh $i;done
+```
