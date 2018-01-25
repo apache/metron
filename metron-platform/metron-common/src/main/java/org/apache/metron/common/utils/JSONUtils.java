@@ -122,7 +122,7 @@ public enum JSONUtils {
    * @param json JSON value to deserialize
    * @return deserialized JsonNode Object
    */
-  public JsonNode readTree(String json) throws IOException {
+  JsonNode readTree(String json) throws IOException {
     return _mapper.get().readTree(json);
   }
 
@@ -132,7 +132,7 @@ public enum JSONUtils {
    * @param json JSON value to deserialize
    * @return deserialized JsonNode Object
    */
-  public JsonNode readTree(byte[] json) throws IOException {
+  JsonNode readTree(byte[] json) throws IOException {
     return _mapper.get().readTree(json);
   }
 
@@ -152,14 +152,16 @@ public enum JSONUtils {
    * @param source Source JSON to apply patch to
    * @return new json after applying the patch
    */
-  public JsonNode applyPatch(String patch, String source) throws IOException {
+  public byte[] applyPatch(String patch, String source) throws IOException {
     JsonNode patchNode = readTree(patch);
     JsonNode sourceNode = readTree(source);
-    return applyPatch(patchNode, sourceNode);
+    return toJSONPretty(JsonPatch.apply(patchNode, sourceNode));
   }
 
-  public JsonNode applyPatch(JsonNode patch, JsonNode source) throws IOException {
-    return JsonPatch.apply(patch, source);
+  public byte[] applyPatch(byte[] patch, byte[] source) throws IOException {
+    JsonNode patchNode = readTree(patch);
+    JsonNode sourceNode = readTree(source);
+    return toJSONPretty(JsonPatch.apply(patchNode, sourceNode));
   }
 
 }

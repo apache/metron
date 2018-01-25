@@ -121,9 +121,8 @@ public class JSONUtilsTest {
 
   @Test
   public void applyPatch_modifies_source_json_doc() throws IOException {
-    JsonNode actual = JSONUtils.INSTANCE.applyPatch(patchJson, sourceJson);
-    JsonNode expected = JSONUtils.INSTANCE.readTree(expectedJson);
-    assertThat(actual, equalTo(expected));
+    String actual = new String(JSONUtils.INSTANCE.applyPatch(patchJson, sourceJson));
+    assertThat(JSONUtils.INSTANCE.load(actual, JSONUtils.MAP_SUPPLIER), equalTo(JSONUtils.INSTANCE.load(expectedJson, JSONUtils.MAP_SUPPLIER)));
   }
 
   /**
@@ -158,9 +157,8 @@ public class JSONUtilsTest {
 
   @Test
   public void applyPatch_modifies_complex_source_json_doc() throws IOException {
-    JsonNode actual = JSONUtils.INSTANCE.applyPatch(patchComplexJson, complexJson);
-    JsonNode expected = JSONUtils.INSTANCE.readTree(expectedComplexJson);
-    assertThat(actual, equalTo(expected));
+    String actual = new String(JSONUtils.INSTANCE.applyPatch(patchComplexJson, complexJson));
+    assertThat(JSONUtils.INSTANCE.load(actual, JSONUtils.MAP_SUPPLIER), equalTo(JSONUtils.INSTANCE.load(expectedComplexJson, JSONUtils.MAP_SUPPLIER)));
   }
 
 }

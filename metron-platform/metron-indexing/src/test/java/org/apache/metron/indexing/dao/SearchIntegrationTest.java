@@ -463,7 +463,7 @@ public abstract class SearchIntegrationTest {
 
   @Test
   public void get_all_latest_guid() throws Exception {
-    List<GetRequest> request = JSONUtils.INSTANCE.load(getAllLatestQuery, new ReferenceSupplier<List<GetRequest>>());
+    List<GetRequest> request = JSONUtils.INSTANCE.load(getAllLatestQuery, new JSONUtils.ReferenceSupplier<>());
     Map<String, Document> docs = new HashMap<>();
 
     for(Document doc : dao.getAllLatest(request)) {
