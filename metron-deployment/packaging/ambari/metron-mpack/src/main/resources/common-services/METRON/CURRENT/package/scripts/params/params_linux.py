@@ -298,19 +298,26 @@ if not len(profiler_topology_worker_childopts) == 0:
 profiler_topology_worker_childopts += config['configurations']['metron-profiler-env']['profiler_topology_worker_childopts']
 
 # Indexing
-indexing_kafka_start = config['configurations']['metron-indexing-env']['indexing_kafka_start']
+ra_indexing_kafka_start = config['configurations']['metron-indexing-env']['ra_indexing_kafka_start']
+batch_indexing_kafka_start = config['configurations']['metron-indexing-env']['batch_indexing_kafka_start']
 indexing_input_topic = status_params.indexing_input_topic
 indexing_error_topic = config['configurations']['metron-indexing-env']['indexing_error_topic']
-metron_indexing_topology = status_params.metron_indexing_topology
-indexing_writer_class_name = config['configurations']['metron-indexing-env']['indexing_writer_class_name']
-indexing_workers = config['configurations']['metron-indexing-env']['indexing_workers']
-indexing_acker_executors = config['configurations']['metron-indexing-env']['indexing_acker_executors']
+metron_random_access_indexing_topology = status_params.metron_random_access_indexing_topology
+metron_batch_indexing_topology = status_params.metron_batch_indexing_topology
+ra_indexing_writer_class_name = config['configurations']['metron-indexing-env']['ra_indexing_writer_class_name']
+batch_indexing_writer_class_name = config['configurations']['metron-indexing-env']['batch_indexing_writer_class_name']
+ra_indexing_workers = config['configurations']['metron-indexing-env']['ra_indexing_workers']
+batch_indexing_workers = config['configurations']['metron-indexing-env']['batch_indexing_workers']
+ra_indexing_acker_executors = config['configurations']['metron-indexing-env']['ra_indexing_acker_executors']
+batch_indexing_acker_executors = config['configurations']['metron-indexing-env']['batch_indexing_acker_executors']
 if not len(indexing_topology_worker_childopts) == 0:
     indexing_topology_worker_childopts += ' '
 indexing_topology_worker_childopts += config['configurations']['metron-indexing-env']['indexing_topology_worker_childopts']
-indexing_topology_max_spout_pending = config['configurations']['metron-indexing-env']['indexing_topology_max_spout_pending']
-indexing_kafka_spout_parallelism = config['configurations']['metron-indexing-env']['indexing_kafka_spout_parallelism']
-indexing_writer_parallelism = config['configurations']['metron-indexing-env']['indexing_writer_parallelism']
+ra_indexing_topology_max_spout_pending = config['configurations']['metron-indexing-env']['ra_indexing_topology_max_spout_pending']
+batch_indexing_topology_max_spout_pending = config['configurations']['metron-indexing-env']['batch_indexing_topology_max_spout_pending']
+ra_indexing_kafka_spout_parallelism = config['configurations']['metron-indexing-env']['ra_indexing_kafka_spout_parallelism']
+batch_indexing_kafka_spout_parallelism = config['configurations']['metron-indexing-env']['batch_indexing_kafka_spout_parallelism']
+ra_indexing_writer_parallelism = config['configurations']['metron-indexing-env']['ra_indexing_writer_parallelism']
 hdfs_writer_parallelism = config['configurations']['metron-indexing-env']['hdfs_writer_parallelism']
 
 # the double "format" is not an error - we are pulling in a jinja-templated param. This is a bit of a hack, but works

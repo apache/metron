@@ -46,8 +46,8 @@ First is to update the Elasticsearch template for each sensor, so any new indice
 export ELASTICSEARCH="node1"
 export SENSOR="bro"
 curl -XGET "http://${ELASTICSEARCH}:9200/_template/${SENSOR}_index*?pretty=true" -o "${SENSOR}.template"
-sed -i '' '2d;$d' ./${SENSOR}.template
-sed -i '' '/"properties" : {/ a\
+sed -i '2d;$d' ./${SENSOR}.template
+sed -i '/"properties" : {/ a\
 "alert": { "type": "nested"},' ${SENSOR}.template
 curl -XPUT "http://${ELASTICSEARCH}:9200/_template/${SENSOR}_index" -d @${SENSOR}.template
 ```
