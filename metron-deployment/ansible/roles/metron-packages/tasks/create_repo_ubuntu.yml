@@ -20,7 +20,13 @@
     name: dpkg-dev
     state: installed
 
-- name: Create local repo on Ubuntu
+- name: Create repository index directory on Ubuntu
+  file:
+    path: "{{ repo_path }}/dists/METRON/main/binary-amd64"
+    state: directory
+    mode: 0755
+
+- name: Create repository index on Ubuntu
   shell: "dpkg-scanpackages . /dev/null | gzip -9c > dists/METRON/main/binary-amd64/Packages.gz"
   args:
     chdir: "{{ repo_path }}"
