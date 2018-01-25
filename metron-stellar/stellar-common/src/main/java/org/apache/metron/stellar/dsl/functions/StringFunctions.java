@@ -610,8 +610,10 @@ public class StringFunctions {
         } catch (JsonProcessingException ex) {
           throw new ParseException("Valid JSON string not supplied", ex);
         } catch (IOException e) {
-          e.printStackTrace();
           throw new ParseException("Valid JSON string not supplied", e);
+        }
+        catch (ClassCastException e) {
+          throw new ParseException("JSON String does not represent a list", e);
         }
       }
     }
