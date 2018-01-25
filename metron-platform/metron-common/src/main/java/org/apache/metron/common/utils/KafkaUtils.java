@@ -19,12 +19,14 @@
 package org.apache.metron.common.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.kafka.common.protocol.SecurityProtocol;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +69,23 @@ public enum KafkaUtils {
     return ret;
   }
 
+  public String normalizeProtocol(String protocol) {
+    if(protocol.equalsIgnoreCase("PLAINTEXTSASL") || protocol.equalsIgnoreCase("SASL_PLAINTEXT")) {
+      if(SecurityProtocol.getNames().contains("PLAINTEXTSASL")) {
+        return "PLAINTEXTSASL";
+      }
+      else if(SecurityProtocol.getNames().contains("SASL_PLAINTEXT")) {
+        return "SASL_PLAINTEXT";
+      }
+      else {
+        throw new IllegalStateException("Unable to find the appropriate SASL protocol, " +
+                "viable options are: " + Joiner.on(",").join(SecurityProtocol.getNames()));
+      }
+    }
+    else {
+      return protocol.trim();
+    }
+  }
   /*
   The URL accepted is NOT a general URL, and is assumed to follow the format used by the Kafka structures in Zookeeper.
   See: https://cwiki.apache.org/confluence/display/KAFKA/Kafka+data+structures+in+Zookeeper
