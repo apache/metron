@@ -63,8 +63,8 @@ public enum JSONUtils {
     }
   }
 
-  public final static ReferenceSupplier<Map<String, Object>> MAP_SUPPLIER = new ReferenceSupplier<>();
-  public final static ReferenceSupplier<List<Object>> LIST_SUPPLIER = new ReferenceSupplier<>();
+  public final static ReferenceSupplier<Map<String, Object>> MAP_SUPPLIER = new ReferenceSupplier<Map<String, Object>>(){};
+  public final static ReferenceSupplier<List<Object>> LIST_SUPPLIER = new ReferenceSupplier<List<Object>>(){};
 
   private static ThreadLocal<JSONParser> _parser = ThreadLocal.withInitial(() ->
           new JSONParser());
