@@ -18,13 +18,6 @@
 # only need to build the RPMs for CentOS
 metron_build_packages_cmd: "shell cd {{ metron_build_dir }}/metron-deployment && mvn clean package -DskipTests -Pbuild-rpms"
 
-# which services should be started?
-services_to_start:
-  - snort
-  - snort-logs
-  - bro
-  - pcap-replay
-
 # ambari
 ambari_host: "{{ groups.ambari_master[0] }}"
 hdp_host_group: "{{ groups.ambari_slave }}"

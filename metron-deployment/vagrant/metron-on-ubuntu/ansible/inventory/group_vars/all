@@ -18,14 +18,6 @@
 # only need to build the "DEBS" for Ubuntu
 metron_build_packages_cmd: "shell cd {{ metron_build_dir }}/metron-deployment && mvn clean package -DskipTests -Pbuild-debs"
 
-# which services should be started?
-services_to_start:
-  - pcap-service
-  - snort
-  - snort-logs
-  - bro
-  - pcap-replay
-
 # ambari
 ambari_host: "{{ groups.ambari_master[0] }}"
 hdp_host_group: "{{ groups.ambari_slave }}"
