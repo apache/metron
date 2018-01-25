@@ -282,6 +282,32 @@ def check_kafka_topics(params, topics):
         err_msg = "Missing Kafka topic; topic={0}".format(topic)
         execute(cmd, user=params.kafka_user, err_msg=err_msg)
 
+
+def create_hbase_table(params, table, cf):
+    """
+    Creates an HBase table, if the table does not currently exist
+    :param params:
+    :param table: The name of the HBase table.
+    :param cf:  The column family
+    :param user: The user to execute the command as
+    """
+    if params.security_enabled:
+        kinit(params.kinit_path_local,
+              params.hbase_keytab_path,
+              params.hbase_principal_name,
+              execute_user=params.hbase_user)
+    cmd = """if [[ $(echo \"exists '{0}'\" | hbase shell | grep 'not exist') ]]; \
+     then echo \"create '{0}','{1}'\" | hbase shell -n; fi"""
+    add_update_cmd = cmd.format(table, cf)
+    Execute(add_update_cmd,
+            tries=3,
+            try_sleep=5,
+            logoutput=False,
+            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+            user=params.hbase_user
+            )
+
+
 def check_hbase_table(params, table):
     """
     Validates that an HBase table exists.  An exception is raised if the table
