@@ -244,7 +244,7 @@ Kafka Authorization
 
     ```
     export KERB_USER=metron
-    for group in bro_parser snort_parser yaf_parser enrichments indexing profiler; do
+    for group in bro_parser snort_parser yaf_parser enrichments indexing-ra indexing-batch profiler; do
     	${KAFKA_HOME}/bin/kafka-acls.sh \
           --authorizer kafka.security.auth.SimpleAclAuthorizer \
           --authorizer-properties zookeeper.connect=${ZOOKEEPER} \

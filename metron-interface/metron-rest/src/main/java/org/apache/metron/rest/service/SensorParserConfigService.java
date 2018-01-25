@@ -27,11 +27,11 @@ import java.util.Map;
 
 public interface SensorParserConfigService {
 
-  SensorParserConfig save(SensorParserConfig sensorParserConfig) throws RestException;
+  SensorParserConfig save(String name, SensorParserConfig sensorParserConfig) throws RestException;
 
   SensorParserConfig findOne(String name) throws RestException;
 
-  Iterable<SensorParserConfig> getAll() throws RestException;
+  Map<String, SensorParserConfig> getAll() throws RestException;
 
   List<String> getAllTypes() throws RestException;
 

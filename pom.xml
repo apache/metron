@@ -97,7 +97,7 @@
         <global_hadoop_version>${base_hadoop_version}</global_hadoop_version>
         <global_hbase_version>${base_hbase_version}</global_hbase_version>
         <global_flume_version>${base_flume_version}</global_flume_version>
-        <global_elasticsearch_version>2.3.3</global_elasticsearch_version>
+        <global_elasticsearch_version>5.6.2</global_elasticsearch_version>
         <global_json_simple_version>1.1.1</global_json_simple_version>
         <global_metrics_version>3.0.2</global_metrics_version>
         <global_junit_version>4.12</global_junit_version>
@@ -119,7 +119,7 @@
         <global_kryo_serializers_version>0.38</global_kryo_serializers_version>
         <global_reflections_version>0.9.10</global_reflections_version>
         <global_checkstyle_version>8.0</global_checkstyle_version>
-        <argLine></argLine>
+        <global_log4j_core_version>2.1</global_log4j_core_version>
     </properties>
 
     <profiles>
@@ -159,7 +159,7 @@
                     <version>${global_surefire_version}</version>
                     <configuration>
                         <!-- Skip the default running of this plug-in (or everything is run twice...see below) -->
-                        <argLine>@{argLine} -Xmx2048m</argLine>
+                        <argLine>-Xmx2048m</argLine>
                         <skip>true</skip>
                         <!-- Show 100% of the lines from the stack trace (doesn't work) -->
                         <trimStackTrace>false</trimStackTrace>
@@ -324,8 +324,6 @@
                         <exclude>**/src/main/sample/data/**</exclude>
                         <exclude>**/dependency-reduced-pom.xml</exclude>
                         <exclude>**/target/**</exclude>
-                        <!-- pickle file - binary format -->
-                        <exclude>**/src/main/resources/common-services/KIBANA/4.5.1/package/scripts/dashboard/dashboard.p</exclude>
                         <!-- Files from Chef/bento -->
                         <exclude>**/packer-build/scripts/**</exclude>
                         <exclude>**/packer-build/bin/**</exclude>

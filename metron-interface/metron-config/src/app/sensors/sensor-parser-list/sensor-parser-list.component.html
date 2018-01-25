@@ -40,7 +40,7 @@
   <table class="table card-deck" metron-config-table #table (onSort)="onSort($event)">
     <thead>
     <tr>
-      <th> <metron-config-sorter [sortBy]="'sensorTopic'"> Name </metron-config-sorter> </th>
+      <th> <metron-config-sorter [sortBy]="'sensorName'"> Name </metron-config-sorter> </th>
       <th> <metron-config-sorter [sortBy]="'parserClassName'"> Parser </metron-config-sorter> </th>
       <th> <metron-config-sorter [sortBy]="'status'"> Status </metron-config-sorter> </th>
       <th> <metron-config-sorter [sortBy]="'latency'"> Latency </metron-config-sorter> </th>
@@ -52,8 +52,8 @@
     </tr>
     </thead>
     <tbody>
-    <tr *ngFor="let sensor of sensors;" (click)="onSensorRowSelect(sensor.config, $event)" [ngClass]="{'active': (selectedSensors.indexOf(sensor) != -1 || sensorParserConfigService.getSelectedSensor() == sensor.config)}">
-      <td>{{ sensor.config.sensorTopic }}</td>
+    <tr *ngFor="let sensor of sensors;" (click)="onSensorRowSelect(sensor, $event)" [ngClass]="{'active': (selectedSensors.indexOf(sensor) != -1 || selectedSensor == sensor)}">
+      <td>{{ sensor.sensorName }}</td>
       <td>{{ getParserType(sensor.config) }}</td>
       <td [ngClass]="{'warning-text': (sensor.status == 'Stopped' || sensor.status == 'Disabled')}">{{ sensor.status }}</td>
       <td>{{ sensor.latency }}</td>
@@ -69,11 +69,11 @@
           <i  data-toggle="tooltip" title="Start parser topology" class="fa fa-play fa-lg" aria-hidden="true" [hidden]="(sensor.status != 'Stopped' || sensor.config['startStopInProgress'])" (click)="onStartSensor(sensor, $event)"></i>
           <i  data-toggle="tooltip" title="Enable parser topology" class="fa fa-check-circle-o fa-lg" aria-hidden="true" [hidden]="(sensor.status != 'Disabled' || sensor.config['startStopInProgress'])" (click)="onEnableSensor(sensor, $event)"></i>
 
-          <i  data-toggle="tooltip" title="Edit parser topology" class="fa fa-pencil fa-lg" aria-hidden="true" (click)="navigateToSensorEdit(sensor.config, $event)"></i>
+          <i  data-toggle="tooltip" title="Edit parser topology" class="fa fa-pencil fa-lg" aria-hidden="true" (click)="navigateToSensorEdit(sensor, $event)"></i>
 
-          <i  data-toggle="tooltip" title="Delete parser configuration" class="fa fa-trash-o fa-lg" aria-hidden="true" (click)="deleteSensor($event, [sensor.config])"></i>
+          <i  data-toggle="tooltip" title="Delete parser configuration" class="fa fa-trash-o fa-lg" aria-hidden="true" (click)="deleteSensor($event, [sensor])"></i>
       </td>
-      <td><input id="{{ sensor.config.sensorTopic }}" class="fontawesome-checkbox" type="checkbox" name="{{sensor.config.sensorTopic}}" (click)="onRowSelected(sensor, $event)"><label attr.for="{{ sensor.config.sensorTopic }}"></label></td>
+      <td><input id="{{ sensor.sensorName }}" class="fontawesome-checkbox" type="checkbox" name="{{sensor.sensorName}}" (click)="onRowSelected(sensor, $event)"><label attr.for="{{ sensor.sensorName }}"></label></td>
     </tr>
     </tbody>
   </table>

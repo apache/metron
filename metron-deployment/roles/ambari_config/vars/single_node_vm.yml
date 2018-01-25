@@ -84,7 +84,7 @@ configurations:
       yarn.nodemanager.log-dirs: '{{ nodemanager_log_dirs }}'
       yarn.nodemanager.resource.memory-mb : '{{ nodemanager_mem_mb }}'
   - storm-site:
-      supervisor.slots.ports: "[6700, 6701, 6702, 6703, 6704]"
+      supervisor.slots.ports: "[6700, 6701, 6702, 6703, 6704, 6705]"
       storm.local.dir: '{{ storm_local_dir }}'
       topology.classpath: '{{ topology_classpath }}'
   - kafka-env:
@@ -120,7 +120,8 @@ required_configurations:
       kibana_es_url: http://{{ groups.search[0] }}:9200
       kibana_log_dir: /var/log/kibana
       kibana_server_port: 5000
-      kibana_default_application: "dashboard/Metron-Dashboard"
+      kibana_default_application: "dashboard/AV-YpDmwdXwc6Ua9Muh9"
+      kibana_server_host: 0.0.0.0
 
 blueprint:
   stack_name: HDP

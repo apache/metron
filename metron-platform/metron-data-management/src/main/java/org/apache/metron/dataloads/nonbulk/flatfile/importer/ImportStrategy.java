@@ -20,7 +20,7 @@ package org.apache.metron.dataloads.nonbulk.flatfile.importer;
 import java.util.Optional;
 
 public enum ImportStrategy {
-  LOCAL(LocalImporter.INSTANCE),
+  LOCAL(new LocalImporter()),
   MR(MapReduceImporter.INSTANCE)
   ;
   private Importer importer;

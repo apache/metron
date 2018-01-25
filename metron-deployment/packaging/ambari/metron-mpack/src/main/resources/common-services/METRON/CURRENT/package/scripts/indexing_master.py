@@ -49,6 +49,11 @@ class Indexing(Script):
              owner=params.metron_user,
              group=params.metron_group
              )
+        File(format("{metron_config_path}/hdfs.properties"),
+             content=Template("hdfs.properties.j2"),
+             owner=params.metron_user,
+             group=params.metron_group
+             )
 
         if not metron_service.is_zk_configured(params):
             metron_service.init_zk_config(params)
@@ -139,7 +144,6 @@ class Indexing(Script):
 
         commands = IndexingCommands(params)
         for template_name in commands.get_templates():
-
             # delete the index template
             cmd = "curl -s -XDELETE \"http://{0}/_template/{1}\""
             Execute(

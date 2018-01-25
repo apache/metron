@@ -217,6 +217,13 @@ functions can be used from everywhere where Stellar is used.
     * stats - The Stellar statistics object
   * Returns: The variance of the values in the window or NaN if the statistics object is null.
 
+### Information Theory Functions
+
+#### `IT_ENTROPY`
+  * Description: Computes the base-2 entropy of a multiset
+  * Input:
+    * input - a multiset (a map of objects to counts).
+  * Returns: The [base-2 entropy](https://en.wikipedia.org/wiki/Entropy_(information_theory)#Definition) of the count .  The unit of this is bits.
 
 ### Statistical Outlier Detection
   

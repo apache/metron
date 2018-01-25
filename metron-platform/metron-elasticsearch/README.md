@@ -17,6 +17,15 @@ limitations under the License.
 -->
 # Elasticsearch in Metron
 
+## Table of Contents
+
+* [Introduction](#introduction)
+* [Properties](#properties)
+* [Upgrading to 5.6.2](#upgrading-to-562)
+* [Type Mappings](#type-mappings)
+* [Using Metron with Elasticsearch 5.6.2](#using-metron-with-elasticsearch-562)
+* [Installing Elasticsearch Templates](#installing-elasticsearch-templates)
+
 ## Introduction
 
 Elasticsearch can be used as the real-time portion of the datastore resulting from [metron-indexing](../metron-indexing/README.md).
@@ -50,9 +59,219 @@ For instance, an `es.date.format` of `yyyy.MM.dd.HH` would have the consequence 
 roll hourly, whereas an `es.date.format` of `yyyy.MM.dd` would have the consequence that the indices would
 roll daily.
 
-## Using Metron with Elasticsearch 2.x
+## Upgrading to 5.6.2
 
-With Elasticsearch 2.x, there is a requirement that all sensors templates have a nested alert field defined.  This field is a dummy field, and will be obsolete in Elasticsearch 5.x.  See [Ignoring Unmapped Fields](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_ignoring_unmapped_fields) for more information
+Users should be prepared to re-index when migrating from Elasticsearch 2.3.3 to 5.6.2. There are a number of template changes, most notably around
+string type handling, that may cause issues when upgrading.
+
+[https://www.elastic.co/guide/en/elasticsearch/reference/5.6/setup-upgrade.html](https://www.elastic.co/guide/en/elasticsearch/reference/5.6/setup-upgrade.html)
+
+Be aware that if you add a new string value and want to be able to filter and search on this value from the Alerts UI, you **must** add a mapping for that type to
+the appropriate Elasticsearch template. Below is more detail on how to choose the appropriate mapping type for your string value.
+
+## Type Mappings
+
+Type mappings have changed quite a bit from ES 2.x -> 5.x. Here is a brief rundown of the biggest changes. More detailed references from Elasticsearch
+are provided in the [Type Mapping References](#type-mapping-references) section below.
+* string fields replaced by text/keyword type
+* strings have new default mappings as follows
+
+    ```
+    {
+      "type": "text",
+      "fields": {
+        "keyword": {
+          "type": "keyword",
+          "ignore_above": 256
+        }
+      }
+    }
+    ```
+
+* There is no longer a `_timestamp` field that you can set "enabled" on. This field now causes an exception on templates.
+Replace with an application-created timestamp of "date" type.
+
+The semantics for string types have changed. In 2.x, you have the concept of index settings as either "analyzed" or "not_analyzed" which basically means "full text" and "keyword", respectively.
+Analyzed text basically means the indexer will split the text using a text analyzer thus allowing you to search on substrings within the original text. "New York" is split and indexed as two buckets,
+ "New" and "York", so you can search or query for aggregate counts for those terms independently and will match against the individual terms "New" or "York." "Keyword" means that the original text
+ will not be split/analyzed during indexing and instead treated as a whole unit, i.e. "New" or "York" will not match in searches against the document containing "New York", but searching on "New York"
+ as the full city name will. In 5.x language instead of using the "index" setting, you now set the "type" to either "text" for full text, or "keyword" for keywords.
+
+Below is a table depicting the changes to how String types are now handled.
+
+<table>
+<tr>
+	<th>sort, aggregate, or access values</th>
+	<th>ES 2.x</th>
+	<th>ES 5.x</th>
+	<th>Example</th>
+</tr>
+<tr>
+	<td>no</td>
+	<td>
+<pre><code>"my_property" : {
+  "type": "string",
+  "index": "analyzed"
+}
+</code></pre>
+	</td>
+	<td>
+<pre><code>"my_property" : {
+  "type": "text"
+}
+</code></pre>
+    Additional defaults: "index": "true", "fielddata": "false"
+	</td>
+	<td>
+		"New York" handled via in-mem search as "New" and "York" buckets. <strong>No</strong> aggregation or sort.
+	</td>
+</tr>
+<tr>
+	<td>
+	yes
+	</td>
+	<td>
+<pre><code>"my_property": {
+  "type": "string",
+  "index": "analyzed"
+}
+</code></pre>
+	</td>
+	<td>
+<pre><code>"my_property": {
+  "type": "text",
+  "fielddata": "true"
+}
+</code></pre>
+	</td>
+	<td>
+	"New York" handled via in-mem search as "New" and "York" buckets. <strong>Can</strong> aggregate and sort.
+	</td>
+</tr>
+<tr>
+	<td>
+	yes
+	</td>
+	<td>
+<pre><code>"my_property": {
+  "type": "string",
+  "index": "not_analyzed"
+}
+</code></pre>
+	</td>
+	<td>
+<pre><code>"my_property" : {
+  "type": "keyword"
+}
+</code></pre>
+	</td>
+	<td>
+	"New York" searchable as single value. <strong>Can</strong> aggregate and sort. A search for "New" or "York" will not match against the whole value.
+	</td>
+</tr>
+<tr>
+	<td>
+	yes
+	</td>
+	<td>
+<pre><code>"my_property": {
+  "type": "string",
+  "index": "analyzed"
+}
+</code></pre>
+	</td>
+	<td>
+<pre><code>"my_property": {
+  "type": "text",
+  "fields": {
+    "keyword": {
+      "type": "keyword",
+      "ignore_above": 256
+    }
+  }
+}
+</code></pre>
+	</td>
+	<td>
+	"New York" searchable as single value or as text document, can aggregate and sort on the sub term "keyword."
+	</td>
+</tr>
+</table>
+
+If you want to set default string behavior for all strings for a given index and type, you can do so with a mapping similar to the following (replace ${your_type_here} accordingly):
+
+```
+# curl -XPUT 'http://${ES_HOST}:${ES_PORT}/_template/default_string_template' -d '
+{
+  "template": "*",
+  "mappings" : {
+    "${your_type_here}": {
+      "dynamic_templates": [
+        {
+          "strings": {
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "text"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+'
+```
+
+By specifying the "template" property with value "*" the template will apply to all indexes that have documents indexed of the specified type (${your_type_here}). This results in the following template.
+
+```
+# curl -XGET 'http://${ES_HOST}:${ES_PORT}/_template/default_string_template?pretty'
+{
+  "default_string_template" : {
+    "order" : 0,
+    "template" : "*",
+    "settings" : { },
+    "mappings" : {
+      "${your_type_here}" : {
+        "dynamic_templates" : [
+          {
+            "strings" : {
+              "match_mapping_type" : "string",
+              "mapping" : {
+                "type" : "text"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "aliases" : { }
+  }
+}
+```
+
+Notes on other settings for types in ES
+* doc_values
+    * on-disk data structure
+    * provides access for sorting, aggregation, and field values
+    * stores same values as _source, but in column-oriented fashion better for sorting and aggregating
+    * not supported on text fields
+    * enabled by default
+* fielddata
+    * in-memory data structure
+    * provides access for sorting, aggregation, and field values
+    * primarily for text fields
+    * disabled by default because the heap space required can be large
+
+
+##### Type Mapping References
+* [https://www.elastic.co/guide/en/elasticsearch/reference/5.6/mapping.html](https://www.elastic.co/guide/en/elasticsearch/reference/5.6/mapping.html)
+* [https://www.elastic.co/guide/en/elasticsearch/reference/5.6/breaking_50_mapping_changes.html](https://www.elastic.co/guide/en/elasticsearch/reference/5.6/breaking_50_mapping_changes.html)
+* [https://www.elastic.co/blog/strings-are-dead-long-live-strings](https://www.elastic.co/blog/strings-are-dead-long-live-strings)
+
+## Using Metron with Elasticsearch 5.6.2
+
+There is a requirement that all sensors templates have a nested alert field defined.  This field is a dummy field.  See [Ignoring Unmapped Fields](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_ignoring_unmapped_fields) for more information
 
 Without this field, an error will be thrown during ALL searches (including from UIs, resulting in no alerts being found for any sensor). This error will be found in the REST service's logs.
 
@@ -63,7 +282,7 @@ QueryParsingException[[nested] failed to find nested object under path [alert]];
 
 There are two steps to resolve this issue.  First is to update the Elasticsearch template for each sensor, so any new indices have the field. This requires retrieving the template, removing an extraneous JSON field so we can put it back later, and adding our new field.
 
-Make sure to set the ELASTICSEARCH variable appropriately. $SENSOR can contain wildcards, so if rollover has occurred, it's not necessary to do each index individually. The example here appends `index*` to get all indexes for a the provided sensor.
+Make sure to set the ELASTICSEARCH variable appropriately. $SENSOR can contain wildcards, so if rollover has occurred, it's not necessary to do each index individually. The example here appends `index*` to get all indexes for the provided sensor.
 
 ```
 export ELASTICSEARCH="node1"
@@ -89,11 +308,11 @@ To update existing indexes, update Elasticsearch mappings with the new field for
 ```
 curl -XPUT "http://${ELASTICSEARCH}:9200/${SENSOR}_index*/_mapping/${SENSOR}_doc" -d '
 {
-        "properties" : {
-          "alert" : {
-            "type" : "nested"
-          }
-        }
+  "properties" : {
+    "alert" : {
+      "type" : "nested"
+    }
+  }
 }
 '
 rm ${SENSOR}.template
