@@ -19,7 +19,7 @@
 # ------------------------------------------------------------------
 #
 # This script collects the *.md files and other resources needed to generate
-# a book-like collection of end-user documentation.  
+# a book-like collection of end-user documentation.
 #
 # The Metron development community has chosen to do most documentation in README.md
 # files, because they are easy to write and maintain, and located near the code they
@@ -48,7 +48,7 @@ METRON_SOURCE=`cd $(dirname $0); cd ../..; pwd`
 EXCLUSION_LIST=(
     '/site/'
     '/site-book/'
-    '/build_utils/'
+    '/dev-utilities/'
     '/node_modules/'
     '/\.github/'
 )
@@ -330,4 +330,3 @@ else
     echo " "
     exit 0
 fi
-
