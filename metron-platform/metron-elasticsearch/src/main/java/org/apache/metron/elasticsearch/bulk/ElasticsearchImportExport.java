@@ -18,7 +18,6 @@
 
 package org.apache.metron.elasticsearch.bulk;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -71,8 +70,7 @@ public class ElasticsearchImportExport {
       String line;
       while ((line = br.readLine()) != null) {
         Map<String, Object> inDoc = JSONUtils.INSTANCE
-            .load(line, new TypeReference<Map<String, Object>>() {
-            });
+            .load(line, JSONUtils.MAP_SUPPLIER);
         Object id = inDoc.get("_id");
         Object type = inDoc.get("_type");
         String createRaw = String

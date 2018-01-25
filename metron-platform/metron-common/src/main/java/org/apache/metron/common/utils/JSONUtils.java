@@ -29,12 +29,26 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 public enum JSONUtils {
   INSTANCE;
+
+  public static class ReferenceSupplier<T> implements Supplier<TypeReference<T>> {
+    @Override
+    public TypeReference<T> get() {
+      return new TypeReference<T>() { };
+    }
+  }
+
+  public final static ReferenceSupplier<Map<String, Object>> MAP_SUPPLIER = new ReferenceSupplier<>();
+  public final static ReferenceSupplier<List<Object>> LIST_SUPPLIER = new ReferenceSupplier<>();
 
   private static ThreadLocal<JSONParser> _parser = ThreadLocal.withInitial(() ->
       new JSONParser());
@@ -51,17 +65,17 @@ public enum JSONUtils {
   }
 
 
-  public <T> T load(InputStream is, TypeReference<T> ref) throws IOException {
-    return _mapper.get().readValue(is, ref);
+  public <T> T load(InputStream is, ReferenceSupplier<T> ref) throws IOException {
+    return _mapper.get().readValue(is, ref.get());
   }
 
-  public <T> T load(String is, TypeReference<T> ref) throws IOException {
-    return _mapper.get().readValue(is, ref);
+  public <T> T load(String is, ReferenceSupplier<T> ref) throws IOException {
+    return _mapper.get().readValue(is, ref.get());
   }
 
-  public <T> T load(File f, TypeReference<T> ref) throws IOException {
+  public <T> T load(File f, ReferenceSupplier<T> ref) throws IOException {
     try (InputStream is = new BufferedInputStream(new FileInputStream(f))) {
-      return _mapper.get().readValue(is, ref);
+      return _mapper.get().readValue(is, ref.get());
     }
   }
 

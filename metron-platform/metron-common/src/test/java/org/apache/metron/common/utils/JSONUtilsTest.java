@@ -21,7 +21,6 @@ package org.apache.metron.common.utils;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.File;
 import java.io.IOException;
@@ -56,8 +55,7 @@ public class JSONUtilsTest {
       put("b", "world");
     }};
     Map<String, Object> actual = JSONUtils.INSTANCE
-        .load(configFile, new TypeReference<Map<String, Object>>() {
-        });
+        .load(configFile, JSONUtils.MAP_SUPPLIER);
     assertThat("config not equal", actual, equalTo(expected));
   }
 

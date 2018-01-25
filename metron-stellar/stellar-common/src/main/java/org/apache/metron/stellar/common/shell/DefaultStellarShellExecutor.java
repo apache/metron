@@ -19,7 +19,6 @@
  */
 package org.apache.metron.stellar.common.shell;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.map.UnmodifiableMap;
 import org.apache.commons.lang3.StringUtils;
@@ -370,9 +369,7 @@ public class DefaultStellarShellExecutor implements StellarShellExecutor {
    */
   private Map<String, Object> fetchGlobalConfig(CuratorFramework zkClient) throws Exception {
     byte[] raw = readGlobalConfigBytesFromZookeeper(zkClient);
-    return JSONUtils.INSTANCE.load(
-            new ByteArrayInputStream(raw),
-            new TypeReference<Map<String, Object>>() {});
+    return JSONUtils.INSTANCE.load( new ByteArrayInputStream(raw), JSONUtils.MAP_SUPPLIER);
   }
 
   /**

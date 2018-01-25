@@ -17,7 +17,6 @@
  */
 package org.apache.metron.indexing.dao;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.util.List;
@@ -143,7 +142,7 @@ public interface IndexDao {
     JsonNode originalNode = JSONUtils.INSTANCE.convert(latest, JsonNode.class);
     JsonNode patched = JSONUtils.INSTANCE.applyPatch(request.getPatch(), originalNode);
     Map<String, Object> updated = JSONUtils.INSTANCE.getMapper()
-        .convertValue(patched, new TypeReference<Map<String, Object>>() {});
+        .convertValue(patched, JSONUtils.MAP_SUPPLIER);
     return new Document( updated
         , request.getGuid()
         , request.getSensorType()

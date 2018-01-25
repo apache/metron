@@ -18,7 +18,6 @@
 
 package org.apache.metron.indexing.integration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import org.apache.metron.common.interfaces.FieldNameConverter;
@@ -75,8 +74,7 @@ public class HDFSIndexingIntegrationTest extends IndexingIntegrationTest {
             Iterables.addAll(ret, Iterables.transform(data, bytes -> {
                 String s = new String(bytes);
                 try {
-                  return JSONUtils.INSTANCE.load(s, new TypeReference<Map<String, Object>>() {
-                  });
+                  return JSONUtils.INSTANCE.load(s,JSONUtils.MAP_SUPPLIER);
                 } catch (IOException e) {
                   throw new RuntimeException(e);
                 }

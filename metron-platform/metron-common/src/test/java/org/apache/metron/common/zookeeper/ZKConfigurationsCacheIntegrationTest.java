@@ -17,7 +17,6 @@
  */
 package org.apache.metron.common.zookeeper;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.io.IOUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -226,14 +225,14 @@ public class ZKConfigurationsCacheIntegrationTest {
     ConfigurationsUtils.writeProfilerConfigToZookeeper( profilerConfig.getBytes(), client);
     //indexing
     {
-      Map<String, Object> expectedConfig = JSONUtils.INSTANCE.load(testIndexingConfig, new TypeReference<Map<String, Object>>() {});
+      Map<String, Object> expectedConfig = JSONUtils.INSTANCE.load(testIndexingConfig, JSONUtils.MAP_SUPPLIER);
       IndexingConfigurations config = cache.get( IndexingConfigurations.class);
       assertEventually(() -> Assert.assertEquals(expectedConfig, config.getSensorIndexingConfig("test")));
     }
     //enrichment
     {
       SensorEnrichmentConfig expectedConfig = JSONUtils.INSTANCE.load(testEnrichmentConfig, SensorEnrichmentConfig.class);
-      Map<String, Object> expectedGlobalConfig = JSONUtils.INSTANCE.load(globalConfig, new TypeReference<Map<String, Object>>() {});
+      Map<String, Object> expectedGlobalConfig = JSONUtils.INSTANCE.load(globalConfig, JSONUtils.MAP_SUPPLIER);
       EnrichmentConfigurations config = cache.get( EnrichmentConfigurations.class);
       assertEventually(() -> Assert.assertEquals(expectedConfig, config.getSensorEnrichmentConfig("test")));
       assertEventually(() -> Assert.assertEquals(expectedGlobalConfig, config.getGlobalConfig()));
@@ -255,12 +254,11 @@ public class ZKConfigurationsCacheIntegrationTest {
   @Test
   public void validateBaseWrite() throws Exception {
     File globalConfigFile = new File(TestConstants.SAMPLE_CONFIG_PATH + "/global.json");
-    Map<String, Object> expectedGlobalConfig = JSONUtils.INSTANCE.load(globalConfigFile, new TypeReference<Map<String, Object>>() { });
+    Map<String, Object> expectedGlobalConfig = JSONUtils.INSTANCE.load(globalConfigFile, JSONUtils.MAP_SUPPLIER);
     //indexing
     {
       File inFile = new File(TestConstants.SAMPLE_CONFIG_PATH + "/indexing/test.json");
-      Map<String, Object> expectedConfig = JSONUtils.INSTANCE.load(inFile, new TypeReference<Map<String, Object>>() {
-      });
+      Map<String, Object> expectedConfig = JSONUtils.INSTANCE.load(inFile, JSONUtils.MAP_SUPPLIER);
       IndexingConfigurations config = cache.get( IndexingConfigurations.class);
       assertEventually(() -> Assert.assertEquals(expectedConfig, config.getSensorIndexingConfig("test")));
       assertEventually(() -> Assert.assertEquals(expectedGlobalConfig, config.getGlobalConfig()));
