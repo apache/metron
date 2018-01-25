@@ -568,15 +568,18 @@ public class StringFunctions {
           throw new ParseException("Valid JSON string not supplied");
         }
         // Return parsed JSON Object as a HashMap
+        String in = (String)strings.get(0);
         try {
-          return JSONUtils.INSTANCE.load((String) strings.get(0), JSONUtils.MAP_SUPPLIER);
+          return (Map)JSONUtils.INSTANCE.load(in, JSONUtils.MAP_SUPPLIER);
         } catch (JsonProcessingException ex) {
-          throw new ParseException("Valid JSON string not supplied", ex);
-        } catch (IOException e) {
-          e.printStackTrace();
+          throw new ParseException(String.format("%s is not a valid JSON string", in), ex);
+        } catch (IOException ex) {
+          throw new ParseException(String.format("%s is not a valid JSON string", in), ex);
+        }
+        catch (ClassCastException ex) {
+          throw new ParseException(String.format("%s is not a valid JSON string, expected a map", in), ex);
         }
       }
-      return new ParseException("Unable to parse JSON string");
     }
   }
 
@@ -605,15 +608,16 @@ public class StringFunctions {
           throw new ParseException("Valid JSON string not supplied");
         }
         // Return parsed JSON Object as a List
+        String in = (String)strings.get(0);
         try {
-          return (List) JSONUtils.INSTANCE.load((String) strings.get(0), JSONUtils.LIST_SUPPLIER);
+          return (List) JSONUtils.INSTANCE.load(in, JSONUtils.LIST_SUPPLIER);
         } catch (JsonProcessingException ex) {
-          throw new ParseException("Valid JSON string not supplied", ex);
-        } catch (IOException e) {
-          throw new ParseException("Valid JSON string not supplied", e);
+          throw new ParseException(String.format("%s is not a valid JSON string", in), ex);
+        } catch (IOException ex) {
+          throw new ParseException(String.format("%s is not a valid JSON string", in), ex);
         }
-        catch (ClassCastException e) {
-          throw new ParseException("JSON String does not represent a list", e);
+        catch (ClassCastException ex) {
+          throw new ParseException(String.format("%s is not a valid JSON string, expected a list", in), ex);
         }
       }
     }
