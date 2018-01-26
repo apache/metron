@@ -19,7 +19,6 @@
 package org.apache.metron.indexing.dao;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -36,10 +35,8 @@ import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
-import org.apache.metron.indexing.dao.search.SortField;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.integration.InMemoryComponent;
-import org.json.simple.parser.JSONParser;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;

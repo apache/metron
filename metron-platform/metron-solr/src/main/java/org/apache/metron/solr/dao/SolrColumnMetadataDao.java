@@ -22,16 +22,14 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.ColumnMetadataDao;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException;
 import org.apache.solr.client.solrj.request.schema.SchemaRequest;
 import org.apache.solr.client.solrj.response.schema.SchemaRepresentation;
@@ -55,6 +53,12 @@ public class SolrColumnMetadataDao implements ColumnMetadataDao {
     solrTypeMap = Collections.unmodifiableMap(fieldTypeMap);
   }
 
+  private String zkHost;
+
+  public SolrColumnMetadataDao(String zkHost) {
+
+  }
+
   @Override
   public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
     Map<String, FieldType> indexColumnMetadata = new HashMap<>();
@@ -62,8 +66,7 @@ public class SolrColumnMetadataDao implements ColumnMetadataDao {
     Set<String> fieldBlackList = Sets.newHashSet(SolrDao.ROOT_FIELD, SolrDao.VERSION_FIELD);
 
     for (String index : indices) {
-      SolrClient client = new HttpSolrClient.Builder()
-          .withBaseSolrUrl("http://192.168.99.100:8983/solr/" + index).build();
+      SolrClient client = new CloudSolrClient.Builder().withZkHost(zkHost).build();
       try {
         SchemaRepresentation schemaRepresentation = new SchemaRequest().process(client)
             .getSchemaRepresentation();

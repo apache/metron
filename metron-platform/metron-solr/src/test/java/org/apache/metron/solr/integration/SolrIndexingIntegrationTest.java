@@ -18,6 +18,10 @@
 package org.apache.metron.solr.integration;
 
 import com.google.common.base.Function;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import javax.annotation.Nullable;
 import org.apache.metron.common.configuration.Configurations;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.interfaces.FieldNameConverter;
@@ -32,12 +36,6 @@ import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.solr.integration.components.SolrComponent;
-
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
 

@@ -72,11 +72,12 @@ public class SolrDao implements IndexDao {
   public void init(AccessConfig config) {
     if (this.client == null) {
       Map<String, Object> globalConfig = config.getGlobalConfigSupplier().get();
+      String zkHost = (String) globalConfig.get("solr.zookeeper");
       this.client = new CloudSolrClient.Builder().withZkHost((String) globalConfig.get("solr.zookeeper")).build();
       this.accessConfig = config;
       this.solrSearchDao = new SolrSearchDao(this.client, this.accessConfig);
       this.solrUpdateDao = new SolrUpdateDao(this.client);
-      this.solrColumnMetadataDao = new SolrColumnMetadataDao();
+      this.solrColumnMetadataDao = new SolrColumnMetadataDao(zkHost);
     }
   }
 
