@@ -17,7 +17,6 @@
  */
 package org.apache.metron.stellar.common.benchmark;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.Files;
@@ -231,8 +230,7 @@ public class StellarMicrobenchmark {
     List<String> lines = Files.readLines(expressionsFile, Charset.defaultCharset());
     Map<String, Object> variables = new HashMap<>();
     if(variablesFile.isPresent()) {
-      variables = JSONUtils.INSTANCE.load(new FileInputStream(variablesFile.get()), new TypeReference<Map<String, Object>>() {
-      });
+      variables = JSONUtils.INSTANCE.load(new FileInputStream(variablesFile.get()), JSONUtils.MAP_SUPPLIER);
     }
     int numTimes = DEFAULT_NUM_TIMES;
     if(BenchmarkOptions.NUM_TIMES.has(cli)) {

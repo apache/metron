@@ -17,7 +17,6 @@
  */
 package org.apache.metron.writers.integration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import org.adrianwalker.multilinestring.Multiline;
@@ -171,7 +170,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
                     , message -> {
                       try {
                         return new JSONObject(JSONUtils.INSTANCE.load(new String(message)
-                                             , new TypeReference<Map<String, Object>>() {}
+                                             ,JSONUtils.MAP_SUPPLIER 
                                              )
                         );
                       } catch (Exception ex) {

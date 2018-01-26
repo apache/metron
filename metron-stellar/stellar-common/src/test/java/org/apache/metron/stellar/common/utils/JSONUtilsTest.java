@@ -17,7 +17,6 @@
  */
 package org.apache.metron.stellar.common.utils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.adrianwalker.multilinestring.Multiline;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -54,8 +53,7 @@ public class JSONUtilsTest {
       put("a", "hello");
       put("b", "world");
     }};
-    Map<String, Object> actual = JSONUtils.INSTANCE.load(configFile, new TypeReference<Map<String, Object>>() {
-    });
+    Map<String, Object> actual = JSONUtils.INSTANCE.load(configFile, JSONUtils.MAP_SUPPLIER);
     Assert.assertThat("config not equal", actual, equalTo(expected));
   }
 

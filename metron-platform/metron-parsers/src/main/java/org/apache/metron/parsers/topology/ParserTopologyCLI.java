@@ -24,7 +24,6 @@ import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.utils.Utils;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
@@ -492,8 +491,7 @@ public class ParserTopologyCLI {
       throw new IllegalArgumentException("Unable to load JSON file at " + inputFile.getAbsolutePath());
     }
     try {
-      return JSONUtils.INSTANCE.load(json, new TypeReference<Map<String, Object>>() {
-      });
+      return JSONUtils.INSTANCE.load(json, JSONUtils.MAP_SUPPLIER);
     } catch (IOException e) {
       throw new IllegalStateException("Unable to process JSON.", e);
     }

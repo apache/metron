@@ -18,7 +18,6 @@
  */
 package org.apache.metron.indexing.dao;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -464,8 +463,7 @@ public abstract class SearchIntegrationTest {
 
   @Test
   public void get_all_latest_guid() throws Exception {
-    List<GetRequest> request = JSONUtils.INSTANCE.load(getAllLatestQuery, new TypeReference<List<GetRequest>>() {
-    });
+    List<GetRequest> request = JSONUtils.INSTANCE.load(getAllLatestQuery, new JSONUtils.ReferenceSupplier<List<GetRequest>>(){});
     Map<String, Document> docs = new HashMap<>();
 
     for(Document doc : dao.getAllLatest(request)) {
