@@ -20,7 +20,6 @@ package org.apache.metron.stellar.dsl.functions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
@@ -569,15 +568,18 @@ public class StringFunctions {
           throw new ParseException("Valid JSON string not supplied");
         }
         // Return parsed JSON Object as a HashMap
+        String in = (String)strings.get(0);
         try {
-          return JSONUtils.INSTANCE.load((String) strings.get(0), new TypeReference<Map<String, Object>>(){});
+          return (Map)JSONUtils.INSTANCE.load(in, JSONUtils.MAP_SUPPLIER);
         } catch (JsonProcessingException ex) {
-          throw new ParseException("Valid JSON string not supplied", ex);
-        } catch (IOException e) {
-          e.printStackTrace();
+          throw new ParseException(String.format("%s is not a valid JSON string", in), ex);
+        } catch (IOException ex) {
+          throw new ParseException(String.format("%s is not a valid JSON string", in), ex);
+        }
+        catch (ClassCastException ex) {
+          throw new ParseException(String.format("%s is not a valid JSON string, expected a map", in), ex);
         }
       }
-      return new ParseException("Unable to parse JSON string");
     }
   }
 
@@ -606,13 +608,16 @@ public class StringFunctions {
           throw new ParseException("Valid JSON string not supplied");
         }
         // Return parsed JSON Object as a List
+        String in = (String)strings.get(0);
         try {
-          return (List) JSONUtils.INSTANCE.load((String) strings.get(0), new TypeReference<List<Object>>(){});
+          return (List) JSONUtils.INSTANCE.load(in, JSONUtils.LIST_SUPPLIER);
         } catch (JsonProcessingException ex) {
-          throw new ParseException("Valid JSON string not supplied", ex);
-        } catch (IOException e) {
-          e.printStackTrace();
-          throw new ParseException("Valid JSON string not supplied", e);
+          throw new ParseException(String.format("%s is not a valid JSON string", in), ex);
+        } catch (IOException ex) {
+          throw new ParseException(String.format("%s is not a valid JSON string", in), ex);
+        }
+        catch (ClassCastException ex) {
+          throw new ParseException(String.format("%s is not a valid JSON string, expected a list", in), ex);
         }
       }
     }

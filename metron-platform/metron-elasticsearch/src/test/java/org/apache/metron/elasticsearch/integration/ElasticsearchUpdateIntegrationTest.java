@@ -18,7 +18,6 @@
 package org.apache.metron.elasticsearch.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -112,8 +111,80 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
     );
   }
 
+      Assert.assertEquals(1, table.size());
+      Document doc = dao.getLatest(guid, SENSOR_NAME);
+      Assert.assertEquals(message0, doc.getDocument());
+      {
+        //ensure hbase is up to date
+        Get g = new Get(HBaseDao.Key.toBytes(new HBaseDao.Key(guid, SENSOR_NAME)));
+        Result r = table.get(g);
+        NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
+        Assert.assertEquals(1, columns.size());
+        Assert.assertEquals(message0
+                , JSONUtils.INSTANCE.load(new String(columns.lastEntry().getValue())
+                        , JSONUtils.MAP_SUPPLIER)
+        );
+      }
+      {
+        //ensure ES is up-to-date
+        long cnt = 0;
+        for (int t = 0; t < MAX_RETRIES && cnt == 0; ++t, Thread.sleep(SLEEP_MS)) {
+          docs = es.getAllIndexedDocs(index, SENSOR_NAME + "_doc");
+          cnt = docs
+                  .stream()
+                  .filter(d -> message0.get("new-field").equals(d.get("new-field")))
+                  .count();
+        }
+        Assert.assertNotEquals("Elasticsearch is not updated!", cnt, 0);
+      }
+    }
+    //modify the same message and modify the new field
+    {
+      Map<String, Object> message0 = new HashMap<String, Object>(inputData.get(0)) {{
+        put("new-field", "metron2");
+      }};
+      String guid = "" + message0.get(Constants.GUID);
+      dao.replace(new ReplaceRequest(){{
+        setReplacement(message0);
+        setGuid(guid);
+        setSensorType(SENSOR_NAME);
+      }}, Optional.empty());
+      Assert.assertEquals(1, table.size());
+      Document doc = dao.getLatest(guid, SENSOR_NAME);
+      Assert.assertEquals(message0, doc.getDocument());
+      {
+        //ensure hbase is up to date
+        Get g = new Get(HBaseDao.Key.toBytes(new HBaseDao.Key(guid, SENSOR_NAME)));
+        Result r = table.get(g);
+        NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
+        Assert.assertEquals(2, columns.size());
+        Assert.assertEquals(message0, JSONUtils.INSTANCE.load(new String(columns.lastEntry().getValue())
+                        , JSONUtils.MAP_SUPPLIER)
+        );
+        Assert.assertNotEquals(message0, JSONUtils.INSTANCE.load(new String(columns.firstEntry().getValue())
+                        , JSONUtils.MAP_SUPPLIER)
+        );
+      }
+      {
+        //ensure ES is up-to-date
+        long cnt = 0;
+        for (int t = 0; t < MAX_RETRIES && cnt == 0; ++t,Thread.sleep(SLEEP_MS)) {
+          docs = es.getAllIndexedDocs(index, SENSOR_NAME + "_doc");
+          cnt = docs
+                  .stream()
+                  .filter(d -> message0.get("new-field").equals(d.get("new-field")))
+                  .count();
+        }
+
+        Assert.assertNotEquals("Elasticsearch is not updated!", cnt, 0);
+      }
+    }
+  }
+
+
   @Override
   protected List<Map<String, Object>> getIndexedTestData(String indexName, String sensorType) throws Exception {
     return es.getAllIndexedDocs(index, SENSOR_NAME + "_doc");
   }
+
 }

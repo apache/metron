@@ -17,7 +17,6 @@
  */
 package org.apache.metron.parsers.integration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.FieldValidator;
@@ -147,8 +146,7 @@ public class ParserDriver {
   public ParserDriver(String sensorType, String parserConfig, String globalConfig) throws IOException {
     config = SensorParserConfig.fromBytes(parserConfig.getBytes());
     this.sensorType = sensorType;
-    this.globalConfig = JSONUtils.INSTANCE.load(globalConfig, new TypeReference<Map<String, Object>>() {
-    });
+    this.globalConfig = JSONUtils.INSTANCE.load(globalConfig, JSONUtils.MAP_SUPPLIER);
   }
 
   public ProcessorResult<List<byte[]>> run(List<byte[]> in) {

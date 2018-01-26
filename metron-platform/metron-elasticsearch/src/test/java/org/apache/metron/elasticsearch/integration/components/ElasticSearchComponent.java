@@ -19,7 +19,6 @@ package org.apache.metron.elasticsearch.integration.components;
 
 import static java.util.Arrays.asList;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -210,8 +209,7 @@ public class ElasticSearchComponent implements InMemoryComponent {
 
       indexRequestBuilder = indexRequestBuilder.setSource(doc);
       Map<String, Object> esDoc = JSONUtils.INSTANCE
-          .load(doc, new TypeReference<Map<String, Object>>() {
-          });
+          .load(doc, JSONUtils.MAP_SUPPLIER);
       indexRequestBuilder.setId((String) esDoc.get(Constants.GUID));
       Object ts = esDoc.get("timestamp");
       if (ts != null) {

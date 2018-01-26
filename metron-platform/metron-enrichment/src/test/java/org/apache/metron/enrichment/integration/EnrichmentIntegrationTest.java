@@ -24,7 +24,6 @@ import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAG
 import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_RULE_SCORE;
 import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_SCORE_KEY;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
@@ -163,8 +162,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     String globalConfigStr = null;
     {
       File globalConfig = new File(new File(TestConstants.SAMPLE_CONFIG_PATH), "global.json");
-      Map<String, Object> config = JSONUtils.INSTANCE.load(globalConfig, new TypeReference<Map<String, Object>>() {
-      });
+      Map<String, Object> config = JSONUtils.INSTANCE.load(globalConfig, JSONUtils.MAP_SUPPLIER);
       config.put(SimpleHBaseEnrichmentFunctions.TABLE_PROVIDER_TYPE_CONF, MockHBaseTableProvider.class.getName());
       config.put(SimpleHBaseEnrichmentFunctions.ACCESS_TRACKER_TYPE_CONF, "PERSISTENT_BLOOM");
       config.put(PersistentBloomTrackerCreator.Config.PERSISTENT_BLOOM_TABLE, trackerHBaseTableName);
@@ -531,7 +529,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
                     , message -> {
                       try {
                         return new HashMap<>(JSONUtils.INSTANCE.load(new String(message)
-                                , new TypeReference<Map<String, Object>>() {}
+                                , JSONUtils.MAP_SUPPLIER 
                         )
                         );
                       } catch (Exception ex) {
