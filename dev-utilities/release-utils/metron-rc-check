@@ -242,7 +242,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "[ERROR] failed metron-config tests"
     exit 1
   fi
-  build_utils/verify_licenses.sh | tee ../build-lic.log
+  dev-utilities/build-utils/verify_licenses.sh | tee ../build-lic.log
   cd metron-deployment || exit 1
   if ! mvn -q package -DskipTests -P build-rpms ; then
     echo "[ERROR] failed to build rpm"

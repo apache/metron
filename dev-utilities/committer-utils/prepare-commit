@@ -1,0 +1,216 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+
+# not likely to change
+UPSTREAM=https://git-wip-us.apache.org/repos/asf/metron.git
+BASE_BRANCH=master
+CONFIG_FILE=~/.metron-prepare-commit
+GITHUB_REMOTE="origin"
+
+# does a config file already exist?
+if [ -f $CONFIG_FILE ]; then
+  . $CONFIG_FILE
+  echo "  ...using settings from $CONFIG_FILE"
+fi
+
+# github account of committer (you)
+if [ -z "$GITHUB_NAME" ]; then
+  read -p "  your github username [$GITHUB_NAME]: " INPUT
+  [ -n "$INPUT" ] && GITHUB_NAME=$INPUT
+
+  # write setting to config file
+  echo "GITHUB_NAME=$GITHUB_NAME" >> $CONFIG_FILE
+fi
+
+# apache id of committer (you)
+if [ -z "$APACHE_NAME" ]; then
+  read -p "  your apache userid [$APACHE_NAME]: " INPUT
+  [ -n "$INPUT" ] && APACHE_NAME=$INPUT
+
+  # write setting to config file
+  echo "APACHE_NAME=$APACHE_NAME" >> $CONFIG_FILE
+fi
+
+# apache email addr of committer (you)
+if [ -z "$APACHE_EMAIL" ]; then
+  APACHE_EMAIL=${APACHE_NAME}@apache.org
+  read -p "  your apache email [$APACHE_EMAIL]: " INPUT
+  [ -n "$INPUT" ] && APACHE_EMAIL=$INPUT
+
+  # write setting to config file, so it is not needed next time
+  echo "APACHE_EMAIL=$APACHE_EMAIL" >> $CONFIG_FILE
+fi
+
+# retrieve the pull request identifier
+read -p "  pull request: " PR
+if [ -z "$PR" ]; then
+  echo "Error: missing pr"
+  exit 1
+fi
+
+# ensure that the pull request exists
+PR_EXISTS=`curl -sI https://api.github.com/repos/apache/metron/pulls/$PR | grep Status: | sed 's/[^0-9]//g'`
+if [ "$PR_EXISTS" != "200" ]; then
+  echo "Error: pull request #$PR does not exist"
+  exit 1
+fi
+
+# working directory
+WORK=~/tmp/metron-pr$PR
+read -p "  local working directory [$WORK]: " INPUT
+[ -n "$INPUT" ] && WORK=$INPUT
+
+# handle tilde expansion
+WORK="${WORK/#\~/$HOME}"
+
+# warn the user if the working directory exists
+if [ -d "$WORK" ]; then
+  read -p "  directory exists [$WORK].  continue merge on existing repo? [yN] " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    exit 1
+  fi
+fi
+
+# if working directory does not exist, checkout the base branch
+if [ ! -d "$WORK" ]; then
+
+  # origin repository
+  ORIGIN="https://github.com/apache/metron"
+  read -p "  origin repo [$ORIGIN]: " INPUT
+  [ -n "$INPUT" ] && ORIGIN=$INPUT
+
+  # clone the repository and fetch updates
+  mkdir -p $WORK
+  git clone $ORIGIN $WORK
+  cd $WORK
+
+  # setup the git user and email for your apache account
+  git config user.name "$APACHE_NAME"
+  git config user.email $APACHE_EMAIL
+
+  # fetch any changes from upstream
+  git remote add upstream $UPSTREAM
+  git fetch upstream $BASE_BRANCH
+
+  # merge any changes from upstream
+  git checkout $BASE_BRANCH
+  git merge upstream/$BASE_BRANCH
+
+else
+
+  # if the repo already exists, allow the user to provide the name of the Github remote
+  # this is needed to checkout the code for the PR
+  read -p "  name of github remote [$GITHUB_REMOTE]: " INPUT
+  [ -n "$INPUT" ] && GITHUB_REMOTE=$INPUT
+
+fi
+
+PR_BRANCH_REF="pull/$PR/head:pr-$PR"
+PR_BRANCH="pr-$PR"
+cd $WORK
+git fetch $GITHUB_REMOTE $PR_BRANCH_REF
+echo ""
+
+# use github api to retrieve the contributor's login
+USER=`curl -s https://api.github.com/repos/apache/metron/pulls/$PR | grep login | head -1 | awk -F":" '{print $2}' | sed 's/[^a-zA-Z.@_-]//g'`
+read -p "  github contributor's username [$USER]: " INPUT
+[ -n "$INPUT" ] && USER=$INPUT
+
+# validate the github contributor
+if [ -z "$USER" ]; then
+  echo "Error: missing username"
+  exit 1
+fi
+
+# retrieve the contributor's email from the git commit history
+EMAIL=`git log $PR_BRANCH | grep Author | head -1 | awk -F"<" '{print $2}' | sed 's/[<>]//g'`
+read -p "  github contributor's email [$EMAIL]: " INPUT
+[ -n "$INPUT" ] && EMAIL=$INPUT
+
+# validate email
+if [ -z "$EMAIL" ] || [ "$EMAIL" = "null" ]; then
+  echo "Error: missing email"
+  exit 1
+fi
+
+# can we extract the JIRA from the PR title?
+JIRA=`curl -s https://api.github.com/repos/apache/metron/pulls/$PR | grep title | head -1 | egrep -o -i 'METRON-[0-9]+' | awk '{print toupper($0)}'`
+read -p "  issue identifier in jira [$JIRA]: " INPUT
+[ -n "$INPUT" ] && JIRA=$INPUT
+
+# validate the JIRA issue
+if [ -z "$JIRA" ]; then
+  echo "Error: missing jira"
+  exit 1
+fi
+
+# attempt to use the jira api to get a description of the jira
+DESC=`curl -s https://issues.apache.org/jira/si/jira.issueviews:issue-xml/$JIRA/$JIRA.xml | grep "<summary>" | sed 's/^.*<summary>//' | sed 's/<.summary>.*$//'`
+read -p "  issue description [$DESC]: " INPUT
+[ -n "$INPUT" ] && DESC=$INPUT
+
+# validate description
+if [ -z "$DESC" ]; then
+  echo "Error: missing description"
+  exit 1
+fi
+
+# commit message
+AUTHOR="$USER <$EMAIL>"
+if [ "$USER" == "$GITHUB_NAME" ]; then
+    MSG="$JIRA $DESC ($USER) closes apache/metron#$PR"
+else
+    MSG="$JIRA $DESC ($USER via $GITHUB_NAME) closes apache/metron#$PR"
+fi
+read -p "  commit message [$MSG]: " INPUT
+[ -n "$INPUT" ] && MSG=$INPUT
+
+# merge the contributor's branch and commit
+echo ""
+if git merge --squash "$PR_BRANCH"; then
+  git commit --author="$AUTHOR" -a -m "$MSG"
+else
+  exit $?
+fi
+
+# review the commit
+echo ""
+echo ""
+git diff --stat --color "upstream/$BASE_BRANCH..$BASE_BRANCH"
+echo ""
+echo ""
+git log --oneline "$BASE_BRANCH" "^upstream/$BASE_BRANCH"
+
+# run tests?
+echo ""
+echo ""
+read -p "  run test suite? [yN] " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+  mvn -q -T 2C -DskipTests clean install &&
+    mvn -q -T 2C surefire:test@unit-tests &&
+    mvn -q surefire:test@integration-tests &&
+    mvn -q test --projects metron-interface/metron-config &&
+    dev-utilities/build-utils/verify_licenses.sh
+fi
+
+echo ""
+echo "Review commit carefully then run..."
+echo "    cd $WORK"
+echo "    git push upstream master"
+echo ""
