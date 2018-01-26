@@ -1,0 +1,40 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+
+#
+# for CentOS...
+#
+# this is not needed for CentOS.  the elasticsearch repository is automatically
+# added by the mpack.  there is currently an issue that needs resolved that
+# prevents us from doing the same in Ubuntu
+#
+
+#
+# for Ubuntu...
+#
+- name: Setup Elasticsearch packages repo on Ubuntu
+  shell: echo "deb {{ ubuntu_elasticsearch_packages_repo }} stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch.list
+  when: ansible_distribution == "Ubuntu"
+
+- name: Setup Elasticsearch curator repo on Ubuntu
+  shell: echo "deb {{ ubuntu_elasticsearch_curator_repo }} stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch.list
+  when: ansible_distribution == "Ubuntu"
+
+- name: Update package cache
+  apt: update_cache=yes
+  when: ansible_distribution == "Ubuntu"

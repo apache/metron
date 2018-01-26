@@ -48,13 +48,32 @@
             </components>
             <osSpecifics>
                 <osSpecific>
-                    <osFamily>any</osFamily>
+                    <osFamily>redhat6</osFamily>
                     <packages>
                         <package>
                             <name>python-elasticsearch</name>
                         </package>
                         <package>
                             <name>kibana-5.6.2</name>
+                        </package>
+                    </packages>
+                </osSpecific>
+                <osSpecific>
+                    <osFamily>redhat7</osFamily>
+                    <packages>
+                        <package>
+                            <name>python-elasticsearch</name>
+                        </package>
+                        <package>
+                            <name>kibana-5.6.2</name>
+                        </package>
+                    </packages>
+                </osSpecific>
+                <osSpecific>
+                    <osFamily>ubuntu14</osFamily>
+                    <packages>
+                        <package>
+                            <name>kibana=5.6.2</name>
                         </package>
                     </packages>
                 </osSpecific>

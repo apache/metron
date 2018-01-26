@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 [![Build Status](https://travis-ci.org/apache/metron.svg?branch=master)](https://travis-ci.org/apache/metron)
- 
+
 # Apache Metron
 
 Metron integrates a variety of open source big data technologies in order
@@ -27,36 +27,36 @@ the most current threat intelligence information to security telemetry
 within a single platform.
 
 For the latest information, please visit our website at http://metron.apache.org/
- 
+
 Metron can be divided into 4 areas:
 
 1. **A mechanism to capture, store, and normalize any type of security
 telemetry at extremely high rates.**  Because security telemetry is constantly
-being generated, it requires a method for ingesting the data at high speeds 
+being generated, it requires a method for ingesting the data at high speeds
 and pushing it to various processing units for advanced computation and analytics.  
 
 2. **Real time processing and application of enrichments** such as threat
 intelligence, geolocation, and DNS information to telemetry being collected.
 The immediate application of this information to incoming telemetry provides
-the context and situational awareness, as well as the who and where 
+the context and situational awareness, as well as the who and where
 information critical for investigation
 
 3. **Efficient information storage** based on how the information will be used:
    - Logs and telemetry are stored such that they can be efficiently mined and
 analyzed for concise security visibility
-   - The ability to extract and reconstruct full packets helps an analyst answer 
-questions such as who the true attacker was, what data was leaked, and where 
+   - The ability to extract and reconstruct full packets helps an analyst answer
+questions such as who the true attacker was, what data was leaked, and where
 that data was sent
-   - Long-term storage not only increases visibility over time, but also enables 
-advanced analytics such as machine learning techniques to be used to create 
-models on the information.  Incoming data can then be scored against these 
+   - Long-term storage not only increases visibility over time, but also enables
+advanced analytics such as machine learning techniques to be used to create
+models on the information.  Incoming data can then be scored against these
 stored models for advanced anomaly detection.  
 
-4. **An interface that gives a security investigator a centralized view of data 
-and alerts passed through the system.**  Metron’s interface presents alert 
-summaries with threat intelligence and enrichment data specific to that alert 
-on one single page.  Furthermore, advanced search capabilities and full packet 
-extraction tools are presented to the analyst for investigation without the 
+4. **An interface that gives a security investigator a centralized view of data
+and alerts passed through the system.**  Metron’s interface presents alert
+summaries with threat intelligence and enrichment data specific to that alert
+on one single page.  Furthermore, advanced search capabilities and full packet
+extraction tools are presented to the analyst for investigation without the
 need to pivot into additional tools.   
 
 Big data is a natural fit for powerful security analytics. The Metron
@@ -83,7 +83,7 @@ Option 3 is more likely to have the latest code.
 
 # Getting Started
 
-To start exploring the capabilities of Apache Metron [follow these instructions to launch Metron in a single-node VM](metron-deployment/vagrant/full-dev-platform) on your own hardware.  
+To start exploring the capabilities of Apache Metron [follow these instructions to launch Metron in a single-node VM](metron-deployment/development/centos6) on your own hardware.  
 
 # Building Metron
 
