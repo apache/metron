@@ -17,7 +17,6 @@
  */
 package org.apache.metron.maas.functions;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import java.lang.invoke.MethodHandles;
@@ -174,8 +173,7 @@ public class MaaSFunctions {
           URL u = new URL(url + "/" + modelFunction);
 
           String results = RESTUtil.INSTANCE.getRESTJSONResults(u, modelArgs);
-          ret = JSONUtils.INSTANCE.load(results, new TypeReference<Map<String, Object>>() {
-          });
+          ret = JSONUtils.INSTANCE.load(results, JSONUtils.MAP_SUPPLIER);
           resultCache.put(cacheKey, ret);
           return ret;
         } catch (Exception e) {

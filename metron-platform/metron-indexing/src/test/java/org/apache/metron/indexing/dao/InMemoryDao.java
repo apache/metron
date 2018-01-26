@@ -17,7 +17,6 @@
  */
 package org.apache.metron.indexing.dao;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Iterables;
@@ -193,7 +192,7 @@ public class InMemoryDao implements IndexDao {
 
   public static Map<String, Object> parse(String doc) {
     try {
-      return JSONUtils.INSTANCE.load(doc, new TypeReference<Map<String, Object>>() {});
+      return JSONUtils.INSTANCE.load(doc, JSONUtils.MAP_SUPPLIER);
     } catch (IOException e) {
       throw new IllegalStateException(e.getMessage(), e);
     }

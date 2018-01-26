@@ -18,7 +18,6 @@
 
 package org.apache.metron.common.configuration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.IOException;
 import java.util.Map;
 import org.apache.curator.framework.CuratorFramework;
@@ -38,8 +37,7 @@ public class GlobalConfigurationOperations implements ConfigurationOperations {
 
   @Override
   public Object deserialize(String s) throws IOException {
-    return JSONUtils.INSTANCE.load(s, new TypeReference<Map<String, Object>>() {
-    });
+    return JSONUtils.INSTANCE.load(s, JSONUtils.MAP_SUPPLIER);
   }
 
   @Override

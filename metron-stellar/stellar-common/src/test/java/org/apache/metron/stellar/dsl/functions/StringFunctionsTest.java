@@ -617,7 +617,8 @@ public class StringFunctionsTest {
     //Simple Arrays
     boolean thrown = false;
     try {
-      run("TO_JSON_MAP(msg)", ImmutableMap.of("msg", string3));
+      Object o = run("TO_JSON_MAP(msg)", ImmutableMap.of("msg", string3));
+      System.out.println(string3 + " == " + o);
     } catch (ParseException pe) {
       thrown = true;
     }
@@ -656,7 +657,7 @@ public class StringFunctionsTest {
       run("TO_JSON_MAP('123, 456')", new HashedMap<>());
     } catch (ParseException pe) {
       thrown = true;
-      Assert.assertTrue(pe.getMessage().contains("Valid JSON string not supplied"));
+      Assert.assertTrue(pe.getMessage().contains("is not a valid JSON string"));
     }
     Assert.assertTrue(thrown);
     thrown = false;
@@ -666,7 +667,7 @@ public class StringFunctionsTest {
       run("TO_JSON_MAP('{\"foo\" : 2')", new HashedMap<>());
     } catch (ParseException pe) {
       thrown = true;
-      Assert.assertTrue(pe.getMessage().contains("Valid JSON string not supplied"));
+      Assert.assertTrue(pe.getMessage().contains("is not a valid JSON string"));
     }
     Assert.assertTrue(thrown);
     thrown = false;
@@ -730,7 +731,7 @@ public class StringFunctionsTest {
       run("TO_JSON_LIST('123, 456')", new HashedMap<>());
     } catch (ParseException pe) {
       thrown = true;
-      Assert.assertTrue(pe.getMessage().contains("Valid JSON string not supplied"));
+      Assert.assertTrue(pe.getMessage().contains("is not a valid JSON string"));
     }
     Assert.assertTrue(thrown);
 
@@ -740,7 +741,7 @@ public class StringFunctionsTest {
       run("TO_JSON_LIST('{\"foo\" : 2')", new HashedMap<>());
     } catch (ParseException pe) {
       thrown = true;
-      Assert.assertTrue(pe.getMessage().contains("Valid JSON string not supplied"));
+      Assert.assertTrue(pe.getMessage().contains("is not a valid JSON string"));
     }
     Assert.assertTrue(thrown);
   }

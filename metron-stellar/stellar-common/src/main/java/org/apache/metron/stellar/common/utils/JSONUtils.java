@@ -27,6 +27,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -35,23 +41,48 @@ import org.json.simple.parser.ParseException;
 public enum JSONUtils {
   INSTANCE;
 
+  public static class ReferenceSupplier<T> implements Supplier<TypeReference<T>> {
+    Type type;
+    protected ReferenceSupplier() {
+      Type superClass = this.getClass().getGenericSuperclass();
+      if(superClass instanceof Class) {
+        throw new IllegalArgumentException("Internal error: ReferenceSupplier constructed without actual type information");
+      } else {
+        this.type = ((ParameterizedType)superClass).getActualTypeArguments()[0];
+      }
+    }
+
+    @Override
+    public TypeReference<T> get() {
+      return new TypeReference<T>() {
+        @Override
+        public Type getType() {
+          return type;
+        }
+      };
+    }
+  }
+
+  public final static ReferenceSupplier<Map<String, Object>> MAP_SUPPLIER = new ReferenceSupplier<Map<String, Object>>(){};
+  public final static ReferenceSupplier<List<Object>> LIST_SUPPLIER = new ReferenceSupplier<List<Object>>(){};
+
   private static ThreadLocal<JSONParser> _parser = ThreadLocal.withInitial(() ->
           new JSONParser());
 
   private static ThreadLocal<ObjectMapper> _mapper = ThreadLocal.withInitial(() ->
           new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL));
 
-  public <T> T load(InputStream is, TypeReference<T> ref) throws IOException {
-    return _mapper.get().readValue(is, ref);
+  public <T> T load(InputStream is, ReferenceSupplier<T> ref) throws IOException {
+    return _mapper.get().readValue(is, (TypeReference<T>)ref.get());
   }
 
-  public <T> T load(String is, TypeReference<T> ref) throws IOException {
-    return _mapper.get().readValue(is, ref);
+  public <T> T load(String is, ReferenceSupplier<T> ref) throws IOException {
+    return _mapper.get().readValue(is, (TypeReference<T>)ref.get());
   }
 
-  public <T> T load(File f, TypeReference<T> ref) throws IOException {
+  public <T> T load(File f, ReferenceSupplier<T> ref) throws IOException {
     try (InputStream is = new BufferedInputStream(new FileInputStream(f))) {
-      return _mapper.get().readValue(is, ref);
+      return _mapper.get().readValue(is, (TypeReference<T>)ref.get());
     }
   }
 
