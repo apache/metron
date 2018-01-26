@@ -14,7 +14,6 @@
  */
 package org.apache.metron.indexing.dao;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -122,7 +121,7 @@ public abstract class UpdateIntegrationTest {
         Assert.assertEquals(1, columns.size());
         Assert.assertEquals(message0
             , JSONUtils.INSTANCE.load(new String(columns.lastEntry().getValue())
-                , new TypeReference<Map<String, Object>>() {})
+                , JSONUtils.MAP_SUPPLIER)
         );
       }
       {
@@ -160,10 +159,10 @@ public abstract class UpdateIntegrationTest {
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
         Assert.assertEquals(2, columns.size());
         Assert.assertEquals(message0, JSONUtils.INSTANCE.load(new String(columns.lastEntry().getValue())
-            , new TypeReference<Map<String, Object>>() {})
+            , JSONUtils.MAP_SUPPLIER)
         );
         Assert.assertNotEquals(message0, JSONUtils.INSTANCE.load(new String(columns.firstEntry().getValue())
-            , new TypeReference<Map<String, Object>>() {})
+            , JSONUtils.MAP_SUPPLIER)
         );
       }
       {
