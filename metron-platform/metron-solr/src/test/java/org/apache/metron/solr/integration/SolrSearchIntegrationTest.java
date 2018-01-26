@@ -1,27 +1,38 @@
 /**
- * Licensed to the Apache Software Foundation (ASF) under one or more contributor license
- * agreements.  See the NOTICE file distributed with this work for additional information regarding
- * copyright ownership.  The ASF licenses this file to you under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with the License.  You may obtain
- * a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.metron.solr.integration;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
+import org.apache.metron.indexing.dao.search.GroupResult;
+import org.apache.metron.indexing.dao.search.InvalidSearchException;
+import org.apache.metron.indexing.dao.search.SearchRequest;
+import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
@@ -57,8 +68,8 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
   @Override
   protected InMemoryComponent startIndex() throws Exception {
     solrComponent = new SolrComponent.Builder()
-        .addCollection("bro", "../metron-solr/src/main/config/bro/conf")
-        .addCollection("snort", "../metron-solr/src/main/config/snort/conf")
+        .addCollection("bro", "../metron-solr/src/test/resources/config/bro/conf")
+        .addCollection("snort", "../metron-solr/src/test/resources/config/snort/conf")
         .build();
     solrComponent.start();
     return solrComponent;
@@ -139,21 +150,10 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
     Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("threat:triage:score"));
   }
 
-  @Ignore
-  @Override
-  public void group_by_ip_query() throws Exception {
-
-  }
-
-  @Ignore
-  @Override
-  public void group_by_returns_results_in_groups() throws Exception {
-
-  }
-
-  @Ignore
-  @Override
-  public void group_by_returns_results_in_sorted_groups() throws Exception {
-
+  @Test
+  public void different_type_filter_query() throws Exception {
+    thrown.expect(InvalidSearchException.class);
+    SearchRequest request = JSONUtils.INSTANCE.load(differentTypeFilterQuery, SearchRequest.class);
+    SearchResponse response = dao.search(request);
   }
 }

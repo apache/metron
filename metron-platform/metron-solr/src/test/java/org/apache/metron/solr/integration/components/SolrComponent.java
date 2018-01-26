@@ -93,14 +93,12 @@ public class SolrComponent implements InMemoryComponent {
     try {
       File baseDir = Files.createTempDirectory("solrcomponent").toFile();
       baseDir.deleteOnExit();
-      //miniSolrCloudCluster = new MiniSolrCloudCluster(1, baseDir.toPath(), solrXmlPath, JettyConfig.builder().setPort(port).build());
       miniSolrCloudCluster = new MiniSolrCloudCluster(1, baseDir.toPath(), JettyConfig.builder().setPort(port).build());
       for(String name: collections.keySet()) {
         String configPath = collections.get(name);
         miniSolrCloudCluster.uploadConfigSet(new File(configPath).toPath(), name);
         CollectionAdminRequest.createCollection(name, 1, 1).process(miniSolrCloudCluster.getSolrClient());
       }
-      //miniSolrCloudCluster.createCollection("metron", 1, 1, "metron", new HashMap<String, String>());
       if (postStartCallback != null) postStartCallback.apply(this);
     } catch(Exception e) {
       throw new UnableToStartException(e.getMessage(), e);

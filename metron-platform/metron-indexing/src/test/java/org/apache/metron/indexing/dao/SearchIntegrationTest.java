@@ -277,6 +277,42 @@ public abstract class SearchIntegrationTest {
 
   /**
    * {
+   * "facetFields": ["snort_field"],
+   * "indices": ["bro", "snort"],
+   * "query": "*:*",
+   * "from": 0,
+   * "size": 10,
+   * "sort": [
+   *   {
+   *     "field": "timestamp",
+   *     "sortOrder": "desc"
+   *   }
+   * ]
+   * }
+   */
+  @Multiline
+  public static String missingTypeFacetQuery;
+
+  /**
+   * {
+   * "facetFields": ["duplicate_name_field"],
+   * "indices": ["bro", "snort"],
+   * "query": "*:*",
+   * "from": 0,
+   * "size": 10,
+   * "sort": [
+   *   {
+   *     "field": "timestamp",
+   *     "sortOrder": "desc"
+   *   }
+   * ]
+   * }
+   */
+  @Multiline
+  public static String differentTypeFacetQuery;
+
+  /**
+   * {
    * "indices": ["bro", "snort"],
    * "query": "*",
    * "from": 0,
@@ -421,6 +457,23 @@ public abstract class SearchIntegrationTest {
    */
   @Multiline
   public static String groupByIpQuery;
+
+  /**
+   * {
+   * "indices": ["bro", "snort"],
+   * "query": "duplicate_name_field:\"data 1\"",
+   * "from": 0,
+   * "size": 10,
+   * "sort": [
+   *   {
+   *     "field": "timestamp",
+   *     "sortOrder": "desc"
+   *   }
+   * ]
+   * }
+   */
+  @Multiline
+  public static String differentTypeFilterQuery;
 
   protected static IndexDao dao;
   protected static InMemoryComponent indexComponent;
@@ -651,18 +704,38 @@ public abstract class SearchIntegrationTest {
   }
 
   @Test
-  public void exceeding_max_resulsts_throws_exception() throws Exception {
+  public void missing_type_facet_query() throws Exception {
+    SearchRequest request = JSONUtils.INSTANCE.load(missingTypeFacetQuery, SearchRequest.class);
+    SearchResponse response = dao.search(request);
+    Assert.assertEquals(10, response.getTotal());
+
+    Map<String, Map<String, Long>> facetCounts = response.getFacetCounts();
+    Assert.assertEquals(1, facetCounts.size());
+    Map<String, Long> snortFieldCounts = facetCounts.get("snort_field");
+    Assert.assertEquals(5, snortFieldCounts.size());
+    Assert.assertEquals(new Long(1), snortFieldCounts.get("50"));
+    Assert.assertEquals(new Long(1), snortFieldCounts.get("40"));
+    Assert.assertEquals(new Long(1), snortFieldCounts.get("30"));
+    Assert.assertEquals(new Long(1), snortFieldCounts.get("20"));
+    Assert.assertEquals(new Long(1), snortFieldCounts.get("10"));
+    response.getFacetCounts();
+  }
+
+  @Test
+  public void different_type_facet_query() throws Exception {
+    thrown.expect(Exception.class);
+    SearchRequest request = JSONUtils.INSTANCE.load(differentTypeFacetQuery, SearchRequest.class);
+    SearchResponse response = dao.search(request);
+    Assert.assertEquals(3, response.getTotal());
+  }
+
+  @Test
+  public void exceeding_max_results_throws_exception() throws Exception {
     thrown.expect(InvalidSearchException.class);
     thrown.expectMessage("Search result size must be less than 100");
     SearchRequest request = JSONUtils.INSTANCE.load(exceededMaxResultsQuery, SearchRequest.class);
     dao.search(request);
   }
-
-  @Test
-  public abstract void returns_column_data_for_multiple_indices() throws Exception;
-
-  @Test
-  public abstract void returns_column_metadata_for_specified_indices() throws Exception;
 
   @Test
   public void column_metadata_for_missing_index() throws Exception {
@@ -681,13 +754,159 @@ public abstract class SearchIntegrationTest {
   }
 
   @Test
-  public abstract void group_by_ip_query() throws Exception;
+  public void group_by_ip_query() throws Exception {
+    GroupRequest request = JSONUtils.INSTANCE.load(groupByIpQuery, GroupRequest.class);
+    GroupResponse response = dao.group(request);
+
+    // expect only 1 group for 'ip_src_addr'
+    Assert.assertEquals("ip_src_addr", response.getGroupedBy());
+
+    // there are 8 different 'ip_src_addr' values
+    List<GroupResult> groups = response.getGroupResults();
+    Assert.assertEquals(8, groups.size());
+
+    // expect dotted-decimal notation in descending order
+    Assert.assertEquals("192.168.1.8", groups.get(0).getKey());
+    Assert.assertEquals("192.168.1.7", groups.get(1).getKey());
+    Assert.assertEquals("192.168.1.6", groups.get(2).getKey());
+    Assert.assertEquals("192.168.1.5", groups.get(3).getKey());
+    Assert.assertEquals("192.168.1.4", groups.get(4).getKey());
+    Assert.assertEquals("192.168.1.3", groups.get(5).getKey());
+    Assert.assertEquals("192.168.1.2", groups.get(6).getKey());
+    Assert.assertEquals("192.168.1.1", groups.get(7).getKey());
+  }
 
   @Test
-  public abstract void group_by_returns_results_in_groups() throws Exception;
+  public void group_by_returns_results_in_groups() throws Exception {
+    // Group by test case, default order is count descending
+    GroupRequest request = JSONUtils.INSTANCE.load(groupByQuery, GroupRequest.class);
+    GroupResponse response = dao.group(request);
+    Assert.assertEquals("is_alert", response.getGroupedBy());
+    List<GroupResult> isAlertGroups = response.getGroupResults();
+    Assert.assertEquals(2, isAlertGroups.size());
+
+    // isAlert == true group
+    GroupResult trueGroup = isAlertGroups.get(0);
+    Assert.assertEquals("true", trueGroup.getKey());
+    Assert.assertEquals(6, trueGroup.getTotal());
+    Assert.assertEquals("latitude", trueGroup.getGroupedBy());
+    Assert.assertEquals(198.0, trueGroup.getScore(), 0.00001);
+    List<GroupResult> trueLatitudeGroups = trueGroup.getGroupResults();
+    Assert.assertEquals(2, trueLatitudeGroups.size());
+
+
+    // isAlert == true && latitude == 48.5839 group
+    GroupResult trueLatitudeGroup2 = trueLatitudeGroups.get(0);
+    Assert.assertEquals(48.5839, Double.parseDouble(trueLatitudeGroup2.getKey()), 0.00001);
+    Assert.assertEquals(5, trueLatitudeGroup2.getTotal());
+    Assert.assertEquals(148.0, trueLatitudeGroup2.getScore(), 0.00001);
+
+    // isAlert == true && latitude == 48.0001 group
+    GroupResult trueLatitudeGroup1 = trueLatitudeGroups.get(1);
+    Assert.assertEquals(48.0001, Double.parseDouble(trueLatitudeGroup1.getKey()), 0.00001);
+    Assert.assertEquals(1, trueLatitudeGroup1.getTotal());
+    Assert.assertEquals(50.0, trueLatitudeGroup1.getScore(), 0.00001);
+
+    // isAlert == false group
+    GroupResult falseGroup = isAlertGroups.get(1);
+    Assert.assertEquals("false", falseGroup.getKey());
+    Assert.assertEquals("latitude", falseGroup.getGroupedBy());
+    Assert.assertEquals(130.0, falseGroup.getScore(), 0.00001);
+    List<GroupResult> falseLatitudeGroups = falseGroup.getGroupResults();
+    Assert.assertEquals(2, falseLatitudeGroups.size());
+
+    // isAlert == false && latitude == 48.5839 group
+    GroupResult falseLatitudeGroup2 = falseLatitudeGroups.get(0);
+    Assert.assertEquals(48.5839, Double.parseDouble(falseLatitudeGroup2.getKey()), 0.00001);
+    Assert.assertEquals(3, falseLatitudeGroup2.getTotal());
+    Assert.assertEquals(80.0, falseLatitudeGroup2.getScore(), 0.00001);
+
+    // isAlert == false && latitude == 48.0001 group
+    GroupResult falseLatitudeGroup1 = falseLatitudeGroups.get(1);
+    Assert.assertEquals(48.0001, Double.parseDouble(falseLatitudeGroup1.getKey()), 0.00001);
+    Assert.assertEquals(1, falseLatitudeGroup1.getTotal());
+    Assert.assertEquals(50.0, falseLatitudeGroup1.getScore(), 0.00001);
+  }
 
   @Test
-  public abstract void group_by_returns_results_in_sorted_groups() throws Exception;
+  public void group_by_returns_results_in_sorted_groups() throws Exception {
+    // Group by with sorting test case where is_alert is sorted by count ascending and ip_src_addr is sorted by term descending
+    GroupRequest request = JSONUtils.INSTANCE.load(sortedGroupByQuery, GroupRequest.class);
+    GroupResponse response = dao.group(request);
+    Assert.assertEquals("is_alert", response.getGroupedBy());
+    List<GroupResult> isAlertGroups = response.getGroupResults();
+    Assert.assertEquals(2, isAlertGroups.size());
+
+    // isAlert == false group
+    GroupResult falseGroup = isAlertGroups.get(0);
+    Assert.assertEquals(4, falseGroup.getTotal());
+    Assert.assertEquals("ip_src_addr", falseGroup.getGroupedBy());
+    List<GroupResult> falseIpSrcAddrGroups = falseGroup.getGroupResults();
+    Assert.assertEquals(4, falseIpSrcAddrGroups.size());
+
+    // isAlert == false && ip_src_addr == 192.168.1.8 group
+    GroupResult falseIpSrcAddrGroup1 = falseIpSrcAddrGroups.get(0);
+    Assert.assertEquals("192.168.1.8", falseIpSrcAddrGroup1.getKey());
+    Assert.assertEquals(1, falseIpSrcAddrGroup1.getTotal());
+    Assert.assertNull(falseIpSrcAddrGroup1.getGroupedBy());
+    Assert.assertNull(falseIpSrcAddrGroup1.getGroupResults());
+
+    // isAlert == false && ip_src_addr == 192.168.1.7 group
+    GroupResult falseIpSrcAddrGroup2 = falseIpSrcAddrGroups.get(1);
+    Assert.assertEquals("192.168.1.7", falseIpSrcAddrGroup2.getKey());
+    Assert.assertEquals(1, falseIpSrcAddrGroup2.getTotal());
+    Assert.assertNull(falseIpSrcAddrGroup2.getGroupedBy());
+    Assert.assertNull(falseIpSrcAddrGroup2.getGroupResults());
+
+    // isAlert == false && ip_src_addr == 192.168.1.6 group
+    GroupResult falseIpSrcAddrGroup3 = falseIpSrcAddrGroups.get(2);
+    Assert.assertEquals("192.168.1.6", falseIpSrcAddrGroup3.getKey());
+    Assert.assertEquals(1, falseIpSrcAddrGroup3.getTotal());
+    Assert.assertNull(falseIpSrcAddrGroup3.getGroupedBy());
+    Assert.assertNull(falseIpSrcAddrGroup3.getGroupResults());
+
+    // isAlert == false && ip_src_addr == 192.168.1.2 group
+    GroupResult falseIpSrcAddrGroup4 = falseIpSrcAddrGroups.get(3);
+    Assert.assertEquals("192.168.1.2", falseIpSrcAddrGroup4.getKey());
+    Assert.assertEquals(1, falseIpSrcAddrGroup4.getTotal());
+    Assert.assertNull(falseIpSrcAddrGroup4.getGroupedBy());
+    Assert.assertNull(falseIpSrcAddrGroup4.getGroupResults());
+
+    // isAlert == false group
+    GroupResult trueGroup = isAlertGroups.get(1);
+    Assert.assertEquals(6, trueGroup.getTotal());
+    Assert.assertEquals("ip_src_addr", trueGroup.getGroupedBy());
+    List<GroupResult> trueIpSrcAddrGroups = trueGroup.getGroupResults();
+    Assert.assertEquals(4, trueIpSrcAddrGroups.size());
+
+    // isAlert == false && ip_src_addr == 192.168.1.5 group
+    GroupResult trueIpSrcAddrGroup1 = trueIpSrcAddrGroups.get(0);
+    Assert.assertEquals("192.168.1.5", trueIpSrcAddrGroup1.getKey());
+    Assert.assertEquals(1, trueIpSrcAddrGroup1.getTotal());
+    Assert.assertNull(trueIpSrcAddrGroup1.getGroupedBy());
+    Assert.assertNull(trueIpSrcAddrGroup1.getGroupResults());
+
+    // isAlert == false && ip_src_addr == 192.168.1.4 group
+    GroupResult trueIpSrcAddrGroup2 = trueIpSrcAddrGroups.get(1);
+    Assert.assertEquals("192.168.1.4", trueIpSrcAddrGroup2.getKey());
+    Assert.assertEquals(1, trueIpSrcAddrGroup2.getTotal());
+    Assert.assertNull(trueIpSrcAddrGroup2.getGroupedBy());
+    Assert.assertNull(trueIpSrcAddrGroup2.getGroupResults());
+
+    // isAlert == false && ip_src_addr == 192.168.1.3 group
+    GroupResult trueIpSrcAddrGroup3 = trueIpSrcAddrGroups.get(2);
+    Assert.assertEquals("192.168.1.3", trueIpSrcAddrGroup3.getKey());
+    Assert.assertEquals(1, trueIpSrcAddrGroup3.getTotal());
+    Assert.assertNull(trueIpSrcAddrGroup3.getGroupedBy());
+    Assert.assertNull(trueIpSrcAddrGroup3.getGroupResults());
+
+    // isAlert == false && ip_src_addr == 192.168.1.1 group
+    GroupResult trueIpSrcAddrGroup4 = trueIpSrcAddrGroups.get(3);
+    Assert.assertEquals("192.168.1.1", trueIpSrcAddrGroup4.getKey());
+    Assert.assertEquals(3, trueIpSrcAddrGroup4.getTotal());
+    Assert.assertNull(trueIpSrcAddrGroup4.getGroupedBy());
+    Assert.assertNull(trueIpSrcAddrGroup4.getGroupResults());
+  }
 
   @Test
   public void queries_fields() throws Exception {
@@ -724,6 +943,14 @@ public abstract class SearchIntegrationTest {
   public static void stop() throws Exception {
     indexComponent.stop();
   }
+
+  @Test
+  public abstract void returns_column_data_for_multiple_indices() throws Exception;
+  @Test
+  public abstract void returns_column_metadata_for_specified_indices() throws Exception;
+  @Test
+  public abstract void different_type_filter_query() throws Exception;
+
 
   protected abstract IndexDao createDao() throws Exception;
   protected abstract InMemoryComponent startIndex() throws Exception;
