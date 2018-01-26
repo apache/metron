@@ -252,15 +252,10 @@ public class KafkaServiceImplTest {
 
   @Test
   public void createTopicShouldFailIfReplicationFactorIsGreaterThanAvailableBrokers() throws Exception {
-    final Map<String, List<PartitionInfo>> topics = new HashMap<>();
-
-    when(kafkaConsumer.listTopics()).thenReturn(topics);
-
+    exception.expect(RestException.class);
+    doThrow(AdminOperationException.class).when(adminUtils).createTopic(eq(zkUtils), eq("t"), eq(1), eq(2), eq(new Properties()), eq(RackAwareMode.Disabled$.MODULE$));
     kafkaService.createTopic(VALID_KAFKA_TOPIC);
 
-    verify(adminUtils).createTopic(eq(zkUtils), eq("t"), eq(1), eq(2), eq(new Properties()), eq(RackAwareMode.Disabled$.MODULE$));
-    verify(kafkaConsumer).listTopics();
-    verifyZeroInteractions(zkUtils);
   }
 
   @Test
