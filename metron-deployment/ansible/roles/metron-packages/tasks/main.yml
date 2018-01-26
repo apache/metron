@@ -1,0 +1,52 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+---
+- include: validate.yml
+- include: create_directory.yml
+
+#
+# copy metron packages to the remote host
+#
+# the repository on the remote host containing the Metron packages (by default
+# located at /localrepo) MUST BE defined on every Ambari slave host.  in most
+# cases, this local repository can be empty.  only the local repository hosting
+# metron needs to contain the metron packages (either RPMs or DEBs)
+#
+# 'packages_required'
+#
+# this variable defines whether the Metron packages need to be copied to the
+# repository or whether it can be left empty.  copying the packages can be a
+# time consuming operation on a large cluster, so it avoided unless required.
+#
+- include: copy_packages_centos.yml
+  static: no
+  when: ansible_distribution == "CentOS" and packages_required == true
+
+- include: copy_packages_ubuntu.yml
+  static: no
+  when: ansible_distribution == "Ubuntu" and packages_required == true
+
+#
+# create the local repository
+#
+- include: create_repo_centos.yml
+  static: no
+  when: ansible_distribution == "CentOS"
+
+- include: create_repo_ubuntu.yml
+  static: no
+  when: ansible_distribution == "Ubuntu"

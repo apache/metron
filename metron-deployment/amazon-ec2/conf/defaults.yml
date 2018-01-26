@@ -15,14 +15,6 @@
 #  limitations under the License.
 #
 ---
-# which services should be started?
-services_to_start:
-  - yaf
-  - snort
-  - snort-logs
-  - bro
-  - pcap-replay
-
 # the ami for cent6 by region
 amis_by_region:
   us-east-1:        ami-1c221e76    # US East (N. Virginia)

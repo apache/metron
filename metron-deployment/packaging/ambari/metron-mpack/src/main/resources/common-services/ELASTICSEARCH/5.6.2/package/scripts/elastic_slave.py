@@ -17,77 +17,54 @@ limitations under the License.
 
 """
 
-from resource_management.core import shell
-from resource_management.core.exceptions import ExecutionFailed
-from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.script import Script
 
-from slave import slave
-
+from elastic_commands import service_check
+from elastic_commands import configure_slave
 
 class Elasticsearch(Script):
+
     def install(self, env):
         import params
         env.set_params(params)
-        Logger.info('Install Elasticsearch data node')
+        Logger.info('Install Elasticsearch slave node')
         self.install_packages(env)
 
     def configure(self, env, upgrade_type=None, config_dir=None):
         import params
         env.set_params(params)
-        Logger.info('Configure Elasticsearch data node')
-        slave()
+        Logger.info('Configure Elasticsearch slave node')
+        configure_slave()
 
     def stop(self, env, upgrade_type=None):
         import params
         env.set_params(params)
-        Logger.info('Stop Elasticsearch data node')
-        stop_cmd = "service elasticsearch stop"
-        Execute(stop_cmd)
+        Logger.info('Stop Elasticsearch slave node')
+        Execute("service elasticsearch stop")
 
     def start(self, env, upgrade_type=None):
         import params
         env.set_params(params)
         self.configure(env)
-        Logger.info('Start Elasticsearch data node')
-        start_cmd = "service elasticsearch start"
-        Execute(start_cmd)
+        Execute("service elasticsearch start")
 
     def status(self, env):
         import params
         env.set_params(params)
-        Logger.info('Check status of Elasticsearch data node')
-
-        # return codes defined by LSB
-        # http://refspecs.linuxbase.org/LSB_3.0.0/LSB-PDA/LSB-PDA/iniscrptact.html
-        cmd = ('service', 'elasticsearch', 'status')
-        rc, out = shell.call(cmd, sudo=True, quiet=False)
-
-        if rc in [1, 2, 3]:
-          # if return code = 1, 2, or 3, then 'program is not running' or 'dead'
-          # Ambari's resource_management/libraries/script/script.py handles
-          # this specific exception as OK
-          Logger.info("Elasticsearch slave is not running")
-          raise ComponentIsNotRunning()
-
-        elif rc == 0:
-          # if return code = 0, then 'program is running or service is OK'
-          Logger.info("Elasticsearch slave is running")
-
-        else:
-          # else, program is dead or service state is unknown
-          err_msg = "Execution of '{0}' returned {1}".format(" ".join(cmd), rc)
-          raise ExecutionFailed(err_msg, rc, out)
+        Logger.info('Status check Elasticsearch slave node')
+        service_check(
+          cmd="service elasticsearch status",
+          user=params.elastic_status_check_user,
+          label="Elasticsearch Slave")
 
     def restart(self, env):
         import params
         env.set_params(params)
+        Logger.info('Restart Elasticsearch slave node')
         self.configure(env)
-        Logger.info('Restart Elasticsearch data node')
-        restart_cmd = "service elasticsearch restart"
-        Execute(restart_cmd)
+        Execute("service elasticsearch restart")
 
 
 if __name__ == "__main__":
