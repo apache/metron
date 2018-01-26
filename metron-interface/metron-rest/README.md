@@ -433,7 +433,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns sample message
     * 404 - Either Kafka topic is missing or contains no messages
-    
+
 ### `POST /api/v1/kafka/topic/{name}/produce`
   * Description: Produces a message to a Kafka topic
   * Input:
@@ -442,7 +442,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Published
     * 404 - Kafka topic is missing
-     
+
 ### `POST /api/v1/metaalert/searchByAlert`
   * Description: Get all meta alerts that contain an alert.
   * Input:
@@ -846,7 +846,7 @@ The metron-rest application will be available at http://localhost:8080/swagger-u
 
 ### Full Dev
 
-Start the [Full Dev](../../metron-deployment/vagrant/full-dev-platform) environment.  Build the metron-rest module and start it with the Spring Boot Maven plugin:
+Start the [development environment](../../metron-deployment/development/centos6).  Build the metron-rest module and start it with the Spring Boot Maven plugin:
 ```
 mvn clean package
 mvn spring-boot:run -Drun.profiles=vagrant,dev

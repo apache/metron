@@ -95,9 +95,8 @@ class Indexing(Script):
 
         except Exception as e:
             msg = "WARNING: Elasticsearch index templates could not be installed.  " \
-                  "Is Elasticsearch running?  error={0}"
+                  "Is Elasticsearch running?  Will reattempt install on next start.  error={0}"
             Logger.warning(msg.format(e))
-            raise
 
         commands.start_indexing_topology(env)
 
