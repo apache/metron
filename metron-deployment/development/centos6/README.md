@@ -15,12 +15,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-Full Development Platform
-=========================
+Metron on CentOS 6
+==================
 
-This project fully automates the provisioning and deployment of Apache Metron and all necessary prerequisites on a single, virtualized host running on Virtualbox.  
+This project fully automates the provisioning and deployment of Apache Metron and all necessary prerequisites on a single, virtualized host running CentOS 6.
 
-Metron is composed of many components and installing all of these on a single host, especially a virtualized one, will greatly stress the resources of the host.   The host will require at least 8 GB of RAM and a fair amount of patience.  It is highly recommended that you shut down all unnecessary services.  To that end the vagrant file configuration defaults to disabling solr and yaf.
+Metron is composed of many components and installing all of these on a single host, especially a virtualized one, will greatly stress the resources of the host.   The host will require at least 8 GB of RAM and a fair amount of patience.  It is highly recommended that you shut down all unnecessary services.  
 
 Getting Started
 ---------------
@@ -68,7 +68,7 @@ Any platform that supports these tools is suitable, but the following instructio
 1. Deploy Metron
 
     ```
-    cd metron-deployment/vagrant/metron-on-centos
+    cd metron-deployment/development/centos6
     vagrant up
     ```
 
@@ -82,12 +82,10 @@ Any platform that supports these tools is suitable, but the following instructio
 
 Navigate to the following resources to explore your newly minted Apache Metron environment.
 
- - [Ambari](http://node1:8080)
- - [Metron](http://node1:5000)
- - [Services](http://node1:2812)
+* [Metron Alerts](http://node1:4201)
+* [Ambari](http://node1:8080)
 
 Connecting to the host through SSH is as simple as running the following command.
-
 ```
 vagrant ssh
 ```

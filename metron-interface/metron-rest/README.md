@@ -846,7 +846,7 @@ The metron-rest application will be available at http://localhost:8080/swagger-u
 
 ### Full Dev
 
-Start the [Full Dev](../../metron-deployment/vagrant/metron-on-centos) environment.  Build the metron-rest module and start it with the Spring Boot Maven plugin:
+Start the [development environment](../../metron-deployment/development/centos6).  Build the metron-rest module and start it with the Spring Boot Maven plugin:
 ```
 mvn clean package
 mvn spring-boot:run -Drun.profiles=vagrant,dev

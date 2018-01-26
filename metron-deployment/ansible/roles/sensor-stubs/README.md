@@ -90,7 +90,7 @@ Stopping sensor-stubs...
 The default behavior can be changed by skipping the `sensor-stubs` flag and including the `sensors` flag. For example, to deploy "Full Dev" with the original sensors run the following command.
 
 ```
-cd metron-deployment/vagrant/metron-on-centos
+cd metron-deployment/development/centos6
 vagrant --ansible-skip-tags="sensor-stubs,solr" up
 ```
 

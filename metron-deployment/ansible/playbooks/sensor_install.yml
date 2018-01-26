@@ -25,7 +25,7 @@
 - hosts: packer
   become: true
   tasks:
-    - include_vars: ../../vagrant/metron-on-centos/ansible/inventory/group_vars/all
+    - include_vars: ../../development/centos6/ansible/inventory/group_vars/all
   tags:
     - packer
 
