@@ -16,8 +16,4 @@
 #  limitations under the License.
 #
 
-TLD=$(pwd)
-LICENSE_FILE="src/main/resources/META-INF/LICENSE"
-pushd $1
-$TLD/build_utils/list_dependencies.sh | python $TLD/build_utils/generate_license.py $TLD/dependencies_with_url.csv $TLD/LICENSE 1> $LICENSE_FILE
-popd
+dev-utilities/build-utils/list_dependencies.sh | python dev-utilities/build-utils/verify_license.py ./dependencies_with_url.csv
