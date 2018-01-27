@@ -56,7 +56,7 @@ public class SolrColumnMetadataDao implements ColumnMetadataDao {
   private String zkHost;
 
   public SolrColumnMetadataDao(String zkHost) {
-
+    this.zkHost = zkHost;
   }
 
   @Override
