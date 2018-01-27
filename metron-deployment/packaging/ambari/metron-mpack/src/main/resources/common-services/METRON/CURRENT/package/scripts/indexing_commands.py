@@ -113,21 +113,9 @@ class IndexingCommands:
 
     def create_hbase_tables(self):
         Logger.info("Creating HBase Tables for indexing")
-        if self.__params.security_enabled:
-            metron_security.kinit(self.__params.kinit_path_local,
-                  self.__params.hbase_keytab_path,
-                  self.__params.hbase_principal_name,
-                  execute_user=self.__params.hbase_user)
-        cmd = "echo \"create '{0}','{1}'\" | hbase shell -n"
-        add_update_cmd = cmd.format(self.__params.update_hbase_table, self.__params.update_hbase_cf)
-        Execute(add_update_cmd,
-                tries=3,
-                try_sleep=5,
-                logoutput=False,
-                path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-                user=self.__params.hbase_user
-                )
-
+        metron_service.create_hbase_table(self.__params,
+                                          self.__params.update_hbase_table,
+                                          self.__params.update_hbase_cf)
         Logger.info("Done creating HBase Tables for indexing")
         self.set_hbase_configured()
 
