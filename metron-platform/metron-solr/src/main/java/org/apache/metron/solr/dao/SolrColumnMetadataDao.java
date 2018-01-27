@@ -33,6 +33,7 @@ import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException;
 import org.apache.solr.client.solrj.request.schema.SchemaRequest;
 import org.apache.solr.client.solrj.response.schema.SchemaRepresentation;
+import org.apache.solr.common.SolrException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +67,8 @@ public class SolrColumnMetadataDao implements ColumnMetadataDao {
     Set<String> fieldBlackList = Sets.newHashSet(SolrDao.ROOT_FIELD, SolrDao.VERSION_FIELD);
 
     for (String index : indices) {
-      SolrClient client = new CloudSolrClient.Builder().withZkHost(zkHost).build();
+      CloudSolrClient client = new CloudSolrClient.Builder().withZkHost(zkHost).build();
+      client.setDefaultCollection(index);
       try {
         SchemaRepresentation schemaRepresentation = new SchemaRequest().process(client)
             .getSchemaRepresentation();
@@ -98,9 +100,9 @@ public class SolrColumnMetadataDao implements ColumnMetadataDao {
         });
       } catch (SolrServerException e) {
         throw new IOException(e);
-      } catch (RemoteSolrException e) {
-        // 404 means an index is missing so continue
-        if (e.code() != 404) {
+      } catch (SolrException e) {
+        // 400 means an index is missing so continue
+        if (e.code() != 400) {
           throw new IOException(e);
         }
       }
