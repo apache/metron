@@ -232,6 +232,7 @@ Where:
 | [ `REDUCE`](#reduce)                                                                               |
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
 | [ `REGEXP_GROUP_VAL`](#regexp_group_val)                                                           |
+| [ `REGEXP_REPLACE`](#regexp_replace)                                                               |
 | [ `ROUND`](#round)                                                                                 |
 | [ `SAMPLE_ADD`](../../metron-analytics/metron-statistics#sample_add)                               |
 | [ `SAMPLE_GET`](../../metron-analytics/metron-statistics#sample_get)                               |
@@ -878,6 +879,14 @@ Where:
     * pattern - The proposed regex pattern
     * group - The integer that selects what group to select, starting at 1
   * Returns: The value of the group, or null if not matched or no group at index.
+
+### `REGEXP_REPLACE`
+  * Description: Replace all occurences of the regex pattern within the string by value
+  * Input:
+    * string - The input string
+    * pattern - The proposed regex pattern
+    * value - The value to replace the regex pattern
+  * Returns: The modified input string with replaced values
 
 ### `ROUND`
   * Description: Rounds a number to the nearest integer.  This is half-up rounding.
