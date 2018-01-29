@@ -18,13 +18,12 @@ limitations under the License.
 import os
 import time
 
-from datetime import datetime
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute, File
+from resource_management.core.resources.system import Execute
 
-import metron_service
 import metron_security
+import metron_service
 
 
 # Wrap major operations and functionality in this class
@@ -79,22 +78,11 @@ class ProfilerCommands:
         metron_service.set_configured(self.__params.metron_user, self.__params.profiler_hbase_acl_configured_flag_file, "Setting HBase ACL configured to True for profiler")
 
     def create_hbase_tables(self):
-        Logger.info("Creating HBase table '{0}' for profiler".format(self.__params.profiler_hbase_table))
-        if self.__params.security_enabled:
-            metron_security.kinit(self.__params.kinit_path_local,
-                  self.__params.hbase_keytab_path,
-                  self.__params.hbase_principal_name,
-                  execute_user=self.__params.hbase_user)
-        cmd = "echo \"create '{0}','{1}'\" | hbase shell -n"
-        add_table_cmd = cmd.format(self.__params.profiler_hbase_table, self.__params.profiler_hbase_cf)
-        Execute(add_table_cmd,
-                tries=3,
-                try_sleep=5,
-                logoutput=False,
-                path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-                user=self.__params.hbase_user
-                )
-
+        Logger.info("Creating HBase table '{0}' for profiler".format(
+            self.__params.profiler_hbase_table))
+        metron_service.create_hbase_table(self.__params,
+                                          self.__params.profiler_hbase_table,
+                                          self.__params.profiler_hbase_cf)
         self.set_hbase_configured()
         Logger.info("Done creating HBase Tables for profiler")
 

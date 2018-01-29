@@ -24,3 +24,4 @@ config = Script.get_config()
 
 elastic_pid_dir = config['configurations']['elastic-env']['elastic_pid_dir']
 elastic_pid_file = format("{elastic_pid_dir}/elasticsearch.pid")
+elastic_user = config['configurations']['elastic-env']['elastic_user']
