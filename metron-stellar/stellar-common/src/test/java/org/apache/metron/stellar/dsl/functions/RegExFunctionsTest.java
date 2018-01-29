@@ -68,4 +68,23 @@ public class RegExFunctionsTest {
       Assert.assertTrue("Did not fail on wrong number of parameters",false);
     }
   }
+
+  @Test
+  public void testRegExReplace() throws Exception {
+    final Map<String, String> variableMap = new HashMap<String, String>() {{
+      put("numbers", "12345");
+      put("numberPattern", "\\d(\\d)(\\d).*");
+      put("letters", "abcde");
+      put("empty", "");
+    }};
+
+    Assert.assertTrue(runPredicate("REGEXP_REPLACE(empty, numberPattern, letters) == null", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("REGEXP_REPLACE(numbers, empty, empty) == numbers", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("REGEXP_REPLACE(numbers, empty, letters) == numbers", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("REGEXP_REPLACE(numbers, numberPattern, empty) == numbers", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("REGEXP_REPLACE(numbers, numberPattern, letters) == letters", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("REGEXP_REPLACE(letters, numberPattern, numbers) == letters", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+  }
+
+
 }
