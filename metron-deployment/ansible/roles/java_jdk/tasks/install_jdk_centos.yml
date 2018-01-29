@@ -15,10 +15,20 @@
 #  limitations under the License.
 #
 ---
-- include: install_jdk_centos.yml
-  static: no
-  when: ansible_distribution == "CentOS"
+- name: Check for java at "{{ java_home }}"
+  stat: path="{{ java_home }}"
+  register: jdk_dir
 
-- include: install_jdk_ubuntu.yml
-  static: no
-  when: ansible_distribution == "Ubuntu"
+- name: Alternatives link for java
+  alternatives: name={{ item.name }} link={{ item.link }}  path={{ item.path }}
+  with_items:
+    - { name: java, link: /usr/bin/java, path: "{{ java_home }}/bin/java" }
+    - { name: jar, link: /usr/bin/jar, path: "{{ java_home }}/bin/jar" }
+  when: jdk_dir.stat.exists
+
+- name: Install openjdk
+  yum: name={{item}}
+  with_items:
+    - java-1.8.0-openjdk
+    - java-1.8.0-openjdk-devel
+  when: not jdk_dir.stat.exists

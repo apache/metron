@@ -15,10 +15,17 @@
 #  limitations under the License.
 #
 ---
-- include: install_jdk_centos.yml
-  static: no
-  when: ansible_distribution == "CentOS"
+- name: Check for java at "{{ java_home }}"
+  stat: path="{{ java_home }}"
+  register: jdk_dir
 
-- include: install_jdk_ubuntu.yml
-  static: no
-  when: ansible_distribution == "Ubuntu"
+- name: Install openjdk repository
+  shell: add-apt-repository ppa:openjdk-r/ppa
+  when: not jdk_dir.stat.exists
+
+- name: Update package cache
+  apt: update_cache=yes
+
+- name: Install openjdk
+  apt: name=openjdk-8-jdk
+  when: not jdk_dir.stat.exists
