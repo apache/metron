@@ -33,6 +33,7 @@ import java.util.Map;
 
 public enum KafkaUtils {
   INSTANCE;
+  public static final String SECURITY_PROTOCOL = "security.protocol";
   public List<String> getBrokersFromZookeeper(String zkQuorum) throws Exception {
     RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
     CuratorFramework framework = CuratorFrameworkFactory.newClient(zkQuorum, retryPolicy);
@@ -65,6 +66,14 @@ public enum KafkaUtils {
       }
     }
     return ret;
+  }
+
+  public Map<String, Object> normalizeProtocol(Map<String, Object> configs) {
+    if(configs.containsKey(SECURITY_PROTOCOL)) {
+      String protocol = normalizeProtocol((String)configs.get(SECURITY_PROTOCOL));
+      configs.put(SECURITY_PROTOCOL, protocol);
+    }
+    return configs;
   }
 
   public String normalizeProtocol(String protocol) {
