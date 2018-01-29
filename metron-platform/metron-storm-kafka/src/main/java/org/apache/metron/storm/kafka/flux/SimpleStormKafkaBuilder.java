@@ -203,6 +203,9 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
          , createDeserializer(Optional.ofNullable((String)kafkaProps.get(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG)), DEFAULT_DESERIALIZER)
          , subscription
     );
+    if(kafkaProps.containsKey("security.protocol")) {
+      kafkaProps.put("security.protocol", KafkaUtils.INSTANCE.normalizeProtocol((String) kafkaProps.get("security.protocol")));
+    }
     setProp(kafkaProps);
     setRecordTranslator(new SpoutRecordTranslator<>(FieldsConfiguration.toList(fieldsConfiguration)));
   }
