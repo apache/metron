@@ -21,6 +21,7 @@ package org.apache.metron.stellar.dsl.functions;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.common.utils.PatternCache;
 import org.apache.metron.stellar.dsl.BaseStellarFunction;
@@ -122,11 +123,11 @@ public class RegExFunctions {
       String stringPattern = (String) list.get(1);
       String value = (String) list.get(2);
 
-      if (value == null || str == null) {
+      if (StringUtils.isEmpty(str)) {
         return null;
       }
 
-      if (stringPattern == null) {
+      if (StringUtils.isEmpty(stringPattern) || StringUtils.isEmpty(value)) {
         return str;
       }
 

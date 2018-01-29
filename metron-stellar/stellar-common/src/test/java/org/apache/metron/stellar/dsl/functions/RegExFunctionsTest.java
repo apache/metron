@@ -78,6 +78,10 @@ public class RegExFunctionsTest {
       put("empty", "");
     }};
 
+    Assert.assertTrue(runPredicate("REGEXP_REPLACE(empty, numberPattern, letters) == null", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("REGEXP_REPLACE(numbers, empty, empty) == numbers", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("REGEXP_REPLACE(numbers, empty, letters) == numbers", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
+    Assert.assertTrue(runPredicate("REGEXP_REPLACE(numbers, numberPattern, empty) == numbers", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
     Assert.assertTrue(runPredicate("REGEXP_REPLACE(numbers, numberPattern, letters) == letters", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
     Assert.assertTrue(runPredicate("REGEXP_REPLACE(letters, numberPattern, numbers) == letters", new DefaultVariableResolver(v -> variableMap.get(v),v -> variableMap.containsKey(v))));
   }
