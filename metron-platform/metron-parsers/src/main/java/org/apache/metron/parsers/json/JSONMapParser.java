@@ -145,12 +145,13 @@ public class JSONMapParser extends BasicParser {
   public List<JSONObject> parse(byte[] rawMessage) {
     try {
       String originalString = new String(rawMessage);
-      //convert the JSON blob into a String -> Object map
-
       List<Map<String, Object>> messages = new ArrayList<>();
 
       if (!StringUtils.isEmpty(jsonpQuery)) {
-        messages.addAll(JsonPath.parse(new String(rawMessage)).read(jsonpQuery, typeRef));
+        Object parsedObject = JsonPath.parse(new String(rawMessage)).read(jsonpQuery, typeRef);
+        if(parsedObject != null) {
+          messages.addAll((List<Map<String,Object>>)parsedObject);
+        }
       } else {
         messages.add(JSONUtils.INSTANCE.load(originalString, JSONUtils.MAP_SUPPLIER));
       }
