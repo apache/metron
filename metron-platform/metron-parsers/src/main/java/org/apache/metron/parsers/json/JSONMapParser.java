@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,6 +19,20 @@ package org.apache.metron.parsers.json;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.TypeRef;
+import com.jayway.jsonpath.spi.cache.CacheProvider;
+import com.jayway.jsonpath.spi.cache.LRUCache;
+import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
+import com.jayway.jsonpath.spi.json.JsonProvider;
+import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+import com.jayway.jsonpath.spi.mapper.MappingProvider;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
@@ -68,12 +82,45 @@ public class JSONMapParser extends BasicParser {
 
   }
   public static final String MAP_STRATEGY_CONFIG = "mapStrategy";
+  public static final String JSONP_QUERY = "jsonpQuery";
+
   private MapStrategy mapStrategy = MapStrategy.DROP;
+  private TypeRef<List<Map<String, Object>>> typeRef = new TypeRef<List<Map<String, Object>>>() {
+  };
+  private String jsonpQuery = null;
+
 
   @Override
   public void configure(Map<String, Object> config) {
     String strategyStr = (String) config.getOrDefault(MAP_STRATEGY_CONFIG, MapStrategy.DROP.name());
     mapStrategy = MapStrategy.valueOf(strategyStr);
+    if (config.containsKey(JSONP_QUERY)) {
+      jsonpQuery = (String) config.get(JSONP_QUERY);
+        Configuration.setDefaults(new Configuration.Defaults() {
+
+          private final JsonProvider jsonProvider = new JacksonJsonProvider();
+          private final MappingProvider mappingProvider = new JacksonMappingProvider();
+
+          @Override
+          public JsonProvider jsonProvider() {
+            return jsonProvider;
+          }
+
+          @Override
+          public MappingProvider mappingProvider() {
+            return mappingProvider;
+          }
+
+          @Override
+          public Set<Option> options() {
+            return EnumSet.of(Option.ALWAYS_RETURN_LIST, Option.SUPPRESS_EXCEPTIONS);
+          }
+        });
+
+        if(CacheProvider.getCache() == null) {
+          CacheProvider.setCache(new LRUCache(100));
+        }
+    }
   }
 
   /**
@@ -95,14 +142,30 @@ public class JSONMapParser extends BasicParser {
     try {
       String originalString = new String(rawMessage);
       //convert the JSON blob into a String -> Object map
-      Map<String, Object> rawMap = JSONUtils.INSTANCE.load(originalString, JSONUtils.MAP_SUPPLIER);
-      JSONObject ret = normalizeJSON(rawMap);
-      ret.put("original_string", originalString );
-      if(!ret.containsKey("timestamp")) {
-        //we have to ensure that we have a timestamp.  This is one of the pre-requisites for the parser.
-        ret.put("timestamp", System.currentTimeMillis());
+
+      List<Map<String, Object>> messages = new ArrayList<>();
+
+      if (!StringUtils.isEmpty(jsonpQuery)) {
+        messages.addAll(JsonPath.parse(new String(rawMessage))
+            .read(jsonpQuery, typeRef));
+      } else {
+        messages.add(JSONUtils.INSTANCE.load(originalString, JSONUtils.MAP_SUPPLIER));
       }
-      return ImmutableList.of(ret);
+
+      ArrayList<JSONObject> parsedMessages = new ArrayList<>();
+      for (Map<String,Object> rawMessageMap : messages) {
+        JSONObject originalJsonObject = new JSONObject(rawMessageMap);
+        JSONObject ret = normalizeJSON(rawMessageMap);
+        // the original string is the original for THIS sub message
+        //ret.put("original_string",originalJsonObject.toJSONString());
+        ret.put("original_string",JSONUtils.INSTANCE.toJSON(rawMessageMap,false));
+        if(!ret.containsKey("timestamp")) {
+          //we have to ensure that we have a timestamp.  This is one of the pre-requisites for the parser.
+          ret.put("timestamp", System.currentTimeMillis());
+        }
+        parsedMessages.add(ret);
+      }
+      return Collections.unmodifiableList(parsedMessages);
     } catch (Throwable e) {
       String message = "Unable to parse " + new String(rawMessage) + ": " + e.getMessage();
       LOG.error(message, e);

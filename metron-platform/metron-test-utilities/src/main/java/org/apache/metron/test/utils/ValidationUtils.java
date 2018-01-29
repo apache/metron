@@ -18,6 +18,7 @@
 package org.apache.metron.test.utils;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.json.simple.JSONObject;
 import org.junit.Assert;
 
 import java.io.IOException;
@@ -41,7 +42,21 @@ public class ValidationUtils {
         Assert.assertEquals(v1.toString().length(), v2.toString().length());
       }
       else if(!v2.equals(v1)) {
-        Assert.assertEquals("value mismatch for " + k ,v1, v2);
+          boolean goodDeepDown = false;
+          // if this fails, but is the original_string it may be in json format
+          // where the field/value order may be random
+          if (((String)k).equals("original_string")) {
+            try {
+              mapper.readValue((String)v1,Map.class);
+              assertJSONEqual((String )v1,(String)v2);
+              goodDeepDown = true;
+            } catch(Exception e) {
+              // nothing, the original fail stands
+            }
+          }
+          if(!goodDeepDown) {
+            Assert.assertEquals("value mismatch for " + k, v1, v2);
+          }
       }
     }
     Assert.assertEquals(m1.size(), m2.size());
