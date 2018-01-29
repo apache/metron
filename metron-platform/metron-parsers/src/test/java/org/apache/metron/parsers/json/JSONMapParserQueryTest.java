@@ -18,7 +18,6 @@
 package org.apache.metron.parsers.json;
 
 import com.google.common.collect.ImmutableMap;
-import com.jayway.jsonpath.InvalidPathException;
 import java.util.HashMap;
 import java.util.List;
 import org.adrianwalker.multilinestring.Multiline;
@@ -32,22 +31,26 @@ import org.junit.Test;
 public class JSONMapParserQueryTest {
 
   /**
-   {
-   "foo" :
-   [
-   { "name" : "foo1", "value" : "bar", "number" : 1.0 },
-   { "name" : "foo2", "value" : "baz", "number" : 2.0 }
-   ]
-   }
+   * {
+   * "foo" :
+   * [
+   * { "name" : "foo1", "value" : "bar", "number" : 1.0 },
+   * { "name" : "foo2", "value" : "baz", "number" : 2.0 }
+   * ]
+   * }
    */
   @Multiline
   static String JSON_LIST;
 
-  /**{ "name" : "foo1", "value" : "bar", "number" : 1.0 }*/
+  /**
+   * { "name" : "foo1", "value" : "bar", "number" : 1.0 }
+   */
   @Multiline
   static String JSON_SINGLE;
 
-  /**{ "name" : "foo2", "value" : "baz", "number" : 2.0 }*/
+  /**
+   * { "name" : "foo2", "value" : "baz", "number" : 2.0 }
+   */
   @Multiline
   static String JSON_SINGLE2;
 
@@ -102,17 +105,17 @@ public class JSONMapParserQueryTest {
   }
 
   /**
-   {
-   "foo" :
-   [
-   {
-   "collection" : { "blah" : 7, "blah2" : "foo", "bigblah" : { "innerBlah" : "baz", "reallyInnerBlah" : { "color" : "grey" }}}
-   },
-   {
-   "collection" : { "blah" : 8, "blah2" : "bar", "bigblah" : { "innerBlah" : "baz2", "reallyInnerBlah" : { "color" : "blue" }}}
-   }
-   ]
-   }
+   * {
+   * "foo" :
+   * [
+   * {
+   * "collection" : { "blah" : 7, "blah2" : "foo", "bigblah" : { "innerBlah" : "baz", "reallyInnerBlah" : { "color" : "grey" }}}
+   * },
+   * {
+   * "collection" : { "blah" : 8, "blah2" : "bar", "bigblah" : { "innerBlah" : "baz2", "reallyInnerBlah" : { "color" : "blue" }}}
+   * }
+   * ]
+   * }
    */
   @Multiline
   static String collectionHandlingJSON;

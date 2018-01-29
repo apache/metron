@@ -15,10 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.metron.parsers.json;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
@@ -32,55 +32,59 @@ import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.parsers.BasicParser;
 import org.json.simple.JSONObject;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 public class JSONMapParser extends BasicParser {
-  private static interface Handler {
+
+  private interface Handler {
+
     JSONObject handle(String key, Map value, JSONObject obj);
   }
-  public static enum MapStrategy implements Handler {
-     DROP((key, value, obj) -> obj)
-    ,UNFOLD( (key, value, obj) -> {
-      return recursiveUnfold(key,value,obj);
-    })
-    ,ALLOW((key, value, obj) -> {
+
+  @SuppressWarnings("unchecked")
+  public enum MapStrategy implements Handler {
+    DROP((key, value, obj) -> obj), UNFOLD((key, value, obj) -> {
+      return recursiveUnfold(key, value, obj);
+    }), ALLOW((key, value, obj) -> {
       obj.put(key, value);
       return obj;
-    })
-    ,ERROR((key, value, obj) -> {
-      throw new IllegalStateException("Unable to process " + key + " => " + value + " because value is a map.");
-    })
-    ;
+    }), ERROR((key, value, obj) -> {
+      throw new IllegalStateException(
+          "Unable to process " + key + " => " + value + " because value is a map.");
+    });
     Handler handler;
+
     MapStrategy(Handler handler) {
       this.handler = handler;
     }
 
-    private static JSONObject recursiveUnfold(String key, Map value, JSONObject obj){
+    @SuppressWarnings("unchecked")
+    private static JSONObject recursiveUnfold(String key, Map value, JSONObject obj) {
       Set<Map.Entry<Object, Object>> entrySet = value.entrySet();
-      for(Map.Entry<Object, Object> kv : entrySet) {
+      for (Map.Entry<Object, Object> kv : entrySet) {
         String newKey = Joiner.on(".").join(key, kv.getKey().toString());
-        if(kv.getValue() instanceof Map){
-          recursiveUnfold(newKey,(Map)kv.getValue(),obj);
-        }else {
+        if (kv.getValue() instanceof Map) {
+          recursiveUnfold(newKey, (Map) kv.getValue(), obj);
+        } else {
           obj.put(newKey, kv.getValue());
         }
       }
       return obj;
     }
+
     @Override
     public JSONObject handle(String key, Map value, JSONObject obj) {
       return handler.handle(key, value, obj);
     }
 
   }
+
   public static final String MAP_STRATEGY_CONFIG = "mapStrategy";
   public static final String JSONP_QUERY = "jsonpQuery";
 
@@ -96,30 +100,30 @@ public class JSONMapParser extends BasicParser {
     mapStrategy = MapStrategy.valueOf(strategyStr);
     if (config.containsKey(JSONP_QUERY)) {
       jsonpQuery = (String) config.get(JSONP_QUERY);
-        Configuration.setDefaults(new Configuration.Defaults() {
+      Configuration.setDefaults(new Configuration.Defaults() {
 
-          private final JsonProvider jsonProvider = new JacksonJsonProvider();
-          private final MappingProvider mappingProvider = new JacksonMappingProvider();
+        private final JsonProvider jsonProvider = new JacksonJsonProvider();
+        private final MappingProvider mappingProvider = new JacksonMappingProvider();
 
-          @Override
-          public JsonProvider jsonProvider() {
-            return jsonProvider;
-          }
-
-          @Override
-          public MappingProvider mappingProvider() {
-            return mappingProvider;
-          }
-
-          @Override
-          public Set<Option> options() {
-            return EnumSet.of(Option.ALWAYS_RETURN_LIST, Option.SUPPRESS_EXCEPTIONS);
-          }
-        });
-
-        if(CacheProvider.getCache() == null) {
-          CacheProvider.setCache(new LRUCache(100));
+        @Override
+        public JsonProvider jsonProvider() {
+          return jsonProvider;
         }
+
+        @Override
+        public MappingProvider mappingProvider() {
+          return mappingProvider;
+        }
+
+        @Override
+        public Set<Option> options() {
+          return EnumSet.of(Option.SUPPRESS_EXCEPTIONS);
+        }
+      });
+
+      if (CacheProvider.getCache() == null) {
+        CacheProvider.setCache(new LRUCache(100));
+      }
     }
   }
 
@@ -134,10 +138,10 @@ public class JSONMapParser extends BasicParser {
   /**
    * Take raw data and convert it to a list of messages.
    *
-   * @param rawMessage
    * @return If null is returned, this is treated as an empty list.
    */
   @Override
+  @SuppressWarnings("unchecked")
   public List<JSONObject> parse(byte[] rawMessage) {
     try {
       String originalString = new String(rawMessage);
@@ -146,21 +150,18 @@ public class JSONMapParser extends BasicParser {
       List<Map<String, Object>> messages = new ArrayList<>();
 
       if (!StringUtils.isEmpty(jsonpQuery)) {
-        messages.addAll(JsonPath.parse(new String(rawMessage))
-            .read(jsonpQuery, typeRef));
+        messages.addAll(JsonPath.parse(new String(rawMessage)).read(jsonpQuery, typeRef));
       } else {
         messages.add(JSONUtils.INSTANCE.load(originalString, JSONUtils.MAP_SUPPLIER));
       }
 
       ArrayList<JSONObject> parsedMessages = new ArrayList<>();
-      for (Map<String,Object> rawMessageMap : messages) {
+      for (Map<String, Object> rawMessageMap : messages) {
         JSONObject originalJsonObject = new JSONObject(rawMessageMap);
-        JSONObject ret = normalizeJSON(rawMessageMap);
+        JSONObject ret = normalizeJson(rawMessageMap);
         // the original string is the original for THIS sub message
-        //ret.put("original_string",originalJsonObject.toJSONString());
-        ret.put("original_string",JSONUtils.INSTANCE.toJSON(rawMessageMap,false));
-        if(!ret.containsKey("timestamp")) {
-          //we have to ensure that we have a timestamp.  This is one of the pre-requisites for the parser.
+        ret.put("original_string", originalJsonObject.toJSONString());
+        if (!ret.containsKey("timestamp")) {
           ret.put("timestamp", System.currentTimeMillis());
         }
         parsedMessages.add(ret);
@@ -174,18 +175,16 @@ public class JSONMapParser extends BasicParser {
   }
 
   /**
-   * Process all sub-maps via the MapHandler.  We have standardized on one-dimensional maps as our data model..
-   *
-   * @param map
-   * @return
+   * Process all sub-maps via the MapHandler.
+   * We have standardized on one-dimensional maps as our data model.
    */
-  private JSONObject normalizeJSON(Map<String, Object> map) {
+  @SuppressWarnings("unchecked")
+  private JSONObject normalizeJson(Map<String, Object> map) {
     JSONObject ret = new JSONObject();
-    for(Map.Entry<String, Object> kv : map.entrySet()) {
-      if(kv.getValue() instanceof Map) {
+    for (Map.Entry<String, Object> kv : map.entrySet()) {
+      if (kv.getValue() instanceof Map) {
         mapStrategy.handle(kv.getKey(), (Map) kv.getValue(), ret);
-      }
-      else {
+      } else {
         ret.put(kv.getKey(), kv.getValue());
       }
     }
