@@ -93,13 +93,17 @@ public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
       byte[] data = tuple.getBinary(0);
       try {
         message = (JSONObject) parser.parse(new String(data, "UTF8"));
-        message.put(getClass().getSimpleName().toLowerCase() + ".splitter.begin.ts", "" + System.currentTimeMillis());
+        if(LOG.isDebugEnabled()) {
+          message.put(getClass().getSimpleName().toLowerCase() + ".splitter.begin.ts", "" + System.currentTimeMillis());
+        }
       } catch (ParseException | UnsupportedEncodingException e) {
         e.printStackTrace();
       }
     } else {
       message = (JSONObject) tuple.getValueByField(messageFieldName);
-      message.put(getClass().getSimpleName().toLowerCase() + ".splitter.begin.ts", "" + System.currentTimeMillis());
+      if(LOG.isDebugEnabled()) {
+        message.put(getClass().getSimpleName().toLowerCase() + ".splitter.begin.ts", "" + System.currentTimeMillis());
+      }
     }
     return message;
   }
@@ -137,7 +141,9 @@ public class EnrichmentSplitterBolt extends SplitBolt<JSONObject> {
       }
       streamMessageMap.put(enrichmentType, enrichmentObject);
     }
-    message.put(getClass().getSimpleName().toLowerCase() + ".splitter.end.ts", "" + System.currentTimeMillis());
+    if(LOG.isDebugEnabled()) {
+      message.put(getClass().getSimpleName().toLowerCase() + ".splitter.end.ts", "" + System.currentTimeMillis());
+    }
     return streamMessageMap;
   }
 
