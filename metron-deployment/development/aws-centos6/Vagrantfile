@@ -1,0 +1,186 @@
+#Global Cybersecurity Resource 2017-2018 (cugcr.ca) 
+#
+##########################################################################
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#a  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+##########################################################################
+#1) ABOUT:
+#-------------------
+#This Vagrant file will deploy Apache Metron as a single node (node1) to AWS EC2. 
+#
+#This file was originally adapted from the Metron Single Node Install:
+##########################################################################
+#2) LOCATION OF FILE(Where it should be placed):
+#-------------------
+#This file should be located in the following directory: 
+#/../metron-deployment/development/aws-centos6
+##########################################################################
+#3) REQUIREMENTS (What is needed to run this file):
+#-------------------
+#install: vagrant plugin install vagrant-aws
+#install: vagrant plugin install vagrant-reload
+#install: vagrant plugin install vagrant-hostmanager
+#install: pip install --upgrade setuptools --user python
+#
+#You will also need to reserve an AWS Elastic IP, a Subnet id, Security Group id, and a key pair (key pair name & *.pem file[remember to set permissions to chmod 400]).
+#
+##########################################################################
+#4) BEFORE RUNNING:
+#Recommended steps before running the vagrant file
+#-------------------
+#4.1) Clear Vagrant, Docker & Maven. Create new AWS Vagrant box:
+#WARNING - THESE STEPS WILL DISTROY ALL LOCAL DOCKER CONTAINERS AND VAGRANT BOXES
+#-------------------
+#vagrant halt node1 -f
+#vagrant halt default -f
+#vagrant destroy node1 -f
+#vagrant destroy default -f
+#for i in `vagrant global-status | grep virtualbox | awk '{print $1 }'` ; do vagrant destroy $i  ; done
+#vagrant global-status --prune
+#docker rm $(docker ps -aq)
+#osascript -e 'quit app "Docker"'
+#open -a Docker
+#rm -rf /../.m2/repository/*
+#rm -rf /../.vagrant.d/boxes/*
+#vagrant box add dummy --force https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
+#
+#-------------------
+#4.2) Set Environment Variables
+#-------------------
+#export AWS_ACCESS_KEY_ID=''
+#export AWS_SECRET_ACCESS_KEY=''
+#
+#export AWS_KEYNAME=''
+#export AWS_KEYPATH='../..*.pem'
+#
+#export AWS_ELASTIC_IP=""
+#export AWS_SECURITYGROUP_ID=""
+#export AWS_SUBNET_ID=""
+#
+#-------------------
+#4.3) Update /etc/hosts file to include AWS_ELASTIC_IP which will be tied to "node1" (do only once)
+#-------------------
+#sed -i "$AWS_ELASTIC_IP  node1" /etc/hosts
+##########################################################################
+#5) HOW TO EXECUTE/RUN THIS VAGRANT FILE: 
+#-------------------
+#vagrant up --provider=aws
+##########################################################################
+#6) OTHER NOTES:
+#-------------------
+#How to find Canadian Centos7 AMI ids
+#-------------------
+#pip install awscli
+#aws --region ca-central-1 ec2 describe-images --owners aws-marketplace --filters Name=product-code,Values=aw0evgkw8e5c1q413zgy5pjce
+#
+#imageIDs: ami-28823e4c, ami-af62d0cb, ami-cbd069af
+
+require 'getoptlong'
+require 'vagrant-aws'
+require 'vagrant-reload'
+
+ansibleTags=''
+ansibleSkipTags='sensors'
+
+begin
+   opts = GetoptLong.new(
+     [ '--ansible-tags', GetoptLong::OPTIONAL_ARGUMENT ],
+     [ '--ansible-skip-tags', GetoptLong::OPTIONAL_ARGUMENT ]
+   )
+
+   opts.quiet = TRUE
+
+   opts.each do |opt, arg|
+     case opt
+       when '--ansible-tags'
+         ansibleTags=arg
+       when '--ansible-skip-tags'
+         ansibleSkipTags=arg
+     end
+   end
+rescue Exception => ignored
+#Ignore to allow other opts to be passed to Vagrant
+end
+
+puts " Running with ansible-tags: " + ansibleTags.split(",").to_s if ansibleTags != ''
+puts " Running with ansible-skip-tags: " + ansibleSkipTags.split(",").to_s if ansibleSkipTags != ''
+
+hosts = [{
+    hostname: "node1",
+    ip: ENV['AWS_ELASTICIP'],
+    memory: "8192",
+    cpus: 4,
+    promisc: 2  # enables promisc on the 'Nth' network interface
+}]
+
+Vagrant.configure(2) do |config|
+ config.vm.provider :aws do |aws, override|
+   aws.access_key_id = ENV['AWS_ACCESS_KEY_ID']
+   aws.secret_access_key = ENV['AWS_SECRET_ACCESS_KEY']
+   aws.keypair_name = ENV['AWS_KEYNAME']
+
+   #Below is a CentOS ami id available in Canada
+   aws.ami = "ami-00e45864"
+   aws.region = "ca-central-1"
+   aws.instance_type = "t2.2xlarge"
+
+   #Example of a Security Group id: sg-1193xxxx
+   aws.security_groups = ENV['AWS_SECURITYGROUPID']
+
+   #Example of Subnet id: subnet-fbc3exxxx
+   aws.subnet_id = ENV['AWS_SUBNETID']
+   aws.elastic_ip = ENV['AWS_ELASTICIP']
+   override.vm.box = "dummy"
+   override.ssh.username = "centos"
+   override.ssh.private_key_path = ENV['AWS_KEYPATH']
+   override.nfs.functional = false
+   aws.tags = {
+         'Name' => 'Metron-VagrantAWS-SingleNode',
+         'Organization' => 'GCR',
+         'Developer' => 'GCR Dev Team',
+         'Function' => 'MetronInstall'
+   }
+   aws.block_device_mapping = [{'DeviceName' =>'/dev/sda1', 'Ebs.VolumeSize' => 100, 'Ebs.DeleteOnTermination' => true}]
+ end
+
+ #The following will install rsyslog, change hostname to node1, resize the disk partition, and reboot
+ config.vm.provision "shell", inline: <<-SHELL
+   yum install -y wget
+   wget http://rpms.adiscon.com/v8-stable/rsyslog.repo
+   mv rsyslog.repo /etc/yum.repos.d/rsyslog.repo
+   yum info rsyslog --skip-broken
+   yum install -y rsyslog
+   hostname node1
+   sed -i "s/^HOSTNAME=.*/HOSTNAME=node1/g" /etc/sysconfig/network
+   sed -i "127.0.0.1   node1" /etc/hosts
+   echo "127.0.0.1   node1" >> /etc/hosts
+   echo -e "u s\nd 1\nn\np\n1\n2048\n\na\n1\nw\n" | fdisk /dev/xvda
+   ip link set eth0 promisc on
+   ifconfig eth0 promisc 
+   shutdown -r now
+ SHELL
+
+ config.vm.provision :reload
+
+ config.vm.provision :ansible do |ansible|
+   ansible.playbook = "../../ansible/playbooks/metron_full_install.yml"
+   ansible.host_key_checking = false
+   ansible.limit = 'all'
+   ansible.sudo = true
+   ansible.tags = ansibleTags.split(",") if ansibleTags != ''
+   ansible.skip_tags = ansibleSkipTags.split(",") if ansibleSkipTags != ''
+   ansible.inventory_path = "ansible/inventory"
+ end
+end
