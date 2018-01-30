@@ -114,9 +114,9 @@ To build the DEB packages, follow the instructions at [packaging/docker/deb-dock
 
 How do I deploy Metron within AWS?
 ----------------------------------
-You can deploy Metron as a single node or a 10-node cluster. The diffrence between both types of deployments are below.
+You can deploy Metron as a single node or as 10-node cluster in AWS EC2. The diffrence between deploying as a single node and as 10 nodes are below.
 
-### Single Node Cluster Deployment
+### AWS Single Node Cluster Deployment
 This will deploy Metron and all of its dependencies on a single EC2 node in AWS. 
 
 #### What is this good for?
@@ -125,11 +125,9 @@ This will deploy Metron and all of its dependencies on a single EC2 node in AWS.
 
 * If you are a developer contributing to the Apache Metron project, this is also a great way to test your changes.  
 
-* If you are a developer contributing to the Apache Metron project, this is also a great way to test your changes.  
+* The single node will survive a reboot.
 
-* The cluster will survive a reboot.
-
-* The cluster can use pre-existing elastic ip id, security group id, and subnet id
+* The single node can use pre-existing AWS elastic ip, security group id, and subnet id.
 
 #### What is this **not** good for?
 
@@ -145,7 +143,7 @@ Running Metron within the resource constraints of a single VM is incredibly chal
 
 To deploy Metron in a VM running on your computer, follow the instructions at [development/aws-centos6](development/aws-centos6).
 
-### 10 Node Cluster Deployment
+### AWS 10 Node Cluster Deployment
 
 This deploys Apache Metron on an automatically provisioned 10-node cluster running in Amazon Web Service's EC2 platform.  
 
