@@ -37,11 +37,10 @@ If you already have an Amazon Web Services account that you have used to deploy 
   - AmazonEC2FullAccess
   - AmazonVPCFullAccess
 
-4. Apache Metron uses the [official, open source CentOS 6](https://aws.amazon.com/marketplace/pp/B00NQAYLWO) Amazon Machine Image (AMI).  If you have never used this AMI before then you will need to accept Amazon's terms and conditions.  Navigate to the [web page for this AMI](https://aws.amazon.com/marketplace/pp/B00NQAYLWO) and click the "Continue" button.  Choose the "Manual Launch" tab then click the "Accept Software Terms" button.
 
-Having successfully created your Amazon Web Services account, hopefully you will find that the most difficult tasks are behind us.  
 
 ### Prerequisites
+Apache Metron uses the [official, open source CentOS 6](https://aws.amazon.com/marketplace/pp/B00NQAYLWO) Amazon Machine Image (AMI).  If you have never used this AMI before then you will need to accept Amazon's terms and conditions. Navigate to the [web page for this AMI](https://aws.amazon.com/marketplace/pp/B00NQAYLWO) and "Accept Software Terms" for the "Manual Launch" tab.
 
 The computer used to deploy Apache Metron will need to have the following components installed.
 
