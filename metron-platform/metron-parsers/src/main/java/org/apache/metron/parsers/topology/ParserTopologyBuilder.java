@@ -18,6 +18,7 @@
 package org.apache.metron.parsers.topology;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.metron.common.utils.KafkaUtils;
 import org.apache.metron.parsers.topology.config.ValueSupplier;
 import org.apache.metron.storm.kafka.flux.SimpleStormKafkaBuilder;
 import org.apache.metron.storm.kafka.flux.SpoutConfiguration;
@@ -163,7 +164,7 @@ public class ParserTopologyBuilder {
             , inputTopic + "_parser"
     );
     if(securityProtocol.isPresent()) {
-      kafkaSpoutConfigOptions.putIfAbsent("security.protocol", securityProtocol.get());
+      kafkaSpoutConfigOptions.putIfAbsent("security.protocol", KafkaUtils.INSTANCE.normalizeProtocol(securityProtocol.get()));
     }
     return SimpleStormKafkaBuilder.create( inputTopic
                                          , zkQuorum

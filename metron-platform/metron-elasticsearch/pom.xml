@@ -264,8 +264,8 @@
                                     <shadedPattern>org.apache.metron.guava.metron-elasticsearch</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>com.fasterxml.jackson.core</pattern>
-                                    <shadedPattern>com.fasterxml.jackson.core.metron.elasticsearch</shadedPattern>
+                                    <pattern>com.fasterxml.jackson</pattern>
+                                    <shadedPattern>org.apache.metron.jackson</shadedPattern>
                                 </relocation>
                             </relocations>
                             <artifactSet>

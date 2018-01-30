@@ -158,6 +158,7 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
     producerConfig.put("value.serializer", valueSerializer);
     producerConfig.put("request.required.acks", requiredAcks);
     producerConfig.putAll(producerConfigs == null?new HashMap<>():producerConfigs);
+    producerConfig = KafkaUtils.INSTANCE.normalizeProtocol(producerConfig);
     return producerConfig;
   }
 
