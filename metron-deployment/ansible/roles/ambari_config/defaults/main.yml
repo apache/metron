@@ -34,5 +34,5 @@ mapred_reduce_java_opts : -Xmx1024m
 mapred_map_mem_mb : 1229
 mapred_reduce_mem_mb : 1229
 topology_classpath: '/etc/hbase/conf:/etc/hadoop/conf'
-hdp_stack: "2.5"
+hdp_stack: "2.6"
 elasticsearch_network_interface: _site_
