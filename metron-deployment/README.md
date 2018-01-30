@@ -23,6 +23,8 @@ This project contains tools for building, packaging, and deploying Apache Metron
  * [How do I build RPM packages?](#how-do-i-build-rpm-packages)
  * [How do I build DEB packages?](#how-do-i-build-deb-packages)
  * [How do I deploy Metron within AWS?](#how-do-i-deploy-metron-within-aws)
+ *    [Single Node Cluster Deployment](#single-node-cluster-deployment)
+ *    [10-node Cluster Deployment](#10-node-cluster-deployment)
  * [How do I build Metron with Docker?](#how-do-i-build-metron-with-docker)
 
 
@@ -112,6 +114,38 @@ To build the DEB packages, follow the instructions at [packaging/docker/deb-dock
 
 How do I deploy Metron within AWS?
 ----------------------------------
+You can deploy Metron as a single node or a 10-node cluster. The diffrence between both types of deployments are below.
+
+### Single Node Cluster Deployment
+This will deploy Metron and all of its dependencies on a single EC2 node in AWS. 
+
+#### What is this good for?
+
+* If you are new to Metron and want to explore the functionality that it offers, this is good place to start.  
+
+* If you are a developer contributing to the Apache Metron project, this is also a great way to test your changes.  
+
+* If you are a developer contributing to the Apache Metron project, this is also a great way to test your changes.  
+
+* The cluster will survive a reboot.
+
+* The cluster can use pre-existing elastic ip id, security group id, and subnet id
+
+#### What is this **not** good for?
+
+* This VM is **not** intended for processing anything beyond the most basic, low volume work loads.
+
+* Additional services should **not** be installed along side Metron in this VM.
+
+* This VM should **not** be used to run a proof-of-concept for Apache Metron within your organization.
+
+Running Metron within the resource constraints of a single VM is incredibly challenging. Failing to respect this warning, will cause various services to fail mysteriously as the system runs into memory and processing limits.
+
+#### How?
+
+To deploy Metron in a VM running on your computer, follow the instructions at [development/aws-centos6](development/aws-centos6).
+
+### 10 Node Cluster Deployment
 
 This deploys Apache Metron on an automatically provisioned 10-node cluster running in Amazon Web Service's EC2 platform.  
 
