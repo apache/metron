@@ -23,8 +23,8 @@ This project contains tools for building, packaging, and deploying Apache Metron
  * [How do I build RPM packages?](#how-do-i-build-rpm-packages)
  * [How do I build DEB packages?](#how-do-i-build-deb-packages)
  * [How do I deploy Metron within AWS?](#how-do-i-deploy-metron-within-aws)
-  ...[AWS Single Node Cluster Deployment](#aws-single-node-cluster-deployment)
-  ...[AWS 10 Node Cluster Deployment](#aws-10-node-cluster-deployment)
+  ... [AWS Single Node Cluster Deployment](#aws-single-node-cluster-deployment)
+  ... [AWS 10 Node Cluster Deployment](#aws-10-node-cluster-deployment)
  * [How do I build Metron with Docker?](#how-do-i-build-metron-with-docker)
 
 
