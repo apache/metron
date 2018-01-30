@@ -136,6 +136,18 @@ describe('Component: AdvancedConfigFormComponent', () => {
       expect(component.configForm.controls['field2'].value).toEqual('value2');
       expect(component.configForm.controls['field3'].value).toEqual('value3');
 
+      component.newConfigKey = 'field1';
+      component.newConfigValue = '["newValue1"]';
+      component.saveNewConfig();
+      expect(Object.keys(component.config).length).toEqual(3);
+      expect(component.config['field1']).toEqual(['newValue1']);
+
+      component.newConfigKey = 'field1';
+      component.newConfigValue = '{"key":"newValue1"}';
+      component.saveNewConfig();
+      expect(Object.keys(component.config).length).toEqual(3);
+      expect(component.config['field1']).toEqual({key: 'newValue1'});
+
       component.removeConfig('field1');
       expect(Object.keys(component.config).length).toEqual(2);
       expect(component.config['field2']).toEqual('value2');
@@ -146,6 +158,28 @@ describe('Component: AdvancedConfigFormComponent', () => {
       expect(component.configForm.controls['newConfigValue'].value).toEqual('enter value');
       expect(component.configForm.controls['field2'].value).toEqual('value2');
       expect(component.configForm.controls['field3'].value).toEqual('value3');
+
+
   }));
+
+    it('verify display and save values',  async(() => {
+        let component: AdvancedConfigFormComponent =  fixture.componentInstance;
+        component.config = {'field1': 'value1', 'field2': 'value2'};
+        component.ngOnInit();
+
+        expect(component.displayValue('field1')).toEqual('value1');
+
+        component.saveValue('field1', '["value1","value2"]');
+        expect(component.config['field1']).toEqual(['value1', 'value2']);
+        expect(component.displayValue('field1')).toEqual('["value1","value2"]');
+
+        component.saveValue('field1', '["value1","value2"');
+        expect(component.config['field1']).toEqual('["value1","value2"');
+        expect(component.displayValue('field1')).toEqual('["value1","value2"');
+
+        component.saveValue('field1', '{"key1":"value1"}');
+        expect(component.config['field1']).toEqual({'key1': 'value1'});
+        expect(component.displayValue('field1')).toEqual('{"key1":"value1"}');
+    }));
 
 });

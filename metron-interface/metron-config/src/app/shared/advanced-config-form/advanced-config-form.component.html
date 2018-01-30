@@ -19,7 +19,7 @@
             </div>
         </div>
         <div class="row  mx-0">
-            <div class="col-md-10 advanced-input"><input type="text" class="form-control" formControlName="{{key}}" [(ngModel)]="config[key]"></div>
+            <div class="col-md-10 advanced-input"><input type="text" class="form-control" formControlName="{{key}}" [ngModel]="displayValue(key)" (ngModelChange)="saveValue(key, $event)"></div>
             <div class="col-md-2" (click)="removeConfig(key)">
                 <i class="fa fa-minus fa-4 icon-button" aria-hidden="true" ></i>
             </div>
