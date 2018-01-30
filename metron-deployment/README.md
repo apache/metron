@@ -120,7 +120,9 @@ i) [As a single node using Vagrant](#aws-single-node-cluster-deployment-using-va
 ii) [As single node using an AMI from the AWS Community AMI Marketplace](#aws-single-node-cluster-deployment-using-an-ami)
 iii) [As a 10-node cluster](#aws-10-node-cluster-deployment)
 
-Below will provide more information on the three different deployment methods
+Below will provide more information on the three different deployment methods. 
+Warning: Amazon will charge for the use of their resources when running Apache Metron.  The amount will vary based on the number and size of hosts, along with current Amazon pricing structure.  Be sure to stop or terminate all of the hosts instantiated by Apache Metron when not in use to avoid unnecessary charges.
+
 
 ### AWS Single Node Cluster Deployment Using Vagrant
 This will deploy Metron and all of its dependencies as a single node in Amazon Web Service's EC2 platform using Vagrant. 
@@ -161,9 +163,7 @@ This will deploy Metron as a single node in Amazon Web Service's EC2 platform by
 
 * This is intended to be the simplest EC2 AWS deployment option
 
-* No need to have a separate machine to deploy
-
-* No need for preinstall requriments
+* No need for preinstall requriments on a seperate machine
 
 * If you are new to Metron and want to explore the functionality that it offers, this is good place to start.  
 
@@ -186,11 +186,11 @@ This will deploy Metron as a single node in Amazon Web Service's EC2 platform by
 Running Metron within the resource constraints of a single VM is incredibly challenging. Failing to respect this warning, will cause various services to fail mysteriously as the system runs into memory and processing limits.
 
 #### How?
-
-1) In the "EC2 Dashboard" click on "Launch Instance" in the "Canada (Central)" region
-2) Search for "GCR-Xetron Demo" or "ami-93cb4ff7" in the "Community AMIs" and click on "Select"
-3) Manually choose the following mandatory/non-default option and then "Launch Instance"
-t2.t2xlarge
+1) Navigate to the [web page for this AMI](https://aws.amazon.com/marketplace/pp/B00NQAYLWO) and "Accept Software Terms" for the "Manual Launch" tab.
+2) In the "EC2 Dashboard" click on "Launch Instance" in the "Canada (Central)" region
+3) Search for "GCR-Xetron Demo" or "ami-93cb4ff7" in the "Community AMIs" and click on "Select"
+4) Manually choose the following mandatory/non-default option and then "Launch Instance"
+t2.t2xlarge [32 GB Memory, 8 Cores, 64 bit]
 5) Change security group setting to only allow traffic to what is necessary. By default a new security group might block all inbound traffic except SSH. Inbound and outbound ports 8080, 5000, 4200 ext.. will need to be allowed for your web client.
 6) (optional)Associate the newly launched instance to an elastic IP
 7) After the instance is launched you will need to change the hostname to node1. 
