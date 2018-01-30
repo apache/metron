@@ -225,6 +225,7 @@ This package installs the Metron Solr files
 %dir %{metron_home}/bin
 %dir %{metron_home}/config
 %dir %{metron_home}/lib
+%{metron_home}/bin/install_solr.sh
 %{metron_home}/bin/start_solr_topology.sh
 %{metron_home}/config/solr.properties
 %attr(0644,root,root) %{metron_home}/lib/metron-solr-%{full_version}-uber.jar
