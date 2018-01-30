@@ -188,7 +188,7 @@ Running Metron within the resource constraints of a single VM is incredibly chal
 #### How?
 
 1) In the "EC2 Dashboard" click on "Launch Instance" in the "Canada (Central)" region
-2) Search for "GCR-Xetron Demo" in the "AWS Marketplace" and click on "Select"
+2) Search for "GCR-Xetron Demo" or "ami-93cb4ff7" in the "AWS Marketplace" and click on "Select"
 3) Manually choose the following mandatory non-default options
 t2.t2xlarge
 4) Launch the instance
