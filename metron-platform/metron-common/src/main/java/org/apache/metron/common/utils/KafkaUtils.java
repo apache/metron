@@ -25,6 +25,7 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.kafka.common.protocol.SecurityProtocol;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,7 @@ import java.util.Map;
 
 public enum KafkaUtils {
   INSTANCE;
+  public static final String SECURITY_PROTOCOL = "security.protocol";
   public List<String> getBrokersFromZookeeper(String zkQuorum) throws Exception {
     RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
     CuratorFramework framework = CuratorFrameworkFactory.newClient(zkQuorum, retryPolicy);
@@ -66,6 +68,31 @@ public enum KafkaUtils {
     return ret;
   }
 
+  public Map<String, Object> normalizeProtocol(Map<String, Object> configs) {
+    if(configs.containsKey(SECURITY_PROTOCOL)) {
+      String protocol = normalizeProtocol((String)configs.get(SECURITY_PROTOCOL));
+      configs.put(SECURITY_PROTOCOL, protocol);
+    }
+    return configs;
+  }
+
+  public String normalizeProtocol(String protocol) {
+    if(protocol.equalsIgnoreCase("PLAINTEXTSASL") || protocol.equalsIgnoreCase("SASL_PLAINTEXT")) {
+      if(SecurityProtocol.getNames().contains("PLAINTEXTSASL")) {
+        return "PLAINTEXTSASL";
+      }
+      else if(SecurityProtocol.getNames().contains("SASL_PLAINTEXT")) {
+        return "SASL_PLAINTEXT";
+      }
+      else {
+        throw new IllegalStateException("Unable to find the appropriate SASL protocol, " +
+                "viable options are: " + Joiner.on(",").join(SecurityProtocol.getNames()));
+      }
+    }
+    else {
+      return protocol.trim();
+    }
+  }
   /*
   The URL accepted is NOT a general URL, and is assumed to follow the format used by the Kafka structures in Zookeeper.
   See: https://cwiki.apache.org/confluence/display/KAFKA/Kafka+data+structures+in+Zookeeper

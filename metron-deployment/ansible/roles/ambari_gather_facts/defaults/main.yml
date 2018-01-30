@@ -15,9 +15,5 @@
 #  limitations under the License.
 #
 ---
-hadoop_logrotate_frequency: daily
-hadoop_logrotate_retention: 30
-centos_ambari_install_url: http://public-repo-1.hortonworks.com/ambari/centos6/2.x/updates/2.5.2.0/ambari.repo
-ubuntu_ambari_repo: http://public-repo-1.hortonworks.com/ambari/ubuntu14/2.x/updates/2.5.2.0
-ubuntu_elasticsearch_packages_repo: https://artifacts.elastic.co/packages/5.x/apt
-ubuntu_elasticsearch_curator_repo: https://packages.elastic.co/curator/5/debian
+curl: "curl -s -u {{ ambari_user }}:{{ ambari_password }} -X GET -H \"X-Requested-By: ambari\""
+parse_json: "import sys, json; print json.load(sys.stdin)"

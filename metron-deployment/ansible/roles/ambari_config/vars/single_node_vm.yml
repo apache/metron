@@ -87,6 +87,13 @@ configurations:
       supervisor.slots.ports: "[6700, 6701, 6702, 6703, 6704, 6705]"
       storm.local.dir: '{{ storm_local_dir }}'
       topology.classpath: '{{ topology_classpath }}'
+      # Storm expects ambari metrics to be available in 2.6.  We do *not* install ambari metrics in full-dev, so we need to revert to the old consumer
+      storm.cluster.metrics.consumer.register: '[{"class": "org.apache.storm.metric.LoggingMetricsConsumer"}]'
+      topology.metrics.consumer.register: '[{"class": "org.apache.storm.metric.LoggingMetricsConsumer", "parallelism.hint": 1, "whitelist": ["kafkaOffset\\..+/", "__complete-latency", "__process-latency", "__receive\\.population$", "__sendqueue\\.population$", "__execute-count", "__emit-count", "__ack-count", "__fail-count", "memory/heap\\.usedBytes$", "memory/nonHeap\\.usedBytes$", "GC/.+\\.count$", "GC/.+\\.timeMs$"]}]'
+      # Storm expects ambari metrics to be available in 2.6 and ambari metrics pulls data via JMX, but since we don't use ambari metrics here, we don't have the javaagent around to use and thus that must be removed from nimbus, supervisor and worker properties 
+      nimbus.childopts: '-Xmx1024m _JAAS_PLACEHOLDER'
+      supervisor.childopts: '-Xmx256m _JAAS_PLACEHOLDER'
+      worker.childopts: "-Xmx768m _JAAS_PLACEHOLDER"
   - kafka-env:
       content: "{% raw %}\n#!/bin/bash\n\n# Set KAFKA specific environment variables here.\n\n# The java implementation to use.\nexport KAFKA_HEAP_OPTS=\"-Xms256M -Xmx256M\"\nexport KAFKA_JVM_PERFORMANCE_OPTS=\"-server -XX:+UseG1GC -XX:+DisableExplicitGC -Djava.awt.headless=true\"\nexport JAVA_HOME={{java64_home}}\nexport PATH=$PATH:$JAVA_HOME/bin\nexport PID_DIR={{kafka_pid_dir}}\nexport LOG_DIR={{kafka_log_dir}}\nexport KAFKA_KERBEROS_PARAMS={{kafka_kerberos_params}}\n# Add kafka sink to classpath and related depenencies\nif [ -e \"/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar\" ]; then\n  export CLASSPATH=$CLASSPATH:/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar\n  export CLASSPATH=$CLASSPATH:/usr/lib/ambari-metrics-kafka-sink/lib/*\nfi\nif [ -f /etc/kafka/conf/kafka-ranger-env.sh ]; then\n   . /etc/kafka/conf/kafka-ranger-env.sh\nfi{% endraw %}"
   - kafka-broker:

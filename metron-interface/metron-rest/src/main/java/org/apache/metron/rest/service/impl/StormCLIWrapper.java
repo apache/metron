@@ -18,6 +18,7 @@
 package org.apache.metron.rest.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.common.utils.KafkaUtils;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.slf4j.Logger;
@@ -117,7 +118,7 @@ public class StormCLIWrapper {
 
     // kafka security protocol
     command.add( "-ksp");
-    command.add( environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY));
+    command.add(KafkaUtils.INSTANCE.normalizeProtocol(environment.getProperty(MetronRestConstants.KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY)));
 
     // extra topology options
     boolean kerberosEnabled = environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false);
