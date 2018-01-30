@@ -191,7 +191,8 @@ Running Metron within the resource constraints of a single VM is incredibly chal
 3) Search for "GCR-Xetron Demo" or "ami-93cb4ff7" in the "Community AMIs" and click on "Select"
 4) Manually choose the following mandatory/non-default option and then "Launch Instance"
 
-t2.t2xlarge [32 GB Memory, 8 Cores, 64 bit]
+- t2.t2xlarge [32 GB Memory, 8 Cores, 64 bit]
+
 5) Change security group setting to only allow traffic to what is necessary. By default a new security group might block all inbound traffic except SSH. Inbound and outbound ports 8080, 5000, 4200 ext.. will need to be allowed for your web client.
 6) (optional)Associate the newly launched instance to an elastic IP
 7) After the instance is launched you will need to change the hostname to node1. 
