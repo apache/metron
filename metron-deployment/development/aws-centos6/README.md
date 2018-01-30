@@ -15,12 +15,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-Metron in AWS as a Single Node with CentOS 6
+Metron in AWS as a Single Node with CentOS 6 using Vagrant
 ==================
 
-This project fully automates the provisioning and deployment of Apache Metron and all necessary prerequisites on a single, virtualized host running CentOS 6.
-
-Metron is composed of many components and installing all of these on a single host, especially a virtualized one, will greatly stress the resources of the host.   The host will require at least 8 GB of RAM and a fair amount of patience.  It is highly recommended that you shut down all unnecessary services.  
+This project fully automates the provisioning and deployment of Apache Metron and all necessary prerequisites on a single, virtualized node in AWS EC2. 
 
 Getting Started
 ---------------
@@ -29,7 +27,7 @@ Getting Started
 
 The computer used to deploy Apache Metron will need to have the following components installed.
 
- - [Ansible](https://github.com/ansible/ansible) (2.0.0.2 or 2.2.2.0)
+ - [Ansible](https://github.com/ansible/ansible) (2.2.2.0)
  - [Docker](https://www.docker.com/community-edition)
  - [Vagrant](https://www.vagrantup.com) 1.8+
  - [Vagrant Hostmanager Plugin](https://github.com/devopsgroup-io/vagrant-hostmanager)
@@ -50,7 +48,7 @@ Any platform that supports these tools is suitable, but the following instructio
 
 1. Install Homebrew by following the instructions at [Homebrew](http://brew.sh/).
 
-1. Run the following command in a terminal to install all of the required tools.
+2. Run the following commands in a terminal to install all of the required tools.
 
     ```  
     brew cask install vagrant virtualbox docker
@@ -58,48 +56,57 @@ Any platform that supports these tools is suitable, but the following instructio
     brew install maven@3.3 git
     pip install ansible==2.2.2.0
     vagrant plugin install vagrant-hostmanager
+    vagrant plugin install vagrant-aws
+    vagrant plugin install vagrant-reload
+    pip install --upgrade setuptools --user python
     open /Applications/Docker.app
     ```
+3. In your AWS console you need to reserve/create an AWS Elastic IP, a Subnet id, Security Group id, and a key pair (key pair name & *.pem file[remember to set permissions to chmod 400]).
+
+4. The following will clear existing Vagrant, Docker & Maven deployments. WARNING - THESE STEPS WILL DISTROY ALL LOCAL DOCKER CONTAINERS AND VAGRANT BOXES
+```
+vagrant halt node1 -f
+vagrant halt default -f
+vagrant destroy node1 -f
+vagrant destroy default -f
+for i in `vagrant global-status | grep virtualbox | awk '{print $1 }'` ; do vagrant destroy $i  ; done
+vagrant global-status --prune
+docker rm $(docker ps -aq)
+osascript -e 'quit app "Docker"'
+open -a Docker
+rm -rf /../.m2/repository/*
+rm -rf /../.vagrant.d/boxes/*
+vagrant box add dummy --force https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
+```
+5. Associate your AWS ids to the following enviroment variables names
+```
+export AWS_ACCESS_KEY_ID=''
+export AWS_SECRET_ACCESS_KEY=''
+export AWS_KEYNAME=''
+export AWS_KEYPATH='../..*.pem'
+export AWS_ELASTIC_IP=""
+export AWS_SECURITYGROUP_ID=""
+export AWS_SUBNET_ID=""
+```
+6. Update your local /etc/hosts file to include AWS_ELASTIC_IP which will be tied to "node1" (do only once).
+```
+sed -i "$AWS_ELASTIC_IP  node1" /etc/hosts
+```
 
 ### Deploy Metron
 
 1. Ensure that the Docker service is running.
 
-1. Deploy Metron
+2. Deploy Metron
 
     ```
-    cd metron-deployment/development/centos6
-    vagrant up
-    ```
-
-    Should the process fail before completing the deployment, the following command will continue the deployment process without re-instantiating the host.
-
-    ```
-    vagrant provision
+    cd metron-deployment/development/aws-centos6
+    vagrant up --provider=aws
     ```
 
 ### Explore Metron
 
 Navigate to the following resources to explore your newly minted Apache Metron environment.
 
-* [Metron Alerts](http://node1:4201)
-* [Ambari](http://node1:8080)
-
-Connecting to the host through SSH is as simple as running the following command.
-```
-vagrant ssh
-```
-
-### Working with Metron
-
-In addition to re-running the entire provisioning play book, you may now re-run an individual Ansible tag or a collection of tags in the following ways.  The following commands will re-run the `sensor-stubs` role on the Vagrant image. This will install and start the sensor stub components.
-
-```
-vagrant --ansible-tags="sensor-stubs" provision
-```
-
-Tags are listed in the playbooks, some frequently used tags:
-+ `hdp-install` - Install HDP
-+ `hdp-deploy` - Deploy and Start HDP Services (will start all Hadoop Services)
-+ `sensors` - Deploy and start the sensors.
-+ `sensor-stubs` - Deploy and start the sensor stubs.
+* [Metron Alerts](http://<elasticip>:4201)
+* [Ambari](http://<elasticip>:8080)
