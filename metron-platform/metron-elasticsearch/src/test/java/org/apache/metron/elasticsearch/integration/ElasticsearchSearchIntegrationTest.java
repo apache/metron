@@ -19,7 +19,12 @@ package org.apache.metron.elasticsearch.integration;
 
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -31,6 +36,14 @@ import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.search.FieldType;
+import org.apache.metron.indexing.dao.search.GroupRequest;
+import org.apache.metron.indexing.dao.search.GroupResponse;
+import org.apache.metron.indexing.dao.search.GroupResult;
+import org.apache.metron.indexing.dao.search.InvalidSearchException;
+import org.apache.metron.indexing.dao.search.SearchRequest;
+import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.integration.InMemoryComponent;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -40,6 +53,13 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
@@ -238,5 +258,97 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     }
   }
 
+  @Test
+  public void bad_facet_query_throws_exception() throws Exception {
+    thrown.expect(InvalidSearchException.class);
+    thrown.expectMessage("Failed to execute search");
+    SearchRequest request = JSONUtils.INSTANCE.load(badFacetQuery, SearchRequest.class);
+    dao.search(request);
+  }
 
+
+
+  @Override
+  public void returns_column_metadata_for_specified_indices() throws Exception {
+    // getColumnMetadata with only bro
+    {
+      Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("bro"));
+      Assert.assertEquals(13, fieldTypes.size());
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("duplicate_name_field"));
+      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
+      Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
+      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
+      Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
+      Assert.assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
+      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
+      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
+      Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
+      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("duplicate_name_field"));
+      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
+    }
+    // getColumnMetadata with only snort
+    {
+      Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
+      Assert.assertEquals(14, fieldTypes.size());
+      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
+      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
+      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
+      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
+      Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
+      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
+      Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
+      Assert.assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
+      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
+      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
+      Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
+      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
+      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
+      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
+    }
+  }
+
+  @Override
+  public void returns_column_data_for_multiple_indices() throws Exception {
+    Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("bro", "snort"));
+    Assert.assertEquals(15, fieldTypes.size());
+    Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
+    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
+    Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
+    Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
+    Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
+    Assert.assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
+    Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
+    Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
+    Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
+    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
+    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
+    Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
+    //NOTE: This is because the field is in both bro and snort and they have different types.
+    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("duplicate_name_field"));
+    Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("threat:triage:score"));
+    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
+  }
+
+  @Test
+  public void throws_exception_on_aggregation_queries_on_non_string_non_numeric_fields()
+      throws Exception {
+    thrown.expect(InvalidSearchException.class);
+    thrown.expectMessage("Failed to execute search");
+    GroupRequest request = JSONUtils.INSTANCE.load(badGroupQuery, GroupRequest.class);
+    dao.group(request);
+  }
+
+  @Test
+  public void different_type_filter_query() throws Exception {
+    SearchRequest request = JSONUtils.INSTANCE.load(differentTypeFilterQuery, SearchRequest.class);
+    SearchResponse response = dao.search(request);
+    Assert.assertEquals(1, response.getTotal());
+    List<SearchResult> results = response.getResults();
+    Assert.assertEquals("bro", results.get(0).getSource().get("source:type"));
+    Assert.assertEquals("data 1", results.get(0).getSource().get("duplicate_name_field"));
+  }
 }

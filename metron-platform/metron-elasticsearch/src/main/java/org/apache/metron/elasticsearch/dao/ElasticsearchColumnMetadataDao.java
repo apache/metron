@@ -18,6 +18,7 @@
 
 package org.apache.metron.elasticsearch.dao;
 
+import org.apache.metron.indexing.dao.ColumnMetadataDao;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
 import org.elasticsearch.client.AdminClient;
@@ -140,12 +141,32 @@ public class ElasticsearchColumnMetadataDao implements ColumnMetadataDao {
   }
 
   /**
-   * Retrieves the latest indices.
-   * @param includeIndices
-   * @return
+   * Finds the latest version of a set of base indices.  This can be used to find
+   * the latest 'bro' index, for example.
+   *
+   * Assuming the following indices exist...
+   *
+   *    [
+   *      'bro_index_2017.10.03.19'
+   *      'bro_index_2017.10.03.20',
+   *      'bro_index_2017.10.03.21',
+   *      'snort_index_2017.10.03.19',
+   *      'snort_index_2017.10.03.20',
+   *      'snort_index_2017.10.03.21'
+   *    ]
+   *
+   *  And the include indices are given as...
+   *
+   *    ['bro', 'snort']
+   *
+   * Then the latest indices are...
+   *
+   *    ['bro_index_2017.10.03.21', 'snort_index_2017.10.03.21']
+   *
+   * @param includeIndices The base names of the indices to include
+   * @return The latest version of a set of indices.
    */
-  @Override
-  public String[] getLatestIndices(List<String> includeIndices) {
+  String[] getLatestIndices(List<String> includeIndices) {
     LOG.debug("Getting latest indices; indices={}", includeIndices);
     Map<String, String> latestIndices = new HashMap<>();
     String[] indices = adminClient

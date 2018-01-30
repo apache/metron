@@ -19,7 +19,6 @@
 package org.apache.metron.indexing.dao;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -60,8 +59,8 @@ public abstract class SearchIntegrationTest {
 
   /**
    * [
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.6", "ip_src_port": 8005, "long_field": 10000, "timestamp":6, "latitude": 48.5839, "score": 50.0, "is_alert":false, "location_point": "50.0,7.7455", "snort_field": 10, "duplicate_name_field": 1, "guid":"snort_1", "threat:triage:score":"10"},
-   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8004, "long_field": 10000, "timestamp":7, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 20, "duplicate_name_field": 2, "guid":"snort_2", "threat:triage:score":"20"},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.6", "ip_src_port": 8005, "long_field": 10000, "timestamp":6, "latitude": 48.5839, "score": 50.0, "is_alert":false, "location_point": "50.0,7.7455", "snort_field": 10, "duplicate_name_field": 1, "guid":"snort_1", "threat:triage:score":10.0},
+   * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8004, "long_field": 10000, "timestamp":7, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 20, "duplicate_name_field": 2, "guid":"snort_2", "threat:triage:score":20.0},
    * {"source:type": "snort", "ip_src_addr":"192.168.1.7", "ip_src_port": 8003, "long_field": 10000, "timestamp":8, "latitude": 48.5839, "score": 20.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 30, "duplicate_name_field": 3, "guid":"snort_3"},
    * {"source:type": "snort", "ip_src_addr":"192.168.1.1", "ip_src_port": 8002, "long_field": 20000, "timestamp":9, "latitude": 48.0001, "score": 50.0, "is_alert":true, "location_point": "48.5839,7.7455", "snort_field": 40, "duplicate_name_field": 4, "guid":"snort_4"},
    * {"source:type": "snort", "ip_src_addr":"192.168.1.8", "ip_src_port": 8001, "long_field": 10000, "timestamp":10, "latitude": 48.5839, "score": 10.0, "is_alert":false, "location_point": "48.5839,7.7455", "snort_field": 50, "duplicate_name_field": 5, "guid":"snort_5"}
@@ -274,6 +273,42 @@ public abstract class SearchIntegrationTest {
 
   /**
    * {
+   * "facetFields": ["snort_field"],
+   * "indices": ["bro", "snort"],
+   * "query": "*:*",
+   * "from": 0,
+   * "size": 10,
+   * "sort": [
+   *   {
+   *     "field": "timestamp",
+   *     "sortOrder": "desc"
+   *   }
+   * ]
+   * }
+   */
+  @Multiline
+  public static String missingTypeFacetQuery;
+
+  /**
+   * {
+   * "facetFields": ["duplicate_name_field"],
+   * "indices": ["bro", "snort"],
+   * "query": "*:*",
+   * "from": 0,
+   * "size": 10,
+   * "sort": [
+   *   {
+   *     "field": "timestamp",
+   *     "sortOrder": "desc"
+   *   }
+   * ]
+   * }
+   */
+  @Multiline
+  public static String differentTypeFacetQuery;
+
+  /**
+   * {
    * "indices": ["bro", "snort"],
    * "query": "*",
    * "from": 0,
@@ -419,6 +454,23 @@ public abstract class SearchIntegrationTest {
   @Multiline
   public static String groupByIpQuery;
 
+  /**
+   * {
+   * "indices": ["bro", "snort"],
+   * "query": "duplicate_name_field:\"data 1\"",
+   * "from": 0,
+   * "size": 10,
+   * "sort": [
+   *   {
+   *     "field": "timestamp",
+   *     "sortOrder": "desc"
+   *   }
+   * ]
+   * }
+   */
+  @Multiline
+  public static String differentTypeFilterQuery;
+
   protected static IndexDao dao;
   protected static InMemoryComponent indexComponent;
 
@@ -443,11 +495,11 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(10, results.size());
     for(int i = 0;i < 5;++i) {
       Assert.assertEquals("snort", results.get(i).getSource().get("source:type"));
-      Assert.assertEquals(10 - i, results.get(i).getSource().get("timestamp"));
+      Assert.assertEquals(10 - i + "", results.get(i).getSource().get("timestamp").toString());
     }
     for (int i = 5; i < 10; ++i) {
       Assert.assertEquals("bro", results.get(i).getSource().get("source:type"));
-      Assert.assertEquals(10 - i, results.get(i).getSource().get("timestamp"));
+      Assert.assertEquals(10 - i + "", results.get(i).getSource().get("timestamp").toString());
     }
   }
 
@@ -458,7 +510,7 @@ public abstract class SearchIntegrationTest {
     Assert.assertTrue(response.isPresent());
     Map<String, Object> doc = response.get();
     Assert.assertEquals("bro", doc.get("source:type"));
-    Assert.assertEquals(3, doc.get("timestamp"));
+    Assert.assertEquals("3", doc.get("timestamp").toString());
   }
 
   @Test
@@ -483,11 +535,11 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(3, response.getTotal());
     List<SearchResult> results = response.getResults();
     Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
-    Assert.assertEquals(9, results.get(0).getSource().get("timestamp"));
+    Assert.assertEquals("9", results.get(0).getSource().get("timestamp").toString());
     Assert.assertEquals("snort", results.get(1).getSource().get("source:type"));
-    Assert.assertEquals(7, results.get(1).getSource().get("timestamp"));
+    Assert.assertEquals("7", results.get(1).getSource().get("timestamp").toString());
     Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
-    Assert.assertEquals(1, results.get(2).getSource().get("timestamp"));
+    Assert.assertEquals("1", results.get(2).getSource().get("timestamp").toString());
   }
 
   @Test
@@ -515,8 +567,8 @@ public abstract class SearchIntegrationTest {
     }
 
     // validate sorted order - there are only 2 with a 'threat:triage:score'
-    Assert.assertEquals("10", results.get(8).getSource().get("threat:triage:score"));
-    Assert.assertEquals("20", results.get(9).getSource().get("threat:triage:score"));
+    Assert.assertEquals("10.0", results.get(8).getSource().get("threat:triage:score").toString());
+    Assert.assertEquals("20.0", results.get(9).getSource().get("threat:triage:score").toString());
   }
 
   @Test
@@ -528,8 +580,8 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(10, results.size());
 
     // validate sorted order - there are only 2 with a 'threat:triage:score'
-    Assert.assertEquals("20", results.get(0).getSource().get("threat:triage:score"));
-    Assert.assertEquals("10", results.get(1).getSource().get("threat:triage:score"));
+    Assert.assertEquals("20.0", results.get(0).getSource().get("threat:triage:score").toString());
+    Assert.assertEquals("10.0", results.get(1).getSource().get("threat:triage:score").toString());
 
     // the remaining are missing the 'threat:triage:score' and should be sorted last
     for (int i = 2; i < 10; i++) {
@@ -545,11 +597,11 @@ public abstract class SearchIntegrationTest {
     List<SearchResult> results = response.getResults();
     Assert.assertEquals(3, results.size());
     Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
-    Assert.assertEquals(6, results.get(0).getSource().get("timestamp"));
+    Assert.assertEquals("6", results.get(0).getSource().get("timestamp").toString());
     Assert.assertEquals("bro", results.get(1).getSource().get("source:type"));
-    Assert.assertEquals(5, results.get(1).getSource().get("timestamp"));
+    Assert.assertEquals("5", results.get(1).getSource().get("timestamp").toString());
     Assert.assertEquals("bro", results.get(2).getSource().get("source:type"));
-    Assert.assertEquals(4, results.get(2).getSource().get("timestamp"));
+    Assert.assertEquals("4", results.get(2).getSource().get("timestamp").toString());
   }
 
   @Test
@@ -560,7 +612,7 @@ public abstract class SearchIntegrationTest {
     List<SearchResult> results = response.getResults();
     for (int i = 5, j = 0; i > 0; i--, j++) {
       Assert.assertEquals("bro", results.get(j).getSource().get("source:type"));
-      Assert.assertEquals(i, results.get(j).getSource().get("timestamp"));
+      Assert.assertEquals(i + "", results.get(j).getSource().get("timestamp").toString());
     }
   }
 
@@ -640,14 +692,6 @@ public abstract class SearchIntegrationTest {
   }
 
   @Test
-  public void bad_facet_query_throws_exception() throws Exception {
-    thrown.expect(InvalidSearchException.class);
-    thrown.expectMessage("Failed to execute search");
-    SearchRequest request = JSONUtils.INSTANCE.load(badFacetQuery, SearchRequest.class);
-    dao.search(request);
-  }
-
-  @Test
   public void disabled_facet_query_returns_null_count() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(disabledFacetQuery, SearchRequest.class);
     SearchResponse response = dao.search(request);
@@ -655,7 +699,33 @@ public abstract class SearchIntegrationTest {
   }
 
   @Test
-  public void exceeding_max_resulsts_throws_exception() throws Exception {
+  public void missing_type_facet_query() throws Exception {
+    SearchRequest request = JSONUtils.INSTANCE.load(missingTypeFacetQuery, SearchRequest.class);
+    SearchResponse response = dao.search(request);
+    Assert.assertEquals(10, response.getTotal());
+
+    Map<String, Map<String, Long>> facetCounts = response.getFacetCounts();
+    Assert.assertEquals(1, facetCounts.size());
+    Map<String, Long> snortFieldCounts = facetCounts.get("snort_field");
+    Assert.assertEquals(5, snortFieldCounts.size());
+    Assert.assertEquals(new Long(1), snortFieldCounts.get("50"));
+    Assert.assertEquals(new Long(1), snortFieldCounts.get("40"));
+    Assert.assertEquals(new Long(1), snortFieldCounts.get("30"));
+    Assert.assertEquals(new Long(1), snortFieldCounts.get("20"));
+    Assert.assertEquals(new Long(1), snortFieldCounts.get("10"));
+    response.getFacetCounts();
+  }
+
+  @Test
+  public void different_type_facet_query() throws Exception {
+    thrown.expect(Exception.class);
+    SearchRequest request = JSONUtils.INSTANCE.load(differentTypeFacetQuery, SearchRequest.class);
+    SearchResponse response = dao.search(request);
+    Assert.assertEquals(3, response.getTotal());
+  }
+
+  @Test
+  public void exceeding_max_results_throws_exception() throws Exception {
     thrown.expect(InvalidSearchException.class);
     thrown.expectMessage("Search result size must be less than 100");
     SearchRequest request = JSONUtils.INSTANCE.load(exceededMaxResultsQuery, SearchRequest.class);
@@ -663,68 +733,7 @@ public abstract class SearchIntegrationTest {
   }
 
   @Test
-  public void returns_column_data_for_multiple_indices() throws Exception {
-    Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("bro", "snort"));
-    Assert.assertEquals(15, fieldTypes.size());
-    Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
-    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
-    Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
-    Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
-    Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
-    Assert.assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
-    Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
-    Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
-    Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-    Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
-    Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
-    //NOTE: This is because the field is in both bro and snort and they have different types.
-    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("duplicate_name_field"));
-    Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("threat:triage:score"));
-    Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
-  }
-
-  @Test
-  public void returns_column_metadata_for_specified_indices() throws Exception {
-    // getColumnMetadata with only bro
-    {
-      Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("bro"));
-      Assert.assertEquals(13, fieldTypes.size());
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("duplicate_name_field"));
-      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
-      Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
-      Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
-      Assert.assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
-      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
-      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
-      Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("duplicate_name_field"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
-    }
-    // getColumnMetadata with only snort
-    {
-      Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
-      Assert.assertEquals(14, fieldTypes.size());
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
-      Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
-      Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));
-      Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
-      Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
-      Assert.assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
-      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
-      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
-      Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
-      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
-      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
-    }
+  public void column_metadata_for_missing_index() throws Exception {
     // getColumnMetadata with an index that doesn't exist
     {
       Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("someindex"));
@@ -732,6 +741,12 @@ public abstract class SearchIntegrationTest {
     }
   }
 
+  @Test
+  public void no_results_returned_when_query_does_not_match() throws Exception {
+    SearchRequest request = JSONUtils.INSTANCE.load(noResultsFieldsQuery, SearchRequest.class);
+    SearchResponse response = dao.search(request);
+    Assert.assertEquals(0, response.getTotal());
+  }
 
   @Test
   public void group_by_ip_query() throws Exception {
@@ -754,13 +769,6 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals("192.168.1.3", groups.get(5).getKey());
     Assert.assertEquals("192.168.1.2", groups.get(6).getKey());
     Assert.assertEquals("192.168.1.1", groups.get(7).getKey());
-  }
-
-  @Test
-  public void no_results_returned_when_query_does_not_match() throws Exception {
-    SearchRequest request = JSONUtils.INSTANCE.load(noResultsFieldsQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
-    Assert.assertEquals(0, response.getTotal());
   }
 
   @Test
@@ -896,15 +904,6 @@ public abstract class SearchIntegrationTest {
   }
 
   @Test
-  public void throws_exception_on_aggregation_queries_on_non_string_non_numeric_fields()
-          throws Exception {
-    thrown.expect(InvalidSearchException.class);
-    thrown.expectMessage("Failed to execute search");
-    GroupRequest request = JSONUtils.INSTANCE.load(badGroupQuery, GroupRequest.class);
-    dao.group(request);
-  }
-
-  @Test
   public void queries_fields() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(fieldsQuery, SearchRequest.class);
     SearchResponse response = dao.search(request);
@@ -939,6 +938,14 @@ public abstract class SearchIntegrationTest {
   public static void stop() throws Exception {
     indexComponent.stop();
   }
+
+  @Test
+  public abstract void returns_column_data_for_multiple_indices() throws Exception;
+  @Test
+  public abstract void returns_column_metadata_for_specified_indices() throws Exception;
+  @Test
+  public abstract void different_type_filter_query() throws Exception;
+
 
   protected abstract IndexDao createDao() throws Exception;
   protected abstract InMemoryComponent startIndex() throws Exception;
