@@ -117,7 +117,7 @@ How do I deploy Metron within AWS?
 You can deploy Metron as a single node or as 10-node cluster in AWS EC2. The diffrence between deploying as a single node and as 10 nodes are below.
 
 ### AWS Single Node Cluster Deployment
-This will deploy Metron and all of its dependencies on a single EC2 node in AWS. 
+This will deploy Metron and all of its dependencies on a single node in Amazon Web Service's EC2 platform. 
 
 #### What is this good for?
 
@@ -127,7 +127,7 @@ This will deploy Metron and all of its dependencies on a single EC2 node in AWS.
 
 * The single node will survive a reboot.
 
-* The single node can use pre-existing AWS elastic ip, security group id, and subnet id.
+* The single node can use a pre-existing AWS elastic ip, security group id, and subnet id.
 
 #### What is this **not** good for?
 
