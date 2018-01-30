@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import os
+import requests
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
@@ -151,14 +152,21 @@ class Indexing(Script):
     def zeppelin_notebook_import(self, env):
         from params import params
         env.set_params(params)
+        commands = IndexingCommands(params)
 
         Logger.info(ambari_format('Searching for Zeppelin Notebooks in {metron_config_zeppelin_path}'))
+
+        # Check if authentication is configured on Zeppelin server, and fetch details if enabled.
+        ses = requests.session()
+        ses = commands.get_zeppelin_auth_details(ses, params.zeppelin_server_url, env)
         for dirName, subdirList, files in os.walk(params.metron_config_zeppelin_path):
             for fileName in files:
                 if fileName.endswith(".json"):
-                    zeppelin_cmd = ambari_format(
-                        'curl -s -XPOST http://{zeppelin_server_url}/api/notebook/import -d "@' + os.path.join(dirName, fileName) + '"')
-                    Execute(zeppelin_cmd, logoutput=True)
+                    Logger.info("Importing notebook: " + fileName)
+                    zeppelin_import_url = ambari_format('http://{zeppelin_server_url}/api/notebook/import')
+                    zeppelin_notebook = {'file' : open(os.path.join(dirName, fileName), 'rb')}
+                    res = ses.post(zeppelin_import_url, files=zeppelin_notebook)
+                    Logger.info("Result: " + res.text)
 
 if __name__ == "__main__":
     Indexing().execute()

@@ -95,6 +95,7 @@ storm_rest_addr = config['configurations']['metron-env']['storm_rest_addr']
 
 # Zeppelin
 zeppelin_server_url = config['configurations']['metron-env']['zeppelin_server_url']
+zeppelin_shiro_ini_content = config['configurations']['zeppelin-shiro-ini']['shiro_ini_content']
 
 # Security
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
