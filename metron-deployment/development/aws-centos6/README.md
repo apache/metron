@@ -20,8 +20,26 @@ Metron in AWS as a Single Node with CentOS 6 using Vagrant
 
 This project fully automates the provisioning and deployment of Apache Metron and all necessary prerequisites on a single, virtualized node in AWS EC2. 
 
+Warning: Amazon will charge for the use of their resources when running Apache Metron.  The amount will vary based on the number and size of hosts, along with current Amazon pricing structure.  Be sure to stop or terminate all of the hosts instantiated by Apache Metron when not in use to avoid unnecessary charges.
+
 Getting Started
 ---------------
+### Amazon Web Services
+
+If you already have an Amazon Web Services account that you have used to deploy EC2 hosts, then you should be able to skip the next few steps.
+
+1. Head over to [Amazon Web Services](http://aws.amazon.com/) and create an account.  As part of the account creation process you will need to provide a credit card to cover any charges that may apply.
+
+2. Create a set of user credentials through [Amazon's Identity and Access Management (IAM) ](https://console.aws.amazon.com/iam/) dashboard.  On the IAM dashboard menu click "Users" and then "Create New User". Provide a name and ensure that "Generate an access key for each user" remains checked.  Download the credentials and keep them for later use.
+
+3.  While still in [Amazon's Identity and Access Management (IAM) ](https://console.aws.amazon.com/iam/) dashboard, click on the user that was previously created.  Click the "Permissions" tab and then the "Attach Policy" button.  Attach the following policies to the user.
+
+  - AmazonEC2FullAccess
+  - AmazonVPCFullAccess
+
+4. Apache Metron uses the [official, open source CentOS 6](https://aws.amazon.com/marketplace/pp/B00NQAYLWO) Amazon Machine Image (AMI).  If you have never used this AMI before then you will need to accept Amazon's terms and conditions.  Navigate to the [web page for this AMI](https://aws.amazon.com/marketplace/pp/B00NQAYLWO) and click the "Continue" button.  Choose the "Manual Launch" tab then click the "Accept Software Terms" button.
+
+Having successfully created your Amazon Web Services account, hopefully you will find that the most difficult tasks are behind us.  
 
 ### Prerequisites
 
