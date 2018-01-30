@@ -898,7 +898,7 @@ Returns: A Map associated with the indicator and enrichment type.  Empty otherwi
 [Stellar]>>> non_us := whois_info.home_country != 'US'
 [Stellar]>>> is_local := IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')
 [Stellar]>>> is_both := whois_info.home_country != 'US' && IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')
-[Stellar]>>> rules := [ { 'name' : 'is non-us', 'rule' : SHELL_GET_EXPRESSION('non_us'), 'score' : 10 } , { 'name' : 'is local', 'rule' : SHELL_GET_EXPRESSION('is_local '), 'score' : 20 } , { 'name' : 'both non-us and local', 'comment' : 'union of both rules.',  'rule' : SHELL_GET_EXPRESSION('is_both'), 'score' : 50 } ]  
+[Stellar]>>> rules := [ { 'name' : 'is non-us', 'rule' : SHELL_GET_EXPRESSION('non_us'), 'score' : 10 } , { 'name' : 'is local', 'rule' : SHELL_GET_EXPRESSION('is_local'), 'score' : 20 } , { 'name' : 'both non-us and local', 'comment' : 'union of both rules.',  'rule' : SHELL_GET_EXPRESSION('is_both'), 'score' : 50 } ]
 [Stellar]>>> # Now that we have our rules staged, we can add them to our config.
 [Stellar]>>> squid_enrichment_config_new := THREAT_TRIAGE_ADD( squid_enrichment_config_new, rules )
 [Stellar]>>> THREAT_TRIAGE_PRINT(squid_enrichment_config_new)
@@ -1020,7 +1020,7 @@ SION('is_both') ] )
 1. Add a few triage rules.
 
     ```
-    [Stellar]>>> THREAT_TRIAGE_ADD(t, {"name":"rule1", "rule":"value>10", 
+    [Stellar]>>> THREAT_TRIAGE_ADD(t, {"name":"rule1", "rule":"value>10", "score":10})
     ```
     ```
     [Stellar]>>> THREAT_TRIAGE_ADD(t, {"name":"rule2", "rule":"value>20", "score":20})
