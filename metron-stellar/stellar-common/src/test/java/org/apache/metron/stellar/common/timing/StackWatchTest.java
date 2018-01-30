@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -22,9 +22,116 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import org.apache.commons.lang3.time.StopWatch;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class StackWatchTest {
+
+  @Test
+  public void testRootNameEmptyConstructor() {
+    StackWatch watch = new StackWatch();
+    Assert.assertEquals(watch.DEFAULT_ROOT_NAME, watch.getRootName());
+  }
+
+  @Test
+  public void testRootName() {
+    StackWatch watch = new StackWatch(null);
+    Assert.assertEquals(watch.DEFAULT_ROOT_NAME, watch.getRootName());
+  }
+
+  @Test
+  public void start() {
+    final StopWatch stopWatch = new StopWatch();
+    StackWatch watch = new StackWatch("testStackWatch");
+    watch.start();
+    stopWatch.start();
+    stopWatch.stop();
+    watch.stop();
+    watch.visit(new TimingRecordNodeVisitor() {
+      @Override
+      public void visitRecord(int level, TimingRecordNode node) {
+        Assert.assertTrue(node.getStopWatch().getNanoTime() > stopWatch.getNanoTime());
+      }
+    });
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testStartASecondTimeThrowsException() {
+    StackWatch watch = new StackWatch("testStackWatch");
+    watch.start();
+    watch.stop();
+    watch.start();
+  }
+
+  @Test
+  public void startTiming() {
+    final StopWatch stopWatch = new StopWatch();
+    StackWatch watch = new StackWatch("testStackWatch");
+    watch.start();
+    watch.startTiming("one");
+    stopWatch.start();
+    stopWatch.stop();
+    watch.stopTiming();
+    watch.stop();
+    watch.visit(new TimingRecordNodeVisitor() {
+      @Override
+      public void visitRecord(int level, TimingRecordNode node) {
+        if (level > 0) {
+          Assert.assertTrue(node.getStopWatch().getNanoTime() > stopWatch.getNanoTime());
+        }
+      }
+    });
+  }
+
+  @Test
+  public void stopTiming() throws Exception {
+    StackWatch watch = new StackWatch("testStackWatch");
+    watch.start();
+    watch.startTiming("one");
+    Thread.sleep(100);
+    watch.stopTiming();
+    watch.stop();
+    final ArrayList<Long> times = new ArrayList<>();
+    watch.visit(new TimingRecordNodeVisitor() {
+      @Override
+      public void visitRecord(int level, TimingRecordNode node) {
+        if (level > 0) {
+          times.add(node.getStopWatch().getNanoTime());
+        }
+      }
+    });
+
+    watch.visit(new TimingRecordNodeVisitor() {
+      @Override
+      public void visitRecord(int level, TimingRecordNode node) {
+        if (level > 0) {
+          times.add(node.getStopWatch().getNanoTime());
+        }
+      }
+    });
+
+    Assert.assertEquals(times.size(), 2);
+    Assert.assertEquals(times.get(0), times.get(1));
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void stopWithoutStopTimingThrowsException() {
+    StackWatch watch = new StackWatch("testStackWatch");
+    watch.start();
+    watch.startTiming("one");
+    watch.stop();
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void clearBeforeStopThrowsException() {
+    StackWatch watch = new StackWatch("testStackWatch");
+    watch.start();
+    watch.startTiming("one");
+    watch.stopTiming();
+    watch.clear();
+    watch.stop();
+  }
 
   @Test
   public void testStackWatch() throws Exception {
@@ -165,7 +272,7 @@ public class StackWatchTest {
   }
 
   @Test(expected = IllegalStateException.class)
-  public void testStartingSecondSetOfTimingsThrowsException() throws Exception{
+  public void testStartingSecondSetOfTimingsThrowsException() throws Exception {
     StackWatch watch = new StackWatch("testStackWatch");
     watch.startTiming("Test");
     functionOne(watch);
@@ -174,14 +281,14 @@ public class StackWatchTest {
     watch.startTiming("More Test");
   }
 
-  private void functionOne(StackWatch watch) throws Exception{
+  private void functionOne(StackWatch watch) throws Exception {
     watch.startTiming("One", "OneFunc");
     Thread.sleep(50);
     functionOneOne(watch);
     watch.stopTiming();
   }
 
-  private void functionOneCloseParent(StackWatch watch) throws Exception{
+  private void functionOneCloseParent(StackWatch watch) throws Exception {
     watch.startTiming("One", "OneFunc");
     Thread.sleep(50);
     watch.visit(new TimingRecordNodeVisitor() {
@@ -238,3 +345,4 @@ public class StackWatchTest {
     Thread.sleep(50);
   }
 }
+

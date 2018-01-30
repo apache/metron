@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -23,11 +23,11 @@ package org.apache.metron.stellar.common.timing;
  */
 public interface TimingRecordNodeVisitor {
 
-  /**
-   * Visit a {@code TimingRecordNode}.
-   *
-   * @param level the depth level of this node
-   * @param node the {@code TimingRecordNode}
-   */
-  void visitRecord(int level, TimingRecordNode node);
+    /**
+     * Visit a {@code TimingRecordNode}.
+     *
+     * @param level the depth level of this node
+     * @param node the {@code TimingRecordNode}
+     */
+    void visitRecord(int level, TimingRecordNode node);
 }

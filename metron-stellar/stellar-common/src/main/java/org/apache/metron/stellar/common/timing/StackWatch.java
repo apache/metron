@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -47,9 +47,8 @@ import org.apache.commons.lang3.StringUtils;
  * The {@code TimeRecordNodes} provide a tree structure in support of nesting.
  * A {@code Deque} is use to track the current time node.
  * </p>
- *
  * <pre>
- *   {@code
+ *   <code>
  *    private void outerFunction() {
  *      try {
  *        StackWatch watch = new StackWatch("OuterFunction");
@@ -57,7 +56,7 @@ import org.apache.commons.lang3.StringUtils;
  *        functionOne();
  *        watch.stop();
  *        watch.visit(new TimingRecordNodeVisitor() {
- *          {@literal @}Override
+ *         {@literal @}Override
  *          public void visitRecord(int level, TimingRecordNode node) {
  *            ...
  *          }
@@ -80,30 +79,27 @@ import org.apache.commons.lang3.StringUtils;
  *      watch.startTiming("OneTwo", "OneFunc");
  *      watch.stopTiming();
  *    }
- *   }
+ *   </code>
  * </pre>
- *
- *
  * <p>
- *   This class is not thread safe, and is meant to track timings across multiple calls on the same
- *   thread
+ * This class is not thread safe, and is meant to track timings across multiple calls on the same
+ * thread
  * </p>
- *
  */
 public class StackWatch {
 
   /**
-   * The default name for the root level timing if not provided
+   * The default name for the root level timing if not provided.
    */
   public static final String DEFAULT_ROOT_NAME = "ROOT_TIMING";
 
   /**
-   * The Deque used to track the timings
+   * The Deque used to track the timings.
    */
   private Deque<TimingRecordNode> deque = new LinkedList<>();
 
   /**
-   * The name of the root node
+   * The name of the root node.
    */
   private String rootName = DEFAULT_ROOT_NAME;
 
@@ -119,9 +115,10 @@ public class StackWatch {
    * Constructor
    * </p>
    * <p>
-   *   The top most timing will be created with the rootName on {@link StackWatch#start()} ()}
+   * The top most timing will be created with the rootName on {@link StackWatch#start()} ()}
    * </p>
    * If the passed name is empty, the DEFAULT_ROOT_NAME {@value DEFAULT_ROOT_NAME} will be used.
+   *
    * @param rootName the root name
    */
   public StackWatch(String rootName) {
@@ -132,19 +129,42 @@ public class StackWatch {
 
   /**
    * <p>
-   *   Starts the {@code StackWatch}.
+   * Constructor
    * </p>
    * <p>
-   *   A root timing will be created named for the rootName and started.
+   * The DEFAULT_ROOT_NAME {@value DEFAULT_ROOT_NAME} will be used.
+   * </p>
+   */
+  public StackWatch() {
+  }
+
+  /**
+   * <p>
+   * Returns the root name.
+   * </p>
+   *
+   * @return the root name.
+   */
+  public String getRootName() {
+    return this.rootName;
+  }
+
+  /**
+   * <p>
+   * Starts the {@code StackWatch}.
    * </p>
    * <p>
-   *   If not called before the first {@link  StackWatch#startTiming(String, String...)} call, then the {@code StackWatch} will
-   *   be started at that time.
+   * A root timing will be created named for the rootName and started.
    * </p>
+   * <p>
+   * If not called before the first {@link  StackWatch#startTiming(String, String...)} call, then the {@code StackWatch} will
+   * be started at that time.
+   * </p>
+   *
    * @throws IllegalStateException if the {@code StackWatch} has already been started.
    */
   public void start() {
-    if(rootNode != null) {
+    if (rootNode != null) {
       throw new IllegalStateException("StackWatch has already been started");
     }
     rootNode = new TimingRecordNode(null, rootName);
@@ -181,21 +201,20 @@ public class StackWatch {
    *    }
    *   }
    * </pre>
-   *
    * <p>
-   *   Starting a timing, when it's parent timing is not running results in an
-   *   {@code IllegalStateException}.
+   * Starting a timing, when it's parent timing is not running results in an
+   * {@code IllegalStateException}.
    * </p>
    * <p>
-   *   For example, this code, although contrived, would throw an {@code IllegalStateException}, because
-   *   functionOne is not running:
+   * For example, this code, although contrived, would throw an {@code IllegalStateException}, because
+   * functionOne is not running:
    * </p>
    * <pre>
-   *   {@code
+   *   <code>
    *    private void functionOne(StackWatch watch) throws Exception {
    *      watch.startTiming("One", "OneFunc");
    *      watch.visit(new TimingRecordNodeVisitor() {
-   *        {@literal @}Override
+   *       {@literal @}Override
    *        public void visitRecord(int level, TimingRecordNode node) {
    *          if(level == 0) {
    *            node.getStopWatch().stop();
@@ -210,15 +229,14 @@ public class StackWatch {
    *      functionOneTwo(watch);
    *      watch.stopTiming();
    *    }
-   *   }
+   *   </code>
    * </pre>
-   *
    * <p>
-   *   Starting a timing, when some number of timings have been started and all closed results in an
-   *   {@code IllegalStateException}.
+   * Starting a timing, when some number of timings have been started and all closed results in an
+   * {@code IllegalStateException}.
    * </p>
    * <p>
-   *   For example:
+   * For example:
    * </p>
    * <pre>
    *   {@code
@@ -232,25 +250,24 @@ public class StackWatch {
    *   }
    * </pre>
    *
-   *
    * @param name the name of this timing
    * @param tags the tags to associate with this timing
    * @throws IllegalStateException if the parent timing is not running or there is an attempt to start
-   * a new timing after creating a number of timings and closing them all.
+   *        a new timing after creating a number of timings and closing them all.
    */
   public void startTiming(String name, String... tags) {
     // If the deque is empty, then the root needs to be added and started, unless it already exists.
     // This means that all the timings where closed and a new timing was started.
     // If this happens, it is an IllegalStateException
-    TimingRecordNode parentNode = null;
+    TimingRecordNode parentNode;
     if (deque.isEmpty()) {
       // create, add, and start the root node
-      if(rootNode == null) {
+      if (rootNode == null) {
         start();
         parentNode = rootNode;
       } else {
-        throw new IllegalStateException("Attempting to start a second set of timings, StackWatch must" +
-            " be cleared first");
+        throw new IllegalStateException(
+            "Attempting to start a second set of timings, StackWatch must" + " be cleared first");
       }
     } else {
       // if the current node is not running, then this is an InvalidStateException, as the parent
@@ -273,16 +290,17 @@ public class StackWatch {
 
   /**
    * <p>
-   *  Stop the current timing.
+   * Stop the current timing.
    * </p>
    * <p>
-   *  In the case of nested timings, the current timing is stopped and removed from the {@code Deque}
-   *  causing the parent node to be the top of the stack.
+   * In the case of nested timings, the current timing is stopped and removed from the {@code Deque}
+   * causing the parent node to be the top of the stack.
    * </p>
    * <p>
-   *  If the timing being stopped has running child timings an {@code IllegalStateException} will
-   *  be thrown.
+   * If the timing being stopped has running child timings an {@code IllegalStateException} will
+   * be thrown.
    * </p>
+   *
    * @throws IllegalStateException if stopping a timing with running child timings
    */
   public void stopTiming() {
@@ -294,10 +312,11 @@ public class StackWatch {
 
   /**
    * Stops the {@code StackWatch}.
+   *
    * @throws IllegalStateException if there are running timings other than the root timing
    */
   public void stop() {
-    if(deque.size() > 1) {
+    if (deque.size() > 1) {
       throw new IllegalStateException("Stopping with running timings");
     }
     stopTiming();
@@ -319,6 +338,7 @@ public class StackWatch {
    * The {@code TimingRecordNodeVisitor} will be called back for each node in the tree, will be
    * passed the level of the node in the tree.  The root level is 0.
    * </p>
+   *
    * @param visitor callback interface.
    */
   public void visit(TimingRecordNodeVisitor visitor) {
