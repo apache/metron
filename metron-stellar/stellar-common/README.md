@@ -1422,6 +1422,49 @@ Please note that functions are loading lazily in the background and will be unav
 %functions
 ABS, APPEND_IF_MISSING, BIN, BLOOM_ADD, BLOOM_EXISTS, BLOOM_INIT, BLOOM_MERGE, CHOMP, CHOP, COUNT_MATCHES, DAY_OF_MONTH, DAY_OF_WEEK, DAY_OF_YEAR, DOMAIN_REMOVE_SUBDOMAINS, DOMAIN_REMOVE_TLD, DOMAIN_TO_TLD, ENDS_WITH, FILL_LEFT, FILL_RIGHT, FILTER, FORMAT, GET, GET_FIRST, GET_LAST, HLLP_ADD, HLLP_CARDINALITY, HLLP_INIT, HLLP_MERGE, IN_SUBNET, IS_DATE, IS_DOMAIN, IS_EMAIL, IS_EMPTY, IS_INTEGER, IS_IP, IS_URL, JOIN, LENGTH, LIST_ADD, MAAS_GET_ENDPOINT, MAAS_MODEL_APPLY, MAP, MAP_EXISTS, MAP_GET, MONTH, OUTLIER_MAD_ADD, OUTLIER_MAD_SCORE, OUTLIER_MAD_STATE_MERGE, PREPEND_IF_MISSING, PROFILE_FIXED, PROFILE_GET, PROFILE_WINDOW, PROTOCOL_TO_NAME, REDUCE, REGEXP_MATCH, SPLIT, STARTS_WITH, STATS_ADD, STATS_BIN, STATS_COUNT, STATS_GEOMETRIC_MEAN, STATS_INIT, STATS_KURTOSIS, STATS_MAX, STATS_MEAN, STATS_MERGE, STATS_MIN, STATS_PERCENTILE, STATS_POPULATION_VARIANCE, STATS_QUADRATIC_MEAN, STATS_SD, STATS_SKEWNESS, STATS_SUM, STATS_SUM_LOGS, STATS_SUM_SQUARES, STATS_VARIANCE, STRING_ENTROPY, SYSTEM_ENV_GET, SYSTEM_PROPERTY_GET, TO_DOUBLE, TO_EPOCH_TIMESTAMP, TO_FLOAT, TO_INTEGER, TO_LONG, TO_LOWER, TO_STRING, TO_UPPER, TRIM, URL_TO_HOST, URL_TO_PATH, URL_TO_PORT, URL_TO_PROTOCOL, WEEK_OF_MONTH, WEEK_OF_YEAR, YEAR 
 ```
+## Stellar Shell Stand Alone
+
+The Stellar Shell is also packaged as a stand alone application.  It can be unpacked on any supported
+operating system. 
+
+> Only the base Stellar functions are available as packaged.  Other functions, such as those in metron-profiler and metron-management are not available.
+
+
+```bash
+metron-stellar/stellar-common/target/stellar-common-0.4.3-stand-alone.tar.gz
+```
+
+When unpacked, the following structure will be created:
+
+```bash
+.
+├── bin
+│   └── stellar
+└── lib
+    └── stellar-common-0.4.3-uber.jar
+```
+
+To run the Stellar Shell run the following from the directory you unpacked to:
+
+```bash
+bin/stellar
+```
+
+```bash
+-> % bin/stellar
+Stellar, Go!
+Please note that functions are loading lazily in the background and will be unavailable until loaded fully.
+[Stellar]>>> Functions loaded, you may refer to functions now...
+
+[Stellar]>>> %functions
+ABS, APPEND_IF_MISSING, BLOOM_ADD, BLOOM_EXISTS, BLOOM_INIT, BLOOM_MERGE, CEILING, CHOMP, CHOP, COS, COUNT_MATCHES, DAY_OF_MONTH, DAY_OF_WEEK, DAY_OF_YEAR, DECODE, DOMAIN_REMOVE_SUBDOMAINS, DOMAIN_REMOVE_TLD, DOMAIN_TO_TLD, ENCODE, ENDS_WITH, EXP, FILL_LEFT, FILL_RIGHT, FILTER, FLOOR, FORMAT, GET, GET_FIRST, GET_LAST, GET_SUPPORTED_ENCODINGS, IN_SUBNET, IS_EMPTY, IS_ENCODING, JOIN, LENGTH, LIST_ADD, LN, LOG10, LOG2, MAP, MAP_EXISTS, MAP_GET, MONTH, PREPEND_IF_MISSING, REDUCE, REGEXP_GROUP_VAL, REGEXP_MATCH, ROUND, SIN, SPLIT, SQRT, STARTS_WITH, STRING_ENTROPY, SYSTEM_ENV_GET, SYSTEM_PROPERTY_GET, TAN, TO_DOUBLE, TO_EPOCH_TIMESTAMP, TO_FLOAT, TO_INTEGER, TO_LONG, TO_LOWER, TO_STRING, TO_UPPER, TRIM, URL_TO_HOST, URL_TO_PATH, URL_TO_PORT, URL_TO_PROTOCOL, WEEK_OF_MONTH, WEEK_OF_YEAR, YEAR, ZIP, ZIP_LONGEST
+[Stellar]>>>
+```
+
+By default the shell will have the base Stellar Language commands available.  Any jars in the lib directory
+that contain Stellar functions will also be loaded, and their commands will be available to shell, as long
+as their dependencies are satisfied.
+
 
 ### Implementation
 
