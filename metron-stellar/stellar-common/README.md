@@ -1416,10 +1416,13 @@ ABS, APPEND_IF_MISSING, BIN, BLOOM_ADD, BLOOM_EXISTS, BLOOM_INIT, BLOOM_MERGE, C
 ## Stellar Shell Stand Alone
 
 The Stellar Shell is also packaged as a stand alone application.  It can be unpacked on any supported
-operating system.
+operating system. 
+
+> Only the base Stellar functions are available as packaged.  Other functions, such as those in metron-profiler and metron-management are not available.
+
 
 ```bash
-metron-stellar/stellar-common/target/stellar-common-0.4.2-stand-alone.tar.gz
+metron-stellar/stellar-common/target/stellar-common-0.4.3-stand-alone.tar.gz
 ```
 
 When unpacked, the following structure will be created:
@@ -1429,7 +1432,7 @@ When unpacked, the following structure will be created:
 ├── bin
 │   └── stellar
 └── lib
-    └── stellar-common-0.4.2-uber.jar
+    └── stellar-common-0.4.3-uber.jar
 ```
 
 To run the Stellar Shell run the following from the directory you unpacked to:
