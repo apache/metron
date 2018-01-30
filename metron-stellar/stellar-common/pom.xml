@@ -348,6 +348,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
                     <descriptor>src/main/assembly/assembly.xml</descriptor>
+                    <descriptor>src/main/assembly/stand-alone-assembly.xml</descriptor>
                 </configuration>
                 <executions>
                     <execution>
