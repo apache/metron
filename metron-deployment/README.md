@@ -117,7 +117,7 @@ How do I deploy Metron within AWS?
 ----------------------------------
 You can deploy Metron into Amazon Web Service(AWS) in three ways:
 i) [As a single node using Vagrant](#aws-single-node-cluster-deployment-using-vagrant)
-ii) [As single node using an AMI from the AWS Marketplace](#aws-single-node-cluster-deployment-using-an-ami)
+ii) [As single node using an AMI from the AWS Community AMI Marketplace](#aws-single-node-cluster-deployment-using-an-ami)
 iii) [As a 10-node cluster](#aws-10-node-cluster-deployment)
 
 Below will provide more information on the three different deployment methods
@@ -155,7 +155,7 @@ To deploy Metron in EC2 as a single node using Vagrant, follow the instructions 
 
 
 ### AWS Single Node Cluster Deployment Using an AMI
-This will deploy Metron as a single node in Amazon Web Service's EC2 platform by using existing Amazon Machine Image (AMI) that can be found in the AWS Marketplace. 
+This will deploy Metron as a single node in Amazon Web Service's EC2 platform by using existing Amazon Machine Image (AMI) that can be found in the AWS Community AMI Marketplace. 
 
 #### What is this good for?
 
@@ -188,26 +188,24 @@ Running Metron within the resource constraints of a single VM is incredibly chal
 #### How?
 
 1) In the "EC2 Dashboard" click on "Launch Instance" in the "Canada (Central)" region
-2) Search for "GCR-Xetron Demo" or "ami-93cb4ff7" in the "AWS Marketplace" and click on "Select"
-3) Manually choose the following mandatory non-default options
+2) Search for "GCR-Xetron Demo" or "ami-93cb4ff7" in the "Community AMIs" and click on "Select"
+3) Manually choose the following mandatory/non-default option and then "Launch Instance"
 t2.t2xlarge
-4) Launch the instance
-6) Change security group setting to only allow traffic to what is necessary
-5) Associate the newly launched instance to an elastic IP(optional)
-6) After the image is launched you will need to change the /etc/hosts file. 
+5) Change security group setting to only allow traffic to what is necessary. By default a new security group might block all inbound traffic except SSH. Inbound and outbound ports 8080, 5000, 4200 ext.. will need to be allowed for your web client.
+6) (optional)Associate the newly launched instance to an elastic IP
+7) After the instance is launched you will need to change the hostname to node1. 
 
 SSH into the machine using your \*.pem key
 ```
 ssh -i "<file>.pem" centos@<elastic_ip>
 ```
 
-Update the /etc/hosts file to look like the following
+Update the /etc/sysconfig/network file to look like the following
 ```
-127.0.0.1 localhost node
+sudo sed -i "s/^HOSTNAME=.*/HOSTNAME=node1/g" /etc/sysconfig/network
 ```
-7) Restart the instance
-8) Go to the following to see the Metron dashboard 
-http://<elasticip>:5000
+8) Reboot the instance
+9) Go to the Ambari dashboard (http://<elasticip>:8080) and select "Start All" services in the left dropdown menu
 
 ### AWS Single Node Cluster Deployment
 This will deploy Metron and all of its dependencies on a single node in Amazon Web Service's EC2 platform. 
