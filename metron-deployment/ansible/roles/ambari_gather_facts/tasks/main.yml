@@ -32,55 +32,55 @@
     cluster_name: "{{ (cluster_name_response.content | from_json)['items'][0].Clusters.cluster_name }}"
   when: cluster_name is undefined
 
+- set_fact:
+    base_url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}"
+
 #
 # namenode_host
 #
 - name: "Ask Ambari: namenode_host"
-  uri:
-    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/HDFS/components/NAMENODE"
-    user: "{{ ambari_user }}"
-    password: "{{ ambari_password }}"
-    force_basic_auth: yes
-    return_content: yes
-  register: namenode_hosts_response
+  shell: >
+    {{ curl }} '{{ base_url }}/services/HDFS/components/NAMENODE' \
+      | python -c '{{ parse_json }}["host_components"][0]["HostRoles"]["host_name"]'
+  args:
+    warn: false
+  register: namenode_host_response
   when: namenode_host is undefined
 
 - set_fact:
-    namenode_host: "{{ (namenode_hosts_response.content | from_json).host_components[0].HostRoles.host_name }}"
+    namenode_host: "{{ namenode_host_response.stdout_lines[0] }}"
   when: namenode_host is undefined
 
 #
 # core_site_tag
 #
 - name: "Ask Ambari: core_site_tag"
-  uri:
-    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/hosts/{{ namenode_host }}/host_components/NAMENODE"
-    user: "{{ ambari_user }}"
-    password: "{{ ambari_password }}"
-    force_basic_auth: yes
-    return_content: yes
+  shell: >
+    {{ curl }} '{{ base_url }}/hosts/{{ namenode_host }}/host_components/NAMENODE' \
+      | python -c '{{ parse_json }}["HostRoles"]["actual_configs"]["core-site"]["default"]'
+  args:
+    warn: false
   register: core_site_tag_response
   when: core_site_tag is undefined
 
 - set_fact:
-    core_site_tag: "{{ (core_site_tag_response.content | from_json).HostRoles.actual_configs['core-site'].default }}"
+    core_site_tag: "{{ core_site_tag_response.stdout_lines[0] }}"
   when: core_site_tag is undefined
 
 #
 # hdfs_url
 #
 - name: "Ask Ambari: hdfs_url"
-  uri:
-    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/configurations?type=core-site&tag={{ core_site_tag }}"
-    user: "{{ ambari_user }}"
-    password: "{{ ambari_password }}"
-    force_basic_auth: yes
-    return_content: yes
-  register: core_site_response
+  shell: >
+    {{ curl }} '{{ base_url }}/configurations?type=core-site&tag={{ core_site_tag }}' \
+      | python -c '{{ parse_json }}["items"][0]["properties"]["fs.defaultFS"]'
+  args:
+    warn: false
+  register: hdfs_url_response
   when: hdfs_url is undefined
 
 - set_fact:
-    hdfs_url: "{{ (core_site_response.content | from_json)['items'][0].properties['fs.defaultFS'] }}"
+    hdfs_url: "{{ hdfs_url_response.stdout_lines[0] }}"
   when: hdfs_url is undefined
 
 #
@@ -88,7 +88,7 @@
 #
 - name: "Ask Ambari: kafka_broker_hosts"
   uri:
-    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/KAFKA/components/KAFKA_BROKER"
+    url: "{{ base_url }}/services/KAFKA/components/KAFKA_BROKER"
     user: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     force_basic_auth: yes
@@ -105,7 +105,7 @@
 #
 - name: "Ask Ambari: kafka_broker_tag"
   uri:
-    url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/hosts/{{ kafka_broker_hosts[0] }}/host_components/KAFKA_BROKER"
+    url: "{{ base_url }}/hosts/{{ kafka_broker_hosts[0] }}/host_components/KAFKA_BROKER"
     user: "{{ ambari_user }}"
     password: "{{ ambari_password }}"
     force_basic_auth: yes
@@ -122,7 +122,8 @@
 #
 - name: "Ask Ambari: kafka_broker_port"
   shell: >
-    curl -s -u {{ ambari_user }}:{{ ambari_password }} -X GET -H "X-Requested-By: ambari" "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/configurations?type=kafka-broker&tag={{ kafka_broker_tag }}" | python -c 'import sys, json; print json.load(sys.stdin)["items"][0]["properties"]["listeners"]'
+    {{ curl }} '{{ base_url }}/configurations?type=kafka-broker&tag={{ kafka_broker_tag }}' \
+      | python -c '{{ parse_json }}["items"][0]["properties"]["listeners"]'
   args:
     warn: false
   register: kafka_broker_port_response
@@ -191,6 +192,9 @@
     zookeeper_url: "{% for host in zookeeper_hosts %}{% if loop.index != 1 %},{% endif %}{{ host }}:{{ zookeeper_port }}{% endfor %}"
   when: zookeeper_url is undefined
 
+#
+# metron_hosts
+#
 - name: "Ask Ambari: metron_hosts"
   uri:
     url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/METRON/components/METRON_INDEXING"
@@ -205,6 +209,9 @@
     metron_hosts: "{{ (metron_hosts_response.content | from_json).host_components | map(attribute='HostRoles.host_name') | list }}"
   when: metron_hosts is undefined
 
+#
+# kibana hosts
+#
 - name: "Ask Ambari: kibana_hosts"
   uri:
     url: "http://{{ groups.ambari_master[0] }}:{{ ambari_port }}/api/v1/clusters/{{ cluster_name }}/services/KIBANA/components/KIBANA_MASTER"
@@ -225,10 +232,14 @@
 #
 - name: debug
   debug:
-    msg: "zookeeper_port = {{ zookeeper_port }},
+    msg: "cluster_name = {{ cluster_name }},
+          namenode_host = {{ namenode_host }},
+          hdfs_url = {{ hdfs_url }},
+          zookeeper_port = {{ zookeeper_port }},
           zookeeper_hosts = {{ zookeeper_hosts }},
           zookeeper_url = {{ zookeeper_url }},
           kafka_broker_port = {{ kafka_broker_port }},
           kafka_broker_hosts = {{ kafka_broker_hosts }},
           kafka_broker_url = {{ kafka_broker_url }},
-          metron_hosts = {{ metron_hosts }}"
+          metron_hosts = {{ metron_hosts }},
+          kibana_hosts = {{ kibana_hosts }}"
