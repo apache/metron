@@ -115,10 +115,10 @@ To build the DEB packages, follow the instructions at [packaging/docker/deb-dock
 
 How do I deploy Metron within AWS?
 ----------------------------------
-You can deploy Metron into Amazon Web Service in three ways:
-i) As a single node using Vagrant
-ii) As single node using an AMI from the AWS Marketplace
-iii) As a 10-node cluster in AWS EC2
+You can deploy Metron into Amazon Web Service(AWS) in three ways:
+i) [As a single node using Vagrant](#aws-single-node-cluster-deployment-using-vagrant)
+ii) [As single node using an AMI from the AWS Marketplace](#aws-single-node-cluster-deployment-using-an-ami)
+iii) [As a 10-node cluster](#aws-10-node-cluster-deployment)
 
 Below will provide more information on the three different deployment methods
 
@@ -151,7 +151,7 @@ Running Metron within the resource constraints of a single VM is incredibly chal
 
 #### How?
 
-To deploy Metron in a EC2 as a single node using Vagrant, follow the instructions at [development/aws-centos6](development/aws-centos6).
+To deploy Metron in EC2 as a single node using Vagrant, follow the instructions at [development/aws-centos6](development/aws-centos6).
 
 
 ### AWS Single Node Cluster Deployment Using an AMI
@@ -187,11 +187,12 @@ Running Metron within the resource constraints of a single VM is incredibly chal
 
 #### How?
 
-1) In the EC2 Dashboard click on "Launch an instance" in the "Canada (Central)" region
+1) In the "EC2 Dashboard" click on "Launch Instance" in the "Canada (Central)" region
 2) Search for "GCR-Xetron Demo" in the "AWS Marketplace" and click on "Select"
-3) Manually choose the following non-default options
+3) Manually choose the following mandatory non-default options
 t2.t2xlarge
 4) Launch the instance
+6) Change security group setting to only allow traffic to what is necessary
 5) Associate the newly launched instance to an elastic IP(optional)
 6) After the image is launched you will need to change the /etc/hosts file. 
 
@@ -205,7 +206,8 @@ Update the /etc/hosts file to look like the following
 127.0.0.1 localhost node
 ```
 7) Restart the instance
-
+8) Go to the following to see the Metron dashboard 
+http://<elasticip>:5000
 
 ### AWS Single Node Cluster Deployment
 This will deploy Metron and all of its dependencies on a single node in Amazon Web Service's EC2 platform. 
