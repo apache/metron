@@ -44,9 +44,9 @@ fi
 cd $SOLR_VAR_DIR
 wget http://archive.apache.org/dist/lucene/solr/${SOLR_VERSION}/solr-${SOLR_VERSION}.tgz
 tar zxvf solr-${SOLR_VERSION}.tgz
-chown -R solr:solr solr-${SOLR_VERSION}
+chown -R $SOLR_USER:$SOLR_USER solr-${SOLR_VERSION}
 cd solr-${SOLR_VERSION}
-su solr -c "bin/solr -e cloud -noprompt"
+su $SOLR_USER -c "bin/solr -e cloud -noprompt"
 sleep 5
 bin/solr status
 bin/solr healthcheck -c gettingstarted
