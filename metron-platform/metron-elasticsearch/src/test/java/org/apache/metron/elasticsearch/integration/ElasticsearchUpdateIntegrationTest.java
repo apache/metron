@@ -28,25 +28,16 @@ import java.util.Map;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
-import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.indexing.dao.IndexDao;
-import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.UpdateIntegrationTest;
 import org.apache.metron.integration.InMemoryComponent;
 
 public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
-  private static final int MAX_RETRIES = 10;
-  private static final int SLEEP_MS = 500;
+
   private static final String SENSOR_NAME= "test";
-  private static final String TABLE_NAME = "modifications";
-  private static final String CF = "p";
   private static String indexDir = "target/elasticsearch_mutation";
   private static String dateFormat = "yyyy.MM.dd.HH";
   private static String index = SENSOR_NAME + "_index_" + new SimpleDateFormat(dateFormat).format(new Date());
-  private static MockHTable table;
-  private static IndexDao esDao;
-  private static IndexDao hbaseDao;
-  private static MultiIndexDao dao;
   private static ElasticSearchComponent es;
 
   @Override

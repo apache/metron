@@ -80,7 +80,7 @@ public class ElasticsearchDaoTest {
     when(response.getHits()).thenReturn(searchHits);
 
     // provides column metadata
-    ColumnMetadataDao columnMetadataDao = mock(ColumnMetadataDao.class);
+    ElasticsearchColumnMetadataDao columnMetadataDao = mock(ElasticsearchColumnMetadataDao.class);
     when(columnMetadataDao.getColumnMetadata(any())).thenReturn(metadata);
 
     // returns the search response
@@ -93,7 +93,10 @@ public class ElasticsearchDaoTest {
     AccessConfig config = mock(AccessConfig.class);
     when(config.getMaxSearchResults()).thenReturn(maxSearchResults);
 
-    dao = new ElasticsearchDao(client, columnMetadataDao, requestSubmitter, config);
+    ElasticsearchSearchDao elasticsearchSearchDao = new ElasticsearchSearchDao(client, config, columnMetadataDao, requestSubmitter);
+    ElasticsearchUpdateDao elasticsearchUpdateDao = new ElasticsearchUpdateDao(client, config, elasticsearchSearchDao);
+
+    dao = new ElasticsearchDao(client, config, elasticsearchSearchDao, elasticsearchUpdateDao, columnMetadataDao, requestSubmitter);
   }
 
   private void setup(RestStatus status, int maxSearchResults) throws Exception {

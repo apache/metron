@@ -708,11 +708,11 @@ public abstract class SearchIntegrationTest {
     Assert.assertEquals(1, facetCounts.size());
     Map<String, Long> snortFieldCounts = facetCounts.get("snort_field");
     Assert.assertEquals(5, snortFieldCounts.size());
-    Assert.assertEquals(new Long(1), snortFieldCounts.get("50"));
-    Assert.assertEquals(new Long(1), snortFieldCounts.get("40"));
-    Assert.assertEquals(new Long(1), snortFieldCounts.get("30"));
-    Assert.assertEquals(new Long(1), snortFieldCounts.get("20"));
-    Assert.assertEquals(new Long(1), snortFieldCounts.get("10"));
+    Assert.assertEquals(1L, snortFieldCounts.get("50").longValue());
+    Assert.assertEquals(1L, snortFieldCounts.get("40").longValue());
+    Assert.assertEquals(1L, snortFieldCounts.get("30").longValue());
+    Assert.assertEquals(1L, snortFieldCounts.get("20").longValue());
+    Assert.assertEquals(1L, snortFieldCounts.get("10").longValue());
     response.getFacetCounts();
   }
 

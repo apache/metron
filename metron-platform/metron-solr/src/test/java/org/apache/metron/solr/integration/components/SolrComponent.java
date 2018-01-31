@@ -169,7 +169,7 @@ public class SolrComponent implements InMemoryComponent {
     solr.setDefaultCollection(collection);
     Collection<SolrInputDocument> solrInputDocuments = docs.stream().map(doc -> {
       SolrInputDocument solrInputDocument = new SolrInputDocument();
-      doc.entrySet().forEach(entry -> solrInputDocument.addField(entry.getKey(), entry.getValue()));
+      doc.forEach(solrInputDocument::addField);
       return solrInputDocument;
     }).collect(Collectors.toList());
     solr.add(collection, solrInputDocuments);
