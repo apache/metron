@@ -36,11 +36,11 @@ if [ "$IS_GIT_REPO" == "true" ]; then
 
   # last commit
   echo "--"
-  git log -n 1
+  git --no-pager log -n 1
 
   # local changes since last commit
   echo "--"
-  git diff --stat
+  git --no-pager diff --stat
 fi
 
 # ansible
