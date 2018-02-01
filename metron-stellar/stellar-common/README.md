@@ -243,6 +243,11 @@ Where:
 | [ `SET_MERGE`](#set_merge)                                                                         |
 | [ `SET_REMOVE`](#set_remove)                                                                       |
 | [ `SIN`](#sin)                                                                                     |
+| [ `SHELL_EDIT`](#shell_edit)                                                                       |
+| [ `SHELL_GET_EXPRESSION`](#shell_get_expression)                                                   |
+| [ `SHELL_LIST_VARS`](#shell_list_vars)                                                             |
+| [ `SHELL_MAP2TABLE`](#shell_map2table)                                                             |
+| [ `SHELL_VARS2MAP`](#shell_vars2map)                                                               |
 | [ `SPLIT`](#split)                                                                                 |
 | [ `SQRT`](#sqrt)                                                                                   |
 | [ `STARTS_WITH`](#starts_with)                                                                     |
