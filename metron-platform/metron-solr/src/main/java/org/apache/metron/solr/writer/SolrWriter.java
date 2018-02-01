@@ -69,11 +69,20 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
   public BulkWriterResponse write(String sourceType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
     for(JSONObject message: messages) {
       SolrInputDocument document = new SolrInputDocument();
-      document.addField("id", getIdValue(message));
       document.addField("sensorType", sourceType);
       for(Object key: message.keySet()) {
         Object value = message.get(key);
-        document.addField(getFieldName(key, value), value);
+        if(value instanceof Iterable) {
+          for(Object v : (Iterable)value) {
+            document.addField(getFieldName(key, v), v);
+          }
+        }
+        else {
+          document.addField(getFieldName(key, value), value);
+        }
+      }
+      if(!document.containsKey("id")) {
+        document.addField("id", getIdValue(message));
       }
       UpdateResponse response = solr.add(document);
     }
@@ -97,7 +106,7 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
     return collection != null ? collection : DEFAULT_COLLECTION;
   }
 
-  private int getIdValue(JSONObject message) {
+  protected Object getIdValue(JSONObject message) {
     return message.toJSONString().hashCode();
   }
 

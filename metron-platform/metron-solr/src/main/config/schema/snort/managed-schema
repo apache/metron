@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<schema name="snort_doc" version="1.6">
+  <field name="_version_" type="plong" indexed="false" stored="false"/>
+  <field name="_root_" type="string" indexed="true" stored="false" docValues="false" />
+  <field name="timestamp" type="timestamp" indexed="true" stored="true" />
+  <field name="source.type" type="string" indexed="true" stored="true" />
+  <field name="ip_dst_addr" type="ip" indexed="true" stored="true" />
+  <field name="ip_dst_port" type="pint" indexed="true" stored="true" />
+  <field name="ip_src_addr" type="ip" indexed="true" stored="true" />
+  <field name="ip_src_port" type="pint" indexed="true" stored="true" />
+  <field name="dgmlen" type="pint" indexed="true" stored="true" />
+  <field name="ethdst" type="string" indexed="true" stored="true" />
+  <field name="ethlen" type="string" indexed="true" stored="true" />
+  <field name="ethsrc" type="string" indexed="true" stored="true" />
+  <field name="id" type="pint" indexed="true" stored="true" />
+  <field name="iplen" type="pint" indexed="true" stored="true" />
+  <field name="is_alert" type="boolean" indexed="true" stored="true" />
+  <field name="msg" type="string" indexed="true" stored="true" />
+  <field name="protocol" type="string" indexed="true" stored="true" />
+  <field name="sig_generator" type="string" indexed="true" stored="true" />
+  <field name="sig_id" type="pint" indexed="true" stored="true" />
+  <field name="sig_rev" type="string" indexed="true" stored="true" />
+  <field name="tcpack" type="string" indexed="true" stored="true" />
+  <field name="tcpflags" type="string" indexed="true" stored="true" />
+  <field name="tcpseq" type="string" indexed="true" stored="true" />
+  <field name="tcpwindow" type="string" indexed="true" stored="true" />
+  <field name="tos" type="pint" indexed="true" stored="true" />
+  <field name="ttl" type="pint" indexed="true" stored="true" />
+  <field name="guid" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+  <dynamicField name="*.location_point" type="location" multiValued="false" docValues="true"/>
+  <dynamicField name="*.country" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*.city" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*.locID" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*.dmaCode" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*.postalCode" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*.latitude" type="pfloat" multiValued="false" docValues="true"/>
+  <dynamicField name="*.longitude" type="pfloat" multiValued="false" docValues="true"/>
+  <dynamicField name="*.ts" type="timestamp" multiValued="false" docValues="true"/>
+  <dynamicField name="*score" type="pfloat" multiValued="false" docValues="true"/>
+  <dynamicField name="*.reason" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*.name" type="string" multiValued="false" docValues="true"/>
+  <dynamicField name="*" type="ignored" multiValued="false" docValues="true"/>
+  <uniqueKey>guid</uniqueKey>
+  <fieldType name="string" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="boolean" stored="true" indexed="true" multiValued="false" class="solr.BoolField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="pint" stored="true" indexed="true" multiValued="false" class="solr.IntPointField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="pfloat" stored="true" indexed="true" multiValued="false" class="solr.FloatPointField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="plong" stored="true" indexed="true" multiValued="false" class="solr.LongPointField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="pdouble" stored="true" indexed="true" multiValued="false" class="solr.DoublePointField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="location" stored="true" indexed="true" multiValued="false" class="solr.LatLonPointSpatialField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="ip" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="timestamp" stored="true" indexed="true" multiValued="false" class="solr.LongPointField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="ignored" stored="true" indexed="true" multiValued="true" class="solr.StrField" sortMissingLast="false" docValues="false"/>
+</schema>
