@@ -94,8 +94,7 @@ public class SolrUpdateDao implements UpdateDao {
 
   private SolrInputDocument toSolrInputDocument(Document document) {
     SolrInputDocument solrInputDocument = new SolrInputDocument();
-    document.getDocument().entrySet().forEach(entry ->
-        solrInputDocument.addField(entry.getKey(), entry.getValue()));
+    document.getDocument().forEach(solrInputDocument::addField);
     return solrInputDocument;
   }
 }

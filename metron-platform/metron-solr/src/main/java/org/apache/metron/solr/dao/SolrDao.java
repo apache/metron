@@ -41,7 +41,6 @@ import org.slf4j.LoggerFactory;
 public class SolrDao implements IndexDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final String ID_FIELD = "guid";
   public static final String ROOT_FIELD = "_root_";
   public static final String VERSION_FIELD = "_version_";
 

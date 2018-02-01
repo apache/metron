@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -101,7 +100,7 @@ public class SolrSearchDao implements SearchDao {
     SolrQuery query = new SolrQuery()
         .setStart(0)
         .setRows(0)
-        .setQuery("*:*");
+        .setQuery(groupRequest.getQuery());
     query.set("collection", "bro,snort");
     Optional<String> scoreField = groupRequest.getScoreField();
     if (scoreField.isPresent()) {
@@ -134,10 +133,7 @@ public class SolrSearchDao implements SearchDao {
   public Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException {
     Map<String, Collection<String>> collectionIdMap = new HashMap<>();
     for (GetRequest getRequest: getRequests) {
-      Collection<String> ids = collectionIdMap.get(getRequest.getSensorType());
-      if (ids == null) {
-        ids = new HashSet<>();
-      }
+      Collection<String> ids = collectionIdMap.getOrDefault(getRequest.getSensorType(), new HashSet<>());
       ids.add(getRequest.getGuid());
       collectionIdMap.put(getRequest.getSensorType(), ids);
     }
@@ -155,7 +151,7 @@ public class SolrSearchDao implements SearchDao {
   }
 
   private SolrQuery buildSearchRequest(
-      SearchRequest searchRequest) throws InvalidSearchException {
+      SearchRequest searchRequest) {
     SolrQuery query = new SolrQuery()
         .setStart(searchRequest.getFrom())
         .setRows(searchRequest.getSize())
@@ -192,7 +188,7 @@ public class SolrSearchDao implements SearchDao {
 
   private SearchResponse buildSearchResponse(
       SearchRequest searchRequest,
-      QueryResponse solrResponse) throws InvalidSearchException {
+      QueryResponse solrResponse) {
 
     SearchResponse searchResponse = new SearchResponse();
     SolrDocumentList solrDocumentList = solrResponse.getResults();
@@ -215,9 +211,8 @@ public class SolrSearchDao implements SearchDao {
       try {
         response = JSONUtils.INSTANCE.toJSON(searchResponse, false);
       } catch (JsonProcessingException e) {
-        response = "???";
+        response = e.getMessage();
       }
-
       LOG.debug("Built search response; response={}", response);
     }
     return searchResponse;
@@ -225,7 +220,7 @@ public class SolrSearchDao implements SearchDao {
 
   private SearchResult getSearchResult(SolrDocument solrDocument, Optional<List<String>> fields) {
     SearchResult searchResult = new SearchResult();
-    searchResult.setId((String) solrDocument.getFieldValue(SolrDao.ID_FIELD));
+    searchResult.setId((String) solrDocument.getFieldValue(Constants.GUID));
     Map<String, Object> source;
     if (fields.isPresent()) {
       source = new HashMap<>();
@@ -256,11 +251,10 @@ public class SolrSearchDao implements SearchDao {
    * @param groupRequest The original group request.
    * @param response The search response.
    * @return A group response.
-   * @throws InvalidSearchException
    */
   private GroupResponse buildGroupResponse(
       GroupRequest groupRequest,
-      QueryResponse response) throws InvalidSearchException {
+      QueryResponse response) {
     String groupNames = groupRequest.getGroups().stream().map(Group::getField).collect(
         Collectors.joining(","));
     List<PivotField> pivotFields = response.getFacetPivot().get(groupNames);
@@ -274,7 +268,7 @@ public class SolrSearchDao implements SearchDao {
     List<Group> groups = groupRequest.getGroups();
     List<GroupResult> searchResultGroups = new ArrayList<>();
     final GroupOrder groupOrder = groups.get(index).getOrder();
-    Collections.sort(pivotFields, (o1, o2) -> {
+    pivotFields.sort((o1, o2) -> {
       String s1 = groupOrder.getGroupOrderType() == GroupOrderType.TERM ?
           o1.getValue().toString() : Integer.toString(o1.getCount());
       String s2 = groupOrder.getGroupOrderType() == GroupOrderType.TERM ?
@@ -309,7 +303,7 @@ public class SolrSearchDao implements SearchDao {
         .filter(name -> !name.equals(SolrDao.VERSION_FIELD))
         .forEach(name -> document.put(name, solrDocument.getFieldValue(name)));
     return new Document(document,
-        (String) solrDocument.getFieldValue(SolrDao.ID_FIELD),
+        (String) solrDocument.getFieldValue(Constants.GUID),
         (String) solrDocument.getFieldValue("source:type"), 0L);
   }
 }

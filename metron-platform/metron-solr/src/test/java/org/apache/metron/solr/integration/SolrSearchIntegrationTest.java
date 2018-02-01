@@ -68,6 +68,7 @@ public class SolrSearchIntegrationTest extends SearchIntegrationTest {
     return solrComponent;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   protected void loadTestData() throws Exception {
     CloudSolrClient solrClient = solrComponent.getSolrClient();
