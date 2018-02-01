@@ -18,6 +18,8 @@
 package org.apache.metron.solr.integration.components;
 
 import com.google.common.base.Function;
+import java.util.Collection;
+import java.util.stream.Collectors;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.solr.writer.MetronSolrClient;
@@ -25,6 +27,7 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.JettyConfig;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.cloud.MiniSolrCloudCluster;
 import org.apache.solr.common.SolrDocument;
@@ -36,6 +39,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.solr.common.SolrInputDocument;
 
 public class SolrComponent implements InMemoryComponent {
 
@@ -89,12 +93,12 @@ public class SolrComponent implements InMemoryComponent {
     try {
       File baseDir = Files.createTempDirectory("solrcomponent").toFile();
       baseDir.deleteOnExit();
-      miniSolrCloudCluster = new MiniSolrCloudCluster(1, baseDir, new File(solrXmlPath), JettyConfig.builder().setPort(port).build());
+      miniSolrCloudCluster = new MiniSolrCloudCluster(1, baseDir.toPath(), JettyConfig.builder().setPort(port).build());
       for(String name: collections.keySet()) {
         String configPath = collections.get(name);
-        miniSolrCloudCluster.uploadConfigDir(new File(configPath), name);
+        miniSolrCloudCluster.uploadConfigSet(new File(configPath).toPath(), name);
+        CollectionAdminRequest.createCollection(name, 1, 1).process(miniSolrCloudCluster.getSolrClient());
       }
-      miniSolrCloudCluster.createCollection("metron", 1, 1, "metron", new HashMap<String, String>());
       if (postStartCallback != null) postStartCallback.apply(this);
     } catch(Exception e) {
       throw new UnableToStartException(e.getMessage(), e);
@@ -157,5 +161,17 @@ public class SolrComponent implements InMemoryComponent {
       e.printStackTrace();
     }
     return docs;
+  }
+
+  public void addDocs(String collection, List<Map<String, Object>> docs)
+      throws IOException, SolrServerException {
+    CloudSolrClient solr = miniSolrCloudCluster.getSolrClient();
+    solr.setDefaultCollection(collection);
+    Collection<SolrInputDocument> solrInputDocuments = docs.stream().map(doc -> {
+      SolrInputDocument solrInputDocument = new SolrInputDocument();
+      doc.forEach(solrInputDocument::addField);
+      return solrInputDocument;
+    }).collect(Collectors.toList());
+    solr.add(collection, solrInputDocuments);
   }
 }
