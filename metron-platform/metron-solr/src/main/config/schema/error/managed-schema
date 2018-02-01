@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<schema name="error_doc" version="1.6">
+  <field name="_version_" type="plong" indexed="false" stored="false"/>
+  <field name="_root_" type="string" indexed="true" stored="false" docValues="false" />
+  <field name="exception" type="string" indexed="true" stored="true" />
+  <field name="hostname" type="string" indexed="true" stored="true" />
+  <field name="stack" type="string" indexed="true" stored="true" />
+  <field name="timestamp" type="timestamp" indexed="true" stored="true" />
+  <field name="message" type="string" indexed="true" stored="true" />
+  <field name="raw_message" type="string" indexed="true" stored="true" />
+  <field name="raw_message_bytes" type="bytes" indexed="true" stored="true" />
+  <field name="error_fields" type="string" indexed="true" stored="true" />
+  <field name="error_hash" type="string" indexed="true" stored="true" />
+  <field name="failed_sensor_type" type="string" indexed="true" stored="true" />
+  <field name="error_type" type="string" indexed="true" stored="true" />
+  <dynamicField name="*" type="ignored" multiValued="false" docValues="true"/>
+  <uniqueKey>guid</uniqueKey>
+  <fieldType name="string" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="boolean" stored="true" indexed="true" multiValued="false" class="solr.BoolField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="pint" stored="true" indexed="true" multiValued="false" class="solr.IntPointField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="pfloat" stored="true" indexed="true" multiValued="false" class="solr.FloatPointField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="plong" stored="true" indexed="true" multiValued="false" class="solr.LongPointField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="pdouble" stored="true" indexed="true" multiValued="false" class="solr.DoublePointField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="bytes" stored="true" indexed="true" multiValued="false" class="solr.BinaryField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="location" stored="true" indexed="true" multiValued="false" class="solr.LatLonPointSpatialField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="ip" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="timestamp" stored="true" indexed="true" multiValued="false" class="solr.LongPointField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="ignored" stored="true" indexed="true" multiValued="true" class="solr.StrField" sortMissingLast="false" docValues="false"/>
+</schema>
