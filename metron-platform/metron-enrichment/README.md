@@ -1,3 +1,20 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 # Enrichment
 
 ## Introduction
@@ -25,9 +42,27 @@ defined by JSON documents stored in zookeeper.
 There are two types of configurations at the moment, `global` and
 `sensor` specific.  
 
+
 ## Global Configuration 
 
-See the "[Global Configuration](../metron-common)" section.
+There are a few enrichments which have independent configurations, such
+as from the global config.
+
+Also, see the "[Global Configuration](../metron-common)" section for
+more discussion of the global config.
+
+### GeoIP
+Metron supports enrichment of IP information using
+[GeoLite2](https://dev.maxmind.com/geoip/geoip2/geolite2/). The
+location of the file is managed in the global config.
+
+#### `geo.hdfs.file`
+
+The location on HDFS of the GeoLite2 database file to use for GeoIP
+lookups.  This file will be localized on the storm supervisors running
+the topology and used from there. This is lazy, so if this property
+changes in a running topology, the file will be localized from HDFS upon first
+time the file is used via the geo enrichment. 
 
 ## Sensor Enrichment Configuration
 
@@ -54,7 +89,9 @@ The `config` map is intended to house enrichment specific configuration.
 For instance, for the `hbaseEnrichment`, the mappings between the
 enrichment types to the column families is specified.
 
-The `fieldMap`contents are of interest because they contain the routing and configuration information for the enrichments.  When we say 'routing', we mean how the messages get split up and sent to the enrichment adapter bolts.  The simplest, by far, is just providing a simple list as in
+The `fieldMap`contents are of interest because they contain the routing and configuration information for the enrichments.  
+When we say 'routing', we mean how the messages get split up and sent to the enrichment adapter bolts.  
+The simplest, by far, is just providing a simple list as in
 ```
     "fieldMap": {
       "geo": [
@@ -71,40 +108,94 @@ The `fieldMap`contents are of interest because they contain the routing and conf
       ]
       }
 ```
-Based on this sample config, both ip_src_addr and ip_dst_addr will go to the `geo`, `host`, and `hbaseEnrichment` adapter bolts. For the `geo`, `host` and `hbaseEnrichment`, this is sufficient.  However, more complex enrichments may contain their own configuration.  Currently, the `stellar` enrichment requires a more complex configuration, such as:
+Based on this sample config, both `ip_src_addr` and `ip_dst_addr` will go to the `geo`, `host`, and 
+`hbaseEnrichment` adapter bolts. 
+ 
+#### Stellar Enrichment Configuration
+For the `geo`, `host` and `hbaseEnrichment`, this is sufficient. However, more complex enrichments 
+may contain their own configuration.  Currently, the `stellar` enrichment is more adaptable and thus
+requires a more nuanced configuration.
+
+At its most basic, we want to take a message and apply a couple of enrichments, such as converting the
+`hostname` field to lowercase. We do this by specifying the transformation inside of the 
+`config` for the `stellar` fieldMap.  There are two syntaxes that are supported, specifying the transformations
+as a map with the key as the field and the value the stellar expression:
 ```
     "fieldMap": {
        ...
       "stellar" : {
         "config" : {
-          "numeric" : {
-                      "foo": "1 + 1"
-                      }
-          ,"ALL_CAPS" : "TO_UPPER(source.type)"
+          "hostname" : "TO_LOWER(hostname)"
         }
       }
     }
 ```
 
-Whereas the simpler enrichments just need a set of fields explicitly stated so they can be separated from the message and sent to the enrichment adapter bolt for enrichment and ultimately joined back in the join bolt, the stellar enrichment has its set of required fields implicitly stated through usage.  For instance, if your stellar statement references a field, it should be included and if not, then it should not be included.  We did not want to require users to make explicit the implicit.
-
-The other way in which the stellar enrichment is somewhat more complex is in how the statements are executed.  In the general purpose case for a list of fields, those fields are used to create a message to send to the enrichment adapter bolt and that bolt's worker will handle the fields one by one in serial for a given message.  For stellar enrichment, we wanted to have a more complex design so that users could specify the groups of stellar statements sent to the same worker in the same message (and thus executed sequentially).  Consider the following configuration:
+Another approach is to make the transformations as a list with the same `var := expr` syntax as is used
+in the Stellar REPL, such as:
 ```
     "fieldMap": {
+       ...
+      "stellar" : {
+        "config" : [
+          "hostname := TO_LOWER(hostname)"
+        ]
+      }
+    }
+```
+
+Sometimes arbitrary stellar enrichments may take enough time that you would prefer to split some of them
+into groups and execute the groups of stellar enrichments in parallel.  Take, for instance, if you wanted
+to do an HBase enrichment and a profiler call which were independent of one another.  This usecase is 
+supported by splitting the enrichments up as groups.
+
+Consider the following example:
+```
+    "fieldMap": {
+       ...
       "stellar" : {
         "config" : {
-          "numeric" : {
-                      "foo": "1 + 1"
-                      "bar" : TO_LOWER(source.type)"
-                      }
-         ,"text" : {
-                   "ALL_CAPS" : "TO_UPPER(source.type)"
-                   }
+          "malicious_domain_enrichment" : {
+            "is_bad_domain" : "ENRICHMENT_EXISTS('malicious_domains', ip_dst_addr, 'enrichments', 'cf')"
+          },
+          "login_profile" : [
+            "profile_window := PROFILE_WINDOW('from 6 months ago')", 
+            "global_login_profile := PROFILE_GET('distinct_login_attempts', 'global', profile_window)",
+            "stats := STATS_MERGE(global_login_profile)",
+            "auth_attempts_median := STATS_PERCENTILE(stats, 0.5)", 
+            "auth_attempts_sd := STATS_SD(stats)",
+            "profile_window := null", 
+            "global_login_profile := null", 
+            "stats := null"
+          ]
         }
       }
     }
 ```
-We have a group called `numeric` whose stellar statements will be executed sequentially.  In parallel to that, we have the group of stellar statements under the group `text` executing.  The intent here is to allow you to not force higher latency operations to be done sequentially. You can use any name for your groupings you like. Be aware that the configuration is a map and duplicate configuration keys' values are not combined, so the duplicate configuration value will be overwritten.
+
+Here we want to perform two enrichments that hit HBase and we would rather not run in sequence.  These
+enrichments are entirely independent of one another (i.e. neither relies on the output of the other).  In
+this case, we've created a group called `malicious_domain_enrichment` to inquire about whether the destination
+address exists in the HBase enrichment table in the `malicious_domains` enrichment type.  This is a simple
+enrichment, so we can express the enrichment group as a map with the new field `is_bad_domain` being a key
+and the stellar expression associated with that operation being the associated value.
+
+In contrast, the stellar enrichment group `login_profile` is interacting with the profiler, has multiple temporary
+expressions (i.e. `profile_window`, `global_login_profile`, and `stats`) that are useful only within the context
+of this group of stellar expressions.  In this case, we would need to ensure that we use the list construct
+when specifying the group and remember to set the temporary variables to `null` so they are not passed along.
+
+In general, things to note from this section are as follows:
+* The stellar enrichments for the `stellar` enrichment adapter are specified in the `config` for the `stellar` enrichment
+adapter in the `fieldMap`
+* Groups of independent (i.e. no expression in any group depend on the output of an expression from an other group) may be executed in parallel
+* If you have the need to use temporary variables, you may use the list construct.  Ensure that you assign the variables to `null` before the end of the group.
+* **Ensure that you do not assign a field to a stellar expression which returns an object which JSON cannot represent.**
+* Fields assigned to Maps as part of stellar enrichments have the maps unfolded, similar to the HBase Enrichment
+  * For example the stellar enrichment for field `foo` which assigns a map such as `foo := { 'grok' : 1, 'bar' : 'baz'}`
+  would yield the following fields:
+    * `foo.grok` == `1`
+    * `foo.bar` == `'baz'`
 
 ### The `threatIntel` Configuration
 
@@ -117,7 +208,8 @@ We have a group called `numeric` whose stellar statements will be executed seque
 
 The `config` map is intended to house threat intel specific configuration.
 For instance, for the `hbaseThreatIntel` threat intel adapter, the mappings between the
-enrichment types to the column families is specified.
+enrichment types to the column families is specified.  The `fieldMap` configuration is similar to the `enrichment`
+configuration in that the adapters available are the same.
 
 The `triageConfig` field is also a complex field and it bears some description:
 
@@ -150,6 +242,7 @@ The supported aggregation functions are:
 * `MAX` : The max of all of the associated values for matching queries
 * `MIN` : The min of all of the associated values for matching queries
 * `MEAN` : The mean of all of the associated values for matching queries
+* `SUM` : The sum of all the associated values for matching queries
 * `POSITIVE_MEAN` : The mean of the positive associated values for the matching queries.
 
 ### Example Configuration
@@ -210,6 +303,7 @@ An example configuration for the YAF sensor is as follows:
 ```
 
 ThreatIntel alert levels are emitted as a new field "threat.triage.level." So for the example above, an incoming message that trips the `ip_src_addr` rule will have a new field threat.triage.level=10.
+
 
 # Example Enrichment via Stellar
 
@@ -277,29 +371,3 @@ Now we need to start the topologies and send some data:
 * Ensure that the documents have new fields `foo`, `bar` and `ALL_CAPS` with values as described above.
 
 Note that we could have used any Stellar statements here, including calling out to HBase via `ENRICHMENT_GET` and `ENRICHMENT_EXISTS` or even calling a machine learning model via [Model as a Service](../../metron-analytics/metron-maas-service).
-
-# Notes on Performance Tuning
-
-Default installed Metron is untuned for production deployment.  There
-are a few knobs to tune to get the most out of your system.
-
-## Kafka Queue
-The `enrichments` kafka queue is a collection point from all of the
-parser topologies.  As such, make sure that the number of partitions in
-the kafka topic is sufficient to handle the throughput that you expect
-from your parser topologies.
-
-## Enrichment Topology
-The enrichment topology as started by the `$METRON_HOME/bin/start_enrichment_topology.sh` 
-script uses a default of one executor per bolt.  In a real production system, this should 
-be customized by modifying the flux file in
-`$METRON_HOME/flux/enrichment/remote.yaml`. 
-* Add a `parallelism` field to the bolts to give Storm a parallelism hint for the various components.  Give bolts which appear to be bottlenecks (e.g. stellar enrichment bolt, hbase enrichment and threat intel bolts) a larger hint.
-* Add a `parallelism` field to the kafka spout which matches the number of partitions for the enrichment kafka queue.
-* Adjust the number of workers for the topology by adjusting the 
-  `topology.workers` field for the topology. 
-
-Finally, if workers and executors are new to you or you don't know where
-to modify the flux file, the following might be of use to you:
-* [Understanding the Parallelism of a Storm Topology](http://www.michael-noll.com/blog/2012/10/16/understanding-the-parallelism-of-a-storm-topology/)
-* [Flux Docs](http://storm.apache.org/releases/current/flux.html)

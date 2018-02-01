@@ -19,10 +19,10 @@ package org.apache.metron.parsers;
 
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
-import junit.framework.Assert;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;

@@ -17,10 +17,10 @@
  */
 package org.apache.metron.rest.service;
 
+import org.apache.hadoop.fs.Path;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.GrokValidation;
 
-import java.io.File;
 import java.util.Map;
 
 public interface GrokService {
@@ -29,7 +29,9 @@ public interface GrokService {
 
     GrokValidation validateGrokStatement(GrokValidation grokValidation) throws RestException;
 
-    File saveTemporary(String statement, String name) throws RestException;
+    Path saveTemporary(String statement, String name) throws RestException;
+
+    void deleteTemporary() throws RestException;
 
     String getStatementFromClasspath(String path) throws RestException;
 

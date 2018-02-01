@@ -25,13 +25,13 @@ import org.apache.curator.test.TestingServer;
 import org.apache.log4j.Level;
 import org.apache.metron.common.cli.ConfigurationManager;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -39,17 +39,17 @@ import java.util.HashMap;
 import static org.apache.metron.TestConstants.PARSER_CONFIGS_PATH;
 import static org.apache.metron.TestConstants.SAMPLE_CONFIG_PATH;
 import static org.apache.metron.management.utils.FileUtils.slurp;
-import static org.apache.metron.common.utils.StellarProcessorUtils.run;
+import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 
 public class ConfigurationFunctionsTest {
-  private TestingServer testZkServer;
-  private CuratorFramework client;
-  private String zookeeperUrl;
+  private static TestingServer testZkServer;
+  private static CuratorFramework client;
+  private static String zookeeperUrl;
   private Context context = new Context.Builder()
             .with(Context.Capabilities.ZOOKEEPER_CLIENT, () -> client)
             .build();
-  @Before
-  public void setup() throws Exception {
+  @BeforeClass
+  public static void setup() throws Exception {
     testZkServer = new TestingServer(true);
     zookeeperUrl = testZkServer.getConnectString();
     client = ConfigurationsUtils.getClient(zookeeperUrl);
@@ -61,7 +61,7 @@ public class ConfigurationFunctionsTest {
 
   }
 
-  private void pushConfigs(String inputPath) throws Exception {
+  private static void pushConfigs(String inputPath) throws Exception {
     String[] args = new String[]{
             "-z", zookeeperUrl
             , "--mode", "PUSH"
@@ -78,7 +78,17 @@ public class ConfigurationFunctionsTest {
     {
       "sensorTopic" : "brop",
       "parserConfig" : { },
-      "fieldTransformations" : [ ]
+      "fieldTransformations" : [ ],
+      "readMetadata":false,
+      "mergeMetadata":false,
+      "parserParallelism" : 1,
+      "errorWriterParallelism" : 1,
+      "spoutNumTasks" : 1,
+      "stormConfig" : {},
+      "errorWriterNumTasks":1,
+      "spoutConfig":{},
+      "parserNumTasks":1,
+      "spoutParallelism":1
     }
    */
   @Multiline

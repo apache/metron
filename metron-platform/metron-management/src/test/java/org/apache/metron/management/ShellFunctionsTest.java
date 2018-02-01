@@ -19,29 +19,28 @@ package org.apache.metron.management;
 
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.stellar.shell.StellarExecutor;
+import org.apache.metron.stellar.common.shell.VariableResult;
+import org.apache.metron.stellar.dsl.Context;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-import static org.apache.metron.common.utils.StellarProcessorUtils.run;
+import static org.apache.metron.stellar.common.utils.StellarProcessorUtils.run;
 
 public class ShellFunctionsTest {
 
-  Map<String, StellarExecutor.VariableResult> variables = ImmutableMap.of(
-          "var1" , new StellarExecutor.VariableResult("TO_UPPER('casey')", "CASEY"),
-          "var2" , new StellarExecutor.VariableResult(null, "foo"),
-          "var3" , new StellarExecutor.VariableResult(null, null),
-          "var4" , new StellarExecutor.VariableResult("blah", null)
+  Map<String, VariableResult> variables = ImmutableMap.of(
+          "var1" , VariableResult.withExpression("CASEY", "TO_UPPER('casey')"),
+          "var2" , VariableResult.withValue("foo"),
+          "var3" , VariableResult.withValue(null),
+          "var4" , VariableResult.withExpression(null, "blah")
   );
 
   Context context = new Context.Builder()
-            .with(StellarExecutor.SHELL_VARIABLES , () -> variables)
+            .with(Context.Capabilities.SHELL_VARIABLES , () -> variables)
             .build();
 /**
 ╔══════════╤═══════╤════════════╗
@@ -55,10 +54,11 @@ public class ShellFunctionsTest {
 
   @Test
   public void testListVarsWithVars() {
-    Map<String, StellarExecutor.VariableResult> variables = ImmutableMap.of("foo", new StellarExecutor.VariableResult("1 + 1", 2.0));
+    Map<String, VariableResult> variables = ImmutableMap.of(
+            "foo", VariableResult.withExpression(2.0, "1 + 1"));
 
     Context context = new Context.Builder()
-            .with(StellarExecutor.SHELL_VARIABLES , () -> variables)
+            .with(Context.Capabilities.SHELL_VARIABLES , () -> variables)
             .build();
     Object out = run("SHELL_LIST_VARS()", new HashMap<>(), context);
     Assert.assertEquals(expectedListWithFoo, out);
@@ -77,7 +77,7 @@ public class ShellFunctionsTest {
   @Test
   public void testListVarsWithoutVars() {
     Context context = new Context.Builder()
-            .with(StellarExecutor.SHELL_VARIABLES , () -> new HashMap<>())
+            .with(Context.Capabilities.SHELL_VARIABLES, () -> new HashMap<>())
             .build();
     Object out = run("SHELL_LIST_VARS()", new HashMap<>(), context);
     Assert.assertEquals(expectedEmptyList, out);
@@ -113,7 +113,9 @@ public class ShellFunctionsTest {
 
   @Test
   public void testMap2TableNullInput() {
-    Map<String, Object> variables = new HashMap<>();
+    Map<String,Object> variables = new HashMap<String,Object>(){{
+      put("map_field",null);
+    }};
     Context context = Context.EMPTY_CONTEXT();
     Object out = run("SHELL_MAP2TABLE(map_field)", variables, context);
     Assert.assertEquals(expectedMap2TableNullInput, out);

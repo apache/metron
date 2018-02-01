@@ -17,32 +17,34 @@
  */
 package org.apache.metron.management;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.log4j.Logger;
-import org.apache.metron.common.configuration.IndexingConfigurations;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.dsl.StellarFunction;
-import org.apache.metron.common.utils.ConversionUtils;
-import org.apache.metron.common.utils.JSONUtils;
+import static org.apache.metron.common.configuration.ConfigurationType.INDEXING;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.apache.metron.common.configuration.ConfigurationType.INDEXING;
+import org.apache.metron.common.configuration.IndexingConfigurations;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.dsl.StellarFunction;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.metron.common.utils.JSONUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class IndexingConfigFunctions {
-  private static final Logger LOG = Logger.getLogger(IndexingConfigFunctions.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @Stellar(
            namespace = "INDEXING"
           ,name = "SET_BATCH"
-          ,description = "Set batch size"
+          ,description = "Set batch size and timeout"
           ,params = {"sensorConfig - Sensor config to add transformation to."
                     ,"writer - The writer to update (e.g. elasticsearch, solr or hdfs)"
                     ,"size - batch size (integer), defaults to 1, meaning batching disabled"
+                    ,"timeout - (optional) batch timeout in seconds (integer), defaults to 0, meaning system default"
                     }
           ,returns = "The String representation of the config in zookeeper"
           )
@@ -77,10 +79,15 @@ public class IndexingConfigFunctions {
         }
       }
       configObj.put(writer, IndexingConfigurations.setBatchSize((Map<String, Object>) configObj.get(writer), batchSize));
+      int batchTimeout = 0;
+      if(args.size() > 3) {
+        batchTimeout = ConversionUtils.convert(args.get(i++), Integer.class);
+      }
+      configObj.put(writer, IndexingConfigurations.setBatchTimeout((Map<String, Object>) configObj.get(writer), batchTimeout));
       try {
         return JSONUtils.INSTANCE.toJSON(configObj, true);
       } catch (JsonProcessingException e) {
-        LOG.error("Unable to convert object to JSON: " + configObj, e);
+        LOG.error("Unable to convert object to JSON: {}", configObj, e);
         return config;
       }
     }
@@ -138,7 +145,7 @@ public class IndexingConfigFunctions {
       try {
         return JSONUtils.INSTANCE.toJSON(configObj, true);
       } catch (JsonProcessingException e) {
-        LOG.error("Unable to convert object to JSON: " + configObj, e);
+        LOG.error("Unable to convert object to JSON: {}", configObj, e);
         return config;
       }
     }
@@ -195,7 +202,7 @@ public class IndexingConfigFunctions {
       try {
         return JSONUtils.INSTANCE.toJSON(configObj, true);
       } catch (JsonProcessingException e) {
-        LOG.error("Unable to convert object to JSON: " + configObj, e);
+        LOG.error("Unable to convert object to JSON: {}", configObj, e);
         return config;
       }
     }

@@ -17,49 +17,27 @@
  */
 package org.apache.metron.common.bolt;
 
-import org.apache.log4j.Logger;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.configuration.EnrichmentConfigurations;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.StellarFunctions;
-
-import java.io.IOException;
+import org.apache.metron.common.zookeeper.configurations.ConfigurationsUpdater;
+import org.apache.metron.common.zookeeper.configurations.EnrichmentUpdater;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class ConfiguredEnrichmentBolt extends ConfiguredBolt<EnrichmentConfigurations> {
 
-  private static final Logger LOG = Logger.getLogger(ConfiguredEnrichmentBolt.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
 
   public ConfiguredEnrichmentBolt(String zookeeperUrl) {
     super(zookeeperUrl);
   }
 
   @Override
-  protected EnrichmentConfigurations defaultConfigurations() {
-    return new EnrichmentConfigurations();
-  }
-
-  @Override
-  public void loadConfig() {
-    try {
-
-      ConfigurationsUtils.updateEnrichmentConfigsFromZookeeper(getConfigurations(), client);
-    } catch (Exception e) {
-      LOG.warn("Unable to load configs from zookeeper, but the cache should load lazily...");
-    }
-  }
-
-  @Override
-  public void updateConfig(String path, byte[] data) throws IOException {
-    if (data.length != 0) {
-      String name = path.substring(path.lastIndexOf("/") + 1);
-      if (path.startsWith(ConfigurationType.ENRICHMENT.getZookeeperRoot())) {
-        getConfigurations().updateSensorEnrichmentConfig(name, data);
-        reloadCallback(name, ConfigurationType.ENRICHMENT);
-      } else if (ConfigurationType.GLOBAL.getZookeeperRoot().equals(path)) {
-        getConfigurations().updateGlobalConfig(data);
-        reloadCallback(name, ConfigurationType.GLOBAL);
-      }
-    }
+  protected ConfigurationsUpdater<EnrichmentConfigurations> createUpdater() {
+    return new EnrichmentUpdater(this, this::getConfigurations);
   }
 }

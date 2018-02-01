@@ -18,9 +18,11 @@
 package org.apache.metron.rest.controller;
 
 import org.apache.metron.common.configuration.SensorParserConfig;
+import org.apache.metron.integration.utils.TestUtils;
 import org.apache.metron.rest.model.TopologyStatusCode;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.service.SensorParserConfigService;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,6 +83,9 @@ public class StormControllerIntegrationTest {
   @Test
   public void testSecurity() throws Exception {
     this.mockMvc.perform(get(stormUrl))
+            .andExpect(status().isUnauthorized());
+
+    this.mockMvc.perform(get(stormUrl + "/supervisors"))
             .andExpect(status().isUnauthorized());
 
     this.mockMvc.perform(get(stormUrl + "/broTest"))
@@ -166,6 +171,11 @@ public class StormControllerIntegrationTest {
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.GLOBAL_CONFIG_MISSING.name()));
 
     globalConfigService.save(globalConfig);
+    {
+      final Map<String, Object> expectedGlobalConfig = globalConfig;
+      //we must wait for the config to find its way into the config.
+      TestUtils.assertEventually(() -> Assert.assertEquals(expectedGlobalConfig, globalConfigService.get()));
+    }
 
     this.mockMvc.perform(get(stormUrl + "/parser/start/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
@@ -175,12 +185,27 @@ public class StormControllerIntegrationTest {
     SensorParserConfig sensorParserConfig = new SensorParserConfig();
     sensorParserConfig.setParserClassName("org.apache.metron.parsers.bro.BasicBroParser");
     sensorParserConfig.setSensorTopic("broTest");
-    sensorParserConfigService.save(sensorParserConfig);
+    sensorParserConfigService.save("broTest", sensorParserConfig);
+    {
+      final SensorParserConfig expectedSensorParserConfig = sensorParserConfig;
+      //we must wait for the config to find its way into the config.
+      TestUtils.assertEventually(() -> Assert.assertEquals(expectedSensorParserConfig, sensorParserConfigService.findOne("broTest")));
+    }
 
     this.mockMvc.perform(get(stormUrl + "/parser/start/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("SUCCESS"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STARTED.name()));
+
+    this.mockMvc.perform(get(stormUrl + "/supervisors").with(httpBasic(user,password)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+            .andExpect(jsonPath("$.supervisors[0]").exists())
+            .andExpect(jsonPath("$.supervisors[0].id").exists())
+            .andExpect(jsonPath("$.supervisors[0].host").exists())
+            .andExpect(jsonPath("$.supervisors[0].uptime").exists())
+            .andExpect(jsonPath("$.supervisors[0].slotsTotal").exists())
+            .andExpect(jsonPath("$.supervisors[0].slotsUsed").exists());
 
     this.mockMvc.perform(get(stormUrl + "/broTest").with(httpBasic(user,password)))
             .andExpect(status().isOk())

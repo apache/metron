@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.metron</groupId>
     <artifactId>Metron</artifactId>
-    <version>0.4.0</version>
+    <version>0.4.3</version>
     <packaging>pom</packaging>
     <name>Metron</name>
     <description>Metron Top Level Project</description>
@@ -29,34 +29,23 @@
         <url>https://www.apache.org</url>
     </organization>
     <modules>
-            <module>metron-analytics</module>
-            <module>metron-platform</module>
-            <module>metron-deployment</module>
-            <module>metron-docker</module>
-            <module>metron-interface</module>
-            <module>site-book</module>
+        <module>metron-analytics</module>
+        <module>metron-platform</module>
+        <module>metron-deployment</module>
+        <module>metron-contrib</module>
+        <module>metron-interface</module>
+        <module>site-book</module>
+        <module>metron-stellar</module>
     </modules>
 
     <repositories>
         <repository>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-                <checksumPolicy>warn</checksumPolicy>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-                <checksumPolicy>warn</checksumPolicy>
-            </snapshots>
-            <id>HDPPrivateReleases</id>
-            <name>HDP Private Releases</name>
-            <url>http://nexus-private.hortonworks.com/nexus/content/groups/public</url>
-            <layout>default</layout>
-        </repository>
-        <repository>
             <id>clojars.org</id>
             <url>http://clojars.org/repo</url>
+        </repository>
+        <repository>
+          <id>jcenter</id>
+          <url>https://jcenter.bintray.com/</url>
         </repository>
         <repository>
             <releases>
@@ -85,6 +74,8 @@
 
     <properties>
         <twitter>@ApacheMetron</twitter>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- base project versions -->
         <base_storm_version>1.0.1</base_storm_version>
         <base_flux_version>1.0.1</base_flux_version>
@@ -106,7 +97,7 @@
         <global_hadoop_version>${base_hadoop_version}</global_hadoop_version>
         <global_hbase_version>${base_hbase_version}</global_hbase_version>
         <global_flume_version>${base_flume_version}</global_flume_version>
-        <global_elasticsearch_version>2.3.3</global_elasticsearch_version>
+        <global_elasticsearch_version>5.6.2</global_elasticsearch_version>
         <global_json_simple_version>1.1.1</global_json_simple_version>
         <global_metrics_version>3.0.2</global_metrics_version>
         <global_junit_version>4.12</global_junit_version>
@@ -123,6 +114,12 @@
         <global_errorprone_core_version>2.0.14</global_errorprone_core_version>
         <global_jar_version>3.0.2</global_jar_version>
         <global_surefire_version>2.18</global_surefire_version>
+        <global_maven_version>[3.3.1,)</global_maven_version>
+        <global_kryo_version>3.0.3</global_kryo_version>
+        <global_kryo_serializers_version>0.38</global_kryo_serializers_version>
+        <global_reflections_version>0.9.10</global_reflections_version>
+        <global_checkstyle_version>8.0</global_checkstyle_version>
+        <global_log4j_core_version>2.1</global_log4j_core_version>
     </properties>
 
     <profiles>
@@ -131,7 +128,7 @@
             <properties>
                 <hdp_version>2.5.0.0</hdp_version>
                 <build_number>1245</build_number>
-                <global_storm_kafka_version>1.1.0.2.6.1.0-SNAPSHOT</global_storm_kafka_version>
+                <global_storm_kafka_version>1.1.0</global_storm_kafka_version>
                 <global_storm_version>${base_storm_version}.${hdp_version}-${build_number}</global_storm_version>
                 <global_kafka_version>${base_kafka_version}.${hdp_version}-${build_number}</global_kafka_version>
             </properties>
@@ -162,7 +159,7 @@
                     <version>${global_surefire_version}</version>
                     <configuration>
                         <!-- Skip the default running of this plug-in (or everything is run twice...see below) -->
-                        <argLine>@{argLine} -Xmx2048m</argLine>
+                        <argLine>-Xmx2048m</argLine>
                         <skip>true</skip>
                         <!-- Show 100% of the lines from the stack trace (doesn't work) -->
                         <trimStackTrace>false</trimStackTrace>
@@ -211,6 +208,18 @@
                     <configuration>
                         <tarLongFileMode>posix</tarLongFileMode>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>2.17</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.puppycrawl.tools</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>${global_checkstyle_version}</version>
+                        </dependency>
+                    </dependencies>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -291,16 +300,17 @@
                     </execution>
                 </executions>
                 <configuration>
-                  <excludes>
+                    <excludes>
                         <exclude>dependencies_with_url.csv</exclude>
                         <!-- In travis we need to pull down maven 3.3.9, so we should exclude it here as it is not our code. -->
                         <exclude>apache-maven-3.3.9/**</exclude>
-                        <exclude>**/*.md</exclude>
                         <exclude>**/VERSION</exclude>
                         <exclude>**/*.json</exclude>
+                        <exclude>**/*.json.j2</exclude>
                         <exclude>**/*.tokens</exclude>
                         <exclude>**/*.log</exclude>
                         <exclude>**/*.template</exclude>
+                        <exclude>**/*.mapping</exclude>
                         <exclude>**/.*</exclude>
                         <exclude>**/.*/**</exclude>
                         <exclude>**/*.seed</exclude>
@@ -314,9 +324,6 @@
                         <exclude>**/src/main/sample/data/**</exclude>
                         <exclude>**/dependency-reduced-pom.xml</exclude>
                         <exclude>**/target/**</exclude>
-                        <exclude>**/bro-plugin-kafka/build/**</exclude>
-                        <!-- pickle file - binary format -->
-                        <exclude>**/src/main/resources/common-services/KIBANA/4.5.1/package/scripts/dashboard/dashboard.p</exclude>
                         <!-- Files from Chef/bento -->
                         <exclude>**/packer-build/scripts/**</exclude>
                         <exclude>**/packer-build/bin/**</exclude>
@@ -325,7 +332,7 @@
                         <exclude>**/hbase/data/**</exclude>
                         <exclude>**/kafkazk/data/**</exclude>
                         <exclude>**/wait-for-it.sh</exclude>
-			                  <exclude>**/*.out</exclude>
+                        <exclude>**/*.out</exclude>
                         <!-- Directory containing dependencies downloaded by NPM -->
                         <exclude>node_modules/**</exclude>
                         <!-- Nodejs installed locally by the frontend-maven-plugin -->
@@ -335,12 +342,72 @@
                         <!-- ACE editor assets are covered in the metron-config NOTICE file -->
                         <exclude>**/src/assets/ace/**</exclude>
                         <exclude>dist/assets/ace/**</exclude>
-                        <!-- Generated svg containing Font Awesome fonts are covered in the metron-config README and NOTICE file -->
+                        <!-- Generated svg and bundle.css containing Font Awesome fonts are covered in the
+                             metron-interface/metron-config README and NOTICE files -->
                         <exclude>dist/*.svg</exclude>
-
+                        <exclude>dist/styles.a0b6b99c10d9a13dc67e.bundle.css</exclude>
+                        <exclude>dist/styles.f56deed131e58bd7ee04.bundle.css</exclude>
+                        <!-- 3rdpartylicenses.txt is an empty file carried along by imported libraries -->
+                        <exclude>dist/3rdpartylicenses.txt</exclude>
                         <exclude>e2e/*.js.map</exclude>
+                        <!-- Checkstyle is LGPL.  We derive ours from their base, but don't ship it, so it's fine use.
+                             Since it is derived, we shouldn't get an Apache header -->
+                        <exclude>checkstyle.xml</exclude>
+                        <!-- Alerts UI e2e test data -->
+                        <exclude>e2e/mock-data/alerts_ui_e2e_index.data</exclude>
+			<!-- retry files generated by Ansible during a failure -->
+			<exclude>**/*.retry</exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.4.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-versions</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>${global_maven_version}</version>
+                                </requireMavenVersion>
+                                <requireJavaVersion>
+                                    <version>${global_java_version}</version>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.17</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${global_checkstyle_version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <configLocation>checkstyle.xml</configLocation>
+                    <excludes>**/generated/**/*</excludes>
+                    <logViolationsToConsole>false</logViolationsToConsole>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>verify</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -408,6 +475,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>2.17</version>
+                <configuration>
+                    <configLocation>checkstyle.xml</configLocation>
+                    <excludes>**/generated/**/*</excludes>
+                </configuration>
                 <reportSets>
                     <reportSet>
                         <reports>

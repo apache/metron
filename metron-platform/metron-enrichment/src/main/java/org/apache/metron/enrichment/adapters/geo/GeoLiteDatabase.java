@@ -17,22 +17,18 @@
  */
 package org.apache.metron.enrichment.adapters.geo;
 
+import ch.hsr.geohash.WGS84Point;
 import com.maxmind.db.CHMCache;
 import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.exception.AddressNotFoundException;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CityResponse;
 import com.maxmind.geoip2.record.City;
 import com.maxmind.geoip2.record.Country;
 import com.maxmind.geoip2.record.Location;
 import com.maxmind.geoip2.record.Postal;
-import org.apache.commons.validator.routines.InetAddressValidator;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -40,12 +36,23 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.zip.GZIPInputStream;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.validator.routines.InetAddressValidator;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public enum GeoLiteDatabase {
   INSTANCE;
 
-  protected static final Logger LOG = LoggerFactory.getLogger(GeoLiteDatabase.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String GEO_HDFS_FILE = "geo.hdfs.file";
   public static final String GEO_HDFS_FILE_DEFAULT = "/apps/metron/geo/default/GeoLite2-City.mmdb.gz";
 
@@ -55,6 +62,42 @@ public enum GeoLiteDatabase {
   private static InetAddressValidator ipvalidator = new InetAddressValidator();
   private static volatile String hdfsLoc = GEO_HDFS_FILE_DEFAULT;
   private static DatabaseReader reader = null;
+
+  public enum GeoProps {
+    LOC_ID("locID"),
+    COUNTRY("country"),
+    CITY("city"),
+    POSTAL_CODE("postalCode"),
+    DMA_CODE("dmaCode"),
+    LATITUDE("latitude"),
+    LONGITUDE("longitude"),
+    LOCATION_POINT("location_point"),
+    ;
+    Function<Map<String, String>, String> getter;
+    String simpleName;
+
+    GeoProps(String simpleName) {
+      this(simpleName, m -> m.get(simpleName));
+    }
+
+    GeoProps(String simpleName,
+             Function<Map<String, String>, String> getter
+    ) {
+      this.simpleName = simpleName;
+      this.getter = getter;
+    }
+    public String getSimpleName() {
+      return simpleName;
+    }
+
+    public String get(Map<String, String> map) {
+      return getter.apply(map);
+    }
+
+    public void set(Map<String, String> map, String val) {
+      map.put(simpleName, val);
+    }
+  }
 
   public synchronized void updateIfNecessary(Map<String, Object> globalConfig) {
     // Reload database if necessary (file changes on HDFS)
@@ -127,7 +170,8 @@ public enum GeoLiteDatabase {
       return Optional.empty();
     }
     if (isIneligibleAddress(ip, addr)) {
-      return Optional.of(new HashMap());
+      LOG.debug("[Metron] IP ineligible for GeoLite2 lookup {}", ip);
+      return Optional.empty();
     }
 
     try {
@@ -141,35 +185,52 @@ public enum GeoLiteDatabase {
       Postal postal = cityResponse.getPostal();
       Location location = cityResponse.getLocation();
 
-      geoInfo.put("locID", convertNullToEmptyString(city.getGeoNameId()));
-      geoInfo.put("country", convertNullToEmptyString(country.getIsoCode()));
-      geoInfo.put("city", convertNullToEmptyString(city.getName()));
-      geoInfo.put("postalCode", convertNullToEmptyString(postal.getCode()));
-      geoInfo.put("dmaCode", convertNullToEmptyString(location.getMetroCode()));
+      GeoProps.LOC_ID.set(geoInfo, convertNullToEmptyString(city.getGeoNameId()));
+      GeoProps.COUNTRY.set(geoInfo, convertNullToEmptyString(country.getIsoCode()));
+      GeoProps.CITY.set(geoInfo, convertNullToEmptyString(city.getName()));
+      GeoProps.POSTAL_CODE.set(geoInfo, convertNullToEmptyString(postal.getCode()));
+      GeoProps.DMA_CODE.set(geoInfo, convertNullToEmptyString(location.getMetroCode()));
 
       Double latitudeRaw = location.getLatitude();
       String latitude = convertNullToEmptyString(latitudeRaw);
-      geoInfo.put("latitude", latitude);
+      GeoProps.LATITUDE.set(geoInfo, latitude);
 
       Double longitudeRaw = location.getLongitude();
       String longitude = convertNullToEmptyString(longitudeRaw);
-      geoInfo.put("longitude", longitude);
+      GeoProps.LONGITUDE.set(geoInfo, longitude);
 
       if (latitudeRaw == null || longitudeRaw == null) {
-        geoInfo.put("location_point", "");
+        GeoProps.LOCATION_POINT.set(geoInfo, "");
       } else {
-        geoInfo.put("location_point", latitude + "," + longitude);
+        GeoProps.LOCATION_POINT.set(geoInfo, latitude + "," + longitude);
       }
 
       return Optional.of(geoInfo);
-    } catch (UnknownHostException e) {
-      LOG.warn("[Metron] No result found for IP {}", ip);
+    } catch (UnknownHostException | AddressNotFoundException e) {
+      LOG.debug("[Metron] No result found for IP {}", ip);
     } catch (GeoIp2Exception | IOException e) {
       LOG.warn("[Metron] GeoLite2 DB encountered an error", e);
     } finally {
       readLock.unlock();
     }
     return Optional.empty();
+  }
+
+  public Optional<WGS84Point> toPoint(Map<String, String> geoInfo) {
+    String latitude = GeoProps.LATITUDE.get(geoInfo);
+    String longitude = GeoProps.LONGITUDE.get(geoInfo);
+    if(latitude == null || longitude == null) {
+      return Optional.empty();
+    }
+
+    try {
+      double latD = Double.parseDouble(latitude.toString());
+      double longD = Double.parseDouble(longitude.toString());
+      return Optional.of(new WGS84Point(latD, longD));
+    } catch (NumberFormatException nfe) {
+      LOG.warn(String.format("Invalid lat/long: %s/%s: %s", latitude, longitude, nfe.getMessage()), nfe);
+      return Optional.empty();
+    }
   }
 
   protected String convertNullToEmptyString(Object raw) {

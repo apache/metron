@@ -17,14 +17,13 @@
  */
 package org.apache.metron.enrichment.bolt;
 
-import junit.framework.Assert;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ThreatIntelSplitterBoltTest extends BaseEnrichmentBoltTest {
@@ -34,7 +33,7 @@ public class ThreatIntelSplitterBoltTest extends BaseEnrichmentBoltTest {
     String threatIntelType = "hbaseThreatIntel";
     ThreatIntelSplitterBolt threatIntelSplitterBolt = new ThreatIntelSplitterBolt("zookeeperUrl");
     threatIntelSplitterBolt.setCuratorFramework(client);
-    threatIntelSplitterBolt.setTreeCache(cache);
+    threatIntelSplitterBolt.setZKCache(cache);
     threatIntelSplitterBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, new FileInputStream(sampleSensorEnrichmentConfigPath));
     threatIntelSplitterBolt.prepare(new HashMap<>(), topologyContext, outputCollector);
     Map<String, Object> fieldMap = threatIntelSplitterBolt.getFieldMap(sensorType);

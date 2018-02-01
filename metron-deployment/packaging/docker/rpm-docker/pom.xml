@@ -21,11 +21,11 @@
     <artifactId>metron-rpm</artifactId>
     <packaging>pom</packaging>
     <name>metron-rpm</name>
-    <version>0.4.0</version>
+    <version>0.4.3</version>
     <parent>
         <groupId>org.apache.metron</groupId>
         <artifactId>metron-deployment</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.3</version>
         <relativePath>../../..</relativePath>
     </parent>
     <description>RPM Builder for Apache Metron</description>
@@ -85,6 +85,12 @@
                             <directory>SRPMS</directory>
                             <followSymlinks>false</followSymlinks>
                         </fileset>
+                        <fileset>
+                            <directory>.npm</directory>
+                            <includes>
+                                <include>**/*</include>
+                            </includes>
+                        </fileset>
                     </filesets>
                 </configuration>
             </plugin>
@@ -132,6 +138,12 @@
                                     </includes>
                                 </resource>
                                 <resource>
+                                    <directory>${metron_dir}/metron-platform/metron-management/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
                                     <directory>${metron_dir}/metron-platform/metron-parsers/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
@@ -163,6 +175,18 @@
                                 </resource>
                                 <resource>
                                     <directory>${metron_dir}/metron-interface/metron-config/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-analytics/metron-maas-service/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-interface/metron-alerts/target/</directory>
                                     <includes>
                                         <include>*.tar.gz</include>
                                     </includes>

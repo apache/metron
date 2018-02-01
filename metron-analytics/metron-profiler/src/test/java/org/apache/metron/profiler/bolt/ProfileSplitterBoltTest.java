@@ -20,11 +20,11 @@
 
 package org.apache.metron.profiler.bolt;
 
+import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
+import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
-import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
-import org.apache.metron.test.bolt.BaseBoltTest;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.refEq;
 import static org.mockito.Mockito.*;
 
@@ -141,11 +140,10 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
 
     ProfileSplitterBolt bolt = new ProfileSplitterBolt("zookeeperURL");
     bolt.setCuratorFramework(client);
-    bolt.setTreeCache(cache);
+    bolt.setZKCache(cache);
     bolt.getConfigurations().updateProfilerConfig(profilerConfig.getBytes("UTF-8"));
-    bolt.setExecutor(new DefaultStellarExecutor());
-
     bolt.prepare(new HashMap<>(), topologyContext, outputCollector);
+
     return bolt;
   }
 
@@ -229,15 +227,16 @@ public class ProfileSplitterBoltTest extends BaseBoltTest {
   }
 
   /**
-   * What happens when invalid Stella code is used for 'onlyif'?
+   * What happens when invalid Stella code is used for 'onlyif'?  The invalid profile should be ignored.
    */
-  @Test(expected = org.apache.metron.common.dsl.ParseException.class)
+  @Test
   public void testOnlyIfInvalid() throws Exception {
 
     // setup
     ProfileSplitterBolt bolt = createBolt(onlyIfInvalid);
-
-    // execute
     bolt.execute(tuple);
+
+    // a tuple should NOT be emitted for the downstream profile builder
+    verify(outputCollector, times(0)).emit(any(Values.class));
   }
 }

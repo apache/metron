@@ -17,11 +17,9 @@
  */
 package org.apache.metron.integration;
 
-import com.google.common.base.Function;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Properties;
 
@@ -33,7 +31,10 @@ public abstract class BaseIntegrationTest {
 
     protected static ZKServerComponent getZKServerComponent(final Properties topologyProperties) {
         return new ZKServerComponent()
-                .withPostStartCallback((zkComponent) -> topologyProperties.setProperty(ZKServerComponent.ZOOKEEPER_PROPERTY, zkComponent.getConnectionString())
+                .withPostStartCallback((zkComponent) -> {
+                  topologyProperties.setProperty(ZKServerComponent.ZOOKEEPER_PROPERTY, zkComponent.getConnectionString());
+                  topologyProperties.setProperty("kafka.zk", zkComponent.getConnectionString());
+                        }
                 );
     }
 }

@@ -18,7 +18,7 @@
 
 package org.apache.metron.common.field.transformation;
 
-import org.apache.metron.common.dsl.Context;
+import org.apache.metron.stellar.dsl.Context;
 
 import java.io.Serializable;
 import java.util.LinkedHashMap;
@@ -29,7 +29,7 @@ public interface FieldTransformation extends Serializable {
   Map<String, Object> map( Map<String, Object> input
                          , List<String> outputField
                          , LinkedHashMap<String, Object> fieldMappingConfig
-                         , Map<String, Object> sensorConfig
                          , Context context
+                         , Map<String, Object>... sensorConfig
                          );
 }

@@ -23,7 +23,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.FieldTransformer;
 import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.dsl.Context;
+import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -51,6 +51,53 @@ public class StellarTransformationTest {
 
   /** { "fieldTransformations" : [
         { "transformation" : "STELLAR"
+        ,"output" : [ "new_field", "new_field2", "old_field", "old_field2"]
+        ,"config" : {
+          "new_field" : "old_field"
+         ,"new_field2" : "old_field2"
+         ,"old_field" : "null"
+         ,"old_field2" : "null"
+                    }
+        }
+                                ]
+      }
+   */
+  @Multiline
+  public static String configRename;
+
+ @Test
+ public void testStellarRename() throws Exception {
+
+   SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(configRename));
+   {
+     JSONObject input = new JSONObject();
+     input.put("old_field", "val");
+     input.put("old_field2", "val2");
+     for (FieldTransformer handler : c.getFieldTransformations()) {
+       handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
+     }
+     Assert.assertEquals(2, input.size());
+     Assert.assertTrue(input.containsKey("new_field"));
+     Assert.assertEquals("val", input.get("new_field"));
+     Assert.assertEquals("val2", input.get("new_field2"));
+     Assert.assertTrue(!input.containsKey("old_field"));
+     Assert.assertTrue(!input.containsKey("old_field2"));
+   }
+   {
+     JSONObject input = new JSONObject();
+     input.put("old_field", "val");
+     for (FieldTransformer handler : c.getFieldTransformations()) {
+       handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
+     }
+
+     Assert.assertEquals(1, input.size());
+     Assert.assertTrue(input.containsKey("new_field"));
+     Assert.assertEquals("val", input.get("new_field"));
+   }
+ }
+
+  /** { "fieldTransformations" : [
+        { "transformation" : "STELLAR"
         ,"output" : [ "full_hostname", "domain_without_subdomains" ]
         ,"config" : {
           "full_hostname" : "URL_TO_HOST('http://1234567890123456789012345678901234567890123456789012345678901234567890/index.html')"
@@ -73,7 +120,7 @@ public class StellarTransformationTest {
     SensorParserConfig c = SensorParserConfig.fromBytes(Bytes.toBytes(configNumericDomain));
     FieldTransformer handler = Iterables.getFirst(c.getFieldTransformations(), null);
     JSONObject input = new JSONObject();
-    handler.transformAndUpdate(input, new HashMap<>(), Context.EMPTY_CONTEXT());
+    handler.transformAndUpdate(input,  Context.EMPTY_CONTEXT());
     Assert.assertTrue(input.containsKey("full_hostname"));
     Assert.assertEquals("1234567890123456789012345678901234567890123456789012345678901234567890", input.get("full_hostname"));
     Assert.assertFalse(input.containsKey("domain_without_subdomains"));
@@ -87,7 +134,7 @@ public class StellarTransformationTest {
     FieldTransformer handler = Iterables.getFirst(c.getFieldTransformations(), null);
     JSONObject input = new JSONObject();
     try {
-      handler.transformAndUpdate(input, new HashMap<>(), Context.EMPTY_CONTEXT());
+      handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
     }
     catch(IllegalStateException ex) {
       Assert.assertTrue(ex.getMessage().contains("URL_TO_HOST"));
@@ -138,7 +185,7 @@ public class StellarTransformationTest {
     FieldTransformer handler = Iterables.getFirst(c.getFieldTransformations(), null);
     JSONObject input = new JSONObject(new HashMap<String, Object>() {{
     }});
-    handler.transformAndUpdate(input, new HashMap<>(), Context.EMPTY_CONTEXT());
+    handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
     int expected = 3;
     Assert.assertEquals(expected, input.get("final_value"));
     Assert.assertFalse(input.containsKey("value1"));
@@ -171,7 +218,7 @@ public class StellarTransformationTest {
     JSONObject input = new JSONObject(new HashMap<String, Object>() {{
       put("timestamp", "2016-01-05 17:02:30");
     }});
-    handler.transformAndUpdate(input, new HashMap<>(), Context.EMPTY_CONTEXT());
+    handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
     long expected = 1452013350000L;
     Assert.assertEquals(expected, input.get("utc_timestamp"));
     Assert.assertTrue(input.containsKey("timestamp"));
@@ -190,7 +237,7 @@ public class StellarTransformationTest {
     JSONObject input = new JSONObject(new HashMap<String, Object>() {{
       put("timestamp", "2016-01-05 17:02:30");
     }});
-    handler.transformAndUpdate(input, new HashMap<>(), Context.EMPTY_CONTEXT());
+    handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
     long expected = 1452013350000L;
     Assert.assertEquals(expected, input.get("utc_timestamp"));
     Assert.assertTrue(input.containsKey("timestamp"));
@@ -209,7 +256,7 @@ public class StellarTransformationTest {
     //no input fields => no transformation
     JSONObject input = new JSONObject(new HashMap<String, Object>() {{
     }});
-    handler.transformAndUpdate(input, new HashMap<>(), Context.EMPTY_CONTEXT());
+    handler.transformAndUpdate(input,  Context.EMPTY_CONTEXT());
     Assert.assertFalse(input.containsKey("utc_timestamp"));
     Assert.assertTrue(input.isEmpty());
   }
@@ -260,7 +307,7 @@ public class StellarTransformationTest {
         //looking up the data center in portland, which doesn't exist in the map, so we default to UTC
         put("dc", "portland");
       }});
-      handler.transformAndUpdate(input, c.getParserConfig(), Context.EMPTY_CONTEXT());
+      handler.transformAndUpdate(input, Context.EMPTY_CONTEXT());
       long expected = 1452013350000L;
       Assert.assertEquals(expected, input.get("utc_timestamp"));
       Assert.assertEquals("caseystella.com", input.get("url_host"));
@@ -275,7 +322,7 @@ public class StellarTransformationTest {
         put("url", "https://caseystella.com/blog");
         put("dc", "london");
       }});
-      handler.transformAndUpdate(input, c.getParserConfig(), Context.EMPTY_CONTEXT());
+      handler.transformAndUpdate(input, Context.EMPTY_CONTEXT(), c.getParserConfig());
       long expected = 1452013350000L;
       Assert.assertEquals(expected, input.get("utc_timestamp"));
       Assert.assertEquals("caseystella.com", input.get("url_host"));
@@ -289,7 +336,7 @@ public class StellarTransformationTest {
         put("timestamp", "2016-01-05 17:02:30");
         put("url", "https://caseystella.com/blog");
       }});
-      handler.transformAndUpdate(input, c.getParserConfig(), Context.EMPTY_CONTEXT());
+      handler.transformAndUpdate(input, Context.EMPTY_CONTEXT(), c.getParserConfig());
       long expected = 1452013350000L;
       Assert.assertEquals(expected, input.get("utc_timestamp"));
       Assert.assertEquals("caseystella.com", input.get("url_host"));

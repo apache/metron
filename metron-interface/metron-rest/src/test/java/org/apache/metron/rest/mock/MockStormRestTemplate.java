@@ -18,9 +18,7 @@
 package org.apache.metron.rest.mock;
 
 import org.apache.metron.rest.MetronRestConstants;
-import org.apache.metron.rest.model.TopologyStatus;
-import org.apache.metron.rest.model.TopologyStatusCode;
-import org.apache.metron.rest.model.TopologySummary;
+import org.apache.metron.rest.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestClientException;
@@ -45,7 +43,7 @@ public class MockStormRestTemplate extends RestTemplate {
   @Override
   public Object getForObject(String url, Class responseType, Object... urlVariables) throws RestClientException {
     Object response = null;
-    if (url.equals("http://" + environment.getProperty(MetronRestConstants.STORM_UI_SPRING_PROPERTY) + MetronRestConstants.TOPOLOGY_SUMMARY_URL)) {
+    if (url.equals(getStormUiProperty() + MetronRestConstants.TOPOLOGY_SUMMARY_URL)) {
       TopologySummary topologySummary = new TopologySummary();
       List<TopologyStatus> topologyStatusList = new ArrayList<>();
       for(String name: mockStormCLIClientWrapper.getParserTopologyNames()) {
@@ -61,9 +59,16 @@ public class MockStormRestTemplate extends RestTemplate {
       }
       topologySummary.setTopologies(topologyStatusList.toArray(new TopologyStatus[topologyStatusList.size()]));
       response =  topologySummary;
-    } else if (url.startsWith("http://" + environment.getProperty(MetronRestConstants.STORM_UI_SPRING_PROPERTY) + MetronRestConstants.TOPOLOGY_URL + "/")){
+    } else if (url.startsWith(getStormUiProperty() + MetronRestConstants.TOPOLOGY_URL + "/")){
       String name = url.substring(url.lastIndexOf('/') + 1, url.length()).replaceFirst("-id", "");
       response = getTopologyStatus(name);
+    } else if (url.startsWith("http://" + environment.getProperty(MetronRestConstants.STORM_UI_SPRING_PROPERTY) + MetronRestConstants.SUPERVISOR_SUMMARY_URL)){
+      SupervisorSummary supervisorSummary = new SupervisorSummary();
+      List<SupervisorStatus> supervisorStatusList = new ArrayList<>();
+      SupervisorStatus status = new SupervisorStatus("sup1","localhost","1m 2s",1,1);
+      supervisorStatusList.add(status);
+      supervisorSummary.setSupervisors(supervisorStatusList.toArray(new SupervisorStatus[1]));
+      response = supervisorSummary;
     }
     return response;
   }
@@ -112,5 +117,14 @@ public class MockStormRestTemplate extends RestTemplate {
       result.put("status", "error");
     }
     return result;
+  }
+
+  // If we don't have a protocol, prepend one
+  protected String getStormUiProperty() {
+    String baseValue = environment.getProperty(MetronRestConstants.STORM_UI_SPRING_PROPERTY);
+    if(!(baseValue.contains("://"))) {
+      return "http://" + baseValue;
+    }
+    return baseValue;
   }
 }

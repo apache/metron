@@ -17,39 +17,39 @@
  */
 package org.apache.metron.parsers.integration.components;
 
-import com.google.common.collect.ImmutableMap;
-import org.apache.storm.Config;
-import org.apache.storm.LocalCluster;
-import org.apache.storm.topology.TopologyBuilder;
-import org.apache.metron.integration.InMemoryComponent;
-import org.apache.metron.integration.UnableToStartException;
-import org.apache.metron.parsers.topology.ParserTopologyBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileVisitOption;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-
 import static org.apache.metron.integration.components.FluxTopologyComponent.assassinateSlots;
 import static org.apache.metron.integration.components.FluxTopologyComponent.cleanupWorkerDir;
 
+import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import org.apache.metron.integration.InMemoryComponent;
+import org.apache.metron.integration.UnableToStartException;
+import org.apache.metron.integration.components.ZKServerComponent;
+import org.apache.metron.parsers.topology.ParserTopologyBuilder;
+import org.apache.storm.Config;
+import org.apache.storm.LocalCluster;
+import org.apache.storm.generated.KillOptions;
+import org.apache.storm.topology.TopologyBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ParserTopologyComponent implements InMemoryComponent {
 
-  protected static final Logger LOG = LoggerFactory.getLogger(ParserTopologyComponent.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private Properties topologyProperties;
   private String brokerUrl;
   private String sensorType;
   private LocalCluster stormCluster;
+  private String outputTopic;
 
   public static class Builder {
     Properties topologyProperties;
     String brokerUrl;
     String sensorType;
+    String outputTopic;
     public Builder withTopologyProperties(Properties topologyProperties) {
       this.topologyProperties = topologyProperties;
       return this;
@@ -63,37 +63,53 @@ public class ParserTopologyComponent implements InMemoryComponent {
       return this;
     }
 
+    public Builder withOutputTopic(String topic) {
+      this.outputTopic = topic;
+      return this;
+    }
+
     public ParserTopologyComponent build() {
-      return new ParserTopologyComponent(topologyProperties, brokerUrl, sensorType);
+      return new ParserTopologyComponent(topologyProperties, brokerUrl, sensorType, outputTopic);
     }
   }
 
-  public ParserTopologyComponent(Properties topologyProperties, String brokerUrl, String sensorType) {
+  public ParserTopologyComponent(Properties topologyProperties, String brokerUrl, String sensorType, String outputTopic) {
     this.topologyProperties = topologyProperties;
     this.brokerUrl = brokerUrl;
     this.sensorType = sensorType;
+    this.outputTopic = outputTopic;
   }
 
+  public void updateSensorType(String sensorType) {
+    this.sensorType = sensorType;
+  }
 
   @Override
   public void start() throws UnableToStartException {
     try {
-      TopologyBuilder topologyBuilder = ParserTopologyBuilder.build(topologyProperties.getProperty("kafka.zk")
+      final Map<String, Object> stormConf = new HashMap<>();
+      stormConf.put(Config.TOPOLOGY_DEBUG, true);
+      ParserTopologyBuilder.ParserTopology topologyBuilder = ParserTopologyBuilder.build(topologyProperties.getProperty(ZKServerComponent.ZOOKEEPER_PROPERTY)
                                                                    , Optional.ofNullable(brokerUrl)
                                                                    , sensorType
-                                                                   , 1
-                                                                   , 1
-                                                                   , 1
-                                                                   , 1
-                                                                   , 1
-                                                                   , 1
-                                                                   , null
-                                                                   , Optional.empty()
+                                                                   , (x,y) -> 1
+                                                                   , (x,y) -> 1
+                                                                   , (x,y) -> 1
+                                                                   , (x,y) -> 1
+                                                                   , (x,y) -> 1
+                                                                   , (x,y) -> 1
+                                                                   , (x,y) -> new HashMap<>()
+                                                                   , (x,y) -> null
+                                                                   , Optional.ofNullable(outputTopic)
+                                                                   , (x,y) -> {
+                                                                      Config c = new Config();
+                                                                      c.putAll(stormConf);
+                                                                      return c;
+                                                                      }
                                                                    );
-      Map<String, Object> stormConf = new HashMap<>();
-      stormConf.put(Config.TOPOLOGY_DEBUG, true);
+
       stormCluster = new LocalCluster();
-      stormCluster.submitTopology(sensorType, stormConf, topologyBuilder.createTopology());
+      stormCluster.submitTopology(sensorType, stormConf, topologyBuilder.getBuilder().createTopology());
     } catch (Exception e) {
       throw new UnableToStartException("Unable to start parser topology for sensorType: " + sensorType, e);
     }
@@ -104,6 +120,8 @@ public class ParserTopologyComponent implements InMemoryComponent {
     if (stormCluster != null) {
       try {
         try {
+          // Kill the topology directly instead of sitting through the wait period
+          killTopology();
           stormCluster.shutdown();
         } catch (IllegalStateException ise) {
           if (!(ise.getMessage().contains("It took over") && ise.getMessage().contains("to shut down slot"))) {
@@ -124,6 +142,25 @@ public class ParserTopologyComponent implements InMemoryComponent {
         cleanupWorkerDir();
       }
 
+    }
+  }
+
+  @Override
+  public void reset() {
+    if (stormCluster != null) {
+      killTopology();
+    }
+  }
+
+  protected void killTopology() {
+    KillOptions ko = new KillOptions();
+    ko.set_wait_secs(0);
+    stormCluster.killTopologyWithOpts(sensorType, ko);
+    try {
+      // Actually wait for it to die.
+      Thread.sleep(2000);
+    } catch (InterruptedException e) {
+      // Do nothing
     }
   }
 }

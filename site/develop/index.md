@@ -30,11 +30,11 @@ George Vetticaden       | gvetticaden    | PMC
 There are several development mailing lists for Metron
 
 * [dev@metron.apache.org](mailto:dev@metron.apache.org) - Development discussions
-  with archive [here](https://mail-archives.apache.org/mod_mbox/incubator-metron-dev/)
+  with archive [here](https://mail-archives.apache.org/mod_mbox/metron-dev/)
 * [issues@metron.apache.org](mailto:issues@metron.apache.org) - Bug tracking
-  with archive [here](https://mail-archives.apache.org/mod_mbox/incubator-metron-issues/)
+  with archive [here](https://mail-archives.apache.org/mod_mbox/metron-issues/)
 * [commits@metron.apache.org](mailto:commits@metron.apache.org) - Git tracking
-  with archive [here](https://mail-archives.apache.org/mod_mbox/incubator-metron-commits/)
+  with archive [here](https://mail-archives.apache.org/mod_mbox/metron-commits/)
 
 You can subscribe to the lists by sending email to
 *list*-subscribe@metron.apache.org and unsubscribe by sending email to
@@ -44,13 +44,13 @@ You can subscribe to the lists by sending email to
 
 Metron uses git for version control. Get the source code:
 
-`% git clone https://git-wip-us.apache.org/repos/asf/incubator-metron.git`
+`% git clone https://git-wip-us.apache.org/repos/asf/metron.git`
 
 The important branches are:
 
-* [master](https://github.com/apache/incubator-metron/tree/master) -
+* [master](https://github.com/apache/metron/tree/master) -
   The trunk for all developement
-* [asf-site](https://github.com/apache/incubator-metron/tree/asf-site) -
+* [asf-site](https://github.com/apache/metron/tree/asf-site) -
   The pages that are deployed to https://metron.apache.org/
 
 Please check our [coding guidelines](/develop/coding.html).

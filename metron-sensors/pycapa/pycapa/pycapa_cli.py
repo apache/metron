@@ -39,12 +39,18 @@ def make_parser():
                         default=False)
 
     parser.add_argument('-k', '--kafka-broker',
-                        help='kafka broker(s)',
+                        help='kafka broker(s) as host:port',
                         dest='kafka_brokers')
 
     parser.add_argument('-t', '--kafka-topic',
                         help='kafka topic',
                         dest='kafka_topic')
+
+    parser.add_argument('-o', '--kafka-offset',
+                        help='kafka offset to consume from; default=end',
+                        dest='kafka_offset',
+                        choices=['begin','end','stored'],
+                        default='end')
 
     parser.add_argument('-i', '--interface',
                         help='network interface to listen on',
@@ -64,7 +70,7 @@ def make_parser():
                         default=0)
 
     parser.add_argument('-ll', '--log-level',
-                        help='set the log level',
+                        help='set the log level; DEBUG, INFO, WARN',
                         dest='log_level',
                         default='INFO')
 
@@ -75,7 +81,7 @@ def make_parser():
                         action='append')
 
     parser.add_argument('-s','--snaplen',
-                        help="snapshot length",
+                        help="capture only the first X bytes of each packet; default=65535",
                         dest='snaplen',
                         type=int,
                         default=65535)
@@ -96,12 +102,20 @@ def keyval(input, delim="="):
 def valid_args(args):
     """ Validates the command-line arguments. """
 
-    if args.producer and args.kafka_brokers and args.kafka_topic and args.interface:
-        return True
-    elif args.consumer and args.kafka_brokers and args.kafka_topic:
-        return True
-    else:
+    if not args.producer and not args.consumer:
+        print "error: expected either --consumer or --producer \n"
         return False
+
+    elif args.producer and not (args.kafka_brokers and args.kafka_topic and args.interface):
+        print "error: missing required args: expected [--kafka-broker, --kafka-topic, --interface] \n"
+        return False
+
+    elif args.consumer and not (args.kafka_brokers and args.kafka_topic):
+        print "error: missing required args: expected [--kafka-broker, --kafka-topic] \n"
+        return False
+
+    else:
+        return True
 
 
 def clean_kafka_configs(args):
@@ -116,7 +130,7 @@ def clean_kafka_configs(args):
     # boostrap servers can be set as a "-X bootstrap.servers=KAFKA:9092" or "-k KAFKA:9092"
     bootstrap_key = "bootstrap.servers"
     if(bootstrap_key not in configs):
-        configs[bootstrap_key] = args.kafka_brokers;
+        configs[bootstrap_key] = args.kafka_brokers
 
     # if no 'group.id', generate a random one
     group_key = "group.id"
@@ -125,7 +139,9 @@ def clean_kafka_configs(args):
 
     args.kafka_configs = configs
 
+
 def main():
+
     parser = make_parser()
     args = parser.parse_args()
 

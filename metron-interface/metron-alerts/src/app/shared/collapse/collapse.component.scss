@@ -1,0 +1,113 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@import "../../../variables.scss";
+
+.font-size-12 {
+  font-size: 12px;
+  font-family: 'Roboto';
+
+  +.collapse .list-group {
+    padding-top: 0px;
+    padding-bottom: 0px;
+  }
+
+  +.collapse .list-group-item, +.collapsing .list-group-item {
+    padding: 2px 10px;
+  }
+}
+
+.font-size-15 {
+  font-size: 15px;
+  font-family: 'Roboto-Regular';
+}
+
+.border-bottom {
+  margin-bottom: 0px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid $tundora;
+  color: $silver-chalice-2;
+}
+
+a {
+  display: block;
+  margin: 5px 0px;
+  text-decoration: none;
+  color: $silver-chalice-3;
+
+  &::after {
+    font-family: "FontAwesome";
+    font-style: normal;
+    font-size: 16px;
+    content: '\f106';
+    float: right;
+    color: $dove-grey;
+    line-height: 1;
+  }
+}
+
+a.collapsed::after {
+  font-family: "FontAwesome";
+  font-style: normal;
+  font-size: 16px;
+  content: '\f107';
+  float: right;
+  color: $dove-grey;
+  line-height: 1;
+}
+
+.group-items-count {
+  color: $dusty-grey;
+  font-size: 13px;
+  padding-left: 10px;
+}
+
+.list-group-item {
+  border: none;
+  background: none;
+  color: $curious-blue;
+}
+
+.delete {
+  line-height: 0px;
+  opacity: 0;
+  transition: opacity .35s ease;
+
+  &::before {
+    font-family: "FontAwesome";
+    content: '\f014';
+    color: $dove-grey;
+  }
+}
+
+.count {
+  font-size: 12px;
+  color: $dusty-grey;
+}
+
+.list-group-item:hover {
+  border-radius: 2px;
+  background: $outer-space;
+
+  .delete {
+    opacity: 1;
+  }
+}
+
+.no-data-text {
+  font-size: 12px;
+}

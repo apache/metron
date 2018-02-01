@@ -23,30 +23,30 @@ package org.apache.metron.profiler.integration;
 import com.google.common.base.Joiner;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.math.util.MathUtils;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.SerDeUtils;
-import org.apache.metron.hbase.TableProvider;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.integration.BaseIntegrationTest;
 import org.apache.metron.integration.ComponentRunner;
+import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.apache.metron.statistics.OnlineStatisticsProvider;
-import org.apache.metron.test.mock.MockHTable;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -76,7 +76,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    * }
    */
   @Multiline
-  private String message1;
+  private static String message1;
 
   /**
    * {
@@ -87,7 +87,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    * }
    */
   @Multiline
-  private String message2;
+  private static String message2;
 
   /**
    * {
@@ -98,15 +98,16 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
    * }
    */
   @Multiline
-  private String message3;
+  private static String message3;
 
-  private ColumnBuilder columnBuilder;
-  private ZKServerComponent zkComponent;
-  private FluxTopologyComponent fluxComponent;
-  private KafkaComponent kafkaComponent;
-  private List<byte[]> input;
-  private ComponentRunner runner;
-  private MockHTable profilerTable;
+  private static ColumnBuilder columnBuilder;
+  private static ZKServerComponent zkComponent;
+  private static FluxTopologyComponent fluxComponent;
+  private static KafkaComponent kafkaComponent;
+  private static ConfigUploadComponent configUploadComponent;
+  private static List<byte[]> input;
+  private static ComponentRunner runner;
+  private static MockHTable profilerTable;
 
   private static final String tableName = "profiler";
   private static final String columnFamily = "P";
@@ -114,18 +115,6 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   private static final String inputTopic = Constants.INDEXING_TOPIC;
   private static final String outputTopic = "profiles";
 
-  /**
-   * A TableProvider that allows us to mock HBase.
-   */
-  public static class MockTableProvider implements TableProvider, Serializable {
-
-    MockHTable.Provider provider = new MockHTable.Provider();
-
-    @Override
-    public HTableInterface getTable(Configuration config, String tableName) throws IOException {
-      return provider.getTable(config, tableName);
-    }
-  }
 
   /**
    * Tests the first example contained within the README.
@@ -133,7 +122,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   @Test
   public void testExample1() throws Exception {
 
-    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-1");
+    update(TEST_RESOURCES + "/config/zookeeper/readme-example-1");
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
@@ -158,7 +147,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   @Test
   public void testExample2() throws Exception {
 
-    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-2");
+    update(TEST_RESOURCES + "/config/zookeeper/readme-example-2");
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
@@ -191,7 +180,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   @Test
   public void testExample3() throws Exception {
 
-    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-3");
+    update(TEST_RESOURCES + "/config/zookeeper/readme-example-3");
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
@@ -216,7 +205,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   @Test
   public void testExample4() throws Exception {
 
-    setup(TEST_RESOURCES + "/config/zookeeper/readme-example-4");
+    update(TEST_RESOURCES + "/config/zookeeper/readme-example-4");
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
@@ -239,7 +228,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   @Test
   public void testPercentiles() throws Exception {
 
-    setup(TEST_RESOURCES + "/config/zookeeper/percentiles");
+    update(TEST_RESOURCES + "/config/zookeeper/percentiles");
+
 
     // start the topology and write test messages to kafka
     fluxComponent.submitTopology();
@@ -277,8 +267,14 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     return results;
   }
 
-  public void setup(String pathToConfig) throws Exception {
+  @BeforeClass
+  public static void setupBeforeClass() throws UnableToStartException {
     columnBuilder = new ValueOnlyColumnBuilder(columnFamily);
+
+    List<String> inputNew = Stream.of(message1, message2, message3)
+        .map(m -> Collections.nCopies(5, m))
+        .flatMap(l -> l.stream())
+        .collect(Collectors.toList());
 
     // create input messages for the profiler to consume
     input = Stream.of(message1, message2, message3)
@@ -304,13 +300,14 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("profiler.hbase.batch", "10");
       setProperty("profiler.hbase.flush.interval.seconds", "1");
       setProperty("profiler.profile.ttl", "20");
-      setProperty("hbase.provider.impl", "" + MockTableProvider.class.getName());
+      setProperty("hbase.provider.impl", "" + MockHBaseTableProvider.class.getName());
       setProperty("storm.auto.credentials", "[]");
       setProperty("kafka.security.protocol", "PLAINTEXT");
+      setProperty("topology.auto-credentials", "[]");
     }};
 
     // create the mock table
-    profilerTable = (MockHTable) MockHTable.Provider.addToCache(tableName, columnFamily);
+    profilerTable = (MockHTable) MockHBaseTableProvider.addToCache(tableName, columnFamily);
 
     zkComponent = getZKServerComponent(topologyProperties);
 
@@ -320,10 +317,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
             new KafkaComponent.Topic(outputTopic, 1)));
 
     // upload profiler configuration to zookeeper
-    ConfigUploadComponent configUploadComponent = new ConfigUploadComponent()
-            .withTopologyProperties(topologyProperties)
-            .withGlobalConfiguration(pathToConfig)
-            .withProfilerConfiguration(pathToConfig);
+    configUploadComponent = new ConfigUploadComponent()
+            .withTopologyProperties(topologyProperties);
 
     // load flux definition for the profiler topology
     fluxComponent = new FluxTopologyComponent.Builder()
@@ -345,11 +340,32 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
     runner.start();
   }
 
-  @After
-  public void tearDown() throws Exception {
-    MockHTable.Provider.clear();
+  public void update(String path) throws Exception {
+    configUploadComponent.withGlobalConfiguration(path)
+        .withProfilerConfiguration(path);
+    configUploadComponent.update();
+  }
+
+  @AfterClass
+  public static void tearDownAfterClass() throws Exception {
+    MockHBaseTableProvider.clear();
     if (runner != null) {
       runner.stop();
+    }
+  }
+
+  @Before
+  public void setup() {
+    // create the mock table
+    profilerTable = (MockHTable) MockHBaseTableProvider.addToCache(tableName, columnFamily);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    MockHBaseTableProvider.clear();
+    profilerTable.clear();
+    if (runner != null) {
+      runner.reset();
     }
   }
 }

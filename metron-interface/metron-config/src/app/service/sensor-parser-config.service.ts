@@ -31,15 +31,16 @@ export class SensorParserConfigService {
   defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
   selectedSensorParserConfig: SensorParserConfig;
 
-  dataChangedSource = new Subject<SensorParserConfig[]>();
+  dataChangedSource = new Subject<string[]>();
   dataChanged$ = this.dataChangedSource.asObservable();
 
   constructor(private http: Http, @Inject(APP_CONFIG) private config: IAppConfig) {
 
   }
 
-  public post(sensorParserConfig: SensorParserConfig): Observable<SensorParserConfig> {
-    return this.http.post(this.url, JSON.stringify(sensorParserConfig), new RequestOptions({headers: new Headers(this.defaultHeaders)}))
+  public post(name: string, sensorParserConfig: SensorParserConfig): Observable<SensorParserConfig> {
+    return this.http.post(this.url + '/' + name, JSON.stringify(sensorParserConfig),
+        new RequestOptions({headers: new Headers(this.defaultHeaders)}))
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError);
   }
@@ -50,7 +51,7 @@ export class SensorParserConfigService {
       .catch(HttpUtil.handleError);
   }
 
-  public getAll(): Observable<SensorParserConfig[]> {
+  public getAll(): Observable<{}> {
     return this.http.get(this.url, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
       .map(HttpUtil.extractData)
       .catch(HttpUtil.handleError);
@@ -73,7 +74,7 @@ export class SensorParserConfigService {
       .catch(HttpUtil.handleError);
   }
 
-  public deleteSensorParserConfigs(sensors: SensorParserConfig[]): Observable<{success: Array<string>, failure: Array<string>}> {
+  public deleteSensorParserConfigs(sensorNames: string[]): Observable<{success: Array<string>, failure: Array<string>}> {
     let result: {success: Array<string>, failure: Array<string>} = {success: [], failure: []};
     let observable = Observable.create((observer => {
 
@@ -83,18 +84,17 @@ export class SensorParserConfigService {
           observer.complete();
         }
 
-        this.dataChangedSource.next(sensors);
+        this.dataChangedSource.next(sensorNames);
       };
-
-      for (let i = 0; i < sensors.length; i++) {
-        this.deleteSensorParserConfig(sensors[i].sensorTopic).subscribe(results => {
-          result.success.push(sensors[i].sensorTopic);
-          if (result.success.length + result.failure.length === sensors.length) {
+      for (let i = 0; i < sensorNames.length; i++) {
+        this.deleteSensorParserConfig(sensorNames[i]).subscribe(results => {
+          result.success.push(sensorNames[i]);
+          if (result.success.length + result.failure.length === sensorNames.length) {
             completed();
           }
         }, error => {
-          result.failure.push(sensors[i].sensorTopic);
-          if (result.success.length + result.failure.length === sensors.length) {
+          result.failure.push(sensorNames[i]);
+          if (result.success.length + result.failure.length === sensorNames.length) {
             completed();
           }
         });
@@ -103,14 +103,6 @@ export class SensorParserConfigService {
     }));
 
     return observable;
-  }
-
-  public setSeletedSensor(sensor: SensorParserConfig): void {
-    this.selectedSensorParserConfig = sensor;
-  }
-
-  public getSelectedSensor(): SensorParserConfig {
-    return this.selectedSensorParserConfig;
   }
 
 }

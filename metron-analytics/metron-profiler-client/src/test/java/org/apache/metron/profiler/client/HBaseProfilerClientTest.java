@@ -20,29 +20,25 @@
 
 package org.apache.metron.profiler.client;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.HBaseTestingUtility;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.profiler.ProfileMeasurement;
 import org.apache.metron.profiler.hbase.ColumnBuilder;
 import org.apache.metron.profiler.hbase.RowKeyBuilder;
 import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
-import org.apache.metron.profiler.stellar.DefaultStellarExecutor;
-import org.apache.metron.profiler.stellar.StellarExecutor;
+import org.apache.metron.stellar.common.DefaultStellarStatefulExecutor;
+import org.apache.metron.stellar.common.StellarStatefulExecutor;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the HBaseProfilerClient.
@@ -62,31 +58,15 @@ public class HBaseProfilerClientTest {
   private static final int periodsPerHour = 4;
 
   private HBaseProfilerClient client;
-  private HTableInterface table;
-  private StellarExecutor executor;
-  private static HBaseTestingUtility util;
+  private StellarStatefulExecutor executor;
+  private MockHTable table;
   private ProfileWriter profileWriter;
-
-  @BeforeClass
-  public static void startHBase() throws Exception {
-    Configuration config = HBaseConfiguration.create();
-    config.set("hbase.master.hostname", "localhost");
-    config.set("hbase.regionserver.hostname", "localhost");
-    util = new HBaseTestingUtility(config);
-    util.startMiniCluster();
-  }
-
-  @AfterClass
-  public static void stopHBase() throws Exception {
-    util.shutdownMiniCluster();
-    util.cleanupTestDir();
-  }
 
   @Before
   public void setup() throws Exception {
 
-    table = util.createTable(Bytes.toBytes(tableName), Bytes.toBytes(columnFamily));
-    executor = new DefaultStellarExecutor();
+    table = new MockHTable(tableName, columnFamily);
+    executor = new DefaultStellarStatefulExecutor();
 
     // used to write values to be read during testing
     RowKeyBuilder rowKeyBuilder = new SaltyRowKeyBuilder();
@@ -99,7 +79,7 @@ public class HBaseProfilerClientTest {
 
   @After
   public void tearDown() throws Exception {
-    util.deleteTable(tableName);
+    table.clear();
   }
 
   /**
@@ -121,12 +101,15 @@ public class HBaseProfilerClientTest {
     profileWriter.write(m, count, Arrays.asList("weekdays"), val -> expectedValue);
     profileWriter.write(m, count, Arrays.asList("weekends"), val -> 0);
 
-    // execute
-    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", Arrays.asList("weekdays"), hours, TimeUnit.HOURS);
+    //valid results
+    {
+      // execute
+      List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", Arrays.asList("weekdays"), hours, TimeUnit.HOURS, Optional.empty());
 
-    // validate
-    assertEquals(count, results.size());
-    results.forEach(actual -> assertEquals(expectedValue, (int) actual));
+      // validate
+      assertEquals(count, results.size());
+      results.forEach(actual -> assertEquals(expectedValue, (int) actual));
+    }
   }
 
   /**
@@ -150,10 +133,19 @@ public class HBaseProfilerClientTest {
 
     // execute
     List<Object> doesNotExist = Arrays.asList("does-not-exist");
-    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", doesNotExist, hours, TimeUnit.HOURS);
+    {
+      List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", doesNotExist, hours, TimeUnit.HOURS, Optional.empty());
 
-    // validate
-    assertEquals(0, results.size());
+      // validate
+      assertEquals(0, results.size());
+    }
+    {
+      //with a default value, we'd expect a bunch of 0's
+      List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", doesNotExist, hours, TimeUnit.HOURS, Optional.of(0));
+      //8 or 9 15 minute periods in 2 hours depending on when you start
+      assertTrue(results.size() == 8 || results.size() == 9);
+      results.forEach(actual -> assertEquals(0, (int) actual));
+    }
   }
 
   /**
@@ -174,7 +166,7 @@ public class HBaseProfilerClientTest {
     profileWriter.write(m, hours * periodsPerHour, group, val -> 1000);
 
     // execute
-    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", group, 2, TimeUnit.MILLISECONDS);
+    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", group, 2, TimeUnit.MILLISECONDS, Optional.empty());
 
     // validate - there should NOT be any results from just 2 milliseconds ago
     assertEquals(0, results.size());
@@ -201,7 +193,7 @@ public class HBaseProfilerClientTest {
     profileWriter.write(m, count, Arrays.asList("weekends"), val -> 0);
 
     // execute
-    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", Arrays.asList("weekdays"), startTime, endTime);
+    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", Arrays.asList("weekdays"), startTime, endTime, Optional.empty());
 
     // validate
     assertEquals(count, results.size());
@@ -232,7 +224,7 @@ public class HBaseProfilerClientTest {
 
     // execute
     List<Object> doesNotExist = Arrays.asList("does-not-exist");
-    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", doesNotExist, startTime, endTime);
+    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", doesNotExist, startTime, endTime, Optional.empty());
 
     // validate
     assertEquals(0, results.size());
@@ -260,7 +252,7 @@ public class HBaseProfilerClientTest {
     // execute
     final long endFetchAt = System.currentTimeMillis();
     final long startFetchAt = endFetchAt - TimeUnit.MILLISECONDS.toMillis(30);
-    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", group, startFetchAt, endFetchAt);
+    List<Integer> results = client.fetch(Integer.class, "profile1", "entity1", group, startFetchAt, endFetchAt, Optional.empty());
 
     // validate - there should NOT be any results from just 2 milliseconds ago
     assertEquals(0, results.size());

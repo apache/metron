@@ -1,0 +1,35 @@
+#
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#  contributor license agreements.  See the NOTICE file distributed with
+#  this work for additional information regarding copyright ownership.
+#  The ASF licenses this file to You under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+FROM openjdk:7
+
+ENV HADOOP_PREFIX=/opt/hadoop
+ENV HADOOP_CONF_DIR=$HADOOP_PREFIX/etc/hadoop
+ENV HADOOP_IDENT_STRING=root
+
+RUN curl -sL http://archive.apache.org/dist/hadoop/core/hadoop-2.7.3/hadoop-2.7.3.tar.gz | tar -xzC /tmp
+RUN mv /tmp/hadoop-2.7.3 /opt/hadoop
+
+COPY ./conf/* $HADOOP_CONF_DIR/
+RUN mkdir -p /hadoop/dfs/name \
+    && mkdir -p /hadoop/dfs/data \
+    && $HADOOP_PREFIX/bin/hdfs namenode -format
+
+WORKDIR $HADOOP_PREFIX
+EXPOSE 9000 50010 50020 50070 50075
+
+COPY ./docker-entrypoint.sh /
+ENTRYPOINT ["/docker-entrypoint.sh"]

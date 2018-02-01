@@ -17,10 +17,7 @@
  */
 package org.apache.metron.parsers.interfaces;
 
-import org.apache.metron.common.dsl.Context;
-
-import java.io.Serializable;
-import java.util.Map;
+import org.apache.metron.stellar.dsl.Context;
 
 public interface MessageFilter<T> extends Configurable{
 

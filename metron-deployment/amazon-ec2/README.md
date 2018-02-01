@@ -1,3 +1,20 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 Apache Metron on Amazon EC2
 ===========================
 
@@ -120,11 +137,17 @@ env: metron-test
 
 ### Selective Provisioning
 
-To provision only subsets of the entire Metron deployment, Ansible tags can be specified.  For example, to only deploy the sensors on an Amazon EC2 environment, run the following command.
+To provision only subsets of the entire Metron deployment, Ansible tags can be specified.  For example, to only deploy the sensors on an Amazon EC2 environment, run the following command:
 
 ```
-ansible-playbook -i ec2.py playbook.yml --tags "ec2,sensors"
+./run.sh --tags="ec2,sensors"
 ```
+
+### Setting REST API Profile
+
+By default, EC2 is deployed with the `dev` Spring profile. This simply instructs the REST API to automatically setup default test users `[user, user1, user2, admin]` with password "`password`" as opposed to requiring the user to manually
+ create users in the REST database. You can change this default functionality by removing the `metron_spring_profiles_active` setting in `metron-deployment/roles/ambari_config/vars/small_cluster.yml`.
+ You can view more detail on the REST Spring profiles [here](../../metron-interface/metron-rest/README.md#spring-profiles).
 
 ### Custom SSH Key
 
@@ -158,33 +181,32 @@ The dashboard expects fields to be of a certain type.  If the index templates ha
 
 If you see this error, please report your findings by creating a JIRA or dropping an email to the Metron Users mailing list.  Follow these steps to work around the problem.
 
-(1) Define which Elasticsearch host to interact with.  Any Elasticsearch host should work.
-```
-export ES_HOST="http://ec2-52-25-237-20.us-west-2.compute.amazonaws.com:9200"
-```
+1. Define which Elasticsearch host to interact with.  Any Elasticsearch host should work.
+    ```
+    export ES_HOST="http://ec2-52-25-237-20.us-west-2.compute.amazonaws.com:9200"
+    ```
 
-(2) Confirm the index templates are in fact missing.  
-```
-curl -s -XGET $ES_HOST/_template
-```
+1. Confirm the index templates are in fact missing.  
+    ```
+    curl -s -XGET $ES_HOST/_template
+    ```
 
-(3) Manually load the index templates.
-```
-cd metron-deployment
-curl -s -XPOST $ES_HOST/_template/bro_index -d @roles/metron_elasticsearch_templates/files/es_templates/bro_index.template
-curl -s -XPOST $ES_HOST/_template/snort_index -d @roles/metron_elasticsearch_templates/files/es_templates/snort_index.template
-curl -s -XPOST $ES_HOST/_template/yaf_index -d @roles/metron_elasticsearch_templates/files/es_templates/yaf_index.template
-```
+1. Manually load the index templates.
+    ```
+    cd metron-deployment
+    curl -s -XPOST $ES_HOST/_template/bro_index -d @roles/metron_elasticsearch_templates/files/es_templates/bro_index.template
+    curl -s -XPOST $ES_HOST/_template/snort_index -d @roles/metron_elasticsearch_templates/files/es_templates/snort_index.template
+    curl -s -XPOST $ES_HOST/_template/yaf_index -d @roles/metron_elasticsearch_templates/files/es_templates/yaf_index.template
+    ```
 
-(4) Delete the existing indexes.  Only a new index will use the templates defined in the previous step.
+1. Delete the existing indexes.  Only a new index will use the templates defined in the previous step.
+    ```
+    curl -s -XDELETE "$ES_HOST/yaf_index*"
+    curl -s -XDELETE "$ES_HOST/bro_index*"
+    curl -s -XDELETE "$ES_HOST/snort_index*"
+    ```
 
-```
-curl -s -XDELETE "$ES_HOST/yaf_index*"
-curl -s -XDELETE "$ES_HOST/bro_index*"
-curl -s -XDELETE "$ES_HOST/snort_index*"
-```
-
-(5) Open up Kibana and wait for the new indexes to be created.  The dashboard should now work.
+1. Open up Kibana and wait for the new indexes to be created.  The dashboard should now work.
 
 ### Error: 'No handler was ready to authenticate...Check your credentials'
 

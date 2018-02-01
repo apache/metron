@@ -24,11 +24,12 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.configuration.profiler.ProfileConfig;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.profiler.MessageRoute;
 import org.apache.metron.profiler.ProfileBuilder;
 import org.apache.metron.profiler.ProfileMeasurement;
+import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.storm.Constants;
-import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
@@ -41,12 +42,11 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
-import static org.apache.metron.common.utils.ConversionUtils.convert;
+import static org.apache.metron.stellar.common.utils.ConversionUtils.convert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -78,6 +78,31 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
   @Multiline
   private String inputTwo;
   private JSONObject messageTwo;
+
+  /**
+   * {
+   *   "profile": "profileOne",
+   *   "foreach": "ip_src_addr",
+   *   "init":   { "x": "0" },
+   *   "update": { "x": "x + 1" },
+   *   "result": "x"
+   * }
+   */
+  @Multiline
+  private String profileOne;
+
+
+  /**
+   * {
+   *   "profile": "profileTwo",
+   *   "foreach": "ip_src_addr",
+   *   "init":   { "x": "0" },
+   *   "update": { "x": "x + 1" },
+   *   "result": "x"
+   * }
+   */
+  @Multiline
+  private String profileTwo;
 
   public static Tuple mockTickTuple() {
     Tuple tuple = mock(Tuple.class);
@@ -122,7 +147,7 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
 
     ProfileBuilderBolt bolt = new ProfileBuilderBolt("zookeeperURL");
     bolt.setCuratorFramework(client);
-    bolt.setTreeCache(cache);
+    bolt.setZKCache(cache);
     bolt.withPeriodDuration(10, TimeUnit.MINUTES);
     bolt.withProfileTimeToLive(30, TimeUnit.MINUTES);
 
@@ -133,31 +158,6 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     bolt.prepare(new HashMap<>(), topologyContext, outputCollector);
     return bolt;
   }
-
-  /**
-   * {
-   *   "profile": "profileOne",
-   *   "foreach": "ip_src_addr",
-   *   "init":   { "x": "0" },
-   *   "update": { "x": "x + 1" },
-   *   "result": "x"
-   * }
-   */
-  @Multiline
-  private String profileOne;
-
-
-  /**
-   * {
-   *   "profile": "profileTwo",
-   *   "foreach": "ip_src_addr",
-   *   "init":   { "x": "0" },
-   *   "update": { "x": "x + 1" },
-   *   "result": "x"
-   * }
-   */
-  @Multiline
-  private String profileTwo;
 
   /**
    * The bolt should create a ProfileBuilder to manage a profile.
@@ -174,7 +174,8 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     bolt.execute(tupleOne);
 
     // validate - 1 messages applied
-    ProfileBuilder builderOne = bolt.getBuilder(tupleOne);
+    MessageRoute route = new MessageRoute(definition, entity);
+    ProfileBuilder builderOne = bolt.getMessageDistributor().getBuilder(route, Context.EMPTY_CONTEXT());
     assertEquals(1, (int) convert(builderOne.valueOf("x"), Integer.class));
   }
 
@@ -202,12 +203,14 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     bolt.execute(tupleTwo);
 
     // validate - 2 messages applied
-    ProfileBuilder builderOne = bolt.getBuilder(tupleOne);
+    MessageRoute routeOne = new MessageRoute(definition, entityOne);
+    ProfileBuilder builderOne = bolt.getMessageDistributor().getBuilder(routeOne, Context.EMPTY_CONTEXT());
     assertTrue(builderOne.isInitialized());
     assertEquals(2, (int) convert(builderOne.valueOf("x"), Integer.class));
 
     // validate - 1 message applied
-    ProfileBuilder builderTwo = bolt.getBuilder(tupleTwo);
+    MessageRoute routeTwo = new MessageRoute(definition, entityTwo);
+    ProfileBuilder builderTwo = bolt.getMessageDistributor().getBuilder(routeTwo, Context.EMPTY_CONTEXT());
     assertTrue(builderTwo.isInitialized());
     assertEquals(1, (int) convert(builderTwo.valueOf("x"), Integer.class));
 
@@ -236,12 +239,14 @@ public class ProfileBuilderBoltTest extends BaseBoltTest {
     bolt.execute(tupleTwo);
 
     // validate - 1 message applied
-    ProfileBuilder builderOne = bolt.getBuilder(tupleOne);
+    MessageRoute routeOne = new MessageRoute(definitionOne, entity);
+    ProfileBuilder builderOne = bolt.getMessageDistributor().getBuilder(routeOne, Context.EMPTY_CONTEXT());
     assertTrue(builderOne.isInitialized());
     assertEquals(1, (int) convert(builderOne.valueOf("x"), Integer.class));
 
     // validate - 1 message applied
-    ProfileBuilder builderTwo = bolt.getBuilder(tupleTwo);
+    MessageRoute routeTwo = new MessageRoute(definitionTwo, entity);
+    ProfileBuilder builderTwo = bolt.getMessageDistributor().getBuilder(routeTwo, Context.EMPTY_CONTEXT());
     assertTrue(builderTwo.isInitialized());
     assertEquals(1, (int) convert(builderTwo.valueOf("x"), Integer.class));
 

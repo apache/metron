@@ -35,7 +35,6 @@ public class EmitContext implements Cloneable,Serializable {
      */
     public enum Type{
         STREAM_ID(String.class)
-        ,TOPIC(String.class) //TODO: This should be pulled from the message directly with the new spout when we want to support multiple topics.
         ,PARTITION(Integer.class)
         ,TASK_ID(Integer.class)
         ,UUID(String.class)

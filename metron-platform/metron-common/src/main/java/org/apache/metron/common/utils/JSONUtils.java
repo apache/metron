@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,33 +21,81 @@ package org.apache.metron.common.utils;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flipkart.zjsonpatch.JsonPatch;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+
+import com.google.common.reflect.TypeToken;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.*;
-
 public enum JSONUtils {
   INSTANCE;
 
+  public static class ReferenceSupplier<T> implements Supplier<TypeReference<T>> {
+    Type type;
+    protected ReferenceSupplier() {
+      Type superClass = this.getClass().getGenericSuperclass();
+      if(superClass instanceof Class) {
+        throw new IllegalArgumentException("Internal error: ReferenceSupplier constructed without actual type information");
+      } else {
+        this.type = ((ParameterizedType)superClass).getActualTypeArguments()[0];
+      }
+    }
+
+    @Override
+    public TypeReference<T> get() {
+      return new TypeReference<T>() {
+        @Override
+        public Type getType() {
+          return type;
+        }
+      };
+    }
+  }
+
+  public final static ReferenceSupplier<Map<String, Object>> MAP_SUPPLIER = new ReferenceSupplier<Map<String, Object>>() {};
+  public final static ReferenceSupplier<List<Object>> LIST_SUPPLIER = new ReferenceSupplier<List<Object>>(){};
+
   private static ThreadLocal<JSONParser> _parser = ThreadLocal.withInitial(() ->
-          new JSONParser());
+      new JSONParser());
 
   private static ThreadLocal<ObjectMapper> _mapper = ThreadLocal.withInitial(() ->
-          new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL));
+      new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL));
 
-  public <T> T load(InputStream is, TypeReference<T> ref) throws IOException {
-    return _mapper.get().readValue(is, ref);
+  public <T> T convert(Object original, Class<T> targetClass) {
+    return _mapper.get().convertValue(original, targetClass);
   }
 
-  public <T> T load(String is, TypeReference<T> ref) throws IOException {
-    return _mapper.get().readValue(is, ref);
+  public ObjectMapper getMapper() {
+    return _mapper.get();
   }
 
-  public <T> T load(File f, TypeReference<T> ref) throws IOException {
+
+  public <T> T load(InputStream is, ReferenceSupplier<T> ref) throws IOException {
+    return _mapper.get().readValue(is, (TypeReference<T>)ref.get());
+  }
+
+  public <T> T load(String is, ReferenceSupplier<T> ref) throws IOException {
+    return _mapper.get().readValue(is, (TypeReference<T>)ref.get());
+  }
+
+  public <T> T load(File f, ReferenceSupplier<T> ref) throws IOException {
     try (InputStream is = new BufferedInputStream(new FileInputStream(f))) {
-      return _mapper.get().readValue(is, ref);
+      return _mapper.get().readValue(is, (TypeReference<T>)ref.get());
     }
   }
 
@@ -73,8 +121,12 @@ public enum JSONUtils {
     }
   }
 
-  public byte[] toJSON(Object config) throws JsonProcessingException {
-    return _mapper.get().writeValueAsBytes(config);
+  public byte[] toJSONPretty(String config) throws IOException {
+    return toJSONPretty(readTree(config));
+  }
+
+  public byte[] toJSONPretty(Object config) throws JsonProcessingException {
+    return _mapper.get().writerWithDefaultPrettyPrinter().writeValueAsBytes(config);
   }
 
   /**
@@ -83,4 +135,53 @@ public enum JSONUtils {
   public JSONObject toJSONObject(Object o) throws JsonProcessingException, ParseException {
     return (JSONObject) _parser.get().parse(toJSON(o, false));
   }
+
+  /**
+   * Reads a JSON string into a JsonNode Object
+   *
+   * @param json JSON value to deserialize
+   * @return deserialized JsonNode Object
+   */
+  JsonNode readTree(String json) throws IOException {
+    return _mapper.get().readTree(json);
+  }
+
+  /**
+   * Reads a JSON byte array into a JsonNode Object
+   *
+   * @param json JSON value to deserialize
+   * @return deserialized JsonNode Object
+   */
+  JsonNode readTree(byte[] json) throws IOException {
+    return _mapper.get().readTree(json);
+  }
+
+  /**
+   * Update JSON given a JSON Patch (see RFC 6902 at https://tools.ietf.org/html/rfc6902)
+   * Operations:
+   * <ul>
+   *   <li>add</li>
+   *   <li>remove</li>
+   *   <li>replace</li>
+   *   <li>move</li>
+   *   <li>copy</li>
+   *   <li>test</li>
+   * </ul>
+   *
+   * @param patch Array of JSON patches, e.g. [{ "op": "move", "from": "/a", "path": "/c" }]
+   * @param source Source JSON to apply patch to
+   * @return new json after applying the patch
+   */
+  public byte[] applyPatch(String patch, String source) throws IOException {
+    JsonNode patchNode = readTree(patch);
+    JsonNode sourceNode = readTree(source);
+    return toJSONPretty(JsonPatch.apply(patchNode, sourceNode));
+  }
+
+  public byte[] applyPatch(byte[] patch, byte[] source) throws IOException {
+    JsonNode patchNode = readTree(patch);
+    JsonNode sourceNode = readTree(source);
+    return toJSONPretty(JsonPatch.apply(patchNode, sourceNode));
+  }
+
 }

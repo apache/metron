@@ -18,25 +18,31 @@
 
 package org.apache.metron.writer.hdfs;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.client.HdfsDataOutputStream;
-import org.apache.log4j.Logger;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 import org.apache.storm.hdfs.bolt.rotation.FileRotationPolicy;
 import org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.hdfs.common.rotation.RotationAction;
 import org.json.simple.JSONObject;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SourceHandler {
-  private static final Logger LOG = Logger.getLogger(SourceHandler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   List<RotationAction> rotationActions = new ArrayList<>();
   FileRotationPolicy rotationPolicy;
   SyncPolicy syncPolicy;
@@ -58,28 +64,40 @@ public class SourceHandler {
     this.rotationPolicy = rotationPolicy;
     this.syncPolicy = syncPolicy;
     this.fileNameFormat = fileNameFormat;
+    this.cleanupCallback = cleanupCallback;
     initialize();
   }
 
-  public void handle(List<JSONObject> messages) throws Exception{
-    for(JSONObject message : messages) {
-      handle(message);
-    }
-  }
 
-  protected void handle(JSONObject message) throws IOException {
+  protected void handle(JSONObject message, String sensor, WriterConfiguration config, SyncPolicyCreator syncPolicyCreator) throws IOException {
     byte[] bytes = (message.toJSONString() + "\n").getBytes();
     synchronized (this.writeLock) {
-      out.write(bytes);
+      try {
+        out.write(bytes);
+      } catch (IOException writeException) {
+        LOG.warn("IOException while writing output", writeException);
+        // If the stream is closed, attempt to rotate the file and try again, hoping it's transient
+        if (writeException.getMessage().contains("Stream Closed")) {
+          LOG.warn("Output Stream was closed. Attempting to rotate file and continue");
+          rotateOutputFile();
+          // If this write fails, the exception will be allowed to bubble up.
+          out.write(bytes);
+        } else {
+          throw writeException;
+        }
+      }
       this.offset += bytes.length;
 
       if (this.syncPolicy.mark(null, this.offset)) {
         if (this.out instanceof HdfsDataOutputStream) {
-          ((HdfsDataOutputStream) this.out).hsync(EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH));
+          ((HdfsDataOutputStream) this.out)
+              .hsync(EnumSet.of(HdfsDataOutputStream.SyncFlag.UPDATE_LENGTH));
         } else {
           this.out.hsync();
         }
-        this.syncPolicy.reset();
+        //recreate the sync policy for the next batch just in case something changed in the config
+        //and the sync policy depends on the config.
+        this.syncPolicy = syncPolicyCreator.create(sensor, config);
       }
     }
 
@@ -120,14 +138,14 @@ public class SourceHandler {
       this.rotation++;
 
       Path newFile = createOutputFile();
-      LOG.info("Performing " +  this.rotationActions.size() + " file rotation actions." );
+      LOG.info("Performing {} file rotation actions.", this.rotationActions.size());
       for (RotationAction action : this.rotationActions) {
         action.execute(this.fs, this.currentFile);
       }
       this.currentFile = newFile;
     }
     long time = System.currentTimeMillis() - start;
-    LOG.info("File rotation took " + time + " ms.");
+    LOG.info("File rotation took {} ms", time);
   }
 
   private Path createOutputFile() throws IOException {
@@ -143,7 +161,7 @@ public class SourceHandler {
     return path;
   }
 
-  private void closeOutputFile() throws IOException {
+  protected void closeOutputFile() throws IOException {
     this.out.close();
   }
 

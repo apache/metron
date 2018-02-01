@@ -18,9 +18,6 @@
 
 package org.apache.metron.indexing.integration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.TestConstants;
 import org.apache.metron.common.Constants;
@@ -37,14 +34,12 @@ import org.apache.metron.integration.components.FluxTopologyComponent;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.integration.utils.TestUtils;
-import org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -52,89 +47,30 @@ import static org.apache.metron.common.configuration.ConfigurationsUtils.getClie
 
 public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
   protected static final String ERROR_TOPIC = "indexing_error";
-  protected String hdfsDir = "target/indexingIntegrationTest/hdfs";
   protected String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
-  protected String fluxPath = "../metron-indexing/src/main/flux/indexing/remote.yaml";
   protected String testSensorType = "test";
+  protected final int NUM_RETRIES = 100;
+  protected final long TOTAL_TIME_MS = 150000L;
 
+  protected void preTest() {}
 
-  public static List<Map<String, Object>> readDocsFromDisk(String hdfsDirStr) throws IOException {
-    List<Map<String, Object>> ret = new ArrayList<>();
-    File hdfsDir = new File(hdfsDirStr);
-    Stack<File> fs = new Stack<>();
-    if (hdfsDir.exists()) {
-      fs.push(hdfsDir);
-      while (!fs.empty()) {
-        File f = fs.pop();
-        if (f.isDirectory()) {
-          for (File child : f.listFiles()) {
-            fs.push(child);
-          }
-        } else {
-          System.out.println("Processed " + f);
-          if (f.getName().startsWith("enrichment") || f.getName().endsWith(".json")) {
-            List<byte[]> data = TestUtils.readSampleData(f.getPath());
-            Iterables.addAll(ret, Iterables.transform(data, new Function<byte[], Map<String, Object>>() {
-              @Nullable
-              @Override
-              public Map<String, Object> apply(@Nullable byte[] bytes) {
-                String s = new String(bytes);
-                try {
-                  return JSONUtils.INSTANCE.load(s, new TypeReference<Map<String, Object>>() {
-                  });
-                } catch (IOException e) {
-                  throw new RuntimeException(e);
-                }
-              }
-            }));
-          }
-        }
-      }
-    }
-    return ret;
-  }
-
-  public static void cleanHdfsDir(String hdfsDirStr) {
-    File hdfsDir = new File(hdfsDirStr);
-    Stack<File> fs = new Stack<>();
-    if (hdfsDir.exists()) {
-      fs.push(hdfsDir);
-      while (!fs.empty()) {
-        File f = fs.pop();
-        if (f.isDirectory()) {
-          for (File child : f.listFiles()) {
-            fs.push(child);
-          }
-        } else {
-          if (f.getName().startsWith("enrichment") || f.getName().endsWith(".json")) {
-            f.delete();
-          }
-        }
-      }
-    }
-  }
 
   @Test
   public void test() throws Exception {
-    cleanHdfsDir(hdfsDir);
-    final String dateFormat = "yyyy.MM.dd.HH";
+    preTest();
     final List<byte[]> inputMessages = TestUtils.readSampleData(sampleParsedPath);
     final Properties topologyProperties = new Properties() {{
-      setProperty("kafka.start", "UNCOMMITTED_EARLIEST");
-      setProperty("kafka.security.protocol", "PLAINTEXT");
-      setProperty("storm.auto.credentials", "[]");
-      setProperty("indexing.workers", "1");
-      setProperty("indexing.executors", "0");
-      setProperty("index.input.topic", Constants.INDEXING_TOPIC);
-      setProperty("index.error.topic", ERROR_TOPIC);
-      setProperty("index.date.format", dateFormat);
-      setProperty("topology.auto-credentials", "[]");
-      //HDFS settings
-
-      setProperty("bolt.hdfs.rotation.policy", TimedRotationPolicy.class.getCanonicalName());
-      setProperty("bolt.hdfs.rotation.policy.count", "1");
-      setProperty("bolt.hdfs.rotation.policy.units", "DAYS");
-      setProperty("index.hdfs.output", hdfsDir);
+      setProperty("indexing_kafka_start", "UNCOMMITTED_EARLIEST");
+      setProperty("kafka_security_protocol", "PLAINTEXT");
+      setProperty("topology_auto_credentials", "[]");
+      setProperty("indexing_workers", "1");
+      setProperty("indexing_acker_executors", "0");
+      setProperty("indexing_topology_worker_childopts", "");
+      setProperty("indexing_topology_max_spout_pending", "");
+      setProperty("indexing_input_topic", Constants.INDEXING_TOPIC);
+      setProperty("indexing_error_topic", ERROR_TOPIC);
+      setProperty("indexing_kafka_spout_parallelism", "1");
+      setProperty("indexing_writer_parallelism", "1");
     }};
     setAdditionalProperties(topologyProperties);
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
@@ -144,7 +80,7 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
     }});
     List<Map<String, Object>> inputDocs = new ArrayList<>();
     for(byte[] b : inputMessages) {
-      Map<String, Object> m = JSONUtils.INSTANCE.load(new String(b), new TypeReference<Map<String, Object>>() {});
+      Map<String, Object> m = JSONUtils.INSTANCE.load(new String(b), JSONUtils.MAP_SUPPLIER);
       inputDocs.add(m);
 
     }
@@ -165,23 +101,34 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
             );
 
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
-            .withTopologyLocation(new File(fluxPath))
+            .withTopologyLocation(new File(getFluxPath()))
             .withTopologyName("test")
+            .withTemplateLocation(new File(getTemplatePath()))
             .withTopologyProperties(topologyProperties)
             .build();
 
 
-    ComponentRunner runner = new ComponentRunner.Builder()
-            .withComponent("zk",zkServerComponent)
-            .withComponent("kafka", kafkaComponent)
-            .withComponent("config", configUploadComponent)
-            .withComponent("storm", fluxComponent)
-            .withComponent("search", getSearchComponent(topologyProperties))
-            .withMillisecondsBetweenAttempts(1500)
-            .withNumRetries(100)
-            .withMaxTimeMS(150000)
-            .withCustomShutdownOrder(new String[] {"search","storm","config","kafka","zk"})
-            .build();
+    ComponentRunner runner = null;
+    InMemoryComponent searchComponent = getSearchComponent(topologyProperties);
+    ComponentRunner.Builder componentBuilder = new ComponentRunner.Builder();
+    componentBuilder = componentBuilder.withComponent("zk", zkServerComponent)
+                                       .withComponent("kafka", kafkaComponent)
+                                       .withComponent("config", configUploadComponent)
+                                       .withComponent("storm", fluxComponent)
+                                       .withMillisecondsBetweenAttempts(1500)
+                                       .withNumRetries(NUM_RETRIES)
+                                       .withMaxTimeMS(TOTAL_TIME_MS);
+
+    if(searchComponent != null) {
+     componentBuilder = componentBuilder.withComponent("search", getSearchComponent(topologyProperties))
+                                        .withCustomShutdownOrder(new String[]{"search", "storm", "config", "kafka", "zk"})
+                      ;
+    }
+    else {
+      componentBuilder = componentBuilder.withCustomShutdownOrder(new String[]{ "storm", "config", "kafka", "zk"})
+                      ;
+    }
+    runner = componentBuilder.build();
 
     try {
       runner.start();
@@ -195,7 +142,6 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
       //assert that our input docs are equivalent to the output docs, converting the input docs keys based
       // on the field name converter
       assertInputDocsMatchOutputs(inputDocs, docs, getFieldNameConverter());
-      assertInputDocsMatchOutputs(inputDocs, readDocsFromDisk(hdfsDir), x -> x);
     }
     finally {
       if(runner != null) {
@@ -302,4 +248,6 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
   public abstract InMemoryComponent getSearchComponent(final Properties topologyProperties) throws Exception;
   public abstract void setAdditionalProperties(Properties topologyProperties);
   public abstract String cleanField(String field);
+  public abstract String getTemplatePath();
+  public abstract String getFluxPath();
 }

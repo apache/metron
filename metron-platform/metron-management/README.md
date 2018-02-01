@@ -1,4 +1,21 @@
-#Stellar REPL Management Utilities
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+# Stellar REPL Management Utilities
 
 In order to augment the functionality of the Stellar REPL, a few
 management functions surrounding the management of the configurations
@@ -15,7 +32,23 @@ Additionally, some shell functions have been added to
 This functionality is exposed as a pack of Stellar functions in this
 project.
 
-## Function Details
+* [Functions](#functions)
+    * [Grok Functions](#grok-functions)
+    * [File Functions](#file-functions)
+    * [Shell Functions](#shell-functions)
+    * [Configuration Functions](#configuration-functions)
+    * [Parser Functions](#parser-functions)
+    * [Indexing Functions](#indexing-functions)
+    * [Enrichment Functions](#enrichment-functions)
+    * [Threat Triage Functions](#threat-triage-functions)
+* [Examples](#examples)
+    *  [Iterate to Find a Valid Grok Pattern](#iterate-to-find-a-valid-grok-pattern)
+    * [Manage Stellar Field Transformations](#manage-stellar-field-transformations)
+    * [Manage Stellar Enrichments](#manage-stellar-enrichments)
+    * [Manage Threat Triage Rules](#manage-threat-triage-rules)
+    * [Simulate Threat Triage Rules](#simulate-threat-triage-rules)
+
+## Functions
 
 The functions are split roughly into a few sections:
 * Shell functions - Functions surrounding interacting with the shell in either a nicer way or a more functional way.
@@ -23,7 +56,7 @@ The functions are split roughly into a few sections:
 * File functions - Functions around interacting with local or HDFS files
 * Configuration functions - Functions surrounding pulling and pushing configs from zookeeper
 * Parser functions - Functions surrounding adding, viewing, and removing Parser functions.
-* Enrichment functions - Functions surrounding adding, viewing and removing Stellar enrichments as well as managing batch size and index names for the enrichment topology configuration
+* Enrichment functions - Functions surrounding adding, viewing and removing Stellar enrichments as well as managing batch size, batch timeout, and index names for the enrichment topology configuration
 * Threat Triage functions - Functions surrounding adding, viewing and removing threat triage functions.
 
 ### Grok Functions
@@ -153,7 +186,7 @@ The functions are split roughly into a few sections:
     * sensorConfig - Sensor config to add transformation to.
     * stellarTransforms - A Map associating fields to stellar expressions
   * Returns: The String representation of the config in zookeeper
-* `PARSER_STELLAR_TRANSFORM_PRINT`
+* `PARSER-STELLAR_TRANSFORM_PRINT`
   * Description: Retrieve stellar field transformations.
   * Input:
     * sensorConfig - Sensor config to add transformation to.
@@ -169,11 +202,12 @@ The functions are split roughly into a few sections:
 ### Indexing Functions
 
 * `INDEXING_SET_BATCH`
-  * Description: Set batch size
+  * Description: Set batch size and timeout
   * Input:
     * sensorConfig - Sensor config to add transformation to.
     * writer - The writer to update (e.g. elasticsearch, solr or hdfs)
     * size - batch size (integer), defaults to 1, meaning batching disabled
+    * timeout - (optional) batch timeout in seconds (integer), defaults to 0, meaning system default
   * Returns: The String representation of the config in zookeeper
 * `INDEXING_SET_ENABLED`
   * Description: Enable or disable an indexing writer for a sensor.
@@ -217,6 +251,22 @@ The functions are split roughly into a few sections:
 
 ### Threat Triage Functions
 
+* `THREAT_TRIAGE_INIT`
+  * Description: Create a threat triage engine.
+  * Input:
+  	* config - the threat triage configuration (optional)
+  * Returns: A threat triage engine.
+* `THREAT_TRIAGE_CONFIG`
+  * Description: Export the configuration used by a threat triage engine.
+  * Input:
+  	* engine - threat triage engine returned by THREAT_TRIAGE_INIT.
+  * Returns: The configuration used by the threat triage engine.  
+* `THREAT_TRIAGE_SCORE`
+  * Description: Scores a message using a set of triage rules.
+  * Inputs:
+  	* message - a string containing the message to score.
+  	* engine - threat triage engine returned by THREAT_TRIAGE_INIT.
+  * Returns: A threat triage engine.  
 * `THREAT_TRIAGE_ADD`
   * Description: Add a threat triage rule.
   * Input:
@@ -224,17 +274,17 @@ The functions are split roughly into a few sections:
     * stellarTransforms - A Map associating stellar rules to scores
     * triageRules - Map (or list of Maps) representing a triage rule.  It must contain 'rule' and 'score' keys, the stellar expression for the rule and triage score respectively.  It may contain 'name' and 'comment', the name of the rule and comment associated with the rule respectively."
   * Returns: The String representation of the threat triage rules
-* `THREAT_TRIAGE_PRINT`
-  * Description: Retrieve stellar enrichment transformations.
-  * Input:
-    * sensorConfig - Sensor config to add transformation to.
-  * Returns: The String representation of the threat triage rules
 * `THREAT_TRIAGE_REMOVE`
   * Description: Remove stellar threat triage rule(s).
   * Input:
     * sensorConfig - Sensor config to add transformation to.
     * rules - A list of stellar rules or rule names to remove
   * Returns: The String representation of the enrichment config
+* `THREAT_TRIAGE_PRINT`
+  * Description: Retrieve stellar enrichment transformations.
+  * Input:
+    * sensorConfig - Sensor config to add transformation to.
+  * Returns: The String representation of the threat triage rules
 * `THREAT_TRIAGE_SET_AGGREGATOR`
   * Description: Set the threat triage aggregator.
   * Input:
@@ -244,16 +294,18 @@ The functions are split roughly into a few sections:
   * Returns: The String representation of the enrichment config
 
 ## Deployment Instructions
-
-Deployment is as simple as dropping the jar created by this project into
-`$METRON_HOME/lib` and starting the Stellar shell via
-`$METRON_HOME/bin/stellar`
+* Clusters installed via Ambari Management Pack (default)
+    * Automatically deployed
+* Manual installation
+    * Deployment is as simple as dropping the jar created by this project into
+    `$METRON_HOME/lib` and starting the Stellar shell via
+    `$METRON_HOME/bin/stellar`
 
 ## Examples
 Included for description and education purposes are a couple example Stellar REPL transcripts
 with helpful comments to illustrate some common operations.
 
-### Iterate in finding a valid Grok pattern
+### Iterate to Find a Valid Grok pattern
 ```
 Stellar, Go!
 Please note that functions are loading lazily in the background and will be unavailable until loaded fully.
@@ -846,7 +898,7 @@ Returns: A Map associated with the indicator and enrichment type.  Empty otherwi
 [Stellar]>>> non_us := whois_info.home_country != 'US'
 [Stellar]>>> is_local := IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')
 [Stellar]>>> is_both := whois_info.home_country != 'US' && IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')
-[Stellar]>>> rules := [ { 'name' : 'is non-us', 'rule' : SHELL_GET_EXPRESSION('non_us'), 'score' : 10 } , { 'name' : 'is local', 'rule' : SHELL_GET_EXPRESSION('is_local '), 'score' : 20 } , { 'name' : 'both non-us and local', 'comment' : 'union of both rules.',  'rule' : SHELL_GET_EXPRESSION('is_both'), 'score' : 50 } ]  
+[Stellar]>>> rules := [ { 'name' : 'is non-us', 'rule' : SHELL_GET_EXPRESSION('non_us'), 'score' : 10 } , { 'name' : 'is local', 'rule' : SHELL_GET_EXPRESSION('is_local'), 'score' : 20 } , { 'name' : 'both non-us and local', 'comment' : 'union of both rules.',  'rule' : SHELL_GET_EXPRESSION('is_both'), 'score' : 50 } ]
 [Stellar]>>> # Now that we have our rules staged, we can add them to our config.
 [Stellar]>>> squid_enrichment_config_new := THREAT_TRIAGE_ADD( squid_enrichment_config_new, rules )
 [Stellar]>>> THREAT_TRIAGE_PRINT(squid_enrichment_config_new)
@@ -954,3 +1006,102 @@ SION('is_both') ] )
 }
 [Stellar]>>> 
 ```
+
+### Simulate Threat Triage Rules
+
+1. Create a threat triage engine.
+
+    ```
+    [Stellar]>>> t := THREAT_TRIAGE_INIT()
+    [Stellar]>>> t
+    ThreatTriage{0 rule(s)}
+    ```
+    
+1. Add a few triage rules.
+
+    ```
+    [Stellar]>>> THREAT_TRIAGE_ADD(t, {"name":"rule1", "rule":"value>10", "score":10})
+    ```
+    ```
+    [Stellar]>>> THREAT_TRIAGE_ADD(t, {"name":"rule2", "rule":"value>20", "score":20})
+    ```
+    ```
+    [Stellar]>>> THREAT_TRIAGE_ADD(t, {"name":"rule3", "rule":"value>30", "score":30})
+    ```
+
+1. Review the rules that you have created.
+    ```
+    [Stellar]>>> THREAT_TRIAGE_PRINT(t)
+    ╔═══════╤═════════╤═════════════╤═══════╤════════╗
+    ║ Name  │ Comment │ Triage Rule │ Score │ Reason ║
+    ╠═══════╪═════════╪═════════════╪═══════╪════════╣
+    ║ rule1 │         │ value>10    │ 10    │        ║
+    ╟───────┼─────────┼─────────────┼───────┼────────╢
+    ║ rule2 │         │ value>20    │ 20    │        ║
+    ╟───────┼─────────┼─────────────┼───────┼────────╢
+    ║ rule3 │         │ value>30    │ 30    │        ║
+    ╚═══════╧═════════╧═════════════╧═══════╧════════╝
+    ```
+
+1. Create a few test messages to simulate your telemetry.
+    ```
+    [Stellar]>>> msg1 := "{ \"value\":22 }"
+    [Stellar]>>> msg1
+    { "value":22 }
+    ```
+    ```
+    [Stellar]>>> msg2 := "{ \"value\":44 }"
+    [Stellar]>>> msg2
+    { "value":44 }
+    ```
+
+1. Score a message based on the rules that have been defined.  The result allows you to see the total score, the aggregator, along with details about each rule that fired.
+
+    ```
+    [Stellar]>>> THREAT_TRIAGE_SCORE( msg1, t)
+    {score=20.0, aggregator=MAX, rules=[{score=10.0, name=rule1, rule=value>10}, {score=20.0, name=rule2, rule=value>20}]}
+    ```
+    ```
+    [Stellar]>>> THREAT_TRIAGE_SCORE( msg2, t)
+    {score=30.0, aggregator=MAX, rules=[{score=10.0, name=rule1, rule=value>10}, {score=20.0, name=rule2, rule=value>20}, {score=30.0, name=rule3, rule=value>30}]}
+    ```
+
+1. From here you can iterate on your rule set until it does exactly what you need it to do.  Once you have a working rule set, extract the configuration and push it into your live, Metron cluster.
+
+    ```
+    [Stellar]>>> conf := THREAT_TRIAGE_CONFIG( t)
+    [Stellar]>>> conf
+    {
+      "enrichment" : {
+        "fieldMap" : { },
+        "fieldToTypeMap" : { },
+        "config" : { }
+      },
+      "threatIntel" : {
+        "fieldMap" : { },
+        "fieldToTypeMap" : { },
+        "config" : { },
+        "triageConfig" : {
+          "riskLevelRules" : [ {
+            "name" : "rule1",
+            "rule" : "value>10",
+            "score" : 10.0
+          }, {
+            "name" : "rule2",
+            "rule" : "value>20",
+            "score" : 20.0
+          }, {
+            "name" : "rule3",
+            "rule" : "value>30",
+            "score" : 30.0
+          }],
+          "aggregator" : "MAX",
+          "aggregationConfig" : { }
+        }
+      },
+      "configuration" : { }
+    }
+    ```
+    ```
+    [Stellar]>>> CONFIG_PUT("ENRICHMENT", conf, "bro")
+    ```

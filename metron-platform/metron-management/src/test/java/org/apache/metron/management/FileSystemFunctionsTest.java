@@ -20,11 +20,8 @@ package org.apache.metron.management;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
-import org.apache.metron.common.dsl.Context;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.apache.metron.stellar.dsl.Context;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -37,8 +34,11 @@ import java.util.*;
 public class FileSystemFunctionsTest {
   private FileSystemFunctions.FS_TYPE type;
   private FileSystemFunctions.FileSystemGetter fsGetter = null;
-  private File baseDir;
-  private MiniDFSCluster hdfsCluster;
+  private static File hdfsBaseDir;
+  private static File localBaseDir;
+  private static MiniDFSCluster hdfsCluster;
+  private static String hdfsPrefix;
+  private static String localPrefix;
   private String prefix;
   private Context context = null;
   private FileSystemFunctions.FileSystemGet get;
@@ -59,25 +59,34 @@ public class FileSystemFunctionsTest {
     });
   }
 
+  @BeforeClass
+  public static void setupFS() throws IOException {
+    {
+      hdfsBaseDir = Files.createTempDirectory("test_hdfs").toFile().getAbsoluteFile();
+      Configuration conf = new Configuration();
+      conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, hdfsBaseDir.getAbsolutePath());
+      MiniDFSCluster.Builder builder = new MiniDFSCluster.Builder(conf);
+      hdfsCluster = builder.build();
+      hdfsPrefix = "/";
+    }
+    {
+      localPrefix = "target/fsTest/";
+      if (new File(localPrefix).exists()) {
+        new File(localPrefix).delete();
+      }
+      new File(localPrefix).mkdirs();
+    }
+  }
+
   @Before
   public void setup() throws IOException {
     if(type == FileSystemFunctions.FS_TYPE.HDFS) {
-      baseDir = Files.createTempDirectory("test_hdfs").toFile().getAbsoluteFile();
-      Configuration conf = new Configuration();
-      conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, baseDir.getAbsolutePath());
-      MiniDFSCluster.Builder builder = new MiniDFSCluster.Builder(conf);
-      hdfsCluster = builder.build();
-
+      prefix=hdfsPrefix;
       fsGetter = () -> hdfsCluster.getFileSystem();
-      prefix = "/";
     }
     else {
+      prefix=localPrefix;
       fsGetter = FileSystemFunctions.FS_TYPE.LOCAL;
-      prefix = "target/fsTest/";
-      if(new File(prefix).exists()) {
-        new File(prefix).delete();
-      }
-      new File(prefix).mkdirs();
     }
 
     get = new FileSystemFunctions.FileSystemGet(fsGetter);
@@ -92,14 +101,14 @@ public class FileSystemFunctionsTest {
     rm.initialize(null);
   }
 
-  @After
-  public void teardown() {
-    if(type == FileSystemFunctions.FS_TYPE.HDFS) {
+  @AfterClass
+  public static void teardown() {
+    {
       hdfsCluster.shutdown();
-      FileUtil.fullyDelete(baseDir);
+      FileUtil.fullyDelete(hdfsBaseDir);
     }
-    else {
-      new File(prefix).delete();
+    {
+      new File(localPrefix).delete();
     }
   }
 

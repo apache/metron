@@ -135,7 +135,7 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
     try {
 
       toParse = new String(msg, "UTF-8");
-      _LOG.debug("Received message: " + toParse);
+      _LOG.debug("Received message: {}", toParse);
 
 
       parseMessage(toParse, outputMessage);
@@ -146,7 +146,7 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
       return messages;
     } catch (Exception e) {
       e.printStackTrace();
-      _LOG.error("Failed to parse: " + toParse);
+      _LOG.error("Failed to parse: {}", toParse);
       return null;
     }
   }

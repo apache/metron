@@ -17,52 +17,21 @@
  */
 package org.apache.metron.enrichment.integration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_RULES_KEY;
+import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_RULE_COMMENT;
+import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_RULE_NAME;
+import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_RULE_REASON;
+import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_RULE_SCORE;
+import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.THREAT_TRIAGE_SCORE_KEY;
+
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.metron.TestConstants;
-import org.apache.metron.common.Constants;
-import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
-import org.apache.metron.enrichment.bolt.ErrorEnrichmentBolt;
-import org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt;
-import org.apache.metron.enrichment.converter.EnrichmentHelper;
-import org.apache.metron.enrichment.converter.EnrichmentKey;
-import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
-import org.apache.metron.enrichment.lookup.LookupKV;
-import org.apache.metron.enrichment.lookup.accesstracker.PersistentBloomTrackerCreator;
-import org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions;
-import org.apache.metron.hbase.TableProvider;
-import org.apache.metron.integration.BaseIntegrationTest;
-import org.apache.metron.integration.ComponentRunner;
-import org.apache.metron.integration.Processor;
-import org.apache.metron.integration.ProcessorResult;
-import org.apache.metron.integration.components.FluxTopologyComponent;
-import org.apache.metron.integration.components.KafkaComponent;
-import org.apache.metron.integration.components.ZKServerComponent;
-import org.apache.metron.integration.processors.KafkaMessageSet;
-import org.apache.metron.integration.processors.KafkaProcessor;
-import org.apache.metron.integration.utils.TestUtils;
-import org.apache.metron.test.mock.MockHTable;
-import org.apache.metron.test.utils.UnitTestHelper;
-import org.json.simple.parser.ParseException;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -72,8 +41,35 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Stream;
-
-import static org.apache.metron.enrichment.bolt.ThreatIntelJoinBolt.*;
+import javax.annotation.Nullable;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.TestConstants;
+import org.apache.metron.common.Constants;
+import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
+import org.apache.metron.enrichment.converter.EnrichmentHelper;
+import org.apache.metron.enrichment.converter.EnrichmentKey;
+import org.apache.metron.enrichment.converter.EnrichmentValue;
+import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
+import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.enrichment.lookup.accesstracker.PersistentBloomTrackerCreator;
+import org.apache.metron.enrichment.stellar.SimpleHBaseEnrichmentFunctions;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.integration.BaseIntegrationTest;
+import org.apache.metron.integration.ComponentRunner;
+import org.apache.metron.integration.ProcessorResult;
+import org.apache.metron.integration.components.FluxTopologyComponent;
+import org.apache.metron.integration.components.KafkaComponent;
+import org.apache.metron.integration.components.ZKServerComponent;
+import org.apache.metron.integration.processors.KafkaMessageSet;
+import org.apache.metron.integration.processors.KafkaProcessor;
+import org.apache.metron.integration.utils.TestUtils;
+import org.apache.metron.test.utils.UnitTestHelper;
+import org.json.simple.parser.ParseException;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   private static final String ERROR_TOPIC = "enrichment_error";
@@ -93,19 +89,13 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
   public static final String DEFAULT_DMACODE= "test dmaCode";
   public static final String DEFAULT_LOCATION_POINT= Joiner.on(',').join(DEFAULT_LATITUDE,DEFAULT_LONGITUDE);
 
-  protected String fluxPath = "../metron-enrichment/src/main/flux/enrichment/test.yaml";
+  protected String fluxPath = "../metron-enrichment/src/main/flux/enrichment/remote.yaml";
+  protected String templatePath = "../metron-enrichment/src/main/config/enrichment.properties.j2";
   protected String sampleParsedPath = TestConstants.SAMPLE_DATA_PARSED_PATH + "TestExampleParsed";
   private final List<byte[]> inputMessages = getInputMessages(sampleParsedPath);
 
   private static File geoHdfsFile;
 
-  public static class Provider implements TableProvider, Serializable {
-    MockHTable.Provider  provider = new MockHTable.Provider();
-    @Override
-    public HTableInterface getTable(Configuration config, String tableName) throws IOException {
-      return provider.getTable(config, tableName);
-    }
-  }
 
   private static List<byte[]> getInputMessages(String path){
     try{
@@ -128,21 +118,40 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     final String threatIntelTableName = "threat_intel";
     final String enrichmentsTableName = "enrichments";
     final Properties topologyProperties = new Properties() {{
-      setProperty("org.apache.metron.enrichment.host.known_hosts", "[{\"ip\":\"10.1.128.236\", \"local\":\"YES\", \"type\":\"webserver\", \"asset_value\" : \"important\"},\n" +
-              "{\"ip\":\"10.1.128.237\", \"local\":\"UNKNOWN\", \"type\":\"unknown\", \"asset_value\" : \"important\"},\n" +
-              "{\"ip\":\"10.60.10.254\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"},\n" +
+      setProperty("enrichment_workers", "1");
+      setProperty("enrichment_acker_executors", "0");
+      setProperty("enrichment_topology_worker_childopts", "");
+      setProperty("topology_auto_credentials", "[]");
+      setProperty("enrichment_topology_max_spout_pending", "");
+      setProperty("enrichment_kafka_start", "UNCOMMITTED_EARLIEST");
+      setProperty("kafka_security_protocol", "PLAINTEXT");
+      setProperty("enrichment_input_topic", Constants.ENRICHMENT_TOPIC);
+      setProperty("enrichment_output_topic", Constants.INDEXING_TOPIC);
+      setProperty("enrichment_error_topic", ERROR_TOPIC);
+      setProperty("threatintel_error_topic", ERROR_TOPIC);
+      setProperty("enrichment_join_cache_size", "1000");
+      setProperty("threatintel_join_cache_size", "1000");
+      setProperty("enrichment_hbase_provider_impl", "" + MockHBaseTableProvider.class.getName());
+      setProperty("enrichment_hbase_table", enrichmentsTableName);
+      setProperty("enrichment_hbase_cf", cf);
+      setProperty("enrichment_host_known_hosts", "[{\"ip\":\"10.1.128.236\", \"local\":\"YES\", \"type\":\"webserver\", \"asset_value\" : \"important\"}," +
+              "{\"ip\":\"10.1.128.237\", \"local\":\"UNKNOWN\", \"type\":\"unknown\", \"asset_value\" : \"important\"}," +
+              "{\"ip\":\"10.60.10.254\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"}," +
               "{\"ip\":\"10.0.2.15\", \"local\":\"YES\", \"type\":\"printer\", \"asset_value\" : \"important\"}]");
-      setProperty("hbase.provider.impl", "" + Provider.class.getName());
-      setProperty("threat.intel.tracker.table", trackerHBaseTableName);
-      setProperty("threat.intel.tracker.cf", cf);
-      setProperty("threat.intel.simple.hbase.table", threatIntelTableName);
-      setProperty("threat.intel.simple.hbase.cf", cf);
-      setProperty("enrichment.simple.hbase.table", enrichmentsTableName);
-      setProperty("enrichment.simple.hbase.cf", cf);
-      setProperty("enrichment.output.topic", Constants.INDEXING_TOPIC);
-      setProperty("enrichment.error.topic", ERROR_TOPIC);
-      setProperty("kafka.security.protocol", "PLAINTEXT");
-      setProperty("storm.auto.credentials", "[]");
+
+      setProperty("threatintel_hbase_table", threatIntelTableName);
+      setProperty("threatintel_hbase_cf", cf);
+
+
+      setProperty("enrichment_kafka_spout_parallelism", "1");
+      setProperty("enrichment_split_parallelism", "1");
+      setProperty("enrichment_stellar_parallelism", "1");
+      setProperty("enrichment_join_parallelism", "1");
+      setProperty("threat_intel_split_parallelism", "1");
+      setProperty("threat_intel_stellar_parallelism", "1");
+      setProperty("threat_intel_join_parallelism", "1");
+      setProperty("kafka_writer_parallelism", "1");
+
     }};
     final ZKServerComponent zkServerComponent = getZKServerComponent(topologyProperties);
     final KafkaComponent kafkaComponent = getKafkaComponent(topologyProperties, new ArrayList<KafkaComponent.Topic>() {{
@@ -153,9 +162,8 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     String globalConfigStr = null;
     {
       File globalConfig = new File(new File(TestConstants.SAMPLE_CONFIG_PATH), "global.json");
-      Map<String, Object> config = JSONUtils.INSTANCE.load(globalConfig, new TypeReference<Map<String, Object>>() {
-      });
-      config.put(SimpleHBaseEnrichmentFunctions.TABLE_PROVIDER_TYPE_CONF, Provider.class.getName());
+      Map<String, Object> config = JSONUtils.INSTANCE.load(globalConfig, JSONUtils.MAP_SUPPLIER);
+      config.put(SimpleHBaseEnrichmentFunctions.TABLE_PROVIDER_TYPE_CONF, MockHBaseTableProvider.class.getName());
       config.put(SimpleHBaseEnrichmentFunctions.ACCESS_TRACKER_TYPE_CONF, "PERSISTENT_BLOOM");
       config.put(PersistentBloomTrackerCreator.Config.PERSISTENT_BLOOM_TABLE, trackerHBaseTableName);
       config.put(PersistentBloomTrackerCreator.Config.PERSISTENT_BLOOM_CF, cf);
@@ -168,12 +176,12 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
             .withEnrichmentConfigsPath(TestConstants.SAMPLE_CONFIG_PATH);
 
     //create MockHBaseTables
-    final MockHTable trackerTable = (MockHTable) MockHTable.Provider.addToCache(trackerHBaseTableName, cf);
-    final MockHTable threatIntelTable = (MockHTable) MockHTable.Provider.addToCache(threatIntelTableName, cf);
+    final MockHTable trackerTable = (MockHTable) MockHBaseTableProvider.addToCache(trackerHBaseTableName, cf);
+    final MockHTable threatIntelTable = (MockHTable) MockHBaseTableProvider.addToCache(threatIntelTableName, cf);
     EnrichmentHelper.INSTANCE.load(threatIntelTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
       add(new LookupKV<>(new EnrichmentKey(MALICIOUS_IP_TYPE, "10.0.2.3"), new EnrichmentValue(new HashMap<>())));
     }});
-    final MockHTable enrichmentTable = (MockHTable) MockHTable.Provider.addToCache(enrichmentsTableName, cf);
+    final MockHTable enrichmentTable = (MockHTable) MockHBaseTableProvider.addToCache(enrichmentsTableName, cf);
     EnrichmentHelper.INSTANCE.load(enrichmentTable, cf, new ArrayList<LookupKV<EnrichmentKey, EnrichmentValue>>() {{
       add(new LookupKV<>(new EnrichmentKey(PLAYFUL_CLASSIFICATION_TYPE, "10.0.2.3")
                       , new EnrichmentValue(PLAYFUL_ENRICHMENT)
@@ -184,6 +192,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     FluxTopologyComponent fluxComponent = new FluxTopologyComponent.Builder()
             .withTopologyLocation(new File(fluxPath))
             .withTopologyName("test")
+            .withTemplateLocation(new File(templatePath))
             .withTopologyProperties(topologyProperties)
             .build();
 
@@ -238,10 +247,10 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
   protected void validateErrors(List<Map<String, Object>> errors) {
     for(Map<String, Object> error : errors) {
-      Assert.assertEquals("Test throwing error from ErrorEnrichmentBolt", error.get(Constants.ErrorFields.MESSAGE.getName()));
-      Assert.assertEquals("java.lang.IllegalStateException: Test throwing error from ErrorEnrichmentBolt", error.get(Constants.ErrorFields.EXCEPTION.getName()));
+      Assert.assertEquals("java.lang.ArithmeticException: / by zero", error.get(Constants.ErrorFields.MESSAGE.getName()));
+      Assert.assertEquals("com.google.common.util.concurrent.UncheckedExecutionException: java.lang.ArithmeticException: / by zero", error.get(Constants.ErrorFields.EXCEPTION.getName()));
       Assert.assertEquals(Constants.ErrorType.ENRICHMENT_ERROR.getType(), error.get(Constants.ErrorFields.ERROR_TYPE.getName()));
-      Assert.assertEquals("{\"rawMessage\":\"Error Test Raw Message String\"}", error.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
+      Assert.assertEquals("{\"error_test\":{},\"source.type\":\"test\"}", error.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
     }
   }
 
@@ -260,6 +269,11 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
     Assert.assertNotNull(jsonDoc.get(DST_IP));
 
     Assert.assertNotNull(jsonDoc.get("ALL_CAPS"));
+    Assert.assertNotNull(jsonDoc.get("map.blah"));
+    Assert.assertNull(jsonDoc.get("map"));
+    Assert.assertNotNull(jsonDoc.get("one"));
+    Assert.assertEquals(1, jsonDoc.get("one"));
+    Assert.assertEquals(1, jsonDoc.get("map.blah"));
     Assert.assertNotNull(jsonDoc.get("foo"));
     Assert.assertEquals("TEST", jsonDoc.get("ALL_CAPS"));
     Assert.assertNotNull(jsonDoc.get("bar"));
@@ -515,7 +529,7 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
                     , message -> {
                       try {
                         return new HashMap<>(JSONUtils.INSTANCE.load(new String(message)
-                                , new TypeReference<Map<String, Object>>() {}
+                                , JSONUtils.MAP_SUPPLIER 
                         )
                         );
                       } catch (Exception ex) {

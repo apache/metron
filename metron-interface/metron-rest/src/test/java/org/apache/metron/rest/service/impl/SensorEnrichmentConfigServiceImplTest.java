@@ -18,6 +18,7 @@
 package org.apache.metron.rest.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.DeleteBuilder;
@@ -25,9 +26,11 @@ import org.apache.curator.framework.api.GetChildrenBuilder;
 import org.apache.curator.framework.api.GetDataBuilder;
 import org.apache.curator.framework.api.SetDataBuilder;
 import org.apache.metron.common.configuration.ConfigurationType;
+import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.threatintel.ThreatIntelConfig;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.SensorEnrichmentConfigService;
 import org.apache.zookeeper.KeeperException;
@@ -40,6 +43,7 @@ import org.junit.rules.ExpectedException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -79,11 +83,14 @@ public class SensorEnrichmentConfigServiceImplTest {
   @Multiline
   public static String broJson;
 
+  ConfigurationsCache cache;
+
   @Before
   public void setUp() throws Exception {
     objectMapper = mock(ObjectMapper.class);
     curatorFramework = mock(CuratorFramework.class);
-    sensorEnrichmentConfigService = new SensorEnrichmentConfigServiceImpl(objectMapper, curatorFramework);
+    cache = mock(ConfigurationsCache.class);
+    sensorEnrichmentConfigService = new SensorEnrichmentConfigServiceImpl(objectMapper, curatorFramework, cache);
   }
 
 
@@ -125,84 +132,54 @@ public class SensorEnrichmentConfigServiceImplTest {
   public void findOneShouldProperlyReturnSensorEnrichmentConfig() throws Exception {
     final SensorEnrichmentConfig sensorEnrichmentConfig = getTestSensorEnrichmentConfig();
 
-    GetDataBuilder getDataBuilder = mock(GetDataBuilder.class);
-    when(getDataBuilder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro")).thenReturn(broJson.getBytes());
-    when(curatorFramework.getData()).thenReturn(getDataBuilder);
+    EnrichmentConfigurations configs = new EnrichmentConfigurations(){
+      @Override
+      public Map<String, Object> getConfigurations() {
+        return ImmutableMap.of(EnrichmentConfigurations.getKey("bro"), sensorEnrichmentConfig);
+      }
+    };
+    when(cache.get(eq(EnrichmentConfigurations.class)))
+            .thenReturn(configs);
 
+    //We only have bro, so we should expect it to be returned
     assertEquals(getTestSensorEnrichmentConfig(), sensorEnrichmentConfigService.findOne("bro"));
-  }
-
-  @Test
-  public void findOneShouldReturnNullWhenNoNodeExceptionIsThrown() throws Exception {
-    GetDataBuilder getDataBuilder = mock(GetDataBuilder.class);
-    when(getDataBuilder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro")).thenThrow(KeeperException.NoNodeException.class);
-
-    when(curatorFramework.getData()).thenReturn(getDataBuilder);
-
-    assertNull(sensorEnrichmentConfigService.findOne("bro"));
-  }
-
-  @Test
-  public void findOneShouldWrapNonNoNodeExceptionInRestException() throws Exception {
-    exception.expect(RestException.class);
-
-    GetDataBuilder getDataBuilder = mock(GetDataBuilder.class);
-    when(getDataBuilder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro")).thenThrow(Exception.class);
-
-    when(curatorFramework.getData()).thenReturn(getDataBuilder);
-
-    sensorEnrichmentConfigService.findOne("bro");
+    //and blah should be a miss.
+    assertNull(sensorEnrichmentConfigService.findOne("blah"));
   }
 
   @Test
   public void getAllTypesShouldProperlyReturnTypes() throws Exception {
-    GetChildrenBuilder getChildrenBuilder = mock(GetChildrenBuilder.class);
-    when(getChildrenBuilder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot()))
-            .thenReturn(new ArrayList() {{
-              add("bro");
-              add("squid");
-            }});
-    when(curatorFramework.getChildren()).thenReturn(getChildrenBuilder);
+
+    EnrichmentConfigurations configs = new EnrichmentConfigurations(){
+      @Override
+      public Map<String, Object> getConfigurations() {
+        return ImmutableMap.of(EnrichmentConfigurations.getKey("bro"), new HashMap<>()
+                              ,EnrichmentConfigurations.getKey("squid"), new HashMap<>()
+                              );
+      }
+    };
+    when(cache.get(eq(EnrichmentConfigurations.class)))
+            .thenReturn(configs);
 
     assertEquals(new ArrayList() {{
       add("bro");
       add("squid");
     }}, sensorEnrichmentConfigService.getAllTypes());
+
   }
 
-  @Test
-  public void getAllTypesShouldReturnNullWhenNoNodeExceptionIsThrown() throws Exception {
-    GetChildrenBuilder getChildrenBuilder = mock(GetChildrenBuilder.class);
-    when(getChildrenBuilder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot())).thenThrow(KeeperException.NoNodeException.class);
-    when(curatorFramework.getChildren()).thenReturn(getChildrenBuilder);
-
-    assertEquals(new ArrayList<>(), sensorEnrichmentConfigService.getAllTypes());
-  }
-
-  @Test
-  public void getAllTypesShouldWrapNonNoNodeExceptionInRestException() throws Exception {
-    exception.expect(RestException.class);
-
-    GetChildrenBuilder getChildrenBuilder = mock(GetChildrenBuilder.class);
-    when(getChildrenBuilder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot())).thenThrow(Exception.class);
-    when(curatorFramework.getChildren()).thenReturn(getChildrenBuilder);
-
-    sensorEnrichmentConfigService.getAllTypes();
-  }
 
   @Test
   public void getAllShouldProperlyReturnSensorEnrichmentConfigs() throws Exception {
-    GetChildrenBuilder getChildrenBuilder = mock(GetChildrenBuilder.class);
-    when(getChildrenBuilder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot()))
-            .thenReturn(new ArrayList() {{
-              add("bro");
-            }});
-    when(curatorFramework.getChildren()).thenReturn(getChildrenBuilder);
-
     final SensorEnrichmentConfig sensorEnrichmentConfig = getTestSensorEnrichmentConfig();
-    GetDataBuilder getDataBuilder = mock(GetDataBuilder.class);
-    when(getDataBuilder.forPath(ConfigurationType.ENRICHMENT.getZookeeperRoot() + "/bro")).thenReturn(broJson.getBytes());
-    when(curatorFramework.getData()).thenReturn(getDataBuilder);
+    EnrichmentConfigurations configs = new EnrichmentConfigurations(){
+      @Override
+      public Map<String, Object> getConfigurations() {
+        return ImmutableMap.of(EnrichmentConfigurations.getKey("bro"), sensorEnrichmentConfig);
+      }
+    };
+    when(cache.get( eq(EnrichmentConfigurations.class)))
+            .thenReturn(configs);
 
     assertEquals(new HashMap() {{ put("bro", sensorEnrichmentConfig);}}, sensorEnrichmentConfigService.getAll());
   }

@@ -1,0 +1,170 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@import "../../../../variables.scss";
+
+$group-height: 70px;
+
+.card {
+  background: none;
+  border-radius: 0px;
+  margin-bottom: 12px;
+
+  .title {
+    font-size: 20px;
+  }
+
+  .group-value {
+    padding-left: 12px;
+  }
+
+  .severity-padding {
+    padding-left: 30px;
+  }
+
+  .text-light {
+    font-family: Roboto;
+    color: $iron;
+  }
+
+  .text-dark {
+    font-size: 12px;
+    font-family: Roboto;
+    color: $dusty-grey;
+  }
+
+  .card-header {
+    padding: 0px;
+    border-radius: 0px;
+    height: $group-height;
+    line-height: $group-height;
+    background: $mine-shaft-8;
+  }
+
+  .fa-link, .fa-chain-broken {
+
+    color: $piction-blue;
+    border: 2px solid transparent;
+
+    &:hover {
+      background: $eden-1;
+      border: 2px solid $blue-mine;
+    }
+  }
+
+  .down-arrow {
+    padding: 10px 20px;
+
+    &:hover {
+      background: $eden-1;
+      border: 2px solid $blue-mine;
+    }
+
+    &:after {
+      top: 2px;
+      right: 37px;
+      color: $gothic;
+      font-size: 25px;
+      content: '\f107';
+      font-style: normal;
+      position: absolute;
+      font-family: "FontAwesome";
+    }
+  }
+
+  .two-line {
+    padding-top: 16px;
+    line-height: 1;
+  }
+
+  .collapse {
+    background: $mine-shaft-9;
+  }
+  .card-block {
+    padding-bottom: 0px;
+    background: $mine-shaft-9;
+  }
+
+  .fa-caret-right, .fa-caret-down {
+    padding-right: 4px;
+    font-size: 15px;
+  }
+
+  .table-group-icon-col {
+    width:5px;
+    box-sizing: border-box;
+    padding: 6px 0px 7px 5px;
+    border: 1px solid transparent;
+
+    &:hover {
+      background: $eden-1;
+      border: 1px solid $blue-mine;
+    }
+  }
+
+  .table-score-col {
+    width:55px;
+  }
+
+  .table-group-row {
+    background: $mine-shaft-10;
+  }
+
+  .no-hover {
+    height: $group-height;
+
+    td {
+      text-align:center;
+      vertical-align:middle;
+      border-bottom: none;
+
+      &:hover {
+        background: none;
+      }
+    }
+  }
+}
+
+.table {
+  tr {
+    line-height: 25px;
+    height: 35px;
+  }
+}
+
+sup {
+  font-size: 100%;
+}
+
+.configure-table-icon {
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.tree-wrapper {
+  min-height: calc(100vh - 280px);
+}
+
+.top-group {
+  cursor: pointer;
+}
+
+.top-group-link {
+  padding: 10px;
+  font-size: 22px;
+  margin-top: 12px;
+}

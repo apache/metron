@@ -25,9 +25,21 @@ export class SensorParserConfig {
   invalidWriterClassName: string;
   parserConfig: {};
   fieldTransformations: FieldTransformer[];
+  numWorkers: number;
+  numAckers: number;
+  spoutParallelism: number;
+  spoutNumTasks: number;
+  parserParallelism: number;
+  parserNumTasks: number;
+  errorWriterParallelism: number;
+  errorWriterNumTasks: number;
+  spoutConfig: {};
+  stormConfig: {};
 
   constructor() {
     this.parserConfig = {};
     this.fieldTransformations = [];
+    this.spoutConfig = {};
+    this.stormConfig = {};
   }
 }

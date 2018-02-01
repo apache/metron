@@ -17,7 +17,7 @@
 %define timestamp           %(date +%Y%m%d%H%M)
 %define version             %{?_version}%{!?_version:UNKNOWN}
 %define full_version        %{version}%{?_prerelease}
-%define prerelease_fmt      %{?_prerelease:.%{_prerelease}}          
+%define prerelease_fmt      %{?_prerelease:.%{_prerelease}}
 %define vendor_version      %{?_vendor_version}%{!?_vendor_version: UNKNOWN}
 %define url                 http://metron.apache.org/
 %define base_name           metron
@@ -29,6 +29,8 @@
 
 %define metron_root         %{_prefix}/%{base_name}
 %define metron_home         %{metron_root}/%{full_version}
+
+%define _binaries_in_noarch_packages_terminate_build   0
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -52,6 +54,9 @@ Source7:        metron-pcap-backend-%{full_version}-archive.tar.gz
 Source8:        metron-profiler-%{full_version}-archive.tar.gz
 Source9:        metron-rest-%{full_version}-archive.tar.gz
 Source10:       metron-config-%{full_version}-archive.tar.gz
+Source11:       metron-management-%{full_version}-archive.tar.gz
+Source12:       metron-maas-service-%{full_version}-archive.tar.gz
+Source13:       metron-alerts-%{full_version}-archive.tar.gz
 
 %description
 Apache Metron provides a scalable advanced security analytics framework
@@ -85,8 +90,15 @@ tar -xzf %{SOURCE7} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE8} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE9} -C %{buildroot}%{metron_home}
 tar -xzf %{SOURCE10} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE11} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE12} -C %{buildroot}%{metron_home}
+tar -xzf %{SOURCE13} -C %{buildroot}%{metron_home}
 
-install %{buildroot}%{metron_home}/bin/metron-rest %{buildroot}/etc/init.d/
+install %{buildroot}%{metron_home}/bin/metron-management-ui %{buildroot}/etc/init.d/
+install %{buildroot}%{metron_home}/bin/metron-alerts-ui %{buildroot}/etc/init.d/
+
+# allows node dependencies to be packaged in the RPMs
+npm install --prefix="%{buildroot}%{metron_home}/web/expressjs" --only=production
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -104,9 +116,12 @@ This package installs the Metron common files %{metron_home}
 %dir %{metron_root}
 %dir %{metron_home}
 %dir %{metron_home}/bin
+%dir %{metron_home}/config
+%dir %{metron_home}/config/zookeeper
 %dir %{metron_home}/lib
 %{metron_home}/bin/zk_load_configs.sh
 %{metron_home}/bin/stellar
+%{metron_home}/config/zookeeper/global.json
 %attr(0644,root,root) %{metron_home}/lib/metron-common-%{full_version}.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -186,6 +201,7 @@ This package installs the Metron Parser files
 %{metron_home}/bin/Whois_CSV_to_JSON.py
 %{metron_home}/bin/geo_enrichment_load.sh
 %{metron_home}/bin/flatfile_loader.sh
+%{metron_home}/bin/flatfile_summarizer.sh
 %{metron_home}/bin/prune_elasticsearch_indices.sh
 %{metron_home}/bin/prune_hdfs_files.sh
 %{metron_home}/bin/threatintel_bulk_prune.sh
@@ -213,7 +229,7 @@ This package installs the Metron Solr files
 %{metron_home}/config/solr.properties
 %attr(0644,root,root) %{metron_home}/lib/metron-solr-%{full_version}-uber.jar
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %package        enrichment
 Summary:        Metron Enrichment Files
@@ -242,10 +258,9 @@ This package installs the Metron Enrichment files
 %{metron_home}/config/zookeeper/enrichments/yaf.json
 %{metron_home}/config/zookeeper/enrichments/asa.json
 %{metron_home}/flux/enrichment/remote.yaml
-%exclude %{metron_home}/flux/enrichment/test.yaml
 %attr(0644,root,root) %{metron_home}/lib/metron-enrichment-%{full_version}-uber.jar
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %package        indexing
 Summary:        Metron Indexing Files
@@ -259,9 +274,12 @@ This package installs the Metron Indexing files
 %defattr(-,root,root,755)
 %dir %{metron_root}
 %dir %{metron_home}
+%dir %{metron_home}/bin
 %dir %{metron_home}/flux
 %dir %{metron_home}/flux/indexing
-%{metron_home}/flux/indexing/remote.yaml
+%{metron_home}/bin/start_hdfs_topology.sh
+%{metron_home}/flux/indexing/batch/remote.yaml
+%{metron_home}/flux/indexing/random_access/remote.yaml
 %{metron_home}/config/zookeeper/indexing/bro.json
 %{metron_home}/config/zookeeper/indexing/snort.json
 %{metron_home}/config/zookeeper/indexing/websphere.json
@@ -272,6 +290,23 @@ This package installs the Metron Indexing files
 %{metron_home}/config/zeppelin/metron/metron-connection-report.json
 %{metron_home}/config/zeppelin/metron/metron-ip-report.json
 %{metron_home}/config/zeppelin/metron/metron-connection-volume-report.json
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        metron-management
+Summary:        Metron Management Libary
+Group:          Applications/Internet
+Provides:       metron-management = %{version}
+
+%description    metron-management
+This package installs the Metron Management Library
+
+%files          metron-management
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}/lib
+%attr(0644,root,root) %{metron_home}/lib/metron-management-%{full_version}.jar
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -343,15 +378,8 @@ This package installs the Metron Rest %{metron_home}
 %dir %{metron_home}/bin
 %dir %{metron_home}/lib
 %{metron_home}/config/rest_application.yml
-%{metron_home}/bin/metron-rest
-/etc/init.d/metron-rest
+%{metron_home}/bin/metron-rest.sh
 %attr(0644,root,root) %{metron_home}/lib/metron-rest-%{full_version}.jar
-
-%post rest
-chkconfig --add metron-rest
-
-%preun rest
-chkconfig --del metron-rest
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -370,6 +398,8 @@ This package installs the Metron Management UI %{metron_home}
 %dir %{metron_home}/bin
 %dir %{metron_home}/web
 %dir %{metron_home}/web/expressjs
+%dir %{metron_home}/web/expressjs/node_modules
+%dir %{metron_home}/web/expressjs/node_modules/.bin
 %dir %{metron_home}/web/management-ui
 %dir %{metron_home}/web/management-ui/assets
 %dir %{metron_home}/web/management-ui/assets/ace
@@ -378,7 +408,10 @@ This package installs the Metron Management UI %{metron_home}
 %dir %{metron_home}/web/management-ui/assets/fonts/Roboto
 %dir %{metron_home}/web/management-ui/assets/images
 %dir %{metron_home}/web/management-ui/license
-%{metron_home}/bin/start_management_ui.sh
+%{metron_home}/bin/metron-management-ui
+/etc/init.d/metron-management-ui
+%attr(0755,root,root) %{metron_home}/web/expressjs/node_modules/*
+%attr(0755,root,root) %{metron_home}/web/expressjs/node_modules/.bin/*
 %attr(0755,root,root) %{metron_home}/web/expressjs/server.js
 %attr(0644,root,root) %{metron_home}/web/expressjs/package.json
 %attr(0644,root,root) %{metron_home}/web/management-ui/favicon.ico
@@ -400,7 +433,87 @@ This package installs the Metron Management UI %{metron_home}
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+%package        maas-service
+Summary:        Metron MaaS service
+Group:          Application/Internet
+Provides:       maas-service = %{version}
+
+%description    maas-service
+This package install the Metron MaaS Service files %{metron_home}
+
+%files          maas-service
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/bin
+%{metron_home}/bin/maas_service.sh
+%{metron_home}/bin/maas_deploy.sh
+%attr(0644,root,root) %{metron_home}/lib/metron-maas-service-%{full_version}-uber.jar
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%package        alerts
+Summary:        Metron Alerts UI
+Group:          Applications/Internet
+Provides:       alerts = %{version}
+
+%description    alerts
+This package installs the Metron Alerts UI %{metron_home}
+
+%files          alerts
+%defattr(-,root,root,755)
+%dir %{metron_root}
+%dir %{metron_home}
+%dir %{metron_home}/bin
+%dir %{metron_home}/web
+%dir %{metron_home}/web/alerts-ui
+%dir %{metron_home}/web/alerts-ui/assets
+%dir %{metron_home}/web/alerts-ui/assets/ace
+%dir %{metron_home}/web/alerts-ui/assets/fonts
+%dir %{metron_home}/web/alerts-ui/assets/fonts/Roboto
+%dir %{metron_home}/web/alerts-ui/assets/images
+%{metron_home}/bin/metron-alerts-ui
+/etc/init.d/metron-alerts-ui
+%attr(0755,root,root) %{metron_home}/web/expressjs/alerts-server.js
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/favicon.ico
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/index.html
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.bundle.css
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.js
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.ttf
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.svg
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.jpg
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.eot
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.woff
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/*.woff2
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/3rdpartylicenses.txt
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/ace/*.js
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/ace/LICENSE
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/fonts/font.css
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/fonts/Roboto/LICENSE.txt
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/fonts/Roboto/*.ttf
+%attr(0644,root,root) %{metron_home}/web/alerts-ui/assets/images/*
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+%post config
+chkconfig --add metron-management-ui
+chkconfig --add metron-alerts-ui
+
+%preun config
+chkconfig --del metron-management-ui
+chkconfig --del metron-alerts-ui
+
 %changelog
+* Tue Sep 25 2017 Apache Metron <dev@metron.apache.org> - 0.4.2
+- Add Alerts UI
+* Tue Sep 19 2017 Apache Metron <dev@metron.apache.org> - 0.4.2
+- Updated and renamed metron-rest script
+* Tue Aug 29 2017 Apache Metron <dev@metron.apache.org> - 0.4.1
+- Add Metron MaaS service
+* Thu Jun 29 2017 Apache Metron <dev@metron.apache.org> - 0.4.1
+- Add Metron Management jar
+* Thu May 15 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
+- Added Management UI
 * Tue May 9 2017 Apache Metron <dev@metron.apache.org> - 0.4.0
 - Add Zeppelin Connection Volume Report Dashboard
 * Thu May 4 2017 Ryan Merriman <merrimanr@gmail.com> - 0.4.0
@@ -412,7 +525,7 @@ This package installs the Metron Management UI %{metron_home}
 * Thu Jan 19 2017 Justin Leet <justinjleet@gmail.com> - 0.3.1
 - Replace GeoIP files with new implementation
 * Thu Nov 03 2016 David Lyle <dlyle65535@gmail.com> - 0.2.1
-- Add ASA parser/enrichment configuration files 
+- Add ASA parser/enrichment configuration files
 * Thu Jul 21 2016 Michael Miklavcic <michael.miklavcic@gmail.com> - 0.2.1
 - Remove parser flux files
 - Add new enrichment files

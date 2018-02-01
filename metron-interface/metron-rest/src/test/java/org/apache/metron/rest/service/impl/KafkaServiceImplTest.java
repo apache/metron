@@ -17,9 +17,27 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import kafka.admin.AdminOperationException;
 import kafka.admin.AdminUtils$;
 import kafka.admin.RackAwareMode;
@@ -27,6 +45,8 @@ import kafka.utils.ZkUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
@@ -41,25 +61,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mock;
+import org.springframework.kafka.core.ConsumerFactory;
 
 @SuppressWarnings("unchecked")
 @RunWith(PowerMockRunner.class)
@@ -71,6 +73,8 @@ public class KafkaServiceImplTest {
 
   private ZkUtils zkUtils;
   private KafkaConsumer<String, String> kafkaConsumer;
+  private KafkaProducer<String, String> kafkaProducer;
+  private ConsumerFactory<String, String> kafkaConsumerFactory;
   private AdminUtils$ adminUtils;
 
   private KafkaService kafkaService;
@@ -86,10 +90,14 @@ public class KafkaServiceImplTest {
   @Before
   public void setUp() throws Exception {
     zkUtils = mock(ZkUtils.class);
+    kafkaConsumerFactory = mock(ConsumerFactory.class);
     kafkaConsumer = mock(KafkaConsumer.class);
+    kafkaProducer = mock(KafkaProducer.class);
     adminUtils = mock(AdminUtils$.class);
 
-    kafkaService = new KafkaServiceImpl(zkUtils, kafkaConsumer, adminUtils);
+    when(kafkaConsumerFactory.createConsumer()).thenReturn(kafkaConsumer);
+
+    kafkaService = new KafkaServiceImpl(zkUtils, kafkaConsumerFactory, kafkaProducer, adminUtils);
   }
 
   @Test
@@ -104,6 +112,7 @@ public class KafkaServiceImplTest {
 
     verifyZeroInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
+    verify(kafkaConsumer).close();
     verifyNoMoreInteractions(kafkaConsumer, zkUtils, adminUtils);
   }
 
@@ -119,6 +128,7 @@ public class KafkaServiceImplTest {
 
     verifyZeroInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
+    verify(kafkaConsumer).close();
     verifyNoMoreInteractions(kafkaConsumer, zkUtils);
   }
 
@@ -137,6 +147,7 @@ public class KafkaServiceImplTest {
 
     verifyZeroInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
+    verify(kafkaConsumer).close();
     verifyNoMoreInteractions(kafkaConsumer, zkUtils);
   }
 
@@ -156,6 +167,7 @@ public class KafkaServiceImplTest {
 
     verifyZeroInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
+    verify(kafkaConsumer).close();
     verifyNoMoreInteractions(kafkaConsumer, zkUtils);
   }
 
@@ -167,6 +179,7 @@ public class KafkaServiceImplTest {
 
     verifyZeroInteractions(zkUtils);
     verify(kafkaConsumer).listTopics();
+    verify(kafkaConsumer).close();
     verifyNoMoreInteractions(kafkaConsumer, zkUtils);
   }
 
@@ -180,6 +193,7 @@ public class KafkaServiceImplTest {
     assertTrue(kafkaService.deleteTopic("non_existent_topic"));
 
     verify(kafkaConsumer).listTopics();
+    verify(kafkaConsumer).close();
     verify(adminUtils).deleteTopic(zkUtils, "non_existent_topic");
     verifyNoMoreInteractions(kafkaConsumer);
   }
@@ -193,6 +207,7 @@ public class KafkaServiceImplTest {
     assertFalse(kafkaService.deleteTopic("non_existent_topic"));
 
     verify(kafkaConsumer).listTopics();
+    verify(kafkaConsumer).close();
     verifyNoMoreInteractions(kafkaConsumer);
   }
 
@@ -230,21 +245,17 @@ public class KafkaServiceImplTest {
 
     verify(kafkaConsumer).listTopics();
     verify(kafkaConsumer, times(0)).partitionsFor("t");
+    verify(kafkaConsumer).close();
     verifyZeroInteractions(zkUtils);
     verifyNoMoreInteractions(kafkaConsumer);
   }
 
   @Test
   public void createTopicShouldFailIfReplicationFactorIsGreaterThanAvailableBrokers() throws Exception {
-    final Map<String, List<PartitionInfo>> topics = new HashMap<>();
-
-    when(kafkaConsumer.listTopics()).thenReturn(topics);
-
+    exception.expect(RestException.class);
+    doThrow(AdminOperationException.class).when(adminUtils).createTopic(eq(zkUtils), eq("t"), eq(1), eq(2), eq(new Properties()), eq(RackAwareMode.Disabled$.MODULE$));
     kafkaService.createTopic(VALID_KAFKA_TOPIC);
 
-    verify(adminUtils).createTopic(eq(zkUtils), eq("t"), eq(1), eq(2), eq(new Properties()), eq(RackAwareMode.Disabled$.MODULE$));
-    verify(kafkaConsumer).listTopics();
-    verifyZeroInteractions(zkUtils);
   }
 
   @Test
@@ -290,5 +301,17 @@ public class KafkaServiceImplTest {
     verify(kafkaConsumer).seek(topicPartition, 0);
 
     verifyZeroInteractions(zkUtils, adminUtils);
+  }
+
+  @Test
+  public void produceMessageShouldProperlyProduceMessage() throws Exception {
+    final String topicName = "t";
+    final String message = "{\"field\":\"value\"}";
+
+    kafkaService.produceMessage(topicName, message);
+
+    String expectedMessage = "{\"field\":\"value\"}";
+    verify(kafkaProducer).send(new ProducerRecord<>(topicName, expectedMessage));
+    verifyZeroInteractions(kafkaProducer);
   }
 }

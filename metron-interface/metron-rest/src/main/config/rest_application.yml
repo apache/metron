@@ -28,21 +28,21 @@ zookeeper:
 kafka:
   broker:
     url: ${BROKERLIST}
-
-hdfs:
-  namenode:
-    url: ${HDFS_URL}
+  security:
+    protocol: ${KAFKA_SECURITY_PROTOCOL}
+  topics:
+    escalation: ${METRON_ESCALATION_TOPIC}
 
 grok:
   path:
     temp: ${METRON_TEMP_GROK_PATH}
-    default: ${METRON_DEFAULT_GROK_PATH}
 
 storm:
   ui:
     url: ${STORM_REST_URL}
   parser:
     script.path: ${METRON_HOME}/bin/start_parser_topology.sh
+    topology.options: ${PARSER_TOPOLOGY_OPTIONS}
   enrichment:
     script.path: ${METRON_HOME}/bin/start_enrichment_topology.sh
   indexing:

@@ -72,11 +72,11 @@ title: Apache Metron Community
     <tr>
       <td style="text-align: left">Nick Allen</td> <td style="text-align: left">nickallen</td> <td style="text-align: left">PMC</td> </tr>
     <tr>
-      <td style="text-align: left">Michael Miklavcic</td> <td style="text-align: left">mmiklavcic</td> <td style="text-align: left">Committer</td> </tr>
+      <td style="text-align: left">Michael Miklavcic</td> <td style="text-align: left">mmiklavcic</td> <td style="text-align: left">PMC</td> </tr>
     <tr>
-      <td style="text-align: left">Justin Leet</td> <td style="text-align: left">leet</td> <td style="text-align: left">Committer</td> </tr>
+      <td style="text-align: left">Justin Leet</td> <td style="text-align: left">leet</td> <td style="text-align: left">PMC</td> </tr>
     <tr>
-      <td style="text-align: left">Otto Fowler</td> <td style="text-align: left">otto</td> <td style="text-align: left">Committer</td> </tr>
+      <td style="text-align: left">Otto Fowler</td> <td style="text-align: left">otto</td> <td style="text-align: left">PMC</td> </tr>
     <tr>
       <td style="text-align: left">Kyle Richardson</td> <td style="text-align: left">kylerichardson</td> <td style="text-align: left">Committer</td> </tr>
     <tr>
@@ -117,11 +117,11 @@ title: Apache Metron Community
             <h4> General & Public Discussion </h4>
                 [<a href="mailto:user-subscribe@metron.apache.org">Subscribe</a>]
                 [<a href="mailto:user-unsubscribe@metron.apache.org">Unsubscribe</a>]
-                [<a href="http://mail-archives.apache.org/mod_mbox/incubator-metron-user/">Archives</a>]
+                [<a href="http://mail-archives.apache.org/mod_mbox/metron-user/">Archives</a>]
             <h4> Code & Documentation Change </h4>
                 [<a href="mailto:dev-subscribe@metron.apache.org">Subscribe</a>]
                 [<a href="mailto:dev-unsubscribe@metron.apache.org">Unsubscribe</a>]
-                [<a href="http://mail-archives.apache.org/mod_mbox/incubator-metron-dev/">Archives</a>]
+                [<a href="http://mail-archives.apache.org/mod_mbox/metron-dev/">Archives</a>]
         </div>
 </section>
 

@@ -16,7 +16,9 @@
       "stellar" : {
         "config" : {
           "numeric" : {
-                      "foo": "1 + 1"
+                      "map" : "{ 'blah' : 1}"
+                      ,"one" : "MAP_GET('blah', map)"
+                      ,"foo": "1 + 1"
                       }
           ,"ALL_CAPS" : "TO_UPPER(source.type)"
           ,"src_enrichment" : {
@@ -24,6 +26,8 @@
           }
           ,"dst_enrichment" : {
             "dst_classification" : "ENRICHMENT_GET('playful_classification', ip_dst_addr, 'enrichments', 'cf')"
+          },"error_test" : {
+            "error_test": "1/0"
           }
         }
       }

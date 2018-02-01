@@ -17,28 +17,27 @@
  */
 package org.apache.metron.parsers.bolt;
 
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.*;
 
 import org.apache.metron.common.error.MetronError;
+import org.apache.metron.common.zookeeper.configurations.ConfigurationsUpdater;
 import org.apache.metron.test.error.MetronErrorJSONMatcher;
-import org.apache.metron.test.utils.UnitTestHelper;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import com.google.common.collect.ImmutableList;
 import org.apache.metron.common.configuration.writer.ParserWriterConfiguration;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.apache.metron.common.dsl.Context;
+import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.configuration.ParserConfigurations;
 import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.parsers.BasicParser;
-import org.apache.metron.parsers.csv.CSVParser;
 import org.apache.metron.test.bolt.BaseBoltTest;
 import org.apache.metron.parsers.interfaces.MessageFilter;
 import org.apache.metron.parsers.interfaces.MessageParser;
@@ -49,7 +48,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -119,13 +117,35 @@ public class ParserBoltTest extends BaseBoltTest {
     }
   }
 
-
-  @Test
-  public void testEmpty() throws Exception {
-    String sensorType = "yaf";
-    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(writer)) {
+  private static ConfigurationsUpdater<ParserConfigurations> createUpdater() {
+    return new ConfigurationsUpdater<ParserConfigurations>(null, null) {
       @Override
-      protected ParserConfigurations defaultConfigurations() {
+      public void update(CuratorFramework client, String path, byte[] data) throws IOException { }
+
+      @Override
+      public void delete(CuratorFramework client, String path, byte[] data) throws IOException { }
+
+      @Override
+      public ConfigurationType getType() {
+        return ConfigurationType.PARSER;
+      }
+
+      @Override
+      public void update(String name, byte[] data) throws IOException { }
+
+      @Override
+      public void delete(String name) { }
+
+      @Override
+      public Class<ParserConfigurations> getConfigurationClass() {
+        return ParserConfigurations.class;
+      }
+
+      @Override
+      public void forceUpdate(CuratorFramework client) { }
+
+      @Override
+      public ParserConfigurations defaultConfigurations() {
         return new ParserConfigurations() {
           @Override
           public SensorParserConfig getSensorParserConfig(String sensorType) {
@@ -139,11 +159,22 @@ public class ParserBoltTest extends BaseBoltTest {
           }
         };
       }
+    };
+  }
 
+
+  @Test
+  public void testEmpty() throws Exception {
+    String sensorType = "yaf";
+    ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(writer)) {
+      @Override
+      protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
+        return ParserBoltTest.createUpdater();
+      }
     };
 
     parserBolt.setCuratorFramework(client);
-    parserBolt.setTreeCache(cache);
+    parserBolt.setZKCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(parser, times(1)).init();
     verify(writer, times(1)).init();
@@ -169,28 +200,15 @@ public class ParserBoltTest extends BaseBoltTest {
     String sensorType = "yaf";
     ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(writer)) {
       @Override
-      protected ParserConfigurations defaultConfigurations() {
-        return new ParserConfigurations() {
-          @Override
-          public SensorParserConfig getSensorParserConfig(String sensorType) {
-            return new SensorParserConfig() {
-              @Override
-              public Map<String, Object> getParserConfig() {
-                return new HashMap<String, Object>() {{
-                }};
-              }
-
-
-            };
-          }
-        };
+      protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
+        return ParserBoltTest.createUpdater();
       }
     };
 
     buildGlobalConfig(parserBolt);
 
     parserBolt.setCuratorFramework(client);
-    parserBolt.setTreeCache(cache);
+    parserBolt.setZKCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     byte[] sampleBinary = "some binary message".getBytes();
 
@@ -222,23 +240,13 @@ public class ParserBoltTest extends BaseBoltTest {
     String sensorType = "yaf";
     ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(writer)) {
       @Override
-      protected ParserConfigurations defaultConfigurations() {
-        return new ParserConfigurations() {
-          @Override
-          public SensorParserConfig getSensorParserConfig(String sensorType) {
-            return new SensorParserConfig() {
-              @Override
-              public Map<String, Object> getParserConfig() {
-                return new HashMap<String, Object>() {{
-                }};
-              }
-            };
-          }
-        };
+      protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
+        return ParserBoltTest.createUpdater();
       }
+
     };
     parserBolt.setCuratorFramework(client);
-    parserBolt.setTreeCache(cache);
+    parserBolt.setZKCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(parser, times(1)).init();
     verify(writer, times(1)).init();
@@ -278,24 +286,13 @@ public void testImplicitBatchOfOne() throws Exception {
 
   ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
     @Override
-    protected ParserConfigurations defaultConfigurations() {
-      return new ParserConfigurations() {
-        @Override
-        public SensorParserConfig getSensorParserConfig(String sensorType) {
-          return new SensorParserConfig() {
-            @Override
-            public Map<String, Object> getParserConfig() {
-              return new HashMap<String, Object>() {{
-              }};
-            }
-          };
-        }
-      };
+    protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
+      return ParserBoltTest.createUpdater();
     }
   };
 
   parserBolt.setCuratorFramework(client);
-  parserBolt.setTreeCache(cache);
+  parserBolt.setZKCache(cache);
   parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
   verify(parser, times(1)).init();
   verify(batchWriter, times(1)).init(any(), any(), any());
@@ -338,10 +335,14 @@ public void testImplicitBatchOfOne() throws Exception {
           throw new RuntimeException(e);
         }
       }
+      @Override
+      protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
+        return ParserBoltTest.createUpdater();
+      }
     };
 
     parserBolt.setCuratorFramework(client);
-    parserBolt.setTreeCache(cache);
+    parserBolt.setZKCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(parser, times(1)).init();
     verify(batchWriter, times(1)).init(any(), any(), any());
@@ -375,10 +376,15 @@ public void testImplicitBatchOfOne() throws Exception {
           throw new RuntimeException(e);
         }
       }
+
+      @Override
+      protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
+        return ParserBoltTest.createUpdater();
+      }
     };
 
     parserBolt.setCuratorFramework(client);
-    parserBolt.setTreeCache(cache);
+    parserBolt.setZKCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(parser, times(1)).init();
     verify(batchWriter, times(1)).init(any(), any(), any());
@@ -444,10 +450,15 @@ public void testImplicitBatchOfOne() throws Exception {
           throw new RuntimeException(e);
         }
       }
+
+      @Override
+      protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
+        return ParserBoltTest.createUpdater();
+      }
     };
 
     parserBolt.setCuratorFramework(client);
-    parserBolt.setTreeCache(cache);
+    parserBolt.setZKCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     when(t1.getBinary(0)).thenReturn(new byte[] {});
     parserBolt.execute(t1);
@@ -463,25 +474,13 @@ public void testImplicitBatchOfOne() throws Exception {
 
     ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
       @Override
-      protected ParserConfigurations defaultConfigurations() {
-        return new ParserConfigurations() {
-          @Override
-          public SensorParserConfig getSensorParserConfig(String sensorType) {
-            return new SensorParserConfig() {
-              @Override
-              public Map<String, Object> getParserConfig() {
-                return new HashMap<String, Object>() {{
-                  put(IndexingConfigurations.BATCH_SIZE_CONF, "1");
-                }};
-              }
-            };
-          }
-        };
+      protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
+        return ParserBoltTest.createUpdater();
       }
     };
 
     parserBolt.setCuratorFramework(client);
-    parserBolt.setTreeCache(cache);
+    parserBolt.setZKCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(parser, times(1)).init();
     verify(batchWriter, times(1)).init(any(), any(), any());
@@ -502,25 +501,13 @@ public void testImplicitBatchOfOne() throws Exception {
 
     ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
       @Override
-      protected ParserConfigurations defaultConfigurations() {
-        return new ParserConfigurations() {
-          @Override
-          public SensorParserConfig getSensorParserConfig(String sensorType) {
-            return new SensorParserConfig() {
-              @Override
-              public Map<String, Object> getParserConfig() {
-                return new HashMap<String, Object>() {{
-                  put(IndexingConfigurations.BATCH_SIZE_CONF, 5);
-                }};
-              }
-            };
-          }
-        };
+      protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
+        return ParserBoltTest.createUpdater();
       }
     };
 
     parserBolt.setCuratorFramework(client);
-    parserBolt.setTreeCache(cache);
+    parserBolt.setZKCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(parser, times(1)).init();
     verify(batchWriter, times(1)).init(any(), any(), any());
@@ -545,31 +532,20 @@ public void testImplicitBatchOfOne() throws Exception {
 
 
   }
+
   @Test
   public void testBatchOfFiveWithError() throws Exception {
 
     String sensorType = "yaf";
     ParserBolt parserBolt = new ParserBolt("zookeeperUrl", sensorType, parser, new WriterHandler(batchWriter)) {
       @Override
-      protected ParserConfigurations defaultConfigurations() {
-        return new ParserConfigurations() {
-          @Override
-          public SensorParserConfig getSensorParserConfig(String sensorType) {
-            return new SensorParserConfig() {
-              @Override
-              public Map<String, Object> getParserConfig() {
-                return new HashMap<String, Object>() {{
-                  put(IndexingConfigurations.BATCH_SIZE_CONF, 5);
-                }};
-              }
-            };
-          }
-        };
+      protected ConfigurationsUpdater<ParserConfigurations> createUpdater() {
+        return ParserBoltTest.createUpdater();
       }
     };
 
     parserBolt.setCuratorFramework(client);
-    parserBolt.setTreeCache(cache);
+    parserBolt.setZKCache(cache);
     parserBolt.prepare(new HashMap(), topologyContext, outputCollector);
     verify(parser, times(1)).init();
     verify(batchWriter, times(1)).init(any(), any(), any());

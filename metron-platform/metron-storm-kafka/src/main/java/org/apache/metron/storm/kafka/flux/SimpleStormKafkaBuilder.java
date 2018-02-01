@@ -19,6 +19,7 @@
 package org.apache.metron.storm.kafka.flux;
 
 import com.google.common.base.Joiner;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -32,8 +33,10 @@ import org.apache.storm.topology.OutputFieldsGetter;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 /**
  * This is a convenience layer on top of the KafkaSpoutConfig.Builder available in storm-kafka-client.
@@ -64,10 +67,14 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
       this.fieldName = fieldName;
     }
 
+    public String getFieldName() {
+      return fieldName;
+    }
+
     /**
      * Return a list of the enums
      * @param configs
-     * @return
+     * @return ret a list of enums
      */
     public static List<FieldsConfiguration> toList(String... configs) {
       List<FieldsConfiguration> ret = new ArrayList<>();
@@ -80,7 +87,7 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
     /**
      * Return a list of the enums from their string representation.
      * @param configs
-     * @return
+     * @return ret a list of enums from string representation
      */
     public static List<FieldsConfiguration> toList(List<String> configs) {
       List<FieldsConfiguration> ret = new ArrayList<>();
@@ -94,7 +101,7 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
      * Construct a Fields object from an iterable of enums.  These fields are the fields
      * exposed in the Storm tuple emitted from the spout.
      * @param configs
-     * @return
+     * @return Fields object from enums iterable
      */
     public static Fields getFields(Iterable<FieldsConfiguration> configs) {
       List<String> fields = new ArrayList<>();
@@ -147,12 +154,11 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
 
   public static String DEFAULT_DESERIALIZER = ByteArrayDeserializer.class.getName();
 
-  private String topic;
 
   /**
    * Create an object with the specified properties.  This will expose fields "key" and "value."
    * @param kafkaProps The special kafka properties
-   * @param topic The kafka topic. TODO: In the future, support multiple topics and regex patterns.
+   * @param topic The kafka topic.
    * @param zkQuorum The zookeeper quorum.  We will use this to pull the brokers from this.
    */
   public SimpleStormKafkaBuilder( Map<String, Object> kafkaProps
@@ -176,15 +182,49 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
                                 , List<String> fieldsConfiguration
                                 )
   {
+    this(kafkaProps, toSubscription(topic), zkQuorum, fieldsConfiguration);
+  }
+
+  /**
+   * Create an object with the specified properties and exposing the specified fields.
+   * @param kafkaProps The special kafka properties
+   * @param subscription The subscription to the kafka topic(s)
+   * @param zkQuorum The zookeeper quorum.  We will use this to pull the brokers from this.
+   * @param fieldsConfiguration The fields to expose in the storm tuple emitted.
+   */
+  public SimpleStormKafkaBuilder( Map<String, Object> kafkaProps
+                                , Subscription subscription
+                                , String zkQuorum
+                                , List<String> fieldsConfiguration
+                                )
+  {
     super( getBootstrapServers(zkQuorum, kafkaProps)
          , createDeserializer(Optional.ofNullable((String)kafkaProps.get(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG)), DEFAULT_DESERIALIZER)
          , createDeserializer(Optional.ofNullable((String)kafkaProps.get(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG)), DEFAULT_DESERIALIZER)
-         , topic
+         , subscription
     );
+
+    kafkaProps = KafkaUtils.INSTANCE.normalizeProtocol(kafkaProps);
     setProp(kafkaProps);
     setRecordTranslator(new SpoutRecordTranslator<>(FieldsConfiguration.toList(fieldsConfiguration)));
-    this.topic = topic;
   }
+
+
+  private static Subscription toSubscription(String topicOrSubscription) {
+    if (StringUtils.isEmpty(topicOrSubscription)) {
+      throw new IllegalArgumentException("Topic name is invalid (empty or null): " + topicOrSubscription);
+    }
+    int length = topicOrSubscription.length();
+    if(topicOrSubscription.charAt(0) == '/' && topicOrSubscription.charAt(length - 1) == '/') {
+      //pattern, so strip off the preceding and ending slashes
+      String substr = topicOrSubscription.substring(1, length - 1);
+      return new PatternSubscription(Pattern.compile(substr));
+    }
+    else {
+      return new NamedSubscription(topicOrSubscription);
+    }
+  }
+
 
   private static <T> Class<Deserializer<T>> createDeserializer( Optional<String> deserializerClass
                                                 , String defaultDeserializerClass
@@ -210,21 +250,13 @@ public class SimpleStormKafkaBuilder<K, V> extends KafkaSpoutConfig.Builder<K, V
   }
 
   /**
-   * Get the kafka topic.  TODO: In the future, support multiple topics and regex patterns.
-   * @return
-   */
-  public String getTopic() {
-    return topic;
-  }
-
-  /**
    * Create a StormKafkaSpout from a given topic, zookeeper quorum and fields.  Also, configure the spout
    * using a Map that configures both kafka as well as the spout (see the properties in SpoutConfiguration).
    * @param topic
    * @param zkQuorum
    * @param fieldsConfiguration
    * @param kafkaProps  The aforementioned map.
-   * @return
+   * @return StormKafkaSpout from a given topic, zk quorum and fields
    */
   public static <K, V> StormKafkaSpout<K, V> create( String topic
                                                    , String zkQuorum

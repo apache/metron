@@ -18,22 +18,22 @@
 
 package org.apache.metron.common.utils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.kafka.common.protocol.SecurityProtocol;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public enum KafkaUtils {
   INSTANCE;
+  public static final String SECURITY_PROTOCOL = "security.protocol";
   public List<String> getBrokersFromZookeeper(String zkQuorum) throws Exception {
     RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
     CuratorFramework framework = CuratorFrameworkFactory.newClient(zkQuorum, retryPolicy);
@@ -44,13 +44,13 @@ public enum KafkaUtils {
       framework.close();
     }
   }
+
   public List<String> getBrokersFromZookeeper(CuratorFramework client) throws Exception {
     List<String> ret = new ArrayList<>();
     for(String id : client.getChildren().forPath("/brokers/ids")) {
       byte[] data = client.getData().forPath("/brokers/ids/" + id);
       String brokerInfoStr = new String(data);
-      Map<String, Object> brokerInfo = JSONUtils.INSTANCE.load(brokerInfoStr, new TypeReference<Map<String, Object>>() {
-      });
+      Map<String, Object> brokerInfo = JSONUtils.INSTANCE.load(brokerInfoStr, JSONUtils.MAP_SUPPLIER);
       String host = (String) brokerInfo.get("host");
       if(host != null) {
         ret.add(host + ":" + brokerInfo.get("port"));
@@ -68,12 +68,43 @@ public enum KafkaUtils {
     return ret;
   }
 
-  public List<String> fromEndpoint(String url) throws URISyntaxException {
+  public Map<String, Object> normalizeProtocol(Map<String, Object> configs) {
+    if(configs.containsKey(SECURITY_PROTOCOL)) {
+      String protocol = normalizeProtocol((String)configs.get(SECURITY_PROTOCOL));
+      configs.put(SECURITY_PROTOCOL, protocol);
+    }
+    return configs;
+  }
+
+  public String normalizeProtocol(String protocol) {
+    if(protocol.equalsIgnoreCase("PLAINTEXTSASL") || protocol.equalsIgnoreCase("SASL_PLAINTEXT")) {
+      if(SecurityProtocol.getNames().contains("PLAINTEXTSASL")) {
+        return "PLAINTEXTSASL";
+      }
+      else if(SecurityProtocol.getNames().contains("SASL_PLAINTEXT")) {
+        return "SASL_PLAINTEXT";
+      }
+      else {
+        throw new IllegalStateException("Unable to find the appropriate SASL protocol, " +
+                "viable options are: " + Joiner.on(",").join(SecurityProtocol.getNames()));
+      }
+    }
+    else {
+      return protocol.trim();
+    }
+  }
+  /*
+  The URL accepted is NOT a general URL, and is assumed to follow the format used by the Kafka structures in Zookeeper.
+  See: https://cwiki.apache.org/confluence/display/KAFKA/Kafka+data+structures+in+Zookeeper
+   */
+  List<String> fromEndpoint(String url){
     List<String> ret = new ArrayList<>();
     if(url != null) {
-      URI uri = new URI(url);
-      int port = uri.getPort();
-      ret.add(uri.getHost() + ((port > 0)?(":" + port):""));
+      Iterable<String> splits = Splitter.on("//").split(url);
+      if(Iterables.size(splits) == 2) {
+        String hostPort = Iterables.getLast(splits);
+        ret.add(hostPort);
+      }
     }
     return ret;
   }

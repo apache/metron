@@ -3,7 +3,7 @@ highlighter: rouge
 permalink: /news/:year/:month/:day/:title/
 excerpt_separator: ""
 
-repository: https://github.com/apache/incubator-metron
+repository: https://github.com/apache/metron
 destination: target
 exclude: [BUILD.md, Gemfile*]
 keep_files: [.git]

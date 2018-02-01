@@ -65,7 +65,7 @@ public class HBaseProjectionCriteria implements Serializable {
   /**
    * all columns from this family will be included as result of HBase lookup.
    * @param columnFamily
-   * @return
+   * @return column family along with all of its columns from an HBase lookup
    */
   public HBaseProjectionCriteria addColumnFamily(String columnFamily) {
     this.columnFamilies.add(columnFamily.getBytes());
@@ -75,7 +75,7 @@ public class HBaseProjectionCriteria implements Serializable {
   /**
    * Only this column from the the columnFamily will be included as result of HBase lookup.
    * @param column
-   * @return
+   * @return a particular column from a column family as part of an HBase lookup
    */
   public HBaseProjectionCriteria addColumn(ColumnMetaData column) {
     this.columns.add(column);

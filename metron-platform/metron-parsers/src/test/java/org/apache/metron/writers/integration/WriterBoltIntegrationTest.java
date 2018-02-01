@@ -17,14 +17,13 @@
  */
 package org.apache.metron.writers.integration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.SensorParserConfig;
-import org.apache.metron.common.dsl.Context;
+import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.common.field.validation.FieldValidation;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.integration.components.ConfigUploadComponent;
@@ -37,7 +36,6 @@ import org.apache.metron.parsers.csv.CSVParser;
 import org.apache.metron.parsers.integration.components.ParserTopologyComponent;
 import org.apache.metron.test.utils.UnitTestHelper;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -172,7 +170,7 @@ public class WriterBoltIntegrationTest extends BaseIntegrationTest {
                     , message -> {
                       try {
                         return new JSONObject(JSONUtils.INSTANCE.load(new String(message)
-                                             , new TypeReference<Map<String, Object>>() {}
+                                             ,JSONUtils.MAP_SUPPLIER 
                                              )
                         );
                       } catch (Exception ex) {

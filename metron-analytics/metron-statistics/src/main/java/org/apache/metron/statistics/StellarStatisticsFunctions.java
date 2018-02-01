@@ -21,15 +21,14 @@
 package org.apache.metron.statistics;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.metron.common.dsl.BaseStellarFunction;
-import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.stellar.dsl.BaseStellarFunction;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.apache.metron.common.utils.ConversionUtils.convert;
+import static org.apache.metron.stellar.common.utils.ConversionUtils.convert;
 
 /**
  * Provides Stellar functions that can calculate summary statistics on
@@ -126,7 +125,7 @@ public class StellarStatisticsFunctions {
           , description = "Adds one or more input values to those that are used to calculate the summary statistics."
           , params = {
                       "stats - The Stellar statistics object.  If null, then a new one is initialized."
-                     , "value+ - One or more numbers to add"
+                     , "value+ - One or more items to add. Each item may be a number or a list of numbers. If an item is a list, each number in the list will be added."
                      }
           , returns = "A Stellar statistics object"
           )
@@ -142,8 +141,21 @@ public class StellarStatisticsFunctions {
 
       // add each of the numeric values
       for(int i=1; i<args.size(); i++) {
-        double value = convert(args.get(i), Double.class);
-        stats.addValue(value);
+        Object n = args.get(i);
+        if( n != null) {
+          if(n instanceof Iterable) {
+            for(Object num : (Iterable<Object>)n) {
+              if(num != null) {
+                Double value = convert(num, Double.class);
+                stats.addValue(value);
+              }
+            }
+          }
+          else {
+            Double value = convert(args.get(i), Double.class);
+            stats.addValue(value);
+          }
+        }
       }
 
       return stats;
@@ -477,7 +489,7 @@ public class StellarStatisticsFunctions {
       if (stats == null || value == null || bins.size() == 0) {
         return -1;
       }
-      return MathFunctions.Bin.getBin(value, bins.size(), bin -> stats.getPercentile(bins.get(bin).doubleValue()));
+      return BinFunctions.Bin.getBin(value, bins.size(), bin -> stats.getPercentile(bins.get(bin).doubleValue()));
     }
   }
 

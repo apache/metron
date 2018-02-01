@@ -1,0 +1,107 @@
+<!--
+  Licensed to the Apache Software
+	Foundation (ASF) under one or more contributor license agreements. See the
+	NOTICE file distributed with this work for additional information regarding
+	copyright ownership. The ASF licenses this file to You under the Apache License,
+	Version 2.0 (the "License"); you may not use this file except in compliance
+	with the License. You may obtain a copy of the License at
+  http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the License.
+  -->
+<div class="container-fluid px-0">
+    <div class="mrow">
+        <div class="col-md-12 px-0">
+            <div class="col-padding-50">
+                <div class="input-group search">
+                    <span class="input-group-btn">
+                        <button class="btn btn-secondary btn-saved-searches" type="button" (click)="showSavedSearches()">Searches</button>
+                    </span>
+                    <div appAceEditor style="width:100%;" placeholder="Search Alerts" [text]="queryBuilder.displayQuery" (textChanged)="onSearch($event)"> </div>
+                    <span class="input-group-btn">
+                        <button class="btn btn-secondary btn-search-clear" type="button" (click)="onClear()"></button>
+                    </span>
+                    <span class="input-group-btn">
+                        <app-time-range (timeRangeChange)="onTimeRangeChange($event)" [disabled]="timeStampfilterPresent" [selectedTimeRange]="selectedTimeRange"> </app-time-range>
+                    </span>
+                    <span class="input-group-btn">
+                        <button class="btn btn-secondary btn-search" type="button" data-name="search" (click)="onSearch(alertSearchDirective.getSeacrhText())"></button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="col-fixed-50">
+            <span class="save-button" (click)="showSaveSearch()">
+            </span>
+        </div>
+    </div>
+    <div class="mrow">
+        <div class="col-md-9 px-0">
+            <span class="col-form-label-lg"> Alerts ({{searchResponse.total}}) </span>
+        </div>
+        <div class="col-md-3 px-0">
+            <div class="pull-right" style="position: relative; display: block;">
+                <div class="btn cog">
+                    <i class="fa fa-cog configure-table-icon" (click)="showConfigureTable()"></i>
+                </div>
+                <div class="btn settings">
+                    <i #settingsIcon class="fa fa-sliders" aria-hidden="true"></i>
+                </div>
+                <app-configure-rows [srcElement]="settingsIcon" [tableMetaData]="tableMetaData" [(interval)]="refreshInterval" [(size)]="tableMetaData.size" (configRowsChange)="onConfigRowsChange()" > </app-configure-rows>
+                <div class="btn  pause-play" (click)="onPausePlay()">
+                    <i *ngIf="!pauseRefresh" class="fa fa-pause" aria-hidden="true"></i>
+                    <i *ngIf="pauseRefresh" class="fa fa-play" aria-hidden="true"></i>
+                </div>
+                <div class="dropdown d-inline-block">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">ACTIONS</button>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processOpen()">Open</span>
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processDismiss()">Dismiss</span>
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processEscalate()">Escalate</span>
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0" (click)="processResolve()">Resolve</span>
+                        <span class="dropdown-item" [class.disabled]="selectedAlerts.length == 0 || isMetaAlertPresentInSelectedAlerts" (click)="processAddToAlert()">Add to Alert</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid no-gutters">
+    <div class="row">
+      <div class="px-0" style="width: 200px;max-width: 200px;">
+        <app-alert-filters [facets]="searchResponse.facetCounts" (facetFilterChange)="onAddFacetFilter($event)"> </app-alert-filters>
+      </div>
+      <div class="col px-0 ml-4">
+        <div class="col-xs-12 pl-0 pb-3">
+          <app-group-by [facets]="groupFacets" (groupsChange)="onGroupsChange($event)"> </app-group-by>
+        </div>
+        <div class="col-xs-12 px-0">
+            <app-table-view #dataViewComponent
+                            [alerts]="alerts" *ngIf="queryBuilder.groupRequest.groups.length === 0"
+                            [queryBuilder]="queryBuilder"
+                            [pagination]="pagination"
+                            [alertsColumnsToDisplay]="alertsColumnsToDisplay"
+                            [selectedAlerts]="selectedAlerts"
+                            (onResize)="onResize()"
+                            (onAddFilter)="onAddFilter($event)"
+                            (onRefreshData)="onRefreshData($event)"
+                            (onShowDetails)="showDetails($event)"
+                            (onSelectedAlertsChange)="onSelectedAlertsChange($event)"></app-table-view>
+            <app-tree-view #dataViewComponent *ngIf="queryBuilder.groupRequest.groups.length !== 0"
+                           [alerts]="alerts"
+                           [queryBuilder]="queryBuilder"
+                           [alertsColumnsToDisplay]="alertsColumnsToDisplay"
+                           [selectedAlerts]="selectedAlerts"
+                           (onResize)="onResize()"
+                           (onAddFilter)="onAddFilter($event)"
+                           (onRefreshData)="onRefreshData($event)"
+                           (onShowDetails)="showDetails($event)"
+                           (onSelectedAlertsChange)="onSelectedAlertsChange($event)"></app-tree-view>
+        </div>
+    </div>
+  </div>
+</div>
+

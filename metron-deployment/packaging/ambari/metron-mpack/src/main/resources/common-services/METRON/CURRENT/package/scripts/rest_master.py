@@ -23,8 +23,8 @@ from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import File
 from resource_management.core.source import Template
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 from resource_management.libraries.script import Script
-from resource_management.core.resources.system import Execute
 
 from rest_commands import RestCommands
 
@@ -38,15 +38,13 @@ class RestMaster(Script):
 
     def configure(self, env, upgrade_type=None, config_dir=None):
         from params import params
-        if params.security_enabled:
-            params.metron_jvm_flags = format('-Djava.security.auth.login.config={client_jaas_path}')
-
         env.set_params(params)
-        File(format("/etc/sysconfig/metron"),
+        File(format("/etc/default/metron"),
              content=Template("metron.j2")
              )
 
         commands = RestCommands(params)
+        commands.init_kafka_topics()
         if params.security_enabled and not commands.is_acl_configured():
             commands.init_kafka_acls()
             commands.set_acl_configured()
@@ -65,9 +63,11 @@ class RestMaster(Script):
         commands.stop_rest_application()
 
     def status(self, env):
-        status_cmd = format('service metron-rest status')
+        from params import status_params
+        env.set_params(status_params)
+        cmd = format('curl --max-time 3 {hostname}:{metron_rest_port}')
         try:
-            Execute(status_cmd)
+            get_user_call_output(cmd, user=status_params.metron_user)
         except ExecutionFailed:
             raise ComponentIsNotRunning()
 

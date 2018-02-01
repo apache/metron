@@ -31,7 +31,7 @@ public class ModelRequest {
 
   /**
    * The path in the model store (right now HDFS) for the directory containing model's bits.
-   * @return
+   * @return path
    */
   public String getPath() {
     return path;
@@ -43,7 +43,7 @@ public class ModelRequest {
 
   /**
    * The action to perform
-   * @return
+   * @return action
    */
   public Action getAction() {
     return action;
@@ -55,7 +55,7 @@ public class ModelRequest {
 
   /**
    * The name of the model
-   * @return
+   * @return name
    */
   public String getName() {
     return name;
@@ -67,7 +67,7 @@ public class ModelRequest {
 
   /**
    * The version of the model
-   * @return
+   * @return version
    */
   public String getVersion() {
     return version;
@@ -79,7 +79,7 @@ public class ModelRequest {
 
   /**
    * The number of instances of the model to start
-   * @return
+   * @return numInstances
    */
   public int getNumInstances() {
     return numInstances;
@@ -91,7 +91,7 @@ public class ModelRequest {
 
   /**
    * The amount of memory for the containers holding the model in megabytes
-   * @return
+   * @return memory
    */
   public int getMemory() {
     return memory;

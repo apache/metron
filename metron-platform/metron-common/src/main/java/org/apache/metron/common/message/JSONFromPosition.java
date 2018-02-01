@@ -17,6 +17,7 @@
  */
 package org.apache.metron.common.message;
 
+import org.apache.commons.io.Charsets;
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -40,10 +41,12 @@ public class JSONFromPosition implements MessageGetStrategy {
 
   @Override
   public JSONObject get(Tuple tuple) {
+    String s = null;
     try {
-      return (JSONObject) parser.get().parse(new String(tuple.getBinary(position), "UTF8"));
+      s =  new String(tuple.getBinary(position), Charsets.UTF_8);
+      return (JSONObject) parser.get().parse(s);
     } catch (Exception e) {
-      throw new IllegalStateException(e.getMessage(), e);
+      throw new IllegalStateException("Unable to parse " + s + " due to " + e.getMessage(), e);
     }
   }
 }

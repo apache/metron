@@ -17,11 +17,15 @@
  */
 package org.apache.metron.rest.config;
 
+import static org.apache.metron.rest.MetronRestConstants.SECURITY_ROLE_ADMIN;
+import static org.apache.metron.rest.MetronRestConstants.SECURITY_ROLE_USER;
+
 import org.apache.metron.rest.MetronRestConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -29,6 +33,7 @@ import org.springframework.security.web.authentication.logout.HttpStatusReturnin
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.sql.DataSource;
 import java.util.Arrays;
@@ -36,13 +41,14 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(securedEnabled = true)
 @Controller
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private Environment environment;
 
-    @RequestMapping({"/login", "/logout", "/sensors", "/sensors*/**"})
+    @RequestMapping(value = {"/login", "/logout", "/sensors", "/sensors*/**"}, method = RequestMethod.GET)
     public String handleNGRequests() {
         return "forward:/index.html";
     }
@@ -82,10 +88,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         if (activeProfiles.contains(MetronRestConstants.DEV_PROFILE) ||
                 activeProfiles.contains(MetronRestConstants.TEST_PROFILE)) {
             auth.jdbcAuthentication().dataSource(dataSource)
-                    .withUser("user").password("password").roles("USER").and()
-                    .withUser("user1").password("password").roles("USER").and()
-                    .withUser("user2").password("password").roles("USER").and()
-                    .withUser("admin").password("password").roles("USER", "ADMIN");
+                    .withUser("user").password("password").roles(SECURITY_ROLE_USER).and()
+                    .withUser("user1").password("password").roles(SECURITY_ROLE_USER).and()
+                    .withUser("user2").password("password").roles(SECURITY_ROLE_USER).and()
+                    .withUser("admin").password("password").roles(SECURITY_ROLE_USER, SECURITY_ROLE_ADMIN);
         } else {
             auth.jdbcAuthentication().dataSource(dataSource);
         }

@@ -19,25 +19,24 @@
  */
 package org.apache.metron.profiler.client.stellar;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.utils.ConversionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static java.lang.String.format;
+import static org.apache.metron.stellar.dsl.Context.Capabilities.GLOBAL_CONFIG;
 
-import java.util.Collections;
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.lang.String.format;
-import static org.apache.metron.common.dsl.Context.Capabilities.GLOBAL_CONFIG;
+import org.apache.commons.lang.StringUtils;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Util {
-  private static final Logger LOG = LoggerFactory.getLogger(Util.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * Ensure that the required capabilities are defined.
@@ -83,7 +82,7 @@ public class Util {
     Map<String, Object> result = new HashMap<>(6);
 
     // extract the relevant parameters from global, the overrides and the defaults
-    for (ProfilerConfig k : ProfilerConfig.values()) {
+    for (ProfilerClientConfig k : ProfilerClientConfig.values()) {
       Object globalValue = global.containsKey(k.key)?ConversionUtils.convert(global.get(k.key), k.valueType):null;
       Object overrideValue = configOverridesMap == null?null:k.getOrDefault(configOverridesMap, null);
       Object defaultValue = k.defaultValue;

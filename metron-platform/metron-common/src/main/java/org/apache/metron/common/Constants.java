@@ -24,6 +24,7 @@ import java.util.Map;
 
 public class Constants {
 
+  public static final String METADATA_PREFIX = "metron.metadata.";
   public static final String ZOOKEEPER_ROOT = "/metron";
   public static final String ZOOKEEPER_TOPOLOGY_ROOT = ZOOKEEPER_ROOT + "/topology";
   public static final long DEFAULT_CONFIGURED_BOLT_TIMEOUT = 5000;
@@ -31,6 +32,7 @@ public class Constants {
   public static final String ENRICHMENT_TOPIC = "enrichments";
   public static final String INDEXING_TOPIC = "indexing";
   public static final String ERROR_STREAM = "error";
+  public static final String ERROR_TYPE = "error";
   public static final String SIMPLE_HBASE_ENRICHMENT = "hbaseEnrichment";
   public static final String SIMPLE_HBASE_THREAT_INTEL = "hbaseThreatIntel";
   public static final String GUID = "guid";

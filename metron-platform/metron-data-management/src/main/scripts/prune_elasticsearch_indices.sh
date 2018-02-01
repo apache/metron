@@ -17,5 +17,6 @@
 # limitations under the License.
 #
 
-yarn jar /usr/metron/${project.version}/lib/${project.artifactId}-${project.version}.jar org.apache.metron.dataloads.bulk.ElasticsearchDataPrunerRunner "$@"
+echo "The Metron Elasticsearch data pruner has been deprecated in favor of the Curator framework."
+echo "See https://www.elastic.co/guide/en/elasticsearch/client/curator/5.4/index.html"
 

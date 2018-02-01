@@ -27,6 +27,7 @@ import metron_service
 import metron_security
 
 class Enrichment(Script):
+
     def install(self, env):
         from params import params
         env.set_params(params)
@@ -43,6 +44,11 @@ class Enrichment(Script):
              group=params.metron_group
              )
 
+        if not metron_service.is_zk_configured(params):
+          metron_service.init_zk_config(params)
+          metron_service.set_zk_configured(params)
+        metron_service.refresh_configs(params)
+
         Logger.info("Calling security setup")
         storm_security_setup(params)
 
@@ -58,8 +64,6 @@ class Enrichment(Script):
                                   params.metron_principal_name,
                                   execute_user=params.metron_user)
 
-        metron_service.load_global_config(params)
-
         if not commands.is_kafka_configured():
             commands.init_kafka_topics()
         if params.security_enabled and not commands.is_kafka_acl_configured():
@@ -71,7 +75,7 @@ class Enrichment(Script):
         if not commands.is_geo_configured():
             commands.init_geo()
 
-        commands.start_enrichment_topology()
+        commands.start_enrichment_topology(env)
 
     def stop(self, env, upgrade_type=None):
         from params import params
@@ -85,7 +89,7 @@ class Enrichment(Script):
                                   params.metron_principal_name,
                                   execute_user=params.metron_user)
 
-        commands.stop_enrichment_topology()
+        commands.stop_enrichment_topology(env)
 
     def status(self, env):
         from params import status_params
@@ -98,13 +102,13 @@ class Enrichment(Script):
                                   status_params.metron_principal_name,
                                   execute_user=status_params.metron_user)
 
-
         if not commands.is_topology_active(env):
             raise ComponentIsNotRunning()
 
     def restart(self, env):
         from params import params
         env.set_params(params)
+        self.configure(env)
         commands = EnrichmentCommands(params)
         commands.restart_enrichment_topology(env)
 

@@ -26,10 +26,10 @@ import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.enrichment.integration.mock.MockTableProvider;
 import org.apache.metron.enrichment.lookup.LookupKV;
-import org.apache.metron.test.mock.MockHTable;
 import org.apache.metron.enrichment.writer.SimpleHbaseEnrichmentWriter;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
 
 public class SimpleHBaseEnrichmentWriterTest {
   private static final String SENSOR_TYPE= "dummy";
@@ -50,11 +51,12 @@ public class SimpleHBaseEnrichmentWriterTest {
     put(SimpleHbaseEnrichmentWriter.Configurations.HBASE_TABLE.getKey(), TABLE_NAME);
     put(SimpleHbaseEnrichmentWriter.Configurations.HBASE_CF.getKey(), TABLE_CF);
     put(SimpleHbaseEnrichmentWriter.Configurations.ENRICHMENT_TYPE.getKey(), ENRICHMENT_TYPE);
-    put(SimpleHbaseEnrichmentWriter.Configurations.HBASE_PROVIDER.getKey(), MockTableProvider.class.getName());
+    put(SimpleHbaseEnrichmentWriter.Configurations.HBASE_PROVIDER.getKey(), MockHBaseTableProvider.class.getName());
   }};
+
   @Before
   public void setupMockTable() {
-    MockTableProvider.addTable(TABLE_NAME, TABLE_CF);
+    MockHBaseTableProvider.addToCache(TABLE_NAME, TABLE_CF);
   }
   @Test
   public void testBatchOneNormalPath() throws Exception {
@@ -139,8 +141,125 @@ public class SimpleHBaseEnrichmentWriterTest {
     Assert.assertNull(values.get(0).getValue().getMetadata().get("foo"));
     Assert.assertEquals(2, values.get(0).getValue().getMetadata().size());
   }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testConfigValidation_missing_enrichment_type() {
+    final String sensorType = "dummy";
+    SimpleHbaseEnrichmentWriter writer = new SimpleHbaseEnrichmentWriter();
+
+    WriterConfiguration configuration = createConfig(1,
+            new HashMap<String, Object>() {{
+              put(SimpleHbaseEnrichmentWriter.Configurations.KEY_COLUMNS.getKey(), "ip");
+            }}
+    );
+    try {
+      writer.configure(sensorType, configuration);
+    } catch (IllegalArgumentException ex) {
+      Assert.assertEquals(String.format("%s must be provided",
+              SimpleHbaseEnrichmentWriter.Configurations.ENRICHMENT_TYPE.getKey()), ex.getMessage());
+      throw ex;
+    }
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testConfigValidation_enrichment_type_is_not_a_string() {
+    final String sensorType = "dummy";
+    SimpleHbaseEnrichmentWriter writer = new SimpleHbaseEnrichmentWriter();
+
+    WriterConfiguration configuration = createConfig(1,
+            new HashMap<String, Object>() {{
+              put(SimpleHbaseEnrichmentWriter.Configurations.KEY_COLUMNS.getKey(), "ip");
+              put(SimpleHbaseEnrichmentWriter.Configurations.ENRICHMENT_TYPE.getKey(), 10);
+            }}
+    );
+    try {
+      writer.configure(sensorType, configuration);
+    } catch (IllegalArgumentException ex) {
+      Assert.assertEquals(String.format("%s must be a string",
+              SimpleHbaseEnrichmentWriter.Configurations.ENRICHMENT_TYPE.getKey()), ex.getMessage());
+      throw ex;
+    }
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testConfigValidation_enrichment_type_is_empty() {
+    final String sensorType = "dummy";
+    SimpleHbaseEnrichmentWriter writer = new SimpleHbaseEnrichmentWriter();
+
+    WriterConfiguration configuration = createConfig(1,
+            new HashMap<String, Object>() {{
+              put(SimpleHbaseEnrichmentWriter.Configurations.KEY_COLUMNS.getKey(), "ip");
+              put(SimpleHbaseEnrichmentWriter.Configurations.ENRICHMENT_TYPE.getKey(), "  ");
+            }}
+    );
+    try {
+      writer.configure(sensorType, configuration);
+    } catch (IllegalArgumentException ex) {
+        Assert.assertEquals(String.format("%s must not be an empty string",
+                SimpleHbaseEnrichmentWriter.Configurations.ENRICHMENT_TYPE.getKey()), ex.getMessage());
+      throw ex;
+    }
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testConfigValidation_missing_key_columns() {
+    final String sensorType = "dummy";
+    SimpleHbaseEnrichmentWriter writer = new SimpleHbaseEnrichmentWriter();
+
+    WriterConfiguration configuration = createConfig(1,
+            new HashMap<String, Object>() {{
+              put(SimpleHbaseEnrichmentWriter.Configurations.ENRICHMENT_TYPE.getKey(), ENRICHMENT_TYPE);
+            }}
+    );
+    try {
+      writer.configure(sensorType, configuration);
+    } catch (IllegalArgumentException ex) {
+        Assert.assertEquals(String.format("%s must be provided",
+                SimpleHbaseEnrichmentWriter.Configurations.KEY_COLUMNS.getKey()), ex.getMessage());
+      throw ex;
+    }
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testConfigValidation_key_columns_contain_an_empty_value() {
+    final String sensorType = "dummy";
+    SimpleHbaseEnrichmentWriter writer = new SimpleHbaseEnrichmentWriter();
+
+    WriterConfiguration configuration = createConfig(1,
+            new HashMap<String, Object>() {{
+              put(SimpleHbaseEnrichmentWriter.Configurations.ENRICHMENT_TYPE.getKey(), ENRICHMENT_TYPE);
+              put(SimpleHbaseEnrichmentWriter.Configurations.KEY_COLUMNS.getKey(), Arrays.asList("ip", "  "));
+            }}
+    );
+    try {
+      writer.configure(sensorType, configuration);
+    } catch (IllegalArgumentException ex) {
+        Assert.assertEquals("Column name must not be empty", ex.getMessage());
+      throw ex;
+    }
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testConfigValidation_key_columns_contain_a_null_value() {
+    final String sensorType = "dummy";
+    SimpleHbaseEnrichmentWriter writer = new SimpleHbaseEnrichmentWriter();
+
+    WriterConfiguration configuration = createConfig(1,
+            new HashMap<String, Object>() {{
+              put(SimpleHbaseEnrichmentWriter.Configurations.ENRICHMENT_TYPE.getKey(), ENRICHMENT_TYPE);
+              put(SimpleHbaseEnrichmentWriter.Configurations.KEY_COLUMNS.getKey(), Arrays.asList("ip", null));
+            }}
+    );
+    try {
+      writer.configure(sensorType, configuration);
+    } catch (IllegalArgumentException ex) {
+        Assert.assertEquals("Column name must not be null", ex.getMessage());
+      throw ex;
+    }
+  }
+
   public static List<LookupKV<EnrichmentKey, EnrichmentValue>> getValues() throws IOException {
-    MockHTable table = MockTableProvider.getTable(TABLE_NAME);
+    MockHTable table = (MockHTable) MockHBaseTableProvider.getFromCache(TABLE_NAME);
     Assert.assertNotNull(table);
     List<LookupKV<EnrichmentKey, EnrichmentValue>> ret = new ArrayList<>();
     EnrichmentConverter converter = new EnrichmentConverter();
@@ -155,6 +274,18 @@ public class SimpleHBaseEnrichmentWriterTest {
       @Override
       public int getBatchSize(String sensorName) {
         return batchSize;
+      }
+
+      @Override
+      public int getBatchTimeout(String sensorName) {
+        //TODO - enable unit testing
+        return 0;
+      }
+
+      @Override
+      public List<Integer> getAllConfiguredTimeouts() {
+        //TODO - enable unit testing
+        return new ArrayList<>();
       }
 
       @Override

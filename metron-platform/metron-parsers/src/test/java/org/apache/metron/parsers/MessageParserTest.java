@@ -18,8 +18,8 @@
 
 package org.apache.metron.parsers;
 
-import junit.framework.Assert;
 import org.apache.metron.parsers.interfaces.MessageParser;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;

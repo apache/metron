@@ -29,7 +29,6 @@ spring:
 grok:
   path:
     temp: target/patterns/temp
-    default: target/patterns
 
 storm:
   ui:
@@ -40,3 +39,20 @@ storm:
     script.path: /usr/metron/${metron.version}/bin/start_enrichment_topology.sh
   indexing:
     script.path: /usr/metron/${metron.version}/bin/start_elasticsearch_topology.sh
+
+search:
+  max:
+    results: 100
+
+index:
+  dao:
+  # By default, we use the InMemoryDao for our tests and HBaseDao for backing updates.
+     impl: org.apache.metron.indexing.dao.InMemoryDao,org.apache.metron.indexing.dao.HBaseDao
+  hbase:
+  # HBase is provided via a mock provider, so no actual HBase infrastructure is started.
+     provider: org.apache.metron.hbase.mock.MockHBaseTableProvider
+
+meta:
+  dao:
+  # By default, we use the InMemoryMetaAlertDao for our tests
+    impl: org.apache.metron.indexing.dao.InMemoryMetaAlertDao

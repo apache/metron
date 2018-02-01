@@ -13,6 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+JAVA_HOME="{{java_home}}"
 METRON_HOME="{{metron_home}}"
 METRON_USER="{{metron_user}}"
 METRON_LOG_DIR="{{metron_log_dir}}"
@@ -26,14 +27,16 @@ METRON_JDBC_USERNAME="{{metron_jdbc_username}}"
 METRON_JDBC_PLATFORM="{{metron_jdbc_platform}}"
 METRON_JDBC_CLIENT_PATH="{{metron_jdbc_client_path}}"
 METRON_TEMP_GROK_PATH="{{metron_temp_grok_path}}"
-METRON_DEFAULT_GROK_PATH="{{metron_default_grok_path}}"
 METRON_SPRING_OPTIONS="{{metron_spring_options}}"
 ZOOKEEPER="{{zookeeper_quorum}}"
 BROKERLIST="{{kafka_brokers}}"
-HDFS_URL="{{default_fs}}"
+HADOOP_CONF_DIR="/etc/hadoop/conf/"
 STORM_REST_URL="{{storm_rest_addr}}"
 SECURITY_ENABLED={{security_enabled|lower}}
 {% if metron_principal_name is defined %}METRON_PRINCIPAL_NAME="{{metron_principal_name}}"
 {% endif %}
 {% if metron_keytab_path is defined %}METRON_SERVICE_KEYTAB="{{metron_keytab_path}}"
 {% endif %}
+KAFKA_SECURITY_PROTOCOL="{{kafka_security_protocol}}"
+PARSER_TOPOLOGY_OPTIONS="/home/{{metron_user}}/.storm/storm.config"
+METRON_ESCALATION_TOPIC="{{metron_escalation_topic}}"

@@ -26,10 +26,10 @@ import org.apache.commons.math3.random.GaussianRandomGenerator;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.StellarFunctions;
-import org.apache.metron.common.stellar.StellarProcessor;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.DefaultVariableResolver;
+import org.apache.metron.stellar.dsl.StellarFunctions;
+import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.common.utils.SerDeUtils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -105,7 +105,7 @@ public class StellarStatisticsFunctionsTest {
    */
   private static Object run(String expr, Map<String, Object> variables) {
     StellarProcessor processor = new StellarProcessor();
-    Object ret = processor.parse(expr, x-> variables.get(x), StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
+    Object ret = processor.parse(expr, new DefaultVariableResolver(x -> variables.get(x),x -> variables.containsKey(x)), StellarFunctions.FUNCTION_RESOLVER(), Context.EMPTY_CONTEXT());
     byte[] raw = SerDeUtils.toBytes(ret);
     Object actual = SerDeUtils.fromBytes(raw, Object.class);
     if(ret instanceof StatisticsProvider) {
@@ -224,12 +224,36 @@ public class StellarStatisticsFunctionsTest {
   }
 
   @Test
+  public void testAddAllManyIntegers() throws Exception {
+    statsInit(windowSize);
+    Object result = run("STATS_COUNT(stats)", variables);
+    double countAtStart = (double) result;
+
+    run("STATS_ADD(stats, [10, 20, 30, 40, 50])", variables);
+
+    Object actual = run("STATS_COUNT(stats)", variables);
+    assertEquals(countAtStart + 5.0, (double) actual, 0.1);
+  }
+
+  @Test
   public void testAddManyIntegers() throws Exception {
     statsInit(windowSize);
     Object result = run("STATS_COUNT(stats)", variables);
     double countAtStart = (double) result;
 
     run("STATS_ADD(stats, 10, 20, 30, 40, 50)", variables);
+
+    Object actual = run("STATS_COUNT(stats)", variables);
+    assertEquals(countAtStart + 5.0, (double) actual, 0.1);
+  }
+
+  @Test
+  public void testAllManyFloat() throws Exception {
+    statsInit(windowSize);
+    Object result = run("STATS_COUNT(stats)", variables);
+    double countAtStart = (double) result;
+
+    run("STATS_ADD(stats, [10.0, 20.0, 30.0, 40.0, 50.0, null])", variables);
 
     Object actual = run("STATS_COUNT(stats)", variables);
     assertEquals(countAtStart + 5.0, (double) actual, 0.1);

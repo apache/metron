@@ -18,7 +18,9 @@
 package org.apache.metron.enrichment.bolt;
 
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.test.bolt.BaseEnrichmentBoltTest;
+import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -31,6 +33,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class EnrichmentJoinBoltTest extends BaseEnrichmentBoltTest {
 
@@ -68,17 +73,22 @@ public class EnrichmentJoinBoltTest extends BaseEnrichmentBoltTest {
   public void test() throws IOException {
     EnrichmentJoinBolt enrichmentJoinBolt = new EnrichmentJoinBolt("zookeeperUrl");
     enrichmentJoinBolt.setCuratorFramework(client);
-    enrichmentJoinBolt.setTreeCache(cache);
+    enrichmentJoinBolt.setZKCache(cache);
     enrichmentJoinBolt.getConfigurations().updateSensorEnrichmentConfig(sensorType, new FileInputStream(sampleSensorEnrichmentConfigPath));
     enrichmentJoinBolt.withMaxCacheSize(100);
     enrichmentJoinBolt.withMaxTimeRetain(10000);
     enrichmentJoinBolt.prepare(new HashMap<>(), topologyContext, outputCollector);
     Set<String> actualStreamIds = enrichmentJoinBolt.getStreamIds(sampleMessage);
     Assert.assertEquals(joinStreamIds, actualStreamIds);
-    Map<String, JSONObject> streamMessageMap = new HashMap<>();
-    streamMessageMap.put("message", sampleMessage);
-    streamMessageMap.put("enriched", enrichedMessage);
-    JSONObject joinedMessage = enrichmentJoinBolt.joinMessages(streamMessageMap);
+    Map<String, Tuple> streamMessageMap = new HashMap<>();
+    MessageGetStrategy messageGetStrategy = mock(MessageGetStrategy.class);
+    Tuple sampleTuple = mock(Tuple.class);
+    when(messageGetStrategy.get(sampleTuple)).thenReturn(sampleMessage);
+    Tuple enrichedTuple = mock(Tuple.class);
+    when(messageGetStrategy.get(enrichedTuple)).thenReturn(enrichedMessage);
+    streamMessageMap.put("message", sampleTuple);
+    streamMessageMap.put("enriched", enrichedTuple);
+    JSONObject joinedMessage = enrichmentJoinBolt.joinMessages(streamMessageMap, messageGetStrategy);
     removeTimingFields(joinedMessage);
     Assert.assertEquals(expectedJoinedMessage, joinedMessage);
   }

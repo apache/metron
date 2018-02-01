@@ -17,7 +17,6 @@
  */
 package org.apache.metron.enrichment.cli;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
@@ -181,7 +180,7 @@ public class LatencySummarizer {
     LatencyStats statsMap = new LatencyStats();
     BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
     for(String line = null;(line = reader.readLine()) != null;) {
-      Map<String, Object> doc = JSONUtils.INSTANCE.load(line, new TypeReference<HashMap<String, Object>>() {});
+      Map<String, Object> doc = JSONUtils.INSTANCE.load(line, JSONUtils.MAP_SUPPLIER);
       updateStats(statsMap, doc);
     }
     statsMap.printSummary(cmd.hasOption('m'));

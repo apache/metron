@@ -24,7 +24,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.MessageWriter;
-import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.common.utils.KafkaUtils;
 import org.apache.metron.common.utils.StringUtils;
 import org.apache.metron.writer.AbstractWriter;
@@ -158,6 +158,7 @@ public class KafkaWriter extends AbstractWriter implements MessageWriter<JSONObj
     producerConfig.put("value.serializer", valueSerializer);
     producerConfig.put("request.required.acks", requiredAcks);
     producerConfig.putAll(producerConfigs == null?new HashMap<>():producerConfigs);
+    producerConfig = KafkaUtils.INSTANCE.normalizeProtocol(producerConfig);
     return producerConfig;
   }
 

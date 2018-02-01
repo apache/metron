@@ -21,11 +21,11 @@ package org.apache.metron.profiler.client.window;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.apache.metron.common.dsl.ErrorListener;
-import org.apache.metron.common.dsl.GrammarUtils;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.Token;
-import org.apache.metron.common.utils.ConversionUtils;
+import org.apache.metron.stellar.dsl.ErrorListener;
+import org.apache.metron.stellar.dsl.GrammarUtils;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Token;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.profiler.client.window.generated.WindowBaseListener;
 import org.apache.metron.profiler.client.window.generated.WindowLexer;
 import org.apache.metron.profiler.client.window.generated.WindowParser;
@@ -56,7 +56,7 @@ public class WindowProcessor extends WindowBaseListener {
 
   /**
    * Retrieve the window constructed from the window selector statement.
-   * @return
+   * @return window returns the window constructed from the window selector statement
    */
   public Window getWindow() {
     return window;
@@ -89,7 +89,7 @@ public class WindowProcessor extends WindowBaseListener {
     if(checkForException(ctx)) {
       return;
     }
-    stack.push(new Token<>(ctx.getText().substring(1), String.class));
+    stack.push(new Token<>(ctx.getText().substring(1), String.class ));
   }
 
   /**
@@ -387,7 +387,8 @@ public class WindowProcessor extends WindowBaseListener {
    * conforming to the Window grammar.
    *
    * @param statement
-   * @return
+   * @return Window returns a Window object (parameterized by time) from a statement specifying the window
+   * intervals conforming to the Window grammar.
    * @throws ParseException
    */
   public static Window process(String statement) throws ParseException {

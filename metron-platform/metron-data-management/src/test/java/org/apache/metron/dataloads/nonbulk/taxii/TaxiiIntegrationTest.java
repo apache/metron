@@ -27,12 +27,15 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.util.GenericOptionsParser;
+import org.apache.metron.dataloads.extractor.Extractor;
+import org.apache.metron.dataloads.extractor.TransformFilterExtractorDecorator;
 import org.apache.metron.dataloads.extractor.stix.StixExtractor;
 import org.apache.metron.enrichment.converter.EnrichmentConverter;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
 import org.apache.metron.enrichment.converter.EnrichmentValue;
-import org.apache.metron.test.mock.MockHTable;
 import org.apache.metron.enrichment.lookup.LookupKV;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.junit.*;
 
 import java.io.IOException;
@@ -49,7 +52,7 @@ public class TaxiiIntegrationTest {
     @AfterClass
     public static void teardown() {
         MockTaxiiService.shutdown();
-        MockHTable.Provider.clear();
+        MockHBaseTableProvider.clear();
     }
 
     /**
@@ -91,9 +94,10 @@ public class TaxiiIntegrationTest {
     @Test
     public void testTaxii() throws Exception {
 
-        final MockHTable.Provider provider = new MockHTable.Provider();
+        final MockHBaseTableProvider provider = new MockHBaseTableProvider();
         final Configuration config = HBaseConfiguration.create();
-        TaxiiHandler handler = new TaxiiHandler(TaxiiConnectionConfig.load(taxiiConnectionConfig), new StixExtractor(), config ) {
+        Extractor extractor = new TransformFilterExtractorDecorator(new StixExtractor());
+        TaxiiHandler handler = new TaxiiHandler(TaxiiConnectionConfig.load(taxiiConnectionConfig), extractor, config ) {
             @Override
             protected synchronized HTableInterface createHTable(String tableInfo) throws IOException {
                 return provider.addToCache("threat_intel", "cf");
@@ -115,7 +119,7 @@ public class TaxiiIntegrationTest {
         }
         Assert.assertTrue(maliciousAddresses.contains("94.102.53.142"));
         Assert.assertEquals(numStringsMatch(MockTaxiiService.pollMsg, "AddressObj:Address_Value condition=\"Equal\""), maliciousAddresses.size());
-        MockHTable.Provider.clear();
+        MockHBaseTableProvider.clear();
 
         // Ensure that the handler can be run multiple times without connection issues.
         handler.run();

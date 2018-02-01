@@ -17,39 +17,35 @@
  */
 package org.apache.metron.elasticsearch.writer;
 
-import org.apache.storm.task.TopologyContext;
-import org.apache.storm.tuple.Tuple;
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.common.interfaces.FieldNameConverter;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
-import org.apache.metron.common.interfaces.FieldNameConverter;
+import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
+import org.apache.storm.task.TopologyContext;
+import org.apache.storm.tuple.Tuple;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.Serializable;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
   private Map<String, String> optionalSettings;
   private transient TransportClient client;
   private SimpleDateFormat dateFormat;
-  private static final Logger LOG = LoggerFactory
-          .getLogger(ElasticsearchWriter.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchWriter.class);
   private FieldNameConverter fieldNameConverter = new ElasticsearchFieldNameConverter();
 
   public ElasticsearchWriter withOptionalSettings(Map<String, String> optionalSettings) {
@@ -60,134 +56,40 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
   @Override
   public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration configurations) {
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
-
-    Settings.Builder settingsBuilder = Settings.settingsBuilder();
-    settingsBuilder.put("cluster.name", globalConfiguration.get("es.clustername"));
-    settingsBuilder.put("client.transport.ping_timeout","500s");
-
-    if (optionalSettings != null) {
-
-      settingsBuilder.put(optionalSettings);
-
-    }
-
-    Settings settings = settingsBuilder.build();
-
-    try{
-      client = TransportClient.builder().settings(settings).build();
-      for(HostnamePort hp : getIps(globalConfiguration)) {
-        client.addTransportAddress(
-                new InetSocketTransportAddress(InetAddress.getByName(hp.hostname), hp.port)
-        );
-      }
-
-
-    } catch (UnknownHostException exception){
-
-      throw new RuntimeException(exception);
-    }
-
-    dateFormat = new SimpleDateFormat((String) globalConfiguration.get("es.date.format"));
-
+    client = ElasticsearchUtils.getClient(globalConfiguration, optionalSettings);
+    dateFormat = ElasticsearchUtils.getIndexFormat(globalConfiguration);
   }
 
-  public static class HostnamePort {
-    String hostname;
-    Integer port;
-    public HostnamePort(String hostname, Integer port) {
-      this.hostname = hostname;
-      this.port = port;
-    }
-  }
-
-  List<HostnamePort> getIps(Map<String, Object> globalConfiguration) {
-    Object ipObj = globalConfiguration.get("es.ip");
-    Object portObj = globalConfiguration.get("es.port");
-    if(ipObj == null) {
-      return Collections.emptyList();
-    }
-    if(ipObj instanceof String
-            && ipObj.toString().contains(",") && ipObj.toString().contains(":")){
-      List<String> ips = Arrays.asList(((String)ipObj).split(","));
-      List<HostnamePort> ret = new ArrayList<>();
-      for(String ip : ips) {
-        Iterable<String> tokens = Splitter.on(":").split(ip);
-        String host = Iterables.getFirst(tokens, null);
-        String portStr = Iterables.getLast(tokens, null);
-        ret.add(new HostnamePort(host, Integer.parseInt(portStr)));
-      }
-      return ret;
-    }else if(ipObj instanceof String
-            && ipObj.toString().contains(",")){
-      List<String> ips = Arrays.asList(((String)ipObj).split(","));
-      List<HostnamePort> ret = new ArrayList<>();
-      for(String ip : ips) {
-        ret.add(new HostnamePort(ip, Integer.parseInt(portObj + "")));
-      }
-      return ret;
-    }else if(ipObj instanceof String
-    && !ipObj.toString().contains(":")
-      ) {
-      return ImmutableList.of(new HostnamePort(ipObj.toString(), Integer.parseInt(portObj + "")));
-    }
-    else if(ipObj instanceof String
-        && ipObj.toString().contains(":")
-           ) {
-      Iterable<String> tokens = Splitter.on(":").split(ipObj.toString());
-      String host = Iterables.getFirst(tokens, null);
-      String portStr = Iterables.getLast(tokens, null);
-      return ImmutableList.of(new HostnamePort(host, Integer.parseInt(portStr)));
-    }
-    else if(ipObj instanceof List) {
-      List<String> ips = (List)ipObj;
-      List<HostnamePort> ret = new ArrayList<>();
-      for(String ip : ips) {
-        Iterable<String> tokens = Splitter.on(":").split(ip);
-        String host = Iterables.getFirst(tokens, null);
-        String portStr = Iterables.getLast(tokens, null);
-        ret.add(new HostnamePort(host, Integer.parseInt(portStr)));
-      }
-      return ret;
-    }
-    throw new IllegalStateException("Unable to read the elasticsearch ips, expected es.ip to be either a list of strings, a string hostname or a host:port string");
-  }
 
   @Override
   public BulkWriterResponse write(String sensorType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
-    String indexPostfix = dateFormat.format(new Date());
+    final String indexPostfix = dateFormat.format(new Date());
     BulkRequestBuilder bulkRequest = client.prepareBulk();
 
     for(JSONObject message: messages) {
 
-      String indexName = sensorType;
-
-      if (configurations != null) {
-        indexName = configurations.getIndex(sensorType);
-      }
-
-      indexName = indexName + "_index_" + indexPostfix;
-
       JSONObject esDoc = new JSONObject();
       for(Object k : message.keySet()){
-
-        deDot(k.toString(),message,esDoc);
-
+        deDot(k.toString(), message, esDoc);
       }
 
-      IndexRequestBuilder indexRequestBuilder = client.prepareIndex(indexName,
-              sensorType + "_doc");
-
+      String indexName = ElasticsearchUtils.getIndexName(sensorType, indexPostfix, configurations);
+      IndexRequestBuilder indexRequestBuilder = client.prepareIndex(indexName, sensorType + "_doc");
       indexRequestBuilder = indexRequestBuilder.setSource(esDoc.toJSONString());
+      String guid = (String)esDoc.get(Constants.GUID);
+      if(guid != null) {
+        indexRequestBuilder.setId(guid);
+      }
+
       Object ts = esDoc.get("timestamp");
       if(ts != null) {
         indexRequestBuilder = indexRequestBuilder.setTimestamp(ts.toString());
       }
-      bulkRequest.add(indexRequestBuilder);
 
+      bulkRequest.add(indexRequestBuilder);
     }
 
     BulkResponse bulkResponse = bulkRequest.execute().actionGet();
-
     return buildWriteReponse(tuples, bulkResponse);
   }
 
@@ -235,9 +137,7 @@ public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Seria
 
     if(field.contains(".")){
 
-      if(LOG.isDebugEnabled()){
-        LOG.debug("Dotted field: " + field);
-      }
+      LOG.debug("Dotted field: {}", field);
 
     }
     String newkey = fieldNameConverter.convert(field);

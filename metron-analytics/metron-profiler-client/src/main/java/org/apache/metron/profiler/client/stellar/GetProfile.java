@@ -20,12 +20,29 @@
 
 package org.apache.metron.profiler.client.stellar;
 
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_COLUMN_FAMILY;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_HBASE_TABLE_PROVIDER;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_PERIOD_UNITS;
+import static org.apache.metron.profiler.client.stellar.ProfilerClientConfig.PROFILER_SALT_DIVISOR;
+import static org.apache.metron.profiler.client.stellar.Util.getArg;
+import static org.apache.metron.profiler.client.stellar.Util.getEffectiveConfig;
+
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.metron.common.dsl.Context;
-import org.apache.metron.common.dsl.ParseException;
-import org.apache.metron.common.dsl.Stellar;
-import org.apache.metron.common.dsl.StellarFunction;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.ParseException;
+import org.apache.metron.stellar.dsl.Stellar;
+import org.apache.metron.stellar.dsl.StellarFunction;
 import org.apache.metron.hbase.HTableProvider;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.profiler.ProfilePeriod;
@@ -37,15 +54,6 @@ import org.apache.metron.profiler.hbase.SaltyRowKeyBuilder;
 import org.apache.metron.profiler.hbase.ValueOnlyColumnBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
-import static java.lang.String.format;
-import static org.apache.metron.profiler.client.stellar.ProfilerConfig.*;
-import static org.apache.metron.profiler.client.stellar.Util.getArg;
-import static org.apache.metron.profiler.client.stellar.Util.getEffectiveConfig;
 
 /**
  * A Stellar function that can retrieve data contained within a Profile.
@@ -93,8 +101,6 @@ import static org.apache.metron.profiler.client.stellar.Util.getEffectiveConfig;
 )
 public class GetProfile implements StellarFunction {
 
-
-
   /**
    * Cached client that can retrieve profile values.
    */
@@ -105,7 +111,7 @@ public class GetProfile implements StellarFunction {
    */
   private Map<String, Object> cachedConfigMap = new HashMap<String, Object>(6);
 
-  private static final Logger LOG = LoggerFactory.getLogger(GetProfile.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * Initialization.  No longer need to do anything in initialization,
@@ -157,7 +163,7 @@ public class GetProfile implements StellarFunction {
     }
 
     Map<String, Object> effectiveConfig = getEffectiveConfig(context, configOverridesMap);
-
+    Object defaultValue = null;
     //lazily create new profiler client if needed
     if (client == null || !cachedConfigMap.equals(effectiveConfig)) {
       RowKeyBuilder rowKeyBuilder = getRowKeyBuilder(effectiveConfig);
@@ -166,8 +172,10 @@ public class GetProfile implements StellarFunction {
       client = new HBaseProfilerClient(table, rowKeyBuilder, columnBuilder);
       cachedConfigMap = effectiveConfig;
     }
-
-    return client.fetch(Object.class, profile, entity, groups, periods.orElse(new ArrayList<>(0)));
+    if(cachedConfigMap != null) {
+      defaultValue = ProfilerClientConfig.PROFILER_DEFAULT_VALUE.get(cachedConfigMap);
+    }
+    return client.fetch(Object.class, profile, entity, groups, periods.orElse(new ArrayList<>(0)), Optional.ofNullable(defaultValue));
   }
 
 
@@ -193,10 +201,6 @@ public class GetProfile implements StellarFunction {
 
     return groups;
   }
-
-
-
-
 
   /**
    * Creates the ColumnBuilder to use in accessing the profile data.
@@ -247,7 +251,7 @@ public class GetProfile implements StellarFunction {
       return provider.getTable(HBaseConfiguration.create(), tableName);
 
     } catch (IOException e) {
-      throw new IllegalArgumentException(String.format("Unable to access table: %s", tableName));
+      throw new IllegalArgumentException(String.format("Unable to access table: %s", tableName), e);
     }
   }
 

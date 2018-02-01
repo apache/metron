@@ -17,147 +17,60 @@
  */
 package org.apache.metron.parsers.fireeye;
 
-
-
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.time.Year;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
 
+import org.apache.metron.parsers.AbstractParserConfigTest;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
-import org.apache.metron.parsers.AbstractConfigTest;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
-/**
- * <ul>
- * <li>Title: Test For SourceFireParser</li>
- * <li>Description: </li>
- * <li>Created: July 8, 2014</li>
- * </ul>
- * @version $Revision: 1.0 $
- */
-public class BasicFireEyeParserTest extends AbstractConfigTest
-{
-   /**
-    * The inputStrings.
-    */
-    private static String[] inputStrings;
- 
-   /**
-    * The parser.
-    */
-    private BasicFireEyeParser parser=null;
+public class BasicFireEyeParserTest extends AbstractParserConfigTest {
 
-	
-   /**
-    * Constructs a new <code>BasicFireEyeParserTest</code> instance.
-    * @throws Exception
-    */ 
-    public BasicFireEyeParserTest() throws Exception {
-        super();
+  @Before
+  public void setUp() throws Exception {
+    inputStrings = super.readTestDataFromFile("src/test/resources/logData/FireEyeParserTest.txt");
+    parser = new BasicFireEyeParser();
+  }
+
+  @SuppressWarnings({"rawtypes"})
+  @Test
+  public void testParse() throws ParseException {
+    for (String inputString : inputStrings) {
+      JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
+      Assert.assertNotNull(parsed);
+
+      JSONParser parser = new JSONParser();
+
+      Map json = (Map) parser.parse(parsed.toJSONString());
+
+      Assert.assertNotNull(json);
+      Assert.assertFalse(json.isEmpty());
+
+      for (Object o : json.entrySet()) {
+        Entry entry = (Entry) o;
+        String key = (String) entry.getKey();
+        String value = json.get(key).toString();
+        Assert.assertNotNull(value);
+      }
     }
+  }
 
+  private final static String fireeyeMessage = "<164>Mar 19 05:24:39 10.220.15.15 fenotify-851983.alert: CEF:0|FireEye|CMS|7.2.1.244420|DM|domain-match|1|rt=Feb 09 2015 12:28:26 UTC dvc=10.201.78.57 cn3Label=cncPort cn3=53 cn2Label=sid cn2=80494706 shost=dev001srv02.example.com proto=udp cs5Label=cncHost cs5=mfdclk001.org dvchost=DEVFEYE1 spt=54527 dvc=10.100.25.16 smac=00:00:0c:07:ac:00 cn1Label=vlan cn1=0 externalId=851983 cs4Label=link cs4=https://DEVCMS01.example.com/event_stream/events_for_bot?ev_id\\=851983 dmac=00:1d:a2:af:32:a1 cs1Label=sname cs1=Trojan.Generic.DNS";
 
-	/**
-	 * @throws java.lang.Exception
-	 */
-	public static void setUpBeforeClass() throws Exception {
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	public static void tearDownAfterClass() throws Exception {
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@Override
-	public void setUp() throws Exception {
-        super.setUp("org.apache.metron.parsers.fireeye.BasicFireEyeParserTest");
-        setInputStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
-        parser = new BasicFireEyeParser();  
-	}
-
-	/**
-	 * 	
-	 * 	
-	 * @throws java.lang.Exception
-	 */
-	@Override
-	public void tearDown() throws Exception {
-		parser = null;
-        setInputStrings(null);		
-	}
-
-	/**
-	 * Test method for
-	 *
-	 *
-	 *
-	 *
-	 *
-	 * {@link BasicFireEyeParser#parse(byte[])}.
-	 */
-	@SuppressWarnings({ "rawtypes"})
-	public void testParse() {
-		for (String inputString : getInputStrings()) {
-			JSONObject parsed = parser.parse(inputString.getBytes()).get(0);
-			Assert.assertNotNull(parsed);
-		
-			JSONParser parser = new JSONParser();
-
-			Map json=null;
-			try {
-				json = (Map) parser.parse(parsed.toJSONString());
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}
-			Iterator iter = json.entrySet().iterator();
-			
-			Assert.assertNotNull(json);
-			Assert.assertFalse(json.isEmpty());
-			
-
-			while (iter.hasNext()) {
-				Map.Entry entry = (Map.Entry) iter.next();
-				String key = (String) entry.getKey();
-				String value = (String) json.get(key).toString();
-				Assert.assertNotNull(value);
-			}
-		}
-	}
-
-	/**
-	 * Returns Input String
-	 */
-	public static String[] getInputStrings() {
-		return inputStrings;
-	}
-		
-	/**
-	 * Sets SourceFire Input String
-	 */	
-	public static void setInputStrings(String[] strings) {
-		BasicFireEyeParserTest.inputStrings = strings;
-	}
-	
-    /**
-     * Returns the parser.
-     * @return the parser.
-     */
-    public BasicFireEyeParser getParser() {
-        return parser;
-    }
-
-    /**
-     * Sets the parser.
-     * @param parser the parser.
-     */
-     public void setParser(BasicFireEyeParser parser) {
-    
-        this.parser = parser;
-     }
+  @SuppressWarnings("rawtypes")
+  @Test
+  public void testTimestampParsing() throws ParseException {
+    JSONObject parsed = parser.parse(fireeyeMessage.getBytes()).get(0);
+    JSONParser parser = new JSONParser();
+    Map json = (Map) parser.parse(parsed.toJSONString());
+    long expectedTimestamp = ZonedDateTime.of(Year.now(ZoneOffset.UTC).getValue(), 3, 19, 5, 24, 39, 0, ZoneOffset.UTC).toInstant().toEpochMilli();
+    Assert.assertEquals(expectedTimestamp, json.get("timestamp"));
+  }
 }

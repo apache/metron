@@ -1,7 +1,7 @@
 {
   "name": "metron-management-ui",
-  "version": "0.4.0",
-  "license": "MIT",
+  "version": "0.4.3",
+  "license": "Apache-2.0",
   "config": {
     "node_ace": "node_modules/ace-builds/src-min-noconflict/"
   },
@@ -55,11 +55,12 @@
     "karma-cli": "^1.0.1",
     "karma-jasmine": "^1.0.2",
     "karma-phantomjs-launcher": "^1.0.4",
-    "karma-remap-istanbul": "^0.2.1",
+    "karma-remap-istanbul": "0.6.0",
     "phantomjs-prebuilt": "^2.1.14",
     "protractor": "4.0.5",
     "ts-node": "1.2.1",
     "tslint": "3.13.0",
-    "typescript": "~2.0.3"
+    "typescript": "~2.0.3",
+    "@types/request": "2.0.3"
   }
 }

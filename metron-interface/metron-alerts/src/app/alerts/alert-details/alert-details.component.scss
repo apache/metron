@@ -1,0 +1,178 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@import "../../../slider";
+@import "../../../variables";
+
+.title-container {
+  margin: 13px 0px;
+}
+
+.form-title {
+  font-size: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 35px;
+  line-height: 2.1  ;
+}
+
+.actions {
+  background: $mine-shaft-2;
+
+  table {
+    text-align: center;
+
+    td {
+      height: 35px;
+    }
+
+    .primary {
+      min-width: 95px;
+      font-size: 12px;
+      color: #fff;
+      background: $piction-blue;
+      cursor: pointer;
+    }
+
+    .secondary {
+      min-width: 95px;
+      font-size: 12px;
+      font-weight: bold;
+      background: $mine-shaft-3;
+      border: 1px solid $tundora;
+      cursor: pointer;
+    }
+
+    .title {
+      text-align: start;
+      vertical-align: top;
+    }
+  }
+}
+
+.form {
+  font-size: 14px;
+
+  .key {
+    color: $dove-grey;
+  }
+}
+
+.alert-details-title {
+  font-size: 15px;
+}
+
+.editable-text {
+  cursor: pointer;
+  border-bottom: 1px dashed $piction-blue;
+}
+
+.input-group-addon {
+  height: 35px;
+  background: #333333;
+  border: 1px solid #4D4D4D;
+  i {
+    font-size: 15px;
+    color: #999999;
+  }
+}
+.dialog1x {
+  width: 400px;
+
+  &.is-meta-alert {
+    width: 346px;
+  }
+}
+
+.nav-container {
+  min-height: 99vh;
+  width: 54px;
+  background: $mine-shaft-3;
+  border-right: 1px solid $dove-grey;
+
+  i {
+    cursor: pointer;
+    font-size: 19px;
+    color: $dusty-grey;
+  }
+
+  .active i {
+    color: #FFFFFF;
+  }
+
+  .nav-link {
+    padding: 15px 1em;
+
+    &.active {
+      border-left: 4px solid #31ABDF;
+      background: $mine-shaft-2;
+    }
+  }
+}
+
+.details-container {
+  width: 340px;
+}
+
+textarea {
+  margin-top: 5px;
+  height: 100px;
+}
+
+.btn-mine_shaft_2 {
+  margin-top: 10px;
+  margin-bottom: 15px;
+}
+
+.username-timestamp {
+  color: $rolling-stone;
+}
+
+.comment-container {
+  font-size: 14px;
+  padding: 10px 0px;
+
+  i {
+    right: 25px;
+    display: none;
+    cursor: pointer;
+    font-size: 18px;
+    position: absolute;
+  }
+
+  .comment {
+    padding-right: 25px;
+  }
+
+  &:hover {
+    background: $nile-blue;
+  }
+}
+
+.comment-container:hover i {
+  display: block;
+}
+
+.input-group-addon {
+  cursor: pointer;
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

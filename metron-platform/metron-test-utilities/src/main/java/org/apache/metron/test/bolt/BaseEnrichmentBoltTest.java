@@ -29,12 +29,12 @@ import java.util.Set;
 
 public class BaseEnrichmentBoltTest extends BaseBoltTest {
 
-  public String sampleSensorEnrichmentConfigPath = TestConstants.SAMPLE_CONFIG_PATH + "enrichments/test.json";
-  public String sampleSensorIndexingConfigPath = TestConstants.SAMPLE_CONFIG_PATH + "indexing/test.json";
+  public static final String sampleSensorEnrichmentConfigPath = TestConstants.SAMPLE_CONFIG_PATH + "enrichments/test.json";
+  public static final String sampleSensorIndexingConfigPath = TestConstants.SAMPLE_CONFIG_PATH + "indexing/test.json";
   protected Set<String> streamIds = new HashSet<>();
   protected Set<String> joinStreamIds = new HashSet<>();
   protected String key = "someKey";
-  protected String sensorType = "test";
+  public static final String sensorType = "test";
 
   /**
    * {
@@ -97,6 +97,7 @@ public class BaseEnrichmentBoltTest extends BaseBoltTest {
     joinStreamIds.add("stellar:numeric");
     joinStreamIds.add("stellar:dst_enrichment");
     joinStreamIds.add("stellar:src_enrichment");
+    joinStreamIds.add("stellar:error_test");
     joinStreamIds.add("host:");
     joinStreamIds.add("hbaseEnrichment:");
     joinStreamIds.add("message:");
