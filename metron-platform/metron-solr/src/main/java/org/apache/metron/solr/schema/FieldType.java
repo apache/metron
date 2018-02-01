@@ -89,7 +89,7 @@ public class FieldType {
                     "indexed=\"%s\" " +
                     "multiValued=\"%s\" " +
                     "class=\"%s\" " +
-                    "sortMissingLast=\"%s\"" +
+                    "sortMissingLast=\"%s\" " +
                     "docValues=\"%s\"" +
                     "/>"
             , name, stored + "", indexed + "", multiValued + "", solrClass + "", sortMissingLast + "", docValues + ""

@@ -21,25 +21,25 @@
   <field name="exception" type="string" indexed="true" stored="true" />
   <field name="hostname" type="string" indexed="true" stored="true" />
   <field name="stack" type="string" indexed="true" stored="true" />
-  <field name="timestamp" type="string" indexed="true" stored="true" />
+  <field name="timestamp" type="timestamp" indexed="true" stored="true" />
   <field name="message" type="string" indexed="true" stored="true" />
   <field name="raw_message" type="string" indexed="true" stored="true" />
-  <field name="raw_message_bytes" type="string" indexed="true" stored="true" />
+  <field name="raw_message_bytes" type="bytes" indexed="true" stored="true" />
   <field name="error_fields" type="string" indexed="true" stored="true" />
   <field name="error_hash" type="string" indexed="true" stored="true" />
   <field name="failed_sensor_type" type="string" indexed="true" stored="true" />
   <field name="error_type" type="string" indexed="true" stored="true" />
-  <field name="alert" type="string" indexed="true" stored="true" />
   <dynamicField name="*" type="ignored" multiValued="false" docValues="true"/>
   <uniqueKey>guid</uniqueKey>
-  <fieldType name="string" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true"docValues="false"/>
-  <fieldType name="boolean" stored="true" indexed="true" multiValued="false" class="solr.BoolField" sortMissingLast="true"docValues="false"/>
-  <fieldType name="pint" stored="true" indexed="true" multiValued="false" class="solr.IntPointField" sortMissingLast="false"docValues="true"/>
-  <fieldType name="pfloat" stored="true" indexed="true" multiValued="false" class="solr.FloatPointField" sortMissingLast="false"docValues="true"/>
-  <fieldType name="plong" stored="true" indexed="true" multiValued="false" class="solr.LongPointField" sortMissingLast="false"docValues="true"/>
-  <fieldType name="pdouble" stored="true" indexed="true" multiValued="false" class="solr.DoublePointField" sortMissingLast="false"docValues="true"/>
-  <fieldType name="location" stored="true" indexed="true" multiValued="false" class="solr.LatLonPointSpatialField" sortMissingLast="false"docValues="true"/>
-  <fieldType name="ip" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true"docValues="false"/>
-  <fieldType name="timestamp" stored="true" indexed="true" multiValued="false" class="solr.LongPointField" sortMissingLast="false"docValues="true"/>
-  <fieldType name="ignored" stored="true" indexed="true" multiValued="true" class="solr.StrField" sortMissingLast="false"docValues="false"/>
+  <fieldType name="string" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="boolean" stored="true" indexed="true" multiValued="false" class="solr.BoolField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="pint" stored="true" indexed="true" multiValued="false" class="solr.IntPointField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="pfloat" stored="true" indexed="true" multiValued="false" class="solr.FloatPointField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="plong" stored="true" indexed="true" multiValued="false" class="solr.LongPointField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="pdouble" stored="true" indexed="true" multiValued="false" class="solr.DoublePointField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="bytes" stored="true" indexed="true" multiValued="false" class="solr.BinaryField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="location" stored="true" indexed="true" multiValued="false" class="solr.LatLonPointSpatialField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="ip" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
+  <fieldType name="timestamp" stored="true" indexed="true" multiValued="false" class="solr.LongPointField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="ignored" stored="true" indexed="true" multiValued="true" class="solr.StrField" sortMissingLast="false" docValues="false"/>
 </schema>

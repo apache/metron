@@ -70,6 +70,8 @@ public class SchemaTranslator {
            , ImmutableSet.of("long")),
     DOUBLE( new FieldType("pdouble", "solr.DoublePointField").docValues()
            , ImmutableSet.of("double")),
+    BINARY( new FieldType("bytes", "solr.BinaryField").docValues()
+           , ImmutableSet.of("binary")),
     LOCATION( new FieldType("location", "solr.LatLonPointSpatialField").docValues()
             , ImmutableSet.of("geo_point")),
     IP(new FieldType("ip", "solr.StrField").sortMissingLast()
@@ -92,7 +94,7 @@ public class SchemaTranslator {
 
     public static SolrFields byElasticsearchType(String type) {
       for(SolrFields f : values()) {
-        if(type.contains(type)) {
+        if(f.elasticsearchTypes.contains(type)) {
           return f;
         }
       }
@@ -122,8 +124,9 @@ public class SchemaTranslator {
       else {
         String type = (String) ((Map<String, Object>) property.getValue()).get("type");
         SolrFields solrField = SolrFields.byElasticsearchType(type);
-        if (solrField == null) {
-          throw new IllegalStateException("Unable to find associated solr type for " + type + " with property " + fieldName);
+        if(solrField == null) {
+          System.out.println("Skipping " + fieldName + " because I can't find solr type for " + type);
+          continue;
         }
         pw.println(TAB + String.format("<field name=\"%s\" type=\"%s\" indexed=\"true\" stored=\"true\" />", fieldName, solrField.solrType.getName()));
       }
@@ -142,6 +145,10 @@ public class SchemaTranslator {
         match = normalizeField(match);
         String type = (String)((Map<String, Object>)def.get("mapping")).get("type");
         SolrFields solrField = SolrFields.byElasticsearchType(type);
+        if(solrField == null) {
+          System.out.println("Skipping " + match + " because I can't find solr type for " + type);
+          continue;
+        }
         if(solrField == null) {
           throw new IllegalStateException("Unable to find associated solr type for " + type + " with dynamic property " + solrField);
         }
