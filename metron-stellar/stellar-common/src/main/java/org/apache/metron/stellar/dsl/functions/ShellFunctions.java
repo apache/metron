@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 public class ShellFunctions {
   private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  @SuppressWarnings("unchecked")
   private static Map<String, VariableResult> getVariables(Context context) {
     return (Map<String, VariableResult>) context.getCapability(Context.Capabilities.SHELL_VARIABLES).get();
   }
@@ -62,19 +63,20 @@ public class ShellFunctions {
   public static class Map2Table extends BaseStellarFunction {
 
     @Override
+    @SuppressWarnings("unchecked")
     public Object apply(List<Object> args) {
-      if(args.size() < 1) {
+      if (args.size() < 1) {
         return null;
       }
       Map<Object, Object> map = (Map<Object, Object>) args.get(0);
-      if(map == null) {
+      if (map == null) {
         map = new HashMap<>();
       }
       String[] headers = {"KEY", "VALUE"};
       String[][] data = new String[map.size()][2];
       int i = 0;
-      for(Map.Entry<Object, Object> kv : map.entrySet()) {
-        data[i++] = new String[] {kv.getKey().toString(), kv.getValue().toString()};
+      for (Map.Entry<Object, Object> kv : map.entrySet()) {
+        data[i++] = new String[]{kv.getKey().toString(), kv.getValue().toString()};
       }
       return FlipTable.of(headers, data);
     }
@@ -93,24 +95,21 @@ public class ShellFunctions {
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
-      if(context.getCapability(Context.Capabilities.SHELL_VARIABLES).isPresent()) {
-        Map<String, VariableResult> variables = getVariables(context);
-        String[] headers = {"VARIABLE", "VALUE", "EXPRESSION"};
-        String[][] data = new String[variables.size()][3];
-        int wordWrap = -1;
-        if (args.size() > 0) {
-          wordWrap = ConversionUtils.convert(args.get(0), Integer.class);
-        }
-        int i = 0;
-        for (Map.Entry<String, VariableResult> kv : variables.entrySet()) {
-          VariableResult result = kv.getValue();
-          data[i++] = new String[]{toWrappedString(kv.getKey().toString(), wordWrap),
-              toWrappedString(result.getResult(), wordWrap),
-              toWrappedString(result.getExpression().get(), wordWrap)};
-        }
-        return FlipTable.of(headers, data);
+      Map<String, VariableResult> variables = getVariables(context);
+      String[] headers = {"VARIABLE", "VALUE", "EXPRESSION"};
+      String[][] data = new String[variables.size()][3];
+      int wordWrap = -1;
+      if (args.size() > 0) {
+        wordWrap = ConversionUtils.convert(args.get(0), Integer.class);
       }
-      return null;
+      int i = 0;
+      for (Map.Entry<String, VariableResult> kv : variables.entrySet()) {
+        VariableResult result = kv.getValue();
+        data[i++] = new String[]{toWrappedString(kv.getKey(), wordWrap),
+            toWrappedString(result.getResult(), wordWrap),
+            toWrappedString(result.getExpression().get(), wordWrap)};
+      }
+      return FlipTable.of(headers, data);
     }
 
     private static String toWrappedString(Object o, int wrap) {
@@ -144,22 +143,19 @@ public class ShellFunctions {
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
-      if(context.getCapability(Context.Capabilities.SHELL_VARIABLES).isPresent()) {
-        Map<String, VariableResult> variables = getVariables(context);
-        LinkedHashMap<String, String> ret = new LinkedHashMap<>();
-        for (Object arg : args) {
-          if (arg == null) {
-            continue;
-          }
-          String variable = (String) arg;
-          VariableResult result = variables.get(variable);
-          if (result != null && result.getExpression().isPresent()) {
-            ret.put(variable, result.getExpression().orElseGet(() -> ""));
-          }
+      Map<String, VariableResult> variables = getVariables(context);
+      LinkedHashMap<String, String> ret = new LinkedHashMap<>();
+      for (Object arg : args) {
+        if (arg == null) {
+          continue;
         }
-        return ret;
+        String variable = (String) arg;
+        VariableResult result = variables.get(variable);
+        if (result != null && result.getExpression().isPresent()) {
+          ret.put(variable, result.getExpression().orElseGet(() -> ""));
+        }
       }
-      return null;
+      return ret;
     }
 
     @Override
@@ -185,19 +181,17 @@ public class ShellFunctions {
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
-      if(context.getCapability(Context.Capabilities.SHELL_VARIABLES).isPresent()) {
-        Map<String, VariableResult> variables = getVariables(context);
-        if (args.size() == 0) {
-          return null;
-        }
-        String variable = (String) args.get(0);
-        if (variable == null) {
-          return null;
-        }
-        VariableResult result = variables.get(variable);
-        if (result != null && result.getExpression().isPresent()) {
-          return result.getExpression().get();
-        }
+      Map<String, VariableResult> variables = getVariables(context);
+      if (args.size() == 0) {
+        return null;
+      }
+      String variable = (String) args.get(0);
+      if (variable == null) {
+        return null;
+      }
+      VariableResult result = variables.get(variable);
+      if (result != null && result.getExpression().isPresent()) {
+        return result.getExpression().get();
       }
       return null;
     }
@@ -243,55 +237,55 @@ public class ShellFunctions {
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
-        File outFile = null;
-        String editor = getEditor();
+      File outFile = null;
+      String editor = getEditor();
+      try {
+        outFile = File.createTempFile("stellar_shell", "out");
+        if (args.size() > 0) {
+          String arg = (String) args.get(0);
+          try (PrintWriter pw = new PrintWriter(outFile)) {
+            IOUtils.write(arg, pw);
+          }
+        }
+      } catch (IOException e) {
+        String message = "Unable to create temp file: " + e.getMessage();
+        LOG.error(message, e);
+        throw new IllegalStateException(message, e);
+      }
+      Optional<Object> console = context.getCapability(CONSOLE, false);
+      try {
+        PausableInput.INSTANCE.pause();
+        //shut down the IO for the console
+        ProcessBuilder processBuilder = new ProcessBuilder(editor, outFile.getAbsolutePath());
+        processBuilder.redirectInput(ProcessBuilder.Redirect.INHERIT);
+        processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
         try {
-          outFile = File.createTempFile("stellar_shell", "out");
-          if (args.size() > 0) {
-            String arg = (String) args.get(0);
-            try (PrintWriter pw = new PrintWriter(outFile)) {
-              IOUtils.write(arg, pw);
-            }
+          Process p = processBuilder.start();
+          // wait for termination.
+          p.waitFor();
+          try (BufferedReader br = new BufferedReader(new FileReader(outFile))) {
+            String ret = IOUtils.toString(br).trim();
+            return ret;
+          }
+        } catch (Exception e) {
+          String message = "Unable to read output: " + e.getMessage();
+          LOG.error(message, e);
+          return null;
+        }
+      } finally {
+        try {
+          PausableInput.INSTANCE.unpause();
+          if (console.isPresent()) {
+            ((Console) console.get()).pushToInputStream("\b\n");
           }
         } catch (IOException e) {
-          String message = "Unable to create temp file: " + e.getMessage();
-          LOG.error(message, e);
-          throw new IllegalStateException(message, e);
+          LOG.error("Unable to unpause: {}", e.getMessage(), e);
         }
-        Optional<Object> console = context.getCapability(CONSOLE, false);
-        try {
-          PausableInput.INSTANCE.pause();
-          //shut down the IO for the console
-          ProcessBuilder processBuilder = new ProcessBuilder(editor, outFile.getAbsolutePath());
-          processBuilder.redirectInput(ProcessBuilder.Redirect.INHERIT);
-          processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-          processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
-          try {
-            Process p = processBuilder.start();
-            // wait for termination.
-            p.waitFor();
-            try (BufferedReader br = new BufferedReader(new FileReader(outFile))) {
-              String ret = IOUtils.toString(br).trim();
-              return ret;
-            }
-          } catch (Exception e) {
-            String message = "Unable to read output: " + e.getMessage();
-            LOG.error(message, e);
-            return null;
-          }
-        } finally {
-          try {
-            PausableInput.INSTANCE.unpause();
-            if (console.isPresent()) {
-              ((Console) console.get()).pushToInputStream("\b\n");
-            }
-          } catch (IOException e) {
-            LOG.error("Unable to unpause: {}", e.getMessage(), e);
-          }
-          if (outFile.exists()) {
-            outFile.delete();
-          }
+        if (outFile.exists()) {
+          outFile.delete();
         }
+      }
     }
 
     @Override
