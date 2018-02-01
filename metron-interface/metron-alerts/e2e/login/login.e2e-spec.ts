@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 import { LoginPage } from './login.po';
+import { browser } from 'protractor';
 
 describe('login to application', function() {
     let page: LoginPage;
@@ -39,6 +40,6 @@ describe('login to application', function() {
 
     it('should logout', () => {
         page.logout();
-        expect(page.getLocation()).toEqual('http://localhost:4200/login');
+        expect(page.getLocation()).toEqual(browser.baseUrl + 'login');
     });
 });

@@ -25,19 +25,12 @@ var SpecReporter = require('jasmine-spec-reporter').SpecReporter;
 exports.config = {
   allScriptsTimeout: 25000,
   specs: [
-    './e2e/login/login.e2e-spec.ts',
-    './e2e/alerts-list/alerts-list.e2e-spec.ts',
-    './e2e/alerts-list/configure-table/configure-table.e2e-spec.ts',
-    './e2e/alerts-list/save-search/save-search.e2e-spec.ts',
-    './e2e/alerts-list/tree-view/tree-view.e2e-spec.ts',
-    './e2e/alerts-list/alert-filters/alert-filters.e2e-spec.ts',
-    './e2e/alerts-list/alert-status/alerts-list-status.e2e-spec.ts',
-    './e2e/alert-details/alert-status/alert-details-status.e2e-spec.ts',
-    './e2e/alerts-list/meta-alerts/meta-alert.e2e-spec.ts'
+    './e2e/alerts-list/configure-table/configure-table.e2e-spec.ts'
   ],
   capabilities: {
     'browserName': 'chrome',
     'chromeOptions': {
+      args: [ "--headless", "--disable-gpu", "--window-size=1435,850" ],
       'prefs': {
         'credentials_enable_service': false,
         'profile': { 'password_manager_enabled': false}
@@ -45,7 +38,7 @@ exports.config = {
     }
   },
   directConnect: true,
-  baseUrl: 'http://localhost:4200/',
+  baseUrl: 'http://localhost:4201/',
   framework: 'jasmine',
   jasmineNodeOpts: {
     showColors: true,
@@ -77,5 +70,13 @@ exports.config = {
   onComplete: function() {
     var createMetaAlertsIndex =  require('./e2e/utils/e2e_util').createMetaAlertsIndex;
     createMetaAlertsIndex();
+  },
+  params: {
+    rest: {
+      url: 'localhost:8082'
+    },
+    elasticsearch: {
+      url: 'localhost:9210'
+    }
   }
 };
