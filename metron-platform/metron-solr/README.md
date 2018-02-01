@@ -24,13 +24,22 @@ limitations under the License.
 
 ## Introduction
 
-Metron ships with Solr 6.6.2. Solr Cloud can be used as the real-time portion of the datastore resulting from [metron-indexing](../metron-indexing/README.md).
+Metron ships with Solr 6.6.2 support. Solr Cloud can be used as the real-time portion of the datastore resulting from [metron-indexing](../metron-indexing/README.md).
 
 ## Installing
 
 A script is provided in the installation for installing Solr Cloud in quick-start mode in the [full dev environment for CentOS](../../metron-deployment/development/centos6).
 The script is installed as part of the Solr RPM. Metron's Ambari MPack does not currently manage Solr installation in any way, so
 you must first install the RPM in order to run the Solr setup script.
+
+The script performs the following tasks
+
+* Stops ES and Kibana
+* Downloads Solr
+* Installs Solr
+* Starts Solr Cloud
+
+_Note: for details on setting up Solr Cloud in production mode, see https://lucene.apache.org/solr/guide/6_6/taking-solr-to-production.html_
 
 Login to the full dev environment as root, navigate to the Metron rpm repo, and get a listing of the RPM files.
 
