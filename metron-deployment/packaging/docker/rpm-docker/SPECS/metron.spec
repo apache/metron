@@ -505,6 +505,8 @@ chkconfig --del metron-management-ui
 chkconfig --del metron-alerts-ui
 
 %changelog
+* Thu Feb 1 2018 Apache Metron <dev@metron.apache.org> - 0.4.3
+- Add Solr install script to Solr RPM
 * Tue Sep 25 2017 Apache Metron <dev@metron.apache.org> - 0.4.2
 - Add Alerts UI
 * Tue Sep 19 2017 Apache Metron <dev@metron.apache.org> - 0.4.2

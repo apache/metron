@@ -41,18 +41,10 @@ The script performs the following tasks
 
 _Note: for details on setting up Solr Cloud in production mode, see https://lucene.apache.org/solr/guide/6_6/taking-solr-to-production.html_
 
-Login to the full dev environment as root, navigate to the Metron rpm repo, and get a listing of the RPM files.
+Login to the full dev environment as root and execute the following to install the Solr RPM.
 
 ```
-cd /localrepo
-ls -al
-```
-
-Copy the name of the Solr RPM and install it via the following command.
-
-```
-# Install Solr RPM - replace the Metron version and appropriate timestamp on the rpm
-rpm -ivh metron-solr-0.4.3-201801301626.noarch.rpm
+rpm -ivh /localrepo/metron-solr-*.rpm
 ```
 
 This will lay down the necessary files to setup Solr Cloud. Navigate to `$METRON_HOME/bin` and spin up Solr Cloud by running `install_solr.sh`.
