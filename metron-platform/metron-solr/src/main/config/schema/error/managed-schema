@@ -30,14 +30,13 @@
   <field name="failed_sensor_type" type="string" indexed="true" stored="true" />
   <field name="error_type" type="string" indexed="true" stored="true" />
   <dynamicField name="*" type="ignored" multiValued="false" docValues="true"/>
-  <uniqueKey>guid</uniqueKey>
   <fieldType name="string" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
   <fieldType name="boolean" stored="true" indexed="true" multiValued="false" class="solr.BoolField" sortMissingLast="true" docValues="false"/>
   <fieldType name="pint" stored="true" indexed="true" multiValued="false" class="solr.IntPointField" sortMissingLast="false" docValues="true"/>
   <fieldType name="pfloat" stored="true" indexed="true" multiValued="false" class="solr.FloatPointField" sortMissingLast="false" docValues="true"/>
   <fieldType name="plong" stored="true" indexed="true" multiValued="false" class="solr.LongPointField" sortMissingLast="false" docValues="true"/>
   <fieldType name="pdouble" stored="true" indexed="true" multiValued="false" class="solr.DoublePointField" sortMissingLast="false" docValues="true"/>
-  <fieldType name="bytes" stored="true" indexed="true" multiValued="false" class="solr.BinaryField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="bytes" stored="true" indexed="true" multiValued="false" class="solr.BinaryField" sortMissingLast="false"/>
   <fieldType name="location" stored="true" indexed="true" multiValued="false" class="solr.LatLonPointSpatialField" sortMissingLast="false" docValues="true"/>
   <fieldType name="ip" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
   <fieldType name="timestamp" stored="true" indexed="true" multiValued="false" class="solr.LongPointField" sortMissingLast="false" docValues="true"/>
