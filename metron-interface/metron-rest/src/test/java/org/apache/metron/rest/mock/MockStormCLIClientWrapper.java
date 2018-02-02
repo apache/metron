@@ -133,7 +133,7 @@ public class MockStormCLIClientWrapper extends StormCLIWrapper {
   }
 
   @Override
-  public int startIndexingTopology() throws RestException {
+  public int startIndexingTopology(String scriptPath) throws RestException {
     if (indexingStatus == TopologyStatusCode.TOPOLOGY_NOT_FOUND) {
       indexingStatus = TopologyStatusCode.ACTIVE;
       return 0;
@@ -143,7 +143,7 @@ public class MockStormCLIClientWrapper extends StormCLIWrapper {
   }
 
   @Override
-  public int stopIndexingTopology(boolean stopNow) throws RestException {
+  public int stopIndexingTopology(String name, boolean stopNow) throws RestException {
     if (indexingStatus == TopologyStatusCode.ACTIVE) {
       indexingStatus = TopologyStatusCode.TOPOLOGY_NOT_FOUND;
       return 0;
