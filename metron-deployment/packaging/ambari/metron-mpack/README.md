@@ -28,6 +28,20 @@ This allows you to easily install Metron using a simple, guided process.  This a
 
 * A [Node.js](https://nodejs.org/en/download/package-manager/) repository installed on the host running the Management and Alarm UI.
 
+* When installing on Ubuntu the Elasticsearch repository must be defined manually. This is NOT defined by the Mpack like it is on CentOS.  This is an open bug that needs addressed in the Mpack.  See the [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/current/deb.html) documentation for more specific instructions. 
+  ```
+  $ cat >/etc/apt/sources.list.d/elasticsearch.list << EOL
+  deb https://packages.elastic.co/curator/5/debian stable main
+  deb https://artifacts.elastic.co/packages/5.x/apt stable main
+  EOL
+
+  $ wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+
+  $ apt-get update
+  ```
+
+
+
 ### Quick Start
 
 1. Build the Metron MPack. Execute the following command from the project's root directory.
