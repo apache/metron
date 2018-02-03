@@ -53,9 +53,13 @@ public class MockStormRestTemplate extends RestTemplate {
       if (enrichmentStatus != TopologyStatusCode.TOPOLOGY_NOT_FOUND) {
         topologyStatusList.add(getTopologyStatus("enrichment"));
       }
-      TopologyStatusCode indexingStatus = mockStormCLIClientWrapper.getIndexingStatus();
-      if (indexingStatus != TopologyStatusCode.TOPOLOGY_NOT_FOUND) {
-        topologyStatusList.add(getTopologyStatus("indexing"));
+      TopologyStatusCode batchIndexingStatus = mockStormCLIClientWrapper.getIndexingStatus(MetronRestConstants.BATCH_INDEXING_TOPOLOGY_NAME);
+      if (batchIndexingStatus != TopologyStatusCode.TOPOLOGY_NOT_FOUND) {
+        topologyStatusList.add(getTopologyStatus(MetronRestConstants.BATCH_INDEXING_TOPOLOGY_NAME));
+      }
+      TopologyStatusCode randomIndexingStatus = mockStormCLIClientWrapper.getIndexingStatus(MetronRestConstants.RANDOM_ACCESS_INDEXING_TOPOLOGY_NAME);
+      if (randomIndexingStatus != TopologyStatusCode.TOPOLOGY_NOT_FOUND) {
+        topologyStatusList.add(getTopologyStatus(MetronRestConstants.RANDOM_ACCESS_INDEXING_TOPOLOGY_NAME));
       }
       topologySummary.setTopologies(topologyStatusList.toArray(new TopologyStatus[topologyStatusList.size()]));
       response =  topologySummary;
@@ -79,8 +83,8 @@ public class MockStormRestTemplate extends RestTemplate {
     topologyStatus.setId(name + "-id");
     if ("enrichment".equals(name)) {
       topologyStatus.setStatus(mockStormCLIClientWrapper.getEnrichmentStatus());
-    } else if ("indexing".equals(name)) {
-      topologyStatus.setStatus(mockStormCLIClientWrapper.getIndexingStatus());
+    } else if (name.contains("indexing")) {
+      topologyStatus.setStatus(mockStormCLIClientWrapper.getIndexingStatus(name));
     } else {
       topologyStatus.setStatus(mockStormCLIClientWrapper.getParserStatus(name));
     }
@@ -97,16 +101,16 @@ public class MockStormRestTemplate extends RestTemplate {
     if (action.equals("activate")) {
       if (name.equals("enrichment")) {
         returnCode = mockStormCLIClientWrapper.activateEnrichmentTopology();
-      } else if (name.equals("indexing")) {
-        returnCode = mockStormCLIClientWrapper.activateIndexingTopology();
+      } else if (name.contains("indexing")) {
+        returnCode = mockStormCLIClientWrapper.activateIndexingTopology(name);
       } else {
         returnCode = mockStormCLIClientWrapper.activateParserTopology(name);
       }
     } else if (action.equals("deactivate")){
       if (name.equals("enrichment")) {
         returnCode = mockStormCLIClientWrapper.deactivateEnrichmentTopology();
-      } else if (name.equals("indexing")) {
-        returnCode = mockStormCLIClientWrapper.deactivateIndexingTopology();
+      } else if (name.contains("indexing")) {
+        returnCode = mockStormCLIClientWrapper.deactivateIndexingTopology(name);
       } else {
         returnCode = mockStormCLIClientWrapper.deactivateParserTopology(name);
       }

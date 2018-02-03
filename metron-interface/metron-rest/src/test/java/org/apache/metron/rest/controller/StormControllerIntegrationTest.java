@@ -17,8 +17,10 @@
  */
 package org.apache.metron.rest.controller;
 
+import org.apache.hadoop.hbase.shaded.com.google.common.collect.ImmutableList;
 import org.apache.metron.common.configuration.SensorParserConfig;
 import org.apache.metron.integration.utils.TestUtils;
+import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.model.TopologyStatusCode;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.apache.metron.rest.service.SensorParserConfigService;
@@ -33,6 +35,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -287,66 +290,69 @@ public class StormControllerIntegrationTest {
             .andExpect(jsonPath("$.status").value("SUCCESS"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STOPPED.name()));
 
-    this.mockMvc.perform(get(stormUrl + "/indexing").with(httpBasic(user,password)))
-            .andExpect(status().isNotFound());
+    for(String type : ImmutableList.of("randomaccess", "batch")) {
+      this.mockMvc.perform(get(stormUrl + "/indexing/" + type).with(httpBasic(user,password)))
+              .andExpect(status().isNotFound());
+      this.mockMvc.perform(get(stormUrl + "/indexing/" + type + "/activate").with(httpBasic(user, password)))
+              .andExpect(status().isOk())
+              .andExpect(jsonPath("$.status").value("ERROR"))
+              .andExpect(jsonPath("$.message").value(TopologyStatusCode.TOPOLOGY_NOT_FOUND.name()));
 
-    this.mockMvc.perform(get(stormUrl + "/indexing/activate").with(httpBasic(user,password)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("ERROR"))
-            .andExpect(jsonPath("$.message").value(TopologyStatusCode.TOPOLOGY_NOT_FOUND.name()));
+      this.mockMvc.perform(get(stormUrl + "/indexing/" + type + "/deactivate").with(httpBasic(user, password)))
+              .andExpect(status().isOk())
+              .andExpect(jsonPath("$.status").value("ERROR"))
+              .andExpect(jsonPath("$.message").value(TopologyStatusCode.TOPOLOGY_NOT_FOUND.name()));
 
-    this.mockMvc.perform(get(stormUrl + "/indexing/deactivate").with(httpBasic(user,password)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("ERROR"))
-            .andExpect(jsonPath("$.message").value(TopologyStatusCode.TOPOLOGY_NOT_FOUND.name()));
+      this.mockMvc.perform(get(stormUrl + "/indexing/" + type + "/stop?stopNow=true").with(httpBasic(user, password)))
+              .andExpect(status().isOk())
+              .andExpect(jsonPath("$.status").value("ERROR"))
+              .andExpect(jsonPath("$.message").value(TopologyStatusCode.STOP_ERROR.toString()));
 
-    this.mockMvc.perform(get(stormUrl + "/indexing/stop?stopNow=true").with(httpBasic(user,password)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("ERROR"))
-            .andExpect(jsonPath("$.message").value(TopologyStatusCode.STOP_ERROR.toString()));
+      this.mockMvc.perform(get(stormUrl + "/indexing/" + type + "/start").with(httpBasic(user, password)))
+              .andExpect(status().isOk())
+              .andExpect(jsonPath("$.status").value("SUCCESS"))
+              .andExpect(jsonPath("$.message").value(TopologyStatusCode.STARTED.toString()));
 
-    this.mockMvc.perform(get(stormUrl + "/indexing/start").with(httpBasic(user,password)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("SUCCESS"))
-            .andExpect(jsonPath("$.message").value(TopologyStatusCode.STARTED.toString()));
+      ResultActions actions = this.mockMvc.perform(get(stormUrl + "/indexing/" + type + "/deactivate").with(httpBasic(user, password)));
+      actions.andExpect(status().isOk())
+              .andExpect(jsonPath("$.status").value("SUCCESS"))
+              .andExpect(jsonPath("$.message").value(TopologyStatusCode.INACTIVE.name()));
 
-    this.mockMvc.perform(get(stormUrl + "/indexing/deactivate").with(httpBasic(user,password)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("SUCCESS"))
-            .andExpect(jsonPath("$.message").value(TopologyStatusCode.INACTIVE.name()));
-
-    this.mockMvc.perform(get(stormUrl + "/indexing/activate").with(httpBasic(user,password)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value("SUCCESS"))
-            .andExpect(jsonPath("$.message").value(TopologyStatusCode.ACTIVE.name()));
-
-    this.mockMvc.perform(get(stormUrl + "/indexing").with(httpBasic(user,password)))
+      this.mockMvc.perform(get(stormUrl + "/indexing/" + type + "/activate").with(httpBasic(user, password)))
+              .andExpect(status().isOk())
+              .andExpect(jsonPath("$.status").value("SUCCESS"))
+              .andExpect(jsonPath("$.message").value(TopologyStatusCode.ACTIVE.name()));
+      String topologyName = type.equals("randomaccess")? MetronRestConstants.RANDOM_ACCESS_INDEXING_TOPOLOGY_NAME:MetronRestConstants.BATCH_INDEXING_TOPOLOGY_NAME;
+      this.mockMvc.perform(get(stormUrl + "/indexing/" + type).with(httpBasic(user, password)))
+              .andExpect(status().isOk())
+              .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
+              .andExpect(jsonPath("$.name").value(topologyName))
+              .andExpect(jsonPath("$.id", containsString("indexing")))
+              .andExpect(jsonPath("$.status").value("ACTIVE"))
+              .andExpect(jsonPath("$.latency").exists())
+              .andExpect(jsonPath("$.throughput").exists())
+              .andExpect(jsonPath("$.emitted").exists())
+              .andExpect(jsonPath("$.acked").exists());
+      this.mockMvc.perform(get(stormUrl).with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$.name").value("indexing"))
-            .andExpect(jsonPath("$.id", containsString("indexing")))
-            .andExpect(jsonPath("$.status").value("ACTIVE"))
-            .andExpect(jsonPath("$.latency").exists())
-            .andExpect(jsonPath("$.throughput").exists())
-            .andExpect(jsonPath("$.emitted").exists())
-            .andExpect(jsonPath("$.acked").exists());
+            .andExpect(jsonPath("$[?(@.name == '" + topologyName + "' && @.status == 'ACTIVE')]").exists());
 
-    this.mockMvc.perform(get(stormUrl).with(httpBasic(user,password)))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.parseMediaType("application/json;charset=UTF-8")))
-            .andExpect(jsonPath("$[?(@.name == 'indexing' && @.status == 'ACTIVE')]").exists());
-
-    this.mockMvc.perform(get(stormUrl + "/indexing/stop").with(httpBasic(user,password)))
+      this.mockMvc.perform(get(stormUrl + "/indexing/" + type + "/stop").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("SUCCESS"))
             .andExpect(jsonPath("$.message").value(TopologyStatusCode.STOPPED.name()));
+
+    }
+
 
     this.mockMvc.perform(get(stormUrl + "/client/status").with(httpBasic(user,password)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.stormClientVersionInstalled").value("1.0.1"))
             .andExpect(jsonPath("$.parserScriptPath").value("/usr/metron/" + metronVersion + "/bin/start_parser_topology.sh"))
             .andExpect(jsonPath("$.enrichmentScriptPath").value("/usr/metron/" + metronVersion + "/bin/start_enrichment_topology.sh"))
-            .andExpect(jsonPath("$.indexingScriptPath").value("/usr/metron/" + metronVersion + "/bin/start_elasticsearch_topology.sh"));
+            .andExpect(jsonPath("$.randomAccessIndexingScriptPath").value("/usr/metron/" + metronVersion + "/bin/start_elasticsearch_topology.sh"))
+            .andExpect(jsonPath("$.batchIndexingScriptPath").value("/usr/metron/" + metronVersion + "/bin/start_hdfs_topology.sh"));
 
     globalConfigService.delete();
     sensorParserConfigService.delete("broTest");
