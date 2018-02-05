@@ -228,6 +228,16 @@ This package installs the Metron Solr files
 %{metron_home}/bin/install_solr.sh
 %{metron_home}/bin/start_solr_topology.sh
 %{metron_home}/config/solr.properties
+%{metron_home}/config/schema/bro/managed-schema
+%{metron_home}/config/schema/bro/solrconfig.xml
+%{metron_home}/config/schema/error/managed-schema
+%{metron_home}/config/schema/error/solrconfig.xml
+%{metron_home}/config/schema/metaalert/managed-schema
+%{metron_home}/config/schema/metaalert/solrconfig.xml
+%{metron_home}/config/schema/snort/managed-schema
+%{metron_home}/config/schema/snort/solrconfig.xml
+%{metron_home}/config/schema/yaf/managed-schema
+%{metron_home}/config/schema/yaf/solrconfig.xml
 %attr(0644,root,root) %{metron_home}/lib/metron-solr-%{full_version}-uber.jar
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
