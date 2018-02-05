@@ -86,7 +86,9 @@ public class EnrichmentJoinBolt extends JoinBolt<JSONObject> {
     for(Object o : emptyKeys) {
       message.remove(o);
     }
-    message.put(getClass().getSimpleName().toLowerCase() + ".joiner.ts", "" + System.currentTimeMillis());
+    if(LOG.isDebugEnabled()) {
+      message.put(getClass().getSimpleName().toLowerCase() + ".joiner.ts", "" + System.currentTimeMillis());
+    }
     return  message;
   }
 
