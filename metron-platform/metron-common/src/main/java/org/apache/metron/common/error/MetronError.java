@@ -26,10 +26,7 @@ import org.json.simple.JSONObject;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.metron.common.Constants.ERROR_TYPE;
@@ -92,6 +89,7 @@ public class MetronError {
   @SuppressWarnings({"unchecked"})
   public JSONObject getJSONObject() {
     JSONObject errorMessage = new JSONObject();
+    errorMessage.put(Constants.GUID, UUID.randomUUID().toString());
     errorMessage.put(Constants.SENSOR_TYPE, "error");
     errorMessage.put(ErrorFields.FAILED_SENSOR_TYPE.getName(), sensorType);
     errorMessage.put(ErrorFields.ERROR_TYPE.getName(), errorType.getType());
