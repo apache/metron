@@ -18,12 +18,14 @@
 package org.apache.metron.common.error;
 
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
@@ -53,12 +55,16 @@ public class MetronErrorTest {
     assertEquals("error", errorJSON.get(Constants.SENSOR_TYPE));
     assertEquals("sensorType", errorJSON.get(Constants.ErrorFields.FAILED_SENSOR_TYPE.getName()));
 
+    String hostName = null;
     try {
-      String hostName = InetAddress.getLocalHost().getHostName();
+      hostName = InetAddress.getLocalHost().getHostName();
+    } catch (UnknownHostException uhe) {
+      // unable to get the hostname on this machine, don't test it
+    }
+
+    if (!StringUtils.isEmpty(hostName)) {
       assertTrue(((String) errorJSON.get(Constants.ErrorFields.HOSTNAME.getName())).length() > 0);
       assertEquals(hostName, (String) errorJSON.get(Constants.ErrorFields.HOSTNAME.getName()));
-    } catch (Exception e) {
-      // something wrong with getting hosthame on this machine
     }
     assertTrue(((long) errorJSON.get(Constants.ErrorFields.TIMESTAMP.getName())) > 0);
   }
