@@ -40,11 +40,6 @@
         <description>Elasticsearch Configuration Directory</description>
     </property>
     <property>
-        <name>heap_size</name>
-        <value>512m</value>
-        <description>Heap size</description>
-    </property>
-    <property>
         <name>max_open_files</name>
         <value>65536</value>
         <description>Maximum number of open files</description>
@@ -92,11 +87,8 @@ PID_DIR={{pid_dir}}
 # JAVA_HOME must be provided here for OS that use systemd service launch
 JAVA_HOME={{java64_home}}
 
-# Additional Java OPTS
-ES_JAVA_OPTS="-verbose:gc -Xloggc:{{log_dir}}/elasticsearch_gc.log -XX:-CMSConcurrentMTEnabled \
--XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
--XX:ErrorFile={{log_dir}}/elasticsearch_err.log -XX:ParallelGCThreads=8 \
--Xms{{heap_size}} -Xmx{{heap_size}}"
+# Additional Java options - now preferential to use 'jvm.options' file instead
+ES_JAVA_OPTS=""
 
 # https://www.elastic.co/guide/en/elasticsearch/reference/5.6/_memory_lock_check.html
 MAX_LOCKED_MEMORY=unlimited
