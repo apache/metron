@@ -46,6 +46,7 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
   public static final String ZOOKEEPER_PROP = "solr.zookeeper";
   public static final String DEFAULT_COLLECTION_PROP = "solr.collection";
+  public static final String SOLR_HTTP_CONFIG_PROP = "solr.http.config";
   public static final String DEFAULT_COLLECTION = "metron";
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -68,11 +69,12 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
     String zookeeperUrl = (String) globalConfiguration.get(ZOOKEEPER_PROP);
     String defaultCollection = (String) globalConfiguration.get(DEFAULT_COLLECTION_PROP);
+    Map<String, Object> solrHttpConfig = (Map<String, Object>)globalConfiguration.get(SOLR_HTTP_CONFIG_PROP);
     LOG.info("Initializing SOLR writer: {}", zookeeperUrl);
     LOG.info("Forcing commit per batch: {}", shouldCommit);
     LOG.info("Default Collection: {}", "" + defaultCollection );
     if(solr == null) {
-      solr = new MetronSolrClient(zookeeperUrl);
+      solr = new MetronSolrClient(zookeeperUrl, solrHttpConfig);
 
     }
     if(!StringUtils.isEmpty(defaultCollection)) {
