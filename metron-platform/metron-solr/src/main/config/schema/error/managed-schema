@@ -29,6 +29,7 @@
   <field name="error_hash" type="string" indexed="true" stored="true" />
   <field name="failed_sensor_type" type="string" indexed="true" stored="true" />
   <field name="error_type" type="string" indexed="true" stored="true" />
+  <field name="guid" type="string" indexed="true" stored="true" required="true" multiValued="false" />
   <uniqueKey>guid</uniqueKey>
   <dynamicField name="*" type="ignored" multiValued="false" docValues="true"/>
   <fieldType name="string" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
