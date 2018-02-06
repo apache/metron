@@ -17,6 +17,12 @@
  */
 package org.apache.metron.solr.writer;
 
+import com.google.common.base.Joiner;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.metron.common.Constants;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.common.SolrException;
+import org.apache.solr.common.util.NamedList;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
 import org.apache.metron.common.configuration.Configurations;
@@ -33,17 +39,18 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
+import java.lang.invoke.MethodHandles;
+import java.util.*;
 
 public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
+  public static final String ZOOKEEPER_PROP = "solr.zookeeper";
+  public static final String DEFAULT_COLLECTION_PROP = "solr.collection";
   public static final String DEFAULT_COLLECTION = "metron";
 
-  private static final Logger LOG = LoggerFactory
-          .getLogger(SolrWriter.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private boolean shouldCommit = false;
+  private boolean shouldCommit = true;
   private MetronSolrClient solr;
 
   public SolrWriter withShouldCommit(boolean shouldCommit) {
@@ -59,41 +66,89 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
   @Override
   public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration configurations) throws IOException, SolrServerException {
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
-    if(solr == null) solr = new MetronSolrClient((String) globalConfiguration.get("solr.zookeeper"));
-    String collection = getCollection(configurations);
-    solr.createCollection(collection, (Integer) globalConfiguration.get("solr.numShards"), (Integer) globalConfiguration.get("solr.replicationFactor"));
-    solr.setDefaultCollection(collection);
+    String zookeeperUrl = (String) globalConfiguration.get(ZOOKEEPER_PROP);
+    String defaultCollection = (String) globalConfiguration.get(DEFAULT_COLLECTION_PROP);
+    LOG.info("Initializing SOLR writer: {}", zookeeperUrl);
+    LOG.info("Forcing commit per batch: {}", shouldCommit);
+    LOG.info("Default Collection: {}", "" + defaultCollection );
+    if(solr == null) {
+      solr = new MetronSolrClient(zookeeperUrl);
+
+    }
+    if(!StringUtils.isEmpty(defaultCollection)) {
+      solr.setDefaultCollection(defaultCollection);
+    }
+    else {
+      solr.setDefaultCollection(DEFAULT_COLLECTION);
+    }
+  }
+
+  public Collection<SolrInputDocument> toDocs(Iterable<JSONObject> messages) {
+    Collection<SolrInputDocument> ret = new ArrayList<>();
+    for(JSONObject message: messages) {
+      SolrInputDocument document = new SolrInputDocument();
+      for (Object key : message.keySet()) {
+        Object value = message.get(key);
+        if (value instanceof Iterable) {
+          for (Object v : (Iterable) value) {
+            document.addField("" + key, v);
+          }
+        } else {
+          document.addField("" + key, value);
+        }
+      }
+      if (!document.containsKey(Constants.GUID)) {
+        document.addField(Constants.GUID, UUID.randomUUID().toString());
+      }
+      ret.add(document);
+    }
+    return ret;
+  }
+
+  protected String getCollection(String sourceType, WriterConfiguration configurations) {
+    String collection = configurations.getIndex(sourceType);
+    if(StringUtils.isEmpty(collection)) {
+      return solr.getDefaultCollection();
+    }
+    return collection;
   }
 
   @Override
   public BulkWriterResponse write(String sourceType, WriterConfiguration configurations, Iterable<Tuple> tuples, List<JSONObject> messages) throws Exception {
-    for(JSONObject message: messages) {
-      SolrInputDocument document = new SolrInputDocument();
-      document.addField("sensorType", sourceType);
-      for(Object key: message.keySet()) {
-        Object value = message.get(key);
-        if(value instanceof Iterable) {
-          for(Object v : (Iterable)value) {
-            document.addField(getFieldName(key, v), v);
+    String collection = getCollection(sourceType, configurations);
+    BulkWriterResponse bulkResponse = new BulkWriterResponse();
+    Collection<SolrInputDocument> docs = toDocs(messages);
+    try {
+      Optional<SolrException> exceptionOptional = fromUpdateResponse(solr.add(collection, docs));
+      // Solr commits the entire batch or throws an exception for it.  There's no way to get partial failures.
+      if(exceptionOptional.isPresent()) {
+        bulkResponse.addAllErrors(exceptionOptional.get(), tuples);
+      }
+      else {
+        if (shouldCommit) {
+          exceptionOptional = fromUpdateResponse(solr.commit(collection));
+          if(exceptionOptional.isPresent()) {
+            bulkResponse.addAllErrors(exceptionOptional.get(), tuples);
           }
         }
-        else {
-          document.addField(getFieldName(key, value), value);
+        if(!exceptionOptional.isPresent()) {
+          bulkResponse.addAllSuccesses(tuples);
         }
       }
-      if(!document.containsKey("id")) {
-        document.addField("id", getIdValue(message));
-      }
-      UpdateResponse response = solr.add(document);
     }
-    if (shouldCommit) {
-      solr.commit(getCollection(configurations));
+    catch(HttpSolrClient.RemoteSolrException sse) {
+      bulkResponse.addAllErrors(sse, tuples);
     }
 
-    // Solr commits the entire batch or throws an exception for it.  There's no way to get partial failures.
-    BulkWriterResponse response = new BulkWriterResponse();
-    response.addAllSuccesses(tuples);
-    return response;
+    return bulkResponse;
+  }
+
+  protected Optional<SolrException> fromUpdateResponse(UpdateResponse response) {
+    if(response != null && response.getStatus() > 0) {
+      String message = "Solr Update response: " + Joiner.on(",").join(response.getResponse());
+      return Optional.of(new SolrException(SolrException.ErrorCode.BAD_REQUEST, message));
+    }
+    return Optional.empty();
   }
 
   @Override
@@ -101,33 +156,10 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
     return "solr";
   }
 
-  protected String getCollection(WriterConfiguration configurations) {
-    String collection = (String) configurations.getGlobalConfig().get("solr.collection");
-    return collection != null ? collection : DEFAULT_COLLECTION;
-  }
-
-  protected Object getIdValue(JSONObject message) {
-    return message.toJSONString().hashCode();
-  }
-
-  protected String getFieldName(Object key, Object value) {
-    String field;
-    if (value instanceof Integer) {
-      field = key + "_i";
-    } else if (value instanceof Long) {
-      field = key + "_l";
-    } else if (value instanceof Float) {
-      field = key + "_f";
-    } else if (value instanceof Double) {
-      field = key + "_d";
-    } else {
-      field = key + "_s";
-    }
-    return field;
-  }
-
   @Override
   public void close() throws Exception {
-    solr.close();
+    if(solr != null) {
+      solr.close();
+    }
   }
 }

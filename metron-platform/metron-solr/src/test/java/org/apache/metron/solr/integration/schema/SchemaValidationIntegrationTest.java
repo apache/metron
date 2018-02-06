@@ -21,17 +21,22 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.common.writer.BulkWriterResponse;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.apache.metron.solr.writer.SolrWriter;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
+
+import static org.mockito.Mockito.mock;
 
 public class SchemaValidationIntegrationTest {
 
@@ -45,15 +50,12 @@ public class SchemaValidationIntegrationTest {
   public static Map<String, Object> getGlobalConfig(String sensorType, SolrComponent component) {
     Map<String, Object> globalConfig = new HashMap<>();
     globalConfig.put("solr.zookeeper", component.getZookeeperUrl());
-    globalConfig.put("solr.collection", sensorType + "_doc");
-    globalConfig.put("solr.numShards", 1);
-    globalConfig.put("solr.replicationFactor", 1);
     return globalConfig;
   }
 
   public static SolrComponent createSolrComponent(String sensor) throws Exception {
     return new SolrComponent.Builder()
-            .addCollection(String.format("%s_doc", sensor), String.format("src/main/config/schema/%s", sensor))
+            .addCollection(String.format("%s", sensor), String.format("src/main/config/schema/%s", sensor))
             .build();
   }
 
@@ -94,9 +96,12 @@ public class SchemaValidationIntegrationTest {
       Map<String, Object> globalConfig = getGlobalConfig(sensorType, component);
 
       List<JSONObject> inputs = new ArrayList<>();
+      List<Tuple> tuples = new ArrayList<>();
       Map<String, Map<String, Object>> index = new HashMap<>();
       for (String message : getData(sensorType)) {
         if (message.trim().length() > 0) {
+          Tuple t = mock(Tuple.class);
+          tuples.add(t);
           Map<String, Object> m = JSONUtils.INSTANCE.load(message.trim(), JSONUtils.MAP_SUPPLIER);
           String guid = getGuid(m);
           index.put(guid, m);
@@ -105,18 +110,7 @@ public class SchemaValidationIntegrationTest {
       }
       Assert.assertTrue(inputs.size() > 0);
 
-      SolrWriter solrWriter = new SolrWriter() {
-        @Override
-        protected String getFieldName(Object key, Object value) {
-          return "" + key;
-        }
-
-        @Override
-        protected Object getIdValue(JSONObject message) {
-          return message.get("guid");
-        }
-
-      };
+      SolrWriter solrWriter = new SolrWriter();
       WriterConfiguration writerConfig = new WriterConfiguration() {
         @Override
         public int getBatchSize(String sensorName) {
@@ -165,8 +159,9 @@ public class SchemaValidationIntegrationTest {
 
       solrWriter.init(null, null, writerConfig);
 
-      solrWriter.write(sensorType, writerConfig, new ArrayList<>(), inputs);
-      for (Map<String, Object> m : component.getAllIndexedDocs(sensorType + "_doc")) {
+      BulkWriterResponse response = solrWriter.write(sensorType, writerConfig, tuples, inputs);
+      Assert.assertTrue(response.getErrors().isEmpty());
+      for (Map<String, Object> m : component.getAllIndexedDocs(sensorType)) {
         Map<String, Object> expected = index.get(getGuid(m));
         for (Map.Entry<String, Object> field : expected.entrySet()) {
           if (field.getValue() instanceof Collection && ((Collection) field.getValue()).size() == 0) {

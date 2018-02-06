@@ -39,7 +39,7 @@ import org.apache.metron.solr.integration.components.SolrComponent;
 
 public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
 
-  private String collection = "metron";
+  private String collection = "yaf";
   private FieldNameConverter fieldNameConverter = fieldName -> fieldName;
   @Override
   public FieldNameConverter getFieldNameConverter() {
@@ -49,7 +49,7 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
   @Override
   public InMemoryComponent getSearchComponent(final Properties topologyProperties) throws Exception {
     SolrComponent solrComponent = new SolrComponent.Builder()
-            .addCollection(collection, "../metron-solr/src/test/resources/solr/conf")
+            .addCollection(collection, "../metron-solr/src/main/config/schema/yaf")
             .withPostStartCallback(new Function<SolrComponent, Void>() {
               @Nullable
               @Override
