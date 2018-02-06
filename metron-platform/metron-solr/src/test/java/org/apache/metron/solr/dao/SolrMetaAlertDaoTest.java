@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.metron.elasticsearch.dao;
+package org.apache.metron.solr.dao;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -36,8 +36,9 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.update.Document;
 import org.junit.Test;
 
-public class ElasticsearchMetaAlertDaoTest {
+public class SolrMetaAlertDaoTest {
 
+  // TODO refactor to act on AbstractMetaALertDao.
 
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidInit() {
@@ -80,14 +81,14 @@ public class ElasticsearchMetaAlertDaoTest {
         return null;
       }
     };
-    ElasticsearchMetaAlertDao metaAlertDao = new ElasticsearchMetaAlertDao();
+    SolrMetaAlertDao metaAlertDao = new SolrMetaAlertDao();
     metaAlertDao.init(dao);
   }
 
   @Test(expected = InvalidCreateException.class)
   public void testCreateMetaAlertEmptyGuids() throws InvalidCreateException, IOException {
-    ElasticsearchDao esDao = new ElasticsearchDao();
-    ElasticsearchMetaAlertDao emaDao = new ElasticsearchMetaAlertDao();
+    SolrDao esDao = new SolrDao();
+    SolrMetaAlertDao emaDao = new SolrMetaAlertDao();
     emaDao.init(esDao);
 
     MetaAlertCreateRequest createRequest = new MetaAlertCreateRequest();
@@ -96,8 +97,8 @@ public class ElasticsearchMetaAlertDaoTest {
 
   @Test(expected = InvalidCreateException.class)
   public void testCreateMetaAlertEmptyGroups() throws InvalidCreateException, IOException {
-    ElasticsearchDao esDao = new ElasticsearchDao();
-    ElasticsearchMetaAlertDao emaDao = new ElasticsearchMetaAlertDao();
+    SolrDao esDao = new SolrDao();
+    SolrMetaAlertDao emaDao = new SolrMetaAlertDao();
     emaDao.init(esDao);
 
     MetaAlertCreateRequest createRequest = new MetaAlertCreateRequest();

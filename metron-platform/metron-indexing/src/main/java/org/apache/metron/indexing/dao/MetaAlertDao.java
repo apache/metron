@@ -151,4 +151,8 @@ public interface MetaAlertDao extends IndexDao {
    *     null is "sum"
    */
   void init(IndexDao indexDao, Optional<String> threatSort);
+
+  int getPageSize();
+
+  void setPageSize(int pageSize);
 }

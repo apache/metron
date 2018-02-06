@@ -114,4 +114,8 @@ public class SolrDao implements IndexDao {
   public Map<String, FieldType> getColumnMetadata(List<String> indices) throws IOException {
     return this.solrColumnMetadataDao.getColumnMetadata(indices);
   }
+
+  public SolrClient getClient() {
+    return client;
+  }
 }

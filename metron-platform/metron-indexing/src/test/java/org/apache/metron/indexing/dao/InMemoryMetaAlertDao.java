@@ -57,6 +57,7 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   public static Map<String, Collection<String>> METAALERT_STORE = new HashMap<>();
 
   private IndexDao indexDao;
+  private int pageSize=10;
 
   /**
    * {
@@ -94,6 +95,16 @@ public class InMemoryMetaAlertDao implements MetaAlertDao {
   public void init(IndexDao indexDao, Optional<String> threatSort) {
     this.indexDao = indexDao;
     // Ignore threatSort for test.
+  }
+
+  @Override
+  public int getPageSize() {
+    return pageSize;
+  }
+
+  @Override
+  public void setPageSize(int pageSize) {
+    this.pageSize=pageSize;
   }
 
   @Override
