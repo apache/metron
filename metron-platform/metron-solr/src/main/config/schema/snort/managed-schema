@@ -18,19 +18,26 @@
 <schema name="snort_doc" version="1.6">
   <field name="_version_" type="plong" indexed="false" stored="false"/>
   <field name="_root_" type="string" indexed="true" stored="false" docValues="false" />
+
+  <!-- Metron specific fields -->
   <field name="timestamp" type="timestamp" indexed="true" stored="true" />
   <field name="source.type" type="string" indexed="true" stored="true" />
+  <field name="guid" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+  <uniqueKey>guid</uniqueKey>
+
+  <!-- Source/Destination information -->
   <field name="ip_dst_addr" type="ip" indexed="true" stored="true" />
   <field name="ip_dst_port" type="pint" indexed="true" stored="true" />
   <field name="ip_src_addr" type="ip" indexed="true" stored="true" />
   <field name="ip_src_port" type="pint" indexed="true" stored="true" />
+
+  <!-- Snort specific fields -->
   <field name="dgmlen" type="pint" indexed="true" stored="true" />
   <field name="ethdst" type="string" indexed="true" stored="true" />
   <field name="ethlen" type="string" indexed="true" stored="true" />
   <field name="ethsrc" type="string" indexed="true" stored="true" />
   <field name="id" type="pint" indexed="true" stored="true" />
   <field name="iplen" type="pint" indexed="true" stored="true" />
-  <field name="is_alert" type="boolean" indexed="true" stored="true" />
   <field name="msg" type="string" indexed="true" stored="true" />
   <field name="protocol" type="string" indexed="true" stored="true" />
   <field name="sig_generator" type="string" indexed="true" stored="true" />
@@ -42,7 +49,8 @@
   <field name="tcpwindow" type="string" indexed="true" stored="true" />
   <field name="tos" type="pint" indexed="true" stored="true" />
   <field name="ttl" type="pint" indexed="true" stored="true" />
-  <field name="guid" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+
+  <!-- Geo Enrichment Fields -->
   <dynamicField name="*.location_point" type="location" multiValued="false" docValues="true"/>
   <dynamicField name="*.country" type="string" multiValued="false" docValues="true"/>
   <dynamicField name="*.city" type="string" multiValued="false" docValues="true"/>
@@ -51,12 +59,20 @@
   <dynamicField name="*.postalCode" type="string" multiValued="false" docValues="true"/>
   <dynamicField name="*.latitude" type="pfloat" multiValued="false" docValues="true"/>
   <dynamicField name="*.longitude" type="pfloat" multiValued="false" docValues="true"/>
+
+  <!-- Performance Debugging Fields -->
   <dynamicField name="*.ts" type="timestamp" multiValued="false" docValues="true"/>
+
+  <!-- Threat Intel Scoring Fields -->
+  <field name="is_alert" type="boolean" indexed="true" stored="true" />
   <dynamicField name="*score" type="pfloat" multiValued="false" docValues="true"/>
   <dynamicField name="*.reason" type="string" multiValued="false" docValues="true"/>
   <dynamicField name="*.name" type="string" multiValued="false" docValues="true"/>
+
+  <!-- Catch all, if we don't know about it, it gets dropped. -->
   <dynamicField name="*" type="ignored" multiValued="false" docValues="true"/>
-  <uniqueKey>guid</uniqueKey>
+
+  <!-- Type Definitions -->
   <fieldType name="string" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
   <fieldType name="boolean" stored="true" indexed="true" multiValued="false" class="solr.BoolField" sortMissingLast="true" docValues="false"/>
   <fieldType name="pint" stored="true" indexed="true" multiValued="false" class="solr.IntPointField" sortMissingLast="false" docValues="true"/>

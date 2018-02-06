@@ -18,10 +18,16 @@
 <schema name="error_doc" version="1.6">
   <field name="_version_" type="plong" indexed="false" stored="false"/>
   <field name="_root_" type="string" indexed="true" stored="false" docValues="false" />
+
+  <!-- The Exception Details-->
   <field name="exception" type="string" indexed="true" stored="true" />
   <field name="hostname" type="string" indexed="true" stored="true" />
   <field name="stack" type="string" indexed="true" stored="true" />
+
+  <!-- The timestamp of when it happened -->
   <field name="timestamp" type="timestamp" indexed="true" stored="true" />
+
+  <!-- The message in string form (this may be garbage if the message is a bytes rather than text -->
   <field name="message" type="string" indexed="true" stored="true" />
   <field name="raw_message" type="string" indexed="true" stored="true" />
   <field name="raw_message_bytes" type="bytes" indexed="true" stored="true" />
@@ -29,9 +35,15 @@
   <field name="error_hash" type="string" indexed="true" stored="true" />
   <field name="failed_sensor_type" type="string" indexed="true" stored="true" />
   <field name="error_type" type="string" indexed="true" stored="true" />
+
+  <!-- The GUID for the error -->
   <field name="guid" type="string" indexed="true" stored="true" required="true" multiValued="false" />
   <uniqueKey>guid</uniqueKey>
+
+  <!-- Catch all, if we don't know about it, it gets dropped. -->
   <dynamicField name="*" type="ignored" multiValued="false" docValues="true"/>
+
+
   <fieldType name="string" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
   <fieldType name="boolean" stored="true" indexed="true" multiValued="false" class="solr.BoolField" sortMissingLast="true" docValues="false"/>
   <fieldType name="pint" stored="true" indexed="true" multiValued="false" class="solr.IntPointField" sortMissingLast="false" docValues="true"/>
