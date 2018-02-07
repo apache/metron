@@ -51,13 +51,13 @@ Any platform that supports these tools is suitable, but the following instructio
   /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
   ```
 
-2. With Homebrew installed, run the following command in a terminal to install all of the required tools.
+2. With Homebrew installed, run the following command in a terminal to install all of the required tools and dependencies.
 
   ```
   brew update
   brew tap caskroom/versions
-  brew cask install java8
-  brew install maven git
+  brew cask install java8 vagrant virtualbox
+  brew install maven git node
   ```
 
 3. Install Ansible by following the instructions [here](http://docs.ansible.com/ansible/intro_installation.html#latest-releases-via-pip).
