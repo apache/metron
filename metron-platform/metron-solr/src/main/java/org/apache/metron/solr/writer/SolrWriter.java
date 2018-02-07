@@ -38,65 +38,118 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
-import java.util.Map;
-import java.util.Collection;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.UUID;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Supplier;
 
 public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
-  public static final String ZOOKEEPER_PROP = "solr.zookeeper";
-  public static final String COMMIT_PER_BATCH_PROP = "solr.commitPerBatch";
-  public static final String DEFAULT_COLLECTION_PROP = "solr.collection";
-  public static final String SOLR_HTTP_CONFIG_PROP = "solr.http.config";
-  public static final String DEFAULT_COLLECTION = "metron";
+
+  public enum SolrProperties {
+    ZOOKEEPER_QUORUM("solr.zookeeper"),
+    COMMIT_PER_BATCH("solr.commitPerBatch", Optional.of(true)),
+    COMMIT_WAIT_SEARCHER("solr.commit.waitSearcher", Optional.of(true)),
+    COMMIT_WAIT_FLUSH("solr.commit.waitFlush", Optional.of(true)),
+    COMMIT_SOFT("solr.commit.soft", Optional.of(false)),
+    DEFAULT_COLLECTION("solr.collection", Optional.of("metron")),
+    HTTP_CONFIG("solr.http.config", Optional.of(new HashMap<>()))
+    ;
+    String name;
+    Optional<Object> defaultValue;
+
+    SolrProperties(String name) {
+      this(name, Optional.empty());
+    }
+    SolrProperties(String name, Optional<Object> defaultValue) {
+      this.name = name;
+      this.defaultValue = defaultValue;
+    }
+
+    public <T> Optional<T> coerceOrDefault(Map<String, Object> globalConfig, Class<T> clazz) {
+      Object val = globalConfig.get(name);
+      if(val != null) {
+        T ret = ConversionUtils.convert(val, clazz);
+        if(ret == null) {
+          //unable to convert value
+          LOG.warn("Unable to convert {} to {}, was {}", name, clazz.getName(), "" + val);
+          if(defaultValue.isPresent()) {
+            return Optional.ofNullable(ConversionUtils.convert(defaultValue.get(), clazz));
+          }
+          else {
+            return Optional.empty();
+          }
+        }
+        else {
+          return Optional.ofNullable(ret);
+        }
+      }
+      else {
+        if(defaultValue.isPresent()) {
+          return Optional.ofNullable(ConversionUtils.convert(defaultValue.get(), clazz));
+        }
+        else {
+          return Optional.empty();
+        }
+      }
+    }
+
+    public Supplier<IllegalArgumentException> errorOut(Map<String, Object> globalConfig) {
+      String message = "Unable to retrieve " + name + " from global config, value associated is " + globalConfig.get(name);
+      return () -> new IllegalArgumentException(message);
+    }
+  }
+
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private Boolean shouldCommit = true;
-  private MetronSolrClient solr;
+  private Boolean shouldCommit;
+  private Boolean softCommit;
+  private Boolean waitSearcher;
+  private Boolean waitFlush;
+  private String zookeeperUrl;
+  private String defaultCollection;
+  private Map<String, Object> solrHttpConfig;
 
-  public SolrWriter withShouldCommit(boolean shouldCommit) {
-    this.shouldCommit = shouldCommit;
-    return this;
-  }
+  private MetronSolrClient solr;
 
   public SolrWriter withMetronSolrClient(MetronSolrClient solr) {
     this.solr = solr;
     return this;
   }
 
+  public void initializeFromGlobalConfig(Map<String, Object> globalConfiguration) {
+    zookeeperUrl = SolrProperties.ZOOKEEPER_QUORUM.coerceOrDefault(globalConfiguration, String.class)
+                                 .orElseThrow(SolrProperties.ZOOKEEPER_QUORUM.errorOut(globalConfiguration));
+
+    defaultCollection = SolrProperties.DEFAULT_COLLECTION.coerceOrDefault(globalConfiguration, String.class)
+                                 .orElseThrow(SolrProperties.DEFAULT_COLLECTION.errorOut(globalConfiguration));
+
+    solrHttpConfig = SolrProperties.HTTP_CONFIG.coerceOrDefault(globalConfiguration, Map.class)
+                                 .orElseThrow(SolrProperties.HTTP_CONFIG.errorOut(globalConfiguration));
+    shouldCommit = SolrProperties.COMMIT_PER_BATCH.coerceOrDefault(globalConfiguration, Boolean.class)
+                                 .orElseThrow(SolrProperties.COMMIT_PER_BATCH.errorOut(globalConfiguration));
+    softCommit = SolrProperties.COMMIT_SOFT.coerceOrDefault(globalConfiguration, Boolean.class)
+                                 .orElseThrow(SolrProperties.COMMIT_SOFT.errorOut(globalConfiguration));
+    waitSearcher = SolrProperties.COMMIT_WAIT_SEARCHER.coerceOrDefault(globalConfiguration, Boolean.class)
+                                 .orElseThrow(SolrProperties.COMMIT_WAIT_SEARCHER.errorOut(globalConfiguration));
+    waitFlush = SolrProperties.COMMIT_WAIT_FLUSH.coerceOrDefault(globalConfiguration, Boolean.class)
+                                 .orElseThrow(SolrProperties.COMMIT_WAIT_FLUSH.errorOut(globalConfiguration));
+  }
+
   @Override
   public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration configurations) throws IOException, SolrServerException {
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
-    String zookeeperUrl = (String) globalConfiguration.get(ZOOKEEPER_PROP);
-    String defaultCollection = (String) globalConfiguration.get(DEFAULT_COLLECTION_PROP);
-    Map<String, Object> solrHttpConfig = (Map<String, Object>)globalConfiguration.get(SOLR_HTTP_CONFIG_PROP);
-    Object commitPerBatchObj = globalConfiguration.get(COMMIT_PER_BATCH_PROP);
-    if(commitPerBatchObj != null) {
-      Boolean commit = ConversionUtils.convert(commitPerBatchObj, Boolean.class);
-      if(commit == null) {
-        LOG.warn("Unable to convert {} to boolean, was {}", COMMIT_PER_BATCH_PROP, "" + commitPerBatchObj);
-      }
-      else {
-        shouldCommit = commit;
-      }
-    }
+    initializeFromGlobalConfig(globalConfiguration);
     LOG.info("Initializing SOLR writer: {}", zookeeperUrl);
     LOG.info("Forcing commit per batch: {}", shouldCommit);
+    LOG.info("Soft commit: {}", softCommit);
+    LOG.info("Commit Wait Searcher: {}", waitSearcher);
+    LOG.info("Commit Wait Flush: {}", waitFlush);
     LOG.info("Default Collection: {}", "" + defaultCollection );
     if(solr == null) {
       solr = new MetronSolrClient(zookeeperUrl, solrHttpConfig);
+    }
+    solr.setDefaultCollection(defaultCollection);
 
-    }
-    if(!StringUtils.isEmpty(defaultCollection)) {
-      solr.setDefaultCollection(defaultCollection);
-    }
-    else {
-      solr.setDefaultCollection(DEFAULT_COLLECTION);
-    }
   }
 
   public Collection<SolrInputDocument> toDocs(Iterable<JSONObject> messages) {
@@ -142,7 +195,7 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
       }
       else {
         if (shouldCommit) {
-          exceptionOptional = fromUpdateResponse(solr.commit(collection));
+          exceptionOptional = fromUpdateResponse(solr.commit(collection, waitFlush, waitSearcher, softCommit));
           if(exceptionOptional.isPresent()) {
             bulkResponse.addAllErrors(exceptionOptional.get(), tuples);
           }

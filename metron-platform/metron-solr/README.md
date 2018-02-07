@@ -38,6 +38,18 @@ via the global config.  The following settings are possible as part of the globa
   * This is a boolean which defines whether the writer commits every batch.  The default is `true`.
   * _WARNING_: If you set this to `false`, then commits will happen based on the SolrClient's internal mechanism and
     worker failure *may* result data being acknowledged in storm but not written in Solr.
+* `solr.commit.soft`
+  * This is a boolean which defines whether the writer makes a soft commit or a durable commit.  See [here](https://lucene.apache.org/solr/guide/6_6/near-real-time-searching.html#NearRealTimeSearching-AutoCommits)  The default is `false`.
+  * _WARNING_: If you set this to `true`, then commits will happen based on the SolrClient's internal mechanism and
+    worker failure *may* result data being acknowledged in storm but not written in Solr.
+* `solr.commit.waitSearcher`
+  * This is a boolean which defines whether the writer blocks the commit until the data is available to search.  See [here](https://lucene.apache.org/solr/guide/6_6/near-real-time-searching.html#NearRealTimeSearching-AutoCommits)  The default is `true`.
+  * _WARNING_: If you set this to `false`, then commits will happen based on the SolrClient's internal mechanism and
+    worker failure *may* result data being acknowledged in storm but not written in Solr.
+* `solr.commit.waitFlush`
+  * This is a boolean which defines whether the writer blocks the commit until the data is flushed.  See [here](https://lucene.apache.org/solr/guide/6_6/near-real-time-searching.html#NearRealTimeSearching-AutoCommits)  The default is `true`.
+  * _WARNING_: If you set this to `false`, then commits will happen based on the SolrClient's internal mechanism and
+    worker failure *may* result data being acknowledged in storm but not written in Solr.
 * `solr.collection`
   * The default solr collection (if unspecified, the name is `metron`).  By default, sensors will write to a collection associated with the index name in the
   indexing config for that sensor.  If that index name is the empty string, then the default collection will be used.
