@@ -37,7 +37,6 @@ import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.metron.rest.MetronRestConstants.ENRICHMENT_TOPOLOGY_NAME;
-import static org.apache.metron.rest.MetronRestConstants.INDEXING_TOPOLOGY_NAME;
 
 public class StormCLIWrapper {
 
@@ -70,14 +69,14 @@ public class StormCLIWrapper {
     return runCommand(getStopCommand(ENRICHMENT_TOPOLOGY_NAME, stopNow));
   }
 
-  public int startIndexingTopology() throws RestException {
+  public int startIndexingTopology(String scriptPath) throws RestException {
     kinit();
-    return runCommand(getIndexingStartCommand());
+    return runCommand(getIndexingStartCommand(scriptPath));
   }
 
-  public int stopIndexingTopology(boolean stopNow) throws RestException {
+  public int stopIndexingTopology(String name, boolean stopNow) throws RestException {
     kinit();
-    return runCommand(getStopCommand(INDEXING_TOPOLOGY_NAME, stopNow));
+    return runCommand(getStopCommand(name, stopNow));
   }
 
   protected int runCommand(String[] command) throws RestException {
@@ -137,9 +136,9 @@ public class StormCLIWrapper {
     return command;
   }
 
-  protected String[] getIndexingStartCommand() {
+  protected String[] getIndexingStartCommand(String scriptPath) {
     String[] command = new String[1];
-    command[0] = environment.getProperty(MetronRestConstants.INDEXING_SCRIPT_PATH_SPRING_PROPERTY);
+    command[0] = environment.getProperty(scriptPath);
     return command;
   }
 
@@ -166,7 +165,8 @@ public class StormCLIWrapper {
     Map<String, String> status = new HashMap<>();
     status.put("parserScriptPath", environment.getProperty(MetronRestConstants.PARSER_SCRIPT_PATH_SPRING_PROPERTY));
     status.put("enrichmentScriptPath", environment.getProperty(MetronRestConstants.ENRICHMENT_SCRIPT_PATH_SPRING_PROPERTY));
-    status.put("indexingScriptPath", environment.getProperty(MetronRestConstants.INDEXING_SCRIPT_PATH_SPRING_PROPERTY));
+    status.put("randomAccessIndexingScriptPath", environment.getProperty(MetronRestConstants.RANDOM_ACCESS_INDEXING_SCRIPT_PATH_SPRING_PROPERTY));
+    status.put("batchIndexingScriptPath", environment.getProperty(MetronRestConstants.BATCH_INDEXING_SCRIPT_PATH_SPRING_PROPERTY));
     status.put("stormClientVersionInstalled", stormClientVersionInstalled());
     return status;
   }

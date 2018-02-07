@@ -15,9 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.management;
+package org.apache.metron.stellar.dsl.functions;
+
+import static org.apache.metron.stellar.dsl.Context.Capabilities.CONSOLE;
 
 import com.jakewharton.fliptables.FlipTable;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.metron.stellar.common.shell.VariableResult;
@@ -31,23 +44,10 @@ import org.apache.metron.stellar.dsl.StellarFunction;
 import org.jboss.aesh.console.Console;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.lang.invoke.MethodHandles;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.apache.metron.stellar.dsl.Context.Capabilities.CONSOLE;
-
 public class ShellFunctions {
   private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  @SuppressWarnings("unchecked")
   private static Map<String, VariableResult> getVariables(Context context) {
     return (Map<String, VariableResult>) context.getCapability(Context.Capabilities.SHELL_VARIABLES).get();
   }
@@ -63,19 +63,20 @@ public class ShellFunctions {
   public static class Map2Table extends BaseStellarFunction {
 
     @Override
+    @SuppressWarnings("unchecked")
     public Object apply(List<Object> args) {
-      if(args.size() < 1) {
+      if (args.size() < 1) {
         return null;
       }
       Map<Object, Object> map = (Map<Object, Object>) args.get(0);
-      if(map == null) {
+      if (map == null) {
         map = new HashMap<>();
       }
       String[] headers = {"KEY", "VALUE"};
       String[][] data = new String[map.size()][2];
       int i = 0;
-      for(Map.Entry<Object, Object> kv : map.entrySet()) {
-        data[i++] = new String[] {kv.getKey().toString(), kv.getValue().toString()};
+      for (Map.Entry<Object, Object> kv : map.entrySet()) {
+        data[i++] = new String[]{kv.getKey().toString(), kv.getValue().toString()};
       }
       return FlipTable.of(headers, data);
     }
@@ -94,21 +95,19 @@ public class ShellFunctions {
 
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
-
       Map<String, VariableResult> variables = getVariables(context);
       String[] headers = {"VARIABLE", "VALUE", "EXPRESSION"};
       String[][] data = new String[variables.size()][3];
       int wordWrap = -1;
-      if(args.size() > 0) {
+      if (args.size() > 0) {
         wordWrap = ConversionUtils.convert(args.get(0), Integer.class);
       }
       int i = 0;
-      for(Map.Entry<String, VariableResult> kv : variables.entrySet()) {
+      for (Map.Entry<String, VariableResult> kv : variables.entrySet()) {
         VariableResult result = kv.getValue();
-        data[i++] = new String[] { toWrappedString(kv.getKey().toString(), wordWrap)
-                                 , toWrappedString(result.getResult(), wordWrap)
-                                 , toWrappedString(result.getExpression().get(), wordWrap)
-                                 };
+        data[i++] = new String[]{toWrappedString(kv.getKey(), wordWrap),
+            toWrappedString(result.getResult(), wordWrap),
+            toWrappedString(result.getExpression().get(), wordWrap)};
       }
       return FlipTable.of(headers, data);
     }
@@ -146,13 +145,13 @@ public class ShellFunctions {
     public Object apply(List<Object> args, Context context) throws ParseException {
       Map<String, VariableResult> variables = getVariables(context);
       LinkedHashMap<String, String> ret = new LinkedHashMap<>();
-      for(Object arg : args) {
-        if(arg == null) {
+      for (Object arg : args) {
+        if (arg == null) {
           continue;
         }
-        String variable = (String)arg;
+        String variable = (String) arg;
         VariableResult result = variables.get(variable);
-        if(result != null && result.getExpression().isPresent()) {
+        if (result != null && result.getExpression().isPresent()) {
           ret.put(variable, result.getExpression().orElseGet(() -> ""));
         }
       }
@@ -183,15 +182,15 @@ public class ShellFunctions {
     @Override
     public Object apply(List<Object> args, Context context) throws ParseException {
       Map<String, VariableResult> variables = getVariables(context);
-      if(args.size() == 0) {
+      if (args.size() == 0) {
         return null;
       }
       String variable = (String) args.get(0);
-      if(variable == null) {
+      if (variable == null) {
         return null;
       }
       VariableResult result = variables.get(variable);
-      if(result != null && result.getExpression().isPresent()) {
+      if (result != null && result.getExpression().isPresent()) {
         return result.getExpression().get();
       }
       return null;
@@ -242,9 +241,9 @@ public class ShellFunctions {
       String editor = getEditor();
       try {
         outFile = File.createTempFile("stellar_shell", "out");
-        if(args.size() > 0) {
-          String arg = (String)args.get(0);
-          try(PrintWriter pw = new PrintWriter(outFile)) {
+        if (args.size() > 0) {
+          String arg = (String) args.get(0);
+          try (PrintWriter pw = new PrintWriter(outFile)) {
             IOUtils.write(arg, pw);
           }
         }
@@ -253,7 +252,7 @@ public class ShellFunctions {
         LOG.error(message, e);
         throw new IllegalStateException(message, e);
       }
-      Optional<Object> console =  context.getCapability(CONSOLE, false);
+      Optional<Object> console = context.getCapability(CONSOLE, false);
       try {
         PausableInput.INSTANCE.pause();
         //shut down the IO for the console
@@ -277,13 +276,13 @@ public class ShellFunctions {
       } finally {
         try {
           PausableInput.INSTANCE.unpause();
-          if(console.isPresent()) {
-            ((Console)console.get()).pushToInputStream("\b\n");
+          if (console.isPresent()) {
+            ((Console) console.get()).pushToInputStream("\b\n");
           }
         } catch (IOException e) {
           LOG.error("Unable to unpause: {}", e.getMessage(), e);
         }
-        if(outFile.exists()) {
+        if (outFile.exists()) {
           outFile.delete();
         }
       }

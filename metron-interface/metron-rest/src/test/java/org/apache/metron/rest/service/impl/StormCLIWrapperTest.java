@@ -174,11 +174,11 @@ public class StormCLIWrapperTest {
     whenNew(ProcessBuilder.class).withParameterTypes(String[].class).withArguments(anyVararg()).thenReturn(processBuilder);
 
     when(processBuilder.start()).thenReturn(process);
-    when(environment.getProperty(MetronRestConstants.INDEXING_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/start_indexing");
+    when(environment.getProperty(MetronRestConstants.RANDOM_ACCESS_INDEXING_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/start_indexing");
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
     when(process.exitValue()).thenReturn(0);
 
-    assertEquals(0, stormCLIWrapper.startIndexingTopology());
+    assertEquals(0, stormCLIWrapper.startIndexingTopology(MetronRestConstants.RANDOM_ACCESS_INDEXING_SCRIPT_PATH_SPRING_PROPERTY));
     verify(process).waitFor();
     verifyNew(ProcessBuilder.class).withArguments("/start_indexing");
 
@@ -192,9 +192,9 @@ public class StormCLIWrapperTest {
     when(environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)).thenReturn(false);
     when(process.exitValue()).thenReturn(0);
 
-    assertEquals(0, stormCLIWrapper.stopIndexingTopology(false));
+    assertEquals(0, stormCLIWrapper.stopIndexingTopology("random_access_indexing", false));
     verify(process).waitFor();
-    verifyNew(ProcessBuilder.class).withArguments("storm", "kill", MetronRestConstants.INDEXING_TOPOLOGY_NAME);
+    verifyNew(ProcessBuilder.class).withArguments("storm", "kill", MetronRestConstants.RANDOM_ACCESS_INDEXING_TOPOLOGY_NAME);
   }
 
   @Test
@@ -209,15 +209,16 @@ public class StormCLIWrapperTest {
     when(process.getInputStream()).thenReturn(inputStream);
     when(environment.getProperty(MetronRestConstants.PARSER_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/start_parser");
     when(environment.getProperty(MetronRestConstants.ENRICHMENT_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/start_enrichment");
-    when(environment.getProperty(MetronRestConstants.INDEXING_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/start_indexing");
-
+    when(environment.getProperty(MetronRestConstants.RANDOM_ACCESS_INDEXING_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/start_elasticsearch");
+    when(environment.getProperty(MetronRestConstants.BATCH_INDEXING_SCRIPT_PATH_SPRING_PROPERTY)).thenReturn("/start_hdfs");
 
     Map<String, String> actual = stormCLIWrapper.getStormClientStatus();
     assertEquals(new HashMap<String, String>() {{
-      put("parserScriptPath", "/start_parser");
+      put("randomAccessIndexingScriptPath", "/start_elasticsearch");
       put("enrichmentScriptPath", "/start_enrichment");
-      put("indexingScriptPath", "/start_indexing");
       put("stormClientVersionInstalled", "1.1");
+      put("parserScriptPath", "/start_parser");
+      put("batchIndexingScriptPath", "/start_hdfs");
 
     }}, actual);
     verifyNew(ProcessBuilder.class).withArguments("storm", "version");

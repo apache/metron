@@ -32,9 +32,9 @@ public interface StormAdminService {
 
   TopologyResponse stopEnrichmentTopology(boolean stopNow) throws RestException;
 
-  TopologyResponse startIndexingTopology() throws RestException;
+  TopologyResponse startIndexingTopology(String scriptPath) throws RestException;
 
-  TopologyResponse stopIndexingTopology(boolean stopNow) throws RestException;
+  TopologyResponse stopIndexingTopology(String name, boolean stopNow) throws RestException;
 
   Map<String, String> getStormClientStatus() throws RestException;
 }
