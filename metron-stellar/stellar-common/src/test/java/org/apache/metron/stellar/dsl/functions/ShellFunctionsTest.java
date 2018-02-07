@@ -15,12 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.management;
+package org.apache.metron.stellar.dsl.functions;
 
 import com.google.common.collect.ImmutableMap;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.stellar.common.shell.VariableResult;
+import org.apache.metron.stellar.common.shell.cli.PausableInput;
 import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.Context.Capabilities;
+import org.jboss.aesh.console.Console;
+import org.jboss.aesh.console.settings.Settings;
+import org.jboss.aesh.console.settings.SettingsBuilder;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -40,8 +45,8 @@ public class ShellFunctionsTest {
   );
 
   Context context = new Context.Builder()
-            .with(Context.Capabilities.SHELL_VARIABLES , () -> variables)
-            .build();
+            .with(Context.Capabilities.SHELL_VARIABLES , () -> variables).build();
+
 /**
 ╔══════════╤═══════╤════════════╗
 ║ VARIABLE │ VALUE │ EXPRESSION ║

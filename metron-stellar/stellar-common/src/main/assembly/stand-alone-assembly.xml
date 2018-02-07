@@ -12,14 +12,14 @@
   -->
 
 <assembly>
-  <id>archive</id>
+  <id>stand-alone</id>
   <formats>
     <format>tar.gz</format>
   </formats>
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
     <fileSet>
-      <directory>${project.basedir}/src/main/scripts/deployed</directory>
+      <directory>${project.basedir}/src/main/scripts/stand-alone</directory>
       <outputDirectory>bin</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <excludes>
@@ -37,6 +37,21 @@
       </includes>
       <outputDirectory>lib</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}</directory>
+      <includes>
+        <include>README.md</include>
+      </includes>
+      <outputDirectory></outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/src/main/resources/META-INF</directory>
+      <includes>
+        <include>LICENSE</include>
+        <include>NOTICE</include>
+      </includes>
+      <outputDirectory></outputDirectory>
     </fileSet>
   </fileSets>
 </assembly>
