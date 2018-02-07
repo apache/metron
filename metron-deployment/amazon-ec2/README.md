@@ -27,10 +27,9 @@ AWS Defaults
 
 The Ansible playbook uses the following defaults for AWS deployment:
 
-Instances: 10
-Region: us-west-2
-Instance type: m4.xlarge
-
+- Instances: 10
+- Region: us-west-2
+- Instance type: m4.xlarge
 
 Getting Started
 ---------------
