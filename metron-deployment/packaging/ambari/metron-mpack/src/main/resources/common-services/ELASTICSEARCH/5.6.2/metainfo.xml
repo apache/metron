@@ -83,6 +83,7 @@
                 <config-type>elastic-site</config-type>
                 <config-type>elastic-sysconfig</config-type>
                 <config-type>elastic-systemd</config-type>
+                <config-type>elastic-jvm-options</config-type>
             </configuration-dependencies>
             <restartRequiredAfterChange>true</restartRequiredAfterChange>
             <quickLinksConfigurations>
