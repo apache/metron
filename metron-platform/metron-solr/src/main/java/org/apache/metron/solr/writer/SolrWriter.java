@@ -23,11 +23,8 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.common.SolrException;
-import org.apache.solr.common.util.NamedList;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
-import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.configuration.EnrichmentConfigurations;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.common.writer.BulkMessageWriter;
 import org.apache.metron.common.writer.BulkWriterResponse;
@@ -41,7 +38,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
-import java.util.*;
+import java.util.Map;
+import java.util.Collection;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.UUID;
+import java.util.Optional;
 
 public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
