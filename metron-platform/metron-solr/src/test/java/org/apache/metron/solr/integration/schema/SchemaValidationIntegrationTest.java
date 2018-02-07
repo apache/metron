@@ -30,7 +30,6 @@ import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mock;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -111,6 +110,7 @@ public class SchemaValidationIntegrationTest {
       Assert.assertTrue(inputs.size() > 0);
 
       SolrWriter solrWriter = new SolrWriter();
+
       WriterConfiguration writerConfig = new WriterConfiguration() {
         @Override
         public int getBatchSize(String sensorName) {
