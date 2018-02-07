@@ -20,6 +20,7 @@ package org.apache.metron.solr.writer;
 import com.google.common.base.Joiner;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
+import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.util.NamedList;
@@ -45,13 +46,14 @@ import java.util.*;
 public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
   public static final String ZOOKEEPER_PROP = "solr.zookeeper";
+  public static final String COMMIT_PER_BATCH_PROP = "solr.commitPerBatch";
   public static final String DEFAULT_COLLECTION_PROP = "solr.collection";
   public static final String SOLR_HTTP_CONFIG_PROP = "solr.http.config";
   public static final String DEFAULT_COLLECTION = "metron";
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private boolean shouldCommit = true;
+  private Boolean shouldCommit = true;
   private MetronSolrClient solr;
 
   public SolrWriter withShouldCommit(boolean shouldCommit) {
@@ -70,6 +72,16 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
     String zookeeperUrl = (String) globalConfiguration.get(ZOOKEEPER_PROP);
     String defaultCollection = (String) globalConfiguration.get(DEFAULT_COLLECTION_PROP);
     Map<String, Object> solrHttpConfig = (Map<String, Object>)globalConfiguration.get(SOLR_HTTP_CONFIG_PROP);
+    Object commitPerBatchObj = globalConfiguration.get(COMMIT_PER_BATCH_PROP);
+    if(commitPerBatchObj != null) {
+      Boolean commit = ConversionUtils.convert(commitPerBatchObj, Boolean.class);
+      if(commit == null) {
+        LOG.warn("Unable to convert {} to boolean, was {}", COMMIT_PER_BATCH_PROP, "" + commitPerBatchObj);
+      }
+      else {
+        shouldCommit = commit;
+      }
+    }
     LOG.info("Initializing SOLR writer: {}", zookeeperUrl);
     LOG.info("Forcing commit per batch: {}", shouldCommit);
     LOG.info("Default Collection: {}", "" + defaultCollection );
