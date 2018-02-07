@@ -133,7 +133,11 @@ public class SolrWriterTest {
 
     writer.write("test", new IndexingWriterConfiguration("solr", configurations), new ArrayList<>(), messages);
     verify(solr, times(1)).add(eq("yaf"), argThat(new SolrInputDocumentMatcher(ImmutableList.of(message1, message2))));
-    verify(solr, times(1)).commit("yaf");
+    verify(solr, times(1)).commit("yaf"
+                                 , (boolean)SolrWriter.SolrProperties.COMMIT_WAIT_FLUSH.defaultValue.get()
+                                 , (boolean)SolrWriter.SolrProperties.COMMIT_WAIT_SEARCHER.defaultValue.get()
+                                 , (boolean)SolrWriter.SolrProperties.COMMIT_SOFT.defaultValue.get()
+                                 );
 
   }
 }
