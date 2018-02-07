@@ -34,6 +34,5 @@
   static: no
   when: ansible_distribution == "Ubuntu"
 
-- include: elasticsearch-repo.yml
 - include: nodejs.yml
 - include: logrotate.yml
