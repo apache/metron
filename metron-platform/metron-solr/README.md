@@ -51,3 +51,10 @@ This will lay down the necessary files to setup Solr Cloud. Navigate to `$METRON
 
 After running this script, Elasticsearch and Kibana will have been stopped and you should now have an instance of Solr Cloud up and running at http://localhost:8983/solr/#/~cloud. This manner
 of starting Solr will also spin up an embedded Zookeeper instance at port 9983. More information can be found [here](https://lucene.apache.org/solr/guide/6_6/getting-started-with-solrcloud.html)
+
+## Schemas
+
+As of now, we have mapped out the Schemas in `src/main/config/schema`.
+Ambari will eventually install these, but at the moment it's manual and
+you should refer to the Solr documentation [https://lucene.apache.org/solr/guide/6_6](here) in general
+and [here](https://lucene.apache.org/solr/guide/6_6/documents-fields-and-schema-design.html) if you'd like to know more about schemas in Solr.

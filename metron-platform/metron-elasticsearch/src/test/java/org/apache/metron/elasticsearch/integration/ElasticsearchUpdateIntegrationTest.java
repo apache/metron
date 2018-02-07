@@ -33,7 +33,6 @@ import org.apache.metron.indexing.dao.UpdateIntegrationTest;
 import org.apache.metron.integration.InMemoryComponent;
 
 public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
-
   private static final String SENSOR_NAME= "test";
   private static String indexDir = "target/elasticsearch_mutation";
   private static String dateFormat = "yyyy.MM.dd.HH";
