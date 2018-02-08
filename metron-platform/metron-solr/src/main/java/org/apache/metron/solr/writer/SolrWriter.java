@@ -38,7 +38,13 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
