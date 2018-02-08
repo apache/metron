@@ -54,6 +54,7 @@ class IndexingCommands:
         self.__hbase_configured = os.path.isfile(self.__params.indexing_hbase_configured_flag_file)
         self.__hbase_acl_configured = os.path.isfile(self.__params.indexing_hbase_acl_configured_flag_file)
         self.__elasticsearch_template_installed = os.path.isfile(self.__params.elasticsearch_template_installed_flag_file)
+        self.__solr_schema_installed = os.path.isfile(self.__params.solr_schema_installed_flag_file)
         self.__hdfs_perm_configured = os.path.isfile(self.__params.indexing_hdfs_perm_configured_flag_file)
 
     def __get_topics(self):
@@ -78,6 +79,21 @@ class IndexingCommands:
             "metaalert_index": params.meta_index_path
         }
 
+    def get_solr_schemas(self):
+        """
+        Defines the Solr schemas.
+        :return: Dict where key is the name of a collection and the
+          value is a path to file containing the schema definition.
+        """
+        from params import params
+        return {
+            "bro": params.bro_schema_path,
+            "yaf": params.yaf_schema_path,
+            "snort": params.snort_schema_path,
+            "error": params.error_schema_path,
+            "metaalert": params.meta_schema_path
+        }
+
     def is_configured(self):
         return self.__configured
 
@@ -96,6 +112,9 @@ class IndexingCommands:
     def is_elasticsearch_template_installed(self):
         return self.__elasticsearch_template_installed
 
+    def is_solr_schema_installed(self):
+        return self.__solr_schema_installed
+
     def set_configured(self):
         metron_service.set_configured(self.__params.metron_user, self.__params.indexing_configured_flag_file, "Setting Indexing configured to True")
 
@@ -113,6 +132,9 @@ class IndexingCommands:
 
     def set_elasticsearch_template_installed(self):
         metron_service.set_configured(self.__params.metron_user, self.__params.elasticsearch_template_installed_flag_file, "Setting Elasticsearch template installed to True")
+
+    def set_solr_schema_installed(self):
+        metron_service.set_configured(self.__params.metron_user, self.__params.solr_schema_installed_flag_file, "Setting Solr schema installed to True")
 
     def create_hbase_tables(self):
         Logger.info("Creating HBase Tables for indexing")
@@ -206,8 +228,9 @@ class IndexingCommands:
                                       self.__params.metron_keytab_path,
                                       self.__params.metron_principal_name,
                                       execute_user=self.__params.metron_user)
-
             start_cmd_template = """{0}/bin/start_elasticsearch_topology.sh"""
+            if self.__params.ra_indexing_writer == 'Solr':
+                start_cmd_template = """{0}/bin/start_solr_topology.sh"""
             start_cmd = start_cmd_template.format(self.__params.metron_home)
             Execute(start_cmd, user=self.__params.metron_user, tries=3, try_sleep=5, logoutput=True)
 
