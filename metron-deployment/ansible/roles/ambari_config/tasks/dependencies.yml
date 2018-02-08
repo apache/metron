@@ -15,10 +15,7 @@
 #  limitations under the License.
 #
 ---
-- name: Install python-requests on CentOS
-  yum: name=python-requests
-  when: ansible_distribution == "CentOS"
-
-- name: Install python-requests on Ubuntu
-  apt: name=python-requests force=yes
-  when: ansible_distribution == "Ubuntu"
+- name: Install python-requests module
+  pip:
+    name: requests
+    version: 2.6.1
