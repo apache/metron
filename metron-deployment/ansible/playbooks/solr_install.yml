@@ -15,36 +15,26 @@
 #  limitations under the License.
 #
 ---
-- hosts: all
-  pre_tasks:
-    - name: Verify Ansible Version
-      fail: msg="Metron Requires Ansible 2.0.0.2 or 2.2.2.0, current version is {{ ansible_version }}"
-      when: "ansible_version.full | version_compare('2.2.2.0', '!=') and ansible_version.full | version_compare('2.0.0.2', '!=')"
-
-- include: metron_build.yml
+- hosts: ec2
+  become: true
+  tasks:
+    - include_vars: ../../amazon-ec2/conf/defaults.yml
   tags:
-    - build
+    - ec2
 
-- include: solr_install.yml
+- hosts: packer
+  become: true
+  tasks:
+    - include_vars: ../../development/centos6/ansible/inventory/group_vars/all
+  tags:
+    - packer
+
+#
+# Solr
+#
+- hosts: search
+  become: true
+  roles:
+    - { role: solr,    tags: ['solr'] }
   tags:
     - solr
-
-- include: ambari_install.yml
-  tags:
-    - ambari
-
-- include: metron_install.yml
-  tags:
-    - metron
-
-- include: sensor_install.yml
-
-#
-# deployment report
-#
-- hosts: metron
-  become: false
-  roles:
-    - { role: deployment-report }
-  tags:
-    - report
