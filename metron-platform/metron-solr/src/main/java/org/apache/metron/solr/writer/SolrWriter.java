@@ -73,7 +73,13 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
     public <T> Optional<T> coerceOrDefault(Map<String, Object> globalConfig, Class<T> clazz) {
       Object val = globalConfig.get(name);
       if(val != null) {
-        T ret = ConversionUtils.convert(val, clazz);
+        T ret = null;
+        try {
+          ret = ConversionUtils.convert(val, clazz);
+        }
+        catch(ClassCastException cce) {
+          ret = null;
+        }
         if(ret == null) {
           //unable to convert value
           LOG.warn("Unable to convert {} to {}, was {}", name, clazz.getName(), "" + val);
@@ -102,6 +108,11 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
       String message = "Unable to retrieve " + name + " from global config, value associated is " + globalConfig.get(name);
       return () -> new IllegalArgumentException(message);
     }
+
+    public <T> T coerceOrDefaultOrExcept(Map<String, Object> globalConfig, Class<T> clazz) {
+         return this.coerceOrDefault(globalConfig, clazz).orElseThrow(this.errorOut(globalConfig));
+    }
+
   }
 
 
@@ -123,22 +134,13 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
   }
 
   public void initializeFromGlobalConfig(Map<String, Object> globalConfiguration) {
-    zookeeperUrl = SolrProperties.ZOOKEEPER_QUORUM.coerceOrDefault(globalConfiguration, String.class)
-                                 .orElseThrow(SolrProperties.ZOOKEEPER_QUORUM.errorOut(globalConfiguration));
-
-    defaultCollection = SolrProperties.DEFAULT_COLLECTION.coerceOrDefault(globalConfiguration, String.class)
-                                 .orElseThrow(SolrProperties.DEFAULT_COLLECTION.errorOut(globalConfiguration));
-
-    solrHttpConfig = SolrProperties.HTTP_CONFIG.coerceOrDefault(globalConfiguration, Map.class)
-                                 .orElseThrow(SolrProperties.HTTP_CONFIG.errorOut(globalConfiguration));
-    shouldCommit = SolrProperties.COMMIT_PER_BATCH.coerceOrDefault(globalConfiguration, Boolean.class)
-                                 .orElseThrow(SolrProperties.COMMIT_PER_BATCH.errorOut(globalConfiguration));
-    softCommit = SolrProperties.COMMIT_SOFT.coerceOrDefault(globalConfiguration, Boolean.class)
-                                 .orElseThrow(SolrProperties.COMMIT_SOFT.errorOut(globalConfiguration));
-    waitSearcher = SolrProperties.COMMIT_WAIT_SEARCHER.coerceOrDefault(globalConfiguration, Boolean.class)
-                                 .orElseThrow(SolrProperties.COMMIT_WAIT_SEARCHER.errorOut(globalConfiguration));
-    waitFlush = SolrProperties.COMMIT_WAIT_FLUSH.coerceOrDefault(globalConfiguration, Boolean.class)
-                                 .orElseThrow(SolrProperties.COMMIT_WAIT_FLUSH.errorOut(globalConfiguration));
+    zookeeperUrl = SolrProperties.ZOOKEEPER_QUORUM.coerceOrDefaultOrExcept(globalConfiguration, String.class);
+    defaultCollection = SolrProperties.DEFAULT_COLLECTION.coerceOrDefaultOrExcept(globalConfiguration, String.class);
+    solrHttpConfig = SolrProperties.HTTP_CONFIG.coerceOrDefaultOrExcept(globalConfiguration, Map.class);
+    shouldCommit = SolrProperties.COMMIT_PER_BATCH.coerceOrDefaultOrExcept(globalConfiguration, Boolean.class);
+    softCommit = SolrProperties.COMMIT_SOFT.coerceOrDefaultOrExcept(globalConfiguration, Boolean.class);
+    waitSearcher = SolrProperties.COMMIT_WAIT_SEARCHER.coerceOrDefaultOrExcept(globalConfiguration, Boolean.class);
+    waitFlush = SolrProperties.COMMIT_WAIT_FLUSH.coerceOrDefaultOrExcept(globalConfiguration, Boolean.class);
   }
 
   @Override
