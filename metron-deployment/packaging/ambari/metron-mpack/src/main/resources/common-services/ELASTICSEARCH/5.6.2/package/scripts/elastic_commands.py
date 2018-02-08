@@ -190,6 +190,17 @@ def create_elastic_pam_limits(params):
          owner="root",
          group="root")
 
+def create_elastic_jvm_options(params):
+    """
+    Defines the jvm.options file used to specify JVM options.
+    """
+    path = "{0}/jvm.options".format(params.conf_dir)
+    Logger.info("Creating Elasticsearch JVM Options; file={0}".format(path))
+    File(path,
+         content=InlineTemplate(params.jvm_options_template),
+         owner=params.elastic_user,
+         group=params.elastic_group)
+
 def get_data_directories(params):
     """
     Returns the directories to use for storing Elasticsearch data.
@@ -225,6 +236,7 @@ def configure_master():
     create_elastic_site(params,  "elasticsearch.master.yaml.j2")
     create_elastic_config(params)
     create_elastic_pam_limits(params)
+    create_elastic_jvm_options(params)
     if is_systemd_running():
         configure_systemd(params)
 
@@ -249,5 +261,6 @@ def configure_slave():
     create_elastic_site(params, "elasticsearch.slave.yaml.j2")
     create_elastic_config(params)
     create_elastic_pam_limits(params)
+    create_elastic_jvm_options(params)
     if is_systemd_running():
         configure_systemd(params)

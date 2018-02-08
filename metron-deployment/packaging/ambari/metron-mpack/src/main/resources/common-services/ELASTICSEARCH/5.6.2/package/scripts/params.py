@@ -103,3 +103,6 @@ systemd_parent_dir = '/etc/systemd/system/'
 systemd_elasticsearch_dir = systemd_parent_dir + 'elasticsearch.service.d/'
 systemd_override_file = systemd_elasticsearch_dir + 'override.conf'
 systemd_override_template = config['configurations']['elastic-systemd']['content']
+
+heap_size = config['configurations']['elastic-jvm-options']['heap_size']
+jvm_options_template = config['configurations']['elastic-jvm-options']['content']
