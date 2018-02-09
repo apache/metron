@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -31,6 +32,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.apache.commons.collections.MapUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
 import org.apache.metron.indexing.dao.metaalert.MetaScores;
@@ -50,7 +52,7 @@ public abstract class AbstractMetaAlertDao implements MetaAlertDao {
 
   // TODO refactor and rename appropriate constants to use neutral names.  Or not?
   protected IndexDao indexDao;
-  protected String index = METAALERTS_INDEX;
+  //  protected String index = METAALERTS_INDEX;
   protected String threatTriageField = THREAT_FIELD_DEFAULT;
 
   /**
@@ -67,14 +69,15 @@ public abstract class AbstractMetaAlertDao implements MetaAlertDao {
   public boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
       throws IOException {
     Map<Document, Optional<String>> updates = new HashMap<>();
-    Document metaAlert = indexDao.getLatest(metaAlertGuid, METAALERT_TYPE);
+    // TODO again, type vs index?
+    Document metaAlert = getLatest(metaAlertGuid, getMetAlertSensorName());
     if (MetaAlertStatus.ACTIVE.getStatusString()
         .equals(metaAlert.getDocument().get(STATUS_FIELD))) {
-      Iterable<Document> alerts = indexDao.getAllLatest(alertRequests);
+      Iterable<Document> alerts = getAllLatest(alertRequests);
       boolean metaAlertUpdated = addAlertsToMetaAlert(metaAlert, alerts);
       if (metaAlertUpdated) {
         calculateMetaScores(metaAlert);
-        updates.put(metaAlert, Optional.of(index));
+        updates.put(metaAlert, Optional.of(getMetaAlertIndex()));
         for (Document alert : alerts) {
           if (addMetaAlertToAlert(metaAlert.getGuid(), alert)) {
             updates.put(alert, Optional.empty());
@@ -110,16 +113,16 @@ public abstract class AbstractMetaAlertDao implements MetaAlertDao {
   public boolean removeAlertsFromMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
       throws IOException {
     Map<Document, Optional<String>> updates = new HashMap<>();
-    Document metaAlert = indexDao.getLatest(metaAlertGuid, METAALERT_TYPE);
+    Document metaAlert = getLatest(metaAlertGuid, METAALERT_TYPE);
     if (MetaAlertStatus.ACTIVE.getStatusString()
         .equals(metaAlert.getDocument().get(STATUS_FIELD))) {
-      Iterable<Document> alerts = indexDao.getAllLatest(alertRequests);
+      Iterable<Document> alerts = getAllLatest(alertRequests);
       Collection<String> alertGuids = alertRequests.stream().map(GetRequest::getGuid).collect(
           Collectors.toList());
       boolean metaAlertUpdated = removeAlertsFromMetaAlert(metaAlert, alertGuids);
       if (metaAlertUpdated) {
         calculateMetaScores(metaAlert);
-        updates.put(metaAlert, Optional.of(index));
+        updates.put(metaAlert, Optional.of(getMetaAlertIndex()));
         for (Document alert : alerts) {
           if (removeMetaAlertFromAlert(metaAlert.getGuid(), alert)) {
             updates.put(alert, Optional.empty());
@@ -134,6 +137,8 @@ public abstract class AbstractMetaAlertDao implements MetaAlertDao {
   }
 
   protected boolean removeAlertsFromMetaAlert(Document metaAlert, Collection<String> alertGuids) {
+    MapUtils.debugPrint(System.out, "metaAlert during remove", metaAlert.getDocument());
+    System.out.println("ALERT GUIDS: " + alertGuids);
     @SuppressWarnings("unchecked")
     List<Map<String, Object>> currentAlerts = (List<Map<String, Object>>) metaAlert.getDocument()
         .get(ALERT_FIELD);
@@ -161,21 +166,21 @@ public abstract class AbstractMetaAlertDao implements MetaAlertDao {
   public boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
       throws IOException {
     Map<Document, Optional<String>> updates = new HashMap<>();
-    Document metaAlert = indexDao.getLatest(metaAlertGuid, METAALERT_TYPE);
+    Document metaAlert = getLatest(metaAlertGuid, METAALERT_TYPE);
     String currentStatus = (String) metaAlert.getDocument().get(MetaAlertDao.STATUS_FIELD);
     boolean metaAlertUpdated = !status.getStatusString().equals(currentStatus);
     if (metaAlertUpdated) {
       metaAlert.getDocument().put(MetaAlertDao.STATUS_FIELD, status.getStatusString());
-      updates.put(metaAlert, Optional.of(index));
+      updates.put(metaAlert, Optional.of(getMetaAlertIndex()));
       List<GetRequest> getRequests = new ArrayList<>();
       @SuppressWarnings("unchecked")
       List<Map<String, Object>> currentAlerts = (List<Map<String, Object>>) metaAlert.getDocument()
           .get(MetaAlertDao.ALERT_FIELD);
       currentAlerts.stream().forEach(currentAlert -> {
         getRequests.add(new GetRequest((String) currentAlert.get(GUID),
-            (String) currentAlert.get(getSourceType())));
+            (String) currentAlert.get(getSourceTypeField())));
       });
-      Iterable<Document> alerts = indexDao.getAllLatest(getRequests);
+      Iterable<Document> alerts = getAllLatest(getRequests);
       for (Document alert : alerts) {
         boolean metaAlertAdded = false;
         boolean metaAlertRemoved = false;
@@ -209,7 +214,10 @@ public abstract class AbstractMetaAlertDao implements MetaAlertDao {
   }
 
   @Override
-  public void batchUpdate(Map<Document, Optional<String>> updates) throws IOException {
+  public abstract void update(Document update, Optional<String> index) throws IOException;
+
+  @Override
+  public void batchUpdate(Map<Document, Optional<String>> updates) {
     throw new UnsupportedOperationException("Meta alerts do not allow for bulk updates");
   }
 
@@ -256,15 +264,17 @@ public abstract class AbstractMetaAlertDao implements MetaAlertDao {
    * @param groups The groups used to create this meta alert
    * @return A Document representing the new meta alert
    */
-  protected Document buildCreateDocument(Iterable<Document> alerts, List<String> groups) {
+  protected Document buildCreateDocument(Iterable<Document> alerts, List<String> groups,
+      String alertField) {
     // Need to create a Document from the multiget. Scores will be calculated later
-    // TODO Concerned that SolrUpdateDao won't pick up ALERT_FIELD properly?.  Unsure if schema takes care of it.
+    // TODO Concerned that SolrUpdateDao won't pick up ALERT_FIELD properly?.
+    // Unsure if schema takes care of it.
     Map<String, Object> metaSource = new HashMap<>();
     List<Map<String, Object>> alertList = new ArrayList<>();
     for (Document alert : alerts) {
       alertList.add(alert.getDocument());
     }
-    metaSource.put(ALERT_FIELD, alertList);
+    metaSource.put(alertField, alertList);
 
     // Add any meta fields
     String guid = UUID.randomUUID().toString();
@@ -318,10 +328,5 @@ public abstract class AbstractMetaAlertDao implements MetaAlertDao {
     // the sensor indices
     metaAlert.getDocument()
         .put(threatTriageField, ConversionUtils.convert(threatScore, Float.class));
-  }
-
-  // Allow to be overriden to handle implementation details, such as ES's '.' to ':'
-  protected String getSourceType() {
-    return Constants.SENSOR_TYPE;
   }
 }

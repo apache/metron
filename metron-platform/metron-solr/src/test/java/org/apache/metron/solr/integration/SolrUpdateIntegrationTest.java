@@ -20,15 +20,49 @@ package org.apache.metron.solr.integration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.HBaseDao;
 import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.UpdateIntegrationTest;
 import org.apache.metron.integration.InMemoryComponent;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
+import org.junit.BeforeClass;
 
 public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
 
-  SolrComponent solrComponent;
+  private static SolrComponent solrComponent;
+
+  private static final String TABLE_NAME = "modifications";
+  private static final String CF = "p";
+  private static MockHTable table;
+  private static IndexDao hbaseDao;
+
+  @BeforeClass
+  public static void setup() throws Exception {
+    indexComponent = startIndex();
+    loadTestData();
+    Configuration config = HBaseConfiguration.create();
+    MockHBaseTableProvider tableProvider = new MockHBaseTableProvider();
+    MockHBaseTableProvider.addToCache(TABLE_NAME, CF);
+    table = (MockHTable) tableProvider.getTable(config, TABLE_NAME);
+
+    hbaseDao = new HBaseDao();
+    AccessConfig accessConfig = new AccessConfig();
+    accessConfig.setTableProvider(tableProvider);
+    Map<String, Object> globalConfig = createGlobalConfig();
+    globalConfig.put(HBaseDao.HBASE_TABLE, TABLE_NAME);
+    globalConfig.put(HBaseDao.HBASE_CF, CF);
+    accessConfig.setGlobalConfigSupplier(() -> globalConfig);
+
+    dao = new MultiIndexDao(hbaseDao, createDao());
+    dao.init(accessConfig);
+  }
 
   @Override
   protected String getIndexName() {
@@ -36,26 +70,33 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
   }
 
   @Override
-  protected Map<String, Object> createGlobalConfig() throws Exception {
+  protected MockHTable getMockHTable() {
+    return table;
+  }
+
+  //  @Override
+  private static Map<String, Object> createGlobalConfig() throws Exception {
     return new HashMap<String, Object>() {{
       put("solr.zookeeper", solrComponent.getZookeeperUrl());
     }};
   }
 
-  @Override
-  protected IndexDao createDao() throws Exception {
+//  @Override
+  private static IndexDao createDao() throws Exception {
     return new SolrDao();
   }
 
-  @Override
-  protected InMemoryComponent startIndex() throws Exception {
-    solrComponent = new SolrComponent.Builder().addCollection(SENSOR_NAME, "../metron-solr/src/test/resources/config/test/conf").build();
+//  @Override
+  private static InMemoryComponent startIndex() throws Exception {
+//    solrComponent = new SolrComponent.Builder().addCollection(SENSOR_NAME, "../metron-solr/src/test/resources/config/test/conf").build();
+    solrComponent = new SolrComponent.Builder().build();
     solrComponent.start();
+    solrComponent.addCollection(SENSOR_NAME, "../metron-solr/src/test/resources/config/test/conf");
     return solrComponent;
   }
 
-  @Override
-  protected void loadTestData() throws Exception {
+//  @Override
+  private static void loadTestData() throws Exception {
 
   }
 
@@ -66,8 +107,7 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
   }
 
   @Override
-  protected List<Map<String, Object>> getIndexedTestData(String indexName, String sensorType)
-      throws Exception {
+  protected List<Map<String, Object>> getIndexedTestData(String indexName, String sensorType) {
     return solrComponent.getAllIndexedDocs(indexName);
   }
 }

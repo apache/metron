@@ -19,7 +19,6 @@
 package org.apache.metron.elasticsearch.dao;
 
 import static org.apache.metron.common.Constants.GUID;
-import static org.apache.metron.common.Constants.SENSOR_TYPE;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.constantScoreQuery;
 import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
@@ -47,7 +46,6 @@ import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
-import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.GroupRequest;
 import org.apache.metron.indexing.dao.search.GroupResponse;
@@ -68,6 +66,8 @@ import org.elasticsearch.index.query.QueryStringQueryBuilder;
 public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
 
   public static final String SOURCE_TYPE = Constants.SENSOR_TYPE.replace('.', ':');
+  public static final String THREAT_TRIAGE_FIELD = THREAT_FIELD_DEFAULT.replace('.', ':');
+  private static final String METAALERTS_INDEX = "metaalert_index";
   private static final String STATUS_PATH = "/status";
   private static final String ALERT_PATH = "/alert";
 
@@ -92,7 +92,6 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
   public ElasticsearchMetaAlertDao(IndexDao indexDao, String index, String triageLevelField,
       String threatSort) {
     init(indexDao, Optional.of(threatSort));
-    this.index = index;
     this.threatTriageField = triageLevelField;
   }
 
@@ -171,14 +170,14 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
     // Retrieve the documents going into the meta alert and build it
     Iterable<Document> alerts = indexDao.getAllLatest(alertRequests);
 
-    Document metaAlert = buildCreateDocument(alerts, request.getGroups());
+    Document metaAlert = buildCreateDocument(alerts, request.getGroups(), ALERT_FIELD);
     calculateMetaScores(metaAlert);
     // Add source type to be consistent with other sources and allow filtering
     metaAlert.getDocument().put(SOURCE_TYPE, MetaAlertDao.METAALERT_TYPE);
 
     // Start a list of updates / inserts we need to run
     Map<Document, Optional<String>> updates = new HashMap<>();
-    updates.put(metaAlert, Optional.of(MetaAlertDao.METAALERTS_INDEX));
+    updates.put(metaAlert, Optional.of(getMetaAlertIndex()));
 
     try {
       // We need to update the associated alerts with the new meta alerts, making sure existing
@@ -257,8 +256,10 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
           .collect(Collectors.toList());
       // Each meta alert needs to be updated with the new alert
       for (Document metaAlert : metaAlerts) {
-        replaceAlertInMetaAlert(metaAlert, update);
-        updates.put(metaAlert, Optional.of(METAALERTS_INDEX));
+        // TODO determine if this is kosher
+        if (replaceAlertInMetaAlert(metaAlert, update)) {
+          updates.put(metaAlert, Optional.of(METAALERTS_INDEX));
+        }
       }
 
       // Run the alert's update
@@ -340,7 +341,7 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
   protected SearchResponse queryAllResults(QueryBuilder qb) {
     SearchRequestBuilder searchRequestBuilder = elasticsearchDao
         .getClient()
-        .prepareSearch(index)
+        .prepareSearch(getMetaAlertIndex())
         .addStoredField("*")
         .setFetchSource(true)
         .setQuery(qb)
@@ -405,7 +406,22 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
   }
 
   @Override
-  protected String getSourceType() {
-    return SENSOR_TYPE;
+  public String getSourceTypeField() {
+    return SOURCE_TYPE;
+  }
+
+  @Override
+  public String getThreatTriageField() {
+    return THREAT_TRIAGE_FIELD;
+  }
+
+  @Override
+  public String getMetAlertSensorName() {
+    return METAALERT_TYPE;
+  }
+
+  @Override
+  public String getMetaAlertIndex() {
+    return METAALERTS_INDEX;
   }
 }

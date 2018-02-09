@@ -34,6 +34,7 @@
    <field name="snort_field" type="pint" indexed="true" stored="true" />
    <field name="duplicate_name_field" type="pint" indexed="true" stored="true" />
    <field name="threat:triage:score" type="pfloat" indexed="true" stored="true" />
+   <field name="metaalerts" type="string" multiValued="true" indexed="true" stored="true" />
 
    <dynamicField name="*" type="ignored" multiValued="false" docValues="true"/>
 

@@ -39,7 +39,6 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.integration.InMemoryComponent;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -471,17 +470,7 @@ public abstract class SearchIntegrationTest {
   @Multiline
   public static String differentTypeFilterQuery;
 
-  protected static IndexDao dao;
   protected static InMemoryComponent indexComponent;
-
-  @Before
-  public synchronized void setup() throws Exception {
-    if(dao == null && indexComponent == null) {
-      indexComponent = startIndex();
-      loadTestData();
-      dao = createDao();
-    }
-  }
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
@@ -489,7 +478,7 @@ public abstract class SearchIntegrationTest {
   @Test
   public void all_query_returns_all_results() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(allQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
     Assert.assertEquals(10, results.size());
@@ -506,7 +495,7 @@ public abstract class SearchIntegrationTest {
   @Test
   public void find_one_guid() throws Exception {
     GetRequest request = JSONUtils.INSTANCE.load(findOneGuidQuery, GetRequest.class);
-    Optional<Map<String, Object>> response = dao.getLatestResult(request);
+    Optional<Map<String, Object>> response = getIndexDao().getLatestResult(request);
     Assert.assertTrue(response.isPresent());
     Map<String, Object> doc = response.get();
     Assert.assertEquals("bro", doc.get("source:type"));
@@ -518,7 +507,7 @@ public abstract class SearchIntegrationTest {
     List<GetRequest> request = JSONUtils.INSTANCE.load(getAllLatestQuery, new JSONUtils.ReferenceSupplier<List<GetRequest>>(){});
     Map<String, Document> docs = new HashMap<>();
 
-    for(Document doc : dao.getAllLatest(request)) {
+    for(Document doc : getIndexDao().getAllLatest(request)) {
       docs.put(doc.getGuid(), doc);
     }
     Assert.assertEquals(2, docs.size());
@@ -531,7 +520,7 @@ public abstract class SearchIntegrationTest {
   @Test
   public void filter_query_filters_results() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(filterQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(3, response.getTotal());
     List<SearchResult> results = response.getResults();
     Assert.assertEquals("snort", results.get(0).getSource().get("source:type"));
@@ -545,7 +534,7 @@ public abstract class SearchIntegrationTest {
   @Test
   public void sort_query_sorts_results_ascending() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(sortQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
     for (int i = 8001; i < 8011; ++i) {
@@ -556,7 +545,7 @@ public abstract class SearchIntegrationTest {
   @Test
   public void sort_ascending_with_missing_fields() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(sortAscendingWithMissingFields, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
     Assert.assertEquals(10, results.size());
@@ -574,7 +563,7 @@ public abstract class SearchIntegrationTest {
   @Test
   public void sort_descending_with_missing_fields() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(sortDescendingWithMissingFields, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
     Assert.assertEquals(10, results.size());
@@ -592,7 +581,7 @@ public abstract class SearchIntegrationTest {
   @Test
   public void results_are_paginated() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(paginationQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
     Assert.assertEquals(3, results.size());
@@ -607,7 +596,7 @@ public abstract class SearchIntegrationTest {
   @Test
   public void returns_results_only_for_specified_indices() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(indexQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(5, response.getTotal());
     List<SearchResult> results = response.getResults();
     for (int i = 5, j = 0; i > 0; i--, j++) {
@@ -619,7 +608,7 @@ public abstract class SearchIntegrationTest {
   @Test
   public void facet_query_yields_field_types() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(facetQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(10, response.getTotal());
     Map<String, Map<String, Long>> facetCounts = response.getFacetCounts();
     Assert.assertEquals(8, facetCounts.size());
@@ -694,14 +683,14 @@ public abstract class SearchIntegrationTest {
   @Test
   public void disabled_facet_query_returns_null_count() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(disabledFacetQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertNull(response.getFacetCounts());
   }
 
   @Test
   public void missing_type_facet_query() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(missingTypeFacetQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(10, response.getTotal());
 
     Map<String, Map<String, Long>> facetCounts = response.getFacetCounts();
@@ -721,7 +710,7 @@ public abstract class SearchIntegrationTest {
   public void different_type_facet_query() throws Exception {
     thrown.expect(Exception.class);
     SearchRequest request = JSONUtils.INSTANCE.load(differentTypeFacetQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(3, response.getTotal());
   }
 
@@ -730,14 +719,14 @@ public abstract class SearchIntegrationTest {
     thrown.expect(InvalidSearchException.class);
     thrown.expectMessage("Search result size must be less than 100");
     SearchRequest request = JSONUtils.INSTANCE.load(exceededMaxResultsQuery, SearchRequest.class);
-    dao.search(request);
+    getIndexDao().search(request);
   }
 
   @Test
   public void column_metadata_for_missing_index() throws Exception {
     // getColumnMetadata with an index that doesn't exist
     {
-      Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("someindex"));
+      Map<String, FieldType> fieldTypes = getIndexDao().getColumnMetadata(Collections.singletonList("someindex"));
       Assert.assertEquals(0, fieldTypes.size());
     }
   }
@@ -745,14 +734,14 @@ public abstract class SearchIntegrationTest {
   @Test
   public void no_results_returned_when_query_does_not_match() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(noResultsFieldsQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(0, response.getTotal());
   }
 
   @Test
   public void group_by_ip_query() throws Exception {
     GroupRequest request = JSONUtils.INSTANCE.load(groupByIpQuery, GroupRequest.class);
-    GroupResponse response = dao.group(request);
+    GroupResponse response = getIndexDao().group(request);
 
     // expect only 1 group for 'ip_src_addr'
     Assert.assertEquals("ip_src_addr", response.getGroupedBy());
@@ -776,7 +765,7 @@ public abstract class SearchIntegrationTest {
   public void group_by_returns_results_in_groups() throws Exception {
     // Group by test case, default order is count descending
     GroupRequest request = JSONUtils.INSTANCE.load(groupByQuery, GroupRequest.class);
-    GroupResponse response = dao.group(request);
+    GroupResponse response = getIndexDao().group(request);
     Assert.assertEquals("is_alert", response.getGroupedBy());
     List<GroupResult> isAlertGroups = response.getGroupResults();
     Assert.assertEquals(2, isAlertGroups.size());
@@ -828,7 +817,7 @@ public abstract class SearchIntegrationTest {
   public void group_by_returns_results_in_sorted_groups() throws Exception {
     // Group by with sorting test case where is_alert is sorted by count ascending and ip_src_addr is sorted by term descending
     GroupRequest request = JSONUtils.INSTANCE.load(sortedGroupByQuery, GroupRequest.class);
-    GroupResponse response = dao.group(request);
+    GroupResponse response = getIndexDao().group(request);
     Assert.assertEquals("is_alert", response.getGroupedBy());
     List<GroupResult> isAlertGroups = response.getGroupResults();
     Assert.assertEquals(2, isAlertGroups.size());
@@ -907,7 +896,7 @@ public abstract class SearchIntegrationTest {
   @Test
   public void queries_fields() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(fieldsQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(10, response.getTotal());
     List<SearchResult> results = response.getResults();
     for (int i = 0; i < 5; ++i) {
@@ -925,7 +914,7 @@ public abstract class SearchIntegrationTest {
   @Test
   public void sort_by_guid() throws Exception {
     SearchRequest request = JSONUtils.INSTANCE.load(sortByGuidQuery, SearchRequest.class);
-    SearchResponse response = dao.search(request);
+    SearchResponse response = getIndexDao().search(request);
     Assert.assertEquals(5, response.getTotal());
     List<SearchResult> results = response.getResults();
     for (int i = 0; i < 5; ++i) {
@@ -936,7 +925,7 @@ public abstract class SearchIntegrationTest {
   }
 
   @AfterClass
-  public static void stop() throws Exception {
+  public static void stop() {
     indexComponent.stop();
   }
 
@@ -947,8 +936,5 @@ public abstract class SearchIntegrationTest {
   @Test
   public abstract void different_type_filter_query() throws Exception;
 
-
-  protected abstract IndexDao createDao() throws Exception;
-  protected abstract InMemoryComponent startIndex() throws Exception;
-  protected abstract void loadTestData() throws Exception;
+  protected abstract IndexDao getIndexDao();
 }

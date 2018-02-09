@@ -46,7 +46,7 @@ public class SolrUpdateDao implements UpdateDao {
   @Override
   public void update(Document update, Optional<String> index) throws IOException {
     try {
-      SolrInputDocument solrInputDocument = toSolrInputDocument(update);
+      SolrInputDocument solrInputDocument = SolrUtilities.toSolrInputDocument(update);
       if (index.isPresent()) {
         this.client.add(index.get(), solrInputDocument);
       } else {
@@ -65,8 +65,8 @@ public class SolrUpdateDao implements UpdateDao {
     // updates with no collection specified
     Collection<SolrInputDocument> solrUpdates = new ArrayList<>();
 
-    for(Entry<Document, Optional<String>> entry: updates.entrySet()) {
-      SolrInputDocument solrInputDocument = toSolrInputDocument(entry.getKey());
+    for (Entry<Document, Optional<String>> entry: updates.entrySet()) {
+      SolrInputDocument solrInputDocument = SolrUtilities.toSolrInputDocument(entry.getKey());
       Optional<String> index = entry.getValue();
       if (index.isPresent()) {
         Collection<SolrInputDocument> solrInputDocuments = solrCollectionUpdates.get(index.get());
@@ -81,7 +81,7 @@ public class SolrUpdateDao implements UpdateDao {
     }
     try {
       if (!solrCollectionUpdates.isEmpty()) {
-        for(Entry<String, Collection<SolrInputDocument>> entry: solrCollectionUpdates.entrySet()) {
+        for (Entry<String, Collection<SolrInputDocument>> entry: solrCollectionUpdates.entrySet()) {
           this.client.add(entry.getKey(), entry.getValue());
         }
       } else {
@@ -90,11 +90,5 @@ public class SolrUpdateDao implements UpdateDao {
     } catch (SolrServerException e) {
       throw new IOException(e);
     }
-  }
-
-  private SolrInputDocument toSolrInputDocument(Document document) {
-    SolrInputDocument solrInputDocument = new SolrInputDocument();
-    document.getDocument().forEach(solrInputDocument::addField);
-    return solrInputDocument;
   }
 }

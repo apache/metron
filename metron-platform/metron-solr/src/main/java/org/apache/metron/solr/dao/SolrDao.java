@@ -118,4 +118,11 @@ public class SolrDao implements IndexDao {
   public SolrClient getClient() {
     return client;
   }
+
+//  protected Optional<String> getIndexName(String guid, String sensorType) {
+//    return solrSearchDao.searchByGuid(guid,
+//        sensorType,
+//        hit -> Optional.ofNullable(hit.getIndex())
+//    );
+//  }
 }

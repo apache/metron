@@ -18,11 +18,11 @@
 
 package org.apache.metron.elasticsearch.integration;
 
-import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERTS_INDEX;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,10 +42,13 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
-
-
   private static IndexDao esDao;
   private static ElasticSearchComponent es;
+
+  protected static final String INDEX_DIR = "target/elasticsearch_meta";
+
+  protected static final String INDEX =
+      SENSOR_NAME + "_index_" + new SimpleDateFormat(DATE_FORMAT).format(new Date());
 
   /**
    {
@@ -111,7 +114,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
 
   @Before
   public void setup() throws IOException {
-    es.createIndexWithMapping(METAALERTS_INDEX, MetaAlertDao.METAALERT_DOC, template.replace("%MAPPING_NAME%", "metaalert"));
+    es.createIndexWithMapping(metaDao.getMetaAlertIndex(), MetaAlertDao.METAALERT_DOC, template.replace("%MAPPING_NAME%", "metaalert"));
     es.createIndexWithMapping(INDEX, "index_doc", template.replace("%MAPPING_NAME%", "index"));
   }
 
@@ -147,7 +150,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     long cnt = 0;
     for (int t = 0; t < MAX_RETRIES && cnt == 0; ++t, Thread.sleep(SLEEP_MS)) {
       List<Map<String, Object>> docs = es
-          .getAllIndexedDocs(METAALERTS_INDEX, MetaAlertDao.METAALERT_DOC);
+          .getAllIndexedDocs(metaDao.getMetaAlertIndex(), MetaAlertDao.METAALERT_DOC);
       cnt = docs
           .stream()
           .filter(d -> {
@@ -186,5 +189,10 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
         .setType("test_doc")
         .setSource(nestedAlertMapping)
         .get();
+  }
+
+  @Override
+  protected String getTestIndexName() {
+    return INDEX;
   }
 }

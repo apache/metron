@@ -71,6 +71,16 @@ public class AbstractMetaAlertDaoTest {
     }
 
     @Override
+    public String getMetAlertSensorName() {
+      return METAALERT_TYPE;
+    }
+
+    @Override
+    public String getMetaAlertIndex() {
+      return "metaalert_index";
+    }
+
+    @Override
     public void init(AccessConfig config) {
     }
 
@@ -92,6 +102,10 @@ public class AbstractMetaAlertDaoTest {
     @Override
     public Map<String, FieldType> getColumnMetadata(List<String> indices) {
       return null;
+    }
+
+    public String getChildField() {
+      return MetaAlertDao.ALERT_FIELD;
     }
   }
 
@@ -151,7 +165,7 @@ public class AbstractMetaAlertDaoTest {
 
     // Actually build the doc
     TestMetaAlertDao metaAlertDao = new TestMetaAlertDao();
-    Document actual = metaAlertDao.buildCreateDocument(alerts, groups);
+    Document actual = metaAlertDao.buildCreateDocument(alerts, groups, metaAlertDao.getChildField());
 
     ArrayList<Map<String, Object>> alertList = new ArrayList<>();
     alertList.add(alertOne);
@@ -195,7 +209,7 @@ public class AbstractMetaAlertDaoTest {
 
     // Actually build the doc
     TestMetaAlertDao metaAlertDao = new TestMetaAlertDao();
-    Document actual = metaAlertDao.buildCreateDocument(alerts, groups);
+    Document actual = metaAlertDao.buildCreateDocument(alerts, groups, metaAlertDao.getChildField());
 
     ArrayList<Map<String, Object>> alertList = new ArrayList<>();
     alertList.add(alertOne);

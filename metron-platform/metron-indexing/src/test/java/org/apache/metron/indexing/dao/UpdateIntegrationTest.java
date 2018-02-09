@@ -20,20 +20,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
-import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
 import org.apache.metron.integration.InMemoryComponent;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 public abstract class UpdateIntegrationTest {
@@ -43,36 +40,9 @@ public abstract class UpdateIntegrationTest {
   protected static final String SENSOR_NAME= "test";
   private static final String TABLE_NAME = "modifications";
   private static final String CF = "p";
-  private static String index;
-  private static MockHTable table;
-  private static IndexDao hbaseDao;
 
   protected static MultiIndexDao dao;
   protected static InMemoryComponent indexComponent;
-
-  @Before
-  public void setup() throws Exception {
-    if(dao == null && indexComponent == null) {
-      index = getIndexName();
-      indexComponent = startIndex();
-      loadTestData();
-      Configuration config = HBaseConfiguration.create();
-      MockHBaseTableProvider tableProvider = new MockHBaseTableProvider();
-      tableProvider.addToCache(TABLE_NAME, CF);
-      table = (MockHTable)tableProvider.getTable(config, TABLE_NAME);
-
-      hbaseDao = new HBaseDao();
-      AccessConfig accessConfig = new AccessConfig();
-      accessConfig.setTableProvider(tableProvider);
-      Map<String, Object> globalConfig = createGlobalConfig();
-      globalConfig.put(HBaseDao.HBASE_TABLE, TABLE_NAME);
-      globalConfig.put(HBaseDao.HBASE_CF, CF);
-      accessConfig.setGlobalConfigSupplier(() -> globalConfig);
-
-      dao = new MultiIndexDao(hbaseDao, createDao());
-      dao.init(accessConfig);
-    }
-  }
 
   @Test
   public void test() throws Exception {
@@ -88,10 +58,10 @@ public abstract class UpdateIntegrationTest {
           }}
       );
     }
-    addTestData(index, SENSOR_NAME, inputData);
+    addTestData(getIndexName(), SENSOR_NAME, inputData);
     List<Map<String,Object>> docs = null;
     for(int t = 0;t < MAX_RETRIES;++t, Thread.sleep(SLEEP_MS)) {
-      docs = getIndexedTestData(index, SENSOR_NAME);
+      docs = getIndexedTestData(getIndexName(), SENSOR_NAME);
       if(docs.size() >= 10) {
         break;
       }
@@ -107,16 +77,16 @@ public abstract class UpdateIntegrationTest {
         setReplacement(message0);
         setGuid(guid);
         setSensorType(SENSOR_NAME);
-        setIndex(index);
+        setIndex(getIndexName());
       }}, Optional.empty());
 
-      Assert.assertEquals(1, table.size());
+      Assert.assertEquals(1, getMockHTable().size());
       Document doc = dao.getLatest(guid, SENSOR_NAME);
       Assert.assertEquals(message0, doc.getDocument());
       {
         //ensure hbase is up to date
         Get g = new Get(HBaseDao.Key.toBytes(new HBaseDao.Key(guid, SENSOR_NAME)));
-        Result r = table.get(g);
+        Result r = getMockHTable().get(g);
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
         Assert.assertEquals(1, columns.size());
         Assert.assertEquals(message0
@@ -128,7 +98,7 @@ public abstract class UpdateIntegrationTest {
         //ensure ES is up-to-date
         long cnt = 0;
         for (int t = 0; t < MAX_RETRIES && cnt == 0; ++t, Thread.sleep(SLEEP_MS)) {
-          docs = getIndexedTestData(index, SENSOR_NAME);
+          docs = getIndexedTestData(getIndexName(), SENSOR_NAME);
           cnt = docs
               .stream()
               .filter(d -> message0.get("new-field").equals(d.get("new-field")))
@@ -147,15 +117,15 @@ public abstract class UpdateIntegrationTest {
         setReplacement(message0);
         setGuid(guid);
         setSensorType(SENSOR_NAME);
-        setIndex(index);
+        setIndex(getIndexName());
       }}, Optional.empty());
-      Assert.assertEquals(1, table.size());
+      Assert.assertEquals(1, getMockHTable().size());
       Document doc = dao.getLatest(guid, SENSOR_NAME);
       Assert.assertEquals(message0, doc.getDocument());
       {
         //ensure hbase is up to date
         Get g = new Get(HBaseDao.Key.toBytes(new HBaseDao.Key(guid, SENSOR_NAME)));
-        Result r = table.get(g);
+        Result r = getMockHTable().get(g);
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
         Assert.assertEquals(2, columns.size());
         Assert.assertEquals(message0, JSONUtils.INSTANCE.load(new String(columns.lastEntry().getValue())
@@ -169,7 +139,7 @@ public abstract class UpdateIntegrationTest {
         //ensure ES is up-to-date
         long cnt = 0;
         for (int t = 0; t < MAX_RETRIES && cnt == 0; ++t,Thread.sleep(SLEEP_MS)) {
-          docs = getIndexedTestData(index, SENSOR_NAME);
+          docs = getIndexedTestData(getIndexName(), SENSOR_NAME);
           cnt = docs
               .stream()
               .filter(d -> message0.get("new-field").equals(d.get("new-field")))
@@ -183,16 +153,13 @@ public abstract class UpdateIntegrationTest {
 
   @AfterClass
   public static void teardown() {
-    if(indexComponent != null) {
+    if (indexComponent != null) {
       indexComponent.stop();
     }
   }
 
   protected abstract String getIndexName();
-  protected abstract Map<String, Object> createGlobalConfig() throws Exception;
-  protected abstract IndexDao createDao() throws Exception;
-  protected abstract InMemoryComponent startIndex() throws Exception;
-  protected abstract void loadTestData() throws Exception;
+  protected abstract MockHTable getMockHTable();
   protected abstract void addTestData(String indexName, String sensorType, List<Map<String,Object>> docs) throws Exception;
   protected abstract List<Map<String,Object>> getIndexedTestData(String indexName, String sensorType) throws Exception;
 

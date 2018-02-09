@@ -36,6 +36,7 @@ import org.apache.metron.integration.ReadinessState;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
 import org.apache.metron.solr.integration.components.SolrComponent;
+import org.junit.Before;
 
 public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
 
@@ -49,7 +50,6 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
   @Override
   public InMemoryComponent getSearchComponent(final Properties topologyProperties) throws Exception {
     SolrComponent solrComponent = new SolrComponent.Builder()
-            .addCollection(collection, "../metron-solr/src/main/config/schema/yaf")
             .withPostStartCallback(new Function<SolrComponent, Void>() {
               @Nullable
               @Override
@@ -69,6 +69,11 @@ public class SolrIndexingIntegrationTest extends IndexingIntegrationTest {
             })
             .build();
     return solrComponent;
+  }
+
+  @Before
+  public void setup() {
+
   }
 
   @Override

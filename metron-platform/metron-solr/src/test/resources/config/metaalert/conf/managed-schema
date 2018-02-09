@@ -15,6 +15,7 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
+
 <schema name="example" version="1.6">
   <field name="_version_" type="plong" indexed="false" stored="false"/>
   <field name="_root_" type="string" indexed="true" stored="false" docValues="false"/>
@@ -22,23 +23,25 @@
   <field name="guid" type="string" indexed="true" stored="true" required="true"
     multiValued="false"/>
 
+  <field name="_childDocuments_" type="ignored" stored="true" docValues="true"/>
   <field name="source:type" type="string" indexed="true" stored="true"/>
-  <field name="ip_src_addr" type="string" indexed="true" stored="true"/>
-  <field name="ip_src_port" type="pint" indexed="true" stored="true"/>
-  <field name="long_field" type="plong" indexed="true" stored="true"/>
   <field name="timestamp" type="plong" indexed="true" stored="true"/>
-  <field name="latitude" type="pfloat" indexed="true" stored="true"/>
   <field name="score" type="pdouble" indexed="true" stored="true"/>
-  <field name="is_alert" type="boolean" indexed="true" stored="true"/>
-  <field name="location_point" type="location" indexed="true" stored="true"/>
-  <field name="bro_field" type="string" indexed="true" stored="true"/>
-  <field name="duplicate_name_field" type="string" indexed="true" stored="true"/>
+  <field name="status" type="string" indexed="true" stored="true"/>
+  <field name="threat:triage:score" type="pdouble" indexed="true" stored="true"/>
+  <field name="average" type="pdouble" indexed="true" stored="true"/>
+  <field name="min" type="pdouble" indexed="true" stored="true"/>
+  <field name="median" type="pdouble" indexed="true" stored="true"/>
+  <field name="max" type="pdouble" indexed="true" stored="true"/>
+  <field name="sum" type="pdouble" indexed="true" stored="true"/>
+  <field name="count" type="pint" indexed="true" stored="true"/>
+
+  <!-- Ensure that metaalerts child field is multivalued -->
   <field name="metaalerts" type="string" multiValued="true" indexed="true" stored="true"/>
 
   <dynamicField name="*" type="ignored" multiValued="false" docValues="true"/>
 
   <uniqueKey>guid</uniqueKey>
-
 
   <fieldType name="string" class="solr.StrField" sortMissingLast="true"/>
   <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>

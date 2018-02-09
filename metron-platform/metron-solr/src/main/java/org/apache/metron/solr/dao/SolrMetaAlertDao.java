@@ -20,12 +20,15 @@ package org.apache.metron.solr.dao;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.AbstractMetaAlertDao;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -44,13 +47,21 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.update.Document;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.CursorMarkParams;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 public class SolrMetaAlertDao extends AbstractMetaAlertDao {
+
+  private static final String METAALERTS_COLLECTION = "metaalert";
+
+  private static final String CHILD_DOCUMENTS = "_childDocuments_";
+
   private SolrDao solrDao;
 
   /**
@@ -58,7 +69,7 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
    * @param indexDao The Dao to wrap
    */
   public SolrMetaAlertDao(IndexDao indexDao) {
-    this(indexDao, METAALERTS_INDEX, THREAT_FIELD_DEFAULT, THREAT_SORT_DEFAULT);
+    this(indexDao, METAALERTS_COLLECTION, THREAT_FIELD_DEFAULT, THREAT_SORT_DEFAULT);
   }
 
   /**
@@ -72,7 +83,6 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
   public SolrMetaAlertDao(IndexDao indexDao, String index, String triageLevelField,
       String threatSort) {
     init(indexDao, Optional.of(threatSort));
-    this.index = index;
     this.threatTriageField = triageLevelField;
   }
 
@@ -115,18 +125,72 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
   }
 
   @Override
+  public boolean addAlertsToMetaAlert(String metaAlertGuid, List<GetRequest> alertRequests)
+      throws IOException {
+    boolean result = super.addAlertsToMetaAlert(metaAlertGuid, alertRequests);
+    try {
+      solrDao.getClient().commit(METAALERTS_COLLECTION);
+    } catch (SolrServerException e) {
+      throw new IOException("Unable to commit alerts to metaalert: " + metaAlertGuid, e);
+    }
+    return result;
+  }
+
+  @Override
   public int getPageSize() {
     return pageSize;
   }
 
   @Override
   public void setPageSize(int pageSize) {
-    this.pageSize=pageSize;
+    this.pageSize = pageSize;
+  }
+
+  @Override
+  public String getMetAlertSensorName() {
+    // TODO determine if this is right.
+    // Pretty sure the actually correct answer is to kill this and make METAALERT_TYPE work for queries
+    // Just return the collection name instead of a type (since Solr doesn't have one)
+    return METAALERTS_COLLECTION;
+  }
+
+  @Override
+  public String getMetaAlertIndex() {
+    return METAALERTS_COLLECTION;
   }
 
   @Override
   public void init(AccessConfig config) {
     // Do nothing. We're just wrapping a child dao
+  }
+
+  @Override
+  public Document getLatest(String guid, String sensorType) throws IOException {
+    if (getMetAlertSensorName().equals(sensorType)) {
+      // Unfortunately, we can't just defer to the indexDao for this. Child alerts in Solr end up having
+      // to be dug out.
+      String guidClause = Constants.GUID + ":" + guid;
+      SolrQuery query = new SolrQuery();
+      query.setQuery(guidClause)
+          .setFields(Constants.GUID, "*", "[child parentFilter=" + guidClause + " limit=999]");
+
+      SolrClient client = solrDao.getClient();
+      try {
+        QueryResponse response = client.query(METAALERTS_COLLECTION, query);
+        // GUID is unique, so it's definitely the first result
+        if (response.getResults().size() == 1) {
+          SolrDocument result = response.getResults().get(0);
+
+          return SolrUtilities.toDocument(result);
+        } else {
+          return null;
+        }
+      } catch (SolrServerException e) {
+        throw new IOException("Unable to retrieve metaalert", e);
+      }
+    } else {
+      return indexDao.getLatest(guid, sensorType);
+    }
   }
 
   @Override
@@ -136,24 +200,26 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
     }
 
     // Searches for all alerts containing the meta alert guid in it's "metalerts" array
-    // TODO determine if we can split the sibling clauses into two .addFilterQuery calls
+    // The query has to match the parentFilter to avoid errors.  Guid must also be explicitly
+    // included.
+    String activeClause = STATUS_FIELD + ":" + MetaAlertStatus.ACTIVE.getStatusString();
     SolrQuery solrQuery = new SolrQuery()
-        .setQuery("*:*")
-        .addFilterQuery("+" + STATUS_FIELD + ":" + MetaAlertStatus.ACTIVE.getStatusString()
-            + "+{!parent which\"content_type:metaalert\"}"
-            + "(alert:" + guid + ")")
-        .addSort("id", SolrQuery.ORDER.asc); // Just do basic sorting to track where we are
+        .setQuery(activeClause)
+        .setFields(Constants.GUID, "*", "[child parentFilter=" + activeClause + " limit=999]")
+        .addSort(Constants.GUID,
+            SolrQuery.ORDER.asc); // Just do basic sorting to track where we are
 
+    // TODO handle child documents.  Sigh.
     List<SearchResult> allResults = new ArrayList<>();
     try {
       String cursorMark = CursorMarkParams.CURSOR_MARK_START;
       boolean done = false;
       while (!done) {
         solrQuery.set(CursorMarkParams.CURSOR_MARK_PARAM, cursorMark);
-        QueryResponse rsp = solrDao.getClient().query(solrQuery);
+        QueryResponse rsp = solrDao.getClient().query(METAALERTS_COLLECTION, solrQuery);
         String nextCursorMark = rsp.getNextCursorMark();
         rsp.getResults().stream()
-            .map(solrDocument -> getSearchResult(solrDocument, Optional.empty()))
+            .map(solrDocument -> SolrUtilities.getSearchResult(solrDocument, Optional.empty()))
             .forEachOrdered(allResults::add);
         if (cursorMark.equals(nextCursorMark)) {
           done = true;
@@ -187,7 +253,7 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
     // Retrieve the documents going into the meta alert and build it
     Iterable<Document> alerts = indexDao.getAllLatest(alertRequests);
 
-    Document metaAlert = buildCreateDocument(alerts, request.getGroups());
+    Document metaAlert = buildCreateDocument(alerts, request.getGroups(), CHILD_DOCUMENTS);
     calculateMetaScores(metaAlert);
 
     // Add source type to be consistent with other sources and allow filtering
@@ -195,7 +261,7 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
 
     // Start a list of updates / inserts we need to run
     Map<Document, Optional<String>> updates = new HashMap<>();
-    updates.put(metaAlert, Optional.of(MetaAlertDao.METAALERTS_INDEX));
+    updates.put(metaAlert, Optional.of(METAALERTS_COLLECTION));
 
     try {
       // We need to update the associated alerts with the new meta alerts, making sure existing
@@ -211,10 +277,11 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
           if (!index.isPresent()) {
             // TODO Figure out what to do for Solr here? Do we need to create a collection equivalent?
             // Look up the index from Elasticsearch if one is not supplied in the request
+            index = Optional.ofNullable(guidToSensorTypes.get(alert.getGuid()));
 //            index = elasticsearchDao.getIndexName(alert.getGuid(), guidToSensorTypes.get(alert.getGuid()));
-//            if (!index.isPresent()) {
-//              throw new IllegalArgumentException("Could not find index for " + alert.getGuid());
-//            }
+            if (!index.isPresent()) {
+              throw new IllegalArgumentException("Could not find index for " + alert.getGuid());
+            }
           }
           updates.put(alert, index);
         }
@@ -226,9 +293,10 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
       MetaAlertCreateResponse createResponse = new MetaAlertCreateResponse();
       createResponse.setCreated(true);
       createResponse.setGuid(metaAlert.getGuid());
+      solrDao.getClient().commit(METAALERTS_COLLECTION);
       return createResponse;
-    } catch (IOException ioe) {
-      throw new InvalidCreateException("Unable to create meta alert", ioe);
+    } catch (IOException | SolrServerException e) {
+      throw new InvalidCreateException("Unable to create meta alert", e);
     }
   }
 
@@ -238,36 +306,14 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
     // 1. The provided query is true OR nested query on the alert field is true
     // 2. Metaalert is active OR it's not a metaalert
 
-//    String baseQuery = searchRequest.getQuery();
-//    String potentialMatch = baseQuery +
+    // TODO Do I need to worry about nested?
+    String statusClause =
+        MetaAlertDao.STATUS_FIELD + ":(" + MetaAlertStatus.ACTIVE.getStatusString()
+            + " OR (*:* -[* TO *]))";
+    String query = searchRequest.getQuery() + " +" + "(" + statusClause + ")";
 
-    SolrQuery query = new SolrQuery()
-        .setQuery(searchRequest.getQuery() + "OR ");
-    return null;
-
-
-
-
-//    // Wrap the query to also get any meta-alerts.
-//    QueryBuilder qb = constantScoreQuery(boolQuery()
-//        .must(boolQuery()
-//            .should(new QueryStringQueryBuilder(searchRequest.getQuery()))
-//            .should(nestedQuery(
-//                ALERT_FIELD,
-//                new QueryStringQueryBuilder(searchRequest.getQuery()),
-//                ScoreMode.None
-//                )
-//            )
-//        )
-//        // Ensures that it's a meta alert with active status or that it's an alert (signified by
-//        // having no status field)
-//        .must(boolQuery()
-//            .should(termQuery(MetaAlertDao.STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()))
-//            .should(boolQuery().mustNot(existsQuery(MetaAlertDao.STATUS_FIELD)))
-//        )
-//        .mustNot(existsQuery(MetaAlertDao.METAALERT_FIELD))
-//    );
-//    return elasticsearchDao.search(searchRequest, qb);
+    searchRequest.setQuery(query);
+    return indexDao.search(searchRequest);
   }
 
   @Override
@@ -277,21 +323,102 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
 
   @Override
   public void update(Document update, Optional<String> index) throws IOException {
-
-  }
-
-  // TODO refactor to remove this duplication from SolrSearchDao
-  private SearchResult getSearchResult(SolrDocument solrDocument, Optional<List<String>> fields) {
-    SearchResult searchResult = new SearchResult();
-    searchResult.setId((String) solrDocument.getFieldValue(Constants.GUID));
-    Map<String, Object> source;
-    if (fields.isPresent()) {
-      source = new HashMap<>();
-      fields.get().forEach(field -> source.put(field, solrDocument.getFieldValue(field)));
-    } else {
-      source = solrDocument.getFieldValueMap();
+    if (METAALERT_TYPE.equals(update.getSensorType())) {
+      // We've been passed an update to the meta alert.
+      throw new UnsupportedOperationException("Meta alerts cannot be directly updated");
     }
-    searchResult.setSource(source);
-    return searchResult;
+    // TODO I don't know of a way to avoid knowing the collection.  Which means that
+    // index can't be optional, or it won't be committed
+
+
+    Map<Document, Optional<String>> updates = new HashMap<>();
+    updates.put(update, index);
+
+    // We need to update an alert itself. It cannot be delegated in Solr; we need to retrieve all
+    // metaalerts and update the entire document for each.
+    SearchResponse searchResponse;
+    try {
+      searchResponse = getAllMetaAlertsForAlert(update.getGuid());
+      // TODO clean up debug statements
+      System.out.println(searchResponse);
+    } catch (InvalidSearchException e) {
+      throw new IOException("Unable to retrieve metaalerts for alert", e);
+    }
+
+    ArrayList<Document> metaAlerts = new ArrayList<>();
+    for (SearchResult searchResult : searchResponse.getResults()) {
+      Document doc = new Document(searchResult.getSource(), searchResult.getId(),
+          METAALERT_TYPE, 0L);
+      metaAlerts.add(doc);
+    }
+
+    // TODO debug as needed when done
+    System.out.println(metaAlerts);
+
+    for (Document metaAlert : metaAlerts) {
+      if (replaceAlertInMetaAlert(metaAlert, update)) {
+        updates.put(metaAlert, Optional.of(METAALERTS_COLLECTION));
+      }
+    }
+
+    // Run the alert's update
+    indexDao.batchUpdate(updates);
+
+    // Commit if we have updated metaalerts.
+    if (metaAlerts.size() > 0) {
+      try {
+        solrDao.getClient().commit(METAALERTS_COLLECTION);
+      } catch (SolrServerException e) {
+        throw new IOException("Unable to update document", e);
+      }
+    }
   }
+
+  protected boolean replaceAlertInMetaAlert(Document metaAlert, Document alert) {
+    boolean metaAlertUpdated = removeAlertsFromMetaAlert(metaAlert,
+        Collections.singleton(alert.getGuid()));
+    if (metaAlertUpdated) {
+      addAlertsToMetaAlert(metaAlert, Collections.singleton(alert));
+    }
+    return metaAlertUpdated;
+  }
+
+  @Override
+  public Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException {
+//    Iterable<Document> results = indexDao.getAllLatest(getRequests);
+//      String rawAlertField = (String) resultDoc.get(ALERT_FIELD);
+//      if (rawAlertField != null) {
+//        try {
+//          resultDoc.put(ALERT_FIELD, parser.parse(rawAlertField));
+//        } catch (ParseException e) {
+//          throw new IOException("Unable to parse alert field: " + rawAlertField, e);
+//        }
+//      }
+//    }
+//    return results;
+    return indexDao.getAllLatest(getRequests);
+  }
+
+  /**
+   * Given an alert GUID, retrieve all associated meta alerts.
+   * @param alertGuid The GUID of the child alert
+   * @return The Solrresponse containing the meta alerts
+   */
+//  protected SearchResponse getMetaAlertsForAlert(String alertGuid) {
+//    SolrQuery query = new SolrQuery("");
+//    return null;
+//    QueryBuilder qb = boolQuery()
+//        .must(
+//            nestedQuery(
+//                ALERT_FIELD,
+//                boolQuery()
+//                    .must(termQuery(ALERT_FIELD + "." + Constants.GUID, alertGuid)),
+//                ScoreMode.None
+//            ).innerHit(new InnerHitBuilder())
+//        )
+//        .must(termQuery(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()));
+//    return queryAllResults(qb);
+//  }
+
+
 }

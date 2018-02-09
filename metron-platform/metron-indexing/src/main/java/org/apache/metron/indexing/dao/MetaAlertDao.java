@@ -21,6 +21,7 @@ package org.apache.metron.indexing.dao;
 import java.util.List;
 import java.util.Optional;
 import java.io.IOException;
+import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateRequest;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertCreateResponse;
 import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
@@ -64,12 +65,14 @@ import org.apache.metron.indexing.dao.search.SearchResponse;
  */
 public interface MetaAlertDao extends IndexDao {
 
-  String METAALERTS_INDEX = "metaalert_index";
+  // Probably change these to getters that are required to be implemented
+//  String METAALERTS_INDEX = "metaalert_index";
   String METAALERT_TYPE = "metaalert";
   String METAALERT_FIELD = "metaalerts";
   String METAALERT_DOC = METAALERT_TYPE + "_doc";
   String THREAT_FIELD_DEFAULT = "threat:triage:score";
   String THREAT_SORT_DEFAULT = "sum";
+  // TODO move this to ESMetaAlertDao or default it or something. Solr doesn't use it.
   String ALERT_FIELD = "alert";
   String STATUS_FIELD = "status";
   String GROUPS_FIELD = "groups";
@@ -155,4 +158,18 @@ public interface MetaAlertDao extends IndexDao {
   int getPageSize();
 
   void setPageSize(int pageSize);
+
+  String getMetAlertSensorName();
+
+  String getMetaAlertIndex();
+
+  // TODO figure out if these two are needed or should be moved back
+  default String getSourceTypeField() {
+    // TODO make sure this works
+    return Constants.SENSOR_TYPE.replace('.', ':');
+  }
+
+  default String getThreatTriageField() {
+    return THREAT_FIELD_DEFAULT;
+  }
 }

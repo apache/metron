@@ -75,6 +75,7 @@ public class MetaAlertControllerIntegrationTest extends DaoControllerTest {
   private String metaalertUrl = "/api/v1/metaalert";
   private String user = "user";
   private String password = "password";
+  private String metaAlertIndex = "metaalert_index";
 
   /**
    {
@@ -111,7 +112,7 @@ public class MetaAlertControllerIntegrationTest extends DaoControllerTest {
     ImmutableMap<String, String> testData = ImmutableMap.of(
         "bro_index_2017.01.01.01", SearchIntegrationTest.broData,
         "snort_index_2017.01.01.01", SearchIntegrationTest.snortData,
-        MetaAlertDao.METAALERTS_INDEX, metaAlertData
+        metaAlertIndex, metaAlertData
     );
     loadTestData(testData);
   }

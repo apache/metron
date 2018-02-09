@@ -46,7 +46,7 @@ import org.apache.metron.indexing.dao.update.ReplaceRequest;
  */
 public interface IndexDao {
 
-  public static ThreadLocal<ObjectMapper> _mapper = ThreadLocal.withInitial(() ->
+  ThreadLocal<ObjectMapper> _mapper = ThreadLocal.withInitial(() ->
       new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL));
 
   /**

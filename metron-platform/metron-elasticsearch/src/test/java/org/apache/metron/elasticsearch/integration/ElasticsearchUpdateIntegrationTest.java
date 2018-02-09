@@ -25,12 +25,21 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
 import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
+import org.apache.metron.hbase.mock.MockHBaseTableProvider;
+import org.apache.metron.hbase.mock.MockHTable;
+import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.HBaseDao;
 import org.apache.metron.indexing.dao.IndexDao;
+import org.apache.metron.indexing.dao.MultiIndexDao;
 import org.apache.metron.indexing.dao.UpdateIntegrationTest;
 import org.apache.metron.integration.InMemoryComponent;
+import org.junit.BeforeClass;
 
 public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
   private static final String SENSOR_NAME= "test";
@@ -39,13 +48,38 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
   private static String index = SENSOR_NAME + "_index_" + new SimpleDateFormat(dateFormat).format(new Date());
   private static ElasticSearchComponent es;
 
+  private static final String TABLE_NAME = "modifications";
+  private static final String CF = "p";
+  private static MockHTable table;
+  private static IndexDao hbaseDao;
+
   @Override
   protected String getIndexName() {
     return SENSOR_NAME + "_index_" + new SimpleDateFormat(dateFormat).format(new Date());
   }
 
-  @Override
-  protected Map<String, Object> createGlobalConfig() throws Exception {
+  @BeforeClass
+  public static void setup() throws Exception {
+    indexComponent = startIndex();
+    Configuration config = HBaseConfiguration.create();
+    MockHBaseTableProvider tableProvider = new MockHBaseTableProvider();
+    MockHBaseTableProvider.addToCache(TABLE_NAME, CF);
+    table = (MockHTable) tableProvider.getTable(config, TABLE_NAME);
+
+    hbaseDao = new HBaseDao();
+    AccessConfig accessConfig = new AccessConfig();
+    accessConfig.setTableProvider(tableProvider);
+    Map<String, Object> globalConfig = createGlobalConfig();
+    globalConfig.put(HBaseDao.HBASE_TABLE, TABLE_NAME);
+    globalConfig.put(HBaseDao.HBASE_CF, CF);
+    accessConfig.setGlobalConfigSupplier(() -> globalConfig);
+
+    dao = new MultiIndexDao(hbaseDao, createDao());
+    dao.init(accessConfig);
+  }
+
+//  @Override
+  protected static Map<String, Object> createGlobalConfig() throws Exception {
     return new HashMap<String, Object>() {{
       put("es.clustername", "metron");
       put("es.port", "9300");
@@ -54,24 +88,19 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
     }};
   }
 
-  @Override
-  protected IndexDao createDao() throws Exception {
+//  @Override
+  protected static IndexDao createDao() throws Exception {
     return new ElasticsearchDao();
   }
 
-  @Override
-  protected InMemoryComponent startIndex() throws Exception {
+//  @Override
+  protected static InMemoryComponent startIndex() throws Exception {
     es = new ElasticSearchComponent.Builder()
         .withHttpPort(9211)
         .withIndexDir(new File(indexDir))
         .build();
     es.start();
     return es;
-  }
-
-  @Override
-  protected void loadTestData() throws Exception {
-
   }
 
   @Override
@@ -93,5 +122,10 @@ public class ElasticsearchUpdateIntegrationTest extends UpdateIntegrationTest {
   @Override
   protected List<Map<String, Object>> getIndexedTestData(String indexName, String sensorType) throws Exception {
     return es.getAllIndexedDocs(index, SENSOR_NAME + "_doc");
+  }
+
+  @Override
+  protected MockHTable getMockHTable() {
+    return table;
   }
 }

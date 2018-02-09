@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
+import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.search.GetRequest;
 import org.apache.metron.indexing.dao.search.Group;
 import org.apache.metron.indexing.dao.search.GroupOrder;
@@ -125,7 +126,7 @@ public class SolrSearchDao implements SearchDao {
   public Document getLatest(String guid, String collection) throws IOException {
     try {
       SolrDocument solrDocument = client.getById(collection, guid);
-      return toDocument(solrDocument);
+      return SolrUtilities.toDocument(solrDocument);
     } catch (SolrServerException e) {
       throw new IOException(e);
     }
@@ -144,7 +145,7 @@ public class SolrSearchDao implements SearchDao {
       for (String collection: collectionIdMap.keySet()) {
         SolrDocumentList solrDocumentList = client.getById(collectionIdMap.get(collection),
             new SolrQuery().set("collection", collection));
-        documents.addAll(solrDocumentList.stream().map(this::toDocument).collect(Collectors.toList()));
+        documents.addAll(solrDocumentList.stream().map(SolrUtilities::toDocument).collect(Collectors.toList()));
       }
       return documents;
     } catch (SolrServerException e) {
@@ -198,7 +199,7 @@ public class SolrSearchDao implements SearchDao {
 
     // search hits --> search results
     List<SearchResult> results = solrDocumentList.stream()
-        .map(solrDocument -> getSearchResult(solrDocument, searchRequest.getFields()))
+        .map(solrDocument -> SolrUtilities.getSearchResult(solrDocument, searchRequest.getFields()))
         .collect(Collectors.toList());
     searchResponse.setResults(results);
 
@@ -220,19 +221,19 @@ public class SolrSearchDao implements SearchDao {
     return searchResponse;
   }
 
-  private SearchResult getSearchResult(SolrDocument solrDocument, Optional<List<String>> fields) {
-    SearchResult searchResult = new SearchResult();
-    searchResult.setId((String) solrDocument.getFieldValue(Constants.GUID));
-    Map<String, Object> source;
-    if (fields.isPresent()) {
-      source = new HashMap<>();
-      fields.get().forEach(field -> source.put(field, solrDocument.getFieldValue(field)));
-    } else {
-      source = solrDocument.getFieldValueMap();
-    }
-    searchResult.setSource(source);
-    return searchResult;
-  }
+//  private SearchResult getSearchResult(SolrDocument solrDocument, Optional<List<String>> fields) {
+//    SearchResult searchResult = new SearchResult();
+//    searchResult.setId((String) solrDocument.getFieldValue(Constants.GUID));
+//    Map<String, Object> source;
+//    if (fields.isPresent()) {
+//      source = new HashMap<>();
+//      fields.get().forEach(field -> source.put(field, solrDocument.getFieldValue(field)));
+//    } else {
+//      source = solrDocument.getFieldValueMap();
+//    }
+//    searchResult.setSource(source);
+//    return searchResult;
+//  }
 
   private Map<String, Map<String, Long>> getFacetCounts(List<String> fields,
       QueryResponse solrResponse) {
@@ -299,13 +300,29 @@ public class SolrSearchDao implements SearchDao {
     return searchResultGroups;
   }
 
-  private Document toDocument(SolrDocument solrDocument) {
-    Map<String, Object> document = new HashMap<>();
-    solrDocument.getFieldNames().stream()
-        .filter(name -> !name.equals(SolrDao.VERSION_FIELD))
-        .forEach(name -> document.put(name, solrDocument.getFieldValue(name)));
-    return new Document(document,
-        (String) solrDocument.getFieldValue(Constants.GUID),
-        (String) solrDocument.getFieldValue("source:type"), 0L);
-  }
+//  private Document toDocument(SolrDocument solrDocument) {
+//    Map<String, Object> document = new HashMap<>();
+//    solrDocument.getFieldNames().stream()
+//        .filter(name -> !name.equals(SolrDao.VERSION_FIELD))
+//        .forEach(name -> document.put(name, solrDocument.getFieldValue(name)));
+//    // Make sure to put child documents in
+//    // TODO Make this actually recurse all layers
+//    // TODO Can we make it possible to name child docs?
+//    if (solrDocument.hasChildDocuments()) {
+//      List<Map<String, Object>> childDocuments = new ArrayList<>();
+//      for (SolrDocument childDoc : solrDocument.getChildDocuments()) {
+//        Map<String, Object> childDocMap = new HashMap<>();
+//        solrDocument.getFieldNames().stream()
+//            .filter(name -> !name.equals(SolrDao.VERSION_FIELD))
+//            .forEach(name -> childDocMap.put(name, childDoc.getFieldValue(name)));
+//        childDocuments.add(childDocMap);
+//      }
+//
+//      // TODO Make this not live here.  It's absurd.
+//      document.put(MetaAlertDao.ALERT_FIELD, childDocuments);
+//    }
+//    return new Document(document,
+//        (String) solrDocument.getFieldValue(Constants.GUID),
+//        (String) solrDocument.getFieldValue("source:type"), 0L);
+//  }
 }
