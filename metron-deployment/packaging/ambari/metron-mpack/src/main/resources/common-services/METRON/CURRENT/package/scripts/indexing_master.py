@@ -92,7 +92,6 @@ class Indexing(Script):
         env.set_params(params)
         self.configure(env)
         commands = IndexingCommands(params)
-        Logger.info("Starting Solr")
         if params.ra_indexing_writer == 'Solr':
             Logger.info("Loading Solr schemas")
             # Install Solr schemas
