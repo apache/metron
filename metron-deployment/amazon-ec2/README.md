@@ -22,6 +22,15 @@ This project fully automates the provisioning of Apache Metron on Amazon EC2 inf
 
 Warning: Amazon will charge for the use of their resources when running Apache Metron.  The amount will vary based on the number and size of hosts, along with current Amazon pricing structure.  Be sure to stop or terminate all of the hosts instantiated by Apache Metron when not in use to avoid unnecessary charges.
 
+AWS Defaults
+------------
+
+The Ansible playbook uses the following defaults for AWS deployment:
+
+- Instances: 10
+- Region: us-west-2
+- Instance type: m4.xlarge
+
 Getting Started
 ---------------
 
@@ -41,11 +50,13 @@ Any platform that supports these tools is suitable, but the following instructio
   /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
   ```
 
-2. With Homebrew installed, run the following command in a terminal to install all of the required tools.
+2. With Homebrew installed, run the following command in a terminal to install all of the required tools and dependencies.
 
   ```
-  brew cask install java
-  brew install maven git
+  brew update
+  brew tap caskroom/versions
+  brew cask install java8 vagrant virtualbox
+  brew install maven git node
   ```
 
 3. Install Ansible by following the instructions [here](http://docs.ansible.com/ansible/intro_installation.html#latest-releases-via-pip).
@@ -62,6 +73,14 @@ Any platform that supports these tools is suitable, but the following instructio
   ```
   ssh-keygen -t rsa
   ```
+
+5. Ensure the JAVA_HOME environment variable is set
+
+   ```
+   export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk1.8.0_162.jdk/Contents/Home"
+   ```
+
+   Notice: You must replace the path with the installed JDK version path
 
 ### Amazon Web Services
 
