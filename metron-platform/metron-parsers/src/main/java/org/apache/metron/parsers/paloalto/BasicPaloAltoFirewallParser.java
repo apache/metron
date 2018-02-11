@@ -34,6 +34,17 @@ import java.util.regex.Pattern;
 
 public class BasicPaloAltoFirewallParser extends BasicParser {
 
+  private static boolean empty_attribute( final String s ) {
+    return s == null || s.trim().isEmpty() || s.equals("\"\"");
+  }
+
+  private static String unquoted_attribute( String s ) {
+    s = s.trim();
+    if ( s.startsWith( "\"" ) && s.endsWith( "\"" ) )
+      return s.substring( 1, s.length( ) - 1 );
+    return s;
+  }
+
   private static final Logger _LOG = LoggerFactory.getLogger
           (BasicPaloAltoFirewallParser.class);
 
@@ -82,6 +93,14 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
   public static final String ParserVersion = "parser_version";
   public static final String Tokens = "tokens_seen";
 
+  public static final String SourceVmUuid = "source_vm_uuid";
+  public static final String DestinationVmUuid = "destination_vm_uuid";
+  public static final String TunnelId = "tunnel_id";
+  public static final String MonitorTag = "monitor_tag";
+  public static final String ParentSessionId = "parent_session_id";
+  public static final String ParentSessionStartTime = "parent_session_start_time";
+  public static final String TunnelType = "tunnel_type";
+
   //Threat
   public static final String URL = "url";
   public static final String HOST = "host";
@@ -103,6 +122,10 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
   public static final String WFRecipient = "recipient";
   public static final String WFReportID = "reportid";
   public static final String URLIndex = "url_idx";
+  public static final String HTTPMethod = "http_method";
+  public static final String ThreatCategory = "threat_category";
+  public static final String ContentVersion = "content_version";
+
 
   //Traffic
   public static final String Bytes = "bytes";
@@ -160,37 +183,37 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
     String type = tokens[3].trim();
 
     //populate common objects
-    outputMessage.put(PaloAltoDomain, tokens[0].trim());
-    outputMessage.put(ReceiveTime, tokens[1].trim());
-    outputMessage.put(SerialNum, tokens[2].trim());
+    if( !empty_attribute( tokens[0] ) ) outputMessage.put(PaloAltoDomain, tokens[0].trim());
+    if( !empty_attribute( tokens[1] ) ) outputMessage.put(ReceiveTime, tokens[1].trim());
+    if( !empty_attribute( tokens[2] ) ) outputMessage.put(SerialNum, tokens[2].trim());
     outputMessage.put(Type, type);
-    outputMessage.put(ThreatContentType, tokens[4].trim());
-    outputMessage.put(ConfigVersion, tokens[5].trim());
-    outputMessage.put(GenerateTime, tokens[6].trim());
-    outputMessage.put(SourceAddress, tokens[7].trim());
-    outputMessage.put(DestinationAddress, tokens[8].trim());
-    outputMessage.put(NATSourceIP, tokens[9].trim());
-    outputMessage.put(NATDestinationIP, tokens[10].trim());
-    outputMessage.put(Rule, tokens[11].trim());
-    outputMessage.put(SourceUser, tokens[12].trim());
-    outputMessage.put(DestinationUser, tokens[13].trim());
-    outputMessage.put(Application, tokens[14].trim());
-    outputMessage.put(VirtualSystem, tokens[15].trim());
-    outputMessage.put(SourceZone, tokens[16].trim());
-    outputMessage.put(DestinationZone, tokens[17].trim());
-    outputMessage.put(InboundInterface, tokens[18].trim());
-    outputMessage.put(OutboundInterface, tokens[19].trim());
-    outputMessage.put(LogAction, tokens[20].trim());
-    outputMessage.put(TimeLogged, tokens[21].trim());
-    outputMessage.put(SessionID, tokens[22].trim());
-    outputMessage.put(RepeatCount, tokens[23].trim());
-    outputMessage.put(SourcePort, tokens[24].trim());
-    outputMessage.put(DestinationPort, tokens[25].trim());
-    outputMessage.put(NATSourcePort, tokens[26].trim());
-    outputMessage.put(NATDestinationPort, tokens[27].trim());
-    outputMessage.put(Flags, tokens[28].trim());
-    outputMessage.put(IPProtocol, tokens[29].trim());
-    outputMessage.put(Action, tokens[30].trim());
+    if( !empty_attribute( tokens[4] ) ) outputMessage.put(ThreatContentType, unquoted_attribute(tokens[4]));
+    if( !empty_attribute( tokens[5] ) ) outputMessage.put(ConfigVersion, tokens[5].trim());
+    if( !empty_attribute( tokens[6] ) ) outputMessage.put(GenerateTime, tokens[6].trim());
+    if( !empty_attribute( tokens[7] ) ) outputMessage.put(SourceAddress, tokens[7].trim());
+    if( !empty_attribute( tokens[8] ) ) outputMessage.put(DestinationAddress, tokens[8].trim());
+    if( !empty_attribute( tokens[9] ) ) outputMessage.put(NATSourceIP, tokens[9].trim());
+    if( !empty_attribute( tokens[10] ) ) outputMessage.put(NATDestinationIP, tokens[10].trim());
+    if( !empty_attribute( tokens[11] ) ) outputMessage.put(Rule, unquoted_attribute(tokens[11]));
+    if( !empty_attribute( tokens[12] ) ) outputMessage.put(SourceUser, unquoted_attribute(tokens[12]));
+    if( !empty_attribute( tokens[13] ) ) outputMessage.put(DestinationUser, unquoted_attribute(tokens[13]));
+    if( !empty_attribute( tokens[14] ) ) outputMessage.put(Application, unquoted_attribute(tokens[14]));
+    if( !empty_attribute( tokens[15] ) ) outputMessage.put(VirtualSystem, unquoted_attribute(tokens[15]));
+    if( !empty_attribute( tokens[16] ) ) outputMessage.put(SourceZone, unquoted_attribute(tokens[16]));
+    if( !empty_attribute( tokens[17] ) ) outputMessage.put(DestinationZone, unquoted_attribute(tokens[17]));
+    if( !empty_attribute( tokens[18] ) ) outputMessage.put(InboundInterface, unquoted_attribute(tokens[18]));
+    if( !empty_attribute( tokens[19] ) ) outputMessage.put(OutboundInterface, unquoted_attribute(tokens[19]));
+    if( !empty_attribute( tokens[20] ) ) outputMessage.put(LogAction, unquoted_attribute(tokens[20]));
+    if( !empty_attribute( tokens[21] ) ) outputMessage.put(TimeLogged, tokens[21].trim());
+    if( !empty_attribute( tokens[22] ) ) outputMessage.put(SessionID, tokens[22].trim());
+    if( !empty_attribute( tokens[23] ) ) outputMessage.put(RepeatCount, tokens[23].trim());
+    if( !empty_attribute( tokens[24] ) ) outputMessage.put(SourcePort, tokens[24].trim());
+    if( !empty_attribute( tokens[25] ) ) outputMessage.put(DestinationPort, tokens[25].trim());
+    if( !empty_attribute( tokens[26] ) ) outputMessage.put(NATSourcePort, tokens[26].trim());
+    if( !empty_attribute( tokens[27] ) ) outputMessage.put(NATDestinationPort, tokens[27].trim());
+    if( !empty_attribute( tokens[28] ) ) outputMessage.put(Flags, tokens[28].trim());
+    if( !empty_attribute( tokens[29] ) ) outputMessage.put(IPProtocol, unquoted_attribute(tokens[29]));
+    if( !empty_attribute( tokens[30] ) ) outputMessage.put(Action, unquoted_attribute(tokens[30]));
 
 
     if ("THREAT".equals(type.toUpperCase())) {
@@ -201,47 +224,61 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
         parser_version = 70;
         p1_offset = 1;
       }
-      else if (tokens.length == 70) parser_version = 80;
-      outputMessage.put(ParserVersion, parser_version);
-      outputMessage.put(URL, tokens[31].trim());
-      try {
-        URL url = new URL(tokens[31].trim());
-        outputMessage.put(HOST, url.getHost());
-      } catch (MalformedURLException e) {
+      else if (tokens.length == 72) {
+        parser_version = 80;
+        p1_offset =1;
       }
-      outputMessage.put(ThreatID, tokens[32].trim());
-      outputMessage.put(Category, tokens[33].trim());
-      outputMessage.put(Severity, tokens[34].trim());
-      outputMessage.put(Direction, tokens[35].trim());
-      outputMessage.put(Seqno, tokens[36].trim());
-      outputMessage.put(ActionFlags, tokens[37].trim());
-      outputMessage.put(SourceLocation, tokens[38].trim());
-      outputMessage.put(DestinationLocation, tokens[39].trim());
-      outputMessage.put(ContentType, tokens[41].trim());
-      outputMessage.put(PCAPID, tokens[42].trim());
-      outputMessage.put(WFFileDigest, tokens[43].trim());
-      outputMessage.put(WFCloud, tokens[44].trim());
+      outputMessage.put(ParserVersion, parser_version);
+      if( !empty_attribute( tokens[31] ) ) {
+        outputMessage.put(URL, unquoted_attribute(tokens[31]));
+        try {
+            URL url = new URL(unquoted_attribute(tokens[31]));
+            outputMessage.put(HOST, url.getHost());
+        } catch (MalformedURLException e) {
+        }
+      }
+      if( !empty_attribute( tokens[32] ) ) outputMessage.put(ThreatID, tokens[32].trim());
+      if( !empty_attribute( tokens[33] ) ) outputMessage.put(Category, unquoted_attribute(tokens[33]));
+      if( !empty_attribute( tokens[34] ) ) outputMessage.put(Severity, unquoted_attribute(tokens[34]));
+      if( !empty_attribute( tokens[35] ) ) outputMessage.put(Direction, unquoted_attribute(tokens[35]));
+      if( !empty_attribute( tokens[36] ) ) outputMessage.put(Seqno, tokens[36].trim());
+      if( !empty_attribute( tokens[37] ) ) outputMessage.put(ActionFlags, unquoted_attribute(tokens[37]));
+      if( !empty_attribute( tokens[38] ) ) outputMessage.put(SourceLocation, unquoted_attribute(tokens[38]));
+      if( !empty_attribute( tokens[39] ) ) outputMessage.put(DestinationLocation, unquoted_attribute(tokens[39]));
+      if( !empty_attribute( tokens[41] ) ) outputMessage.put(ContentType, unquoted_attribute(tokens[41]));
+      if( !empty_attribute( tokens[42] ) ) outputMessage.put(PCAPID, tokens[42].trim());
+      if( !empty_attribute( tokens[43] ) ) outputMessage.put(WFFileDigest, unquoted_attribute(tokens[43]));
+      if( !empty_attribute( tokens[44] ) ) outputMessage.put(WFCloud, unquoted_attribute(tokens[44]));
       if ( parser_version >= 61) {
-        outputMessage.put(UserAgent, tokens[(45 + p1_offset)].trim());
-        outputMessage.put(WFFileType, tokens[(46 + p1_offset)].trim());
-        outputMessage.put(XForwardedFor, tokens[(47 + p1_offset)].trim());
-        outputMessage.put(Referer, tokens[(48 + p1_offset)].trim());
-        outputMessage.put(WFSender, tokens[(49 + p1_offset)].trim());
-        outputMessage.put(WFSubject, tokens[(50 + p1_offset)].trim());
-        outputMessage.put(WFRecipient, tokens[(51 + p1_offset)].trim());
-        outputMessage.put(WFReportID, tokens[(52 + p1_offset)].trim());
+        if( !empty_attribute( tokens[(45 + p1_offset)] ) ) outputMessage.put(UserAgent, unquoted_attribute(tokens[(45 + p1_offset)]));
+        if( !empty_attribute( tokens[(46 + p1_offset)] ) ) outputMessage.put(WFFileType, unquoted_attribute(tokens[(46 + p1_offset)]));
+        if( !empty_attribute( tokens[(47 + p1_offset)] ) ) outputMessage.put(XForwardedFor, unquoted_attribute(tokens[(47 + p1_offset)]));
+        if( !empty_attribute( tokens[(48 + p1_offset)] ) ) outputMessage.put(Referer, unquoted_attribute(tokens[(48 + p1_offset)]));
+        if( !empty_attribute( tokens[(49 + p1_offset)] ) ) outputMessage.put(WFSender, unquoted_attribute(tokens[(49 + p1_offset)]));
+        if( !empty_attribute( tokens[(50 + p1_offset)] ) ) outputMessage.put(WFSubject, unquoted_attribute(tokens[(50 + p1_offset)]));
+        if( !empty_attribute( tokens[(51 + p1_offset)] ) ) outputMessage.put(WFRecipient, unquoted_attribute(tokens[(51 + p1_offset)]));
+        if( !empty_attribute( tokens[(52 + p1_offset)] ) ) outputMessage.put(WFReportID, unquoted_attribute(tokens[(52 + p1_offset)]));
       }
       if ( parser_version >= 70) { 
-        outputMessage.put(URLIndex, tokens[45].trim());
-        outputMessage.put(DGH1, tokens[54].trim());
-        outputMessage.put(DGH2, tokens[55].trim());
-        outputMessage.put(DGH3, tokens[56].trim());
-        outputMessage.put(DGH4, tokens[57].trim());
-        outputMessage.put(VSYSName, tokens[58].trim());
-        outputMessage.put(DeviceName, tokens[59].trim());
+        if( !empty_attribute( tokens[45] ) ) outputMessage.put(URLIndex, tokens[45].trim());
+        if( !empty_attribute( tokens[54] ) ) outputMessage.put(DGH1, tokens[54].trim());
+        if( !empty_attribute( tokens[55] ) ) outputMessage.put(DGH2, tokens[55].trim());
+        if( !empty_attribute( tokens[56] ) ) outputMessage.put(DGH3, tokens[56].trim());
+        if( !empty_attribute( tokens[57] ) ) outputMessage.put(DGH4, tokens[57].trim());
+        if( !empty_attribute( tokens[58] ) ) outputMessage.put(VSYSName, unquoted_attribute(tokens[58]));
+        if( !empty_attribute( tokens[59] ) ) outputMessage.put(DeviceName, unquoted_attribute(tokens[59]));
       }
-      if ( parser_version == 70) { 
-        outputMessage.put(ActionSource, tokens[60].trim());
+      if ( parser_version >= 80) {
+        if( !empty_attribute( tokens[61] ) ) outputMessage.put(SourceVmUuid, tokens[61].trim());
+        if( !empty_attribute( tokens[62] ) ) outputMessage.put(DestinationVmUuid, tokens[62].trim());
+        if( !empty_attribute( tokens[63] ) ) outputMessage.put(HTTPMethod, tokens[63].trim());
+        if( !empty_attribute( tokens[64] ) ) outputMessage.put(TunnelId, tokens[64].trim());
+        if( !empty_attribute( tokens[65] ) ) outputMessage.put(MonitorTag, tokens[65].trim());
+        if( !empty_attribute( tokens[66] ) ) outputMessage.put(ParentSessionId, tokens[66].trim());
+        if( !empty_attribute( tokens[67] ) ) outputMessage.put(ParentSessionStartTime, tokens[67].trim());
+        if( !empty_attribute( tokens[68] ) ) outputMessage.put(TunnelType, tokens[68].trim());
+        if( !empty_attribute( tokens[69] ) ) outputMessage.put(ThreatCategory, tokens[69].trim());
+        if( !empty_attribute( tokens[70] ) ) outputMessage.put(ContentVersion, tokens[70].trim());
       }
       if ( parser_version == 0) {
         outputMessage.put(Tokens, tokens.length);
@@ -254,30 +291,39 @@ public class BasicPaloAltoFirewallParser extends BasicParser {
       else if (tokens.length == 54) parser_version = 70;
       else if (tokens.length == 61) parser_version = 80;
       outputMessage.put(ParserVersion, parser_version);
-      outputMessage.put(Bytes, tokens[31].trim());
-      outputMessage.put(BytesSent, tokens[32].trim());
-      outputMessage.put(BytesReceived, tokens[33].trim());
-      outputMessage.put(Packets, tokens[34].trim());
-      outputMessage.put(StartTime, tokens[35].trim());
-      outputMessage.put(ElapsedTimeInSec, tokens[36].trim());
-      outputMessage.put(Category, tokens[37].trim());
-      outputMessage.put(Seqno, tokens[39].trim());
-      outputMessage.put(ActionFlags, tokens[40].trim());
-      outputMessage.put(SourceLocation, tokens[41].trim());
-      outputMessage.put(DestinationLocation, tokens[42].trim());
-      outputMessage.put(PktsSent, tokens[44].trim());
-      outputMessage.put(PktsReceived, tokens[45].trim());
+      if( !empty_attribute( tokens[31] ) ) outputMessage.put(Bytes, tokens[31].trim());
+      if( !empty_attribute( tokens[32] ) ) outputMessage.put(BytesSent, tokens[32].trim());
+      if( !empty_attribute( tokens[33] ) ) outputMessage.put(BytesReceived, tokens[33].trim());
+      if( !empty_attribute( tokens[34] ) ) outputMessage.put(Packets, tokens[34].trim());
+      if( !empty_attribute( tokens[35] ) ) outputMessage.put(StartTime, tokens[35].trim());
+      if( !empty_attribute( tokens[36] ) ) outputMessage.put(ElapsedTimeInSec, tokens[36].trim());
+      if( !empty_attribute( tokens[37] ) ) outputMessage.put(Category, unquoted_attribute(tokens[37]));
+      if( !empty_attribute( tokens[39] ) ) outputMessage.put(Seqno, tokens[39].trim());
+      if( !empty_attribute( tokens[40] ) ) outputMessage.put(ActionFlags, unquoted_attribute(tokens[40]));
+      if( !empty_attribute( tokens[41] ) ) outputMessage.put(SourceLocation, unquoted_attribute(tokens[41]));
+      if( !empty_attribute( tokens[42] ) ) outputMessage.put(DestinationLocation, unquoted_attribute(tokens[42]));
+      if( !empty_attribute( tokens[44] ) ) outputMessage.put(PktsSent, tokens[44].trim());
+      if( !empty_attribute( tokens[45] ) ) outputMessage.put(PktsReceived, tokens[45].trim());
       if ( parser_version >= 61) {
-      outputMessage.put(EndReason, tokens[46].trim());
+        if( !empty_attribute( tokens[46] ) ) outputMessage.put(EndReason, unquoted_attribute(tokens[46]));
       }
       if ( parser_version >= 70) {
-        outputMessage.put(DGH1, tokens[47].trim());
-        outputMessage.put(DGH2, tokens[48].trim());
-        outputMessage.put(DGH3, tokens[49].trim());
-        outputMessage.put(DGH4, tokens[50].trim());
-        outputMessage.put(VSYSName, tokens[51].trim());
-        outputMessage.put(DeviceName, tokens[52].trim());
-        outputMessage.put(ActionSource, tokens[53].trim());
+        if( !empty_attribute( tokens[47] ) ) outputMessage.put(DGH1, tokens[47].trim());
+        if( !empty_attribute( tokens[48] ) ) outputMessage.put(DGH2, tokens[48].trim());
+        if( !empty_attribute( tokens[49] ) ) outputMessage.put(DGH3, tokens[49].trim());
+        if( !empty_attribute( tokens[50] ) ) outputMessage.put(DGH4, tokens[50].trim());
+        if( !empty_attribute( tokens[51] ) ) outputMessage.put(VSYSName, unquoted_attribute(tokens[51]));
+        if( !empty_attribute( tokens[52] ) ) outputMessage.put(DeviceName, unquoted_attribute(tokens[52]));
+        if( !empty_attribute( tokens[53] ) ) outputMessage.put(ActionSource, unquoted_attribute(tokens[53]));
+      }
+      if ( parser_version >= 80) {
+        if( !empty_attribute( tokens[54] ) ) outputMessage.put(SourceVmUuid, tokens[54].trim());
+        if( !empty_attribute( tokens[55] ) ) outputMessage.put(DestinationVmUuid, tokens[55].trim());
+        if( !empty_attribute( tokens[56] ) ) outputMessage.put(TunnelId, tokens[56].trim());
+        if( !empty_attribute( tokens[57] ) ) outputMessage.put(MonitorTag, tokens[57].trim());
+        if( !empty_attribute( tokens[58] ) ) outputMessage.put(ParentSessionId, tokens[58].trim());
+        if( !empty_attribute( tokens[59] ) ) outputMessage.put(ParentSessionStartTime, tokens[59].trim());
+        if( !empty_attribute( tokens[60] ) ) outputMessage.put(TunnelType, tokens[60].trim());
       }
       if ( parser_version == 0) {
         outputMessage.put(Tokens, tokens.length);
