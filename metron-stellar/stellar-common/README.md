@@ -243,6 +243,11 @@ Where:
 | [ `SET_MERGE`](#set_merge)                                                                         |
 | [ `SET_REMOVE`](#set_remove)                                                                       |
 | [ `SIN`](#sin)                                                                                     |
+| [ `SHELL_EDIT`](#shell_edit)                                                                       |
+| [ `SHELL_GET_EXPRESSION`](#shell_get_expression)                                                   |
+| [ `SHELL_LIST_VARS`](#shell_list_vars)                                                             |
+| [ `SHELL_MAP2TABLE`](#shell_map2table)                                                             |
+| [ `SHELL_VARS2MAP`](#shell_vars2map)                                                               |
 | [ `SPLIT`](#split)                                                                                 |
 | [ `SQRT`](#sqrt)                                                                                   |
 | [ `STARTS_WITH`](#starts_with)                                                                     |
@@ -919,6 +924,32 @@ Where:
     * set - The set to add to
     * o - object to add to set
   * Returns: A Set
+
+### `SHELL_EDIT`
+  * Description: Open an editor (optionally initialized with text) and return whatever is saved from the editor.  The editor to use is pulled from `EDITOR` or `VISUAL` environment variable.
+  * Input:
+    * string - (Optional) A string whose content is used to initialize the editor.
+  * Returns: The content that the editor saved after editor exit.
+### `SHELL_GET_EXPRESSION`
+  * Description: Get a stellar expression from a variable
+  * Input:
+    * variable - variable name
+  * Returns: The stellar expression associated with the variable.
+### `SHELL_LIST_VARS`
+  * Description: Return the variables in a tabular form
+  * Input:
+    * wrap : Length of string to wrap the columns
+  * Returns: A tabular representation of the variables.
+### `SHELL_MAP2TABLE`
+  * Description: Take a map and return a table
+  * Input:
+    * map - Map
+  * Returns: The map in table form
+### `SHELL_VARS2MAP`
+  * Description: Take a set of variables and return a map
+  * Input:
+    * variables* - variable names to use to create map 
+  * Returns: A map associating the variable name with the stellar expression.
 
 ### `SIN`
   * Description: Returns the sine of a number.

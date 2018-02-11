@@ -20,7 +20,7 @@
   register: jdk_dir
 
 - name: Install openjdk repository
-  shell: add-apt-repository ppa:openjdk-r/ppa
+  shell: add-apt-repository ppa:openjdk-r/ppa -y
   when: not jdk_dir.stat.exists
 
 - name: Update package cache

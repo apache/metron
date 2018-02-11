@@ -74,13 +74,13 @@ public class StormAdminServiceImpl implements StormAdminService {
     }
 
     @Override
-    public TopologyResponse startIndexingTopology() throws RestException {
-        return createResponse(stormCLIClientWrapper.startIndexingTopology(), TopologyStatusCode.STARTED, TopologyStatusCode.START_ERROR);
+    public TopologyResponse startIndexingTopology(String scriptPath) throws RestException {
+        return createResponse(stormCLIClientWrapper.startIndexingTopology(scriptPath), TopologyStatusCode.STARTED, TopologyStatusCode.START_ERROR);
     }
 
     @Override
-    public TopologyResponse stopIndexingTopology(boolean stopNow) throws RestException {
-        return createResponse(stormCLIClientWrapper.stopIndexingTopology(stopNow), TopologyStatusCode.STOPPED, TopologyStatusCode.STOP_ERROR);
+    public TopologyResponse stopIndexingTopology(String name, boolean stopNow) throws RestException {
+        return createResponse(stormCLIClientWrapper.stopIndexingTopology(name, stopNow), TopologyStatusCode.STOPPED, TopologyStatusCode.STOP_ERROR);
     }
 
     private TopologyResponse createResponse(int responseCode, TopologyStatusCode successMessage, TopologyStatusCode errorMessage) {

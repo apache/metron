@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest.mock;
 
+import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.model.TopologyStatusCode;
 import org.apache.metron.rest.service.impl.StormCLIWrapper;
@@ -29,7 +30,8 @@ public class MockStormCLIClientWrapper extends StormCLIWrapper {
 
   private final Map<String, TopologyStatusCode> parsersStatus = new HashMap<>();
   private TopologyStatusCode enrichmentStatus = TopologyStatusCode.TOPOLOGY_NOT_FOUND;
-  private TopologyStatusCode indexingStatus = TopologyStatusCode.TOPOLOGY_NOT_FOUND;
+  private TopologyStatusCode randomAccessIndexingStatus = TopologyStatusCode.TOPOLOGY_NOT_FOUND;
+  private TopologyStatusCode batchIndexingStatus = TopologyStatusCode.TOPOLOGY_NOT_FOUND;
 
   public Set<String> getParserTopologyNames() {
     return parsersStatus.keySet();
@@ -128,45 +130,84 @@ public class MockStormCLIClientWrapper extends StormCLIWrapper {
     }
   }
 
-  public TopologyStatusCode getIndexingStatus() {
-    return indexingStatus;
+  public TopologyStatusCode getIndexingStatus(String name) {
+    return name.equals(MetronRestConstants.BATCH_INDEXING_TOPOLOGY_NAME)?batchIndexingStatus:randomAccessIndexingStatus;
   }
 
   @Override
-  public int startIndexingTopology() throws RestException {
-    if (indexingStatus == TopologyStatusCode.TOPOLOGY_NOT_FOUND) {
-      indexingStatus = TopologyStatusCode.ACTIVE;
-      return 0;
-    } else {
-      return 1;
+  public int startIndexingTopology(String scriptPath) throws RestException {
+    if(scriptPath.equals(MetronRestConstants.BATCH_INDEXING_SCRIPT_PATH_SPRING_PROPERTY)) {
+      if (batchIndexingStatus == TopologyStatusCode.TOPOLOGY_NOT_FOUND) {
+        batchIndexingStatus = TopologyStatusCode.ACTIVE;
+        return 0;
+      } else {
+        return 1;
+      }
+    }
+    else {
+      if (randomAccessIndexingStatus == TopologyStatusCode.TOPOLOGY_NOT_FOUND) {
+        randomAccessIndexingStatus = TopologyStatusCode.ACTIVE;
+        return 0;
+      } else {
+        return 1;
+      }
     }
   }
 
   @Override
-  public int stopIndexingTopology(boolean stopNow) throws RestException {
-    if (indexingStatus == TopologyStatusCode.ACTIVE) {
-      indexingStatus = TopologyStatusCode.TOPOLOGY_NOT_FOUND;
-      return 0;
-    } else {
-      return 1;
+  public int stopIndexingTopology(String name, boolean stopNow) throws RestException {
+    if(name.equals(MetronRestConstants.BATCH_INDEXING_TOPOLOGY_NAME)) {
+      if (batchIndexingStatus == TopologyStatusCode.ACTIVE) {
+        batchIndexingStatus = TopologyStatusCode.TOPOLOGY_NOT_FOUND;
+        return 0;
+      } else {
+        return 1;
+      }
+    }
+    else {
+      if (randomAccessIndexingStatus == TopologyStatusCode.ACTIVE) {
+        randomAccessIndexingStatus = TopologyStatusCode.TOPOLOGY_NOT_FOUND;
+        return 0;
+      } else {
+        return 1;
+      }
     }
   }
 
-  public int activateIndexingTopology() {
-    if (indexingStatus == TopologyStatusCode.INACTIVE || indexingStatus == TopologyStatusCode.ACTIVE) {
-      indexingStatus = TopologyStatusCode.ACTIVE;
-      return 0;
-    } else {
-      return 1;
+  public int activateIndexingTopology(String name) {
+    if(name.equals(MetronRestConstants.BATCH_INDEXING_TOPOLOGY_NAME)) {
+      if (batchIndexingStatus == TopologyStatusCode.INACTIVE || batchIndexingStatus == TopologyStatusCode.ACTIVE) {
+        batchIndexingStatus = TopologyStatusCode.ACTIVE;
+        return 0;
+      } else {
+        return 1;
+      }
+    }
+    else {
+      if (randomAccessIndexingStatus == TopologyStatusCode.INACTIVE || randomAccessIndexingStatus == TopologyStatusCode.ACTIVE) {
+        randomAccessIndexingStatus = TopologyStatusCode.ACTIVE;
+        return 0;
+      } else {
+        return 1;
+      }
     }
   }
 
-  public int deactivateIndexingTopology() {
-    if (indexingStatus == TopologyStatusCode.INACTIVE || indexingStatus == TopologyStatusCode.ACTIVE) {
-      indexingStatus = TopologyStatusCode.INACTIVE;
-      return 0;
+  public int deactivateIndexingTopology(String name) {
+    if (name.equals(MetronRestConstants.BATCH_INDEXING_TOPOLOGY_NAME)) {
+      if (batchIndexingStatus == TopologyStatusCode.INACTIVE || batchIndexingStatus == TopologyStatusCode.ACTIVE) {
+        batchIndexingStatus = TopologyStatusCode.INACTIVE;
+        return 0;
+      } else {
+        return 1;
+      }
     } else {
-      return 1;
+      if (randomAccessIndexingStatus == TopologyStatusCode.INACTIVE || randomAccessIndexingStatus == TopologyStatusCode.ACTIVE) {
+        randomAccessIndexingStatus = TopologyStatusCode.INACTIVE;
+        return 0;
+      } else {
+        return 1;
+      }
     }
   }
 
