@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Apache Metron Community
+title: Apache Software Foundation
 ---
 
 <section class="hero-second-level no-padding">
