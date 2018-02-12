@@ -28,7 +28,7 @@ function join_by {
   echo "$*" 
 }
 
-METRON_VERSION=${project.version}
+METRON_VERSION=0.4.3
 METRON_HOME="${METRON_HOME:-/usr/metron/${METRON_VERSION}}"
 HBASE_HOME=${HBASE_HOME:-/usr/hdp/current/hbase-client}
 METRON_REST_PORT=8082
@@ -84,18 +84,32 @@ if [ ${METRON_JDBC_CLIENT_PATH} ]; then
     METRON_REST_CLASSPATH+=":${METRON_JDBC_CLIENT_PATH}"
 fi
 
-# Use a custom indexing jar if provided, else pull the metron-elasticsearch uber jar
-if [ ${METRON_INDEX_CP} ]; then
-    echo "Default metron indexing jar is: ${METRON_INDEX_CP}"
-    METRON_REST_CLASSPATH+=":${METRON_INDEX_CP}"
-else
-    indexing_jar_pattern="${METRON_HOME}/lib/metron-elasticsearch*uber.jar"
-    indexing_files=( ${indexing_jar_pattern} )
-    echo "Default metron indexing jar is: ${indexing_files[0]}"
-    METRON_REST_CLASSPATH+=":${indexing_files[0]}"
+echo "METRON_RA_INDEXING_WRITER=${METRON_RA_INDEXING_WRITER}"
+# Use metron-elasticsearch uber jar by default
+indexing_jar_pattern="${METRON_HOME}/lib/metron-elasticsearch*uber.jar"
+# Use metron-solr uber jar if ra indexing writer set to Solr
+if [[ ${METRON_RA_INDEXING_WRITER} == "Solr" ]]; then
+    indexing_jar_pattern="${METRON_HOME}/lib/metron-solr*uber.jar"
 fi
+# Use a custom indexing jar if provided
+if [ ${METRON_INDEX_CP} ]; then
+    indexing_jar_pattern="${METRON_INDEX_CP}"
+fi
+indexing_files=( ${indexing_jar_pattern} )
+echo "Metron indexing jar is: ${indexing_files[0]}"
+METRON_REST_CLASSPATH+=":${indexing_files[0]}"
 
 echo "METRON_REST_CLASSPATH=${METRON_REST_CLASSPATH}"
+
+#Use Solr daos if ra indexing writer set to Solr
+if [[ ${METRON_RA_INDEXING_WRITER} == "Solr" ]]; then
+    METRON_INDEX_DAO=" --index.dao.impl=org.apache.metron.solr.dao.SolrDao,org.apache.metron.indexing.dao.HBaseDao"
+    METRON_METAALERT_DAO=" --meta.dao.impl=org.apache.metron.solr.dao.SolrMetaAlertDao"
+    echo "METRON_INDEX_DAO=${METRON_INDEX_DAO}"
+    echo "METRON_METAALERT_DAO=${METRON_METAALERT_DAO}"
+    METRON_SPRING_OPTIONS+=${METRON_INDEX_DAO}
+    METRON_SPRING_OPTIONS+=${METRON_METAALERT_DAO}
+fi
 
 echo "Starting application"
 ${JAVA_HOME}/bin/java ${METRON_JVMFLAGS} \
