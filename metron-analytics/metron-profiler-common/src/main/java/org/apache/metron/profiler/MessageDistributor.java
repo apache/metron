@@ -24,33 +24,57 @@ import org.apache.metron.stellar.dsl.Context;
 import org.json.simple.JSONObject;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 /**
- * Distributes a message along a MessageRoute.  A MessageRoute will lead to one or
- * more ProfileBuilders.
+ * Distributes a telemetry message along a {@link MessageRoute}. A {@link MessageRoute} will lead to a
+ * {@link ProfileBuilder} that is responsible for building and maintaining a profile.
  *
- * A ProfileBuilder is responsible for maintaining the state of a single profile,
- * for a single entity.  There will be one ProfileBuilder for each (profile, entity) pair.
- * This class ensures that each ProfileBuilder receives the telemetry messages that
- * it needs.
+ * <p>A {@link ProfileBuilder} is responsible for maintaining the state of a single (profile, entity)
+ * pairing.  There will be one {@link ProfileBuilder} for each (profile, entity) pair.
+ *
+ * <p>A {@link MessageDistributor} ensures that each {@link ProfileBuilder} receives the telemetry
+ * messages that it needs.
+ *
+ * @see MessageRoute
+ * @see ProfileMeasurement
  */
 public interface MessageDistributor {
 
   /**
-   * Distribute a message along a MessageRoute.
+   * Distribute a message along a {@link MessageRoute}.
    *
    * @param message The message that needs distributed.
+   * @param timestamp The timestamp of the message.
    * @param route The message route.
    * @param context The Stellar execution context.
-   * @throws ExecutionException
    */
-  void distribute(JSONObject message, MessageRoute route, Context context) throws ExecutionException;
+  void distribute(JSONObject message, long timestamp, MessageRoute route, Context context);
 
   /**
-   * Flushes all profiles.  Flushes all ProfileBuilders that this distributor is responsible for.
+   * Flush all active profiles.
    *
-   * @return The profile measurements; one for each (profile, entity) pair.
+   * <p>A profile will remain active as long as it continues to receive messages.  If a profile
+   * does not receive a message for an extended duration, it may be marked as expired.
+   *
+   * <p>Flushes all active {@link ProfileBuilder} objects that this distributor is responsible for.
+   *
+   * @return The {@link ProfileMeasurement} values; one for each (profile, entity) pair.
    */
   List<ProfileMeasurement> flush();
+
+  /**
+   * Flush all expired profiles.
+   *
+   * <p>If a profile has not received messages for an extended period of time, it will be marked as
+   * expired.  When a profile is expired, it can no longer receive new messages.  Expired profiles
+   * remain only to give the client a chance to flush them.
+   *
+   * <p>If the client does not flush the expired profiles periodically, any state maintained in the
+   * profile since the last flush may be lost.
+   *
+   * <p>Flushes all expired {@link ProfileBuilder} objects that this distributor is responsible for.
+   *
+   * @return The {@link ProfileMeasurement} values; one for each (profile, entity) pair.
+   */
+  List<ProfileMeasurement> flushExpired();
 }

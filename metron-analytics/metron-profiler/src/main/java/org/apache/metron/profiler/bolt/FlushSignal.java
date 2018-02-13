@@ -1,5 +1,4 @@
 /*
- *
  *  Licensed to the Apache Software Foundation (ASF) under one
  *  or more contributor license agreements.  See the NOTICE file
  *  distributed with this work for additional information
@@ -18,24 +17,35 @@
  *
  */
 
-package org.apache.metron.profiler.clock;
-
-import org.json.simple.JSONObject;
-
-import java.util.Optional;
+package org.apache.metron.profiler.bolt;
 
 /**
- * A {@link Clock} that advances based on system time.
- *
- * <p>This {@link Clock} is used to advance time when the Profiler is running
- * on processing time, rather than event time.
+ * Signals when it is time to flush a profile.
  */
-public class WallClock implements Clock {
+public interface FlushSignal {
 
-  @Override
-  public Optional<Long> currentTimeMillis(JSONObject message) {
+  /**
+   * Returns true, if it is time to flush.
+   *
+   * @return True if time to flush.  Otherwise, false.
+   */
+  boolean isTimeToFlush();
 
-    // the message does not matter; use system time
-    return Optional.of(System.currentTimeMillis());
-  }
+  /**
+   * Update the signaller with a known timestamp.
+   *
+   * @param timestamp A timestamp expected to be epoch milliseconds
+   */
+  void update(long timestamp);
+
+  /**
+   * Reset the signaller.
+   */
+  void reset();
+
+  /**
+   * Returns the current time in epoch milliseconds.
+   * @return The current time in epoch milliseconds.
+   */
+  long currentTimeMillis();
 }

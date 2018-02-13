@@ -32,10 +32,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Handles emitting a ProfileMeasurement to the stream which writes
- * profile measurements to Kafka.
+ * Responsible for emitting a {@link ProfileMeasurement} to an output stream that will
+ * persist data in HBase.
  */
-public class KafkaDestinationHandler implements DestinationHandler, Serializable {
+public class KafkaEmitter implements ProfileMeasurementEmitter, Serializable {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -75,8 +75,12 @@ public class KafkaDestinationHandler implements DestinationHandler, Serializable
         message.put(key, value);
 
       } else {
-        LOG.error(String.format("triage expression has invalid type. expect primitive types only. skipping: profile=%s, entity=%s, expression=%s, type=%s",
-                measurement.getDefinition().getProfile(), measurement.getEntity(), key, ClassUtils.getShortClassName(value, "null")));
+        LOG.error(String.format(
+                "triage expression must result in primitive type, skipping; type=%s, profile=%s, entity=%s, expr=%s",
+                ClassUtils.getShortClassName(value, "null"),
+                measurement.getDefinition().getProfile(),
+                measurement.getEntity(),
+                key));
       }
     });
 

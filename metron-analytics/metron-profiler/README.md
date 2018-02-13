@@ -328,6 +328,47 @@ Continuing the previous running example, at this point, you have seen how your p
 
 ## Anatomy of a Profile
 
+### Profiler
+
+The Profiler configuration contains only two fields; only one of which is required.
+
+    ```
+    {
+        "profiles": [
+            { "profile": "one", ... },
+            { "profile": "two", ... }
+        ],
+        "timestampField": "timestamp"
+    }
+    ```
+
+#### `profiles`
+
+*Required*
+
+A list of zero or more Profile definitions.
+
+#### `timestampField`
+
+*Optional*
+
+##### Processing Time
+
+By default, no `timestampField` is defined.  In this case, the Profiler uses system time when generating profiles.  This means that the profiles are generated based on when the data has been processed by the Profiler.  This is also known as 'processing time'.
+
+This is the simplest mode of operation, but has some draw backs.  If the Profiler is consuming live data and all is well, the processing and event times will likely remain similar and consistent. When processing time diverges from event time, the profiles produced can be skewed. 
+
+There are a few scenarios that could cause skewed profiles when using processing time.  For example when a system has undergone a scheduled maintenance window and is restarted, a high volume of messages will need to be processed by the Profiler. The output of the Profiler will indicate an increase in activity during this time, although no change in activity actually occurred on the target network. The same situation could occur if an upstream system which provides telemetry undergoes an outage.
+
+##### Event Time
+
+Alternatively, you can define a `timestampField`.  This must be the name of a field contained within the telemetry processed by the Profiler.  The Profiler will extract and use the timestamp contained within this field.
+
+* The field must contain a timestamp in epoch milliseconds.
+* If a message does not contain this field, it will be dropped by the Profiler.
+
+### Profiles
+
 A profile definition requires a JSON-formatted set of elements, many of which can contain Stellar code.  The specification contains the following elements.  (For the impatient, skip ahead to the [Examples](#examples).)
 
 | Name                          |               | Description
@@ -466,15 +507,19 @@ The values can be changed on disk and then the Profiler topology must be restart
 
 | Setting                                                                       | Description
 |---                                                                            |---
-| [`profiler.input.topic`](#profilerinputtopic)                                 | The name of the Kafka topic from which to consume data.
-| [`profiler.output.topic`](#profileroutputtopic)                               | The name of the Kafka topic to which profile data is written.  Only used with profiles that define the [`triage` result field](#result).
+| [`profiler.input.topic`](#profilerinputtopic)                                 | The name of the input Kafka topic.
+| [`profiler.output.topic`](#profileroutputtopic)                               | The name of the output Kafka topic. 
 | [`profiler.period.duration`](#profilerperiodduration)                         | The duration of each profile period.  
-| [`profiler.period.duration.units`](#profilerperioddurationunits)              | The units used to specify the [`profiler.period.duration`](#profilerperiodduration).  
+| [`profiler.period.duration.units`](#profilerperioddurationunits)              | The units used to specify the [`profiler.period.duration`](#profilerperiodduration).
+| [`profiler.window.duration`](#profilerwindowduration)                         | The duration of each profile window.
+| [`profiler.window.duration.units`](#profilerpwindowdurationunits)             | The units used to specify the [`profiler.window.duration`](#profilerwindowduration).
+| [`profiler.window.lag`](#profilerwindowlag)                                   | The maximum time lag for timestamps.
+| [`profiler.window.lag.units`](#profilerpwindowlagunits)                       | The units used to specify the [`profiler.window.lag`](#profilerwindowlag).
 | [`profiler.workers`](#profilerworkers)                                        | The number of worker processes for the topology.
 | [`profiler.executors`](#profilerexecutors)                                    | The number of executors to spawn per component.
 | [`profiler.ttl`](#profilerttl)                                                | If a message has not been applied to a Profile in this period of time, the Profile will be forgotten and its resources will be cleaned up.
 | [`profiler.ttl.units`](#profilerttlunits)                                     | The units used to specify the `profiler.ttl`.
-| [`profiler.hbase.salt.divisor`](#profilerhbasesaltdivisor)                    | A salt is prepended to the row key to help prevent hotspotting.
+| [`profiler.hbase.salt.divisor`](#profilerhbasesaltdivisor)                    | A salt is prepended to the row key to help prevent hot-spotting.
 | [`profiler.hbase.table`](#profilerhbasetable)                                 | The name of the HBase table that profiles are written to.
 | [`profiler.hbase.column.family`](#profilerhbasecolumnfamily)                  | The column family used to store profiles.
 | [`profiler.hbase.batch`](#profilerhbasebatch)                                 | The number of puts that are written to HBase in a single batch.
@@ -507,6 +552,36 @@ The duration of each profile period.  This value should be defined along with [`
 The units used to specify the `profiler.period.duration`.  This value should be defined along with [`profiler.period.duration`](#profilerperiodduration).
 
 *Important*: To read a profile using the Profiler Client, the Profiler Client's `profiler.client.period.duration.units` property must match this value.  Otherwise, the [Profiler Client](metron-analytics/metron-profiler-client) will be unable to read the profile data.
+
+### `profiler.window.duration`
+
+*Default*: 30
+
+The duration of each profile window.  Telemetry that arrives within a slice of time is processed within a single window.  
+
+Many windows of telemetry will be processed during a single profile period.  This does not change the output of the Profiler, it only changes how the Profiler processes data. The window defines how much data the Profiler processes in a single pass.
+
+This value should be defined along with [`profiler.window.duration.units`](#profilerwindowdurationunits).
+
+This value must be less than the period duration as defined by [`profiler.period.duration`](#profilerperiodduration) and [`profiler.period.duration.units`](#profilerperioddurationunits).
+
+### `profiler.window.duration.units`
+
+*Default*: SECONDS
+
+The units used to specify the `profiler.window.duration`.  This value should be defined along with [`profiler.window.duration`](#profilerwindowduration).
+
+### `profiler.window.lag`
+
+*Default*: 1
+
+The maximum time lag for timestamps. Timestamps cannot arrive out-of-order by more than this amount. This value should be defined along with [`profiler.window.lag.units`](#profilerwindowlagunits).
+
+### `profiler.window.lag.units`
+
+*Default*: SECONDS
+
+The units used to specify the `profiler.window.lag`.  This value should be defined along with [`profiler.window.lag`](#profilerwindowlag).
 
 ### `profiler.workers`
 
