@@ -90,19 +90,9 @@ public class KafkaServiceImpl implements KafkaService {
     if (!listTopics().contains(topic.getName())) {
       try {
         adminUtils.createTopic(zkUtils, topic.getName(), topic.getNumPartitions(), topic.getReplicationFactor(), topic.getProperties(), RackAwareMode.Disabled$.MODULE$);
-        User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String user = principal.getUsername();
-        String zkServers = environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY);
-        List<String> cmd = new ArrayList<>();
-        cmd.add("--add");
-        cmd.add("--allow-principal");
-        cmd.add("User:" + user);
-        cmd.add("--topic");
-        cmd.add(topic.getName());
-        cmd.add("--authorizer-properties");
-        cmd.add("zookeeper.connect=" + String.join(",", zkServers));
-        AclCommand.main(cmd.toArray(new String[cmd.size()]));
-
+        if (environment.getProperty(MetronRestConstants.KERBEROS_ENABLED_SPRING_PROPERTY, Boolean.class, false)){
+          addACLToCurrentUser(topic.getName());
+        }
       } catch (AdminOperationException e) {
         throw new RestException(e);
       }
@@ -173,5 +163,26 @@ public class KafkaServiceImpl implements KafkaService {
   @Override
   public void produceMessage(String topic, String message) throws RestException {
     kafkaProducer.send(new ProducerRecord<>(topic, message));
+  }
+
+  @Override
+  public boolean addACLToCurrentUser(String name){
+    if(listTopics().contains(name)) {
+      String zkServers = environment.getProperty(MetronRestConstants.ZK_URL_SPRING_PROPERTY);
+      User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+      String user = principal.getUsername();
+      List<String> cmd = new ArrayList<>();
+      cmd.add("--add");
+      cmd.add("--allow-principal");
+      cmd.add("User:" + user);
+      cmd.add("--topic");
+      cmd.add(name);
+      cmd.add("--authorizer-properties");
+      cmd.add("zookeeper.connect=" + String.join(",", zkServers));
+      AclCommand.main(cmd.toArray(new String[cmd.size()]));
+    } else {
+      return false;
+    }
+    return true;
   }
 }
