@@ -35,10 +35,12 @@ public class MetronRestConstants {
   public static final String TOPOLOGY_SUMMARY_URL = "/api/v1/topology/summary";
   public static final String TOPOLOGY_URL = "/api/v1/topology";
   public static final String ENRICHMENT_TOPOLOGY_NAME = "enrichment";
-  public static final String INDEXING_TOPOLOGY_NAME = "indexing";
+  public static final String BATCH_INDEXING_TOPOLOGY_NAME = "batch_indexing";
+  public static final String RANDOM_ACCESS_INDEXING_TOPOLOGY_NAME = "random_access_indexing";
   public static final String PARSER_SCRIPT_PATH_SPRING_PROPERTY = "storm.parser.script.path";
   public static final String ENRICHMENT_SCRIPT_PATH_SPRING_PROPERTY = "storm.enrichment.script.path";
-  public static final String INDEXING_SCRIPT_PATH_SPRING_PROPERTY = "storm.indexing.script.path";
+  public static final String BATCH_INDEXING_SCRIPT_PATH_SPRING_PROPERTY = "storm.indexing.batch.script.path";
+  public static final String RANDOM_ACCESS_INDEXING_SCRIPT_PATH_SPRING_PROPERTY = "storm.indexing.randomaccess.script.path";
   public static final String PARSER_TOPOLOGY_OPTIONS_SPRING_PROPERTY = "storm.parser.topology.options";
   public static final String KAFKA_SECURITY_PROTOCOL_SPRING_PROPERTY = "kafka.security.protocol";
 

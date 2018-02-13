@@ -122,22 +122,22 @@ public class StormAdminServiceImplTest {
 
   @Test
   public void startIndexingTopologyShouldProperlyReturnSuccessTopologyResponse() throws Exception {
-    when(stormCLIClientWrapper.startIndexingTopology()).thenReturn(0);
+    when(stormCLIClientWrapper.startIndexingTopology("random_access_indexing_script_path")).thenReturn(0);
 
     TopologyResponse expected = new TopologyResponse();
     expected.setSuccessMessage(TopologyStatusCode.STARTED.toString());
 
-    assertEquals(expected, stormAdminService.startIndexingTopology());
+    assertEquals(expected, stormAdminService.startIndexingTopology("random_access_indexing_script_path"));
   }
 
   @Test
   public void stopIndexingTopologyShouldProperlyReturnSuccessTopologyResponse() throws Exception {
-    when(stormCLIClientWrapper.stopIndexingTopology(false)).thenReturn(0);
+    when(stormCLIClientWrapper.stopIndexingTopology("random_access_indexing", false)).thenReturn(0);
 
     TopologyResponse expected = new TopologyResponse();
     expected.setSuccessMessage(TopologyStatusCode.STOPPED.toString());
 
-    assertEquals(expected, stormAdminService.stopIndexingTopology(false));
+    assertEquals(expected, stormAdminService.stopIndexingTopology("random_access_indexing",false));
   }
 
   @Test

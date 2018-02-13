@@ -29,12 +29,46 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+
+import com.google.common.reflect.TypeToken;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 public enum JSONUtils {
   INSTANCE;
+
+  public static class ReferenceSupplier<T> implements Supplier<TypeReference<T>> {
+    Type type;
+    protected ReferenceSupplier() {
+      Type superClass = this.getClass().getGenericSuperclass();
+      if(superClass instanceof Class) {
+        throw new IllegalArgumentException("Internal error: ReferenceSupplier constructed without actual type information");
+      } else {
+        this.type = ((ParameterizedType)superClass).getActualTypeArguments()[0];
+      }
+    }
+
+    @Override
+    public TypeReference<T> get() {
+      return new TypeReference<T>() {
+        @Override
+        public Type getType() {
+          return type;
+        }
+      };
+    }
+  }
+
+  public final static ReferenceSupplier<Map<String, Object>> MAP_SUPPLIER = new ReferenceSupplier<Map<String, Object>>() {};
+  public final static ReferenceSupplier<List<Object>> LIST_SUPPLIER = new ReferenceSupplier<List<Object>>(){};
 
   private static ThreadLocal<JSONParser> _parser = ThreadLocal.withInitial(() ->
       new JSONParser());
@@ -51,17 +85,17 @@ public enum JSONUtils {
   }
 
 
-  public <T> T load(InputStream is, TypeReference<T> ref) throws IOException {
-    return _mapper.get().readValue(is, ref);
+  public <T> T load(InputStream is, ReferenceSupplier<T> ref) throws IOException {
+    return _mapper.get().readValue(is, (TypeReference<T>)ref.get());
   }
 
-  public <T> T load(String is, TypeReference<T> ref) throws IOException {
-    return _mapper.get().readValue(is, ref);
+  public <T> T load(String is, ReferenceSupplier<T> ref) throws IOException {
+    return _mapper.get().readValue(is, (TypeReference<T>)ref.get());
   }
 
-  public <T> T load(File f, TypeReference<T> ref) throws IOException {
+  public <T> T load(File f, ReferenceSupplier<T> ref) throws IOException {
     try (InputStream is = new BufferedInputStream(new FileInputStream(f))) {
-      return _mapper.get().readValue(is, ref);
+      return _mapper.get().readValue(is, (TypeReference<T>)ref.get());
     }
   }
 
@@ -108,7 +142,7 @@ public enum JSONUtils {
    * @param json JSON value to deserialize
    * @return deserialized JsonNode Object
    */
-  public JsonNode readTree(String json) throws IOException {
+  JsonNode readTree(String json) throws IOException {
     return _mapper.get().readTree(json);
   }
 
@@ -118,7 +152,7 @@ public enum JSONUtils {
    * @param json JSON value to deserialize
    * @return deserialized JsonNode Object
    */
-  public JsonNode readTree(byte[] json) throws IOException {
+  JsonNode readTree(byte[] json) throws IOException {
     return _mapper.get().readTree(json);
   }
 
@@ -138,14 +172,16 @@ public enum JSONUtils {
    * @param source Source JSON to apply patch to
    * @return new json after applying the patch
    */
-  public JsonNode applyPatch(String patch, String source) throws IOException {
+  public byte[] applyPatch(String patch, String source) throws IOException {
     JsonNode patchNode = readTree(patch);
     JsonNode sourceNode = readTree(source);
-    return applyPatch(patchNode, sourceNode);
+    return toJSONPretty(JsonPatch.apply(patchNode, sourceNode));
   }
 
-  public JsonNode applyPatch(JsonNode patch, JsonNode source) throws IOException {
-    return JsonPatch.apply(patch, source);
+  public byte[] applyPatch(byte[] patch, byte[] source) throws IOException {
+    JsonNode patchNode = readTree(patch);
+    JsonNode sourceNode = readTree(source);
+    return toJSONPretty(JsonPatch.apply(patchNode, sourceNode));
   }
 
 }

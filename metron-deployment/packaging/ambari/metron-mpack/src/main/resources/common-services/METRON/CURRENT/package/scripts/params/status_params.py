@@ -67,7 +67,8 @@ profiler_hbase_acl_configured_flag_file = metron_zookeeper_config_path + '/../me
 
 
 # Indexing
-metron_indexing_topology = 'indexing'
+metron_batch_indexing_topology = 'batch_indexing'
+metron_random_access_indexing_topology = 'random_access_indexing'
 indexing_input_topic = config['configurations']['metron-indexing-env']['indexing_input_topic']
 indexing_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_configured'
 indexing_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_acl_configured'
@@ -94,6 +95,7 @@ storm_rest_addr = config['configurations']['metron-env']['storm_rest_addr']
 
 # Zeppelin
 zeppelin_server_url = config['configurations']['metron-env']['zeppelin_server_url']
+zeppelin_shiro_ini_content = config['configurations']['zeppelin-shiro-ini']['shiro_ini_content']
 
 # Security
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])

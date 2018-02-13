@@ -29,7 +29,6 @@
         <commons.config.version>1.10</commons.config.version>
     </properties>
     <dependencies>
-
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-auth</artifactId>
@@ -204,6 +203,11 @@
             <version>${global_kryo_serializers_version}</version>
         </dependency>
         <dependency>
+            <groupId>com.jakewharton.fliptables</groupId>
+            <artifactId>fliptables</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+        <dependency>
             <!-- junit dependency added with default scope to allow inclusion of StellarProcessorUtils in main jar.
                  It is excluded from the uber-jar. -->
             <groupId>junit</groupId>
@@ -240,7 +244,6 @@
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -350,6 +353,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
                     <descriptor>src/main/assembly/assembly.xml</descriptor>
+                    <descriptor>src/main/assembly/stand-alone-assembly.xml</descriptor>
                 </configuration>
                 <executions>
                     <execution>

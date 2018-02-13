@@ -17,14 +17,15 @@ limitations under the License.
 
 """
 
+from resource_management.core import shell
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.script import Script
 from resource_management.core.logger import Logger
-
-from elastic import elastic
-
+from elastic_commands import service_check
+from elastic_commands import configure_master
 
 class Elasticsearch(Script):
+
     def install(self, env):
         import params
         env.set_params(params)
@@ -35,37 +36,36 @@ class Elasticsearch(Script):
         import params
         env.set_params(params)
         Logger.info('Configure Elasticsearch master node')
-        elastic()
+        configure_master()
 
     def stop(self, env, upgrade_type=None):
         import params
         env.set_params(params)
         Logger.info('Stop Elasticsearch master node')
-        stop_cmd = "service elasticsearch stop"
-        Execute(stop_cmd)
+        Execute("service elasticsearch stop")
 
     def start(self, env, upgrade_type=None):
         import params
         env.set_params(params)
         Logger.info('Start Elasticsearch master node')
         self.configure(env)
-        start_cmd = "service elasticsearch start"
-        Execute(start_cmd)
+        Execute("service elasticsearch start")
 
     def status(self, env):
         import params
         env.set_params(params)
-        Logger.info('Check status of Elasticsearch master node')
-        status_cmd = "service elasticsearch status"
-        Execute(status_cmd)
+        Logger.info('Status check Elasticsearch master node')
+        service_check(
+          cmd="service elasticsearch status",
+          user=params.elastic_status_check_user,
+          label="Elasticsearch Master")
 
     def restart(self, env):
         import params
         env.set_params(params)
-        self.configure(env)
         Logger.info('Restart Elasticsearch master node')
-        restart_cmd = "service elasticsearch restart"
-        Execute(restart_cmd)
+        self.configure(env)
+        Execute("service elasticsearch restart")
 
 
 if __name__ == "__main__":

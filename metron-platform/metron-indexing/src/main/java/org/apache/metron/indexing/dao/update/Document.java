@@ -18,7 +18,6 @@
 
 package org.apache.metron.indexing.dao.update;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.metron.common.utils.JSONUtils;
 
 import java.io.IOException;
@@ -47,8 +46,7 @@ public class Document {
   }
 
   private static Map<String, Object> convertDoc(String document) throws IOException {
-      return JSONUtils.INSTANCE.load(document, new TypeReference<Map<String, Object>>() {
-      });
+      return JSONUtils.INSTANCE.load(document, JSONUtils.MAP_SUPPLIER);
   }
 
   public String getSensorType() {

@@ -93,7 +93,7 @@ describe('SensorParserConfigService', () => {
     it('post', async(inject([], () => {
       mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(sensorParserConfigResponse));
 
-      sensorParserConfigService.post(sensorParserConfig).subscribe(
+      sensorParserConfigService.post('bro', sensorParserConfig).subscribe(
       result => {
         expect(result).toEqual(sensorParserConfig);
       }, error => console.log(error));
@@ -138,7 +138,7 @@ describe('SensorParserConfigService', () => {
     it('deleteSensorParserConfigs', async(inject([], () => {
       mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(deleteResponse));
 
-      sensorParserConfigService.deleteSensorParserConfigs([sensorParserConfig1, sensorParserConfig2]).subscribe(result => {
+      sensorParserConfigService.deleteSensorParserConfigs(['bro1', 'bro2']).subscribe(result => {
         expect(result.success.length).toEqual(2);
       });
     })));

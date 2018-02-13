@@ -35,14 +35,13 @@ project.
 * [Functions](#functions)
     * [Grok Functions](#grok-functions)
     * [File Functions](#file-functions)
-    * [Shell Functions](#shell-functions)
     * [Configuration Functions](#configuration-functions)
     * [Parser Functions](#parser-functions)
     * [Indexing Functions](#indexing-functions)
     * [Enrichment Functions](#enrichment-functions)
     * [Threat Triage Functions](#threat-triage-functions)
 * [Examples](#examples)
-    *  [Iterate to Find a Valid Grok Pattern](#iterate-to-find-a-valid-grok-pattern)
+    * [Iterate to Find a Valid Grok Pattern](#iterate-to-find-a-valid-grok-pattern)
     * [Manage Stellar Field Transformations](#manage-stellar-field-transformations)
     * [Manage Stellar Enrichments](#manage-stellar-enrichments)
     * [Manage Threat Triage Rules](#manage-threat-triage-rules)
@@ -131,35 +130,6 @@ The functions are split roughly into a few sections:
       * content - The content to write out
       * path - The path of the file
     * Returns: true if the file was written and false otherwise.
-
-### Shell Functions 
-
-* `SHELL_EDIT`
-  * Description: Open an editor (optionally initialized with text) and return whatever is saved from the editor.  The editor to use is pulled from `EDITOR` or `VISUAL` environment variable.
-  * Input:
-    * string - (Optional) A string whose content is used to initialize the editor.
-  * Returns: The content that the editor saved after editor exit.
-* `SHELL_GET_EXPRESSION`
-  * Description: Get a stellar expression from a variable
-  * Input:
-    * variable - variable name
-  * Returns: The stellar expression associated with the variable.
-* `SHELL_LIST_VARS`
-  * Description: Return the variables in a tabular form
-  * Input:
-    * wrap : Length of string to wrap the columns
-  * Returns: A tabular representation of the variables.
-* `SHELL_MAP2TABLE`
-  * Description: Take a map and return a table
-  * Input:
-    * map - Map
-  * Returns: The map in table form
-* `SHELL_VARS2MAP`
-  * Description: Take a set of variables and return a map
-  * Input:
-    * variables* - variable names to use to create map 
-  * Returns: A map associating the variable name with the stellar expression.
-
 
 ### Configuration Functions
 
@@ -898,7 +868,7 @@ Returns: A Map associated with the indicator and enrichment type.  Empty otherwi
 [Stellar]>>> non_us := whois_info.home_country != 'US'
 [Stellar]>>> is_local := IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')
 [Stellar]>>> is_both := whois_info.home_country != 'US' && IN_SUBNET( if IS_IP(ip_src_addr) then ip_src_addr else NULL, '192.168.0.0/21')
-[Stellar]>>> rules := [ { 'name' : 'is non-us', 'rule' : SHELL_GET_EXPRESSION('non_us'), 'score' : 10 } , { 'name' : 'is local', 'rule' : SHELL_GET_EXPRESSION('is_local '), 'score' : 20 } , { 'name' : 'both non-us and local', 'comment' : 'union of both rules.',  'rule' : SHELL_GET_EXPRESSION('is_both'), 'score' : 50 } ]  
+[Stellar]>>> rules := [ { 'name' : 'is non-us', 'rule' : SHELL_GET_EXPRESSION('non_us'), 'score' : 10 } , { 'name' : 'is local', 'rule' : SHELL_GET_EXPRESSION('is_local'), 'score' : 20 } , { 'name' : 'both non-us and local', 'comment' : 'union of both rules.',  'rule' : SHELL_GET_EXPRESSION('is_both'), 'score' : 50 } ]
 [Stellar]>>> # Now that we have our rules staged, we can add them to our config.
 [Stellar]>>> squid_enrichment_config_new := THREAT_TRIAGE_ADD( squid_enrichment_config_new, rules )
 [Stellar]>>> THREAT_TRIAGE_PRINT(squid_enrichment_config_new)
@@ -1020,7 +990,7 @@ SION('is_both') ] )
 1. Add a few triage rules.
 
     ```
-    [Stellar]>>> THREAT_TRIAGE_ADD(t, {"name":"rule1", "rule":"value>10", 
+    [Stellar]>>> THREAT_TRIAGE_ADD(t, {"name":"rule1", "rule":"value>10", "score":10})
     ```
     ```
     [Stellar]>>> THREAT_TRIAGE_ADD(t, {"name":"rule2", "rule":"value>20", "score":20})

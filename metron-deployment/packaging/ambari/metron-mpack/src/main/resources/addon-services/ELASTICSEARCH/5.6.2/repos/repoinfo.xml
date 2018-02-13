@@ -28,5 +28,18 @@
             <reponame>ELASTICSEARCH</reponame>
         </repo>
     </os>
+    <os family="ubuntu14">
+        <!--
+            see details about Ambari fixes for Ubuntu introduced in Ambari 2.6+
+                https://github.com/apache/ambari/commit/f8b29df9685b443d4a5c06c6e1725e4428c95b49#diff-6f26c26ed59462200d018c5e1e71e773
+                https://issues.apache.org/jira/browse/AMBARI-21856
+        -->
+        <repo>
+            <baseurl>https://artifacts.elastic.co/packages/5.x/apt</baseurl>
+            <repoid>elasticsearch-5.x</repoid>
+            <reponame>ELASTICSEARCH</reponame>
+            <distribution>stable</distribution>
+        </repo>
+    </os>
 </reposinfo>
 

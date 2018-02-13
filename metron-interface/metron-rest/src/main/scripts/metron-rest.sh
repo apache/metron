@@ -21,6 +21,12 @@ if [ -z "${METRON_JDBC_PASSWORD}" ]; then
     echo "METRON_JDBC_PASSWORD unset. Exiting."
     exit 1
 fi
+## Join a list by a character
+function join_by {
+  local IFS="$1"
+  shift
+  echo "$*" 
+}
 
 METRON_VERSION=${project.version}
 METRON_HOME="${METRON_HOME:-/usr/metron/${METRON_VERSION}}"
@@ -29,6 +35,8 @@ METRON_REST_PORT=8082
 METRON_SYSCONFIG="${METRON_SYSCONFIG:-/etc/default/metron}"
 METRON_LOG_DIR="${METRON_LOG_DIR:-/var/log/metron}"
 METRON_PID_FILE="${METRON_PID_FILE:-/var/run/metron/metron-rest.pid}"
+PARSER_CONTRIB=${PARSER_CONTRIB:-$METRON_HOME/parser_contrib}
+PARSER_LIB=$(find $METRON_HOME/lib/ -name metron-parsers*.jar)
 
 echo "METRON_VERSION=${METRON_VERSION}"
 echo "METRON_HOME=${METRON_HOME}"
@@ -47,6 +55,15 @@ rest_jar_pattern="${METRON_HOME}/lib/metron-rest*.jar"
 rest_files=( ${rest_jar_pattern} )
 echo "Default metron-rest jar is: ${rest_files[0]}"
 METRON_REST_CLASSPATH+=":${rest_files[0]}"
+METRON_REST_CLASSPATH+=":$PARSER_LIB"
+
+if [ -d "$PARSER_CONTRIB" ]; then
+  contrib_jar_pattern="${PARSER_CONTRIB}/*.jar"
+  contrib_list=( $contrib_jar_pattern ) # expand the glob to a list
+  contrib_classpath=$(join_by : "${contrib_list[@]}") #join the list by a colon
+  echo "Parser Contrib jars are: $contrib_classpath"
+  METRON_REST_CLASSPATH+=":${contrib_classpath}"
+fi
 
 echo "METRON_SPRING_PROFILES_ACTIVE=${METRON_SPRING_PROFILES_ACTIVE}"
 

@@ -23,12 +23,7 @@ import org.apache.metron.storm.kafka.flux.SpoutConfiguration;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
-import org.apache.storm.generated.AlreadyAliveException;
-import org.apache.storm.generated.AuthorizationException;
-import org.apache.storm.generated.InvalidTopologyException;
-import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.utils.Utils;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
@@ -285,7 +280,19 @@ public class ParserTopologyCLI {
   }
 
   private static CommandLine parse(Options options, String[] args) {
-    CommandLineParser parser = new PosixParser();
+    /*
+     * The general gist is that in order to pass args to storm jar,
+     * we have to disregard options that we don't know about in the CLI.
+     * Storm will ignore our args, we have to do the same.
+     */
+    CommandLineParser parser = new PosixParser() {
+      @Override
+      protected void processOption(String arg, ListIterator iter) throws ParseException {
+        if(getOptions().hasOption(arg)) {
+          super.processOption(arg, iter);
+        }
+      }
+    };
     try {
       return ParserOptions.parse(parser, args);
     } catch (ParseException pe) {
@@ -484,8 +491,7 @@ public class ParserTopologyCLI {
       throw new IllegalArgumentException("Unable to load JSON file at " + inputFile.getAbsolutePath());
     }
     try {
-      return JSONUtils.INSTANCE.load(json, new TypeReference<Map<String, Object>>() {
-      });
+      return JSONUtils.INSTANCE.load(json, JSONUtils.MAP_SUPPLIER);
     } catch (IOException e) {
       throw new IllegalStateException("Unable to process JSON.", e);
     }

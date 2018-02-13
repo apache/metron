@@ -29,6 +29,7 @@ For a variety of components (threat intelligence triage and field transformation
     * [Variable Assignment](#variable-assignment)
     * [Magic Commands](#magic-commands)
     * [Advanced Usage](#advanced-usage)
+    * [Implementation](#implementation)
 * [Stellar Configuration](#stellar-configuration)
 
 
@@ -189,6 +190,7 @@ Where:
 | [ `HLLP_INIT`](../../metron-analytics/metron-statistics#hllp_init)                                 |
 | [ `HLLP_MERGE`](../../metron-analytics/metron-statistics#hllp_merge)                               |
 | [ `IN_SUBNET`](#in_subnet)                                                                         |
+| [ `IT_ENTROPY`](../../metron-analytics/metron-statistics#it_entropy)                               |
 | [ `IS_DATE`](#is_date)                                                                             |
 | [ `IS_ENCODING`](#is_encoding)                                                                     |
 | [ `IS_DOMAIN`](#is_domain)                                                                         |
@@ -221,6 +223,7 @@ Where:
 | [ `MULTISET_MERGE`](#multiset_merge)                                                               |
 | [ `MULTISET_REMOVE`](#multiset_remove)                                                             |
 | [ `MULTISET_TO_SET`](#multiset_to_set)                                                             |
+| [ `OBJECT_GET`](#object_get)                                                                       |
 | [ `PREPEND_IF_MISSING`](#prepend_if_missing)                                                       |
 | [ `PROFILE_GET`](#profile_get)                                                                     |
 | [ `PROFILE_FIXED`](#profile_fixed)                                                                 |
@@ -229,6 +232,7 @@ Where:
 | [ `REDUCE`](#reduce)                                                                               |
 | [ `REGEXP_MATCH`](#regexp_match)                                                                   |
 | [ `REGEXP_GROUP_VAL`](#regexp_group_val)                                                           |
+| [ `REGEXP_REPLACE`](#regexp_replace)                                                               |
 | [ `ROUND`](#round)                                                                                 |
 | [ `SAMPLE_ADD`](../../metron-analytics/metron-statistics#sample_add)                               |
 | [ `SAMPLE_GET`](../../metron-analytics/metron-statistics#sample_get)                               |
@@ -239,6 +243,11 @@ Where:
 | [ `SET_MERGE`](#set_merge)                                                                         |
 | [ `SET_REMOVE`](#set_remove)                                                                       |
 | [ `SIN`](#sin)                                                                                     |
+| [ `SHELL_EDIT`](#shell_edit)                                                                       |
+| [ `SHELL_GET_EXPRESSION`](#shell_get_expression)                                                   |
+| [ `SHELL_LIST_VARS`](#shell_list_vars)                                                             |
+| [ `SHELL_MAP2TABLE`](#shell_map2table)                                                             |
+| [ `SHELL_VARS2MAP`](#shell_vars2map)                                                               |
 | [ `SPLIT`](#split)                                                                                 |
 | [ `SQRT`](#sqrt)                                                                                   |
 | [ `STARTS_WITH`](#starts_with)                                                                     |
@@ -805,6 +814,14 @@ Where:
     * multiset - The multiset to convert.
   * Returns: The set of objects in the multiset ignoring multiplicity
 
+### `OBJECT_GET`
+  * Description: Retrieve and deserialize a serialized object from HDFS.  The cache can be specified via two properties
+  in the global config: "object.cache.size" (default 1000), "object.cache.expiration.minutes" (default 1440).  Note, if
+  these are changed in global config, topology restart is required.
+  * Input:
+    * path - The path in HDFS to the serialized object
+  * Returns: The deserialized object.
+
 ### `PREPEND_IF_MISSING`
   * Description: Prepends the prefix to the start of the string if the string does not already start with any of the prefixes.
   * Input:
@@ -868,6 +885,14 @@ Where:
     * group - The integer that selects what group to select, starting at 1
   * Returns: The value of the group, or null if not matched or no group at index.
 
+### `REGEXP_REPLACE`
+  * Description: Replace all occurences of the regex pattern within the string by value
+  * Input:
+    * string - The input string
+    * pattern - The proposed regex pattern
+    * value - The value to replace the regex pattern
+  * Returns: The modified input string with replaced values
+
 ### `ROUND`
   * Description: Rounds a number to the nearest integer.  This is half-up rounding.
   * Input:
@@ -899,6 +924,32 @@ Where:
     * set - The set to add to
     * o - object to add to set
   * Returns: A Set
+
+### `SHELL_EDIT`
+  * Description: Open an editor (optionally initialized with text) and return whatever is saved from the editor.  The editor to use is pulled from `EDITOR` or `VISUAL` environment variable.
+  * Input:
+    * string - (Optional) A string whose content is used to initialize the editor.
+  * Returns: The content that the editor saved after editor exit.
+### `SHELL_GET_EXPRESSION`
+  * Description: Get a stellar expression from a variable
+  * Input:
+    * variable - variable name
+  * Returns: The stellar expression associated with the variable.
+### `SHELL_LIST_VARS`
+  * Description: Return the variables in a tabular form
+  * Input:
+    * wrap : Length of string to wrap the columns
+  * Returns: A tabular representation of the variables.
+### `SHELL_MAP2TABLE`
+  * Description: Take a map and return a table
+  * Input:
+    * map - Map
+  * Returns: The map in table form
+### `SHELL_VARS2MAP`
+  * Description: Take a set of variables and return a map
+  * Input:
+    * variables* - variable names to use to create map 
+  * Returns: A map associating the variable name with the stellar expression.
 
 ### `SIN`
   * Description: Returns the sine of a number.
@@ -1377,7 +1428,7 @@ IS_EMAIL
 To run the Stellar Shell directly from the Metron source code, run a command like the following.  Ensure that Metron has already been built and installed with `mvn clean install -DskipTests`.
 ```
 $ mvn exec:java \
-   -Dexec.mainClass="org.apache.metron.stellar.common.shell.StellarShell" \
+   -Dexec.mainClass="org.apache.metron.stellar.common.shell.cli.StellarShell" \
    -pl metron-platform/metron-enrichment
 ...
 Stellar, Go!
@@ -1393,7 +1444,7 @@ This can be useful for troubleshooting function resolution problems.  The previo
 
 ```
  $ mvn exec:java \
-   -Dexec.mainClass="org.apache.metron.stellar.common.shell.StellarShell" \
+   -Dexec.mainClass="org.apache.metron.stellar.common.shell.cli.StellarShell" \
    -pl metron-analytics/metron-profiler
 ...
 Stellar, Go!
@@ -1402,6 +1453,79 @@ Please note that functions are loading lazily in the background and will be unav
 %functions
 ABS, APPEND_IF_MISSING, BIN, BLOOM_ADD, BLOOM_EXISTS, BLOOM_INIT, BLOOM_MERGE, CHOMP, CHOP, COUNT_MATCHES, DAY_OF_MONTH, DAY_OF_WEEK, DAY_OF_YEAR, DOMAIN_REMOVE_SUBDOMAINS, DOMAIN_REMOVE_TLD, DOMAIN_TO_TLD, ENDS_WITH, FILL_LEFT, FILL_RIGHT, FILTER, FORMAT, GET, GET_FIRST, GET_LAST, HLLP_ADD, HLLP_CARDINALITY, HLLP_INIT, HLLP_MERGE, IN_SUBNET, IS_DATE, IS_DOMAIN, IS_EMAIL, IS_EMPTY, IS_INTEGER, IS_IP, IS_URL, JOIN, LENGTH, LIST_ADD, MAAS_GET_ENDPOINT, MAAS_MODEL_APPLY, MAP, MAP_EXISTS, MAP_GET, MONTH, OUTLIER_MAD_ADD, OUTLIER_MAD_SCORE, OUTLIER_MAD_STATE_MERGE, PREPEND_IF_MISSING, PROFILE_FIXED, PROFILE_GET, PROFILE_WINDOW, PROTOCOL_TO_NAME, REDUCE, REGEXP_MATCH, SPLIT, STARTS_WITH, STATS_ADD, STATS_BIN, STATS_COUNT, STATS_GEOMETRIC_MEAN, STATS_INIT, STATS_KURTOSIS, STATS_MAX, STATS_MEAN, STATS_MERGE, STATS_MIN, STATS_PERCENTILE, STATS_POPULATION_VARIANCE, STATS_QUADRATIC_MEAN, STATS_SD, STATS_SKEWNESS, STATS_SUM, STATS_SUM_LOGS, STATS_SUM_SQUARES, STATS_VARIANCE, STRING_ENTROPY, SYSTEM_ENV_GET, SYSTEM_PROPERTY_GET, TO_DOUBLE, TO_EPOCH_TIMESTAMP, TO_FLOAT, TO_INTEGER, TO_LONG, TO_LOWER, TO_STRING, TO_UPPER, TRIM, URL_TO_HOST, URL_TO_PATH, URL_TO_PORT, URL_TO_PROTOCOL, WEEK_OF_MONTH, WEEK_OF_YEAR, YEAR 
 ```
+## Stellar Shell Stand Alone
+
+The Stellar Shell is also packaged as a stand alone application.  It can be unpacked on any supported
+operating system. 
+
+> Only the base Stellar functions are available as packaged.  Other functions, such as those in metron-profiler and metron-management are not available.
+
+
+```bash
+metron-stellar/stellar-common/target/stellar-common-0.4.3-stand-alone.tar.gz
+```
+
+When unpacked, the following structure will be created:
+
+```bash
+.
+├── bin
+│   └── stellar
+└── lib
+    └── stellar-common-0.4.3-uber.jar
+```
+
+To run the Stellar Shell run the following from the directory you unpacked to:
+
+```bash
+bin/stellar
+```
+
+```bash
+-> % bin/stellar
+Stellar, Go!
+Please note that functions are loading lazily in the background and will be unavailable until loaded fully.
+[Stellar]>>> Functions loaded, you may refer to functions now...
+
+[Stellar]>>> %functions
+ABS, APPEND_IF_MISSING, BLOOM_ADD, BLOOM_EXISTS, BLOOM_INIT, BLOOM_MERGE, CEILING, CHOMP, CHOP, COS, COUNT_MATCHES, DAY_OF_MONTH, DAY_OF_WEEK, DAY_OF_YEAR, DECODE, DOMAIN_REMOVE_SUBDOMAINS, DOMAIN_REMOVE_TLD, DOMAIN_TO_TLD, ENCODE, ENDS_WITH, EXP, FILL_LEFT, FILL_RIGHT, FILTER, FLOOR, FORMAT, GET, GET_FIRST, GET_LAST, GET_SUPPORTED_ENCODINGS, IN_SUBNET, IS_EMPTY, IS_ENCODING, JOIN, LENGTH, LIST_ADD, LN, LOG10, LOG2, MAP, MAP_EXISTS, MAP_GET, MONTH, PREPEND_IF_MISSING, REDUCE, REGEXP_GROUP_VAL, REGEXP_MATCH, ROUND, SIN, SPLIT, SQRT, STARTS_WITH, STRING_ENTROPY, SYSTEM_ENV_GET, SYSTEM_PROPERTY_GET, TAN, TO_DOUBLE, TO_EPOCH_TIMESTAMP, TO_FLOAT, TO_INTEGER, TO_LONG, TO_LOWER, TO_STRING, TO_UPPER, TRIM, URL_TO_HOST, URL_TO_PATH, URL_TO_PORT, URL_TO_PROTOCOL, WEEK_OF_MONTH, WEEK_OF_YEAR, YEAR, ZIP, ZIP_LONGEST
+[Stellar]>>>
+```
+
+By default the shell will have the base Stellar Language commands available.  Any jars in the lib directory
+that contain Stellar functions will also be loaded, and their commands will be available to shell, as long
+as their dependencies are satisfied.
+
+
+### Implementation
+
+The Stellar Shell can be executed both from the command line and from within a Stellar Notebook.  The behavior and underlying implementation of the behavior is exactly the same across these two environments.
+
+#### `org.apache.metron.stellar.common.shell`  
+
+This package contains classes that are reused across both the CLI and Zeppelin shell environments.
+
+* `StellarShellExecutor` Executes Stellar in a shell-like environment.  Provides the Stellar language extensions like variable assignment, comments, magics, and doc strings that are only accessible in the shell.
+
+* `StellarAutoCompleter` Handles auto-completion for Stellar.
+
+* `StellarExecutorListeners` An event listener that can be notified when variables, functions, and specials are defined.  This is how a `StellarAutoCompleter` is notified throughout the life of a shell session.
+
+#### `org.apache.metron.stellar.common.shell.specials`
+
+All Stellar language extensions are contained within this package.
+
+* `SpecialCommand` The interface for all special commands.  A 'special command' is anything that is not directly provided by the Stellar language itself.  That includes variable assignment, comments, doc strings, magics, and quit. 
+
+#### `org.apache.metron.stellar.common.shell.cli`
+
+This package contains classes that are specific to the CLI-driven REPL.
+
+* `StellarShell`  This is the main class that drives the CLI REPL.  All functionality not related to the command line interface is performed by the shared logic in `org.apache.metron.stellar.common.shell`.
+ 
+#### `org.apache.metron.stellar.zeppelin`
+
+This package is contained within the `stellar-zeppelin` project and performs all logic for interfacing with Zeppelin.  Again, all functionality not related to Zeppelin is performed by the shared logic in `org.apache.metron.stellar.common.shell`.
 
 ## Stellar Configuration
 

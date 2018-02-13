@@ -14,15 +14,14 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-kibana_master
-
 """
 
 import errno
 import os
 
+from ambari_commons.os_check import OSCheck
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import Execute
@@ -31,23 +30,23 @@ from resource_management.core.source import InlineTemplate
 from resource_management.libraries.functions.format import format as ambari_format
 from resource_management.libraries.script import Script
 
+from common import service_check
 
 class Kibana(Script):
+
     def install(self, env):
         import params
         env.set_params(params)
-        Logger.info("Install Kibana Master")
+        Logger.info("Installing Kibana")
         self.install_packages(env)
 
     def configure(self, env, upgrade_type=None, config_dir=None):
         import params
         env.set_params(params)
-
-        Logger.info("Configure Kibana for Metron")
+        Logger.info("Configuring Kibana")
 
         directories = [params.log_dir, params.pid_dir, params.conf_dir]
         Directory(directories,
-                  create_parents=True,
                   mode=0755,
                   owner=params.kibana_user,
                   group=params.kibana_user
@@ -61,39 +60,28 @@ class Kibana(Script):
     def stop(self, env, upgrade_type=None):
         import params
         env.set_params(params)
-
-        Logger.info("Stop Kibana Master")
-
+        Logger.info("Stopping Kibana")
         Execute("service kibana stop")
 
     def start(self, env, upgrade_type=None):
         import params
         env.set_params(params)
-
         self.configure(env)
-
-        Logger.info("Start the Master")
-
-
+        Logger.info("Starting Kibana")
         Execute("service kibana start")
 
     def restart(self, env):
         import params
         env.set_params(params)
-
         self.configure(env)
-
-        Logger.info("Restarting the Master")
-
+        Logger.info("Restarting Kibana")
         Execute("service kibana restart")
 
     def status(self, env):
         import params
         env.set_params(params)
-
-        Logger.info("Status of the Master")
-
-        Execute("service kibana status")
+        Logger.info('Status check Kibana')
+        service_check("service kibana status", user=params.kibana_user, label="Kibana")
 
     @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
     def load_template(self, env):
