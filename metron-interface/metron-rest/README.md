@@ -232,7 +232,6 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `POST /api/v1/kafka/topic`](#post-apiv1kafkatopic)|
 | [ `GET /api/v1/kafka/topic/{name}`](#get-apiv1kafkatopicname)|
 | [ `DELETE /api/v1/kafka/topic/{name}`](#delete-apiv1kafkatopicname)|
-| [ `POST /api/v1/kafka/topic/{name}/addacl`](#post-apiv1kafkatopicnameaddacl)|
 | [ `GET /api/v1/kafka/topic/{name}/sample`](#get-apiv1kafkatopicnamesample)|
 | [ `GET /api/v1/metaalert/searchByAlert`](#get-apiv1metaalertsearchbyalert)|
 | [ `GET /api/v1/metaalert/create`](#get-apiv1metaalertcreate)|
@@ -424,14 +423,6 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * name - Kafka topic name
   * Returns:
     * 200 - Kafka topic was deleted
-    * 404 - Kafka topic is missing
-
-### `POST /api/v1/kafka/topic/{name}/addacl`
-  * Description: add ACL's for current user to a Kafka topic
-  * Input:
-    * name - Kafka topic name
-  * Returns:
-    * 200 - ACL added to Kafka topic
     * 404 - Kafka topic is missing
 
 ### `GET /api/v1/kafka/topic/{name}/sample`

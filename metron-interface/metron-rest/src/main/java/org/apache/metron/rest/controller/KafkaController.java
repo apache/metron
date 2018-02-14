@@ -120,18 +120,4 @@ public class KafkaController {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
-  @ApiOperation(value = "Add ACL for current user to a Kafka topic")
-  @ApiResponses(value = {
-          @ApiResponse(message = "ACL added successfully", code = 200),
-          @ApiResponse(message = "Kafka topic is missing", code = 404)
-  })
-  @RequestMapping(value = "/topic/{name}/addacl", method = RequestMethod.POST)
-  ResponseEntity<String> addACL(final @ApiParam(name = "name", value = "Kafka topic name", required = true) @PathVariable String name) throws RestException {
-    if (kafkaService.addACLToCurrentUser(name)) {
-      return new ResponseEntity<>(HttpStatus.OK);
-    } else {
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
-
-  }
 }
