@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,6 +40,8 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The IndexDao provides a common interface for retrieving and storing data in a variety of persistent stores.
@@ -46,6 +49,7 @@ import org.apache.metron.indexing.dao.update.ReplaceRequest;
  */
 public interface IndexDao {
 
+  static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static ThreadLocal<ObjectMapper> _mapper = ThreadLocal.withInitial(() ->
       new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL));
 
@@ -136,7 +140,7 @@ public interface IndexDao {
 
   default Document getPatchedDocument(PatchRequest request
       , Optional<Long> timestamp
-      ) throws OriginalNotFoundException, IOException {
+  ) throws OriginalNotFoundException, IOException {
     Map<String, Object> latest = request.getSource();
     if(latest == null) {
       Document latestDoc = getLatest(request.getGuid(), request.getSensorType());
@@ -147,14 +151,11 @@ public interface IndexDao {
         throw new OriginalNotFoundException("Unable to patch an document that doesn't exist and isn't specified.");
       }
     }
-    JsonNode originalNode = _mapper.get().convertValue(latest, JsonNode.class);
-    JsonNode patched = JsonPatch.apply(request.getPatch(), originalNode);
-    Map<String, Object> updated = _mapper.get()
-        .convertValue(patched, new TypeReference<Map<String, Object>>() {});
-    return new Document( updated
-        , request.getGuid()
-        , request.getSensorType()
-        , timestamp.orElse(System.currentTimeMillis()));
+    Map<String, Object> updated = JSONUtils.INSTANCE.applyPatch(request.getPatch(), latest);
+    return new Document(updated
+            , request.getGuid()
+            , request.getSensorType()
+            , timestamp.orElse(System.currentTimeMillis()));
   }
 
   /**

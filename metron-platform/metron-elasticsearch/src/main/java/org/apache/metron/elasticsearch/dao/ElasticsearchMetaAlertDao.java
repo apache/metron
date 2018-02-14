@@ -473,7 +473,8 @@ public class ElasticsearchMetaAlertDao implements MetaAlertDao {
   }
 
   protected boolean isPatchAllowed(PatchRequest request) {
-    Iterator patchIterator = request.getPatch().iterator();
+    JsonNode patchNode = IndexDao._mapper.get().convertValue(request.getPatch(), JsonNode.class);
+    Iterator patchIterator = patchNode.iterator();
     while(patchIterator.hasNext()) {
       JsonNode patch = (JsonNode) patchIterator.next();
       String path = patch.path("path").asText();
