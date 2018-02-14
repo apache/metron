@@ -17,17 +17,11 @@
  */
 package org.apache.metron.indexing.dao;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.zjsonpatch.JsonPatch;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.indexing.dao.search.GetRequest;
@@ -40,18 +34,12 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.OriginalNotFoundException;
 import org.apache.metron.indexing.dao.update.PatchRequest;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The IndexDao provides a common interface for retrieving and storing data in a variety of persistent stores.
  * Document reads and writes require a GUID and sensor type with an index being optional.
  */
 public interface IndexDao {
-
-  static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static ThreadLocal<ObjectMapper> _mapper = ThreadLocal.withInitial(() ->
-      new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL));
 
   /**
    * Return search response based on the search request
