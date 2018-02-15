@@ -184,4 +184,11 @@ public enum JSONUtils {
     return toJSONPretty(JsonPatch.apply(patchNode, sourceNode));
   }
 
+  public Map<String, Object> applyPatch(List<Map<String, Object>> patch, Map<String, Object> source) {
+    JsonNode originalNode = convert(source, JsonNode.class);
+    JsonNode patchNode = convert(patch, JsonNode.class);
+    JsonNode patched = JsonPatch.apply(patchNode, originalNode);
+    return _mapper.get().convertValue(patched, new TypeReference<Map<String, Object>>() { });
+  }
+
 }
