@@ -19,6 +19,24 @@ limitations under the License.
 This document constitutes a per-version listing of changes of
 configuration which are non-backwards compatible.
 
+## 0.4.2 to 0.4.3
+
+### [METRON-941: native PaloAlto parser corrupts message when having a comma in the payload](https://issues.apache.org/jira/browse/METRON-941)
+While modifying the PaloAlto log parser to support logs from newer
+PAN-OS version and to not break when a message payload contains a
+comma, some field names were changed to extend the coverage, fix some
+duplicate names and change some field names to the Metron standard
+message format.
+
+Installations making use of this parser should check, if the resulting
+messages still meet their expectations and adjust downstream configurations
+(i.e. ElasticSearch template) accordingly.
+
+*Note:* Previously, the samples for the test contained a full syslog line
+(including syslog header). This did - and will continue to - create a
+broken "domain" field in the parsed message. It is recommended to only feed
+the syslog message part to the parser for now.
+
 ## 0.4.1 to 0.4.2
 
 ### [METRON-1277: STELLAR Add Match functionality to language](https://issues.apache.org/jira/browse/METRON-1277)
