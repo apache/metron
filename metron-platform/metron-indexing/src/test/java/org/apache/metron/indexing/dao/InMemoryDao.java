@@ -96,9 +96,9 @@ public class InMemoryDao implements IndexDao {
     ret.setTotal(response.size());
     ret.setResults(finalResp);
     Map<String, Map<String, Long>> facetCounts = new HashMap<>();
-    Optional<List<String>> facetFields = searchRequest.getFacetFields();
-    if (facetFields.isPresent()) {
-      for (String facet: facetFields.get()) {
+    List<String> facetFields = searchRequest.getFacetFields();
+    if (facetFields != null) {
+      for (String facet: facetFields) {
         facetCounts.put(facet, FACET_COUNTS.get(facet));
       }
       ret.setFacetCounts(facetCounts);

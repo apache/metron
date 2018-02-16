@@ -214,10 +214,6 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 |            |
 | ---------- |
 | [ `POST /api/v1/alert/escalate`](#get-apiv1alertescalate)|
-| [ `GET /api/v1/alert/profile`](#get-apiv1alertprofile)|
-| [ `GET /api/v1/alert/profile/all`](#get-apiv1alertprofileall)|
-| [ `DELETE /api/v1/alert/profile`](#delete-apiv1alertprofile)|
-| [ `POST /api/v1/alert/profile`](#post-apiv1alertprofile)|
 | [ `GET /api/v1/global/config`](#get-apiv1globalconfig)|
 | [ `DELETE /api/v1/global/config`](#delete-apiv1globalconfig)|
 | [ `POST /api/v1/global/config`](#post-apiv1globalconfig)|
@@ -287,6 +283,10 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `PATCH /api/v1/update/patch`](#patch-apiv1updatepatch)|
 | [ `PUT /api/v1/update/replace`](#patch-apiv1updatereplace)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
+| [ `GET /api/v1/user/settings`](#get-apiv1usersettings)|
+| [ `GET /api/v1/user/settings/all`](#get-apiv1usersettingsall)|
+| [ `DELETE /api/v1/user/settings`](#delete-apiv1usersettings)|
+| [ `POST /api/v1/user/settings`](#post-apiv1usersettings)|
 
 ### `POST /api/v1/alert/escalate`
   * Description: Escalates a list of alerts by producing it to the Kafka escalate topic
@@ -294,36 +294,6 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * alerts - The alerts to be escalated
   * Returns:
     * 200 - Alerts were escalated
-
-### `GET /api/v1/alert/profile`
-  * Description: Retrieves the current user's alerts profile
-  * Returns:
-    * 200 - Alerts profile
-    * 404 - The current user does not have an alerts profile
-
-### `GET /api/v1/alert/profile/all`
-  * Description: Retrieves all users' alerts profiles.  Only users that are part of the "ROLE_ADMIN" role are allowed to get all alerts profiles.
-  * Returns:
-    * 200 - List of all alerts profiles
-    * 403 - The current user does not have permission to get all alerts profiles
-
-### `DELETE /api/v1/alert/profile`
-  * Description: Deletes a user's alerts profile.  Only users that are part of the "ROLE_ADMIN" role are allowed to delete user alerts profiles.
-  * Input:
-    * user - The user whose prolife will be deleted
-  * Returns:
-    * 200 - Alerts profile was deleted
-    * 403 - The current user does not have permission to delete alerts profiles
-    * 404 - Alerts profile could not be found
-
-### `POST /api/v1/alert/profile`
-  * Description: Creates or updates the current user's alerts profile
-  * Input:
-    * alertsProfile - The alerts profile to be saved
-  * Returns:
-    * 200 - Alerts profile updated. Returns saved alerts profile.
-    * 201 - Alerts profile created. Returns saved alerts profile.
-
 
 ### `GET /api/v1/global/config`
   * Description: Retrieves the current Global Config from Zookeeper
@@ -829,6 +799,35 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Description: Retrieves the current user
   * Returns:
     * 200 - Current user
+    
+### `GET /api/v1/user/settings`
+  * Description: Retrieves the current user's settings
+  * Returns:
+    * 200 - User settings
+    * 404 - he current user does not have settings
+
+### `GET /api/v1/user/settings/all`
+  * Description: Retrieves all users' settings.  Only users that are part of the "ROLE_ADMIN" role are allowed to get all user settings.
+  * Returns:
+    * 200 - List of all user settings
+    * 403 - The current user does not have permission to get all user settings
+
+### `DELETE /api/v1/user/settings`
+  * Description: Deletes a user's settings.  Only users that are part of the "ROLE_ADMIN" role are allowed to delete user settings.
+  * Input:
+    * user - The user whose settings will be deleted
+  * Returns:
+    * 200 - User settings were deleted
+    * 403 - The current user does not have permission to delete user settings
+    * 404 - User settings could not be found
+
+### `POST /api/v1/user/settings`
+  * Description: Creates or updates the current user's settings
+  * Input:
+    * userSettings - The user settings to be saved
+  * Returns:
+    * 200 - User settings updated. Returns saved settings.
+    * 201 - User settings created. Returns saved settings.
 
 ## Testing
 

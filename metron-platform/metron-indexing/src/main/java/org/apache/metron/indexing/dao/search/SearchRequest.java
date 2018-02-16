@@ -18,10 +18,8 @@
 
 package org.apache.metron.indexing.dao.search;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class SearchRequest {
 
@@ -101,20 +99,15 @@ public class SearchRequest {
     this.sort = sort;
   }
 
-  public Optional<List<String>> getFields() {
-    return fields == null || fields.size() == 0 ? Optional.empty() : Optional.of(fields);
+  public List<String> getFields() {
+    return fields;
   }
 
   public void setFields(List<String> fields) {
     this.fields = fields;
   }
 
-  public Optional<List<String>> getFacetFields() {
-    return facetFields == null ? Optional.empty() : Optional.of(facetFields);
-  }
-
-  @JsonGetter("facetFields")
-  public List<String> getFacetFieldsValue() {
+  public List<String> getFacetFields() {
     return facetFields;
   }
 
@@ -137,6 +130,7 @@ public class SearchRequest {
         (query != null ? query.equals(that.query) : that.query == null) && size == that.size &&
         from == that.from &&
         (sort != null ? sort.equals(that.sort) : that.sort == null) &&
+        (fields != null ? fields.equals(that.fields) : that.fields == null) &&
         (facetFields != null ? facetFields.equals(that.facetFields) : that.facetFields == null);
   }
 
@@ -147,6 +141,7 @@ public class SearchRequest {
     result = 31 * result + getSize();
     result = 31 * result + getFrom();
     result = 31 * result + (sort != null ? sort.hashCode() : 0);
+    result = 31 * result + (fields != null ? fields.hashCode() : 0);
     result = 31 * result + (facetFields != null ? facetFields.hashCode() : 0);
     return result;
   }

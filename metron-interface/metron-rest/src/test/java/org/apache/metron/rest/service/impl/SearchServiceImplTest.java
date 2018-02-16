@@ -32,10 +32,10 @@ import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.AlertProfile;
-import org.apache.metron.rest.service.AlertService;
+import org.apache.metron.rest.model.UserSettings;
 import org.apache.metron.rest.service.SearchService;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
+import org.apache.metron.rest.service.UserService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,7 +50,7 @@ public class SearchServiceImplTest {
   IndexDao dao;
   Environment environment;
   SensorIndexingConfigService sensorIndexingConfigService;
-  AlertService alertService;
+  UserService userService;
   SearchService searchService;
 
   @Before
@@ -58,8 +58,8 @@ public class SearchServiceImplTest {
     dao = mock(IndexDao.class);
     environment = mock(Environment.class);
     sensorIndexingConfigService = mock(SensorIndexingConfigService.class);
-    alertService = mock(AlertService.class);
-    searchService = new SearchServiceImpl(dao, environment, sensorIndexingConfigService, alertService);
+    userService = mock(UserService.class);
+    searchService = new SearchServiceImpl(dao, environment, sensorIndexingConfigService, userService);
   }
 
 
@@ -111,9 +111,9 @@ public class SearchServiceImplTest {
 
   @Test
   public void searchShouldProperlySearchWithAlertProfileFacetFields() throws Exception {
-    AlertProfile alertProfile = new AlertProfile();
-    alertProfile.setFacetFields(Arrays.asList("source:type", "ip_dst_addr"));
-    when(alertService.getProfile()).thenReturn(alertProfile);
+    UserSettings userSettings = new UserSettings();
+    userSettings.setFacetFields(Arrays.asList("source:type", "ip_dst_addr"));
+    when(userService.getUserSettings()).thenReturn(userSettings);
 
     SearchRequest searchRequest = new SearchRequest();
     searchRequest.setIndices(Arrays.asList("bro", "snort", "metaalert"));

@@ -22,6 +22,7 @@ import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -34,6 +35,7 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.metron.common.configuration.ConfigurationsUtils;
 import org.apache.metron.common.zookeeper.ConfigurationsCache;
@@ -43,6 +45,7 @@ import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaComponent;
 import org.apache.metron.integration.components.ZKServerComponent;
+import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.mock.MockStormCLIClientWrapper;
 import org.apache.metron.rest.mock.MockStormRestTemplate;
 import org.apache.metron.rest.service.impl.StormCLIWrapper;
@@ -175,4 +178,9 @@ public class TestConfig {
     return AdminUtils$.MODULE$;
   }
 
+
+  @Bean(name = "userSettingsTable")
+  public HTableInterface userSettingsTable() throws RestException, IOException {
+    return MockHBaseTableProvider.addToCache("user_settings", "cf");
+  }
 }

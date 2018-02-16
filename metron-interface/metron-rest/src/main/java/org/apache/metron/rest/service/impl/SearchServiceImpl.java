@@ -24,7 +24,6 @@ import static org.apache.metron.rest.MetronRestConstants.SEARCH_FACET_FIELDS_SPR
 
 import com.google.common.collect.Lists;
 import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
 import java.util.Arrays;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.GetRequest;
@@ -35,10 +34,10 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.AlertProfile;
-import org.apache.metron.rest.service.AlertService;
+import org.apache.metron.rest.model.UserSettings;
 import org.apache.metron.rest.service.SearchService;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
+import org.apache.metron.rest.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,15 +57,15 @@ public class SearchServiceImpl implements SearchService {
   private IndexDao dao;
   private Environment environment;
   private SensorIndexingConfigService sensorIndexingConfigService;
-  private AlertService alertService;
+  private UserService userService;
 
   @Autowired
   public SearchServiceImpl(IndexDao dao, Environment environment,
-      SensorIndexingConfigService sensorIndexingConfigService, AlertService alertService) {
+      SensorIndexingConfigService sensorIndexingConfigService, UserService userService) {
     this.dao = dao;
     this.environment = environment;
     this.sensorIndexingConfigService = sensorIndexingConfigService;
-    this.alertService = alertService;
+    this.userService = userService;
   }
 
   @Override
@@ -78,7 +77,7 @@ public class SearchServiceImpl implements SearchService {
         indices.add(METAALERT_TYPE);
         searchRequest.setIndices(indices);
       }
-      if (searchRequest.getFacetFieldsValue() == null) {
+      if (searchRequest.getFacetFields() == null) {
         searchRequest.setFacetFields(getDefaultFacetFields());
       }
       return dao.search(searchRequest);
@@ -134,13 +133,13 @@ public class SearchServiceImpl implements SearchService {
     return indices;
   }
 
-  private List<String> getDefaultFacetFields() {
-    AlertProfile alertProfile = alertService.getProfile();
-    if (alertProfile == null || alertProfile.getFacetFields() == null) {
+  private List<String> getDefaultFacetFields() throws RestException {
+    UserSettings userSettings = userService.getUserSettings();
+    if (userSettings == null || userSettings.getFacetFields() == null) {
       String facetFieldsProperty = environment.getProperty(SEARCH_FACET_FIELDS_SPRING_PROPERTY, String.class, "");
       return Arrays.asList(facetFieldsProperty.split(","));
     } else {
-      return alertProfile.getFacetFields();
+      return userSettings.getFacetFields();
     }
   }
 }

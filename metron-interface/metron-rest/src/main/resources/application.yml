@@ -67,3 +67,8 @@ meta:
     impl: org.apache.metron.elasticsearch.dao.ElasticsearchMetaAlertDao
 
 spring.jpa.generate-ddl: true
+
+user:
+  settings:
+    table: user_settings
+    cf: cf

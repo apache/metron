@@ -69,4 +69,7 @@ public class MetronRestConstants {
 
   public static final String SECURITY_ROLE_USER = "USER";
   public static final String SECURITY_ROLE_ADMIN = "ADMIN";
+
+  public static final String USER_SETTINGS_HBASE_TABLE_SPRING_PROPERTY = "user.settings.table";
+  public static final String USER_SETTINGS_HBASE_CF_SPRING_PROPERTY = "user.settings.cf";
 }

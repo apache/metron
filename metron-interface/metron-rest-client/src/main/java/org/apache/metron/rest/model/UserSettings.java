@@ -18,35 +18,24 @@
 
 package org.apache.metron.rest.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import org.apache.metron.rest.converter.JsonConverter;
 
-@Entity
-public class AlertProfile {
+public class UserSettings {
 
-  @Id
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  private String id;
+  private String user;
 
-  @Convert(converter = JsonConverter.class)
   private List<String> tableColumns;
 
-  @Convert(converter = JsonConverter.class)
   private List<SavedSearch> savedSearches;
 
-  @Convert(converter = JsonConverter.class)
   private List<String> facetFields;
 
-  public String getId() {
-    return id;
+  public String getUser() {
+    return user;
   }
 
-  public void setId(String id) {
-    this.id = id;
+  public void setUser(String user) {
+    this.user = user;
   }
 
   public List<String> getTableColumns() {
@@ -82,9 +71,9 @@ public class AlertProfile {
       return false;
     }
 
-    AlertProfile that = (AlertProfile) o;
+    UserSettings that = (UserSettings) o;
 
-    return id != null ? id.equals(that.id) : that.id == null &&
+    return user != null ? user.equals(that.user) : that.user == null &&
         (tableColumns != null ? tableColumns.equals(that.tableColumns) : that.tableColumns == null) &&
         (savedSearches != null ? savedSearches.equals(that.savedSearches) : that.savedSearches == null) &&
         (facetFields != null ? facetFields.equals(that.facetFields) : that.facetFields == null);
@@ -92,7 +81,7 @@ public class AlertProfile {
 
   @Override
   public int hashCode() {
-    int result = id != null ? id.hashCode() : 0;
+    int result = user != null ? user.hashCode() : 0;
     result = 31 * result + (tableColumns != null ? tableColumns.hashCode() : 0);
     result = 31 * result + (savedSearches != null ? savedSearches.hashCode() : 0);
     result = 31 * result + (facetFields != null ? facetFields.hashCode() : 0);
