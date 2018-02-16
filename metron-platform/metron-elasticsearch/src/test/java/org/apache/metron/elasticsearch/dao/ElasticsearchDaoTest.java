@@ -34,10 +34,10 @@ import org.apache.metron.indexing.dao.search.SortField;
 import org.apache.metron.indexing.dao.search.SortOrder;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.search.FieldType;
-import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -86,7 +86,7 @@ public class ElasticsearchDaoTest {
     requestSubmitter = mock(ElasticsearchRequestSubmitter.class);
     when(requestSubmitter.submitSearch(any())).thenReturn(response);
 
-    TransportClient client = mock(TransportClient.class);
+    PreBuiltXPackTransportClient client = mock(PreBuiltXPackTransportClient.class);
 
     // provides configuration
     AccessConfig config = mock(AccessConfig.class);

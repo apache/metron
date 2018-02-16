@@ -28,6 +28,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.ShardSearchFailure;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.rest.RestStatus;
+import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +44,9 @@ public class ElasticsearchRequestSubmitter {
   /**
    * The Elasticsearch client.
    */
-  private TransportClient client;
+  private PreBuiltXPackTransportClient client;
 
-  public ElasticsearchRequestSubmitter(TransportClient client) {
+  public ElasticsearchRequestSubmitter(PreBuiltXPackTransportClient client) {
     this.client = client;
   }
 

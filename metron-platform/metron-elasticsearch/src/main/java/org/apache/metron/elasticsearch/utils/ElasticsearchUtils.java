@@ -37,12 +37,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.metron.common.configuration.writer.WriterConfiguration;
 import org.apache.metron.netty.utils.NettyRuntimeWrapper;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentHelper;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,15 +106,17 @@ public class ElasticsearchUtils {
     return parts[0];
   }
 
-  public static TransportClient getClient(Map<String, Object> globalConfiguration, Map<String, String> optionalSettings) {
+  public static PreBuiltXPackTransportClient getClient(Map<String, Object> globalConfiguration, Map<String, String> optionalSettings) {
     Settings.Builder settingsBuilder = Settings.builder();
     settingsBuilder.put("cluster.name", globalConfiguration.get("es.clustername"));
     settingsBuilder.put("client.transport.ping_timeout","500s");
+    settingsBuilder.put("transport.type", "security4");
+    settingsBuilder.put("xpack.security.user", globalConfiguration.get("es.xpackuser"));
     if (optionalSettings != null) {
       settingsBuilder.put(optionalSettings);
     }
     Settings settings = settingsBuilder.build();
-    TransportClient client;
+    PreBuiltXPackTransportClient client;
     try{
       LOG.info("Number of available processors in Netty: {}", NettyRuntimeWrapper.availableProcessors());
       // Netty sets available processors statically and if an attempt is made to set it more than
@@ -123,7 +124,7 @@ public class ElasticsearchUtils {
       // https://discuss.elastic.co/t/getting-availableprocessors-is-already-set-to-1-rejecting-1-illegalstateexception-exception/103082
       // https://discuss.elastic.co/t/elasticsearch-5-4-1-availableprocessors-is-already-set/88036
       System.setProperty("es.set.netty.runtime.available.processors", "false");
-      client = new PreBuiltTransportClient(settings);
+      client = new PreBuiltXPackTransportClient(settings);
       for(HostnamePort hp : getIps(globalConfiguration)) {
         client.addTransportAddress(
                 new InetSocketTransportAddress(InetAddress.getByName(hp.hostname), hp.port)
