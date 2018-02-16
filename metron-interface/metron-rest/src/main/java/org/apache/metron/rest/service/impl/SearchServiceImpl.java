@@ -77,7 +77,7 @@ public class SearchServiceImpl implements SearchService {
         indices.add(METAALERT_TYPE);
         searchRequest.setIndices(indices);
       }
-      if (searchRequest.getFacetFields() == null) {
+      if (searchRequest.getFacetFields() != null && searchRequest.getFacetFields().isEmpty()) {
         searchRequest.setFacetFields(getDefaultFacetFields());
       }
       return dao.search(searchRequest);

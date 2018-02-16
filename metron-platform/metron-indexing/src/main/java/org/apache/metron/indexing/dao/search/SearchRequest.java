@@ -19,6 +19,7 @@
 package org.apache.metron.indexing.dao.search;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class SearchRequest {
@@ -126,7 +127,7 @@ public class SearchRequest {
 
     SearchRequest that = (SearchRequest) o;
 
-    return indices != null ? indices.equals(that.indices) : that.indices == null &&
+    return (indices != null ? indices.equals(that.indices) : that.indices == null) &&
         (query != null ? query.equals(that.query) : that.query == null) && size == that.size &&
         from == that.from &&
         (sort != null ? sort.equals(that.sort) : that.sort == null) &&

@@ -68,7 +68,8 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
    *     "field": "timestamp",
    *     "sortOrder": "desc"
    *   }
-   * ]
+   * ],
+   * "facetFields": []
    * }
    */
   @Multiline

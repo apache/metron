@@ -69,7 +69,6 @@ public class SearchServiceImplTest {
     when(sensorIndexingConfigService.getAllIndices("elasticsearch")).thenReturn(Arrays.asList("bro", "snort", "error"));
 
     SearchRequest searchRequest = new SearchRequest();
-    searchRequest.setFacetFields(new ArrayList<>());
     searchService.search(searchRequest);
 
     SearchRequest expectedSearchRequest = new SearchRequest();
@@ -90,7 +89,6 @@ public class SearchServiceImplTest {
 
     SearchRequest expectedSearchRequest = new SearchRequest();
     expectedSearchRequest.setIndices(Arrays.asList("bro", "snort", "metaalert"));
-    expectedSearchRequest.setFacetFields(new ArrayList<>());
     verify(dao).search(eq(expectedSearchRequest));
   }
 
@@ -101,6 +99,7 @@ public class SearchServiceImplTest {
 
     SearchRequest searchRequest = new SearchRequest();
     searchRequest.setIndices(Arrays.asList("bro", "snort", "metaalert"));
+    searchRequest.setFacetFields(new ArrayList<>());
     searchService.search(searchRequest);
 
     SearchRequest expectedSearchRequest = new SearchRequest();
@@ -110,13 +109,14 @@ public class SearchServiceImplTest {
   }
 
   @Test
-  public void searchShouldProperlySearchWithAlertProfileFacetFields() throws Exception {
+  public void searchShouldProperlySearchWithUserSettingsFacetFields() throws Exception {
     UserSettings userSettings = new UserSettings();
     userSettings.setFacetFields(Arrays.asList("source:type", "ip_dst_addr"));
     when(userService.getUserSettings()).thenReturn(userSettings);
 
     SearchRequest searchRequest = new SearchRequest();
     searchRequest.setIndices(Arrays.asList("bro", "snort", "metaalert"));
+    searchRequest.setFacetFields(new ArrayList<>());
     searchService.search(searchRequest);
 
     SearchRequest expectedSearchRequest = new SearchRequest();
