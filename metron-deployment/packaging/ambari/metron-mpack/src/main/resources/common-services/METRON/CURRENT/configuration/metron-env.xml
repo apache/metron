@@ -100,6 +100,12 @@
         <description>Elasticsearch HTTP port. (9200)</description>
         <display-name>Elasticsearch HTTP port</display-name>
     </property>
+    <property>
+        <name>es_xpack_user</name>
+        <value>transport_client_user:changeme</value>
+        <description>Elasticsearch Xpack User/Password</description>
+        <display-name>Elasticsearch Xpack User/Password</display-name>
+    </property>
     <property require-input = "true">
         <name>storm_rest_addr</name>
         <display-name>Storm Rest Server Address</display-name>
@@ -137,6 +143,11 @@
         <value>yyyy.MM.dd.HH</value>
         <display-name>Elasticsearch Date Format</display-name>
     </property>
-
+    <property>
+        <name>es_xpack_user</name>
+        <description>Elasticsearch Date Format</description>
+        <value>yyyy.MM.dd.HH</value>
+        <display-name>Elasticsearch Date Format</display-name>
+    </property>
 
 </configuration>
