@@ -143,11 +143,4 @@
         <value>yyyy.MM.dd.HH</value>
         <display-name>Elasticsearch Date Format</display-name>
     </property>
-    <property>
-        <name>es_xpack_user</name>
-        <description>Elasticsearch Date Format</description>
-        <value>yyyy.MM.dd.HH</value>
-        <display-name>Elasticsearch Date Format</display-name>
-    </property>
-
 </configuration>
