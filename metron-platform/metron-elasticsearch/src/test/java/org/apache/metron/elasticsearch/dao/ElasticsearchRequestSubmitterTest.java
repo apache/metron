@@ -27,6 +27,7 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.Index;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchShardTarget;
+import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -42,7 +43,7 @@ public class ElasticsearchRequestSubmitterTest {
   public ElasticsearchRequestSubmitter setup(SearchResponse response) {
 
     // mocks
-    TransportClient client = mock(TransportClient.class);
+    PreBuiltXPackTransportClient client = mock(PreBuiltXPackTransportClient.class);
     ActionFuture future = Mockito.mock(ActionFuture.class);
 
     // the client should return the given search response

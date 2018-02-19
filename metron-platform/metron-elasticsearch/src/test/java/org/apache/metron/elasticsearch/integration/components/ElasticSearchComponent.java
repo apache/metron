@@ -277,7 +277,7 @@ public class ElasticSearchComponent implements InMemoryComponent {
     @Override
     public void stop() {
       try {
-        node.close();
+          node.close();
       } catch (IOException e) {
         throw new RuntimeException("Unable to stop node." , e);
       }

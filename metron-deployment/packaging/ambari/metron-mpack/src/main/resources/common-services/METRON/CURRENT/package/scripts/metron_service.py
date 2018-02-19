@@ -72,6 +72,11 @@ def build_global_config_patch(params, patch_file):
     },
     {
         "op": "add",
+        "path": "/es.xpackuser",
+        "value": "{{es_xpackuser}}"
+    },
+    {
+        "op": "add",
         "path": "/parser.error.topic",
         "value": "{{parser_error_topic}}"
     },
