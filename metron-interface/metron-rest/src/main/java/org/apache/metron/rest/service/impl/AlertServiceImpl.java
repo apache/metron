@@ -17,12 +17,22 @@
  */
 package org.apache.metron.rest.service.impl;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
+
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.model.AlertUserSettings;
+import org.apache.metron.hbase.client.UserSettingsClient;
+import org.apache.metron.rest.security.SecurityUtils;
 import org.apache.metron.rest.service.AlertService;
 import org.apache.metron.rest.service.KafkaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,15 +47,21 @@ import org.springframework.stereotype.Service;
 @Service
 public class AlertServiceImpl implements AlertService {
 
+  public static final String ALERT_USER_SETTING_TYPE = "alert";
+  public static ThreadLocal<ObjectMapper> _mapper = ThreadLocal.withInitial(() ->
+          new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL));
+
   private Environment environment;
   private final KafkaService kafkaService;
-
+  private UserSettingsClient userSettingsClient;
 
   @Autowired
   public AlertServiceImpl(final KafkaService kafkaService,
-                          final Environment environment) {
+                          final Environment environment,
+                          final UserSettingsClient userSettingsClient) {
     this.kafkaService = kafkaService;
     this.environment = environment;
+    this.userSettingsClient = userSettingsClient;
   }
 
   @Override
@@ -59,5 +75,57 @@ public class AlertServiceImpl implements AlertService {
     } catch (JsonProcessingException e) {
       throw new RestException(e);
     }
+  }
+
+  @Override
+  public Optional<AlertUserSettings> getAlertUserSettings() throws RestException {
+    try {
+      Optional<String> alertUserSettings = userSettingsClient.findOne(SecurityUtils.getCurrentUser(), ALERT_USER_SETTING_TYPE);
+      if (alertUserSettings.isPresent()) {
+        return Optional.of(_mapper.get().readValue(alertUserSettings.get(), AlertUserSettings.class));
+      } else {
+        return Optional.empty();
+      }
+    } catch (IOException e) {
+      throw new RestException(e);
+    }
+  }
+
+  @Override
+  public Map<String, AlertUserSettings> findAllAlertUserSettings() throws RestException {
+    Map<String, AlertUserSettings> allAlertUserSettings = new HashMap<>();
+    try {
+      Map<String, Optional<String>> alertUserSettingsStrings = userSettingsClient.findAll(ALERT_USER_SETTING_TYPE);
+      for (Map.Entry<String, Optional<String>> entry: alertUserSettingsStrings.entrySet()) {
+        Optional<String> alertUserSettings = entry.getValue();
+        if (alertUserSettings.isPresent()) {
+          allAlertUserSettings.put(entry.getKey(), _mapper.get().readValue(alertUserSettings.get(), AlertUserSettings.class));
+        }
+      }
+    } catch (IOException e) {
+      throw new RestException(e);
+    }
+    return allAlertUserSettings;
+  }
+
+  @Override
+  public void saveAlertUserSettings(AlertUserSettings alertUserSettings) throws RestException{
+    String user = SecurityUtils.getCurrentUser();
+    try {
+      userSettingsClient.save(user, ALERT_USER_SETTING_TYPE, _mapper.get().writeValueAsString(alertUserSettings));
+    } catch (IOException e) {
+      throw new RestException(e);
+    }
+  }
+
+  @Override
+  public boolean deleteAlertUserSettings(String user) {
+    boolean success = true;
+    try {
+      userSettingsClient.delete(user, ALERT_USER_SETTING_TYPE);
+    } catch (IOException e) {
+      success = false;
+    }
+    return success;
   }
 }

@@ -18,17 +18,16 @@
 package org.apache.metron.rest.service;
 
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.UserSettings;
 
 import java.util.Map;
 
 public interface UserService {
 
-  UserSettings getUserSettings() throws RestException;
+  String getUserSettings(String type) throws RestException;
 
-  Map<String, UserSettings> findAllUserSettings() throws RestException;
+  Map<String, String> findAllUserSettings(String type) throws RestException;
 
-  UserSettings saveUserSettings(UserSettings userSettings) throws RestException;
+  void saveUserSettings(String settings, String type) throws RestException;
 
-  boolean deleteUserSettings(String user);
+  boolean deleteUserSettings(String user, String type);
 }

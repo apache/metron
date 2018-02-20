@@ -17,45 +17,39 @@
  */
 package org.apache.metron.rest.config;
 
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.hbase.HTableProvider;
-import org.apache.metron.rest.MetronRestConstants;
+import org.apache.metron.hbase.client.UserSettingsClient;
 import org.apache.metron.rest.RestException;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.env.Environment;
-
-import java.io.IOException;
 
 import static org.apache.metron.rest.MetronRestConstants.TEST_PROFILE;
-import static org.apache.metron.rest.repository.UserSettingsRepository.USER_SETTINGS_HBASE_TABLE;
 
 @Configuration
 @Profile("!" + TEST_PROFILE)
 public class HBaseConfig {
 
     @Autowired
-    private Environment environment;
-
-    @Autowired
     private GlobalConfigService globalConfigService;
 
     @Autowired
-    public HBaseConfig(Environment environment, GlobalConfigService globalConfigService) {
-        this.environment = environment;
+    public HBaseConfig(GlobalConfigService globalConfigService) {
         this.globalConfigService = globalConfigService;
     }
 
-    @Bean(name = "userSettingsTable")
-    public HTableInterface userSettingsTable() throws RestException, IOException {
-        String tableName = (String) globalConfigService.get().get(USER_SETTINGS_HBASE_TABLE);
-        if (tableName == null) {
-            tableName = environment.getProperty(MetronRestConstants.USER_SETTINGS_HBASE_TABLE_SPRING_PROPERTY);
+    @Bean()
+    public UserSettingsClient userSettingsClient() {
+      UserSettingsClient userSettingsClient = new UserSettingsClient();
+      userSettingsClient.init(() -> {
+        try {
+          return globalConfigService.get();
+        } catch (RestException e) {
+          throw new IllegalStateException("Unable to retrieve the global config.", e);
         }
-        return new HTableProvider().getTable(HBaseConfiguration.create(), tableName);
+      }, new HTableProvider());
+      return userSettingsClient;
     }
 }

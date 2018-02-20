@@ -25,5 +25,5 @@ export class SearchRequest {
   query: string;
   size: number;
   sort: SortField[];
-  facetFields: string[];
+  facetFields: string[] = [];
 }

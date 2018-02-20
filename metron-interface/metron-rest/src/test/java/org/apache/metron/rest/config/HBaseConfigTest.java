@@ -20,18 +20,17 @@ package org.apache.metron.rest.config;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.metron.hbase.HTableProvider;
-import org.apache.metron.rest.MetronRestConstants;
 import org.apache.metron.rest.service.GlobalConfigService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.core.env.Environment;
 
 import java.util.HashMap;
 
-import static org.apache.metron.rest.repository.UserSettingsRepository.USER_SETTINGS_HBASE_TABLE;
+import static org.apache.metron.hbase.client.UserSettingsClient.USER_SETTINGS_HBASE_CF;
+import static org.apache.metron.hbase.client.UserSettingsClient.USER_SETTINGS_HBASE_TABLE;
 import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
@@ -40,45 +39,29 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 @PrepareForTest({HTableProvider.class, HBaseConfiguration.class, HBaseConfig.class})
 public class HBaseConfigTest {
 
-  private Environment environment;
   private GlobalConfigService globalConfigService;
   private HBaseConfig hBaseConfig;
 
   @Before
   public void setUp() throws Exception {
-    environment = mock(Environment.class);
     globalConfigService = mock(GlobalConfigService.class);
-    hBaseConfig = new HBaseConfig(environment, globalConfigService);
+    hBaseConfig = new HBaseConfig(globalConfigService);
     mockStatic(HBaseConfiguration.class);
   }
 
   @Test
   public void userSettingsTableShouldBeReturnedFromGlobalConfigByDefault() throws Exception {
     when(globalConfigService.get()).thenReturn(new HashMap<String, Object>() {{
-      put(USER_SETTINGS_HBASE_TABLE, "global_config_user_settings");
+      put(USER_SETTINGS_HBASE_TABLE, "global_config_user_settings_table");
+      put(USER_SETTINGS_HBASE_CF, "global_config_user_settings_cf");
     }});
-    when(environment.getProperty(MetronRestConstants.USER_SETTINGS_HBASE_TABLE_SPRING_PROPERTY)).thenReturn("properties_user_settings");
     HTableProvider htableProvider = mock(HTableProvider.class);
     whenNew(HTableProvider.class).withNoArguments().thenReturn(htableProvider);
     Configuration configuration = mock(Configuration.class);
     when(HBaseConfiguration.create()).thenReturn(configuration);
 
-    hBaseConfig.userSettingsTable();
-    verify(htableProvider).getTable(configuration, "global_config_user_settings");
-    verifyZeroInteractions(htableProvider);
-  }
-
-  @Test
-  public void userSettingsTableShouldBeReturnedFromProperties() throws Exception {
-    when(globalConfigService.get()).thenReturn(new HashMap<>());
-    when(environment.getProperty(MetronRestConstants.USER_SETTINGS_HBASE_TABLE_SPRING_PROPERTY)).thenReturn("properties_user_settings");
-    HTableProvider htableProvider = mock(HTableProvider.class);
-    whenNew(HTableProvider.class).withNoArguments().thenReturn(htableProvider);
-    Configuration configuration = mock(Configuration.class);
-    when(HBaseConfiguration.create()).thenReturn(configuration);
-
-    hBaseConfig.userSettingsTable();
-    verify(htableProvider).getTable(configuration, "properties_user_settings");
+    hBaseConfig.userSettingsClient();
+    verify(htableProvider).getTable(configuration, "global_config_user_settings_table");
     verifyZeroInteractions(htableProvider);
   }
 

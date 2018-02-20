@@ -28,14 +28,16 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
+
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.UserSettings;
+import org.apache.metron.rest.model.AlertUserSettings;
+import org.apache.metron.rest.service.AlertService;
 import org.apache.metron.rest.service.SearchService;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
-import org.apache.metron.rest.service.UserService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,7 +52,7 @@ public class SearchServiceImplTest {
   IndexDao dao;
   Environment environment;
   SensorIndexingConfigService sensorIndexingConfigService;
-  UserService userService;
+  AlertService alertService;
   SearchService searchService;
 
   @Before
@@ -58,8 +60,8 @@ public class SearchServiceImplTest {
     dao = mock(IndexDao.class);
     environment = mock(Environment.class);
     sensorIndexingConfigService = mock(SensorIndexingConfigService.class);
-    userService = mock(UserService.class);
-    searchService = new SearchServiceImpl(dao, environment, sensorIndexingConfigService, userService);
+    alertService = mock(AlertService.class);
+    searchService = new SearchServiceImpl(dao, environment, sensorIndexingConfigService, alertService);
   }
 
 
@@ -96,6 +98,7 @@ public class SearchServiceImplTest {
   public void searchShouldProperlySearchDefaultFacetFields() throws Exception {
     when(environment.getProperty(SEARCH_FACET_FIELDS_SPRING_PROPERTY, String.class, ""))
         .thenReturn("source:type,ip_src_addr");
+    when(alertService.getAlertUserSettings()).thenReturn(Optional.empty());
 
     SearchRequest searchRequest = new SearchRequest();
     searchRequest.setIndices(Arrays.asList("bro", "snort", "metaalert"));
@@ -110,9 +113,9 @@ public class SearchServiceImplTest {
 
   @Test
   public void searchShouldProperlySearchWithUserSettingsFacetFields() throws Exception {
-    UserSettings userSettings = new UserSettings();
-    userSettings.setFacetFields(Arrays.asList("source:type", "ip_dst_addr"));
-    when(userService.getUserSettings()).thenReturn(userSettings);
+    AlertUserSettings alertUserSettings = new AlertUserSettings();
+    alertUserSettings.setFacetFields(Arrays.asList("source:type", "ip_dst_addr"));
+    when(alertService.getAlertUserSettings()).thenReturn(Optional.of(alertUserSettings));
 
     SearchRequest searchRequest = new SearchRequest();
     searchRequest.setIndices(Arrays.asList("bro", "snort", "metaalert"));

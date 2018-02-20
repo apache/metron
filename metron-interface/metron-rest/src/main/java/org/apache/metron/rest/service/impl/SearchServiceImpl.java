@@ -34,10 +34,10 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.UserSettings;
+import org.apache.metron.rest.model.AlertUserSettings;
+import org.apache.metron.rest.service.AlertService;
 import org.apache.metron.rest.service.SearchService;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
-import org.apache.metron.rest.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,15 +57,15 @@ public class SearchServiceImpl implements SearchService {
   private IndexDao dao;
   private Environment environment;
   private SensorIndexingConfigService sensorIndexingConfigService;
-  private UserService userService;
+  private AlertService alertService;
 
   @Autowired
   public SearchServiceImpl(IndexDao dao, Environment environment,
-      SensorIndexingConfigService sensorIndexingConfigService, UserService userService) {
+      SensorIndexingConfigService sensorIndexingConfigService, AlertService alertService) {
     this.dao = dao;
     this.environment = environment;
     this.sensorIndexingConfigService = sensorIndexingConfigService;
-    this.userService = userService;
+    this.alertService = alertService;
   }
 
   @Override
@@ -134,12 +134,12 @@ public class SearchServiceImpl implements SearchService {
   }
 
   private List<String> getDefaultFacetFields() throws RestException {
-    UserSettings userSettings = userService.getUserSettings();
-    if (userSettings == null || userSettings.getFacetFields() == null) {
+    Optional<AlertUserSettings> alertUserSettings = alertService.getAlertUserSettings();
+    if (!alertUserSettings.isPresent() || alertUserSettings.get().getFacetFields() == null) {
       String facetFieldsProperty = environment.getProperty(SEARCH_FACET_FIELDS_SPRING_PROPERTY, String.class, "");
       return Arrays.asList(facetFieldsProperty.split(","));
     } else {
-      return userSettings.getFacetFields();
+      return alertUserSettings.get().getFacetFields();
     }
   }
 }
