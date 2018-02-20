@@ -17,19 +17,11 @@
  */
 package org.apache.metron.elasticsearch.utils;
 
+import static java.lang.String.format;
+
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import org.apache.commons.lang.StringUtils;
-import org.apache.metron.common.configuration.writer.WriterConfiguration;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.common.xcontent.XContentHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -41,8 +33,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import static java.lang.String.format;
+import org.apache.commons.lang.StringUtils;
+import org.apache.metron.common.configuration.writer.WriterConfiguration;
+import org.apache.metron.netty.utils.NettyRuntimeWrapper;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.bytes.BytesReference;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.xcontent.XContentHelper;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ElasticsearchUtils {
 
@@ -106,7 +108,7 @@ public class ElasticsearchUtils {
   }
 
   public static TransportClient getClient(Map<String, Object> globalConfiguration, Map<String, String> optionalSettings) {
-    Settings.Builder settingsBuilder = Settings.settingsBuilder();
+    Settings.Builder settingsBuilder = Settings.builder();
     settingsBuilder.put("cluster.name", globalConfiguration.get("es.clustername"));
     settingsBuilder.put("client.transport.ping_timeout","500s");
     if (optionalSettings != null) {
@@ -115,7 +117,13 @@ public class ElasticsearchUtils {
     Settings settings = settingsBuilder.build();
     TransportClient client;
     try{
-      client = TransportClient.builder().settings(settings).build();
+      LOG.info("Number of available processors in Netty: {}", NettyRuntimeWrapper.availableProcessors());
+      // Netty sets available processors statically and if an attempt is made to set it more than
+      // once an IllegalStateException is thrown by NettyRuntime.setAvailableProcessors(NettyRuntime.java:87)
+      // https://discuss.elastic.co/t/getting-availableprocessors-is-already-set-to-1-rejecting-1-illegalstateexception-exception/103082
+      // https://discuss.elastic.co/t/elasticsearch-5-4-1-availableprocessors-is-already-set/88036
+      System.setProperty("es.set.netty.runtime.available.processors", "false");
+      client = new PreBuiltTransportClient(settings);
       for(HostnamePort hp : getIps(globalConfiguration)) {
         client.addTransportAddress(
                 new InetSocketTransportAddress(InetAddress.getByName(hp.hostname), hp.port)
@@ -196,9 +204,10 @@ public class ElasticsearchUtils {
   public static Optional<String> toJSON(org.elasticsearch.action.search.SearchRequest esRequest) {
     Optional<String> json = Optional.empty();
 
-    if(esRequest != null) {
+    if(esRequest != null && esRequest.source() != null) {
       try {
-        json = Optional.of(XContentHelper.convertToJson(esRequest.source(), true));
+        BytesReference requestBytes = esRequest.source().buildAsBytes();
+        json = Optional.of(XContentHelper.convertToJson(requestBytes, true));
 
       } catch (Throwable t) {
         LOG.error("Failed to convert search request to JSON", t);

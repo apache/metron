@@ -25,6 +25,7 @@ from resource_management.libraries.functions.version import format_stack_version
 
 config = Script.get_config()
 
+hostname = config['hostname']
 metron_user = config['configurations']['metron-env']['metron_user']
 metron_home = config['configurations']['metron-env']['metron_home']
 metron_zookeeper_config_dir = config['configurations']['metron-env']['metron_zookeeper_config_dir']
@@ -66,7 +67,8 @@ profiler_hbase_acl_configured_flag_file = metron_zookeeper_config_path + '/../me
 
 
 # Indexing
-metron_indexing_topology = 'indexing'
+metron_batch_indexing_topology = 'batch_indexing'
+metron_random_access_indexing_topology = 'random_access_indexing'
 indexing_input_topic = config['configurations']['metron-indexing-env']['indexing_input_topic']
 indexing_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_configured'
 indexing_acl_configured_flag_file = metron_zookeeper_config_path + '/../metron_indexing_acl_configured'
@@ -80,20 +82,25 @@ elasticsearch_template_installed_flag_file = metron_zookeeper_config_path + '/..
 # REST
 metron_rest_port = config['configurations']['metron-rest-env']['metron_rest_port']
 
-# UI
-metron_management_ui_port = config['configurations']['metron-management-ui-env']['metron_management_ui_port']
+# Alerts UI
+metron_alerts_ui_host = default("/clusterHostInfo/metron_alerts_ui_hosts", [hostname])[0]
 metron_alerts_ui_port = config['configurations']['metron-alerts-ui-env']['metron_alerts_ui_port']
+
+# Management UI
+metron_management_ui_host = default("/clusterHostInfo/metron_management_ui_hosts", [hostname])[0]
+metron_management_ui_port = config['configurations']['metron-management-ui-env']['metron_management_ui_port']
 
 # Storm
 storm_rest_addr = config['configurations']['metron-env']['storm_rest_addr']
 
 # Zeppelin
 zeppelin_server_url = config['configurations']['metron-env']['zeppelin_server_url']
+zeppelin_shiro_ini_content = config['configurations']['zeppelin-shiro-ini']['shiro_ini_content']
 
 # Security
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 stack_version_formatted = format_stack_version(stack_version_unformatted)
-hostname = config['hostname']
+
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 tmp_dir = Script.get_tmp_dir()

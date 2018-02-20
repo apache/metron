@@ -38,7 +38,9 @@ public class StellarAssignment implements Map.Entry<String, Object>{
   }
 
   public static boolean isAssignment(String statement) {
-    return statement != null && statement.contains(":=");
+    return statement != null &&
+            statement.contains(":=") && // has the assignment operator
+            !statement.trim().startsWith("%"); // not a magic like %define x := 2
   }
 
   public static StellarAssignment from(String statement) {

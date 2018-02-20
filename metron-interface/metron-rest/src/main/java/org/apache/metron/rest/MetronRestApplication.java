@@ -17,6 +17,7 @@
  */
 package org.apache.metron.rest;
 
+import org.apache.metron.rest.util.ParserIndex;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -24,6 +25,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class MetronRestApplication {
 
   public static void main(String[] args) {
+    ParserIndex.reload();
     SpringApplication.run(MetronRestApplication.class, args);
   }
 }

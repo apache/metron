@@ -56,8 +56,12 @@ public enum ProfilerClientConfig {
   /**
    * A global property that defines the salt divisor used to store profile data.
    */
-  PROFILER_SALT_DIVISOR("profiler.client.salt.divisor", 1000L, Long.class);
+  PROFILER_SALT_DIVISOR("profiler.client.salt.divisor", 1000L, Long.class),
 
+  /**
+   * The default value to be returned if a profile is not written for a given period for a profile and entity.
+   */
+  PROFILER_DEFAULT_VALUE("profiler.default.value", null, Object.class);
   String key;
   Object defaultValue;
   Class<?> valueType;

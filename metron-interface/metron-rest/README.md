@@ -1,3 +1,20 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 # Metron REST
 
 This module provides a RESTful API for interacting with Metron.
@@ -180,10 +197,10 @@ The REST application comes with a few [Spring Profiles](http://docs.spring.io/au
 
 | Profile                  | Description                                   |
 | ------------------------ | --------------------------------------------- |
-| test                     | sets variables to in-memory services, only used for integration testing |
-| dev                      | adds a test user to the database with credentials `user/password`       |
-| vagrant                  | sets configuration variables to match the Metron vagrant environment    |
-| docker                   | sets configuration variables to match the Metron docker environment     |
+| test                     | adds test users `[user, user1, user2, admin]` to the database with password "`password`". sets variables to in-memory services, only used for integration testing |
+| dev                      | adds test users `[user, user1, user2, admin]` to the database with password "`password`" |
+| vagrant                  | sets configuration variables to match the Metron vagrant environment |
+| docker                   | sets configuration variables to match the Metron docker environment |
 
 Setting active profiles is done with the METRON_SPRING_PROFILES_ACTIVE variable.  For example, set this variable in `/etc/default/metron` to configure the REST application for the Vagrant environment and add a test user:
 ```
@@ -216,6 +233,7 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/kafka/topic/{name}`](#get-apiv1kafkatopicname)|
 | [ `DELETE /api/v1/kafka/topic/{name}`](#delete-apiv1kafkatopicname)|
 | [ `GET /api/v1/kafka/topic/{name}/sample`](#get-apiv1kafkatopicnamesample)|
+| [ `POST /api/v1/kafka/topic/{name}/produce`](#post-apiv1kafkatopicnameproduce)|
 | [ `GET /api/v1/metaalert/searchByAlert`](#get-apiv1metaalertsearchbyalert)|
 | [ `GET /api/v1/metaalert/create`](#get-apiv1metaalertcreate)|
 | [ `GET /api/v1/metaalert/add/alert`](#get-apiv1metaalertaddalert)|
@@ -416,6 +434,15 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - Returns sample message
     * 404 - Either Kafka topic is missing or contains no messages
 
+### `POST /api/v1/kafka/topic/{name}/produce`
+  * Description: Produces a message to a Kafka topic
+  * Input:
+    * name - Kafka topic name
+    * message - message to be published
+  * Returns:
+    * 200 - Published
+    * 404 - Kafka topic is missing
+
 ### `POST /api/v1/metaalert/searchByAlert`
   * Description: Get all meta alerts that contain an alert.
   * Input:
@@ -564,10 +591,11 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 200 - Returns SensorIndexingConfig
     * 404 - SensorIndexingConfig is missing
 
-### `POST /api/v1/sensor/parser/config`
+### `POST /api/v1/sensor/parser/config/{name}`
   * Description: Updates or creates a SensorParserConfig in Zookeeper
   * Input:
     * sensorParserConfig - SensorParserConfig
+    * name - SensorEnrichmentConfig name
   * Returns:
     * 200 - SensorParserConfig updated. Returns saved SensorParserConfig
     * 201 - SensorParserConfig created. Returns saved SensorParserConfig
@@ -818,7 +846,7 @@ The metron-rest application will be available at http://localhost:8080/swagger-u
 
 ### Full Dev
 
-Start the [Full Dev](../../metron-deployment/vagrant/full-dev-platform) environment.  Build the metron-rest module and start it with the Spring Boot Maven plugin:
+Start the [development environment](../../metron-deployment/development/centos6).  Build the metron-rest module and start it with the Spring Boot Maven plugin:
 ```
 mvn clean package
 mvn spring-boot:run -Drun.profiles=vagrant,dev

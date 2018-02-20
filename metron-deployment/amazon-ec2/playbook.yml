@@ -71,4 +71,4 @@
 #
 # build the metron cluster
 #
-- include: ../playbooks/metron_full_install.yml
+- include: ../ansible/playbooks/metron_full_install.yml

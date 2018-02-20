@@ -1,9 +1,35 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 Apache Metron on Amazon EC2
 ===========================
 
 This project fully automates the provisioning of Apache Metron on Amazon EC2 infrastructure.  Starting with only your Amazon EC2 credentials, this project will create a fully-functioning, end-to-end, multi-node cluster running Apache Metron.
 
 Warning: Amazon will charge for the use of their resources when running Apache Metron.  The amount will vary based on the number and size of hosts, along with current Amazon pricing structure.  Be sure to stop or terminate all of the hosts instantiated by Apache Metron when not in use to avoid unnecessary charges.
+
+AWS Defaults
+------------
+
+The Ansible playbook uses the following defaults for AWS deployment:
+
+- Instances: 10
+- Region: us-west-2
+- Instance type: m4.xlarge
 
 Getting Started
 ---------------
@@ -24,11 +50,13 @@ Any platform that supports these tools is suitable, but the following instructio
   /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
   ```
 
-2. With Homebrew installed, run the following command in a terminal to install all of the required tools.
+2. With Homebrew installed, run the following command in a terminal to install all of the required tools and dependencies.
 
   ```
-  brew cask install java
-  brew install maven git
+  brew update
+  brew tap caskroom/versions
+  brew cask install java8 vagrant virtualbox
+  brew install maven git node
   ```
 
 3. Install Ansible by following the instructions [here](http://docs.ansible.com/ansible/intro_installation.html#latest-releases-via-pip).
@@ -45,6 +73,14 @@ Any platform that supports these tools is suitable, but the following instructio
   ```
   ssh-keygen -t rsa
   ```
+
+5. Ensure the JAVA_HOME environment variable is set
+
+   ```
+   export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk1.8.0_162.jdk/Contents/Home"
+   ```
+
+   Notice: You must replace the path with the installed JDK version path
 
 ### Amazon Web Services
 
@@ -120,11 +156,17 @@ env: metron-test
 
 ### Selective Provisioning
 
-To provision only subsets of the entire Metron deployment, Ansible tags can be specified.  For example, to only deploy the sensors on an Amazon EC2 environment, run the following command.
+To provision only subsets of the entire Metron deployment, Ansible tags can be specified.  For example, to only deploy the sensors on an Amazon EC2 environment, run the following command:
 
 ```
-ansible-playbook -i ec2.py playbook.yml --tags "ec2,sensors"
+./run.sh --tags="ec2,sensors"
 ```
+
+### Setting REST API Profile
+
+By default, EC2 is deployed with the `dev` Spring profile. This simply instructs the REST API to automatically setup default test users `[user, user1, user2, admin]` with password "`password`" as opposed to requiring the user to manually
+ create users in the REST database. You can change this default functionality by removing the `metron_spring_profiles_active` setting in `metron-deployment/roles/ambari_config/vars/small_cluster.yml`.
+ You can view more detail on the REST Spring profiles [here](../../metron-interface/metron-rest/README.md#spring-profiles).
 
 ### Custom SSH Key
 

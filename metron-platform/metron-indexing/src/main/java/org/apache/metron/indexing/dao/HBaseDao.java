@@ -18,7 +18,6 @@
 
 package org.apache.metron.indexing.dao;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -210,7 +209,7 @@ public class HBaseDao implements IndexDao {
     Long ts = Bytes.toLong(entry.getKey());
     if(entry.getValue()!= null) {
       Map<String, Object> json = JSONUtils.INSTANCE.load(new String(entry.getValue()),
-          new TypeReference<Map<String, Object>>() {});
+          JSONUtils.MAP_SUPPLIER);
       try {
         Key k = Key.fromBytes(result.getRow());
         return new Document(json, k.getGuid(), k.getSensorType(), ts);

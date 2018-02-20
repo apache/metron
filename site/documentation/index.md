@@ -67,31 +67,31 @@ title: Apache Metron Documentation
     </div>
     <div class="content-960 hover-btn text-center">
         <p> Apache Metron documentation provides information on quickly getting started with Metron, performing a full installation, adding additional data sources, and using Metron to triage alerts. Metron documentation is currently a work in progress. Please check back again later as we continue to grow this documentation set.</p>
-        <a class="button-default" href=" https://cwiki.apache.org/confluence/display/METRON/Documentation" target="_blank">LEARN MORE</a>
+        <a class="button-default" href="https://metron.apache.org/current-book/index.html" target="_blank">LEARN MORE</a>
     </div>
 </section>
 
 <section class="events-section info-block darken" id="releases">
     <div class="wrapper downloads">
         <div class="text-center">
-            <h4>Current Release: 0.4.1</h4>
+            <h4>Current Release: 0.4.2</h4>
         </div>
         <div class="content-960 hover-btn text-center">
             <ul>
                 <li>
-                <a href="http://www.apache.org/dyn/closer.cgi/metron/0.4.1/apache-metron-0.4.1.tar.gz" target="new">
-                    apache-metron-0.4.1.tar.gz
+                <a href="http://www.apache.org/dyn/closer.cgi/metron/0.4.2/apache-metron-0.4.2.tar.gz" target="new">
+                    apache-metron-0.4.2.tar.gz
                 </a>
-                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.4.1/apache-metron-0.4.1.tar.gz.asc" target="new">
+                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.4.2/apache-metron-0.4.2.tar.gz.asc" target="new">
                     PGP
                  </a>]
-                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.4.1/apache-metron-0.4.1.tar.gz.sha1" target="new">
+                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.4.2/apache-metron-0.4.2.tar.gz.sha1" target="new">
                     SHA
                  </a>]
-                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.4.1/apache-metron-0.4.1.tar.gz.sha512" target="new">
+                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.4.2/apache-metron-0.4.2.tar.gz.sha512" target="new">
                     SHA512
                  </a>]
-                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.4.1/apache-metron-0.4.1.tar.gz.md5" target="new">
+                 [ <a href="https://dist.apache.org/repos/dist/release/metron/0.4.2/apache-metron-0.4.2.tar.gz.md5" target="new">
                     MD5
                   </a>]
                  [ <a href="/current-book/index.html" target="new"> Book </a>]

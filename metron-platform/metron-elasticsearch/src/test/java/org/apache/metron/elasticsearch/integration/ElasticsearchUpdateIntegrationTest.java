@@ -18,7 +18,6 @@
 package org.apache.metron.elasticsearch.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -158,7 +157,7 @@ public class ElasticsearchUpdateIntegrationTest {
         Assert.assertEquals(1, columns.size());
         Assert.assertEquals(message0
                 , JSONUtils.INSTANCE.load(new String(columns.lastEntry().getValue())
-                        , new TypeReference<Map<String, Object>>() {})
+                        , JSONUtils.MAP_SUPPLIER)
         );
       }
       {
@@ -195,10 +194,10 @@ public class ElasticsearchUpdateIntegrationTest {
         NavigableMap<byte[], byte[]> columns = r.getFamilyMap(CF.getBytes());
         Assert.assertEquals(2, columns.size());
         Assert.assertEquals(message0, JSONUtils.INSTANCE.load(new String(columns.lastEntry().getValue())
-                        , new TypeReference<Map<String, Object>>() {})
+                        , JSONUtils.MAP_SUPPLIER)
         );
         Assert.assertNotEquals(message0, JSONUtils.INSTANCE.load(new String(columns.firstEntry().getValue())
-                        , new TypeReference<Map<String, Object>>() {})
+                        , JSONUtils.MAP_SUPPLIER)
         );
       }
       {

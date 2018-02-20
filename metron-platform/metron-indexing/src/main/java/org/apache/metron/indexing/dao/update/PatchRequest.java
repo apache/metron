@@ -19,10 +19,11 @@ package org.apache.metron.indexing.dao.update;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import java.util.List;
 import java.util.Map;
 
 public class PatchRequest {
-  JsonNode patch;
+  List<Map<String, Object>> patch;
   Map<String, Object> source;
   String guid;
   String sensorType;
@@ -54,11 +55,11 @@ public class PatchRequest {
    * </pre>
    * @return
    */
-  public JsonNode getPatch() {
+  public List<Map<String, Object>> getPatch() {
     return patch;
   }
 
-  public void setPatch(JsonNode patch) {
+  public void setPatch(List<Map<String, Object>> patch) {
     this.patch = patch;
   }
 

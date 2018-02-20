@@ -1,13 +1,30 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 # Metron Docker
 
 Metron Docker is a [Docker Compose](https://docs.docker.com/compose/overview/) application that is intended only for development and integration testing of Metron.  These images can quickly spin-up the underlying components on which Apache Metron runs.
 
-None of the core Metron components are setup or launched automatically with these Docker images.  You will need to manually setup and start the Metron components that you require.  You should not expect to see telemetry being parsed, enriched, or indexed.  If you are looking to try-out, experiment or demo Metron capabilities on a single node, then the [Vagrant-driven VM](../../metron-deployment/vagrant/full-dev-platform) is what you need.  Use this instead of Vagrant when:
-  
+None of the core Metron components are setup or launched automatically with these Docker images.  You will need to manually setup and start the Metron components that you require.  You should not expect to see telemetry being parsed, enriched, or indexed.  If you are looking to try-out, experiment or demo Metron capabilities on a single node, then the [Vagrant-driven VM](../../metron-deployment/development/centos6) is what you need.  Use this instead of Vagrant when:
+
   - You want an environment that can be built and spun up quickly
   - You need to frequently rebuild and restart services
   - You only need to test, troubleshoot or develop against a subset of services
-  
+
 Metron Docker includes these images that have been customized for Metron:
 
   - Kafka (with Zookeeper)
@@ -25,7 +42,7 @@ Install [Docker for Mac](https://docs.docker.com/docker-for-mac/) or [Docker for
   - Docker version 1.12.0
   - docker-machine version 0.8.0
   - docker-compose version 1.8.0
-  
+
 Build Metron from the top level directory with:
 ```
 $ cd $METRON_HOME
@@ -35,7 +52,7 @@ $ mvn clean install -DskipTests
 You are welcome to use an existing Docker host but we prefer one with more resources.  You can create one of those with this script:
 ```
 $ export METRON_DOCKER_HOME=$METRON_HOME/metron-contrib/metron-docker
-$ cd $METRON_DOCKER_HOME 
+$ cd $METRON_DOCKER_HOME
 $ ./scripts/create-docker-machine.sh
 ```
 
@@ -144,7 +161,7 @@ $ docker-compose exec kafkazk ./bin/produce-data.sh
 Usage:  produce-data.sh data_path topic [message_delay_in_seconds]
 
 # Stream data in TestData.txt to the 'test' Kafka topic at a frequency of 5 seconds (default is 1 second)
-$ docker-compose exec kafkazk ./bin/produce-data.sh /data/TestData.txt test 5 
+$ docker-compose exec kafkazk ./bin/produce-data.sh /data/TestData.txt test 5
 ```
 
 The Kafka/Zookeeper image comes with sample Bro and Squid data:

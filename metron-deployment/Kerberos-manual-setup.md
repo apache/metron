@@ -1,3 +1,20 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 Kerberos Setup
 ==============
 
@@ -17,7 +34,7 @@ This document provides instructions for kerberizing Metron's Vagrant-based devel
 Setup
 -----
 
-1. Deploy the [development environment.](vagrant/full-dev-platform/README.md).
+1. Deploy the [development environment.](development/centos6/README.md).
 
 1. Export the following environment variables.  These need to be set for the remainder of the instructions. Replace `node1` with the appropriate hosts, if you are running Metron anywhere other than Vagrant.
 
@@ -30,7 +47,7 @@ Setup
     export BROKERLIST=node1:6667
     export HDP_HOME="/usr/hdp/current"
     export KAFKA_HOME="${HDP_HOME}/kafka-broker"
-    export METRON_VERSION="0.4.2"
+    export METRON_VERSION="${METRON_VERSION}"
     export METRON_HOME="/usr/metron/${METRON_VERSION}"
     ```
 
@@ -73,7 +90,7 @@ Setup a KDC
     cp -f /etc/krb5.conf /var/lib/ambari-server/resources/scripts
     ```
 
-1. Ensure that the KDC can issue renewable tickets. This may be necessary on a real cluster, but should not be on [Full Dev](vagrant/full-dev-platform/README.md).
+1. Ensure that the KDC can issue renewable tickets. This may be necessary on a real cluster, but should not be on a [single VM](development/centos6/README.md).
 
     Edit `/var/kerberos/krb5kdc/kdc.conf` and ensure the following is added to the `realm` section
 
@@ -227,7 +244,7 @@ Kafka Authorization
 
     ```
     export KERB_USER=metron
-    for group in bro_parser snort_parser yaf_parser enrichments indexing profiler; do
+    for group in bro_parser snort_parser yaf_parser enrichments indexing-ra indexing-batch profiler; do
     	${KAFKA_HOME}/bin/kafka-acls.sh \
           --authorizer kafka.security.auth.SimpleAclAuthorizer \
           --authorizer-properties zookeeper.connect=${ZOOKEEPER} \

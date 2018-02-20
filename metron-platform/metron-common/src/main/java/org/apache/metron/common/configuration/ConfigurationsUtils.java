@@ -596,10 +596,7 @@ public class ConfigurationsUtils {
           byte[] patchData, CuratorFramework client) throws Exception {
 
     byte[] configData = readConfigBytesFromZookeeper(configurationType, configName, client);
-    JsonNode source = JSONUtils.INSTANCE.readTree(configData);
-    JsonNode patch = JSONUtils.INSTANCE.readTree(patchData);
-    JsonNode patchedConfig = JSONUtils.INSTANCE.applyPatch(patch, source);
-    byte[] prettyPatchedConfig = JSONUtils.INSTANCE.toJSONPretty(patchedConfig);
+    byte[] prettyPatchedConfig = JSONUtils.INSTANCE.applyPatch(patchData, configData);
 
     // ensure the patch produces a valid result; otherwise exception thrown during deserialization
     String prettyPatchedConfigStr = new String(prettyPatchedConfig);

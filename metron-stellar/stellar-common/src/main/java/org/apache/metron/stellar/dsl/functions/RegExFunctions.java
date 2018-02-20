@@ -21,6 +21,7 @@ package org.apache.metron.stellar.dsl.functions;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.common.utils.PatternCache;
 import org.apache.metron.stellar.dsl.BaseStellarFunction;
@@ -98,6 +99,41 @@ public class RegExFunctions {
         return null;
       }
       return matcher.group(groupNumber);
+    }
+  }
+
+  @Stellar(name = "REGEXP_REPLACE",
+      description = "Replace all occurences of the regex pattern within the string by value",
+      params = {
+          "string - The input string",
+          "pattern - The regex pattern to be replaced. Special characters must be escaped (e.g. \\\\d)",
+          "value - The value to replace the regex pattern"
+      },
+      returns = "The modified input string with replaced values")
+  public static class RegexpReplace extends BaseStellarFunction {
+
+    @Override
+    public Object apply(List<Object> list) {
+      if (list.size() != 3) {
+        throw new IllegalStateException(
+            "REGEXP_REPLACE expects three args: [string, pattern, value]"
+                + " where pattern is a regexp pattern");
+      }
+      String str = (String) list.get(0);
+      String stringPattern = (String) list.get(1);
+      String value = (String) list.get(2);
+
+      if (StringUtils.isEmpty(str)) {
+        return null;
+      }
+
+      if (StringUtils.isEmpty(stringPattern) || StringUtils.isEmpty(value)) {
+        return str;
+      }
+
+      Pattern pattern = PatternCache.INSTANCE.getPattern(stringPattern);
+      Matcher matcher = pattern.matcher(str);
+      return matcher.replaceAll(value);
     }
   }
 }

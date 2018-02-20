@@ -1,3 +1,20 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 # Parsers
 
 ## Introduction
@@ -215,6 +232,23 @@ whenever `field2` exists and whose corresponding equal to 'foo':
                       ]
 }
 ```
+
+* `SELECT`: This transformation filters the fields in the message to include only the configured output fields, and drops any not explicitly included. 
+
+For example: 
+```
+{
+...
+    "fieldTransformations" : [
+          {
+            "output" : ["field1", "field2" ] 
+          , "transformation" : "SELECT"
+          }
+                      ]
+}
+```
+
+when applied to a message containing keys field1, field2 and field3, will only output the first two. It is also worth noting that two standard fields - timestamp and original_source - will always be passed along whether they are listed in output or not, since they are considered core required fields.
 
 * `IP_PROTOCOL` : This transformation maps IANA protocol numbers to consistent string representations.
 

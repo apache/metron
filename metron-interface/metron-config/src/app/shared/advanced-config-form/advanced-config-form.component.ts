@@ -83,7 +83,7 @@ export class AdvancedConfigFormComponent implements OnInit, OnChanges {
     }
     if (this.newConfigKey !== 'enter field' && this.newConfigValue !== 'enter value') {
       let keyExists = this.config[this.newConfigKey] !== undefined;
-      this.config[this.newConfigKey] = this.newConfigValue;
+      this.saveValue(this.newConfigKey, this.newConfigValue);
       if (keyExists) {
         this.newConfigKey = 'enter field';
         this.newConfigValue = 'enter value';
@@ -105,6 +105,24 @@ export class AdvancedConfigFormComponent implements OnInit, OnChanges {
     delete this.config[key];
     this.configKeys = Object.keys(this.config);
     this.configForm.removeControl(key);
+  }
+
+  displayValue(key: string): string {
+    let value = this.config[key];
+    if (Array.isArray(value) || value instanceof Object) {
+      return JSON.stringify(value);
+    } else {
+      return value;
+    }
+  }
+
+  saveValue(key: string, value: string) {
+    try {
+        this.config[key] = JSON.parse(value);
+    } catch (err) {
+        this.config[key] = value;
+    }
+
   }
 
 }
