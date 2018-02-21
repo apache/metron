@@ -137,8 +137,6 @@ public abstract class AbstractMetaAlertDao implements MetaAlertDao {
   }
 
   protected boolean removeAlertsFromMetaAlert(Document metaAlert, Collection<String> alertGuids) {
-    MapUtils.debugPrint(System.out, "metaAlert during remove", metaAlert.getDocument());
-    System.out.println("ALERT GUIDS: " + alertGuids);
     @SuppressWarnings("unchecked")
     List<Map<String, Object>> currentAlerts = (List<Map<String, Object>>) metaAlert.getDocument()
         .get(ALERT_FIELD);

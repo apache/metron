@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.commons.collections.MapUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.AbstractMetaAlertDao;
@@ -172,7 +173,7 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
       String guidClause = Constants.GUID + ":" + guid;
       SolrQuery query = new SolrQuery();
       query.setQuery(guidClause)
-          .setFields(Constants.GUID, "*", "[child parentFilter=" + guidClause + " limit=999]");
+          .setFields("*", "[child parentFilter=" + guidClause + " limit=999]");
 
       SolrClient client = solrDao.getClient();
       try {
@@ -202,14 +203,17 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
     // Searches for all alerts containing the meta alert guid in it's "metalerts" array
     // The query has to match the parentFilter to avoid errors.  Guid must also be explicitly
     // included.
+
+//    {!parent which=status:active}guid:message_0
     String activeClause = STATUS_FIELD + ":" + MetaAlertStatus.ACTIVE.getStatusString();
+    String guidClause = Constants.GUID + ":" + guid;
+    String fullClause = "{!parent which=" + activeClause + "}" + guidClause;
     SolrQuery solrQuery = new SolrQuery()
-        .setQuery(activeClause)
-        .setFields(Constants.GUID, "*", "[child parentFilter=" + activeClause + " limit=999]")
+        .setQuery(fullClause)
+        .setFields("*", "[child parentFilter=" + activeClause + " limit=999]")
         .addSort(Constants.GUID,
             SolrQuery.ORDER.asc); // Just do basic sorting to track where we are
 
-    // TODO handle child documents.  Sigh.
     List<SearchResult> allResults = new ArrayList<>();
     try {
       String cursorMark = CursorMarkParams.CURSOR_MARK_START;
@@ -330,7 +334,6 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
     // TODO I don't know of a way to avoid knowing the collection.  Which means that
     // index can't be optional, or it won't be committed
 
-
     Map<Document, Optional<String>> updates = new HashMap<>();
     updates.put(update, index);
 
@@ -339,8 +342,6 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
     SearchResponse searchResponse;
     try {
       searchResponse = getAllMetaAlertsForAlert(update.getGuid());
-      // TODO clean up debug statements
-      System.out.println(searchResponse);
     } catch (InvalidSearchException e) {
       throw new IOException("Unable to retrieve metaalerts for alert", e);
     }
@@ -352,9 +353,6 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
       metaAlerts.add(doc);
     }
 
-    // TODO debug as needed when done
-    System.out.println(metaAlerts);
-
     for (Document metaAlert : metaAlerts) {
       if (replaceAlertInMetaAlert(metaAlert, update)) {
         updates.put(metaAlert, Optional.of(METAALERTS_COLLECTION));
@@ -364,13 +362,12 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
     // Run the alert's update
     indexDao.batchUpdate(updates);
 
-    // Commit if we have updated metaalerts.
-    if (metaAlerts.size() > 0) {
-      try {
-        solrDao.getClient().commit(METAALERTS_COLLECTION);
-      } catch (SolrServerException e) {
-        throw new IOException("Unable to update document", e);
-      }
+    try {
+      solrDao.getClient().commit(METAALERTS_COLLECTION);
+      // TODO remove this
+      solrDao.getClient().commit("test");
+    } catch (SolrServerException e) {
+      throw new IOException("Unable to update document", e);
     }
   }
 
@@ -385,40 +382,18 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
 
   @Override
   public Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException {
-//    Iterable<Document> results = indexDao.getAllLatest(getRequests);
-//      String rawAlertField = (String) resultDoc.get(ALERT_FIELD);
-//      if (rawAlertField != null) {
-//        try {
-//          resultDoc.put(ALERT_FIELD, parser.parse(rawAlertField));
-//        } catch (ParseException e) {
-//          throw new IOException("Unable to parse alert field: " + rawAlertField, e);
-//        }
-//      }
-//    }
-//    return results;
     return indexDao.getAllLatest(getRequests);
   }
 
-  /**
-   * Given an alert GUID, retrieve all associated meta alerts.
-   * @param alertGuid The GUID of the child alert
-   * @return The Solrresponse containing the meta alerts
-   */
-//  protected SearchResponse getMetaAlertsForAlert(String alertGuid) {
-//    SolrQuery query = new SolrQuery("");
-//    return null;
-//    QueryBuilder qb = boolQuery()
-//        .must(
-//            nestedQuery(
-//                ALERT_FIELD,
-//                boolQuery()
-//                    .must(termQuery(ALERT_FIELD + "." + Constants.GUID, alertGuid)),
-//                ScoreMode.None
-//            ).innerHit(new InnerHitBuilder())
-//        )
-//        .must(termQuery(STATUS_FIELD, MetaAlertStatus.ACTIVE.getStatusString()));
-//    return queryAllResults(qb);
+//  @Override
+//  public boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
+//      throws IOException {
+//    boolean retVal = super.updateMetaAlertStatus(metaAlertGuid, status);
+//    try {
+//      solrDao.getClient().commit(METAALERTS_COLLECTION);
+//      return retVal;
+//    } catch (SolrServerException e) {
+//      throw new IOException("Unable to commit", e);
+//    }
 //  }
-
-
 }

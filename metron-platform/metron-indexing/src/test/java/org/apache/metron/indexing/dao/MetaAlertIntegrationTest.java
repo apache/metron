@@ -320,36 +320,36 @@ public abstract class MetaAlertIntegrationTest {
       findUpdatedDoc(expectedMetaAlert, "meta_alert", metaDao.getMetAlertSensorName());
     }
 
-//    {
-//      // Verify False when alerts are already in a meta alert and no new alerts are added
-//      Assert.assertFalse(metaDao.addAlertsToMetaAlert("meta_alert", Arrays
-//          .asList(new GetRequest("message_0", SENSOR_NAME),
-//              new GetRequest("message_1", SENSOR_NAME))));
-//      findUpdatedDoc(expectedMetaAlert, "meta_alert", metaDao.getMetAlertSensorName());
-//    }
-//
-//    {
-//      // Verify only 1 alert is added when a list of alerts only contains 1 alert that is not in the meta alert
-//      metaAlertAlerts = new ArrayList<>(
-//          (List<Map<String, Object>>) expectedMetaAlert.get(ALERT_FIELD));
-//      Map<String, Object> expectedAlert3 = alerts.get(3);
-//      expectedAlert3.put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
-//      metaAlertAlerts.add(expectedAlert3);
-//      expectedMetaAlert.put(ALERT_FIELD, metaAlertAlerts);
-//
-//      expectedMetaAlert.put("average", 1.5d);
-//      expectedMetaAlert.put("min", 0.0d);
-//      expectedMetaAlert.put("median", 1.5d);
-//      expectedMetaAlert.put("max", 3.0d);
-//      expectedMetaAlert.put("count", 4);
-//      expectedMetaAlert.put("sum", 6.0d);
-//      expectedMetaAlert.put(metaDao.getThreatTriageField(), 6.0d);
-//
-//      Assert.assertTrue(metaDao.addAlertsToMetaAlert("meta_alert", Arrays
-//          .asList(new GetRequest("message_2", SENSOR_NAME),
-//              new GetRequest("message_3", SENSOR_NAME))));
-//      findUpdatedDoc(expectedMetaAlert, "meta_alert", metaDao.getMetAlertSensorName());
-//    }
+    {
+      // Verify False when alerts are already in a meta alert and no new alerts are added
+      Assert.assertFalse(metaDao.addAlertsToMetaAlert("meta_alert", Arrays
+          .asList(new GetRequest("message_0", SENSOR_NAME),
+              new GetRequest("message_1", SENSOR_NAME))));
+      findUpdatedDoc(expectedMetaAlert, "meta_alert", metaDao.getMetAlertSensorName());
+    }
+
+    {
+      // Verify only 1 alert is added when a list of alerts only contains 1 alert that is not in the meta alert
+      metaAlertAlerts = new ArrayList<>(
+          (Set<Map<String, Object>>) expectedMetaAlert.get(ALERT_FIELD));
+      Map<String, Object> expectedAlert3 = alerts.get(3);
+      expectedAlert3.put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
+      metaAlertAlerts.add(expectedAlert3);
+      expectedMetaAlert.put(ALERT_FIELD, metaAlertAlerts);
+
+      expectedMetaAlert.put("average", 1.5d);
+      expectedMetaAlert.put("min", 0.0d);
+      expectedMetaAlert.put("median", 1.5d);
+      expectedMetaAlert.put("max", 3.0d);
+      expectedMetaAlert.put("count", 4);
+      expectedMetaAlert.put("sum", 6.0d);
+      expectedMetaAlert.put(metaDao.getThreatTriageField(), 6.0d);
+
+      Assert.assertTrue(metaDao.addAlertsToMetaAlert("meta_alert", Arrays
+          .asList(new GetRequest("message_2", SENSOR_NAME),
+              new GetRequest("message_3", SENSOR_NAME))));
+      findUpdatedDoc(expectedMetaAlert, "meta_alert", metaDao.getMetAlertSensorName());
+    }
   }
 
   @Test
@@ -538,7 +538,9 @@ public abstract class MetaAlertIntegrationTest {
 
       for (int i = 0; i < numChildAlerts; ++i) {
         Map<String, Object> expectedAlert = new HashMap<>(childAlerts.get(i));
-        expectedAlert.put("metaalerts", new ArrayList());
+        // TODO expect this might need to handle empty metaalert representations.
+        // e.g. ES expects empty list, Solr expects nothing
+//        expectedAlert.put("metaalerts", new ArrayList());
         findUpdatedDoc(expectedAlert, "message_" + i, SENSOR_NAME);
       }
 
@@ -805,7 +807,8 @@ public abstract class MetaAlertIntegrationTest {
       Map<String, Object> message0 = new HashMap<String, Object>(alerts.get(0)) {
         {
           put(NEW_FIELD, "metron");
-          put(MetaAlertDao.THREAT_FIELD_DEFAULT, "10");
+          // TODO does this break ES?  This shouldn't be a string
+          put(MetaAlertDao.THREAT_FIELD_DEFAULT, 10.0d);
         }
       };
       String guid = "" + message0.get(Constants.GUID);
@@ -945,7 +948,8 @@ public abstract class MetaAlertIntegrationTest {
 
   protected void findUpdatedDoc(Map<String, Object> message0, String guid, String sensorType)
       throws InterruptedException, IOException, OriginalNotFoundException {
-    // TODO clear debug stuff out
+    commit();
+    System.out.println("GUID: " + guid);
     MapUtils.debugPrint(System.out, "expected", message0);
     for (int t = 0; t < MAX_RETRIES; ++t, Thread.sleep(SLEEP_MS)) {
       Document doc = metaDao.getLatest(guid, sensorType);
@@ -962,6 +966,7 @@ public abstract class MetaAlertIntegrationTest {
     throw new OriginalNotFoundException(
         "Count not find " + guid + " after " + MAX_RETRIES + " tries");
   }
+
 
   protected void convertAlertsFieldToSet(Map<String, Object> document) {
     if (document.get(ALERT_FIELD) instanceof List) {
@@ -1052,4 +1057,7 @@ public abstract class MetaAlertIntegrationTest {
   protected abstract void setupTypings();
 
   protected abstract String getTestIndexName();
+
+  // Allow for impls to do any commit they need to do.
+  protected void commit() throws IOException { }
 }

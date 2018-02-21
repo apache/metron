@@ -40,6 +40,7 @@
   <field name="timestamp" type="plong" indexed="true" stored="true"/>
   <field name="new-field" type="string" indexed="true" stored="true"/>
   <field name="metaalerts" type="string" multiValued="true" indexed="true" stored="true"/>
+  <field name="threat:triage:score" type="pdouble" indexed="true" stored="true"/>
 
   <dynamicField name="*" type="ignored" multiValued="false" docValues="true"/>
 

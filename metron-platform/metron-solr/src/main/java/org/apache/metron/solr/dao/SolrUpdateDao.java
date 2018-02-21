@@ -65,7 +65,7 @@ public class SolrUpdateDao implements UpdateDao {
     // updates with no collection specified
     Collection<SolrInputDocument> solrUpdates = new ArrayList<>();
 
-    for (Entry<Document, Optional<String>> entry: updates.entrySet()) {
+    for (Entry<Document, Optional<String>> entry : updates.entrySet()) {
       SolrInputDocument solrInputDocument = SolrUtilities.toSolrInputDocument(entry.getKey());
       Optional<String> index = entry.getValue();
       if (index.isPresent()) {
@@ -81,7 +81,8 @@ public class SolrUpdateDao implements UpdateDao {
     }
     try {
       if (!solrCollectionUpdates.isEmpty()) {
-        for (Entry<String, Collection<SolrInputDocument>> entry: solrCollectionUpdates.entrySet()) {
+        for (Entry<String, Collection<SolrInputDocument>> entry : solrCollectionUpdates
+            .entrySet()) {
           this.client.add(entry.getKey(), entry.getValue());
         }
       } else {

@@ -28,7 +28,6 @@ import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.MetaAlertIntegrationTest;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.dao.SolrMetaAlertDao;
-import org.apache.metron.solr.dao.SolrUtilities;
 import org.apache.metron.solr.integration.components.SolrComponent;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.zookeeper.KeeperException;
@@ -148,5 +147,17 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
   @Override
   protected String getTestIndexName() {
     return COLLECTION;
+  }
+
+  @Override
+  protected void commit() throws IOException {
+    try {
+      List<String> collections = solr.getSolrClient().listCollections();
+      for (String collection : collections) {
+        solr.getSolrClient().commit(collection);
+      }
+    } catch (SolrServerException e) {
+      throw new IOException("Unable to commit", e);
+    }
   }
 }

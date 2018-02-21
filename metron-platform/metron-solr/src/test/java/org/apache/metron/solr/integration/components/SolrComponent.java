@@ -199,15 +199,16 @@ public class SolrComponent implements InMemoryComponent {
       for (Entry<String, Object> entry : doc.entrySet()) {
         // If the entry itself is a map, add it as a child document. Handle one level of nesting.
         if (entry.getValue() instanceof List) {
-          Object entryItem = ((List) entry.getValue()).get(0);
-          if (entryItem instanceof Map) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> childDoc = (Map<String, Object>) entryItem;
-            SolrInputDocument childInputDoc = new SolrInputDocument();
-            for (Entry<String, Object> childEntry : childDoc.entrySet()) {
-              childInputDoc.addField(childEntry.getKey(), childEntry.getValue());
+          for (Object entryItem : (List)entry.getValue()) {
+            if (entryItem instanceof Map) {
+              @SuppressWarnings("unchecked")
+              Map<String, Object> childDoc = (Map<String, Object>) entryItem;
+              SolrInputDocument childInputDoc = new SolrInputDocument();
+              for (Entry<String, Object> childEntry : childDoc.entrySet()) {
+                childInputDoc.addField(childEntry.getKey(), childEntry.getValue());
+              }
+              solrInputDocument.addChildDocument(childInputDoc);
             }
-            solrInputDocument.addChildDocument(childInputDoc);
           }
         } else {
           solrInputDocument.addField(entry.getKey(), entry.getValue());
