@@ -68,4 +68,13 @@ public interface KafkaService {
   String getSampleMessage(String topic);
 
   void produceMessage(String topic, String message) throws RestException;
+
+
+  /**
+   *
+   * @param name The name of the Kafka topic to add the ACL.
+   * @return If topic was present true; otherwise false.
+   */
+  boolean addACLToCurrentUser(String name);
+
 }
