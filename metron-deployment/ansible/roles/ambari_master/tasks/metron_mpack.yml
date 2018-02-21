@@ -15,9 +15,12 @@
 #  limitations under the License.
 #
 ---
-ambari_server_mem: 2048
-ambari_mpack_version: 0.4.3.0
-metron_mpack_name: metron_mpack-{{ ambari_mpack_version }}.tar.gz
-metron_mpack_path: "{{ playbook_dir }}/../../packaging/ambari/metron-mpack/target/{{ metron_mpack_name }}"
-elasticsearch_mpack_name: elasticsearch_mpack-{{ ambari_mpack_version }}.tar.gz
-elasticsearch_mpack_path: "{{ playbook_dir }}/../../packaging/ambari/elasticsearch-mpack/target/{{ elasticsearch_mpack_name }}"
+- name: Copy Metron MPack to Ambari Host
+  copy:
+    src: "{{ metron_mpack_path }}"
+    dest: /tmp
+
+- name: Install Metron MPack on Ambari Host
+  shell: ambari-server install-mpack --mpack=/tmp/metron_mpack-{{ ambari_mpack_version }}.tar.gz
+  args:
+    creates: /var/lib/ambari-server/resources/mpacks/metron-ambari.mpack-{{ ambari_mpack_version }}/addon-services
