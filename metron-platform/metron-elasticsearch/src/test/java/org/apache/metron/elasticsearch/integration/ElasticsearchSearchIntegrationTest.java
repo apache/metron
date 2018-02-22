@@ -17,50 +17,26 @@
  */
 package org.apache.metron.elasticsearch.integration;
 
-import java.util.Map;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
+import org.apache.metron.elasticsearch.integration.utils.ElasticsearchTestUtils;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
-import org.apache.metron.indexing.dao.search.GetRequest;
-import org.apache.metron.integration.InMemoryComponent;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.action.support.WriteRequest;
-import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.index.IndexNotFoundException;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.concurrent.ExecutionException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
-  private static String host = "localhost";
-  private static String port = "9310";
-  private static String dateFormat = "yyyy.MM.dd.HH";
-  private static final int MAX_RETRIES = 10;
-  private static final int SLEEP_MS = 500;
-
   /**
    * {
    * "searchintegrationtest_bro_doc": {
@@ -172,19 +148,6 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
   /**
    * {
-   * "searchintegrationtest_metaalert_doc": {
-   *   "properties": {
-   *     "source:type": { "type": "string" },
-   *     "alert": { "type": "nested"}
-   *   }
-   * }
-   * }
-   */
-  @Multiline
-  private static String metaAlertTypeMappings;
-
-  /**
-   * {
    * "bro_doc_default": {
    *   "dynamic_templates": [{
    *     "strings": {
@@ -200,30 +163,17 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
   @Multiline
   private static String broDefaultStringMappings;
 
-  private static Map<String, Object> globalConfig;
   private static Client client;
 
   @BeforeClass
   public static void start() {
-    globalConfig = new HashMap<String, Object>() {{
-      put("es.clustername", "elasticsearch");
-      put("es.port", port);
-      put("es.ip", host);
-      put("es.date.format", dateFormat);
-    }};
-    client = ElasticsearchUtils.getClient(globalConfig, null);
-    clearIndices();
+    client = ElasticsearchUtils.getClient(ElasticsearchTestUtils.getGlobalConfig(), null);
+    ElasticsearchTestUtils.clearIndices(client, broIndex, snortIndex);
   }
 
   @AfterClass
   public static void stop() throws Exception {
-    clearIndices();
-  }
-
-  private static void clearIndices() {
-    try {
-      client.admin().indices().prepareDelete(broIndex, snortIndex, metaAlertIndex).get();
-    } catch (IndexNotFoundException infe) {}
+    ElasticsearchTestUtils.clearIndices(client, broIndex, snortIndex);
   }
 
   @Override
@@ -231,7 +181,7 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
     AccessConfig config = new AccessConfig();
     config.setMaxSearchResults(100);
     config.setMaxSearchGroups(100);
-    config.setGlobalConfigSupplier( () -> globalConfig);
+    config.setGlobalConfigSupplier(ElasticsearchTestUtils::getGlobalConfig);
 
     IndexDao dao = new ElasticsearchDao();
     dao.init(config);
@@ -240,35 +190,30 @@ public class ElasticsearchSearchIntegrationTest extends SearchIntegrationTest {
 
   @Override
   protected void loadTestData()
-      throws ParseException, IOException, ExecutionException, InterruptedException {
+      throws ParseException {
     client.admin().indices().prepareCreate(broIndex)
             .addMapping(broType, broTypeMappings).get();
     client.admin().indices().prepareCreate(snortIndex)
             .addMapping(snortType, snortTypeMappings).get();
-    client.admin().indices().prepareCreate(metaAlertIndex)
-        .addMapping(metaAlertType, metaAlertTypeMappings).get();
 
-    BulkRequestBuilder bulkRequest = client.prepareBulk().setRefresh(true);
-    JSONArray broArray = (JSONArray) new JSONParser().parse(broData);
-    for(Object o: broArray) {
-      JSONObject jsonObject = (JSONObject) o;
-      IndexRequestBuilder indexRequestBuilder = client.prepareIndex(broIndex, broType);
-      indexRequestBuilder = indexRequestBuilder.setSource(jsonObject.toJSONString());
-      indexRequestBuilder = indexRequestBuilder.setTimestamp(jsonObject.get("timestamp").toString());
-      bulkRequest.add(indexRequestBuilder);
+    BulkRequestBuilder bulkRequest = client.prepareBulk().setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
+    addIndexRequest(bulkRequest, broData, broIndex, broType);
+    addIndexRequest(bulkRequest, snortData, snortIndex, snortType);
+    BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+    if (bulkResponse.hasFailures()) {
+      throw new RuntimeException("Failed to index test data");
     }
-    JSONArray snortArray = (JSONArray) new JSONParser().parse(snortData);
-    for(Object o: snortArray) {
+  }
+
+  private void addIndexRequest(BulkRequestBuilder bulkRequest, String data, String index, String docType) throws ParseException {
+    JSONArray dataArray = (JSONArray) new JSONParser().parse(data);
+    for(Object o: dataArray) {
       JSONObject jsonObject = (JSONObject) o;
-      IndexRequestBuilder indexRequestBuilder = client.prepareIndex(snortIndex, snortType);
+      IndexRequestBuilder indexRequestBuilder = client.prepareIndex(index, docType);
       indexRequestBuilder = indexRequestBuilder.setId((String) jsonObject.get("guid"));
       indexRequestBuilder = indexRequestBuilder.setSource(jsonObject.toJSONString());
       indexRequestBuilder = indexRequestBuilder.setTimestamp(jsonObject.get("timestamp").toString());
       bulkRequest.add(indexRequestBuilder);
-    }
-    BulkResponse bulkResponse = bulkRequest.execute().actionGet();
-    if (bulkResponse.hasFailures()) {
-      throw new RuntimeException("Failed to index test data");
     }
   }
 

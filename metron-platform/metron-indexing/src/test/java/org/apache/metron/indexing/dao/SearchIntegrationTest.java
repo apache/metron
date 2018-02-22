@@ -49,10 +49,8 @@ public abstract class SearchIntegrationTest {
   private static final String namespace = SearchIntegrationTest.class.getSimpleName().toLowerCase();
   protected static final String broIndex = namespace + "_bro_index";
   protected static final String snortIndex = namespace + "_snort_index";
-  protected static final String metaAlertIndex = namespace + "_metaalert_index";
   protected static final String broType = namespace + "_bro_doc";
   protected static final String snortType = namespace + "_snort_doc";
-  protected static final String metaAlertType = namespace + "_metaalert_doc";
 
   /**
    * [
@@ -671,7 +669,7 @@ public abstract class SearchIntegrationTest {
 
   @Test
   public void returns_column_data_for_multiple_indices() throws Exception {
-    Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("bro", "snort"));
+    Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("searchintegrationtest_bro", "searchintegrationtest_snort"));
     Assert.assertEquals(15, fieldTypes.size());
     Assert.assertEquals(FieldType.KEYWORD, fieldTypes.get("guid"));
     Assert.assertEquals(FieldType.TEXT, fieldTypes.get("source:type"));

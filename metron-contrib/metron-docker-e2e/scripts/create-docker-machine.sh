@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -14,23 +15,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-FROM centos
+docker-machine create --driver virtualbox --virtualbox-disk-size "30000" --virtualbox-memory "4096" --virtualbox-cpu-count "2" metron-machine
 
-RUN yum install -y java-1.8.0-openjdk lsof
-
-ARG METRON_VERSION
-
-ENV METRON_VERSION $METRON_VERSION
-ENV METRON_HOME /usr/metron/$METRON_VERSION
-ENV METRON_REST_PORT 8082
-
-RUN mkdir -p $METRON_HOME
-ADD ./bin $METRON_HOME/bin
-COPY ./packages/* /packages/
-RUN find /packages -type f -name '*.tar.gz' -exec tar -xzf {} -C /usr/metron/$METRON_VERSION/ \;
-ADD ./config $METRON_HOME/config
-
-EXPOSE 8082 8082
-
-WORKDIR $METRON_HOME
-CMD ./bin/start.sh
+# Necessary for Elasticsearch Docker image: https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode
+docker-machine ssh metron-machine sudo sysctl -w vm.max_map_count=262144

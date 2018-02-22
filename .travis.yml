@@ -33,6 +33,7 @@ language: java
 jdk:
   - oraclejdk8
 before_install:
+  - sudo sysctl -w vm.max_map_count=262144
   - sudo rm /usr/local/bin/docker-compose
   - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
   - chmod +x docker-compose
@@ -43,23 +44,18 @@ before_install:
   - export PATH=$M2_HOME/bin:$PATH
   - npm config set cache $HOME/.npm-cache --global
   - npm config set prefix $HOME/.npm-prefix --global
-  - if [ -f ${DOCKER_METRON_CENTOS} ]; then gunzip -c ${DOCKER_METRON_CENTOS} | docker load; else docker build metron-contrib/metron-docker-e2e/compose/metron-centos/ -t "metron-centos"; fi
+  #- if [ -f ${DOCKER_METRON_CENTOS} ]; then gunzip -c ${DOCKER_METRON_CENTOS} | docker load; else docker build metron-contrib/metron-docker-e2e/compose/metron-centos/ -t "metron-centos"; fi
 
 install:
   - time mvn -q -T 2C -DskipTests clean install
   - cd $E2E_COMPOSE_HOME && docker-compose up -d
-  - if [ ! -f ${DOCKER_METRON_CENTOS} ]; then docker save metron-centos | gzip > ${DOCKER_METRON_CENTOS}; fi
+  #- if [ ! -f ${DOCKER_METRON_CENTOS} ]; then docker save metron-centos | gzip > ${DOCKER_METRON_CENTOS}; fi
   - cd $TRAVIS_BUILD_DIR
 
 script:
-   - ls -la
-   - metron-contrib/metron-docker-e2e/scripts/wait_for_rest.sh localhost 8082
-   - cd $E2E_COMPOSE_HOME && docker-compose logs metron-rest && cd ../../../
-#   - mvn -q -T 2C surefire:test@unit-tests
-#   - mvn -q surefire:test@integration-tests
-#   - mvn -q test --projects metron-interface/metron-config
-   - mvn test -Pe2e --projects=metron-interface/metron-alerts
-#   - dev-utilities/build-utils/verify_licenses.sh
+  #- time mvn -q -T 2C surefire:test@unit-tests && time mvn -q surefire:test@integration-tests && time mvn -q test --projects metron-interface/metron-config && time dev-utilities/build-utils/verify_licenses.sh
+  - time mvn -q -T 2C surefire:test@unit-tests --projects=metron-platform/metron-elasticsearch
+  - time mvn -q surefire:test@integration-tests --projects=metron-platform/metron-elasticsearch
 
 before_cache:
   - rm -rf $HOME/.m2/repository/org/apache/metron

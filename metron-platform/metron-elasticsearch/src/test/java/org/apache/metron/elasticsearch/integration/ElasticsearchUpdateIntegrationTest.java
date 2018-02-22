@@ -18,7 +18,7 @@
 package org.apache.metron.elasticsearch.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.collect.Iterables;
+import org.adrianwalker.multilinestring.Multiline;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Get;
@@ -26,38 +26,59 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.elasticsearch.dao.ElasticsearchDao;
-import org.apache.metron.elasticsearch.integration.components.ElasticSearchComponent;
+import org.apache.metron.elasticsearch.integration.utils.ElasticsearchTestUtils;
+import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.hbase.mock.MockHTable;
 import org.apache.metron.hbase.mock.MockHBaseTableProvider;
 import org.apache.metron.indexing.dao.*;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.ReplaceRequest;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.client.Client;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class ElasticsearchUpdateIntegrationTest {
+  private static final String namespace = ElasticsearchUpdateIntegrationTest.class.getSimpleName().toLowerCase();
   private static final int MAX_RETRIES = 10;
   private static final int SLEEP_MS = 500;
   private static final String SENSOR_NAME= "test";
   private static final String TABLE_NAME = "modifications";
   private static final String CF = "p";
-  private static String indexDir = "target/elasticsearch_mutation";
-  private static String dateFormat = "yyyy.MM.dd.HH";
-  private static String index = SENSOR_NAME + "_index_" + new SimpleDateFormat(dateFormat).format(new Date());
+  private static String index = namespace + "_" + SENSOR_NAME + "_index";
   private static MockHTable table;
   private static IndexDao esDao;
   private static IndexDao hbaseDao;
   private static MultiIndexDao dao;
-  private static ElasticSearchComponent es;
+  private static Client client;
+
+  /**
+   * {
+       "test_doc" : {
+         "properties" : {
+           "guid" : {
+             "type" : "keyword"
+           },
+           "ip_src_addr" : {
+             "type" : "keyword"
+           },
+           "score" : {
+             "type" : "integer"
+           },
+           "alert" : {
+             "type" : "nested"
+           }
+         }
+       }
+     }
+   */
+  @Multiline
+  public static String testTypeMappings;
 
   @BeforeClass
   public static void setup() throws Exception {
@@ -66,23 +87,15 @@ public class ElasticsearchUpdateIntegrationTest {
     tableProvider.addToCache(TABLE_NAME, CF);
     table = (MockHTable)tableProvider.getTable(config, TABLE_NAME);
     // setup the client
-    es = new ElasticSearchComponent.Builder()
-            .withHttpPort(9211)
-            .withIndexDir(new File(indexDir))
-            .build();
-    es.start();
+    client = ElasticsearchUtils.getClient(ElasticsearchTestUtils.getGlobalConfig(), null);
+    client.admin().indices().prepareCreate(index).addMapping("test_doc", testTypeMappings).get();
 
     hbaseDao = new HBaseDao();
     AccessConfig accessConfig = new AccessConfig();
     accessConfig.setTableProvider(tableProvider);
-    Map<String, Object> globalConfig = new HashMap<String, Object>() {{
-      put("es.clustername", "metron");
-      put("es.port", "9300");
-      put("es.ip", "localhost");
-      put("es.date.format", dateFormat);
-      put(HBaseDao.HBASE_TABLE, TABLE_NAME);
-      put(HBaseDao.HBASE_CF, CF);
-    }};
+    Map<String, Object> globalConfig = ElasticsearchTestUtils.getGlobalConfig();
+    globalConfig.put(HBaseDao.HBASE_TABLE, TABLE_NAME);
+    globalConfig.put(HBaseDao.HBASE_CF, CF);
     accessConfig.setGlobalConfigSupplier(() -> globalConfig);
 
     esDao = new ElasticsearchDao();
@@ -94,9 +107,7 @@ public class ElasticsearchUpdateIntegrationTest {
 
   @AfterClass
   public static void teardown() {
-    if(es != null) {
-      es.stop();
-    }
+    ElasticsearchTestUtils.clearIndices(client, index);
   }
 
 
@@ -115,20 +126,18 @@ public class ElasticsearchUpdateIntegrationTest {
               }}
                              );
     }
-    es.add(index, SENSOR_NAME
-          , Iterables.transform(inputData,
-                    m -> {
-                      try {
-                        return JSONUtils.INSTANCE.toJSON(m, true);
-                      } catch (JsonProcessingException e) {
-                        throw new IllegalStateException(e.getMessage(), e);
-                      }
-                    }
-                    )
-    );
+    ElasticsearchTestUtils.add(client, index, SENSOR_NAME + "_doc"
+            , inputData.stream().map(m -> {
+              try {
+                return JSONUtils.INSTANCE.toJSON(m, true);
+              } catch (JsonProcessingException e) {
+                throw new IllegalStateException(e.getMessage(), e);
+              }
+            }).collect(Collectors.toList()));
+
     List<Map<String,Object>> docs = null;
     for(int t = 0;t < MAX_RETRIES;++t, Thread.sleep(SLEEP_MS)) {
-      docs = es.getAllIndexedDocs(index, SENSOR_NAME + "_doc");
+      docs = ElasticsearchTestUtils.getAllIndexedDocs(client, index, SENSOR_NAME + "_doc");
       if(docs.size() >= 10) {
         break;
       }
@@ -164,7 +173,7 @@ public class ElasticsearchUpdateIntegrationTest {
         //ensure ES is up-to-date
         long cnt = 0;
         for (int t = 0; t < MAX_RETRIES && cnt == 0; ++t, Thread.sleep(SLEEP_MS)) {
-          docs = es.getAllIndexedDocs(index, SENSOR_NAME + "_doc");
+          docs = ElasticsearchTestUtils.getAllIndexedDocs(client, index, SENSOR_NAME + "_doc");
           cnt = docs
                   .stream()
                   .filter(d -> message0.get("new-field").equals(d.get("new-field")))
@@ -204,7 +213,7 @@ public class ElasticsearchUpdateIntegrationTest {
         //ensure ES is up-to-date
         long cnt = 0;
         for (int t = 0; t < MAX_RETRIES && cnt == 0; ++t,Thread.sleep(SLEEP_MS)) {
-          docs = es.getAllIndexedDocs(index, SENSOR_NAME + "_doc");
+          docs = ElasticsearchTestUtils.getAllIndexedDocs(client, index, SENSOR_NAME + "_doc");
           cnt = docs
                   .stream()
                   .filter(d -> message0.get("new-field").equals(d.get("new-field")))
