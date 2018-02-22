@@ -54,6 +54,7 @@ install:
 
 script:
   #- time mvn -q -T 2C surefire:test@unit-tests && time mvn -q surefire:test@integration-tests && time mvn -q test --projects metron-interface/metron-config && time dev-utilities/build-utils/verify_licenses.sh
+  - metron-contrib/metron-docker-e2e/scripts/wait_for_elasticsearch.sh localhost 9210
   - time mvn -q -T 2C surefire:test@unit-tests --projects=metron-platform/metron-elasticsearch
   - time mvn -q surefire:test@integration-tests --projects=metron-platform/metron-elasticsearch
 
