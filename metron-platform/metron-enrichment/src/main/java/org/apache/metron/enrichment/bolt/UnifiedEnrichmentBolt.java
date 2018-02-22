@@ -32,6 +32,7 @@ import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.enrichment.parallel.EnrichmentContext;
 import org.apache.metron.enrichment.parallel.EnrichmentStrategies;
 import org.apache.metron.enrichment.parallel.ParallelEnricher;
+import org.apache.metron.enrichment.parallel.WorkerPoolStrategy;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunction;
 import org.apache.metron.stellar.dsl.StellarFunctions;
@@ -62,7 +63,8 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   public static final String STELLAR_CONTEXT_CONF = "stellarContext";
-  public static final String THREADPOOL_TOPOLOGY_CONF = "metron.threadpool.size";
+  public static final String THREADPOOL_NUM_THREADS_TOPOLOGY_CONF = "metron.threadpool.size";
+  public static final String THREADPOOL_TYPE_TOPOLOGY_CONF = "metron.threadpool.type";
 
   protected ParallelEnricher enricher;
   protected EnrichmentStrategies strategy;
@@ -260,12 +262,16 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
         throw new IllegalStateException("Could not initialize adapter: " + adapterKv.getKey());
       }
     }
-    if(map.containsKey(THREADPOOL_TOPOLOGY_CONF)) {
-      int numThreads = getNumThreads(map.get(THREADPOOL_TOPOLOGY_CONF));
-      strategy.initializeThreading(numThreads, maxCacheSize, maxTimeRetain, LOG);
+    WorkerPoolStrategy workerPoolStrategy = WorkerPoolStrategy.FIXED;
+    if(map.containsKey(THREADPOOL_TYPE_TOPOLOGY_CONF)) {
+      workerPoolStrategy = WorkerPoolStrategy.valueOf(map.get(THREADPOOL_TYPE_TOPOLOGY_CONF) + "");
+    }
+    if(map.containsKey(THREADPOOL_NUM_THREADS_TOPOLOGY_CONF)) {
+      int numThreads = getNumThreads(map.get(THREADPOOL_NUM_THREADS_TOPOLOGY_CONF));
+      strategy.initializeThreading(numThreads, maxCacheSize, maxTimeRetain, workerPoolStrategy, LOG);
     }
     else {
-      throw new IllegalStateException("You must pass " + THREADPOOL_TOPOLOGY_CONF + " via storm config.");
+      throw new IllegalStateException("You must pass " + THREADPOOL_NUM_THREADS_TOPOLOGY_CONF + " via storm config.");
     }
     enricher = new ParallelEnricher(enrichmentsByType);
     perfLog = new PerformanceLogger(() -> getConfigurations().getGlobalConfig(), Perf.class.getName());

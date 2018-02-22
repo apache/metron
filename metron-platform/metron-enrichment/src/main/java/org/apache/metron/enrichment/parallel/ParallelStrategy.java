@@ -24,7 +24,6 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public abstract class ParallelStrategy implements Strategy {
@@ -32,12 +31,12 @@ public abstract class ParallelStrategy implements Strategy {
   private Cache<CacheKey, JSONObject> cache;
 
   @Override
-  public synchronized void initializeThreading(int numThreads, long maxCacheSize, long maxTimeRetain, Logger log) {
+  public synchronized void initializeThreading(int numThreads, long maxCacheSize, long maxTimeRetain, WorkerPoolStrategy poolStrategy, Logger log) {
     if(executor == null) {
       if (log != null) {
         log.info("Creating new threadpool of size {}", numThreads);
       }
-      executor = Executors.newFixedThreadPool(numThreads);
+      executor = (poolStrategy == null?WorkerPoolStrategy.FIXED:poolStrategy).create(numThreads);
     }
     if(cache == null) {
       if (log != null) {

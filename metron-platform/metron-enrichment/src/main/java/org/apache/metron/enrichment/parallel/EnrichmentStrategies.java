@@ -26,6 +26,7 @@ import org.apache.metron.enrichment.utils.EnrichmentUtils;
 import org.apache.metron.enrichment.utils.ThreatIntelUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
+import org.apache.storm.shade.org.jboss.netty.channel.socket.nio.WorkerPool;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 
@@ -54,8 +55,8 @@ public enum EnrichmentStrategies implements Strategy {
     return strategy.fieldToEnrichmentKey(type, field);
   }
 
-  public synchronized void initializeThreading(int numThreads, long maxCacheSize, long maxTimeRetain, Logger log) {
-    strategy.initializeThreading(numThreads, maxCacheSize, maxTimeRetain, log);
+  public synchronized void initializeThreading(int numThreads, long maxCacheSize, long maxTimeRetain, WorkerPoolStrategy poolStrategy, Logger log) {
+    strategy.initializeThreading(numThreads, maxCacheSize, maxTimeRetain, poolStrategy, log);
   }
 
   public static Executor getExecutor() {
