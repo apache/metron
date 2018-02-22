@@ -34,8 +34,8 @@ import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.indexing.dao.search.SearchResponse;
 import org.apache.metron.indexing.dao.search.FieldType;
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.AlertUserSettings;
-import org.apache.metron.rest.service.AlertService;
+import org.apache.metron.rest.model.AlertsUIUserSettings;
+import org.apache.metron.rest.service.AlertsUIService;
 import org.apache.metron.rest.service.SearchService;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
 import org.slf4j.Logger;
@@ -57,15 +57,15 @@ public class SearchServiceImpl implements SearchService {
   private IndexDao dao;
   private Environment environment;
   private SensorIndexingConfigService sensorIndexingConfigService;
-  private AlertService alertService;
+  private AlertsUIService alertsUIService;
 
   @Autowired
   public SearchServiceImpl(IndexDao dao, Environment environment,
-      SensorIndexingConfigService sensorIndexingConfigService, AlertService alertService) {
+      SensorIndexingConfigService sensorIndexingConfigService, AlertsUIService alertsUIService) {
     this.dao = dao;
     this.environment = environment;
     this.sensorIndexingConfigService = sensorIndexingConfigService;
-    this.alertService = alertService;
+    this.alertsUIService = alertsUIService;
   }
 
   @Override
@@ -134,7 +134,7 @@ public class SearchServiceImpl implements SearchService {
   }
 
   private List<String> getDefaultFacetFields() throws RestException {
-    Optional<AlertUserSettings> alertUserSettings = alertService.getAlertUserSettings();
+    Optional<AlertsUIUserSettings> alertUserSettings = alertsUIService.getAlertsUIUserSettings();
     if (!alertUserSettings.isPresent() || alertUserSettings.get().getFacetFields() == null) {
       String facetFieldsProperty = environment.getProperty(SEARCH_FACET_FIELDS_SPRING_PROPERTY, String.class, "");
       return Arrays.asList(facetFieldsProperty.split(","));

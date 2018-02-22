@@ -20,7 +20,7 @@ package org.apache.metron.rest.model;
 
 import java.util.List;
 
-public class AlertUserSettings {
+public class AlertsUIUserSettings {
 
   private String user;
 
@@ -71,7 +71,7 @@ public class AlertUserSettings {
       return false;
     }
 
-    AlertUserSettings that = (AlertUserSettings) o;
+    AlertsUIUserSettings that = (AlertsUIUserSettings) o;
 
     return (user != null ? user.equals(that.user) : that.user == null) &&
         (tableColumns != null ? tableColumns.equals(that.tableColumns) : that.tableColumns == null) &&

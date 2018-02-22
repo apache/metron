@@ -36,7 +36,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.indexing.dao.InMemoryDao;
 import org.apache.metron.indexing.dao.SearchIntegrationTest;
 import org.apache.metron.indexing.dao.search.FieldType;
-import org.apache.metron.rest.service.AlertService;
+import org.apache.metron.rest.service.AlertsUIService;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
 import org.json.simple.parser.ParseException;
 import org.junit.After;
@@ -87,7 +87,7 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
   private SensorIndexingConfigService sensorIndexingConfigService;
 
   @Autowired
-  private AlertService alertService;
+  private AlertsUIService alertsUIService;
 
   @Autowired
   private WebApplicationContext wac;
@@ -153,7 +153,7 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
   @Test
   public void testSearchWithAlertProfileFacetFields() throws Exception {
     assertEventually(() -> this.mockMvc.perform(
-        post("/api/v1/alert/settings").with(httpBasic(user, password)).with(csrf())
+        post("/api/v1/alerts/ui/settings").with(httpBasic(user, password)).with(csrf())
             .contentType(MediaType.parseMediaType("application/json;charset=UTF-8"))
             .content(alertProfile))
         .andExpect(status().isOk())
@@ -171,7 +171,7 @@ public class SearchControllerIntegrationTest extends DaoControllerTest {
         .andExpect(jsonPath("$.facetCounts.ip_src_port['8009']").value(2))
     );
 
-    alertService.deleteAlertUserSettings(user);
+    alertsUIService.deleteAlertsUIUserSettings(user);
   }
 
   @Test

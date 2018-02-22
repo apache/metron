@@ -28,8 +28,8 @@ import java.util.Optional;
 
 import io.swagger.annotations.ApiResponses;
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.AlertUserSettings;
-import org.apache.metron.rest.service.AlertService;
+import org.apache.metron.rest.model.AlertsUIUserSettings;
+import org.apache.metron.rest.service.AlertsUIService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,20 +44,20 @@ import org.springframework.web.bind.annotation.RestController;
  * The API resource that is used for alert-related operations.
  */
 @RestController
-@RequestMapping("/api/v1/alert")
-public class AlertController {
+@RequestMapping("/api/v1/alerts/ui")
+public class AlertsUIController {
 
   /**
    * Service used to interact with alerts.
    */
   @Autowired
-  private AlertService alertService;
+  private AlertsUIService alertsUIService;
 
   @ApiOperation(value = "Escalates a list of alerts by producing it to the Kafka escalate topic")
   @ApiResponse(message = "Alerts were escalated", code = 200)
   @RequestMapping(value = "/escalate", method = RequestMethod.POST)
   ResponseEntity<Void> escalate(final @ApiParam(name = "alerts", value = "The alerts to be escalated", required = true) @RequestBody List<Map<String, Object>> alerts) throws RestException {
-    alertService.escalateAlerts(alerts);
+    alertsUIService.escalateAlerts(alerts);
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
@@ -65,8 +65,8 @@ public class AlertController {
   @ApiResponses(value = {@ApiResponse(message = "User settings", code = 200),
           @ApiResponse(message = "The current user does not have settings", code = 404)})
   @RequestMapping(value = "/settings", method = RequestMethod.GET)
-  ResponseEntity<AlertUserSettings> get() throws RestException {
-    Optional<AlertUserSettings> alertUserSettings = alertService.getAlertUserSettings();
+  ResponseEntity<AlertsUIUserSettings> get() throws RestException {
+    Optional<AlertsUIUserSettings> alertUserSettings = alertsUIService.getAlertsUIUserSettings();
     if (alertUserSettings.isPresent()) {
       return new ResponseEntity<>(alertUserSettings.get(), HttpStatus.OK);
     } else {
@@ -81,8 +81,8 @@ public class AlertController {
           @ApiResponse(message =
                   "The current user does not have permission to get all user settings", code = 403)})
   @RequestMapping(value = "/settings/all", method = RequestMethod.GET)
-  ResponseEntity<Map<String, AlertUserSettings>> findAll() throws RestException {
-    return new ResponseEntity<>(alertService.findAllAlertUserSettings(), HttpStatus.OK);
+  ResponseEntity<Map<String, AlertsUIUserSettings>> findAll() throws RestException {
+    return new ResponseEntity<>(alertsUIService.findAllAlertsUIUserSettings(), HttpStatus.OK);
   }
 
   @ApiOperation(value = "Creates or updates the current user's settings")
@@ -90,16 +90,16 @@ public class AlertController {
           @ApiResponse(message = "User settings updated. Returns saved settings.", code = 200),
           @ApiResponse(message = "User settings created. Returns saved settings.", code = 201)})
   @RequestMapping(value = "/settings", method = RequestMethod.POST)
-  ResponseEntity<Void> save(@ApiParam(name = "alertUserSettings", value =
-          "The user settings to be saved", required = true) @RequestBody AlertUserSettings alertUserSettings)
+  ResponseEntity<Void> save(@ApiParam(name = "alertsUIUserSettings", value =
+          "The user settings to be saved", required = true) @RequestBody AlertsUIUserSettings alertsUIUserSettings)
           throws RestException {
     ResponseEntity<Void> responseEntity;
-    if (alertService.getAlertUserSettings().isPresent()) {
+    if (alertsUIService.getAlertsUIUserSettings().isPresent()) {
       responseEntity = new ResponseEntity<>(HttpStatus.OK);
     } else {
       responseEntity = new ResponseEntity<>(HttpStatus.CREATED);
     }
-    alertService.saveAlertUserSettings(alertUserSettings);
+    alertsUIService.saveAlertsUIUserSettings(alertsUIUserSettings);
     return responseEntity;
   }
 
@@ -115,7 +115,7 @@ public class AlertController {
           @ApiParam(name = "user", value = "The user whose settings will be deleted", required = true)
           @PathVariable String user)
           throws RestException {
-    if (alertService.deleteAlertUserSettings(user)) {
+    if (alertsUIService.deleteAlertsUIUserSettings(user)) {
       return new ResponseEntity<>(HttpStatus.OK);
     } else {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);

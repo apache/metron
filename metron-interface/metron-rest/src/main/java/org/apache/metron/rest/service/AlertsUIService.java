@@ -22,20 +22,20 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.AlertUserSettings;
+import org.apache.metron.rest.model.AlertsUIUserSettings;
 
 /**
  * This is a set of operations created to interact with alerts.
  */
-public interface AlertService {
+public interface AlertsUIService {
 
   void escalateAlerts(List<Map<String, Object>> alerts) throws RestException;
 
-  Optional<AlertUserSettings> getAlertUserSettings() throws RestException;
+  Optional<AlertsUIUserSettings> getAlertsUIUserSettings() throws RestException;
 
-  Map<String, AlertUserSettings> findAllAlertUserSettings() throws RestException;
+  Map<String, AlertsUIUserSettings> findAllAlertsUIUserSettings() throws RestException;
 
-  void saveAlertUserSettings(AlertUserSettings userSettings) throws RestException;
+  void saveAlertsUIUserSettings(AlertsUIUserSettings userSettings) throws RestException;
 
-  boolean deleteAlertUserSettings(String user);
+  boolean deleteAlertsUIUserSettings(String user);
 }

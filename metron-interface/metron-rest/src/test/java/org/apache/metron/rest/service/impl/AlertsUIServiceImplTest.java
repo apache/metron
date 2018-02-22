@@ -42,9 +42,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.rest.MetronRestConstants;
-import org.apache.metron.rest.model.AlertUserSettings;
+import org.apache.metron.rest.model.AlertsUIUserSettings;
 import org.apache.metron.hbase.client.UserSettingsClient;
-import org.apache.metron.rest.service.AlertService;
+import org.apache.metron.rest.service.AlertsUIService;
 import org.apache.metron.rest.service.KafkaService;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,7 +55,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 @SuppressWarnings("unchecked")
-public class AlertServiceImplTest {
+public class AlertsUIServiceImplTest {
 
   public static ThreadLocal<ObjectMapper> _mapper = ThreadLocal.withInitial(() ->
           new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL));
@@ -79,7 +79,7 @@ public class AlertServiceImplTest {
   private KafkaService kafkaService;
   private Environment environment;
   private UserSettingsClient userSettingsClient;
-  private AlertService alertService;
+  private AlertsUIService alertsUIService;
   private String user1 = "user1";
   private String user2 = "user2";
 
@@ -89,7 +89,7 @@ public class AlertServiceImplTest {
     kafkaService = mock(KafkaService.class);
     environment = mock(Environment.class);
     userSettingsClient = mock(UserSettingsClient.class);
-    alertService = new AlertServiceImpl(kafkaService, environment, userSettingsClient);
+    alertsUIService = new AlertsUIServiceImpl(kafkaService, environment, userSettingsClient);
 
     // assume user1 is logged in for tests
     Authentication authentication = Mockito.mock(Authentication.class);
@@ -109,7 +109,7 @@ public class AlertServiceImplTest {
     List<Map<String, Object>> messages = Arrays.asList(message1, message2);
     when(environment.getProperty(MetronRestConstants.KAFKA_TOPICS_ESCALATION_PROPERTY)).thenReturn(escalationTopic);
 
-    alertService.escalateAlerts(messages);
+    alertsUIService.escalateAlerts(messages);
 
     String expectedMessage1 = "{\"field\":\"value1\"}";
     String expectedMessage2 = "{\"field\":\"value2\"}";
@@ -120,61 +120,61 @@ public class AlertServiceImplTest {
 
   @Test
   public void getShouldProperlyReturnActiveProfile() throws Exception {
-    when(userSettingsClient.findOne(user1, AlertServiceImpl.ALERT_USER_SETTING_TYPE)).thenReturn(Optional.of(user1AlertUserSettings));
+    when(userSettingsClient.findOne(user1, AlertsUIServiceImpl.ALERT_USER_SETTING_TYPE)).thenReturn(Optional.of(user1AlertUserSettings));
 
-    AlertUserSettings expectedAlertUserSettings = new AlertUserSettings();
-    expectedAlertUserSettings.setTableColumns(Collections.singletonList("user1_field"));
-    assertEquals(expectedAlertUserSettings, alertService.getAlertUserSettings().get());
-    verify(userSettingsClient, times(1)).findOne(user1, AlertServiceImpl.ALERT_USER_SETTING_TYPE);
+    AlertsUIUserSettings expectedAlertsUIUserSettings = new AlertsUIUserSettings();
+    expectedAlertsUIUserSettings.setTableColumns(Collections.singletonList("user1_field"));
+    assertEquals(expectedAlertsUIUserSettings, alertsUIService.getAlertsUIUserSettings().get());
+    verify(userSettingsClient, times(1)).findOne(user1, AlertsUIServiceImpl.ALERT_USER_SETTING_TYPE);
     verifyNoMoreInteractions(userSettingsClient);
   }
 
   @Test
   public void findAllShouldProperlyReturnActiveProfiles() throws Exception {
-    AlertUserSettings alertsProfile1 = new AlertUserSettings();
+    AlertsUIUserSettings alertsProfile1 = new AlertsUIUserSettings();
     alertsProfile1.setUser(user1);
-    AlertUserSettings alertsProfile2 = new AlertUserSettings();
+    AlertsUIUserSettings alertsProfile2 = new AlertsUIUserSettings();
     alertsProfile2.setUser(user1);
-    when(userSettingsClient.findAll(AlertServiceImpl.ALERT_USER_SETTING_TYPE))
+    when(userSettingsClient.findAll(AlertsUIServiceImpl.ALERT_USER_SETTING_TYPE))
             .thenReturn(new HashMap<String, Optional<String>>() {{
               put(user1,  Optional.of(user1AlertUserSettings));
               put(user2, Optional.of(user2AlertUserSettings));
               }});
 
-    AlertUserSettings expectedAlertUserSettings1 = new AlertUserSettings();
-    expectedAlertUserSettings1.setTableColumns(Collections.singletonList("user1_field"));
-    AlertUserSettings expectedAlertUserSettings2 = new AlertUserSettings();
-    expectedAlertUserSettings2.setTableColumns(Collections.singletonList("user2_field"));
-    Map<String, AlertUserSettings> actualAlertsProfiles = alertService.findAllAlertUserSettings();
+    AlertsUIUserSettings expectedAlertsUIUserSettings1 = new AlertsUIUserSettings();
+    expectedAlertsUIUserSettings1.setTableColumns(Collections.singletonList("user1_field"));
+    AlertsUIUserSettings expectedAlertsUIUserSettings2 = new AlertsUIUserSettings();
+    expectedAlertsUIUserSettings2.setTableColumns(Collections.singletonList("user2_field"));
+    Map<String, AlertsUIUserSettings> actualAlertsProfiles = alertsUIService.findAllAlertsUIUserSettings();
     assertEquals(2, actualAlertsProfiles.size());
-    assertEquals(expectedAlertUserSettings1, actualAlertsProfiles.get(user1));
-    assertEquals(expectedAlertUserSettings2, actualAlertsProfiles.get(user2));
+    assertEquals(expectedAlertsUIUserSettings1, actualAlertsProfiles.get(user1));
+    assertEquals(expectedAlertsUIUserSettings2, actualAlertsProfiles.get(user2));
 
-    verify(userSettingsClient, times(1)).findAll(AlertServiceImpl.ALERT_USER_SETTING_TYPE);
+    verify(userSettingsClient, times(1)).findAll(AlertsUIServiceImpl.ALERT_USER_SETTING_TYPE);
     verifyNoMoreInteractions(userSettingsClient);
   }
 
   @Test
   public void saveShouldProperlySaveActiveProfile() throws Exception {
-    AlertUserSettings alertUserSettings = new AlertUserSettings();
-    alertUserSettings.setTableColumns(Collections.singletonList("user1_field"));
+    AlertsUIUserSettings alertsUIUserSettings = new AlertsUIUserSettings();
+    alertsUIUserSettings.setTableColumns(Collections.singletonList("user1_field"));
 
-    alertService.saveAlertUserSettings(alertUserSettings);
+    alertsUIService.saveAlertsUIUserSettings(alertsUIUserSettings);
 
-    String expectedAlertUserSettings = _mapper.get().writeValueAsString(alertUserSettings);
+    String expectedAlertUserSettings = _mapper.get().writeValueAsString(alertsUIUserSettings);
     verify(userSettingsClient, times(1))
-            .save(user1, AlertServiceImpl.ALERT_USER_SETTING_TYPE, expectedAlertUserSettings);
+            .save(user1, AlertsUIServiceImpl.ALERT_USER_SETTING_TYPE, expectedAlertUserSettings);
     verifyNoMoreInteractions(userSettingsClient);
   }
 
   @Test
   public void deleteShouldProperlyDeleteActiveProfile() throws Exception {
-    assertTrue(alertService.deleteAlertUserSettings(user1));
+    assertTrue(alertsUIService.deleteAlertsUIUserSettings(user1));
 
-    doThrow(new IOException()).when(userSettingsClient).delete(user1, AlertServiceImpl.ALERT_USER_SETTING_TYPE);
-    assertFalse(alertService.deleteAlertUserSettings(user1));
+    doThrow(new IOException()).when(userSettingsClient).delete(user1, AlertsUIServiceImpl.ALERT_USER_SETTING_TYPE);
+    assertFalse(alertsUIService.deleteAlertsUIUserSettings(user1));
 
-    verify(userSettingsClient, times(2)).delete(user1, AlertServiceImpl.ALERT_USER_SETTING_TYPE);
+    verify(userSettingsClient, times(2)).delete(user1, AlertsUIServiceImpl.ALERT_USER_SETTING_TYPE);
     verifyNoMoreInteractions(userSettingsClient);
   }
 }

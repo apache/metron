@@ -33,7 +33,7 @@ import org.adrianwalker.multilinestring.Multiline;
 import org.apache.metron.integration.ComponentRunner;
 import org.apache.metron.integration.UnableToStartException;
 import org.apache.metron.integration.components.KafkaComponent;
-import org.apache.metron.rest.service.AlertService;
+import org.apache.metron.rest.service.AlertsUIService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,7 +49,7 @@ import org.springframework.web.context.WebApplicationContext;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(TEST_PROFILE)
-public class AlertControllerIntegrationTest {
+public class AlertsUIControllerIntegrationTest {
 
   /**
    * [
@@ -127,9 +127,9 @@ public class AlertControllerIntegrationTest {
   private MockMvc mockMvc;
 
   @Autowired
-  private AlertService alertService;
+  private AlertsUIService alertsUIService;
   
-  private String alertUrl = "/api/v1/alert";
+  private String alertUrl = "/api/v1/alerts/ui";
   private String user1 = "user1";
   private String user2 = "user2";
   private String admin = "admin";
@@ -137,8 +137,8 @@ public class AlertControllerIntegrationTest {
 
   @Before
   public void setup() throws Exception {
-    for (String user : alertService.findAllAlertUserSettings().keySet()) {
-      alertService.deleteAlertUserSettings(user);
+    for (String user : alertsUIService.findAllAlertsUIUserSettings().keySet()) {
+      alertsUIService.deleteAlertsUIUserSettings(user);
     }
     this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).apply(springSecurity()).build();
   }

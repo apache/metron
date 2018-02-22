@@ -213,11 +213,11 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 
 |            |
 | ---------- |
-| [ `POST /api/v1/alert/escalate`](#get-apiv1alertescalate)|
-| [ `GET /api/v1/alert/settings`](#get-apiv1alertsettings)|
-| [ `GET /api/v1/alert/settings/all`](#get-apiv1alertsettingsall)|
-| [ `DELETE /api/v1/alert/settings`](#delete-apiv1alertsettings)|
-| [ `POST /api/v1/alert/settings`](#post-apiv1alertsettings)|
+| [ `POST /api/v1/alerts/ui/escalate`](#get-apiv1alertsuiescalate)|
+| [ `GET /api/v1/alerts/ui/settings`](#get-apiv1alertsuisettings)|
+| [ `GET /api/v1/alerts/ui/settings/all`](#get-apiv1alertsuisettingsall)|
+| [ `DELETE /api/v1/alerts/ui/settings`](#delete-apiv1alertsuisettings)|
+| [ `POST /api/v1/alerts/ui/settings`](#post-apiv1alertsuisettings)|
 | [ `GET /api/v1/global/config`](#get-apiv1globalconfig)|
 | [ `DELETE /api/v1/global/config`](#delete-apiv1globalconfig)|
 | [ `POST /api/v1/global/config`](#post-apiv1globalconfig)|
@@ -288,26 +288,26 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `PUT /api/v1/update/replace`](#patch-apiv1updatereplace)|
 | [ `GET /api/v1/user`](#get-apiv1user)|
 
-### `POST /api/v1/alert/escalate`
+### `POST /api/v1/alerts/ui/escalate`
   * Description: Escalates a list of alerts by producing it to the Kafka escalate topic
   * Input:
     * alerts - The alerts to be escalated
   * Returns:
     * 200 - Alerts were escalated
     
-### `GET /api/v1/alert/settings`
+### `GET /api/v1/alerts/ui/settings`
   * Description: Retrieves the current user's settings
   * Returns:
     * 200 - User settings
     * 404 - he current user does not have settings
 
-### `GET /api/v1/alert/settings/all`
+### `GET /api/v1/alerts/ui/settings/all`
   * Description: Retrieves all users' settings.  Only users that are part of the "ROLE_ADMIN" role are allowed to get all user settings.
   * Returns:
     * 200 - List of all user settings
     * 403 - The current user does not have permission to get all user settings
 
-### `DELETE /api/v1/alert/settings`
+### `DELETE /api/v1/alerts/ui/settings`
   * Description: Deletes a user's settings.  Only users that are part of the "ROLE_ADMIN" role are allowed to delete user settings.
   * Input:
     * user - The user whose settings will be deleted
@@ -316,10 +316,10 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
     * 403 - The current user does not have permission to delete user settings
     * 404 - User settings could not be found
 
-### `POST /api/v1/alert/settings`
+### `POST /api/v1/alerts/ui/settings`
   * Description: Creates or updates the current user's settings
   * Input:
-    * alertUserSettings - The user settings to be saved
+    * alertsUIUserSettings - The user settings to be saved
   * Returns:
     * 200 - User settings updated. Returns saved settings.
     * 201 - User settings created. Returns saved settings.
