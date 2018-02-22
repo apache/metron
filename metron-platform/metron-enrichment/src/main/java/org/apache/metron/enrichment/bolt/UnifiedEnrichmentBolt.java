@@ -239,38 +239,32 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
       String sourceType = MessageUtils.getSensorType(message);
       SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sourceType);
       if(config == null) {
-        LOG.error("Unable to find SensorEnrichmentConfig for sourceType: {}", sourceType);
-        MetronError metronError = new MetronError()
-                .withErrorType(Constants.ErrorType.ENRICHMENT_ERROR)
-                .withMessage("Unable to find SensorEnrichmentConfig for sourceType: " + sourceType)
-                .addRawMessage(message);
-        ErrorUtils.handleError(collector, metronError);
+        LOG.warn("Unable to find SensorEnrichmentConfig for sourceType: {}", sourceType);
+        config = new SensorEnrichmentConfig();
       }
-      else {
-        //This is an existing kludge for the stellar adapter to pass information along.
-        //We should figure out if this can be rearchitected a bit.  This smells.
-        config.getConfiguration().putIfAbsent(STELLAR_CONTEXT_CONF, stellarContext);
-        String guid = getGUID(input, message);
+      //This is an existing kludge for the stellar adapter to pass information along.
+      //We should figure out if this can be rearchitected a bit.  This smells.
+      config.getConfiguration().putIfAbsent(STELLAR_CONTEXT_CONF, stellarContext);
+      String guid = getGUID(input, message);
 
-        // enrich the message
-        ParallelEnricher.EnrichmentResult result = enricher.apply(message, strategy, config, perfLog);
-        JSONObject enriched = result.getResult();
-        enriched = strategy.postProcess(enriched, config, enrichmentContext);
+      // enrich the message
+      ParallelEnricher.EnrichmentResult result = enricher.apply(message, strategy, config, perfLog);
+      JSONObject enriched = result.getResult();
+      enriched = strategy.postProcess(enriched, config, enrichmentContext);
 
-        //we can emit the message now
-        collector.emit("message",
-                input,
-                new Values(guid, enriched));
-        //and handle each of the errors in turn.  If any adapter errored out, we will have one message per.
-        for(Map.Entry<Object, Throwable> t : result.getEnrichmentErrors()) {
-          LOG.error("[Metron] Unable to enrich message: {}", message, t);
-          MetronError error = new MetronError()
-                  .withErrorType(strategy.getErrorType())
-                  .withMessage(t.getValue().getMessage())
-                  .withThrowable(t.getValue())
-                  .addRawMessage(t.getKey());
-          ErrorUtils.handleError(collector, error);
-        }
+      //we can emit the message now
+      collector.emit("message",
+              input,
+              new Values(guid, enriched));
+      //and handle each of the errors in turn.  If any adapter errored out, we will have one message per.
+      for(Map.Entry<Object, Throwable> t : result.getEnrichmentErrors()) {
+        LOG.error("[Metron] Unable to enrich message: {}", message, t);
+        MetronError error = new MetronError()
+                .withErrorType(strategy.getErrorType())
+                .withMessage(t.getValue().getMessage())
+                .withThrowable(t.getValue())
+                .addRawMessage(t.getKey());
+        ErrorUtils.handleError(collector, error);
       }
     } catch (Exception e) {
       //If something terrible and unexpected happens then we want to send an error along, but this
