@@ -46,6 +46,15 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 public abstract class SearchIntegrationTest {
+
+  private static final String namespace = SearchIntegrationTest.class.getSimpleName().toLowerCase();
+  protected static final String broIndex = namespace + "_bro_index";
+  protected static final String snortIndex = namespace + "_snort_index";
+  protected static final String metaAlertIndex = namespace + "_metaalert_index";
+  protected static final String broType = namespace + "_bro_doc";
+  protected static final String snortType = namespace + "_snort_doc";
+  protected static final String metaAlertType = namespace + "_metaalert_doc";
+
   /**
    * [
    * {"source:type": "bro", "ip_src_addr":"192.168.1.1", "ip_src_port": 8010, "long_field": 10000, "timestamp":1, "latitude": 48.5839, "score": 10.0, "is_alert":true, "location_point": "48.5839,7.7455", "bro_field": "bro data 1", "duplicate_name_field": "data 1", "guid":"bro_1"},
@@ -72,7 +81,7 @@ public abstract class SearchIntegrationTest {
 
   /**
    * {
-   * "indices": ["bro", "snort"],
+   * "indices": ["searchintegrationtest_bro", "searchintegrationtest_snort"],
    * "query": "*",
    * "from": 0,
    * "size": 10,
@@ -90,7 +99,7 @@ public abstract class SearchIntegrationTest {
   /**
    * {
    * "guid": "bro_3",
-   * "sensorType": "bro"
+   * "sensorType": "searchintegrationtest_bro"
    * }
    */
   @Multiline
@@ -100,11 +109,11 @@ public abstract class SearchIntegrationTest {
    * [
    * {
    * "guid": "bro_1",
-   * "sensorType": "bro"
+   * "sensorType": "searchintegrationtest_bro"
    * },
    * {
    * "guid": "snort_2",
-   * "sensorType": "snort"
+   * "sensorType": "searchintegrationtest_bro"
    * }
    * ]
    */
@@ -113,7 +122,7 @@ public abstract class SearchIntegrationTest {
 
   /**
    * {
-   * "indices": ["bro", "snort"],
+   * "indices": ["searchintegrationtest_bro", "searchintegrationtest_snort"],
    * "query": "ip_src_addr:192.168.1.1",
    * "from": 0,
    * "size": 10,
@@ -130,7 +139,7 @@ public abstract class SearchIntegrationTest {
 
   /**
    * {
-   * "indices": ["bro", "snort"],
+   * "indices": ["searchintegrationtest_bro", "searchintegrationtest_snort"],
    * "query": "*",
    * "from": 0,
    * "size": 10,
@@ -148,8 +157,8 @@ public abstract class SearchIntegrationTest {
   /**
    * {
    *  "indices": [
-   *    "snort",
-   *    "bro"
+   *    "searchintegrationtest_snort",
+   *    "searchintegrationtest_bro"
    *  ],
    * "query": "*",
    * "from": 0,
@@ -168,8 +177,8 @@ public abstract class SearchIntegrationTest {
   /**
    * {
    *  "indices": [
-   *    "snort",
-   *    "bro"
+   *    "searchintegrationtest_snort",
+   *    "searchintegrationtest_bro"
    *  ],
    * "query": "*",
    * "from": 0,
@@ -187,7 +196,7 @@ public abstract class SearchIntegrationTest {
 
   /**
    * {
-   * "indices": ["bro", "snort"],
+   * "indices": ["searchintegrationtest_bro", "searchintegrationtest_snort"],
    * "query": "*",
    * "from": 4,
    * "size": 3,
@@ -204,7 +213,7 @@ public abstract class SearchIntegrationTest {
 
   /**
    * {
-   * "indices": ["bro"],
+   * "indices": ["searchintegrationtest_bro"],
    * "query": "*",
    * "from": 0,
    * "size": 10,
@@ -222,7 +231,7 @@ public abstract class SearchIntegrationTest {
   /**
    * {
    * "facetFields": ["source:type", "ip_src_addr", "ip_src_port", "long_field", "timestamp", "latitude", "score", "is_alert"],
-   * "indices": ["bro", "snort"],
+   * "indices": ["searchintegrationtest_bro", "searchintegrationtest_snort"],
    * "query": "*",
    * "from": 0,
    * "size": 10,
@@ -240,7 +249,7 @@ public abstract class SearchIntegrationTest {
   /**
    * {
    * "facetFields": ["location_point"],
-   * "indices": ["bro", "snort"],
+   * "indices": ["searchintegrationtest_bro", "searchintegrationtest_snort"],
    * "query": "*",
    * "from": 0,
    * "size": 10,
@@ -257,7 +266,7 @@ public abstract class SearchIntegrationTest {
 
   /**
    * {
-   * "indices": ["bro", "snort"],
+   * "indices": ["searchintegrationtest_bro", "searchintegrationtest_snort"],
    * "query": "*",
    * "from": 0,
    * "size": 10,
@@ -274,7 +283,7 @@ public abstract class SearchIntegrationTest {
 
   /**
    * {
-   * "indices": ["bro", "snort"],
+   * "indices": ["searchintegrationtest_bro", "searchintegrationtest_snort"],
    * "query": "*",
    * "from": 0,
    * "size": 101,
@@ -292,7 +301,7 @@ public abstract class SearchIntegrationTest {
   /**
    * {
    * "fields": ["ip_src_addr"],
-   * "indices": ["bro", "snort"],
+   * "indices": ["searchintegrationtest_bro", "searchintegrationtest_snort"],
    * "query": "*",
    * "from": 0,
    * "size": 10,
@@ -310,7 +319,7 @@ public abstract class SearchIntegrationTest {
   /**
    * {
    * "fields": ["ip_src_addr"],
-   * "indices": ["bro", "snort"],
+   * "indices": ["searchintegrationtest_bro", "searchintegrationtest_snort"],
    * "query": "ip_src_addr:192.168.1.9",
    * "from": 0,
    * "size": 10,
@@ -328,7 +337,7 @@ public abstract class SearchIntegrationTest {
   /**
    * {
    * "fields": ["guid"],
-   * "indices": ["bro"],
+   * "indices": ["searchintegrationtest_bro"],
    * "query": "*",
    * "from": 0,
    * "size": 10,
@@ -355,7 +364,7 @@ public abstract class SearchIntegrationTest {
    *   }
    * ],
    * "scoreField":"score",
-   * "indices": ["bro", "snort"],
+   * "indices": ["searchintegrationtest_bro", "searchintegrationtest_snort"],
    * "query": "*"
    * }
    */
@@ -380,7 +389,7 @@ public abstract class SearchIntegrationTest {
    *     }
    *   }
    * ],
-   * "indices": ["bro", "snort"],
+   * "indices": ["searchintegrationtest_bro", "searchintegrationtest_snort"],
    * "query": "*"
    * }
    */
@@ -394,7 +403,7 @@ public abstract class SearchIntegrationTest {
    *     "field":"location_point"
    *   }
    * ],
-   * "indices": ["bro", "snort"],
+   * "indices": ["searchintegrationtest_bro", "searchintegrationtest_snort"],
    * "query": "*"
    * }
    */
@@ -412,7 +421,7 @@ public abstract class SearchIntegrationTest {
    *     }
    *   }
    * ],
-   * "indices": ["bro", "snort"],
+   * "indices": ["searchintegrationtest_bro", "searchintegrationtest_snort"],
    * "query": "*"
    * }
    */
@@ -425,7 +434,6 @@ public abstract class SearchIntegrationTest {
   @Before
   public synchronized void setup() throws Exception {
     if(dao == null && indexComponent == null) {
-      indexComponent = startIndex();
       loadTestData();
       dao = createDao();
     }
@@ -535,6 +543,7 @@ public abstract class SearchIntegrationTest {
     for (int i = 2; i < 10; i++) {
       Assert.assertFalse(results.get(i).getSource().containsKey("threat:triage:score"));
     }
+<<<<<<< HEAD
   }
 
   @Test
@@ -561,6 +570,27 @@ public abstract class SearchIntegrationTest {
     for (int i = 5, j = 0; i > 0; i--, j++) {
       Assert.assertEquals("bro", results.get(j).getSource().get("source:type"));
       Assert.assertEquals(i, results.get(j).getSource().get("timestamp"));
+=======
+    // getColumnMetadata with multiple indices
+    {
+      Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Arrays.asList("searchintegrationtest_bro", "searchintegrationtest_snort"));
+      Assert.assertEquals(15, fieldTypes.size());
+      Assert.assertEquals(FieldType.STRING, fieldTypes.get("guid"));
+      Assert.assertEquals(FieldType.STRING, fieldTypes.get("source:type"));
+      Assert.assertEquals(FieldType.IP, fieldTypes.get("ip_src_addr"));
+      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("ip_src_port"));
+      Assert.assertEquals(FieldType.LONG, fieldTypes.get("long_field"));
+      Assert.assertEquals(FieldType.DATE, fieldTypes.get("timestamp"));
+      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("latitude"));
+      Assert.assertEquals(FieldType.DOUBLE, fieldTypes.get("score"));
+      Assert.assertEquals(FieldType.BOOLEAN, fieldTypes.get("is_alert"));
+      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("location_point"));
+      Assert.assertEquals(FieldType.STRING, fieldTypes.get("bro_field"));
+      Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
+      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("duplicate_name_field"));
+      Assert.assertEquals(FieldType.FLOAT, fieldTypes.get("threat:triage:score"));
+      Assert.assertEquals(FieldType.OTHER, fieldTypes.get("alert"));
+>>>>>>> upstream/feature/METRON-1344-test-infrastructure
     }
   }
 
@@ -688,7 +718,7 @@ public abstract class SearchIntegrationTest {
   public void returns_column_metadata_for_specified_indices() throws Exception {
     // getColumnMetadata with only bro
     {
-      Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("bro"));
+      Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("searchintegrationtest_bro"));
       Assert.assertEquals(13, fieldTypes.size());
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("bro_field"));
       Assert.assertEquals(FieldType.TEXT, fieldTypes.get("duplicate_name_field"));
@@ -708,7 +738,7 @@ public abstract class SearchIntegrationTest {
     }
     // getColumnMetadata with only snort
     {
-      Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("snort"));
+      Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("searchintegrationtest_snort"));
       Assert.assertEquals(14, fieldTypes.size());
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("snort_field"));
       Assert.assertEquals(FieldType.INTEGER, fieldTypes.get("duplicate_name_field"));
@@ -727,7 +757,7 @@ public abstract class SearchIntegrationTest {
     }
     // getColumnMetadata with an index that doesn't exist
     {
-      Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("someindex"));
+      Map<String, FieldType> fieldTypes = dao.getColumnMetadata(Collections.singletonList("searchintegrationtest_someindex"));
       Assert.assertEquals(0, fieldTypes.size());
     }
   }
@@ -935,12 +965,6 @@ public abstract class SearchIntegrationTest {
     }
   }
 
-  @AfterClass
-  public static void stop() throws Exception {
-    indexComponent.stop();
-  }
-
   protected abstract IndexDao createDao() throws Exception;
-  protected abstract InMemoryComponent startIndex() throws Exception;
   protected abstract void loadTestData() throws Exception;
 }

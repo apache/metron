@@ -17,23 +17,39 @@
 dist: trusty
 sudo: required
 
+services:
+  - docker
+
 env:
-  - TEST_TYPE=default
+  global:
+    - TEST_TYPE=default
+    - DOCKER_CACHE=~/docker-cache
+    - DOCKER_METRON_CENTOS=$DOCKER_CACHE/metron_centos.tar.gz
+    - E2E_COMPOSE_HOME=metron-contrib/metron-docker-e2e/compose
+    - DOCKER_COMPOSE_VERSION=1.8.0
 
 install: true
 language: java
 jdk:
   - oraclejdk8
 before_install:
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
   - wget https://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip
   - unzip -qq apache-maven-3.3.9-bin.zip
   - export M2_HOME=$PWD/apache-maven-3.3.9
   - export PATH=$M2_HOME/bin:$PATH
   - npm config set cache $HOME/.npm-cache --global
   - npm config set prefix $HOME/.npm-prefix --global
+  - if [ -f ${DOCKER_METRON_CENTOS} ]; then gunzip -c ${DOCKER_METRON_CENTOS} | docker load; else docker build metron-contrib/metron-docker-e2e/compose/metron-centos/ -t "metron-centos"; fi
 
 install:
   - time mvn -q -T 2C -DskipTests clean install
+  - cd $E2E_COMPOSE_HOME && docker-compose up -d
+  - if [ ! -f ${DOCKER_METRON_CENTOS} ]; then docker save metron-centos | gzip > ${DOCKER_METRON_CENTOS}; fi
+  - cd $TRAVIS_BUILD_DIR
 
 script:
   - time mvn -q -T 2C surefire:test@unit-tests && time mvn -q surefire:test@integration-tests && time mvn -q test --projects metron-interface/metron-config && time dev-utilities/build-utils/verify_licenses.sh
@@ -49,3 +65,4 @@ cache:
   - metron-interface/metron-config/node_modules
   - $HOME/.m2
   - $HOME/.npm
+  - $DOCKER_CACHE
