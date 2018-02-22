@@ -27,6 +27,7 @@ import org.apache.metron.enrichment.utils.ThreatIntelUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
 
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -36,8 +37,8 @@ public enum EnrichmentStrategies implements Strategy {
   THREAT_INTEL( new ThreatIntelStrategy())
   ;
 
-  Strategy strategy;
-  EnrichmentStrategies(Strategy strategy) {
+  ParallelStrategy strategy;
+  EnrichmentStrategies(ParallelStrategy strategy) {
     this.strategy = strategy;
   }
 
@@ -53,12 +54,12 @@ public enum EnrichmentStrategies implements Strategy {
     return strategy.fieldToEnrichmentKey(type, field);
   }
 
-  public synchronized void initializeThreading(int numThreads, long maxCacheSize, long maxTimeRetain) {
-    strategy.initializeThreading(numThreads, maxCacheSize, maxTimeRetain);
+  public synchronized void initializeThreading(int numThreads, long maxCacheSize, long maxTimeRetain, Logger log) {
+    strategy.initializeThreading(numThreads, maxCacheSize, maxTimeRetain, log);
   }
 
-  public Executor getExecutor() {
-    return strategy.getExecutor();
+  public static Executor getExecutor() {
+    return ParallelStrategy.getExecutor();
   }
 
   public Cache<CacheKey, JSONObject> getCache() {
@@ -66,8 +67,8 @@ public enum EnrichmentStrategies implements Strategy {
   }
 
 
-  public JSONObject postProcess(JSONObject message, SensorEnrichmentConfig config, FunctionResolver functionResolver, Context stellarContext)  {
-    return strategy.postProcess(message, config, functionResolver, stellarContext);
+  public JSONObject postProcess(JSONObject message, SensorEnrichmentConfig config, EnrichmentContext context)  {
+    return strategy.postProcess(message, config, context);
   }
 
   @Override

@@ -52,7 +52,7 @@ public class ThreatIntelStrategy extends ParallelStrategy {
   }
 
   @Override
-  public JSONObject postProcess(JSONObject message, SensorEnrichmentConfig config, FunctionResolver functionResolver, Context stellarContext) {
-    return ThreatIntelUtils.triage(message, config, functionResolver, stellarContext);
+  public JSONObject postProcess(JSONObject message, SensorEnrichmentConfig config, EnrichmentContext context) {
+    return ThreatIntelUtils.triage(message, config, context.getFunctionResolver(), context.getStellarContext());
   }
 }

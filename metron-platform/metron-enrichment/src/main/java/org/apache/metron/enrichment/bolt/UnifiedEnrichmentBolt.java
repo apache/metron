@@ -29,6 +29,7 @@ import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
 import org.apache.metron.enrichment.configuration.Enrichment;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import org.apache.metron.enrichment.parallel.EnrichmentContext;
 import org.apache.metron.enrichment.parallel.EnrichmentStrategies;
 import org.apache.metron.enrichment.parallel.ParallelEnricher;
 import org.apache.metron.stellar.dsl.Context;
@@ -61,6 +62,7 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   public static final String STELLAR_CONTEXT_CONF = "stellarContext";
+  public static final String THREADPOOL_TOPOLOGY_CONF = "metron.threadpool.size";
 
   protected ParallelEnricher enricher;
   protected EnrichmentStrategies strategy;
@@ -72,7 +74,7 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
   protected Long maxTimeRetain;
   protected boolean invalidateCacheOnReload = false;
   protected String messageFieldName;
-  protected Integer numThreads = null;
+  protected EnrichmentContext enrichmentContext;
 
   public UnifiedEnrichmentBolt(String zookeeperUrl) {
     super(zookeeperUrl);
@@ -89,24 +91,21 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
     return this;
   }
 
-  public UnifiedEnrichmentBolt withNumThreads(Object numThreads) {
+  private static int getNumThreads(Object numThreads) {
     if(numThreads instanceof Number) {
-      this.numThreads = ((Number)numThreads).intValue();
+      return ((Number)numThreads).intValue();
     }
     else if(numThreads instanceof String) {
       String numThreadsStr = ((String)numThreads).trim().toUpperCase();
       if(numThreadsStr.endsWith("C")) {
         Integer factor = Integer.parseInt(numThreadsStr.replace("C", ""));
-        this.numThreads = factor*Runtime.getRuntime().availableProcessors();
+        return factor*Runtime.getRuntime().availableProcessors();
       }
       else {
-        this.numThreads = Integer.parseInt(numThreadsStr);
+        return Integer.parseInt(numThreadsStr);
       }
     }
-    if(this.numThreads == null) {
-      this.numThreads = 2*Runtime.getRuntime().availableProcessors();
-    }
-    return this;
+    return 2*Runtime.getRuntime().availableProcessors();
   }
 
   public UnifiedEnrichmentBolt withStrategy(String strategy) {
@@ -190,7 +189,7 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
         String key = getKey(input, message);
         ParallelEnricher.EnrichmentResult result = enricher.apply(message, strategy, config, perfLog);
         JSONObject enriched = result.getResult();
-        enriched = strategy.postProcess(enriched, config, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
+        enriched = strategy.postProcess(enriched, config, enrichmentContext);
         collector.emit("message",
                 input,
                 new Values(key, enriched));
@@ -261,11 +260,18 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
         throw new IllegalStateException("Could not initialize adapter: " + adapterKv.getKey());
       }
     }
-    strategy.initializeThreading(numThreads, maxCacheSize, maxTimeRetain);
+    if(map.containsKey(THREADPOOL_TOPOLOGY_CONF)) {
+      int numThreads = getNumThreads(map.get(THREADPOOL_TOPOLOGY_CONF));
+      strategy.initializeThreading(numThreads, maxCacheSize, maxTimeRetain, LOG);
+    }
+    else {
+      throw new IllegalStateException("You must pass " + THREADPOOL_TOPOLOGY_CONF + " via storm config.");
+    }
     enricher = new ParallelEnricher(enrichmentsByType);
     perfLog = new PerformanceLogger(() -> getConfigurations().getGlobalConfig(), Perf.class.getName());
     GeoLiteDatabase.INSTANCE.update((String)getConfigurations().getGlobalConfig().get(GeoLiteDatabase.GEO_HDFS_FILE));
     initializeStellar();
+    enrichmentContext = new EnrichmentContext(StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
   }
 
 

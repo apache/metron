@@ -77,7 +77,7 @@ public class ParallelEnricher {
    * @return the function result
    */
   public EnrichmentResult apply( JSONObject message
-                         , Strategy strategy
+                         , EnrichmentStrategies strategy
                          , SensorEnrichmentConfig config
                          , PerformanceLogger perfLog
                          ) throws ExecutionException, InterruptedException {
@@ -123,7 +123,7 @@ public class ParallelEnricher {
               return new JSONObject();
             }
           };
-          taskList.add(CompletableFuture.supplyAsync( supplier, strategy.getExecutor()));
+          taskList.add(CompletableFuture.supplyAsync( supplier, EnrichmentStrategies.getExecutor()));
         }
       }
     }

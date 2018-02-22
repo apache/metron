@@ -22,22 +22,19 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.enrichment.bolt.CacheKey;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
 
 import java.util.Map;
-import java.util.concurrent.Executor;
 
 public interface Strategy {
   Constants.ErrorType getErrorType();
   Map<String, Object> enrichmentFieldMap(SensorEnrichmentConfig config);
   Map<String, ConfigHandler> fieldToHandler(SensorEnrichmentConfig config);
   String fieldToEnrichmentKey(String type, String field);
-  void initializeThreading(int numThreads, long maxCacheSize, long maxTimeRetain);
-  Executor getExecutor();
+  void initializeThreading(int numThreads, long maxCacheSize, long maxTimeRetain, Logger log);
   Cache<CacheKey, JSONObject> getCache();
-  default JSONObject postProcess(JSONObject message, SensorEnrichmentConfig config, FunctionResolver functionResolver, Context stellarContext) {
+  default JSONObject postProcess(JSONObject message, SensorEnrichmentConfig config, EnrichmentContext context) {
     return message;
   }
 }

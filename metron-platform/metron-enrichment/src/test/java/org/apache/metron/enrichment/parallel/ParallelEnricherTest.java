@@ -62,7 +62,7 @@ public class ParallelEnricherTest {
 
   @BeforeClass
   public static void setup() {
-    EnrichmentStrategies.ENRICHMENT.initializeThreading(5, 100, 10);
+    EnrichmentStrategies.ENRICHMENT.initializeThreading(5, 100, 10, null);
     stellarContext = new Context.Builder()
                          .build();
     StellarFunctions.initialize(stellarContext);

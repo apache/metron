@@ -21,7 +21,7 @@ config:
     topology.worker.childopts: ${topology.worker.childopts}
     topology.auto-credentials: ${topology.auto-credentials}
     topology.max.spout.pending: ${topology.max.spout.pending}
-
+    metron.threadpool.size: "2C"
 components:
 
 # Enrichment
@@ -262,9 +262,6 @@ bolts:
                 args: [${enrichment.join.cache.size}]
             -   name: "withMaxTimeRetain"
                 args: [10]
-            -   name: "withNumThreads"
-                args:
-                    - "2C"
             -   name: "withStrategy"
                 args:
                     - "ENRICHMENT"
@@ -293,9 +290,6 @@ bolts:
                 args: [${enrichment.join.cache.size}]
             -   name: "withMaxTimeRetain"
                 args: [10]
-            -   name: "withNumThreads"
-                args:
-                    - "2C"
             -   name: "withStrategy"
                 args:
                     - "THREAT_INTEL"
