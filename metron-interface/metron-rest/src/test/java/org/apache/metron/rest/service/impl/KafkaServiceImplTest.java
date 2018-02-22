@@ -63,6 +63,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.kafka.core.ConsumerFactory;
 
+
 @SuppressWarnings("unchecked")
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.management.*") // resolve classloader conflict
@@ -78,6 +79,7 @@ public class KafkaServiceImplTest {
   private AdminUtils$ adminUtils;
 
   private KafkaService kafkaService;
+
 
   private static final KafkaTopic VALID_KAFKA_TOPIC = new KafkaTopic() {{
     setReplicationFactor(2);
@@ -314,4 +316,12 @@ public class KafkaServiceImplTest {
     verify(kafkaProducer).send(new ProducerRecord<>(topicName, expectedMessage));
     verifyZeroInteractions(kafkaProducer);
   }
+
+  @Test
+  public void addACLtoNonExistingTopicShouldReturnFalse() throws Exception{
+    when(kafkaConsumer.listTopics()).thenReturn(Maps.newHashMap());
+    assertFalse(kafkaService.addACLToCurrentUser("non_existent_topic"));
+  }
+
+
 }
