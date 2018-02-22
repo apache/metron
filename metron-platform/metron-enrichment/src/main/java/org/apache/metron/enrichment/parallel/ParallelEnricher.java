@@ -17,7 +17,6 @@
  */
 package org.apache.metron.enrichment.parallel;
 
-import com.google.common.cache.Cache;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
@@ -26,7 +25,6 @@ import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.enrichment.utils.EnrichmentUtils;
-import org.apache.metron.enrichment.utils.ThreatIntelUtils;
 import org.json.simple.JSONObject;
 
 import java.util.AbstractMap;
@@ -39,14 +37,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
 
+/**
+ * This is an independent component which will accept a message and a set of enrichment adapters as well as a config which defines
+ * how those enrichments should be performed and fully enrich the message.  The result will be the enriched message
+ * unified together and a list of errors which happened.
+ */
 public class ParallelEnricher {
 
   private Map<String, EnrichmentAdapter<CacheKey>> enrichmentsByType = new HashMap<>();
 
+  /**
+   * The result of an enrichment.
+   */
   public static class EnrichmentResult {
     private JSONObject result;
     private List<Map.Entry<Object, Throwable>> enrichmentErrors;
@@ -56,25 +61,41 @@ public class ParallelEnricher {
       this.enrichmentErrors = enrichmentErrors;
     }
 
+    /**
+     * The unified fully enriched result.
+     * @return
+     */
     public JSONObject getResult() {
       return result;
     }
 
+    /**
+     * The errors that happened in the course of enriching.
+     * @return
+     */
     public List<Map.Entry<Object, Throwable>> getEnrichmentErrors() {
       return enrichmentErrors;
     }
   }
 
+  /**
+   * Construct a parallel enricher with a set of enrichment adapters associated with their enrichment types.
+   * @param enrichmentsByType
+   */
   public ParallelEnricher( Map<String, EnrichmentAdapter<CacheKey>> enrichmentsByType)
   {
     this.enrichmentsByType = enrichmentsByType;
   }
 
   /**
-   * Applies this function to the given argument.
+   * Fully enriches a message.  Each enrichment is done in parallel via a threadpool.
+   * Each enrichment is fronted with a LRU cache.
    *
-   * @param message the function argument
-   * @return the function result
+   * @param message the message to enrich
+   * @param strategy The enrichment strategy to use (e.g. enrichment or threat intel)
+   * @param config The sensor enrichment config
+   * @param perfLog The performance logger.  We log the performance for this call, the split portion and the enrichment portion.
+   * @return the enrichment result
    */
   public EnrichmentResult apply( JSONObject message
                          , EnrichmentStrategies strategy
@@ -89,6 +110,11 @@ public class ParallelEnricher {
     }
     String sensorType = MessageUtils.getSensorType(message);
     message.put(getClass().getSimpleName().toLowerCase() + ".splitter.begin.ts", "" + System.currentTimeMillis());
+    // Split the message into individual tasks.
+    //
+    // A task will either correspond to an enrichment adapter or,
+    // in the case of Stellar, a stellar subgroup.  The tasks will be grouped by enrichment type (the key of the
+    //tasks map).  Each JSONObject will correspond to a unit of work.
     Map<String, List<JSONObject>> tasks = splitMessage( message
                                                       , strategy
                                                       , config
@@ -101,8 +127,18 @@ public class ParallelEnricher {
     List<CompletableFuture<JSONObject>> taskList = new ArrayList<>();
     List<Map.Entry<Object, Throwable>> errors = Collections.synchronizedList(new ArrayList<>());
     for(Map.Entry<String, List<JSONObject>> task : tasks.entrySet()) {
+      //task is the list of enrichment tasks for the task.getKey() adapter
       EnrichmentAdapter<CacheKey> adapter = enrichmentsByType.get(task.getKey());
       for(JSONObject m : task.getValue()) {
+        /* now for each unit of work (each of these only has one element in them)
+         * the key is the field name and the value is value associated with that field.
+         *
+         * In the case of stellar enrichment, the field name is the subgroup name or empty string.
+         * The value is the subset of the message needed for the enrichment.
+         *
+         * In the case of another enrichment (e.g. hbase), the field name is the field name being enriched.
+         * The value is the corresponding value.
+         */
         for(Object o : m.keySet()) {
           String field = (String) o;
           Object value = m.get(o);
@@ -114,6 +150,7 @@ public class ParallelEnricher {
               if(ret == null) {
                 ret = new JSONObject();
               }
+              //each enrichment has their own unique prefix to use to adjust the keys for the enriched fields.
               return EnrichmentUtils.adjustKeys(new JSONObject(), ret, cacheKey.getField(), prefix);
             } catch (Throwable e) {
               JSONObject errorMessage = new JSONObject();
@@ -123,6 +160,7 @@ public class ParallelEnricher {
               return new JSONObject();
             }
           };
+          //add the Future to the task list
           taskList.add(CompletableFuture.supplyAsync( supplier, EnrichmentStrategies.getExecutor()));
         }
       }
@@ -159,6 +197,15 @@ public class ParallelEnricher {
   }
 
 
+  /**
+   * Wait until all the futures complete and join the resulting JSONObjects using the supplied binary operator
+   * and identity object.
+   *
+   * @param futures
+   * @param identity
+   * @param reduceOp
+   * @return
+   */
   public static CompletableFuture<JSONObject> all(
             List<CompletableFuture<JSONObject>> futures
           , JSONObject identity
@@ -169,19 +216,34 @@ public class ParallelEnricher {
     return future.thenApply(aVoid -> futures.stream().map(CompletableFuture::join).reduce(identity, reduceOp));
   }
 
+  /**
+   * Take a message and a config and return a list of tasks indexed by adapter enrichment types.
+   * @param message
+   * @param strategy
+   * @param config
+   * @return
+   */
   public Map<String, List<JSONObject>> splitMessage( JSONObject message
                                                    , Strategy strategy
                                                    , SensorEnrichmentConfig config
                                                    ) {
     Map<String, List<JSONObject>> streamMessageMap = new HashMap<>();
     Map<String, Object> enrichmentFieldMap = strategy.enrichmentFieldMap(config);
+
     Map<String, ConfigHandler> fieldToHandler = strategy.fieldToHandler(config);
+
     Set<String> enrichmentTypes = new HashSet<>(enrichmentFieldMap.keySet());
+
+    //the set of enrichments configured
     enrichmentTypes.addAll(fieldToHandler.keySet());
+
+    //For each of these enrichment types, we're going to construct JSONObjects
+    //which represent the individual enrichment tasks.
     for (String enrichmentType : enrichmentTypes) {
       Object fields = enrichmentFieldMap.get(enrichmentType);
       ConfigHandler retriever = fieldToHandler.get(enrichmentType);
 
+      //How this is split depends on the ConfigHandler
       List<JSONObject> enrichmentObject = retriever.getType()
               .splitByFields( message
                       , fields

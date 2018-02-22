@@ -21,8 +21,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 
+/**
+ * The strategy to use to construct the thread pool.
+ */
 public enum WorkerPoolStrategy {
+  /**
+   * Fixed thread pool
+   */
   FIXED(numThreads -> Executors.newFixedThreadPool(numThreads)),
+  /**
+   * Work stealing thread pool.
+   */
   WORK_STEALING(numThreads -> Executors.newWorkStealingPool(numThreads))
   ;
   Function<Integer, ExecutorService> creator;

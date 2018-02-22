@@ -24,6 +24,9 @@ import org.apache.metron.enrichment.utils.EnrichmentUtils;
 
 import java.util.Map;
 
+/**
+ * Enrichment strategy which pulls from the enrichment portion of the SensorEnrichmentConfig.
+ */
 public class EnrichmentStrategy extends ParallelStrategy {
   protected EnrichmentStrategy() {
   }

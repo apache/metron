@@ -28,6 +28,9 @@ import org.json.simple.JSONObject;
 
 import java.util.Map;
 
+/**
+ * The enrichment strategy for a threat intel enrichment.
+ */
 public class ThreatIntelStrategy extends ParallelStrategy {
   protected ThreatIntelStrategy() {}
 
@@ -51,6 +54,13 @@ public class ThreatIntelStrategy extends ParallelStrategy {
     return ThreatIntelUtils.getThreatIntelKey(type, field);
   }
 
+  /**
+   * Make sure to do the triage after-the-fact.
+   * @param message
+   * @param config
+   * @param context
+   * @return
+   */
   @Override
   public JSONObject postProcess(JSONObject message, SensorEnrichmentConfig config, EnrichmentContext context) {
     return ThreatIntelUtils.triage(message, config, context.getFunctionResolver(), context.getStellarContext());

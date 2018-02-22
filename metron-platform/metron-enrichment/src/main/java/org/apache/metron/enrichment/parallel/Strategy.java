@@ -27,6 +27,15 @@ import org.slf4j.Logger;
 
 import java.util.Map;
 
+/**
+ * Enrichment strategy.  This interface provides a mechanism to interface with the enrichment config and any
+ * post processing steps that are needed to be done after-the-fact.
+ *
+ * The reasoning behind this is that the key difference between enrichments and threat intel is that they pull
+ * their configurations from different parts of the SensorEnrichmentConfig object and as a post-join step, they differ
+ * slightly.
+ *
+ */
 public interface Strategy {
   Constants.ErrorType getErrorType();
   Map<String, Object> enrichmentFieldMap(SensorEnrichmentConfig config);

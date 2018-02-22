@@ -14,6 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This is a drop-in replacement for the existing split/join enrichment topology.
+# Instead of a fan-out/fan-in architecture, this adopts a data-parallelism strategy
+# whereby a message is fully enriched inside of a UnifiedEnrichmentBolt.  This simplifies
+# the architecture greatly and cuts down on network hops.  It has unknown performance
+# characteristics, so caveat emptor.
+
 name: "enrichment"
 config:
     topology.workers: ${enrichment.workers}
@@ -21,7 +27,9 @@ config:
     topology.worker.childopts: ${topology.worker.childopts}
     topology.auto-credentials: ${topology.auto-credentials}
     topology.max.spout.pending: ${topology.max.spout.pending}
+    # Change this if you want to adjust the threadpool size
     metron.threadpool.size: "2C" # Either a number (e.g. 5) or multiple of cores (e.g. 5C = 5 times the number of cores)
+    # Change this if you want to adjust the threadpool type
     metron.threadpool.type: "FIXED" # FIXED or WORK_STEALING
 components:
 

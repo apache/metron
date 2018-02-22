@@ -20,6 +20,10 @@ package org.apache.metron.enrichment.parallel;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 
+/**
+ * The full context needed for an enrichment.  This is an abstraction to pass information from the underlying
+ * environment (e.g. a storm bolt) to the set of storm independent enrichment infrastructure.
+ */
 public class EnrichmentContext {
   private FunctionResolver functionResolver;
   private Context stellarContext;

@@ -21,7 +21,6 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.common.error.MetronError;
 import org.apache.metron.common.performance.PerformanceLogger;
 import org.apache.metron.common.utils.ErrorUtils;
@@ -55,6 +54,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * This bolt is a unified enrichment/threat intel bolt.  In contrast to the split/enrich/join
+ * bolts above, this handles the entire enrichment lifecycle in one bolt using a threadpool to
+ * enrich in parallel.
+ *
+ * From an architectural perspective, this is a divergence from the polymorphism based strategy we have
+ * used in the split/join bolts.  Rather, this bolt is provided a strategy to use, either enrichment or threat intel,
+ * through composition.  This allows us to move most of the implementation into components independent
+ * from Storm.  This will greater facilitate reuse.
+ */
 public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
 
   public static class Perf {} // used for performance logging
@@ -63,18 +72,54 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   public static final String STELLAR_CONTEXT_CONF = "stellarContext";
+
+  /**
+   * The number of threads in the threadpool.  One threadpool is created per process.
+   * This is a topology-level configuration
+   */
   public static final String THREADPOOL_NUM_THREADS_TOPOLOGY_CONF = "metron.threadpool.size";
+  /**
+   * The type of threadpool to create. This is a topology-level configuration.
+   */
   public static final String THREADPOOL_TYPE_TOPOLOGY_CONF = "metron.threadpool.type";
 
+  /**
+   * The enricher implementation to use.  This will do the parallel enrichment via a thread pool.
+   */
   protected ParallelEnricher enricher;
+
+  /**
+   * The strategy to use for this enrichment bolt.  Practically speaking this is either
+   * enrichment or threat intel.  It is configured in the topology itself.
+   */
   protected EnrichmentStrategies strategy;
   private JSONParser parser;
   protected OutputCollector collector;
   private Context stellarContext;
+  /**
+   * An enrichment type to adapter map.  This is configured externally.
+   */
   protected Map<String, EnrichmentAdapter<CacheKey>> enrichmentsByType = new HashMap<>();
+
+  /**
+   * The total number of elements in a LRU cache.  This cache is used for the enrichments; if an
+   * element is in the cache, then the result is returned instead of computed.
+   */
   protected Long maxCacheSize;
+  /**
+   * The total amount of time in minutes since write to keep an element in the cache.
+   */
   protected Long maxTimeRetain;
+  /**
+   * If the bolt is reloaded, invalidate the cache?
+   */
   protected boolean invalidateCacheOnReload = false;
+
+  /**
+   * The message field to use.  If this is set, then this indicates the field to use to retrieve the message object.
+   * IF this is unset, then we presume that the message is coming in as a string version of a JSON blob on the first
+   * element of the tuple.
+   */
   protected String messageFieldName;
   protected EnrichmentContext enrichmentContext;
 
@@ -83,6 +128,7 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
   }
 
   /**
+   * Specify the enrichments to support.
    * @param enrichments enrichment
    * @return Instance of this class
    */
@@ -93,6 +139,14 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
     return this;
   }
 
+  /**
+   * Figure out how many threads to use in the thread pool.  The user can pass an arbitrary object, so parse it
+   * according to some rules.  If it's a number, then cast to an int.  IF it's a string and ends with "C", then strip
+   * the C and treat it as an integral multiple of the number of cores.  If it's a string and does not end with a C, then treat
+   * it as a number in string form.
+   * @param numThreads
+   * @return
+   */
   private static int getNumThreads(Object numThreads) {
     if(numThreads instanceof Number) {
       return ((Number)numThreads).intValue();
@@ -110,6 +164,13 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
     return 2*Runtime.getRuntime().availableProcessors();
   }
 
+  /**
+   * The strategy to use.  This indicates which part of the config that this bolt uses
+   * to enrich, threat intel or enrichment.  This must conform to one of the EnrichmentStrategies
+   * enum.
+   * @param strategy
+   * @return
+   */
   public UnifiedEnrichmentBolt withStrategy(String strategy) {
     this.strategy = EnrichmentStrategies.valueOf(strategy);
     return this;
@@ -134,6 +195,11 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
     return this;
   }
 
+  /**
+   * Invalidate the cache on reload of bolt.  By default, we do not.
+   * @param cacheInvalidationOnReload
+   * @return
+   */
   public UnifiedEnrichmentBolt withCacheInvalidationOnReload(boolean cacheInvalidationOnReload) {
     this.invalidateCacheOnReload= cacheInvalidationOnReload;
     return this;
@@ -156,19 +222,13 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
 
 
   /**
-   * Process a single tuple of input. The Tuple object contains metadata on it
-   * about which component/stream/task it came from. The values of the Tuple can
-   * be accessed using Tuple#getValue. The IBolt does not have to process the Tuple
-   * immediately. It is perfectly fine to hang onto a tuple and process it later
-   * (for instance, to do an aggregation or join).
-   * <p/>
-   * Tuples should be emitted using the OutputCollector provided through the prepare method.
-   * It is required that all input tuples are acked or failed at some point using the OutputCollector.
-   * Otherwise, Storm will be unable to determine when tuples coming off the spouts
-   * have been completed.
-   * <p/>
-   * For the common case of acking an input tuple at the end of the execute method,
-   * see IBasicBolt which automates this.
+   * Fully enrich a message based on the strategy which was used to configure the bolt.
+   * Each enrichment is done in parallel and the results are joined together.  Each enrichment
+   * will use a cache so computation is avoided if the result has been computed before.
+   *
+   * Errors in the enrichment result in an error message being sent on the "error" stream.
+   * The successful enrichments will be joined with the original message and the message will
+   * be sent along the "message" stream.
    *
    * @param input The input tuple to be processed.
    */
@@ -187,14 +247,21 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
         ErrorUtils.handleError(collector, metronError);
       }
       else {
+        //This is an existing kludge for the stellar adapter to pass information along.
+        //We should figure out if this can be rearchitected a bit.  This smells.
         config.getConfiguration().putIfAbsent(STELLAR_CONTEXT_CONF, stellarContext);
-        String key = getKey(input, message);
+        String guid = getGUID(input, message);
+
+        // enrich the message
         ParallelEnricher.EnrichmentResult result = enricher.apply(message, strategy, config, perfLog);
         JSONObject enriched = result.getResult();
         enriched = strategy.postProcess(enriched, config, enrichmentContext);
+
+        //we can emit the message now
         collector.emit("message",
                 input,
-                new Values(key, enriched));
+                new Values(guid, enriched));
+        //and handle each of the errors in turn.  If any adapter errored out, we will have one message per.
         for(Map.Entry<Object, Throwable> t : result.getEnrichmentErrors()) {
           LOG.error("[Metron] Unable to enrich message: {}", message, t);
           MetronError error = new MetronError()
@@ -206,6 +273,8 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
         }
       }
     } catch (Exception e) {
+      //If something terrible and unexpected happens then we want to send an error along, but this
+      //really shouldn't be happening.
       LOG.error("[Metron] Unable to enrich message: {}", message, e);
       MetronError error = new MetronError()
               .withErrorType(strategy.getErrorType())
@@ -219,12 +288,27 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
     }
   }
 
+  /**
+   * The message field name.  If this is set, then use this field to retrieve the message.
+   * @param messageFieldName
+   * @return
+   */
   public UnifiedEnrichmentBolt withMessageFieldName(String messageFieldName) {
     this.messageFieldName = messageFieldName;
     return this;
   }
 
+  /**
+   * Take the tuple and construct the message.
+   * @param tuple
+   * @return
+   */
   public JSONObject generateMessage(Tuple tuple) {
+    /*
+    This is tricky becuase depending on where in the topology this is, the message may either be in a field
+    or it may be the first field.  If the messageFieldName is set, then we know to pull from that.  Otherwise,
+    we parse the binary into a JSON blob.
+     */
     JSONObject message = null;
     if (messageFieldName == null) {
       byte[] data = tuple.getBinary(0);
@@ -290,7 +374,14 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
     StellarFunctions.initialize(stellarContext);
   }
 
-  public String getKey(Tuple tuple, JSONObject message) {
+  /**
+   * Return the GUID from either the tuple or the message.
+   *
+   * @param tuple
+   * @param message
+   * @return
+   */
+  public String getGUID(Tuple tuple, JSONObject message) {
     String key = null, guid = null;
     try {
       key = tuple.getStringByField("key");
@@ -312,6 +403,7 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
 
   /**
    * Declare the output schema for all the streams of this topology.
+   * We declare two streams: error and message.
    *
    * @param declarer this is used to declare output stream ids, output fields, and whether or not each output stream is a direct stream
    */

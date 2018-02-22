@@ -17,13 +17,15 @@
  */
 package org.apache.metron.enrichment.parallel;
 
-import com.google.common.cache.LoadingCache;
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 
 import java.util.concurrent.Callable;
 
+/**
+ * Enrich based on a key and enrichment adapter.  The CacheKey contains all necessary input information for an enrichment.
+ */
 public class EnrichmentCallable implements Callable<JSONObject> {
   CacheKey key;
   EnrichmentAdapter<CacheKey> adapter;
@@ -44,6 +46,7 @@ public class EnrichmentCallable implements Callable<JSONObject> {
    */
   @Override
   public JSONObject call() throws Exception {
+    //Log access for this key.
     adapter.logAccess(key);
     return adapter.enrich(key);
   }
