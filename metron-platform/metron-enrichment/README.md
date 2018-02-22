@@ -33,6 +33,42 @@ data format (e.g. a JSON Map structure with `original_message` and
 
 ![Architecture](enrichment_arch.png)
 
+### Unified Enrichment Topology
+
+There is an experimental unified enrichment topology which is shipped.
+Currently the architecture, as described above, has a split/join in
+order to perform enrichments in parallel.  This poses some issues in
+terms of ease of tuning and reasoning about performance.  
+
+In order to deal with these issues, there is an alternative enrichment topology which
+uses data parallelism as opposed to the split/join task parallelism.
+This architecture uses a worker pool to fully enrich any message within 
+a worker.  This results in 
+* Fewer bolts in the topology 
+* Each bolt fully operates on a message.
+* Fewer network hops
+
+#### Using It
+
+In order to use this, you will need to 
+* Edit `$METRON_HOME/bin/start_enrichment_topology.sh` and adjust it to use `remote-unified.yaml` instead of `remote.yaml`
+* Restart the enrichment topology.
+
+#### Configuring It
+
+There are two parameters which you might want to tune in this topology.
+Both of them are topology configuration adjustable in the flux file
+`$METRON_HOME/config/flux/enrichment/remote-unified.yaml`:
+* `metron.threadpool.size` : The size of the threadpool.  This can take a number or a multiple of the number of cores (e.g. `5C` to 5 times the number of cores).  The default is `2C`.
+* `metron.threadpool.type` : The type of threadpool. (note: descriptions taken from [here](https://zeroturnaround.com/rebellabs/fixedthreadpool-cachedthreadpool-or-forkjoinpool-picking-correct-java-executors-for-background-tasks/)).
+   * `FIXED` is a fixed threadpool of size `n`. `n` threads will process tasks at the time, when the pool is saturated, new tasks will get added to a queue without a limit on size. Good for CPU intensive tasks.  This is the default.
+   * `WORK_STEALING` is a work stealing threadpool.  This will create and shut down threads dynamically to accommodate the required parallelism level. It also tries to reduce the contention on the task queue, so can be really good in heavily loaded environments. Also good when your tasks create more tasks for the executor, like recursive tasks.
+
+In order to configure the parallelism for the enrichment bolt and threat
+intel bolt, the configurations will be taken from the respective join bolt
+parallelism.  When proper ambari support for this is added, we will add
+its own property.
+
 ## Enrichment Configuration
 
 The configuration for the `enrichment` topology, the topology primarily
@@ -371,3 +407,5 @@ Now we need to start the topologies and send some data:
 * Ensure that the documents have new fields `foo`, `bar` and `ALL_CAPS` with values as described above.
 
 Note that we could have used any Stellar statements here, including calling out to HBase via `ENRICHMENT_GET` and `ENRICHMENT_EXISTS` or even calling a machine learning model via [Model as a Service](../../metron-analytics/metron-maas-service).
+
+
