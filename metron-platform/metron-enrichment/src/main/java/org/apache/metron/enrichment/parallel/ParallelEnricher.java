@@ -21,6 +21,7 @@ import com.google.common.cache.Cache;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
+import org.apache.metron.common.performance.PerformanceLogger;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
@@ -30,6 +31,7 @@ import org.json.simple.JSONObject;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -77,17 +79,27 @@ public class ParallelEnricher {
   public EnrichmentResult apply( JSONObject message
                          , Strategy strategy
                          , SensorEnrichmentConfig config
+                         , PerformanceLogger perfLog
                          ) throws ExecutionException, InterruptedException {
     if(message == null) {
       return null;
     }
+    if(perfLog != null) {
+      perfLog.mark("execute");
+    }
     String sensorType = MessageUtils.getSensorType(message);
+    message.put(getClass().getSimpleName().toLowerCase() + ".splitter.begin.ts", "" + System.currentTimeMillis());
     Map<String, List<JSONObject>> tasks = splitMessage( message
                                                       , strategy
                                                       , config
                                                       );
+    message.put(getClass().getSimpleName().toLowerCase() + ".splitter.end.ts", "" + System.currentTimeMillis());
+    message.put(getClass().getSimpleName().toLowerCase() + ".enrich.begin.ts", "" + System.currentTimeMillis());
+    if(perfLog != null) {
+      perfLog.mark("enrich");
+    }
     List<CompletableFuture<JSONObject>> taskList = new ArrayList<>();
-    List<Map.Entry<Object, Throwable>> errors = new ArrayList<>();
+    List<Map.Entry<Object, Throwable>> errors = Collections.synchronizedList(new ArrayList<>());
     for(Map.Entry<String, List<JSONObject>> task : tasks.entrySet()) {
       EnrichmentAdapter<CacheKey> adapter = enrichmentsByType.get(task.getKey());
       for(JSONObject m : task.getValue()) {
@@ -118,7 +130,15 @@ public class ParallelEnricher {
     if(taskList.isEmpty()) {
       return new EnrichmentResult(message, errors);
     }
-    return new EnrichmentResult(all(taskList, message, (left, right) -> join(left, right)).get(), errors);
+
+    EnrichmentResult ret = new EnrichmentResult(all(taskList, message, (left, right) -> join(left, right)).get(), errors);
+    message.put(getClass().getSimpleName().toLowerCase() + ".enrich.end.ts", "" + System.currentTimeMillis());
+    if(perfLog != null) {
+      String key = message.get(Constants.GUID) + "";
+      perfLog.log("enrich", "key={}, elapsed time to enrich", key);
+      perfLog.log("execute", "key={}, elapsed time to run execute", key);
+    }
+    return ret;
   }
 
   private static JSONObject join(JSONObject left, JSONObject right) {

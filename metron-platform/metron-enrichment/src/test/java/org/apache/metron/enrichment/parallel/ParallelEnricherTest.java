@@ -78,9 +78,9 @@ public class ParallelEnricherTest {
     JSONObject message = new JSONObject() {{
       put(Constants.SENSOR_TYPE, "test");
     }};
-    ParallelEnricher.EnrichmentResult result = enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config);
+    ParallelEnricher.EnrichmentResult result = enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config, null);
     JSONObject ret = result.getResult();
-    Assert.assertEquals(5, ret.size());
+    Assert.assertEquals(8, ret.size());
     Assert.assertEquals(1, ret.get("map.blah"));
     Assert.assertEquals("test", ret.get("source.type"));
     Assert.assertEquals(1, ret.get("one"));
@@ -122,9 +122,9 @@ public class ParallelEnricherTest {
     JSONObject message = new JSONObject() {{
       put(Constants.SENSOR_TYPE, "test");
     }};
-    ParallelEnricher.EnrichmentResult result = enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config);
+    ParallelEnricher.EnrichmentResult result = enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config, null);
     JSONObject ret = result.getResult();
-    Assert.assertEquals(ret + " is not what I expected", 5, ret.size());
+    Assert.assertEquals(ret + " is not what I expected", 8, ret.size());
     Assert.assertEquals(1, ret.get("map.blah"));
     Assert.assertEquals("test", ret.get("source.type"));
     Assert.assertEquals(1, ret.get("one"));

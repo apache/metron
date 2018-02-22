@@ -188,7 +188,7 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
       else {
         config.getConfiguration().putIfAbsent(STELLAR_CONTEXT_CONF, stellarContext);
         String key = getKey(input, message);
-        ParallelEnricher.EnrichmentResult result = enricher.apply(message, strategy, config);
+        ParallelEnricher.EnrichmentResult result = enricher.apply(message, strategy, config, perfLog);
         JSONObject enriched = result.getResult();
         enriched = strategy.postProcess(enriched, config, StellarFunctions.FUNCTION_RESOLVER(), stellarContext);
         collector.emit("message",
