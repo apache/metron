@@ -21,7 +21,8 @@ config:
     topology.worker.childopts: ${topology.worker.childopts}
     topology.auto-credentials: ${topology.auto-credentials}
     topology.max.spout.pending: ${topology.max.spout.pending}
-    metron.threadpool.size: "2C"
+    metron.threadpool.size: "2C" # Either a number (e.g. 5) or multiple of cores (e.g. 5C = 5 times the number of cores)
+    metron.threadpool.type: "FIXED" # FIXED or WORK_STEALING
 components:
 
 # Enrichment
