@@ -20,8 +20,6 @@ package org.apache.metron.stellar.dsl.functions;
 
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.math.random.GaussianRandomGenerator;
-import org.apache.commons.math.random.MersenneTwister;
 import org.apache.metron.stellar.common.StellarProcessor;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.DefaultVariableResolver;
@@ -223,13 +221,6 @@ public class OrdinalFunctionsTest {
 
   @Test
   public void testMaxOfStats() throws Exception {
-
-    GaussianRandomGenerator gaussian = new GaussianRandomGenerator(new MersenneTwister(1L));
-    List<Object> sample = new ArrayList<Object>();
-    for(int j = 0;j < 100;++j) {
-      double s = gaussian.nextNormalizedDouble();
-      sample.add(s);
-    }
     Ordinal provider = new Ordinal() {
       @Override
       public double getMin() {
@@ -249,13 +240,6 @@ public class OrdinalFunctionsTest {
 
   @Test
   public void testMinOfStats() throws Exception {
-
-    GaussianRandomGenerator gaussian = new GaussianRandomGenerator(new MersenneTwister(1L));
-    List<Object> sample = new ArrayList<Object>();
-    for(int j = 0;j < 100;++j) {
-      double s = gaussian.nextNormalizedDouble();
-      sample.add(s);
-    }
     Ordinal provider = new Ordinal() {
       @Override
       public double getMin() {
