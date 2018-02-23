@@ -22,12 +22,10 @@ import com.google.common.collect.Iterables;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
 import org.apache.metron.stellar.dsl.BaseStellarFunction;
 import org.apache.metron.stellar.dsl.Stellar;
-
-import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import static org.apache.metron.stellar.common.utils.ConversionUtils.convert;
+
 
 public class OrdinalFunctions {
 
@@ -37,16 +35,22 @@ public class OrdinalFunctions {
    * Return the maximum value of a list of input values in a Stellar list
    */
   @Stellar(name = "MAX"
-          , description = "Returns the maximum value of a list of input values"
-          , params = {"list - List of arguments. The list may only contain objects that are mutually comparable / ordinal (implement java.lang.Comparable interface)" +
+          , description = "Returns the maximum value of a list of input values or from a statistics object"
+          , params = {"stats - The Stellar statistics object"
+          ,"list - List of arguments. The list may only contain objects that are mutually comparable / ordinal (implement java.lang.Comparable interface)" +
           " Multi type numeric comparisons are supported: MAX([10,15L,15.3]) would return 15.3, but MAX(['23',25]) will fail and return null as strings and numbers can't be compared."}
-          , returns = "The maximum value in the list, or null if the list is empty or the input values were not comparable.")
+          , returns = "The maximum value in the list or from stats, or null if the list is empty or the input values were not comparable.")
   public static class Max extends BaseStellarFunction {
 
     @Override
     public Object apply(List<Object> args) {
       if (args.size() < 1 || args.get(0) == null) {
         throw new IllegalStateException("MAX function requires at least a Stellar list of values");
+      }
+      Object firstArg = args.get(0);
+      if(firstArg instanceof Ordinal) {
+        Ordinal stats = convert(firstArg, Ordinal.class);
+        return stats.getMax();
       }
       Iterable list = (Iterable<Object>) args.get(0);
       return orderList(list, (ret, val) -> ret.compareTo(val) < 0, "MAX");
@@ -60,14 +64,20 @@ public class OrdinalFunctions {
    */
   @Stellar(name = "MIN"
           , description = "Returns the minimum value of a list of input values"
-          , params = {"list - List of arguments. The list may only contain objects that are mutually comparable / ordinal (implement java.lang.Comparable interface)" +
+          , params = {"stats - The Stellar statistics object"
+          ,"list - List of arguments. The list may only contain objects that are mutually comparable / ordinal (implement java.lang.Comparable interface)" +
           " Multi type numeric comparisons are supported: MIN([10,15L,15.3]) would return 10, but MIN(['23',25]) will fail and return null as strings and numbers can't be compared."}
-          , returns = "The minimum value in the list, or null if the list is empty or the input values were not comparable.")
+          , returns = "The minimum value in the list or from stats, or null if the list is empty or the input values were not comparable.")
   public static class Min extends BaseStellarFunction {
     @Override
     public Object apply(List<Object> args) {
       if (args.size() < 1 || args.get(0) == null) {
         throw new IllegalStateException("MIN function requires at least a Stellar list of values");
+      }
+      Object firstArg = args.get(0);
+      if(firstArg instanceof Ordinal) {
+        Ordinal stats = convert(firstArg, Ordinal.class);
+        return stats.getMin();
       }
       Iterable<Comparable> list = (Iterable<Comparable>) args.get(0);
       return orderList(list, (ret, val) -> ret.compareTo(val) > 0, "MIN");
