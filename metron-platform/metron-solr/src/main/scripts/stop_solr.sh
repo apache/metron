@@ -16,9 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-METRON_VERSION=0.4.3
+METRON_VERSION=${project.version}
 METRON_HOME=/usr/metron/$METRON_VERSION
-SOLR_VERSION=6.6.2
+SOLR_VERSION=${global_solr_version}
 SOLR_USER=solr
 SOLR_SERVICE=$SOLR_USER
 SOLR_VAR_DIR="/var/$SOLR_SERVICE"
