@@ -391,6 +391,10 @@
           "subsection-name": "subsection-index-settings"
         },
         {
+          "config": "metron-env/es_xpack_user",
+          "subsection-name": "subsection-index-settings"
+        },
+        {
           "config": "metron-parsers-env/parsers",
           "subsection-name": "subsection-parsers"
         },
@@ -700,6 +704,12 @@
       },
       {
         "config": "metron-env/es_cluster_name",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "metron-env/es_xpack_user",
         "widget": {
           "type": "text-field"
         }
