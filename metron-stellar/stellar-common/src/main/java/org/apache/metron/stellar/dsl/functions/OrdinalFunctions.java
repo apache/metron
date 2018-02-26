@@ -45,15 +45,19 @@ public class OrdinalFunctions {
     @Override
     public Object apply(List<Object> args) {
       if (args.size() < 1 || args.get(0) == null) {
-        throw new IllegalStateException("MAX function requires at least a Stellar list of values");
+        throw new IllegalStateException("MAX function requires at least one argument");
       }
       Object firstArg = args.get(0);
       if(firstArg instanceof Ordinal) {
         Ordinal stats = convert(firstArg, Ordinal.class);
         return stats.getMax();
+      } else if (firstArg instanceof Iterable) {
+        Iterable list = (Iterable<Object>) args.get(0);
+        return orderList(list, (ret, val) -> ret.compareTo(val) < 0, "MAX");
+      } else {
+        throw new IllegalStateException("MAX function expects either Stellar statistics object or Stellar list of values ");
       }
-      Iterable list = (Iterable<Object>) args.get(0);
-      return orderList(list, (ret, val) -> ret.compareTo(val) < 0, "MAX");
+
     }
   }
 
@@ -72,16 +76,18 @@ public class OrdinalFunctions {
     @Override
     public Object apply(List<Object> args) {
       if (args.size() < 1 || args.get(0) == null) {
-        throw new IllegalStateException("MIN function requires at least a Stellar list of values");
+        throw new IllegalStateException("MIN function requires at least one argument");
       }
       Object firstArg = args.get(0);
       if(firstArg instanceof Ordinal) {
         Ordinal stats = convert(firstArg, Ordinal.class);
         return stats.getMin();
+      } else if (firstArg instanceof Iterable){
+        Iterable<Comparable> list = (Iterable<Comparable>) args.get(0);
+        return orderList(list, (ret, val) -> ret.compareTo(val) > 0, "MIN");
+      } else {
+        throw new IllegalStateException("MIN function expects either Stellar statistics object or Stellar list of values ");
       }
-      Iterable<Comparable> list = (Iterable<Comparable>) args.get(0);
-      return orderList(list, (ret, val) -> ret.compareTo(val) > 0, "MIN");
-
     }
   }
 

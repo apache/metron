@@ -17,8 +17,20 @@
  */
 package org.apache.metron.stellar.dsl.functions;
 
+/**
+ * Interface that provides the statistical function get max and min from the implementing object.
+ */
 public interface Ordinal {
 
+    /**
+     * get the min value
+     * @return min value
+     */
     double getMin();
+
+    /**
+     * get the max value
+     * @return max value
+     */
     double getMax();
 }
