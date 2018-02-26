@@ -83,7 +83,7 @@ Vagrant.configure(2) do |config|
 
   # provision the host with ansible
   config.vm.provision :ansible do |ansible|
-    ansible.playbook = "../../ansible/playbooks/metron_full_install.yml"
+    ansible.playbook = "ansible/playbook.yml"
     ansible.become = true
     ansible.tags = ansibleTags.split(",") if ansibleTags != ''
     ansible.skip_tags = ansibleSkipTags.split(",") if ansibleSkipTags != ''
