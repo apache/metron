@@ -333,7 +333,7 @@ streams:
         from: "kafkaSpout"
         to: "enrichmentBolt"
         grouping:
-            type: SHUFFLE
+            type: LOCAL_OR_SHUFFLE
 
     # Error output
     -   name: "enrichmentBolt -> enrichmentErrorOutputBolt"
@@ -341,8 +341,7 @@ streams:
         to: "enrichmentErrorOutputBolt"
         grouping:
             streamId: "error"
-            type: FIELDS
-            args: ["message"]
+            type: LOCAL_OR_SHUFFLE
 
 #threat intel
     -   name: "enrichmentBolt -> threatIntelBolt"
@@ -350,8 +349,7 @@ streams:
         to: "threatIntelBolt"
         grouping:
             streamId: "message"
-            type: FIELDS
-            args: ["key"]
+            type: LOCAL_OR_SHUFFLE
 
 #output
     -   name: "threatIntelBolt -> output"
@@ -359,8 +357,7 @@ streams:
         to: "outputBolt"
         grouping:
             streamId: "message"
-            type: FIELDS
-            args: ["key"]
+            type: LOCAL_OR_SHUFFLE
 
     # Error output
     -   name: "threatIntelBolt -> threatIntelErrorOutputBolt"
@@ -368,7 +365,6 @@ streams:
         to: "threatIntelErrorOutputBolt"
         grouping:
             streamId: "error"
-            type: FIELDS
-            args: ["message"]
+            type: LOCAL_OR_SHUFFLE
 
 
