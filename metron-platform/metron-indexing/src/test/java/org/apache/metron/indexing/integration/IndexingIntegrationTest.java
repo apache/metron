@@ -52,12 +52,10 @@ public abstract class IndexingIntegrationTest extends BaseIntegrationTest {
   protected final int NUM_RETRIES = 100;
   protected final long TOTAL_TIME_MS = 150000L;
 
-  protected void preTest() {}
-
+  protected void preTest() { }
 
   @Test
   public void test() throws Exception {
-    preTest();
     final List<byte[]> inputMessages = TestUtils.readSampleData(sampleParsedPath);
     final Properties topologyProperties = new Properties() {{
       setProperty("indexing_kafka_start", "UNCOMMITTED_EARLIEST");
