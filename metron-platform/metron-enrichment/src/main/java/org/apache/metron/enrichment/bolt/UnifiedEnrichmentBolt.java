@@ -239,7 +239,7 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
       String sourceType = MessageUtils.getSensorType(message);
       SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sourceType);
       if(config == null) {
-        LOG.warn("Unable to find SensorEnrichmentConfig for sourceType: {}", sourceType);
+        LOG.debug("Unable to find SensorEnrichmentConfig for sourceType: {}", sourceType);
         config = new SensorEnrichmentConfig();
       }
       //This is an existing kludge for the stellar adapter to pass information along.
