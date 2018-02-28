@@ -22,6 +22,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.metron.common.configuration.Configurations;
+import org.apache.metron.common.configuration.IndexingConfigurations;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
+import org.apache.metron.common.zookeeper.ZKConfigurationsCache;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MetaAlertDao;
@@ -37,7 +41,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
-
   private static final String COLLECTION = "test";
 
   private static IndexDao solrDao;
@@ -154,6 +157,8 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     try {
       List<String> collections = solr.getSolrClient().listCollections();
       for (String collection : collections) {
+        // TODO remove this
+        System.out.println("***** COMMITTING COLLECTION: " + collection);
         solr.getSolrClient().commit(collection);
       }
     } catch (SolrServerException e) {

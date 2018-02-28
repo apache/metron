@@ -108,7 +108,7 @@ public class ElasticsearchMetaAlertIntegrationTest extends MetaAlertIntegrationT
     accessConfig.setMaxSearchGroups(100);
 
     esDao = new ElasticsearchDao();
-    esDao.init(accessConfig);
+    esDao.init(accessConfig, null);
     metaDao = new ElasticsearchMetaAlertDao(esDao);
   }
 

@@ -22,11 +22,13 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.metron.common.Constants;
@@ -104,6 +106,7 @@ public class SolrSearchDao implements SearchDao {
         .setStart(0)
         .setRows(0)
         .setQuery(groupRequest.getQuery());
+
     query.set("collection", "bro,snort");
     Optional<String> scoreField = groupRequest.getScoreField();
     if (scoreField.isPresent()) {
@@ -299,6 +302,17 @@ public class SolrSearchDao implements SearchDao {
     }
     return searchResultGroups;
   }
+
+
+//  <T> Optional<T> searchByGuid(String guid, String sensorType) {
+//    Collection<String> sensorTypes = sensorType != null ? Collections.singleton(sensorType) : null;
+//    List<T> results = searchByGuids(Collections.singleton(guid), sensorTypes, callback);
+//    if (results.size() > 0) {
+//      return Optional.of(results.get(0));
+//    } else {
+//      return Optional.empty();
+//    }
+//  }
 
 //  private Document toDocument(SolrDocument solrDocument) {
 //    Map<String, Object> document = new HashMap<>();

@@ -190,7 +190,7 @@ public abstract class MetaAlertIntegrationTest {
   }
 
   @Test
-  public void getAllMetaAlertsForAlertShouldThrowExceptionForEmtpyGuid() throws Exception {
+  public void getAllMetaAlertsForAlertShouldThrowExceptionForEmptyGuid() throws Exception {
     try {
       metaDao.getAllMetaAlertsForAlert("");
       Assert.fail("An exception should be thrown for empty guid");
@@ -540,7 +540,8 @@ public abstract class MetaAlertIntegrationTest {
         Map<String, Object> expectedAlert = new HashMap<>(childAlerts.get(i));
         // TODO expect this might need to handle empty metaalert representations.
         // e.g. ES expects empty list, Solr expects nothing
-//        expectedAlert.put("metaalerts", new ArrayList());
+//        expectedAlert.put("metaalerts", new ArrayList<>());
+        expectedAlert.remove("metaalerts");
         findUpdatedDoc(expectedAlert, "message_" + i, SENSOR_NAME);
       }
 
@@ -561,9 +562,11 @@ public abstract class MetaAlertIntegrationTest {
 
       findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
 
+      System.out.println("*** SEARCHING FOR CHILD ALERTS");
       for (int i = 0; i < numChildAlerts; ++i) {
         Map<String, Object> expectedAlert = new HashMap<>(alerts.get(i));
         expectedAlert.put("metaalerts", Collections.singletonList("meta_alert"));
+        System.out.println("*** LOOKING FOR ALERT: " + i);
         findUpdatedDoc(expectedAlert, "message_" + i, SENSOR_NAME);
       }
 
@@ -962,6 +965,10 @@ public abstract class MetaAlertIntegrationTest {
         return;
       }
     }
+
+//    while(true) {
+//
+//    }
 
     throw new OriginalNotFoundException(
         "Count not find " + guid + " after " + MAX_RETRIES + " tries");

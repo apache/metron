@@ -38,6 +38,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.lucene.search.join.ScoreMode;
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.indexing.dao.AbstractMetaAlertDao;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -132,7 +133,7 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
   }
 
   @Override
-  public void init(AccessConfig config) {
+  public void init(AccessConfig config, ConfigurationsCache cache) {
     // Do nothing. We're just wrapping a child dao
   }
 

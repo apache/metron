@@ -22,6 +22,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.elasticsearch.utils.ElasticsearchUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.ColumnMetadataDao;
@@ -58,6 +59,7 @@ public class ElasticsearchDao implements IndexDao {
   private ElasticsearchRequestSubmitter requestSubmitter;
 
   private AccessConfig accessConfig;
+  private ConfigurationsCache cache;
 
   protected ElasticsearchDao(TransportClient client,
       AccessConfig config,
@@ -89,7 +91,7 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
-  public synchronized void init(AccessConfig config) {
+  public synchronized void init(AccessConfig config, ConfigurationsCache cache) {
     if(this.client == null) {
       this.client = ElasticsearchUtils.getClient(config.getGlobalConfigSupplier().get(), config.getOptionalSettings());
       this.accessConfig = config;
@@ -97,6 +99,7 @@ public class ElasticsearchDao implements IndexDao {
       this.requestSubmitter = new ElasticsearchRequestSubmitter(this.client);
       this.searchDao = new ElasticsearchSearchDao(client, accessConfig, columnMetadataDao, requestSubmitter);
       this.updateDao = new ElasticsearchUpdateDao(client, accessConfig, searchDao);
+      this.cache = cache;
     }
 
     if(columnMetadataDao == null) {

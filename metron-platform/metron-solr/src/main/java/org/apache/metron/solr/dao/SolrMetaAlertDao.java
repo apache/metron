@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections.MapUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.indexing.dao.AbstractMetaAlertDao;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -384,16 +385,4 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
   public Iterable<Document> getAllLatest(List<GetRequest> getRequests) throws IOException {
     return indexDao.getAllLatest(getRequests);
   }
-
-//  @Override
-//  public boolean updateMetaAlertStatus(String metaAlertGuid, MetaAlertStatus status)
-//      throws IOException {
-//    boolean retVal = super.updateMetaAlertStatus(metaAlertGuid, status);
-//    try {
-//      solrDao.getClient().commit(METAALERTS_COLLECTION);
-//      return retVal;
-//    } catch (SolrServerException e) {
-//      throw new IOException("Unable to commit", e);
-//    }
-//  }
 }

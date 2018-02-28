@@ -22,6 +22,9 @@ import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.metron.common.configuration.Configurations;
+import org.apache.metron.common.configuration.IndexingConfigurations;
+import org.apache.metron.common.zookeeper.ConfigurationsCache;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.ColumnMetadataDao;
 import org.apache.metron.indexing.dao.IndexDao;
@@ -118,11 +121,4 @@ public class SolrDao implements IndexDao {
   public SolrClient getClient() {
     return client;
   }
-
-//  protected Optional<String> getIndexName(String guid, String sensorType) {
-//    return solrSearchDao.searchByGuid(guid,
-//        sensorType,
-//        hit -> Optional.ofNullable(hit.getIndex())
-//    );
-//  }
 }
