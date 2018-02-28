@@ -49,6 +49,11 @@ class Indexing(Script):
              owner=params.metron_user,
              group=params.metron_group
              )
+        File(format("{metron_config_path}/solr.properties"),
+             content=Template("solr.properties.j2"),
+             owner=params.metron_user,
+             group=params.metron_group
+             )
         File(format("{metron_config_path}/hdfs.properties"),
              content=Template("hdfs.properties.j2"),
              owner=params.metron_user,
@@ -87,17 +92,29 @@ class Indexing(Script):
         env.set_params(params)
         self.configure(env)
         commands = IndexingCommands(params)
+        if params.ra_indexing_writer == 'Solr':
+            Logger.info("Loading Solr schemas")
+            # Install Solr schemas
+            try:
+                if not commands.is_solr_schema_installed():
+                    self.solr_schema_install(env)
+                    commands.set_solr_schema_installed()
 
-        # Install elasticsearch templates
-        try:
-            if not commands.is_elasticsearch_template_installed():
-                self.elasticsearch_template_install(env)
-                commands.set_elasticsearch_template_installed()
+            except Exception as e:
+                msg = "WARNING: Solr schemas could not be installed.  " \
+                      "Is Solr running?  Will reattempt install on next start.  error={0}"
+                Logger.warning(msg.format(e))
+        else:
+            # Install elasticsearch templates
+            try:
+                if not commands.is_elasticsearch_template_installed():
+                    self.elasticsearch_template_install(env)
+                    commands.set_elasticsearch_template_installed()
 
-        except Exception as e:
-            msg = "WARNING: Elasticsearch index templates could not be installed.  " \
-                  "Is Elasticsearch running?  Will reattempt install on next start.  error={0}"
-            Logger.warning(msg.format(e))
+            except Exception as e:
+                msg = "WARNING: Elasticsearch index templates could not be installed.  " \
+                      "Is Elasticsearch running?  Will reattempt install on next start.  error={0}"
+                Logger.warning(msg.format(e))
 
         commands.start_indexing_topology(env)
 
@@ -148,6 +165,34 @@ class Indexing(Script):
             Execute(
               cmd.format(params.es_http_url, template_name),
               logoutput=True)
+
+    def solr_schema_install(self, env):
+        from params import params
+        env.set_params(params)
+        Logger.info("Installing Solr schemas")
+
+        commands = IndexingCommands(params)
+        for collection_name, config_path in commands.get_solr_schemas().iteritems():
+
+            # install the schema
+
+            cmd = "{0}/bin/solr create -c {1} -d {2}"
+            Execute(
+                cmd.format(params.solr_home, collection_name, config_path),
+                logoutput=True, user="solr")
+
+    def solr_schema_delete(self, env):
+        from params import params
+        env.set_params(params)
+        Logger.info("Deleting Solr schemas")
+
+        commands = IndexingCommands(params)
+        for collection_name, config_path in commands.get_solr_schemas().iteritems():
+            # delete the schema
+            cmd = "{0}/bin/solr delete -c {1}"
+            Execute(
+                cmd.format(params.solr_home, collection_name),
+                logoutput=True, user="solr")
 
     def zeppelin_notebook_import(self, env):
         from params import params

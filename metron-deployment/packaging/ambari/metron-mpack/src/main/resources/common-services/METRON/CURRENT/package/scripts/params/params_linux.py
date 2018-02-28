@@ -84,6 +84,7 @@ indexing_hbase_configured_flag_file = status_params.indexing_hbase_configured_fl
 indexing_hbase_acl_configured_flag_file = status_params.indexing_hbase_acl_configured_flag_file
 indexing_hdfs_perm_configured_flag_file = status_params.indexing_hdfs_perm_configured_flag_file
 elasticsearch_template_installed_flag_file = status_params.elasticsearch_template_installed_flag_file
+solr_schema_installed_flag_file = status_params.solr_schema_installed_flag_file
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 
 # Elasticsearch hosts and port management
@@ -119,6 +120,11 @@ if has_zk_host:
     zookeeper_quorum = (':' + zookeeper_clientPort + ',').join(config['clusterHostInfo']['zookeeper_hosts'])
     # last port config
     zookeeper_quorum += ':' + zookeeper_clientPort
+
+# Solr params
+solr_version = '6.6.2'
+solr_home = '/var/solr/solr-' + solr_version
+solr_zookeeper_url = format(format(config['configurations']['metron-env']['solr_zookeeper_url']))
 
 # Storm
 storm_rest_addr = status_params.storm_rest_addr
@@ -199,6 +205,13 @@ snort_index_path = tmp_dir + "/snort_index.template"
 yaf_index_path = tmp_dir + "/yaf_index.template"
 error_index_path = tmp_dir + "/error_index.template"
 meta_index_path = tmp_dir + "/metaalert_index.template"
+
+# Solr Schemas
+bro_schema_path = metron_home + "/config/schema/bro"
+snort_schema_path = metron_home + "/config/schema/snort"
+yaf_schema_path = metron_home + "/config/schema/yaf"
+error_schema_path = metron_home + "/config/schema/error"
+meta_schema_path = metron_home + "/config/schema/metaalert"
 
 # Zeppelin Notebooks
 metron_config_zeppelin_path = format("{metron_config_path}/zeppelin")
@@ -305,7 +318,7 @@ indexing_input_topic = status_params.indexing_input_topic
 indexing_error_topic = config['configurations']['metron-indexing-env']['indexing_error_topic']
 metron_random_access_indexing_topology = status_params.metron_random_access_indexing_topology
 metron_batch_indexing_topology = status_params.metron_batch_indexing_topology
-ra_indexing_writer_class_name = config['configurations']['metron-indexing-env']['ra_indexing_writer_class_name']
+ra_indexing_writer = config['configurations']['metron-indexing-env']['ra_indexing_writer']
 batch_indexing_writer_class_name = config['configurations']['metron-indexing-env']['batch_indexing_writer_class_name']
 ra_indexing_workers = config['configurations']['metron-indexing-env']['ra_indexing_workers']
 batch_indexing_workers = config['configurations']['metron-indexing-env']['batch_indexing_workers']

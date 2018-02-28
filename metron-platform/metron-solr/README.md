@@ -72,10 +72,10 @@ via the global config.  The following settings are possible as part of the globa
 
 ## Installing
 
-A script is provided in the installation for installing Solr Cloud in quick-start mode in the [full dev environment for CentOS](../../metron-deployment/development/centos6).
-The script is installed as part of the Solr RPM. Metron's Ambari MPack does not currently manage Solr installation in any way, so
-you must first install the RPM in order to run the Solr setup script.
+Solr is installed in the [full dev environment for CentOS](../../metron-deployment/development/centos6) by default but is not started initially.  Navigate to `$METRON_HOME/bin` 
+and start Solr Cloud by running `start_solr.sh`.  
 
+Metron's Ambari MPack installs several scripts in `$METRON_HOME/bin` that can be used to manage Solr.  A script is also provided for installing Solr Cloud outside of full dev.
 The script performs the following tasks
 
 * Stops ES and Kibana
@@ -85,16 +85,9 @@ The script performs the following tasks
 
 _Note: for details on setting up Solr Cloud in production mode, see https://lucene.apache.org/solr/guide/6_6/taking-solr-to-production.html_
 
-Login to the full dev environment as root and execute the following to install the Solr RPM.
-
-```
-rpm -ivh /localrepo/metron-solr-*.rpm
-```
-
-This will lay down the necessary files to setup Solr Cloud. Navigate to `$METRON_HOME/bin` and spin up Solr Cloud by running `install_solr.sh`.
-
-After running this script, Elasticsearch and Kibana will have been stopped and you should now have an instance of Solr Cloud up and running at http://localhost:8983/solr/#/~cloud. This manner
-of starting Solr will also spin up an embedded Zookeeper instance at port 9983. More information can be found [here](https://lucene.apache.org/solr/guide/6_6/getting-started-with-solrcloud.html)
+Navigate to `$METRON_HOME/bin` and spin up Solr Cloud by running `install_solr.sh`.  After running this script, 
+Elasticsearch and Kibana will have been stopped and you should now have an instance of Solr Cloud up and running at http://localhost:8983/solr/#/~cloud.  This manner of starting Solr
+will also spin up an embedded Zookeeper instance at port 9983. More information can be found [here](https://lucene.apache.org/solr/guide/6_6/getting-started-with-solrcloud.html)
 
 ## Schemas
 
