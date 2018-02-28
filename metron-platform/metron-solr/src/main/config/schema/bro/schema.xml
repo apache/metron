@@ -27,7 +27,7 @@
     were to only consider the SSH log, you would set the type to integer, but because
     in the SSL and HTTP logs version is a string, we must set the type to keyword.
    -->
-  <field name="_version_" type="plong" indexed="false" stored="false"/>
+  <field name="_version_" type="plong" indexed="true" stored="true"/>
   <field name="_root_" type="string" indexed="true" stored="false" docValues="false" />
 
   <!--
@@ -658,7 +658,7 @@
   <field name="content_type" type="string" indexed="true" stored="true" />
 
   <!-- Geo Enrichment Fields -->
-  <dynamicField name="*.location_point" type="location" multiValued="false" docValues="true"/>
+  <dynamicField name="*.location_point" type="location" multiValued="false" docValues="false"/>
   <dynamicField name="*.country" type="string" multiValued="false" docValues="true"/>
   <dynamicField name="*.city" type="string" multiValued="false" docValues="true"/>
   <dynamicField name="*.locID" type="string" multiValued="false" docValues="true"/>
@@ -682,12 +682,12 @@
   <!-- Type Definitions -->
   <fieldType name="string" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
   <fieldType name="boolean" stored="true" indexed="true" multiValued="false" class="solr.BoolField" sortMissingLast="true" docValues="false"/>
-  <fieldType name="pint" stored="true" indexed="true" multiValued="false" class="solr.IntPointField" sortMissingLast="false" docValues="true"/>
-  <fieldType name="pfloat" stored="true" indexed="true" multiValued="false" class="solr.FloatPointField" sortMissingLast="false" docValues="true"/>
-  <fieldType name="plong" stored="true" indexed="true" multiValued="false" class="solr.LongPointField" sortMissingLast="false" docValues="true"/>
-  <fieldType name="pdouble" stored="true" indexed="true" multiValued="false" class="solr.DoublePointField" sortMissingLast="false" docValues="true"/>
-  <fieldType name="location" stored="true" indexed="true" multiValued="false" class="solr.LatLonPointSpatialField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="pint" stored="true" indexed="true" multiValued="false" class="solr.TrieIntField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="pfloat" stored="true" indexed="true" multiValued="false" class="solr.TrieFloatField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="plong" stored="true" indexed="true" multiValued="false" class="solr.TrieLongField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="pdouble" stored="true" indexed="true" multiValued="false" class="solr.TrieDoubleField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
   <fieldType name="ip" stored="true" indexed="true" multiValued="false" class="solr.StrField" sortMissingLast="true" docValues="false"/>
-  <fieldType name="timestamp" stored="true" indexed="true" multiValued="false" class="solr.LongPointField" sortMissingLast="false" docValues="true"/>
+  <fieldType name="timestamp" stored="true" indexed="true" multiValued="false" class="solr.TrieLongField" sortMissingLast="false" docValues="true"/>
   <fieldType name="ignored" stored="true" indexed="true" multiValued="true" class="solr.StrField" sortMissingLast="false" docValues="false"/>
 </schema>
