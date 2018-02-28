@@ -22,10 +22,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.metron.common.configuration.Configurations;
-import org.apache.metron.common.configuration.IndexingConfigurations;
-import org.apache.metron.common.zookeeper.ConfigurationsCache;
-import org.apache.metron.common.zookeeper.ZKConfigurationsCache;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MetaAlertDao;
@@ -65,6 +61,8 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     accessConfig.setMaxSearchResults(1000);
     accessConfig.setGlobalConfigSupplier(() -> globalConfig);
     accessConfig.setMaxSearchGroups(100);
+    // Just use sensorType directly as the collection name.
+    accessConfig.setIndexSupplier(s -> s);
 
     solrDao = new SolrDao();
     solrDao.init(accessConfig);

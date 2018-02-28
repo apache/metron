@@ -46,7 +46,6 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
   @BeforeClass
   public static void setup() throws Exception {
     indexComponent = startIndex();
-    loadTestData();
     Configuration config = HBaseConfiguration.create();
     MockHBaseTableProvider tableProvider = new MockHBaseTableProvider();
     MockHBaseTableProvider.addToCache(TABLE_NAME, CF);
@@ -81,23 +80,15 @@ public class SolrUpdateIntegrationTest extends UpdateIntegrationTest {
     }};
   }
 
-//  @Override
   private static IndexDao createDao() throws Exception {
     return new SolrDao();
   }
 
-//  @Override
   private static InMemoryComponent startIndex() throws Exception {
-//    solrComponent = new SolrComponent.Builder().addCollection(SENSOR_NAME, "../metron-solr/src/test/resources/config/test/conf").build();
     solrComponent = new SolrComponent.Builder().build();
     solrComponent.start();
     solrComponent.addCollection(SENSOR_NAME, "../metron-solr/src/test/resources/config/test/conf");
     return solrComponent;
-  }
-
-//  @Override
-  private static void loadTestData() throws Exception {
-
   }
 
   @Override

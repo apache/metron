@@ -25,8 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import org.apache.metron.common.configuration.IndexingConfigurations;
-import org.apache.metron.common.zookeeper.ConfigurationsCache;
+import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.metron.indexing.dao.update.UpdateDao;
 import org.apache.solr.client.solrj.SolrClient;
@@ -40,9 +39,11 @@ public class SolrUpdateDao implements UpdateDao {
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private transient SolrClient client;
+  private AccessConfig config;
 
-  public SolrUpdateDao(SolrClient client) {
+  public SolrUpdateDao(SolrClient client, AccessConfig config) {
     this.client = client;
+    this.config = config;
   }
 
   @Override
@@ -64,49 +65,29 @@ public class SolrUpdateDao implements UpdateDao {
     // updates with a collection specified
     Map<String, Collection<SolrInputDocument>> solrCollectionUpdates = new HashMap<>();
 
-    // updates with no collection specified
-//    Collection<SolrInputDocument> solrUpdates = new ArrayList<>();
-
     for (Entry<Document, Optional<String>> entry : updates.entrySet()) {
       SolrInputDocument solrInputDocument = SolrUtilities.toSolrInputDocument(entry.getKey());
       Optional<String> index = entry.getValue();
       if (index.isPresent()) {
-        Collection<SolrInputDocument> solrInputDocuments = solrCollectionUpdates.getOrDefault(index.get(), new ArrayList<>());
-//        if (solrInputDocuments == null) {
-//          solrInputDocuments = new ArrayList<>();
-//        }
+        Collection<SolrInputDocument> solrInputDocuments = solrCollectionUpdates
+            .getOrDefault(index.get(), new ArrayList<>());
         solrInputDocuments.add(solrInputDocument);
         solrCollectionUpdates.put(index.get(), solrInputDocuments);
       } else {
-//        solrUpdates.add(solrInputDocument);
-        // TODO actually implement via the AccessConfig with a Supplier (since we need to handle both Indexing Config and ParserConfig and the merge logic.
-        // Should mostly be implemented in SensorIndexingConfigServiceImpl
-        String lookupIndex = "test";
-//        String lookupIndex = getCollectionBySensorType(entry.getKey().getSensorType());
-        Collection<SolrInputDocument> solrInputDocuments = solrCollectionUpdates.getOrDefault(lookupIndex, new ArrayList<>());
+        String lookupIndex = config.getIndexSupplier().apply(entry.getKey().getSensorType());
+        Collection<SolrInputDocument> solrInputDocuments = solrCollectionUpdates
+            .getOrDefault(lookupIndex, new ArrayList<>());
         solrInputDocuments.add(solrInputDocument);
         solrCollectionUpdates.put(lookupIndex, solrInputDocuments);
       }
     }
     try {
-      // TODO fix this to grab the right collection name
-//      if (!solrCollectionUpdates.isEmpty()) {
-        for (Entry<String, Collection<SolrInputDocument>> entry : solrCollectionUpdates
-            .entrySet()) {
-          this.client.add(entry.getKey(), entry.getValue());
-        }
-//      } else {
-//        this.client.add(solrUpdates);
-//      }
+      for (Entry<String, Collection<SolrInputDocument>> entry : solrCollectionUpdates
+          .entrySet()) {
+        this.client.add(entry.getKey(), entry.getValue());
+      }
     } catch (SolrServerException e) {
       throw new IOException(e);
     }
-  }
-
-  protected String getCollectionBySensorType(String sensorType) {
-//    IndexingConfigurations config = cache.get(IndexingConfigurations.class);
-//    Map<String, Object> sensorIndexingConfig = config.getSensorIndexingConfig(sensorType, true);
-//    return (String) sensorIndexingConfig.get(IndexingConfigurations.INDEX_CONF);
-    return null;
   }
 }
