@@ -23,6 +23,7 @@ import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.enrichment.adapters.stellar.StellarAdapter;
+import org.apache.metron.enrichment.bolt.CacheKey;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.json.simple.JSONObject;
@@ -32,6 +33,7 @@ import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ParallelEnricherTest {
   /**
@@ -59,16 +61,36 @@ public class ParallelEnricherTest {
 
   private static ParallelEnricher enricher;
   private static Context stellarContext;
-
+  private static AtomicInteger numAccesses = new AtomicInteger(0);
   @BeforeClass
   public static void setup() {
     EnrichmentStrategies.ENRICHMENT.initializeThreading(5, 100, 10, null, null);
     stellarContext = new Context.Builder()
                          .build();
     StellarFunctions.initialize(stellarContext);
-    StellarAdapter adapter = new StellarAdapter().ofType("ENRICHMENT");
+    StellarAdapter adapter = new StellarAdapter(){
+      @Override
+      public void logAccess(CacheKey value) {
+        numAccesses.incrementAndGet();
+      }
+    }.ofType("ENRICHMENT");
     adapter.initializeAdapter(new HashMap<>());
     enricher = new ParallelEnricher(ImmutableMap.of("stellar", adapter));
+  }
+
+  @Test
+  public void testCacheHit() throws Exception {
+    numAccesses.set(0);
+    SensorEnrichmentConfig config = JSONUtils.INSTANCE.load(goodConfig, SensorEnrichmentConfig.class);
+    config.getConfiguration().putIfAbsent("stellarContext", stellarContext);
+    JSONObject message = new JSONObject() {{
+      put(Constants.SENSOR_TYPE, "test");
+    }};
+    for(int i = 0;i < 10;++i) {
+      ParallelEnricher.EnrichmentResult result = enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config, null);
+    }
+    //we only want 2 actual instances of the adapter.enrich being run due to the cache.
+    Assert.assertEquals(2, numAccesses.get());
   }
 
   @Test
@@ -80,7 +102,7 @@ public class ParallelEnricherTest {
     }};
     ParallelEnricher.EnrichmentResult result = enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config, null);
     JSONObject ret = result.getResult();
-    Assert.assertEquals(8, ret.size());
+    Assert.assertEquals("Got the wrong result count: " + ret, 8, ret.size());
     Assert.assertEquals(1, ret.get("map.blah"));
     Assert.assertEquals("test", ret.get("source.type"));
     Assert.assertEquals(1, ret.get("one"));

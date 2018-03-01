@@ -22,6 +22,7 @@ import static org.apache.metron.enrichment.bolt.GenericEnrichmentBolt.STELLAR_CO
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -91,7 +92,7 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
     }
   }
 
-  public static JSONObject process( Map<String, Object> rawMessage
+  public static JSONObject process( Map<String, Object> message
                                            , ConfigHandler handler
                                            , String field
                                            , Long slowLogThreshold
@@ -103,8 +104,7 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
     JSONObject ret = new JSONObject();
     Iterable<Map.Entry<String, Object>> stellarStatements = getStellarStatements(handler, field);
 
-    _LOG.debug("message := {}", rawMessage);
-    JSONObject message = new JSONObject(rawMessage);
+    _LOG.debug("message := {}", message);
     if(stellarStatements != null) {
       List<String> mapEntries = new ArrayList<>();
       for (Map.Entry<String, Object> kv : stellarStatements) {
@@ -174,7 +174,9 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
     if(_PERF_LOG.isDebugEnabled()) {
       slowLogThreshold = ConversionUtils.convert(globalConfig.getOrDefault(STELLAR_SLOW_LOG, STELLAR_SLOW_LOG_DEFAULT), Long.class);
     }
-    Map<String, Object> message = value.getValue(Map.class);
+    //Ensure that you clone the message, because process will modify the message.  If the message object is modified
+    //then cache misses will happen because the cache will be modified.
+    Map<String, Object> message = new HashMap<>(value.getValue(Map.class));
     VariableResolver resolver = new MapVariableResolver(message, sensorConfig, globalConfig);
     StellarProcessor processor = new StellarProcessor();
     JSONObject enriched = process(message
