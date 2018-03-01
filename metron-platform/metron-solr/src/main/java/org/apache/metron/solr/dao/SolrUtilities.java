@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.avro.generic.GenericData.Array;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.MetaAlertDao;
@@ -30,8 +31,10 @@ import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.update.Document;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.SolrInputField;
 
 public class SolrUtilities {
+
   public static SearchResult getSearchResult(SolrDocument solrDocument,
       Optional<List<String>> fields) {
     SearchResult searchResult = new SearchResult();
@@ -87,6 +90,9 @@ public class SolrUtilities {
             childDocument.addField(alertField.getKey(), alertField.getValue());
           }
           solrInputDocument.addChildDocument(childDocument);
+        }
+        if (alerts.size() == 0) {
+          solrInputDocument.addChildDocuments(new ArrayList<>());
         }
       } else {
         solrInputDocument.addField(field.getKey(), field.getValue());

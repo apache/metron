@@ -133,7 +133,7 @@ public class ElasticsearchMetaAlertDao extends AbstractMetaAlertDao {
   }
 
   @Override
-  public void init(AccessConfig config, ConfigurationsCache cache) {
+  public void init(AccessConfig config) {
     // Do nothing. We're just wrapping a child dao
   }
 

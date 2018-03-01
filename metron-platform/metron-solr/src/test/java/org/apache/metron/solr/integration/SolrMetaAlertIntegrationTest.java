@@ -18,14 +18,26 @@
 
 package org.apache.metron.solr.integration;
 
+import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_FIELD;
+import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_TYPE;
+
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import org.apache.metron.common.Constants;
 import org.apache.metron.indexing.dao.AccessConfig;
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.MetaAlertDao;
 import org.apache.metron.indexing.dao.MetaAlertIntegrationTest;
+import org.apache.metron.indexing.dao.metaalert.MetaAlertStatus;
+import org.apache.metron.indexing.dao.search.GetRequest;
+import org.apache.metron.indexing.dao.search.SearchRequest;
+import org.apache.metron.indexing.dao.search.SearchResponse;
+import org.apache.metron.indexing.dao.search.SortField;
 import org.apache.metron.solr.dao.SolrDao;
 import org.apache.metron.solr.dao.SolrMetaAlertDao;
 import org.apache.metron.solr.integration.components.SolrComponent;
@@ -33,8 +45,10 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.zookeeper.KeeperException;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
   private static final String COLLECTION = "test";
@@ -87,6 +101,106 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
   @After
   public void reset() {
     solr.reset();
+  }
+
+  @Test
+  public void shouldSearchByNestedAlert() throws Exception {
+    // Load alerts
+    List<Map<String, Object>> alerts = buildAlerts(4);
+    alerts.get(0).put(METAALERT_FIELD, Collections.singletonList("meta_active"));
+    alerts.get(0).put("ip_src_addr", "192.168.1.1");
+    alerts.get(0).put("ip_src_port", 8010);
+    alerts.get(1).put(METAALERT_FIELD, Collections.singletonList("meta_active"));
+    alerts.get(1).put("ip_src_addr", "192.168.1.2");
+    alerts.get(1).put("ip_src_port", 8009);
+    alerts.get(2).put("ip_src_addr", "192.168.1.3");
+    alerts.get(2).put("ip_src_port", 8008);
+    alerts.get(3).put("ip_src_addr", "192.168.1.4");
+    alerts.get(3).put("ip_src_port", 8007);
+    addRecords(alerts, getTestIndexName(), SENSOR_NAME);
+
+    // Put the nested type into the test index, so that it'll match appropriately
+    setupTypings();
+
+    // Load metaAlerts
+    Map<String, Object> activeMetaAlert = buildMetaAlert("meta_active", MetaAlertStatus.ACTIVE,
+        Optional.of(Arrays.asList(alerts.get(0), alerts.get(1))));
+    Map<String, Object> inactiveMetaAlert = buildMetaAlert("meta_inactive",
+        MetaAlertStatus.INACTIVE,
+        Optional.of(Arrays.asList(alerts.get(2), alerts.get(3))));
+    // We pass MetaAlertDao.METAALERT_TYPE, because the "_doc" gets appended automatically.
+    addRecords(Arrays.asList(activeMetaAlert, inactiveMetaAlert), metaDao.getMetaAlertIndex(),
+        METAALERT_TYPE);
+
+    // Verify load was successful
+    findCreatedDocs(Arrays.asList(
+        new GetRequest("message_0", SENSOR_NAME),
+        new GetRequest("message_1", SENSOR_NAME),
+        new GetRequest("message_2", SENSOR_NAME),
+        new GetRequest("message_3", SENSOR_NAME),
+        new GetRequest("meta_active", METAALERT_TYPE),
+        new GetRequest("meta_inactive", METAALERT_TYPE)));
+
+    SearchResponse searchResponse = metaDao.search(new SearchRequest() {
+      {
+        setQuery(
+            "ip_src_addr:192.168.1.1 AND ip_src_port:8010");
+        setIndices(Collections.singletonList(METAALERT_TYPE));
+        setFrom(0);
+        setSize(5);
+        setSort(Collections.singletonList(new SortField() {
+          {
+            setField(Constants.GUID);
+          }
+        }));
+      }
+    });
+    // Should have one result because of Solr querying manner.
+    Assert.assertEquals(0, searchResponse.getTotal());
+
+    // Query against all indices. Only the single active meta alert should be returned.
+    // The child alerts should be hidden.
+    searchResponse = metaDao.search(new SearchRequest() {
+      {
+        setQuery(
+            "ip_src_addr:192.168.1.1 AND ip_src_port:8010");
+        setIndices(Collections.singletonList("*"));
+        setFrom(0);
+        setSize(5);
+        setSort(Collections.singletonList(new SortField() {
+          {
+            setField(Constants.GUID);
+          }
+        }));
+      }
+    });
+
+    // Query should match a parent alert
+    Assert.assertEquals(1, searchResponse.getTotal());
+    Assert.assertEquals("meta_active",
+        searchResponse.getResults().get(0).getSource().get("guid"));
+
+    // Query against all indices. The child alert has no actual attached meta alerts, and should
+    // be returned on its own.
+    searchResponse = metaDao.search(new SearchRequest() {
+      {
+        setQuery(
+            "ip_src_addr:192.168.1.3 AND ip_src_port:8008");
+        setIndices(Collections.singletonList("*"));
+        setFrom(0);
+        setSize(1);
+        setSort(Collections.singletonList(new SortField() {
+          {
+            setField(Constants.GUID);
+          }
+        }));
+      }
+    });
+
+    // Query should match a plain alert
+    Assert.assertEquals(1, searchResponse.getTotal());
+    Assert.assertEquals("message_2",
+        searchResponse.getResults().get(0).getSource().get("guid"));
   }
 
   protected long getMatchingAlertCount(String fieldName, Object fieldValue)

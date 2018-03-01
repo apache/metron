@@ -53,6 +53,7 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.CursorMarkParams;
 import org.json.simple.parser.JSONParser;
@@ -312,10 +313,35 @@ public class SolrMetaAlertDao extends AbstractMetaAlertDao {
     // 2. Metaalert is active OR it's not a metaalert
 
     // TODO Do I need to worry about nested?
-    String statusClause =
-        MetaAlertDao.STATUS_FIELD + ":(" + MetaAlertStatus.ACTIVE.getStatusString()
-            + " OR (*:* -[* TO *]))";
-    String query = searchRequest.getQuery() + " +" + "(" + statusClause + ")";
+//    q={!parent which=<allParents>}<someChildren>
+    // Due to how the underlying queryparser groups clauses:
+    // 1. " AND " needs to be "&&"
+    // 2. " OR " needs to be "||"
+    // 3. " NOT " needs to be "!"
+    // Although these are theoretically equivalent, in practice the parent query parser mishandles
+    // the spelled out clauses. The first instance of the query needs the spelled out version or
+    // it'll throw a parsing error. Sigh.
+    String searchQuerySubstituted = searchRequest.getQuery()
+        .replaceAll(" AND ", ClientUtils.escapeQueryChars("&&"))
+        .replaceAll(" OR ", "||")
+        .replaceAll(" NOT ", "!");
+    String activeStatusClause =
+        MetaAlertDao.STATUS_FIELD + ":" + MetaAlertStatus.ACTIVE.getStatusString();
+    String parentChildQuery =
+        "{!parent which=" + activeStatusClause + "}" + searchQuerySubstituted;
+
+//    String statusClause = activeStatusClause + " OR (*:* -[* TO *]))";
+//    String query = searchRequest.getQuery() + " AND " + "(" + statusClause + ")";
+    String query =
+        "(" + searchRequest.getQuery() + " AND -" + MetaAlertDao.METAALERT_FIELD + ":[* TO *])"
+            + " OR " + parentChildQuery;
+
+    // TODO cleanup method
+    System.out.println("QUERY IS: " + query);
+
+//    while (true) {
+//
+//    }
 
     searchRequest.setQuery(query);
     return indexDao.search(searchRequest);

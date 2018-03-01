@@ -31,6 +31,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.avro.generic.GenericData.Array;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
 import org.apache.metron.indexing.dao.AccessConfig;
@@ -54,6 +55,7 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.PivotField;
@@ -87,8 +89,25 @@ public class SolrSearchDao implements SearchDao {
       throw new InvalidSearchException(
           "Search result size must be less than " + accessConfig.getMaxSearchResults());
     }
+    // TODO make this not suck
+    if (searchRequest.getIndices().contains("*")) {
+      SolrQuery query = new SolrQuery();
+      query.setRequestHandler("/admin/collections");
+      query.setParam("action", "LIST");
+      try {
+        QueryResponse result = client.query(query);
+        @SuppressWarnings("unchecked")
+        List<String> collections = (List<String>) result.getResponse()
+            .getAll("collections").get(0);
+        searchRequest.setIndices(collections);
+      } catch (SolrServerException | IOException e) {
+        throw new InvalidSearchException("Unable to get list of collections");
+      }
+    }
+
     SolrQuery query = buildSearchRequest(searchRequest);
     try {
+      System.out.println("SolrSearchDao query is: " + query);
       QueryResponse response = client.query(query);
       return buildSearchResponse(searchRequest, response);
     } catch (IOException | SolrServerException e) {

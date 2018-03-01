@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -39,6 +40,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.adrianwalker.multilinestring.Multiline;
+import org.apache.avro.generic.GenericData.Array;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
@@ -353,6 +355,7 @@ public abstract class MetaAlertIntegrationTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void shouldRemoveAlertsFromMetaAlert() throws Exception {
     // Load alerts
     List<Map<String, Object>> alerts = buildAlerts(4);
@@ -439,16 +442,17 @@ public abstract class MetaAlertIntegrationTest {
       expectedMetaAlert.put(ALERT_FIELD, metaAlertAlerts);
 
       expectedMetaAlert.put("average", 0.0d);
-      expectedMetaAlert.put("min", "Infinity");
-      expectedMetaAlert.put("median", "NaN");
-      expectedMetaAlert.put("max", "-Infinity");
+      // TODO handle +/- INF and NaN properly for Solr and ES
+      expectedMetaAlert.put("min", Double.POSITIVE_INFINITY);
+      expectedMetaAlert.put("median", Double.NaN);
+      expectedMetaAlert.put("max", Double.NEGATIVE_INFINITY);
       expectedMetaAlert.put("count", 0);
       expectedMetaAlert.put("sum", 0.0d);
       expectedMetaAlert.put(metaDao.getThreatTriageField(), 0.0d);
 
       Assert.assertTrue(metaDao.removeAlertsFromMetaAlert("meta_alert",
           Collections.singletonList(new GetRequest("message_3", SENSOR_NAME))));
-      findUpdatedDoc(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
+      findUpdatedDocTest(expectedMetaAlert, "meta_alert", METAALERT_TYPE);
     }
 
   }
@@ -708,33 +712,37 @@ public abstract class MetaAlertIntegrationTest {
       }
     });
 
-    // Nested query should match a nested alert
-    Assert.assertEquals(1, searchResponse.getTotal());
-    Assert.assertEquals("meta_active",
-        searchResponse.getResults().get(0).getSource().get("guid"));
+    while(true) {
 
-    // Query against all indices. The child alert has no actual attached meta alerts, and should
-    // be returned on its own.
-    searchResponse = metaDao.search(new SearchRequest() {
-      {
-        setQuery(
-            "(ip_src_addr:192.168.1.3 AND ip_src_port:8008)"
-                + " OR (alert.ip_src_addr:192.168.1.3 AND alert.ip_src_port:8008)");
-        setIndices(Collections.singletonList("*"));
-        setFrom(0);
-        setSize(1);
-        setSort(Collections.singletonList(new SortField() {
-          {
-            setField(Constants.GUID);
-          }
-        }));
-      }
-    });
+    }
 
-    // Nested query should match a plain alert
-    Assert.assertEquals(1, searchResponse.getTotal());
-    Assert.assertEquals("message_2",
-        searchResponse.getResults().get(0).getSource().get("guid"));
+//    // Nested query should match a nested alert
+//    Assert.assertEquals(1, searchResponse.getTotal());
+//    Assert.assertEquals("meta_active",
+//        searchResponse.getResults().get(0).getSource().get("guid"));
+//
+//    // Query against all indices. The child alert has no actual attached meta alerts, and should
+//    // be returned on its own.
+//    searchResponse = metaDao.search(new SearchRequest() {
+//      {
+//        setQuery(
+//            "(ip_src_addr:192.168.1.3 AND ip_src_port:8008)"
+//                + " OR (alert.ip_src_addr:192.168.1.3 AND alert.ip_src_port:8008)");
+//        setIndices(Collections.singletonList("*"));
+//        setFrom(0);
+//        setSize(1);
+//        setSort(Collections.singletonList(new SortField() {
+//          {
+//            setField(Constants.GUID);
+//          }
+//        }));
+//      }
+//    });
+//
+//    // Nested query should match a plain alert
+//    Assert.assertEquals(1, searchResponse.getTotal());
+//    Assert.assertEquals("message_2",
+//        searchResponse.getResults().get(0).getSource().get("guid"));
   }
 
   @Test
@@ -962,6 +970,33 @@ public abstract class MetaAlertIntegrationTest {
       convertAlertsFieldToSet(message0);
 
       if (doc.getDocument() != null && message0.equals(doc.getDocument())) {
+        convertAlertsFieldToList(doc.getDocument());
+        convertAlertsFieldToList(message0);
+        return;
+      }
+    }
+
+    throw new OriginalNotFoundException(
+        "Count not find " + guid + " after " + MAX_RETRIES + " tries");
+  }
+
+
+  // TODO kill this whole method when done debugging
+  protected void findUpdatedDocTest(Map<String, Object> message0, String guid, String sensorType)
+      throws InterruptedException, IOException, OriginalNotFoundException {
+    commit();
+    System.out.println("GUID: " + guid);
+    MapUtils.debugPrint(System.out, "expected", message0);
+    for (int t = 0; t < MAX_RETRIES; ++t, Thread.sleep(SLEEP_MS)) {
+      Document doc = metaDao.getLatest(guid, sensorType);
+      MapUtils.debugPrint(System.out, "actual", doc.getDocument());
+      // Change the underlying document alerts lists to sets to avoid ordering issues.
+      convertAlertsFieldToSet(doc.getDocument());
+      convertAlertsFieldToSet(message0);
+
+      if (doc.getDocument() != null && message0.equals(doc.getDocument())) {
+        convertAlertsFieldToList(doc.getDocument());
+        convertAlertsFieldToList(message0);
         return;
       }
     }
@@ -969,11 +1004,9 @@ public abstract class MetaAlertIntegrationTest {
 //    while(true) {
 //
 //    }
-
     throw new OriginalNotFoundException(
         "Count not find " + guid + " after " + MAX_RETRIES + " tries");
   }
-
 
   protected void convertAlertsFieldToSet(Map<String, Object> document) {
     if (document.get(ALERT_FIELD) instanceof List) {
@@ -982,6 +1015,17 @@ public abstract class MetaAlertIntegrationTest {
           .get(ALERT_FIELD);
       Set<Map<String, Object>> message0AlertSet = new HashSet<>(message0AlertField);
       document.put(ALERT_FIELD, message0AlertSet);
+    }
+  }
+
+  protected void convertAlertsFieldToList(Map<String, Object> document) {
+    if (document.get(ALERT_FIELD) instanceof Set) {
+      @SuppressWarnings("unchecked")
+      Set<Map<String, Object>> message0AlertField = (Set<Map<String, Object>>) document
+          .get(ALERT_FIELD);
+      List<Map<String, Object>> message0AlertList = new ArrayList<>(message0AlertField);
+      message0AlertList.sort(Comparator.comparing(o -> ((String) o.get(Constants.GUID))));
+      document.put(ALERT_FIELD, message0AlertList);
     }
   }
 

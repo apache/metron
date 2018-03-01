@@ -198,7 +198,7 @@ public class SolrComponent implements InMemoryComponent {
       SolrInputDocument solrInputDocument = new SolrInputDocument();
       for (Entry<String, Object> entry : doc.entrySet()) {
         // If the entry itself is a map, add it as a child document. Handle one level of nesting.
-        if (entry.getValue() instanceof List) {
+        if (entry.getValue() instanceof List && !entry.getKey().equals("metaalerts")) {
           for (Object entryItem : (List)entry.getValue()) {
             if (entryItem instanceof Map) {
               @SuppressWarnings("unchecked")
