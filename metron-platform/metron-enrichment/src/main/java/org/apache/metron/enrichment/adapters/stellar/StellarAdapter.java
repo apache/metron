@@ -91,7 +91,7 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
     }
   }
 
-  public static JSONObject process( Map<String, Object> message
+  public static JSONObject process( Map<String, Object> rawMessage
                                            , ConfigHandler handler
                                            , String field
                                            , Long slowLogThreshold
@@ -103,7 +103,8 @@ public class StellarAdapter implements EnrichmentAdapter<CacheKey>,Serializable 
     JSONObject ret = new JSONObject();
     Iterable<Map.Entry<String, Object>> stellarStatements = getStellarStatements(handler, field);
 
-    _LOG.debug("message := {}", message);
+    _LOG.debug("message := {}", rawMessage);
+    JSONObject message = new JSONObject(rawMessage);
     if(stellarStatements != null) {
       List<String> mapEntries = new ArrayList<>();
       for (Map.Entry<String, Object> kv : stellarStatements) {
