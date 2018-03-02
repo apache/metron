@@ -17,13 +17,12 @@
  */
 package org.apache.metron.enrichment.bolt;
 
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.RemovalCause;
+import com.github.benmanes.caffeine.cache.RemovalListener;
 import com.google.common.base.Joiner;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.cache.RemovalCause;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.Sets;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
@@ -45,6 +44,9 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
 
@@ -89,29 +91,25 @@ public abstract class JoinBolt<V> extends ConfiguredEnrichmentBolt {
     if (this.maxTimeRetain == null) {
       throw new IllegalStateException("maxTimeRetain must be specified");
     }
-    loader = new CacheLoader<String, Map<String, Tuple>>() {
-      @Override
-      public Map<String, Tuple> load(String key) throws Exception {
-        return new HashMap<>();
-      }
-    };
-    cache = CacheBuilder.newBuilder().maximumSize(maxCacheSize)
-            .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES).removalListener(new JoinRemoveListener())
-            .build(loader);
+    loader = s -> new HashMap<>();
+    cache = Caffeine.newBuilder().maximumSize(maxCacheSize)
+                         .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES)
+                         .removalListener(new JoinRemoveListener())
+                         .build(loader);
     prepare(map, topologyContext);
   }
 
   class JoinRemoveListener implements RemovalListener<String, Map<String, Tuple>> {
 
     @Override
-    public void onRemoval(RemovalNotification<String, Map<String, Tuple>> removalNotification) {
-      if (removalNotification.getCause() == RemovalCause.SIZE) {
+    public void onRemoval(@Nullable String s, @Nullable Map<String, Tuple> stringTupleMap, @Nonnull RemovalCause removalCause) {
+      if (removalCause == RemovalCause.SIZE) {
         String errorMessage = "Join cache reached max size limit. Increase the maxCacheSize setting or add more tasks to enrichment/threatintel join bolt.";
         Exception exception = new Exception(errorMessage);
         LOG.error(errorMessage, exception);
         collector.reportError(exception);
       }
-      if (removalNotification.getCause() == RemovalCause.EXPIRED) {
+      if (removalCause == RemovalCause.EXPIRED) {
         String errorMessage = "Message was in the join cache too long which may be caused by slow enrichments/threatintels.  Increase the maxTimeRetain setting.";
         Exception exception = new Exception(errorMessage);
         LOG.error(errorMessage, exception);
