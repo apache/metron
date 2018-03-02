@@ -112,7 +112,7 @@ public class ElasticsearchUtils {
     settingsBuilder.put("cluster.name", globalConfiguration.get("es.clustername"));
     settingsBuilder.put("client.transport.ping_timeout","500s");
     settingsBuilder.put("transport.type", "security4");
-    Object xPackUser = globalConfiguration.get("es.xpackuser");
+    Object xPackUser = globalConfiguration.get("es.xpack.user");
     if (xPackUser != null) {
       settingsBuilder.put("xpack.security.user", xPackUser);
     }
