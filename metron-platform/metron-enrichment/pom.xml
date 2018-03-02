@@ -68,6 +68,12 @@
             <type>test-jar</type>
         </dependency>
         <dependency>
+          <groupId>com.github.ben-manes.caffeine</groupId>
+          <artifactId>caffeine</artifactId>
+          <version>2.6.2</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.metron</groupId>
             <artifactId>metron-profiler-client</artifactId>
             <version>${project.parent.version}</version>

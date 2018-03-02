@@ -22,11 +22,12 @@ import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.json.simple.JSONObject;
 
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 
 /**
  * Enrich based on a key and enrichment adapter.  The CacheKey contains all necessary input information for an enrichment.
  */
-public class EnrichmentCallable implements Callable<JSONObject> {
+public class EnrichmentCallable implements Callable<JSONObject>, Function<CacheKey, JSONObject> {
   CacheKey key;
   EnrichmentAdapter<CacheKey> adapter;
 
@@ -49,5 +50,17 @@ public class EnrichmentCallable implements Callable<JSONObject> {
     //Log access for this key.
     adapter.logAccess(key);
     return adapter.enrich(key);
+  }
+
+  /**
+   * Applies this function to the given argument.
+   *
+   * @param cacheKey the function argument
+   * @return the function result
+   */
+  @Override
+  public JSONObject apply(CacheKey cacheKey) {
+    adapter.logAccess(key);
+    return adapter.enrich(cacheKey);
   }
 }

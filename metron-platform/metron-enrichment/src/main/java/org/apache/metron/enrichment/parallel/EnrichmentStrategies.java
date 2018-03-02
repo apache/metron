@@ -17,16 +17,10 @@
  */
 package org.apache.metron.enrichment.parallel;
 
-import com.google.common.cache.Cache;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
 import org.apache.metron.enrichment.bolt.CacheKey;
-import org.apache.metron.enrichment.utils.EnrichmentUtils;
-import org.apache.metron.enrichment.utils.ThreatIntelUtils;
-import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
-import org.apache.storm.shade.org.jboss.netty.channel.socket.nio.WorkerPool;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 
@@ -69,7 +63,7 @@ public enum EnrichmentStrategies implements Strategy {
     return ParallelStrategy.getExecutor();
   }
 
-  public Cache<CacheKey, JSONObject> getCache() {
+  public com.github.benmanes.caffeine.cache.Cache<CacheKey, JSONObject> getCache() {
     return strategy.getCache();
   }
 

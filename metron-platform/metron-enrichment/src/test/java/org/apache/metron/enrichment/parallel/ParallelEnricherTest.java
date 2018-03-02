@@ -81,12 +81,12 @@ public class ParallelEnricherTest {
   @Test
   public void testCacheHit() throws Exception {
     numAccesses.set(0);
-    SensorEnrichmentConfig config = JSONUtils.INSTANCE.load(goodConfig, SensorEnrichmentConfig.class);
-    config.getConfiguration().putIfAbsent("stellarContext", stellarContext);
     JSONObject message = new JSONObject() {{
       put(Constants.SENSOR_TYPE, "test");
     }};
     for(int i = 0;i < 10;++i) {
+      SensorEnrichmentConfig config = JSONUtils.INSTANCE.load(goodConfig, SensorEnrichmentConfig.class);
+      config.getConfiguration().putIfAbsent("stellarContext", stellarContext);
       ParallelEnricher.EnrichmentResult result = enricher.apply(message, EnrichmentStrategies.ENRICHMENT, config, null);
     }
     //we only want 2 actual instances of the adapter.enrich being run due to the cache.

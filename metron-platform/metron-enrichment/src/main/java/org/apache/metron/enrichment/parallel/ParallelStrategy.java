@@ -17,14 +17,11 @@
  */
 package org.apache.metron.enrichment.parallel;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -33,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class ParallelStrategy implements Strategy {
   private static Executor executor;
-  private Cache<CacheKey, JSONObject> cache;
+  private com.github.benmanes.caffeine.cache.Cache<CacheKey, JSONObject> cache;
   /**
    * Initialize the threadpool and cache.  Only one threadpool will be created per process whereas one cache will be
    * created per instance of the strategy.
@@ -62,13 +59,21 @@ public abstract class ParallelStrategy implements Strategy {
       if (log != null) {
         log.info("Creating new cache with maximum size {}, and expiration after write of {} minutes", maxCacheSize, maxTimeRetain);
       }
-      CacheBuilder builder = CacheBuilder.newBuilder().maximumSize(maxCacheSize)
+      Caffeine builder = Caffeine.newBuilder().maximumSize(maxCacheSize)
+                           .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES)
+                           .executor(executor)
+                         ;
+      if(logStats) {
+        builder = builder.recordStats();
+      }
+      cache = builder.build();
+      /*CacheBuilder builder = CacheBuilder.newBuilder().maximumSize(maxCacheSize)
               .concurrencyLevel(numThreads)
               .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES);
       if(logStats) {
         builder.recordStats();
       }
-      cache = builder.build();
+      cache = builder.build();*/
     }
   }
 

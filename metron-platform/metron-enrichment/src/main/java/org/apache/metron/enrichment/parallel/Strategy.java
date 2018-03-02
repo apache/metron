@@ -17,11 +17,9 @@
  */
 package org.apache.metron.enrichment.parallel;
 
-import com.google.common.cache.Cache;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
-import org.apache.metron.enrichment.bolt.CacheKey;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 
@@ -42,7 +40,7 @@ public interface Strategy {
   Map<String, ConfigHandler> fieldToHandler(SensorEnrichmentConfig config);
   String fieldToEnrichmentKey(String type, String field);
   void initializeThreading(int numThreads, long maxCacheSize, long maxTimeRetain, WorkerPoolStrategy poolStrategy, Logger log, boolean logStats);
-  Cache<CacheKey, JSONObject> getCache();
+  com.github.benmanes.caffeine.cache.Cache getCache();
   default JSONObject postProcess(JSONObject message, SensorEnrichmentConfig config, EnrichmentContext context) {
     return message;
   }
