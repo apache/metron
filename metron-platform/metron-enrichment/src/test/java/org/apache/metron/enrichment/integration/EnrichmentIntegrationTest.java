@@ -243,8 +243,8 @@ public class EnrichmentIntegrationTest extends BaseIntegrationTest {
 
   protected void validateErrors(List<Map<String, Object>> errors) {
     for(Map<String, Object> error : errors) {
-      Assert.assertTrue(error.get(Constants.ErrorFields.MESSAGE.getName()).toString().contains("java.lang.ArithmeticException: / by zero") );
-      Assert.assertTrue(error.get(Constants.ErrorFields.EXCEPTION.getName()).toString().contains("java.lang.ArithmeticException: / by zero"));
+      Assert.assertTrue(error.get(Constants.ErrorFields.MESSAGE.getName()).toString(), error.get(Constants.ErrorFields.MESSAGE.getName()).toString().contains("/ by zero") );
+      Assert.assertTrue(error.get(Constants.ErrorFields.EXCEPTION.getName()).toString().contains("/ by zero"));
       Assert.assertEquals(Constants.ErrorType.ENRICHMENT_ERROR.getType(), error.get(Constants.ErrorFields.ERROR_TYPE.getName()));
       Assert.assertEquals("{\"error_test\":{},\"source.type\":\"test\"}", error.get(Constants.ErrorFields.RAW_MESSAGE.getName()));
     }

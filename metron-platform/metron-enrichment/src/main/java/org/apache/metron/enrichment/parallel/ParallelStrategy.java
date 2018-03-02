@@ -67,13 +67,6 @@ public abstract class ParallelStrategy implements Strategy {
         builder = builder.recordStats();
       }
       cache = builder.build();
-      /*CacheBuilder builder = CacheBuilder.newBuilder().maximumSize(maxCacheSize)
-              .concurrencyLevel(numThreads)
-              .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES);
-      if(logStats) {
-        builder.recordStats();
-      }
-      cache = builder.build();*/
     }
   }
 
