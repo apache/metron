@@ -41,7 +41,7 @@ public interface Strategy {
   Map<String, Object> enrichmentFieldMap(SensorEnrichmentConfig config);
   Map<String, ConfigHandler> fieldToHandler(SensorEnrichmentConfig config);
   String fieldToEnrichmentKey(String type, String field);
-  void initializeThreading(int numThreads, long maxCacheSize, long maxTimeRetain, WorkerPoolStrategy poolStrategy, Logger log);
+  void initializeThreading(int numThreads, long maxCacheSize, long maxTimeRetain, WorkerPoolStrategy poolStrategy, Logger log, boolean logStats);
   Cache<CacheKey, JSONObject> getCache();
   default JSONObject postProcess(JSONObject message, SensorEnrichmentConfig config, EnrichmentContext context) {
     return message;

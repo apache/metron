@@ -271,6 +271,8 @@ bolts:
                 args: [${enrichment.join.cache.size}]
             -   name: "withMaxTimeRetain"
                 args: [10]
+            -   name: "withCaptureCacheStats"
+                args: [true]
             -   name: "withStrategy"
                 args:
                     - "ENRICHMENT"
@@ -299,6 +301,8 @@ bolts:
                 args: [${enrichment.join.cache.size}]
             -   name: "withMaxTimeRetain"
                 args: [10]
+            -   name: "withCaptureCacheStats"
+                args: [true]
             -   name: "withStrategy"
                 args:
                     - "THREAT_INTEL"

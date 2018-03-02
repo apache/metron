@@ -55,8 +55,14 @@ public enum EnrichmentStrategies implements Strategy {
     return strategy.fieldToEnrichmentKey(type, field);
   }
 
-  public synchronized void initializeThreading(int numThreads, long maxCacheSize, long maxTimeRetain, WorkerPoolStrategy poolStrategy, Logger log) {
-    strategy.initializeThreading(numThreads, maxCacheSize, maxTimeRetain, poolStrategy, log);
+  public synchronized void initializeThreading( int numThreads
+                                              , long maxCacheSize
+                                              , long maxTimeRetain
+                                              , WorkerPoolStrategy poolStrategy
+                                              , Logger log
+                                              , boolean captureCacheStats
+                                              ) {
+    strategy.initializeThreading(numThreads, maxCacheSize, maxTimeRetain, poolStrategy, log, captureCacheStats);
   }
 
   public static Executor getExecutor() {

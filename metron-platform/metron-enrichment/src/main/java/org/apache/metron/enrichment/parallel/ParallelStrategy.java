@@ -22,7 +22,9 @@ import com.google.common.cache.CacheBuilder;
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -32,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 public abstract class ParallelStrategy implements Strategy {
   private static Executor executor;
   private Cache<CacheKey, JSONObject> cache;
-
   /**
    * Initialize the threadpool and cache.  Only one threadpool will be created per process whereas one cache will be
    * created per instance of the strategy.
@@ -41,9 +42,16 @@ public abstract class ParallelStrategy implements Strategy {
    * @param maxTimeRetain
    * @param poolStrategy
    * @param log
+   * @param logStats
    */
   @Override
-  public synchronized void initializeThreading(int numThreads, long maxCacheSize, long maxTimeRetain, WorkerPoolStrategy poolStrategy, Logger log) {
+  public synchronized void initializeThreading( int numThreads
+                                              , long maxCacheSize
+                                              , long maxTimeRetain
+                                              , WorkerPoolStrategy poolStrategy
+                                              , Logger log
+                                              , boolean logStats
+                                              ) {
     if(executor == null) {
       if (log != null) {
         log.info("Creating new threadpool of size {}", numThreads);
@@ -54,9 +62,12 @@ public abstract class ParallelStrategy implements Strategy {
       if (log != null) {
         log.info("Creating new cache with maximum size {}, and expiration after write of {} minutes", maxCacheSize, maxTimeRetain);
       }
-      cache = CacheBuilder.newBuilder().maximumSize(maxCacheSize)
-              .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES)
-              .build();
+      CacheBuilder builder = CacheBuilder.newBuilder().maximumSize(maxCacheSize)
+              .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES);
+      if(logStats) {
+        builder.recordStats();
+      }
+      cache = builder.build();
     }
   }
 

@@ -17,6 +17,7 @@
  */
 package org.apache.metron.enrichment.parallel;
 
+import com.google.common.cache.CacheStats;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
@@ -30,10 +31,12 @@ import org.json.simple.JSONObject;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -48,6 +51,7 @@ import java.util.function.Supplier;
 public class ParallelEnricher {
 
   private Map<String, EnrichmentAdapter<CacheKey>> enrichmentsByType = new HashMap<>();
+  private EnumMap<EnrichmentStrategies, CacheStats> cacheStats = new EnumMap<>(EnrichmentStrategies.class);
 
   /**
    * The result of an enrichment.
@@ -82,9 +86,14 @@ public class ParallelEnricher {
    * Construct a parallel enricher with a set of enrichment adapters associated with their enrichment types.
    * @param enrichmentsByType
    */
-  public ParallelEnricher( Map<String, EnrichmentAdapter<CacheKey>> enrichmentsByType)
+  public ParallelEnricher( Map<String, EnrichmentAdapter<CacheKey>> enrichmentsByType, boolean logStats)
   {
     this.enrichmentsByType = enrichmentsByType;
+    if(logStats) {
+      for(EnrichmentStrategies s : EnrichmentStrategies.values()) {
+        cacheStats.put(s, null);
+      }
+    }
   }
 
   /**
@@ -107,6 +116,15 @@ public class ParallelEnricher {
     }
     if(perfLog != null) {
       perfLog.mark("execute");
+      if(perfLog.isDebugEnabled() && !cacheStats.isEmpty()) {
+        CacheStats before =  cacheStats.get(strategy);
+        CacheStats after = strategy.getCache().stats();
+        if(before != null && after != null) {
+          CacheStats delta = after.minus(before);
+          perfLog.log("cache", delta.toString());
+        }
+        cacheStats.put(strategy, after);
+      }
     }
     String sensorType = MessageUtils.getSensorType(message);
     message.put(getClass().getSimpleName().toLowerCase() + ".splitter.begin.ts", "" + System.currentTimeMillis());

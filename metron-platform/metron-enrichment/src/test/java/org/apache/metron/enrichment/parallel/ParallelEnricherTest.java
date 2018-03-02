@@ -64,7 +64,7 @@ public class ParallelEnricherTest {
   private static AtomicInteger numAccesses = new AtomicInteger(0);
   @BeforeClass
   public static void setup() {
-    EnrichmentStrategies.ENRICHMENT.initializeThreading(5, 100, 10, null, null);
+    EnrichmentStrategies.ENRICHMENT.initializeThreading(5, 100, 10, null, null, false);
     stellarContext = new Context.Builder()
                          .build();
     StellarFunctions.initialize(stellarContext);
@@ -75,7 +75,7 @@ public class ParallelEnricherTest {
       }
     }.ofType("ENRICHMENT");
     adapter.initializeAdapter(new HashMap<>());
-    enricher = new ParallelEnricher(ImmutableMap.of("stellar", adapter));
+    enricher = new ParallelEnricher(ImmutableMap.of("stellar", adapter), false);
   }
 
   @Test

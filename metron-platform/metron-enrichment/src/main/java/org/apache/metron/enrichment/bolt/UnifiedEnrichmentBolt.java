@@ -122,6 +122,7 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
    */
   protected String messageFieldName;
   protected EnrichmentContext enrichmentContext;
+  protected boolean captureCacheStats = true;
 
   public UnifiedEnrichmentBolt(String zookeeperUrl) {
     super(zookeeperUrl);
@@ -136,6 +137,11 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
     for(Enrichment e : enrichments) {
       enrichmentsByType.put(e.getType(), e.getAdapter());
     }
+    return this;
+  }
+
+  public UnifiedEnrichmentBolt withCaptureCacheStats(boolean captureCacheStats) {
+    this.captureCacheStats = captureCacheStats;
     return this;
   }
 
@@ -346,12 +352,12 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
     }
     if(map.containsKey(THREADPOOL_NUM_THREADS_TOPOLOGY_CONF)) {
       int numThreads = getNumThreads(map.get(THREADPOOL_NUM_THREADS_TOPOLOGY_CONF));
-      strategy.initializeThreading(numThreads, maxCacheSize, maxTimeRetain, workerPoolStrategy, LOG);
+      strategy.initializeThreading(numThreads, maxCacheSize, maxTimeRetain, workerPoolStrategy, LOG, captureCacheStats);
     }
     else {
       throw new IllegalStateException("You must pass " + THREADPOOL_NUM_THREADS_TOPOLOGY_CONF + " via storm config.");
     }
-    enricher = new ParallelEnricher(enrichmentsByType);
+    enricher = new ParallelEnricher(enrichmentsByType, captureCacheStats);
     perfLog = new PerformanceLogger(() -> getConfigurations().getGlobalConfig(), Perf.class.getName());
     GeoLiteDatabase.INSTANCE.update((String)getConfigurations().getGlobalConfig().get(GeoLiteDatabase.GEO_HDFS_FILE));
     initializeStellar();
