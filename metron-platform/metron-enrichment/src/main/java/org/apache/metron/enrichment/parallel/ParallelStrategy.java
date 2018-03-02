@@ -63,6 +63,7 @@ public abstract class ParallelStrategy implements Strategy {
         log.info("Creating new cache with maximum size {}, and expiration after write of {} minutes", maxCacheSize, maxTimeRetain);
       }
       CacheBuilder builder = CacheBuilder.newBuilder().maximumSize(maxCacheSize)
+              .concurrencyLevel(numThreads)
               .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES);
       if(logStats) {
         builder.recordStats();
