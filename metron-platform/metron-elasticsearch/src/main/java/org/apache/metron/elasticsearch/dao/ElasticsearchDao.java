@@ -59,7 +59,6 @@ public class ElasticsearchDao implements IndexDao {
   private ElasticsearchRequestSubmitter requestSubmitter;
 
   private AccessConfig accessConfig;
-  private ConfigurationsCache cache;
 
   protected ElasticsearchDao(TransportClient client,
       AccessConfig config,
@@ -91,7 +90,7 @@ public class ElasticsearchDao implements IndexDao {
   }
 
   @Override
-  public synchronized void init(AccessConfig config, ConfigurationsCache cache) {
+  public synchronized void init(AccessConfig config) {
     if(this.client == null) {
       this.client = ElasticsearchUtils.getClient(config.getGlobalConfigSupplier().get(), config.getOptionalSettings());
       this.accessConfig = config;
@@ -99,7 +98,6 @@ public class ElasticsearchDao implements IndexDao {
       this.requestSubmitter = new ElasticsearchRequestSubmitter(this.client);
       this.searchDao = new ElasticsearchSearchDao(client, accessConfig, columnMetadataDao, requestSubmitter);
       this.updateDao = new ElasticsearchUpdateDao(client, accessConfig, searchDao);
-      this.cache = cache;
     }
 
     if(columnMetadataDao == null) {

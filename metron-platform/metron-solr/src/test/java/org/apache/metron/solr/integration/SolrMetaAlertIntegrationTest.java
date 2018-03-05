@@ -86,7 +86,6 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
   @Before
   public void setup()
       throws IOException, InterruptedException, SolrServerException, KeeperException {
-    // TODO what are we naming the collections?
     solr.addCollection(metaDao.getMetaAlertIndex(), "../metron-solr/src/test/resources/config/metaalert/conf");
     solr.addCollection(SENSOR_NAME, "../metron-solr/src/test/resources/config/test/conf");
   }
