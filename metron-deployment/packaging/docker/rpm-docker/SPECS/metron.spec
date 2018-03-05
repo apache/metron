@@ -225,8 +225,12 @@ This package installs the Metron Solr files
 %dir %{metron_home}/bin
 %dir %{metron_home}/config
 %dir %{metron_home}/lib
+%{metron_home}/bin/create_collection.sh
+%{metron_home}/bin/delete_collection.sh
 %{metron_home}/bin/install_solr.sh
+%{metron_home}/bin/start_solr.sh
 %{metron_home}/bin/start_solr_topology.sh
+%{metron_home}/bin/stop_solr.sh
 %{metron_home}/config/solr.properties
 %{metron_home}/config/schema/bro/managed-schema
 %{metron_home}/config/schema/bro/solrconfig.xml

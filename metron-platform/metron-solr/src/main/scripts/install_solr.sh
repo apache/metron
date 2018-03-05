@@ -30,7 +30,7 @@
 service kibana stop
 service elasticsearch stop
 
-SOLR_VERSION=6.6.2
+SOLR_VERSION=${global_solr_version}
 SOLR_USER=solr
 SOLR_SERVICE=$SOLR_USER
 SOLR_VAR_DIR="/var/$SOLR_SERVICE"

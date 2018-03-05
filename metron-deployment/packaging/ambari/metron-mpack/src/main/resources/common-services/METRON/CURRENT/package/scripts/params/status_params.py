@@ -79,6 +79,9 @@ indexing_hbase_acl_configured_flag_file = metron_zookeeper_config_path + '/../me
 # Elasticsearch
 elasticsearch_template_installed_flag_file = metron_zookeeper_config_path + '/../metron_elasticsearch_template_installed_flag_file'
 
+# Solr
+solr_schema_installed_flag_file = metron_zookeeper_config_path + '/../metron_solr_schema_installed_flag_file'
+
 # REST
 metron_rest_port = config['configurations']['metron-rest-env']['metron_rest_port']
 
