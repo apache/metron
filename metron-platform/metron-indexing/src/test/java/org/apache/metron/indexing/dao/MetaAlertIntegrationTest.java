@@ -332,8 +332,7 @@ public abstract class MetaAlertIntegrationTest {
 
     {
       // Verify only 1 alert is added when a list of alerts only contains 1 alert that is not in the meta alert
-      metaAlertAlerts = new ArrayList<>(
-          (Set<Map<String, Object>>) expectedMetaAlert.get(ALERT_FIELD));
+      metaAlertAlerts = (List<Map<String, Object>>) expectedMetaAlert.get(ALERT_FIELD);
       Map<String, Object> expectedAlert3 = alerts.get(3);
       expectedAlert3.put(METAALERT_FIELD, Collections.singletonList("meta_alert"));
       metaAlertAlerts.add(expectedAlert3);
