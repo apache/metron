@@ -94,7 +94,6 @@ int main() {
     return 0;
 }
 EOM
-  g++ -std=c++11 $CPPFILE -o $OBJFILE &>/dev/null
   if [ $? -eq 0 ]; then
       echo "Compiler is C++11 compliant"
   else
