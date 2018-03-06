@@ -15,18 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.metron.rest.service;
 
-import org.apache.metron.rest.model.AlertProfile;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-public interface AlertsProfileService {
+import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.model.AlertsUIUserSettings;
 
-  AlertProfile get();
+/**
+ * This is a set of operations created to interact with alerts.
+ */
+public interface AlertsUIService {
 
-  Iterable<AlertProfile> findAll();
+  void escalateAlerts(List<Map<String, Object>> alerts) throws RestException;
 
-  AlertProfile save(AlertProfile alertsProfile);
+  Optional<AlertsUIUserSettings> getAlertsUIUserSettings() throws RestException;
 
-  boolean delete(String user);
+  Map<String, AlertsUIUserSettings> findAllAlertsUIUserSettings() throws RestException;
+
+  void saveAlertsUIUserSettings(AlertsUIUserSettings userSettings) throws RestException;
+
+  boolean deleteAlertsUIUserSettings(String user);
 }

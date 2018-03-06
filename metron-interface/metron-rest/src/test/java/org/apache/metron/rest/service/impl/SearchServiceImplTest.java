@@ -18,6 +18,7 @@
 package org.apache.metron.rest.service.impl;
 
 import static org.apache.metron.rest.MetronRestConstants.INDEX_WRITER_NAME;
+import static org.apache.metron.rest.MetronRestConstants.SEARCH_FACET_FIELDS_SPRING_PROPERTY;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -27,10 +28,14 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
+
 import org.apache.metron.indexing.dao.IndexDao;
 import org.apache.metron.indexing.dao.search.InvalidSearchException;
 import org.apache.metron.indexing.dao.search.SearchRequest;
 import org.apache.metron.rest.RestException;
+import org.apache.metron.rest.model.AlertsUIUserSettings;
+import org.apache.metron.rest.service.AlertsUIService;
 import org.apache.metron.rest.service.SearchService;
 import org.apache.metron.rest.service.SensorIndexingConfigService;
 import org.junit.Before;
@@ -47,6 +52,7 @@ public class SearchServiceImplTest {
   IndexDao dao;
   Environment environment;
   SensorIndexingConfigService sensorIndexingConfigService;
+  AlertsUIService alertsUIService;
   SearchService searchService;
 
   @Before
@@ -54,7 +60,8 @@ public class SearchServiceImplTest {
     dao = mock(IndexDao.class);
     environment = mock(Environment.class);
     sensorIndexingConfigService = mock(SensorIndexingConfigService.class);
-    searchService = new SearchServiceImpl(dao, environment, sensorIndexingConfigService);
+    alertsUIService = mock(AlertsUIService.class);
+    searchService = new SearchServiceImpl(dao, environment, sensorIndexingConfigService, alertsUIService);
   }
 
 
@@ -74,13 +81,63 @@ public class SearchServiceImplTest {
   }
 
   @Test
+  public void searchShouldProperlySearchWithEmptyDefaultFacetFields() throws Exception {
+    when(environment.getProperty(SEARCH_FACET_FIELDS_SPRING_PROPERTY, String.class, ""))
+        .thenReturn("");
+
+    SearchRequest searchRequest = new SearchRequest();
+    searchRequest.setIndices(Arrays.asList("bro", "snort", "metaalert"));
+    searchService.search(searchRequest);
+
+    SearchRequest expectedSearchRequest = new SearchRequest();
+    expectedSearchRequest.setIndices(Arrays.asList("bro", "snort", "metaalert"));
+    verify(dao).search(eq(expectedSearchRequest));
+  }
+
+  @Test
+  public void searchShouldProperlySearchDefaultFacetFields() throws Exception {
+    when(environment.getProperty(SEARCH_FACET_FIELDS_SPRING_PROPERTY, String.class, ""))
+        .thenReturn("source:type,ip_src_addr");
+    when(alertsUIService.getAlertsUIUserSettings()).thenReturn(Optional.empty());
+
+    SearchRequest searchRequest = new SearchRequest();
+    searchRequest.setIndices(Arrays.asList("bro", "snort", "metaalert"));
+    searchRequest.setFacetFields(new ArrayList<>());
+    searchService.search(searchRequest);
+
+    SearchRequest expectedSearchRequest = new SearchRequest();
+    expectedSearchRequest.setIndices(Arrays.asList("bro", "snort", "metaalert"));
+    expectedSearchRequest.setFacetFields(Arrays.asList("source:type", "ip_src_addr"));
+    verify(dao).search(eq(expectedSearchRequest));
+  }
+
+  @Test
+  public void searchShouldProperlySearchWithUserSettingsFacetFields() throws Exception {
+    AlertsUIUserSettings alertsUIUserSettings = new AlertsUIUserSettings();
+    alertsUIUserSettings.setFacetFields(Arrays.asList("source:type", "ip_dst_addr"));
+    when(alertsUIService.getAlertsUIUserSettings()).thenReturn(Optional.of(alertsUIUserSettings));
+
+    SearchRequest searchRequest = new SearchRequest();
+    searchRequest.setIndices(Arrays.asList("bro", "snort", "metaalert"));
+    searchRequest.setFacetFields(new ArrayList<>());
+    searchService.search(searchRequest);
+
+    SearchRequest expectedSearchRequest = new SearchRequest();
+    expectedSearchRequest.setIndices(Arrays.asList("bro", "snort", "metaalert"));
+    expectedSearchRequest.setFacetFields(Arrays.asList("source:type", "ip_dst_addr"));
+    verify(dao).search(eq(expectedSearchRequest));
+  }
+
+  @Test
   public void searchShouldProperlySearch() throws Exception {
     SearchRequest searchRequest = new SearchRequest();
     searchRequest.setIndices(Arrays.asList("bro"));
+    searchRequest.setFacetFields(Arrays.asList("ip_src_addr"));
     searchService.search(searchRequest);
 
     SearchRequest expectedSearchRequest = new SearchRequest();
     expectedSearchRequest.setIndices(Arrays.asList("bro"));
+    expectedSearchRequest.setFacetFields(Arrays.asList("ip_src_addr"));
     verify(dao).search(eq(expectedSearchRequest));
 
     verifyNoMoreInteractions(dao);
@@ -94,6 +151,7 @@ public class SearchServiceImplTest {
 
     SearchRequest searchRequest = new SearchRequest();
     searchRequest.setIndices(Arrays.asList("bro"));
+    searchRequest.setFacetFields(Arrays.asList("ip_src_addr"));
     searchService.search(searchRequest);
   }
 

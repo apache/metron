@@ -72,7 +72,6 @@ metron_zookeeper_config_path = status_params.metron_zookeeper_config_path
 zk_configured_flag_file = status_params.zk_configured_flag_file
 parsers_configured_flag_file = status_params.parsers_configured_flag_file
 parsers_acl_configured_flag_file = status_params.parsers_acl_configured_flag_file
-rest_acl_configured_flag_file = status_params.rest_acl_configured_flag_file
 enrichment_kafka_configured_flag_file = status_params.enrichment_kafka_configured_flag_file
 enrichment_kafka_acl_configured_flag_file = status_params.enrichment_kafka_acl_configured_flag_file
 enrichment_hbase_configured_flag_file = status_params.enrichment_hbase_configured_flag_file
@@ -84,6 +83,10 @@ indexing_hbase_configured_flag_file = status_params.indexing_hbase_configured_fl
 indexing_hbase_acl_configured_flag_file = status_params.indexing_hbase_acl_configured_flag_file
 indexing_hdfs_perm_configured_flag_file = status_params.indexing_hdfs_perm_configured_flag_file
 elasticsearch_template_installed_flag_file = status_params.elasticsearch_template_installed_flag_file
+rest_kafka_configured_flag_file = status_params.rest_kafka_configured_flag_file
+rest_kafka_acl_configured_flag_file = status_params.rest_kafka_acl_configured_flag_file
+rest_hbase_configured_flag_file = status_params.rest_hbase_configured_flag_file
+rest_hbase_acl_configured_flag_file = status_params.rest_hbase_acl_configured_flag_file
 global_properties_template = config['configurations']['metron-env']['elasticsearch-properties']
 
 # Elasticsearch hosts and port management
@@ -249,6 +252,8 @@ metron_rest_pid = 'metron-rest.pid'
 metron_indexing_classpath = config['configurations']['metron-rest-env']['metron_indexing_classpath']
 metron_rest_classpath = config['configurations']['metron-rest-env']['metron_rest_classpath']
 metron_sysconfig = config['configurations']['metron-rest-env']['metron_sysconfig']
+user_settings_hbase_table = status_params.user_settings_hbase_table
+user_settings_hbase_cf = status_params.user_settings_hbase_cf
 
 # Enrichment
 geoip_url = config['configurations']['metron-enrichment-env']['geoip_url']
