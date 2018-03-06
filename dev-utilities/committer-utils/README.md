@@ -33,15 +33,18 @@ In the following example, I enter the pull request number when prompted.   Using
     The first time the script is run, you will be prompted for additional information including your Apache username, Apache email, and Github username.  These values are persisted in `~/.metron-prepare-commit`.  Subsequent executions of the script will retrieve these values, rather than prompting you again for them.
 
     ```
-    $ prepare-commit
+    $ ./prepare-commit
       your github username []: jonzeolla
       your apache userid []: jonzeolla
       your apache email [jonzeolla@apache.org]:
     ```
 
-1. Enter the Github pull request number.
+1. Select a repository and enter a GitHub pull request number.
 
     ```
+        [1] metron
+        [2] metron-bro-plugin-kafka
+      which repo? [1]: 1
       pull request: 946
       local working directory [/Users/jzeolla/tmp/metron-pr946]:
       origin repo [https://github.com/apache/metron]:

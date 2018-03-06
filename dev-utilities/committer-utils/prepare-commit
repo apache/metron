@@ -30,11 +30,13 @@ if [ -f $CONFIG_FILE ]; then
 fi
 
 # which repo?  metron or metron-bro-plugin-kafka
-read -p "  which repo? [metron]: " INPUT
+echo "    [1] metron"
+echo "    [2] metron-bro-plugin-kafka"
+read -p "  which repo? [1]: " INPUT
 case "${INPUT}" in
-  [Bb][Rr][Oo]|[Mm][Ee][Tt][Rr][Oo][Nn]-[Bb][Rr][Oo]-[Pp][Ll][Uu][Gg][Ii][Nn]-[Kk][Aa][Ff][Kk][Aa]|*metron-bro-plugin-kafka\.git)
+  [Bb][Rr][Oo]|[Mm][Ee][Tt][Rr][Oo][Nn]-[Bb][Rr][Oo]-[Pp][Ll][Uu][Gg][Ii][Nn]-[Kk][Aa][Ff][Kk][Aa]|*metron-bro-plugin-kafka\.git|2)
     INPUT="${BRO_PLUGIN_UPSTREAM}" ;;
-  [Mm][Ee][Tt][Rr][Oo][Nn]|*metron\.git|'')
+  [Mm][Ee][Tt][Rr][Oo][Nn]|*metron\.git|1|'')
     INPUT="${METRON_UPSTREAM}" ;;
   *)
     echo "Invalid repo, provided \"${INPUT}\".  Please choose between metron or metron-bro-plugin-kafka"
