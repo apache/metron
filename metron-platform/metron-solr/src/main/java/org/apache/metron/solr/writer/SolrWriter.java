@@ -21,7 +21,9 @@ import com.google.common.base.Joiner;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.stellar.common.utils.ConversionUtils;
+import org.apache.solr.client.solrj.impl.HttpClientUtil;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer;
 import org.apache.solr.common.SolrException;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
@@ -44,6 +46,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -154,6 +157,13 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
     LOG.info("Commit Wait Flush: {}", waitFlush);
     LOG.info("Default Collection: {}", "" + defaultCollection );
     if(solr == null) {
+      System.out.println("Storm config");
+      for(Object key: stormConf.keySet()) {
+        System.out.println("key = " + key + ", value = " + stormConf.get(key));
+      }
+      if (isKerberosEnabled(stormConf)) {
+        HttpClientUtil.setConfigurer(new Krb5HttpClientConfigurer());
+      }
       solr = new MetronSolrClient(zookeeperUrl, solrHttpConfig);
     }
     solr.setDefaultCollection(defaultCollection);
@@ -199,6 +209,7 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
       Optional<SolrException> exceptionOptional = fromUpdateResponse(solr.add(collection, docs));
       // Solr commits the entire batch or throws an exception for it.  There's no way to get partial failures.
       if(exceptionOptional.isPresent()) {
+        System.out.println("Adding errors");
         bulkResponse.addAllErrors(exceptionOptional.get(), tuples);
       }
       else {
@@ -209,6 +220,7 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
           }
         }
         if(!exceptionOptional.isPresent()) {
+          System.out.println("Adding successes");
           bulkResponse.addAllSuccesses(tuples);
         }
       }
@@ -238,5 +250,10 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
     if(solr != null) {
       solr.close();
     }
+  }
+
+  private boolean isKerberosEnabled(Map stormConfig) {
+    String value = (String) stormConfig.get("java.security.auth.login.config");
+    return value != null && !value.isEmpty();
   }
 }
