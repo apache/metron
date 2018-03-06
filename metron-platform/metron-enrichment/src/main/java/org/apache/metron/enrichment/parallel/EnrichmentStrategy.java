@@ -18,36 +18,54 @@
 package org.apache.metron.enrichment.parallel;
 
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
-import org.apache.metron.enrichment.utils.EnrichmentUtils;
+import org.json.simple.JSONObject;
+import org.slf4j.Logger;
 
 import java.util.Map;
 
 /**
- * Enrichment strategy which pulls from the enrichment portion of the SensorEnrichmentConfig.
+ * Enrichment strategy.  This interface provides a mechanism to interface with the enrichment config and any
+ * post processing steps that are needed to be done after-the-fact.
+ *
+ * The reasoning behind this is that the key difference between enrichments and threat intel is that they pull
+ * their configurations from different parts of the SensorEnrichmentConfig object and as a post-join step, they differ
+ * slightly.
+ *
  */
-public class EnrichmentStrategy extends ParallelStrategy {
-  protected EnrichmentStrategy() {
+public interface EnrichmentStrategy {
+
+  /**
+   * Get the underlying configuration for this phase from the sensor enrichment config.
+   * @return
+   */
+  EnrichmentConfig getUnderlyingConfig(SensorEnrichmentConfig config);
+
+  /**
+   * Retrieves the error type, so that error messages can be constructed appropriately.
+   */
+  Constants.ErrorType getErrorType();
+
+  /**
+   * Takes the enrichment type and the field and returns a unique key to prefix the output of the enrichment.  For
+   * less adaptable enrichments than Stellar, this is important to allow for namespacing in the new fields created.
+   * @param type The enrichment type name
+   * @param field The input field
+   * @return
+   */
+  String fieldToEnrichmentKey(String type, String field);
+
+
+  /**
+   * Post-process callback after messages are enriched and joined.  By default, this is noop.
+   * @param message The input message.
+   * @param config The enrichment configuration
+   * @param context The enrichment context
+   * @return
+   */
+  default JSONObject postProcess(JSONObject message, SensorEnrichmentConfig config, EnrichmentContext context) {
+    return message;
   }
-
-  @Override
-    public Map<String, Object> enrichmentFieldMap(SensorEnrichmentConfig config) {
-      return config.getEnrichment().getFieldMap();
-    }
-
-    @Override
-    public Map<String, ConfigHandler> fieldToHandler(SensorEnrichmentConfig config) {
-      return config.getEnrichment().getEnrichmentConfigs();
-    }
-
-    @Override
-    public String fieldToEnrichmentKey(String type, String field) {
-      return EnrichmentUtils.getEnrichmentKey(type, field);
-    }
-
-    @Override
-    public Constants.ErrorType getErrorType() {
-      return Constants.ErrorType.ENRICHMENT_ERROR;
-    }
 }

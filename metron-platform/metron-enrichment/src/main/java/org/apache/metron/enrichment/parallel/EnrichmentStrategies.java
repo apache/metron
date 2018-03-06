@@ -18,62 +18,91 @@
 package org.apache.metron.enrichment.parallel;
 
 import org.apache.metron.common.Constants;
+import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
-import org.apache.metron.common.configuration.enrichment.handler.ConfigHandler;
-import org.apache.metron.enrichment.bolt.CacheKey;
+import org.apache.metron.enrichment.utils.EnrichmentUtils;
+import org.apache.metron.enrichment.utils.ThreatIntelUtils;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
 
-import java.util.Map;
-import java.util.concurrent.Executor;
+/**
+ * The specific strategies to interact with the sensor enrichment config.
+ * The approach presented here, in contrast to the inheritance-based approach
+ * in the bolts, allows for an abstraction through composition whereby we
+ * localize all the interactions with the sensor enrichment config in a strategy
+ * rather than bind the abstraction to Storm, our distributed processing engine.
+ */
+public enum EnrichmentStrategies implements EnrichmentStrategy {
+  /**
+   * Interact with the enrichment portion of the enrichment config
+   */
+  ENRICHMENT(new EnrichmentStrategy() {
+    @Override
+    public EnrichmentConfig getUnderlyingConfig(SensorEnrichmentConfig config) {
+      return config.getEnrichment();
+    }
 
-public enum EnrichmentStrategies implements Strategy {
-  ENRICHMENT(new EnrichmentStrategy()),
-  THREAT_INTEL( new ThreatIntelStrategy())
+    @Override
+    public Constants.ErrorType getErrorType() {
+      return Constants.ErrorType.ENRICHMENT_ERROR;
+    }
+
+    @Override
+    public String fieldToEnrichmentKey(String type, String field) {
+      return EnrichmentUtils.getEnrichmentKey(type, field);
+    }
+  }),
+  /**
+   * Interact with the threat intel portion of the enrichment config.
+   */
+  THREAT_INTEL(new EnrichmentStrategy() {
+    @Override
+    public EnrichmentConfig getUnderlyingConfig(SensorEnrichmentConfig config) {
+      return config.getThreatIntel();
+    }
+
+    @Override
+    public Constants.ErrorType getErrorType() {
+      return Constants.ErrorType.THREAT_INTEL_ERROR;
+    }
+
+    @Override
+    public String fieldToEnrichmentKey(String type, String field) {
+      return ThreatIntelUtils.getThreatIntelKey(type, field);
+    }
+
+    @Override
+    public JSONObject postProcess(JSONObject message, SensorEnrichmentConfig config, EnrichmentContext context) {
+      return ThreatIntelUtils.triage(message, config, context.getFunctionResolver(), context.getStellarContext());
+    }
+  })
   ;
 
-  ParallelStrategy strategy;
-  EnrichmentStrategies(ParallelStrategy strategy) {
-    this.strategy = strategy;
+  EnrichmentStrategy enrichmentStrategy;
+  EnrichmentStrategies(EnrichmentStrategy enrichmentStrategy) {
+    this.enrichmentStrategy = enrichmentStrategy;
   }
 
-  public Map<String, Object> enrichmentFieldMap(SensorEnrichmentConfig config) {
-    return strategy.enrichmentFieldMap(config);
-  }
-
-  public Map<String, ConfigHandler> fieldToHandler(SensorEnrichmentConfig config) {
-    return strategy.fieldToHandler(config);
+  /**
+   * Get the underlying enrichment config.  If this is provided, then we need not retrieve
+   * @return
+   */
+  @Override
+  public EnrichmentConfig getUnderlyingConfig(SensorEnrichmentConfig config) {
+    return enrichmentStrategy.getUnderlyingConfig(config);
   }
 
   public String fieldToEnrichmentKey(String type, String field) {
-    return strategy.fieldToEnrichmentKey(type, field);
-  }
-
-  public synchronized void initializeThreading( int numThreads
-                                              , long maxCacheSize
-                                              , long maxTimeRetain
-                                              , WorkerPoolStrategy poolStrategy
-                                              , Logger log
-                                              , boolean captureCacheStats
-                                              ) {
-    strategy.initializeThreading(numThreads, maxCacheSize, maxTimeRetain, poolStrategy, log, captureCacheStats);
-  }
-
-  public static Executor getExecutor() {
-    return ParallelStrategy.getExecutor();
-  }
-
-  public com.github.benmanes.caffeine.cache.Cache<CacheKey, JSONObject> getCache() {
-    return strategy.getCache();
+    return enrichmentStrategy.fieldToEnrichmentKey(type, field);
   }
 
 
   public JSONObject postProcess(JSONObject message, SensorEnrichmentConfig config, EnrichmentContext context)  {
-    return strategy.postProcess(message, config, context);
+    return enrichmentStrategy.postProcess(message, config, context);
   }
 
   @Override
   public Constants.ErrorType getErrorType() {
-    return strategy.getErrorType();
+    return enrichmentStrategy.getErrorType();
   }
+
 }

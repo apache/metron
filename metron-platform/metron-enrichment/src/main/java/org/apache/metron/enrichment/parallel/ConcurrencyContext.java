@@ -22,38 +22,54 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.metron.enrichment.bolt.CacheKey;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
+
+import java.util.EnumMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A base class for an enrichment strategy which contains a static thread pool and cache.
+ * This provides the parallel infrastructure, the thread pool and the cache.
+ * The threadpool is static and the cache is instance specific.
  */
-public abstract class ParallelStrategy implements Strategy {
+public class ConcurrencyContext {
   private static Executor executor;
-  private com.github.benmanes.caffeine.cache.Cache<CacheKey, JSONObject> cache;
-  /**
-   * Initialize the threadpool and cache.  Only one threadpool will be created per process whereas one cache will be
-   * created per instance of the strategy.
-   * @param numThreads
-   * @param maxCacheSize
-   * @param maxTimeRetain
-   * @param poolStrategy
-   * @param log
-   * @param logStats
+  private Cache<CacheKey, JSONObject> cache;
+
+  private static EnumMap<EnrichmentStrategies, ConcurrencyContext> strategyToInfrastructure
+          = new EnumMap<EnrichmentStrategies, ConcurrencyContext>(EnrichmentStrategies.class) {{
+    for(EnrichmentStrategies e : EnrichmentStrategies.values()) {
+      put(e, new ConcurrencyContext());
+    }
+  }};
+
+  public static ConcurrencyContext get(EnrichmentStrategies strategy) {
+    return strategyToInfrastructure.get(strategy);
+  }
+
+  protected ConcurrencyContext() { }
+
+  /*
+   * Initialize the thread pool and cache.  The threadpool is static and the cache is per strategy.
+   *
+   * @param numThreads The number of threads in the threadpool.
+   * @param maxCacheSize The maximum size of the cache, beyond which and keys are evicted.
+   * @param maxTimeRetain The maximum time to retain an element in the cache (in minutes)
+   * @param poolStrategy The strategy for creating a threadpool
+   * @param log The logger to use
+   * @param logStats Should we record stats in the cache?
    */
-  @Override
-  public synchronized void initializeThreading( int numThreads
-                                              , long maxCacheSize
-                                              , long maxTimeRetain
-                                              , WorkerPoolStrategy poolStrategy
-                                              , Logger log
-                                              , boolean logStats
-                                              ) {
+  public synchronized void initialize( int numThreads
+                                     , long maxCacheSize
+                                     , long maxTimeRetain
+                                     , WorkerPoolStrategies poolStrategy
+                                     , Logger log
+                                     , boolean logStats
+                                     ) {
     if(executor == null) {
       if (log != null) {
         log.info("Creating new threadpool of size {}", numThreads);
       }
-      executor = (poolStrategy == null?WorkerPoolStrategy.FIXED:poolStrategy).create(numThreads);
+      executor = (poolStrategy == null? WorkerPoolStrategies.FIXED:poolStrategy).create(numThreads);
     }
     if(cache == null) {
       if (log != null) {
@@ -74,7 +90,6 @@ public abstract class ParallelStrategy implements Strategy {
     return executor;
   }
 
-  @Override
   public Cache<CacheKey, JSONObject> getCache() {
     return cache;
   }

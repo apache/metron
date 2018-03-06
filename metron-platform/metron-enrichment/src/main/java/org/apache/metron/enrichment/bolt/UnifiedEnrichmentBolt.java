@@ -22,6 +22,8 @@ import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.configuration.ConfigurationType;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
 import org.apache.metron.common.error.MetronError;
+import org.apache.metron.common.message.MessageGetStrategy;
+import org.apache.metron.common.message.MessageGetters;
 import org.apache.metron.common.performance.PerformanceLogger;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.common.utils.MessageUtils;
@@ -31,9 +33,9 @@ import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
 import org.apache.metron.enrichment.parallel.EnrichmentContext;
 import org.apache.metron.enrichment.parallel.EnrichmentStrategies;
 import org.apache.metron.enrichment.parallel.ParallelEnricher;
-import org.apache.metron.enrichment.parallel.WorkerPoolStrategy;
+import org.apache.metron.enrichment.parallel.ConcurrencyContext;
+import org.apache.metron.enrichment.parallel.WorkerPoolStrategies;
 import org.apache.metron.stellar.dsl.Context;
-import org.apache.metron.stellar.dsl.StellarFunction;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -42,12 +44,9 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.List;
@@ -93,7 +92,11 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
    * enrichment or threat intel.  It is configured in the topology itself.
    */
   protected EnrichmentStrategies strategy;
-  private JSONParser parser;
+  /**
+   * Determine the way to retrieve the message.  This must be specified in the topology.
+   */
+  protected MessageGetStrategy messageGetter;
+  protected MessageGetters getterStrategy;
   protected OutputCollector collector;
   private Context stellarContext;
   /**
@@ -142,6 +145,16 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
 
   public UnifiedEnrichmentBolt withCaptureCacheStats(boolean captureCacheStats) {
     this.captureCacheStats = captureCacheStats;
+    return this;
+  }
+
+  /**
+   * Determine the message get strategy (One of the enums from MessageGetters).
+   * @param getter
+   * @return
+   */
+  public UnifiedEnrichmentBolt withMessageGetter(String getter) {
+    this.getterStrategy = MessageGetters.valueOf(getter);
     return this;
   }
 
@@ -215,8 +228,8 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
   @Override
   public void reloadCallback(String name, ConfigurationType type) {
     if(invalidateCacheOnReload) {
-      if(strategy.getCache() != null) {
-        strategy.getCache().invalidateAll();
+      if(strategy != null && ConcurrencyContext.get(strategy).getCache() != null) {
+        ConcurrencyContext.get(strategy).getCache().invalidateAll();
       }
     }
     if(type == ConfigurationType.GLOBAL && enrichmentsByType != null) {
@@ -304,30 +317,13 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
    * @return
    */
   public JSONObject generateMessage(Tuple tuple) {
-    /*
-    This is tricky becuase depending on where in the topology this is, the message may either be in a field
-    or it may be the first field.  If the messageFieldName is set, then we know to pull from that.  Otherwise,
-    we parse the binary into a JSON blob.
-     */
-    JSONObject message = null;
-    if (messageFieldName == null) {
-      byte[] data = tuple.getBinary(0);
-      try {
-        message = (JSONObject) parser.parse(new String(data, "UTF8"));
-      } catch (ParseException | UnsupportedEncodingException e) {
-        throw new IllegalStateException("Unable to parse tuple: " + tuple);
-      }
-    } else {
-      message = (JSONObject) tuple.getValueByField(messageFieldName);
-    }
-    return message;
+    return (JSONObject) messageGetter.get(tuple);
   }
 
   @Override
   public final void prepare(Map map, TopologyContext topologyContext,
                        OutputCollector outputCollector) {
     super.prepare(map, topologyContext, outputCollector);
-    parser = new JSONParser();
     collector = outputCollector;
     if (this.maxCacheSize == null) {
       throw new IllegalStateException("MAX_CACHE_SIZE_OBJECTS_NUM must be specified");
@@ -346,18 +342,19 @@ public class UnifiedEnrichmentBolt extends ConfiguredEnrichmentBolt {
         throw new IllegalStateException("Could not initialize adapter: " + adapterKv.getKey());
       }
     }
-    WorkerPoolStrategy workerPoolStrategy = WorkerPoolStrategy.FIXED;
+    WorkerPoolStrategies workerPoolStrategy = WorkerPoolStrategies.FIXED;
     if(map.containsKey(THREADPOOL_TYPE_TOPOLOGY_CONF)) {
-      workerPoolStrategy = WorkerPoolStrategy.valueOf(map.get(THREADPOOL_TYPE_TOPOLOGY_CONF) + "");
+      workerPoolStrategy = WorkerPoolStrategies.valueOf(map.get(THREADPOOL_TYPE_TOPOLOGY_CONF) + "");
     }
     if(map.containsKey(THREADPOOL_NUM_THREADS_TOPOLOGY_CONF)) {
       int numThreads = getNumThreads(map.get(THREADPOOL_NUM_THREADS_TOPOLOGY_CONF));
-      strategy.initializeThreading(numThreads, maxCacheSize, maxTimeRetain, workerPoolStrategy, LOG, captureCacheStats);
+      ConcurrencyContext.get(strategy).initialize(numThreads, maxCacheSize, maxTimeRetain, workerPoolStrategy, LOG, captureCacheStats);
     }
     else {
       throw new IllegalStateException("You must pass " + THREADPOOL_NUM_THREADS_TOPOLOGY_CONF + " via storm config.");
     }
-    enricher = new ParallelEnricher(enrichmentsByType, captureCacheStats);
+    messageGetter = this.getterStrategy.get(messageFieldName);
+    enricher = new ParallelEnricher(enrichmentsByType, ConcurrencyContext.get(strategy), captureCacheStats);
     perfLog = new PerformanceLogger(() -> getConfigurations().getGlobalConfig(), Perf.class.getName());
     GeoLiteDatabase.INSTANCE.update((String)getConfigurations().getGlobalConfig().get(GeoLiteDatabase.GEO_HDFS_FILE));
     initializeStellar();
