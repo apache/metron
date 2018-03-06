@@ -48,6 +48,13 @@ a worker.  This results in
 * Each bolt fully operates on a message.
 * Fewer network hops
 
+![Unified Architecture](unified_enrichment_arch.png)
+
+This architecture is fully backwards compatible; the only difference is
+how the enrichment will operate on each message (in one bolt where the
+split/join is done in a threadpool as opposed
+to split across multiple bolts).
+
 #### Using It
 
 In order to use this, you will need to 
