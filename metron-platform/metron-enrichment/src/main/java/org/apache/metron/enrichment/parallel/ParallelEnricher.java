@@ -36,7 +36,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -82,13 +81,19 @@ public class ParallelEnricher {
     }
   }
 
+  private ConcurrencyContext concurrencyContext;
+
   /**
    * Construct a parallel enricher with a set of enrichment adapters associated with their enrichment types.
    * @param enrichmentsByType
    */
-  public ParallelEnricher( Map<String, EnrichmentAdapter<CacheKey>> enrichmentsByType, boolean logStats)
+  public ParallelEnricher( Map<String, EnrichmentAdapter<CacheKey>> enrichmentsByType
+                         , ConcurrencyContext concurrencyContext
+                         , boolean logStats
+                         )
   {
     this.enrichmentsByType = enrichmentsByType;
+    this.concurrencyContext = concurrencyContext;
     if(logStats) {
       for(EnrichmentStrategies s : EnrichmentStrategies.values()) {
         cacheStats.put(s, null);
@@ -118,7 +123,7 @@ public class ParallelEnricher {
       perfLog.mark("execute");
       if(perfLog.isDebugEnabled() && !cacheStats.isEmpty()) {
         CacheStats before =  cacheStats.get(strategy);
-        CacheStats after = strategy.getCache().stats();
+        CacheStats after = concurrencyContext.getCache().stats();
         if(before != null && after != null) {
           CacheStats delta = after.minus(before);
           perfLog.log("cache", delta.toString());
@@ -164,7 +169,7 @@ public class ParallelEnricher {
           String prefix = adapter.getOutputPrefix(cacheKey);
           Supplier<JSONObject> supplier = () -> {
             try {
-              JSONObject ret = strategy.getCache().get(cacheKey, new EnrichmentCallable(cacheKey, adapter));
+              JSONObject ret = concurrencyContext.getCache().get(cacheKey, new EnrichmentCallable(cacheKey, adapter));
               if(ret == null) {
                 ret = new JSONObject();
               }
@@ -179,7 +184,7 @@ public class ParallelEnricher {
             }
           };
           //add the Future to the task list
-          taskList.add(CompletableFuture.supplyAsync( supplier, EnrichmentStrategies.getExecutor()));
+          taskList.add(CompletableFuture.supplyAsync( supplier, ConcurrencyContext.getExecutor()));
         }
       }
     }
@@ -237,18 +242,18 @@ public class ParallelEnricher {
   /**
    * Take a message and a config and return a list of tasks indexed by adapter enrichment types.
    * @param message
-   * @param strategy
+   * @param enrichmentStrategy
    * @param config
    * @return
    */
   public Map<String, List<JSONObject>> splitMessage( JSONObject message
-                                                   , Strategy strategy
+                                                   , EnrichmentStrategy enrichmentStrategy
                                                    , SensorEnrichmentConfig config
                                                    ) {
     Map<String, List<JSONObject>> streamMessageMap = new HashMap<>();
-    Map<String, Object> enrichmentFieldMap = strategy.enrichmentFieldMap(config);
+    Map<String, Object> enrichmentFieldMap = enrichmentStrategy.getUnderlyingConfig(config).getFieldMap();
 
-    Map<String, ConfigHandler> fieldToHandler = strategy.fieldToHandler(config);
+    Map<String, ConfigHandler> fieldToHandler = enrichmentStrategy.getUnderlyingConfig(config).getEnrichmentConfigs();
 
     Set<String> enrichmentTypes = new HashSet<>(enrichmentFieldMap.keySet());
 
@@ -265,7 +270,7 @@ public class ParallelEnricher {
       List<JSONObject> enrichmentObject = retriever.getType()
               .splitByFields( message
                       , fields
-                      , field -> strategy.fieldToEnrichmentKey(enrichmentType, field)
+                      , field -> enrichmentStrategy.fieldToEnrichmentKey(enrichmentType, field)
                       , retriever
               );
       streamMessageMap.put(enrichmentType, enrichmentObject);

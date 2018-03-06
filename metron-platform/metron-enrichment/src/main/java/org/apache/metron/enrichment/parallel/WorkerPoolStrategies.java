@@ -24,7 +24,7 @@ import java.util.function.Function;
 /**
  * The strategy to use to construct the thread pool.
  */
-public enum WorkerPoolStrategy {
+public enum WorkerPoolStrategies {
   /**
    * Fixed thread pool
    */
@@ -35,7 +35,7 @@ public enum WorkerPoolStrategy {
   WORK_STEALING(numThreads -> Executors.newWorkStealingPool(numThreads))
   ;
   Function<Integer, ExecutorService> creator;
-  WorkerPoolStrategy(Function<Integer, ExecutorService> creator) {
+  WorkerPoolStrategies(Function<Integer, ExecutorService> creator) {
     this.creator = creator;
   }
 

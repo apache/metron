@@ -276,6 +276,8 @@ bolts:
             -   name: "withStrategy"
                 args:
                     - "ENRICHMENT"
+            -   name: "withMessageGetter"
+                args: ["JSON_FROM_POSITION"]
         parallelism: ${enrichment.join.parallelism}
 
     -   id: "enrichmentErrorOutputBolt"
@@ -308,6 +310,8 @@ bolts:
                     - "THREAT_INTEL"
             -   name: "withMessageFieldName"
                 args: ["message"]
+            -   name: "withMessageGetter"
+                args: ["JSON_FROM_FIELD_BY_REFERENCE"]
         parallelism: ${threat.intel.join.parallelism}
 
     -   id: "threatIntelErrorOutputBolt"
