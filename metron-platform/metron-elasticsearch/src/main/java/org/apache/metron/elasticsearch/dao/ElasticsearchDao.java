@@ -37,7 +37,6 @@ import org.apache.metron.indexing.dao.search.SearchResult;
 import org.apache.metron.indexing.dao.search.SortField;
 import org.apache.metron.indexing.dao.search.SortOrder;
 import org.apache.metron.indexing.dao.update.Document;
-import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
@@ -45,8 +44,6 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.support.replication.ReplicationResponse.ShardInfo;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.cluster.metadata.MappingMetaData;
-import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.index.mapper.LegacyIpFieldMapper;
 import org.elasticsearch.index.query.IdsQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -194,7 +191,7 @@ public class ElasticsearchDao implements IndexDao {
             .from(searchRequest.getFrom())
             .query(queryBuilder)
             .trackScores(true);
-    Optional<List<String>> fields = searchRequest.getFields();
+    List<String> fields = searchRequest.getFields();
     // column metadata needed to understand the type of each sort field
     Map<String, FieldType> meta;
     try {
@@ -227,18 +224,18 @@ public class ElasticsearchDao implements IndexDao {
     }
 
     // handle search fields
-    if (fields.isPresent()) {
+    if (fields != null) {
       searchBuilder.fetchSource("*", null);
     } else {
       searchBuilder.fetchSource(true);
     }
 
-    Optional<List<String>> facetFields = searchRequest.getFacetFields();
+    List<String> facetFields = searchRequest.getFacetFields();
 
     // handle facet fields
-    if (searchRequest.getFacetFields().isPresent()) {
+    if (facetFields != null) {
       // https://www.elastic.co/guide/en/elasticsearch/client/java-api/current/_bucket_aggregations.html
-      for(String field : searchRequest.getFacetFields().get()) {
+      for(String field : facetFields) {
         String name = getFacetAggregationName(field);
         TermsAggregationBuilder terms = AggregationBuilders.terms( name).field(field);
                // new TermsBuilder(name).field(field);
@@ -282,8 +279,8 @@ public class ElasticsearchDao implements IndexDao {
     searchResponse.setResults(results);
 
     // handle facet fields
-    if (searchRequest.getFacetFields().isPresent()) {
-      List<String> facetFields = searchRequest.getFacetFields().get();
+    if (searchRequest.getFacetFields() != null) {
+      List<String> facetFields = searchRequest.getFacetFields();
       Map<String, FieldType> commonColumnMetadata;
       try {
         commonColumnMetadata = getColumnMetadata(searchRequest.getIndices());
@@ -674,14 +671,14 @@ public class ElasticsearchDao implements IndexDao {
     return searchResultGroups;
   }
 
-  private SearchResult getSearchResult(SearchHit searchHit, Optional<List<String>> fields) {
+  private SearchResult getSearchResult(SearchHit searchHit, List<String> fields) {
     SearchResult searchResult = new SearchResult();
     searchResult.setId(searchHit.getId());
     Map<String, Object> source;
-    if (fields.isPresent()) {
+    if (fields != null) {
       Map<String, Object> resultSourceAsMap = searchHit.getSourceAsMap();
       source = new HashMap<>();
-      fields.get().forEach(field -> {
+      fields.forEach(field -> {
         source.put(field, resultSourceAsMap.get(field));
       });
     } else {
