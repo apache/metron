@@ -53,6 +53,7 @@ public class InMemoryDao implements IndexDao {
   // Map from index to list of documents as JSON strings
   public static Map<String, List<String>> BACKING_STORE = new HashMap<>();
   public static Map<String, Map<String, FieldType>> COLUMN_METADATA = new HashMap<>();
+  public static Map<String, Map<String, Long>> FACET_COUNTS = new HashMap<>();
   private AccessConfig config;
 
   @Override
@@ -94,6 +95,14 @@ public class InMemoryDao implements IndexDao {
     }
     ret.setTotal(response.size());
     ret.setResults(finalResp);
+    Map<String, Map<String, Long>> facetCounts = new HashMap<>();
+    List<String> facetFields = searchRequest.getFacetFields();
+    if (facetFields != null) {
+      for (String facet: facetFields) {
+        facetCounts.put(facet, FACET_COUNTS.get(facet));
+      }
+      ret.setFacetCounts(facetCounts);
+    }
     return ret;
   }
 
@@ -290,6 +299,14 @@ public class InMemoryDao implements IndexDao {
     COLUMN_METADATA = columnMetadataMap;
   }
 
+  public static void setFacetCounts(Map<String, Map<String, Long>> facetCounts) {
+    Map<String, Map<String, Long>> facetCountsMap = new HashMap<>();
+    for (Map.Entry<String, Map<String, Long>> e: facetCounts.entrySet()) {
+      facetCountsMap.put(e.getKey(), Collections.unmodifiableMap(e.getValue()));
+    }
+    FACET_COUNTS = facetCountsMap;
+  }
+
   public static void load(Map<String, List<String>> backingStore) {
     BACKING_STORE = backingStore;
   }
@@ -297,5 +314,6 @@ public class InMemoryDao implements IndexDao {
   public static void clear() {
     BACKING_STORE.clear();
     COLUMN_METADATA.clear();
+    FACET_COUNTS.clear();
   }
 }

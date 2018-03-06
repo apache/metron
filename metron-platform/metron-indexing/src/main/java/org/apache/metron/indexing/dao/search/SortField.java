@@ -36,4 +36,19 @@ public class SortField {
   public void setSortOrder(String sortOrder) {
     this.sortOrder = SortOrder.fromString(sortOrder);
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    SortField that = (SortField) o;
+
+    return (field != null ? field.equals(that.field) : that.field == null) &&
+            (sortOrder != null ? sortOrder.equals(that.sortOrder) : that.sortOrder == null);
+  }
 }
