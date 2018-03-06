@@ -273,11 +273,16 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
 | [ `GET /api/v1/storm/enrichment/deactivate`](#get-apiv1stormenrichmentdeactivate)|
 | [ `GET /api/v1/storm/enrichment/start`](#get-apiv1stormenrichmentstart)|
 | [ `GET /api/v1/storm/enrichment/stop`](#get-apiv1stormenrichmentstop)|
-| [ `GET /api/v1/storm/indexing`](#get-apiv1stormindexing)|
-| [ `GET /api/v1/storm/indexing/activate`](#get-apiv1stormindexingactivate)|
-| [ `GET /api/v1/storm/indexing/deactivate`](#get-apiv1stormindexingdeactivate)|
-| [ `GET /api/v1/storm/indexing/start`](#get-apiv1stormindexingstart)|
-| [ `GET /api/v1/storm/indexing/stop`](#get-apiv1stormindexingstop)|
+| [ `GET /api/v1/storm/indexing/batch`](#get-apiv1stormindexingbatch)|
+| [ `GET /api/v1/storm/indexing/batch/activate`](#get-apiv1stormindexingbatchactivate)|
+| [ `GET /api/v1/storm/indexing/batch/deactivate`](#get-apiv1stormindexingbatchdeactivate)|
+| [ `GET /api/v1/storm/indexing/batch/start`](#get-apiv1stormindexingbatchstart)|
+| [ `GET /api/v1/storm/indexing/batch/stop`](#get-apiv1stormindexingbatchstop)|
+| [ `GET /api/v1/storm/indexing/randomaccess`](#get-apiv1stormindexingrandomaccess)|
+| [ `GET /api/v1/storm/indexing/randomaccess/activate`](#get-apiv1stormindexingrandomaccessactivate)|
+| [ `GET /api/v1/storm/indexing/randomaccess/deactivate`](#get-apiv1stormindexingrandomaccessdeactivate)|
+| [ `GET /api/v1/storm/indexing/randomaccess/start`](#get-apiv1stormindexingrandomaccessstart)|
+| [ `GET /api/v1/storm/indexing/randomaccess/stop`](#get-apiv1stormindexingrandomaccessstop)|
 | [ `GET /api/v1/storm/parser/activate/{name}`](#get-apiv1stormparseractivatename)|
 | [ `GET /api/v1/storm/parser/deactivate/{name}`](#get-apiv1stormparserdeactivatename)|
 | [ `GET /api/v1/storm/parser/start/{name}`](#get-apiv1stormparserstartname)|
@@ -704,29 +709,57 @@ Request and Response objects are JSON formatted.  The JSON schemas are available
   * Returns:
     * 200 - Returns stop response message
 
-### `GET /api/v1/storm/indexing`
-  * Description: Retrieves the status of the Storm indexing topology
+### `GET /api/v1/storm/indexing/batch`
+  * Description: Retrieves the status of the Storm batch indexing topology
   * Returns:
     * 200 - Returns topology status information
     * 404 - Topology is missing
 
-### `GET /api/v1/storm/indexing/activate`
-  * Description: Activates a Storm indexing topology
+### `GET /api/v1/storm/indexing/batch/activate`
+  * Description: Activates a Storm batch indexing topology
   * Returns:
     * 200 - Returns activate response message
 
-### `GET /api/v1/storm/indexing/deactivate`
-  * Description: Deactivates a Storm indexing topology
+### `GET /api/v1/storm/indexing/batch/deactivate`
+  * Description: Deactivates a Storm batch indexing topology
   * Returns:
     * 200 - Returns deactivate response message
 
-### `GET /api/v1/storm/indexing/start`
-  * Description: Starts a Storm indexing topology
+### `GET /api/v1/storm/indexing/batch/start`
+  * Description: Starts a Storm batch indexing topology
   * Returns:
     * 200 - Returns start response message
 
-### `GET /api/v1/storm/indexing/stop`
-  * Description: Stops a Storm enrichment topology
+### `GET /api/v1/storm/indexing/batch/stop`
+  * Description: Stops a Storm batch indexing topology
+  * Input:
+    * stopNow - Stop the topology immediately
+  * Returns:
+    * 200 - Returns stop response message
+
+### `GET /api/v1/storm/indexing/randomaccess`
+  * Description: Retrieves the status of the Storm randomaccess indexing topology
+  * Returns:
+    * 200 - Returns topology status information
+    * 404 - Topology is missing
+
+### `GET /api/v1/storm/indexing/randomaccess/activate`
+  * Description: Activates a Storm randomaccess indexing topology
+  * Returns:
+    * 200 - Returns activate response message
+
+### `GET /api/v1/storm/indexing/randomaccess/deactivate`
+  * Description: Deactivates a Storm randomaccess indexing topology
+  * Returns:
+    * 200 - Returns deactivate response message
+
+### `GET /api/v1/storm/indexing/randomaccess/start`
+  * Description: Starts a Storm randomaccess indexing topology
+  * Returns:
+    * 200 - Returns start response message
+
+### `GET /api/v1/storm/indexing/randomaccess/stop`
+  * Description: Stops a Storm randomaccess indexing topology
   * Input:
     * stopNow - Stop the topology immediately
   * Returns:
