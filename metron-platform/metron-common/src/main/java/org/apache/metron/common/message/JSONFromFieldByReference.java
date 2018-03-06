@@ -17,36 +17,21 @@
  */
 package org.apache.metron.common.message;
 
-import org.apache.commons.io.Charsets;
 import org.apache.storm.tuple.Tuple;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
-public class JSONFromPosition implements MessageGetStrategy {
-
-  private int position = 0;
-
-  private ThreadLocal<JSONParser> parser = new ThreadLocal<JSONParser>() {
-    @Override
-    protected JSONParser initialValue() {
-      return new JSONParser();
-    }
-  };
-
-  public JSONFromPosition() {};
-
-  public JSONFromPosition(Integer position) {
-    this.position = position == null?0:position;
+/**
+ * This retrieves the JSONObject from the field name by reference.
+ * This is in contrast to JSONFromField, which clones the JSON object and passes by value.
+ */
+public class JSONFromFieldByReference implements MessageGetStrategy {
+  private String messageFieldName;
+  public JSONFromFieldByReference(String messageFieldName) {
+    this.messageFieldName = messageFieldName;
   }
 
   @Override
   public JSONObject get(Tuple tuple) {
-    String s = null;
-    try {
-      s =  new String(tuple.getBinary(position), Charsets.UTF_8);
-      return (JSONObject) parser.get().parse(s);
-    } catch (Exception e) {
-      throw new IllegalStateException("Unable to parse " + s + " due to " + e.getMessage(), e);
-    }
+    return (JSONObject) tuple.getValueByField(messageFieldName);
   }
 }

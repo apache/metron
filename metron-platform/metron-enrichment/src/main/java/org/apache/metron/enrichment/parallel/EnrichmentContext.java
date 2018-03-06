@@ -15,22 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.common.message;
+package org.apache.metron.enrichment.parallel;
 
-import org.apache.storm.tuple.Tuple;
+import org.apache.metron.stellar.dsl.Context;
+import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
 
-public class BytesFromPosition implements MessageGetStrategy {
+/**
+ * The full context needed for an enrichment.  This is an abstraction to pass information from the underlying
+ * environment (e.g. a storm bolt) to the set of storm independent enrichment infrastructure.
+ */
+public class EnrichmentContext {
+  private FunctionResolver functionResolver;
+  private Context stellarContext;
 
-  private int position = 0;
-
-  public BytesFromPosition() {};
-
-  public BytesFromPosition(Integer position) {
-    this.position = position == null?0:position;
+  public EnrichmentContext(FunctionResolver functionResolver, Context stellarContext) {
+    this.functionResolver = functionResolver;
+    this.stellarContext = stellarContext;
   }
 
-  @Override
-  public byte[] get(Tuple tuple) {
-    return tuple.getBinary(position);
+  public FunctionResolver getFunctionResolver() {
+    return functionResolver;
+  }
+
+  public Context getStellarContext() {
+    return stellarContext;
   }
 }

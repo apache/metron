@@ -34,6 +34,7 @@ import org.apache.metron.common.performance.PerformanceLogger;
 import org.apache.metron.common.utils.ErrorUtils;
 import org.apache.metron.enrichment.configuration.Enrichment;
 import org.apache.metron.enrichment.interfaces.EnrichmentAdapter;
+import org.apache.metron.enrichment.utils.EnrichmentUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.storm.task.OutputCollector;
@@ -245,16 +246,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
               continue;
             }
           }
-          if ( !enrichedField.isEmpty()) {
-            for (Object enrichedKey : enrichedField.keySet()) {
-              if(!StringUtils.isEmpty(prefix)) {
-                enrichedMessage.put(field + "." + enrichedKey, enrichedField.get(enrichedKey));
-              }
-              else {
-                enrichedMessage.put(enrichedKey, enrichedField.get(enrichedKey));
-              }
-            }
-          }
+          enrichedMessage = EnrichmentUtils.adjustKeys(enrichedMessage, enrichedField, field, prefix);
         }
       }
 
