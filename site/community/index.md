@@ -85,6 +85,10 @@ title: Apache Metron Community
       <td style="text-align: left">Jon Zeolla</td> <td style="text-align: left">jonzeolla</td> <td style="text-align: left">Committer</td> </tr>
     <tr>
       <td style="text-align: left">JJ Meyer</td> <td style="text-align: left">jmeyer</td> <td style="text-align: left">Committer</td> </tr>
+    <tr>
+      <td style="text-align: left">Raghu Mitra</td> <td style="text-align: left">iraghumitra</td> <td style="text-align: left">Committer</td> </tr>
+    <tr>
+      <td style="text-align: left">Anand Subramanian</td> <td style="text-align: left">anandsubbu</td> <td style="text-align: left">Committer</td> </tr>
     </tbody>
 </table>
 </section>
