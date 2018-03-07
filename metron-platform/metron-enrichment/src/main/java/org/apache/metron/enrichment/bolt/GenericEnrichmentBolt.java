@@ -18,13 +18,13 @@
 
 package org.apache.metron.enrichment.bolt;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.lang3.StringUtils;
+
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.bolt.ConfiguredEnrichmentBolt;
 import org.apache.metron.common.configuration.ConfigurationType;
@@ -146,13 +146,8 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
       throw new IllegalStateException("MAX_TIME_RETAIN_MINUTES must be specified");
     if (this.adapter == null)
       throw new IllegalStateException("Adapter must be specified");
-    loader = new CacheLoader<CacheKey, JSONObject>() {
-      @Override
-      public JSONObject load(CacheKey key) throws Exception {
-        return adapter.enrich(key);
-      }
-    };
-    cache = CacheBuilder.newBuilder().maximumSize(maxCacheSize)
+    loader = key -> adapter.enrich(key);
+    cache = Caffeine.newBuilder().maximumSize(maxCacheSize)
             .expireAfterWrite(maxTimeRetain, TimeUnit.MINUTES)
             .build(loader);
     boolean success = adapter.initializeAdapter(getConfigurations().getGlobalConfig());
@@ -228,7 +223,7 @@ public class GenericEnrichmentBolt extends ConfiguredEnrichmentBolt {
               subGroup = adapter.getStreamSubGroup(enrichmentType, field);
 
               perfLog.mark("enrich");
-              enrichedField = cache.getUnchecked(cacheKey);
+              enrichedField = cache.get(cacheKey);
               perfLog.log("enrich", "key={}, time to run enrichment type={}", key, enrichmentType);
 
               if (enrichedField == null)

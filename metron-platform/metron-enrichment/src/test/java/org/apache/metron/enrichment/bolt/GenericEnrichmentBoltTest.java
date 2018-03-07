@@ -240,7 +240,7 @@ public class GenericEnrichmentBoltTest extends BaseEnrichmentBoltTest {
               put("field2", "value2");
               put("source.type", "test");
             }})
-            .withThrowable(new CacheLoader.InvalidCacheLoadException("CacheLoader returned null for key CacheKey{field='field1', value='value1'}."));
+            .withThrowable(new Exception("[Metron] Could not enrich string: value1"));
     verify(outputCollector, times(1)).emit(eq(Constants.ERROR_STREAM), argThat(new MetronErrorJSONMatcher(error.getJSONObject())));
   }
 }
