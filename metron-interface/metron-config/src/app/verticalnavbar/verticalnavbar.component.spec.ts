@@ -15,9 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, inject, TestBed} from '@angular/core/testing';
-import {Router} from '@angular/router';
-import {VerticalNavbarComponent} from './verticalnavbar.component';
+import { async, inject, TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { VerticalNavbarComponent } from './verticalnavbar.component';
 
 class MockRouter {
   url: string = '';
@@ -29,7 +29,7 @@ describe('VerticalNavbarComponent', () => {
     TestBed.configureTestingModule({
       providers: [
         VerticalNavbarComponent,
-        {provide: Router, useClass: MockRouter}
+        { provide: Router, useClass: MockRouter }
       ]
     }).compileComponents();
 
@@ -38,7 +38,7 @@ describe('VerticalNavbarComponent', () => {
   it('can instantiate VerticalNavbarComponent',
     inject([VerticalNavbarComponent], (verticalNavbarComponent: VerticalNavbarComponent) => {
       expect(verticalNavbarComponent instanceof VerticalNavbarComponent).toBe(true);
-  }));
+    }));
 
   it('check isActive for a URL VerticalNavbarComponent',
     inject([VerticalNavbarComponent, Router], (component: VerticalNavbarComponent, router: Router) => {
@@ -48,6 +48,6 @@ describe('VerticalNavbarComponent', () => {
       expect(component.isActive(['/abc'])).toEqual(true);
       expect(component.isActive(['/def', '/abc'])).toEqual(true);
 
-  }));
+    }));
 
 });

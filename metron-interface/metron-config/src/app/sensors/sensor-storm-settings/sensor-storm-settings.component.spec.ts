@@ -16,153 +16,153 @@
  * limitations under the License.
  */
 
-import {async, TestBed, ComponentFixture} from '@angular/core/testing';
-import {SensorStormSettingsComponent} from './sensor-storm-settings.component';
-import {SharedModule} from '../../shared/shared.module';
-import {SimpleChanges, SimpleChange} from '@angular/core';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
-import {SensorStormSettingsModule} from './sensor-storm-settings.module';
+import { async, TestBed, ComponentFixture } from '@angular/core/testing';
+import { SensorStormSettingsComponent } from './sensor-storm-settings.component';
+import { SharedModule } from '../../shared/shared.module';
+import { SimpleChanges, SimpleChange } from '@angular/core';
+import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { SensorStormSettingsModule } from './sensor-storm-settings.module';
 import '../../rxjs-operators';
 
 describe('Component: SensorStormSettingsComponent', () => {
 
-    let fixture: ComponentFixture<SensorStormSettingsComponent>;
-    let component: SensorStormSettingsComponent;
-    let sensorParserConfig: SensorParserConfig = new SensorParserConfig();
-    sensorParserConfig.sensorTopic = 'bro';
-    sensorParserConfig.parserClassName = 'org.apache.metron.parsers.bro.BasicBroParser';
-    sensorParserConfig.parserConfig = {};
-    sensorParserConfig.numWorkers = 2;
-    sensorParserConfig.numAckers = 2;
-    sensorParserConfig.spoutParallelism = 2;
-    sensorParserConfig.spoutNumTasks = 2;
-    sensorParserConfig.parserParallelism = 2;
-    sensorParserConfig.parserNumTasks = 2;
-    sensorParserConfig.errorWriterParallelism = 2;
-    sensorParserConfig.errorWriterNumTasks = 2;
-    sensorParserConfig.spoutConfig = {'spoutConfigProp': 'spoutConfigValue1'};
-    sensorParserConfig.stormConfig = {'stormConfigProp': 'stormConfigValue1'};
+  let fixture: ComponentFixture<SensorStormSettingsComponent>;
+  let component: SensorStormSettingsComponent;
+  let sensorParserConfig: SensorParserConfig = new SensorParserConfig();
+  sensorParserConfig.sensorTopic = 'bro';
+  sensorParserConfig.parserClassName = 'org.apache.metron.parsers.bro.BasicBroParser';
+  sensorParserConfig.parserConfig = {};
+  sensorParserConfig.numWorkers = 2;
+  sensorParserConfig.numAckers = 2;
+  sensorParserConfig.spoutParallelism = 2;
+  sensorParserConfig.spoutNumTasks = 2;
+  sensorParserConfig.parserParallelism = 2;
+  sensorParserConfig.parserNumTasks = 2;
+  sensorParserConfig.errorWriterParallelism = 2;
+  sensorParserConfig.errorWriterNumTasks = 2;
+  sensorParserConfig.spoutConfig = { 'spoutConfigProp': 'spoutConfigValue1' };
+  sensorParserConfig.stormConfig = { 'stormConfigProp': 'stormConfigValue1' };
 
-    beforeEach(async(() => {
-        TestBed.configureTestingModule({
-            imports: [SharedModule, SensorStormSettingsModule],
-        });
-
-        fixture = TestBed.createComponent(SensorStormSettingsComponent);
-        component = fixture.componentInstance;
-    }));
-
-    it('should create an instance', () => {
-        expect(component).toBeDefined();
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      imports: [SharedModule, SensorStormSettingsModule],
     });
 
-    it('should create an instance', () => {
-        spyOn(component, 'init');
-        let changes: SimpleChanges = {'showStormSettings': new SimpleChange(false, true)};
+    fixture = TestBed.createComponent(SensorStormSettingsComponent);
+    component = fixture.componentInstance;
+  }));
 
-        component.ngOnChanges(changes);
-        expect(component.init).toHaveBeenCalled();
+  it('should create an instance', () => {
+    expect(component).toBeDefined();
+  });
 
-        changes = {'showStormSettings': new SimpleChange(true, false)};
-        component.ngOnChanges(changes);
-        expect(component.init['calls'].count()).toEqual(1);
+  it('should create an instance', () => {
+    spyOn(component, 'init');
+    let changes: SimpleChanges = { 'showStormSettings': new SimpleChange(false, true) };
 
-        fixture.destroy();
-    });
+    component.ngOnChanges(changes);
+    expect(component.init).toHaveBeenCalled();
 
-    it('should initialise the fields', () => {
+    changes = { 'showStormSettings': new SimpleChange(true, false) };
+    component.ngOnChanges(changes);
+    expect(component.init['calls'].count()).toEqual(1);
 
-        component.init();
-        expect(component.newSensorParserConfig).toEqual(new SensorParserConfig());
+    fixture.destroy();
+  });
 
-        component.sensorParserConfig = sensorParserConfig;
-        component.init();
-        expect(component.newSensorParserConfig).toEqual(sensorParserConfig);
-        expect(component.newSpoutConfig).toEqual('{\n\t"spoutConfigProp": "spoutConfigValue1"\n}');
-        expect(component.newStormConfig).toEqual('{\n\t"stormConfigProp": "stormConfigValue1"\n}');
+  it('should initialise the fields', () => {
 
-        fixture.destroy();
-    });
+    component.init();
+    expect(component.newSensorParserConfig).toEqual(new SensorParserConfig());
 
-    it('should save the fields', () => {
-        spyOn(component.hideStormSettings, 'emit');
-        spyOn(component.onStormSettingsChanged, 'emit');
-        component.sensorParserConfig = sensorParserConfig;
-        component.init();
-        component.newSensorParserConfig.numWorkers = 3;
-        component.newSensorParserConfig.numAckers = 3;
-        component.newSensorParserConfig.spoutParallelism = 3;
-        component.newSensorParserConfig.spoutNumTasks = 3;
-        component.newSensorParserConfig.parserParallelism = 3;
-        component.newSensorParserConfig.parserNumTasks = 3;
-        component.newSensorParserConfig.errorWriterParallelism = 3;
-        component.newSensorParserConfig.errorWriterNumTasks = 3;
-        component.newSpoutConfig = '{"spoutConfigProp": "spoutConfigValue2"}';
-        component.newStormConfig = '{"stormConfigProp": "stormConfigValue2"}';
-        component.onSave();
-        expect(component.sensorParserConfig.numWorkers).toEqual(3);
-        expect(component.sensorParserConfig.numAckers).toEqual(3);
-        expect(component.sensorParserConfig.spoutParallelism).toEqual(3);
-        expect(component.sensorParserConfig.spoutNumTasks).toEqual(3);
-        expect(component.sensorParserConfig.parserParallelism).toEqual(3);
-        expect(component.sensorParserConfig.parserNumTasks).toEqual(3);
-        expect(component.sensorParserConfig.errorWriterParallelism).toEqual(3);
-        expect(component.sensorParserConfig.errorWriterNumTasks).toEqual(3);
-        expect(component.sensorParserConfig.spoutConfig).toEqual({'spoutConfigProp': 'spoutConfigValue2'});
-        expect(component.sensorParserConfig.stormConfig).toEqual({'stormConfigProp': 'stormConfigValue2'});
-        expect(component.hideStormSettings.emit).toHaveBeenCalled();
-        expect(component.onStormSettingsChanged.emit).toHaveBeenCalled();
-    });
+    component.sensorParserConfig = sensorParserConfig;
+    component.init();
+    expect(component.newSensorParserConfig).toEqual(sensorParserConfig);
+    expect(component.newSpoutConfig).toEqual('{\n\t"spoutConfigProp": "spoutConfigValue1"\n}');
+    expect(component.newStormConfig).toEqual('{\n\t"stormConfigProp": "stormConfigValue1"\n}');
 
-    it('hasSpoutConfigChanged should properly detect changes', () => {
-        let sensorParserConfigWithSpoutConfig = new SensorParserConfig();
-        sensorParserConfigWithSpoutConfig.spoutConfig = {};
-        component.sensorParserConfig = sensorParserConfigWithSpoutConfig;
-        component.newSpoutConfig = '{}';
-        expect(component.hasSpoutConfigChanged()).toEqual(false);
+    fixture.destroy();
+  });
 
-        sensorParserConfigWithSpoutConfig.spoutConfig = {'field': 'value'};
-        component.sensorParserConfig = sensorParserConfigWithSpoutConfig;
-        component.newSpoutConfig = '{ "field"  :  "value" }';
-        expect(component.hasSpoutConfigChanged()).toEqual(false);
+  it('should save the fields', () => {
+    spyOn(component.hideStormSettings, 'emit');
+    spyOn(component.onStormSettingsChanged, 'emit');
+    component.sensorParserConfig = sensorParserConfig;
+    component.init();
+    component.newSensorParserConfig.numWorkers = 3;
+    component.newSensorParserConfig.numAckers = 3;
+    component.newSensorParserConfig.spoutParallelism = 3;
+    component.newSensorParserConfig.spoutNumTasks = 3;
+    component.newSensorParserConfig.parserParallelism = 3;
+    component.newSensorParserConfig.parserNumTasks = 3;
+    component.newSensorParserConfig.errorWriterParallelism = 3;
+    component.newSensorParserConfig.errorWriterNumTasks = 3;
+    component.newSpoutConfig = '{"spoutConfigProp": "spoutConfigValue2"}';
+    component.newStormConfig = '{"stormConfigProp": "stormConfigValue2"}';
+    component.onSave();
+    expect(component.sensorParserConfig.numWorkers).toEqual(3);
+    expect(component.sensorParserConfig.numAckers).toEqual(3);
+    expect(component.sensorParserConfig.spoutParallelism).toEqual(3);
+    expect(component.sensorParserConfig.spoutNumTasks).toEqual(3);
+    expect(component.sensorParserConfig.parserParallelism).toEqual(3);
+    expect(component.sensorParserConfig.parserNumTasks).toEqual(3);
+    expect(component.sensorParserConfig.errorWriterParallelism).toEqual(3);
+    expect(component.sensorParserConfig.errorWriterNumTasks).toEqual(3);
+    expect(component.sensorParserConfig.spoutConfig).toEqual({ 'spoutConfigProp': 'spoutConfigValue2' });
+    expect(component.sensorParserConfig.stormConfig).toEqual({ 'stormConfigProp': 'stormConfigValue2' });
+    expect(component.hideStormSettings.emit).toHaveBeenCalled();
+    expect(component.onStormSettingsChanged.emit).toHaveBeenCalled();
+  });
 
-        sensorParserConfigWithSpoutConfig.spoutConfig = {'field': 'value'};
-        component.sensorParserConfig = sensorParserConfigWithSpoutConfig;
-        component.newSpoutConfig = '{"field": "value2"}';
-        expect(component.hasSpoutConfigChanged()).toEqual(true);
+  it('hasSpoutConfigChanged should properly detect changes', () => {
+    let sensorParserConfigWithSpoutConfig = new SensorParserConfig();
+    sensorParserConfigWithSpoutConfig.spoutConfig = {};
+    component.sensorParserConfig = sensorParserConfigWithSpoutConfig;
+    component.newSpoutConfig = '{}';
+    expect(component.hasSpoutConfigChanged()).toEqual(false);
 
-        component.newSpoutConfig = '{"field": "value2", }';
-        expect(component.hasSpoutConfigChanged()).toEqual(true);
-    });
+    sensorParserConfigWithSpoutConfig.spoutConfig = { 'field': 'value' };
+    component.sensorParserConfig = sensorParserConfigWithSpoutConfig;
+    component.newSpoutConfig = '{ "field"  :  "value" }';
+    expect(component.hasSpoutConfigChanged()).toEqual(false);
 
-    it('hasStormConfigChanged should properly detect changes', () => {
-        let sensorParserConfigWithStormConfig = new SensorParserConfig();
-        sensorParserConfigWithStormConfig.stormConfig = {};
-        component.sensorParserConfig = sensorParserConfigWithStormConfig;
-        component.newStormConfig = '{}';
-        expect(component.hasStormConfigChanged()).toEqual(false);
+    sensorParserConfigWithSpoutConfig.spoutConfig = { 'field': 'value' };
+    component.sensorParserConfig = sensorParserConfigWithSpoutConfig;
+    component.newSpoutConfig = '{"field": "value2"}';
+    expect(component.hasSpoutConfigChanged()).toEqual(true);
 
-        sensorParserConfigWithStormConfig.stormConfig = {'field': 'value'};
-        component.sensorParserConfig = sensorParserConfigWithStormConfig;
-        component.newStormConfig = '{ "field"  :  "value" }';
-        expect(component.hasStormConfigChanged()).toEqual(false);
+    component.newSpoutConfig = '{"field": "value2", }';
+    expect(component.hasSpoutConfigChanged()).toEqual(true);
+  });
 
-        sensorParserConfigWithStormConfig.stormConfig = {'field': 'value'};
-        component.sensorParserConfig = sensorParserConfigWithStormConfig;
-        component.newStormConfig = '{"field": "value2"}';
-        expect(component.hasStormConfigChanged()).toEqual(true);
+  it('hasStormConfigChanged should properly detect changes', () => {
+    let sensorParserConfigWithStormConfig = new SensorParserConfig();
+    sensorParserConfigWithStormConfig.stormConfig = {};
+    component.sensorParserConfig = sensorParserConfigWithStormConfig;
+    component.newStormConfig = '{}';
+    expect(component.hasStormConfigChanged()).toEqual(false);
 
-        component.newSpoutConfig = '{"field": "value2", }';
-        expect(component.hasStormConfigChanged()).toEqual(true);
-    });
+    sensorParserConfigWithStormConfig.stormConfig = { 'field': 'value' };
+    component.sensorParserConfig = sensorParserConfigWithStormConfig;
+    component.newStormConfig = '{ "field"  :  "value" }';
+    expect(component.hasStormConfigChanged()).toEqual(false);
 
-    it('should hide panel', () => {
-        spyOn(component.hideStormSettings, 'emit');
+    sensorParserConfigWithStormConfig.stormConfig = { 'field': 'value' };
+    component.sensorParserConfig = sensorParserConfigWithStormConfig;
+    component.newStormConfig = '{"field": "value2"}';
+    expect(component.hasStormConfigChanged()).toEqual(true);
 
-        component.onCancel();
+    component.newSpoutConfig = '{"field": "value2", }';
+    expect(component.hasStormConfigChanged()).toEqual(true);
+  });
 
-        expect(component.hideStormSettings.emit).toHaveBeenCalled();
+  it('should hide panel', () => {
+    spyOn(component.hideStormSettings, 'emit');
 
-        fixture.destroy();
-    });
+    component.onCancel();
+
+    expect(component.hideStormSettings.emit).toHaveBeenCalled();
+
+    fixture.destroy();
+  });
 });

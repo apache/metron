@@ -15,14 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, inject, TestBed} from '@angular/core/testing';
-import {MockBackend, MockConnection} from '@angular/http/testing';
-import {SensorEnrichmentConfigService} from './sensor-enrichment-config.service';
-import {SensorEnrichmentConfig, EnrichmentConfig} from '../model/sensor-enrichment-config';
-import {HttpModule, XHRBackend, Response, ResponseOptions, Http} from '@angular/http';
+import { async, inject, TestBed } from '@angular/core/testing';
+import { MockBackend, MockConnection } from '@angular/http/testing';
+import { SensorEnrichmentConfigService } from './sensor-enrichment-config.service';
+import { SensorEnrichmentConfig, EnrichmentConfig } from '../model/sensor-enrichment-config';
+import { HttpModule, XHRBackend, Response, ResponseOptions, Http } from '@angular/http';
 import '../rxjs-operators';
-import {METRON_REST_CONFIG, APP_CONFIG} from '../app.config';
-import {IAppConfig} from '../app.config.interface';
+import { METRON_REST_CONFIG, APP_CONFIG } from '../app.config';
+import { IAppConfig } from '../app.config.interface';
 
 describe('SensorEnrichmentConfigService', () => {
 
@@ -31,17 +31,17 @@ describe('SensorEnrichmentConfigService', () => {
       imports: [HttpModule],
       providers: [
         SensorEnrichmentConfigService,
-        {provide: XHRBackend, useClass: MockBackend},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        { provide: XHRBackend, useClass: MockBackend },
+        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
       ]
     })
-        .compileComponents();
+      .compileComponents();
   }));
 
   it('can instantiate service when inject service',
-      inject([SensorEnrichmentConfigService], (service: SensorEnrichmentConfigService) => {
-        expect(service instanceof SensorEnrichmentConfigService).toBe(true);
-      }));
+    inject([SensorEnrichmentConfigService], (service: SensorEnrichmentConfigService) => {
+      expect(service instanceof SensorEnrichmentConfigService).toBe(true);
+    }));
 
   it('can instantiate service with "new"', inject([Http, APP_CONFIG], (http: Http, config: IAppConfig) => {
     expect(http).not.toBeNull('http should be provided');
@@ -51,20 +51,20 @@ describe('SensorEnrichmentConfigService', () => {
 
 
   it('can provide the mockBackend as XHRBackend',
-      inject([XHRBackend], (backend: MockBackend) => {
-        expect(backend).not.toBeNull('backend should be provided');
-      }));
+    inject([XHRBackend], (backend: MockBackend) => {
+      expect(backend).not.toBeNull('backend should be provided');
+    }));
 
   describe('when service functions', () => {
     let sensorEnrichmentConfigService: SensorEnrichmentConfigService;
     let mockBackend: MockBackend;
     let sensorEnrichmentConfig1 = new SensorEnrichmentConfig();
     let enrichmentConfig1 = new EnrichmentConfig();
-    enrichmentConfig1.fieldMap = {'geo': ['ip_dst_addr'], 'host': ['ip_dst_addr']};
+    enrichmentConfig1.fieldMap = { 'geo': ['ip_dst_addr'], 'host': ['ip_dst_addr'] };
     sensorEnrichmentConfig1.enrichment.fieldMap = enrichmentConfig1;
     let sensorEnrichmentConfig2 = new SensorEnrichmentConfig();
     let enrichmentConfig2 = new EnrichmentConfig();
-    enrichmentConfig1.fieldMap = {'whois': ['ip_dst_addr'], 'host': ['ip_src_addr']};
+    enrichmentConfig1.fieldMap = { 'whois': ['ip_dst_addr'], 'host': ['ip_src_addr'] };
     sensorEnrichmentConfig2.enrichment = enrichmentConfig2;
     let availableEnrichments: string[] = ['geo', 'host', 'whois'];
     let availableThreatTriageAggregators: string[] = ['MAX', 'MIN', 'SUM', 'MEAN', 'POSITIVE_MEAN'];
@@ -77,57 +77,59 @@ describe('SensorEnrichmentConfigService', () => {
     beforeEach(inject([Http, XHRBackend, APP_CONFIG], (http: Http, be: MockBackend, config: IAppConfig) => {
       mockBackend = be;
       sensorEnrichmentConfigService = new SensorEnrichmentConfigService(http, config);
-      sensorEnrichmentConfigResponse = new Response(new ResponseOptions({status: 200, body: sensorEnrichmentConfig1}));
-      sensorEnrichmentConfigsResponse = new Response(new ResponseOptions({status: 200, body: [sensorEnrichmentConfig1,
-        sensorEnrichmentConfig2]}));
-      availableEnrichmentsResponse = new Response(new ResponseOptions({status: 200, body: availableEnrichments}));
-      availableThreatTriageAggregatorsResponse = new Response(new ResponseOptions({status: 200, body: availableThreatTriageAggregators}));
-      deleteResponse = new Response(new ResponseOptions({status: 200}));
+      sensorEnrichmentConfigResponse = new Response(new ResponseOptions({ status: 200, body: sensorEnrichmentConfig1 }));
+      sensorEnrichmentConfigsResponse = new Response(new ResponseOptions({
+        status: 200, body: [sensorEnrichmentConfig1,
+          sensorEnrichmentConfig2]
+      }));
+      availableEnrichmentsResponse = new Response(new ResponseOptions({ status: 200, body: availableEnrichments }));
+      availableThreatTriageAggregatorsResponse = new Response(new ResponseOptions({ status: 200, body: availableThreatTriageAggregators }));
+      deleteResponse = new Response(new ResponseOptions({ status: 200 }));
     }));
 
     it('post', async(inject([], () => {
       mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(sensorEnrichmentConfigResponse));
 
       sensorEnrichmentConfigService.post('bro', sensorEnrichmentConfig1).subscribe(
-          result => {
-            expect(result).toEqual(sensorEnrichmentConfig1);
-          }, error => console.log(error));
+        result => {
+          expect(result).toEqual(sensorEnrichmentConfig1);
+        }, error => console.log(error));
     })));
 
     it('get', async(inject([], () => {
       mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(sensorEnrichmentConfigResponse));
 
       sensorEnrichmentConfigService.get('bro').subscribe(
-          result => {
-            expect(result).toEqual(sensorEnrichmentConfig1);
-          }, error => console.log(error));
+        result => {
+          expect(result).toEqual(sensorEnrichmentConfig1);
+        }, error => console.log(error));
     })));
 
     it('getAll', async(inject([], () => {
       mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(sensorEnrichmentConfigsResponse));
 
       sensorEnrichmentConfigService.getAll().subscribe(
-          results => {
-            expect(results).toEqual([sensorEnrichmentConfig1, sensorEnrichmentConfig2]);
-          }, error => console.log(error));
+        results => {
+          expect(results).toEqual([sensorEnrichmentConfig1, sensorEnrichmentConfig2]);
+        }, error => console.log(error));
     })));
 
     it('getAvailableEnrichments', async(inject([], () => {
       mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(availableEnrichmentsResponse));
 
       sensorEnrichmentConfigService.getAvailableEnrichments().subscribe(
-          results => {
-            expect(results).toEqual(availableEnrichments);
-          }, error => console.log(error));
+        results => {
+          expect(results).toEqual(availableEnrichments);
+        }, error => console.log(error));
     })));
 
     it('getAvailableThreatTriageAggregators', async(inject([], () => {
       mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(availableThreatTriageAggregatorsResponse));
 
       sensorEnrichmentConfigService.getAvailableThreatTriageAggregators().subscribe(
-          results => {
-            expect(results).toEqual(availableThreatTriageAggregators);
-          }, error => console.log(error));
+        results => {
+          expect(results).toEqual(availableThreatTriageAggregators);
+        }, error => console.log(error));
     })));
 
     it('deleteSensorEnrichments', async(inject([], () => {

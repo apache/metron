@@ -15,10 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input, EventEmitter, Output, OnChanges, SimpleChanges} from '@angular/core';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
-import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
-import {IndexingConfigurations, SensorIndexingConfig} from '../../model/sensor-indexing-config';
+import { Component, Input, EventEmitter, Output, OnChanges, SimpleChanges } from '@angular/core';
+import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig } from '../../model/sensor-enrichment-config';
+import { IndexingConfigurations, SensorIndexingConfig } from '../../model/sensor-indexing-config';
 
 declare var ace: any;
 

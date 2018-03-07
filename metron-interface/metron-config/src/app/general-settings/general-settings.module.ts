@@ -15,16 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NgModule} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {routing} from './general-settings.routing';
-import {GeneralSettingsComponent} from './general-settings.component';
-import {AceEditorModule} from '../shared/ace-editor/ace-editor.module';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { routing } from './general-settings.routing';
+import { GeneralSettingsComponent } from './general-settings.component';
+import { AceEditorModule } from '../shared/ace-editor/ace-editor.module';
 
 
-@NgModule ({
-  imports: [ CommonModule, routing, FormsModule, ReactiveFormsModule, AceEditorModule ],
-  declarations: [ GeneralSettingsComponent ]
+@NgModule({
+  imports: [
+    CommonModule,
+    routing,
+    FormsModule,
+    ReactiveFormsModule,
+    AceEditorModule
+  ],
+  declarations: [
+    GeneralSettingsComponent
+  ]
 })
 export class GeneralSettingsModule { }

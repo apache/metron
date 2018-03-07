@@ -15,11 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, inject, TestBed} from '@angular/core/testing';
-import {EventEmitter}     from '@angular/core';
-import {AuthGuard} from './auth-guard';
-import {AuthenticationService} from '../service/authentication.service';
-import {Router} from '@angular/router';
+import { async, inject, TestBed } from '@angular/core/testing';
+import { EventEmitter } from '@angular/core';
+import { AuthGuard } from './auth-guard';
+import { AuthenticationService } from '../service/authentication.service';
+import { Router } from '@angular/router';
 
 class MockAuthenticationService {
   _isAuthenticationChecked: boolean;
@@ -36,7 +36,7 @@ class MockAuthenticationService {
 }
 
 class MockRouter {
-  navigateByUrl(): any {}
+  navigateByUrl(): any { }
 }
 
 describe('AuthGuard', () => {
@@ -45,8 +45,8 @@ describe('AuthGuard', () => {
     TestBed.configureTestingModule({
       providers: [
         AuthGuard,
-        {provide: AuthenticationService, useClass: MockAuthenticationService},
-        {provide: Router, useClass: MockRouter}
+        { provide: AuthenticationService, useClass: MockAuthenticationService },
+        { provide: Router, useClass: MockRouter }
       ]
     })
       .compileComponents();
@@ -71,8 +71,8 @@ describe('AuthGuard', () => {
 
   it('test when authentication is not checked',
     inject([AuthGuard, AuthenticationService, Router], (authGuard: AuthGuard,
-                                                        authenticationService: MockAuthenticationService,
-                                                        router: MockRouter) => {
+      authenticationService: MockAuthenticationService,
+      router: MockRouter) => {
       authenticationService._isAuthenticationChecked = false;
       authGuard.canActivate(null, null).subscribe(isUserValid => {
         expect(isUserValid).toBe(true);

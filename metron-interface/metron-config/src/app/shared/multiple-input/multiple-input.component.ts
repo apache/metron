@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import {AutocompleteOption} from '../../model/autocomplete-option';
+import { AutocompleteOption } from '../../model/autocomplete-option';
 
 @Component({
   selector: 'metron-config-multiple-input',

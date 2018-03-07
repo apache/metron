@@ -16,13 +16,20 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import {SharedModule} from '../../../shared/shared.module';
-import {SensorRuleEditorComponent} from './sensor-rule-editor.component';
-import {NumberSpinnerModule} from '../../../shared/number-spinner/number-spinner.module';
+import { SharedModule } from '../../../shared/shared.module';
+import { SensorRuleEditorComponent } from './sensor-rule-editor.component';
+import { NumberSpinnerModule } from '../../../shared/number-spinner/number-spinner.module';
 
-@NgModule ({
-  imports: [ SharedModule, NumberSpinnerModule ],
-  declarations: [ SensorRuleEditorComponent ],
-  exports: [ SensorRuleEditorComponent ]
+@NgModule({
+  imports: [
+    SharedModule,
+    NumberSpinnerModule
+  ],
+  declarations: [
+    SensorRuleEditorComponent
+  ],
+  exports: [
+    SensorRuleEditorComponent
+  ]
 })
-export class SensorRuleEditorModule {}
+export class SensorRuleEditorModule { }

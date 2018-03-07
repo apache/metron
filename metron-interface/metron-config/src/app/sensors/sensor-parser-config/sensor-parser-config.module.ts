@@ -15,22 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NgModule} from '@angular/core';
-import {ReactiveFormsModule} from '@angular/forms';
-import {routing} from './sensor-parser-config.routing';
-import {SensorParserConfigComponent} from './sensor-parser-config.component';
-import {SharedModule} from '../../shared/shared.module';
-import {NumberSpinnerModule} from '../../shared/number-spinner/number-spinner.module';
-import {AdvancedConfigFormModule} from '../../shared/advanced-config-form/advanced-config-form.module';
-import {SensorGrokModule} from '../sensor-grok/sensor-grok.module';
-import {SensorFieldSchemaModule} from '../sensor-field-schema/sensor-field-schema.module';
-import {SensorRawJsonModule} from '../sensor-raw-json/sensor-raw-json.module';
-import {SensorThreatTriageModule} from '../sensor-threat-triage/sensor-threat-triage.module';
-import {SensorStormSettingsModule} from '../sensor-storm-settings/sensor-storm-settings.module';
+import { NgModule } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { SensorParserConfigRoutingModule } from './sensor-parser-config.routing';
+import { SensorParserConfigComponent } from './sensor-parser-config.component';
+import { SharedModule } from '../../shared/shared.module';
+import { NumberSpinnerModule } from '../../shared/number-spinner/number-spinner.module';
+import { AdvancedConfigFormModule } from '../../shared/advanced-config-form/advanced-config-form.module';
+import { SensorGrokModule } from '../sensor-grok/sensor-grok.module';
+import { SensorFieldSchemaModule } from '../sensor-field-schema/sensor-field-schema.module';
+import { SensorRawJsonModule } from '../sensor-raw-json/sensor-raw-json.module';
+import { SensorThreatTriageModule } from '../sensor-threat-triage/sensor-threat-triage.module';
+import { SensorStormSettingsModule } from '../sensor-storm-settings/sensor-storm-settings.module';
 
-@NgModule ({
-  imports: [ routing, ReactiveFormsModule, SharedModule, NumberSpinnerModule, AdvancedConfigFormModule,
-                SensorGrokModule, SensorFieldSchemaModule, SensorRawJsonModule, SensorThreatTriageModule, SensorStormSettingsModule ],
-  declarations: [ SensorParserConfigComponent ]
+@NgModule({
+  imports: [
+    SensorParserConfigRoutingModule,
+    ReactiveFormsModule,
+    SharedModule,
+    NumberSpinnerModule,
+    AdvancedConfigFormModule,
+    SensorGrokModule,
+    SensorFieldSchemaModule,
+    SensorRawJsonModule,
+    SensorThreatTriageModule,
+    SensorStormSettingsModule
+  ],
+  declarations: [SensorParserConfigComponent]
 })
 export class SensorParserConfigModule { }

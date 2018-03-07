@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {FieldTransformer} from './field-transformer';
+import { FieldTransformer } from './field-transformer';
 export class SensorParserConfig {
   parserClassName: string;
   filterClassName: string;

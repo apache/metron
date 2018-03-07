@@ -15,34 +15,37 @@
   -->
 <div class="metron-slider-pane-edit fill load-left-to-right dialog2x">
 
-    <div class="form-group">
-        <div class="form-title">Configure Raw JSON</div>
-        <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="onCancel()"></i>
-    </div>
+  <div class="form-group">
+    <div class="form-title">Configure Raw JSON</div>
+    <i class="fa fa-times pull-right close-button" aria-hidden="true" (click)="onCancel()"></i>
+  </div>
 
 
   <form role="form" class="enrichments-form">
 
-      <div class="form-group">
-          <label attr.for="newSensorParserConfig">SENSOR PARSER CONFIG</label>
-          <metron-config-ace-editor [(ngModel)]="newSensorParserConfig" [ngModelOptions]="{standalone: true}" [type]="'JSON'" [placeHolder]="'Enter Sensor Parser Config'"> </metron-config-ace-editor>
-      </div>
-      <div class="form-group">
-          <label attr.for="newSensorEnrichmentConfig">SENSOR ENRICHMENT CONFIG</label>
-          <metron-config-ace-editor [(ngModel)]="newSensorEnrichmentConfig" [ngModelOptions]="{standalone: true}" [type]="'JSON'" [placeHolder]="'Enter Sensor Enrichment Config'"> </metron-config-ace-editor>
-      </div>
-      <div class="form-group">
-          <label attr.for="newIndexingConfigurations">INDEXING CONFIGURATIONS</label>
-          <metron-config-ace-editor [(ngModel)]="newIndexingConfigurations" [ngModelOptions]="{standalone: true}" [type]="'JSON'" [placeHolder]="'Enter Indexing Configurations'"> </metron-config-ace-editor>
-      </div>
+    <div class="form-group">
+      <label attr.for="newSensorParserConfig">SENSOR PARSER CONFIG</label>
+      <metron-config-ace-editor [(ngModel)]="newSensorParserConfig" [ngModelOptions]="{standalone: true}" [type]="'JSON'" [placeHolder]="'Enter Sensor Parser Config'">
+      </metron-config-ace-editor>
+    </div>
+    <div class="form-group">
+      <label attr.for="newSensorEnrichmentConfig">SENSOR ENRICHMENT CONFIG</label>
+      <metron-config-ace-editor [(ngModel)]="newSensorEnrichmentConfig" [ngModelOptions]="{standalone: true}" [type]="'JSON'" [placeHolder]="'Enter Sensor Enrichment Config'">
+      </metron-config-ace-editor>
+    </div>
+    <div class="form-group">
+      <label attr.for="newIndexingConfigurations">INDEXING CONFIGURATIONS</label>
+      <metron-config-ace-editor [(ngModel)]="newIndexingConfigurations" [ngModelOptions]="{standalone: true}" [type]="'JSON'" [placeHolder]="'Enter Indexing Configurations'">
+      </metron-config-ace-editor>
+    </div>
 
-      <div class="form-group">
-          <div class="form-seperator-edit"></div>
-          <div class="button-row">
-              <button type="submit" class="btn form-enable-disable-button" (click)="onSave()">SAVE</button>
-              <button class="btn form-enable-disable-button" (click)="onCancel()" >CANCEL</button>
-          </div>
+    <div class="form-group">
+      <div class="form-seperator-edit"></div>
+      <div class="button-row">
+        <button type="submit" class="btn form-enable-disable-button" (click)="onSave()">SAVE</button>
+        <button class="btn form-enable-disable-button" (click)="onCancel()">CANCEL</button>
       </div>
+    </div>
 
   </form>
 

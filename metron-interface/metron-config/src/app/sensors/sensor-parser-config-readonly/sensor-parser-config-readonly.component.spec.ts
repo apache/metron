@@ -15,30 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {Observable}     from 'rxjs/Observable';
-import {Router, ActivatedRoute, Params} from '@angular/router';
-import {Inject} from '@angular/core';
-import {SensorParserConfigHistory} from '../../model/sensor-parser-config-history';
-import {RequestOptions, Response, ResponseOptions, Http} from '@angular/http';
-import {SensorParserConfigReadonlyComponent} from './sensor-parser-config-readonly.component';
-import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
-import {KafkaService} from '../../service/kafka.service';
-import {TopologyStatus} from '../../model/topology-status';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
-import {KafkaTopic} from '../../model/kafka-topic';
-import {AuthenticationService} from '../../service/authentication.service';
-import {SensorParserConfigHistoryService} from '../../service/sensor-parser-config-history.service';
-import {StormService} from '../../service/storm.service';
-import {MetronAlerts} from '../../shared/metron-alerts';
-import {FieldTransformer} from '../../model/field-transformer';
-import {SensorParserConfigReadonlyModule} from './sensor-parser-config-readonly.module';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../../app.config';
-import {IAppConfig} from '../../app.config.interface';
-import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
-import {SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig} from '../../model/sensor-enrichment-config';
-import {HdfsService} from '../../service/hdfs.service';
-import {GrokValidationService} from '../../service/grok-validation.service';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { Observable } from 'rxjs/Observable';
+import { Router, ActivatedRoute, Params } from '@angular/router';
+import { Inject } from '@angular/core';
+import { SensorParserConfigHistory } from '../../model/sensor-parser-config-history';
+import { RequestOptions, Response, ResponseOptions, Http } from '@angular/http';
+import { SensorParserConfigReadonlyComponent } from './sensor-parser-config-readonly.component';
+import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
+import { KafkaService } from '../../service/kafka.service';
+import { TopologyStatus } from '../../model/topology-status';
+import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { KafkaTopic } from '../../model/kafka-topic';
+import { AuthenticationService } from '../../service/authentication.service';
+import { SensorParserConfigHistoryService } from '../../service/sensor-parser-config-history.service';
+import { StormService } from '../../service/storm.service';
+import { MetronAlerts } from '../../shared/metron-alerts';
+import { FieldTransformer } from '../../model/field-transformer';
+import { SensorParserConfigReadonlyModule } from './sensor-parser-config-readonly.module';
+import { APP_CONFIG, METRON_REST_CONFIG } from '../../app.config';
+import { IAppConfig } from '../../app.config.interface';
+import { SensorEnrichmentConfigService } from '../../service/sensor-enrichment-config.service';
+import { SensorEnrichmentConfig, EnrichmentConfig, ThreatIntelConfig } from '../../model/sensor-enrichment-config';
+import { HdfsService } from '../../service/hdfs.service';
+import { GrokValidationService } from '../../service/grok-validation.service';
 
 class MockRouter {
 
@@ -55,7 +55,7 @@ class MockActivatedRoute {
   setNameForTest(name: string) {
     this.name = name;
     this.params = Observable.create(observer => {
-      observer.next({id: this.name});
+      observer.next({ id: this.name });
       observer.complete();
     });
   }
@@ -167,7 +167,7 @@ class MockKafkaService extends KafkaService {
 
   public sample(name: string): Observable<string> {
     return Observable.create(observer => {
-      observer.next(JSON.stringify({'data': 'data1', 'data2': 'data3'}));
+      observer.next(JSON.stringify({ 'data': 'data1', 'data2': 'data3' }));
       observer.complete();
     });
   }
@@ -263,18 +263,18 @@ describe('Component: SensorParserConfigReadonly', () => {
     TestBed.configureTestingModule({
       imports: [SensorParserConfigReadonlyModule],
       providers: [
-        {provide: Http},
-        {provide: ActivatedRoute, useClass: MockActivatedRoute},
-        {provide: AuthenticationService, useClass: MockAuthenticationService},
-        {provide: SensorEnrichmentConfigService, useClass: MockSensorEnrichmentConfigService},
-        {provide: SensorParserConfigHistoryService, useClass: MockSensorParserConfigHistoryService},
-        {provide: SensorParserConfigService, useClass: MockSensorParserConfigService},
-        {provide: StormService, useClass: MockStormService},
-        {provide: KafkaService, useClass: MockKafkaService},
-        {provide: HdfsService, useClass: MockHdfsService},
-        {provide: GrokValidationService, useClass: MockGrokValidationService},
-        {provide: Router, useClass: MockRouter},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG},
+        { provide: Http },
+        { provide: ActivatedRoute, useClass: MockActivatedRoute },
+        { provide: AuthenticationService, useClass: MockAuthenticationService },
+        { provide: SensorEnrichmentConfigService, useClass: MockSensorEnrichmentConfigService },
+        { provide: SensorParserConfigHistoryService, useClass: MockSensorParserConfigHistoryService },
+        { provide: SensorParserConfigService, useClass: MockSensorParserConfigService },
+        { provide: StormService, useClass: MockStormService },
+        { provide: KafkaService, useClass: MockKafkaService },
+        { provide: HdfsService, useClass: MockHdfsService },
+        { provide: GrokValidationService, useClass: MockGrokValidationService },
+        { provide: Router, useClass: MockRouter },
+        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG },
         MetronAlerts
       ]
     }).compileComponents()
@@ -313,7 +313,7 @@ describe('Component: SensorParserConfigReadonly', () => {
 
     sensorParserConfig.sensorTopic = 'bro';
     sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
-    sensorParserConfig.parserConfig = {grokPattern: 'SQUID_DELIMITED squid grok statement'};
+    sensorParserConfig.parserConfig = { grokPattern: 'SQUID_DELIMITED squid grok statement' };
     sensorParserInfo.config = sensorParserConfig;
 
     kafkaTopic.name = 'bro';
@@ -329,17 +329,18 @@ describe('Component: SensorParserConfigReadonly', () => {
         'geo': ['ip_dst_addr'],
         'host': ['ip_dst_addr'],
         'whois': [],
-        'stellar': {'config': {'group1': {}}}
+        'stellar': { 'config': { 'group1': {} } }
       },
       'fieldToTypeMap': {}, 'config': {}
     };
-    let broThreatIntel = {'threatIntel': {
-      'fieldMap': { 'hbaseThreatIntel': ['ip_dst_addr'] },
-      'fieldToTypeMap': { 'ip_dst_addr': ['malicious_ip'] }
-    }
+    let broThreatIntel = {
+      'threatIntel': {
+        'fieldMap': { 'hbaseThreatIntel': ['ip_dst_addr'] },
+        'fieldToTypeMap': { 'ip_dst_addr': ['malicious_ip'] }
+      }
     };
     let broEnrichments = new SensorEnrichmentConfig();
-    broEnrichments.enrichment = Object.assign(new EnrichmentConfig(),  broEnrichment);
+    broEnrichments.enrichment = Object.assign(new EnrichmentConfig(), broEnrichment);
     broEnrichments.threatIntel = Object.assign(new ThreatIntelConfig(), broThreatIntel);
 
     sensorEnrichmentConfigService.setForTest(broEnrichments);
@@ -410,9 +411,9 @@ describe('Component: SensorParserConfigReadonly', () => {
     let fieldTransformer1 = new FieldTransformer();
     let fieldTransformer2 = new FieldTransformer();
 
-    fieldTransformer1.config = {'a': 'abc', 'x': 'xyz'};
+    fieldTransformer1.config = { 'a': 'abc', 'x': 'xyz' };
     fieldTransformer1.output = ['a', 'b', 'c'];
-    fieldTransformer2.config = {'x': 'klm', 'b': 'def'};
+    fieldTransformer2.config = { 'x': 'klm', 'b': 'def' };
     fieldTransformer2.output = ['a', 'b', 'c'];
     sensorParserConfig.fieldTransformations = [fieldTransformer1, fieldTransformer2];
     sensorParserInfo.config = sensorParserConfig;
@@ -431,7 +432,7 @@ describe('Component: SensorParserConfigReadonly', () => {
 
     expect(component.transformsConfigKeys.length).toEqual(3);
     expect(component.transformsConfigKeys).toEqual(['a', 'b', 'x']);
-    expect(component.transformsConfigMap).toEqual({'a': ['abc'], 'b': ['def'], 'x': ['xyz', 'klm']});
+    expect(component.transformsConfigMap).toEqual({ 'a': ['abc'], 'b': ['def'], 'x': ['xyz', 'klm'] });
     expect(transformsOutput).toEqual('a, b, c');
   }));
 
@@ -455,10 +456,10 @@ describe('Component: SensorParserConfigReadonly', () => {
   it('should set sensorEnrichmentConfig and aggregationConfigKeys to be initialised', async(() => {
     let threatIntel = {
       'fieldMap': {
-        'hbaseThreatIntel': [ 'ip_dst_addr', 'ip_src_addr', 'action']
+        'hbaseThreatIntel': ['ip_dst_addr', 'ip_src_addr', 'action']
       },
       'fieldToTypeMap': {
-        'ip_dst_addr': [ 'malicious_ip'], 'ip_src_addr': [ 'malicious_ip'], 'action': [ 'malicious_ip']
+        'ip_dst_addr': ['malicious_ip'], 'ip_src_addr': ['malicious_ip'], 'action': ['malicious_ip']
       },
       'config': {},
       'triageConfig': {
@@ -476,8 +477,8 @@ describe('Component: SensorParserConfigReadonly', () => {
         'aggregationConfig': {}
       }
     };
-    let expected = [{'rule': 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')', 'score': 3},
-      {'rule': 'user.type in [ \'admin\', \'power\' ] and asset.type == \'web\'', 'score': 3}];
+    let expected = [{ 'rule': 'IN_SUBNET(ip_dst_addr, \'192.168.0.0/24\')', 'score': 3 },
+    { 'rule': 'user.type in [ \'admin\', \'power\' ] and asset.type == \'web\'', 'score': 3 }];
 
     let sensorEnrichmentConfig = new SensorEnrichmentConfig();
     sensorEnrichmentConfig.threatIntel = Object.assign(new ThreatIntelConfig(), threatIntel);
@@ -498,7 +499,7 @@ describe('Component: SensorParserConfigReadonly', () => {
 
     sensorParserConfig.sensorTopic = 'bro';
     sensorParserConfig.parserClassName = 'org.apache.metron.parsers.GrokParser';
-    sensorParserConfig.parserConfig = {grokPattern: 'SQUID_DELIMITED squid grok statement'};
+    sensorParserConfig.parserConfig = { grokPattern: 'SQUID_DELIMITED squid grok statement' };
     sensorParserInfo.config = sensorParserConfig;
 
     kafkaTopic.name = 'bro';
@@ -514,17 +515,18 @@ describe('Component: SensorParserConfigReadonly', () => {
         'geo': ['ip_dst_addr'],
         'host': ['ip_dst_addr'],
         'whois': [],
-        'stellar': {'config': {'group1': {}}}
+        'stellar': { 'config': { 'group1': {} } }
       },
       'fieldToTypeMap': {}, 'config': {}
     };
-    let broThreatIntel = {'threatIntel': {
-      'fieldMap': { 'hbaseThreatIntel': ['ip_dst_addr'] },
-      'fieldToTypeMap': { 'ip_dst_addr': ['malicious_ip'] }
-    }
+    let broThreatIntel = {
+      'threatIntel': {
+        'fieldMap': { 'hbaseThreatIntel': ['ip_dst_addr'] },
+        'fieldToTypeMap': { 'ip_dst_addr': ['malicious_ip'] }
+      }
     };
     let broEnrichments = new SensorEnrichmentConfig();
-    broEnrichments.enrichment = Object.assign(new EnrichmentConfig(),  broEnrichment);
+    broEnrichments.enrichment = Object.assign(new EnrichmentConfig(), broEnrichment);
     broEnrichments.threatIntel = Object.assign(new ThreatIntelConfig(), broThreatIntel);
 
     kafkaService.setForTest(kafkaTopic);

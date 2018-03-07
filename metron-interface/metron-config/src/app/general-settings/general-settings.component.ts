@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import {GlobalConfigService} from '../service/global-config.service';
-import {MetronAlerts} from '../shared/metron-alerts';
-import {MetronDialogBox} from '../shared/metron-dialog-box';
+import { GlobalConfigService } from '../service/global-config.service';
+import { MetronAlerts } from '../shared/metron-alerts';
+import { MetronDialogBox } from '../shared/metron-dialog-box';
 
 @Component({
   selector: 'metron-config-general-settings',
@@ -34,7 +34,7 @@ export class GeneralSettingsComponent implements OnInit {
   private fieldValidations: string;
 
   constructor(private globalConfigService: GlobalConfigService, private metronAlerts: MetronAlerts,
-              private metronDialog: MetronDialogBox) {}
+    private metronDialog: MetronDialogBox) { }
 
   ngOnInit() {
     this.globalConfigService.get().subscribe((config: {}) => {
@@ -53,8 +53,8 @@ export class GeneralSettingsComponent implements OnInit {
       this.globalConfig['fieldValidations'] = JSON.parse(this.fieldValidations);
     }
     this.globalConfigService.post(this.globalConfig).subscribe(() => {
-        this.metronAlerts.showSuccessMessage('Saved Global Settings');
-      },
+      this.metronAlerts.showSuccessMessage('Saved Global Settings');
+    },
       error => {
         this.metronAlerts.showErrorMessage('Unable to save Global Settings: ' + error);
       });

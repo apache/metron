@@ -15,18 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {Router, NavigationStart} from '@angular/router';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
-import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
-import {MetronAlerts} from '../../shared/metron-alerts';
-import {MetronDialogBox} from '../../shared/metron-dialog-box';
-import {Sort} from '../../util/enums';
-import {SortEvent} from '../../shared/metron-table/metron-table.directive';
-import {StormService} from '../../service/storm.service';
-import {TopologyStatus} from '../../model/topology-status';
-import {SensorParserConfigHistory} from '../../model/sensor-parser-config-history';
-import {SensorParserConfigHistoryService} from '../../service/sensor-parser-config-history.service';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { Router, NavigationStart } from '@angular/router';
+import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
+import { MetronAlerts } from '../../shared/metron-alerts';
+import { MetronDialogBox } from '../../shared/metron-dialog-box';
+import { Sort } from '../../util/enums';
+import { SortEvent } from '../../shared/metron-table/metron-table.directive';
+import { StormService } from '../../service/storm.service';
+import { TopologyStatus } from '../../model/topology-status';
+import { SensorParserConfigHistory } from '../../model/sensor-parser-config-history';
+import { SensorParserConfigHistoryService } from '../../service/sensor-parser-config-history.service';
 
 @Component({
   selector: 'metron-config-sensor-parser-list',
@@ -45,12 +45,14 @@ export class SensorParserListComponent implements OnInit {
   selectedSensors: SensorParserConfigHistory[] = [];
   enableAutoRefresh: boolean = true;
 
-  constructor(private sensorParserConfigService: SensorParserConfigService,
-              private sensorParserConfigHistoryService: SensorParserConfigHistoryService,
-              private stormService: StormService,
-              private router: Router,
-              private metronAlerts:  MetronAlerts,
-              private metronDialogBox: MetronDialogBox) {
+  constructor(
+    private sensorParserConfigService: SensorParserConfigService,
+    private sensorParserConfigHistoryService: SensorParserConfigHistoryService,
+    private stormService: StormService,
+    private router: Router,
+    private metronAlerts: MetronAlerts,
+    private metronDialogBox: MetronDialogBox
+  ) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/sensors') {
         this.onNavigationStart();
@@ -60,7 +62,7 @@ export class SensorParserListComponent implements OnInit {
 
   getSensors(justOnce: boolean) {
     this.sensorParserConfigService.getAll().subscribe(
-      (results: {string: SensorParserConfig}) => {
+      (results: { string: SensorParserConfig }) => {
         this.sensors = [];
         for (let sensorName of Object.keys(results)) {
           let sensorParserConfigHistory = new SensorParserConfigHistory();
@@ -120,13 +122,13 @@ export class SensorParserListComponent implements OnInit {
 
   private pollStatus() {
     this.stormService.pollGetAll().subscribe(
-        (results: TopologyStatus[]) => {
-          this.sensorsStatus = results;
-          this.updateSensorStatus();
-        },
-        error => {
-          this.updateSensorStatus();
-        }
+      (results: TopologyStatus[]) => {
+        this.sensorsStatus = results;
+        this.updateSensorStatus();
+      },
+      error => {
+        this.updateSensorStatus();
+      }
     );
   }
 
@@ -143,29 +145,29 @@ export class SensorParserListComponent implements OnInit {
   }
 
   updateSensorStatus() {
-      for (let sensor of this.sensors) {
+    for (let sensor of this.sensors) {
 
-        let status: TopologyStatus = this.sensorsStatus.find(status => {
-          return status.name === sensor.sensorName;
-        });
+      let status: TopologyStatus = this.sensorsStatus.find(status => {
+        return status.name === sensor.sensorName;
+      });
 
-        if (status) {
-          if (status.status === 'ACTIVE') {
-            sensor['status'] = 'Running';
-          }
-          if (status.status === 'KILLED') {
-            sensor['status'] = 'Stopped';
-          }
-          if (status.status === 'INACTIVE') {
-            sensor['status'] = 'Disabled';
-          }
-        } else {
+      if (status) {
+        if (status.status === 'ACTIVE') {
+          sensor['status'] = 'Running';
+        }
+        if (status.status === 'KILLED') {
           sensor['status'] = 'Stopped';
         }
-
-        sensor['latency'] = status && status.status === 'ACTIVE' ? (status.latency + 's') : '-';
-        sensor['throughput'] = status && status.status === 'ACTIVE' ? (Math.round(status.throughput * 100) / 100) + 'kb/s' : '-';
+        if (status.status === 'INACTIVE') {
+          sensor['status'] = 'Disabled';
+        }
+      } else {
+        sensor['status'] = 'Stopped';
       }
+
+      sensor['latency'] = status && status.status === 'ACTIVE' ? (status.latency + 's') : '-';
+      sensor['throughput'] = status && status.status === 'ACTIVE' ? (Math.round(status.throughput * 100) / 100) + 'kb/s' : '-';
+    }
   }
 
   getParserType(sensor: SensorParserConfig): string {
@@ -238,15 +240,15 @@ export class SensorParserListComponent implements OnInit {
     this.metronDialogBox.showConfirmationMessage(confirmationsMsg).subscribe(result => {
       if (result) {
         this.sensorParserConfigService.deleteSensorParserConfigs(sensorNames)
-            .subscribe((deleteResult: {success: Array<string>, failure: Array<string>}) => {
-          if (deleteResult.success.length > 0) {
-            this.metronAlerts.showSuccessMessage('Deleted sensors: ' + deleteResult.success.join(', '));
-          }
+          .subscribe((deleteResult: { success: Array<string>, failure: Array<string> }) => {
+            if (deleteResult.success.length > 0) {
+              this.metronAlerts.showSuccessMessage('Deleted sensors: ' + deleteResult.success.join(', '));
+            }
 
-          if (deleteResult.failure.length > 0) {
-            this.metronAlerts.showErrorMessage('Unable to deleted sensors: ' + deleteResult.failure.join(', '));
-          }
-        });
+            if (deleteResult.failure.length > 0) {
+              this.metronAlerts.showErrorMessage('Unable to deleted sensors: ' + deleteResult.failure.join(', '));
+            }
+          });
       }
     });
   }
@@ -267,9 +269,9 @@ export class SensorParserListComponent implements OnInit {
     this.toggleStartStopInProgress(sensor);
 
     this.stormService.stopParser(sensor.sensorName).subscribe(result => {
-        this.metronAlerts.showSuccessMessage('Stopped sensor ' + sensor.sensorName);
-        this.toggleStartStopInProgress(sensor);
-      },
+      this.metronAlerts.showSuccessMessage('Stopped sensor ' + sensor.sensorName);
+      this.toggleStartStopInProgress(sensor);
+    },
       error => {
         this.metronAlerts.showErrorMessage('Unable to stop sensor ' + sensor.sensorName);
         this.toggleStartStopInProgress(sensor);
@@ -292,14 +294,14 @@ export class SensorParserListComponent implements OnInit {
     this.toggleStartStopInProgress(sensor);
 
     this.stormService.startParser(sensor.sensorName).subscribe(result => {
-        if (result['status'] === 'ERROR') {
-          this.metronAlerts.showErrorMessage('Unable to start sensor ' + sensor.sensorName + ': ' + result['message']);
-        } else {
-          this.metronAlerts.showSuccessMessage('Started sensor ' + sensor.sensorName);
-        }
+      if (result['status'] === 'ERROR') {
+        this.metronAlerts.showErrorMessage('Unable to start sensor ' + sensor.sensorName + ': ' + result['message']);
+      } else {
+        this.metronAlerts.showSuccessMessage('Started sensor ' + sensor.sensorName);
+      }
 
-        this.toggleStartStopInProgress(sensor);
-      },
+      this.toggleStartStopInProgress(sensor);
+    },
       error => {
         this.metronAlerts.showErrorMessage('Unable to start sensor ' + sensor.sensorName);
         this.toggleStartStopInProgress(sensor);
@@ -322,9 +324,9 @@ export class SensorParserListComponent implements OnInit {
     this.toggleStartStopInProgress(sensor);
 
     this.stormService.deactivateParser(sensor.sensorName).subscribe(result => {
-        this.metronAlerts.showSuccessMessage('Disabled sensor ' + sensor.sensorName);
-        this.toggleStartStopInProgress(sensor);
-      },
+      this.metronAlerts.showSuccessMessage('Disabled sensor ' + sensor.sensorName);
+      this.toggleStartStopInProgress(sensor);
+    },
       error => {
         this.metronAlerts.showErrorMessage('Unable to disable sensor ' + sensor.sensorName);
         this.toggleStartStopInProgress(sensor);
@@ -347,9 +349,9 @@ export class SensorParserListComponent implements OnInit {
     this.toggleStartStopInProgress(sensor);
 
     this.stormService.activateParser(sensor.sensorName).subscribe(result => {
-        this.metronAlerts.showSuccessMessage('Enabled sensor ' + sensor.sensorName);
-        this.toggleStartStopInProgress(sensor);
-      },
+      this.metronAlerts.showSuccessMessage('Enabled sensor ' + sensor.sensorName);
+      this.toggleStartStopInProgress(sensor);
+    },
       error => {
         this.metronAlerts.showErrorMessage('Unable to enabled sensor ' + sensor.sensorName);
         this.toggleStartStopInProgress(sensor);

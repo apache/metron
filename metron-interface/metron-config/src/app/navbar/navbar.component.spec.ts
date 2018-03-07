@@ -15,9 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, TestBed, ComponentFixture} from '@angular/core/testing';
-import {NavbarComponent} from './navbar.component';
-import {AuthenticationService} from '../service/authentication.service';
+import { async, TestBed, ComponentFixture } from '@angular/core/testing';
+import { NavbarComponent } from './navbar.component';
+import { AuthenticationService } from '../service/authentication.service';
 
 class MockAuthenticationService {
 }
@@ -28,10 +28,10 @@ describe('NavbarComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ NavbarComponent],
+      declarations: [NavbarComponent],
       providers: [
         NavbarComponent,
-        {provide: AuthenticationService, useClass: MockAuthenticationService}
+        { provide: AuthenticationService, useClass: MockAuthenticationService }
       ]
     });
 

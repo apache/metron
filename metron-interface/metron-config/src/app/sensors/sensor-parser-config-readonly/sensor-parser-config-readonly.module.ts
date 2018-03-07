@@ -16,12 +16,17 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import {routing} from './sensor-parser-config-readonly.routing';
-import {SharedModule} from '../../shared/shared.module';
-import {SensorParserConfigReadonlyComponent} from './sensor-parser-config-readonly.component';
+import { SensorParserConfigReadonlyRoutingModule } from './sensor-parser-config-readonly.routing';
+import { SharedModule } from '../../shared/shared.module';
+import { SensorParserConfigReadonlyComponent } from './sensor-parser-config-readonly.component';
 
-@NgModule ({
-  imports: [ routing, SharedModule ],
-  declarations: [ SensorParserConfigReadonlyComponent ]
+@NgModule({
+  imports: [
+    SensorParserConfigReadonlyRoutingModule,
+    SharedModule
+  ],
+  declarations: [
+    SensorParserConfigReadonlyComponent
+  ]
 })
 export class SensorParserConfigReadonlyModule { }

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ThreatTriageConfig} from './threat-triage-config';
+import { ThreatTriageConfig } from './threat-triage-config';
 export class SensorEnrichmentConfig {
   enrichment: EnrichmentConfig;
   threatIntel: ThreatIntelConfig;

@@ -17,17 +17,17 @@
  */
 
 import { TestBed, async, ComponentFixture } from '@angular/core/testing';
-import {SimpleChange} from '@angular/core';
-import {Http} from '@angular/http';
-import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
-import {MetronAlerts} from '../../shared/metron-alerts';
-import {KafkaService} from '../../service/kafka.service';
-import {Observable} from 'rxjs/Observable';
-import {ParseMessageRequest} from '../../model/parse-message-request';
-import {SensorGrokComponent} from './sensor-grok.component';
-import {GrokValidationService} from '../../service/grok-validation.service';
-import {SensorGrokModule} from './sensor-grok.module';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
+import { SimpleChange } from '@angular/core';
+import { Http } from '@angular/http';
+import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
+import { MetronAlerts } from '../../shared/metron-alerts';
+import { KafkaService } from '../../service/kafka.service';
+import { Observable } from 'rxjs/Observable';
+import { ParseMessageRequest } from '../../model/parse-message-request';
+import { SensorGrokComponent } from './sensor-grok.component';
+import { GrokValidationService } from '../../service/grok-validation.service';
+import { SensorGrokModule } from './sensor-grok.module';
+import { SensorParserConfig } from '../../model/sensor-parser-config';
 import '../../rxjs-operators';
 
 class MockSensorParserConfigService {
@@ -36,7 +36,7 @@ class MockSensorParserConfigService {
 
   public parseMessage(parseMessageRequest: ParseMessageRequest): Observable<{}> {
     if (this.parsedMessage === 'ERROR') {
-      return Observable.throw({'_body': JSON.stringify({'abc': 'def'}) });
+      return Observable.throw({ '_body': JSON.stringify({ 'abc': 'def' }) });
     }
 
     return Observable.create(observer => {
@@ -81,19 +81,19 @@ describe('Component: SensorGrok', () => {
       imports: [SensorGrokModule],
       providers: [
         MetronAlerts,
-        {provide: Http},
-        {provide: KafkaService, useClass: MockKafkaService},
-        {provide: SensorParserConfigService, useClass: MockSensorParserConfigService},
-        {provide: GrokValidationService, useClass: MockGrokValidationService},
+        { provide: Http },
+        { provide: KafkaService, useClass: MockKafkaService },
+        { provide: SensorParserConfigService, useClass: MockSensorParserConfigService },
+        { provide: GrokValidationService, useClass: MockGrokValidationService },
 
       ]
     }).compileComponents()
-        .then(() => {
-          fixture = TestBed.createComponent(SensorGrokComponent);
-          component = fixture.componentInstance;
-          sensorParserConfigService = fixture.debugElement.injector.get(SensorParserConfigService);
-          grokValidationService = fixture.debugElement.injector.get(GrokValidationService);
-        });
+      .then(() => {
+        fixture = TestBed.createComponent(SensorGrokComponent);
+        component = fixture.componentInstance;
+        sensorParserConfigService = fixture.debugElement.injector.get(SensorParserConfigService);
+        grokValidationService = fixture.debugElement.injector.get(GrokValidationService);
+      });
   }));
 
   it('should create an instance', () => {

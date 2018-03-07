@@ -17,8 +17,8 @@
  */
 /* tslint:disable:no-unused-variable */
 
-import {Sort} from '../../util/enums';
-import {MetronTableDirective, SortEvent} from './metron-table.directive';
+import { Sort } from '../../util/enums';
+import { MetronTableDirective, SortEvent } from './metron-table.directive';
 
 describe('Directive: MetronTable', () => {
 
@@ -35,10 +35,10 @@ describe('Directive: MetronTable', () => {
     let event2 = { sortBy: 'col2', sortOrder: Sort.DSC };
 
     directive.onSort.subscribe((sortEvent: SortEvent) => {
-        expect(sortEvent).toEqual(eventToTest);
+      expect(sortEvent).toEqual(eventToTest);
     });
     directive.onSortColumnChange.subscribe((sortEvent: SortEvent) => {
-        expect(sortEvent).toEqual(eventToTest);
+      expect(sortEvent).toEqual(eventToTest);
     });
 
     eventToTest = event1;

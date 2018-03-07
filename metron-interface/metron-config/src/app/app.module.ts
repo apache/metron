@@ -15,44 +15,76 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NgModule} from '@angular/core';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {BrowserModule} from '@angular/platform-browser';
-import {HttpModule} from '@angular/http';
-import {AppComponent} from './app.component';
-import {SensorParserConfigService} from './service/sensor-parser-config.service';
-import {KafkaService} from './service/kafka.service';
-import {GrokValidationService} from './service/grok-validation.service';
-import {StellarService} from './service/stellar.service';
-import {MetronAlerts} from './shared/metron-alerts';
-import {NavbarComponent} from './navbar/navbar.component';
-import {VerticalNavbarComponent} from './verticalnavbar/verticalnavbar.component';
-import {routing, appRoutingProviders} from './app.routes';
-import {AuthenticationService} from './service/authentication.service';
-import {AuthGuard} from './shared/auth-guard';
-import {LoginGuard} from './shared/login-guard';
-import {SensorParserConfigModule} from './sensors/sensor-parser-config/sensor-parser-config.module';
-import {SensorParserConfigReadonlyModule} from './sensors/sensor-parser-config-readonly/sensor-parser-config-readonly.module';
-import {SensorParserListModule} from './sensors/sensor-parser-list/sensor-parser-list.module';
-import {MetronDialogBox} from './shared/metron-dialog-box';
-import {GeneralSettingsModule} from './general-settings/general-settings.module';
-import {SensorEnrichmentConfigService} from './service/sensor-enrichment-config.service';
-import {GlobalConfigService} from './service/global-config.service';
-import {APP_CONFIG, METRON_REST_CONFIG} from './app.config';
-import {StormService} from './service/storm.service';
-import {SensorParserConfigHistoryService} from './service/sensor-parser-config-history.service';
-import {SensorIndexingConfigService} from './service/sensor-indexing-config.service';
-import {HdfsService} from './service/hdfs.service';
+import { NgModule } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { BrowserModule } from '@angular/platform-browser';
+import { HttpModule } from '@angular/http';
+import { AppComponent } from './app.component';
+import { SensorParserConfigService } from './service/sensor-parser-config.service';
+import { KafkaService } from './service/kafka.service';
+import { GrokValidationService } from './service/grok-validation.service';
+import { StellarService } from './service/stellar.service';
+import { MetronAlerts } from './shared/metron-alerts';
+import { NavbarComponent } from './navbar/navbar.component';
+import { VerticalNavbarComponent } from './verticalnavbar/verticalnavbar.component';
+import { AppRoutingModule, appRoutingProviders } from './app.routes';
+import { AuthenticationService } from './service/authentication.service';
+import { AuthGuard } from './shared/auth-guard';
+import { LoginGuard } from './shared/login-guard';
+import { SensorParserConfigModule } from './sensors/sensor-parser-config/sensor-parser-config.module';
+import { SensorParserConfigReadonlyModule } from './sensors/sensor-parser-config-readonly/sensor-parser-config-readonly.module';
+import { SensorParserListModule } from './sensors/sensor-parser-list/sensor-parser-list.module';
+import { MetronDialogBox } from './shared/metron-dialog-box';
+import { GeneralSettingsModule } from './general-settings/general-settings.module';
+import { SensorEnrichmentConfigService } from './service/sensor-enrichment-config.service';
+import { GlobalConfigService } from './service/global-config.service';
+import { APP_CONFIG, METRON_REST_CONFIG } from './app.config';
+import { StormService } from './service/storm.service';
+import { SensorParserConfigHistoryService } from './service/sensor-parser-config-history.service';
+import { SensorIndexingConfigService } from './service/sensor-indexing-config.service';
+import { HdfsService } from './service/hdfs.service';
 
 
 @NgModule({
-  imports: [ BrowserModule, routing, FormsModule, ReactiveFormsModule, HttpModule, SensorParserListModule,
-    SensorParserConfigModule, SensorParserConfigReadonlyModule, GeneralSettingsModule ],
-  declarations: [ AppComponent, NavbarComponent, VerticalNavbarComponent ],
-  providers: [  AuthenticationService, AuthGuard, LoginGuard, SensorParserConfigService,
-    SensorParserConfigHistoryService, SensorEnrichmentConfigService, SensorIndexingConfigService,
-    StormService, KafkaService, GrokValidationService, StellarService, HdfsService,
-    GlobalConfigService, MetronAlerts, MetronDialogBox, appRoutingProviders, { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }],
-  bootstrap:    [ AppComponent ]
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    FormsModule,
+    ReactiveFormsModule,
+    HttpModule,
+    SensorParserListModule,
+    SensorParserConfigModule,
+    SensorParserConfigReadonlyModule,
+    GeneralSettingsModule
+  ],
+  declarations: [
+    AppComponent,
+    NavbarComponent,
+    VerticalNavbarComponent
+  ],
+  providers: [
+    AuthenticationService,
+    AuthGuard,
+    LoginGuard,
+    SensorParserConfigService,
+    SensorParserConfigHistoryService,
+    SensorEnrichmentConfigService,
+    SensorIndexingConfigService,
+    StormService,
+    KafkaService,
+    GrokValidationService,
+    StellarService,
+    HdfsService,
+    GlobalConfigService,
+    MetronAlerts,
+    MetronDialogBox,
+    appRoutingProviders,
+    {
+      provide: APP_CONFIG,
+      useValue: METRON_REST_CONFIG
+    }],
+  bootstrap: [
+    AppComponent
+  ]
 })
 export class AppModule { }

@@ -18,12 +18,16 @@
     &#9776;
   </button>
   <div class="collapse navbar-toggleable-xs pull-left" id="exCollapsingNavbar">
-    <a class="navbar-brand" href="#"><img src="assets/images/logo.png" alt="Logo" width=110></a>
+    <a class="navbar-brand" href="#">
+      <img src="assets/images/logo.png" alt="Logo" width=110>
+    </a>
   </div>
 
   <div class="form-inline pull-right">
     <i class="fa fa-user " style="padding-left: 11px" aria-hidden="true"></i>
-    <div *ngIf="authenticationService.currentUser != null" class="fa logout">Logged in as {{authenticationService.currentUser}} - <span class="logout-link" (click)="authenticationService.logout()">Logout</span></div>
+    <div *ngIf="authenticationService.currentUser != null" class="fa logout">Logged in as {{authenticationService.currentUser}} -
+      <span class="logout-link" (click)="authenticationService.logout()">Logout</span>
+    </div>
   </div>
 
 </nav>

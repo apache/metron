@@ -15,39 +15,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {Inject} from '@angular/core';
-import {Observable} from 'rxjs/Observable';
-import {Router, ActivatedRoute, Params} from '@angular/router';
-import {Http, RequestOptions, Response, ResponseOptions} from '@angular/http';
-import {SensorParserConfigComponent, Pane, KafkaStatus} from './sensor-parser-config.component';
-import {StellarService} from '../../service/stellar.service';
-import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
-import {KafkaService} from '../../service/kafka.service';
-import {KafkaTopic} from '../../model/kafka-topic';
-import {GrokValidationService} from '../../service/grok-validation.service';
-import {MetronAlerts} from '../../shared/metron-alerts';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
-import {ParseMessageRequest} from '../../model/parse-message-request';
-import {SensorParserContext} from '../../model/sensor-parser-context';
-import {AuthenticationService} from '../../service/authentication.service';
-import {FieldTransformer} from '../../model/field-transformer';
-import {SensorParserConfigModule} from './sensor-parser-config.module';
-import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
-import {SensorEnrichmentConfig} from '../../model/sensor-enrichment-config';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../../app.config';
-import {IAppConfig} from '../../app.config.interface';
-import {SensorIndexingConfigService} from '../../service/sensor-indexing-config.service';
-import {IndexingConfigurations} from '../../model/sensor-indexing-config';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { Inject } from '@angular/core';
+import { Observable } from 'rxjs/Observable';
+import { Router, ActivatedRoute, Params } from '@angular/router';
+import { Http, RequestOptions, Response, ResponseOptions } from '@angular/http';
+import { SensorParserConfigComponent, Pane, KafkaStatus } from './sensor-parser-config.component';
+import { StellarService } from '../../service/stellar.service';
+import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
+import { KafkaService } from '../../service/kafka.service';
+import { KafkaTopic } from '../../model/kafka-topic';
+import { GrokValidationService } from '../../service/grok-validation.service';
+import { MetronAlerts } from '../../shared/metron-alerts';
+import { SensorParserConfig } from '../../model/sensor-parser-config';
+import { ParseMessageRequest } from '../../model/parse-message-request';
+import { SensorParserContext } from '../../model/sensor-parser-context';
+import { AuthenticationService } from '../../service/authentication.service';
+import { FieldTransformer } from '../../model/field-transformer';
+import { SensorParserConfigModule } from './sensor-parser-config.module';
+import { SensorEnrichmentConfigService } from '../../service/sensor-enrichment-config.service';
+import { SensorEnrichmentConfig } from '../../model/sensor-enrichment-config';
+import { APP_CONFIG, METRON_REST_CONFIG } from '../../app.config';
+import { IAppConfig } from '../../app.config.interface';
+import { SensorIndexingConfigService } from '../../service/sensor-indexing-config.service';
+import { IndexingConfigurations } from '../../model/sensor-indexing-config';
 import '../../rxjs-operators';
 import 'rxjs/add/observable/of';
-import {HdfsService} from '../../service/hdfs.service';
-import {RestError} from '../../model/rest-error';
-import {RiskLevelRule} from '../../model/risk-level-rule';
+import { HdfsService } from '../../service/hdfs.service';
+import { RestError } from '../../model/rest-error';
+import { RiskLevelRule } from '../../model/risk-level-rule';
 
 
 class MockRouter {
-  navigateByUrl(url: string) {}
+  navigateByUrl(url: string) { }
 }
 
 class MockActivatedRoute {
@@ -57,7 +57,7 @@ class MockActivatedRoute {
   setNameForTest(name: string) {
     this.name = name;
     this.params = Observable.create(observer => {
-      observer.next({id: this.name});
+      observer.next({ id: this.name });
       observer.complete();
     });
   }
@@ -193,7 +193,7 @@ class MockKafkaService extends KafkaService {
   private name: string;
   private kafkaTopic: KafkaTopic;
   private kafkaTopicForPost: KafkaTopic;
-  private sampleData = {'key1': 'value1', 'key2': 'value2'};
+  private sampleData = { 'key1': 'value1', 'key2': 'value2' };
 
   constructor(private http2: Http, @Inject(APP_CONFIG) private config2: IAppConfig) {
     super(http2, config2);
@@ -431,7 +431,7 @@ export class MockSensorEnrichmentConfigService {
       return Observable.throw(error);
     }
     this.postedSensorEnrichmentConfig = sensorEnrichmentConfig;
-    return  Observable.create(observer => {
+    return Observable.create(observer => {
       observer.next(sensorEnrichmentConfig);
       observer.complete();
     });
@@ -488,7 +488,7 @@ describe('Component: SensorParserConfig', () => {
         'geo': ['ip_dst_addr'],
         'host': ['ip_dst_addr'],
         'whois': [],
-        'stellar': { 'config': { 'group1': {} }}
+        'stellar': { 'config': { 'group1': {} } }
       },
       'fieldToTypeMap': {}, 'config': {}
     },
@@ -524,18 +524,18 @@ describe('Component: SensorParserConfig', () => {
       imports: [SensorParserConfigModule],
       providers: [
         MetronAlerts,
-        {provide: Http},
-        {provide: SensorParserConfigService, useClass: MockSensorParserConfigService},
-        {provide: SensorIndexingConfigService, useClass: MockSensorIndexingConfigService},
-        {provide: KafkaService, useClass: MockKafkaService},
-        {provide: HdfsService, useClass: MockHdfsService},
-        {provide: GrokValidationService, useClass: MockGrokValidationService},
-        {provide: StellarService, useClass: MockTransformationValidationService},
-        {provide: ActivatedRoute, useClass: MockActivatedRoute},
-        {provide: Router, useClass: MockRouter},
-        {provide: AuthenticationService, useClass: MockAuthenticationService},
-        {provide: SensorEnrichmentConfigService, useClass: MockSensorEnrichmentConfigService},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        { provide: Http },
+        { provide: SensorParserConfigService, useClass: MockSensorParserConfigService },
+        { provide: SensorIndexingConfigService, useClass: MockSensorIndexingConfigService },
+        { provide: KafkaService, useClass: MockKafkaService },
+        { provide: HdfsService, useClass: MockHdfsService },
+        { provide: GrokValidationService, useClass: MockGrokValidationService },
+        { provide: StellarService, useClass: MockTransformationValidationService },
+        { provide: ActivatedRoute, useClass: MockActivatedRoute },
+        { provide: Router, useClass: MockRouter },
+        { provide: AuthenticationService, useClass: MockAuthenticationService },
+        { provide: SensorEnrichmentConfigService, useClass: MockSensorEnrichmentConfigService },
+        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
       ]
     }).compileComponents()
       .then(() => {
@@ -620,9 +620,9 @@ describe('Component: SensorParserConfig', () => {
     let sensorParserConfig = Object.assign(new SensorParserConfig(), squidSensorParserConfig);
     sensorParserConfigService.setSensorParserConfig('squid', sensorParserConfig);
     sensorEnrichmentConfigService.setSensorEnrichmentConfig('squid',
-        Object.assign(new SensorEnrichmentConfig(), squidSensorEnrichmentConfig));
+      Object.assign(new SensorEnrichmentConfig(), squidSensorEnrichmentConfig));
     sensorIndexingConfigService.setSensorIndexingConfig('squid',
-        Object.assign(new IndexingConfigurations(), squidIndexingConfigurations));
+      Object.assign(new IndexingConfigurations(), squidIndexingConfigurations));
     hdfsService.setContents('/apps/metron/patterns/squid', 'SQUID_DELIMITED grok statement');
 
     component.init('squid');
@@ -796,8 +796,8 @@ describe('Component: SensorParserConfig', () => {
   it('should getTransforms', async(() => {
     expect(component.getTransforms()).toEqual('0 Transformations Applied');
 
-    component.sensorParserConfig.fieldTransformations.push(Object.assign(new FieldTransformer(), {'output': ['field1', 'field2']}));
-    component.sensorParserConfig.fieldTransformations.push(Object.assign(new FieldTransformer(), {'output': ['field3']}));
+    component.sensorParserConfig.fieldTransformations.push(Object.assign(new FieldTransformer(), { 'output': ['field1', 'field2'] }));
+    component.sensorParserConfig.fieldTransformations.push(Object.assign(new FieldTransformer(), { 'output': ['field3'] }));
 
     expect(component.getTransforms()).toEqual('3 Transformations Applied');
 
@@ -845,7 +845,7 @@ describe('Component: SensorParserConfig', () => {
       'input': [],
       'output': ['url_host'],
       'transformation': 'MTL',
-      'config': {'url_host': 'TO_LOWER(URL_TO_HOST(url))'}
+      'config': { 'url_host': 'TO_LOWER(URL_TO_HOST(url))' }
     });
     let sensorParserConfigSave: SensorParserConfig = new SensorParserConfig();
     sensorParserConfigSave.sensorTopic = 'squid';
@@ -865,7 +865,7 @@ describe('Component: SensorParserConfig', () => {
 
     component.onSave();
     expect(metronAlerts.showErrorMessage['calls'].mostRecent().args[0])
-        .toEqual('Unable to save sensor config: SensorParserConfig post error');
+      .toEqual('Unable to save sensor config: SensorParserConfig post error');
 
     component.sensorEnrichmentConfig = Object.assign(new SensorEnrichmentConfig(), squidSensorEnrichmentConfig);
     component.indexingConfigurations = Object.assign(new IndexingConfigurations(), squidIndexingConfigurations);
@@ -876,9 +876,9 @@ describe('Component: SensorParserConfig', () => {
     component.onSave();
     expect(sensorParserConfigService.getPostedSensorParserConfig()).toEqual(sensorParserConfigSave);
     expect(sensorEnrichmentConfigService.getPostedSensorEnrichmentConfig())
-        .toEqual(Object.assign(new SensorEnrichmentConfig(), squidSensorEnrichmentConfig));
+      .toEqual(Object.assign(new SensorEnrichmentConfig(), squidSensorEnrichmentConfig));
     expect(sensorIndexingConfigService.getPostedIndexingConfigurations())
-        .toEqual(Object.assign(new IndexingConfigurations(), squidIndexingConfigurations));
+      .toEqual(Object.assign(new IndexingConfigurations(), squidIndexingConfigurations));
     expect(hdfsService.getPostedContents()).toEqual('SQUID grok statement');
 
     hdfsService.setContents('/apps/metron/patterns/squid', null);
@@ -890,45 +890,45 @@ describe('Component: SensorParserConfig', () => {
 
     component.onSave();
     expect(metronAlerts.showErrorMessage['calls'].mostRecent().args[0])
-        .toEqual('Created Sensor parser config but unable to save enrichment configuration: SensorEnrichmentConfig post error');
+      .toEqual('Created Sensor parser config but unable to save enrichment configuration: SensorEnrichmentConfig post error');
 
     sensorIndexingConfigService.setThrowError(true);
 
     component.onSave();
     expect(metronAlerts.showErrorMessage['calls'].mostRecent().args[0])
-        .toEqual('Created Sensor parser config but unable to save indexing configuration: IndexingConfigurations post error');
+      .toEqual('Created Sensor parser config but unable to save indexing configuration: IndexingConfigurations post error');
 
     fixture.destroy();
   }));
 
   it('should getTransformationCount', async(() => {
     let transforms =
-    [
-      Object.assign(new FieldTransformer(), {
-        'input': [
-          'method'
-        ],
-        'output': null,
-        'transformation': 'REMOVE',
-        'config': {
-          'condition': 'exists(method) and method == "foo"'
-        }
-      }),
-      Object.assign(new FieldTransformer(), {
-        'input': [],
-        'output': [
-          'method',
-          'status_code',
-          'url'
-        ],
-        'transformation': 'STELLAR',
-        'config': {
-          'method': 'TO_UPPER(method)',
-          'status_code': 'TO_LOWER(code)',
-          'url': 'TO_STRING(TRIM(url))'
-        }
-      })
-    ];
+      [
+        Object.assign(new FieldTransformer(), {
+          'input': [
+            'method'
+          ],
+          'output': null,
+          'transformation': 'REMOVE',
+          'config': {
+            'condition': 'exists(method) and method == "foo"'
+          }
+        }),
+        Object.assign(new FieldTransformer(), {
+          'input': [],
+          'output': [
+            'method',
+            'status_code',
+            'url'
+          ],
+          'transformation': 'STELLAR',
+          'config': {
+            'method': 'TO_UPPER(method)',
+            'status_code': 'TO_LOWER(code)',
+            'url': 'TO_STRING(TRIM(url))'
+          }
+        })
+      ];
 
 
 
@@ -962,8 +962,8 @@ describe('Component: SensorParserConfig', () => {
   }));
 
   it('should getRuleCount', async(() => {
-    let rule1 = Object.assign(new RiskLevelRule(), {'name': 'rule1', 'rule': 'some rule', 'score': 50});
-    let rule2 = Object.assign(new RiskLevelRule(), {'name': 'rule2', 'rule': 'some other rule', 'score': 80});
+    let rule1 = Object.assign(new RiskLevelRule(), { 'name': 'rule1', 'rule': 'some rule', 'score': 50 });
+    let rule2 = Object.assign(new RiskLevelRule(), { 'name': 'rule2', 'rule': 'some other rule', 'score': 80 });
     component.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules.push(rule1);
     component.sensorEnrichmentConfig.threatIntel.triageConfig.riskLevelRules.push(rule2);
 

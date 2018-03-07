@@ -15,23 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit} from '@angular/core';
-import {KafkaService} from '../../service/kafka.service';
-import {Router, ActivatedRoute} from '@angular/router';
-import {KafkaTopic} from '../../model/kafka-topic';
-import {MetronAlerts} from '../../shared/metron-alerts';
-import {SensorParserConfigService} from '../../service/sensor-parser-config.service';
-import {StormService} from '../../service/storm.service';
-import {TopologyStatus} from '../../model/topology-status';
-import {SensorParserConfigHistoryService} from '../../service/sensor-parser-config-history.service';
-import {SensorParserConfigHistory} from '../../model/sensor-parser-config-history';
-import {SensorEnrichmentConfigService} from '../../service/sensor-enrichment-config.service';
-import {SensorEnrichmentConfig} from '../../model/sensor-enrichment-config';
-import {RiskLevelRule} from '../../model/risk-level-rule';
-import {HdfsService} from '../../service/hdfs.service';
-import {RestError} from '../../model/rest-error';
-import {GrokValidationService} from '../../service/grok-validation.service';
-import {SensorParserConfig} from '../../model/sensor-parser-config';
+import { Component, OnInit } from '@angular/core';
+import { KafkaService } from '../../service/kafka.service';
+import { Router, ActivatedRoute } from '@angular/router';
+import { KafkaTopic } from '../../model/kafka-topic';
+import { MetronAlerts } from '../../shared/metron-alerts';
+import { SensorParserConfigService } from '../../service/sensor-parser-config.service';
+import { StormService } from '../../service/storm.service';
+import { TopologyStatus } from '../../model/topology-status';
+import { SensorParserConfigHistoryService } from '../../service/sensor-parser-config-history.service';
+import { SensorParserConfigHistory } from '../../model/sensor-parser-config-history';
+import { SensorEnrichmentConfigService } from '../../service/sensor-enrichment-config.service';
+import { SensorEnrichmentConfig } from '../../model/sensor-enrichment-config';
+import { RiskLevelRule } from '../../model/risk-level-rule';
+import { HdfsService } from '../../service/hdfs.service';
+import { RestError } from '../../model/rest-error';
+import { GrokValidationService } from '../../service/grok-validation.service';
+import { SensorParserConfig } from '../../model/sensor-parser-config';
 
 @Component({
   selector: 'metron-config-sensor-parser-readonly',
@@ -54,58 +54,61 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
   transformLinkText = 'show more';
   threatTriageLinkText = 'show more';
 
-  editViewMetaData: {label?: string, value?: string, type?: string, model?: string, boldTitle?: boolean}[] = [
-    {type: 'SEPARATOR', model: '', value: ''},
-    {label: 'PARSER', model: 'sensorParserConfigHistory', value: 'parserClassName'},
-    {label: 'LAST UPDATED', model: 'sensorParserConfigHistory', value: 'modifiedByDate'},
-    {label: 'LAST EDITOR', model: 'sensorParserConfigHistory', value: 'modifiedBy'},
-    {label: 'STATE', model: 'topologyStatus', value: 'sensorStatus'},
-    {label: 'ORIGINATOR', model: 'sensorParserConfigHistory', value: 'createdBy'},
-    {label: 'CREATION DATE', model: 'sensorParserConfigHistory', value: 'createdDate'},
+  editViewMetaData: { label?: string, value?: string, type?: string, model?: string, boldTitle?: boolean }[] = [
+    { type: 'SEPARATOR', model: '', value: '' },
+    { label: 'PARSER', model: 'sensorParserConfigHistory', value: 'parserClassName' },
+    { label: 'LAST UPDATED', model: 'sensorParserConfigHistory', value: 'modifiedByDate' },
+    { label: 'LAST EDITOR', model: 'sensorParserConfigHistory', value: 'modifiedBy' },
+    { label: 'STATE', model: 'topologyStatus', value: 'sensorStatus' },
+    { label: 'ORIGINATOR', model: 'sensorParserConfigHistory', value: 'createdBy' },
+    { label: 'CREATION DATE', model: 'sensorParserConfigHistory', value: 'createdDate' },
 
-    {type: 'SPACER', model: '', value: ''},
+    { type: 'SPACER', model: '', value: '' },
 
-    {label: 'STORM', model: 'topologyStatus', value: 'status', boldTitle: true},
-    {label: 'LATENCY', model: 'topologyStatus', value: 'latency'},
-    {label: 'THROUGHPUT', model: 'topologyStatus', value: 'throughput'},
-    {label: 'EMITTED(10 MIN)', model: 'topologyStatus', value: 'emitted'},
-    {label: 'ACKED(10 MIN)', model: 'topologyStatus', value: 'acked'},
-    {label: 'NUM WORKERS', model: 'sensorParserConfig', value: 'numWorkers'},
-    {label: 'NUM ACKERS', model: 'sensorParserConfig', value: 'numAckers'},
-    {label: 'SPOUT PARALLELISM', model: 'sensorParserConfig', value: 'spoutParallelism'},
-    {label: 'SPOUT NUM TASKS', model: 'sensorParserConfig', value: 'spoutNumTasks'},
-    {label: 'PARSER PARALLELISM', model: 'sensorParserConfig', value: 'parserParallelism'},
-    {label: 'PARSER NUM TASKS', model: 'sensorParserConfig', value: 'parserNumTasks'},
-    {label: 'ERROR WRITER PARALLELISM', model: 'sensorParserConfig', value: 'errorWriterParallelism'},
-    {label: 'ERROR NUM TASKS', model: 'sensorParserConfig', value: 'errorWriterNumTasks'},
+    { label: 'STORM', model: 'topologyStatus', value: 'status', boldTitle: true },
+    { label: 'LATENCY', model: 'topologyStatus', value: 'latency' },
+    { label: 'THROUGHPUT', model: 'topologyStatus', value: 'throughput' },
+    { label: 'EMITTED(10 MIN)', model: 'topologyStatus', value: 'emitted' },
+    { label: 'ACKED(10 MIN)', model: 'topologyStatus', value: 'acked' },
+    { label: 'NUM WORKERS', model: 'sensorParserConfig', value: 'numWorkers' },
+    { label: 'NUM ACKERS', model: 'sensorParserConfig', value: 'numAckers' },
+    { label: 'SPOUT PARALLELISM', model: 'sensorParserConfig', value: 'spoutParallelism' },
+    { label: 'SPOUT NUM TASKS', model: 'sensorParserConfig', value: 'spoutNumTasks' },
+    { label: 'PARSER PARALLELISM', model: 'sensorParserConfig', value: 'parserParallelism' },
+    { label: 'PARSER NUM TASKS', model: 'sensorParserConfig', value: 'parserNumTasks' },
+    { label: 'ERROR WRITER PARALLELISM', model: 'sensorParserConfig', value: 'errorWriterParallelism' },
+    { label: 'ERROR NUM TASKS', model: 'sensorParserConfig', value: 'errorWriterNumTasks' },
 
-    {type: 'SPACER', model: '', value: ''},
+    { type: 'SPACER', model: '', value: '' },
 
-    {label: 'KAFKA', model: 'kafkaTopic', value: 'currentKafkaStatus', boldTitle: true},
-    {label: 'PARTITONS', model: 'kafkaTopic', value: 'numPartitions'},
-    {label: 'REPLICATION FACTOR', model: 'kafkaTopic', value: 'replicationFactor'},
-    {type: 'SEPARATOR', model: '', value: ''},
+    { label: 'KAFKA', model: 'kafkaTopic', value: 'currentKafkaStatus', boldTitle: true },
+    { label: 'PARTITONS', model: 'kafkaTopic', value: 'numPartitions' },
+    { label: 'REPLICATION FACTOR', model: 'kafkaTopic', value: 'replicationFactor' },
+    { type: 'SEPARATOR', model: '', value: '' },
 
-    {label: '', model: 'grokStatement', value: 'grokPattern'},
+    { label: '', model: 'grokStatement', value: 'grokPattern' },
 
-    {type: 'TITLE', model: '', value: 'Schema'},
-    {label: '', model: 'transforms', value: ''},
-    {type: 'SEPARATOR', model: '', value: ''},
+    { type: 'TITLE', model: '', value: 'Schema' },
+    { label: '', model: 'transforms', value: '' },
+    { type: 'SEPARATOR', model: '', value: '' },
 
-    {type: 'TITLE', model: '', value: 'Threat Triage Rules'},
-    {label: '', model: 'threatTriageRules', value: ''}
+    { type: 'TITLE', model: '', value: 'Threat Triage Rules' },
+    { label: '', model: 'threatTriageRules', value: '' }
 
   ];
 
-  constructor(private sensorParserConfigHistoryService: SensorParserConfigHistoryService,
-              private sensorParserConfigService: SensorParserConfigService,
-              private sensorEnrichmentService: SensorEnrichmentConfigService,
-              private stormService: StormService,
-              private kafkaService: KafkaService,
-              private hdfsService: HdfsService,
-              private grokValidationService: GrokValidationService,
-              private activatedRoute: ActivatedRoute, private router: Router,
-              private metronAlerts: MetronAlerts) {
+  constructor(
+    private sensorParserConfigHistoryService: SensorParserConfigHistoryService,
+    private sensorParserConfigService: SensorParserConfigService,
+    private sensorEnrichmentService: SensorEnrichmentConfigService,
+    private stormService: StormService,
+    private kafkaService: KafkaService,
+    private hdfsService: HdfsService,
+    private grokValidationService: GrokValidationService,
+    private activatedRoute: ActivatedRoute,
+    private router: Router,
+    private metronAlerts: MetronAlerts
+  ) {
   }
 
   getSensorInfo(): void {
@@ -137,13 +140,13 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
       (results: KafkaTopic) => {
         this.kafkaTopic = results;
         this.kafkaService.sample(this.selectedSensorName).subscribe((sampleData: string) => {
-              this.kafkaTopic['currentKafkaStatus'] = (sampleData && sampleData.length > 0) ? 'Emitting' : 'Not Emitting';
-            },
-            error => {
-              this.kafkaTopic['currentKafkaStatus'] = 'Not Emitting';
-            });
+          this.kafkaTopic['currentKafkaStatus'] = (sampleData && sampleData.length > 0) ? 'Emitting' : 'Not Emitting';
+        },
+          error => {
+            this.kafkaTopic['currentKafkaStatus'] = 'Not Emitting';
+          });
       }, error => {
-          this.kafkaTopic['currentKafkaStatus'] = 'No Kafka Topic';
+        this.kafkaTopic['currentKafkaStatus'] = 'No Kafka Topic';
       });
   }
 
@@ -173,7 +176,7 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
       }
     } else if (key === 'status') {
       if (this.topologyStatus.status === 'ACTIVE') {
-       return 'Running';
+        return 'Running';
       } else if (this.topologyStatus.status === 'INACTIVE') {
         return 'Disabled';
       } else {
@@ -219,7 +222,7 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
 
   setTransformsConfigKeys() {
     if (this.sensorParserConfigHistory.config && this.sensorParserConfigHistory.config.fieldTransformations &&
-        this.sensorParserConfigHistory.config.fieldTransformations.length > 0) {
+      this.sensorParserConfigHistory.config.fieldTransformations.length > 0) {
       this.transformsConfigKeys = [];
       for (let transforms of this.sensorParserConfigHistory.config.fieldTransformations) {
         if (transforms.config) {
@@ -238,14 +241,14 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
 
   getTransformsOutput(): string {
     if (this.sensorParserConfigHistory.config && this.sensorParserConfigHistory.config.fieldTransformations &&
-        this.sensorParserConfigHistory.config.fieldTransformations.length > 0) {
+      this.sensorParserConfigHistory.config.fieldTransformations.length > 0) {
       let output = [];
       for (let transforms of this.sensorParserConfigHistory.config.fieldTransformations) {
         if (transforms.output) {
           output = output.concat(transforms.output);
         }
       }
-      output = output.sort().filter(function(item, pos, self) {
+      output = output.sort().filter(function (item, pos, self) {
         return self.indexOf(item) === pos;
       });
 
@@ -268,10 +271,10 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
     let name = this.selectedSensorName;
 
     this.stormService.startParser(name).subscribe(result => {
-        this.metronAlerts.showSuccessMessage('Started sensor ' + name);
-        this.toggleStartStopInProgress();
-        this.getData();
-      },
+      this.metronAlerts.showSuccessMessage('Started sensor ' + name);
+      this.toggleStartStopInProgress();
+      this.getData();
+    },
       error => {
         this.metronAlerts.showErrorMessage('Unable to start sensor ' + name);
         this.toggleStartStopInProgress();
@@ -283,10 +286,10 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
 
     let name = this.selectedSensorName;
     this.stormService.stopParser(name).subscribe(result => {
-        this.metronAlerts.showSuccessMessage('Stopped sensor ' + name);
-        this.toggleStartStopInProgress();
-        this.getData();
-      },
+      this.metronAlerts.showSuccessMessage('Stopped sensor ' + name);
+      this.toggleStartStopInProgress();
+      this.getData();
+    },
       error => {
         this.metronAlerts.showErrorMessage('Unable to stop sensor ' + name);
         this.toggleStartStopInProgress();
@@ -298,10 +301,10 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
 
     let name = this.selectedSensorName;
     this.stormService.activateParser(name).subscribe(result => {
-        this.metronAlerts.showSuccessMessage('Enabled sensor ' + name);
-        this.toggleStartStopInProgress();
-        this.getData();
-      },
+      this.metronAlerts.showSuccessMessage('Enabled sensor ' + name);
+      this.toggleStartStopInProgress();
+      this.getData();
+    },
       error => {
         this.metronAlerts.showErrorMessage('Unable to enabled sensor ' + name);
         this.toggleStartStopInProgress();
@@ -313,10 +316,10 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
 
     let name = this.selectedSensorName;
     this.stormService.deactivateParser(name).subscribe(result => {
-        this.metronAlerts.showSuccessMessage('Disabled sensor ' + name);
-        this.toggleStartStopInProgress();
-        this.getData();
-      },
+      this.metronAlerts.showSuccessMessage('Disabled sensor ' + name);
+      this.toggleStartStopInProgress();
+      this.getData();
+    },
       error => {
         this.metronAlerts.showErrorMessage('Unable to disable sensor ' + name);
         this.toggleStartStopInProgress();
@@ -328,11 +331,11 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
 
     let name = this.selectedSensorName;
     this.sensorParserConfigService.deleteSensorParserConfig(name).subscribe(result => {
-        this.metronAlerts.showSuccessMessage('Deleted sensor ' + name);
-        this.toggleStartStopInProgress();
-        this.sensorParserConfigService.dataChangedSource.next([name]);
-        this.goBack();
-      },
+      this.metronAlerts.showSuccessMessage('Deleted sensor ' + name);
+      this.toggleStartStopInProgress();
+      this.sensorParserConfigService.dataChangedSource.next([name]);
+      this.goBack();
+    },
       error => {
         this.metronAlerts.showErrorMessage('Unable to delete sensor ' + name);
         this.toggleStartStopInProgress();
@@ -373,11 +376,11 @@ export class SensorParserConfigReadonlyComponent implements OnInit {
 
   isEnableHidden() {
     return (this.topologyStatus.status === 'ACTIVE' || this.topologyStatus.status === 'KILLED'
-            || this.topologyStatus.status === 'Stopped');
+      || this.topologyStatus.status === 'Stopped');
   }
 
   isDisableHidden() {
     return (this.topologyStatus.status === 'INACTIVE' || this.topologyStatus.status === 'KILLED'
-            || this.topologyStatus.status === 'Stopped');
+      || this.topologyStatus.status === 'Stopped');
   }
 }

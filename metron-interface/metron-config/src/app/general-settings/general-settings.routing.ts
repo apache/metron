@@ -15,13 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ModuleWithProviders }  from '@angular/core';
+import { ModuleWithProviders } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import {AuthGuard} from '../shared/auth-guard';
-import {GeneralSettingsComponent} from './general-settings.component';
+import { AuthGuard } from '../shared/auth-guard';
+import { GeneralSettingsComponent } from './general-settings.component';
 
 const routes: Routes = [
-  { path: 'general-settings', component: GeneralSettingsComponent, canActivate: [AuthGuard]}
+  {
+    path: 'general-settings',
+    component: GeneralSettingsComponent,
+    canActivate: [AuthGuard]
+  }
 ];
 
 export const routing: ModuleWithProviders = RouterModule.forChild(routes);

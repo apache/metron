@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {RiskLevelRule} from './risk-level-rule';
+import { RiskLevelRule } from './risk-level-rule';
 export class ThreatTriageConfig {
   riskLevelRules: RiskLevelRule[] = [];
   aggregator: string = 'MAX';

@@ -15,19 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ModuleWithProviders} from '@angular/core';
-import {Routes, RouterModule} from '@angular/router';
-import {AuthGuard} from './shared/auth-guard';
-import {LoginGuard} from './shared/login-guard';
+import { ModuleWithProviders } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+import { AuthGuard } from './shared/auth-guard';
+import { LoginGuard } from './shared/login-guard';
 
 export const routes: Routes = [
-  { path: '',  redirectTo: 'sensors', canActivate: [AuthGuard], pathMatch: 'full'},
-  { path: 'login', loadChildren: 'app/login/login.module#LoginModule', canActivate: [LoginGuard] },
-  { path: 'sensors', loadChildren: 'app/sensors/sensor-parser-list/sensor-parser-list.module#SensorParserListModule',
-    canActivate: [AuthGuard] },
+  {
+    path: '',
+    redirectTo: 'sensors',
+    canActivate: [AuthGuard],
+    pathMatch: 'full'
+  },
+  {
+    path: 'login',
+    loadChildren: 'app/login/login.module#LoginModule',
+    canActivate: [LoginGuard]
+  },
+  {
+    path: 'sensors',
+    loadChildren: 'app/sensors/sensor-parser-list/sensor-parser-list.module#SensorParserListModule',
+    canActivate: [AuthGuard]
+  },
 ];
 
 export const appRoutingProviders: any[] = [
 ];
 
-export const routing: ModuleWithProviders = RouterModule.forRoot(routes);
+export const AppRoutingModule: ModuleWithProviders = RouterModule.forRoot(routes);

@@ -17,7 +17,7 @@
  */
 /* tslint:disable:no-unused-variable */
 
-import {MetronDialogBox} from './metron-dialog-box';
+import { MetronDialogBox } from './metron-dialog-box';
 
 describe('MetronDialogBox', () => {
 

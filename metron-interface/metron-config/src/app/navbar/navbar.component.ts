@@ -15,13 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component} from '@angular/core';
-import {AuthenticationService} from '../service/authentication.service';
+import { Component } from '@angular/core';
+import { AuthenticationService } from '../service/authentication.service';
 
 @Component({
-    selector: 'metron-config-navbar',
-    templateUrl: 'navbar.html',
-    styleUrls: ['navbar.component.scss']
+  selector: 'metron-config-navbar',
+  templateUrl: 'navbar.html',
+  styleUrls: ['navbar.component.scss']
 })
 
 export class NavbarComponent {

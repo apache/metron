@@ -18,7 +18,8 @@
   <div class="col-md-10 px-0">
     <input *ngIf="type==='text'" class="form-control disabled" readonly [ngModel]="configuredItem.name">
     <select *ngIf="type==='select'" #select class="form-control" [ngModel]="configuredItem.name" (change)="onUpdate(configuredItem,select.value)">
-      <option *ngFor="let availableFunction of getAvailableFunctions()" [disabled]="availableFunction===''" [selected]="availableFunction===''"> {{ availableFunction.name }} </option>
+      <option *ngFor="let availableFunction of getAvailableFunctions()" [disabled]="availableFunction===''" [selected]="availableFunction===''">
+      {{ availableFunction.name }} </option>
     </select>
   </div>
   <div class="col-md-2 px-0">
@@ -36,4 +37,3 @@
   </div>
   <div class="col-md-3 px-0"> </div>
 </div>
-

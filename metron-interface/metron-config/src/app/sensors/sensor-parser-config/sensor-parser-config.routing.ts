@@ -15,13 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ModuleWithProviders }  from '@angular/core';
+import { ModuleWithProviders } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import {SensorParserConfigComponent} from './sensor-parser-config.component';
-import {AuthGuard} from '../../shared/auth-guard';
+import { SensorParserConfigComponent } from './sensor-parser-config.component';
+import { AuthGuard } from '../../shared/auth-guard';
 
 const routes: Routes = [
-  { path: 'sensors-config/:id', component: SensorParserConfigComponent, canActivate: [AuthGuard], outlet: 'dialog'}
+  {
+    path: 'sensors-config/:id',
+    component: SensorParserConfigComponent,
+    canActivate: [AuthGuard],
+    outlet: 'dialog'
+  }
 ];
 
-export const routing: ModuleWithProviders = RouterModule.forChild(routes);
+export const SensorParserConfigRoutingModule: ModuleWithProviders = RouterModule.forChild(routes);

@@ -15,14 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, inject, TestBed} from '@angular/core/testing';
-import {MockBackend, MockConnection} from '@angular/http/testing';
-import {KafkaService} from './kafka.service';
-import {KafkaTopic} from '../model/kafka-topic';
-import {HttpModule, XHRBackend, Response, ResponseOptions, Http} from '@angular/http';
+import { async, inject, TestBed } from '@angular/core/testing';
+import { MockBackend, MockConnection } from '@angular/http/testing';
+import { KafkaService } from './kafka.service';
+import { KafkaTopic } from '../model/kafka-topic';
+import { HttpModule, XHRBackend, Response, ResponseOptions, Http } from '@angular/http';
 import '../rxjs-operators';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../app.config';
-import {IAppConfig} from '../app.config.interface';
+import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
+import { IAppConfig } from '../app.config.interface';
 
 describe('KafkaService', () => {
 
@@ -31,8 +31,8 @@ describe('KafkaService', () => {
       imports: [HttpModule],
       providers: [
         KafkaService,
-        {provide: XHRBackend, useClass: MockBackend},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        { provide: XHRBackend, useClass: MockBackend },
+        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
       ]
     })
       .compileComponents();
@@ -69,9 +69,9 @@ describe('KafkaService', () => {
     beforeEach(inject([Http, XHRBackend, APP_CONFIG], (http: Http, be: MockBackend, config: IAppConfig) => {
       mockBackend = be;
       kafkaService = new KafkaService(http, config);
-      kafkaResponse = new Response(new ResponseOptions({status: 200, body: kafkaTopic}));
-      kafkaListResponse = new Response(new ResponseOptions({status: 200, body: [kafkaTopic]}));
-      sampleMessageResponse = new Response(new ResponseOptions({status: 200, body: sampleMessage}));
+      kafkaResponse = new Response(new ResponseOptions({ status: 200, body: kafkaTopic }));
+      kafkaListResponse = new Response(new ResponseOptions({ status: 200, body: [kafkaTopic] }));
+      sampleMessageResponse = new Response(new ResponseOptions({ status: 200, body: sampleMessage }));
     }));
 
     it('post', async(inject([], () => {

@@ -16,59 +16,59 @@
  * limitations under the License.
  */
 
-import {async, TestBed, ComponentFixture} from '@angular/core/testing';
-import {SensorRuleEditorComponent} from './sensor-rule-editor.component';
-import {SharedModule} from '../../../shared/shared.module';
-import {NumberSpinnerComponent} from '../../../shared/number-spinner/number-spinner.component';
-import {RiskLevelRule} from '../../../model/risk-level-rule';
+import { async, TestBed, ComponentFixture } from '@angular/core/testing';
+import { SensorRuleEditorComponent } from './sensor-rule-editor.component';
+import { SharedModule } from '../../../shared/shared.module';
+import { NumberSpinnerComponent } from '../../../shared/number-spinner/number-spinner.component';
+import { RiskLevelRule } from '../../../model/risk-level-rule';
 
 describe('Component: SensorRuleEditorComponent', () => {
 
-    let fixture: ComponentFixture<SensorRuleEditorComponent>;
-    let component: SensorRuleEditorComponent;
+  let fixture: ComponentFixture<SensorRuleEditorComponent>;
+  let component: SensorRuleEditorComponent;
 
-    beforeEach(async(() => {
-        TestBed.configureTestingModule({
-            imports: [SharedModule
-            ],
-            declarations: [ SensorRuleEditorComponent, NumberSpinnerComponent ],
-            providers: [
-              SensorRuleEditorComponent
-            ]
-        });
-
-        fixture = TestBed.createComponent(SensorRuleEditorComponent);
-        component = fixture.componentInstance;
-    }));
-
-    it('should create an instance', () => {
-        expect(component).toBeDefined();
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      imports: [SharedModule
+      ],
+      declarations: [SensorRuleEditorComponent, NumberSpinnerComponent],
+      providers: [
+        SensorRuleEditorComponent
+      ]
     });
 
-    it('should edit rules', async(() => {
-        let numCancelled = 0;
-        let savedRule = new RiskLevelRule();
-        component.onCancelTextEditor.subscribe((cancelled: boolean) => {
-          numCancelled++;
-        });
-        component.onSubmitTextEditor.subscribe((rule: RiskLevelRule) => {
-          savedRule = rule;
-        });
+    fixture = TestBed.createComponent(SensorRuleEditorComponent);
+    component = fixture.componentInstance;
+  }));
 
-        component.riskLevelRule =  {name: 'rule1', rule: 'initial rule', score: 1, comment: ''};
-        component.ngOnInit();
-        component.onSave();
-        let rule1 = Object.assign(new RiskLevelRule(), {name: 'rule1', rule: 'initial rule', score: 1, comment: ''});
-        expect(savedRule).toEqual(rule1);
+  it('should create an instance', () => {
+    expect(component).toBeDefined();
+  });
 
-        component.riskLevelRule = {name: 'rule2', rule: 'new rule', score: 2, comment: ''};
-        component.ngOnInit();
-        component.onSave();
-        let rule2 = Object.assign(new RiskLevelRule(), {name: 'rule2', rule: 'new rule', score: 2, comment: ''});
-        expect(savedRule).toEqual(rule2);
+  it('should edit rules', async(() => {
+    let numCancelled = 0;
+    let savedRule = new RiskLevelRule();
+    component.onCancelTextEditor.subscribe((cancelled: boolean) => {
+      numCancelled++;
+    });
+    component.onSubmitTextEditor.subscribe((rule: RiskLevelRule) => {
+      savedRule = rule;
+    });
 
-        expect(numCancelled).toEqual(0);
-        component.onCancel();
-        expect(numCancelled).toEqual(1);
-    }));
+    component.riskLevelRule = { name: 'rule1', rule: 'initial rule', score: 1, comment: '' };
+    component.ngOnInit();
+    component.onSave();
+    let rule1 = Object.assign(new RiskLevelRule(), { name: 'rule1', rule: 'initial rule', score: 1, comment: '' });
+    expect(savedRule).toEqual(rule1);
+
+    component.riskLevelRule = { name: 'rule2', rule: 'new rule', score: 2, comment: '' };
+    component.ngOnInit();
+    component.onSave();
+    let rule2 = Object.assign(new RiskLevelRule(), { name: 'rule2', rule: 'new rule', score: 2, comment: '' });
+    expect(savedRule).toEqual(rule2);
+
+    expect(numCancelled).toEqual(0);
+    component.onCancel();
+    expect(numCancelled).toEqual(1);
+  }));
 });

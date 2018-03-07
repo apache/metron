@@ -15,15 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, inject, TestBed} from '@angular/core/testing';
-import {MockBackend, MockConnection} from '@angular/http/testing';
-import {StellarService} from './stellar.service';
-import {SensorParserContext} from '../model/sensor-parser-context';
-import {SensorParserConfig} from '../model/sensor-parser-config';
-import {HttpModule, XHRBackend, Response, ResponseOptions, Http} from '@angular/http';
+import { async, inject, TestBed } from '@angular/core/testing';
+import { MockBackend, MockConnection } from '@angular/http/testing';
+import { StellarService } from './stellar.service';
+import { SensorParserContext } from '../model/sensor-parser-context';
+import { SensorParserConfig } from '../model/sensor-parser-config';
+import { HttpModule, XHRBackend, Response, ResponseOptions, Http } from '@angular/http';
 import '../rxjs-operators';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../app.config';
-import {IAppConfig} from '../app.config.interface';
+import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
+import { IAppConfig } from '../app.config.interface';
 
 describe('StellarService', () => {
 
@@ -32,8 +32,8 @@ describe('StellarService', () => {
       imports: [HttpModule],
       providers: [
         StellarService,
-        {provide: XHRBackend, useClass: MockBackend},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        { provide: XHRBackend, useClass: MockBackend },
+        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
       ]
     })
       .compileComponents();
@@ -60,14 +60,14 @@ describe('StellarService', () => {
     let transformationValidationService: StellarService;
     let mockBackend: MockBackend;
     let transformationRules = ['rule1', 'rule2'];
-    let transformationRulesValidation = {rule1: true, rule2: false};
+    let transformationRulesValidation = { rule1: true, rule2: false };
     let transformationValidation = new SensorParserContext();
-    transformationValidation.sampleData = {'data': 'data'};
+    transformationValidation.sampleData = { 'data': 'data' };
     transformationValidation.sensorParserConfig = new SensorParserConfig();
     transformationValidation.sensorParserConfig.sensorTopic = 'test';
     let transformations = ['STELLAR', 'REMOVE'];
-    let transformFunctions = [{'function1': 'desc1'}, {'function2': 'desc2'}];
-    let simpleTransformFunctions = [{'simplefunction1': 'simpledesc1'}, {'simplefunction2': 'simpledesc2'}];
+    let transformFunctions = [{ 'function1': 'desc1' }, { 'function2': 'desc2' }];
+    let simpleTransformFunctions = [{ 'simplefunction1': 'simpledesc1' }, { 'simplefunction2': 'simpledesc2' }];
     let transformationRulesValidationResponse: Response;
     let transformationValidationResponse: Response;
     let transformationListResponse: Response;
@@ -85,9 +85,9 @@ describe('StellarService', () => {
         status: 200,
         body: transformationValidation
       }));
-      transformationListResponse = new Response(new ResponseOptions({status: 200, body: transformations}));
-      transformationListFunctionsResponse = new Response(new ResponseOptions({status: 200, body: transformFunctions}));
-      transformationListSimpleFunctionsResponse = new Response(new ResponseOptions({status: 200, body: simpleTransformFunctions}));
+      transformationListResponse = new Response(new ResponseOptions({ status: 200, body: transformations }));
+      transformationListFunctionsResponse = new Response(new ResponseOptions({ status: 200, body: transformFunctions }));
+      transformationListSimpleFunctionsResponse = new Response(new ResponseOptions({ status: 200, body: simpleTransformFunctions }));
     }));
 
     it('validateRules', async(inject([], () => {
@@ -130,9 +130,9 @@ describe('StellarService', () => {
       mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(transformationListSimpleFunctionsResponse));
 
       transformationValidationService.listSimpleFunctions().subscribe(
-          result => {
-            expect(result).toEqual(simpleTransformFunctions);
-          }, error => console.log(error));
+        result => {
+          expect(result).toEqual(simpleTransformFunctions);
+        }, error => console.log(error));
     })));
   });
 

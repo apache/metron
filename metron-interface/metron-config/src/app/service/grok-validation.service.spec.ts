@@ -15,14 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {async, inject, TestBed} from '@angular/core/testing';
-import {MockBackend, MockConnection} from '@angular/http/testing';
-import {GrokValidationService} from './grok-validation.service';
-import {GrokValidation} from '../model/grok-validation';
-import {HttpModule, XHRBackend, Response, ResponseOptions, Http} from '@angular/http';
+import { async, inject, TestBed } from '@angular/core/testing';
+import { MockBackend, MockConnection } from '@angular/http/testing';
+import { GrokValidationService } from './grok-validation.service';
+import { GrokValidation } from '../model/grok-validation';
+import { HttpModule, XHRBackend, Response, ResponseOptions, Http } from '@angular/http';
 import '../rxjs-operators';
-import {APP_CONFIG, METRON_REST_CONFIG} from '../app.config';
-import {IAppConfig} from '../app.config.interface';
+import { APP_CONFIG, METRON_REST_CONFIG } from '../app.config';
+import { IAppConfig } from '../app.config.interface';
 
 describe('GrokValidationService', () => {
 
@@ -31,8 +31,8 @@ describe('GrokValidationService', () => {
       imports: [HttpModule],
       providers: [
         GrokValidationService,
-        {provide: XHRBackend, useClass: MockBackend},
-        {provide: APP_CONFIG, useValue: METRON_REST_CONFIG}
+        { provide: XHRBackend, useClass: MockBackend },
+        { provide: APP_CONFIG, useValue: METRON_REST_CONFIG }
       ]
     })
       .compileComponents();
@@ -61,7 +61,7 @@ describe('GrokValidationService', () => {
     let grokValidation = new GrokValidation();
     grokValidation.statement = 'statement';
     grokValidation.sampleData = 'sampleData';
-    grokValidation.results = {'results': 'results'};
+    grokValidation.results = { 'results': 'results' };
     let grokList = ['pattern'];
     let grokStatement = 'grok statement';
     let grokValidationResponse: Response;
@@ -71,9 +71,9 @@ describe('GrokValidationService', () => {
     beforeEach(inject([Http, XHRBackend, APP_CONFIG], (http: Http, be: MockBackend, config: IAppConfig) => {
       mockBackend = be;
       grokValidationService = new GrokValidationService(http, config);
-      grokValidationResponse = new Response(new ResponseOptions({status: 200, body: grokValidation}));
-      grokListResponse = new Response(new ResponseOptions({status: 200, body: grokList}));
-      grokGetStatementResponse = new Response(new ResponseOptions({status: 200, body: grokStatement}));
+      grokValidationResponse = new Response(new ResponseOptions({ status: 200, body: grokValidation }));
+      grokListResponse = new Response(new ResponseOptions({ status: 200, body: grokList }));
+      grokGetStatementResponse = new Response(new ResponseOptions({ status: 200, body: grokStatement }));
     }));
 
     it('validate', async(inject([], () => {
@@ -96,9 +96,9 @@ describe('GrokValidationService', () => {
     it('getStatement', async(inject([], () => {
       mockBackend.connections.subscribe((c: MockConnection) => c.mockRespond(grokGetStatementResponse));
       grokValidationService.getStatement('/path').subscribe(
-          results => {
-            expect(results).toEqual(grokStatement);
-          }, error => console.log(error));
+        results => {
+          expect(results).toEqual(grokStatement);
+        }, error => console.log(error));
     })));
   });
 
