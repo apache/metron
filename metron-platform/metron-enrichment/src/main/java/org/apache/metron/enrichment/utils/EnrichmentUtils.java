@@ -21,6 +21,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.metron.common.configuration.enrichment.EnrichmentConfig;
 import org.apache.metron.common.configuration.enrichment.SensorEnrichmentConfig;
@@ -28,6 +29,7 @@ import org.apache.metron.enrichment.lookup.EnrichmentLookup;
 import org.apache.metron.enrichment.lookup.handler.KeyWithContext;
 import org.apache.metron.hbase.TableProvider;
 import org.apache.metron.enrichment.converter.EnrichmentKey;
+import org.json.simple.JSONObject;
 import sun.management.Sensor;
 
 import javax.annotation.Nullable;
@@ -116,6 +118,20 @@ public class EnrichmentUtils {
         throw new IllegalStateException("Unable to instantiate connector: class not found", e);
       }
     }
+  }
+
+  public static JSONObject adjustKeys(JSONObject enrichedMessage, JSONObject enrichedField, String field, String prefix) {
+    if ( !enrichedField.isEmpty()) {
+      for (Object enrichedKey : enrichedField.keySet()) {
+        if(!StringUtils.isEmpty(prefix)) {
+          enrichedMessage.put(field + "." + enrichedKey, enrichedField.get(enrichedKey));
+        }
+        else {
+          enrichedMessage.put(enrichedKey, enrichedField.get(enrichedKey));
+        }
+      }
+    }
+    return enrichedMessage;
   }
 
 }

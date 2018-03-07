@@ -15,22 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.common.message;
+package org.apache.metron.enrichment.integration;
 
-import org.apache.storm.tuple.Tuple;
-
-public class BytesFromPosition implements MessageGetStrategy {
-
-  private int position = 0;
-
-  public BytesFromPosition() {};
-
-  public BytesFromPosition(Integer position) {
-    this.position = position == null?0:position;
-  }
-
+public class UnifiedEnrichmentIntegrationTest extends EnrichmentIntegrationTest {
   @Override
-  public byte[] get(Tuple tuple) {
-    return tuple.getBinary(position);
+  public String fluxPath() {
+    return "../metron-enrichment/src/main/flux/enrichment/remote-unified.yaml";
   }
 }

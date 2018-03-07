@@ -15,22 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.common.message;
+package org.apache.metron.enrichment.parallel;
 
-import org.apache.storm.tuple.Tuple;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Function;
 
-public class BytesFromPosition implements MessageGetStrategy {
-
-  private int position = 0;
-
-  public BytesFromPosition() {};
-
-  public BytesFromPosition(Integer position) {
-    this.position = position == null?0:position;
+/**
+ * The strategy to use to construct the thread pool.
+ */
+public enum WorkerPoolStrategies {
+  /**
+   * Fixed thread pool
+   */
+  FIXED(numThreads -> Executors.newFixedThreadPool(numThreads)),
+  /**
+   * Work stealing thread pool.
+   */
+  WORK_STEALING(numThreads -> Executors.newWorkStealingPool(numThreads))
+  ;
+  Function<Integer, ExecutorService> creator;
+  WorkerPoolStrategies(Function<Integer, ExecutorService> creator) {
+    this.creator = creator;
   }
 
-  @Override
-  public byte[] get(Tuple tuple) {
-    return tuple.getBinary(position);
+  public ExecutorService create(int numThreads) {
+    return creator.apply(numThreads);
   }
 }

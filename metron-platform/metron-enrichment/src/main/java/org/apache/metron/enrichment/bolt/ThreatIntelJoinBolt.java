@@ -30,6 +30,7 @@ import org.apache.metron.common.configuration.enrichment.threatintel.ThreatTriag
 import org.apache.metron.common.message.MessageGetStrategy;
 import org.apache.metron.common.utils.MessageUtils;
 import org.apache.metron.enrichment.adapters.geo.GeoLiteDatabase;
+import org.apache.metron.enrichment.utils.ThreatIntelUtils;
 import org.apache.metron.stellar.dsl.Context;
 import org.apache.metron.stellar.dsl.StellarFunctions;
 import org.apache.metron.stellar.dsl.functions.resolver.FunctionResolver;
@@ -45,35 +46,6 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
 
   protected static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  /**
-   * The message key under which the overall threat triage score is stored.
-   */
-  public static final String THREAT_TRIAGE_SCORE_KEY = "threat.triage.score";
-
-  /**
-   * The prefix of the message keys that record the threat triage rules that fired.
-   */
-  public static final String THREAT_TRIAGE_RULES_KEY = "threat.triage.rules";
-
-  /**
-   * The portion of the message key used to record the 'name' field of a rule.
-   */
-  public static final String THREAT_TRIAGE_RULE_NAME = "name";
-
-  /**
-   * The portion of the message key used to record the 'comment' field of a rule.
-   */
-  public static final String THREAT_TRIAGE_RULE_COMMENT = "comment";
-
-  /**
-   * The portion of the message key used to record the 'score' field of a rule.
-   */
-  public static final String THREAT_TRIAGE_RULE_SCORE = "score";
-
-  /**
-   * The portion of the message key used to record the 'reason' field of a rule.
-   */
-  public static final String THREAT_TRIAGE_RULE_REASON = "reason";
 
   /**
    * The Stellar function resolver.
@@ -133,70 +105,12 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
     }
   }
 
+
   @Override
   public JSONObject joinMessages(Map<String, Tuple> streamMessageMap, MessageGetStrategy messageGetStrategy) {
     JSONObject ret = super.joinMessages(streamMessageMap, messageGetStrategy);
-    LOG.trace("Received joined messages: {}", ret);
-    boolean isAlert = ret.containsKey("is_alert");
-    if(!isAlert) {
-      for (Object key : ret.keySet()) {
-        if (key.toString().startsWith("threatintels") && !key.toString().endsWith(".ts")) {
-          isAlert = true;
-          break;
-        }
-      }
-    }
-    else {
-      Object isAlertObj = ret.get("is_alert");
-      isAlert = ConversionUtils.convert(isAlertObj, Boolean.class);
-      if(!isAlert) {
-        ret.remove("is_alert");
-      }
-    }
-    if(isAlert) {
-      ret.put("is_alert" , "true");
-      String sourceType = MessageUtils.getSensorType(ret);
-      SensorEnrichmentConfig config = getConfigurations().getSensorEnrichmentConfig(sourceType);
-      ThreatTriageConfig triageConfig = null;
-      if(config != null) {
-        triageConfig = config.getThreatIntel().getTriageConfig();
-        if(LOG.isDebugEnabled()) {
-          LOG.debug("{}: Found sensor enrichment config.", sourceType);
-        }
-      }
-      else {
-        LOG.debug("{}: Unable to find threat config.", sourceType );
-      }
-      if(triageConfig != null) {
-        if(LOG.isDebugEnabled()) {
-          LOG.debug("{}: Found threat triage config: {}", sourceType, triageConfig);
-        }
-
-        if(LOG.isDebugEnabled() && (triageConfig.getRiskLevelRules() == null || triageConfig.getRiskLevelRules().isEmpty())) {
-          LOG.debug("{}: Empty rules!", sourceType);
-        }
-
-        // triage the threat
-        ThreatTriageProcessor threatTriageProcessor = new ThreatTriageProcessor(config, functionResolver, stellarContext);
-        ThreatScore score = threatTriageProcessor.apply(ret);
-
-        if(LOG.isDebugEnabled()) {
-          String rules = Joiner.on('\n').join(triageConfig.getRiskLevelRules());
-          LOG.debug("Marked {} as triage level {} with rules {}", sourceType, score.getScore(),
-              rules);
-        }
-
-        // attach the triage threat score to the message
-        if(score.getRuleScores().size() > 0) {
-          appendThreatScore(score, ret);
-        }
-      }
-      else {
-        LOG.debug("{}: Unable to find threat triage config!", sourceType);
-      }
-    }
-
-    return ret;
+    String sourceType = MessageUtils.getSensorType(ret);
+    return ThreatIntelUtils.triage(ret, getConfigurations().getSensorEnrichmentConfig(sourceType), functionResolver, stellarContext);
   }
 
   @Override
@@ -207,24 +121,5 @@ public class ThreatIntelJoinBolt extends EnrichmentJoinBolt {
     }
   }
 
-  /**
-   * Appends the threat score to the telemetry message.
-   * @param threatScore The threat triage score
-   * @param message The telemetry message being triaged.
-   */
-  private void appendThreatScore(ThreatScore threatScore, JSONObject message) {
 
-    // append the overall threat score
-    message.put(THREAT_TRIAGE_SCORE_KEY, threatScore.getScore());
-
-    // append each of the rules - each rule is 'flat'
-    Joiner joiner = Joiner.on(".");
-    int i = 0;
-    for(RuleScore score: threatScore.getRuleScores()) {
-      message.put(joiner.join(THREAT_TRIAGE_RULES_KEY, i, THREAT_TRIAGE_RULE_NAME), score.getRule().getName());
-      message.put(joiner.join(THREAT_TRIAGE_RULES_KEY, i, THREAT_TRIAGE_RULE_COMMENT), score.getRule().getComment());
-      message.put(joiner.join(THREAT_TRIAGE_RULES_KEY, i, THREAT_TRIAGE_RULE_SCORE), score.getRule().getScore());
-      message.put(joiner.join(THREAT_TRIAGE_RULES_KEY, i++, THREAT_TRIAGE_RULE_REASON), score.getReason());
-    }
-  }
 }
