@@ -15,9 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Alert} from './alert';
-import {Facets} from './facets';
-import {SearchResultGroup} from './search-result-group';
+import { Alert } from './alert';
+import { Facets } from './facets';
+import { SearchResultGroup } from './search-result-group';
 
 export class SearchResponse {
   total = 0;

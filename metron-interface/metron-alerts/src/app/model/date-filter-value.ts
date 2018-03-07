@@ -20,7 +20,6 @@ export class DateFilterValue {
   fromDate: number;
   toDate: number;
 
-
   constructor(fromDate = 0, toDate = 0) {
     this.fromDate = fromDate;
     this.toDate = toDate;

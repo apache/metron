@@ -16,18 +16,18 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import {Router} from '@angular/router';
+import { Router } from '@angular/router';
 
-import {MetaAlertService} from '../../service/meta-alert.service';
-import {UpdateService} from '../../service/update.service';
-import {SearchRequest} from '../../model/search-request';
-import {SearchService} from '../../service/search.service';
-import {SearchResponse} from '../../model/search-response';
-import {SortField} from '../../model/sort-field';
+import { MetaAlertService } from '../../service/meta-alert.service';
+import { UpdateService } from '../../service/update.service';
+import { SearchRequest } from '../../model/search-request';
+import { SearchService } from '../../service/search.service';
+import { SearchResponse } from '../../model/search-response';
+import { SortField } from '../../model/sort-field';
 import { META_ALERTS_SENSOR_TYPE } from '../../utils/constants';
-import {MetronDialogBox} from '../../shared/metron-dialog-box';
-import {MetaAlertAddRemoveRequest} from '../../model/meta-alert-add-remove-request';
-import {GetRequest} from '../../model/get-request';
+import { MetronDialogBox } from '../../shared/metron-dialog-box';
+import { MetaAlertAddRemoveRequest } from '../../model/meta-alert-add-remove-request';
+import { GetRequest } from '../../model/get-request';
 
 @Component({
   selector: 'app-meta-alerts',
@@ -39,12 +39,13 @@ export class MetaAlertsComponent implements OnInit {
   selectedMetaAlert = '';
   searchResponse: SearchResponse = new SearchResponse();
 
-  constructor(private router: Router,
-              private metaAlertService: MetaAlertService,
-              private updateService: UpdateService,
-              private searchService: SearchService,
-              private metronDialogBox: MetronDialogBox) {
-  }
+  constructor(
+    private router: Router,
+    private metaAlertService: MetaAlertService,
+    private updateService: UpdateService,
+    private searchService: SearchService,
+    private metronDialogBox: MetronDialogBox
+  ) { }
 
   goBack() {
     this.router.navigateByUrl('/alerts-list');
@@ -57,7 +58,7 @@ export class MetaAlertsComponent implements OnInit {
     searchRequest.from = 0;
     searchRequest.size = 999;
     searchRequest.facetFields = [];
-    searchRequest.indices =  [META_ALERTS_SENSOR_TYPE];
+    searchRequest.indices = [META_ALERTS_SENSOR_TYPE];
     searchRequest.sort = [new SortField('threat:triage:score', 'desc')];
 
     this.searchService.search(searchRequest).subscribe(resp => this.searchResponse = resp);
@@ -65,7 +66,7 @@ export class MetaAlertsComponent implements OnInit {
 
   addAlertToMetaAlert() {
     let getRequest = this.metaAlertService.selectedAlerts.map(alert =>
-          new GetRequest(alert.source.guid, alert.source['source:type'], alert.index));
+      new GetRequest(alert.source.guid, alert.source['source:type'], alert.index));
     let metaAlertAddRemoveRequest = new MetaAlertAddRemoveRequest();
     metaAlertAddRemoveRequest.metaAlertGuid = this.selectedMetaAlert;
     metaAlertAddRemoveRequest.alerts = getRequest;

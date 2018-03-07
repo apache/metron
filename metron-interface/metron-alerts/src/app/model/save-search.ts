@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-import {QueryBuilder} from '../alerts/alerts-list/query-builder';
-import {ColumnMetadata} from './column-metadata';
-import {SearchRequest} from './search-request';
-import {Filter} from './filter';
+import { QueryBuilder } from '../alerts/alerts-list/query-builder';
+import { ColumnMetadata } from './column-metadata';
+import { SearchRequest } from './search-request';
+import { Filter } from './filter';
 
 export class SaveSearch {
-  name  = '';
+  name = '';
   lastAccessed = 0;
   searchRequest: SearchRequest;
   tableColumns: ColumnMetadata[];

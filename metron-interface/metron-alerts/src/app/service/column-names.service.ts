@@ -15,12 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs/Rx';
-import {Http} from '@angular/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs/Rx';
+import { Http } from '@angular/http';
 
-import {ColumnNames} from '../model/column-names';
-import {DataSource} from './data-source';
+import { ColumnNames } from '../model/column-names';
+import { DataSource } from './data-source';
 
 @Injectable()
 export class ColumnNamesService {
@@ -59,7 +59,7 @@ export class ColumnNamesService {
   }
 
   constructor(private http: Http,
-              private dataSource: DataSource) {}
+    private dataSource: DataSource) { }
 
   list(): Promise<ColumnNames[]> {
     return this.dataSource.getAlertTableColumnNames().toPromise();

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {GroupResult} from './group-result';
+import { GroupResult } from './group-result';
 
 export class GroupResponse {
   groupedBy: string;

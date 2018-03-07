@@ -15,10 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ModuleWithProviders }  from '@angular/core';
+import { ModuleWithProviders } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import {ConfigureTableComponent} from './configure-table.component';
+import { ConfigureTableComponent } from './configure-table.component';
 
-export const routing: ModuleWithProviders = RouterModule.forChild([
-    { path: 'configure-table', component: ConfigureTableComponent, outlet: 'dialog'}
+export const ConfigureTableRoutingModule: ModuleWithProviders = RouterModule.forChild([
+  {
+    path: 'configure-table',
+    component: ConfigureTableComponent, outlet: 'dialog'
+  }
 ]);

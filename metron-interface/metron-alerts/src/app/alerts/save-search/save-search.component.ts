@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import {Router} from '@angular/router';
+import { Router } from '@angular/router';
 
-import {SaveSearchService} from '../../service/save-search.service';
-import {SaveSearch} from '../../model/save-search';
-import {MetronDialogBox} from '../../shared/metron-dialog-box';
+import { SaveSearchService } from '../../service/save-search.service';
+import { SaveSearch } from '../../model/save-search';
+import { MetronDialogBox } from '../../shared/metron-dialog-box';
 
 @Component({
   selector: 'app-save-search',
@@ -31,10 +31,11 @@ export class SaveSearchComponent implements OnInit {
 
   saveSearch = new SaveSearch();
 
-  constructor(private router: Router,
-              private saveSearchService: SaveSearchService,
-              private metronDialogBox: MetronDialogBox) {
-  }
+  constructor(
+    private router: Router,
+    private saveSearchService: SaveSearchService,
+    private metronDialogBox: MetronDialogBox
+  ) { }
 
   goBack() {
     this.router.navigateByUrl('/alerts-list');
@@ -49,7 +50,7 @@ export class SaveSearchComponent implements OnInit {
     this.saveSearch.tableColumns = this.saveSearchService.tableColumns;
     this.saveSearch.filters = this.saveSearchService.queryBuilder.filters;
     this.saveSearch.searchRequest.query = '';
-    
+
     this.saveSearchService.saveSearch(this.saveSearch).subscribe(() => {
       this.goBack();
     }, error => {
@@ -71,7 +72,7 @@ export class SaveSearchComponent implements OnInit {
     this.metronDialogBox.showConfirmationMessage(message).subscribe(result => {
       if (result) {
         this.saveSearch.searchRequest = this.saveSearchService.queryBuilder.searchRequest;
-        this.saveSearchService.updateSearch(this.saveSearch).subscribe(() => { this.goBack(); }, error => {});
+        this.saveSearchService.updateSearch(this.saveSearch).subscribe(() => { this.goBack(); }, error => { });
       }
     });
   }

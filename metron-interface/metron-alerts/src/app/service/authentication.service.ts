@@ -15,10 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, EventEmitter}     from '@angular/core';
-import {Http, Headers, RequestOptions, Response} from '@angular/http';
-import {Router} from '@angular/router';
-import {Observable}     from 'rxjs/Observable';
+import { Injectable, EventEmitter } from '@angular/core';
+import { Http, Headers, RequestOptions, Response } from '@angular/http';
+import { Router } from '@angular/router';
+import { Observable } from 'rxjs/Observable';
 
 @Injectable()
 export class AuthenticationService {
@@ -27,7 +27,7 @@ export class AuthenticationService {
   private currentUser: string = AuthenticationService.USER_NOT_VERIFIED;
   loginUrl = '/api/v1/user';
   logoutUrl = '/logout';
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
+  defaultHeaders = { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
   onLoginEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   constructor(private http: Http, private router: Router) {
@@ -35,36 +35,36 @@ export class AuthenticationService {
   }
 
   public init() {
-      this.getCurrentUser(new RequestOptions({headers: new Headers(this.defaultHeaders)})).subscribe((response: Response) => {
-        this.currentUser = response.text();
-        if (this.currentUser) {
-          this.onLoginEvent.emit(true);
-        }
-      }, error => {
-        this.onLoginEvent.emit(false);
-      });
+    this.getCurrentUser(new RequestOptions({ headers: new Headers(this.defaultHeaders) })).subscribe((response: Response) => {
+      this.currentUser = response.text();
+      if (this.currentUser) {
+        this.onLoginEvent.emit(true);
+      }
+    }, error => {
+      this.onLoginEvent.emit(false);
+    });
   }
 
   public login(username: string, password: string, onError): void {
     let loginHeaders: Headers = new Headers(this.defaultHeaders);
     loginHeaders.append('authorization', 'Basic ' + btoa(username + ':' + password));
-    let loginOptions: RequestOptions = new RequestOptions({headers: loginHeaders});
+    let loginOptions: RequestOptions = new RequestOptions({ headers: loginHeaders });
     this.getCurrentUser(loginOptions).subscribe((response: Response) => {
-        this.currentUser = response.text();
-        this.router.navigateByUrl('/alerts-list');
-        this.onLoginEvent.emit(true);
-      },
+      this.currentUser = response.text();
+      this.router.navigateByUrl('/alerts-list');
+      this.onLoginEvent.emit(true);
+    },
       error => {
         onError(error);
       });
   }
 
   public logout(): void {
-    this.http.post(this.logoutUrl, {}, new RequestOptions({headers: new Headers(this.defaultHeaders)})).subscribe(response => {
-        this.currentUser = AuthenticationService.USER_NOT_VERIFIED;
-        this.onLoginEvent.emit(false);
-        this.router.navigateByUrl('/login');
-      },
+    this.http.post(this.logoutUrl, {}, new RequestOptions({ headers: new Headers(this.defaultHeaders) })).subscribe(response => {
+      this.currentUser = AuthenticationService.USER_NOT_VERIFIED;
+      this.onLoginEvent.emit(false);
+      this.router.navigateByUrl('/login');
+    },
       error => {
         console.log('Logout failed:', error);
         this.router.navigateByUrl('/login');

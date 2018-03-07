@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { Pipe, PipeTransform } from '@angular/core';
-import {ColumnNamesService} from '../../service/column-names.service';
+import { ColumnNamesService } from '../../service/column-names.service';
 
 @Pipe({
   name: 'columnNameTranslate',

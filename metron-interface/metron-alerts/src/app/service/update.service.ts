@@ -15,26 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable} from '@angular/core';
-import {Headers, RequestOptions} from '@angular/http';
-import {Subject}    from 'rxjs/Subject';
-import {Observable} from 'rxjs/Rx';
+import { Injectable } from '@angular/core';
+import { Headers, RequestOptions } from '@angular/http';
+import { Subject } from 'rxjs/Subject';
+import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/observable/interval';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/onErrorResumeNext';
 
-import {HttpUtil} from '../utils/httpUtil';
-import {Alert} from '../model/alert';
-import {Http} from '@angular/http';
-import {PatchRequest} from '../model/patch-request';
-import {Utils} from '../utils/utils';
-import {Patch} from '../model/patch';
-import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../utils/constants';
+import { HttpUtil } from '../utils/httpUtil';
+import { Alert } from '../model/alert';
+import { Http } from '@angular/http';
+import { PatchRequest } from '../model/patch-request';
+import { Utils } from '../utils/utils';
+import { Patch } from '../model/patch';
+import { META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE } from '../utils/constants';
 
 @Injectable()
 export class UpdateService {
 
-  defaultHeaders = {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
+  defaultHeaders = { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
 
   alertChangedSource = new Subject<PatchRequest>();
   alertChanged$ = this.alertChangedSource.asObservable();
@@ -43,14 +43,14 @@ export class UpdateService {
 
   public patch(patchRequest: PatchRequest, fireChangeListener = true): Observable<{}> {
     let url = '/api/v1/update/patch';
-    return this.http.patch(url, patchRequest, new RequestOptions({headers: new Headers(this.defaultHeaders)}))
-    .catch(HttpUtil.handleError)
-    .map(result => {
-      if (fireChangeListener) {
-        this.alertChangedSource.next(patchRequest);
-      }
-      return result;
-    });
+    return this.http.patch(url, patchRequest, new RequestOptions({ headers: new Headers(this.defaultHeaders) }))
+      .catch(HttpUtil.handleError)
+      .map(result => {
+        if (fireChangeListener) {
+          this.alertChangedSource.next(patchRequest);
+        }
+        return result;
+      });
   }
 
   public updateAlertState(alerts: Alert[], state: string, fireChangeListener = true): Observable<{}> {

@@ -1,9 +1,6 @@
-import {Component, OnChanges, Input, SimpleChanges, EventEmitter, Output} from '@angular/core';
-import {Facets} from '../../../model/facets';
-import {
-    CollapseComponentData,
-    CollapseComponentDataItems
-} from '../../../shared/collapse/collapse-component-data';
+import { Component, OnChanges, Input, SimpleChanges, EventEmitter, Output } from '@angular/core';
+import { Facets } from '../../../model/facets';
+import { CollapseComponentData, CollapseComponentDataItems } from '../../../shared/collapse/collapse-component-data';
 
 @Component({
   selector: 'app-alert-filters',

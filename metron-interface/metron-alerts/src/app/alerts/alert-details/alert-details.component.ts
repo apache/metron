@@ -16,20 +16,20 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import {Router, ActivatedRoute} from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import * as moment from 'moment/moment';
 
-import {SearchService} from '../../service/search.service';
-import {UpdateService} from '../../service/update.service';
-import {Alert} from '../../model/alert';
-import {AlertsService} from '../../service/alerts.service';
-import {AlertSource} from '../../model/alert-source';
-import {PatchRequest} from '../../model/patch-request';
-import {Patch} from '../../model/patch';
-import {AlertComment} from './alert-comment';
-import {AuthenticationService} from '../../service/authentication.service';
-import {MetronDialogBox} from '../../shared/metron-dialog-box';
-import {META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE} from '../../utils/constants';
+import { SearchService } from '../../service/search.service';
+import { UpdateService } from '../../service/update.service';
+import { Alert } from '../../model/alert';
+import { AlertsService } from '../../service/alerts.service';
+import { AlertSource } from '../../model/alert-source';
+import { PatchRequest } from '../../model/patch-request';
+import { Patch } from '../../model/patch';
+import { AlertComment } from './alert-comment';
+import { AuthenticationService } from '../../service/authentication.service';
+import { MetronDialogBox } from '../../shared/metron-dialog-box';
+import { META_ALERTS_INDEX, META_ALERTS_SENSOR_TYPE } from '../../utils/constants';
 
 export enum AlertState {
   NEW, OPEN, ESCALATE, DISMISS, RESOLVE
@@ -73,12 +73,12 @@ export class AlertDetailsComponent implements OnInit {
   alertCommentsWrapper: AlertCommentWrapper[] = [];
 
   constructor(private router: Router,
-              private activatedRoute: ActivatedRoute,
-              private searchService: SearchService,
-              private updateService: UpdateService,
-              private alertsService: AlertsService,
-              private authenticationService: AuthenticationService,
-              private metronDialogBox: MetronDialogBox) {
+    private activatedRoute: ActivatedRoute,
+    private searchService: SearchService,
+    private updateService: UpdateService,
+    private alertsService: AlertsService,
+    private authenticationService: AuthenticationService,
+    private metronDialogBox: MetronDialogBox) {
 
   }
 
@@ -104,7 +104,7 @@ export class AlertDetailsComponent implements OnInit {
   setComments(alert) {
     let alertComments = alert['comments'] ? alert['comments'] : [];
     this.alertCommentsWrapper = alertComments.map(alertComment =>
-        new AlertCommentWrapper(alertComment, moment(new Date(alertComment.timestamp)).fromNow()));
+      new AlertCommentWrapper(alertComment, moment(new Date(alertComment.timestamp)).fromNow()));
   }
 
   getAlertState(alertStatus) {
@@ -223,8 +223,8 @@ export class AlertDetailsComponent implements OnInit {
   }
 
   onDeleteComment(index: number) {
-    let commentText =  'Do you wish to delete the comment ';
-    if (this.alertCommentsWrapper[index].alertComment.comment.length > 25 ) {
+    let commentText = 'Do you wish to delete the comment ';
+    if (this.alertCommentsWrapper[index].alertComment.comment.length > 25) {
       commentText += ' \'' + this.alertCommentsWrapper[index].alertComment.comment.substr(0, 25) + '...\'';
     } else {
       commentText += ' \'' + this.alertCommentsWrapper[index].alertComment.comment + '\'';

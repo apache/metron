@@ -17,25 +17,23 @@
  */
 
 import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
-import {Router} from '@angular/router';
+import { Router } from '@angular/router';
 
-import {Pagination} from '../../../model/pagination';
-import {SortEvent} from '../../../shared/metron-table/metron-table.directive';
-import {ColumnMetadata} from '../../../model/column-metadata';
-import {Alert} from '../../../model/alert';
-import {SearchService} from '../../../service/search.service';
-import {MetronDialogBox} from '../../../shared/metron-dialog-box';
-import {QueryBuilder} from '../query-builder';
-import {Sort} from '../../../utils/enums';
-import {Filter} from '../../../model/filter';
-import {AlertSource} from '../../../model/alert-source';
-import {PatchRequest} from '../../../model/patch-request';
-import {Patch} from '../../../model/patch';
-import {UpdateService} from '../../../service/update.service';
-import {META_ALERTS_INDEX} from '../../../utils/constants';
-import {MetaAlertService} from '../../../service/meta-alert.service';
-import {MetaAlertAddRemoveRequest} from '../../../model/meta-alert-add-remove-request';
-import {GetRequest} from '../../../model/get-request';
+import { Pagination } from '../../../model/pagination';
+import { SortEvent } from '../../../shared/metron-table/metron-table.directive';
+import { ColumnMetadata } from '../../../model/column-metadata';
+import { Alert } from '../../../model/alert';
+import { SearchService } from '../../../service/search.service';
+import { MetronDialogBox } from '../../../shared/metron-dialog-box';
+import { QueryBuilder } from '../query-builder';
+import { Sort } from '../../../utils/enums';
+import { Filter } from '../../../model/filter';
+import { AlertSource } from '../../../model/alert-source';
+import { UpdateService } from '../../../service/update.service';
+import { META_ALERTS_INDEX } from '../../../utils/constants';
+import { MetaAlertService } from '../../../service/meta-alert.service';
+import { MetaAlertAddRemoveRequest } from '../../../model/meta-alert-add-remove-request';
+import { GetRequest } from '../../../model/get-request';
 
 export enum MetronAlertDisplayState {
   COLLAPSE, EXPAND
@@ -57,7 +55,7 @@ export class TableViewComponent implements OnChanges {
   isStatusFieldPresent = false;
   metronDialogBox: MetronDialogBox;
   metaAlertService: MetaAlertService;
-  metaAlertsDisplayState: {[key: string]: MetronAlertDisplayState} = {};
+  metaAlertsDisplayState: { [key: string]: MetronAlertDisplayState } = {};
   metronAlertDisplayState = MetronAlertDisplayState;
 
   @Input() alerts: Alert[] = [];
@@ -71,13 +69,13 @@ export class TableViewComponent implements OnChanges {
   @Output() onRefreshData = new EventEmitter<boolean>();
   @Output() onShowDetails = new EventEmitter<Alert>();
   @Output() onShowConfigureTable = new EventEmitter<Alert>();
-  @Output() onSelectedAlertsChange = new EventEmitter< Alert[]>();
+  @Output() onSelectedAlertsChange = new EventEmitter<Alert[]>();
 
   constructor(router: Router,
-              searchService: SearchService,
-              metronDialogBox: MetronDialogBox,
-              updateService: UpdateService,
-              metaAlertService: MetaAlertService) {
+    searchService: SearchService,
+    metronDialogBox: MetronDialogBox,
+    updateService: UpdateService,
+    metaAlertService: MetaAlertService) {
     this.router = router;
     this.searchService = searchService;
     this.metronDialogBox = metronDialogBox;
@@ -100,7 +98,7 @@ export class TableViewComponent implements OnChanges {
     this.alerts.forEach(alert => {
       if (alert.source.alert && alert.source.alert.length > 0) {
         this.metaAlertsDisplayState[alert.id] = expandedMetaAlerts.indexOf(alert.id) === -1 ?
-                                                  MetronAlertDisplayState.COLLAPSE : MetronAlertDisplayState.EXPAND;
+          MetronAlertDisplayState.COLLAPSE : MetronAlertDisplayState.EXPAND;
       }
     });
   }
@@ -163,7 +161,7 @@ export class TableViewComponent implements OnChanges {
       if (column.name.endsWith(':ts') || column.name.endsWith('timestamp')) {
         returnValue = new Date(parseInt(returnValue, 10)).toISOString().replace('T', ' ').slice(0, 19);
       }
-    } catch (e) {}
+    } catch (e) { }
 
     return returnValue;
   }

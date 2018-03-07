@@ -18,7 +18,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 
 import 'bootstrap';
-import {CollapseComponentData} from './collapse-component-data';
+import { CollapseComponentData } from './collapse-component-data';
 
 @Component({
   selector: 'metron-collapse',
@@ -37,8 +37,8 @@ export class CollapseComponent implements OnInit {
   @Input() countOption = false;
   @Input() strLength = 30;
 
-  @Output() onSelect = new EventEmitter<{name: string, key: string}>();
-  @Output() onDelete = new EventEmitter<{name: string, key: string}>();
+  @Output() onSelect = new EventEmitter<{ name: string, key: string }>();
+  @Output() onDelete = new EventEmitter<{ name: string, key: string }>();
 
   constructor() {
     this.uniqueId = 'CollapseComponent' + '_' + ++CollapseComponent.counter;
@@ -48,12 +48,12 @@ export class CollapseComponent implements OnInit {
   }
 
   onDeleteClick($event, key: string) {
-    this.onDelete.emit({name: this.data.groupName, key: key});
+    this.onDelete.emit({ name: this.data.groupName, key: key });
     $event.stopPropagation();
     return false;
   }
 
   onSelectClick(key: string) {
-    this.onSelect.emit({name: this.data.groupName, key: key});
+    this.onSelect.emit({ name: this.data.groupName, key: key });
   }
 }

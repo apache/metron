@@ -17,7 +17,7 @@ export class DatePickerComponent implements OnInit, OnChanges {
   @Output() dateChange = new EventEmitter<string>();
   @ViewChild('inputText') inputText: ElementRef;
 
-  constructor(private elementRef: ElementRef) {}
+  constructor(private elementRef: ElementRef) { }
 
   ngOnInit() {
     let _datePickerComponent = this;
@@ -25,7 +25,7 @@ export class DatePickerComponent implements OnInit, OnChanges {
       field: this.elementRef.nativeElement,
       showSeconds: true,
       use24hour: true,
-      onSelect: function() {
+      onSelect: function () {
         _datePickerComponent.dateStr = this.getMoment().format('YYYY-MM-DD HH:mm:ss');
         setTimeout(() => _datePickerComponent.dateChange.emit(_datePickerComponent.dateStr), 0);
       }

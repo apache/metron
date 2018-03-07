@@ -15,10 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ModuleWithProviders }  from '@angular/core';
+import { ModuleWithProviders } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import {SavedSearchesComponent} from './saved-searches.component';
+import { SavedSearchesComponent } from './saved-searches.component';
 
-export const routing: ModuleWithProviders = RouterModule.forChild([
-  { path: 'saved-searches', component: SavedSearchesComponent, outlet: 'dialog'}
+export const SavedSearchesRoutingModule: ModuleWithProviders = RouterModule.forChild([
+  {
+    path: 'saved-searches',
+    component: SavedSearchesComponent,
+    outlet: 'dialog'
+  }
 ]);

@@ -15,19 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Observable} from 'rxjs/Rx';
-import {Injectable} from '@angular/core';
-import {Http} from '@angular/http';
-import {ColumnMetadata} from '../model/column-metadata';
-import {ColumnNames} from '../model/column-names';
-import {TableMetadata} from '../model/table-metadata';
-import {SaveSearch} from '../model/save-search';
+import { Observable } from 'rxjs/Rx';
+import { Injectable } from '@angular/core';
+import { Http } from '@angular/http';
+import { ColumnMetadata } from '../model/column-metadata';
+import { ColumnNames } from '../model/column-names';
+import { TableMetadata } from '../model/table-metadata';
+import { SaveSearch } from '../model/save-search';
 
 @Injectable()
 export abstract class DataSource {
-  defaultHeaders: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'};
+  defaultHeaders: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
 
-  constructor(protected http: Http) {}
+  constructor(protected http: Http) { }
 
   // Calls to fetch default alert table column names and all the field names across all indexes
   abstract getDefaultAlertTableColumnNames(): Observable<ColumnMetadata[]>

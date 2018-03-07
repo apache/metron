@@ -15,33 +15,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnInit, ViewChild, ElementRef, OnDestroy} from '@angular/core';
-import {Router, NavigationStart} from '@angular/router';
-import {Observable, Subscription} from 'rxjs/Rx';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import { Router, NavigationStart } from '@angular/router';
+import { Observable, Subscription } from 'rxjs/Rx';
 
-import {Alert} from '../../model/alert';
-import {SearchService} from '../../service/search.service';
-import {UpdateService} from '../../service/update.service';
-import {QueryBuilder} from './query-builder';
-import {ConfigureTableService} from '../../service/configure-table.service';
-import {AlertsService} from '../../service/alerts.service';
-import {ClusterMetaDataService} from '../../service/cluster-metadata.service';
-import {ColumnMetadata} from '../../model/column-metadata';
-import {SaveSearchService} from '../../service/save-search.service';
-import {RefreshInterval} from '../configure-rows/configure-rows-enums';
-import {SaveSearch} from '../../model/save-search';
-import {TableMetadata} from '../../model/table-metadata';
-import {MetronDialogBox, DialogType} from '../../shared/metron-dialog-box';
-import {AlertSearchDirective} from '../../shared/directives/alert-search.directive';
-import {SearchResponse} from '../../model/search-response';
-import {ElasticsearchUtils} from '../../utils/elasticsearch-utils';
-import {Filter} from '../../model/filter';
-import {THREAT_SCORE_FIELD_NAME, TIMESTAMP_FIELD_NAME, ALL_TIME} from '../../utils/constants';
-import {TableViewComponent} from './table-view/table-view.component';
-import {Pagination} from '../../model/pagination';
-import {META_ALERTS_SENSOR_TYPE, META_ALERTS_INDEX} from '../../utils/constants';
-import {MetaAlertService} from '../../service/meta-alert.service';
-import {Facets} from '../../model/facets';
+import { Alert } from '../../model/alert';
+import { SearchService } from '../../service/search.service';
+import { UpdateService } from '../../service/update.service';
+import { QueryBuilder } from './query-builder';
+import { ConfigureTableService } from '../../service/configure-table.service';
+import { AlertsService } from '../../service/alerts.service';
+import { ClusterMetaDataService } from '../../service/cluster-metadata.service';
+import { ColumnMetadata } from '../../model/column-metadata';
+import { SaveSearchService } from '../../service/save-search.service';
+import { RefreshInterval } from '../configure-rows/configure-rows-enums';
+import { SaveSearch } from '../../model/save-search';
+import { TableMetadata } from '../../model/table-metadata';
+import { MetronDialogBox, DialogType } from '../../shared/metron-dialog-box';
+import { AlertSearchDirective } from '../../shared/directives/alert-search.directive';
+import { SearchResponse } from '../../model/search-response';
+import { ElasticsearchUtils } from '../../utils/elasticsearch-utils';
+import { Filter } from '../../model/filter';
+import { THREAT_SCORE_FIELD_NAME, TIMESTAMP_FIELD_NAME, ALL_TIME } from '../../utils/constants';
+import { TableViewComponent } from './table-view/table-view.component';
+import { Pagination } from '../../model/pagination';
+import { META_ALERTS_SENSOR_TYPE, META_ALERTS_INDEX } from '../../utils/constants';
+import { MetaAlertService } from '../../service/meta-alert.service';
+import { Facets } from '../../model/facets';
 
 @Component({
   selector: 'app-alerts-list',
@@ -77,14 +77,14 @@ export class AlertsListComponent implements OnInit, OnDestroy {
   groupFacets: Facets;
 
   constructor(private router: Router,
-              private searchService: SearchService,
-              private updateService: UpdateService,
-              private configureTableService: ConfigureTableService,
-              private alertsService: AlertsService,
-              private clusterMetaDataService: ClusterMetaDataService,
-              private saveSearchService: SaveSearchService,
-              private metronDialogBox: MetronDialogBox,
-              private metaAlertsService: MetaAlertService) {
+    private searchService: SearchService,
+    private updateService: UpdateService,
+    private configureTableService: ConfigureTableService,
+    private alertsService: AlertsService,
+    private clusterMetaDataService: ClusterMetaDataService,
+    private saveSearchService: SaveSearchService,
+    private metronDialogBox: MetronDialogBox,
+    private metaAlertsService: MetaAlertService) {
     router.events.subscribe(event => {
       if (event instanceof NavigationStart && event.url === '/alerts-list') {
         this.selectedAlerts = [];
@@ -137,7 +137,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     let availableWidth = document.documentElement.clientWidth - (200 + (15 + 15 + 25)); /* screenwidth - (navPaneWidth + (paddings))*/
     availableWidth = availableWidth - ((20 * 3) + 55 + 25); /* availableWidth - (score + colunSelectIcon +selectCheckbox )*/
     let tWidth = 0;
-    this.alertsColumnsToDisplay =  this.alertsColumns.filter(colMetaData => {
+    this.alertsColumnsToDisplay = this.alertsColumns.filter(colMetaData => {
       if (colMetaData.type.toUpperCase() === 'DATE') {
         tWidth += 140;
       } else if (colMetaData.type.toUpperCase() === 'IP') {
@@ -154,8 +154,8 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
   getAlertColumnNames(resetPaginationForSearch: boolean) {
     Observable.forkJoin(
-        this.configureTableService.getTableMetadata(),
-        this.clusterMetaDataService.getDefaultColumns()
+      this.configureTableService.getTableMetadata(),
+      this.clusterMetaDataService.getDefaultColumns()
     ).subscribe((response: any) => {
       this.prepareData(response[0], response[1], resetPaginationForSearch);
     });
@@ -382,7 +382,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
     this.selectedAlerts = [alert];
     this.saveRefreshState();
     let sourceType = (alert.index === META_ALERTS_INDEX && !alert.source['source:type'])
-        ? META_ALERTS_SENSOR_TYPE : alert.source['source:type'];
+      ? META_ALERTS_SENSOR_TYPE : alert.source['source:type'];
     let url = '/alerts-list(dialog:details/' + sourceType + '/' + alert.source.guid + '/' + alert.index + ')';
     this.router.navigateByUrl(url);
   }
@@ -444,7 +444,7 @@ export class AlertsListComponent implements OnInit, OnDestroy {
 
     this.searchService.getAlert(sensorType, guid).subscribe(alertSource => {
       this.alerts.filter(alert => alert.source.guid === guid)
-      .map(alert => alert.source = alertSource);
+        .map(alert => alert.source = alertSource);
     });
   }
 

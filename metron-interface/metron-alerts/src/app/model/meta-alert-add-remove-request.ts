@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {GetRequest} from './get-request';
+import { GetRequest } from './get-request';
 
 export class MetaAlertAddRemoveRequest {
   metaAlertGuid: string;

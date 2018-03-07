@@ -8,9 +8,9 @@ describe('TimeRangeComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ TimeRangeComponent ]
+      declarations: [TimeRangeComponent]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import {MetronTableDirective, SortEvent} from '../metron-table.directive';
-import {Sort} from '../../../utils/enums';
+import { MetronTableDirective, SortEvent } from '../metron-table.directive';
+import { Sort } from '../../../utils/enums';
 
 @Component({
   selector: 'metron-config-sorter',
@@ -35,7 +35,7 @@ export class MetronSorterComponent implements OnChanges {
   sortAsc = false;
   sortDesc = false;
 
-  constructor(private metronTable: MetronTableDirective ) {
+  constructor(private metronTable: MetronTableDirective) {
     this.metronTable.onSortColumnChange.subscribe((event: SortEvent) => {
       this.sortAsc = (event.sortBy === this.sortBy && event.sortOrder === Sort.ASC);
       this.sortDesc = (event.sortBy === this.sortBy && event.sortOrder === Sort.DSC);
@@ -44,7 +44,7 @@ export class MetronSorterComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['sortOnCol'] && changes['sortOnCol'].currentValue) {
-      if (this.sortOnCol === this.sortBy ) {
+      if (this.sortOnCol === this.sortBy) {
         this.sortAsc = this.sortOrder === Sort.ASC;
         this.sortDesc = this.sortOrder === Sort.DSC;
       }
@@ -53,6 +53,6 @@ export class MetronSorterComponent implements OnChanges {
 
   sort() {
     let order = this.sortAsc ? Sort.DSC : Sort.ASC;
-    this.metronTable.setSort({sortBy: this.sortBy, sortOrder: order, type: this.type});
+    this.metronTable.setSort({ sortBy: this.sortBy, sortOrder: order, type: this.type });
   }
 }

@@ -25,9 +25,9 @@ describe('CollapseComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ CollapseComponent ]
+      declarations: [CollapseComponent]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

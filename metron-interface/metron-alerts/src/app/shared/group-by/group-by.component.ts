@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, EventEmitter, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { DragulaService } from 'ng2-dragula/ng2-dragula';
-import {Facets} from '../../model/facets';
-import {GroupByComponentData} from './group-by-component-data';
+import { Facets } from '../../model/facets';
+import { GroupByComponentData } from './group-by-component-data';
 
 
 @Component({
@@ -20,7 +20,7 @@ export class GroupByComponent implements OnInit, OnChanges {
 
   @Output() groupsChange = new EventEmitter<string[]>();
 
-  constructor(private dragulaService: DragulaService) {}
+  constructor(private dragulaService: DragulaService) { }
 
   fireGroupsChange() {
     let selectedGroupNames = [];

@@ -15,15 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NgModule} from '@angular/core';
+import { NgModule } from '@angular/core';
 
-import {MetronTablePaginationComponent}   from './metron-table-pagination.component';
-import {SharedModule} from '../../shared.module';
+import { MetronTablePaginationComponent } from './metron-table-pagination.component';
+import { SharedModule } from '../../shared.module';
 
 @NgModule({
-  imports: [SharedModule],
-  exports: [MetronTablePaginationComponent],
-  declarations: [MetronTablePaginationComponent],
+  imports: [
+    SharedModule
+  ],
+  exports: [
+    MetronTablePaginationComponent
+  ],
+  declarations: [
+    MetronTablePaginationComponent
+  ],
   providers: [],
 })
 export class MetronTablePaginationModule {

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {EventEmitter}     from '@angular/core';
+import { EventEmitter } from '@angular/core';
 
 declare var $;
 
@@ -41,17 +41,17 @@ export class MetronDialogBox {
                     <div class="modal-content">
                       <div class="modal-header">
                         <span class="modal-title"><b>` + MetronDialogBox.dialogType[type] + `</b></span>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"> 
-                            <span aria-hidden="true">&times;</span> 
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
                         </button>
                       </div>
                       <div class="modal-body">
-                        <p>` +  message + `</p>
+                        <p>` + message + `</p>
                       </div>
                       <div class="modal-footer">
                         <button type="button" class="btn btn-all_ports">OK</button>`
-                        + cancelButtonHTML +
-                      `</div>
+      + cancelButtonHTML +
+      `</div>
                     </div>
                   </div>
                 </div>`;

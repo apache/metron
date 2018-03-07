@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {GroupOrder} from './group-order';
+import { GroupOrder } from './group-order';
 
 export class Group {
   order: GroupOrder;

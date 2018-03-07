@@ -15,13 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Routes, RouterModule} from '@angular/router';
-import {ModuleWithProviders}  from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+import { ModuleWithProviders } from '@angular/core';
 
-import {AlertsListComponent} from './alerts-list.component';
+import { AlertsListComponent } from './alerts-list.component';
 
 export const routes: Routes = [
-    {path: '', component: AlertsListComponent},
+  {
+    path: '',
+    component: AlertsListComponent
+  }
 ];
 
-export const routing: ModuleWithProviders = RouterModule.forChild(routes);
+export const AlertListRoutingModule: ModuleWithProviders = RouterModule.forChild(routes);

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import {AuthenticationService} from './service/authentication.service';
+import { AuthenticationService } from './service/authentication.service';
 
 declare var $;
 
@@ -36,7 +36,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     $('body').tooltip({
-      trigger : 'hover',
+      trigger: 'hover',
       selector: '[data-toggle="tooltip"]'
     });
 

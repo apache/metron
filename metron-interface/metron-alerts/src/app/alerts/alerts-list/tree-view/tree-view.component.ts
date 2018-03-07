@@ -17,26 +17,26 @@
  */
 
 import { Component, OnInit, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
-import {Router} from '@angular/router';
-import {Subscription, Observable} from 'rxjs/Rx';
+import { Router } from '@angular/router';
+import { Subscription, Observable } from 'rxjs/Rx';
 
-import {TableViewComponent} from '../table-view/table-view.component';
-import {SearchResponse} from '../../../model/search-response';
-import {SearchService} from '../../../service/search.service';
-import {TreeGroupData, TreeAlertsSubscription} from './tree-group-data';
-import {GroupResponse} from '../../../model/group-response';
-import {GroupResult} from '../../../model/group-result';
-import {SortField} from '../../../model/sort-field';
-import {Sort} from '../../../utils/enums';
-import {MetronDialogBox, DialogType} from '../../../shared/metron-dialog-box';
-import {ElasticsearchUtils} from '../../../utils/elasticsearch-utils';
-import {SearchRequest} from '../../../model/search-request';
-import {MetaAlertCreateRequest} from '../../../model/meta-alert-create-request';
-import {MetaAlertService} from '../../../service/meta-alert.service';
-import {INDEXES, MAX_ALERTS_IN_META_ALERTS} from '../../../utils/constants';
-import {UpdateService} from '../../../service/update.service';
-import {PatchRequest} from '../../../model/patch-request';
-import {GetRequest} from '../../../model/get-request';
+import { TableViewComponent } from '../table-view/table-view.component';
+import { SearchResponse } from '../../../model/search-response';
+import { SearchService } from '../../../service/search.service';
+import { TreeGroupData, TreeAlertsSubscription } from './tree-group-data';
+import { GroupResponse } from '../../../model/group-response';
+import { GroupResult } from '../../../model/group-result';
+import { SortField } from '../../../model/sort-field';
+import { Sort } from '../../../utils/enums';
+import { MetronDialogBox, DialogType } from '../../../shared/metron-dialog-box';
+import { ElasticsearchUtils } from '../../../utils/elasticsearch-utils';
+import { SearchRequest } from '../../../model/search-request';
+import { MetaAlertCreateRequest } from '../../../model/meta-alert-create-request';
+import { MetaAlertService } from '../../../service/meta-alert.service';
+import { INDEXES, MAX_ALERTS_IN_META_ALERTS } from '../../../utils/constants';
+import { UpdateService } from '../../../service/update.service';
+import { PatchRequest } from '../../../model/patch-request';
+import { GetRequest } from '../../../model/get-request';
 
 @Component({
   selector: 'app-tree-view',
@@ -49,14 +49,14 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   groupByFields: string[] = [];
   topGroups: TreeGroupData[] = [];
   groupResponse: GroupResponse = new GroupResponse();
-  treeGroupSubscriptionMap: {[key: string]: TreeAlertsSubscription } = {};
+  treeGroupSubscriptionMap: { [key: string]: TreeAlertsSubscription } = {};
   alertsChangedSubscription: Subscription;
 
   constructor(router: Router,
-              searchService: SearchService,
-              metronDialogBox: MetronDialogBox,
-              updateService: UpdateService,
-              metaAlertService: MetaAlertService) {
+    searchService: SearchService,
+    metronDialogBox: MetronDialogBox,
+    updateService: UpdateService,
+    metaAlertService: MetaAlertService) {
     super(router, searchService, metronDialogBox, updateService, metaAlertService);
   }
 
@@ -85,8 +85,8 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
     let searchQuery = this.queryBuilder.generateSelect();
     let groupQery = Object.keys(selectedGroup.groupQueryMap).map(key => {
       return key.replace(/:/g, '\\:') +
-          ':' +
-          String(selectedGroup.groupQueryMap[key])
+        ':' +
+        String(selectedGroup.groupQueryMap[key])
           .replace(/[\*\+\-=~><\"\?^\${}\(\)\:\!\/[\]\\\s]/g, '\\$&') // replace single  special characters
           .replace(/\|\|/g, '\\||') // replace ||
           .replace(/\&\&/g, '\\&&'); // replace &&
@@ -144,7 +144,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
       treeGroupData.isLeafNode = (groupByFields.length === 1);
 
       if (groupByFields.length === 1) {
-        treeGroupData.groupQueryMap  = this.createTopGroupQueryMap(groupByFields[0], groupResult);
+        treeGroupData.groupQueryMap = this.createTopGroupQueryMap(groupByFields[0], groupResult);
       }
 
       this.topGroups.push(treeGroupData);
@@ -158,12 +158,12 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   }
 
   initTopGroups() {
-    let groupByFields =  this.queryBuilder.groupRequest.groups.map(group => group.field);
+    let groupByFields = this.queryBuilder.groupRequest.groups.map(group => group.field);
     let currentTopGroupKeys = this.groupResponse.groupResults.map(groupResult => groupResult.key);
     let previousTopGroupKeys = this.topGroups.map(group => group.key);
 
     if (this.topGroups.length === 0 || JSON.stringify(this.groupByFields) !== JSON.stringify(groupByFields) ||
-        JSON.stringify(currentTopGroupKeys) !== JSON.stringify(previousTopGroupKeys)) {
+      JSON.stringify(currentTopGroupKeys) !== JSON.stringify(previousTopGroupKeys)) {
       this.createTopGroups(groupByFields);
     }
 
@@ -255,7 +255,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   }
 
   parseSubGroups(group: GroupResult, groupAsArray: TreeGroupData[],
-                 parentQueryMap: {[key: string]: string}, currentGroupKey: string, level: number, index: number): number {
+    parentQueryMap: { [key: string]: string }, currentGroupKey: string, level: number, index: number): number {
     index++;
 
     let currentTreeNodeData = (groupAsArray.length > 0) ? groupAsArray[index] : null;
@@ -355,8 +355,8 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
 
   canCreateMetaAlert(count: number) {
     if (count > MAX_ALERTS_IN_META_ALERTS) {
-      let errorMessage = 'Meta Alert cannot have more than ' + MAX_ALERTS_IN_META_ALERTS +' alerts within it';
-      this.metronDialogBox.showConfirmationMessage(errorMessage, DialogType.Error).subscribe((response) => {});
+      let errorMessage = 'Meta Alert cannot have more than ' + MAX_ALERTS_IN_META_ALERTS + ' alerts within it';
+      this.metronDialogBox.showConfirmationMessage(errorMessage, DialogType.Error).subscribe((response) => { });
       return false;
     }
     return true;
@@ -373,8 +373,8 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
     searchRequest.from = 0;
     searchRequest.indices = INDEXES;
     searchRequest.query = this.createQuery(group);
-    searchRequest.size =  MAX_ALERTS_IN_META_ALERTS;
-    searchRequest.facetFields =  [];
+    searchRequest.size = MAX_ALERTS_IN_META_ALERTS;
+    searchRequest.facetFields = [];
     return this.searchService.search(searchRequest);
   }
 
@@ -396,7 +396,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
   createMetaAlert($event, group: TreeGroupData, index: number) {
     if (this.canCreateMetaAlert(group.total)) {
       let confirmationMsg = 'Do you wish to create a meta alert with ' +
-                            (group.total === 1 ? ' alert' : group.total + ' selected alerts') + '?';
+        (group.total === 1 ? ' alert' : group.total + ' selected alerts') + '?';
       this.metronDialogBox.showConfirmationMessage(confirmationMsg).subscribe((response) => {
         if (response) {
           this.doCreateMetaAlert(group, index);
@@ -415,7 +415,7 @@ export class TreeViewComponent extends TableViewComponent implements OnInit, OnC
         let group = this.treeGroupSubscriptionMap[key].group;
         if (group.response && group.response.results && group.response.results.length > 0) {
           group.response.results.filter(alert => alert.source.guid === patchRequest.guid)
-          .map(alert => alert.source = alertSource);
+            .map(alert => alert.source = alertSource);
         }
       });
     });

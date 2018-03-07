@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 /// <reference path="../../../../node_modules/@types/ace/index.d.ts" />
-import {Directive, ElementRef, EventEmitter, AfterViewInit, Output, Input, OnChanges, SimpleChanges} from '@angular/core';
+import { Directive, ElementRef, EventEmitter, AfterViewInit, Output, Input, OnChanges, SimpleChanges } from '@angular/core';
 
 declare var ace: any;
 let ACERange = ace.require('ace/range').Range;
@@ -71,12 +71,12 @@ export class AlertSearchDirective implements AfterViewInit, OnChanges {
 
         let endIndex = pos.column;
         let startIndex = pos.column - (strToDelete.length + 1);
-        if ( startIndex < 0) {
+        if (startIndex < 0) {
           startIndex = 0;
           endIndex = (strToDelete.length + 1);
         }
 
-        let range = new ACERange(0, startIndex , 0, endIndex);
+        let range = new ACERange(0, startIndex, 0, endIndex);
         this.editor.selection.addRange(range);
         this.editor.removeWordLeft();
         this.editor.renderer.showCursor();
@@ -85,7 +85,7 @@ export class AlertSearchDirective implements AfterViewInit, OnChanges {
     });
   }
 
-  private  getTextTillOperator(valueElement) {
+  private getTextTillOperator(valueElement) {
     let str = valueElement ? valueElement.textContent : '';
 
     let previousSibling = valueElement && valueElement.previousSibling;
@@ -128,15 +128,15 @@ export class AlertSearchDirective implements AfterViewInit, OnChanges {
     return this.editor.getValue();
   }
 
-  private handleMouseEvent (callback: Function) {
+  private handleMouseEvent(callback: Function) {
     clearTimeout(this.mouseEventTimer);
     this.mouseEventTimer = setTimeout(() => { callback(); }, 100);
   }
 
   private mouseover($event) {
     if ($event.target.classList.contains('ace_value') ||
-        $event.target.classList.contains('ace_keyword') ||
-        $event.target.classList.contains('fa-times')) {
+      $event.target.classList.contains('ace_keyword') ||
+      $event.target.classList.contains('fa-times')) {
       this.handleMouseEvent(() => {
         this.target = $event.target.classList.contains('fa-times') ? $event.target.parentElement : $event.target;
         if (this.target.classList.contains('ace_value')) {
@@ -185,7 +185,7 @@ export class AlertSearchDirective implements AfterViewInit, OnChanges {
 
   ngAfterViewInit() {
     this.editor.getSession().setUseWrapMode(true);
-    this.editor.keyBinding.addKeyboardHandler( (data, hashId, keyString, keyCode, event) => {
+    this.editor.keyBinding.addKeyboardHandler((data, hashId, keyString, keyCode, event) => {
       if (keyCode === 13) {
         event.preventDefault();
         event.stopPropagation();

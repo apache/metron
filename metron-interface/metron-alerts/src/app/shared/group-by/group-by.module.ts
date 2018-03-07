@@ -15,12 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NgModule} from '@angular/core';
+import { NgModule } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { DragulaModule } from 'ng2-dragula';
 
-import {SharedModule} from '../shared.module';
-import {GroupByComponent} from './group-by.component';
+import { SharedModule } from '../shared.module';
+import { GroupByComponent } from './group-by.component';
 
 @NgModule({
   imports: [

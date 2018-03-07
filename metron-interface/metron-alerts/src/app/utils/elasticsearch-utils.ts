@@ -15,25 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ColumnMetadata} from '../model/column-metadata';
-import {SearchResponse} from '../model/search-response';
+import { ColumnMetadata } from '../model/column-metadata';
+import { SearchResponse } from '../model/search-response';
 
 export class ElasticsearchUtils {
 
   public static excludeIndexName = ',-*kibana,-error*';
 
   private static createColumMetaData(properties: any, columnMetadata: ColumnMetadata[], seen: string[]) {
-     try {
-       let columnNames = Object.keys(properties);
-       for (let columnName of columnNames) {
-         if (seen.indexOf(columnName) === -1) {
-           seen.push(columnName);
-           columnMetadata.push(
-             new ColumnMetadata(columnName, (properties[columnName].type ? properties[columnName].type : ''))
-           );
-         }
-       }
-     } catch (e) {}
+    try {
+      let columnNames = Object.keys(properties);
+      for (let columnName of columnNames) {
+        if (seen.indexOf(columnName) === -1) {
+          seen.push(columnName);
+          columnMetadata.push(
+            new ColumnMetadata(columnName, (properties[columnName].type ? properties[columnName].type : ''))
+          );
+        }
+      }
+    } catch (e) { }
   }
 
   public static extractColumnNameData(res: Response): ColumnMetadata[] {
@@ -78,9 +78,9 @@ export class ElasticsearchUtils {
 
   public static escapeESValue(value: string) {
     return String(value)
-    .replace(/[\*\+\-=~><\"\?^\${}\(\)\:\!\/[\]\\\s]/g, '\\$&') // replace single  special characters
-    .replace(/\|\|/g, '\\||') // replace ||
-    .replace(/\&\&/g, '\\&&'); // replace &&
+      .replace(/[\*\+\-=~><\"\?^\${}\(\)\:\!\/[\]\\\s]/g, '\\$&') // replace single  special characters
+      .replace(/\|\|/g, '\\||') // replace ||
+      .replace(/\&\&/g, '\\&&'); // replace &&
   }
 
 }
