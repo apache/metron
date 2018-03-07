@@ -28,7 +28,7 @@ function join_by {
   echo "$*" 
 }
 
-METRON_VERSION=0.4.3
+METRON_VERSION=${project.version}
 METRON_HOME="${METRON_HOME:-/usr/metron/${METRON_VERSION}}"
 HBASE_HOME=${HBASE_HOME:-/usr/hdp/current/hbase-client}
 METRON_REST_PORT=8082
@@ -84,7 +84,6 @@ if [ ${METRON_JDBC_CLIENT_PATH} ]; then
     METRON_REST_CLASSPATH+=":${METRON_JDBC_CLIENT_PATH}"
 fi
 
-echo "METRON_RA_INDEXING_WRITER=${METRON_RA_INDEXING_WRITER}"
 # Use metron-elasticsearch uber jar by default
 indexing_jar_pattern="${METRON_HOME}/lib/metron-elasticsearch*uber.jar"
 # Use metron-solr uber jar if ra indexing writer set to Solr
