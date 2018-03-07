@@ -6,7 +6,7 @@
   "scripts": {
     "build": "./node_modules/@angular/cli/bin/ng build -prod",
     "start": "ng serve",
-    "lint": "tslint \"src/**/*.ts\"",
+    "lint": "tslint \"src/**/*.ts\" && stylelint \"src/**/*.scss\" --syntax=scss",
     "test": "./node_modules/@angular/cli/bin/ng test --watch=false",
     "pree2e": "webdriver-manager update",
     "e2e": "protractor"
@@ -59,6 +59,9 @@
     "protractor": "~5.1.0",
     "serve-favicon": "2.4.2",
     "serve-static": "1.12.1",
+    "stylelint": "^9.1.1",
+    "stylelint-config-standard": "^18.2.0",
+    "stylelint-scss": "^2.5.0",
     "ts-node": "~2.0.0",
     "tslint": "~4.5.0",
     "typescript": "~2.3.0"

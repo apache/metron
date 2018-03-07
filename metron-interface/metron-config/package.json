@@ -59,6 +59,9 @@
     "karma-remap-istanbul": "0.6.0",
     "phantomjs-prebuilt": "^2.1.14",
     "protractor": "4.0.5",
+    "stylelint": "^9.1.1",
+    "stylelint-config-standard": "^18.2.0",
+    "stylelint-scss": "^2.5.0",
     "ts-node": "1.2.1",
     "tslint": "3.13.0",
     "typescript": "~2.0.3"
