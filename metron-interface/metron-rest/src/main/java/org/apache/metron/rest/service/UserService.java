@@ -15,11 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.rest.service;
 
-package org.apache.metron.rest.repository;
+import org.apache.metron.rest.RestException;
 
-import org.apache.metron.rest.model.AlertProfile;
-import org.springframework.data.repository.CrudRepository;
+import java.util.Map;
 
-public interface AlertProfileRepository extends CrudRepository<AlertProfile, String> {
+public interface UserService {
+
+  String getUserSettings(String type) throws RestException;
+
+  Map<String, String> findAllUserSettings(String type) throws RestException;
+
+  void saveUserSettings(String settings, String type) throws RestException;
+
+  boolean deleteUserSettings(String user, String type);
 }
