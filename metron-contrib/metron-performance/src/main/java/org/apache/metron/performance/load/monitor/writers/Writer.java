@@ -19,7 +19,7 @@ package org.apache.metron.performance.load.monitor.writers;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.metron.performance.load.monitor.AbstractMonitor;
-import org.apache.metron.performance.load.monitor.MonitorNaming;
+import org.apache.metron.performance.load.monitor.Results;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -30,39 +30,12 @@ import java.util.function.Consumer;
 
 public class Writer {
 
-  public static class Results {
-    MonitorNaming monitor;
-    Optional<DescriptiveStatistics> history;
-    Long eps;
-    Date dateOf;
-    Results(MonitorNaming monitor, Long eps, Optional<DescriptiveStatistics> history, Date dateOf) {
-      this.monitor = monitor;
-      this.history = history;
-      this.dateOf = dateOf;
-      this.eps = eps;
-    }
-    public Long getEps() {
-      return eps;
-    }
-
-    public Date getDateOf() {
-      return dateOf;
-    }
-
-    public MonitorNaming getMonitor() {
-      return monitor;
-    }
-
-    public Optional<DescriptiveStatistics> getHistory() {
-      return history;
-    }
-  }
   private int summaryLookback;
   private List<LinkedList<Double>> summaries = new ArrayList<>();
-  private List<Consumer<List<Results>>> writers;
+  private List<Consumer<Writable>> writers;
   private List<AbstractMonitor> monitors;
 
-  public Writer(List<AbstractMonitor> monitors, int summaryLookback, List<Consumer<List<Results>>> writers) {
+  public Writer(List<AbstractMonitor> monitors, int summaryLookback, List<Consumer<Writable>> writers) {
     this.summaryLookback = summaryLookback;
     this.writers = writers;
     this.monitors = monitors;
@@ -81,18 +54,19 @@ public class Writer {
         if (summaryLookback > 0) {
           LinkedList<Double> summary = summaries.get(i++);
           addToLookback(eps == null ? Double.NaN : eps.doubleValue(), summary);
-          results.add(new Results(m, eps, Optional.of(getStats(summary)), dateOf));
+          results.add(new Results(m.format(), eps, Optional.of(getStats(summary))));
         }
         else {
-          results.add(new Results(m, eps, Optional.empty(), dateOf));
+          results.add(new Results(m.format(), eps, Optional.empty()));
         }
       }
       else {
-        results.add(new Results(m, eps, Optional.empty(), dateOf));
+        results.add(new Results(m.format(), eps, Optional.empty()));
       }
     }
-    for(Consumer<List<Results>> writer : writers) {
-      writer.accept(results);
+    Writable writable = new Writable(dateOf, results);
+    for(Consumer<Writable> writer : writers) {
+      writer.accept(writable);
     }
   }
 

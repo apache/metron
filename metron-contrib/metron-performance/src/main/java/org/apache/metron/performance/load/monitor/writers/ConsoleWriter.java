@@ -18,7 +18,7 @@
 package org.apache.metron.performance.load.monitor.writers;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.metron.performance.load.monitor.MonitorNaming;
+import org.apache.metron.performance.load.monitor.Results;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -27,22 +27,20 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class ConsoleWriter implements Consumer<List<Writer.Results>> {
+public class ConsoleWriter implements Consumer<Writable> {
 
   private String getSummary(DescriptiveStatistics stats) {
     return String.format("Mean: %d, Std Dev: %d", (int)stats.getMean(), (int)Math.sqrt(stats.getVariance()));
   }
 
   @Override
-  public void accept(List<Writer.Results> results) {
+  public void accept(Writable writable) {
     List<String> parts = new ArrayList<>();
-    Date date = null;
-    for(Writer.Results r : results) {
-      date = r.getDateOf();
-      MonitorNaming m = r.getMonitor();
+    Date date = writable.getDate();
+    for(Results r : writable.getResults()) {
       Long eps = r.getEps();
       if(eps != null) {
-        String part = String.format(m.format(), eps);
+        String part = String.format(r.getFormat(), eps);
         if (r.getHistory().isPresent()) {
           part += " (" + getSummary(r.getHistory().get()) + ")";
         }
