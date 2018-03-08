@@ -15,18 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.metron.rest.service;
 
-import org.apache.metron.rest.model.AlertProfile;
+import org.apache.metron.rest.RestException;
 
-public interface AlertsProfileService {
+import java.util.Map;
 
-  AlertProfile get();
+public interface UserService {
 
-  Iterable<AlertProfile> findAll();
+  String getUserSettings(String type) throws RestException;
 
-  AlertProfile save(AlertProfile alertsProfile);
+  Map<String, String> findAllUserSettings(String type) throws RestException;
 
-  boolean delete(String user);
+  void saveUserSettings(String settings, String type) throws RestException;
+
+  boolean deleteUserSettings(String user, String type);
 }

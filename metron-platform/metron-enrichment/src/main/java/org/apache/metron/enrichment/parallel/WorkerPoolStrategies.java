@@ -15,25 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.rest.service;
+package org.apache.metron.enrichment.parallel;
 
-import java.util.List;
-import java.util.Map;
-import org.apache.metron.rest.RestException;
-import org.apache.metron.rest.model.AlertProfile;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Function;
 
 /**
- * This is a set of operations created to interact with alerts.
+ * The strategy to use to construct the thread pool.
  */
-public interface AlertService {
+public enum WorkerPoolStrategies {
+  /**
+   * Fixed thread pool
+   */
+  FIXED(numThreads -> Executors.newFixedThreadPool(numThreads)),
+  /**
+   * Work stealing thread pool.
+   */
+  WORK_STEALING(numThreads -> Executors.newWorkStealingPool(numThreads))
+  ;
+  Function<Integer, ExecutorService> creator;
+  WorkerPoolStrategies(Function<Integer, ExecutorService> creator) {
+    this.creator = creator;
+  }
 
-  void escalateAlerts(List<Map<String, Object>> alerts) throws RestException;
-
-  AlertProfile getProfile();
-
-  Iterable<AlertProfile> findAllProfiles();
-
-  AlertProfile saveProfile(AlertProfile alertsProfile);
-
-  boolean deleteProfile(String user);
+  public ExecutorService create(int numThreads) {
+    return creator.apply(numThreads);
+  }
 }

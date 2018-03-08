@@ -35,8 +35,8 @@ public class JSONFromPosition implements MessageGetStrategy {
 
   public JSONFromPosition() {};
 
-  public JSONFromPosition(int position) {
-    this.position = position;
+  public JSONFromPosition(Integer position) {
+    this.position = position == null?0:position;
   }
 
   @Override
