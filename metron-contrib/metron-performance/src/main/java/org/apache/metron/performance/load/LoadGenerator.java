@@ -22,37 +22,27 @@ import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.metron.common.utils.KafkaUtils;
 import org.apache.metron.performance.sampler.BiasedSampler;
 import org.apache.metron.performance.sampler.Sampler;
 import org.apache.metron.performance.sampler.UnbiasedSampler;
-import org.apache.metron.performance.util.KafkaUtil;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Supplier;
 
 public class LoadGenerator
 {
@@ -62,73 +52,6 @@ public class LoadGenerator
   private static ExecutorService pool;
   private static ThreadLocal<KafkaProducer> kafkaProducer;
   public static AtomicLong numSent = new AtomicLong(0);
-  public static class SendTask extends TimerTask {
-    private long numMessagesSent;
-    private long numSentLast = 0;
-    private long batchSize;
-    private int numBatches;
-    private Supplier<String> messageSupplier;
-    private String kafkaTopic;
-    public SendTask(String kafkaTopic, long numMessagesSent, int numBatches, Supplier<String> messageSupplier, long sendPeriod) {
-      System.out.println("Sending " + numMessagesSent + " messages to " + kafkaTopic + " every " + sendPeriod + "ms");
-      this.numMessagesSent = numMessagesSent;
-      this.messageSupplier = messageSupplier;
-      this.numBatches = numBatches;
-      this.batchSize = numMessagesSent/this.numBatches;
-      this.kafkaTopic = kafkaTopic;
-    }
-
-    @Override
-    public void run() {
-      long numSentCurrent = numSent.get();
-      long numSentSince = numSentCurrent - numSentLast;
-      boolean sendMessages = numSentLast == 0 || numSentSince >= numMessagesSent;
-      if(sendMessages) {
-        AtomicInteger legitCount = new AtomicInteger(0);
-        Collection<Future<Long>> futures = Collections.synchronizedList(new ArrayList<>());
-        Collection<KafkaProducer<String, String>> kps = Collections.synchronizedCollection(new HashSet<>());
-        for(int batch = 0;batch < numBatches;++batch) {
-          try {
-            futures.add(pool.submit(() -> {
-              KafkaProducer<String, String> producer = kafkaProducer.get();
-              kps.add(producer);
-              Collection<Future<?>> b = Collections.synchronizedCollection(new ArrayList<>());
-              for (int i = 0; i < batchSize; ++i) {
-                b.add(producer.send(new ProducerRecord<>(kafkaTopic, messageSupplier.get()),
-                        (recordMetadata, e) -> {
-                          if(e != null) {
-                            e.printStackTrace();
-                          }
-                          numSent.incrementAndGet();
-                        }
-                ));
-                legitCount.incrementAndGet();
-              }
-              for(Future<?> f : b) {
-                f.get();
-              }
-              return batchSize;
-            }));
-
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-        }
-        for(Future<Long> f : futures) {
-          try {
-            f.get();
-          } catch (InterruptedException e) {
-            e.printStackTrace();
-          } catch (ExecutionException e) {
-            e.printStackTrace();
-          }
-        }
-        numSentLast = numSentCurrent;
-      }
-      else {
-      }
-    }
-  }
 
   public static class MonitorTask extends TimerTask {
     private List<AbstractMonitor> monitors;
@@ -245,8 +168,16 @@ public class LoadGenerator
         long messagesPerPeriod = targetLoad/periodsPerSecond;
         String outputTopicStr = (String)outputTopic.get();
         System.out.println("Generating data to " + outputTopicStr + " at " + targetLoad + " events per second");
-
-        timer.scheduleAtFixedRate(new SendTask(outputTopicStr, messagesPerPeriod, numThreads, generator, sendDelta), 0, sendDelta);
+        System.out.println("Sending " + messagesPerPeriod + " messages to " + outputTopicStr + " every " + sendDelta + "ms");
+        timer.scheduleAtFixedRate(new SendToKafka( outputTopicStr
+                                                 , messagesPerPeriod
+                                                 , numThreads
+                                                 , generator
+                                                 , pool
+                                                 , numSent
+                                                 , kafkaProducer
+                                                 )
+                                 , 0, sendDelta);
       }
       List<AbstractMonitor> monitors = new ArrayList<>();
       if(outputTopic.isPresent() && monitorTopic.isPresent()) {
