@@ -40,5 +40,6 @@
     </licenses>
     <modules>
         <module>metron-docker</module>
+        <module>metron-performance</module>
     </modules>
 </project>
