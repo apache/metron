@@ -42,7 +42,7 @@ public class EPSGeneratedMonitor extends AbstractMonitor {
 
   @Override
   public String format() {
-    return "%d eps generated";
+    return "%d eps generated to " + kafkaTopic.get();
   }
 
   @Override
