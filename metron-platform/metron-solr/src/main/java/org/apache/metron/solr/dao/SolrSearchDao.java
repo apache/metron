@@ -223,12 +223,11 @@ public class SolrSearchDao implements SearchDao {
   private SearchResult getSearchResult(SolrDocument solrDocument, Optional<List<String>> fields) {
     SearchResult searchResult = new SearchResult();
     searchResult.setId((String) solrDocument.getFieldValue(Constants.GUID));
-    Map<String, Object> source;
+    final Map<String, Object> source = new HashMap<>();
     if (fields.isPresent()) {
-      source = new HashMap<>();
       fields.get().forEach(field -> source.put(field, solrDocument.getFieldValue(field)));
     } else {
-      source = solrDocument.getFieldValueMap();
+      solrDocument.getFieldNames().forEach(field -> source.put(field, solrDocument.getFieldValue(field)));
     }
     searchResult.setSource(source);
     return searchResult;
