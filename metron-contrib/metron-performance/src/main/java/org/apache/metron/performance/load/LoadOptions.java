@@ -145,7 +145,7 @@ public enum LoadOptions implements CLIOptions<LoadOptions> {
     @Nullable
     @Override
     public Option apply(@Nullable String s) {
-      Option o = new Option(s, "template", true, "The template file to use for generation.  This should be a file with a template per line with $METRON_TS and $METRON_GUID in the spots for timestamp and guid.");
+      Option o = new Option(s, "template", true, "The template file to use for generation.  This should be a file with a template per line with $METRON_TS and $METRON_GUID in the spots for timestamp and guid, if you so desire them.");
       o.setArgName("TEMPLATE_FILE");
       o.setRequired(false);
       return o;
