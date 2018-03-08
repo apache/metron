@@ -168,7 +168,7 @@ streams:
         from: "kafkaSpout"
         to: "splitterBolt"
         grouping:
-            type: SHUFFLE
+            type: LOCAL_OR_SHUFFLE
 
     -   name: "splitter -> builder"
         from: "splitterBolt"
@@ -182,11 +182,11 @@ streams:
         to: "hbaseBolt"
         grouping:
             streamId: "hbase"
-            type: SHUFFLE
+            type: LOCAL_OR_SHUFFLE
 
     -   name: "builder -> kafka"
         from: "builderBolt"
         to: "kafkaBolt"
         grouping:
             streamId: "kafka"
-            type: SHUFFLE
+            type: LOCAL_OR_SHUFFLE

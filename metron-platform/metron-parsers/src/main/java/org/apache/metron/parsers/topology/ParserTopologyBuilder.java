@@ -126,14 +126,14 @@ public class ParserTopologyBuilder {
     ParserBolt parserBolt = createParserBolt(zookeeperUrl, brokerUrl, sensorType, securityProtocol, configs, parserConfig, outputTopic);
     builder.setBolt("parserBolt", parserBolt, parserParallelism)
             .setNumTasks(parserNumTasks)
-            .shuffleGrouping("kafkaSpout");
+            .localOrShuffleGrouping("kafkaSpout");
 
     // create the error bolt, if needed
     if (errorWriterNumTasks > 0) {
       WriterBolt errorBolt = createErrorBolt(zookeeperUrl, brokerUrl, sensorType, securityProtocol, configs, parserConfig);
       builder.setBolt("errorMessageWriter", errorBolt, errorWriterParallelism)
               .setNumTasks(errorWriterNumTasks)
-              .shuffleGrouping("parserBolt", Constants.ERROR_STREAM);
+              .localOrShuffleGrouping("parserBolt", Constants.ERROR_STREAM);
     }
 
     return new ParserTopology(builder, stormConfigSupplier.get(parserConfig, Config.class));
