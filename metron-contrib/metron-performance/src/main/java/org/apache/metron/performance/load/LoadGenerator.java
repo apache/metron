@@ -129,27 +129,9 @@ public class LoadGenerator
   }
 
   public static class MonitorTask extends TimerTask {
-    Optional<?> kafkaTopic;
-    Map<String, Object> kafkaProps;
-    long timestampPrevious = 0;
-    long numSentPrevious = 0;
-    Map<Integer, Long> lastOffsetMap = null;
-    KafkaConsumer<String, String> consumer;
-    public MonitorTask(Optional<?> kafkaTopic, Map<String, Object> kafkaProps) {
-      this.kafkaProps = kafkaProps;
-      this.kafkaTopic = kafkaTopic;
-      consumer = new KafkaConsumer<>(kafkaProps);
-    }
-
-    Long eventsRead(Map<Integer, Long> partitionOffsets) {
-      if(partitionOffsets == null) {
-        return null;
-      }
-      long sum = 0;
-      for(Map.Entry<Integer, Long> partitionOffset : partitionOffsets.entrySet()) {
-        sum += partitionOffset.getValue() - lastOffsetMap.get(partitionOffset.getKey());
-      }
-      return sum;
+    List<AbstractMonitor> monitors;
+    public MonitorTask(List<AbstractMonitor> monitors) {
+      this.monitors = monitors;
     }
 
     /**
@@ -157,43 +139,15 @@ public class LoadGenerator
      */
     @Override
     public void run() {
-      long totalProcessed = numSent.get();
-      long timeStarted = System.currentTimeMillis();
-      if(timestampPrevious > 0) {
-        double deltaTs = (timeStarted - timestampPrevious)/1000.0;
-        if(deltaTs == 0) {
-          return;
-        }
-        long written = (totalProcessed - numSentPrevious);
-        long epsWritten =  (long)(written/deltaTs);
-        Optional<Long> epsRead = Optional.empty();
-        if(kafkaTopic.isPresent() && lastOffsetMap != null) {
-          Map<Integer, Long> currentOffsets = KafkaUtil.INSTANCE.getKafkaOffsetMap(consumer, (String)kafkaTopic.get());
-          Long eventsRead = eventsRead(currentOffsets);
-          if(eventsRead != null) {
-            epsRead = Optional.of((long)(eventsRead / deltaTs));
-          }
-          lastOffsetMap = currentOffsets == null?lastOffsetMap:currentOffsets;
-        }
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        Date date = new Date();
-        List<String> parts = new ArrayList<>();
-        String output = dateFormat.format(date) + " - ";
-        if(epsWritten > 0) {
-          parts.add(epsWritten + " eps generated");
-        }
-        if(epsRead.isPresent()) {
-          parts.add(epsRead.get() + " eps written to " + kafkaTopic.get());
-        }
-        System.out.println(output + Joiner.on(" and ").join(parts));
+      List<String> parts = new ArrayList<>();
+      for(AbstractMonitor m : monitors) {
+        parts.add(m.get());
       }
-      else {
-        if(kafkaTopic.isPresent()) {
-          lastOffsetMap = KafkaUtil.INSTANCE.getKafkaOffsetMap(consumer, (String)kafkaTopic.get());
-        }
-      }
-      numSentPrevious = totalProcessed;
-      timestampPrevious = timeStarted;
+      DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+      Date date = new Date();
+      String output = dateFormat.format(date) + " - ";
+
+      System.out.println(output + Joiner.on(", ").skipNulls().join(parts));
     }
   }
 
@@ -242,14 +196,25 @@ public class LoadGenerator
         System.out.println("Generating data to " + outputTopicStr + " at " + targetLoad + " events per second");
         timer.scheduleAtFixedRate(new SendTask(outputTopicStr, messagesPerPeriod, numThreads, generator, sendDelta), 0, sendDelta);
       }
-      if(monitorTopic.isPresent()) {
+      List<AbstractMonitor> monitors = new ArrayList<>();
+      if(outputTopic.isPresent() && monitorTopic.isPresent()) {
         System.out.println("Monitoring " + monitorTopic.get() + " every " + monitorDelta + " ms");
-        timer.scheduleAtFixedRate(new MonitorTask(monitorTopic, kafkaConfig), 0, monitorDelta);
+        monitors.add(new EPSGeneratedMonitor(outputTopic, numSent));
+        monitors.add(new EPSWrittenMonitor(monitorTopic, kafkaConfig));
       }
-      else if(outputTopic.isPresent()) {
+      else if(outputTopic.isPresent() && !monitorTopic.isPresent()) {
         System.out.println("Monitoring " + outputTopic.get() + " every " + monitorDelta + " ms");
-        timer.scheduleAtFixedRate(new MonitorTask(outputTopic, kafkaConfig), 0, monitorDelta);
+        monitors.add(new EPSGeneratedMonitor(outputTopic, numSent));
+        monitors.add(new EPSWrittenMonitor(outputTopic, kafkaConfig));
       }
+      else if(!outputTopic.isPresent() && monitorTopic.isPresent()) {
+        System.out.println("Monitoring " + monitorTopic.get() + " every " + monitorDelta + " ms");
+        monitors.add(new EPSWrittenMonitor(monitorTopic, kafkaConfig));
+      }
+      else if(!outputTopic.isPresent() && !monitorTopic.isPresent()) {
+        System.out.println("You have not specified an output topic or a monitoring topic, so I have nothing to do here.");
+      }
+      timer.scheduleAtFixedRate(new MonitorTask(monitors), 0, monitorDelta);
     }
   }
 }
