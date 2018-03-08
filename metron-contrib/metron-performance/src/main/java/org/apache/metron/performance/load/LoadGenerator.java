@@ -23,6 +23,12 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.metron.common.utils.KafkaUtils;
+import org.apache.metron.performance.load.monitor.AbstractMonitor;
+import org.apache.metron.performance.load.monitor.EPSGeneratedMonitor;
+import org.apache.metron.performance.load.monitor.EPSWrittenMonitor;
+import org.apache.metron.performance.load.monitor.MonitorTask;
+import org.apache.metron.performance.load.monitor.writers.ConsoleWriter;
+import org.apache.metron.performance.load.monitor.writers.Writer;
 import org.apache.metron.performance.sampler.BiasedSampler;
 import org.apache.metron.performance.sampler.Sampler;
 import org.apache.metron.performance.sampler.UnbiasedSampler;
@@ -38,6 +44,8 @@ import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class LoadGenerator
 {
@@ -128,7 +136,10 @@ public class LoadGenerator
       else {
         System.out.println("Turning off summarization.");
       }
-      timer.scheduleAtFixedRate(new MonitorTask(monitors, lookback), 0, monitorDelta);
+      Writer writer = new Writer(monitors, lookback, new ArrayList<Consumer<List<Writer.Results>>>() {{
+        add(new ConsoleWriter());
+      }});
+      timer.scheduleAtFixedRate(new MonitorTask(writer), 0, monitorDelta);
       Optional<Object> timeLimit = evaluatedArgs.get(LoadOptions.TIME_LIMIT);
       if(timeLimit.isPresent()) {
         System.out.println("Ending in " + timeLimit.get() + " ms.");

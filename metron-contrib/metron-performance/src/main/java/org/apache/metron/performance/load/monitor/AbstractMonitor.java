@@ -15,40 +15,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.performance.load;
+package org.apache.metron.performance.load.monitor;
 
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 
-public class EPSGeneratedMonitor extends AbstractMonitor {
-  private AtomicLong numSent;
-  private long numSentPrevious = 0;
-  public EPSGeneratedMonitor(Optional<?> kafkaTopic, AtomicLong numSent) {
-    super(kafkaTopic);
-    this.numSent = numSent;
+public abstract class AbstractMonitor implements Supplier<Long>, MonitorNaming {
+  private static final double EPSILON = 1e-6;
+  protected Optional<?> kafkaTopic;
+  protected long timestampPrevious = 0;
+  public AbstractMonitor(Optional<?> kafkaTopic) {
+    this.kafkaTopic = kafkaTopic;
   }
 
+  protected abstract Long monitor(double deltaTs);
+
   @Override
-  protected Long monitor(double deltaTs) {
-    if(kafkaTopic.isPresent()) {
-      long totalProcessed = numSent.get();
-      long written = (totalProcessed - numSentPrevious);
-      long epsWritten = (long) (written / deltaTs);
-      numSentPrevious = totalProcessed;
-      return epsWritten;
+  public Long get() {
+    long timeStarted = System.currentTimeMillis();
+    Long ret = null;
+    if(timestampPrevious > 0) {
+      double deltaTs = (timeStarted - timestampPrevious) / 1000.0;
+      if (Math.abs(deltaTs) > EPSILON) {
+        ret = monitor(deltaTs);
+      }
     }
-    return null;
+    timestampPrevious = timeStarted;
+    return ret;
   }
 
-  @Override
-  public String format() {
-    return "%d eps generated to " + kafkaTopic.get();
-  }
-
-  @Override
-  public String name() {
-    return "Message Rate Generated";
-  }
-
+  public abstract String format();
 
 }

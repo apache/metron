@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.metron.performance.load;
+package org.apache.metron.performance.load.monitor;
 
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.metron.performance.util.KafkaUtil;
@@ -69,8 +69,4 @@ public class EPSWrittenMonitor extends AbstractMonitor {
     return "%d eps written to " + kafkaTopic.get();
   }
 
-  @Override
-  public String name() {
-    return "Message Rate Written";
-  }
 }
