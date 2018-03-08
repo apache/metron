@@ -41,7 +41,8 @@ public class MessageGenerator implements Supplier<String> {
     String pattern = patterns.get(sample);
     long guidId = guidOffset.getAndIncrement();
     String guid = guidPrefix + guidId;
-    return pattern.replace("\"$METRON_TS\"", "" + System.currentTimeMillis())
+    String ts = "" + System.currentTimeMillis();
+    return pattern.replace("$METRON_TS", ts)
                             .replace("$METRON_GUID", guid);
   }
 }
