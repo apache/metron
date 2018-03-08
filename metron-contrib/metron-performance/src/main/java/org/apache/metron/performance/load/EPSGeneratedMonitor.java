@@ -29,15 +29,26 @@ public class EPSGeneratedMonitor extends AbstractMonitor {
   }
 
   @Override
-  protected String monitor(double deltaTs) {
+  protected Long monitor(double deltaTs) {
     if(kafkaTopic.isPresent()) {
       long totalProcessed = numSent.get();
       long written = (totalProcessed - numSentPrevious);
       long epsWritten = (long) (written / deltaTs);
       numSentPrevious = totalProcessed;
-      return epsWritten + " eps generated";
+      return epsWritten;
     }
     return null;
   }
+
+  @Override
+  public String format() {
+    return "%d eps generated";
+  }
+
+  @Override
+  public String name() {
+    return "Message Rate Generated";
+  }
+
 
 }

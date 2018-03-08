@@ -20,7 +20,7 @@ package org.apache.metron.performance.load;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public abstract class AbstractMonitor implements Supplier<String> {
+public abstract class AbstractMonitor implements Supplier<Long> {
   private static final double EPSILON = 1e-6;
   protected Optional<?> kafkaTopic;
   protected long timestampPrevious = 0;
@@ -28,19 +28,23 @@ public abstract class AbstractMonitor implements Supplier<String> {
     this.kafkaTopic = kafkaTopic;
   }
 
-  protected abstract String monitor(double deltaTs);
+  protected abstract Long monitor(double deltaTs);
 
   @Override
-  public String get() {
+  public Long get() {
     long timeStarted = System.currentTimeMillis();
-    String ret = null;
+    Long ret = null;
     if(timestampPrevious > 0) {
       double deltaTs = (timeStarted - timestampPrevious) / 1000.0;
-      if (Math.abs(deltaTs) <  EPSILON) {
+      if (Math.abs(deltaTs) > EPSILON) {
         ret = monitor(deltaTs);
       }
     }
     timestampPrevious = timeStarted;
     return ret;
   }
+
+  public abstract String format();
+
+  public abstract String name();
 }

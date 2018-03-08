@@ -180,6 +180,31 @@ public enum LoadOptions implements CLIOptions<LoadOptions> {
       return "t";
     }
   })
+  ,SUMMARY_LOOKBACK(new OptionHandler<LoadOptions>() {
+    @Nullable
+    @Override
+    public Option apply(@Nullable String s) {
+      Option o = new Option(s, "lookback", true, "When summarizing, how many monitoring periods should we summarize over?  If 0, then no summary.  Default: 5");
+      o.setArgName("LOOKBACK");
+      o.setRequired(false);
+      return o;
+    }
+
+    @Override
+    public Optional<Object> getValue(LoadOptions option, CommandLine cli) {
+      if(option.has(cli)) {
+        return Optional.of(ConversionUtils.convert(option.get(cli), Integer.class));
+      }
+      else {
+        return Optional.of(5);
+      }
+    }
+
+    @Override
+    public String getShortCode() {
+      return "l";
+    }
+  })
   ,EPS(new OptionHandler<LoadOptions>() {
     @Nullable
     @Override

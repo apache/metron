@@ -21,6 +21,7 @@ package org.apache.metron.performance.load;
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -39,6 +40,7 @@ import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -129,9 +131,34 @@ public class LoadGenerator
   }
 
   public static class MonitorTask extends TimerTask {
-    List<AbstractMonitor> monitors;
-    public MonitorTask(List<AbstractMonitor> monitors) {
+    private List<AbstractMonitor> monitors;
+    private List<LinkedList<Double>> summaries = new ArrayList<>();
+    private int summaryLookback;
+    private int amountToErase = 0;
+    public MonitorTask(List<AbstractMonitor> monitors, int summaryLookback) {
       this.monitors = monitors;
+      this.summaryLookback = summaryLookback;
+      for(AbstractMonitor m : monitors) {
+        this.summaries.add(new LinkedList<>());
+      }
+    }
+
+    private void addToLookback(Double d, LinkedList<Double> lookback) {
+      if(lookback.size() >= summaryLookback) {
+        lookback.removeFirst();
+      }
+      lookback.addLast(d);
+    }
+
+    public String getSummary(List<Double> avg) {
+      DescriptiveStatistics stats = new DescriptiveStatistics();
+      for(Double d : avg) {
+        if(d == null || Double.isNaN(d)) {
+          continue;
+        }
+        stats.addValue(d);
+      }
+      return String.format("Mean: %d eps, Std Dev: %d eps", (int)stats.getMean(), (int)Math.sqrt(stats.getVariance()));
     }
 
     /**
@@ -140,14 +167,37 @@ public class LoadGenerator
     @Override
     public void run() {
       List<String> parts = new ArrayList<>();
+      int i = 0;
       for(AbstractMonitor m : monitors) {
-        parts.add(m.get());
+        Long eps = m.get();
+        if(eps != null) {
+          parts.add(String.format(m.format(), eps));
+        }
+        if(summaryLookback > 0) {
+          addToLookback(eps == null?Double.NaN:eps.doubleValue(), summaries.get(i++));
+        }
       }
       DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
       Date date = new Date();
       String output = dateFormat.format(date) + " - ";
-
+      if(summaryLookback > 0) {
+        System.out.print("\033[2K");
+        for(i = 0;i < amountToErase;++i) {
+          System.out.print("\b");
+        }
+      }
       System.out.println(output + Joiner.on(", ").skipNulls().join(parts));
+      if(summaryLookback > 0) {
+        i = 0;
+        parts = new ArrayList<>();
+        for(AbstractMonitor m : monitors) {
+          List<Double> data = summaries.get(i++);
+          parts.add(m.name() + ": " + getSummary(data));
+        }
+        String out = Joiner.on("; ").join(parts);
+        amountToErase = out.length();
+        System.out.print(out);
+      }
     }
   }
 
@@ -214,7 +264,14 @@ public class LoadGenerator
       else if(!outputTopic.isPresent() && !monitorTopic.isPresent()) {
         System.out.println("You have not specified an output topic or a monitoring topic, so I have nothing to do here.");
       }
-      timer.scheduleAtFixedRate(new MonitorTask(monitors), 0, monitorDelta);
+      int lookback = (int) evaluatedArgs.get(LoadOptions.SUMMARY_LOOKBACK).get();
+      if(lookback > 0) {
+        System.out.println("Summarizing over the last " + lookback + " monitoring periods (" + lookback*monitorDelta + "ms)");
+      }
+      else {
+        System.out.println("Turning off summarization.");
+      }
+      timer.scheduleAtFixedRate(new MonitorTask(monitors, lookback), 0, monitorDelta);
     }
   }
 }

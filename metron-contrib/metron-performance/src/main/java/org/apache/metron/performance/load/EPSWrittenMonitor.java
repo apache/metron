@@ -43,7 +43,7 @@ public class EPSWrittenMonitor extends AbstractMonitor {
   }
 
   @Override
-  protected String monitor(double deltaTs) {
+  protected Long monitor(double deltaTs) {
     Optional<Long> epsWritten = Optional.empty();
     if(kafkaTopic.isPresent()) {
       if(lastOffsetMap != null) {
@@ -54,7 +54,7 @@ public class EPSWrittenMonitor extends AbstractMonitor {
         }
         lastOffsetMap = currentOffsets == null ? lastOffsetMap : currentOffsets;
         if (epsWritten.isPresent()) {
-          return epsWritten.get() + " eps written to " + kafkaTopic.get();
+          return epsWritten.get();
         }
       }
       else {
@@ -62,5 +62,15 @@ public class EPSWrittenMonitor extends AbstractMonitor {
       }
     }
     return null;
+  }
+
+  @Override
+  public String format() {
+    return "%d eps written to " + kafkaTopic.get();
+  }
+
+  @Override
+  public String name() {
+    return "Message Rate Written";
   }
 }
