@@ -315,6 +315,32 @@ public enum LoadOptions implements CLIOptions<LoadOptions> {
       return "md";
     }
   })
+  ,TIME_LIMIT(new OptionHandler<LoadOptions>() {
+    @Nullable
+    @Override
+    public Option apply(@Nullable String s) {
+      Option o = new Option(s, "time_limit_ms", true, "The total amount of time to run this in milliseconds.  By default, it never stops.");
+      o.setArgName("MS");
+      o.setRequired(false);
+      return o;
+    }
+
+    @Override
+    public Optional<Object> getValue(LoadOptions option, CommandLine cli) {
+      if(option.has(cli)) {
+        Object res = option.get(cli);
+        Long timeMs = ConversionUtils.convert(res, Long.class);
+        return Optional.ofNullable(timeMs);
+      }
+      return Optional.empty();
+
+    }
+
+    @Override
+    public String getShortCode() {
+      return "tl";
+    }
+  })
   ,NUM_THREADS(new OptionHandler<LoadOptions>() {
     @Nullable
     @Override

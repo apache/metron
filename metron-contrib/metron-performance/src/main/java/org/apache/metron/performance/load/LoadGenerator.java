@@ -231,6 +231,7 @@ public class LoadGenerator
     long monitorDelta = (long) evaluatedArgs.get(LoadOptions.MONITOR_DELTA).get();
     if((eps.isPresent() && outputTopic.isPresent()) || monitorTopic.isPresent()) {
       Timer timer = new Timer(false);
+      long startTimeMs = System.currentTimeMillis();
       if(outputTopic.isPresent() && eps.isPresent()) {
         List<String> templates = (List<String>)evaluatedArgs.get(LoadOptions.TEMPLATE).get();
         Optional<Object> biases = evaluatedArgs.get(LoadOptions.BIASED_SAMPLE);
@@ -244,6 +245,7 @@ public class LoadGenerator
         long messagesPerPeriod = targetLoad/periodsPerSecond;
         String outputTopicStr = (String)outputTopic.get();
         System.out.println("Generating data to " + outputTopicStr + " at " + targetLoad + " events per second");
+
         timer.scheduleAtFixedRate(new SendTask(outputTopicStr, messagesPerPeriod, numThreads, generator, sendDelta), 0, sendDelta);
       }
       List<AbstractMonitor> monitors = new ArrayList<>();
@@ -272,6 +274,21 @@ public class LoadGenerator
         System.out.println("Turning off summarization.");
       }
       timer.scheduleAtFixedRate(new MonitorTask(monitors, lookback), 0, monitorDelta);
+      Optional<Object> timeLimit = evaluatedArgs.get(LoadOptions.TIME_LIMIT);
+      if(timeLimit.isPresent()) {
+        System.out.println("Ending in " + timeLimit.get() + " ms.");
+        timer.schedule(new TimerTask() {
+                         @Override
+                         public void run() {
+                           timer.cancel();
+                           long durationS = (System.currentTimeMillis() - startTimeMs)/1000;
+                           System.out.println("\nGenerated " + numSent.get() + " in " + durationS + " seconds." );
+                           System.exit(0);
+                         }
+                       }
+
+                , (Long) timeLimit.get());
+      }
     }
   }
 }
