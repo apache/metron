@@ -21,20 +21,15 @@ package org.apache.metron.performance.load;
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.metron.common.utils.KafkaUtils;
 import org.apache.metron.performance.sampler.BiasedSampler;
 import org.apache.metron.performance.sampler.Sampler;
 import org.apache.metron.performance.sampler.UnbiasedSampler;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,77 +47,6 @@ public class LoadGenerator
   private static ExecutorService pool;
   private static ThreadLocal<KafkaProducer> kafkaProducer;
   public static AtomicLong numSent = new AtomicLong(0);
-
-  public static class MonitorTask extends TimerTask {
-    private List<AbstractMonitor> monitors;
-    private List<LinkedList<Double>> summaries = new ArrayList<>();
-    private int summaryLookback;
-    private int amountToErase = 0;
-    public MonitorTask(List<AbstractMonitor> monitors, int summaryLookback) {
-      this.monitors = monitors;
-      this.summaryLookback = summaryLookback;
-      for(AbstractMonitor m : monitors) {
-        this.summaries.add(new LinkedList<>());
-      }
-    }
-
-    private void addToLookback(Double d, LinkedList<Double> lookback) {
-      if(lookback.size() >= summaryLookback) {
-        lookback.removeFirst();
-      }
-      lookback.addLast(d);
-    }
-
-    public String getSummary(List<Double> avg) {
-      DescriptiveStatistics stats = new DescriptiveStatistics();
-      for(Double d : avg) {
-        if(d == null || Double.isNaN(d)) {
-          continue;
-        }
-        stats.addValue(d);
-      }
-      return String.format("Mean: %d eps, Std Dev: %d eps", (int)stats.getMean(), (int)Math.sqrt(stats.getVariance()));
-    }
-
-    /**
-     * The action to be performed by this timer task.
-     */
-    @Override
-    public void run() {
-      List<String> parts = new ArrayList<>();
-      int i = 0;
-      for(AbstractMonitor m : monitors) {
-        Long eps = m.get();
-        if(eps != null) {
-          parts.add(String.format(m.format(), eps));
-        }
-        if(summaryLookback > 0) {
-          addToLookback(eps == null?Double.NaN:eps.doubleValue(), summaries.get(i++));
-        }
-      }
-      DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-      Date date = new Date();
-      String output = dateFormat.format(date) + " - ";
-      if(summaryLookback > 0) {
-        System.out.print("\033[2K");
-        for(i = 0;i < amountToErase;++i) {
-          System.out.print("\b");
-        }
-      }
-      System.out.println(output + Joiner.on(", ").skipNulls().join(parts));
-      if(summaryLookback > 0) {
-        i = 0;
-        parts = new ArrayList<>();
-        for(AbstractMonitor m : monitors) {
-          List<Double> data = summaries.get(i++);
-          parts.add(m.name() + ": " + getSummary(data));
-        }
-        String out = Joiner.on("; ").join(parts);
-        amountToErase = out.length();
-        System.out.print(out);
-      }
-    }
-  }
 
   public static void main( String[] args ) throws Exception {
     CommandLine cli = LoadOptions.parse(new PosixParser(), args);
