@@ -190,13 +190,16 @@ of the historical throughput measurements for `indexing_load`:
 # Ensure that you have installed gnuplot and the liberation font package
 # via yum install -y gnuplot liberation-sans-fonts
 # We will define a plot function that will generate a png plot.  It takes
-# one arg, the output file.
+# one arg, the output file.  It expects to have a 2 column CSV streamed
+#  with the first dimension being the timestamp and the second dimension
+# being what you want plotted.
 plot() {
-  gnuplot -e "reset;clear;set style fill solid 1.0 border -1; set nokey;set title 'Throughput Measured'; set xlabel 'Time'; set boxwidth 0.5; set xtics rotate; set ylabel 'events/sec';set xdata time; set timefmt '%s';set format x '%H:%M:%S';set term png enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 12 size 900,400; set output '$1';plot '< cat -' using 1:2 with line lt -1 lw 2;"
+  awk -F, '{printf "%d %d\n", $1/1000, $2} END { print "e" }' | gnuplot -e "reset;clear;set style fill solid 1.0 border -1; set nokey;set title 'Throughput Measured'; set xlabel 'Time'; set boxwidth 0.5; set xtics rotate; set ylabel 'events/sec';set xdata time; set timefmt '%s';set format x '%H:%M:%S';set term png enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 12 size 900,400; set output '$1';plot '< cat -' using 1:2 with line lt -1 lw 2;"
 }
-# We want to transform the CSV file into a space separated file with the timestamp in seconds since epoch followed by the
-# throughput measurements.
-cat ~/measurements.csv | awk -F, '{printf "%d %d\n", $1/1000, $8} END { print 'e' }' | plot performance_measurement.png
+
+# We want to transform the CSV file into a space separated file with the
+# timestamp followed by the throughput measurements.
+cat ~/measurements.csv | awk -F, '{printf "%d,%d\n", $1, $8 }' | plot performance_measurement.png
 ```
 This generates a plot like so to `performance_measurement.png`:
 ![Performance Measurement](performance_measurement.png)
