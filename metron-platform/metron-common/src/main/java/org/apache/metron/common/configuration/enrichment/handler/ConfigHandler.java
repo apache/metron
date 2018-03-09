@@ -19,6 +19,10 @@ package org.apache.metron.common.configuration.enrichment.handler;
 
 import java.util.*;
 
+/**
+ * This is the core logic of how to configure enrichments.  The default type of enrichment configuration is a simple list
+ * however more complex enrichment adapters require more complex configuration (e.g. stellar).
+ */
 public class ConfigHandler {
   private Object config;
   private Configs type = Configs.LIST;

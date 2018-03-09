@@ -15,11 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.metron.enrichment.integration;
 
-package org.apache.metron.rest.repository;
-
-import org.apache.metron.rest.model.AlertProfile;
-import org.springframework.data.repository.CrudRepository;
-
-public interface AlertProfileRepository extends CrudRepository<AlertProfile, String> {
+public class UnifiedEnrichmentIntegrationTest extends EnrichmentIntegrationTest {
+  @Override
+  public String fluxPath() {
+    return "../metron-enrichment/src/main/flux/enrichment/remote-unified.yaml";
+  }
 }

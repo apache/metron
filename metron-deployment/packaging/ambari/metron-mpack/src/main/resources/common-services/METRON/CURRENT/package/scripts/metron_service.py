@@ -94,6 +94,16 @@ def build_global_config_patch(params, patch_file):
         "op": "add",
         "path": "/profiler.client.period.duration.units",
         "value": "{{profiler_period_units}}"
+    },
+    {
+        "op": "add",
+        "path": "/user.settings.hbase.table",
+        "value": "{{user_settings_hbase_table}}"
+    },
+    {
+        "op": "add",
+        "path": "/user.settings.hbase.cf",
+        "value": "{{user_settings_hbase_cf}}"
     }
   ]
   """

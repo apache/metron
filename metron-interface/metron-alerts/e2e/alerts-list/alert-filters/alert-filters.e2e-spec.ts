@@ -43,7 +43,7 @@ describe('metron-alerts facets', function() {
   });
 
   it('should display facets data', () => {
-    let facetValues = [ 'enrichm...:country 3', 'host 9', 'ip_dst_addr 8', 'ip_src_addr 2', 'source:type 1' ];
+    let facetValues = [ 'enrichm...:country 3', 'ip_dst_addr 8', 'ip_src_addr 2', 'source:type 1' ];
 
     page.navgateToAlertList();
     expect(page.getFacetsTitle()).toEqualBcoz(['Filters'], 'for Title as Filters');
@@ -55,19 +55,16 @@ describe('metron-alerts facets', function() {
     expect(page.getFacetState(1)).toEqualBcoz('collapse', 'for second facet');
     expect(page.getFacetState(2)).toEqualBcoz('collapse', 'for third facet');
     expect(page.getFacetState(3)).toEqualBcoz('collapse', 'for fourth facet');
-    expect(page.getFacetState(4)).toEqualBcoz('collapse', 'for fifth facet');
 
     page.toggleFacetState(0);
     page.toggleFacetState(1);
     page.toggleFacetState(2);
     page.toggleFacetState(3);
-    page.toggleFacetState(4);
 
     expect(page.getFacetState(0)).toEqualBcoz('collapse show', 'for first facet');
     expect(page.getFacetState(1)).toEqualBcoz('collapse show', 'for second facet');
     expect(page.getFacetState(2)).toEqualBcoz('collapse show', 'for third facet');
     expect(page.getFacetState(3)).toEqualBcoz('collapse show', 'for fourth facet');
-    expect(page.getFacetState(4)).toEqualBcoz('collapse show', 'for fifth facet');
   });
 
   it('should have all facet  values', () => {
@@ -84,8 +81,7 @@ describe('metron-alerts facets', function() {
     };
 
     expect(page.getFacetValues(0)).toEqualBcoz({ US: '22', RU: '44', FR: '25' }, 'for enrichment facet');
-    expect(page.getFacetValues(1)).toEqual(hostMap, 'for host facet');
-    expect(page.getFacetValues(4)).toEqual({ alerts_ui_e2e: '169' }, 'for source:type facet');
+    expect(page.getFacetValues(3)).toEqual({ alerts_ui_e2e: '169' }, 'for source:type facet');
   });
 
   it('should collapse all facets', () => {
@@ -93,19 +89,16 @@ describe('metron-alerts facets', function() {
     expect(page.getFacetState(1)).toEqualBcoz('collapse show', 'for second facet');
     expect(page.getFacetState(2)).toEqualBcoz('collapse show', 'for third facet');
     expect(page.getFacetState(3)).toEqualBcoz('collapse show', 'for fourth facet');
-    expect(page.getFacetState(4)).toEqualBcoz('collapse show', 'for fifth facet');
 
     page.toggleFacetState(0);
     page.toggleFacetState(1);
     page.toggleFacetState(2);
     page.toggleFacetState(3);
-    page.toggleFacetState(4);
 
     expect(page.getFacetState(0)).toEqualBcoz('collapse', 'for first facet');
     expect(page.getFacetState(1)).toEqualBcoz('collapse', 'for second facet');
     expect(page.getFacetState(2)).toEqualBcoz('collapse', 'for third facet');
     expect(page.getFacetState(3)).toEqualBcoz('collapse', 'for fourth facet');
-    expect(page.getFacetState(4)).toEqualBcoz('collapse', 'for fifth facet');
   });
 });
 
