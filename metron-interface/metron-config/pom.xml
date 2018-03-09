@@ -41,7 +41,7 @@
               <workingDirectory>./</workingDirectory>
               <nodeVersion>${node.version}</nodeVersion>
               <yarnVersion>${yarn.version}</yarnVersion>
-              <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
+              <yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>
             </configuration>
             <executions>
               <execution>
