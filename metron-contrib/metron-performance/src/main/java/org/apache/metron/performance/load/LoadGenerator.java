@@ -25,16 +25,17 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.metron.common.utils.KafkaUtils;
 import org.apache.metron.performance.load.monitor.AbstractMonitor;
 import org.apache.metron.performance.load.monitor.EPSGeneratedMonitor;
-import org.apache.metron.performance.load.monitor.EPSWrittenMonitor;
+import org.apache.metron.performance.load.monitor.EPSThroughputWrittenMonitor;
 import org.apache.metron.performance.load.monitor.MonitorTask;
+import org.apache.metron.performance.load.monitor.writers.CSVWriter;
 import org.apache.metron.performance.load.monitor.writers.ConsoleWriter;
-import org.apache.metron.performance.load.monitor.Results;
 import org.apache.metron.performance.load.monitor.writers.Writable;
 import org.apache.metron.performance.load.monitor.writers.Writer;
 import org.apache.metron.performance.sampler.BiasedSampler;
 import org.apache.metron.performance.sampler.Sampler;
 import org.apache.metron.performance.sampler.UnbiasedSampler;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -116,16 +117,16 @@ public class LoadGenerator
       if(outputTopic.isPresent() && monitorTopic.isPresent()) {
         System.out.println("Monitoring " + monitorTopic.get() + " every " + monitorDelta + " ms");
         monitors.add(new EPSGeneratedMonitor(outputTopic, numSent));
-        monitors.add(new EPSWrittenMonitor(monitorTopic, kafkaConfig));
+        monitors.add(new EPSThroughputWrittenMonitor(monitorTopic, kafkaConfig));
       }
       else if(outputTopic.isPresent() && !monitorTopic.isPresent()) {
         System.out.println("Monitoring " + outputTopic.get() + " every " + monitorDelta + " ms");
         monitors.add(new EPSGeneratedMonitor(outputTopic, numSent));
-        monitors.add(new EPSWrittenMonitor(outputTopic, kafkaConfig));
+        monitors.add(new EPSThroughputWrittenMonitor(outputTopic, kafkaConfig));
       }
       else if(!outputTopic.isPresent() && monitorTopic.isPresent()) {
         System.out.println("Monitoring " + monitorTopic.get() + " every " + monitorDelta + " ms");
-        monitors.add(new EPSWrittenMonitor(monitorTopic, kafkaConfig));
+        monitors.add(new EPSThroughputWrittenMonitor(monitorTopic, kafkaConfig));
       }
       else if(!outputTopic.isPresent() && !monitorTopic.isPresent()) {
         System.out.println("You have not specified an output topic or a monitoring topic, so I have nothing to do here.");
@@ -137,8 +138,10 @@ public class LoadGenerator
       else {
         System.out.println("Turning off summarization.");
       }
+      final CSVWriter csvWriter = new CSVWriter((File) evaluatedArgs.get(LoadOptions.CSV).orElse(null));
       Writer writer = new Writer(monitors, lookback, new ArrayList<Consumer<Writable>>() {{
         add(new ConsoleWriter());
+        add(csvWriter);
       }});
       timer.scheduleAtFixedRate(new MonitorTask(writer), 0, monitorDelta);
       Optional<Object> timeLimit = evaluatedArgs.get(LoadOptions.TIME_LIMIT);
@@ -150,6 +153,7 @@ public class LoadGenerator
                            timer.cancel();
                            long durationS = (System.currentTimeMillis() - startTimeMs)/1000;
                            System.out.println("\nGenerated " + numSent.get() + " in " + durationS + " seconds." );
+                           csvWriter.close();
                            System.exit(0);
                          }
                        }

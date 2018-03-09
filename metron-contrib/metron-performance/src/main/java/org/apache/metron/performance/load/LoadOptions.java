@@ -141,6 +141,30 @@ public enum LoadOptions implements CLIOptions<LoadOptions> {
       return "bs";
     }
   })
+  ,CSV(new OptionHandler<LoadOptions>() {
+    @Nullable
+    @Override
+    public Option apply(@Nullable String s) {
+      Option o = new Option(s, "csv", true, "A CSV file to emit monitoring data to.  " +
+              "The format is a CSV with the following schema: timestamp, (name, eps, historical_mean, historical_stddev)+");
+      o.setArgName("CSV_FILE");
+      o.setRequired(false);
+      return o;
+    }
+
+    @Override
+    public Optional<Object> getValue(LoadOptions option, CommandLine cli) {
+      if(!option.has(cli)) {
+        return Optional.empty();
+      }
+      return Optional.of(new File(option.get(cli)));
+    }
+
+    @Override
+    public String getShortCode() {
+      return "c";
+    }
+  })
   ,TEMPLATE(new OptionHandler<LoadOptions>() {
     @Nullable
     @Override

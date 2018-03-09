@@ -44,6 +44,11 @@ usage: Generator
                                        will comprise 80% of the output and
                                        the remaining 80% of the templates
                                        will comprise 20% of the output.
+ -c,--csv <CSV_FILE>                   A CSV file to emit monitoring data
+                                       to.  The format is a CSV with the
+                                       following schema: timestamp, (name,
+                                       eps, historical_mean,
+                                       historical_stddev)+
  -cg,--consumer_group <GROUP_ID>       Consumer Group.  The default is
                                        load.group
  -e,--eps <EPS>                        The target events per second
@@ -75,7 +80,6 @@ usage: Generator
                                        this in milliseconds.  By default,
                                        it never stops.
  -z,--zk_quorum <QUORUM>               zookeeper quorum
-
 ```
 
 ## Templates
@@ -123,6 +127,38 @@ This would would imply:
 * The next 50% of the templates would comprise 1% of the output
 * The next 10% of the templates would comprise 14% of the output.
 
+## CSV Output
+
+For those who would prefer a different visualization or wish to incorporate the output of this tool into an automated test,
+you can specify a file to emit data in CSV format to via the `-c` or `--csv` option.
+
+The CSV columns are as follows:
+* timestamp in epoch millis
+
+If you are generating synthetic data, then:
+* "generated"
+* The events per second generated
+* The mean of the events per second generated for the the last `k` runs, where `k` is the lookback (set via `-l` and defaulted to `5`)
+* The standard deviation of the events per second generated for the last `k` runs, where `k` is the lookback (set via `-l` and defaulted to `5`)
+
+If you are monitoring a topic, then:
+* "throughput measured"
+* The events per second measured
+* The mean of the events per second measured for the the last `k` runs, where `k` is the lookback (set via `-l` and defaulted to `5`)
+* The standard deviation of the events per second measured for the last `k` runs, where `k` is the lookback (set via `-l` and defaulted to `5`)
+
+Obviously, if you are doing both generating and monitoring the throughput of a topic, then all of the columns are added.
+
+An example of CSV output is:
+```
+1520506955047,generated,,,,throughput measured,,,
+1520506964896,generated,1045,1045,0,throughput measured,,,
+1520506974896,generated,1000,1022,31,throughput measured,1002,1002,0
+1520506984904,generated,999,1014,26,throughput measured,999,1000,2
+1520506994896,generated,1000,1011,22,throughput measured,1000,1000,1
+1520507004896,generated,1000,1008,20,throughput measured,1000,1000,1
+```
+
 ## Use-cases for the Load Tool
 
 ### Measure Throughput of a Topology
@@ -143,7 +179,24 @@ topology to output to it.  We would then generate load on `enrichments_load` and
 ```
 #Threadpool of size 5, you want somewhere between 5 and 10 depending on the throughput numbers you're trying to drive
 #Messages drawn from ~/dummy.templates, which is a message template per line
-#Generate at a rate of 1000 messages per second
-$METRON_HOME/bin/load_tool.sh -p 5 -ot enrichments_load -mt indexing_load -t ~/dummy.templates -eps 1000 -z $ZOOKEEPER 
+#Generate at a rate of 9000 messages per second
+#Emit the data to a CSV file ~/measurements.csv
+$METRON_HOME/bin/load_tool.sh -p 5 -ot enrichments_load -mt indexing_load -t ~/dummy.templates -eps 9000 -z $ZOOKEEPER -c ~/measurements.csv
 ```
 
+Now, with the help of a bash function and gnuplot we can generate a plot
+of the historical throughput measurements for `indexing_load`:
+```
+# Ensure that you have installed gnuplot and the liberation font package
+# via yum install -y gnuplot liberation-sans-fonts
+# We will define a plot function that will generate a png plot.  It takes
+# one arg, the output file.
+plot() {
+  gnuplot -e "reset;clear;set style fill solid 1.0 border -1; set nokey;set title 'Throughput Measured'; set xlabel 'Time'; set boxwidth 0.5; set xtics rotate; set ylabel 'events/sec';set xdata time; set timefmt '%s';set format x '%H:%M:%S';set term png enhanced font '/usr/share/fonts/liberation/LiberationSans-Regular.ttf' 12 size 900,400; set output '$1';plot '< cat -' using 1:2 with line lt -1 lw 2;"
+}
+# We want to transform the CSV file into a space separated file with the timestamp in seconds since epoch followed by the
+# throughput measurements.
+cat ~/measurements.csv | awk -F, '{printf "%d %d\n", $1/1000, $8} END { print 'e' }' | plot performance_measurement.png
+```
+This generates a plot like so to `performance_measurement.png`:
+![Performance Measurement](performance_measurement.png)

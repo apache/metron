@@ -19,18 +19,24 @@ package org.apache.metron.performance.load.monitor;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
-import java.util.Date;
 import java.util.Optional;
 
 public class Results {
   private String format;
+  private String name;
   private Optional<DescriptiveStatistics> history;
   private Long eps;
-  public Results(String format, Long eps, Optional<DescriptiveStatistics> history) {
+  public Results(String format, String name, Long eps, Optional<DescriptiveStatistics> history) {
     this.format = format;
+    this.name = name;
     this.history = history;
     this.eps = eps;
   }
+
+  public String getName() {
+    return name;
+  }
+
   public Long getEps() {
     return eps;
   }

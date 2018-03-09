@@ -52,17 +52,18 @@ public class Writer {
       Long eps = m.get();
       if(eps != null) {
         if (summaryLookback > 0) {
-          LinkedList<Double> summary = summaries.get(i++);
+          LinkedList<Double> summary = summaries.get(i);
           addToLookback(eps == null ? Double.NaN : eps.doubleValue(), summary);
-          results.add(new Results(m.format(), eps, Optional.of(getStats(summary))));
+          results.add(new Results(m.format(), m.name(), eps, Optional.of(getStats(summary))));
         }
         else {
-          results.add(new Results(m.format(), eps, Optional.empty()));
+          results.add(new Results(m.format(),m.name(), eps, Optional.empty()));
         }
       }
       else {
-        results.add(new Results(m.format(), eps, Optional.empty()));
+        results.add(new Results(m.format(), m.name(), eps, Optional.empty()));
       }
+      i++;
     }
     Writable writable = new Writable(dateOf, results);
     for(Consumer<Writable> writer : writers) {
@@ -86,6 +87,5 @@ public class Writer {
       stats.addValue(d);
     }
     return stats;
-    //return String.format("Mean: %d, Std Dev: %d", (int)stats.getMean(), (int)Math.sqrt(stats.getVariance()));
   }
 }

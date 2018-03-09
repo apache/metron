@@ -19,4 +19,5 @@ package org.apache.metron.performance.load.monitor;
 
 public interface MonitorNaming {
   String format();
+  String name();
 }

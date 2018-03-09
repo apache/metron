@@ -23,10 +23,10 @@ import org.apache.metron.performance.util.KafkaUtil;
 import java.util.Map;
 import java.util.Optional;
 
-public class EPSWrittenMonitor extends AbstractMonitor {
+public class EPSThroughputWrittenMonitor extends AbstractMonitor {
   Map<Integer, Long> lastOffsetMap = null;
   KafkaConsumer<String, String> consumer;
-  public EPSWrittenMonitor(Optional<?> kafkaTopic, Map<String, Object> kafkaProps) {
+  public EPSThroughputWrittenMonitor(Optional<?> kafkaTopic, Map<String, Object> kafkaProps) {
     super(kafkaTopic);
     consumer = new KafkaConsumer<>(kafkaProps);
   }
@@ -66,7 +66,12 @@ public class EPSWrittenMonitor extends AbstractMonitor {
 
   @Override
   public String format() {
-    return "%d eps written to " + kafkaTopic.get();
+    return "%d eps throughput measured for " + kafkaTopic.get();
+  }
+
+  @Override
+  public String name() {
+    return "throughput measured";
   }
 
 }
