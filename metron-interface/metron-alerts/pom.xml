@@ -25,8 +25,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <node.version>v7.10.0</node.version>
-        <npm.version>4.2.0</npm.version>
+        <node.version>v8.9.4</node.version>
+        <yarn.version>v0.16.1</yarn.version>
     </properties>
     <dependencies>
     </dependencies>
@@ -39,32 +39,29 @@
                 <configuration>
                     <workingDirectory>./</workingDirectory>
                     <nodeVersion>${node.version}</nodeVersion>
-                    <npmVersion>${npm.version}</npmVersion>
+                    <yarnVersion>${yarn.version}</yarnVersion>
                     <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
                 </configuration>
                 <executions>
                     <execution>
                         <phase>generate-resources</phase>
-                        <id>install node and npm</id>
+                        <id>install node and yarn</id>
                         <goals>
-                            <goal>install-node-and-npm</goal>
+                            <goal>install-node-and-yarn</goal>
                         </goals>
                     </execution>
                     <execution>
                         <phase>generate-resources</phase>
-                        <id>npm install</id>
+                        <id>yarn install</id>
                         <goals>
-                            <goal>npm</goal>
+                            <goal>yarn</goal>
                         </goals>
-                        <configuration>
-                            <arguments>install</arguments>
-                        </configuration>
                     </execution>
                     <execution>
                         <phase>generate-resources</phase>
                         <id>ng build</id>
                         <goals>
-                            <goal>npm</goal>
+                            <goal>yarn</goal>
                         </goals>
                         <configuration>
                             <arguments>run build</arguments>
