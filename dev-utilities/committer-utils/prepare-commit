@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 #  Licensed to the Apache Software Foundation (ASF) under one or more
 #  contributor license agreements.  See the NOTICE file distributed with
@@ -16,7 +17,8 @@
 #
 
 # not likely to change
-UPSTREAM=https://git-wip-us.apache.org/repos/asf/metron.git
+METRON_UPSTREAM="https://git-wip-us.apache.org/repos/asf/metron.git"
+BRO_PLUGIN_UPSTREAM="https://git-wip-us.apache.org/repos/asf/metron-bro-plugin-kafka.git"
 BASE_BRANCH=master
 CONFIG_FILE=~/.metron-prepare-commit
 GITHUB_REMOTE="origin"
@@ -26,6 +28,24 @@ if [ -f $CONFIG_FILE ]; then
   . $CONFIG_FILE
   echo "  ...using settings from $CONFIG_FILE"
 fi
+
+# which repo?  metron or metron-bro-plugin-kafka
+echo "    [1] metron"
+echo "    [2] metron-bro-plugin-kafka"
+read -p "  which repo? [1]: " INPUT
+case "${INPUT}" in
+  [Bb][Rr][Oo]|[Mm][Ee][Tt][Rr][Oo][Nn]-[Bb][Rr][Oo]-[Pp][Ll][Uu][Gg][Ii][Nn]-[Kk][Aa][Ff][Kk][Aa]|*metron-bro-plugin-kafka\.git|2)
+    INPUT="${BRO_PLUGIN_UPSTREAM}" ;;
+  [Mm][Ee][Tt][Rr][Oo][Nn]|*metron\.git|1|'')
+    INPUT="${METRON_UPSTREAM}" ;;
+  *)
+    echo "Invalid repo, provided \"${INPUT}\".  Please choose between metron or metron-bro-plugin-kafka"
+    exit 1
+    ;;
+esac
+[ -n "$INPUT" ] && UPSTREAM=$INPUT
+
+CHOSEN_REPO=$(basename ${UPSTREAM%%.git})
 
 # github account of committer (you)
 if [ -z "$GITHUB_NAME" ]; then
@@ -63,14 +83,14 @@ if [ -z "$PR" ]; then
 fi
 
 # ensure that the pull request exists
-PR_EXISTS=`curl -sI https://api.github.com/repos/apache/metron/pulls/$PR | grep Status: | sed 's/[^0-9]//g'`
+PR_EXISTS=`curl -sI https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/$PR | grep Status: | sed 's/[^0-9]//g'`
 if [ "$PR_EXISTS" != "200" ]; then
   echo "Error: pull request #$PR does not exist"
   exit 1
 fi
 
 # working directory
-WORK=~/tmp/metron-pr$PR
+WORK=~/tmp/${CHOSEN_REPO}-pr$PR
 read -p "  local working directory [$WORK]: " INPUT
 [ -n "$INPUT" ] && WORK=$INPUT
 
@@ -90,7 +110,7 @@ fi
 if [ ! -d "$WORK" ]; then
 
   # origin repository
-  ORIGIN="https://github.com/apache/metron"
+  ORIGIN="https://github.com/apache/${CHOSEN_REPO}"
   read -p "  origin repo [$ORIGIN]: " INPUT
   [ -n "$INPUT" ] && ORIGIN=$INPUT
 
@@ -127,7 +147,7 @@ git fetch $GITHUB_REMOTE $PR_BRANCH_REF
 echo ""
 
 # use github api to retrieve the contributor's login
-USER=`curl -s https://api.github.com/repos/apache/metron/pulls/$PR | grep login | head -1 | awk -F":" '{print $2}' | sed 's/[^a-zA-Z.@_-]//g'`
+USER=`curl -s https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/$PR | grep login | head -1 | awk -F":" '{print $2}' | sed 's/[^a-zA-Z.@_-]//g'`
 read -p "  github contributor's username [$USER]: " INPUT
 [ -n "$INPUT" ] && USER=$INPUT
 
@@ -149,7 +169,7 @@ if [ -z "$EMAIL" ] || [ "$EMAIL" = "null" ]; then
 fi
 
 # can we extract the JIRA from the PR title?
-JIRA=`curl -s https://api.github.com/repos/apache/metron/pulls/$PR | grep title | head -1 | egrep -o -i 'METRON-[0-9]+' | awk '{print toupper($0)}'`
+JIRA=`curl -s https://api.github.com/repos/apache/${CHOSEN_REPO}/pulls/$PR | grep title | head -1 | egrep -o -i 'METRON-[0-9]+' | awk '{print toupper($0)}'`
 read -p "  issue identifier in jira [$JIRA]: " INPUT
 [ -n "$INPUT" ] && JIRA=$INPUT
 
@@ -173,9 +193,9 @@ fi
 # commit message
 AUTHOR="$USER <$EMAIL>"
 if [ "$USER" == "$GITHUB_NAME" ]; then
-    MSG="$JIRA $DESC ($USER) closes apache/metron#$PR"
+  MSG="$JIRA $DESC ($USER) closes apache/${CHOSEN_REPO}#$PR"
 else
-    MSG="$JIRA $DESC ($USER via $GITHUB_NAME) closes apache/metron#$PR"
+  MSG="$JIRA $DESC ($USER via $GITHUB_NAME) closes apache/${CHOSEN_REPO}#$PR"
 fi
 read -p "  commit message [$MSG]: " INPUT
 [ -n "$INPUT" ] && MSG=$INPUT
@@ -202,11 +222,15 @@ echo ""
 read -p "  run test suite? [yN] " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-  mvn -q -T 2C -DskipTests clean install &&
-    mvn -q -T 2C surefire:test@unit-tests &&
-    mvn -q surefire:test@integration-tests &&
-    mvn -q test --projects metron-interface/metron-config &&
-    dev-utilities/build-utils/verify_licenses.sh
+  if [ "${UPSTREAM}" == "${METRON_UPSTREAM}" ]; then
+      mvn -q -T 2C -DskipTests clean install &&
+          mvn -q -T 2C surefire:test@unit-tests &&
+          mvn -q surefire:test@integration-tests &&
+          mvn -q test --projects metron-interface/metron-config &&
+	  dev-utilities/build-utils/verify_licenses.sh
+  elif [ "${UPSTREAM}" == "${BRO_PLUGIN_UPSTREAM}" ]; then
+    echo "We don't currently support running metron-bro-plugin-kafka tests in this script"
+  fi
 fi
 
 echo ""
