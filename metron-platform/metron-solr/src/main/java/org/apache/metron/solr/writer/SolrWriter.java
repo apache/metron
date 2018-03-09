@@ -157,12 +157,8 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
     LOG.info("Commit Wait Flush: {}", waitFlush);
     LOG.info("Default Collection: {}", "" + defaultCollection );
     if(solr == null) {
-      System.out.println("Storm config");
-      for(Object key: stormConf.keySet()) {
-        System.out.println("key = " + key + ", value = " + stormConf.get(key));
-      }
       if (isKerberosEnabled(stormConf)) {
-        HttpClientUtil.setConfigurer(new Krb5HttpClientConfigurer());
+        HttpClientUtil.addConfigurer(new Krb5HttpClientConfigurer());
       }
       solr = new MetronSolrClient(zookeeperUrl, solrHttpConfig);
     }
@@ -209,7 +205,6 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
       Optional<SolrException> exceptionOptional = fromUpdateResponse(solr.add(collection, docs));
       // Solr commits the entire batch or throws an exception for it.  There's no way to get partial failures.
       if(exceptionOptional.isPresent()) {
-        System.out.println("Adding errors");
         bulkResponse.addAllErrors(exceptionOptional.get(), tuples);
       }
       else {
@@ -220,7 +215,6 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
           }
         }
         if(!exceptionOptional.isPresent()) {
-          System.out.println("Adding successes");
           bulkResponse.addAllSuccesses(tuples);
         }
       }
