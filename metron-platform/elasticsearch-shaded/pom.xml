@@ -23,18 +23,6 @@
     <artifactId>elasticsearch-shaded</artifactId>
     <name>elasticsearch-shaded</name>
     <url>https://metron.apache.org/</url>
-    <repositories>
-        <repository>
-            <id>elasticsearch-releases</id>
-            <url>https://artifacts.elastic.co/maven</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
     <dependencies>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -43,7 +31,7 @@
         </dependency>
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
-            <artifactId>x-pack-transport</artifactId>
+            <artifactId>transport</artifactId>
             <version>${global_elasticsearch_version}</version>
             <exclusions>
               <exclusion>

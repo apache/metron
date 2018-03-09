@@ -42,21 +42,15 @@ import org.slf4j.LoggerFactory;
 
 public class ElasticsearchWriter implements BulkMessageWriter<JSONObject>, Serializable {
 
-  private Map<String, String> optionalSettings;
   private transient TransportClient client;
   private SimpleDateFormat dateFormat;
   private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchWriter.class);
   private FieldNameConverter fieldNameConverter = new ElasticsearchFieldNameConverter();
 
-  public ElasticsearchWriter withOptionalSettings(Map<String, String> optionalSettings) {
-    this.optionalSettings = optionalSettings;
-    return this;
-  }
-
   @Override
   public void init(Map stormConf, TopologyContext topologyContext, WriterConfiguration configurations) {
     Map<String, Object> globalConfiguration = configurations.getGlobalConfig();
-    client = ElasticsearchUtils.getClient(globalConfiguration, optionalSettings);
+    client = ElasticsearchUtils.getClient(globalConfiguration);
     dateFormat = ElasticsearchUtils.getIndexFormat(globalConfiguration);
   }
 

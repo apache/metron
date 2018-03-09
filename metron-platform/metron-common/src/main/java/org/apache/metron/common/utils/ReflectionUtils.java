@@ -23,19 +23,62 @@ public class ReflectionUtils {
 
   public static <T> T createInstance(String className, T defaultClass) {
     T instance;
-    if(className == null || className.length() == 0 || className.charAt(0) == '$') {
+    if (className == null || className.length() == 0 || className.charAt(0) == '$') {
       return defaultClass;
-    }
-    else {
+    } else {
       instance = createInstance(className);
     }
     return instance;
   }
 
-  public static <T> T createInstance(Class<? extends T> clazz) {
+  /**
+   * Attempts to create instance from specified class name. No-arg constructor assumed.
+   *
+   * @param className fully qualified name of class to instantiate. e.g. foo.bar.Baz
+   * @param <T> Instance created from passed class
+   * @return Object of type T
+   */
+  public static <T> T createInstance(String className) {
     T instance;
     try {
-      instance = clazz.getConstructor().newInstance();
+      Class<? extends T> clazz = (Class<? extends T>) Class.forName(className);
+      instance = createInstance(clazz);
+    } catch (ClassNotFoundException e) {
+      throw new IllegalStateException("Unable to instantiate connector: class not found", e);
+    }
+    return instance;
+  }
+
+
+  /**
+   * Create instance from no-args constructor
+   *
+   * @param clazz Class to create instance from
+   * @param <T> Instance created from passed class
+   * @return Object of type T
+   */
+  public static <T> T createInstance(Class<? extends T> clazz) {
+    return createInstance(clazz, null, null);
+  }
+
+  /**
+   * Create instance from passed class with specified parameter types and arguments. If parameter
+   * types is null, defaults to attempting to instantiate the no-arg constructor.
+   *
+   * @param clazz Class to create instance from
+   * @param parameterTypes parameter types to use for looking up the desired constructor
+   * @param parameters arguments to pass into the constructor when instantiating the object.
+   * @param <T> Instance created from passed class
+   * @return Object of type T
+   */
+  public static <T> T createInstance(Class<? extends T> clazz, Class<?>[] parameterTypes, Object[] parameters) {
+    T instance;
+    try {
+      if (parameterTypes != null) {
+        instance = clazz.getConstructor(parameterTypes).newInstance(parameters);
+      } else {
+        instance = clazz.getConstructor().newInstance();
+      }
     } catch (InstantiationException e) {
       throw new IllegalStateException("Unable to instantiate connector.", e);
     } catch (IllegalAccessException e) {
@@ -47,11 +90,22 @@ public class ReflectionUtils {
     }
     return instance;
   }
-  public static <T> T createInstance(String className) {
+
+  /**
+   * Create instance from passed class name with specified parameter types and arguments. If parameter
+   * types is null, defaults to attempting to instantiate the no-arg constructor.
+   *
+   * @param clazz Class to create instance from
+   * @param parameterTypes parameter types to use for looking up the desired constructor
+   * @param parameters arguments to pass into the constructor when instantiating the object.
+   * @param <T> Instance created from passed class
+   * @return Object of type T
+   */
+  public static <T> T createInstance(String className, Class<?>[] parameterTypes, Object[] parameters) {
     T instance;
     try {
       Class<? extends T> clazz = (Class<? extends T>) Class.forName(className);
-      instance = createInstance(clazz);
+      instance = createInstance(clazz, parameterTypes, parameters);
     } catch (ClassNotFoundException e) {
       throw new IllegalStateException("Unable to instantiate connector: class not found", e);
     }
