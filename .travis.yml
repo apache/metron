@@ -31,8 +31,6 @@ before_install:
   - export PATH=$M2_HOME/bin:$PATH
   - npm config set cache $HOME/.npm-cache --global
   - npm config set prefix $HOME/.npm-prefix --global
-  - npm install -g yarn@v1.5.1
-  - export PATH=$HOME/.yarn/bin:$PATH
 install:
   - time mvn -q -T 2C -DskipTests clean install
 
@@ -43,7 +41,6 @@ before_cache:
   - rm -rf $HOME/.m2/repository/org/apache/metron
 
 cache:
-  yarn: true
   timeout: 1000
   directories:
   - $HOME/.npm-cache
