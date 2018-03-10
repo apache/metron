@@ -57,7 +57,7 @@
                             <goal>yarn</goal>
                         </goals>
                         <configuration>
-                            <arguments>install --ignore-engines --pure-lockfile --verbose</arguments>
+                            <arguments>install --verbose</arguments>
                         </configuration>
                     </execution>
                     <execution>
