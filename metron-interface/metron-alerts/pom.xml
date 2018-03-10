@@ -57,7 +57,7 @@
                             <goal>yarn</goal>
                         </goals>
                         <configuration>
-                             <arguments>install --cache-folder=/yarncache/.local-yarn-cache --ignore-engines --pure-lockfile</arguments>
+                             <arguments>install --cache-folder=/node/.local-yarn-cache --ignore-engines --pure-lockfile</arguments>
                         </configuration>
                     </execution>
                     <execution>
