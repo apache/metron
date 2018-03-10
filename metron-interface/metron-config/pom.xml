@@ -58,7 +58,7 @@
                   <goal>yarn</goal>
                 </goals>
                 <configuration>
-                  <arguments>install --mutex --ignore-engines --pure-lockfile</arguments>
+                  <arguments>install --mutex network --ignore-engines --pure-lockfile</arguments>
                 </configuration>
               </execution>
               <execution>
