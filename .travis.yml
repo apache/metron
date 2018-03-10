@@ -31,6 +31,7 @@ before_install:
   - export PATH=$M2_HOME/bin:$PATH
   - npm config set cache $HOME/.npm-cache --global
   - npm config set prefix $HOME/.npm-prefix --global
+
 install:
   - time mvn -q -T 2C -DskipTests clean install
 
