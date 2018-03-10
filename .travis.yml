@@ -32,7 +32,7 @@ before_install:
   - npm config set cache $HOME/.npm-cache --global
   - npm config set prefix $HOME/.npm-prefix --global
 install:
-  - time mvn -q -T 2C -DskipTests clean install
+  - time mvn -e -X -q -T 2C -DskipTests clean install
 
 script:
   - time mvn -q -T 2C surefire:test@unit-tests && time mvn -q surefire:test@integration-tests && time mvn -q test --projects metron-interface/metron-config && time dev-utilities/build-utils/verify_licenses.sh
