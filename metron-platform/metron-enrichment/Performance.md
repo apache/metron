@@ -18,7 +18,7 @@ limitations under the License.
 
 # Enrichment Performance
 
-This guide defines a set of benchmarks used to measure the performance of the Enrichment topology.  The guide also provides detailed steps on how to execute those benchmarks along with advice for tuning the Enrichment topology.
+This guide defines a set of benchmarks used to measure the performance of the Enrichment topology.  The guide also provides detailed steps on how to execute those benchmarks along with advice for tuning the Unified Enrichment topology.
 
 * [Benchmarks](#benchmarks)
 * [Benchmark Execution](#benchmark-execution)
@@ -27,13 +27,15 @@ This guide defines a set of benchmarks used to measure the performance of the En
 
 ## Benchmarks
 
+The following section describes a set of enrichments that will be used to benchmark the performance of the Enrichment topology.
+
 * [Geo IP Enrichment](#geo-ip-enrichment)
 * [HBase Enrichment](#hbase-enrichment)
 * [Stellar Enrichment](#stellar-enrichment)
 
 ### Geo IP Enrichment
 
-This benchmark measures the performance of executing a Geo IP enrichment.  Given a valid IP address the enrichment will append detailed location information for that IP.  The location information is sourced from an external Geo IP data source like [Maxmind](https://github.com/maxmind/GeoIP2-java). 
+This benchmark measures the performance of executing a Geo IP enrichment.  Given a valid IP address the enrichment will append detailed location information for that IP.  The location information is sourced from an external Geo IP data source like [Maxmind](https://github.com/maxmind/GeoIP2-java).
 
 #### Configuration
 
@@ -83,9 +85,9 @@ After the telemetry has been enriched, it will contain the host and IP elements 
 
 This benchmark measures the performance of executing a basic Stellar expression.  In this benchmark, the enrichment is purely a computational task that has no dependence on an external system like a database.  
 
-#### Configuration 
+#### Configuration
 
-Adding the following Stellar expression to the Enrichment topology configuration will define a basic Stellar enrichment.  The following returns true if the IP is in the given subnet and false otherwise. 
+Adding the following Stellar expression to the Enrichment topology configuration will define a basic Stellar enrichment.  The following returns true if the IP is in the given subnet and false otherwise.
 ```
 local := IN_SUBNET(ip_dst_addr, '192.168.0.0/24')
 ```
@@ -98,8 +100,10 @@ After the telemetry has been enriched, it will contain a field with a boolean va
 	"local":false
 }
 ```
-	
+
 ## Benchmark Execution
+
+This section describes the steps necessary to execute the performance benchmarks for the Enrichment topology.
 
 * [Prepare Enrichment Data](#prepare-enrichment-data)
 * [Load HBase with Enrichment Data](#load-hbase-with-enrichment-data)
@@ -162,7 +166,7 @@ The Alexa Top 1 Million was used as an data source for these benchmarks.
 ### Load HBase with Enrichment Data
 
 1. Create an HBase table for this data.  
-	
+
 	Ensure that the table is evenly distributed across the HBase nodes.  This can be done by pre-splitting the table or splitting the data after loading it.  
 
 	```
@@ -170,7 +174,7 @@ The Alexa Top 1 Million was used as an data source for these benchmarks.
 	```
 
 1. Create a configuration file called `extractor.json`.  This defines how the data will be loaded into the HBase table.
-	
+
 	```bash
 	> cat extractor.json
 	{
@@ -186,7 +190,7 @@ The Alexa Top 1 Million was used as an data source for these benchmarks.
 	    "extractor": "CSV"
 	}
 	```
-	
+
 1. Use the `flatfile_loader.sh` to load the data into the HBase table.
 	```
 	$METRON_HOME/bin/flatfile_loader.sh \
@@ -224,7 +228,7 @@ The Alexa Top 1 Million was used as an data source for these benchmarks.
 	}
 	[Stellar]>>> CONFIG_PUT("ENRICHMENT", conf, "asa")
 	```
-	
+
 ### Create Input Telemetry
 
 1.  Create a template file that defines what your input telemetry will look-like.
@@ -237,7 +241,7 @@ The Alexa Top 1 Million was used as an data source for these benchmarks.
 2.  Use the template file along with the enrichment data to create input telemetry with varying IP addresses.
 
 	```bash
-	for i in $(head top-1m-with-ip.csv | awk -F, '{print $2}');do 
+	for i in $(head top-1m-with-ip.csv | awk -F, '{print $2}');do
 		cat asa.template | sed "s/\$DST_ADDR/$i/";
 	done > asa.input.template
 	```
@@ -245,7 +249,7 @@ The Alexa Top 1 Million was used as an data source for these benchmarks.
 3. Use the `load_test.sh` script to push messages onto the input topic `enrichments` and monitor the output topic `indexing`.
 
 	If the topology is keeping up, obviously the events per second produced on the input topic should roughly match the output topic.
-	
+
 	```
 	$METRON_HOME/bin/load_test.sh \
 		-e 200000 \
@@ -271,7 +275,7 @@ It is highly recommended that each of these systems be fully isolated from the o
 1. The `load_test.sh` script will report the throughput for the input and output topics.  
 
 	* The input throughput should roughly match the output throughput if the topology is able to handle a given load.
-	
+
 	* Not only are the raw throughput numbers important, but also the consistency of what is reported over time.  If the reported throughput is sporadic, then further tuning may be required.
 
 1. The Storm UI is obviously an important source of information.  The bolt capacity, complete latency, and any reported errors are all important to monitor
@@ -279,7 +283,7 @@ It is highly recommended that each of these systems be fully isolated from the o
 1. The load reported by the OS is also an important metric to monitor.  
 
 	* The load metric should be monitored to ensure that each node is being pushed sufficiently, but not too much.
-	
+
 	 * The load should be evenly distributed across each node.  If the load is uneven, this may indicate a problem.
 
 	A simple script like the following is sufficient for the task.
@@ -308,23 +312,25 @@ It is highly recommended that each of these systems be fully isolated from the o
 
 The approach to tuning the topology will look something like the following.  More detailed tuning information is available next to each named parameter
 
-* Start the tuning process with a single worker.  After tuning the individual bolts within a single worker, then scale out with more worker processes.
+* Start the tuning process with a single worker.  After tuning the bolts within a single worker, scale out with additional worker processes.
 
-* Start the thread pool with a size of 1.  Increase slowly only after tuning the other parameters first.  Consider that each worker has its own thread pool and the total size of this thread pool should be less than the total number of cores available in the cluster.
+* Initially set the thread pool size to 1.  Increase this value slowly only after tuning the other parameters first.  Consider that each worker has its own thread pool and the total size of this thread pool should be far less than the total number of cores available in the cluster.
 
-* Set each parallelism value to the number of partitions on the input Kafka topic.  Use the same value for all until a bolt capacity greater than 1 shows that the parallelism for a particular bolt needs to be increased.
+* Initially set each bolt parallelism hint to the number of partitions on the input Kafka topic.  Monitor bolt capacity and increase the parallelism hint for any bolt whose capacity is close to or exceeds 1.  
+
+* If the topology is not able to keep-up with a given input, then increasing the parallelism is the primary means to scale up.
 
 * Parallelism units can be used for determining how to distribute processing tasks across the topology.  The sum of parallelism can be close to, but should not far exceed this value.
 
 	 (number of worker nodes in cluster * number cores per worker node) - (number of acker tasks)
-
-* If the topology is not able to keep-up with a given input, then increasing the parallelism should allow it to scale up.
 
 * The throughput that the topology is able to sustain should be relatively consistent.  If the throughput fluctuates greatly, increase back pressure using [`topology.max.spout.pending`](#topology-max-spout-pending).
 
 ### Parameters
 
 The following parameters are useful for tuning the "Unified" Enrichment topology.  
+
+WARNING: Some of the parameter names have been reused from the "Split/Join" topology so the name may not be appropriate. This will be corrected in the future.
 
 * [`enrichment.workers`](#enrichmentworkers)
 * [`enrichment.acker.executors`](#enrichmentackerexecutors)
@@ -339,10 +345,7 @@ The following parameters are useful for tuning the "Unified" Enrichment topology
 * [`metron.threadpool.size`](#metronthreadpoolsize)
 * [`metron.threadpool.type`](#metronthreadpooltype)
 
-
-WARNING: Some of the parameter names have been reused from the "Split/Join" topology so the name may not be appropriate. This will be corrected in the future.
-
-#### `enrichment.workers` 
+#### `enrichment.workers`
 
 The number of worker processes for the enrichment topology.
 
@@ -352,7 +355,7 @@ The number of worker processes for the enrichment topology.
 
 * Increase parallelism before attempting to increase the number of workers.
 
-#### `enrichment.acker.executors` 
+#### `enrichment.acker.executors`
 
 The number of ackers within the topology.
 
@@ -362,14 +365,17 @@ The number of ackers within the topology.
 
 #### `topology.worker.childopts`
 
-This parameter accepts arguments that will be passed to the Storm worker processes.  This allows for control over the heap size, garbage collection, and any other JVM-specific parameter.
+This parameter accepts arguments that will be passed to the JVM created for each Storm worker.  This allows for control over the heap size, garbage collection, and any other JVM-specific parameter.
 
 * Start with a 2G heap and increase as needed.  Running with 8G was found to be beneficial, but will vary depending on caching needs.
 
-* The Garbage First Garbage Collector (G1GC) is recommended.
+    `-Xms8g -Xmx8g`
 
-* The following settings were found to be beneficial.
-	`-XX:+UseG1GC -Xms8g -Xmx8g -XX:MaxGCPauseMillis=100`
+* The Garbage First Garbage Collector (G1GC) is recommended along with a cap on the amount of time spent in garbage collection.  This is intended to help address small object allocation issues due to our extensive use of caches.
+
+    `-XX:+UseG1GC -XX:MaxGCPauseMillis=100`
+
+* If the caches in use are very large (as defined by either [`enrichment.join.cache.size`](#enrichmentjoincachesize) or [`threat.intel.join.cache.size`](#threatinteljoincachesize)) and performance is poor, turning on garbage collection logging might be helpful.
 
 #### `topology.max.spout.pending`
 
@@ -461,7 +467,7 @@ Currently, this value must be manually defined within the flux file at `$METRON_
 
 * Most workloads will make significant use of the cache and so 1-2 threads will most likely be optimal.
 
-* The bolt uses a static thread pool.  To scale out, but keep the work mostly pinned to a CPU core, add more Storm workers while keeping the thread pool size low. 
+* The bolt uses a static thread pool.  To scale out, but keep the work mostly pinned to a CPU core, add more Storm workers while keeping the thread pool size low.
 
 * If a larger thread pool increases load on the system, but decreases the throughput, then it is likely that the system is thrashing.  In this case the thread pool size should be decreased.
 
@@ -491,7 +497,7 @@ The Enrichment topology has been show to scale relatively linearly.  Adding more
 	* 256 GB RAM
 	* x2 10G NIC bonded
 	* x4 6TB 7200 RPM disks
-	
+
 * Storm Supervisors are isolated and running on a dedicated set of 3 nodes.
 
 * Kafka Brokers are isolated and running on a separate, dedicated set of 3 nodes.
@@ -518,5 +524,3 @@ The Enrichment topology has been show to scale relatively linearly.  Adding more
 	metron.threadpool.size=1
 	metron.threadpool.type=FIXED
 	```
-
-
