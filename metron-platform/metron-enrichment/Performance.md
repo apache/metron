@@ -453,11 +453,11 @@ WARNING: The property name does not match its current usage in the Unified topol
 
 #### `metron.threadpool.size`
 
+This value defines the number of threads maintained within a pool to execute each enrichment.  This value can either be a fixed number or it can be a multiple of the number of cores (5C = 5 times the number of cores).
+
 The enrichment bolt maintains a static thread pool that is used to execute each enrichment.  This thread pool is shared by all of the executors running within the same worker.  
 
-Defines the number of threads within the thread pool used to execute each enrichment.  This value can either be a fixed number or it can be a multiple of the number of cores (5C = 5 times the number of cores).
-
-Currently, this value must be manually defined within the flux file at `$METRON_HOME/flux/enrichment/remote-unified.yaml`.  This value cannot be altered within Ambari.
+WARNING: This value must be manually defined within the flux file at `$METRON_HOME/flux/enrichment/remote-unified.yaml`.  This value cannot be altered within Ambari at this time.
 
 * Start with a thread pool size of 1.  Adjust this value after tuning all other parameters first.  Only increase this value if testing shows performance improvements in your environment given your workload.  
 
@@ -515,6 +515,7 @@ The Enrichment topology has been show to scale relatively linearly.  Adding more
 	enrichment.workers=9
 	enrichment.acker.executors=9
 	enrichment.join.cache.size=100000
+  threat.intel.join.cache.size=100000
 	kafka.spout.parallelism=27
 	enrichment.join.parallelism=54
 	threat.intel.join.parallelism=9
