@@ -125,8 +125,6 @@ public enum LoadOptions implements CLIOptions<LoadOptions> {
         try {
 
           return Optional.ofNullable(BiasedSampler.readDistribution(discreteDistributionFile));
-        } catch (FileNotFoundException e) {
-          throw new IllegalStateException("Unable to read distribution file: " + option.get(cli), e);
         } catch (IOException e) {
           throw new IllegalStateException("Unable to read distribution file: " + option.get(cli), e);
         }
@@ -188,8 +186,6 @@ public enum LoadOptions implements CLIOptions<LoadOptions> {
             templates.add(line);
           }
           return Optional.of(templates);
-        } catch (FileNotFoundException e) {
-          throw new IllegalStateException("Unable to read template file: " + option.get(cli), e);
         } catch (IOException e) {
           throw new IllegalStateException("Unable to read template file: " + option.get(cli), e);
         }

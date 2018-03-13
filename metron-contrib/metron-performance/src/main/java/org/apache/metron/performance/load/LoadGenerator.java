@@ -21,7 +21,11 @@ package org.apache.metron.performance.load;
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.PosixParser;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.metron.common.utils.KafkaUtils;
 import org.apache.metron.performance.load.monitor.AbstractMonitor;
 import org.apache.metron.performance.load.monitor.EPSGeneratedMonitor;
@@ -51,7 +55,7 @@ import java.util.function.Consumer;
 
 public class LoadGenerator
 {
-  public static String CONSUMER_GROUP = "load.group";
+  public static String CONSUMER_GROUP = "metron.load.group";
   public static long SEND_PERIOD_MS = 100;
   public static long MONITOR_PERIOD_MS = 1000*10;
   private static ExecutorService pool;
@@ -62,17 +66,19 @@ public class LoadGenerator
     CommandLine cli = LoadOptions.parse(new PosixParser(), args);
     EnumMap<LoadOptions, Optional<Object>> evaluatedArgs = LoadOptions.createConfig(cli);
     Map<String, Object> kafkaConfig = new HashMap<>();
-    kafkaConfig.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-    kafkaConfig.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-    kafkaConfig.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-    kafkaConfig.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+    kafkaConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+    kafkaConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+    kafkaConfig.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+    kafkaConfig.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
     if(LoadOptions.ZK.has(cli)) {
       String zkQuorum = (String) evaluatedArgs.get(LoadOptions.ZK).get();
-      kafkaConfig.put("bootstrap.servers", Joiner.on(",").join(KafkaUtils.INSTANCE.getBrokersFromZookeeper(zkQuorum)));
+      kafkaConfig.put( ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG
+                     , Joiner.on(",").join(KafkaUtils.INSTANCE.getBrokersFromZookeeper(zkQuorum))
+                     );
     }
     String groupId = evaluatedArgs.get(LoadOptions.CONSUMER_GROUP).get().toString();
     System.out.println("Consumer Group: " + groupId);
-    kafkaConfig.put("group.id", groupId);
+    kafkaConfig.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
     if(LoadOptions.KAFKA_CONFIG.has(cli)) {
       kafkaConfig.putAll((Map<String, Object>) evaluatedArgs.get(LoadOptions.KAFKA_CONFIG).get());
     }
@@ -91,6 +97,10 @@ public class LoadGenerator
       long startTimeMs = System.currentTimeMillis();
       if(outputTopic.isPresent() && eps.isPresent()) {
         List<String> templates = (List<String>)evaluatedArgs.get(LoadOptions.TEMPLATE).get();
+        if(templates.isEmpty()) {
+          System.out.println("Empty templates, so nothing to do.");
+          return;
+        }
         Optional<Object> biases = evaluatedArgs.get(LoadOptions.BIASED_SAMPLE);
         Sampler sampler = new UnbiasedSampler();
         if(biases.isPresent()){

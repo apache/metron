@@ -17,6 +17,7 @@
  */
 package org.apache.metron.performance.load.monitor.writers;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.metron.performance.load.monitor.Results;
 
@@ -50,10 +51,7 @@ public class ConsoleWriter implements Consumer<Writable> {
     if(date != null) {
       DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
       String header = dateFormat.format(date) + " - ";
-      String emptyHeader = "";
-      for (int i = 0; i < header.length(); ++i) {
-        emptyHeader += " ";
-      }
+      String emptyHeader = StringUtils.repeat(" ", header.length());
       for (int i = 0; i < parts.size(); ++i) {
         String part = parts.get(i);
         if (i == 0) {

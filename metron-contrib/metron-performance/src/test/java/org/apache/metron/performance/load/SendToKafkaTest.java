@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class SendToKafkaTest {
 
   @Test
-  public void testWritesCorrectNumber() throws InterruptedException {
+  public void testWritesCorrectNumber() {
     ExecutorService executor = ForkJoinPool.commonPool();
     AtomicLong numSent = new AtomicLong(0);
     long expectedSent = 100;

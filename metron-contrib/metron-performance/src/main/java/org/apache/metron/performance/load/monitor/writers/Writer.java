@@ -50,15 +50,10 @@ public class Writer {
     List<Results> results = new ArrayList<>();
     for(AbstractMonitor m : monitors) {
       Long eps = m.get();
-      if(eps != null) {
-        if (summaryLookback > 0) {
+      if(eps != null && summaryLookback > 0) {
           LinkedList<Double> summary = summaries.get(i);
-          addToLookback(eps == null ? Double.NaN : eps.doubleValue(), summary);
+          addToLookback(eps.doubleValue(), summary);
           results.add(new Results(m.format(), m.name(), eps, Optional.of(getStats(summary))));
-        }
-        else {
-          results.add(new Results(m.format(),m.name(), eps, Optional.empty()));
-        }
       }
       else {
         results.add(new Results(m.format(), m.name(), eps, Optional.empty()));

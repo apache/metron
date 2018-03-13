@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 public class MessageGenerator implements Supplier<String> {
   private static ThreadLocal<Random> rng = ThreadLocal.withInitial(() -> new Random());
   private static AtomicLong guidOffset = new AtomicLong(0);
-  private static String guidPrefix = "6141faf6-a8ba-4044-ab80-";
+  private static String guidPrefix = "00000000-0000-0000-0000-";
   private List<String> patterns;
   private Sampler sampler;
   public MessageGenerator(List<String> patterns, Sampler sampler) {

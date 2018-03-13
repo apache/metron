@@ -48,8 +48,17 @@ public class BiasedSampler implements Sampler {
           continue;
         }
         Iterable<String> it = Splitter.on(",").split(line.trim());
+        if(Iterables.size(it) != 2) {
+          throw new IllegalArgumentException(line + " should be a comma separated pair of integers, but was not.");
+        }
         int left = Integer.parseInt(Iterables.getFirst(it, null));
         int right = Integer.parseInt(Iterables.getLast(it, null));
+        if(left <= 0 || left > 100) {
+          throw new IllegalArgumentException(line + ": " + (left < 0?left:right) + " must a positive integer in (0, 100]");
+        }
+        if(right <= 0 || right > 100) {
+          throw new IllegalArgumentException(line + ": " + right + " must a positive integer in (0, 100]");
+        }
         System.out.println("\t" + left + "% of templates will comprise roughly " + right + "% of sample output");
         ret.add(new AbstractMap.SimpleEntry<>(left, right));
         sumLeft += left;
