@@ -25,8 +25,6 @@ import static org.apache.metron.indexing.dao.MetaAlertDao.STATUS_FIELD;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.MapDifference;
-import com.google.common.collect.Maps;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,7 +38,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.adrianwalker.multilinestring.Multiline;
-import org.apache.avro.generic.GenericData.Array;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;

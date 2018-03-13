@@ -22,6 +22,7 @@ import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_FIELD;
 import static org.apache.metron.indexing.dao.MetaAlertDao.METAALERT_TYPE;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -157,13 +158,16 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
     // Should have one result because of Solr querying manner.
     Assert.assertEquals(0, searchResponse.getTotal());
 
+    ArrayList<String> indices = new ArrayList<>();
+    indices.add(getTestIndexName());
+    indices.add(METAALERT_TYPE);
     // Query against all indices. Only the single active meta alert should be returned.
     // The child alerts should be hidden.
     searchResponse = metaDao.search(new SearchRequest() {
       {
         setQuery(
             "ip_src_addr:192.168.1.1 AND ip_src_port:8010");
-        setIndices(Collections.singletonList("*"));
+        setIndices(indices);
         setFrom(0);
         setSize(5);
         setSort(Collections.singletonList(new SortField() {

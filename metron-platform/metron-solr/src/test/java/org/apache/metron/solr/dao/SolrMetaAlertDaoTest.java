@@ -37,9 +37,6 @@ import org.apache.metron.indexing.dao.update.Document;
 import org.junit.Test;
 
 public class SolrMetaAlertDaoTest {
-
-  // TODO refactor to act on AbstractMetaALertDao.
-
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidInit() {
     IndexDao dao = new IndexDao() {
