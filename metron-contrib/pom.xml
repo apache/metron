@@ -42,4 +42,18 @@
         <module>metron-docker</module>
         <module>metron-performance</module>
     </modules>
+    <dependencies>
+        <dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${global_junit_version}</version>
+			<scope>test</scope>
+		</dependency>
+        <dependency>
+			<groupId>org.adrianwalker</groupId>
+			<artifactId>multiline-string</artifactId>
+			<version>0.1.2</version>
+			<scope>test</scope>
+		</dependency>
+    </dependencies>
 </project>

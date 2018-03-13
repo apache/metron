@@ -17,12 +17,19 @@
  */
 package org.apache.metron.performance.sampler;
 
+import com.google.common.collect.ImmutableList;
+import org.adrianwalker.multilinestring.Multiline;
 import org.junit.Assert;
 import org.junit.Test;
+import sun.java2d.pipe.SpanShapeRenderer;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -71,5 +78,68 @@ public class SamplerTest {
       }
     }});
 
+  }
+
+  /**
+   80,20
+   */
+  @Multiline
+  static String paretoConfigImplicit;
+
+  /**
+   80,20
+   20,80
+   */
+  @Multiline
+  static String paretoConfig;
+
+  @Test
+  public void testDistributionRead() throws IOException {
+    for(String config : ImmutableList.of(paretoConfig, paretoConfigImplicit)) {
+      List<Map.Entry<Integer, Integer>> endpoints = BiasedSampler.readDistribution(new BufferedReader(new StringReader(config)), true);
+      Assert.assertEquals(2, endpoints.size());
+      Assert.assertEquals(new AbstractMap.SimpleEntry<>(80,20), endpoints.get(0));
+      Assert.assertEquals(new AbstractMap.SimpleEntry<>(20,80), endpoints.get(1));
+    }
+  }
+
+  /**
+   80,20
+   10,70
+   10,10
+   */
+  @Multiline
+  static String longerConfig;
+  /**
+   80,20
+   10,70
+   */
+  @Multiline
+  static String longerConfigImplicit;
+
+  @Test
+  public void testDistributionReadLonger() throws IOException {
+    for(String config : ImmutableList.of(longerConfig, longerConfigImplicit)) {
+      List<Map.Entry<Integer, Integer>> endpoints = BiasedSampler.readDistribution(new BufferedReader(new StringReader(config)), true);
+      Assert.assertEquals(3, endpoints.size());
+      Assert.assertEquals(new AbstractMap.SimpleEntry<>(80,20), endpoints.get(0));
+      Assert.assertEquals(new AbstractMap.SimpleEntry<>(10,70), endpoints.get(1));
+      Assert.assertEquals(new AbstractMap.SimpleEntry<>(10,10), endpoints.get(2));
+    }
+  }
+
+  @Test(expected=IllegalArgumentException.class)
+  public void testDistributionRead_garbage() throws IOException {
+    BiasedSampler.readDistribution(new BufferedReader(new StringReader("blah foo")), true);
+  }
+
+  @Test(expected=IllegalArgumentException.class)
+  public void testDistributionRead_negative() throws IOException {
+    BiasedSampler.readDistribution(new BufferedReader(new StringReader("80,-20")), true);
+  }
+
+  @Test(expected=IllegalArgumentException.class)
+  public void testDistributionRead_over100() throws IOException {
+    BiasedSampler.readDistribution(new BufferedReader(new StringReader("200,20")), true);
   }
 }

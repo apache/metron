@@ -122,9 +122,8 @@ public enum LoadOptions implements CLIOptions<LoadOptions> {
       }
       File discreteDistributionFile  = new File(option.get(cli));
       if(discreteDistributionFile.exists()) {
-        try {
-
-          return Optional.ofNullable(BiasedSampler.readDistribution(discreteDistributionFile));
+        try (BufferedReader br = new BufferedReader(new FileReader(discreteDistributionFile))){
+          return Optional.ofNullable(BiasedSampler.readDistribution(br));
         } catch (IOException e) {
           throw new IllegalStateException("Unable to read distribution file: " + option.get(cli), e);
         }

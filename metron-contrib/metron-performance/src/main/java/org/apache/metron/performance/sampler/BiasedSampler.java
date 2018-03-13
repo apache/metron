@@ -37,46 +37,55 @@ public class BiasedSampler implements Sampler {
     this.discreteDistribution = createDistribution(discreteDistribution, max);
   }
 
-  public static List<Map.Entry<Integer, Integer>> readDistribution(File distrFile) throws IOException {
+  public static List<Map.Entry<Integer, Integer>> readDistribution(BufferedReader distrFile) throws IOException {
+    return readDistribution(distrFile, false);
+  }
+
+  public static List<Map.Entry<Integer, Integer>> readDistribution(BufferedReader distrFile, boolean quiet) throws IOException {
     List<Map.Entry<Integer, Integer>> ret = new ArrayList<>();
-    System.out.println("Using biased sampler with the following biases:");
-    try(BufferedReader br = new BufferedReader(new FileReader(distrFile))) {
-      int sumLeft = 0;
-      int sumRight = 0;
-      for(String line = null;(line = br.readLine()) != null;) {
-        if(line.startsWith("#")) {
-          continue;
-        }
-        Iterable<String> it = Splitter.on(",").split(line.trim());
-        if(Iterables.size(it) != 2) {
-          throw new IllegalArgumentException(line + " should be a comma separated pair of integers, but was not.");
-        }
-        int left = Integer.parseInt(Iterables.getFirst(it, null));
-        int right = Integer.parseInt(Iterables.getLast(it, null));
-        if(left <= 0 || left > 100) {
-          throw new IllegalArgumentException(line + ": " + (left < 0?left:right) + " must a positive integer in (0, 100]");
-        }
-        if(right <= 0 || right > 100) {
-          throw new IllegalArgumentException(line + ": " + right + " must a positive integer in (0, 100]");
-        }
-        System.out.println("\t" + left + "% of templates will comprise roughly " + right + "% of sample output");
-        ret.add(new AbstractMap.SimpleEntry<>(left, right));
-        sumLeft += left;
-        sumRight += right;
-      }
-      if(sumLeft > 100 || sumRight > 100 ) {
-        throw new IllegalStateException("Neither columns must sum to beyond 100.  " +
-                "The first column is the % of templates. " +
-                "The second column is the % of the sample that % of template occupies.");
-      }
-      else if(sumLeft < 100 && sumRight < 100) {
-        int left = 100 - sumLeft;
-        int right = 100 - sumRight;
-        System.out.println("\t" + left + "% of templates will comprise roughly " + right + "% of sample output");
-        ret.add(new AbstractMap.SimpleEntry<>(left, right));
-      }
-      return ret;
+    if(!quiet) {
+      System.out.println("Using biased sampler with the following biases:");
     }
+    int sumLeft = 0;
+    int sumRight = 0;
+    for(String line = null;(line = distrFile.readLine()) != null;) {
+      if(line.startsWith("#")) {
+        continue;
+      }
+      Iterable<String> it = Splitter.on(",").split(line.trim());
+      if(Iterables.size(it) != 2) {
+        throw new IllegalArgumentException(line + " should be a comma separated pair of integers, but was not.");
+      }
+      int left = Integer.parseInt(Iterables.getFirst(it, null));
+      int right = Integer.parseInt(Iterables.getLast(it, null));
+      if(left <= 0 || left > 100) {
+        throw new IllegalArgumentException(line + ": " + (left < 0?left:right) + " must a positive integer in (0, 100]");
+      }
+      if(right <= 0 || right > 100) {
+        throw new IllegalArgumentException(line + ": " + right + " must a positive integer in (0, 100]");
+      }
+      if(!quiet) {
+        System.out.println("\t" + left + "% of templates will comprise roughly " + right + "% of sample output");
+      }
+      ret.add(new AbstractMap.SimpleEntry<>(left, right));
+      sumLeft += left;
+      sumRight += right;
+    }
+    if(sumLeft > 100 || sumRight > 100 ) {
+      throw new IllegalStateException("Neither columns must sum to beyond 100.  " +
+              "The first column is the % of templates. " +
+              "The second column is the % of the sample that % of template occupies.");
+    }
+    else if(sumLeft < 100 && sumRight < 100) {
+      int left = 100 - sumLeft;
+      int right = 100 - sumRight;
+      if(!quiet) {
+        System.out.println("\t" + left + "% of templates will comprise roughly " + right + "% of sample output");
+      }
+      ret.add(new AbstractMap.SimpleEntry<>(left, right));
+    }
+    return ret;
+
   }
 
   private static TreeMap<Double, Map.Entry<Integer, Integer>>
