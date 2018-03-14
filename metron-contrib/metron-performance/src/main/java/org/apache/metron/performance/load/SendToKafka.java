@@ -38,14 +38,14 @@ public class SendToKafka extends TimerTask {
   private String kafkaTopic;
   private ExecutorService pool;
   protected AtomicLong numSent;
-  private ThreadLocal<KafkaProducer> kafkaProducer;
+  private ThreadLocal<KafkaProducer<String, String>> kafkaProducer;
   public SendToKafka( String kafkaTopic
                     , long numMessagesSent
                     , int numBatches
                     , Supplier<String> messageSupplier
                     , ExecutorService pool
                     , AtomicLong numSent
-                    , ThreadLocal<KafkaProducer> kafkaProducer
+                    , ThreadLocal<KafkaProducer<String, String>> kafkaProducer
                     )
   {
     this.numSent = numSent;
@@ -94,7 +94,7 @@ public class SendToKafka extends TimerTask {
     }
   }
 
-  protected Future<?> sendToKafka(KafkaProducer producer, String kafkaTopic, String message) {
+  protected Future<?> sendToKafka(KafkaProducer<String, String> producer, String kafkaTopic, String message) {
     return producer.send(new ProducerRecord<>(kafkaTopic, message),
                       (recordMetadata, e) -> {
                         if(e != null) {

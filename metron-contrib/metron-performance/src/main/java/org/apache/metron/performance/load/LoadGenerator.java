@@ -59,7 +59,7 @@ public class LoadGenerator
   public static long SEND_PERIOD_MS = 100;
   public static long MONITOR_PERIOD_MS = 1000*10;
   private static ExecutorService pool;
-  private static ThreadLocal<KafkaProducer> kafkaProducer;
+  private static ThreadLocal<KafkaProducer<String, String>> kafkaProducer;
   public static AtomicLong numSent = new AtomicLong(0);
 
   public static void main( String[] args ) throws Exception {
@@ -82,7 +82,7 @@ public class LoadGenerator
     if(LoadOptions.KAFKA_CONFIG.has(cli)) {
       kafkaConfig.putAll((Map<String, Object>) evaluatedArgs.get(LoadOptions.KAFKA_CONFIG).get());
     }
-    kafkaProducer = ThreadLocal.withInitial(() -> new KafkaProducer(kafkaConfig));
+    kafkaProducer = ThreadLocal.withInitial(() -> new KafkaProducer<>(kafkaConfig));
     int numThreads = (int)evaluatedArgs.get(LoadOptions.NUM_THREADS).get();
     System.out.println("Thread pool size: " + numThreads);
     pool = Executors.newFixedThreadPool(numThreads);
