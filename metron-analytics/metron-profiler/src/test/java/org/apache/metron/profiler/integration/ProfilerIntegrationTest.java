@@ -118,7 +118,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
   private static final String outputTopic = "profiles";
   private static final int saltDivisor = 10;
 
-  private static final long eventTimeLagMillis = TimeUnit.SECONDS.toMillis(5);
+  private static final long windowLagMillis = TimeUnit.SECONDS.toMillis(5);
   private static final long windowDurationMillis = TimeUnit.SECONDS.toMillis(5);
   private static final long periodDurationMillis = TimeUnit.SECONDS.toMillis(15);
   private static final long profileTimeToLiveMillis = TimeUnit.SECONDS.toMillis(20);
@@ -398,7 +398,7 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("profiler.ttl.units", "MILLISECONDS");
       setProperty("profiler.window.duration", Long.toString(windowDurationMillis));
       setProperty("profiler.window.duration.units", "MILLISECONDS");
-      setProperty("profiler.window.lag", Long.toString(eventTimeLagMillis));
+      setProperty("profiler.window.lag", Long.toString(windowLagMillis));
       setProperty("profiler.window.lag.units", "MILLISECONDS");
       setProperty("profiler.max.routes.per.bolt", Long.toString(maxRoutesPerBolt));
     }};

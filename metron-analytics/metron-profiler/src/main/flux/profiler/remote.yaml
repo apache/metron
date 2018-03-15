@@ -121,7 +121,7 @@ components:
             - ${profiler.window.duration}
             - "${profiler.window.duration.units}"
 
-    -   id: "eventTimeLag"
+    -   id: "windowLag"
         className: "org.apache.storm.topology.base.BaseWindowedBolt$Duration"
         constructorArgs:
             - ${profiler.window.lag}
@@ -157,7 +157,7 @@ bolts:
             - name: "withTumblingWindow"
               args: [ref: "windowDuration"]
             - name: "withLag"
-              args: [ref: "eventTimeLag"]
+              args: [ref: "windowLag"]
             - name: "withMaxNumberOfRoutes"
               args: [${profiler.max.routes.per.bolt}]
 
