@@ -19,6 +19,7 @@ package org.apache.metron.elasticsearch.integration.utils;
 
 import org.apache.metron.common.Constants;
 import org.apache.metron.common.utils.JSONUtils;
+import org.apache.metron.test.utils.DockerUtils;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -40,7 +41,7 @@ public class ElasticsearchTestUtils {
     return new HashMap<String, Object>() {{
       put("es.clustername", "elasticsearch");
       put("es.port", "9310");
-      put("es.ip", "localhost");
+      put("es.ip", DockerUtils.getDockerIpAddress());
       put("es.date.format", "yyyy.MM.dd.HH");
     }};
   }
