@@ -247,6 +247,9 @@ public class SolrWriter implements BulkMessageWriter<JSONObject>, Serializable {
   }
 
   private boolean isKerberosEnabled(Map stormConfig) {
+    if (stormConfig == null) {
+      return false;
+    }
     String value = (String) stormConfig.get("java.security.auth.login.config");
     return value != null && !value.isEmpty();
   }
