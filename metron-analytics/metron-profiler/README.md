@@ -332,15 +332,21 @@ Continuing the previous running example, at this point, you have seen how your p
 
 The Profiler configuration contains only two fields; only one of which is required.
 
-    ```
-    {
-        "profiles": [
-            { "profile": "one", ... },
-            { "profile": "two", ... }
-        ],
-        "timestampField": "timestamp"
-    }
-    ```
+```
+{
+    "profiles": [
+        { "profile": "one", ... },
+        { "profile": "two", ... }
+    ],
+    "timestampField": "timestamp"
+}
+```
+
+| Name                              |               | Description
+|---                                |---            |---
+| [profiles](#profiles)             | Required      | A list of zero or more Profile definitions.
+| [timestampField](#timestampfield) | Optional      | Indicates whether processing time or event time should be used.
+
 
 #### `profiles`
 
@@ -352,20 +358,29 @@ A list of zero or more Profile definitions.
 
 *Optional*
 
+Indicates whether processing time or event time should be used.
+
 ##### Processing Time
 
 By default, no `timestampField` is defined.  In this case, the Profiler uses system time when generating profiles.  This means that the profiles are generated based on when the data has been processed by the Profiler.  This is also known as 'processing time'.
 
-This is the simplest mode of operation, but has some draw backs.  If the Profiler is consuming live data and all is well, the processing and event times will likely remain similar and consistent. When processing time diverges from event time, the profiles produced can be skewed. 
+This is the simplest mode of operation, but has some draw backs.  If the Profiler is consuming live data and all is well, the processing and event times will likely remain similar and consistent. If processing time diverges from event time, then the Profiler will generate skewed profiles. 
 
-There are a few scenarios that could cause skewed profiles when using processing time.  For example when a system has undergone a scheduled maintenance window and is restarted, a high volume of messages will need to be processed by the Profiler. The output of the Profiler will indicate an increase in activity during this time, although no change in activity actually occurred on the target network. The same situation could occur if an upstream system which provides telemetry undergoes an outage.
+There are a few scenarios that might cause skewed profiles when using processing time.  For example when a system has undergone a scheduled maintenance window and is restarted, a high volume of messages will need to be processed by the Profiler. The output of the Profiler might indicate an increase in activity during this time, although no change in activity actually occurred on the target network. The same situation could occur if an upstream system which provides telemetry undergoes an outage.  
+
+[Event Time](#event-time) can be used to mitigate these problems.
 
 ##### Event Time
 
-Alternatively, you can define a `timestampField`.  This must be the name of a field contained within the telemetry processed by the Profiler.  The Profiler will extract and use the timestamp contained within this field.
+Alternatively, a `timestampField` can be defined.  This must be the name of a field contained within the telemetry processed by the Profiler.  The Profiler will extract and use the timestamp contained within this field.
 
-* The field must contain a timestamp in epoch milliseconds.
-* If a message does not contain this field, it will be dropped by the Profiler.
+* If a message does not contain this field, it will be dropped.
+
+* The field must contain a timestamp in epoch milliseconds expressed as either a numeric or string. Otherwise, the message will be dropped.
+
+* The Profiler will use the same field across all telemetry sources and for all profiles.
+
+* Be aware of clock skew across telemetry sources.  If your profile is processing telemetry from multiple sources where the clock differs significantly, the Profiler may assume that some of those messages are late and will be ignored.  Adjusting the [`profiler.window.duration`](#profilerwindowduration) and [`profiler.window.lag`](#profilerwindowlag) can help accommodate skewed clocks. 
 
 ### Profiles
 

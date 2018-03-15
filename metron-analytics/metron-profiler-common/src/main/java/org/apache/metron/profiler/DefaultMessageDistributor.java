@@ -67,8 +67,6 @@ public class DefaultMessageDistributor implements MessageDistributor {
    */
   private long periodDurationMillis;
 
-  // TODO why are these marked transient?
-
   /**
    * A cache of active profiles.
    *
