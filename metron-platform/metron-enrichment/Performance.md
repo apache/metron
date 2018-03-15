@@ -114,27 +114,28 @@ This section describes the steps necessary to execute the performance benchmarks
 
 ### Prepare Enrichment Data
 
-The Alexa Top 1 Million was used as an data source for these benchmarks.
+The Alexa Top 1 Million was used as a data source for these benchmarks.
 
-1. Download the [Alexa Top 1 Million](http://s3.amazonaws.com/alexa-static/top-1m.csv.zip).
+1. Download the [Alexa Top 1 Million](http://s3.amazonaws.com/alexa-static/top-1m.csv.zip) or another similar data set with a variety of valid hostnames.
 
 2. For each hostname, query DNS to retrieve an associated IP address.  
 
 	A script like the following can be used for this.  There is no need to do this for all 1 million entries in the data set. Doing this for around 10,000 records is sufficient.
-        ```python
+        
+	```python
 	import dns.resolver
 	import csv
-
+	#
 	resolver = dns.resolver.Resolver()
 	resolver.nameservers = ['8.8.8.8', '8.8.4.4']
-
+	#
 	with open('top-1m.csv', 'r') as infile:
 	  with open('top-1m-with-ip.csv', 'w') as outfile:
-
+	    #
 	    reader = csv.reader(infile, delimiter=',')
 	    writer = csv.writer(outfile, delimiter=',')
 	    for row in reader:
-
+	      #
 	      host = row[1]
 	      try:
 	        response = resolver.query(host, "A")
@@ -142,7 +143,7 @@ The Alexa Top 1 Million was used as an data source for these benchmarks.
 	          ip = record
 	          writer.writerow([host, ip])
 	          print "host={}, ip={}".format(host, ip)
-
+	        #
 	      except:
 	        pass
 	```
