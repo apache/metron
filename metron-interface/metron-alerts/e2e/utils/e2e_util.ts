@@ -46,28 +46,7 @@ export function waitForStalenessOf (_element ) {
 }
 
 export function loadTestData() {
-  request.delete('http://user:password@' + browser.params.rest.url + '/api/v1/sensor/indexing/config/alerts_ui_e2e', function (e, response, body) {
-    request.post({url:'http://user:password@' + browser.params.rest.url + '/api/v1/sensor/indexing/config/alerts_ui_e2e', json:
-    {
-      "hdfs": {
-        "index": "alerts_ui_e2e",
-        "batchSize": 5,
-        "enabled": true
-      },
-      "elasticsearch": {
-        "index": "alerts_ui_e2e",
-        "batchSize": 5,
-        "enabled": true
-      },
-      "solr": {
-        "index": "alerts_ui_e2e",
-        "batchSize": 5,
-        "enabled": true
-      }
-    }
-    }, function (e, response, body) {
-    });
-  });
+  deleteTestData();
 
   let template = fs.readFileSync('e2e/mock-data/alerts_ui_e2e_index.template', 'utf8');
   request({
@@ -89,9 +68,7 @@ export function loadTestData() {
 }
 
 export function deleteTestData() {
-  request.delete('http://' + browser.params.elasticsearch.url + '/alerts_ui_e2e_index*');
-  request.delete('http://user:password@' + browser.params.rest.url + '/api/v1/sensor/indexing/config/alerts_ui_e2e', function (e, response, body) {
-  });
+  request.delete('http://node1:9200/alerts_ui_e2e_index*');
 }
 
 export function createMetaAlertsIndex() {
@@ -108,6 +85,6 @@ export function createMetaAlertsIndex() {
 }
 
 export function deleteMetaAlertsIndex() {
-  request.delete('http://' + browser.params.elasticsearch.url + '/metaalert_index*');
+  request.delete('http://node1:9200/metaalert_index*');
 }
 
