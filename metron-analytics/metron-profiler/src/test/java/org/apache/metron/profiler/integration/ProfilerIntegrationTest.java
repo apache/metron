@@ -398,8 +398,8 @@ public class ProfilerIntegrationTest extends BaseIntegrationTest {
       setProperty("profiler.ttl.units", "MILLISECONDS");
       setProperty("profiler.window.duration", Long.toString(windowDurationMillis));
       setProperty("profiler.window.duration.units", "MILLISECONDS");
-      setProperty("profiler.event.time.lag", Long.toString(eventTimeLagMillis));
-      setProperty("profiler.event.time.lag.units", "MILLISECONDS");
+      setProperty("profiler.window.lag", Long.toString(eventTimeLagMillis));
+      setProperty("profiler.window.lag.units", "MILLISECONDS");
       setProperty("profiler.max.routes.per.bolt", Long.toString(maxRoutesPerBolt));
     }};
 
