@@ -207,7 +207,6 @@ The Alexa Top 1 Million was used as an data source for these benchmarks.
 	```
 	> $METRON_HOME/bin/stellar -z $ZOOKEEPER
 	Stellar, Go!
-
 	[Stellar]>>> conf
 	{
 	  "enrichment": {
