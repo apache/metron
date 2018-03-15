@@ -121,8 +121,7 @@ The Alexa Top 1 Million was used as an data source for these benchmarks.
 2. For each hostname, query DNS to retrieve an associated IP address.  
 
 	A script like the following can be used for this.  There is no need to do this for all 1 million entries in the data set. Doing this for around 10,000 records is sufficient.
-
-	```python
+        ```python
 	import dns.resolver
 	import csv
 
@@ -271,7 +270,7 @@ It is highly recommended that each of these systems be fully isolated from the o
 
 	* The load metric should be monitored to ensure that each node is being pushed sufficiently, but not too much.
 
-	 * The load should be evenly distributed across each node.  If the load is uneven, this may indicate a problem.
+	* The load should be evenly distributed across each node.  If the load is uneven, this may indicate a problem.
 
 	A simple script like the following is sufficient for the task.
 
@@ -311,7 +310,7 @@ The approach to tuning the topology will look something like the following.  Mor
 
 	 (number of worker nodes in cluster * number cores per worker node) - (number of acker tasks)
 
-* The throughput that the topology is able to sustain should be relatively consistent.  If the throughput fluctuates greatly, increase back pressure using [`topology.max.spout.pending`](#topology-max-spout-pending).
+* The throughput that the topology is able to sustain should be relatively consistent.  If the throughput fluctuates greatly, increase back pressure using [`topology.max.spout.pending`](#topologymaxspoutpending).
 
 ### Parameters
 
@@ -497,12 +496,12 @@ The Enrichment topology has been show to scale relatively linearly.  Adding more
 
 * The Unified Enrichment topology was able to sustain 308,000 events per second on a small, dedicated 3 node cluster.
 
-* The values used to achieve these results with the Unified Enrichment topology follows.
+* The values used to achieve these results with the Unified Enrichment topology follows.  You should not attempt to use these parameters in your topology directly.  These are specific to the environment and workload and should only be used as a guideline.
 	```
 	enrichment.workers=9
 	enrichment.acker.executors=9
 	enrichment.join.cache.size=100000
-  threat.intel.join.cache.size=100000
+  	threat.intel.join.cache.size=100000
 	kafka.spout.parallelism=27
 	enrichment.join.parallelism=54
 	threat.intel.join.parallelism=9
