@@ -245,21 +245,9 @@ The Alexa Top 1 Million was used as an data source for these benchmarks.
 	done > asa.input.template
 	```
 
-3. Use the `load_test.sh` script to push messages onto the input topic `enrichments` and monitor the output topic `indexing`.
+3. Use the `load_tool.sh` script to push messages onto the input topic `enrichments` and monitor the output topic `indexing`.  See more information in the Performance [README.md](metron-contrib/metron-performance/README.md).
 
 	If the topology is keeping up, obviously the events per second produced on the input topic should roughly match the output topic.
-
-	```
-	$METRON_HOME/bin/load_test.sh \
-		-e 200000 \
-		-ot enrichments \
-		-mt indexing \
-		-p 10 \
-		-t asa.input.template \
-		-z $ZOOKEEPER
-	```
-
-	[TODO] Link to the docs that get created for the `load_test.sh` script.
 
 ### Cluster Setup
 
