@@ -223,6 +223,4 @@ public class AssignmentCommandTest {
     // validate assignment
     assertEquals(4, executor.getState().get("x").getResult());
   }
-
-
 }
