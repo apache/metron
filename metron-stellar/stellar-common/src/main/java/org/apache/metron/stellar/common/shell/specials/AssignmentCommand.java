@@ -67,10 +67,10 @@ public class AssignmentCommand implements SpecialCommand {
     if(result.isSuccess()) {
 
       Object value = null;
-      if (result.getValue().isPresent()) {
+      if(result.getValue().isPresent()) {
         value = result.getValue().get();
 
-      } else if (result.isValueNull()) {
+      } else if(result.isValueNull()) {
         value = null;
       }
 
