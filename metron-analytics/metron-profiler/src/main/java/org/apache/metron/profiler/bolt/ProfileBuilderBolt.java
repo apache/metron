@@ -340,7 +340,7 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
 
     // keep track of time
     flushSignal.update(timestamp);
-    
+
     // distribute the message
     MessageRoute route = new MessageRoute(definition, entity);
     messageDistributor.distribute(message, timestamp, route, getStellarContext());
@@ -355,7 +355,6 @@ public class ProfileBuilderBolt extends BaseWindowedBolt implements Reloadable {
    */
   private void emitMeasurements(List<ProfileMeasurement> measurements) {
 
-    // flush each profile
     for(ProfileMeasurement measurement: measurements) {
 
       // allow each 'emitter' to emit the measurement
