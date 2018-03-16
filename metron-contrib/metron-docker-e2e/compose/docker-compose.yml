@@ -17,10 +17,12 @@
 version: '2'
 services:
   zookeeper:
+    container_name: zookeeper
     image: zookeeper
     ports:
       - "2181:2181"
   kafka:
+    container_name: kafka
     image: wurstmeister/kafka:0.10.0.0
     environment:
       KAFKA_ADVERTISED_HOST_NAME: localhost
@@ -31,6 +33,7 @@ services:
     depends_on:
       - zookeeper
   elasticsearch:
+    container_name: elasticsearch
     image: docker.elastic.co/elasticsearch/elasticsearch:5.6.8
     environment:
       - xpack.security.enabled=false
@@ -47,6 +50,7 @@ services:
       - "9210:9200"
       - "9310:9300"
   metron-rest:
+    container_name: metron-rest
     build:
       context: ./metron-rest
       args:
@@ -58,6 +62,7 @@ services:
       - zookeeper
       - elasticsearch
   metron-ui:
+    container_name: metron-ui
     build:
       context: ./metron-ui
       args:

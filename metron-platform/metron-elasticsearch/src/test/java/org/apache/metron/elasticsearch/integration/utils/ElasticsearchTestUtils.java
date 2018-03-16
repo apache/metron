@@ -38,10 +38,11 @@ import java.util.Map;
 public class ElasticsearchTestUtils {
 
   public static Map<String, Object> getGlobalConfig() {
+    final String dockerIpAddress = DockerUtils.getDockerIpAddress();
     return new HashMap<String, Object>() {{
       put("es.clustername", "elasticsearch");
-      put("es.port", "9310");
-      put("es.ip", DockerUtils.getDockerIpAddress());
+      put("es.port", DockerUtils.getContainerPort(dockerIpAddress, "elasticsearch", "9300"));
+      put("es.ip", dockerIpAddress);
       put("es.date.format", "yyyy.MM.dd.HH");
     }};
   }
