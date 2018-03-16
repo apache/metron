@@ -19,11 +19,6 @@
 
 package org.apache.metron.profiler.bolt;
 
-import java.io.Serializable;
-import java.lang.invoke.MethodHandles;
-import java.util.Map;
-
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.metron.profiler.ProfileMeasurement;
@@ -34,6 +29,10 @@ import org.apache.storm.tuple.Values;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.lang.invoke.MethodHandles;
+import java.util.Map;
 
 /**
  * Responsible for emitting a {@link ProfileMeasurement} to an output stream that will
