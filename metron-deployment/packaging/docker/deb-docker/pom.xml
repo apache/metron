@@ -155,6 +155,12 @@
                                         <include>*.tar.gz</include>
                                     </includes>
                                 </resource>
+                                <resource>
+                                    <directory>${metron_dir}/metron-contrib/metron-performance/target/</directory>
+                                    <includes>
+                                        <include>*.tar.gz</include>
+                                    </includes>
+                                </resource>
                             </resources>
                         </configuration>
                     </execution>
