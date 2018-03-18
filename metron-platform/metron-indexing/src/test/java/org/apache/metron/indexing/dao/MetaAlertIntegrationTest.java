@@ -601,9 +601,15 @@ public abstract class MetaAlertIntegrationTest {
 
   @Test
   public void shouldSearchByStatus() throws Exception {
+    // Load alert
+    List<Map<String, Object>> alerts = buildAlerts(1);
+    alerts.get(0).put(METAALERT_FIELD, Collections.singletonList("meta_active"));
+    alerts.get(0).put("ip_src_addr", "192.168.1.1");
+    alerts.get(0).put("ip_src_port", 8010);
+
     // Load metaAlerts
     Map<String, Object> activeMetaAlert = buildMetaAlert("meta_active", MetaAlertStatus.ACTIVE,
-        Optional.empty());
+        Optional.of(Collections.singletonList(alerts.get(0))));
     Map<String, Object> inactiveMetaAlert = buildMetaAlert("meta_inactive",
         MetaAlertStatus.INACTIVE,
         Optional.empty());
@@ -708,37 +714,33 @@ public abstract class MetaAlertIntegrationTest {
       }
     });
 
-    while(true) {
+    // Nested query should match a nested alert
+    Assert.assertEquals(1, searchResponse.getTotal());
+    Assert.assertEquals("meta_active",
+        searchResponse.getResults().get(0).getSource().get("guid"));
 
-    }
+    // Query against all indices. The child alert has no actual attached meta alerts, and should
+    // be returned on its own.
+    searchResponse = metaDao.search(new SearchRequest() {
+      {
+        setQuery(
+            "(ip_src_addr:192.168.1.3 AND ip_src_port:8008)"
+                + " OR (alert.ip_src_addr:192.168.1.3 AND alert.ip_src_port:8008)");
+        setIndices(Collections.singletonList("*"));
+        setFrom(0);
+        setSize(1);
+        setSort(Collections.singletonList(new SortField() {
+          {
+            setField(Constants.GUID);
+          }
+        }));
+      }
+    });
 
-//    // Nested query should match a nested alert
-//    Assert.assertEquals(1, searchResponse.getTotal());
-//    Assert.assertEquals("meta_active",
-//        searchResponse.getResults().get(0).getSource().get("guid"));
-//
-//    // Query against all indices. The child alert has no actual attached meta alerts, and should
-//    // be returned on its own.
-//    searchResponse = metaDao.search(new SearchRequest() {
-//      {
-//        setQuery(
-//            "(ip_src_addr:192.168.1.3 AND ip_src_port:8008)"
-//                + " OR (alert.ip_src_addr:192.168.1.3 AND alert.ip_src_port:8008)");
-//        setIndices(Collections.singletonList("*"));
-//        setFrom(0);
-//        setSize(1);
-//        setSort(Collections.singletonList(new SortField() {
-//          {
-//            setField(Constants.GUID);
-//          }
-//        }));
-//      }
-//    });
-//
-//    // Nested query should match a plain alert
-//    Assert.assertEquals(1, searchResponse.getTotal());
-//    Assert.assertEquals("message_2",
-//        searchResponse.getResults().get(0).getSource().get("guid"));
+    // Nested query should match a plain alert
+    Assert.assertEquals(1, searchResponse.getTotal());
+    Assert.assertEquals("message_2",
+        searchResponse.getResults().get(0).getSource().get("guid"));
   }
 
   @Test
@@ -820,7 +822,8 @@ public abstract class MetaAlertIntegrationTest {
       };
       String guid = "" + message0.get(Constants.GUID);
       // TODO keep the index name here?
-      metaDao.update(new Document(message0, guid, SENSOR_NAME, null), Optional.of(getTestIndexName()));
+      metaDao
+          .update(new Document(message0, guid, SENSOR_NAME, null), Optional.of(getTestIndexName()));
 
       {
         // Verify alerts are up-to-date
@@ -1106,5 +1109,6 @@ public abstract class MetaAlertIntegrationTest {
   protected abstract String getTestIndexName();
 
   // Allow for impls to do any commit they need to do.
-  protected void commit() throws IOException { }
+  protected void commit() throws IOException {
+  }
 }

@@ -155,8 +155,10 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
         }));
       }
     });
-    // Should have one result because of Solr querying manner.
-    Assert.assertEquals(0, searchResponse.getTotal());
+    // Should have one result because Solr will return the parent.
+    Assert.assertEquals(1, searchResponse.getTotal());
+    Assert.assertEquals("meta_active",
+        searchResponse.getResults().get(0).getSource().get("guid"));
 
     ArrayList<String> indices = new ArrayList<>();
     indices.add(getTestIndexName());
@@ -189,7 +191,7 @@ public class SolrMetaAlertIntegrationTest extends MetaAlertIntegrationTest {
       {
         setQuery(
             "ip_src_addr:192.168.1.3 AND ip_src_port:8008");
-        setIndices(Collections.singletonList("*"));
+        setIndices(indices);
         setFrom(0);
         setSize(1);
         setSort(Collections.singletonList(new SortField() {
